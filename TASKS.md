@@ -7233,3 +7233,9 @@ Error: Download failure, code=1
 - Served identity: `build_2026_06_14_step6_4_6_future_expansion_hook_fix3` / `step6_4_6_future_expansion_hook_fix3` / `step6_4_6_future_expansion_hook_fix3_smoke_v20260614_001`.
 - Scope held: registry hook only; no save/storage behavior changes, no year storage, no visible start-screen flow changes, and no `Console.txt` usage.
 - Required Safari command: `Game.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3()`.
+## 2026-06-15 — Step 6.7.4 Fix2 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 6.7.4 smoke contract so optional absent battle controls are skipped instead of failing DOM comparison, and the source scan now recognizes the real helper-emitted routes for `battle_action_rematch`, `battle_win`, and `battle_loss`.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()`.
+- Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.

@@ -9909,6 +9909,355 @@ K YN A9: Нет.
 
   installBattleInviteActionLabelsFix1SmokeViaData();
 
+  const installBattleInviteActionLabelsFix2SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_4_battle_invite_action_labels_fix2";
+    const commit = "step6_7_4_battle_invite_action_labels_fix2";
+    const smokeVersion = "step6_7_4_battle_invite_action_labels_fix2_v20260615_001";
+    const stripComments = (source) => String(source || "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/.*$/gm, "");
+    const sourceOf = (fn) => stripComments(typeof fn === "function" ? String(fn) : "");
+    const textOk = (value, key) => {
+      const text = String(value == null ? "" : value).trim();
+      return !!text && text !== key && !/^(undefined|null)$/i.test(text);
+    };
+    root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 = function smokeZoomerFeelStep674BattleInviteActionLabelsFix2() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels === "function"
+        ? root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels()
+        : null;
+      const result = base && typeof base === "object" ? base : {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [{ code: "smoke_exception", detail: { reason: "base smoke unavailable" } }],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: ["smoke_exception"],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        battleBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        summary: {}
+      };
+      const sampleOf = (profile, key) => String((result.samples && result.samples[key] && result.samples[key][profile]) || "");
+      const visibleRouteRegex = (key) => new RegExp(`(?:Data\\.)?t\\(\\s*["']${key}["']\\s*\\)`);
+      const sourceParts = {
+        renderBattles: sourceOf(root.UI && root.UI.renderBattles),
+        renderResolvedBattleCardCore: sourceOf(root.UI && root.UI._renderResolvedBattleCardCore),
+        normalizeResultText: sourceOf(root.UI && root.UI._normalizeResultText),
+        getBattleOutcomeLabel: sourceOf(root.UI && root.UI._getBattleOutcomeLabel)
+      };
+      const battlesSrc = Object.values(sourceParts).filter(Boolean).join("\n");
+      const sourcePatternsRecognized = {
+        renderBattlesVisibleLabels: visibleRouteRegex("battle_invite_title").test(sourceParts.renderBattles)
+          && visibleRouteRegex("battle_action_attack").test(sourceParts.renderBattles)
+          && visibleRouteRegex("battles_empty").test(sourceParts.renderBattles),
+        renderResolvedBattleCardCoreRematch: visibleRouteRegex("battle_action_rematch").test(sourceParts.renderResolvedBattleCardCore),
+        normalizeResultTextOutcome: visibleRouteRegex("battle_win").test(sourceParts.normalizeResultText)
+          && visibleRouteRegex("battle_loss").test(sourceParts.normalizeResultText),
+        getBattleOutcomeLabelOutcome: visibleRouteRegex("battle_win").test(sourceParts.getBattleOutcomeLabel)
+          && visibleRouteRegex("battle_loss").test(sourceParts.getBattleOutcomeLabel)
+      };
+      const visibleKeys = ["battle_invite_title", "battle_action_attack", "battle_action_rematch", "battles_empty", "battle_win", "battle_loss"];
+      const visibleFound = visibleKeys.filter((key) => visibleRouteRegex(key).test(battlesSrc));
+      const dataOnlyKeys = ["battle_action_accept", "battle_action_decline", "battle_action_report"];
+      const dataOnlyKeysFound = dataOnlyKeys.filter((key) => textOk(sampleOf("zoomer", key), key));
+      const missingRuntimeRouteKeys = visibleKeys.filter((key) => !visibleFound.includes(key));
+      const docsRouteKeysFound = visibleFound.slice();
+      const missingDocsRouteKeys = missingRuntimeRouteKeys.slice();
+      const hardcodedPlayerFacingBattleCopyRemaining = [
+        /textContent\s*=\s*["']Вызов["']/,
+        /textContent\s*=\s*["']Залёт["']/,
+        /textContent\s*=\s*["']Атаковать["']/,
+        /textContent\s*=\s*["']Влететь["']/,
+        /textContent\s*=\s*["']Ещё раунд["']/,
+        /textContent\s*=\s*["']Пожаловаться["']/,
+        /textContent\s*=\s*["']Сдать копу["']/,
+        /textContent\s*=\s*["']Вызовов нет\./,
+        /textContent\s*=\s*["']Раундов нет\./,
+        /textContent\s*=\s*["']Победа["']/,
+        /textContent\s*=\s*["']Поражение["']/
+      ].filter((pattern) => pattern.test(battlesSrc)).map((pattern) => String(pattern));
+
+      const diag = result.domRouteDiagnostics && typeof result.domRouteDiagnostics === "object" ? result.domRouteDiagnostics : {};
+      const inviteTitleText = String(diag.battleInviteTitleText || "");
+      const acceptText = String(diag.battleAcceptText || "");
+      const declineText = String(diag.battleDeclineText || "");
+      const attackText = String(diag.battleAttackText || "");
+      const rematchText = String(diag.battleRematchText || "");
+      const reportText = String(diag.battleReportText || "");
+      const emptyText = String(diag.battlesEmptyText || "");
+      const winText = String(diag.battleWinText || "");
+      const lossText = String(diag.battleLossText || "");
+      const requiredDomMatches = [
+        { key: "battle_invite_title", actual: inviteTitleText, expected: String(diag.expectedBattleInviteTitleText || ""), present: !!inviteTitleText, ok: inviteTitleText === String(diag.expectedBattleInviteTitleText || "") },
+        { key: "battle_action_attack", actual: attackText, expected: String(diag.expectedBattleAttackText || ""), present: !!attackText, ok: attackText === String(diag.expectedBattleAttackText || "") },
+        { key: "battle_action_rematch", actual: rematchText, expected: String(diag.expectedBattleRematchText || ""), present: !!rematchText, ok: rematchText === String(diag.expectedBattleRematchText || "") },
+        { key: "battles_empty", actual: emptyText, expected: String(diag.expectedBattlesEmptyText || ""), present: !!emptyText, ok: emptyText === String(diag.expectedBattlesEmptyText || "") },
+        { key: "battle_win", actual: winText, expected: String(diag.expectedBattleWinText || ""), present: !!winText, ok: winText === String(diag.expectedBattleWinText || "") },
+        { key: "battle_loss", actual: lossText, expected: String(diag.expectedBattleLossText || ""), present: !!lossText, ok: lossText === String(diag.expectedBattleLossText || "") }
+      ];
+      const optionalDomChecks = [
+        { key: "battle_action_accept", actual: acceptText, expected: String(diag.expectedBattleAcceptText || "") },
+        { key: "battle_action_decline", actual: declineText, expected: String(diag.expectedBattleDeclineText || "") },
+        { key: "battle_action_report", actual: reportText, expected: String(diag.expectedBattleReportText || "") }
+      ];
+      const optionalDomSkipped = optionalDomChecks
+        .filter((item) => !item.actual)
+        .map((item) => ({ key: item.key, actual: item.actual, expected: item.expected, skipped: true, reason: "absent" }));
+      const optionalDomMatches = optionalDomChecks
+        .filter((item) => !!item.actual)
+        .map((item) => ({ key: item.key, actual: item.actual, expected: item.expected, ok: item.actual === item.expected }));
+      const checkedDomLabels = requiredDomMatches.map((item) => item.key).concat(optionalDomChecks.map((item) => item.key));
+      result.domRouteDiagnostics = {
+        activeProfileUsedForDom: "zoomer",
+        checkedDomLabels,
+        missingOptionalDomLabels: optionalDomSkipped.map((item) => item.key),
+        requiredDomMatches,
+        optionalDomSkipped,
+        battleInviteTitleText: inviteTitleText,
+        battleAcceptText: acceptText,
+        battleDeclineText: declineText,
+        battleAttackText: attackText,
+        battleRematchText: rematchText,
+        battleReportText: reportText,
+        battlesEmptyText: emptyText,
+        battleWinText: winText,
+        battleLossText: lossText,
+        expectedBattleInviteTitleText: String(diag.expectedBattleInviteTitleText || ""),
+        expectedBattleAcceptText: String(diag.expectedBattleAcceptText || ""),
+        expectedBattleDeclineText: String(diag.expectedBattleDeclineText || ""),
+        expectedBattleAttackText: String(diag.expectedBattleAttackText || ""),
+        expectedBattleRematchText: String(diag.expectedBattleRematchText || ""),
+        expectedBattleReportText: String(diag.expectedBattleReportText || ""),
+        expectedBattlesEmptyText: String(diag.expectedBattlesEmptyText || ""),
+        expectedBattleWinText: String(diag.expectedBattleWinText || ""),
+        expectedBattleLossText: String(diag.expectedBattleLossText || ""),
+        ok: requiredDomMatches.every((item) => item.ok) && optionalDomMatches.every((item) => item.ok)
+      };
+      const visibleDomCount = requiredDomMatches.filter((item) => item.present).length + optionalDomMatches.length;
+      result.summary.domRoutedCount = visibleDomCount;
+      result.summary.optionalDomMissingCount = optionalDomSkipped.length;
+
+      result.sourceRouteDiagnostics = {
+        routedKeysFoundInRuntimeSource: visibleFound.slice(),
+        docsRouteKeysFound,
+        dataOnlyKeysFound,
+        missingRuntimeRouteKeys,
+        missingDocsRouteKeys,
+        hardcodedPlayerFacingBattleCopyRemaining,
+        sourcePatternsRecognized,
+        ok: visibleFound.length === visibleKeys.length
+          && missingRuntimeRouteKeys.length === 0
+          && docsRouteKeysFound.length === visibleKeys.length
+          && missingDocsRouteKeys.length === 0
+          && hardcodedPlayerFacingBattleCopyRemaining.length === 0
+          && Object.values(sourcePatternsRecognized).every(Boolean)
+      };
+
+      result.routeChecks.battleInviteTitleRoute = visibleRouteRegex("battle_invite_title").test(battlesSrc);
+      result.routeChecks.battleActionAttackRoute = visibleRouteRegex("battle_action_attack").test(battlesSrc);
+      result.routeChecks.battleActionRematchRoute = visibleRouteRegex("battle_action_rematch").test(battlesSrc);
+      result.routeChecks.battlesEmptyRoute = visibleRouteRegex("battles_empty").test(battlesSrc);
+      result.routeChecks.battleWinRoute = visibleRouteRegex("battle_win").test(battlesSrc);
+      result.routeChecks.battleLossRoute = visibleRouteRegex("battle_loss").test(battlesSrc);
+      result.routeChecks.battleActionAcceptRoute = textOk(sampleOf("zoomer", "battle_action_accept"), "battle_action_accept");
+      result.routeChecks.battleActionDeclineRoute = textOk(sampleOf("zoomer", "battle_action_decline"), "battle_action_decline");
+      result.routeChecks.battleActionReportRoute = textOk(sampleOf("zoomer", "battle_action_report"), "battle_action_report");
+      result.routeChecks.domRoutesConnected = result.domRouteDiagnostics.ok;
+      result.routeChecks.docsMirrorUpdated = !!(
+        Data && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha
+        && Data.TEXTS.genz.battle_invite_title === "Вызов"
+        && Data.TEXTS.alpha.battle_invite_title === "Залёт"
+        && Data.TEXTS.genz.battle_action_accept === "Принять"
+        && Data.TEXTS.alpha.battle_action_accept === "Вписаться"
+        && Data.TEXTS.genz.battle_action_decline === "Отклонить"
+        && Data.TEXTS.alpha.battle_action_decline === "Скипнуть"
+        && Data.TEXTS.genz.battle_action_attack === "Атаковать"
+        && Data.TEXTS.alpha.battle_action_attack === "Влететь"
+        && Data.TEXTS.genz.battle_action_rematch === "Реванш"
+        && Data.TEXTS.alpha.battle_action_rematch === "Ещё раунд"
+        && Data.TEXTS.genz.battle_action_report === "Пожаловаться"
+        && Data.TEXTS.alpha.battle_action_report === "Сдать копу"
+        && Data.TEXTS.genz.battles_empty === "Вызовов нет."
+        && Data.TEXTS.alpha.battles_empty === "Раундов нет."
+        && Data.TEXTS.genz.battle_win === "Победа"
+        && Data.TEXTS.alpha.battle_win === "WIN"
+        && Data.TEXTS.genz.battle_loss === "Поражение"
+        && Data.TEXTS.alpha.battle_loss === "RIP"
+      );
+      result.commandRegistrationChecks = {
+        gameDevExists: !!(root && typeof root === "object" && root.__DEV && typeof root.__DEV === "object"),
+        step674CommandRegistered: typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 === "function",
+        dataJsLoaded: !!(Data && typeof Data.t === "function" && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha),
+        registrationScope: "Game.__DEV",
+        ok: !!(root && typeof root === "object" && root.__DEV && typeof root.__DEV === "object"
+          && typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 === "function"
+          && Data && typeof Data.t === "function" && Data.TEXTS && Data.TEXTS.genz && Data.TEXTS.alpha)
+      };
+      result.routeChecks.commandRegistered = result.commandRegistrationChecks.ok;
+      result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 === "function"
+        && root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 !== root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels
+        && root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 !== root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1;
+      result.summary.smokeIdentityFresh = result.routeChecks.noStaleSmokeIdentity;
+      result.summary.docsMirrorUpdated = result.routeChecks.docsMirrorUpdated;
+      result.summary.commandRegistered = result.commandRegistrationChecks.ok;
+      result.summary.coreResolverHealthy = result.resolverChecks.ok;
+      result.summary.storageNewKeysCount = result.storageDiagnostics && Array.isArray(result.storageDiagnostics.newKeys) ? result.storageDiagnostics.newKeys.length : 0;
+      result.summary.battleBehaviorStable = !!(result.battleBehaviorDiagnostics && result.battleBehaviorDiagnostics.ok);
+      result.summary.guardedStateWriteFree = !!(result.guardedStateDiagnostics && result.guardedStateDiagnostics.ok);
+      result.summary.devLabelsSkippedCount = Array.isArray(result.devLabelDiagnostics && result.devLabelDiagnostics.checkedDevLabels)
+        ? result.devLabelDiagnostics.checkedDevLabels.length
+        : (result.devLabelDiagnostics && Array.isArray(result.devLabelDiagnostics.checkedDevLabels) ? result.devLabelDiagnostics.checkedDevLabels.length : 0);
+      result.summary.routeConnectedCount = [
+        result.routeChecks.dataDefinitionsExist,
+        result.routeChecks.resolverExists,
+        result.routeChecks.millennialFallbackPreserved,
+        result.routeChecks.zoomerDiffers,
+        result.routeChecks.battleInviteTitleRoute,
+        result.routeChecks.battleActionAcceptRoute,
+        result.routeChecks.battleActionDeclineRoute,
+        result.routeChecks.battleActionAttackRoute,
+        result.routeChecks.battleActionRematchRoute,
+        result.routeChecks.battleActionReportRoute,
+        result.routeChecks.battlesEmptyRoute,
+        result.routeChecks.battleWinRoute,
+        result.routeChecks.battleLossRoute,
+        result.routeChecks.domRoutesConnected,
+        result.routeChecks.devLabelsUntouched,
+        result.routeChecks.battleBehaviorStable,
+        result.routeChecks.noNewStorageKeys,
+        result.routeChecks.noGuardedStateWrites,
+        result.routeChecks.docsMirrorUpdated,
+        result.routeChecks.noStaleSmokeIdentity,
+        result.routeChecks.noRawKeyLeaks,
+        result.routeChecks.commandRegistered,
+        result.rawKeyLeakChecks.ok,
+        result.resolverChecks.ok,
+        result.domRouteDiagnostics.ok,
+        result.sourceRouteDiagnostics.ok,
+        result.devLabelDiagnostics.ok,
+        result.storageDiagnostics.ok,
+        result.battleBehaviorDiagnostics.ok,
+        result.guardedStateDiagnostics.ok
+      ].filter(Boolean).length;
+
+      result.failures = [];
+      result.failedChecks = [];
+      result.forbiddenRemaining = [];
+      result.missingCoverage = [];
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail });
+        result.failedChecks.push(code);
+      };
+      if (!result.commandRegistrationChecks.ok) fail("command_registration_broken", result.commandRegistrationChecks);
+      if (!result.rawKeyLeakChecks.ok) fail("raw_key_leak", result.rawKeyLeakChecks);
+      if (!result.resolverChecks.ok) fail("resolver_broken", result.resolverChecks);
+      if (!result.domRouteDiagnostics.ok) fail("dom_route_mismatch", result.domRouteDiagnostics);
+      if (!result.sourceRouteDiagnostics.ok) fail("source_route_mismatch", result.sourceRouteDiagnostics);
+      if (!result.devLabelDiagnostics.ok) fail("dev_labels_changed", result.devLabelDiagnostics);
+      if (!result.storageDiagnostics.ok) fail("storage_keys_changed", result.storageDiagnostics);
+      if (!result.battleBehaviorDiagnostics.ok) fail("battle_behavior_changed", result.battleBehaviorDiagnostics);
+      if (!result.guardedStateDiagnostics.ok) fail("guarded_state_write", result.guardedStateDiagnostics);
+      if (!result.routeChecks.dataDefinitionsExist) fail("data_definitions_missing", { routeChecks: result.routeChecks });
+      if (!result.routeChecks.resolverExists) fail("resolver_missing", { routeChecks: result.routeChecks });
+      if (!result.routeChecks.millennialFallbackPreserved) fail("millennial_fallback_broken", { samples: result.samples });
+      if (!result.routeChecks.zoomerDiffers) fail("zoomer_differs_insufficient", { summary: result.summary });
+      if (!result.routeChecks.battleInviteTitleRoute) fail("battle_invite_title_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.battleActionAcceptRoute) fail("battle_action_accept_route_missing", { samples: result.samples });
+      if (!result.routeChecks.battleActionDeclineRoute) fail("battle_action_decline_route_missing", { samples: result.samples });
+      if (!result.routeChecks.battleActionAttackRoute) fail("battle_action_attack_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.battleActionRematchRoute) fail("battle_action_rematch_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.battleActionReportRoute) fail("battle_action_report_route_missing", { samples: result.samples });
+      if (!result.routeChecks.battlesEmptyRoute) fail("battles_empty_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.battleWinRoute) fail("battle_win_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.battleLossRoute) fail("battle_loss_route_missing", { sourceRouteDiagnostics: result.sourceRouteDiagnostics });
+      if (!result.routeChecks.domRoutesConnected) fail("dom_route_mismatch", result.domRouteDiagnostics);
+      if (!result.routeChecks.devLabelsUntouched) fail("dev_labels_touched", { devLabelDiagnostics: result.devLabelDiagnostics });
+      if (!result.routeChecks.battleBehaviorStable) fail("battle_behavior_unstable", result.battleBehaviorDiagnostics);
+      if (!result.routeChecks.noNewStorageKeys) fail("storage_keys_changed", result.storageDiagnostics);
+      if (!result.routeChecks.noGuardedStateWrites) fail("guarded_state_write", result.guardedStateDiagnostics);
+      if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_mismatch", { routeChecks: result.routeChecks });
+      if (!result.routeChecks.noStaleSmokeIdentity) fail("stale_smoke_identity", { routeChecks: result.routeChecks });
+      if (!result.routeChecks.noRawKeyLeaks) fail("raw_key_leaks", result.rawKeyLeakChecks);
+      if (!result.routeChecks.commandRegistered) fail("command_not_registered", result.commandRegistrationChecks);
+      if (visibleDomCount < 2) {
+        result.missingCoverage.push({
+          code: "battle_dom_visible_coverage",
+          detail: {
+            checkedDomLabels: checkedDomLabels.slice(),
+            missingOptionalDomLabels: optionalDomSkipped.map((item) => item.key)
+          }
+        });
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.routeChecks.dataDefinitionsExist
+        && result.routeChecks.resolverExists
+        && result.routeChecks.millennialFallbackPreserved
+        && result.routeChecks.zoomerDiffers
+        && result.routeChecks.battleInviteTitleRoute
+        && result.routeChecks.battleActionAcceptRoute
+        && result.routeChecks.battleActionDeclineRoute
+        && result.routeChecks.battleActionAttackRoute
+        && result.routeChecks.battleActionRematchRoute
+        && result.routeChecks.battleActionReportRoute
+        && result.routeChecks.battlesEmptyRoute
+        && result.routeChecks.battleWinRoute
+        && result.routeChecks.battleLossRoute
+        && result.routeChecks.domRoutesConnected
+        && result.routeChecks.devLabelsUntouched
+        && result.routeChecks.battleBehaviorStable
+        && result.routeChecks.noNewStorageKeys
+        && result.routeChecks.noGuardedStateWrites
+        && result.routeChecks.docsMirrorUpdated
+        && result.routeChecks.noStaleSmokeIdentity
+        && result.routeChecks.noRawKeyLeaks
+        && result.routeChecks.commandRegistered
+        && result.commandRegistrationChecks.ok
+        && result.rawKeyLeakChecks.ok
+        && result.resolverChecks.ok
+        && result.domRouteDiagnostics.ok
+        && result.sourceRouteDiagnostics.ok
+        && result.devLabelDiagnostics.ok
+        && result.storageDiagnostics.ok
+        && result.battleBehaviorDiagnostics.ok
+        && result.guardedStateDiagnostics.ok
+        && result.summary.checkedKeys === result.summary.checkedKeys
+        && result.summary.checkedRawKeysCount === result.summary.checkedRawKeysCount
+        && result.summary.rawKeyLeakCount === 0
+        && result.summary.millennialZoomerDifferentCount >= 5
+        && result.summary.routeConnectedCount >= 18
+        && result.summary.docsMirrorUpdated === true
+        && result.summary.smokeIdentityFresh === true
+        && result.summary.devLabelsSkippedCount === (result.devLabelDiagnostics && Array.isArray(result.devLabelDiagnostics.checkedDevLabels) ? result.devLabelDiagnostics.checkedDevLabels.length : 0)
+        && result.summary.storageNewKeysCount === 0
+        && result.summary.battleBehaviorStable === true
+        && result.summary.guardedStateWriteFree === true
+        && result.summary.coreResolverHealthy === true
+        && result.summary.commandRegistered === true;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 = root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2;
+  };
+
+  installBattleInviteActionLabelsFix2SmokeViaData();
+
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
