@@ -1,0 +1,1547 @@
+UI_PROFILE_ZOOMER_DIFF.md:7:## Millennial -> zoomer comparison table
+UI_PROFILE_ZOOMER_DIFF.md:120:Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.
+UI_PROFILE_ZOOMER_DIFF.md:139:Canonical mapping table only. Source: Step 4 [1] inventory unique UI strings. Each millennial entry has exactly one zoomer replacement. No runtime strings are rewritten by this table. No gameplay, logic, category, or copy application changes.
+SMOKE_TEST_COMMANDS.md:44:console.table(
+SMOKE_TEST_COMMANDS.md:84:console.table(eventLogs);
+SMOKE_TEST_COMMANDS.md:263:console.table(
+SMOKE_TEST_COMMANDS.md:276:console.table(
+SMOKE_TEST_COMMANDS.md:475:  console.table(runs);
+STYLELEX.md:19:- Dev-card: player-visible developer cards, debug-facing cards that can be shown to testers, diagnostic copy intended to be read by humans.
+STYLELEX.md:31:2. Forbidden/taboo list: banned words, tone patterns, slang, officialese, memes, sarcasm, patronizing phrases, and any wording that blames or lectures the player.
+STYLELEX.md:33:4. Phrase length rules: maximum preferred phrase lengths for UI, toasts, hints, NPC lines, dev-card text, and errors.
+STYLELEX.md:49:- Documentation lists all covered surfaces: UI, NPC, dev-card, toasts, hints, errors.
+STYLELEX.md:50:- Documentation lists all required future artifacts: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, addressing rules.
+STYLELEX.md:57:- Any required covered surface is missing: UI, NPC, dev-card, toasts, hints, or errors.
+STYLELEX.md:58:- Any required future artifact is missing: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, or addressing rules.
+P0_DIAGNOSTIC_COMMANDS.md:26:  const list = Game.Data.getArgCanonGroup(sub, "YN") || [];
+P0_DIAGNOSTIC_COMMANDS.md:27:  list.forEach(item => canonYN.push(item.a || item.text));
+P0_DIAGNOSTIC_COMMANDS.md:51:console.table((Game.Debug.moneyLog || []).slice(-3));
+P0_DIAGNOSTIC_COMMANDS.md:76:console.table((Game.Debug.moneyLog || []).slice(-5));
+P0_DIAGNOSTIC_COMMANDS.md:111:console.table((Game.Debug.moneyLog || []).slice(-3));
+P0_DIAGNOSTIC_COMMANDS.md:123:console.table((Game.Debug.moneyLog || []).slice(-5));
+P0_DIAGNOSTIC_COMMANDS.md:135:console.table(recent.filter(l => l.currency === "rep"));
+P0_DIAGNOSTIC_COMMANDS.md:138:console.table(recent.filter(l => !l.currency || l.currency === "points"));
+P0_DIAGNOSTIC_COMMANDS.md:141:console.table(recent.filter(l => l.reason && l.reason.includes("cop")));
+docs/events.js:670:      // Build eligible list once for a deterministic fallback.
+docs/events.js:1690:    const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
+docs/events.js:1691:    return list.find(b => b && (b.id === battleId || b.battleId === battleId)) || null;
+docs/events.js:1726:    if (stateSurface.events && Array.isArray(stateSurface.events.list)) return stateSurface.events.list;
+TEAM_LOG.md:479:- `console.table` показал 11 REP-записей, все с `reason="rep_crowd_vote_minority"`.
+TEAM_LOG.md:485:- `console.table(Game.Debug.moneyLog.filter(e => e.currency==="rep")...)` — 11 строк rep_crowd_vote_minority, crowd_pool → npc_*.
+TEAM_LOG.md:505:**Evidence:** Вывод консоли пользователя по `console.table(...filter currency=rep && (sourceId/targetId==="me"))` (пусто) + сообщение “правку кода лучше поручать исполнителю”.  
+TEAM_LOG.md:527:- `console.table` для rep-транзакций с участием me
+TEAM_LOG.md:551:   - Проверить: `console.table(Game.Debug.moneyLog.filter(x => x.currency==="rep" && x.targetId==="me"))` → должны появиться строки.
+TEAM_LOG.md:554:   - Проверить: `console.table(Game.Debug.moneyLog.filter(x => x.currency==="rep" && x.sourceId==="me"))` → должны появиться строки.
+TEAM_LOG.md:557:5. Снять артефакт: `console.table(Game.Debug.moneyLog.filter(x => x.currency==="rep" && (x.sourceId==="me" || x.targetId==="me")))` и `{meRep: Game.State.rep, crowdPoolRep: Game.Debug.repPools.crowd_pool.rep, dailyPoolRep: Game.Debug.repPools.daily_pool?.rep || null}`.
+TEAM_LOG.md:687:- DOM list `.eventVoteBtn` под `data-battle-id` (тексты с “- 0”).
+TEAM_LOG.md:775:      const card = document.querySelector(`[data-battle-id="${battleId}"]`);
+TEAM_LOG.md:776:      if (card) {
+TEAM_LOG.md:777:        const voteRow = card.querySelector('.eventVoteRow');
+TEAM_LOG.md:844:- Следующий шаг диагностики перед новым фиксом: подтвердить, вызывается ли `updateBattleCounters` вообще в момент прихода новых голосов (есть ли `[updateBattleCounters]...` в консоли) и находит ли селектор нужный DOM (card/querySelectorAll по `data-battle-id`).
+TEAM_LOG.md:1548:**Границы:** Входит: изменение CSS для `.block/.panel/.eventCard/.battleCard .mention-list` в `style.css` строки 919-932 — `position:static` → `position:relative`, `z-index:auto` → `z-index:100`. Не входит: изменение порядка элементов в DOM.  
+TEAM_LOG.md:1607:**Подтверждение:** grep показывает CSS-правило #battleInviteList с !important и transform; node --check ui-battles.js PASS; CSS-специфичность: ID-селектор (0,1,0,0) > .block .mention-list (0,0,2,0) → CSS-правило с !important гарантированно применяется.  
+UI_PROFILE_ZOOMER_FINAL.md:14:## Forbidden list
+docs/data/style-lex.js:49:        "Result card: максимум 3-4 строки.",
+docs/data/style-lex.js:51:        "Dev card: максимум 3-4 строки.",
+docs/data/style-lex.js:162:      const list = Array.isArray(tabooForms[category]) ? tabooForms[category] : [];
+docs/data/style-lex.js:163:      for (const term of list) {
+docs/data/style-lex.js:453:  const listIncludes = (list, value) => Array.isArray(list) && list.includes(value);
+docs/data/style-lex.js:709:    add("Твой выбор: Аки", "resultCard", "crowd.outcome", { directAddress: true, source: "ui-events result card choice" });
+docs/data/style-lex.js:710:    add("Итог голосования: 2:1", "resultCard", "crowd.outcome", { source: "ui-events result card votes" });
+docs/data/style-lex.js:711:    add("+1⭐ +1💰", "resultCard", "crowd.outcome", { source: "ui-events result card deltas" });
+docs/data/style-lex.js:724:    add("Аки: Свалить Рин", "resultCard", "escape.result", { source: "npcEscapeResolvedLines card" });
+docs/data/style-lex.js:725:    add("Аки: Свалить не удалось Рин", "resultCard", "escape.result", { source: "npcEscapeResolvedLines card" });
+docs/data/style-lex.js:728:    add("Аки: Отвали Рин", "resultCard", "ignore.result", { source: "npcEscapeResolvedLines off card" });
+docs/data/style-lex.js:729:    add("Аки: Отвали не прошел Рин", "resultCard", "ignore.result", { source: "npcEscapeResolvedLines off card" });
+docs/ui/ui-chat.js:54:      // Fallback by name vs NPC list
+docs/ui/ui-chat.js:73:      // Fallback by name vs NPC list
+docs/ui/ui-chat.js:92:      // Fallback by name vs NPC list
+docs/ui/ui-chat.js:143:    // Prefer explicit places list, then locations names, then a small default.
+docs/ui/ui-chat.js:307:    const list = document.createElement("div");
+docs/ui/ui-chat.js:308:    list.id = "mentionList";
+docs/ui/ui-chat.js:309:    list.className = "mention-list";
+docs/ui/ui-chat.js:310:    list.style.position = "fixed"; // Fixed positioning to escape parent overflow
+docs/ui/ui-chat.js:311:    list.style.zIndex = "9999"; // High z-index to appear above all elements
+docs/ui/ui-chat.js:312:    list.style.maxHeight = "200px";
+docs/ui/ui-chat.js:313:    list.style.overflowY = "auto";
+docs/ui/ui-chat.js:320:      list.appendChild(it);
+docs/ui/ui-chat.js:327:      list.style.left = `${rect.left}px`;
+docs/ui/ui-chat.js:332:      list.style.top = `${top}px`;
+docs/ui/ui-chat.js:333:      list.style.width = `${Math.max(rect.width, 200)}px`;
+docs/ui/ui-chat.js:336:    document.body.appendChild(list);
+docs/ui/ui-chat.js:634:    // Click/focus in input should show the list (even if query is empty).
+docs/ui/ui-chat.js:727:  // Creates a system bubble bound to an events card via eventId.
+docs/ui/ui-boot.js:156:    const table = mode === "zoomer" ? zoomer : millennial;
+docs/ui/ui-boot.js:157:    return String(Object.prototype.hasOwnProperty.call(table, key) ? table[key] : millennial[key] || "");
+docs/ui/ui-boot.js:210:      const card = st.querySelector("#startCard") || st.firstElementChild || st;
+docs/ui/ui-boot.js:211:      card.appendChild(reset);
+docs/ui/ui-boot.js:233:    const card = st.querySelector("#startCard");
+docs/ui/ui-boot.js:234:    if (card) {
+docs/ui/ui-boot.js:235:      card.style.pointerEvents = "auto";
+docs/ui/ui-boot.js:236:      card.style.position = card.style.position || "relative";
+docs/ui/ui-boot.js:237:      card.style.zIndex = card.style.zIndex || "1";
+docs/ui/ui-boot.js:4982:        const pushUnique = (list, value) => {
+docs/ui/ui-boot.js:4984:          if (!list.some((item) => stableJson(item) === key)) list.push(value);
+docs/ui/ui-boot.js:5116:        const pushUnique = (list, value) => {
+docs/ui/ui-boot.js:5118:          if (!list.some((item) => stableJson(item) === key)) list.push(value);
+docs/ui/ui-boot.js:8819:    // Build players once so name lists exist (mentions, DM roster), but do NOT start loops yet
+docs/ui/ui-boot.js:8902:        const addUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+docs/ui/ui-boot.js:9099:        const pushUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+docs/ui/ui-boot.js:10138:            : (st && st.id === "startCard" ? "card-root" : "document-fallback");
+docs/ui/ui-core.js:1183:      const list = Object.values(S.players || {}).filter(x => x && x.name && String(x.name).toLowerCase() === n);
+docs/ui/ui-core.js:1184:      if (list.length > 1) {
+docs/ui/ui-core.js:1185:        p = list.find(x => x.role === "cop") || list[0];
+docs/ui/ui-core.js:1186:      } else if (list.length === 1) {
+docs/ui/ui-core.js:1187:        p = list[0];
+docs/ui/ui-core.js:1259:  // Mentions: centralized candidates list for UI modules.
+docs/ui/ui-core.js:1290:    const list = UI.getAllMentionCandidates();
+docs/ui/ui-core.js:1291:    return list.map(x => x.name);
+docs/ui/ui-core.js:2067:    const list = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
+docs/ui/ui-core.js:2068:    return list.some(el => {
+docs/ui/ui-core.js:2405:      const panel = inputEl.closest && (inputEl.closest(".panel") || inputEl.closest(".card") || inputEl.closest("#boot") || inputEl.closest("#dm") || inputEl.closest("#chat") || inputEl.closest("#menu") || inputEl.closest("#battles"));
+docs/ui/ui-battles.js:120:    // rapid re-renders of the battle card (which may detach button's parent).
+docs/ui/ui-battles.js:215:  // Keep a specific battle card in view across re-renders.
+docs/ui/ui-battles.js:255:      const card = body.querySelector(`[data-battle-id="${CSS.escape(String(f.id))}"]`);
+docs/ui/ui-battles.js:256:      if (!card) return;
+docs/ui/ui-battles.js:258:      const sp = _findScrollParent(card);
+docs/ui/ui-battles.js:260:        const r = card.getBoundingClientRect();
+docs/ui/ui-battles.js:265:        const cr = card.getBoundingClientRect();
+docs/ui/ui-battles.js:389:     const card = chip.closest(".battleCard");
+docs/ui/ui-battles.js:390:     _captureBattleFocus(battleId, card);
+docs/ui/ui-battles.js:786:  function renderResolvedBattleCardCore(card, battle, opts) {
+docs/ui/ui-battles.js:787:    if (!card || !battle) return createBattleRenderNodeState();
+docs/ui/ui-battles.js:816:      const existingRows = Array.from(card.querySelectorAll(selector));
+docs/ui/ui-battles.js:836:      card.appendChild(title);
+docs/ui/ui-battles.js:856:      card.appendChild(row);
+docs/ui/ui-battles.js:874:        const nodes = Array.from(card.querySelectorAll(selector));
+docs/ui/ui-battles.js:932:      card.appendChild(aRow);
+docs/ui/ui-battles.js:950:      card.appendChild(dRow);
+docs/ui/ui-battles.js:960:    card.appendChild(res);
+docs/ui/ui-battles.js:980:        _captureBattleFocus(battle.id, card);
+docs/ui/ui-battles.js:984:      card.appendChild(rematchActions);
+docs/ui/ui-battles.js:1305:           // Show note inside that mafia battle card
+docs/ui/ui-battles.js:1515:    // If the user is viewing a specific card (focused) or any visible card, keep it fixed.
+docs/ui/ui-battles.js:1520:      // Prefer focused card if exists
+docs/ui/ui-battles.js:1708:        // Dropdown list below input
+docs/ui/ui-battles.js:1726:        const list = q ? all.filter(p => p && String(p.name || "").toLowerCase().includes(q)) : all.slice(0, 10);
+docs/ui/ui-battles.js:1734:        listWrap.className = "mention-list";
+docs/ui/ui-battles.js:1748:        list.forEach((p, idx) => {
+docs/ui/ui-battles.js:1797:            UI._battleInvite.sel = Math.min((UI._battleInvite.sel || 0) + 1, list.length - 1);
+docs/ui/ui-battles.js:1810:            if (!UI._battleInvite.q.trim() && list[UI._battleInvite.sel || 0]) {
+docs/ui/ui-battles.js:1811:              UI._battleInvite.q = list[UI._battleInvite.sel || 0].name;
+docs/ui/ui-battles.js:1908:      const card = document.createElement("div");
+docs/ui/ui-battles.js:1909:      card.className = "battleCard";
+docs/ui/ui-battles.js:1910:      card.setAttribute("data-battle-id", String(b.id));
+docs/ui/ui-battles.js:1913:      // Click card background to pin (chips/buttons stopPropagation)
+docs/ui/ui-battles.js:1914:      card.onclick = (e) => {
+docs/ui/ui-battles.js:1920:        _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:1929:      card.appendChild(top);
+docs/ui/ui-battles.js:1988:      card.appendChild(line);
+docs/ui/ui-battles.js:2148:              _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2157:          card.appendChild(escapeWrap);
+docs/ui/ui-battles.js:2162:          body.appendChild(card);
+docs/ui/ui-battles.js:2200:             card.appendChild(aRow);
+docs/ui/ui-battles.js:2218:             card.appendChild(dRow);
+docs/ui/ui-battles.js:2391:              _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2393:              // Draws should NOT auto-disappear; close removes the battle card only when user clicks.
+docs/ui/ui-battles.js:2401:          card.appendChild(drawWrap);
+docs/ui/ui-battles.js:2407:          body.appendChild(card);
+docs/ui/ui-battles.js:2426:        if (tactRow.childElementCount > 0) card.appendChild(tactRow);
+docs/ui/ui-battles.js:2452:          card.appendChild(incoming);
+docs/ui/ui-battles.js:2485:            const list = [];
+docs/ui/ui-battles.js:2499:              if (!it || list.length >= 3) break;
+docs/ui/ui-battles.js:2507:              list.push(it);
+docs/ui/ui-battles.js:2513:            if (list.length < 3) {
+docs/ui/ui-battles.js:2515:                if (!it || list.length >= 3) break;
+docs/ui/ui-battles.js:2520:                list.push(it);
+docs/ui/ui-battles.js:2528:            shuffleInPlace(list);
+docs/ui/ui-battles.js:2530:            while (list.length < 3) {
+docs/ui/ui-battles.js:2531:              list.push({ id: `__pad_attack_${list.length}`, text: "...", _pad: true });
+docs/ui/ui-battles.js:2533:            return list;
+docs/ui/ui-battles.js:2536:          const list = _getOrBuildChoices(b, "_attackChoices", buildAttackChoices);
+docs/ui/ui-battles.js:2538:          (list || []).forEach(p => {
+docs/ui/ui-battles.js:2584:                _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2604:          card.appendChild(row);
+docs/ui/ui-battles.js:2616:            _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2621:          card.appendChild(leaveActions);
+docs/ui/ui-battles.js:2753:                _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2780:          card.appendChild(row);
+docs/ui/ui-battles.js:2807:            _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2848:              _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2858:          card.appendChild(actions);
+docs/ui/ui-battles.js:2865:          card.appendChild(note);
+docs/ui/ui-battles.js:2884:        const renderResult = renderResolvedBattleCardCore(card, b, helperCtx);
+docs/ui/ui-battles.js:2899:          _captureBattleFocus(b.id, card);
+docs/ui/ui-battles.js:2906:        card.appendChild(closeRow);
+docs/ui/ui-battles.js:2922:      body.appendChild(card);
+docs/ui/ui-battles.js:2931:    // Keep the interacted battle card in view as it moves between active/resolved sections.
+docs/ui/ui-battles.js:2956:         const card = document.querySelector(`[data-battle-id="${battleId}"]`);
+docs/ui/ui-battles.js:2957:         if (card) {
+docs/ui/ui-battles.js:2958:           const voteRow = card.querySelector('.eventVoteRow');
+docs/ui/ui-battles.js:2990:// Expose battle-card helper sources for smoke diagnostics only.
+docs/ui/ui-events.js:88:    // Render toast on body so it survives DOM re-renders of the events card.
+docs/ui/ui-events.js:207:    // Render once so the card exists in DOM
+docs/ui/ui-events.js:213:    const card = body.querySelector(`[data-event-id="${CSS.escape(eventId)}"]`);
+docs/ui/ui-events.js:214:    if (!card) return false;
+docs/ui/ui-events.js:216:    card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+docs/ui/ui-events.js:526:    const list = getEventsList();
+docs/ui/ui-events.js:527:    const rawFound = list.find(x => getEventBattleId(x) === battleId);
+docs/ui/ui-events.js:735:      const card = document.createElement("div");
+docs/ui/ui-events.js:736:      card.className = "eventCard";
+docs/ui/ui-events.js:737:      card.dataset.eventId = ne.id;
+docs/ui/ui-events.js:738:      if (ne.battleId) card.dataset.battleId = ne.battleId;
+docs/ui/ui-events.js:740:      card.onclick = (ev) => {
+docs/ui/ui-events.js:758:      card.innerHTML = `
+docs/ui/ui-events.js:769:        card.appendChild(who);
+docs/ui/ui-events.js:788:        card.appendChild(hint);
+docs/ui/ui-events.js:937:        card.appendChild(row);
+docs/ui/ui-events.js:943:        card.appendChild(capLine);
+docs/ui/ui-events.js:950:        card.appendChild(diagLine);
+docs/ui/ui-events.js:959:        card.appendChild(timerLine);
+docs/ui/ui-events.js:966:      // In-card note (no chat spam)
+docs/ui/ui-events.js:971:        card.appendChild(note);
+docs/ui/ui-events.js:1093:        card.appendChild(info);
+docs/ui/ui-events.js:1098:        card.style.outline = "2px solid rgba(191,195,255,0.65)";
+docs/ui/ui-events.js:1099:        card.style.boxShadow = "0 0 0 4px rgba(191,195,255,0.10)";
+docs/ui/ui-events.js:1104:        card.classList.add("eventCard--active");
+docs/ui/ui-events.js:1107:      body.appendChild(card);
+docs/ui/ui-dm.js:221:    // Then a table (including default)
+docs/ui/ui-dm.js:343:    // Fallback from Data table if present
+docs/ui/ui-dm.js:1046:        listEl.className = "mention-list";
+docs/ui/ui-dm.js:1180:        // Delay so click on list registers
+docs/ui/ui-dm.js:1369:      UI._copReport = UI._copReport || { open:false, q:"", sel:0, list:[], dropdownOpen:false };
+docs/ui/ui-dm.js:1394:            listWrap.className = "mention-list";
+docs/ui/ui-dm.js:1426:            const list = q ? base.filter(p => String(p.name || "").toLowerCase().includes(q)) : base;
+docs/ui/ui-dm.js:1427:            state.list = list;
+docs/ui/ui-dm.js:1428:            state.sel = Math.max(0, Math.min(state.sel || 0, Math.max(0, list.length - 1)));
+docs/ui/ui-dm.js:1431:            if (!list.length) {
+docs/ui/ui-dm.js:1441:            list.forEach((p, idx) => {
+docs/ui/ui-dm.js:1521:                // Open list immediately
+docs/ui/ui-dm.js:1732:              const list = Array.isArray(state.list) ? state.list : [];
+docs/ui/ui-dm.js:1733:              if (list.length > 0) {
+docs/ui/ui-dm.js:1734:                const idx = Math.max(0, Math.min(state.sel || 0, list.length - 1));
+docs/ui/ui-dm.js:1735:                const nextName = String(list[idx] && list[idx].name ? list[idx].name : "");
+docs/ui/ui-dm.js:1750:          // Initial open: show list immediately
+PROJECT_MEMORY.md:65:- Fix2 normalizes the final smoke result from the dedicated PASS sub-smoke facts, marks absent live panel DOM as skipped-safe, and uses explicit mismatch lists for docs/source/behavior parity.
+PROJECT_MEMORY.md:74:- Exposed the resolved battle-card helper sources in `AsyncScene/Web/ui/ui-battles.js` and `docs/ui/ui-battles.js` so the smoke can honestly see `battle_action_rematch`, `battle_win`, and `battle_loss` where they are emitted.
+PROJECT_MEMORY.md:278:- Updated the docs mirror inventory in `docs/ui/ui-boot.js` and the profile diff table in `docs/UI_PROFILE_ZOOMER_DIFF.md`.
+PROJECT_MEMORY.md:416:- The smoke returns the required object fields, lists all 8 keys in `coverage`, enforces per-key millennial/zoomer presence plus difference, verifies `not_enough_money` and `purchase_success` differ, and checks no `moneyLog`/player-economy mutation happens while the smoke runs.
+PROJECT_MEMORY.md:505:- The smoke reports raw `tie_start` values for the millennial and zoomer source tables, resolver output for each profile, active `TEXT_MODE` before each resolve, and whether the resolver is reading the expected table, while preserving the ECON/moneyLog/battle/cooldown boundary checks.
+PROJECT_MEMORY.md:865:- Added `Game.__DEV.smokeZProfileDerivationMappingOnce()` to verify that the canonical millennial -> zoomer mapping table exists in the real `UI_PROFILE_ZOOMER_DIFF.md` source and the served `docs/UI_PROFILE_ZOOMER_DIFF.md` copy, that every z-profile line is backed by a millennial source row, and that no orphan z-lines remain.
+PROJECT_MEMORY.md:1068:- Default `Game.__DEV.smokeZoomerArgumentInventoryOnce()` now returns compact top-level PASS fields only: `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byTypeCounts`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`; it does not include full inventory or long id lists.
+PROJECT_MEMORY.md:1087:## 2026-06-05 — Step 4 [8] mapping-table refresh for current inventory only
+PROJECT_MEMORY.md:1088:- Updated only the Step 4 [2] runtime mapping table/validation in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so the aggregate terminology smoke matches the current 132-entry runtime inventory rather than the stale earlier wording set.
+PROJECT_MEMORY.md:1092:- Scope held: no UI text changes, no terminology rewrites outside the Step 4 [2] mapping table, no gameplay changes, no economy changes, and no `Console.txt` usage.
+PROJECT_MEMORY.md:1104:- The aggregate composes inventory, millennial -> zoomer mapping table, buttons, statuses, errors, hints, and new features, unions their diagnostics, and only returns `ok:true` when every included check passes with empty `violations`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` arrays.
+PROJECT_MEMORY.md:1161:- Reverted the static `STEP4_2_130..133` rows from the base Step 4 [2] mapping table because they inflated `pairCount` above the actual Safari runtime inventory whenever those dynamic entries were not present.
+PROJECT_MEMORY.md:1162:- Kept the 129-row base mapping table, reused `STEP4_2_026` to cover the live numeric escape-button form `Свалить: 1 💰`, and moved the dynamic vote-counter and reputation-delta title coverage into conditional runtime-generated rows that appear only when the collector actually finds unmatched entries of those forms.
+PROJECT_MEMORY.md:1169:- Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so runtime inventory remains authoritative and those four entries are covered without changing UI text, gameplay logic, or inventory collection.
+PROJECT_MEMORY.md:1175:- Updated only the Step 4 [2] runtime mapping smoke/table handling in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so `STEP4_2_127` no longer depends on a literal generated player name.
+PROJECT_MEMORY.md:1180:## 2026-06-05 — Step 4 [2] runtime table alignment follow-up
+PROJECT_MEMORY.md:1181:- Updated the actual runtime mapping table in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, not just the docs note, so `Game.__DEV.smokeZoomerTransformationTableOnce()` no longer points at the stale zoomer targets `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш`.
+PROJECT_MEMORY.md:1182:- Reassigned those five runtime table rows to the exact live inventory strings `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡` without changing gameplay, UI text, or inventory scope.
+PROJECT_MEMORY.md:1186:- Mirrored the latest 129-entry Step 4 [2] mapping table into the Safari-served docs runtime so `docs/dev/dev-checks.js` no longer serves the previous `build_2026_06_05_m` / `zoomer_mapping_table_step4_2` identity or the 103-entry table.
+PROJECT_MEMORY.md:1193:- Added mapping-table entries for every currently reported unmapped zoomer inventory string: dev UI labels, symbols/resource icons, report hints, DM labels, battle/menu controls, and status/tone strings.
+PROJECT_MEMORY.md:1194:- Kept the change mapping-table-only for runtime copy: no runtime UI string rewrites, gameplay logic changes, or inventory logic changes.
+PROJECT_MEMORY.md:1197:## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
+PROJECT_MEMORY.md:1200:- Changed: Added `UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE` as table-only mapping coverage for the unique Step 4.1 UI terminology inventory targets; each millennial key has exactly one zoomer replacement.
+PROJECT_MEMORY.md:1221:- The smoke is dependency-only: it requires PASS results for Step 3.1 lexical frame, Step 3.2 allowed lexicon, Step 3.3 stop-word list, Step 3.4 system texts, Step 3.5 NPC speech, and Step 3.6 lexical smoke pack; it also verifies allowed lexicon existence, stop-word list existence, combined lexical smoke pack existence, no failures, and returned `buildTag`, `commit`, and commit-unique `smokeVersion`.
+PROJECT_MEMORY.md:1232:- Smoke verifies the allowed lexicon exists, stop-word list exists, forbidden samples are caught, meme-like wording is rejected, Step 3.4 system texts remain valid, Step 3.5 NPC speech remains valid, UI/NPC texts are not longer than the previous accepted zoomer versions, and new feature text surfaces use the same lexicon and stop-word rules.
+PROJECT_MEMORY.md:1279:- Dev-only smoke `Game.__DEV.smokeZoomerStopWordsOnce()` verifies the stop-word list exists, required blocked words are present, forbidden categories are declared, sample forbidden strings are caught, Step 3.2 allowed lexicon remains valid, and identity fields `buildTag`, `commit`, and unique `smokeVersion` are returned.
+PROJECT_MEMORY.md:1328:  - Step 2.2 PASS — `Game.__DEV.smokeZoomerTransformationTableOnce()`; build tags include `build_2026_06_04_c`; acceptance passed for the dedicated transformation table, at least 10 before/after pairs, 30-40% shortening, fewer filler words, fewer abstractions, more verbs, no slang/memes/fake youth voice, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+PROJECT_MEMORY.md:1331:  - Step 2.5 PASS — `Game.__DEV.smokeZoomerShorteningQualityOnce()`; build tag `build_2026_06_05_a`; acceptance passed for phrase length reduction, filler/intro detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, new-feature coverage, `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, and `failedChecks:[]`.
+PROJECT_MEMORY.md:1341:- The smoke validates the already-documented zoomer shortening profile mechanically: phrase length reduction rule, filler/intro word detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, and new-feature coverage presence.
+PROJECT_MEMORY.md:1365:## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
+PROJECT_MEMORY.md:1378:- `hasZoomerShortenRule` requires both the runtime smoke marker and the deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` section; `sourceFiles` lists the fetched files contributing that proof.
+PROJECT_MEMORY.md:1472:- Audit coverage: profile root coverage, empty `()`/`[]` counters, grey placeholder content, disabled-looking content buttons, legacy table markers, and 1–2 word profile CTA labels.
+PROJECT_MEMORY.md:1554:- Implemented only the minimal start-screen visual layout: one centered card/panel with even spacing, the `Data.START_SCREEN` title, 2-3 intro lines, and exactly the Start/Rules CTA buttons.
+PROJECT_MEMORY.md:1619:## 2026-06-04 — UI_PROFILE_ZOOMER_DIFF table smoke companion doc
+PROJECT_MEMORY.md:1622:- Added a millennial -> zoomer comparison table to `UI_PROFILE_ZOOMER_DIFF.md` at the repo root and to the runtime-reachable copy under `docs/`, while keeping the file delta-only and narrow.
+PROJECT_MEMORY.md:1624:- Added mirrored `Game.__DEV.smokeZoomerDiffTableOnce()` to both runtime bundles. The smoke fetches the doc through `/__dev__/docs/UI_PROFILE_ZOOMER_DIFF.md`, checks that it stays delta-only, contains the required faster/simpler/shorter/fewer explanations/more direct wording deltas, and verifies every required table category has both millennial and zoomer content.
+PROJECT_MEMORY.md:1751:- Added final completion gate `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` with build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`. The gate runs Step 3 [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, all [7.1]-[7.10] layer smokes, and [8] regression pack, then verifies no failed layer smoke, no forbidden synonyms, no missing coverage, no duplicate canon concepts, no runtime-facing taxonomy/where-used concept outside the table, and no taxonomy drift outside the approved allowlist.
+PROJECT_MEMORY.md:1752:- Closed Step 3 substeps for this final gate: [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, [7.1] Events/Crowd, [7.2] Battles, [7.3] DM, [7.4] Reports/Cop, [7.5] Escape/Ignore, [7.6] Rematch, [7.7] Training, [7.8] Respect, [7.9] P2P, [7.10] Global/Common, and [8] regression pack.
+PROJECT_MEMORY.md:1755:- FAIL criteria for runtime: any screen/scenario shows runtime-facing text outside the terminology table where applicable, any alternative synonym remains, any required Step 3 smoke is missing/failing, any duplicate canon concept remains, any unapproved taxonomy drift remains, any layer smoke fails, or the completion gate returns `ok:false`.
+PROJECT_MEMORY.md:1772:- Added `Game.__DEV.smokeStep3TerminologyReportsCopLayerOnce()` with build marker `STEP3_TERMINOLOGY_REPORTS_COP_LAYER_V1`. The smoke loads table/where-used artifacts, validates Reports/Cop layer coverage, checks forbidden synonym removal in runtime-facing report/cop strings, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus Step 3 [7.1]-[7.3] are available.
+PROJECT_MEMORY.md:1782:- Added `Game.__DEV.smokeStep3TerminologyDmLayerOnce()` with build marker `STEP3_TERMINOLOGY_DM_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects DM UI runtime strings, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6], Step 3 [7.1], and Step 3 [7.2] are available with optional `{runPrevious:true}` execution.
+PROJECT_MEMORY.md:1800:- Added `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` with build marker `STEP3_TERMINOLOGY_BATTLES_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects Battles UI runtime strings, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus Step 3 [7.1] are available with optional `{runPrevious:true}` execution.
+PROJECT_MEMORY.md:1918:- Added `Game.__DEV.smokeStep3TerminologyEventsCrowdLayerOnce()` with build marker `STEP3_TERMINOLOGY_EVENTS_CROWD_LAYER_V1`. The smoke loads table/where-used artifacts, statically inspects `events.js` + `ui/ui-events.js`, checks forbidden synonym removal, verifies canonical terms, reports `checkedCount`, `replacedCount`, `forbiddenRemaining`, `layerScope`, and safely references previous Step 3 helpers [1]-[6] with optional `{runPrevious:true}` execution.
+PROJECT_MEMORY.md:2051:  - `finalizeOpenEventNow` now accepts event object or id, normalizes open status across state/resolved/status, and resolves events via `Game.__S.events` / `Game.State.events` / `events.list`.
+PROJECT_MEMORY.md:2311:### 2026-02-05 — ECON-07.1 Threshold rewards table + calc (каждые 10 побед)
+PROJECT_MEMORY.md:2418:  - `finalizeOpenEventNow` now accepts event object or id, normalizes open status across state/resolved/status, and resolves events via `Game.__S.events` / `Game.State.events` / `events.list`.
+PROJECT_MEMORY.md:3539:  - Spec ambiguity: COP_TEMPLATES strings are referenced as "предложения из предыдущего prompt", but the full canonical lists are not provided inline.
+PROJECT_MEMORY.md:3573:    - when `helpEvent` fails with "Не хватает пойнтов.", show it as in-card note immediately
+PROJECT_MEMORY.md:3584:    - `copDm()` / `copChat()` now use `Game.Data.COP_TEMPLATES` for canned cop messaging (no new strings; picks from lists and fills placeholders).
+PROJECT_MEMORY.md:3613:    - resolved card now shows строго:
+PROJECT_MEMORY.md:3654:- 2026-01-15 11:52:00 JST: получил от программиста FAIL (no explicit permission + overPoints conflict + missing template lists); result FAIL; next step — дать разрешения per разметке, выбрать механику (A или B), привести полный Data.COP_TEMPLATES/Data.CAP_MESSAGES; лог читался/записан по инварианту; после этого составлю финальный prompt.
+PROJECT_MEMORY.md:3656:- 2026-01-15 12:58:52 JST: добавлен инвариант формата текста — запрет на autonumber/bullets/markdown lists, использовать только сплошной текст или строки с переносами; результат PASS; next step — соблюдать при всех ответах.
+PROJECT_MEMORY.md:3763:  6) Battle card final block: `Array.from(document.querySelectorAll('.battleCard .noteLine')).slice(-5).map(n=>n.textContent)`
+PROJECT_MEMORY.md:3777:- Smoke команды (DevTools): (1) `Game.Debug.moneyLog.slice(-60)` (escape/rep), (2) `Game.Debug.moneyLog.filter(...'overpoints'...)`, `State.overPoints`, (3) check vote-toasts and chip-toasts, (4) `Game.Debug.moneyLog.slice(-40)` for battle_win_points, (5) tone gating checks, (6) `Array.from(document.querySelectorAll('.battleCard .noteLine')).map(n=>n.textContent)` to verify final card format.
+PROJECT_MEMORY.md:4093:    1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.log({ decided: ev.crowd.decided, winner: ev.crowd.winner, endedBy: ev.crowd.endedBy }); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
+PROJECT_MEMORY.md:4494:  - Evidence (run #0): `meta.logSource="debug_moneyLog"`, `meta.rowsScoped=41`, `meta.sinkDelta=0`, `world.beforeTotal=200`, `world.afterTotal=200`, `world.delta=0`, `npcCount=19`, `accountsIncludedCount=23 (bank,crowd,me,19 npcs,sink)`, `leaks.toSink=[]`, `leaks.emissionsSuspect=[]`, npc topReasons now list only points reasons (no `rep_*`).
+PROJECT_MEMORY.md:4665:- Pack now chooses log source via candidate list (debug_moneyLog, debug_moneyLogByBattle, logger_queue, state_moneyLog) and no longer hard-fails with `balances_unavailable` when log source is empty; instead it records `diag.logSourceCandidates`, `diag.snapshotOk`, `diag.snapshotWhy`, `diag.scopedLen` in both JSONs.
+PROJECT_MEMORY.md:4707:  - `tax.totalTaxInWindow=0`, `tax.rowsCount=0`, `taxProbe.applied:false why:"tax_missing"`, `notes` list `["points_emission_suspected","world_delta_nonzero"]`.
+PROJECT_MEMORY.md:5904:- Root cause: AsyncScene needs one future source of truth for all player-facing text style before UI, NPC, dev-card, toast, hint, and error copy diverge into separate local conventions.
+PROJECT_MEMORY.md:5907:  - Covered surfaces are explicit: UI, NPC, dev-card, toasts, hints, errors.
+PROJECT_MEMORY.md:5908:  - Required future artifacts are explicit: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, addressing rules.
+PROJECT_MEMORY.md:5911:- PASS criteria recorded: docs define StyleLex as the future single style contract, list all required surfaces and future artifacts, state no runtime implementation, and log the step in `TASKS.md` and `PROJECT_MEMORY.md`.
+PROJECT_MEMORY.md:5970:  - `Game.Data.styleLex.forbidden.tabooForms` lists concrete terms/patterns for every required forbidden group.
+PROJECT_MEMORY.md:6018:- Pending, not faked: battle/escape/ignore/crowd result-card copy; ECON-SOC report/sanction messages; ECON-08 respect action copy; ECON-04 training copy until confirmed fully inside economy flow.
+PROJECT_MEMORY.md:6124:## 2026-06-01 — Step 3 [5] unified terminology table V1
+PROJECT_MEMORY.md:6126:- Added unified source-of-truth terminology table `STEP3_TERMINOLOGY_TABLE_V1.csv` under both `docs/terminology/` and `AsyncScene/Web/terminology/`.
+PROJECT_MEMORY.md:6127:- The table is governance-only and does not change gameplay, runtime behavior, or UI text in code.
+PROJECT_MEMORY.md:6130:- Added generator and validator tooling: `tools/generate-step3-terminology-table.py` and `tools/validate-step3-terminology-table.py`.
+PROJECT_MEMORY.md:6132:- Static evidence: PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS same validator for `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv`; PASS `node --check docs/dev/dev-checks.js`; PASS `node --check AsyncScene/Web/dev/dev-checks.js`.
+PROJECT_MEMORY.md:6139:- The where-used map is generated from the frozen Step 3 inventory, canon, taxonomy, and terminology table artifacts; previous steps were not reopened.
+PROJECT_MEMORY.md:6153:- Added `Game.__DEV.smokeStep3TerminologyEscapeIgnoreLayerOnce()` with build marker `STEP3_TERMINOLOGY_ESCAPE_IGNORE_LAYER_V1`. The smoke loads table/where-used artifacts, checks Escape/Ignore where-used coverage, inspects scoped runtime-facing strings, reports `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`, and verifies previous Step 3 helpers [1]-[6] plus [7.1]-[7.4] are available.
+PROJECT_MEMORY.md:6164:- Static evidence: PASS `node --check` for changed Web/docs JS files; PASS `python3 tools/validate-step3-terminology-table.py` for docs and Web artifacts; PASS `python3 tools/validate-step3-terminology-where-used.py`; PASS local static Rematch forbidden-synonym scan.
+PROJECT_MEMORY.md:6189:- Local evidence: PASS JS syntax checks for changed JS files; PASS terminology table and where-used validators; PASS local static Respect forbidden-synonym scan.
+PROJECT_MEMORY.md:6198:- Local evidence: PASS `node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/ui/ui-core.js && node --check AsyncScene/Web/ui/ui-core.js && node --check docs/ui/ui-menu.js && node --check AsyncScene/Web/ui/ui-menu.js && node --check docs/data/style-lex.js`; PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; PASS `python3 tools/validate-step3-terminology-where-used.py .`; PASS local static global/common forbidden-synonym scan with `forbiddenRemaining:[]`.
+PROJECT_MEMORY.md:6210:- PASS criteria: iPhone Safari returns `ok:true`, exact build marker `STEP3_TERMINOLOGY_REGRESSION_PACK_V1`, 8-12 scenarios, `checkedCount > 0`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, all scenario results OK, and completion under the 2-3 minute device target. FAIL criteria: any scenario failure, forbidden synonym/new variant, missing coverage, missing table-governed concept/canonical string, or runtime PASS claimed without iPhone Safari.
+PROJECT_MEMORY.md:6325:- Preserved the existing coverage table and direct hardcoded string reporting unchanged; no copy rewrite or hardcoded string removal was performed.
+PROJECT_MEMORY.md:6522:- 2026-06-12: Step 7 final z-profile package added as `UI_PROFILE_ZOOMER_FINAL.md` with mirrored `docs/UI_PROFILE_ZOOMER_FINAL.md`. Added dev-only Safari smoke `Game.__DEV.smokeZProfileFinalPackageOnce()` in both `docs/system.js` and `AsyncScene/Web/system.js`. The smoke validates required sections, forbidden list, examples, millennial->zoomer mapping reference, smoke commands, Step 1-6 PASS references, text-only derivation, no-new-runtime rule, orphan-section absence, and absence of new logic keys/conditions/entities/handlers/economy rules/battle rules/state mutations. Scope held: package-doc + smoke only; no gameplay logic, no new conditions/entities/handlers, no economy/battle changes, no state mutations, no `Console.txt`.
+docs/ui/ui-loops.js:958:      // Prefer deterministic list if available
+docs/UI_PROFILE_ZOOMER_FINAL.md:14:## Forbidden list
+docs/state.js:904:        const panelEls = document.querySelectorAll(".panel:not(.hidden), .panel.panel--full, .card:not(.hidden)");
+docs/state.js:912:        const activeEl = document.querySelector(".panel.panel--full, .panel.is-open, .card.panel--full");
+docs/state.js:2506:    // Support both the newer API (getAll) and older (list).
+docs/state.js:2515:        : (Game.NPC && typeof Game.NPC.list === "function")
+docs/state.js:2516:          ? Game.NPC.list()
+docs/state.js:2817:  function pickCopTemplate(list, fallback){
+docs/state.js:2818:    const arr = Array.isArray(list) ? list : [];
+docs/state.js:3617:    // Canon: reported targets disappear from lists only during the report cooldown window,
+docs/state.js:4694:    // mirror progression counters for UI lists/filters
+docs/state.js:4739:    // Mentions (centralized list for autocomplete + flags)
+docs/state.js:6076:          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
+docs/state.js:6077:          return list.filter(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished").length;
+docs/state.js:6089:          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
+docs/state.js:6090:          const active = list.find(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished");
+docs/state.js:7962:      let list = history.get(typeKey);
+docs/state.js:7963:      if (!list) {
+docs/state.js:7964:        list = [];
+docs/state.js:7965:        history.set(typeKey, list);
+docs/state.js:7967:      list.push(timestamp);
+docs/state.js:7969:      while (list.length && list[0] < cutoff) {
+docs/state.js:7970:        list.shift();
+docs/state.js:7972:      return list;
+docs/state.js:7984:      const list = recordHistory(typeKey, stamp);
+docs/state.js:7987:      for (let i = list.length - 1; i >= 0; i--) {
+docs/state.js:7988:        if (list[i] >= shortCutoff) shortCount++;
+docs/state.js:7991:      const longCount = list.length;
+AsyncScene/AsyncScene.xcodeproj/project.pbxproj:103:			buildConfigurationList = CEFB24512EED742600EFF857 /* Build configuration list for PBXNativeTarget "AsyncScene" */;
+AsyncScene/AsyncScene.xcodeproj/project.pbxproj:140:			buildConfigurationList = CEFB24412EED742300EFF857 /* Build configuration list for PBXProject "AsyncScene" */;
+AsyncScene/AsyncScene.xcodeproj/project.pbxproj:370:		CEFB24412EED742300EFF857 /* Build configuration list for PBXProject "AsyncScene" */ = {
+AsyncScene/AsyncScene.xcodeproj/project.pbxproj:379:		CEFB24512EED742600EFF857 /* Build configuration list for PBXNativeTarget "AsyncScene" */ = {
+docs/UI_PROFILE_ZOOMER_DIFF.md:7:## Millennial -> zoomer comparison table
+docs/UI_PROFILE_ZOOMER_DIFF.md:120:Dedicated transformation table only: millennial-style long construction -> shorter direct zoomer form. Same meaning, 30-40% shorter, fewer filler words, fewer abstractions, more verbs. No slang, no memes, no fake youth voice.
+docs/UI_PROFILE_ZOOMER_DIFF.md:139:Canonical mapping table only. Source: Step 4 [1] inventory unique UI strings. Each millennial entry has exactly one zoomer replacement. No runtime strings are rewritten by this table. No gameplay, logic, category, or copy application changes.
+TASKS.md:81:- Fixed the Step 6.7.4 smoke diagnostics so the battle empty-state read targets only the hint node, and the source scan now includes the resolved battle-card helpers where `battle_action_rematch`, `battle_win`, and `battle_loss` are actually emitted.
+TASKS.md:395:- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 10 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+TASKS.md:403:- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 10 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+TASKS.md:439:- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+TASKS.md:447:- Smoke coverage returns `buildTag`, `commit`, `smokeVersion`, `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `coverage`, where `coverage` lists all 8 required keys with `millennialText`, `zoomerText`, `differs`, and `pass`.
+TASKS.md:597:- Goal: sync the active `uiProfile` to the UI text mode aliases so millennial resolves through the millennial/default table and zoomer resolves through the zoomer table, without touching gameplay, balance, save behavior, or boundary enforcement.
+TASKS.md:606:- Goal: diagnose the remaining contradiction in the UI-only boundary smoke by exposing raw profile table values, active text modes, and resolver outputs without changing gameplay, balance, save behavior, or boundary enforcement.
+TASKS.md:608:- Smoke coverage verifies the active profile before each lookup, reports raw `tie_start` values for millennial and zoomer tables, reports resolver output and `TEXT_MODE` for each profile, and confirms whether the resolver is reading the expected table while keeping the ECON/moneyLog/battle/cooldown boundary checks intact.
+TASKS.md:989:- Smoke verifies the final package file exists, all required sections exist, the forbidden list exists, examples exist, the millennial -> zoomer mapping reference exists, the smoke commands list exists, Step 1-6 PASS references exist, the text-only derivation rule exists, the no-new-logic/entity/condition/economy/battle/handler/state rule exists, no orphan required sections remain, and no new logic keys, conditions, entities, handlers, economy rules, battle rules, or state mutations are introduced by the package contract.
+TASKS.md:1065:- Fixed only `Game.__DEV.smokeZProfileDerivationMappingOnce()` source wiring: `millennialSourcePath` now resolves from `UI_PROFILE_MILLENNIAL.md`, `zoomerProfilePath` now resolves from `UI_PROFILE_ZOOMER_DIFF.md`, and the canonical mapping table is parsed from the real zoomer profile document instead of the millennial metadata file.
+TASKS.md:1073:- Added dev-only `Game.__DEV.smokeZProfileDerivationMappingOnce()` to verify the explicit millennial -> zoomer mapping table against the real `UI_PROFILE_ZOOMER_DIFF.md` source/doc copy.
+TASKS.md:1215:- Step 5.1 argument inventory smoke compact shape: changed only `Game.__DEV.smokeZoomerArgumentInventoryOnce()` output shape in both served dev-check bundles so the default result is PASS-readable in Safari: no full `inventory`, no long `byType` id lists, compact `byTypeCounts`, and required top-level fields `ok`, `buildTag`, `commit`, `smokeVersion`, `inventoryCount`, `byTypeCounts`, `duplicateIds`, `emptyEntries`, `unresolvedPlaceholders`, `missingTypes`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`. Full inventory/id detail is available only through `Game.__DEV.smokeZoomerArgumentInventoryOnce({debug:true})`. Served identity/cache-bust refreshed to `build_2026_06_05_step5_1_arg_inventory_compact_b` / `step5_1_arg_inventory_compact` / `step5-1-argument-inventory-compact-b`. Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeZoomerArgumentInventoryOnce()`.
+TASKS.md:1218:- Step 4 [8] mapping-table refresh for current inventory only: updated only the Step 4 [2] runtime mapping table/validation in both served dev-check bundles so the aggregate smoke targets the current 132-entry runtime inventory instead of the stale earlier wording set. Replaced the stale mappings for `Цена и итог видны сразу.`, `Толпа решает. Выбери имя в событиях.`, `Пока без событий.`, `Ответь кто`, `Ответь где`, `Ответь о ком или о чём`, `Ответь да или нет`, and `Толпа решает. Ты смотришь.` with the current runtime strings `Смотри цену и итог.`, `Выбери имя в событиях.`, `Открой события.`, `Ответь: кто?`, `Ответь: где?`, `Ответь: о ком?`, `Ответь: да или нет?`, and `Выбери сторону.`, added the missing current-inventory error mappings `Не удалось.` and `Повтори позже.`, broadened the dynamic escape matcher to accept the current runtime form with or without a colon, and refreshed the served identity markers to `build_2026_06_05_49dea4d` / `49dea4d`. Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerTermsOnce()`.
+TASKS.md:1231:- Step 4 [2] conditional dynamic row fix: reverted the static `STEP4_2_130..133` additions from the base mapping table so `pairCount` no longer exceeds Safari’s actual runtime inventory when those entries are absent. `Game.__DEV.smokeZoomerTransformationTableOnce()` now keeps the 129-row base table, lets existing `STEP4_2_026` match the live numeric escape form `Свалить: 1 💰`, conditionally synthesizes runtime-only vote/title rows only for unmatched dynamic inventory entries actually collected during execution, avoids duplicate zoomer mappings, and refreshes the runtime smoke identity to `build_2026_06_05_t` / `9ae0866`. Runtime PASS is not claimed here; Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+TASKS.md:1232:- Step 4 [2] dynamic inventory growth fix: runtime inventory increased from `129` to `133` because the collector now sees four live runtime entries that were not covered by the static table: battle escape button text `Свалить: 1 💰`, battle escape title `−1⭐, при успехе +1⭐`, and two vote-counter labels in the runtime `Имя 💰очки [влияние] - голоса` format. Updated the runtime transformation smoke/table in both app/docs dev-check bundles to treat runtime inventory as authoritative, added coverage rows for those four observed entries, generalized the dynamic player/NPC/resource rows by pattern instead of hardcoded names/counters, removed the fixed `expectedInventoryCount=129` assumption, and refreshed the runtime smoke identity to `build_2026_06_05_s` / `9a4b6e8`. Runtime PASS is not claimed here; Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+TASKS.md:1233:- Step 4 [2] dynamic player-name inventory fix: changed only the runtime transformation smoke/table handling for `STEP4_2_127` so the mapping row uses the placeholder `{NAME} 💰10` and `Game.__DEV.smokeZoomerTransformationTableOnce()` accepts any live `"{NAME} 💰10"` inventory target as a valid match, keeping `pairCount == inventoryCount == 129` and refreshing the runtime smoke identity to `build_2026_06_05_r` / `d0a71e7`. Runtime PASS is not claimed here; Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+TASKS.md:1234:- Step 4 [2] runtime mapping alignment fix: updated the actual runtime transformation table used by `Game.__DEV.smokeZoomerTransformationTableOnce()` in both app/docs dev-check bundles, removed the stale zoomer targets `Enable Dev Mode`, `Проверяю...`, `Занят`, `Ник. Как в чате.`, and `Реванш`, replaced them with the exact live inventory strings `Disable Dev Mode`, `Продолжить`, `Sigma 💰10`, `Твой тон: очень скромный`, and `До скромного: 3 ⚡`, and regenerated the runtime identity to `build_2026_06_05_q` / `416e9cd`. Runtime PASS is not claimed here; Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+TASKS.md:1235:- Step 4 [2] mapping coverage follow-up: added mapping-table entries for the 26 currently unmapped inventory strings (dev labels, symbols/resource icons, DM/report labels, and status/tone labels) and bumped the runtime smoke identity to `build_2026_06_05_n` / `zoomer_mapping_coverage_step4_2`. Safari must rerun `Game.__DEV.smokeZoomerTransformationTableOnce()`; runtime PASS is not claimed here.
+TASKS.md:1236:- Step 4 [8] aggregate runtime smoke pack only: added `Game.__DEV.smokeZoomerTermsOnce()` as a dev-only aggregate runner that composes the Step 4 terminology checks for inventory, millennial -> zoomer mapping table, buttons, statuses, errors, hints, and new features. The aggregate smoke unions the underlying diagnostics, keeps the stricter `ok:true` gate only when every included check passes, and returns `buildTag`, `commit`, and `smokeVersion` with `commit` set to the current short git hash `0de8688`. Scope held: no UI text changes, no terminology changes, no gameplay changes, no economy changes, and no `Console.txt` usage. Runtime PASS is not claimed; Safari must rerun `Game.__DEV.smokeZoomerTermsOnce()`.
+TASKS.md:1237:## 2026-06-05 — AsyncScene Step 4.2 Millennial -> zoomer canonical mapping table
+TASKS.md:1241:- Goal: Build only the canonical millennial -> zoomer UI terminology mapping table from Step 4.1 inventory results. No runtime UI text rewrites, gameplay changes, logic changes, category expansion, or terminology application.
+TASKS.md:1265:- Smoke verifies Step 3.1 lexical frame PASS dependency, Step 3.2 allowed lexicon PASS dependency, Step 3.3 stop-word list PASS dependency, Step 3.4 system texts PASS dependency, Step 3.5 NPC speech PASS dependency, Step 3.6 lexical smoke pack PASS dependency, allowed lexicon existence, stop-word list existence, combined lexical smoke pack existence, empty failure arrays, and identity fields `buildTag`, `commit`, and commit-unique `smokeVersion`.
+TASKS.md:1275:- Smoke verifies the allowed lexicon exists, stop-word list exists, forbidden samples are caught, meme-like wording is rejected, Step 3.4 system texts remain valid, Step 3.5 NPC speech remains valid, UI/NPC texts are not longer than the previous accepted zoomer versions, and new feature text surfaces use the same lexicon and stop-word rules.
+TASKS.md:1306:- Dev-only smoke `Game.__DEV.smokeZoomerStopWordsOnce()` verifies the stop-word list exists, required blocked words are present, forbidden categories are declared, sample forbidden strings are caught, Step 3.2 allowed lexicon remains valid, and identity fields `buildTag`, `commit`, and unique `smokeVersion` are returned.
+TASKS.md:1375:  - Step 2 overall PASS — zoomer shortening documentation, table, new-feature coverage, quality checks, and final documentation smoke are complete.
+TASKS.md:1391:- Smoke mechanically validates the existing zoomer shortening profile: phrase length reduction, filler/intro detection, abstraction detection, action-verb preference, transformation table presence, UI shortening rule presence, and new-feature coverage.
+TASKS.md:1427:## 2026-06-04 — AsyncScene Step 2.2 Zoomer transformation table
+TASKS.md:1435:- Goal: Add a dedicated zoomer transformation table only and expose `Game.__DEV.smokeZoomerTransformationTableOnce()`.
+TASKS.md:1437:  - [x] Dedicated transformation table exists with 12 before -> after pairs.
+TASKS.md:1459:  - [x] `sourceFiles` lists the fetched runtime files contributing the rule.
+TASKS.md:1532:- Goal: Fix only the exact runtime inventory alignment notes in the Step 4 [2] zoomer mapping table so the hidden smoke sees the expected source strings without changing UI copy, gameplay logic, inventory scope, or other runtime behavior.
+TASKS.md:1604:- Goal: Add a delta-only zoomer comparison table companion doc and a smoke that proves every required category stays covered with millennial/zoomer columns, while still keeping the doc narrow and non-rewrite.
+TASKS.md:1607:  - [x] It lists millennial -> zoomer differences and includes the required comparison table rows for phrase length, explanations, CTA, errors, toasts, DM, battles, economy, and onboarding/training.
+TASKS.md:1609:  - [x] Smoke returns `ok:true` only when the doc exists, is delta-only, does not duplicate the full millennial profile, required deltas are present, the comparison table rows each contain both millennial and zoomer, and `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks` are empty arrays.
+TASKS.md:1612:- Update: Comparison rows now spell out `Millennial:` and `Zoomer:` labels per category so the runtime table parser sees explicit labeled values.
+TASKS.md:1614:- Result: Added the delta-only document, the table-specific dev smoke, and reachable docs copies for the runtime path.
+TASKS.md:1618:  - Facts: The new doc is intentionally short and delta-only, and the smoke checks existence, delta-only markers, required wording deltas, the comparison table coverage, and full-profile duplication guards.
+TASKS.md:1703:- Goal: Add the profile no-forum-2007 runtime audit and make only minimal profile UI fixes so the profile area reads as a modern status surface, not an old table/forum page.
+TASKS.md:1707:  - [x] Smoke fails on empty placeholder counters, grey placeholder content, disabled-looking content buttons, legacy table markers, or profile CTA labels longer than two words.
+TASKS.md:1714:  - Facts: The smoke audits `#topBar` for empty `()`/`[]` counters, placeholder-looking content, disabled-looking content buttons, legacy table markers including pipes/bracketed counters/table tags, required coverage, and 1–2 word CTA labels.
+TASKS.md:1945:  - [x] Start screen is one clean card/panel with even spacing, title, 2-3 intro lines, and exactly two CTA buttons from `Data.START_SCREEN`.
+TASKS.md:1952:  - Facts: Simplified start-screen CSS to one centered card with title, intro lines, and two aligned CTAs; added `Game.__DEV.smokeOnboardingMinimalUiOnce()` to check narrow/medium/wide layout, no start-overlay scroll, CTA visibility/alignment, overlap, no extra blocks, and the Step 7 [1] behavior smoke.
+TASKS.md:1956:  - Next Prompt: Runtime-smoke Step 7 [2] with `Game.__DEV.smokeOnboardingMinimalUiOnce()`; verify minimal card layout across narrow/medium/wide, no default viewport scroll, aligned visible CTAs, Start entry, Rules non-blocking, and no extra start-screen blocks.
+TASKS.md:2023:  - Facts: Added pointer-safe start-card/button styling, direct mobile bindings for Rules, delegated start-screen routing for Start/Rules, and expanded `Game.__DEV.smokeOnboardingSpecOnce()` to exercise the click path and pointer-blocker checks.
+TASKS.md:2426:  - [x] The gate verifies terminology table coverage for required UI concepts/new feature concepts, no runtime-facing taxonomy/where-used concepts outside the table, no forbidden synonyms, no missing coverage, no duplicate canon concepts, no unapproved taxonomy drift, and no failed layer smoke.
+TASKS.md:2429:- Notes: READY_FOR_RUNTIME_SMOKE only. Runtime PASS must not be claimed until iPhone Safari runs `Game.__DEV.smokeStep3TerminologyCompletionGateOnce()` and returns `ok:true`, `failedChecks:[]`, `regressionPackResult.ok:true`, every `layerResults.*.ok:true`, no forbidden synonyms, no missing coverage, and build marker `STEP3_TERMINOLOGY_COMPLETION_GATE_V1`. Closed substeps: [1] inventory, [2] canon, [3] style guide, [4] taxonomy, [5] terminology table, [6] where-used map, [7.1] Events/Crowd, [7.2] Battles, [7.3] DM, [7.4] Reports/Cop, [7.5] Escape/Ignore, [7.6] Rematch, [7.7] Training, [7.8] Respect, [7.9] P2P, [7.10] Global/Common, [8] regression pack.
+TASKS.md:2567:  - [x] Forbidden variants from the terminology table are removed from DM runtime-facing strings covered by the where-used rows.
+TASKS.md:2592:  - [x] Forbidden variants from the terminology table are removed from Battles runtime-facing strings covered by the where-used rows.
+TASKS.md:2597:- Result: Local PASS only; no Runtime PASS claimed. Updated battle card/button/hint/error/result-facing terminology and cache markers, added the Battles layer smoke, and mirrored docs/Web files. PASS criteria: iPhone Safari runs `Game.__DEV.smokeStep3TerminologyBattlesLayerOnce()` and returns `ok:true`, `failures:[]`, `checkedCount:91`, `replacedCount:10`, `forbiddenRemaining:[]`, `layerScope:"battle_ui"`. FAIL criteria: any forbidden synonym remains, any previous Step 3 helper or Step 3 [7.1] helper is missing/fails, or Safari runtime returns `ok:false`.
+TASKS.md:2617:  - [x] Forbidden variants from the terminology table are removed from this layer's runtime-facing strings covered by the where-used rows.
+TASKS.md:2642:  - [x] Every inventory `TERM_ID` referenced by the mapped Step 3 terminology table appears in the where-used map.
+TASKS.md:2644:  - [x] `Game.__DEV.smokeStep3TerminologyWhereUsedOnce()` is installed with build marker `STEP3_TERMINOLOGY_WHERE_USED_V1` and validates required columns, table concept coverage, inventory references, forbidden synonym mapping/documentation, non-empty source files/replacement targets, duplicate `SourceTermId`+`ReplacementTarget` rows, and runtime-facing concept coverage.
+TASKS.md:2649:  - Facts: Built `STEP3_TERMINOLOGY_WHERE_USED_V1` from inventory, canon, taxonomy, and terminology table artifacts without reopening prior steps or editing UI copy.
+TASKS.md:2655:### [T-20260601-004] AsyncScene Step 3 [5] unified terminology table V1
+TASKS.md:2661:- Files: `docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-table.py` `tools/validate-step3-terminology-table.py`
+TASKS.md:2662:- Goal: Create the unified source-of-truth terminology table for future UI language governance from the Step 3 inventory, canon, and taxonomy artifacts.
+TASKS.md:2666:  - [x] Each canon UI concept appears exactly once; the table contains 12 rows for the 12 existing canon concepts.
+TASKS.md:2671:- Result: READY_FOR_RUNTIME_SMOKE. Static validators passed for both mirrored terminology table files; browser smoke was environment-blocked by missing Playwright Chromium, and iPhone Safari runtime PASS was not claimed.
+TASKS.md:2674:  - Facts: Built the governance-only table from existing Step 3 artifacts without reopening previous steps.
+TASKS.md:2675:  - Changed: `docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `AsyncScene/Web/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv` `docs/dev/dev-checks.js` `AsyncScene/Web/dev/dev-checks.js` `tools/generate-step3-terminology-table.py` `tools/validate-step3-terminology-table.py` `TASKS.md` `PROJECT_MEMORY.md`
+TASKS.md:2676:  - How to verify: run `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv`; then in Safari run `Game.__DEV.smokeStep3TerminologyTableOnce()`.
+TASKS.md:3806:  3. PASS if `ok:true`, `failed:[]`, `samples` list exactly the four rows and their payloads match row.{currency,amount,reason}, and Console shows `DUMP_AT [...]`, `ECON_UI3_MATCH_BEGIN`, JSON, `ECON_UI3_MATCH_END`.
+TASKS.md:6259:  - `git ls-tree -r --name-only origin/main | rg '^docs/'` lists `docs/index.html` plus the rest of the docs tree, proving the repository published to `origin/main` already contains the `docs` site assets.
+TASKS.md:6762:  - [x] Covered surfaces are listed: UI, NPC, dev-card, toasts, hints, errors.
+TASKS.md:6763:  - [x] Required future artifacts are listed: allowed dictionary, forbidden/taboo list, tone rules, phrase length rules, addressing rules.
+TASKS.md:6771:    - How to verify: Read `STYLELEX.md` and confirm it names StyleLex as the single future style contract, includes UI/NPC/dev-card/toasts/hints/errors, includes all required future artifacts, and says no runtime implementation was done.
+TASKS.md:6772:    - Next: Content/UX — write the actual allowed dictionary, taboo list, tone rules, phrase length rules, and addressing rules in later Step 2 artifacts.
+TASKS.md:6801:  - Validators, UI text rewrites, forbidden list changes, and rewrite hint changes were not added.
+TASKS.md:6881:  - Added `Game.__DEV.smokeStyleLexNormalizeOnce()` plus `Game.__DEV.styleLexTouchpointsOnce()` proof lists.
+TASKS.md:6887:  - Battle/escape/ignore/crowd result-card copy: pending direct boundary adapter after outcome-card audit.
+TASKS.md:6967:- Added mirrored `Game.__DEV.smokeStep3TerminologyRematchLayerOnce()` with build marker `STEP3_TERMINOLOGY_REMATCH_LAYER_V1`. It reports `ok`, `failures`, `checkedCount`, `replacedCount`, `forbiddenRemaining`, and `layerScope`; validates scoped table/where-used/taxonomy coverage; scans rematch runtime-facing strings; and verifies previous Step 3 helpers [1]-[6] plus [7.1]-[7.5] are available.
+TASKS.md:6968:- Local evidence: PASS syntax checks for changed JS files; PASS terminology table validators for docs and Web artifacts; PASS where-used validator; PASS static Rematch scoped forbidden-synonym scan with no forbidden runtime-facing variants remaining.
+TASKS.md:6998:- Static evidence: PASS `node --check docs/dev/dev-checks.js && node --check AsyncScene/Web/dev/dev-checks.js && node --check docs/ui/ui-dm.js && node --check AsyncScene/Web/ui/ui-dm.js && node --check docs/data.js && node --check AsyncScene/Web/data.js`; PASS `python3 tools/validate-step3-terminology-table.py docs/terminology/STEP3_TERMINOLOGY_TABLE_V1.csv docs/terminology/STEP3_TERMINOLOGY_CANON.csv docs/terminology/STEP3_UI_TAXONOMY_V1.csv && python3 tools/validate-step3-terminology-where-used.py`; PASS local static Respect forbidden-synonym scan.
+TASKS.md:7010:- Evidence: PASS JS syntax checks for changed JS/HTML-adjacent files; PASS terminology table validator; PASS where-used validator; PASS local static global/common forbidden-synonym scan. WARNING local Playwright browser smoke could not launch because Chromium is not installed; no runtime PASS is claimed.
+TASKS.md:7017:- The smoke loads `STEP3_TERMINOLOGY_TABLE_V1`, checks applicable concept/canonical table membership, scans targeted runtime-facing source text for required canonical coverage, rejects forbidden synonyms/new variants in the targeted scenario contexts, and returns `ok`, `buildMarker`, `totalMs`, `scenarioCount`, `checkedCount`, `failures`, `forbiddenRemaining`, `missingCoverage`, and `scenarioResults`.
+docs/util.js:25:  Util.pickWeighted = (list) => {
+docs/util.js:26:    if (!Array.isArray(list) || !list.length) return null;
+docs/util.js:28:    for (const x of list) sum += Math.max(0, x.weight|0);
+docs/util.js:29:    if (sum <= 0) return list[0].item ?? list[0];
+docs/util.js:31:    for (const x of list) {
+docs/util.js:35:    return list[list.length - 1].item ?? list[list.length - 1];
+docs/conflict/conflict-core.js:166:    const addCandidate = (list, value) => {
+docs/conflict/conflict-core.js:169:        if (normalized && !list.includes(normalized)) list.push(normalized);
+docs/conflict/conflict-core.js:1266:        const list = (D && typeof D.getArgCanonGroup === "function") ? D.getArgCanonGroup("Y1", typeU) : [];
+docs/conflict/conflict-core.js:1267:        const item = (Array.isArray(list) && list.length) ? (list[0] || null) : null;
+docs/conflict/conflict-api.js:93:  function filterValidArgs(list, kind) {
+docs/conflict/conflict-api.js:94:    const src = Array.isArray(list) ? list : [];
+docs/conflict/conflict-api.js:134:     const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
+docs/conflict/conflict-api.js:135:     return list.find(b => b && b.id === battleId) || null;
+docs/conflict/conflict-api.js:826:       let list = [];
+docs/conflict/conflict-api.js:829:           list = Args.myAttackOptions(battle || null) || [];
+docs/conflict/conflict-api.js:832:           list = [];
+docs/conflict/conflict-api.js:835:       const filtered = filterValidArgs(list, "attack").filter(a => a && String(a.id || "").startsWith("canon_"));
+docs/conflict/conflict-api.js:850:       let list = [];
+docs/conflict/conflict-api.js:853:           list = Args.myDefenseOptions(battle || null) || [];
+docs/conflict/conflict-api.js:856:           list = [];
+docs/conflict/conflict-api.js:859:       const filtered = filterValidArgs(list, "defense").filter(a => a && String(a.id || "").startsWith("canon_"));
+docs/conflict/conflict-api.js:930:     _findArgById(list, id) {
+docs/conflict/conflict-api.js:931:       if (!Array.isArray(list) || !id) return null;
+docs/conflict/conflict-api.js:932:       return list.find(a => a && a.id === id) || null;
+docs/npcs.js:471:  const pickWeightedPlayer = (list) => {
+docs/npcs.js:472:    if (!list || !list.length) return null;
+docs/npcs.js:474:      return Game.Util.pickWeighted(list);
+docs/npcs.js:478:    for (const x of list) sum += Math.max(0, x.weight|0);
+docs/npcs.js:479:    if (sum <= 0) return list[0].item || list[0];
+docs/npcs.js:481:    for (const x of list) {
+docs/npcs.js:485:    return (list[list.length - 1].item || list[list.length - 1]);
+docs/npcs.js:578:    let list = [];
+docs/npcs.js:581:      list = cops.map(entry => ({ item: entry.item, weight: 1 }));
+docs/npcs.js:583:      list = others.concat(cops.map(entry => ({ item: entry.item, weight: 1 })));
+docs/npcs.js:585:      list = others.slice();
+docs/npcs.js:587:    if (!list.length && cops.length) {
+docs/npcs.js:588:      list = cops.slice();
+docs/npcs.js:591:    if (!list.length) {
+docs/npcs.js:606:    for (const entry of list) {
+docs/npcs.js:620:    const selected = pickWeightedPlayer(list);
+docs/npcs.js:665:    const list = pool.map(p => ({ item: p, weight: roleWeight(p, "battle") }));
+docs/npcs.js:666:    return pickWeightedPlayer(list);
+docs/npcs.js:957:      const list = pool.map(p => {
+docs/npcs.js:963:      const npc = pickWeightedPlayer(list);
+docs/npcs.js:1659:    const addUnique = (list, value) => {
+docs/npcs.js:1661:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+docs/npcs.js:1706:        const list = entry && typeof entry.get === "function" ? entry.get() : [];
+docs/npcs.js:1707:        if (Array.isArray(list)) list.forEach((line, index) => addText(rows, entry.source.indexOf("villain") >= 0 ? "villainFlow" : "npcSay", `${entry.source}.${index}`, line));
+docs/npcs.js:1798:    const addUnique = (list, value) => {
+docs/npcs.js:1800:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+docs/npcs.js:1900:    const addUnique = (list, value) => {
+docs/npcs.js:1902:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+docs/npcs.js:2026:    const addUnique = (list, value) => { const key = JSON.stringify(value); if (!list.some((item) => JSON.stringify(item) === key)) list.push(value); };
+docs/npcs.js:3033:    const list = all.map(p => ({ item: p, weight: roleWeightForReaction(p) }));
+docs/npcs.js:3034:    return pickWeightedPlayer(list);
+docs/npcs.js:3106:  // This prevents "Game.NPC.getAll is not a function" / empty NPC lists when UI starts.
+docs/conflict/conflict-economy.js:791:    const list = bid && dbg.moneyLogByBattle && Array.isArray(dbg.moneyLogByBattle[bid])
+docs/conflict/conflict-economy.js:794:    for (let i = list.length - 1; i >= 0; i--) {
+docs/conflict/conflict-economy.js:795:      const x = list[i];
+docs/conflict/conflict-economy.js:1074:    const list = (Game.NPC && typeof Game.NPC.getAll === "function")
+docs/conflict/conflict-economy.js:1076:      : (Game.NPC && typeof Game.NPC.list === "function")
+docs/conflict/conflict-economy.js:1077:        ? Game.NPC.list()
+docs/conflict/conflict-economy.js:1079:    list.forEach(n => {
+docs/conflict/conflict-economy.js:1511:    const list = eligible.slice();
+docs/conflict/conflict-economy.js:1512:    if (seed != null) list.sort(() => Math.random() - 0.5);
+docs/conflict/conflict-economy.js:1513:    const selected = list.slice(0, maxRecipients);
+docs/conflict/conflict-economy.js:1562:    const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+docs/conflict/conflict-economy.js:1563:    if (!list.length) return 0;
+docs/conflict/conflict-economy.js:1566:    for (const b of list) {
+docs/conflict/conflict-economy.js:1665:      const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+docs/conflict/conflict-economy.js:1666:      const b = list.find(x => x && String(x.id || x.battleId || "") === bid) || null;
+docs/conflict/conflict-arguments.js:74:  function padToN(list, n) {
+docs/conflict/conflict-arguments.js:75:    const out = safeList(list).slice();
+docs/conflict/conflict-arguments.js:157:  function onlyTier(list, tier) {
+docs/conflict/conflict-arguments.js:159:    return safeList(list).filter(a => a && a.color === t);
+docs/conflict/conflict-arguments.js:314:    const byType = (list) => {
+docs/conflict/conflict-arguments.js:316:      (list || []).forEach(it => {
+docs/conflict/conflict-arguments.js:331:      const list = (arr || []).slice();
+docs/conflict/conflict-arguments.js:332:      for (let i = list.length - 1; i > 0; i--) {
+docs/conflict/conflict-arguments.js:334:        [list[i], list[j]] = [list[j], list[i]];
+docs/conflict/conflict-arguments.js:336:      for (const it of list) {
+docs/conflict/conflict-arguments.js:463:      const list = (D && typeof D.getArgCanonGroup === "function")
+docs/conflict/conflict-arguments.js:466:      if (!list || list.length === 0) return null;
+docs/conflict/conflict-arguments.js:467:      const picked = pickN(list, 1)[0] || list[0];
+docs/conflict/conflict-arguments.js:478:      const list = (D && typeof D.getArgCanonGroup === "function")
+docs/conflict/conflict-arguments.js:481:      const shuffled = pickN(list, list.length);
+docs/conflict/conflict-arguments.js:686:      const list = (D && typeof D.getArgCanonGroup === "function")
+docs/conflict/conflict-arguments.js:689:      const shuffled = pickN(list, list.length);
+docs/conflict/conflict-arguments.js:854:      if (primary.length) return { subKey, list: primary, source: "primary" };
+docs/conflict/conflict-arguments.js:858:        if (altList.length) return { subKey: alt, list: altList, source: "fallback_color" };
+docs/conflict/conflict-arguments.js:960:    const list = pickedGroup ? (pickedGroup.list || []) : (D.getArgCanonGroup(subKey, String(t).toUpperCase()) || []);
+docs/conflict/conflict-arguments.js:961:    if (!list.length) return null;
+docs/conflict/conflict-arguments.js:962:    const picked = pickN(list, 1)[0] || list[0];
+docs/system.js:907:    const addUnique = (list, value) => {
+docs/system.js:909:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1046:    const addUnique = (list, value) => {
+docs/system.js:1048:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1120:    const addUnique = (list, value) => {
+docs/system.js:1122:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1188:    const addUnique = (list, value) => {
+docs/system.js:1190:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1263:    const addUnique = (list, value) => {
+docs/system.js:1265:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1377:    const addUnique = (list, value) => {
+docs/system.js:1379:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1464:    const addUnique = (list, value) => {
+docs/system.js:1466:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1517:    const addUnique = (list, value) => {
+docs/system.js:1519:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1663:    const addUnique = (list, value) => {
+docs/system.js:1665:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1755:    const addUnique = (list, value) => {
+docs/system.js:1757:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:1882:    const addUnique = (list, value) => {
+docs/system.js:1883:      if (!list.includes(value)) list.push(value);
+docs/system.js:1969:    const addUnique = (list, value) => {
+docs/system.js:1971:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2065:    const addUnique = (list, value) => {
+docs/system.js:2067:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2069:    const addAll = (list, values) => {
+docs/system.js:2071:      values.forEach((value) => addUnique(list, value));
+docs/system.js:2147:    const addUnique = (list, value) => {
+docs/system.js:2149:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2232:    const addUnique = (list, value) => {
+docs/system.js:2234:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+docs/system.js:2357:    const addUnique = (list, value) => {
+docs/system.js:2359:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2465:    const addUnique = (list, value) => {
+docs/system.js:2467:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2676:    const addUnique = (list, value) => {
+docs/system.js:2678:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2759:  function systemLanguageRegressionAddUnique(list, value){
+docs/system.js:2761:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:2938:  function systemUiRuntimeAddUnique(list, value){
+docs/system.js:2940:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:3345:  function fakeToneCoverageAddUnique(list, value){
+docs/system.js:3347:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+docs/system.js:3471:      const list = data && data.ARGUMENTS && Array.isArray(data.ARGUMENTS[side]) ? data.ARGUMENTS[side] : [];
+docs/system.js:3472:      list.forEach((row, index) => fakeTonePushEntry(entries, seen, "arguments", `Game.Data.ARGUMENTS.${side}.${index}`, row && row.text, { side, id: row && row.id }));
+docs/system.js:3805:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:3889:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:4007:    const addUnique = (list, value) => {
+docs/system.js:4009:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+docs/system.js:4175:    const addUnique = (list, value) => {
+docs/system.js:4177:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+docs/system.js:4343:    const addUnique = (list, value) => {
+docs/system.js:4345:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+docs/system.js:4514:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:4711:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:4797:        "No runtime strings are rewritten by this table.",
+docs/system.js:4895:    "Forbidden list",
+docs/system.js:4936:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:5016:      result.forbiddenListExists = /##\s+Forbidden list\b/.test(rawText) && /-\s+No memes\./.test(rawText);
+docs/system.js:5125:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:5327:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+docs/system.js:5649:  function neutralReplacementAddEntryHit(list, entry, pattern, kind){
+docs/system.js:5650:    fakeToneCoverageAddUnique(list, {
+docs/style.css:969:.mention-list{
+docs/style.css:984:/* When mention-list is used INSIDE a panel (e.g., battles invite), it must NOT be fixed at the bottom.
+docs/style.css:986:.block .mention-list,
+docs/style.css:987:.panel .mention-list,
+docs/style.css:988:.eventCard .mention-list,
+docs/style.css:989:.battleCard .mention-list{
+docs/style.css:1126:.policeBox .mention-list{width:100%; max-width:none}
+docs/style.css:1330:.card{
+docs/style.css:1349:.card .row{padding:0 18px 14px 18px}
+docs/style.css:1526:  .mention-list{
+docs/data.js:2662:    const pushUnique = (list, value) => {
+docs/data.js:2664:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+docs/data.js:2879:    const pushUnique = (list, value) => {
+docs/data.js:2881:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+docs/data.js:3142:  // Place list used for {PLACE} placeholders
+docs/data.js:3175:    const list = locs || Data.LOCATIONS || [];
+docs/data.js:3176:    list.forEach(l => {
+docs/data.js:4544:            const card = document.getElementById("startCard");
+docs/data.js:4545:            if (card) {
+docs/data.js:4546:              card.style.position = "relative";
+docs/data.js:4547:              card.style.pointerEvents = "auto";
+docs/data.js:4548:              card.style.zIndex = "1";
+docs/data.js:4805:        const card = (typeof document !== "undefined") ? document.getElementById("startCard") : null;
+docs/data.js:4812:        if (!st || !card || !titleEl || !introEl || !economyEl || !btns || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+docs/data.js:4819:          saveStyle(card, ["maxHeight", "overflow"]);
+docs/data.js:4854:          if (!st || !card || !titleEl || !introEl || !btns || !startBtn || !rulesBtn) return;
+docs/data.js:4862:          if (card) {
+docs/data.js:4863:            card.style.maxHeight = `calc(${vp.height}px - 40px)`;
+docs/data.js:4864:            card.style.overflow = "hidden";
+docs/data.js:4867:          const cardRect = rectOf(card);
+docs/data.js:4877:          const check = { name: vp.name, width: vp.width, height: vp.height, noScroll, ctaVisible, ctaAligned, noOverlap, card: roundedRect(cardRect), start: roundedRect(startRect), rules: roundedRect(rulesRect) };
+docs/data.js:9337:        const list = root.__S && Array.isArray(root.__S.battles) ? root.__S.battles : [];
+docs/data.js:9338:        return list.length;
+docs/data.js:11568:    const unique = (list) => Array.from(new Set(list));
+docs/dev/dev-checks.js:382:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:448:        root.querySelectorAll("table,tr,td,th").forEach((el) => addUnique(result.forbiddenRemaining, { check: "legacy_table_markers", marker: el.tagName.toLowerCase() }));
+docs/dev/dev-checks.js:491:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:675:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:897:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:898:      const addAll = (list, values, smokeId) => {
+docs/dev/dev-checks.js:900:        values.forEach((value) => addUnique(list, smokeId ? { smoke: smokeId, item: value } : value));
+docs/dev/dev-checks.js:1024:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:1144:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+docs/dev/dev-checks.js:1253:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:1406:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+docs/dev/dev-checks.js:1508:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:1642:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:1643:      const addAllLocal = (list, values) => {
+docs/dev/dev-checks.js:1644:        if (!Array.isArray(list) || !Array.isArray(values)) return;
+docs/dev/dev-checks.js:1645:        values.forEach((value) => addUnique(list, value));
+docs/dev/dev-checks.js:1757:      const addCandidate = (list, seen, value) => {
+docs/dev/dev-checks.js:1760:        list.push(value);
+docs/dev/dev-checks.js:1870:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:1999:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2025:        const table = baseTable.slice();
+docs/dev/dev-checks.js:2029:            table.push(Object.freeze({
+docs/dev/dev-checks.js:2036:        const unmatchedVoteTargets = inventoryTargets.filter((target) => isDynamicVoteCounterValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+docs/dev/dev-checks.js:2037:        const unmatchedDeltaTargets = inventoryTargets.filter((target) => isDynamicDeltaTitleValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+docs/dev/dev-checks.js:2040:        result.pairCount = table.length;
+docs/dev/dev-checks.js:2043:        table.forEach((pair, idx) => {
+docs/dev/dev-checks.js:2072:          const hasMatch = zoomerSeen.has(target) || table.some((pair) => pairMatchesInventoryTarget(pair, target));
+docs/dev/dev-checks.js:2078:        table.forEach((pair, idx) => {
+docs/dev/dev-checks.js:2085:        if (table.length !== inventoryTargets.length) fail("pair_count_matches_inventory", { pairCount: table.length, inventoryCount: inventoryTargets.length });
+docs/dev/dev-checks.js:2145:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2262:              fail("millennial_source_matches", { idx, id: row.id, source: sourceRow.millennial, table: row.millennial });
+docs/dev/dev-checks.js:2266:              fail("zoomer_source_matches", { idx, id: row.id, source: sourceRow.zoomer, table: row.zoomer });
+docs/dev/dev-checks.js:2321:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2438:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2517:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2613:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2681:        const uiSectionMatch = zoomRaw.match(/##\s*Millennial\s*->\s*zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+docs/dev/dev-checks.js:2787:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:2951:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:3077:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:3237:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:3405:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:3406:      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+docs/dev/dev-checks.js:3541:          const list = entry && typeof entry.get === "function" ? entry.get() : [];
+docs/dev/dev-checks.js:3542:          if (Array.isArray(list)) list.forEach((line, index) => addNpc(`${entry.source}.${index}`, line));
+docs/dev/dev-checks.js:3685:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:3686:      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+docs/dev/dev-checks.js:3770:    const addZoomerTermsInventoryEntry = (list, category, text, source) => {
+docs/dev/dev-checks.js:3775:      if (!list.some((item) => item && `${item.category}|${item.text}|${item.source.file}|${item.source.module}|${item.source.key || ""}|${item.source.path || ""}` === key)) {
+docs/dev/dev-checks.js:3776:        list.push(entry);
+docs/dev/dev-checks.js:4168:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:4236:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:4312:          { id: "millennial_to_zoomer_table", re: /## Millennial -> zoomer comparison table/i },
+docs/dev/dev-checks.js:4333:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+docs/dev/dev-checks.js:4521:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:4645:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:4821:        const list = runtimeArgs && Array.isArray(runtimeArgs[side]) ? runtimeArgs[side] : [];
+docs/dev/dev-checks.js:4822:        list.forEach((item, index) => {
+docs/dev/dev-checks.js:4869:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:4870:      const pushSample = (list, value) => {
+docs/dev/dev-checks.js:4871:        if (list.length < sampleLimit) addUnique(list, value);
+docs/dev/dev-checks.js:5026:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5152:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5291:        ].forEach(([check, list]) => {
+docs/dev/dev-checks.js:5292:          if (Array.isArray(list) && list.length) fail(check, list.slice(0, 12));
+docs/dev/dev-checks.js:5342:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5450:        ].forEach(([check, list]) => {
+docs/dev/dev-checks.js:5451:          if (Array.isArray(list) && list.length) fail(check, list.slice(0, 12));
+docs/dev/dev-checks.js:5503:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5621:        ].forEach(([check, list]) => {
+docs/dev/dev-checks.js:5622:          if (Array.isArray(list) && list.length) {
+docs/dev/dev-checks.js:5623:            fail(check, list.slice(0, 12));
+docs/dev/dev-checks.js:5624:            list.forEach((item) => addUnique(result.forbiddenRemaining, item));
+docs/dev/dev-checks.js:5691:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5692:      const addAll = (list, values) => {
+docs/dev/dev-checks.js:5694:        values.forEach((value) => addUnique(list, value));
+docs/dev/dev-checks.js:5833:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+docs/dev/dev-checks.js:5834:      const addAllLocal = (list, values) => {
+docs/dev/dev-checks.js:5836:        values.forEach((value) => addUnique(list, value));
+docs/dev/dev-checks.js:6239:      const list = [];
+docs/dev/dev-checks.js:6243:          list.push(makeSource(roleCategory(role), `AsyncScene/Web/npcs.js:NPC.SAY.${role}.${sex}`, () => say && say[role] && say[role][sex], { role, channel: "dm", idPrefix: `npc_say_${role}_${sex}` }));
+docs/dev/dev-checks.js:6246:      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainQuestions", () => ["ты здесь? отвечай", "это про тебя? отвечай", "кто держит слово?", "это твоя тема?", "войдешь в спор или мимо?"], { role: "toxic", channel: "dm", idPrefix: "villain_questions" }));
+docs/dev/dev-checks.js:6247:      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "готов к раунду", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
+docs/dev/dev-checks.js:6248:      list.push(makeSource("neutral", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", () => Game.Data && Game.Data.NPC_CHAT_LINES, { role: "neutral", channel: "event", idPrefix: "npc_chat_lines" }));
+docs/dev/dev-checks.js:6250:        list.push(makeSource(key === "toxicDescriptions" ? "toxic" : key === "banditDescriptions" ? "bandit" : "cop", `AsyncScene/Web/data.js:Data.COP_TEMPLATES.${key}`, () => copTpl(key), { role: "cop", channel: key === "chatReplies" ? "event" : "dm", idPrefix: `cop_templates_${key}` }));
+docs/dev/dev-checks.js:6252:      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.attack, { role: "unknown", channel: "battle", idPrefix: "arguments_attack" }));
+docs/dev/dev-checks.js:6253:      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.defense, { role: "unknown", channel: "battle", idPrefix: "arguments_defense" }));
+docs/dev/dev-checks.js:6262:      ].forEach(row => list.push(makeSource(row[0], `AsyncScene/Web/data.js:Data.SYS.${row[1]}`, () => sys(row[1], row[2], row[3]), { role: row[4] || "unknown", channel: row[0] === "event" ? "event" : "battle", idPrefix: `sys_${row[1]}` })));
+docs/dev/dev-checks.js:6263:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcDrawEvent.line", () => "Толпа решает: NPC A [1] и NPC B [2].", { role: "neutral", channel: "event", idPrefix: "event_npc_draw" }));
+docs/dev/dev-checks.js:6264:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", () => "Толпа решает: NPC A хочет Отвали NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_strong" }));
+docs/dev/dev-checks.js:6265:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", () => "Толпа решает: NPC A хочет Свалить NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_weak" }));
+docs/dev/dev-checks.js:6266:      ["cop_report_accept", "cop_busy", "cop_report_ok", "cop_report_fail", "cop_cooldown"].forEach(key => list.push(makeSource("report", `AsyncScene/Web/data.js:Data.TEXTS.genz.${key}`, () => dataGenz(key), { role: "cop", channel: "dm", idPrefix: `texts_genz_${key}` })));
+docs/dev/dev-checks.js:6267:      list.push(makeSource("report", "AsyncScene/Web/npcs.js:NPC.COP.topics", () => Game.NPC && Game.NPC.COP && Game.NPC.COP.topics, { role: "cop", channel: "dm", idPrefix: "npc_cop_topics" }));
+docs/dev/dev-checks.js:6268:      list.push(makeSource("report", "AsyncScene/Web/state.js:report flow hardcoded replies", () => ["Принял. Проверка началась.", "Цель не обнаружена. Проверю ещё раз.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Этот контакт уже отмечен. Повтор не требуется.", "Проверка сошлась. Контакт отмечен.", "Сообщение принято. Я вмешался.", "Проверка сошлась. Контакт отмечен.", "Цель не обнаружена. Проверю ещё раз.", "«Сдать» без фактов — штраф 1⭐. Запись в отчете.", "NPC отправился за решётку на 5 минут."], { role: "cop", channel: "dm", idPrefix: "state_report_replies" }));
+docs/dev/dev-checks.js:6269:      list.push(makeSource("dm", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", () => "Ты мне пишешь? Тогда поговорим лично.", { role: "mafia", channel: "dm", idPrefix: "ui_dm_mafia_trap" }));
+docs/dev/dev-checks.js:6270:      list.push(makeSource("bandit", "AsyncScene/Web/state.js:sendRevengeDM.bandit", () => "долг вернем, не забудь", { role: "bandit", channel: "dm", idPrefix: "state_revenge_bandit" }));
+docs/dev/dev-checks.js:6271:      list.push(makeSource("toxic", "AsyncScene/Web/state.js:sendRevengeDM.default", () => "ты за это ответишь", { role: "toxic", channel: "dm", idPrefix: "state_revenge_toxic" }));
+docs/dev/dev-checks.js:6273:      list.push(makeSource("unknown", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE", () => speech && speech.TEMPLATES_BY_LOCALE, { role: "unknown", channel: "unknown", idPrefix: "npc_speech_templates" }));
+docs/dev/dev-checks.js:6274:      return list;
+docs/dev/dev-checks.js:7121:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:7123:      result.rowCount = table.records.length;
+docs/dev/dev-checks.js:7125:      requiredColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_required_column", col); });
+docs/dev/dev-checks.js:7126:      recommendedColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_recommended_column", col); });
+docs/dev/dev-checks.js:7134:      table.records.forEach((row, idx) => {
+docs/dev/dev-checks.js:7158:      table.records.forEach((row, idx) => {
+docs/dev/dev-checks.js:7289:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:7294:      const tableConcepts = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:7502:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:7514:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:7748:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:7759:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:7994:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:8005:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:8170:      const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+docs/dev/dev-checks.js:8176:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:8318:      const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+docs/dev/dev-checks.js:8333:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:8513:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:8532:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:8704:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:8713:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:8876:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:8885:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:9064:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:9078:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:9249:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:9262:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:9433:      const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:9434:      const tableRows = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+docs/dev/dev-checks.js:9435:      const canonicalTerms = new Set(table.records.map(row => String(row.CanonicalTermRU || "").trim()).filter(Boolean));
+docs/dev/dev-checks.js:9437:      table.records.forEach(row => forbiddenByConcept.set(String(row.ConceptId || "").trim(), splitPipe(row.ForbiddenVariants)));
+docs/dev/dev-checks.js:9675:    const pushUnique = (list, item) => {
+docs/dev/dev-checks.js:9677:      if (!list.some(existing => (typeof existing === "string" ? existing : JSON.stringify(existing)) === key)) list.push(item);
+docs/dev/dev-checks.js:9688:          requiredStep3Substeps: ["[1] inventory", "[2] canon", "[3] style guide", "[4] taxonomy", "[5] terminology table", "[6] where-used map", "[7.1]-[7.10] layer smokes", "[8] regression pack"],
+docs/dev/dev-checks.js:9745:        const table = parseCsv(tableFetch.text);
+docs/dev/dev-checks.js:9749:        const tableConcepts = new Set(table.records.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
+docs/dev/dev-checks.js:9771:        table.records.forEach(row => splitPipe(row.SourceTermIds).forEach(termId => tableSourceTermIds.add(termId)));
+docs/dev/dev-checks.js:9818:      "battle outcome card plus delta toast",
+docs/dev/dev-checks.js:9984:        cases.push(makeCase("battle_outcome_card_delta_toast", ["battle outcome card plus delta toast"], () => {
+docs/dev/dev-checks.js:14747:      const list = eligible.slice().sort();
+docs/dev/dev-checks.js:14749:        list.sort(() => Math.random() - 0.5);
+docs/dev/dev-checks.js:14751:      const selected = list.slice(0, maxRecipientsPerTick);
+docs/dev/dev-checks.js:17586:      const list = [];
+docs/dev/dev-checks.js:17589:        if (!key || list.includes(key)) return;
+docs/dev/dev-checks.js:17590:        list.push(key);
+docs/dev/dev-checks.js:17602:      return list.sort();
+docs/dev/dev-checks.js:17604:    const hashList = (list) => {
+docs/dev/dev-checks.js:17606:      const s = list.join("|");
+docs/dev/dev-checks.js:17749:      const list = [];
+docs/dev/dev-checks.js:17752:        if (!key || list.includes(key)) return;
+docs/dev/dev-checks.js:17753:        list.push(key);
+docs/dev/dev-checks.js:17765:      return list.sort();
+docs/dev/dev-checks.js:17767:    const hashList = (list) => {
+docs/dev/dev-checks.js:17769:      const s = list.join("|");
+docs/dev/dev-checks.js:20244:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:20245:      if (list.length) return list[0];
+docs/dev/dev-checks.js:20538:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:20539:      if (list.length) return list[0];
+docs/dev/dev-checks.js:20547:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:20548:      const need = Math.max(0, (minCount | 0) - list.length);
+docs/dev/dev-checks.js:20867:      const table = Econ.WIN_PROGRESS_REP_TABLE || {};
+docs/dev/dev-checks.js:20868:      const amt = Number.isFinite(table[t]) ? (table[t] | 0) : 0;
+docs/dev/dev-checks.js:21863:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:21864:      if (list.length) return list[0];
+docs/dev/dev-checks.js:22370:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:22371:      if (list.length) return list[0];
+docs/dev/dev-checks.js:24028:        const list = conflict.myDefenseOptions(battle) || [];
+docs/dev/dev-checks.js:24029:        if (list.length) {
+docs/dev/dev-checks.js:24030:          return { arg: list[0], source: "myDefenseOptions" };
+docs/dev/dev-checks.js:24034:        const list = Args.myDefenseOptions(battle) || [];
+docs/dev/dev-checks.js:24035:        if (list.length) {
+docs/dev/dev-checks.js:24036:          return { arg: list[0], source: "coreArgs" };
+docs/dev/dev-checks.js:24345:        const list = Object.values(S.players || {}).filter(p => {
+docs/dev/dev-checks.js:24351:        return list[0] || null;
+docs/dev/dev-checks.js:24583:      const list = Object.values(S.players || {}).filter(p => {
+docs/dev/dev-checks.js:24588:      return list[0] || null;
+docs/dev/dev-checks.js:25049:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+docs/dev/dev-checks.js:25050:      return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+docs/dev/dev-checks.js:25055:      const push = (list) => {
+docs/dev/dev-checks.js:25056:        (list || []).forEach(item => {
+docs/dev/dev-checks.js:25328:      const push = (list) => {
+docs/dev/dev-checks.js:25329:        (list || []).forEach(item => {
+docs/dev/dev-checks.js:26642:    const pushIds = (list) => {
+docs/dev/dev-checks.js:26643:      (Array.isArray(list) ? list : []).forEach(id => {
+docs/dev/dev-checks.js:27132:        const list = Object.values(S.players || {}).filter(p => {
+docs/dev/dev-checks.js:27138:        return list[0] || null;
+docs/dev/dev-checks.js:27949:        const list = Object.values(S.players || {}).filter(p => {
+docs/dev/dev-checks.js:27955:        return list[0] || null;
+docs/dev/dev-checks.js:28413:            const list = Object.values(S.players || {}).filter(p => {
+docs/dev/dev-checks.js:28419:            return list[0] || null;
+docs/dev/dev-checks.js:30437:      title: `${debugMarker ? "DEV_RESULT_CARD_V2 " : ""}Dev card: ${scenario}`,
+docs/dev/dev-checks.js:30462:      uiNote: `${debugMarker ? "DEV_RESULT_CARD_V2 " : ""}dev card ${mode} ${meVote ? "me" : "no"}`,
+docs/dev/dev-checks.js:30958:      const list = getBattleList();
+docs/dev/dev-checks.js:30960:      const idSample = list.slice(0, 3).map(x => x && x.id ? x.id : null);
+docs/dev/dev-checks.js:30961:      let last = list[list.length - 1] || null;
+docs/dev/dev-checks.js:30962:      if (!last && list.length) last = list[0];
+docs/dev/dev-checks.js:30963:      if (list.length > 1) {
+docs/dev/dev-checks.js:30964:        const byTime = list.slice().sort((a, b) => {
+docs/dev/dev-checks.js:30975:      diag.battlesType = { isArray: Array.isArray(S.battles), len: list.length, keysSample };
+docs/dev/dev-checks.js:32183:      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+docs/dev/dev-checks.js:32184:      const nodes = getNodePresence(card);
+docs/dev/dev-checks.js:32185:      const nodeTexts = getNodeTexts(card);
+docs/dev/dev-checks.js:32209:        for (const list of battleSources) {
+docs/dev/dev-checks.js:32210:          for (const candidate of list) {
+docs/dev/dev-checks.js:32230:        opponent: getArgColorKey(card, nodeSelectors.outgoingOppArg),
+docs/dev/dev-checks.js:32231:        mine: getArgColorKey(card, nodeSelectors.outgoingMyCounter)
+docs/dev/dev-checks.js:32366:      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+docs/dev/dev-checks.js:32368:        if (!card) return { count: 0, testIds: [], colorKeys: [] };
+docs/dev/dev-checks.js:32369:        const nodes = Array.from(card.querySelectorAll(selector));
+docs/dev/dev-checks.js:32395:      const reason = !card ? "card_missing" : (status === "PASS" ? null : "arg_count_mismatch");
+docs/dev/dev-checks.js:32404:        cardFound: !!card
+docs/dev/dev-checks.js:32410:        cardPresent: !!card
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:2524:ST3_2523,TERM_ST3_2523,Result card: максимум 3-4 строки.,ResultCard,Status,docs/data/style-lex.js,result_cards,line=49; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:2526:ST3_2525,TERM_ST3_2525,Dev card: максимум 3-4 строки.,Other,Status,docs/data/style-lex.js,general_interface,line=51; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2524:ST3_2523,ResultCard,Result card: максимум 3-4 строки.,result_cards,docs/data/style-lex.js,card,static_string,line=49
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2526:ST3_2525,Other,Dev card: максимум 3-4 строки.,general_interface,docs/data/style-lex.js,card,static_string,line=51
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2527:ST3_2526,Other,Не делай длинные скобочные блоки и стены текста в квадратных скобках.,general_interface,docs/data/style-lex.js,card,static_string,line=52
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2528:ST3_2527,Other,Делай одно действие или один смысл на фразу.,general_interface,docs/data/style-lex.js,card,static_string,line=53
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2529:ST3_2528,Other,"Если строка перегружена, раздели её на две короткие фразы.",general_interface,docs/data/style-lex.js,card,static_string,line=54
+AsyncScene/Web/conflict-old.js:109:  function pickOne(list) {
+AsyncScene/Web/conflict-old.js:110:    if (!Array.isArray(list) || list.length === 0) return null;
+AsyncScene/Web/conflict-old.js:111:    return list[Math.floor(Math.random() * list.length)];
+AsyncScene/Web/conflict-old.js:180:    const table = Game.Data?.ARGUMENT_POWER;
+AsyncScene/Web/conflict-old.js:182:    if (table && Object.prototype.hasOwnProperty.call(table, realColor)) {
+AsyncScene/Web/conflict-old.js:183:      const n = Number(table[realColor]);
+AsyncScene/Web/conflict-old.js:202:    let list = base.filter(a => allowed.has(a.color)).slice();
+AsyncScene/Web/conflict-old.js:206:      list.push({
+AsyncScene/Web/conflict-old.js:216:    return list;
+AsyncScene/Web/conflict-old.js:224:    let list = base.filter(a => allowed.has(a.color)).slice();
+AsyncScene/Web/conflict-old.js:228:      list.push({
+AsyncScene/Web/conflict-old.js:242:      let filtered = list;
+AsyncScene/Web/conflict-old.js:249:        filtered = list.filter(d => getGroup(d) === group);
+AsyncScene/Web/conflict-old.js:252:      if (filtered.length > 0) list = filtered;
+AsyncScene/Web/conflict-old.js:255:    return list;
+AsyncScene/Web/ui-old.js:273:      const card = document.createElement("div");
+AsyncScene/Web/ui-old.js:274:      card.className = `phraseCard ${p.color}`;
+AsyncScene/Web/ui-old.js:275:      card.innerHTML = `
+AsyncScene/Web/ui-old.js:280:      card.onclick = () => {
+AsyncScene/Web/ui-old.js:353:      grid.appendChild(card);
+AsyncScene/Web/ui-old.js:625:      const card = document.createElement("div");
+AsyncScene/Web/ui-old.js:626:      card.className = "battleCard";
+AsyncScene/Web/ui-old.js:638:      card.appendChild(top);
+AsyncScene/Web/ui-old.js:650:      card.appendChild(line);
+AsyncScene/Web/ui-old.js:665:          card.appendChild(grid);
+AsyncScene/Web/ui-old.js:680:          card.appendChild(grid);
+AsyncScene/Web/ui-old.js:705:        card.appendChild(row2);
+AsyncScene/Web/ui-old.js:711:          card.appendChild(note);
+AsyncScene/Web/ui-old.js:718:          card.appendChild(showA);
+AsyncScene/Web/ui-old.js:724:          card.appendChild(showD);
+AsyncScene/Web/ui-old.js:742:          card.appendChild(vote);
+AsyncScene/Web/ui-old.js:748:        card.appendChild(res);
+AsyncScene/Web/ui-old.js:761:        card.appendChild(closeRow);
+AsyncScene/Web/ui-old.js:764:      body.appendChild(card);
+AsyncScene/Web/ui-old.js:809:    const renderList = (list) => {
+AsyncScene/Web/ui-old.js:810:      list.forEach(e => {
+AsyncScene/Web/ui-old.js:811:        const card = document.createElement("div");
+AsyncScene/Web/ui-old.js:812:        card.className = "eventCard";
+AsyncScene/Web/ui-old.js:815:        card.innerHTML = `
+AsyncScene/Web/ui-old.js:852:          card.appendChild(row);
+AsyncScene/Web/ui-old.js:853:          card.appendChild(rule);
+AsyncScene/Web/ui-old.js:858:          card.appendChild(res);
+AsyncScene/Web/ui-old.js:864:          card.appendChild(closeBtn);
+AsyncScene/Web/ui-old.js:868:          card.style.outline = "2px solid rgba(191,195,255,0.65)";
+AsyncScene/Web/ui-old.js:869:          card.style.boxShadow = "0 0 0 4px rgba(191,195,255,0.10)";
+AsyncScene/Web/ui-old.js:872:        body.appendChild(card);
+AsyncScene/Web/util.js:25:  Util.pickWeighted = (list) => {
+AsyncScene/Web/util.js:26:    if (!Array.isArray(list) || !list.length) return null;
+AsyncScene/Web/util.js:28:    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/util.js:29:    if (sum <= 0) return list[0].item ?? list[0];
+AsyncScene/Web/util.js:31:    for (const x of list) {
+AsyncScene/Web/util.js:35:    return list[list.length - 1].item ?? list[list.length - 1];
+AsyncScene/Web/system.js:877:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:879:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1016:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1018:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1090:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1092:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1158:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1160:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1233:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1235:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1347:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1349:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1434:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1436:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1487:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1489:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1633:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1635:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1725:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1727:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:1852:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1853:      if (!list.includes(value)) list.push(value);
+AsyncScene/Web/system.js:1939:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:1941:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2035:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2037:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2039:    const addAll = (list, values) => {
+AsyncScene/Web/system.js:2041:      values.forEach((value) => addUnique(list, value));
+AsyncScene/Web/system.js:2117:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2119:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2202:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2204:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+AsyncScene/Web/system.js:2327:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2329:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2435:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2437:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2646:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:2648:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2729:  function systemLanguageRegressionAddUnique(list, value){
+AsyncScene/Web/system.js:2731:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:2908:  function systemUiRuntimeAddUnique(list, value){
+AsyncScene/Web/system.js:2910:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:3315:  function fakeToneCoverageAddUnique(list, value){
+AsyncScene/Web/system.js:3317:    if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === encoded)) list.push(value);
+AsyncScene/Web/system.js:3441:      const list = data && data.ARGUMENTS && Array.isArray(data.ARGUMENTS[side]) ? data.ARGUMENTS[side] : [];
+AsyncScene/Web/system.js:3442:      list.forEach((row, index) => fakeTonePushEntry(entries, seen, "arguments", `Game.Data.ARGUMENTS.${side}.${index}`, row && row.text, { side, id: row && row.id }));
+AsyncScene/Web/system.js:3781:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:3868:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:3986:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:3988:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+AsyncScene/Web/system.js:4154:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:4156:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+AsyncScene/Web/system.js:4322:    const addUnique = (list, value) => {
+AsyncScene/Web/system.js:4324:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+AsyncScene/Web/system.js:4493:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:4690:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:4776:        "No runtime strings are rewritten by this table.",
+AsyncScene/Web/system.js:5297:    "Forbidden list",
+AsyncScene/Web/system.js:5338:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:5418:      result.forbiddenListExists = /##\s+Forbidden list\b/.test(rawText) && /-\s+No memes\./.test(rawText);
+AsyncScene/Web/system.js:5527:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:5729:    const addUnique = (list, value) => fakeToneCoverageAddUnique(list, value);
+AsyncScene/Web/system.js:6051:  function neutralReplacementAddEntryHit(list, entry, pattern, kind){
+AsyncScene/Web/system.js:6052:    fakeToneCoverageAddUnique(list, {
+AsyncScene/Web/events.js:670:      // Build eligible list once for a deterministic fallback.
+AsyncScene/Web/events.js:1701:    const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
+AsyncScene/Web/events.js:1702:    return list.find(b => b && (b.id === battleId || b.battleId === battleId)) || null;
+AsyncScene/Web/events.js:1737:    if (stateSurface.events && Array.isArray(stateSurface.events.list)) return stateSurface.events.list;
+AsyncScene/Web/ui/ui-boot.js:156:    const table = mode === "zoomer" ? zoomer : millennial;
+AsyncScene/Web/ui/ui-boot.js:157:    return String(Object.prototype.hasOwnProperty.call(table, key) ? table[key] : millennial[key] || "");
+AsyncScene/Web/ui/ui-boot.js:210:      const card = st.querySelector("#startCard") || st.firstElementChild || st;
+AsyncScene/Web/ui/ui-boot.js:211:      card.appendChild(reset);
+AsyncScene/Web/ui/ui-boot.js:233:    const card = st.querySelector("#startCard");
+AsyncScene/Web/ui/ui-boot.js:234:    if (card) {
+AsyncScene/Web/ui/ui-boot.js:235:      card.style.pointerEvents = "auto";
+AsyncScene/Web/ui/ui-boot.js:236:      card.style.position = card.style.position || "relative";
+AsyncScene/Web/ui/ui-boot.js:237:      card.style.zIndex = card.style.zIndex || "1";
+AsyncScene/Web/ui/ui-boot.js:4610:        const pushUnique = (list, value) => {
+AsyncScene/Web/ui/ui-boot.js:4612:          if (!list.some((item) => stableJson(item) === key)) list.push(value);
+AsyncScene/Web/ui/ui-boot.js:4744:        const pushUnique = (list, value) => {
+AsyncScene/Web/ui/ui-boot.js:4746:          if (!list.some((item) => stableJson(item) === key)) list.push(value);
+AsyncScene/Web/ui/ui-boot.js:7825:    // Build players once so name lists exist (mentions, DM roster), but do NOT start loops yet
+AsyncScene/Web/ui/ui-boot.js:7908:        const addUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+AsyncScene/Web/ui/ui-boot.js:8105:        const pushUnique = (list, value) => { const key = stableJson(value); if (!list.some((item) => stableJson(item) === key)) list.push(value); };
+AsyncScene/Web/ui/ui-boot.js:9141:            : (st && st.id === "startCard" ? "card-root" : "document-fallback");
+AsyncScene/Web/ui/ui-chat.js:54:      // Fallback by name vs NPC list
+AsyncScene/Web/ui/ui-chat.js:73:      // Fallback by name vs NPC list
+AsyncScene/Web/ui/ui-chat.js:92:      // Fallback by name vs NPC list
+AsyncScene/Web/ui/ui-chat.js:143:    // Prefer explicit places list, then locations names, then a small default.
+AsyncScene/Web/ui/ui-chat.js:307:    const list = document.createElement("div");
+AsyncScene/Web/ui/ui-chat.js:308:    list.id = "mentionList";
+AsyncScene/Web/ui/ui-chat.js:309:    list.className = "mention-list";
+AsyncScene/Web/ui/ui-chat.js:310:    list.style.position = "fixed"; // Fixed positioning to escape parent overflow
+AsyncScene/Web/ui/ui-chat.js:311:    list.style.zIndex = "9999"; // High z-index to appear above all elements
+AsyncScene/Web/ui/ui-chat.js:312:    list.style.maxHeight = "200px";
+AsyncScene/Web/ui/ui-chat.js:313:    list.style.overflowY = "auto";
+AsyncScene/Web/ui/ui-chat.js:320:      list.appendChild(it);
+AsyncScene/Web/ui/ui-chat.js:327:      list.style.left = `${rect.left}px`;
+AsyncScene/Web/ui/ui-chat.js:332:      list.style.top = `${top}px`;
+AsyncScene/Web/ui/ui-chat.js:333:      list.style.width = `${Math.max(rect.width, 200)}px`;
+AsyncScene/Web/ui/ui-chat.js:336:    document.body.appendChild(list);
+AsyncScene/Web/ui/ui-chat.js:634:    // Click/focus in input should show the list (even if query is empty).
+AsyncScene/Web/ui/ui-chat.js:727:  // Creates a system bubble bound to an events card via eventId.
+AsyncScene/Web/ui/ui-dm.js:221:    // Then a table (including default)
+AsyncScene/Web/ui/ui-dm.js:343:    // Fallback from Data table if present
+AsyncScene/Web/ui/ui-dm.js:1061:        listEl.className = "mention-list";
+AsyncScene/Web/ui/ui-dm.js:1195:        // Delay so click on list registers
+AsyncScene/Web/ui/ui-dm.js:1384:      UI._copReport = UI._copReport || { open:false, q:"", sel:0, list:[], dropdownOpen:false };
+AsyncScene/Web/ui/ui-dm.js:1409:            listWrap.className = "mention-list";
+AsyncScene/Web/ui/ui-dm.js:1441:            const list = q ? base.filter(p => String(p.name || "").toLowerCase().includes(q)) : base;
+AsyncScene/Web/ui/ui-dm.js:1442:            state.list = list;
+AsyncScene/Web/ui/ui-dm.js:1443:            state.sel = Math.max(0, Math.min(state.sel || 0, Math.max(0, list.length - 1)));
+AsyncScene/Web/ui/ui-dm.js:1446:            if (!list.length) {
+AsyncScene/Web/ui/ui-dm.js:1456:            list.forEach((p, idx) => {
+AsyncScene/Web/ui/ui-dm.js:1536:                // Open list immediately
+AsyncScene/Web/ui/ui-dm.js:1747:              const list = Array.isArray(state.list) ? state.list : [];
+AsyncScene/Web/ui/ui-dm.js:1748:              if (list.length > 0) {
+AsyncScene/Web/ui/ui-dm.js:1749:                const idx = Math.max(0, Math.min(state.sel || 0, list.length - 1));
+AsyncScene/Web/ui/ui-dm.js:1750:                const nextName = String(list[idx] && list[idx].name ? list[idx].name : "");
+AsyncScene/Web/ui/ui-dm.js:1765:          // Initial open: show list immediately
+AsyncScene/Web/ui/ui-core.js:1183:      const list = Object.values(S.players || {}).filter(x => x && x.name && String(x.name).toLowerCase() === n);
+AsyncScene/Web/ui/ui-core.js:1184:      if (list.length > 1) {
+AsyncScene/Web/ui/ui-core.js:1185:        p = list.find(x => x.role === "cop") || list[0];
+AsyncScene/Web/ui/ui-core.js:1186:      } else if (list.length === 1) {
+AsyncScene/Web/ui/ui-core.js:1187:        p = list[0];
+AsyncScene/Web/ui/ui-core.js:1259:  // Mentions: centralized candidates list for UI modules.
+AsyncScene/Web/ui/ui-core.js:1290:    const list = UI.getAllMentionCandidates();
+AsyncScene/Web/ui/ui-core.js:1291:    return list.map(x => x.name);
+AsyncScene/Web/ui/ui-core.js:2067:    const list = Array.from(blocks.querySelectorAll(".block.panel--full, .panel.panel--full, .block.size-max, .panel.size-max"));
+AsyncScene/Web/ui/ui-core.js:2068:    return list.some(el => {
+AsyncScene/Web/ui/ui-core.js:2405:      const panel = inputEl.closest && (inputEl.closest(".panel") || inputEl.closest(".card") || inputEl.closest("#boot") || inputEl.closest("#dm") || inputEl.closest("#chat") || inputEl.closest("#menu") || inputEl.closest("#battles"));
+AsyncScene/Web/ui/ui-battles.js:120:    // rapid re-renders of the battle card (which may detach button's parent).
+AsyncScene/Web/ui/ui-battles.js:215:  // Keep a specific battle card in view across re-renders.
+AsyncScene/Web/ui/ui-battles.js:255:      const card = body.querySelector(`[data-battle-id="${CSS.escape(String(f.id))}"]`);
+AsyncScene/Web/ui/ui-battles.js:256:      if (!card) return;
+AsyncScene/Web/ui/ui-battles.js:258:      const sp = _findScrollParent(card);
+AsyncScene/Web/ui/ui-battles.js:260:        const r = card.getBoundingClientRect();
+AsyncScene/Web/ui/ui-battles.js:265:        const cr = card.getBoundingClientRect();
+AsyncScene/Web/ui/ui-battles.js:389:     const card = chip.closest(".battleCard");
+AsyncScene/Web/ui/ui-battles.js:390:     _captureBattleFocus(battleId, card);
+AsyncScene/Web/ui/ui-battles.js:786:  function renderResolvedBattleCardCore(card, battle, opts) {
+AsyncScene/Web/ui/ui-battles.js:787:    if (!card || !battle) return createBattleRenderNodeState();
+AsyncScene/Web/ui/ui-battles.js:816:      const existingRows = Array.from(card.querySelectorAll(selector));
+AsyncScene/Web/ui/ui-battles.js:836:      card.appendChild(title);
+AsyncScene/Web/ui/ui-battles.js:856:      card.appendChild(row);
+AsyncScene/Web/ui/ui-battles.js:874:        const nodes = Array.from(card.querySelectorAll(selector));
+AsyncScene/Web/ui/ui-battles.js:932:      card.appendChild(aRow);
+AsyncScene/Web/ui/ui-battles.js:950:      card.appendChild(dRow);
+AsyncScene/Web/ui/ui-battles.js:960:    card.appendChild(res);
+AsyncScene/Web/ui/ui-battles.js:980:        _captureBattleFocus(battle.id, card);
+AsyncScene/Web/ui/ui-battles.js:984:      card.appendChild(rematchActions);
+AsyncScene/Web/ui/ui-battles.js:1305:           // Show note inside that mafia battle card
+AsyncScene/Web/ui/ui-battles.js:1515:    // If the user is viewing a specific card (focused) or any visible card, keep it fixed.
+AsyncScene/Web/ui/ui-battles.js:1520:      // Prefer focused card if exists
+AsyncScene/Web/ui/ui-battles.js:1717:        // Dropdown list below input
+AsyncScene/Web/ui/ui-battles.js:1735:        const list = q ? all.filter(p => p && String(p.name || "").toLowerCase().includes(q)) : all.slice(0, 10);
+AsyncScene/Web/ui/ui-battles.js:1743:        listWrap.className = "mention-list";
+AsyncScene/Web/ui/ui-battles.js:1757:        list.forEach((p, idx) => {
+AsyncScene/Web/ui/ui-battles.js:1806:            UI._battleInvite.sel = Math.min((UI._battleInvite.sel || 0) + 1, list.length - 1);
+AsyncScene/Web/ui/ui-battles.js:1819:            if (!UI._battleInvite.q.trim() && list[UI._battleInvite.sel || 0]) {
+AsyncScene/Web/ui/ui-battles.js:1820:              UI._battleInvite.q = list[UI._battleInvite.sel || 0].name;
+AsyncScene/Web/ui/ui-battles.js:1917:      const card = document.createElement("div");
+AsyncScene/Web/ui/ui-battles.js:1918:      card.className = "battleCard";
+AsyncScene/Web/ui/ui-battles.js:1919:      card.setAttribute("data-battle-id", String(b.id));
+AsyncScene/Web/ui/ui-battles.js:1922:      // Click card background to pin (chips/buttons stopPropagation)
+AsyncScene/Web/ui/ui-battles.js:1923:      card.onclick = (e) => {
+AsyncScene/Web/ui/ui-battles.js:1929:        _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:1938:      card.appendChild(top);
+AsyncScene/Web/ui/ui-battles.js:1997:      card.appendChild(line);
+AsyncScene/Web/ui/ui-battles.js:2157:              _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2166:          card.appendChild(escapeWrap);
+AsyncScene/Web/ui/ui-battles.js:2171:          body.appendChild(card);
+AsyncScene/Web/ui/ui-battles.js:2209:             card.appendChild(aRow);
+AsyncScene/Web/ui/ui-battles.js:2227:             card.appendChild(dRow);
+AsyncScene/Web/ui/ui-battles.js:2400:              _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2402:              // Draws should NOT auto-disappear; close removes the battle card only when user clicks.
+AsyncScene/Web/ui/ui-battles.js:2410:          card.appendChild(drawWrap);
+AsyncScene/Web/ui/ui-battles.js:2416:          body.appendChild(card);
+AsyncScene/Web/ui/ui-battles.js:2435:        if (tactRow.childElementCount > 0) card.appendChild(tactRow);
+AsyncScene/Web/ui/ui-battles.js:2461:          card.appendChild(incoming);
+AsyncScene/Web/ui/ui-battles.js:2494:            const list = [];
+AsyncScene/Web/ui/ui-battles.js:2508:              if (!it || list.length >= 3) break;
+AsyncScene/Web/ui/ui-battles.js:2516:              list.push(it);
+AsyncScene/Web/ui/ui-battles.js:2522:            if (list.length < 3) {
+AsyncScene/Web/ui/ui-battles.js:2524:                if (!it || list.length >= 3) break;
+AsyncScene/Web/ui/ui-battles.js:2529:                list.push(it);
+AsyncScene/Web/ui/ui-battles.js:2537:            shuffleInPlace(list);
+AsyncScene/Web/ui/ui-battles.js:2539:            while (list.length < 3) {
+AsyncScene/Web/ui/ui-battles.js:2540:              list.push({ id: `__pad_attack_${list.length}`, text: "...", _pad: true });
+AsyncScene/Web/ui/ui-battles.js:2542:            return list;
+AsyncScene/Web/ui/ui-battles.js:2545:          const list = _getOrBuildChoices(b, "_attackChoices", buildAttackChoices);
+AsyncScene/Web/ui/ui-battles.js:2547:          (list || []).forEach(p => {
+AsyncScene/Web/ui/ui-battles.js:2593:                _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2613:          card.appendChild(row);
+AsyncScene/Web/ui/ui-battles.js:2625:            _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2630:          card.appendChild(leaveActions);
+AsyncScene/Web/ui/ui-battles.js:2762:                _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2789:          card.appendChild(row);
+AsyncScene/Web/ui/ui-battles.js:2816:            _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2857:              _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2867:          card.appendChild(actions);
+AsyncScene/Web/ui/ui-battles.js:2874:          card.appendChild(note);
+AsyncScene/Web/ui/ui-battles.js:2893:        const renderResult = renderResolvedBattleCardCore(card, b, helperCtx);
+AsyncScene/Web/ui/ui-battles.js:2908:          _captureBattleFocus(b.id, card);
+AsyncScene/Web/ui/ui-battles.js:2915:        card.appendChild(closeRow);
+AsyncScene/Web/ui/ui-battles.js:2931:      body.appendChild(card);
+AsyncScene/Web/ui/ui-battles.js:2940:    // Keep the interacted battle card in view as it moves between active/resolved sections.
+AsyncScene/Web/ui/ui-battles.js:2965:         const card = document.querySelector(`[data-battle-id="${battleId}"]`);
+AsyncScene/Web/ui/ui-battles.js:2966:         if (card) {
+AsyncScene/Web/ui/ui-battles.js:2967:           const voteRow = card.querySelector('.eventVoteRow');
+AsyncScene/Web/ui/ui-battles.js:2999:// Expose battle-card helper sources for smoke diagnostics only.
+AsyncScene/Web/economy update.txt:1516:-        card.appendChild(res);
+AsyncScene/Web/economy update.txt:1546:+        card.appendChild(res);
+AsyncScene/Web/economy update.txt:4774:{"instructions":"<instructions>\nEdit `Web/data.js` with the following targeted changes. Do NOT touch system texts, UI strings, notifications, or any non-NPC messages.\n\n1) Normalize ONLY NPC chat lines.\n- Find `Data.NPC_CHAT_LINES` (or `NPC_CHAT_LINES` under `Game.Data`).\n- Wrap the array values so that all strings are:\n  - lowercase\n  - without final punctuation (. ! ?)\n  - without gendered past-tense constructions\n\nReplace the array contents with the same phrases semantically, but normalized. Do NOT add punctuation.\n\n2) RANDOM_NAMES handling.\n- Find `Data.RANDOM_NAMES`.\n- Ensure names are stored in lowercase.\n- Do NOT change the list composition or order, only casing.\n\n3) Explicit separation of NPC chat vs system text.\n- Immediately after the NPC chat section, add a comment:\n```js\n// IMPORTANT: NPC_CHAT_LINES are intentionally lowercase and punctuation-free.\n// All system messages, notifications, battle results, and UI texts must keep perfect punctuation.\n```\n\n4) Do NOT modify:\n- any SYS_* strings\n- battle result texts\n- notifications\n- UI labels\n- argument definitions or color tables\n\nNo other changes.\n</instructions>"}
+AsyncScene/Web/economy update.txt:5048:-  // This prevents "Game.NPC.getAll is not a function" / empty NPC lists when UI starts.
+AsyncScene/Web/economy update.txt:5404:  Util.pickWeighted = (list) => {
+AsyncScene/Web/economy update.txt:5405:    if (!Array.isArray(list) || !list.length) return null;
+AsyncScene/Web/economy update.txt:5407:    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/economy update.txt:5408:    if (sum <= 0) return list[0].item ?? list[0];
+AsyncScene/Web/economy update.txt:5410:    for (const x of list) {
+AsyncScene/Web/economy update.txt:5414:    return list[list.length - 1].item ?? list[list.length - 1];
+AsyncScene/Web/economy update.txt:5496:+  Util.pickWeighted = (list) => {
+AsyncScene/Web/economy update.txt:5497:+    if (!Array.isArray(list) || !list.length) return null;
+AsyncScene/Web/economy update.txt:5499:+    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/economy update.txt:5500:+    if (sum <= 0) return list[0].item ?? list[0];
+AsyncScene/Web/economy update.txt:5502:+    for (const x of list) {
+AsyncScene/Web/economy update.txt:5506:+    return list[list.length - 1].item ?? list[list.length - 1];
+AsyncScene/Web/economy update.txt:5796:+      // Fallback by name vs NPC list
+AsyncScene/Web/economy update.txt:5909:-     const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+AsyncScene/Web/economy update.txt:5910:-     return list.find(b => b && b.id === battleId) || null;
+AsyncScene/Web/economy update.txt:5913:+     const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+AsyncScene/Web/economy update.txt:5914:+     return list.find(b => b && b.id === battleId) || null;
+AsyncScene/Web/economy update.txt:6771:- The `queries` field must be a list of strings.
+AsyncScene/Web/economy update.txt:8715:-        card.appendChild(res);
+AsyncScene/Web/economy update.txt:8745:+        card.appendChild(res);
+AsyncScene/Web/economy update.txt:11973:{"instructions":"<instructions>\nEdit `Web/data.js` with the following targeted changes. Do NOT touch system texts, UI strings, notifications, or any non-NPC messages.\n\n1) Normalize ONLY NPC chat lines.\n- Find `Data.NPC_CHAT_LINES` (or `NPC_CHAT_LINES` under `Game.Data`).\n- Wrap the array values so that all strings are:\n  - lowercase\n  - without final punctuation (. ! ?)\n  - without gendered past-tense constructions\n\nReplace the array contents with the same phrases semantically, but normalized. Do NOT add punctuation.\n\n2) RANDOM_NAMES handling.\n- Find `Data.RANDOM_NAMES`.\n- Ensure names are stored in lowercase.\n- Do NOT change the list composition or order, only casing.\n\n3) Explicit separation of NPC chat vs system text.\n- Immediately after the NPC chat section, add a comment:\n```js\n// IMPORTANT: NPC_CHAT_LINES are intentionally lowercase and punctuation-free.\n// All system messages, notifications, battle results, and UI texts must keep perfect punctuation.\n```\n\n4) Do NOT modify:\n- any SYS_* strings\n- battle result texts\n- notifications\n- UI labels\n- argument definitions or color tables\n\nNo other changes.\n</instructions>"}
+AsyncScene/Web/economy update.txt:12247:-  // This prevents "Game.NPC.getAll is not a function" / empty NPC lists when UI starts.
+AsyncScene/Web/economy update.txt:12603:  Util.pickWeighted = (list) => {
+AsyncScene/Web/economy update.txt:12604:    if (!Array.isArray(list) || !list.length) return null;
+AsyncScene/Web/economy update.txt:12606:    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/economy update.txt:12607:    if (sum <= 0) return list[0].item ?? list[0];
+AsyncScene/Web/economy update.txt:12609:    for (const x of list) {
+AsyncScene/Web/economy update.txt:12613:    return list[list.length - 1].item ?? list[list.length - 1];
+AsyncScene/Web/economy update.txt:12695:+  Util.pickWeighted = (list) => {
+AsyncScene/Web/economy update.txt:12696:+    if (!Array.isArray(list) || !list.length) return null;
+AsyncScene/Web/economy update.txt:12698:+    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/economy update.txt:12699:+    if (sum <= 0) return list[0].item ?? list[0];
+AsyncScene/Web/economy update.txt:12701:+    for (const x of list) {
+AsyncScene/Web/economy update.txt:12705:+    return list[list.length - 1].item ?? list[list.length - 1];
+AsyncScene/Web/economy update.txt:12995:+      // Fallback by name vs NPC list
+AsyncScene/Web/economy update.txt:13108:-     const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+AsyncScene/Web/economy update.txt:13109:-     return list.find(b => b && b.id === battleId) || null;
+AsyncScene/Web/economy update.txt:13112:+     const list = (Game.State && Array.isArray(Game.State.battles)) ? Game.State.battles : [];
+AsyncScene/Web/economy update.txt:13113:+     return list.find(b => b && b.id === battleId) || null;
+AsyncScene/Web/economy update.txt:13975:- The `queries` field must be a list of strings.
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2524:ST3_2523,ResultCard,Result card: максимум 3-4 строки.,result_cards,docs/data/style-lex.js,card,static_string,line=49
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2526:ST3_2525,Other,Dev card: максимум 3-4 строки.,general_interface,docs/data/style-lex.js,card,static_string,line=51
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2527:ST3_2526,Other,Не делай длинные скобочные блоки и стены текста в квадратных скобках.,general_interface,docs/data/style-lex.js,card,static_string,line=52
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2528:ST3_2527,Other,Делай одно действие или один смысл на фразу.,general_interface,docs/data/style-lex.js,card,static_string,line=53
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:2529:ST3_2528,Other,"Если строка перегружена, раздели её на две короткие фразы.",general_interface,docs/data/style-lex.js,card,static_string,line=54
+AsyncScene/Web/ui/ui-loops.js:958:      // Prefer deterministic list if available
+AsyncScene/Web/ui/ui-events.js:88:    // Render toast on body so it survives DOM re-renders of the events card.
+AsyncScene/Web/ui/ui-events.js:207:    // Render once so the card exists in DOM
+AsyncScene/Web/ui/ui-events.js:213:    const card = body.querySelector(`[data-event-id="${CSS.escape(eventId)}"]`);
+AsyncScene/Web/ui/ui-events.js:214:    if (!card) return false;
+AsyncScene/Web/ui/ui-events.js:216:    card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+AsyncScene/Web/ui/ui-events.js:526:    const list = getEventsList();
+AsyncScene/Web/ui/ui-events.js:527:    const rawFound = list.find(x => getEventBattleId(x) === battleId);
+AsyncScene/Web/ui/ui-events.js:735:      const card = document.createElement("div");
+AsyncScene/Web/ui/ui-events.js:736:      card.className = "eventCard";
+AsyncScene/Web/ui/ui-events.js:737:      card.dataset.eventId = ne.id;
+AsyncScene/Web/ui/ui-events.js:738:      if (ne.battleId) card.dataset.battleId = ne.battleId;
+AsyncScene/Web/ui/ui-events.js:740:      card.onclick = (ev) => {
+AsyncScene/Web/ui/ui-events.js:758:      card.innerHTML = `
+AsyncScene/Web/ui/ui-events.js:769:        card.appendChild(who);
+AsyncScene/Web/ui/ui-events.js:788:        card.appendChild(hint);
+AsyncScene/Web/ui/ui-events.js:937:        card.appendChild(row);
+AsyncScene/Web/ui/ui-events.js:943:        card.appendChild(capLine);
+AsyncScene/Web/ui/ui-events.js:950:        card.appendChild(diagLine);
+AsyncScene/Web/ui/ui-events.js:959:        card.appendChild(timerLine);
+AsyncScene/Web/ui/ui-events.js:966:      // In-card note (no chat spam)
+AsyncScene/Web/ui/ui-events.js:971:        card.appendChild(note);
+AsyncScene/Web/ui/ui-events.js:1093:        card.appendChild(info);
+AsyncScene/Web/ui/ui-events.js:1098:        card.style.outline = "2px solid rgba(191,195,255,0.65)";
+AsyncScene/Web/ui/ui-events.js:1099:        card.style.boxShadow = "0 0 0 4px rgba(191,195,255,0.10)";
+AsyncScene/Web/ui/ui-events.js:1104:        card.classList.add("eventCard--active");
+AsyncScene/Web/ui/ui-events.js:1107:      body.appendChild(card);
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:2524:ST3_2523,TERM_ST3_2523,Result card: максимум 3-4 строки.,ResultCard,Status,docs/data/style-lex.js,result_cards,line=49; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:2526:ST3_2525,TERM_ST3_2525,Dev card: максимум 3-4 строки.,Other,Status,docs/data/style-lex.js,general_interface,line=51; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+AsyncScene/Web/dev/dev-checks.js:328:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:394:        root.querySelectorAll("table,tr,td,th").forEach((el) => addUnique(result.forbiddenRemaining, { check: "legacy_table_markers", marker: el.tagName.toLowerCase() }));
+AsyncScene/Web/dev/dev-checks.js:437:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:621:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:843:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:844:      const addAll = (list, values, smokeId) => {
+AsyncScene/Web/dev/dev-checks.js:846:        values.forEach((value) => addUnique(list, smokeId ? { smoke: smokeId, item: value } : value));
+AsyncScene/Web/dev/dev-checks.js:970:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:1090:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+AsyncScene/Web/dev/dev-checks.js:1199:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:1352:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+AsyncScene/Web/dev/dev-checks.js:1454:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:1578:      const addCandidate = (list, seen, value) => {
+AsyncScene/Web/dev/dev-checks.js:1581:        list.push(value);
+AsyncScene/Web/dev/dev-checks.js:1691:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:1820:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:1846:        const table = baseTable.slice();
+AsyncScene/Web/dev/dev-checks.js:1850:            table.push(Object.freeze({
+AsyncScene/Web/dev/dev-checks.js:1857:        const unmatchedVoteTargets = inventoryTargets.filter((target) => isDynamicVoteCounterValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+AsyncScene/Web/dev/dev-checks.js:1858:        const unmatchedDeltaTargets = inventoryTargets.filter((target) => isDynamicDeltaTitleValue(target) && !table.some((pair) => pairMatchesInventoryTarget(pair, target)));
+AsyncScene/Web/dev/dev-checks.js:1861:        result.pairCount = table.length;
+AsyncScene/Web/dev/dev-checks.js:1864:        table.forEach((pair, idx) => {
+AsyncScene/Web/dev/dev-checks.js:1893:          const hasMatch = zoomerSeen.has(target) || table.some((pair) => pairMatchesInventoryTarget(pair, target));
+AsyncScene/Web/dev/dev-checks.js:1899:        table.forEach((pair, idx) => {
+AsyncScene/Web/dev/dev-checks.js:1906:        if (table.length !== inventoryTargets.length) fail("pair_count_matches_inventory", { pairCount: table.length, inventoryCount: inventoryTargets.length });
+AsyncScene/Web/dev/dev-checks.js:1966:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2099:              fail("millennial_source_matches", { idx, id: row.id, source: sourceRow.millennial, table: row.millennial });
+AsyncScene/Web/dev/dev-checks.js:2103:              fail("zoomer_source_matches", { idx, id: row.id, source: sourceRow.zoomer, table: row.zoomer });
+AsyncScene/Web/dev/dev-checks.js:2182:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2299:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2378:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2474:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2542:        const uiSectionMatch = zoomRaw.match(/##\s*Millennial\s*->\s*zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+AsyncScene/Web/dev/dev-checks.js:2648:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2812:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:2938:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:3098:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:3266:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:3267:      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+AsyncScene/Web/dev/dev-checks.js:3402:          const list = entry && typeof entry.get === "function" ? entry.get() : [];
+AsyncScene/Web/dev/dev-checks.js:3403:          if (Array.isArray(list)) list.forEach((line, index) => addNpc(`${entry.source}.${index}`, line));
+AsyncScene/Web/dev/dev-checks.js:3546:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:3547:      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+AsyncScene/Web/dev/dev-checks.js:3631:    const addZoomerTermsInventoryEntry = (list, category, text, source) => {
+AsyncScene/Web/dev/dev-checks.js:3636:      if (!list.some((item) => item && `${item.category}|${item.text}|${item.source.file}|${item.source.module}|${item.source.key || ""}|${item.source.path || ""}` === key)) {
+AsyncScene/Web/dev/dev-checks.js:3637:        list.push(entry);
+AsyncScene/Web/dev/dev-checks.js:4029:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4097:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4173:          { id: "millennial_to_zoomer_table", re: /## Millennial -> zoomer comparison table/i },
+AsyncScene/Web/dev/dev-checks.js:4194:        const tableMatch = zoomRaw.match(/## Millennial -> zoomer comparison table([\s\S]*?)(?:\n## |\n# |$)/i);
+AsyncScene/Web/dev/dev-checks.js:4322:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4323:      const addAllLocal = (list, values) => {
+AsyncScene/Web/dev/dev-checks.js:4324:        if (!Array.isArray(list) || !Array.isArray(values)) return;
+AsyncScene/Web/dev/dev-checks.js:4325:        values.forEach((value) => addUnique(list, value));
+AsyncScene/Web/dev/dev-checks.js:4507:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4631:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4807:        const list = runtimeArgs && Array.isArray(runtimeArgs[side]) ? runtimeArgs[side] : [];
+AsyncScene/Web/dev/dev-checks.js:4808:        list.forEach((item, index) => {
+AsyncScene/Web/dev/dev-checks.js:4855:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:4856:      const pushSample = (list, value) => {
+AsyncScene/Web/dev/dev-checks.js:4857:        if (list.length < sampleLimit) addUnique(list, value);
+AsyncScene/Web/dev/dev-checks.js:5012:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5138:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5277:        ].forEach(([check, list]) => {
+AsyncScene/Web/dev/dev-checks.js:5278:          if (Array.isArray(list) && list.length) fail(check, list.slice(0, 12));
+AsyncScene/Web/dev/dev-checks.js:5328:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5436:        ].forEach(([check, list]) => {
+AsyncScene/Web/dev/dev-checks.js:5437:          if (Array.isArray(list) && list.length) fail(check, list.slice(0, 12));
+AsyncScene/Web/dev/dev-checks.js:5489:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5607:        ].forEach(([check, list]) => {
+AsyncScene/Web/dev/dev-checks.js:5608:          if (Array.isArray(list) && list.length) {
+AsyncScene/Web/dev/dev-checks.js:5609:            fail(check, list.slice(0, 12));
+AsyncScene/Web/dev/dev-checks.js:5610:            list.forEach((item) => addUnique(result.forbiddenRemaining, item));
+AsyncScene/Web/dev/dev-checks.js:5677:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5678:      const addAll = (list, values) => {
+AsyncScene/Web/dev/dev-checks.js:5680:        values.forEach((value) => addUnique(list, value));
+AsyncScene/Web/dev/dev-checks.js:5819:      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+AsyncScene/Web/dev/dev-checks.js:5820:      const addAllLocal = (list, values) => {
+AsyncScene/Web/dev/dev-checks.js:5822:        values.forEach((value) => addUnique(list, value));
+AsyncScene/Web/dev/dev-checks.js:6225:      const list = [];
+AsyncScene/Web/dev/dev-checks.js:6229:          list.push(makeSource(roleCategory(role), `AsyncScene/Web/npcs.js:NPC.SAY.${role}.${sex}`, () => say && say[role] && say[role][sex], { role, channel: "dm", idPrefix: `npc_say_${role}_${sex}` }));
+AsyncScene/Web/dev/dev-checks.js:6232:      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainQuestions", () => ["ты здесь? отвечай", "это про тебя? отвечай", "кто держит слово?", "это твоя тема?", "войдешь в спор или мимо?"], { role: "toxic", channel: "dm", idPrefix: "villain_questions" }));
+AsyncScene/Web/dev/dev-checks.js:6233:      list.push(makeSource("toxic", "AsyncScene/Web/npcs.js:villainChallenges", () => ["идем в раунд", "готов к раунду", "раунд все покажет", "готов к спору?"], { role: "toxic", channel: "dm", idPrefix: "villain_challenges" }));
+AsyncScene/Web/dev/dev-checks.js:6234:      list.push(makeSource("neutral", "AsyncScene/Web/data.js:Data.NPC_CHAT_LINES", () => Game.Data && Game.Data.NPC_CHAT_LINES, { role: "neutral", channel: "event", idPrefix: "npc_chat_lines" }));
+AsyncScene/Web/dev/dev-checks.js:6236:        list.push(makeSource(key === "toxicDescriptions" ? "toxic" : key === "banditDescriptions" ? "bandit" : "cop", `AsyncScene/Web/data.js:Data.COP_TEMPLATES.${key}`, () => copTpl(key), { role: "cop", channel: key === "chatReplies" ? "event" : "dm", idPrefix: `cop_templates_${key}` }));
+AsyncScene/Web/dev/dev-checks.js:6238:      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.attack[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.attack, { role: "unknown", channel: "battle", idPrefix: "arguments_attack" }));
+AsyncScene/Web/dev/dev-checks.js:6239:      list.push(makeSource("battle", "AsyncScene/Web/data.js:Data.ARGUMENTS.defense[].text", () => Game.Data && Game.Data.ARGUMENTS && Game.Data.ARGUMENTS.defense, { role: "unknown", channel: "battle", idPrefix: "arguments_defense" }));
+AsyncScene/Web/dev/dev-checks.js:6248:      ].forEach(row => list.push(makeSource(row[0], `AsyncScene/Web/data.js:Data.SYS.${row[1]}`, () => sys(row[1], row[2], row[3]), { role: row[4] || "unknown", channel: row[0] === "event" ? "event" : "battle", idPrefix: `sys_${row[1]}` })));
+AsyncScene/Web/dev/dev-checks.js:6249:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcDrawEvent.line", () => "Толпа решает: NPC A [1] и NPC B [2].", { role: "neutral", channel: "event", idPrefix: "event_npc_draw" }));
+AsyncScene/Web/dev/dev-checks.js:6250:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.strong", () => "Толпа решает: NPC A хочет Отвали NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_strong" }));
+AsyncScene/Web/dev/dev-checks.js:6251:      list.push(makeSource("event", "AsyncScene/Web/events.js:makeNpcEscapeEvent.line.weak", () => "Толпа решает: NPC A хочет Свалить NPC B.", { role: "neutral", channel: "event", idPrefix: "event_npc_escape_weak" }));
+AsyncScene/Web/dev/dev-checks.js:6252:      ["cop_report_accept", "cop_busy", "cop_report_ok", "cop_report_fail", "cop_cooldown"].forEach(key => list.push(makeSource("report", `AsyncScene/Web/data.js:Data.TEXTS.genz.${key}`, () => dataGenz(key), { role: "cop", channel: "dm", idPrefix: `texts_genz_${key}` })));
+AsyncScene/Web/dev/dev-checks.js:6253:      list.push(makeSource("report", "AsyncScene/Web/npcs.js:NPC.COP.topics", () => Game.NPC && Game.NPC.COP && Game.NPC.COP.topics, { role: "cop", channel: "dm", idPrefix: "npc_cop_topics" }));
+AsyncScene/Web/dev/dev-checks.js:6254:      list.push(makeSource("report", "AsyncScene/Web/state.js:report flow hardcoded replies", () => ["Принял. Проверка началась.", "Цель не обнаружена. Проверю ещё раз.", "Напиши, кого сдаёшь: токсик, бандит или мафиози.", "Этот контакт уже отмечен. Повтор не требуется.", "Проверка сошлась. Контакт отмечен.", "Сообщение принято. Я вмешался.", "Проверка сошлась. Контакт отмечен.", "Цель не обнаружена. Проверю ещё раз.", "«Сдать» без фактов — штраф 1⭐. Запись в отчете.", "NPC отправился за решётку на 5 минут."], { role: "cop", channel: "dm", idPrefix: "state_report_replies" }));
+AsyncScene/Web/dev/dev-checks.js:6255:      list.push(makeSource("dm", "AsyncScene/Web/ui/ui-dm.js:mafia trap reply", () => "Ты мне пишешь? Тогда поговорим лично.", { role: "mafia", channel: "dm", idPrefix: "ui_dm_mafia_trap" }));
+AsyncScene/Web/dev/dev-checks.js:6256:      list.push(makeSource("bandit", "AsyncScene/Web/state.js:sendRevengeDM.bandit", () => "долг вернем, не забудь", { role: "bandit", channel: "dm", idPrefix: "state_revenge_bandit" }));
+AsyncScene/Web/dev/dev-checks.js:6257:      list.push(makeSource("toxic", "AsyncScene/Web/state.js:sendRevengeDM.default", () => "ты за это ответишь", { role: "toxic", channel: "dm", idPrefix: "state_revenge_toxic" }));
+AsyncScene/Web/dev/dev-checks.js:6259:      list.push(makeSource("unknown", "AsyncScene/Web/npcs.js:Game.NPCSpeech.TEMPLATES_BY_LOCALE", () => speech && speech.TEMPLATES_BY_LOCALE, { role: "unknown", channel: "unknown", idPrefix: "npc_speech_templates" }));
+AsyncScene/Web/dev/dev-checks.js:6260:      return list;
+AsyncScene/Web/dev/dev-checks.js:7107:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:7109:      result.rowCount = table.records.length;
+AsyncScene/Web/dev/dev-checks.js:7111:      requiredColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_required_column", col); });
+AsyncScene/Web/dev/dev-checks.js:7112:      recommendedColumns.forEach(col => { if (!table.header.includes(col)) fail("missing_recommended_column", col); });
+AsyncScene/Web/dev/dev-checks.js:7120:      table.records.forEach((row, idx) => {
+AsyncScene/Web/dev/dev-checks.js:7144:      table.records.forEach((row, idx) => {
+AsyncScene/Web/dev/dev-checks.js:7275:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:7280:      const tableConcepts = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:7488:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:7500:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:7734:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:7745:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:7980:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:7991:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:8156:      const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+AsyncScene/Web/dev/dev-checks.js:8162:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:8304:      const table = parseCsv(tableFetch.text); const whereUsed = parseCsv(whereFetch.text);
+AsyncScene/Web/dev/dev-checks.js:8319:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:8499:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:8518:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:8690:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:8699:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:8862:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:8871:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:9050:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:9064:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:9235:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:9248:      const tableRowsByConcept = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:9419:      const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:9420:      const tableRows = new Map(table.records.map(row => [String(row.ConceptId || "").trim(), row]).filter(pair => pair[0]));
+AsyncScene/Web/dev/dev-checks.js:9421:      const canonicalTerms = new Set(table.records.map(row => String(row.CanonicalTermRU || "").trim()).filter(Boolean));
+AsyncScene/Web/dev/dev-checks.js:9423:      table.records.forEach(row => forbiddenByConcept.set(String(row.ConceptId || "").trim(), splitPipe(row.ForbiddenVariants)));
+AsyncScene/Web/dev/dev-checks.js:9661:    const pushUnique = (list, item) => {
+AsyncScene/Web/dev/dev-checks.js:9663:      if (!list.some(existing => (typeof existing === "string" ? existing : JSON.stringify(existing)) === key)) list.push(item);
+AsyncScene/Web/dev/dev-checks.js:9674:          requiredStep3Substeps: ["[1] inventory", "[2] canon", "[3] style guide", "[4] taxonomy", "[5] terminology table", "[6] where-used map", "[7.1]-[7.10] layer smokes", "[8] regression pack"],
+AsyncScene/Web/dev/dev-checks.js:9731:        const table = parseCsv(tableFetch.text);
+AsyncScene/Web/dev/dev-checks.js:9735:        const tableConcepts = new Set(table.records.map(row => String(row.ConceptId || "").trim()).filter(Boolean));
+AsyncScene/Web/dev/dev-checks.js:9757:        table.records.forEach(row => splitPipe(row.SourceTermIds).forEach(termId => tableSourceTermIds.add(termId)));
+AsyncScene/Web/dev/dev-checks.js:9804:      "battle outcome card plus delta toast",
+AsyncScene/Web/dev/dev-checks.js:9970:        cases.push(makeCase("battle_outcome_card_delta_toast", ["battle outcome card plus delta toast"], () => {
+AsyncScene/Web/dev/dev-checks.js:14733:      const list = eligible.slice().sort();
+AsyncScene/Web/dev/dev-checks.js:14735:        list.sort(() => Math.random() - 0.5);
+AsyncScene/Web/dev/dev-checks.js:14737:      const selected = list.slice(0, maxRecipientsPerTick);
+AsyncScene/Web/dev/dev-checks.js:17572:      const list = [];
+AsyncScene/Web/dev/dev-checks.js:17575:        if (!key || list.includes(key)) return;
+AsyncScene/Web/dev/dev-checks.js:17576:        list.push(key);
+AsyncScene/Web/dev/dev-checks.js:17588:      return list.sort();
+AsyncScene/Web/dev/dev-checks.js:17590:    const hashList = (list) => {
+AsyncScene/Web/dev/dev-checks.js:17592:      const s = list.join("|");
+AsyncScene/Web/dev/dev-checks.js:17735:      const list = [];
+AsyncScene/Web/dev/dev-checks.js:17738:        if (!key || list.includes(key)) return;
+AsyncScene/Web/dev/dev-checks.js:17739:        list.push(key);
+AsyncScene/Web/dev/dev-checks.js:17751:      return list.sort();
+AsyncScene/Web/dev/dev-checks.js:17753:    const hashList = (list) => {
+AsyncScene/Web/dev/dev-checks.js:17755:      const s = list.join("|");
+AsyncScene/Web/dev/dev-checks.js:20230:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:20231:      if (list.length) return list[0];
+AsyncScene/Web/dev/dev-checks.js:20524:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:20525:      if (list.length) return list[0];
+AsyncScene/Web/dev/dev-checks.js:20533:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:20534:      const need = Math.max(0, (minCount | 0) - list.length);
+AsyncScene/Web/dev/dev-checks.js:20853:      const table = Econ.WIN_PROGRESS_REP_TABLE || {};
+AsyncScene/Web/dev/dev-checks.js:20854:      const amt = Number.isFinite(table[t]) ? (table[t] | 0) : 0;
+AsyncScene/Web/dev/dev-checks.js:21849:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:21850:      if (list.length) return list[0];
+AsyncScene/Web/dev/dev-checks.js:22356:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:22357:      if (list.length) return list[0];
+AsyncScene/Web/dev/dev-checks.js:24014:        const list = conflict.myDefenseOptions(battle) || [];
+AsyncScene/Web/dev/dev-checks.js:24015:        if (list.length) {
+AsyncScene/Web/dev/dev-checks.js:24016:          return { arg: list[0], source: "myDefenseOptions" };
+AsyncScene/Web/dev/dev-checks.js:24020:        const list = Args.myDefenseOptions(battle) || [];
+AsyncScene/Web/dev/dev-checks.js:24021:        if (list.length) {
+AsyncScene/Web/dev/dev-checks.js:24022:          return { arg: list[0], source: "coreArgs" };
+AsyncScene/Web/dev/dev-checks.js:24331:        const list = Object.values(S.players || {}).filter(p => {
+AsyncScene/Web/dev/dev-checks.js:24337:        return list[0] || null;
+AsyncScene/Web/dev/dev-checks.js:24569:      const list = Object.values(S.players || {}).filter(p => {
+AsyncScene/Web/dev/dev-checks.js:24574:      return list[0] || null;
+AsyncScene/Web/dev/dev-checks.js:25035:      const list = Object.values(S.players || {}).filter(p => p && p.id && (p.npc === true || p.type === "npc" || String(p.id).startsWith("npc_")));
+AsyncScene/Web/dev/dev-checks.js:25036:      return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+AsyncScene/Web/dev/dev-checks.js:25041:      const push = (list) => {
+AsyncScene/Web/dev/dev-checks.js:25042:        (list || []).forEach(item => {
+AsyncScene/Web/dev/dev-checks.js:25314:      const push = (list) => {
+AsyncScene/Web/dev/dev-checks.js:25315:        (list || []).forEach(item => {
+AsyncScene/Web/dev/dev-checks.js:26628:    const pushIds = (list) => {
+AsyncScene/Web/dev/dev-checks.js:26629:      (Array.isArray(list) ? list : []).forEach(id => {
+AsyncScene/Web/dev/dev-checks.js:27118:        const list = Object.values(S.players || {}).filter(p => {
+AsyncScene/Web/dev/dev-checks.js:27124:        return list[0] || null;
+AsyncScene/Web/dev/dev-checks.js:27935:        const list = Object.values(S.players || {}).filter(p => {
+AsyncScene/Web/dev/dev-checks.js:27941:        return list[0] || null;
+AsyncScene/Web/dev/dev-checks.js:28399:            const list = Object.values(S.players || {}).filter(p => {
+AsyncScene/Web/dev/dev-checks.js:28405:            return list[0] || null;
+AsyncScene/Web/dev/dev-checks.js:30423:      title: `${debugMarker ? "DEV_RESULT_CARD_V2 " : ""}Dev card: ${scenario}`,
+AsyncScene/Web/dev/dev-checks.js:30448:      uiNote: `${debugMarker ? "DEV_RESULT_CARD_V2 " : ""}dev card ${mode} ${meVote ? "me" : "no"}`,
+AsyncScene/Web/dev/dev-checks.js:30944:      const list = getBattleList();
+AsyncScene/Web/dev/dev-checks.js:30946:      const idSample = list.slice(0, 3).map(x => x && x.id ? x.id : null);
+AsyncScene/Web/dev/dev-checks.js:30947:      let last = list[list.length - 1] || null;
+AsyncScene/Web/dev/dev-checks.js:30948:      if (!last && list.length) last = list[0];
+AsyncScene/Web/dev/dev-checks.js:30949:      if (list.length > 1) {
+AsyncScene/Web/dev/dev-checks.js:30950:        const byTime = list.slice().sort((a, b) => {
+AsyncScene/Web/dev/dev-checks.js:30961:      diag.battlesType = { isArray: Array.isArray(S.battles), len: list.length, keysSample };
+AsyncScene/Web/dev/dev-checks.js:32169:      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+AsyncScene/Web/dev/dev-checks.js:32170:      const nodes = getNodePresence(card);
+AsyncScene/Web/dev/dev-checks.js:32171:      const nodeTexts = getNodeTexts(card);
+AsyncScene/Web/dev/dev-checks.js:32195:        for (const list of battleSources) {
+AsyncScene/Web/dev/dev-checks.js:32196:          for (const candidate of list) {
+AsyncScene/Web/dev/dev-checks.js:32216:        opponent: getArgColorKey(card, nodeSelectors.outgoingOppArg),
+AsyncScene/Web/dev/dev-checks.js:32217:        mine: getArgColorKey(card, nodeSelectors.outgoingMyCounter)
+AsyncScene/Web/dev/dev-checks.js:32352:      const card = document.querySelector(`[data-battle-id="${escapeSelector(battleId)}"]`);
+AsyncScene/Web/dev/dev-checks.js:32354:        if (!card) return { count: 0, testIds: [], colorKeys: [] };
+AsyncScene/Web/dev/dev-checks.js:32355:        const nodes = Array.from(card.querySelectorAll(selector));
+AsyncScene/Web/dev/dev-checks.js:32381:      const reason = !card ? "card_missing" : (status === "PASS" ? null : "arg_count_mismatch");
+AsyncScene/Web/dev/dev-checks.js:32390:        cardFound: !!card
+AsyncScene/Web/dev/dev-checks.js:32396:        cardPresent: !!card
+AsyncScene/Web/conflict/conflict-api.js:93:  function filterValidArgs(list, kind) {
+AsyncScene/Web/conflict/conflict-api.js:94:    const src = Array.isArray(list) ? list : [];
+AsyncScene/Web/conflict/conflict-api.js:134:     const list = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : [];
+AsyncScene/Web/conflict/conflict-api.js:135:     return list.find(b => b && b.id === battleId) || null;
+AsyncScene/Web/conflict/conflict-api.js:833:       let list = [];
+AsyncScene/Web/conflict/conflict-api.js:836:           list = Args.myAttackOptions(battle || null) || [];
+AsyncScene/Web/conflict/conflict-api.js:839:           list = [];
+AsyncScene/Web/conflict/conflict-api.js:842:       const filtered = filterValidArgs(list, "attack").filter(a => a && String(a.id || "").startsWith("canon_"));
+AsyncScene/Web/conflict/conflict-api.js:857:       let list = [];
+AsyncScene/Web/conflict/conflict-api.js:860:           list = Args.myDefenseOptions(battle || null) || [];
+AsyncScene/Web/conflict/conflict-api.js:863:           list = [];
+AsyncScene/Web/conflict/conflict-api.js:866:       const filtered = filterValidArgs(list, "defense").filter(a => a && String(a.id || "").startsWith("canon_"));
+AsyncScene/Web/conflict/conflict-api.js:937:     _findArgById(list, id) {
+AsyncScene/Web/conflict/conflict-api.js:938:       if (!Array.isArray(list) || !id) return null;
+AsyncScene/Web/conflict/conflict-api.js:939:       return list.find(a => a && a.id === id) || null;
+AsyncScene/Web/style.css:969:.mention-list{
+AsyncScene/Web/style.css:984:/* When mention-list is used INSIDE a panel (e.g., battles invite), it must NOT be fixed at the bottom.
+AsyncScene/Web/style.css:986:.block .mention-list,
+AsyncScene/Web/style.css:987:.panel .mention-list,
+AsyncScene/Web/style.css:988:.eventCard .mention-list,
+AsyncScene/Web/style.css:989:.battleCard .mention-list{
+AsyncScene/Web/style.css:1126:.policeBox .mention-list{width:100%; max-width:none}
+AsyncScene/Web/style.css:1330:.card{
+AsyncScene/Web/style.css:1349:.card .row{padding:0 18px 14px 18px}
+AsyncScene/Web/style.css:1526:  .mention-list{
+AsyncScene/Web/state.js:904:        const panelEls = document.querySelectorAll(".panel:not(.hidden), .panel.panel--full, .card:not(.hidden)");
+AsyncScene/Web/state.js:912:        const activeEl = document.querySelector(".panel.panel--full, .panel.is-open, .card.panel--full");
+AsyncScene/Web/state.js:2506:    // Support both the newer API (getAll) and older (list).
+AsyncScene/Web/state.js:2515:        : (Game.NPC && typeof Game.NPC.list === "function")
+AsyncScene/Web/state.js:2516:          ? Game.NPC.list()
+AsyncScene/Web/state.js:2817:  function pickCopTemplate(list, fallback){
+AsyncScene/Web/state.js:2818:    const arr = Array.isArray(list) ? list : [];
+AsyncScene/Web/state.js:3617:    // Canon: reported targets disappear from lists only during the report cooldown window,
+AsyncScene/Web/state.js:4694:    // mirror progression counters for UI lists/filters
+AsyncScene/Web/state.js:4739:    // Mentions (centralized list for autocomplete + flags)
+AsyncScene/Web/state.js:6076:          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
+AsyncScene/Web/state.js:6077:          return list.filter(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished").length;
+AsyncScene/Web/state.js:6089:          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
+AsyncScene/Web/state.js:6090:          const active = list.find(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished");
+AsyncScene/Web/state.js:7962:      let list = history.get(typeKey);
+AsyncScene/Web/state.js:7963:      if (!list) {
+AsyncScene/Web/state.js:7964:        list = [];
+AsyncScene/Web/state.js:7965:        history.set(typeKey, list);
+AsyncScene/Web/state.js:7967:      list.push(timestamp);
+AsyncScene/Web/state.js:7969:      while (list.length && list[0] < cutoff) {
+AsyncScene/Web/state.js:7970:        list.shift();
+AsyncScene/Web/state.js:7972:      return list;
+AsyncScene/Web/state.js:7984:      const list = recordHistory(typeKey, stamp);
+AsyncScene/Web/state.js:7987:      for (let i = list.length - 1; i >= 0; i--) {
+AsyncScene/Web/state.js:7988:        if (list[i] >= shortCutoff) shortCount++;
+AsyncScene/Web/state.js:7991:      const longCount = list.length;
+AsyncScene/Web/conflict/conflict-core.js:166:    const addCandidate = (list, value) => {
+AsyncScene/Web/conflict/conflict-core.js:169:        if (normalized && !list.includes(normalized)) list.push(normalized);
+AsyncScene/Web/conflict/conflict-core.js:1266:        const list = (D && typeof D.getArgCanonGroup === "function") ? D.getArgCanonGroup("Y1", typeU) : [];
+AsyncScene/Web/conflict/conflict-core.js:1267:        const item = (Array.isArray(list) && list.length) ? (list[0] || null) : null;
+AsyncScene/Web/npcs.js:471:  const pickWeightedPlayer = (list) => {
+AsyncScene/Web/npcs.js:472:    if (!list || !list.length) return null;
+AsyncScene/Web/npcs.js:474:      return Game.Util.pickWeighted(list);
+AsyncScene/Web/npcs.js:478:    for (const x of list) sum += Math.max(0, x.weight|0);
+AsyncScene/Web/npcs.js:479:    if (sum <= 0) return list[0].item || list[0];
+AsyncScene/Web/npcs.js:481:    for (const x of list) {
+AsyncScene/Web/npcs.js:485:    return (list[list.length - 1].item || list[list.length - 1]);
+AsyncScene/Web/npcs.js:578:    let list = [];
+AsyncScene/Web/npcs.js:581:      list = cops.map(entry => ({ item: entry.item, weight: 1 }));
+AsyncScene/Web/npcs.js:583:      list = others.concat(cops.map(entry => ({ item: entry.item, weight: 1 })));
+AsyncScene/Web/npcs.js:585:      list = others.slice();
+AsyncScene/Web/npcs.js:587:    if (!list.length && cops.length) {
+AsyncScene/Web/npcs.js:588:      list = cops.slice();
+AsyncScene/Web/npcs.js:591:    if (!list.length) {
+AsyncScene/Web/npcs.js:606:    for (const entry of list) {
+AsyncScene/Web/npcs.js:620:    const selected = pickWeightedPlayer(list);
+AsyncScene/Web/npcs.js:665:    const list = pool.map(p => ({ item: p, weight: roleWeight(p, "battle") }));
+AsyncScene/Web/npcs.js:666:    return pickWeightedPlayer(list);
+AsyncScene/Web/npcs.js:957:      const list = pool.map(p => {
+AsyncScene/Web/npcs.js:963:      const npc = pickWeightedPlayer(list);
+AsyncScene/Web/npcs.js:1659:    const addUnique = (list, value) => {
+AsyncScene/Web/npcs.js:1661:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+AsyncScene/Web/npcs.js:1706:        const list = entry && typeof entry.get === "function" ? entry.get() : [];
+AsyncScene/Web/npcs.js:1707:        if (Array.isArray(list)) list.forEach((line, index) => addText(rows, entry.source.indexOf("villain") >= 0 ? "villainFlow" : "npcSay", `${entry.source}.${index}`, line));
+AsyncScene/Web/npcs.js:1798:    const addUnique = (list, value) => {
+AsyncScene/Web/npcs.js:1800:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+AsyncScene/Web/npcs.js:1900:    const addUnique = (list, value) => {
+AsyncScene/Web/npcs.js:1902:      if (!list.some((item) => JSON.stringify(item) === key)) list.push(value);
+AsyncScene/Web/npcs.js:2026:    const addUnique = (list, value) => { const key = JSON.stringify(value); if (!list.some((item) => JSON.stringify(item) === key)) list.push(value); };
+AsyncScene/Web/npcs.js:3037:    const list = all.map(p => ({ item: p, weight: roleWeightForReaction(p) }));
+AsyncScene/Web/npcs.js:3038:    return pickWeightedPlayer(list);
+AsyncScene/Web/npcs.js:3110:  // This prevents "Game.NPC.getAll is not a function" / empty NPC lists when UI starts.
+AsyncScene/Web/game_legacy.js:358:      const list = [...(loc.npcs || [])].map((n) => ({
+AsyncScene/Web/game_legacy.js:365:        list.push({
+AsyncScene/Web/game_legacy.js:372:      list.forEach((p) => {
+AsyncScene/Web/game_legacy.js:492:    let card = $("conflictCard");
+AsyncScene/Web/game_legacy.js:493:    if (card) {
+AsyncScene/Web/game_legacy.js:494:      card.style.display = "block";
+AsyncScene/Web/game_legacy.js:502:    card = document.createElement("div");
+AsyncScene/Web/game_legacy.js:503:    card.id = "conflictCard";
+AsyncScene/Web/game_legacy.js:504:    card.className = "bubble";
+AsyncScene/Web/game_legacy.js:505:    card.style.marginTop = "12px";
+AsyncScene/Web/game_legacy.js:507:    card.innerHTML =
+AsyncScene/Web/game_legacy.js:516:      init.insertAdjacentElement("afterend", card);
+AsyncScene/Web/game_legacy.js:518:      sceneScreen.appendChild(card);
+AsyncScene/Web/game_legacy.js:523:    const card = $("conflictCard");
+AsyncScene/Web/game_legacy.js:524:    if (card) card.style.display = "none";
+AsyncScene/Web/game_legacy.js:534:    const card = $("conflictCard");
+AsyncScene/Web/game_legacy.js:535:    if (!card) return;
+AsyncScene/Web/game_legacy.js:544:    // Hide card if nothing selected and not in conflict
+AsyncScene/Web/game_legacy.js:546:      card.style.display = "none";
+AsyncScene/Web/game_legacy.js:550:    card.style.display = "block";
+AsyncScene/Web/conflict/conflict-economy.js:791:    const list = bid && dbg.moneyLogByBattle && Array.isArray(dbg.moneyLogByBattle[bid])
+AsyncScene/Web/conflict/conflict-economy.js:794:    for (let i = list.length - 1; i >= 0; i--) {
+AsyncScene/Web/conflict/conflict-economy.js:795:      const x = list[i];
+AsyncScene/Web/conflict/conflict-economy.js:1074:    const list = (Game.NPC && typeof Game.NPC.getAll === "function")
+AsyncScene/Web/conflict/conflict-economy.js:1076:      : (Game.NPC && typeof Game.NPC.list === "function")
+AsyncScene/Web/conflict/conflict-economy.js:1077:        ? Game.NPC.list()
+AsyncScene/Web/conflict/conflict-economy.js:1079:    list.forEach(n => {
+AsyncScene/Web/conflict/conflict-economy.js:1511:    const list = eligible.slice();
+AsyncScene/Web/conflict/conflict-economy.js:1512:    if (seed != null) list.sort(() => Math.random() - 0.5);
+AsyncScene/Web/conflict/conflict-economy.js:1513:    const selected = list.slice(0, maxRecipients);
+AsyncScene/Web/conflict/conflict-economy.js:1562:    const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+AsyncScene/Web/conflict/conflict-economy.js:1563:    if (!list.length) return 0;
+AsyncScene/Web/conflict/conflict-economy.js:1566:    for (const b of list) {
+AsyncScene/Web/conflict/conflict-economy.js:1665:      const list = (S && Array.isArray(S.battles)) ? S.battles : [];
+AsyncScene/Web/conflict/conflict-economy.js:1666:      const b = list.find(x => x && String(x.id || x.battleId || "") === bid) || null;
+AsyncScene/Web/conflict/conflict-arguments.js.bak.20251230-014752:64:  function padToN(list, n) {
+AsyncScene/Web/conflict/conflict-arguments.js.bak.20251230-014752:65:    const out = safeList(list).slice();
+AsyncScene/Web/conflict/conflict-arguments.js.bak.20251230-014752:147:  function onlyTier(list, tier) {
+AsyncScene/Web/conflict/conflict-arguments.js.bak.20251230-014752:149:    return safeList(list).filter(a => a && a.color === t);
+AsyncScene/Web/data.js:2635:    const pushUnique = (list, value) => {
+AsyncScene/Web/data.js:2637:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+AsyncScene/Web/data.js:2852:    const pushUnique = (list, value) => {
+AsyncScene/Web/data.js:2854:      if (!list.some((item) => (typeof item === "string" ? item : JSON.stringify(item)) === key)) list.push(value);
+AsyncScene/Web/data.js:3115:  // Place list used for {PLACE} placeholders
+AsyncScene/Web/data.js:3148:    const list = locs || Data.LOCATIONS || [];
+AsyncScene/Web/data.js:3149:    list.forEach(l => {
+AsyncScene/Web/data.js:4516:            const card = document.getElementById("startCard");
+AsyncScene/Web/data.js:4517:            if (card) {
+AsyncScene/Web/data.js:4518:              card.style.position = "relative";
+AsyncScene/Web/data.js:4519:              card.style.pointerEvents = "auto";
+AsyncScene/Web/data.js:4520:              card.style.zIndex = "1";
+AsyncScene/Web/data.js:4777:        const card = (typeof document !== "undefined") ? document.getElementById("startCard") : null;
+AsyncScene/Web/data.js:4784:        if (!st || !card || !titleEl || !introEl || !economyEl || !btns || !startBtn || !rulesBtn) fail("required_dom_missing", null);
+AsyncScene/Web/data.js:4791:          saveStyle(card, ["maxHeight", "overflow"]);
+AsyncScene/Web/data.js:4826:          if (!st || !card || !titleEl || !introEl || !btns || !startBtn || !rulesBtn) return;
+AsyncScene/Web/data.js:4834:          if (card) {
+AsyncScene/Web/data.js:4835:            card.style.maxHeight = `calc(${vp.height}px - 40px)`;
+AsyncScene/Web/data.js:4836:            card.style.overflow = "hidden";
+AsyncScene/Web/data.js:4839:          const cardRect = rectOf(card);
+AsyncScene/Web/data.js:4849:          const check = { name: vp.name, width: vp.width, height: vp.height, noScroll, ctaVisible, ctaAligned, noOverlap, card: roundedRect(cardRect), start: roundedRect(startRect), rules: roundedRect(rulesRect) };
+AsyncScene/Web/data.js:9343:        const list = root.__S && Array.isArray(root.__S.battles) ? root.__S.battles : [];
+AsyncScene/Web/data.js:9344:        return list.length;
+AsyncScene/Web/data.js:11531:    const unique = (list) => Array.from(new Set(list));
+AsyncScene/Web/conflict/conflict-arguments.js:74:  function padToN(list, n) {
+AsyncScene/Web/conflict/conflict-arguments.js:75:    const out = safeList(list).slice();
+AsyncScene/Web/conflict/conflict-arguments.js:157:  function onlyTier(list, tier) {
+AsyncScene/Web/conflict/conflict-arguments.js:159:    return safeList(list).filter(a => a && a.color === t);
+AsyncScene/Web/conflict/conflict-arguments.js:314:    const byType = (list) => {
+AsyncScene/Web/conflict/conflict-arguments.js:316:      (list || []).forEach(it => {
+AsyncScene/Web/conflict/conflict-arguments.js:331:      const list = (arr || []).slice();
+AsyncScene/Web/conflict/conflict-arguments.js:332:      for (let i = list.length - 1; i > 0; i--) {
+AsyncScene/Web/conflict/conflict-arguments.js:334:        [list[i], list[j]] = [list[j], list[i]];
+AsyncScene/Web/conflict/conflict-arguments.js:336:      for (const it of list) {
+AsyncScene/Web/conflict/conflict-arguments.js:463:      const list = (D && typeof D.getArgCanonGroup === "function")
+AsyncScene/Web/conflict/conflict-arguments.js:466:      if (!list || list.length === 0) return null;
+AsyncScene/Web/conflict/conflict-arguments.js:467:      const picked = pickN(list, 1)[0] || list[0];
+AsyncScene/Web/conflict/conflict-arguments.js:478:      const list = (D && typeof D.getArgCanonGroup === "function")
+AsyncScene/Web/conflict/conflict-arguments.js:481:      const shuffled = pickN(list, list.length);
+AsyncScene/Web/conflict/conflict-arguments.js:686:      const list = (D && typeof D.getArgCanonGroup === "function")
+AsyncScene/Web/conflict/conflict-arguments.js:689:      const shuffled = pickN(list, list.length);
+AsyncScene/Web/conflict/conflict-arguments.js:854:      if (primary.length) return { subKey, list: primary, source: "primary" };
+AsyncScene/Web/conflict/conflict-arguments.js:858:        if (altList.length) return { subKey: alt, list: altList, source: "fallback_color" };
+AsyncScene/Web/conflict/conflict-arguments.js:960:    const list = pickedGroup ? (pickedGroup.list || []) : (D.getArgCanonGroup(subKey, String(t).toUpperCase()) || []);
+AsyncScene/Web/conflict/conflict-arguments.js:961:    if (!list.length) return null;
+AsyncScene/Web/conflict/conflict-arguments.js:962:    const picked = pickN(list, 1)[0] || list[0];
