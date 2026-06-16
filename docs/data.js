@@ -5473,7 +5473,12 @@ K YN A9: Нет.
         });
 
         const eventsSrc = sourceOf(root.UI && root.UI.renderEvents);
-        const battlesSrc = sourceOf(root.UI && root.UI.renderBattles);
+        const battlesSrc = [
+          sourceOf(root.UI && root.UI.renderBattles),
+          sourceOf(root.UI && root.UI._renderResolvedBattleCardCore),
+          sourceOf(root.UI && root.UI._normalizeResultText),
+          sourceOf(root.UI && root.UI._getBattleOutcomeLabel)
+        ].join("\n");
         const dmSrc = sourceOf(root.UI && root.UI.renderDM);
         const teachSrc = sourceOf(root.UI && root.UI.openTeachPanel);
 
@@ -9507,7 +9512,7 @@ K YN A9: Нет.
           battleAttackText: String(Array.from(document.querySelectorAll("#battlesBody button")).map((node) => String(node.textContent || "").trim()).find((text) => text === sampleOf("zoomer", "battle_action_attack")) || "").trim(),
           battleRematchText: "",
           battleReportText: "",
-          battlesEmptyText: String(document.querySelector("#battlesBody") ? document.querySelector("#battlesBody").textContent || "" : "").replace(/\s+/g, " ").trim(),
+          battlesEmptyText: String(document.querySelector("#battlesBody .hint") ? document.querySelector("#battlesBody .hint").textContent || "" : "").trim(),
           battleWinText: "",
           battleLossText: ""
         }));
@@ -9826,6 +9831,51 @@ K YN A9: Нет.
   };
 
   installBattleInviteActionLabelsSmokeViaData();
+
+  const installBattleInviteActionLabelsFix1SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_4_battle_invite_action_labels_fix1";
+    const commit = "step6_7_4_battle_invite_action_labels_fix1";
+    const smokeVersion = "step6_7_4_battle_invite_action_labels_fix1_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1 = function smokeZoomerFeelStep674BattleInviteActionLabelsFix1() {
+      const base = typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels === "function"
+        ? root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabels()
+        : null;
+      const result = base && typeof base === "object" ? base : {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: false,
+        failures: [{ code: "smoke_exception", detail: { reason: "base smoke unavailable" } }],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: ["smoke_exception"],
+        samples: {},
+        routeChecks: {},
+        commandRegistrationChecks: {},
+        rawKeyLeakChecks: {},
+        resolverChecks: {},
+        domRouteDiagnostics: {},
+        sourceRouteDiagnostics: {},
+        devLabelDiagnostics: {},
+        storageDiagnostics: {},
+        battleBehaviorDiagnostics: {},
+        guardedStateDiagnostics: {},
+        summary: {}
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep674BattleInviteActionLabelsFix1 = root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1;
+  };
+
+  installBattleInviteActionLabelsFix1SmokeViaData();
 
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;

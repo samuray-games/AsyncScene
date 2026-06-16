@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.7.4 Fix1 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 6.7.4 smoke diagnostics so the battle empty-state read targets only the hint node, and the source scan now includes the resolved battle-card helpers where `battle_action_rematch`, `battle_win`, and `battle_loss` are actually emitted.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1()`.
+- Scope held: smoke diagnostics and helper-source exposure only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.4 Battle Invite / Action Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Routed the visible battle panel invite/action labels in `AsyncScene/Web/ui/ui-battles.js` and `docs/ui/ui-battles.js` through `Data.t(...)` for the invite title, invite button, submit action, rematch button, empty-state hint, and resolved win/loss pill, while keeping battle generation, outcomes, voting, rematch logic, report logic, persistence, chronology, and guarded state untouched.

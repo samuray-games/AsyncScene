@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.7.4 Fix1 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 6.7.4 smoke failure where the empty-state read was concatenating the battle title with the empty hint, by narrowing the DOM read to the empty-state hint node only.
+- Exposed the resolved battle-card helper sources in `AsyncScene/Web/ui/ui-battles.js` and `docs/ui/ui-battles.js` so the smoke can honestly see `battle_action_rematch`, `battle_win`, and `battle_loss` where they are emitted.
+- Added the fresh Fix1 smoke identity `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1()` with build tag `build_2026_06_15_step6_7_4_battle_invite_action_labels_fix1`.
+- Pending smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix1()`.
+- Scope held: smoke diagnostics and helper-source exposure only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+
 ## 2026-06-15 — Step 6.7.4 Battle Invite / Action Labels Profile Texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Routed the visible battle invite/action labels in `AsyncScene/Web/ui/ui-battles.js` and `docs/ui/ui-battles.js` through `Data.t(...)` so the battle panel now resolves the invite title, invite button, submit action, rematch button, empty-state hint, and resolved win/loss pill from the active profile.
