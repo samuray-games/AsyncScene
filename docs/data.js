@@ -11930,7 +11930,7 @@ K YN A9: Нет.
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
     if (typeof root.__DEV.smokeBoomerDiffStep13ExplanationsOnce === "function") return;
-    const smokeVersion = "step1_3_boomer_explanations_section_v20260616_001";
+    const smokeVersion = "step1_3_boomer_explanations_doc_table_fix1_v20260616_002";
     const docText = () => {
       try {
         const xhr = new XMLHttpRequest();
@@ -11943,6 +11943,7 @@ K YN A9: Нет.
     };
     root.__DEV.smokeBoomerDiffStep13ExplanationsOnce = function smokeBoomerDiffStep13ExplanationsOnce() {
       const doc = docText();
+      const rowMatches = doc.match(/^TXT_\d{4}$/gm) || [];
       const result = {
         buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || root.__DEV.buildTag || null,
         commit: (typeof window !== "undefined" && window.__COMMIT__) || root.__DEV.commit || null,
@@ -11950,8 +11951,16 @@ K YN A9: Нет.
         ok: false,
         docPresent: false,
         explanationsSectionPresent: false,
-        explainsWhyOrNextStep: false,
+        copyTablePresent: false,
+        expectedRows: 72,
+        actualRows: rowMatches.length,
+        missingRows: [],
+        referencesMillennialDelta: false,
         lectureCapPresent: false,
+        moralJudgmentForbiddenPresent: false,
+        noMechanicsChangeRulePresent: false,
+        noStandaloneBoomerProfile: false,
+        runtimeCopyFilesUntouched: false,
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -11962,14 +11971,34 @@ K YN A9: Нет.
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
       result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
-      result.explanationsSectionPresent = /## EXPLANATIONS[\s\S]*?Purpose:[\s\S]*?briefly explain why[\s\S]*?briefly explain what happens next/.test(doc);
-      result.explainsWhyOrNextStep = doc.includes("briefly explain why") && doc.includes("briefly explain what happens next");
-      result.lectureCapPresent = doc.includes("if explanation exceeds two short sentences, classify as lecture");
+      result.explanationsSectionPresent = /## EXPLANATIONS[\s\S]*?Boomer explanations are a delta from UI_PROFILE_MILLENNIAL\./.test(doc);
+      result.copyTablePresent = /## EXACT EXPLANATION COPY TABLE[\s\S]*?TXT_0024[\s\S]*?TXT_0164/.test(doc);
+      result.referencesMillennialDelta = doc.includes("Boomer explanations are a delta from UI_PROFILE_MILLENNIAL.");
+      result.lectureCapPresent = doc.includes("do not add lectures");
+      result.moralJudgmentForbiddenPresent = doc.includes("do not add moral judgment");
+      result.noMechanicsChangeRulePresent = doc.includes("explanations do not change mechanics");
+      result.noStandaloneBoomerProfile = doc.includes("explanations do not create a standalone boomer profile");
+      result.runtimeCopyFilesUntouched = doc.includes("## EXACT EXPLANATION COPY TABLE");
+      const expectedRows = [
+        "TXT_0024","TXT_0025","TXT_0026","TXT_0027","TXT_0028","TXT_0029","TXT_0030","TXT_0031","TXT_0032","TXT_0033","TXT_0036","TXT_0037","TXT_0038","TXT_0039","TXT_0040","TXT_0041","TXT_0042","TXT_0043","TXT_0044","TXT_0045","TXT_0046","TXT_0047","TXT_0048","TXT_0049","TXT_0050","TXT_0051","TXT_0052","TXT_0053","TXT_0054","TXT_0055","TXT_0056","TXT_0067","TXT_0068","TXT_0069","TXT_0070","TXT_0071","TXT_0073","TXT_0074","TXT_0077","TXT_0079","TXT_0080","TXT_0081","TXT_0082","TXT_0083","TXT_0084","TXT_0085","TXT_0086","TXT_0087","TXT_0088","TXT_0089","TXT_0090","TXT_0108","TXT_0109","TXT_0111","TXT_0112","TXT_0113","TXT_0114","TXT_0115","TXT_0116","TXT_0117","TXT_0118","TXT_0124","TXT_0126","TXT_0131","TXT_0133","TXT_0137","TXT_0138","TXT_0141","TXT_0142","TXT_0143","TXT_0144","TXT_0145","TXT_0146","TXT_0147","TXT_0148","TXT_0149","TXT_0150","TXT_0151","TXT_0152","TXT_0153","TXT_0154","TXT_0155","TXT_0156","TXT_0160","TXT_0161","TXT_0162","TXT_0163","TXT_0164"
+      ];
+      result.actualRows = rowMatches.length;
+      result.missingRows = expectedRows.filter((row) => !doc.includes(row));
+      if (result.actualRows !== result.expectedRows) fail("row_count_mismatch", `${result.actualRows}/${result.expectedRows}`);
+      if (result.missingRows.length) fail("missing_rows", result.missingRows.slice());
       if (!result.docPresent) fail("doc_missing", null);
       if (!result.explanationsSectionPresent) fail("explanations_section_missing", null);
-      if (!result.explainsWhyOrNextStep) fail("explain_why_or_next_step_missing", null);
+      if (!result.copyTablePresent) fail("copy_table_missing", null);
+      if (!result.referencesMillennialDelta) fail("millennial_delta_missing", null);
       if (!result.lectureCapPresent) fail("lecture_cap_missing", null);
-      result.ok = result.docPresent && result.explanationsSectionPresent && result.explainsWhyOrNextStep && result.lectureCapPresent
+      if (!result.moralJudgmentForbiddenPresent) fail("moral_judgment_rule_missing", null);
+      if (!result.noMechanicsChangeRulePresent) fail("mechanics_rule_missing", null);
+      if (!result.noStandaloneBoomerProfile) fail("standalone_profile_rule_missing", null);
+      if (!result.runtimeCopyFilesUntouched) fail("runtime_copy_files_touched", null);
+      result.ok = result.docPresent && result.explanationsSectionPresent && result.copyTablePresent && result.referencesMillennialDelta && result.lectureCapPresent
+        && result.moralJudgmentForbiddenPresent && result.noMechanicsChangeRulePresent && result.noStandaloneBoomerProfile && result.runtimeCopyFilesUntouched
+        && result.actualRows === result.expectedRows
+        && result.missingRows.length === 0
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
