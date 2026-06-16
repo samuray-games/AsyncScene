@@ -1,3 +1,11 @@
+## 2026-06-16 — Step 1.1 Boomer Standalone Detection Fix3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Removed the broad standalone/independent trigger from the boomer classification source and replaced it with explicit positive detection sources only.
+- Added dev-only smoke `Game.__DEV.smokeBoomerDiffStep11SourceFix3Once()` with `standaloneDetectionSources` and `standaloneDetectionCount` diagnostics.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only_fix3` / `step1_1_boomer_source_delta_only_fix3` / `step1_1_boomer_source_delta_only_fix3_v20260616_004`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerDiffStep11SourceFix3Once()`.
+- Scope held: classification source only; no UI changes, no gameplay changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Source Contract Fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Aligned the boomer source contract wording in `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` to the same explicit language used by the smoke: base profile = `UI_PROFILE_MILLENNIAL`, boomer is delta-only, boomer is not an independent profile.
