@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.9.1 Runtime Feel Checklist
+- Added the dev-only read-only checklist helper to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist()`.
+- The helper is only a compact manual-feel checklist for the human Runtime Feel Smoke; it does not run the five-minute playtest, decide PASS/FAIL, or change gameplay/UI/state logic.
+- Fresh identity: `build_2026_06_15_step6_9_1_runtime_feel_checklist` / `step6_9_1_runtime_feel_checklist` / `step6_9_1_runtime_feel_checklist_v20260615_001`.
+- Final feel verdict remains manual and will happen in later substeps.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist()`.
+- Scope held: read-only helper and docs updates only; no gameplay logic changes, no battle/event/economy/persistence changes, no guarded state writes, and no UI file edits.
+
 ## 2026-06-15 — Step 6.8 Fix1 Coverage Audit for profile-aware UI texts
 - Added the four missing zoomer hint-type values in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `hint_type_who`, `hint_type_where`, `hint_type_about`, and `hint_type_yn`.
 - Added fresh fix1 audit aliases in the mirrored data bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1()`.

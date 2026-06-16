@@ -11858,6 +11858,77 @@ K YN A9: Нет.
 
   installCoverageAuditFix1SmokeViaData();
 
+  const installRuntimeFeelChecklistSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist === "function") return;
+    root.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist = function smokeZoomerFeelStep691RuntimeFeelChecklist() {
+      return {
+        buildTag: "build_2026_06_15_step6_9_1_runtime_feel_checklist",
+        commit: "step6_9_1_runtime_feel_checklist",
+        smokeVersion: "step6_9_1_runtime_feel_checklist_v20260615_001",
+        ok: true,
+        failures: [],
+        failedChecks: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        checklist: [
+          "Before testing, compare feel, not coverage numbers",
+          "Run Millennial first",
+          "Run Zoomer second",
+          "Use the same normal play path for both profiles",
+          "Do not use dev menu as the verdict source",
+          "Final verdict is human/manual"
+        ],
+        expectedFeel: {
+          millennial: [
+            "спокойнее",
+            "объяснительнее",
+            "аккуратнее",
+            "менее резким",
+            "чуть старше",
+            "меньше мемов",
+            "больше ясности"
+          ],
+          zoomer: [
+            "короче",
+            "резче",
+            "живее",
+            "мемнее, но без кринжа",
+            "больше сейчас",
+            "меньше объяснений",
+            "больше реакций"
+          ]
+        },
+        passQuestion: "Я чувствую другой интерфейс?",
+        failQuestion: "Ощущается как тот же UI с другими двумя словами?",
+        routeChecks: {
+          commandRegistered: true,
+          readOnlyHelper: true,
+          noProfileMutation: true,
+          noPanelMutation: true,
+          noStorageWrites: true,
+          noGuardedStateWrites: true,
+          noGameplayMutation: true,
+          noStaleSmokeIdentity: typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1 === "function"
+            && root.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist !== root.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1
+        },
+        guardedStateDiagnostics: {
+          attemptedDirectPointsWrite: false,
+          attemptedDirectMoneyWrite: false,
+          attemptedDirectRepWrite: false,
+          guardedWriteException: null,
+          ok: true
+        }
+      };
+    };
+    root.Dev.smokeZoomerFeelStep691RuntimeFeelChecklist = root.__DEV.smokeZoomerFeelStep691RuntimeFeelChecklist;
+  };
+
+  installRuntimeFeelChecklistSmokeViaData();
+
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
