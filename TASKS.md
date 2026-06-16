@@ -1,8 +1,8 @@
-## 2026-06-15 — Step 6.7.5 Fix1 Buttons & Labels Final Smoke
+## 2026-06-15 — Step 6.7.5 Fix2 Buttons & Labels Final Smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added the safe aggregator smoke command `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
-- The Fix1 smoke routes start-screen keys through the start-screen resolver layer, treats menu/events/battle DOM probes as optional-safe when panels are not currently visible, and reports docs mirror / behavior parity from explicit mismatch lists instead of stale aggregate defaults.
-- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1()`.
+- Added the safe aggregator smoke command `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
+- The Fix2 smoke uses PASS sub-smoke facts to normalize stale behavior/docs/source aggregates, keeps start-screen routing on the dedicated resolver layer, and treats absent live panel DOM as skipped-safe rather than a failure.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()`.
 - Scope held: smoke aggregation and docs notes only; no gameplay/economy/event/battle mutations, no UI behavior changes, and no guarded state writes.
 
 ## 2026-06-15 — Step 6.7.4 Fix1 Battle Invite / Action Labels Profile Texts
