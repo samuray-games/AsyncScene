@@ -1,3 +1,11 @@
+## 2026-06-15 — Step 6.8 Fix1 Coverage Audit for profile-aware UI texts
+- Added the four missing zoomer hint-type values in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `hint_type_who`, `hint_type_where`, `hint_type_about`, and `hint_type_yn`.
+- Added fresh fix1 audit aliases in the mirrored data bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1()`.
+- Initial audit before the fix had `totalProfileTextKeys: 95`, `comparableEntries: 91`, `differencePercent: 96.7`, and `thresholdPassed: true`, but still failed because four zoomer `hint_type_*` entries were missing from `Data.TEXTS`.
+- Fresh identity: `build_2026_06_15_step6_8_coverage_audit_fix1` / `step6_8_coverage_audit_fix1` / `step6_8_coverage_audit_fix1_v20260615_001`.
+- Pending Safari runtime smoke commands: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummaryFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSampleFix1()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSampleFix1()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBucketsFix1()`.
+- Scope held: audit data and docs updates only; no gameplay logic changes, no battle/event/economy/persistence changes, no guarded state writes, and no UI file edits.
+
 ## 2026-06-15 — Step 6.8 Coverage Audit for profile-aware UI texts
 - Added the Step 6.8 coverage-audit smoke surface to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
 - The audit walks the current profile-aware text registries (`Data.TEXTS`, `Data.START_SCREEN_PROFILE_TEXTS`, and `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS`), counts comparable entries, same vs different entries, missing-side coverage, and per-bucket difference percentages, and keeps the state/storage checks read-only.
