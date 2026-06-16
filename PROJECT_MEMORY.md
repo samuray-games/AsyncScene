@@ -6532,6 +6532,12 @@ Error: Download failure, code=1
 - Fix3 moves `battle_action_attack` into the optional DOM path when absent, keeps the source checks intact, and adds a fresh smoke identity `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
 - Pending smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
 - Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+## 2026-06-16 — Step 3 Boomer UI text inventory fix1
+- Added served-path copies of `UI_PROFILE_TEXT_INVENTORY` at `AsyncScene/UI_PROFILE_TEXT_INVENTORY` and `docs/UI_PROFILE_TEXT_INVENTORY` so Safari can load the inventory from the app base path rather than the internal `AsyncScene/Web/` source path.
+- Added dev-only smoke `Game.__DEV.smokeBoomerTextInventoryStep0Fix1Once()` in `AsyncScene/Web/data.js` and `docs/data.js` with candidate-path diagnostics and loaded-path reporting.
+- Fresh identity: `boomer_text_inventory_step0_fix1_v20260616_001`.
+- Scope held: inventory/loading only; no text rewrites, no UI changes, no gameplay changes, no profile behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 3 Boomer UI text inventory
 - Added the read-only `UI_PROFILE_TEXT_INVENTORY` document under `AsyncScene/Web/` to capture the current visible text inventory with category, key, current text, and source location fields.
 - Added dev-only smoke `Game.__DEV.smokeBoomerTextInventoryStep0Once()` in `AsyncScene/Web/data.js` and `docs/data.js` to confirm the inventory file exists and reports coverage without mutating any runtime text or profile behavior.
