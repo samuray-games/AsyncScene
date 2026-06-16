@@ -1,3 +1,11 @@
+## 2026-06-16 — Step 1.1 Boomer Source Smoke Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed `Game.__DEV.smokeBoomerDiffStep11SourceOnce()` dependency on missing `fetchTextFromCandidates` by adding the fix1 smoke `Game.__DEV.smokeBoomerDiffStep11SourceFix1Once()` with an inline runtime-safe document resolver.
+- Kept the original validations: `docPresent`, `referencesMillennialBase`, `deltaOnly`, and `hasStandaloneBoomerProfile`.
+- Fresh identity: `build_2026_06_16_step1_1_boomer_source_delta_only_fix1` / `step1_1_boomer_source_delta_only_fix1` / `step1_1_boomer_source_delta_only_fix1_v20260616_002`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerDiffStep11SourceFix1Once()`.
+- Scope held: smoke wiring only; no boomer profile rule changes, no UI logic changes, no document content changes, no refactors, and no `Console.txt` usage.
+
 ## 2026-06-16 — Step 1.1 Boomer Source Delta Only
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` as delta-only documentation over `UI_PROFILE_MILLENNIAL`, with explicit source derivation and no standalone boomer profile container.
