@@ -1,0 +1,20 @@
+docs/dev/dev-checks.js:412:        root.querySelectorAll(".placeholder,.skeleton,.loading,[data-placeholder='true'],[aria-placeholder]").forEach((el) => {
+docs/ui/ui-core.js:883:    if (kind === "points") return bal.querySelector('span[title="💰"]');
+docs/ui/ui-core.js:884:    if (kind === "rep") return bal.querySelector('span[title="⭐"]');
+docs/ui/ui-core.js:885:    if (kind === "wins") return bal.querySelector('span[title="Победы"]');
+docs/ui/ui-core.js:886:    return bal.querySelector('span[title="Влияние"]');
+AsyncScene/Web/index.html:90:        <div id="balance" aria-label="Профиль">
+AsyncScene/Web/index.html:91:          <span class="statChip" data-profile-stat="influence"><span class="statIcon" title="Влияние">⚡</span><span id="meInfluence" class="statValue">0</span></span>
+AsyncScene/Web/index.html:92:          <span class="statChip" data-profile-stat="rep"><span class="statIcon" title="⭐">⭐</span><span id="meRep" class="statValue">0</span><span class="statHint">до</span><span id="meRepNeed" class="statValue">12</span><span id="weeklyCapNote"></span></span>
+AsyncScene/Web/index.html:93:          <span class="statChip pointsWrap" data-profile-stat="points"><span class="pointsRow"><span class="statIcon" title="💰">💰</span><span id="mePoints" class="pointsValue statValue">0</span><span id="mePointsOverflow" class="pointsOverflow"></span></span><span id="pointsCapNote" class="pointsNote"></span></span>
+AsyncScene/Web/index.html:94:          <span class="statChip" data-profile-stat="wins"><span class="statIcon" title="Победы">🏆</span><span id="meWins" class="statValue">0</span></span>
+docs/index.html:43:        <div id="balance" aria-label="Профиль">
+docs/index.html:44:          <span class="statChip" data-profile-stat="influence"><span class="statIcon" title="Влияние">⚡</span><span id="meInfluence" class="statValue">0</span></span>
+docs/index.html:45:          <span class="statChip" data-profile-stat="rep"><span class="statIcon" title="⭐">⭐</span><span id="meRep" class="statValue">0</span><span class="statHint">до</span><span id="meRepNeed" class="statValue">12</span><span id="weeklyCapNote"></span></span>
+docs/index.html:46:          <span class="statChip pointsWrap" data-profile-stat="points"><span class="pointsRow"><span class="statIcon" title="💰">💰</span><span id="mePoints" class="pointsValue statValue">0</span><span id="mePointsOverflow" class="pointsOverflow"></span></span><span id="pointsCapNote" class="pointsNote"></span></span>
+docs/index.html:47:          <span class="statChip" data-profile-stat="wins"><span class="statIcon" title="Победы">🏆</span><span id="meWins" class="statValue">0</span></span>
+AsyncScene/Web/ui/ui-core.js:883:    if (kind === "points") return bal.querySelector('span[title="💰"]');
+AsyncScene/Web/ui/ui-core.js:884:    if (kind === "rep") return bal.querySelector('span[title="⭐"]');
+AsyncScene/Web/ui/ui-core.js:885:    if (kind === "wins") return bal.querySelector('span[title="Победы"]');
+AsyncScene/Web/ui/ui-core.js:886:    return bal.querySelector('span[title="Влияние"]');
+AsyncScene/Web/dev/dev-checks.js:358:        root.querySelectorAll(".placeholder,.skeleton,.loading,[data-placeholder='true'],[aria-placeholder]").forEach((el) => {

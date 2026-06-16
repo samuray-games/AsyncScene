@@ -1,0 +1,847 @@
+AsyncScene/Web/conflict-old.js:263:      text: a.text || a.label || (fallback?.text || "Да."),
+scripts/run-asyncscene-smoke.mjs:108:async function captureScreenshot(page, label) {
+scripts/run-asyncscene-smoke.mjs:111:  const screenshotPath = path.join(logsDir, `asyncscene-smoke-${timeTag}-${label}.png`);
+AsyncScene/Web/ui-old.js:226:  function mkBtn(label, fn, cls="miniBtn") {
+AsyncScene/Web/ui-old.js:229:    b.textContent = label;
+AsyncScene/Web/ui-old.js:480:      const label = (mode === "give") ? "Подкинуть 💰" : "Попросить 💰";
+AsyncScene/Web/ui-old.js:485:      return mkBtn(label, () => {
+AsyncScene/Web/ui-old.js:942:  // Menu: close label
+AsyncScene/Web/system.js:547:      const preferred = ["text", "label", "name", "title", "value"].map((key) => safeValue(value[key])).find(Boolean);
+AsyncScene/Web/system.js:743:    { area: "escape", kind: "notifications", code: "escapePaid", file: "AsyncScene/Web/ui/ui-battles.js", surface: "toast", callsite: "escape action label via Game.System.say(\"notifications\", \"escapePaid\")", directHardcoded: false },
+AsyncScene/Web/system.js:2339:      { source: "Data.START_SCREEN.actions.start", label: "Старт" },
+AsyncScene/Web/system.js:2340:      { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
+AsyncScene/Web/system.js:2341:      { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
+AsyncScene/Web/system.js:2342:      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
+AsyncScene/Web/system.js:2343:      { source: "UI.chat.send", label: "Заслать" },
+AsyncScene/Web/system.js:2344:      { source: "UI.report.submit", label: "Сдать" },
+AsyncScene/Web/system.js:2345:      { source: "UI.dm.battle", label: "баттл" },
+AsyncScene/Web/system.js:2346:      { source: "UI.dm.respect", label: "Уважение" },
+AsyncScene/Web/system.js:2347:      { source: "UI.dm.teach", label: "Передать" },
+AsyncScene/Web/system.js:2348:      { source: "UI.dm.invite", label: "Позвать" },
+AsyncScene/Web/system.js:2349:      { source: "UI.battles.rematch", label: "Реванш" },
+AsyncScene/Web/system.js:2350:      { source: "UI.close", label: "Закрыть" }
+AsyncScene/Web/system.js:2360:        const label = String(entry.label || "").trim();
+AsyncScene/Web/system.js:2361:        if (!label) fail("empty_button_label", entry);
+AsyncScene/Web/system.js:2362:        const wordCount = label.split(/\s+/).filter(Boolean).length;
+AsyncScene/Web/system.js:2363:        if (wordCount > 2) addUnique(result.forbiddenRemaining, { source: entry.source, label, wordCount });
+AsyncScene/Web/system.js:2364:        if (seenLabels.has(label)) addUnique(result.forbiddenRemaining, { source: entry.source, label, reason: "duplicate_label" });
+AsyncScene/Web/system.js:2365:        seenLabels.add(label);
+AsyncScene/Web/system.js:3418:      "[aria-label]",
+AsyncScene/Web/system.js:3428:          const label = (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder") || node.getAttribute("title"))) || node.textContent || "";
+AsyncScene/Web/system.js:3429:          fakeTonePushEntry(entries, seen, "interface labels", `document.${selector}.${index}`, label);
+AsyncScene/Web/system.js:3521:      "[aria-label]",
+AsyncScene/Web/system.js:3528:        const text = String((node && (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder")))) || (node && node.textContent) || "").trim();
+AsyncScene/Web/system.js:5246:        { label: "standalone_boomer_profile_container", re: /standalone\s+boomer\s+profile\s+container/i },
+AsyncScene/Web/system.js:5247:        { label: "separate_boomer_profile", re: /separate\s+boomer\s+profile/i },
+AsyncScene/Web/system.js:5248:        { label: "independent_boomer_profile", re: /independent\s+boomer\s+profile/i },
+AsyncScene/Web/system.js:5249:        { label: "boomer_is_an_independent_profile", re: /boomer\s+is\s+an?\s+independent\s+profile/i }
+AsyncScene/Web/system.js:5252:        if (source.re.test(text)) addUnique(result.standaloneDetectionSources, source.label);
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:36:CONCEPT_POINTS_CURRENCY__ST3_0940,CONCEPT_POINTS_CURRENCY,💰,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",ST3_0940,AsyncScene/Web/game_legacy.js,safeText,root,general_interface,dynamic_template,💰,"STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=safeText(p ? p.label : ""?""); line=619"
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:37:CONCEPT_POINTS_CURRENCY__ST3_0954,CONCEPT_POINTS_CURRENCY,💰,Ты: ${p.label} (${atk})\\n,ST3_0954,AsyncScene/Web/game_legacy.js,Ты,root,general_interface,dynamic_template,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=p.label|atk; line=714
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:38:CONCEPT_POINTS_CURRENCY__ST3_0958,CONCEPT_POINTS_CURRENCY,💰,Ты: ${p.label} (${atk})\\n,ST3_0958,AsyncScene/Web/game_legacy.js,Ты,root,general_interface,dynamic_template,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=p.label|atk; line=734
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:62:CONCEPT_POINTS_CURRENCY__ST3_1313,CONCEPT_POINTS_CURRENCY,💰,Подкинуть 💰,ST3_1313,AsyncScene/Web/ui-old.js,label,root,economy_toasts,static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=480
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:63:CONCEPT_POINTS_CURRENCY__ST3_1314,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_1314,AsyncScene/Web/ui-old.js,label,root,economy_toasts,static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=480
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:99:CONCEPT_POINTS_CURRENCY__ST3_1662,CONCEPT_POINTS_CURRENCY,💰,Передать 💰,ST3_1662,AsyncScene/Web/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=959
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:100:CONCEPT_POINTS_CURRENCY__ST3_1663,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_1663,AsyncScene/Web/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=959
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:192:CONCEPT_POINTS_CURRENCY__ST3_3395,CONCEPT_POINTS_CURRENCY,💰,Передать 💰,ST3_3395,docs/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=945
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:193:CONCEPT_POINTS_CURRENCY__ST3_3396,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_3396,docs/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=945
+AsyncScene/Web/ui/ui-boot.js:18:  function markBootDiag(label) {
+AsyncScene/Web/ui/ui-boot.js:19:    const line = `${new Date().toLocaleTimeString()} ${label}`;
+AsyncScene/Web/ui/ui-boot.js:178:          <label id="startBirthYearLabel" class="startFieldLabel">${resolveStartScreenText(D, "birth_digits_label", activeProfile)}</label>
+AsyncScene/Web/ui/ui-boot.js:179:          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="${resolveStartScreenText(D, "birth_digits_label", activeProfile)}">
+AsyncScene/Web/ui/ui-boot.js:181:              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_up_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_first", activeProfile)}">▲</button>
+AsyncScene/Web/ui/ui-boot.js:183:              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_down_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_first", activeProfile)}">▼</button>
+AsyncScene/Web/ui/ui-boot.js:186:              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_second", activeProfile)}">▲</button>
+AsyncScene/Web/ui/ui-boot.js:188:              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_second", activeProfile)}">▼</button>
+AsyncScene/Web/ui/ui-boot.js:192:          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label", activeProfile)}</label>
+AsyncScene/Web/ui/ui-boot.js:246:    if (birthYearPicker) birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:248:    if (arrow0Up) { arrow0Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile)); arrow0Up.title = resolveStartScreenText(D, "digit_up_first", activeProfile); }
+AsyncScene/Web/ui/ui-boot.js:250:    if (arrow0Down) { arrow0Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile)); arrow0Down.title = resolveStartScreenText(D, "digit_down_first", activeProfile); }
+AsyncScene/Web/ui/ui-boot.js:252:    if (arrow1Up) { arrow1Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile)); arrow1Up.title = resolveStartScreenText(D, "digit_up_second", activeProfile); }
+AsyncScene/Web/ui/ui-boot.js:254:    if (arrow1Down) { arrow1Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile)); arrow1Down.title = resolveStartScreenText(D, "digit_down_second", activeProfile); }
+AsyncScene/Web/ui/ui-boot.js:264:      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:269:      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:378:    setAttr("#startBirthYearPicker", "aria-label", labelText);
+AsyncScene/Web/ui/ui-boot.js:379:    setAttr("#startBirthYear0Up", "aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:381:    setAttr("#startBirthYear0Down", "aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:383:    setAttr("#startBirthYear1Up", "aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:385:    setAttr("#startBirthYear1Down", "aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:390:    setAttr("#btnStart", "aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:393:    setAttr("#btnRules", "aria-label", rulesText);
+AsyncScene/Web/ui/ui-boot.js:599:      birthYearLabel = document.createElement("label");
+AsyncScene/Web/ui/ui-boot.js:614:          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}">▲</button>
+AsyncScene/Web/ui/ui-boot.js:616:          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}">▼</button>
+AsyncScene/Web/ui/ui-boot.js:621:      birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:643:      birthYearFeelingLabel = document.createElement("label");
+AsyncScene/Web/ui/ui-boot.js:748:      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:755:      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+AsyncScene/Web/ui/ui-boot.js:1765:        const label = document.getElementById("startBirthYearFeelingLabel");
+AsyncScene/Web/ui/ui-boot.js:1770:        const csLabel = label && typeof getComputedStyle === "function" ? getComputedStyle(label) : null;
+AsyncScene/Web/ui/ui-boot.js:1773:          labelVisible: !!(label && !label.hidden && (!csLabel || (csLabel.display !== "none" && csLabel.visibility !== "hidden"))),
+AsyncScene/Web/ui/ui-boot.js:4202:      const collectSourceTextHits = (label, value, patterns) => {
+AsyncScene/Web/ui/ui-boot.js:4205:        return matched.length ? [{ label, matched: matched.map((pattern) => String(pattern)), source: source.slice(0, 260) }] : [];
+AsyncScene/Web/ui/ui-boot.js:7543:            { label: "applyReportByRole", value: G.__A && G.__A.applyReportByRole },
+AsyncScene/Web/ui/ui-boot.js:7544:            { label: "transferPoints", value: G.__A && G.__A.transferPoints },
+AsyncScene/Web/ui/ui-boot.js:7545:            { label: "transferRep", value: G.__A && G.__A.transferRep },
+AsyncScene/Web/ui/ui-boot.js:7546:            { label: "applyBattleOutcome", value: G.__A && G.__A.applyBattleOutcome },
+AsyncScene/Web/ui/ui-boot.js:7547:            { label: "ConflictEconomy", value: G.ConflictEconomy },
+AsyncScene/Web/ui/ui-boot.js:7548:            { label: "_ConflictEconomy", value: G._ConflictEconomy },
+AsyncScene/Web/ui/ui-boot.js:7549:            { label: "moneyLog", value: G.__D && G.__D.moneyLog },
+AsyncScene/Web/ui/ui-boot.js:7561:            if (/uiProfile/.test(src)) uiProfileRefs.push(entry.label);
+AsyncScene/Web/ui/ui-boot.js:7562:            if ((/econ|moneyLog|uiProfile/i).test(src) && /uiProfile/i.test(src)) econRefs.push(entry.label);
+AsyncScene/Web/ui/ui-boot.js:7563:            if ((/battle|cooldown|uiProfile/i).test(src) && /uiProfile/i.test(src)) battleRefs.push(entry.label);
+AsyncScene/Web/ui/ui-boot.js:8177:          addTextRow("texts.genz.escape_button_label", genz.escape_button_label, "AsyncScene/Web/ui/ui-battles.js", "escape button", "buttons_labels", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible escape CTA label" });
+AsyncScene/Web/ui/ui-boot.js:8188:          [["uiMenu.manifestButton", "Цель"], ["uiMenu.manifestTitle", "Цель"], ["uiMenu.returnToStart", "К старту"], ["uiMenu.devDisable", "Disable Dev Mode"], ["uiMenu.devEnable", "Enable Dev Mode"], ["uiMenu.consolePanel", "Console Panel"], ["uiMenu.unavailable", "Недоступно."]].forEach((row) => addTextRow(row[0], row[1], "AsyncScene/Web/ui/ui-menu.js", "ui-menu hardcoded label", "buttons_labels", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible hardcoded menu label" }));
+AsyncScene/Web/ui/ui-boot.js:8386:              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+AsyncScene/Web/ui/ui-boot.js:8688:              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+AsyncScene/Web/ui/ui-boot.js:9086:              && String(pickerEl.getAttribute("aria-label") || "") === expectedLabelText
+AsyncScene/Web/ui/ui-core.js:335:    if (v >= prog.unlock.absolute) return { key:"k", label:"абсолютные" };
+AsyncScene/Web/ui/ui-core.js:336:    if (v >= prog.unlock.power) return { key:"r", label:"мощные" };
+AsyncScene/Web/ui/ui-core.js:337:    if (v >= prog.unlock.strong) return { key:"o", label:"сильные" };
+AsyncScene/Web/ui/ui-core.js:338:    return { key:"y", label:"слабые" };
+AsyncScene/Web/ui/ui-core.js:665:    let subLabel = _argSubLabel(subKey) || tier.label;
+AsyncScene/Web/ui/ui-core.js:666:    let nextLabel = _argSubLabelGenitiveSingular(nextSubKey) || _argSubLabelGenitiveSingular(subKey) || tier.label;
+AsyncScene/Web/ui/ui-core.js:681:      subLabel = _argSubLabel(subKey) || tier.label;
+AsyncScene/Web/ui/ui-core.js:682:      nextLabel = _argSubLabelGenitiveSingular(nextSubKey) || _argSubLabelGenitiveSingular(subKey) || tier.label;
+AsyncScene/Web/ui/ui-events.js:797:        const mkSideBtn = (side, label, votes) => {
+AsyncScene/Web/ui/ui-events.js:806:        btn.textContent = `${label} - ${votes}`;
+AsyncScene/Web/ui/ui-chat.js:389:    // System label in meta stays clean (no influence pill)
+AsyncScene/Web/ui/ui-chat.js:392:      const label = (!n || n === "sys" || n === "system" || n === "система") ? "Система" : msgName;
+AsyncScene/Web/ui/ui-chat.js:393:      return `${escapeHtml(label || "Система")}`;
+AsyncScene/Web/ui/ui-loops.js:191:          label: "Поговорить",
+docs/dev/console-tape.js:108:        const label = value.constructor && value.constructor.name ? value.constructor.name : "Object";
+docs/dev/console-tape.js:109:        text = `${label}{${parts.join(", ")}}`;
+docs/dev/console-tape.js:164:        const label = val.constructor && val.constructor.name ? val.constructor.name : "Object";
+docs/dev/console-tape.js:166:        return `${label}{\n${rows.join("\n")}\n${indent}}`;
+docs/dev/console-tape.js:409:    const patchMethod = (method, label) => {
+docs/dev/console-tape.js:414:        const line = `${label}${inline.length ? " " + inline.join(" ") : ""}`;
+AsyncScene/Web/ui/ui-dm.js:306:  function mkBtn(label, fn, cls="btn small") {
+AsyncScene/Web/ui/ui-dm.js:309:    b.textContent = label;
+AsyncScene/Web/ui/ui-dm.js:760:          const label = document.createElement("span");
+AsyncScene/Web/ui/ui-dm.js:761:          label.className = "dmTabLabel";
+AsyncScene/Web/ui/ui-dm.js:762:          label.textContent = String(name || "");
+AsyncScene/Web/ui/ui-dm.js:763:          row.appendChild(label);
+AsyncScene/Web/ui/ui-dm.js:980:      const label = (mode === "give") ? "Передать 💰" : "Попросить 💰";
+AsyncScene/Web/ui/ui-dm.js:985:      return mkBtn(label, () => {
+AsyncScene/Web/ui/ui-battles.js:540:  const ARG_TEXT_KEYS = ["text", "value", "arg", "statement", "line", "label", "title", "description", "q"];
+AsyncScene/Web/ui/ui-battles.js:831:    const appendArgRow = (label, text, colorKey, testId) => {
+AsyncScene/Web/ui/ui-battles.js:835:      title.textContent = label;
+AsyncScene/Web/ui/ui-battles.js:2037:          const mkVoteBtn = (label, votes) => {
+AsyncScene/Web/ui/ui-battles.js:2043:            btn.textContent = `${label} - ${votes}`;
+AsyncScene/Web/ui/ui-battles.js:2285:          const mkVoteBtn = (label, votes) => {
+AsyncScene/Web/ui/ui-battles.js:2291:            btn.textContent = `${label} - ${votes}`;
+AsyncScene/Web/ui/ui-menu.js:280:    // Some layouts use a right-side label container.
+AsyncScene/Web/index.html:85:      <div id="chatResizeHandle" class="chatResizeHandle" role="separator" aria-label="Изменить высоту чата" aria-orientation="horizontal" tabindex="0"></div>
+AsyncScene/Web/index.html:90:        <div id="balance" aria-label="Профиль">
+AsyncScene/Web/index.html:174:      <label id="startBirthYearLabel" class="startFieldLabel">Последние 2 цифры года рождения</label>
+AsyncScene/Web/index.html:175:      <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="Последние 2 цифры года рождения">
+AsyncScene/Web/index.html:177:          <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="Увеличить первую цифру">▲</button>
+AsyncScene/Web/index.html:179:          <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="Уменьшить первую цифру">▼</button>
+AsyncScene/Web/index.html:182:          <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="Увеличить вторую цифру">▲</button>
+AsyncScene/Web/index.html:184:          <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="Уменьшить вторую цифру">▼</button>
+AsyncScene/Web/index.html:188:      <label id="startBirthYearFeelingLabel" class="startFieldLabel">я на самом деле чувствую будто я родился в …</label>
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:941:ST3_0940,Button,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",general_interface,AsyncScene/Web/game_legacy.js,safeText,dynamic_template,"variables=safeText(p ? p.label : ""?""); line=619"
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:952:ST3_0951,Button,Контрфраза: ${c.label}.,chat_ui,AsyncScene/Web/game_legacy.js,pushChat,dynamic_template,variables=c.label; line=695
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:955:ST3_0954,Button,Ты: ${p.label} (${atk})\\n,general_interface,AsyncScene/Web/game_legacy.js,Ты,dynamic_template,variables=p.label|atk; line=714
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:959:ST3_0958,Button,Ты: ${p.label} (${atk})\\n,general_interface,AsyncScene/Web/game_legacy.js,Ты,dynamic_template,variables=p.label|atk; line=734
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1314:ST3_1313,Button,Подкинуть 💰,economy_toasts,AsyncScene/Web/ui-old.js,label,static_string,line=480
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1315:ST3_1314,Button,Попросить 💰,economy_toasts,AsyncScene/Web/ui-old.js,label,static_string,line=480
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1533:ST3_1532,Button,система,chat_ui,AsyncScene/Web/ui/ui-chat.js,label,static_string,line=392
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1534:ST3_1533,Button,Система,chat_ui,AsyncScene/Web/ui/ui-chat.js,label,static_string,line=392
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1535:ST3_1534,Button,"${escapeHtml(label || ""Система"")}","chat_ui,escape,price_caps",AsyncScene/Web/ui/ui-chat.js,escapeHtml,dynamic_template,"variables=escapeHtml(label || ""Система""); line=393"
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1663:ST3_1662,Button,Передать 💰,"dm_ui,economy_toasts",AsyncScene/Web/ui/ui-dm.js,label,static_string,line=959
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1664:ST3_1663,Button,Попросить 💰,"dm_ui,economy_toasts",AsyncScene/Web/ui/ui-dm.js,label,static_string,line=959
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1732:ST3_1731,Button,Поговорить,general_interface,AsyncScene/Web/ui/ui-loops.js,label,static_string,line=191
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3270:ST3_3269,Button,система,chat_ui,docs/ui/ui-chat.js,label,static_string,line=392
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3271:ST3_3270,Button,Система,chat_ui,docs/ui/ui-chat.js,label,static_string,line=392
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3272:ST3_3271,Button,"${escapeHtml(label || ""Система"")}","chat_ui,escape,price_caps",docs/ui/ui-chat.js,escapeHtml,dynamic_template,"variables=escapeHtml(label || ""Система""); line=393"
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3396:ST3_3395,Button,Передать 💰,"dm_ui,economy_toasts",docs/ui/ui-dm.js,label,static_string,line=945
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3397:ST3_3396,Button,Попросить 💰,"dm_ui,economy_toasts",docs/ui/ui-dm.js,label,static_string,line=945
+AsyncScene/Web/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3465:ST3_3464,Button,Поговорить,general_interface,docs/ui/ui-loops.js,label,static_string,line=191
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:941:ST3_0940,CONCEPT_POINTS_CURRENCY,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,"variables=safeText(p ? p.label : ""?""); line=619; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1"
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:952:ST3_0951,TERM_ST3_0951,Контрфраза: ${c.label}.,Button,Button,AsyncScene/Web/game_legacy.js,chat_ui,variables=c.label; line=695; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:955:ST3_0954,CONCEPT_POINTS_CURRENCY,Ты: ${p.label} (${atk})\\n,Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,variables=p.label|atk; line=714; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:959:ST3_0958,CONCEPT_POINTS_CURRENCY,Ты: ${p.label} (${atk})\\n,Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,variables=p.label|atk; line=734; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:1535:ST3_1534,TERM_ST3_1534,"${escapeHtml(label || ""Система"")}",Button,Button,AsyncScene/Web/ui/ui-chat.js,"chat_ui,escape,price_caps","variables=escapeHtml(label || ""Система""); line=393; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1"
+AsyncScene/Web/terminology/STEP3_UI_TAXONOMY_V1.csv:3272:ST3_3271,TERM_ST3_3271,"${escapeHtml(label || ""Система"")}",Button,Button,docs/ui/ui-chat.js,"chat_ui,escape,price_caps","variables=escapeHtml(label || ""Система""); line=393; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1"
+docs/system.js:577:      const preferred = ["text", "label", "name", "title", "value"].map((key) => safeValue(value[key])).find(Boolean);
+docs/system.js:773:    { area: "escape", kind: "notifications", code: "escapePaid", file: "AsyncScene/Web/ui/ui-battles.js", surface: "toast", callsite: "escape action label via Game.System.say(\"notifications\", \"escapePaid\")", directHardcoded: false },
+docs/system.js:2369:      { source: "Data.START_SCREEN.actions.start", label: "Старт" },
+docs/system.js:2370:      { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
+docs/system.js:2371:      { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
+docs/system.js:2372:      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
+docs/system.js:2373:      { source: "UI.chat.send", label: "Заслать" },
+docs/system.js:2374:      { source: "UI.report.submit", label: "Сдать" },
+docs/system.js:2375:      { source: "UI.dm.battle", label: "баттл" },
+docs/system.js:2376:      { source: "UI.dm.respect", label: "Уважение" },
+docs/system.js:2377:      { source: "UI.dm.teach", label: "Передать" },
+docs/system.js:2378:      { source: "UI.dm.invite", label: "Позвать" },
+docs/system.js:2379:      { source: "UI.battles.rematch", label: "Реванш" },
+docs/system.js:2380:      { source: "UI.close", label: "Закрыть" }
+docs/system.js:2390:        const label = String(entry.label || "").trim();
+docs/system.js:2391:        if (!label) fail("empty_button_label", entry);
+docs/system.js:2392:        const wordCount = label.split(/\s+/).filter(Boolean).length;
+docs/system.js:2393:        if (wordCount > 2) addUnique(result.forbiddenRemaining, { source: entry.source, label, wordCount });
+docs/system.js:2394:        if (seenLabels.has(label)) addUnique(result.forbiddenRemaining, { source: entry.source, label, reason: "duplicate_label" });
+docs/system.js:2395:        seenLabels.add(label);
+docs/system.js:3448:      "[aria-label]",
+docs/system.js:3458:          const label = (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder") || node.getAttribute("title"))) || node.textContent || "";
+docs/system.js:3459:          fakeTonePushEntry(entries, seen, "interface labels", `document.${selector}.${index}`, label);
+docs/system.js:3551:      "[aria-label]",
+docs/system.js:3558:        const text = String((node && (node.getAttribute && (node.getAttribute("aria-label") || node.getAttribute("placeholder")))) || (node && node.textContent) || "").trim();
+docs/dev/dev-checks.js:388:      const wordCount = (label) => {
+docs/dev/dev-checks.js:389:        const cleaned = normalize(label).replace(/[.,;:!?()[\]{}]+/g, " ").trim();
+docs/dev/dev-checks.js:435:          const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+docs/dev/dev-checks.js:439:          if (disabledLike && label) addUnique(result.forbiddenRemaining, { check: "disabled_content_buttons", label });
+docs/dev/dev-checks.js:457:        const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+docs/dev/dev-checks.js:458:        const count = wordCount(label);
+docs/dev/dev-checks.js:459:        if (!label || count > 2) {
+docs/dev/dev-checks.js:460:          addUnique(result.forbiddenRemaining, { check: "short_cta_labels", label, words: count });
+docs/dev/dev-checks.js:461:          fail("short_cta_labels", { label, words: count, max: 2 });
+docs/dev/dev-checks.js:1939:            { id: "shorten_30_40", ok: /30\s*-\s*40\s*%/.test(ruleText) && /shorten phrases/i.test(ruleText), label: "30-40% shortening" },
+docs/dev/dev-checks.js:1940:            { id: "remove_filler_intro", ok: /remove\s+intro\/filler\s+words/i.test(ruleText) || (/remove/i.test(ruleText) && /intro/i.test(ruleText) && /filler/i.test(ruleText)), label: "remove filler/intro words" },
+docs/dev/dev-checks.js:1941:            { id: "reduce_abstractions", ok: /reduce\s+abstractions/i.test(ruleText), label: "reduce abstractions" },
+docs/dev/dev-checks.js:1942:            { id: "abstract_to_actions_verbs", ok: /replace\s+abstract\s+wording\s+with\s+action\s+verbs/i.test(ruleText) || (/abstract/i.test(ruleText) && /action\s+verbs/i.test(ruleText)), label: "replace abstractions with actions/verbs" },
+docs/dev/dev-checks.js:1943:            { id: "keep_original_meaning", ok: /keep\s+original\s+meaning/i.test(ruleText), label: "keep original meaning" },
+docs/dev/dev-checks.js:1944:            { id: "millennial_base", ok: /UI_PROFILE_MILLENNIAL/.test(ruleText) && /(base|source)/i.test(ruleText), label: "millennial base/profile" },
+docs/dev/dev-checks.js:1945:            { id: "no_fake_youth_voice", ok: /no(?:t)?\s+add\s+teen\s+slang/i.test(ruleText) && /memes/i.test(lowerRule) && /fake\s+youth\s+voice/i.test(lowerRule) && /irony/i.test(lowerRule), label: "no teen slang, memes, fake youth voice, or irony" },
+docs/dev/dev-checks.js:1946:            { id: "no_zoomer_diff_contradiction", ok: /do\s+not\s+contradict\s+`?UI_PROFILE_ZOOMER_DIFF`?/i.test(ruleText), label: "do not contradict UI_PROFILE_ZOOMER_DIFF" }
+docs/dev/dev-checks.js:1950:              addUnique(result.missingCoverage, check.label);
+docs/dev/dev-checks.js:1951:              fail(check.id, check.label);
+docs/dev/dev-checks.js:4043:        ["status", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
+docs/dev/dev-checks.js:4044:        ["status", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
+docs/dev/dev-checks.js:4114:          if (attrName === "placeholder" || attrName === "title" || attrName === "aria-label") return "hint";
+docs/dev/dev-checks.js:4134:        Array.prototype.slice.call(document.querySelectorAll("[title], [aria-label]")).forEach((el) => {
+docs/dev/dev-checks.js:4136:          if (el.getAttribute("aria-label")) addDomValue(el, "aria-label", el.getAttribute("aria-label"));
+docs/dev/dev-checks.js:6366:        { label: "direct_advice", pattern: /(совет|подскажу|попробуй|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
+docs/dev/dev-checks.js:6367:        { label: "you_should", pattern: /(тебе|вам|ты|вы)\s+(стоит|следует|надо|нужно|должен|должна|должны)/i },
+docs/dev/dev-checks.js:6368:        { label: "think_about_consequences", pattern: /подум\w*\s+о\s+последств/i },
+docs/dev/dev-checks.js:6369:        { label: "directive_lesson", pattern: /(?:не\s+отвечай|не\s+отвечайте|не\s+спорь|не\s+спорьте|не\s+ввязывай|не\s+ввязывайтесь|выбирай|выбирайте)\b/i }
+docs/dev/dev-checks.js:6372:        { label: "lesson_voice", pattern: /(урок|обуч|объясняю|разбер[её]м|запомни|помните|вывод|главное|правильный ответ|учитель|ученик|домашн)/i },
+docs/dev/dev-checks.js:6373:        { label: "corrective_classroom", pattern: /(правильно|неправильно|молодец|умничк|так держать|будь внимател|будьте внимател)/i }
+docs/dev/dev-checks.js:6376:        { label: "moral_judgement", pattern: /(стыд|вина|виноват|доверие|доверились|хорошая работа|отличная работа|хорошо сработал|ты сделал|честн|нечестн|заслуж)/i },
+docs/dev/dev-checks.js:6377:        { label: "moral_lesson", pattern: /разрушает\s+доверие|подставлять\s+систему|сделал\s+дом\s+безопаснее/i }
+docs/dev/dev-checks.js:6380:        { label: "soft_guidance", pattern: /(сначала|сомневаешься|сомневаетесь|безопасн(?:ый|ее|о|ая)|держи связь|держитесь|держите себя|соблюдайте|сдерживайтесь|не создавайте|не раздувайте|прокачайся|приходи)/i },
+docs/dev/dev-checks.js:6381:        { label: "long_instructional", pattern: /(?:потому что|если\s+.+(?:то|может)|чтобы|следовательно|таким образом)/i }
+docs/dev/dev-checks.js:6390:        if (match) addUnique(result[bucketName], { label: rule.label, match: match[0], id: entry.id, sourcePath: entry.sourcePath, role: entry.role, channel: entry.channel, text });
+docs/dev/dev-checks.js:10233:        { label: "Game._ConflictCore", obj: coreSurf },
+docs/dev/dev-checks.js:10234:        { label: "Game.ConflictCore", obj: Game.ConflictCore },
+docs/dev/dev-checks.js:10235:        { label: "Game.Conflict", obj: conflictApi },
+docs/dev/dev-checks.js:10236:        { label: "Game.UI", obj: ui },
+docs/dev/dev-checks.js:10237:        { label: "Game.__A", obj: Game.__A },
+docs/dev/dev-checks.js:10240:      exposures.forEach(({ label, obj }) => {
+docs/dev/dev-checks.js:10244:          apiSurfaceKeys.push(`${label}:${keys.join(",")}`);
+docs/dev/dev-checks.js:10249:      exposures.forEach(({ label, obj }) => {
+docs/dev/dev-checks.js:10251:          evidence.push(`${label} missing`);
+docs/dev/dev-checks.js:10257:          evidence.push(`${label}.computeOutcome exposed`);
+docs/dev/dev-checks.js:10259:          evidence.push(`${label}.computeOutcome undefined`);
+docs/dev/dev-checks.js:11078:    const logStatus = (label) => {
+docs/dev/dev-checks.js:11080:      emit(`${label}: ${enabled ? "ENABLED" : "DISABLED"}`);
+docs/dev/dev-checks.js:12250:    const capture = (label, fn) => {
+docs/dev/dev-checks.js:12253:        tries.push({ label, ok: true, result });
+docs/dev/dev-checks.js:12255:        tries.push({ label, ok: false, error: String(err) });
+docs/dev/dev-checks.js:16205:  Game.__DEV.forceDumpOnce = (label, payload) => {
+docs/dev/dev-checks.js:16206:    const tag = String(label || "UNLABELED");
+docs/dev/dev-checks.js:16972:      label: "WEALTH_TAX_DUMP_SAFE",
+docs/dev/dev-checks.js:19267:    const runBattle = (label, result, opp, colors) => {
+docs/dev/dev-checks.js:19268:      const battleId = `dev_battle_econ_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+docs/dev/dev-checks.js:19510:    const makeScenario = (label) => {
+docs/dev/dev-checks.js:19511:      const created = makeOneTrueBattleEconLogOnce({ label });
+docs/dev/dev-checks.js:19516:        return { label, battleId: null, ok: false, notes };
+docs/dev/dev-checks.js:19520:        return { label, battleId, ok: false, notes };
+docs/dev/dev-checks.js:19540:      const sig = JSON.stringify({ label, reasonsSig, netSig, repSig, totalsSig });
+docs/dev/dev-checks.js:19545:          label,
+docs/dev/dev-checks.js:19555:          label,
+docs/dev/dev-checks.js:19564:        label,
+docs/dev/dev-checks.js:19581:    const sig = JSON.stringify(scenarios.map(s => ({ label: s.label, sig: s.sig })));
+docs/dev/dev-checks.js:19583:      console.log("[DEV] ECON04_DELTA_PROBE", { runTag, sig, scenarios: scenarios.map(s => ({ label: s.label, ok: s.ok })) });
+docs/dev/dev-checks.js:19630:    const label = opts.label;
+docs/dev/dev-checks.js:19635:    const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+docs/dev/dev-checks.js:19758:    const runBattle = (label, result, opp, colors) => {
+docs/dev/dev-checks.js:19759:      const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+docs/dev/dev-checks.js:19924:        label,
+docs/dev/dev-checks.js:20010:      reasonSignatures[sc.label] = sig;
+docs/dev/dev-checks.js:20112:        byReason: scenarios.reduce((acc, sc) => { acc[sc.label] = sc.byReason; return acc; }, {}),
+docs/dev/dev-checks.js:20300:      const label = `vote@${points}`;
+docs/dev/dev-checks.js:20302:        return { label, ok: false, reason: "events_missing" };
+docs/dev/dev-checks.js:20307:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+docs/dev/dev-checks.js:20317:      return { label, ok: !!(acted && checked.ok), acted, expected, checked, entry };
+docs/dev/dev-checks.js:20321:      const label = `escape@${points}`;
+docs/dev/dev-checks.js:20325:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:20352:      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+docs/dev/dev-checks.js:20356:      const label = `rematch@${points}`;
+docs/dev/dev-checks.js:20360:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:20382:      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+docs/dev/dev-checks.js:20386:      const label = `teach@${points}`;
+docs/dev/dev-checks.js:20390:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:20421:      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+docs/dev/dev-checks.js:20425:      const label = `dev_rematch_seed@${points}`;
+docs/dev/dev-checks.js:20429:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:20458:      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+docs/dev/dev-checks.js:20462:      const label = `social@${points}`;
+docs/dev/dev-checks.js:20463:      return { label, ok: true, skipped: true, reason: "social_missing" };
+docs/dev/dev-checks.js:21101:    const runStep = (label, battle, outcome) => {
+docs/dev/dev-checks.js:21107:        label,
+docs/dev/dev-checks.js:21129:    const checkZero = (label) => {
+docs/dev/dev-checks.js:21130:      const s = steps.find(x => x.label === label);
+docs/dev/dev-checks.js:21136:    const t10 = steps.find(x => x.label === "win_threshold_10");
+docs/dev/dev-checks.js:21138:    const replay = steps.find(x => x.label === "replay_same_battle");
+docs/dev/dev-checks.js:21141:    const rematchWin = steps.find(x => x.label === "rematch_win_no_threshold");
+docs/dev/dev-checks.js:21157:      { label: "vote", priceKey: "vote", baseFn: () => 1, context: (points) => ({ battleId: `edge_vote_${points}` }) },
+docs/dev/dev-checks.js:21158:      { label: "escape", priceKey: "escape", baseFn: () => {
+docs/dev/dev-checks.js:21162:      { label: "rematch", priceKey: "rematch", baseFn: () => 1, context: (points) => ({ battleId: `edge_rematch_${points}` }) },
+docs/dev/dev-checks.js:21163:      { label: "teach", priceKey: "teach", baseFn: () => {
+docs/dev/dev-checks.js:21167:      { label: "dev_rematch_seed", priceKey: "dev_rematch_seed", baseFn: () => 1, context: (points) => ({ actionNonce: `edge_dev_seed_${points}` }) }
+docs/dev/dev-checks.js:21208:        label: category.label,
+docs/dev/dev-checks.js:21223:      label: c.label,
+docs/dev/dev-checks.js:21247:  const normalizeMoneyLogRows = (anyLog, label = "unknown") => {
+docs/dev/dev-checks.js:21251:    console.warn("DEV_MONEYLOG_NORMALIZE_EMPTY", { label, type: typeof anyLog });
+docs/dev/dev-checks.js:21662:    const logProbe = (label, smokeFn) => {
+docs/dev/dev-checks.js:21671:        console.log("[DEV] ECON03_E1_PROBE", { scenario: label, ok: false, error: String(err), battleId: null });
+docs/dev/dev-checks.js:21672:        return { label, ok: false, error: String(err), battleId: null };
+docs/dev/dev-checks.js:21678:      console.log("[DEV] ECON03_E1_PROBE", { scenario: label, battleId, scopedLen: rows.length, sampleReasons, reason });
+docs/dev/dev-checks.js:21679:      console.log("[DEV] ECON03_E1_PROBE_NET", { scenario: label, netById });
+docs/dev/dev-checks.js:21680:      return { label, ok: !!result && !!result.ok, battleId, rows, byReason, netById };
+docs/dev/dev-checks.js:21721:    const runScenario = (label, smokeFn) => {
+docs/dev/dev-checks.js:21732:        return { label, ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["battleId_missing"], error };
+docs/dev/dev-checks.js:21741:      return { label, ok: true, battleId, scopedLen, byReason, netById, normalizedNetSig, reasonsSig };
+docs/dev/dev-checks.js:21754:    const escape = smokeEscapeFn ? runScenario("escape", smokeEscapeFn) : { label: "escape", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+docs/dev/dev-checks.js:21755:    const stay = smokeStayFn ? runScenario("escape_stay", smokeStayFn) : { label: "escape_stay", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+docs/dev/dev-checks.js:21756:    const ignore = smokeIgnoreFn ? runScenario("ignore", smokeIgnoreFn) : { label: "ignore", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+docs/dev/dev-checks.js:21997:      const label = `vote@${points}`;
+docs/dev/dev-checks.js:21999:        return { label, ok: false, reason: "events_missing" };
+docs/dev/dev-checks.js:22006:          label,
+docs/dev/dev-checks.js:22023:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+docs/dev/dev-checks.js:22031:        label,
+docs/dev/dev-checks.js:22047:      const label = `escape@${points}`;
+docs/dev/dev-checks.js:22056:          label,
+docs/dev/dev-checks.js:22073:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22098:        label,
+docs/dev/dev-checks.js:22114:      const label = `rematch@${points}`;
+docs/dev/dev-checks.js:22120:          label,
+docs/dev/dev-checks.js:22137:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22157:        label,
+docs/dev/dev-checks.js:22173:      const label = `teach@${points}`;
+docs/dev/dev-checks.js:22176:        if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22183:          label,
+docs/dev/dev-checks.js:22200:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22229:        label,
+docs/dev/dev-checks.js:22245:      const label = `dev_rematch_seed@${points}`;
+docs/dev/dev-checks.js:22248:        if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22254:          label,
+docs/dev/dev-checks.js:22271:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+docs/dev/dev-checks.js:22298:        label,
+docs/dev/dev-checks.js:22314:      const label = `social@${points}`;
+docs/dev/dev-checks.js:22315:      return { label, points, priceKey: "social", ok: true, skipped: true, reason: "social_missing" };
+docs/dev/dev-checks.js:22398:      const label = `vote@${points}`;
+docs/dev/dev-checks.js:22402:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+docs/dev/dev-checks.js:22412:        label,
+docs/dev/dev-checks.js:22423:      const label = `escape@${points}`;
+docs/dev/dev-checks.js:22448:        label,
+docs/dev/dev-checks.js:22459:      const label = `rematch@${points}`;
+docs/dev/dev-checks.js:22484:        label,
+docs/dev/dev-checks.js:22495:      const label = `teach@${points}`;
+docs/dev/dev-checks.js:22533:        label,
+docs/dev/dev-checks.js:22544:      const label = `dev_rematch_seed@${points}`;
+docs/dev/dev-checks.js:22580:        label,
+docs/dev/dev-checks.js:22602:  const logSummary = (label, errors, warnings) => {
+docs/dev/dev-checks.js:22604:      console.warn(`[Dev] ${label} failed: ${errors.length} errors, ${warnings.length} warnings`);
+docs/dev/dev-checks.js:23969:    const recordCreateRaw = (raw, label) => {
+docs/dev/dev-checks.js:23972:      if (label === "incoming") {
+docs/dev/dev-checks.js:23974:      } else if (label === "startWith") {
+docs/dev/dev-checks.js:24391:      const runScenario = (label, config) => {
+docs/dev/dev-checks.js:24392:        const battleId = `dev_step2_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+docs/dev/dev-checks.js:28946:        const runFalseReportWithFlip = (label) => {
+docs/dev/dev-checks.js:28948:            mode: label,
+docs/dev/dev-checks.js:28976:            res = Game.__A.applyReportByRole(reportRole, { actionId: `econ_soc_${label}_${Date.now()}` });
+docs/dev/dev-checks.js:28997:            mode: label,
+docs/dev/dev-checks.js:29832:          label: "enough",
+docs/dev/dev-checks.js:29850:          label: "insufficient",
+docs/dev/dev-checks.js:29866:          label: "zero",
+docs/dev/dev-checks.js:29886:        const enough = scenarios.find(s => s.label === "enough") || null;
+docs/dev/dev-checks.js:29887:        const insufficient = scenarios.find(s => s.label === "insufficient") || null;
+docs/dev/dev-checks.js:29888:        const zero = scenarios.find(s => s.label === "zero") || null;
+docs/dev/dev-checks.js:33736:        result.forbiddenRemaining = result.visibleButtons.filter((label) => forbiddenLabels.includes(label));
+docs/dev/dev-checks.js:33819:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+docs/dev/dev-checks.js:34305:        { label: "standalone_boomer_profile_container", re: /standalone\s+boomer\s+profile\s+container/i },
+docs/dev/dev-checks.js:34306:        { label: "separate_boomer_profile", re: /separate\s+boomer\s+profile/i },
+docs/dev/dev-checks.js:34307:        { label: "independent_boomer_profile", re: /independent\s+boomer\s+profile/i },
+docs/dev/dev-checks.js:34308:        { label: "boomer_is_an_independent_profile", re: /boomer\s+is\s+an?\s+independent\s+profile/i }
+docs/dev/dev-checks.js:34311:        if (source.re.test(text)) addUnique(result.standaloneDetectionSources, source.label);
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:36:CONCEPT_POINTS_CURRENCY__ST3_0940,CONCEPT_POINTS_CURRENCY,💰,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",ST3_0940,AsyncScene/Web/game_legacy.js,safeText,root,general_interface,dynamic_template,💰,"STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=safeText(p ? p.label : ""?""); line=619"
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:37:CONCEPT_POINTS_CURRENCY__ST3_0954,CONCEPT_POINTS_CURRENCY,💰,Ты: ${p.label} (${atk})\\n,ST3_0954,AsyncScene/Web/game_legacy.js,Ты,root,general_interface,dynamic_template,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=p.label|atk; line=714
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:38:CONCEPT_POINTS_CURRENCY__ST3_0958,CONCEPT_POINTS_CURRENCY,💰,Ты: ${p.label} (${atk})\\n,ST3_0958,AsyncScene/Web/game_legacy.js,Ты,root,general_interface,dynamic_template,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=variables=p.label|atk; line=734
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:62:CONCEPT_POINTS_CURRENCY__ST3_1313,CONCEPT_POINTS_CURRENCY,💰,Подкинуть 💰,ST3_1313,AsyncScene/Web/ui-old.js,label,root,economy_toasts,static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=480
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:63:CONCEPT_POINTS_CURRENCY__ST3_1314,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_1314,AsyncScene/Web/ui-old.js,label,root,economy_toasts,static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=480
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:99:CONCEPT_POINTS_CURRENCY__ST3_1662,CONCEPT_POINTS_CURRENCY,💰,Передать 💰,ST3_1662,AsyncScene/Web/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=959
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:100:CONCEPT_POINTS_CURRENCY__ST3_1663,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_1663,AsyncScene/Web/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=959
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:192:CONCEPT_POINTS_CURRENCY__ST3_3395,CONCEPT_POINTS_CURRENCY,💰,Передать 💰,ST3_3395,docs/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=945
+docs/terminology/STEP3_TERMINOLOGY_WHERE_USED_V1.csv:193:CONCEPT_POINTS_CURRENCY__ST3_3396,CONCEPT_POINTS_CURRENCY,💰,Попросить 💰,ST3_3396,docs/ui/ui-dm.js,label,ui,"dm_ui,economy_toasts",static_string,💰,STEP3_TERMINOLOGY_WHERE_USED_V1; replacement_map_only_no_ui_change; inventoryCategory=Button; taxonomyCategory=ResourceName; inventoryNotes=line=945
+docs/style.css:1265:/* Explicit readable text for hidden-power argument label */
+docs/style.css:1348:.label{display:block; margin-bottom:8px; color:var(--muted); font-size:13px}
+AsyncScene/Web/dev/console-tape.js:108:        const label = value.constructor && value.constructor.name ? value.constructor.name : "Object";
+AsyncScene/Web/dev/console-tape.js:109:        text = `${label}{${parts.join(", ")}}`;
+AsyncScene/Web/dev/console-tape.js:164:        const label = val.constructor && val.constructor.name ? val.constructor.name : "Object";
+AsyncScene/Web/dev/console-tape.js:166:        return `${label}{\n${rows.join("\n")}\n${indent}}`;
+AsyncScene/Web/dev/console-tape.js:409:    const patchMethod = (method, label) => {
+AsyncScene/Web/dev/console-tape.js:414:        const line = `${label}${inline.length ? " " + inline.join(" ") : ""}`;
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:941:ST3_0940,Button,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",general_interface,AsyncScene/Web/game_legacy.js,safeText,dynamic_template,"variables=safeText(p ? p.label : ""?""); line=619"
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:952:ST3_0951,Button,Контрфраза: ${c.label}.,chat_ui,AsyncScene/Web/game_legacy.js,pushChat,dynamic_template,variables=c.label; line=695
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:955:ST3_0954,Button,Ты: ${p.label} (${atk})\\n,general_interface,AsyncScene/Web/game_legacy.js,Ты,dynamic_template,variables=p.label|atk; line=714
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:959:ST3_0958,Button,Ты: ${p.label} (${atk})\\n,general_interface,AsyncScene/Web/game_legacy.js,Ты,dynamic_template,variables=p.label|atk; line=734
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1314:ST3_1313,Button,Подкинуть 💰,economy_toasts,AsyncScene/Web/ui-old.js,label,static_string,line=480
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1315:ST3_1314,Button,Попросить 💰,economy_toasts,AsyncScene/Web/ui-old.js,label,static_string,line=480
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1533:ST3_1532,Button,система,chat_ui,AsyncScene/Web/ui/ui-chat.js,label,static_string,line=392
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1534:ST3_1533,Button,Система,chat_ui,AsyncScene/Web/ui/ui-chat.js,label,static_string,line=392
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1535:ST3_1534,Button,"${escapeHtml(label || ""Система"")}","chat_ui,escape,price_caps",AsyncScene/Web/ui/ui-chat.js,escapeHtml,dynamic_template,"variables=escapeHtml(label || ""Система""); line=393"
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1663:ST3_1662,Button,Передать 💰,"dm_ui,economy_toasts",AsyncScene/Web/ui/ui-dm.js,label,static_string,line=959
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1664:ST3_1663,Button,Попросить 💰,"dm_ui,economy_toasts",AsyncScene/Web/ui/ui-dm.js,label,static_string,line=959
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:1732:ST3_1731,Button,Поговорить,general_interface,AsyncScene/Web/ui/ui-loops.js,label,static_string,line=191
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3270:ST3_3269,Button,система,chat_ui,docs/ui/ui-chat.js,label,static_string,line=392
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3271:ST3_3270,Button,Система,chat_ui,docs/ui/ui-chat.js,label,static_string,line=392
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3272:ST3_3271,Button,"${escapeHtml(label || ""Система"")}","chat_ui,escape,price_caps",docs/ui/ui-chat.js,escapeHtml,dynamic_template,"variables=escapeHtml(label || ""Система""); line=393"
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3396:ST3_3395,Button,Передать 💰,"dm_ui,economy_toasts",docs/ui/ui-dm.js,label,static_string,line=945
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3397:ST3_3396,Button,Попросить 💰,"dm_ui,economy_toasts",docs/ui/ui-dm.js,label,static_string,line=945
+docs/terminology/STEP3_TERMINOLOGY_INVENTORY.csv:3465:ST3_3464,Button,Поговорить,general_interface,docs/ui/ui-loops.js,label,static_string,line=191
+docs/npcs.js:2086:      ["NPC.DM_PROFILE_LINES", "NPCSpeech.dm", "villainQuestions", "villainChallenges", "NPC.generateDmLine"].forEach((label) => {
+docs/npcs.js:2087:        if (!rows.some((row) => row.source.indexOf(label) === 0 || row.source.indexOf(label.replace("NPCSpeech.dm", "NPCSpeech.ru")) === 0)) addUnique(result.missingCoverage, label);
+docs/npcs.js:2461:      visibleChecks.forEach(([label, entry]) => {
+docs/npcs.js:2463:          addUnique(result.missingCoverage, label);
+docs/npcs.js:2465:        if (entry && entry.same) fail("same_text", label);
+docs/ui/ui-boot.js:18:  function markBootDiag(label) {
+docs/ui/ui-boot.js:19:    const line = `${new Date().toLocaleTimeString()} ${label}`;
+docs/ui/ui-boot.js:178:          <label id="startBirthYearLabel" class="startFieldLabel">${resolveStartScreenText(D, "birth_digits_label", activeProfile)}</label>
+docs/ui/ui-boot.js:179:          <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="${resolveStartScreenText(D, "birth_digits_label", activeProfile)}">
+docs/ui/ui-boot.js:181:              <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_up_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_first", activeProfile)}">▲</button>
+docs/ui/ui-boot.js:183:              <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="${resolveStartScreenText(D, "digit_down_first", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_first", activeProfile)}">▼</button>
+docs/ui/ui-boot.js:186:              <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_up_second", activeProfile)}">▲</button>
+docs/ui/ui-boot.js:188:              <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="${resolveStartScreenText(D, "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, "digit_down_second", activeProfile)}">▼</button>
+docs/ui/ui-boot.js:192:          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label", activeProfile)}</label>
+docs/ui/ui-boot.js:246:    if (birthYearPicker) birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
+docs/ui/ui-boot.js:248:    if (arrow0Up) { arrow0Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile)); arrow0Up.title = resolveStartScreenText(D, "digit_up_first", activeProfile); }
+docs/ui/ui-boot.js:250:    if (arrow0Down) { arrow0Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile)); arrow0Down.title = resolveStartScreenText(D, "digit_down_first", activeProfile); }
+docs/ui/ui-boot.js:252:    if (arrow1Up) { arrow1Up.setAttribute("aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile)); arrow1Up.title = resolveStartScreenText(D, "digit_up_second", activeProfile); }
+docs/ui/ui-boot.js:254:    if (arrow1Down) { arrow1Down.setAttribute("aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile)); arrow1Down.title = resolveStartScreenText(D, "digit_down_second", activeProfile); }
+docs/ui/ui-boot.js:264:      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+docs/ui/ui-boot.js:269:      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+docs/ui/ui-boot.js:385:    setAttr("#startBirthYearPicker", "aria-label", labelText);
+docs/ui/ui-boot.js:386:    setAttr("#startBirthYear0Up", "aria-label", resolveStartScreenText(D, "digit_up_first", activeProfile));
+docs/ui/ui-boot.js:388:    setAttr("#startBirthYear0Down", "aria-label", resolveStartScreenText(D, "digit_down_first", activeProfile));
+docs/ui/ui-boot.js:390:    setAttr("#startBirthYear1Up", "aria-label", resolveStartScreenText(D, "digit_up_second", activeProfile));
+docs/ui/ui-boot.js:392:    setAttr("#startBirthYear1Down", "aria-label", resolveStartScreenText(D, "digit_down_second", activeProfile));
+docs/ui/ui-boot.js:397:    setAttr("#btnStart", "aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+docs/ui/ui-boot.js:400:    setAttr("#btnRules", "aria-label", rulesText);
+docs/ui/ui-boot.js:605:      birthYearLabel = document.createElement("label");
+docs/ui/ui-boot.js:620:          <button id="startBirthYear${index}Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_up_first" : "digit_up_second", activeProfile)}">▲</button>
+docs/ui/ui-boot.js:622:          <button id="startBirthYear${index}Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="${index}" aria-label="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}" title="${resolveStartScreenText(D, index === 0 ? "digit_down_first" : "digit_down_second", activeProfile)}">▼</button>
+docs/ui/ui-boot.js:627:      birthYearPicker.setAttribute("aria-label", resolveStartScreenText(D, "birth_digits_label", activeProfile));
+docs/ui/ui-boot.js:649:      birthYearFeelingLabel = document.createElement("label");
+docs/ui/ui-boot.js:756:      startBtn.setAttribute("aria-label", resolveStartScreenText(D, "start_start", activeProfile));
+docs/ui/ui-boot.js:763:      rulesBtn.setAttribute("aria-label", resolveStartScreenText(D, "rules_action", activeProfile));
+docs/ui/ui-boot.js:1767:        const label = document.getElementById("startBirthYearFeelingLabel");
+docs/ui/ui-boot.js:1772:        const csLabel = label && typeof getComputedStyle === "function" ? getComputedStyle(label) : null;
+docs/ui/ui-boot.js:1775:          labelVisible: !!(label && !label.hidden && (!csLabel || (csLabel.display !== "none" && csLabel.visibility !== "hidden"))),
+docs/ui/ui-boot.js:4424:      const collectSourceTextHits = (label, value, patterns) => {
+docs/ui/ui-boot.js:4427:        return matched.length ? [{ label, matched: matched.map((pattern) => String(pattern)), source: source.slice(0, 260) }] : [];
+docs/ui/ui-boot.js:8015:            { label: "applyReportByRole", value: G.__A && G.__A.applyReportByRole },
+docs/ui/ui-boot.js:8016:            { label: "transferPoints", value: G.__A && G.__A.transferPoints },
+docs/ui/ui-boot.js:8017:            { label: "transferRep", value: G.__A && G.__A.transferRep },
+docs/ui/ui-boot.js:8018:            { label: "applyBattleOutcome", value: G.__A && G.__A.applyBattleOutcome },
+docs/ui/ui-boot.js:8019:            { label: "ConflictEconomy", value: G.ConflictEconomy },
+docs/ui/ui-boot.js:8020:            { label: "_ConflictEconomy", value: G._ConflictEconomy },
+docs/ui/ui-boot.js:8021:            { label: "moneyLog", value: G.__D && G.__D.moneyLog },
+docs/ui/ui-boot.js:8033:            if (/uiProfile/.test(src)) uiProfileRefs.push(entry.label);
+docs/ui/ui-boot.js:8034:            if ((/econ|moneyLog|uiProfile/i).test(src) && /uiProfile/i.test(src)) econRefs.push(entry.label);
+docs/ui/ui-boot.js:8035:            if ((/battle|cooldown|uiProfile/i).test(src) && /uiProfile/i.test(src)) battleRefs.push(entry.label);
+docs/ui/ui-boot.js:9175:          addTextRow("texts.genz.escape_button_label", genz.escape_button_label, "AsyncScene/Web/ui/ui-battles.js", "escape button", "buttons_labels", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible escape CTA label" });
+docs/ui/ui-boot.js:9186:          [["uiMenu.manifestButton", "Цель"], ["uiMenu.manifestTitle", "Цель"], ["uiMenu.returnToStart", "К старту"], ["uiMenu.devDisable", "Disable Dev Mode"], ["uiMenu.devEnable", "Enable Dev Mode"], ["uiMenu.consolePanel", "Console Panel"], ["uiMenu.unavailable", "Недоступно."]].forEach((row) => addTextRow(row[0], row[1], "AsyncScene/Web/ui/ui-menu.js", "ui-menu hardcoded label", "buttons_labels", { currentlyProfileAware: false, resolverUsed: false, hardcoded: true, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible hardcoded menu label" }));
+docs/ui/ui-boot.js:9389:              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+docs/ui/ui-boot.js:9686:              && String(pickerEl.getAttribute("aria-label") || "") === resolve("birth_digits_label", liveMode);
+docs/ui/ui-boot.js:10083:              && String(pickerEl.getAttribute("aria-label") || "") === expectedLabelText
+docs/data.js:3281:    // - out.label: "y" | "o" | "r" | "k"
+docs/data.js:3284:    const out = { allowed, label: color, tierKey };
+docs/data.js:3286:    // String(out) => label
+docs/data.js:3287:    try { out[Symbol.toPrimitive] = () => out.label; } catch (_) {}
+docs/data.js:3288:    out.toString = () => out.label;
+docs/data.js:4738:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+docs/data.js:4837:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+docs/data.js:4955:        { label: "tutorial_tone", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд/i },
+docs/data.js:4956:        { label: "imperative_help", pattern: /нажми|кликни|прочитай|следуй|изучи|запомни/i },
+docs/data.js:4957:        { label: "slang_or_meme", pattern: /лол|кек|мем|кринж|хайп|рофл|имба|изи/i },
+docs/data.js:4958:        { label: "pressure_or_moralizing", pattern: /надо|нужно|обязан|должен|правильно|неправильно|хорошо|плохо|стыд|вина/i }
+docs/data.js:4962:          if (entry.pattern.test(line)) result.forbiddenWording.push({ index, label: entry.label, line });
+docs/data.js:5001:        const forbiddenExtra = st ? Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).find((el) => !(el.id === "btnResetOnboarding" && resetAllowed)) : null;
+docs/data.js:5151:      const addHit = (bucket, field, text, label) => {
+docs/data.js:5152:        bucket.push({ field, label, text });
+docs/data.js:5182:          { bucket: result.forbiddenWording, label: "forbidden_wording", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд|лол|кек|мем|кринж|хайп|рофл|имба|изи|вайб|движ|жми|нажми|кликни|прочитай|следуй|изучи|запомни/i },
+docs/data.js:5183:          { bucket: result.officialese, label: "officialese", pattern: /официальн|регламент|политик|процедур|документ|документац|сертифиц|верифиц|соответств|предпис|протокол|согласно|инструкц|руководств/i },
+docs/data.js:5184:          { bucket: result.pressureLanguage, label: "pressure", pattern: /надо|нужно|обязан|обязана|обязаны|должен|должна|должны|срочно|быстро|успей|тороп|жми|давай|вперед|сейчас/i },
+docs/data.js:5185:          { bucket: result.moralizingLanguage, label: "moralizing", pattern: /правильно|неправильно|хорошо|плохо|стыд|вина|виноват|честн|нечестн|справедлив|заслуж/i },
+docs/data.js:5186:          { bucket: result.babyTalk, label: "baby_talk", pattern: /малыш|детка|зай|котик|лапк|солнышк|умничк|молодец|няш|сюсю/i }
+docs/data.js:5191:            if (check.pattern.test(text)) addHit(check.bucket, field.name, text, check.label);
+docs/data.js:6078:            const label = String(node.textContent || "").trim();
+docs/data.js:6079:            return label === "баттл";
+docs/data.js:7389:        const devLabelChanged = checkedDevLabels.filter((label) => new RegExp(`t\\(\\s*["']${escapeRe(label)}["']\\s*\\)`).test(source));
+docs/data.js:8301:        const devLabelChanged = checkedDevLabels.filter((label) => new RegExp(`t\\(\\s*["']${escapeRe(label)}["']\\s*\\)`).test(source));
+docs/data.js:9083:        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(sourceText));
+docs/data.js:9687:        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(battlesSrc));
+docs/data.js:10743:          ["start_start", "#btnStart", readAttr("#btnStart", "aria-label"), startDom.samples.start_start.zoomer],
+docs/data.js:10987:        const devChanged = checkedDevLabels.filter((label) => new RegExp(`(?:resolveStartScreenText|t)\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(runtimeSourceParts.start + "\n" + runtimeSourceParts.menu + "\n" + runtimeSourceParts.events + "\n" + runtimeSourceParts.battle));
+docs/ui/ui-core.js:335:    if (v >= prog.unlock.absolute) return { key:"k", label:"абсолютные" };
+docs/ui/ui-core.js:336:    if (v >= prog.unlock.power) return { key:"r", label:"мощные" };
+docs/ui/ui-core.js:337:    if (v >= prog.unlock.strong) return { key:"o", label:"сильные" };
+docs/ui/ui-core.js:338:    return { key:"y", label:"слабые" };
+docs/ui/ui-core.js:665:    let subLabel = _argSubLabel(subKey) || tier.label;
+docs/ui/ui-core.js:666:    let nextLabel = _argSubLabelGenitiveSingular(nextSubKey) || _argSubLabelGenitiveSingular(subKey) || tier.label;
+docs/ui/ui-core.js:681:      subLabel = _argSubLabel(subKey) || tier.label;
+docs/ui/ui-core.js:682:      nextLabel = _argSubLabelGenitiveSingular(nextSubKey) || _argSubLabelGenitiveSingular(subKey) || tier.label;
+docs/ui/ui-events.js:797:        const mkSideBtn = (side, label, votes) => {
+docs/ui/ui-events.js:806:        btn.textContent = `${label} - ${votes}`;
+docs/ui/ui-loops.js:191:          label: "Поговорить",
+docs/ui/ui-dm.js:306:  function mkBtn(label, fn, cls="btn small") {
+docs/ui/ui-dm.js:309:    b.textContent = label;
+docs/ui/ui-dm.js:759:          const label = document.createElement("span");
+docs/ui/ui-dm.js:760:          label.className = "dmTabLabel";
+docs/ui/ui-dm.js:761:          label.textContent = String(name || "");
+docs/ui/ui-dm.js:762:          row.appendChild(label);
+docs/ui/ui-dm.js:965:      const label = (mode === "give") ? "Передать 💰" : "Попросить 💰";
+docs/ui/ui-dm.js:970:      return mkBtn(label, () => {
+docs/ui/ui-menu.js:252:    const label = document.createElement("span");
+docs/ui/ui-menu.js:253:    label.className = "devUiProfileIndicatorLabel";
+docs/ui/ui-menu.js:254:    label.textContent = "UI Profile:";
+docs/ui/ui-menu.js:264:    indicatorWrap.appendChild(label);
+docs/ui/ui-menu.js:319:    // Some layouts use a right-side label container.
+docs/state.js:588:  function buildIncludeIdsFromResult(label, scenarioResult){
+docs/state.js:628:  function withZeroSumAssert(label, fn, includeIds){
+docs/state.js:637:    const ids = Array.isArray(includeIds) ? includeIds : buildIncludeIdsFromResult(label, res);
+docs/state.js:661:      label,
+docs/state.js:980:  function wrapDomMethod(proto, methodName, label){
+docs/state.js:986:        logEconToastSideEffect(label, {
+docs/state.js:1459:  function guardPointsObject(obj, label){
+docs/state.js:1471:          const labelPath = label || "State.me.points";
+docs/state.js:1474:          rejectPointsWrite(label || "points");
+docs/state.js:1815:    function protectMethod(obj, key, fn, label){
+docs/state.js:1827:          emit("tamper_function", { key: label || key, action: "set", mode: mode() });
+docs/state.js:1828:          emitTamperDetected({ key: label || key, action: "set_function", mode: mode() });
+docs/state.js:1829:          const auditLabel = String(label || key || "").toLowerCase();
+docs/state.js:1841:      SEC.methods.push({ obj, key, fn, label: label || key });
+docs/state.js:1862:          emit("tamper_function", { key: m.label, action: "swap", mode: mode() });
+docs/state.js:1863:          emitTamperDetected({ key: m.label, action: "swap_function", mode: mode() });
+docs/state.js:1864:          protectMethod(m.obj, m.key, m.fn, m.label);
+docs/state.js:5611:          label: "battle",
+docs/state.js:5620:          label: "crowd",
+docs/state.js:5653:          label: "report",
+docs/state.js:5661:        { label: "rematch", runner: runRematchScenario },
+docs/state.js:5663:          label: "escape",
+docs/state.js:5709:          label: def.label,
+docs/state.js:5723:          failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
+docs/state.js:5749:                  scenario: def.label,
+docs/state.js:5758:              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:missing`);
+docs/state.js:5832:          label: "battle",
+docs/state.js:5841:          label: "crowd",
+docs/state.js:5854:          label: "report",
+docs/state.js:5862:        { label: "rematch", runner: runRematchScenario },
+docs/state.js:5864:          label: "escape",
+docs/state.js:5889:        const result = withZeroSumAssert(`ui6:${scenario.label}`, () => scenarioRes);
+docs/state.js:5891:          label: scenario.label,
+docs/state.js:5902:        if (!result.ok) failed.push(`delta_positive:${scenario.label}:${result.delta}`);
+docs/ui/ui-chat.js:389:    // System label in meta stays clean (no influence pill)
+docs/ui/ui-chat.js:392:      const label = (!n || n === "sys" || n === "system" || n === "система") ? "Система" : msgName;
+docs/ui/ui-chat.js:393:      return `${escapeHtml(label || "Система")}`;
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:941:ST3_0940,CONCEPT_POINTS_CURRENCY,"Твоя фраза: <b>${safeText(p ? p.label : ""?"")}</b><br>",Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,"variables=safeText(p ? p.label : ""?""); line=619; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1"
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:952:ST3_0951,TERM_ST3_0951,Контрфраза: ${c.label}.,Button,Button,AsyncScene/Web/game_legacy.js,chat_ui,variables=c.label; line=695; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:955:ST3_0954,CONCEPT_POINTS_CURRENCY,Ты: ${p.label} (${atk})\\n,Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,variables=p.label|atk; line=714; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:959:ST3_0958,CONCEPT_POINTS_CURRENCY,Ты: ${p.label} (${atk})\\n,Button,ResourceName,AsyncScene/Web/game_legacy.js,general_interface,variables=p.label|atk; line=734; canonConcept=CONCEPT_POINTS_CURRENCY; canonCategory=ResourceName; STEP3_UI_TAXONOMY_V1
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:1535:ST3_1534,TERM_ST3_1534,"${escapeHtml(label || ""Система"")}",Button,Button,AsyncScene/Web/ui/ui-chat.js,"chat_ui,escape,price_caps","variables=escapeHtml(label || ""Система""); line=393; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1"
+docs/terminology/STEP3_UI_TAXONOMY_V1.csv:3272:ST3_3271,TERM_ST3_3271,"${escapeHtml(label || ""Система"")}",Button,Button,docs/ui/ui-chat.js,"chat_ui,escape,price_caps","variables=escapeHtml(label || ""Система""); line=393; canonConcept=unmapped_inventory_term; STEP3_UI_TAXONOMY_V1"
+docs/ui/ui-battles.js:540:  const ARG_TEXT_KEYS = ["text", "value", "arg", "statement", "line", "label", "title", "description", "q"];
+docs/ui/ui-battles.js:831:    const appendArgRow = (label, text, colorKey, testId) => {
+docs/ui/ui-battles.js:835:      title.textContent = label;
+docs/ui/ui-battles.js:2028:          const mkVoteBtn = (label, votes) => {
+docs/ui/ui-battles.js:2034:            btn.textContent = `${label} - ${votes}`;
+docs/ui/ui-battles.js:2276:          const mkVoteBtn = (label, votes) => {
+docs/ui/ui-battles.js:2282:            btn.textContent = `${label} - ${votes}`;
+docs/index.html:38:      <div id="chatResizeHandle" class="chatResizeHandle" role="separator" aria-label="Изменить высоту чата" aria-orientation="horizontal" tabindex="0"></div>
+docs/index.html:43:        <div id="balance" aria-label="Профиль">
+docs/index.html:127:      <label id="startBirthYearLabel" class="startFieldLabel">Последние 2 цифры года рождения</label>
+docs/index.html:128:      <div id="startBirthYearPicker" class="startBirthYearPicker" aria-label="Последние 2 цифры года рождения">
+docs/index.html:130:          <button id="startBirthYear0Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="0" aria-label="Увеличить первую цифру">▲</button>
+docs/index.html:132:          <button id="startBirthYear0Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="0" aria-label="Уменьшить первую цифру">▼</button>
+docs/index.html:135:          <button id="startBirthYear1Up" class="startBirthYearArrow" type="button" data-birth-year-step="1" data-birth-year-index="1" aria-label="Увеличить вторую цифру">▲</button>
+docs/index.html:137:          <button id="startBirthYear1Down" class="startBirthYearArrow" type="button" data-birth-year-step="-1" data-birth-year-index="1" aria-label="Уменьшить вторую цифру">▼</button>
+docs/index.html:141:      <label id="startBirthYearFeelingLabel" class="startFieldLabel">я на самом деле чувствую будто я родился в …</label>
+docs/conflict/conflict-core.js:3780:          // Mafioso: keep "Поражение" label, but economy is intentionally skipped (see applyEconomyForOutcome).
+AsyncScene/Web/state.js:588:  function buildIncludeIdsFromResult(label, scenarioResult){
+AsyncScene/Web/state.js:628:  function withZeroSumAssert(label, fn, includeIds){
+AsyncScene/Web/state.js:637:    const ids = Array.isArray(includeIds) ? includeIds : buildIncludeIdsFromResult(label, res);
+AsyncScene/Web/state.js:661:      label,
+AsyncScene/Web/state.js:980:  function wrapDomMethod(proto, methodName, label){
+AsyncScene/Web/state.js:986:        logEconToastSideEffect(label, {
+AsyncScene/Web/state.js:1459:  function guardPointsObject(obj, label){
+AsyncScene/Web/state.js:1471:          const labelPath = label || "State.me.points";
+AsyncScene/Web/state.js:1474:          rejectPointsWrite(label || "points");
+AsyncScene/Web/state.js:1815:    function protectMethod(obj, key, fn, label){
+AsyncScene/Web/state.js:1827:          emit("tamper_function", { key: label || key, action: "set", mode: mode() });
+AsyncScene/Web/state.js:1828:          emitTamperDetected({ key: label || key, action: "set_function", mode: mode() });
+AsyncScene/Web/state.js:1829:          const auditLabel = String(label || key || "").toLowerCase();
+AsyncScene/Web/state.js:1841:      SEC.methods.push({ obj, key, fn, label: label || key });
+AsyncScene/Web/state.js:1862:          emit("tamper_function", { key: m.label, action: "swap", mode: mode() });
+AsyncScene/Web/state.js:1863:          emitTamperDetected({ key: m.label, action: "swap_function", mode: mode() });
+AsyncScene/Web/state.js:1864:          protectMethod(m.obj, m.key, m.fn, m.label);
+AsyncScene/Web/state.js:5611:          label: "battle",
+AsyncScene/Web/state.js:5620:          label: "crowd",
+AsyncScene/Web/state.js:5653:          label: "report",
+AsyncScene/Web/state.js:5661:        { label: "rematch", runner: runRematchScenario },
+AsyncScene/Web/state.js:5663:          label: "escape",
+AsyncScene/Web/state.js:5709:          label: def.label,
+AsyncScene/Web/state.js:5723:          failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
+AsyncScene/Web/state.js:5749:                  scenario: def.label,
+AsyncScene/Web/state.js:5758:              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:missing`);
+AsyncScene/Web/state.js:5832:          label: "battle",
+AsyncScene/Web/state.js:5841:          label: "crowd",
+AsyncScene/Web/state.js:5854:          label: "report",
+AsyncScene/Web/state.js:5862:        { label: "rematch", runner: runRematchScenario },
+AsyncScene/Web/state.js:5864:          label: "escape",
+AsyncScene/Web/state.js:5889:        const result = withZeroSumAssert(`ui6:${scenario.label}`, () => scenarioRes);
+AsyncScene/Web/state.js:5891:          label: scenario.label,
+AsyncScene/Web/state.js:5902:        if (!result.ok) failed.push(`delta_positive:${scenario.label}:${result.delta}`);
+AsyncScene/Web/game_legacy.js:95:    { id: "p_y_1", color: "yellow", label: "Уточняю спокойно", power: 2, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:96:    { id: "p_y_2", color: "yellow", label: "Задаю простой вопрос", power: 1, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:97:    { id: "p_o_1", color: "orange", label: "Ставлю границу", power: 4, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:98:    { id: "p_o_2", color: "orange", label: "Ловлю на противоречии", power: 5, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:99:    { id: "p_r_1", color: "red", label: "Режу по сути", power: 7, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:100:    { id: "p_r_2", color: "red", label: "Срываю маску", power: 8, kind: "phrase" },
+AsyncScene/Web/game_legacy.js:104:    { id: "c_y_1", color: "yellow", label: "Смягчаю", power: 2, kind: "counter" },
+AsyncScene/Web/game_legacy.js:105:    { id: "c_y_2", color: "yellow", label: "Перевожу в шутку", power: 3, kind: "counter" },
+AsyncScene/Web/game_legacy.js:106:    { id: "c_o_1", color: "orange", label: "Парирую фактами", power: 5, kind: "counter" },
+AsyncScene/Web/game_legacy.js:107:    { id: "c_o_2", color: "orange", label: "Зеркалю", power: 4, kind: "counter" },
+AsyncScene/Web/game_legacy.js:108:    { id: "c_r_1", color: "red", label: "Контратака", power: 8, kind: "counter" },
+AsyncScene/Web/game_legacy.js:109:    { id: "c_r_2", color: "red", label: "Обнуляю позицию", power: 7, kind: "counter" },
+AsyncScene/Web/game_legacy.js:114:    { id: "s_nope", label: "НЕТЬ", desc: "Отменяет ход" },
+AsyncScene/Web/game_legacy.js:115:    { id: "s_bail", label: "СЛИНЯЙ", desc: "Закрывает конфликт без победителя" },
+AsyncScene/Web/game_legacy.js:597:        b.textContent = `${colorLabel(p.color)} - ${p.label}`;
+AsyncScene/Web/game_legacy.js:619:        `Твоя фраза: <b>${safeText(p ? p.label : "?")}</b><br>` +
+AsyncScene/Web/game_legacy.js:695:    pushChat(opp, `Контрфраза: ${c.label}.`);
+AsyncScene/Web/game_legacy.js:714:        `Ты: ${p.label} (${atk})\n` +
+AsyncScene/Web/game_legacy.js:715:        `${opp}: ${c.label} (${def})`;
+AsyncScene/Web/game_legacy.js:734:      `Ты: ${p.label} (${atk})\n` +
+AsyncScene/Web/game_legacy.js:735:      `${opp}: ${c.label} (${def})\n` +
+docs/conflict/conflict-arguments.js:275:        if (typeof toneInfo.label === "string" && toneInfo.label.trim()) {
+docs/conflict/conflict-arguments.js:276:          const s = toneInfo.label.toLowerCase().trim();
+AsyncScene/Web/npcs.js:2086:      ["NPC.DM_PROFILE_LINES", "NPCSpeech.dm", "villainQuestions", "villainChallenges", "NPC.generateDmLine"].forEach((label) => {
+AsyncScene/Web/npcs.js:2087:        if (!rows.some((row) => row.source.indexOf(label) === 0 || row.source.indexOf(label.replace("NPCSpeech.dm", "NPCSpeech.ru")) === 0)) addUnique(result.missingCoverage, label);
+AsyncScene/Web/npcs.js:2461:      visibleChecks.forEach(([label, entry]) => {
+AsyncScene/Web/npcs.js:2463:          addUnique(result.missingCoverage, label);
+AsyncScene/Web/npcs.js:2465:        if (entry && entry.same) fail("same_text", label);
+AsyncScene/Web/dev/dev-checks.js:334:      const wordCount = (label) => {
+AsyncScene/Web/dev/dev-checks.js:335:        const cleaned = normalize(label).replace(/[.,;:!?()[\]{}]+/g, " ").trim();
+AsyncScene/Web/dev/dev-checks.js:381:          const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+AsyncScene/Web/dev/dev-checks.js:385:          if (disabledLike && label) addUnique(result.forbiddenRemaining, { check: "disabled_content_buttons", label });
+AsyncScene/Web/dev/dev-checks.js:403:        const label = normalize(button.textContent || button.getAttribute("aria-label") || "");
+AsyncScene/Web/dev/dev-checks.js:404:        const count = wordCount(label);
+AsyncScene/Web/dev/dev-checks.js:405:        if (!label || count > 2) {
+AsyncScene/Web/dev/dev-checks.js:406:          addUnique(result.forbiddenRemaining, { check: "short_cta_labels", label, words: count });
+AsyncScene/Web/dev/dev-checks.js:407:          fail("short_cta_labels", { label, words: count, max: 2 });
+AsyncScene/Web/dev/dev-checks.js:1760:            { id: "shorten_30_40", ok: /30\s*-\s*40\s*%/.test(ruleText) && /shorten phrases/i.test(ruleText), label: "30-40% shortening" },
+AsyncScene/Web/dev/dev-checks.js:1761:            { id: "remove_filler_intro", ok: /remove\s+intro\/filler\s+words/i.test(ruleText) || (/remove/i.test(ruleText) && /intro/i.test(ruleText) && /filler/i.test(ruleText)), label: "remove filler/intro words" },
+AsyncScene/Web/dev/dev-checks.js:1762:            { id: "reduce_abstractions", ok: /reduce\s+abstractions/i.test(ruleText), label: "reduce abstractions" },
+AsyncScene/Web/dev/dev-checks.js:1763:            { id: "abstract_to_actions_verbs", ok: /replace\s+abstract\s+wording\s+with\s+action\s+verbs/i.test(ruleText) || (/abstract/i.test(ruleText) && /action\s+verbs/i.test(ruleText)), label: "replace abstractions with actions/verbs" },
+AsyncScene/Web/dev/dev-checks.js:1764:            { id: "keep_original_meaning", ok: /keep\s+original\s+meaning/i.test(ruleText), label: "keep original meaning" },
+AsyncScene/Web/dev/dev-checks.js:1765:            { id: "millennial_base", ok: /UI_PROFILE_MILLENNIAL/.test(ruleText) && /(base|source)/i.test(ruleText), label: "millennial base/profile" },
+AsyncScene/Web/dev/dev-checks.js:1766:            { id: "no_fake_youth_voice", ok: /no(?:t)?\s+add\s+teen\s+slang/i.test(ruleText) && /memes/i.test(lowerRule) && /fake\s+youth\s+voice/i.test(lowerRule) && /irony/i.test(lowerRule), label: "no teen slang, memes, fake youth voice, or irony" },
+AsyncScene/Web/dev/dev-checks.js:1767:            { id: "no_zoomer_diff_contradiction", ok: /do\s+not\s+contradict\s+`?UI_PROFILE_ZOOMER_DIFF`?/i.test(ruleText), label: "do not contradict UI_PROFILE_ZOOMER_DIFF" }
+AsyncScene/Web/dev/dev-checks.js:1771:              addUnique(result.missingCoverage, check.label);
+AsyncScene/Web/dev/dev-checks.js:1772:              fail(check.id, check.label);
+AsyncScene/Web/dev/dev-checks.js:2122:        ].forEach(([label, hits]) => {
+AsyncScene/Web/dev/dev-checks.js:2123:          const regex = new RegExp(label, "i");
+AsyncScene/Web/dev/dev-checks.js:3904:        ["status", "Изменить высоту чата", "AsyncScene/Web/index.html", "index", "chatResizeHandle.aria-label", "#chatResizeHandle"],
+AsyncScene/Web/dev/dev-checks.js:3905:        ["status", "Профиль", "AsyncScene/Web/index.html", "index", "balance.aria-label", "#balance"],
+AsyncScene/Web/dev/dev-checks.js:3975:          if (attrName === "placeholder" || attrName === "title" || attrName === "aria-label") return "hint";
+AsyncScene/Web/dev/dev-checks.js:3995:        Array.prototype.slice.call(document.querySelectorAll("[title], [aria-label]")).forEach((el) => {
+AsyncScene/Web/dev/dev-checks.js:3997:          if (el.getAttribute("aria-label")) addDomValue(el, "aria-label", el.getAttribute("aria-label"));
+AsyncScene/Web/dev/dev-checks.js:6352:        { label: "direct_advice", pattern: /(совет|подскажу|попробуй|лучше|рекоменд|проверь|проверяй|проверяйте|убедись|убедитесь)/i },
+AsyncScene/Web/dev/dev-checks.js:6353:        { label: "you_should", pattern: /(тебе|вам|ты|вы)\s+(стоит|следует|надо|нужно|должен|должна|должны)/i },
+AsyncScene/Web/dev/dev-checks.js:6354:        { label: "think_about_consequences", pattern: /подум\w*\s+о\s+последств/i },
+AsyncScene/Web/dev/dev-checks.js:6355:        { label: "directive_lesson", pattern: /(?:не\s+отвечай|не\s+отвечайте|не\s+спорь|не\s+спорьте|не\s+ввязывай|не\s+ввязывайтесь|выбирай|выбирайте)\b/i }
+AsyncScene/Web/dev/dev-checks.js:6358:        { label: "lesson_voice", pattern: /(урок|обуч|объясняю|разбер[её]м|запомни|помните|вывод|главное|правильный ответ|учитель|ученик|домашн)/i },
+AsyncScene/Web/dev/dev-checks.js:6359:        { label: "corrective_classroom", pattern: /(правильно|неправильно|молодец|умничк|так держать|будь внимател|будьте внимател)/i }
+AsyncScene/Web/dev/dev-checks.js:6362:        { label: "moral_judgement", pattern: /(стыд|вина|виноват|доверие|доверились|хорошая работа|отличная работа|хорошо сработал|ты сделал|честн|нечестн|заслуж)/i },
+AsyncScene/Web/dev/dev-checks.js:6363:        { label: "moral_lesson", pattern: /разрушает\s+доверие|подставлять\s+систему|сделал\s+дом\s+безопаснее/i }
+AsyncScene/Web/dev/dev-checks.js:6366:        { label: "soft_guidance", pattern: /(сначала|сомневаешься|сомневаетесь|безопасн(?:ый|ее|о|ая)|держи связь|держитесь|держите себя|соблюдайте|сдерживайтесь|не создавайте|не раздувайте|прокачайся|приходи)/i },
+AsyncScene/Web/dev/dev-checks.js:6367:        { label: "long_instructional", pattern: /(?:потому что|если\s+.+(?:то|может)|чтобы|следовательно|таким образом)/i }
+AsyncScene/Web/dev/dev-checks.js:6376:        if (match) addUnique(result[bucketName], { label: rule.label, match: match[0], id: entry.id, sourcePath: entry.sourcePath, role: entry.role, channel: entry.channel, text });
+AsyncScene/Web/dev/dev-checks.js:10219:        { label: "Game._ConflictCore", obj: coreSurf },
+AsyncScene/Web/dev/dev-checks.js:10220:        { label: "Game.ConflictCore", obj: Game.ConflictCore },
+AsyncScene/Web/dev/dev-checks.js:10221:        { label: "Game.Conflict", obj: conflictApi },
+AsyncScene/Web/dev/dev-checks.js:10222:        { label: "Game.UI", obj: ui },
+AsyncScene/Web/dev/dev-checks.js:10223:        { label: "Game.__A", obj: Game.__A },
+AsyncScene/Web/dev/dev-checks.js:10226:      exposures.forEach(({ label, obj }) => {
+AsyncScene/Web/dev/dev-checks.js:10230:          apiSurfaceKeys.push(`${label}:${keys.join(",")}`);
+AsyncScene/Web/dev/dev-checks.js:10235:      exposures.forEach(({ label, obj }) => {
+AsyncScene/Web/dev/dev-checks.js:10237:          evidence.push(`${label} missing`);
+AsyncScene/Web/dev/dev-checks.js:10243:          evidence.push(`${label}.computeOutcome exposed`);
+AsyncScene/Web/dev/dev-checks.js:10245:          evidence.push(`${label}.computeOutcome undefined`);
+AsyncScene/Web/dev/dev-checks.js:11064:    const logStatus = (label) => {
+AsyncScene/Web/dev/dev-checks.js:11066:      emit(`${label}: ${enabled ? "ENABLED" : "DISABLED"}`);
+AsyncScene/Web/dev/dev-checks.js:12236:    const capture = (label, fn) => {
+AsyncScene/Web/dev/dev-checks.js:12239:        tries.push({ label, ok: true, result });
+AsyncScene/Web/dev/dev-checks.js:12241:        tries.push({ label, ok: false, error: String(err) });
+AsyncScene/Web/dev/dev-checks.js:16191:  Game.__DEV.forceDumpOnce = (label, payload) => {
+AsyncScene/Web/dev/dev-checks.js:16192:    const tag = String(label || "UNLABELED");
+AsyncScene/Web/dev/dev-checks.js:16958:      label: "WEALTH_TAX_DUMP_SAFE",
+AsyncScene/Web/dev/dev-checks.js:19253:    const runBattle = (label, result, opp, colors) => {
+AsyncScene/Web/dev/dev-checks.js:19254:      const battleId = `dev_battle_econ_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+AsyncScene/Web/dev/dev-checks.js:19496:    const makeScenario = (label) => {
+AsyncScene/Web/dev/dev-checks.js:19497:      const created = makeOneTrueBattleEconLogOnce({ label });
+AsyncScene/Web/dev/dev-checks.js:19502:        return { label, battleId: null, ok: false, notes };
+AsyncScene/Web/dev/dev-checks.js:19506:        return { label, battleId, ok: false, notes };
+AsyncScene/Web/dev/dev-checks.js:19526:      const sig = JSON.stringify({ label, reasonsSig, netSig, repSig, totalsSig });
+AsyncScene/Web/dev/dev-checks.js:19531:          label,
+AsyncScene/Web/dev/dev-checks.js:19541:          label,
+AsyncScene/Web/dev/dev-checks.js:19550:        label,
+AsyncScene/Web/dev/dev-checks.js:19567:    const sig = JSON.stringify(scenarios.map(s => ({ label: s.label, sig: s.sig })));
+AsyncScene/Web/dev/dev-checks.js:19569:      console.log("[DEV] ECON04_DELTA_PROBE", { runTag, sig, scenarios: scenarios.map(s => ({ label: s.label, ok: s.ok })) });
+AsyncScene/Web/dev/dev-checks.js:19616:    const label = opts.label;
+AsyncScene/Web/dev/dev-checks.js:19621:    const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+AsyncScene/Web/dev/dev-checks.js:19744:    const runBattle = (label, result, opp, colors) => {
+AsyncScene/Web/dev/dev-checks.js:19745:      const battleId = `dev_econ03_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+AsyncScene/Web/dev/dev-checks.js:19910:        label,
+AsyncScene/Web/dev/dev-checks.js:19996:      reasonSignatures[sc.label] = sig;
+AsyncScene/Web/dev/dev-checks.js:20098:        byReason: scenarios.reduce((acc, sc) => { acc[sc.label] = sc.byReason; return acc; }, {}),
+AsyncScene/Web/dev/dev-checks.js:20286:      const label = `vote@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20288:        return { label, ok: false, reason: "events_missing" };
+AsyncScene/Web/dev/dev-checks.js:20293:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+AsyncScene/Web/dev/dev-checks.js:20303:      return { label, ok: !!(acted && checked.ok), acted, expected, checked, entry };
+AsyncScene/Web/dev/dev-checks.js:20307:      const label = `escape@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20311:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:20338:      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+AsyncScene/Web/dev/dev-checks.js:20342:      const label = `rematch@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20346:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:20368:      return { label, ok: !!(res && res.ok !== false && checked.ok), res, expected, checked, entry };
+AsyncScene/Web/dev/dev-checks.js:20372:      const label = `teach@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20376:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:20407:      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+AsyncScene/Web/dev/dev-checks.js:20411:      const label = `dev_rematch_seed@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20415:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:20444:      return { label, ok: !!(tx && tx.ok && checked.ok), expected, checked, entry };
+AsyncScene/Web/dev/dev-checks.js:20448:      const label = `social@${points}`;
+AsyncScene/Web/dev/dev-checks.js:20449:      return { label, ok: true, skipped: true, reason: "social_missing" };
+AsyncScene/Web/dev/dev-checks.js:21087:    const runStep = (label, battle, outcome) => {
+AsyncScene/Web/dev/dev-checks.js:21093:        label,
+AsyncScene/Web/dev/dev-checks.js:21115:    const checkZero = (label) => {
+AsyncScene/Web/dev/dev-checks.js:21116:      const s = steps.find(x => x.label === label);
+AsyncScene/Web/dev/dev-checks.js:21122:    const t10 = steps.find(x => x.label === "win_threshold_10");
+AsyncScene/Web/dev/dev-checks.js:21124:    const replay = steps.find(x => x.label === "replay_same_battle");
+AsyncScene/Web/dev/dev-checks.js:21127:    const rematchWin = steps.find(x => x.label === "rematch_win_no_threshold");
+AsyncScene/Web/dev/dev-checks.js:21143:      { label: "vote", priceKey: "vote", baseFn: () => 1, context: (points) => ({ battleId: `edge_vote_${points}` }) },
+AsyncScene/Web/dev/dev-checks.js:21144:      { label: "escape", priceKey: "escape", baseFn: () => {
+AsyncScene/Web/dev/dev-checks.js:21148:      { label: "rematch", priceKey: "rematch", baseFn: () => 1, context: (points) => ({ battleId: `edge_rematch_${points}` }) },
+AsyncScene/Web/dev/dev-checks.js:21149:      { label: "teach", priceKey: "teach", baseFn: () => {
+AsyncScene/Web/dev/dev-checks.js:21153:      { label: "dev_rematch_seed", priceKey: "dev_rematch_seed", baseFn: () => 1, context: (points) => ({ actionNonce: `edge_dev_seed_${points}` }) }
+AsyncScene/Web/dev/dev-checks.js:21194:        label: category.label,
+AsyncScene/Web/dev/dev-checks.js:21209:      label: c.label,
+AsyncScene/Web/dev/dev-checks.js:21233:  const normalizeMoneyLogRows = (anyLog, label = "unknown") => {
+AsyncScene/Web/dev/dev-checks.js:21237:    console.warn("DEV_MONEYLOG_NORMALIZE_EMPTY", { label, type: typeof anyLog });
+AsyncScene/Web/dev/dev-checks.js:21648:    const logProbe = (label, smokeFn) => {
+AsyncScene/Web/dev/dev-checks.js:21657:        console.log("[DEV] ECON03_E1_PROBE", { scenario: label, ok: false, error: String(err), battleId: null });
+AsyncScene/Web/dev/dev-checks.js:21658:        return { label, ok: false, error: String(err), battleId: null };
+AsyncScene/Web/dev/dev-checks.js:21664:      console.log("[DEV] ECON03_E1_PROBE", { scenario: label, battleId, scopedLen: rows.length, sampleReasons, reason });
+AsyncScene/Web/dev/dev-checks.js:21665:      console.log("[DEV] ECON03_E1_PROBE_NET", { scenario: label, netById });
+AsyncScene/Web/dev/dev-checks.js:21666:      return { label, ok: !!result && !!result.ok, battleId, rows, byReason, netById };
+AsyncScene/Web/dev/dev-checks.js:21707:    const runScenario = (label, smokeFn) => {
+AsyncScene/Web/dev/dev-checks.js:21718:        return { label, ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["battleId_missing"], error };
+AsyncScene/Web/dev/dev-checks.js:21727:      return { label, ok: true, battleId, scopedLen, byReason, netById, normalizedNetSig, reasonsSig };
+AsyncScene/Web/dev/dev-checks.js:21740:    const escape = smokeEscapeFn ? runScenario("escape", smokeEscapeFn) : { label: "escape", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+AsyncScene/Web/dev/dev-checks.js:21741:    const stay = smokeStayFn ? runScenario("escape_stay", smokeStayFn) : { label: "escape_stay", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+AsyncScene/Web/dev/dev-checks.js:21742:    const ignore = smokeIgnoreFn ? runScenario("ignore", smokeIgnoreFn) : { label: "ignore", ok: false, battleId: null, scopedLen: 0, byReason: {}, netById: {}, normalizedNetSig: "[]", reasonsSig: "[]", missingReasons: ["smoke_missing"] };
+AsyncScene/Web/dev/dev-checks.js:21983:      const label = `vote@${points}`;
+AsyncScene/Web/dev/dev-checks.js:21985:        return { label, ok: false, reason: "events_missing" };
+AsyncScene/Web/dev/dev-checks.js:21992:          label,
+AsyncScene/Web/dev/dev-checks.js:22009:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+AsyncScene/Web/dev/dev-checks.js:22017:        label,
+AsyncScene/Web/dev/dev-checks.js:22033:      const label = `escape@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22042:          label,
+AsyncScene/Web/dev/dev-checks.js:22059:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22084:        label,
+AsyncScene/Web/dev/dev-checks.js:22100:      const label = `rematch@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22106:          label,
+AsyncScene/Web/dev/dev-checks.js:22123:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22143:        label,
+AsyncScene/Web/dev/dev-checks.js:22159:      const label = `teach@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22162:        if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22169:          label,
+AsyncScene/Web/dev/dev-checks.js:22186:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22215:        label,
+AsyncScene/Web/dev/dev-checks.js:22231:      const label = `dev_rematch_seed@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22234:        if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22240:          label,
+AsyncScene/Web/dev/dev-checks.js:22257:      if (!npc) return { label, ok: false, reason: "npc_missing" };
+AsyncScene/Web/dev/dev-checks.js:22284:        label,
+AsyncScene/Web/dev/dev-checks.js:22300:      const label = `social@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22301:      return { label, points, priceKey: "social", ok: true, skipped: true, reason: "social_missing" };
+AsyncScene/Web/dev/dev-checks.js:22384:      const label = `vote@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22388:      if (!ev) return { label, ok: false, reason: "event_create_failed" };
+AsyncScene/Web/dev/dev-checks.js:22398:        label,
+AsyncScene/Web/dev/dev-checks.js:22409:      const label = `escape@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22434:        label,
+AsyncScene/Web/dev/dev-checks.js:22445:      const label = `rematch@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22470:        label,
+AsyncScene/Web/dev/dev-checks.js:22481:      const label = `teach@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22519:        label,
+AsyncScene/Web/dev/dev-checks.js:22530:      const label = `dev_rematch_seed@${points}`;
+AsyncScene/Web/dev/dev-checks.js:22566:        label,
+AsyncScene/Web/dev/dev-checks.js:22588:  const logSummary = (label, errors, warnings) => {
+AsyncScene/Web/dev/dev-checks.js:22590:      console.warn(`[Dev] ${label} failed: ${errors.length} errors, ${warnings.length} warnings`);
+AsyncScene/Web/dev/dev-checks.js:23955:    const recordCreateRaw = (raw, label) => {
+AsyncScene/Web/dev/dev-checks.js:23958:      if (label === "incoming") {
+AsyncScene/Web/dev/dev-checks.js:23960:      } else if (label === "startWith") {
+AsyncScene/Web/dev/dev-checks.js:24377:      const runScenario = (label, config) => {
+AsyncScene/Web/dev/dev-checks.js:24378:        const battleId = `dev_step2_${label}_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+AsyncScene/Web/dev/dev-checks.js:28932:        const runFalseReportWithFlip = (label) => {
+AsyncScene/Web/dev/dev-checks.js:28934:            mode: label,
+AsyncScene/Web/dev/dev-checks.js:28962:            res = Game.__A.applyReportByRole(reportRole, { actionId: `econ_soc_${label}_${Date.now()}` });
+AsyncScene/Web/dev/dev-checks.js:28983:            mode: label,
+AsyncScene/Web/dev/dev-checks.js:29818:          label: "enough",
+AsyncScene/Web/dev/dev-checks.js:29836:          label: "insufficient",
+AsyncScene/Web/dev/dev-checks.js:29852:          label: "zero",
+AsyncScene/Web/dev/dev-checks.js:29872:        const enough = scenarios.find(s => s.label === "enough") || null;
+AsyncScene/Web/dev/dev-checks.js:29873:        const insufficient = scenarios.find(s => s.label === "insufficient") || null;
+AsyncScene/Web/dev/dev-checks.js:29874:        const zero = scenarios.find(s => s.label === "zero") || null;
+AsyncScene/Web/dev/dev-checks.js:33722:        result.forbiddenRemaining = result.visibleButtons.filter((label) => forbiddenLabels.includes(label));
+AsyncScene/Web/dev/dev-checks.js:33805:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+AsyncScene/Web/conflict/conflict-core.js:3779:          // Mafioso: keep "Поражение" label, but economy is intentionally skipped (see applyEconomyForOutcome).
+AsyncScene/Web/data.js:3254:    // - out.label: "y" | "o" | "r" | "k"
+AsyncScene/Web/data.js:3257:    const out = { allowed, label: color, tierKey };
+AsyncScene/Web/data.js:3259:    // String(out) => label
+AsyncScene/Web/data.js:3260:    try { out[Symbol.toPrimitive] = () => out.label; } catch (_) {}
+AsyncScene/Web/data.js:3261:    out.toString = () => out.label;
+AsyncScene/Web/data.js:4710:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+AsyncScene/Web/data.js:4809:          Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).forEach((el) => {
+AsyncScene/Web/data.js:4927:        { label: "tutorial_tone", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд/i },
+AsyncScene/Web/data.js:4928:        { label: "imperative_help", pattern: /нажми|кликни|прочитай|следуй|изучи|запомни/i },
+AsyncScene/Web/data.js:4929:        { label: "slang_or_meme", pattern: /лол|кек|мем|кринж|хайп|рофл|имба|изи/i },
+AsyncScene/Web/data.js:4930:        { label: "pressure_or_moralizing", pattern: /надо|нужно|обязан|должен|правильно|неправильно|хорошо|плохо|стыд|вина/i }
+AsyncScene/Web/data.js:4934:          if (entry.pattern.test(line)) result.forbiddenWording.push({ index, label: entry.label, line });
+AsyncScene/Web/data.js:4973:        const forbiddenExtra = st ? Array.from(st.querySelectorAll("input, textarea, select, label, p, .pill, .small, #startManifestShort, #startHint, #btnRandom")).find((el) => !(el.id === "btnResetOnboarding" && resetAllowed)) : null;
+AsyncScene/Web/data.js:5123:      const addHit = (bucket, field, text, label) => {
+AsyncScene/Web/data.js:5124:        bucket.push({ field, label, text });
+AsyncScene/Web/data.js:5154:          { bucket: result.forbiddenWording, label: "forbidden_wording", pattern: /туториал|обучение|подсказка|инструкция|справка|помощь|документация|гайд|лол|кек|мем|кринж|хайп|рофл|имба|изи|вайб|движ|жми|нажми|кликни|прочитай|следуй|изучи|запомни/i },
+AsyncScene/Web/data.js:5155:          { bucket: result.officialese, label: "officialese", pattern: /официальн|регламент|политик|процедур|документ|документац|сертифиц|верифиц|соответств|предпис|протокол|согласно|инструкц|руководств/i },
+AsyncScene/Web/data.js:5156:          { bucket: result.pressureLanguage, label: "pressure", pattern: /надо|нужно|обязан|обязана|обязаны|должен|должна|должны|срочно|быстро|успей|тороп|жми|давай|вперед|сейчас/i },
+AsyncScene/Web/data.js:5157:          { bucket: result.moralizingLanguage, label: "moralizing", pattern: /правильно|неправильно|хорошо|плохо|стыд|вина|виноват|честн|нечестн|справедлив|заслуж/i },
+AsyncScene/Web/data.js:5158:          { bucket: result.babyTalk, label: "baby_talk", pattern: /малыш|детка|зай|котик|лапк|солнышк|умничк|молодец|няш|сюсю/i }
+AsyncScene/Web/data.js:5163:            if (check.pattern.test(text)) addHit(check.bucket, field.name, text, check.label);
+AsyncScene/Web/data.js:6047:              const label = String(node.textContent || "").trim();
+AsyncScene/Web/data.js:6048:              return label === "Передать 💰" || label === "Попросить 💰";
+AsyncScene/Web/data.js:6635:            const label = String(node.textContent || "").trim();
+AsyncScene/Web/data.js:6636:            return label === "баттл";
+AsyncScene/Web/data.js:7392:        const devLabelChanged = checkedDevLabels.filter((label) => new RegExp(`t\\(\\s*["']${escapeRe(label)}["']\\s*\\)`).test(source));
+AsyncScene/Web/data.js:8305:        const devLabelChanged = checkedDevLabels.filter((label) => new RegExp(`t\\(\\s*["']${escapeRe(label)}["']\\s*\\)`).test(source));
+AsyncScene/Web/data.js:9089:        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(sourceText));
+AsyncScene/Web/data.js:9693:        result.routeChecks.devLabelsUntouched = checkedDevLabels.every((label) => !new RegExp(`t\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(battlesSrc));
+AsyncScene/Web/data.js:10752:          ["start_start", "#btnStart", readAttr("#btnStart", "aria-label"), startDom.samples.start_start.zoomer],
+AsyncScene/Web/data.js:10989:        const devChanged = checkedDevLabels.filter((label) => new RegExp(`(?:resolveStartScreenText|t)\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(runtimeSourceParts.start + "\n" + runtimeSourceParts.menu + "\n" + runtimeSourceParts.events + "\n" + runtimeSourceParts.battle));
+AsyncScene/Web/conflict/conflict-arguments.js:275:        if (typeof toneInfo.label === "string" && toneInfo.label.trim()) {
+AsyncScene/Web/conflict/conflict-arguments.js:276:          const s = toneInfo.label.toLowerCase().trim();
+AsyncScene/Web/style.css:1265:/* Explicit readable text for hidden-power argument label */
+AsyncScene/Web/style.css:1348:.label{display:block; margin-bottom:8px; color:var(--muted); font-size:13px}
