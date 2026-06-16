@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.8 Coverage Audit for profile-aware UI texts
+- Added the Step 6.8 coverage-audit smoke surface to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
+- The audit walks the current profile-aware text registries (`Data.TEXTS`, `Data.START_SCREEN_PROFILE_TEXTS`, and `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS`), counts comparable entries, same vs different entries, missing-side coverage, and per-bucket difference percentages, and keeps the state/storage checks read-only.
+- Fresh identity: `build_2026_06_15_step6_8_coverage_audit` / `step6_8_coverage_audit` / `step6_8_coverage_audit_v20260615_001`.
+- Pending Safari runtime smoke commands: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
+- Scope held: audit wiring and docs updates only; no gameplay logic changes, no battle/event/economy/persistence changes, no guarded state writes, and no text-content rewrites.
+
 ## 2026-06-15 — Step 6.7.5 Fix2 Buttons & Labels Final Smoke
 - Added the Fix2 cross-group smoke `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()` to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
 - Fix1 solved the start-screen resolver layer issue, but Safari still reported stale aggregate failures when the final smoke trusted live DOM absence too aggressively and when source/docs parity used broad scans instead of PASS sub-smoke facts.

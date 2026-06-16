@@ -1,3 +1,10 @@
+## 2026-06-15 — Step 6.8 Coverage Audit for profile-aware UI texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the coverage-audit smoke commands in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
+- The audit collects profile-aware coverage across `Data.TEXTS` resolver entries, `Data.START_SCREEN_PROFILE_TEXTS`, and `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS`, then reports comparable counts, same/different counts, missing coverage, difference percentage, bucket breakdowns, and guarded-state/storage route checks without rewriting gameplay or text content.
+- Pending Safari runtime smoke commands: `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSummary()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample()`, `Game.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample()`, and `Game.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets()`.
+- Scope held: audit wiring and docs updates only; no gameplay logic changes, no battle/event/economy/persistence changes, no guarded state writes, and no UI file edits.
+
 ## 2026-06-15 — Step 6.7.5 Fix2 Buttons & Labels Final Smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the safe aggregator smoke command `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
