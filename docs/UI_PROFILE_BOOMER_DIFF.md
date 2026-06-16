@@ -8,29 +8,38 @@ Boomer is not an independent profile.
 
 ## PACE / TEMPO
 
-Base:
-- Derived from UI_PROFILE_MILLENNIAL.
+Boomer pace is a delta from UI_PROFILE_MILLENNIAL.
 
-Boomer pace delta:
-- slower delivery
-- fewer abrupt transitions
-- more explicit transitions between statements
-- short pause phrases allowed
-- explanation before conclusion when useful
-- no additional logic
-- no moralizing
-- no official/corporate language
+Rule:
+- slower than millennial
+- less sharp
+- more pauses
+- clearer transitions
+- fewer abrupt commands
+- fewer one-word reactions
+- one thought per short message
+- context before action when space allows
 
-Tempo markers:
-- "Сначала..."
-- "В этом случае..."
-- "После этого..."
-- "Поэтому..."
-- "Если это произойдёт..."
+Meaning:
+- pace changes delivery, not meaning
+- pace does not change mechanics
+- pace does not change rewards, costs, risks, cooldowns, or outcomes
+- pace does not create a standalone boomer profile
 
-Separation rule:
-- Pace/Tempo must be its own section.
-- It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections.
+Preferred transformations:
+- command -> neutral instruction
+- abrupt result -> result with transition
+- isolated status -> status with short context
+- sharp warning -> calm status
+- short punchline -> complete sentence
+
+Forbidden for this step:
+- editing runtime strings
+- editing default/millennial/zoomer/genz/alpha copy
+- replacing Data.TEXTS values
+- replacing SystemCopy values
+- replacing NPC lines
+- changing battle/report/economy behavior
 
 ## EXPLANATIONS
 
