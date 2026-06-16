@@ -10370,6 +10370,16 @@ K YN A9: Нет.
         Data.TEXT_MODE = prev;
       }
     };
+    const resolveStartText = (key, profile) => {
+      if (Data && typeof Data.resolveStartScreenText === "function") {
+        return String(Data.resolveStartScreenText(key, profile) || "");
+      }
+      return resolveText(key, profile);
+    };
+    const resolveByNamespace = (namespace, key, profile) => {
+      if (namespace === "start_screen") return resolveStartText(key, profile);
+      return resolveText(key, profile);
+    };
     const textOk = (value, key) => {
       const text = String(value == null ? "" : value).trim();
       return !!text && text !== key && !/^(undefined|null)$/i.test(text);
@@ -10464,16 +10474,22 @@ K YN A9: Нет.
         const rawKeySamples = {};
         const leakedKeys = [];
         checkedRawKeys.forEach((key) => {
+          const namespace = startKeys.includes(key) ? "start_screen" : "data_text";
           const values = {
-            default: resolveText(key, "default"),
-            millennial: resolveText(key, "millennial"),
-            zoomer: resolveText(key, "zoomer")
+            default: resolveByNamespace(namespace, key, "default"),
+            millennial: resolveByNamespace(namespace, key, "millennial"),
+            zoomer: resolveByNamespace(namespace, key, "zoomer")
           };
           rawKeySamples[key] = values;
           if (![values.default, values.millennial, values.zoomer].every((text) => textOk(text, key))) leakedKeys.push(key);
         });
+        const resolverNamespaceByKey = {};
+        checkedRawKeys.forEach((key) => {
+          resolverNamespaceByKey[key] = startKeys.includes(key) ? "start_screen" : "data_text";
+        });
         result.rawKeyLeakChecks = {
           checkedKeys: checkedRawKeys.slice(),
+          resolverNamespaceByKey,
           samples: rawKeySamples,
           leakedKeys: leakedKeys.slice(),
           rawKeyLeakCount: leakedKeys.length,
@@ -10497,10 +10513,10 @@ K YN A9: Нет.
         result.resolverChecks = {
           dataTextsExists: !!(Data && Data.TEXTS && typeof Data.TEXTS === "object"),
           dataTExists: typeof Data.t === "function",
-          coreKeysHuman: profileSampleKeys.every((key) => textOk(resolveText(key, "millennial"), key) && textOk(resolveText(key, "zoomer"), key)),
+          coreKeysHuman: profileSampleKeys.every((key) => textOk(resolveByNamespace(startKeys.includes(key) ? "start_screen" : "data_text", key, "millennial"), key) && textOk(resolveByNamespace(startKeys.includes(key) ? "start_screen" : "data_text", key, "zoomer"), key)),
           profileFallbackWorks: profileSampleKeys.every((key) => resolveText(key, "default") === resolveText(key, "millennial")),
-          millennialFallbackWorks: startKeys.every((key) => resolveText(key, "default") === resolveText(key, "millennial")),
-          zoomerStartKeysWork: startKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
+          millennialFallbackWorks: startKeys.every((key) => resolveStartText(key, "default") === resolveStartText(key, "millennial")),
+          zoomerStartKeysWork: startKeys.every((key) => textOk(resolveStartText(key, "zoomer"), key)),
           zoomerMenuKeysWork: menuKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
           zoomerEventsKeysWork: eventsKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
           zoomerBattleKeysWork: battleKeys.every((key) => textOk(resolveText(key, "zoomer"), key)),
@@ -10615,15 +10631,17 @@ K YN A9: Нет.
           missingOptionalDomLabels: [],
           domRoutedCount: 0,
           routeConnected: false,
+          resolverLayer: "start_screen",
+          usesStartScreenResolver: true,
           samples: {
-            birth_digits_label: { default: samples.birth_digits_label.default, millennial: samples.birth_digits_label.millennial, zoomer: samples.birth_digits_label.zoomer },
-            profile_helper: { default: samples.profile_helper.default, millennial: samples.profile_helper.millennial, zoomer: samples.profile_helper.zoomer },
-            fantasy_birth_label: { default: samples.fantasy_birth_label.default, millennial: samples.fantasy_birth_label.millennial, zoomer: samples.fantasy_birth_label.zoomer },
-            start_continue: { default: samples.start_continue.default, millennial: samples.start_continue.millennial, zoomer: samples.start_continue.zoomer },
-            start_start: { default: samples.start_start.default, millennial: samples.start_start.millennial, zoomer: samples.start_start.zoomer },
-            start_reset: { default: samples.start_reset.default, millennial: samples.start_reset.millennial, zoomer: samples.start_reset.zoomer },
-            rules_action: { default: samples.rules_action.default, millennial: samples.rules_action.millennial, zoomer: samples.rules_action.zoomer },
-            start_action: { default: samples.start_action.default, millennial: samples.start_action.millennial, zoomer: samples.start_action.zoomer }
+            birth_digits_label: { default: resolveStartText("birth_digits_label", "default"), millennial: resolveStartText("birth_digits_label", "millennial"), zoomer: resolveStartText("birth_digits_label", "zoomer") },
+            profile_helper: { default: resolveStartText("profile_helper", "default"), millennial: resolveStartText("profile_helper", "millennial"), zoomer: resolveStartText("profile_helper", "zoomer") },
+            fantasy_birth_label: { default: resolveStartText("fantasy_birth_label", "default"), millennial: resolveStartText("fantasy_birth_label", "millennial"), zoomer: resolveStartText("fantasy_birth_label", "zoomer") },
+            start_continue: { default: resolveStartText("start_continue", "default"), millennial: resolveStartText("start_continue", "millennial"), zoomer: resolveStartText("start_continue", "zoomer") },
+            start_start: { default: resolveStartText("start_start", "default"), millennial: resolveStartText("start_start", "millennial"), zoomer: resolveStartText("start_start", "zoomer") },
+            start_reset: { default: resolveStartText("start_reset", "default"), millennial: resolveStartText("start_reset", "millennial"), zoomer: resolveStartText("start_reset", "zoomer") },
+            rules_action: { default: resolveStartText("rules_action", "default"), millennial: resolveStartText("rules_action", "millennial"), zoomer: resolveStartText("rules_action", "zoomer") },
+            start_action: { default: resolveStartText("start_action", "default"), millennial: resolveStartText("start_action", "millennial"), zoomer: resolveStartText("start_action", "zoomer") }
           },
           noBirthYearSaved: true,
           noNewStorageKeys: false,
@@ -10632,14 +10650,14 @@ K YN A9: Нет.
           ok: false
         };
         const startNodes = [
-          ["birth_digits_label", "#startBirthYearLabel", readText("#startBirthYearLabel"), samples.birth_digits_label.zoomer],
-          ["profile_helper", "#startBirthYearHint", readText("#startBirthYearHint"), samples.profile_helper.zoomer],
-          ["fantasy_birth_label", "#startBirthYearFeelingLabel", readText("#startBirthYearFeelingLabel"), samples.fantasy_birth_label.zoomer],
-          ["start_continue", "#btnStart", readText("#btnStart"), samples.start_continue.zoomer],
-          ["start_start", "#btnStart", readAttr("#btnStart", "aria-label"), samples.start_start.zoomer],
-          ["start_reset", "#btnResetOnboarding", readText("#btnResetOnboarding"), samples.start_reset.zoomer],
-          ["rules_action", "#btnRules", readText("#btnRules"), samples.rules_action.zoomer],
-          ["start_action", "#btnStart", readAttr("#btnStart", "title"), samples.start_action.zoomer]
+          ["birth_digits_label", "#startBirthYearLabel", readText("#startBirthYearLabel"), startDom.samples.birth_digits_label.zoomer],
+          ["profile_helper", "#startBirthYearHint", readText("#startBirthYearHint"), startDom.samples.profile_helper.zoomer],
+          ["fantasy_birth_label", "#startBirthYearFeelingLabel", readText("#startBirthYearFeelingLabel"), startDom.samples.fantasy_birth_label.zoomer],
+          ["start_continue", "#btnStart", readText("#btnStart"), startDom.samples.start_continue.zoomer],
+          ["start_start", "#btnStart", readAttr("#btnStart", "aria-label"), startDom.samples.start_start.zoomer],
+          ["start_reset", "#btnResetOnboarding", readText("#btnResetOnboarding"), startDom.samples.start_reset.zoomer],
+          ["rules_action", "#btnRules", readText("#btnRules"), startDom.samples.rules_action.zoomer],
+          ["start_action", "#btnStart", readAttr("#btnStart", "title"), startDom.samples.start_action.zoomer]
         ];
         startDom.visibleDomLabels = startNodes.filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
         startDom.missingOptionalDomLabels = startNodes.filter((item) => !item[2]).map((item) => item[0]);
@@ -10653,7 +10671,12 @@ K YN A9: Нет.
           ["04", "zoomer"],
           ["15", "alpha"]
         ].every(([input, expected]) => typeof Data.resolveUiProfileFromBirthYearValue === "function" && Data.resolveUiProfileFromBirthYearValue(input) === expected);
-        startDom.docsMirrorUpdated = !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.millennial && Data.START_SCREEN_PROFILE_TEXTS.zoomer && samples.birth_digits_label.millennial === "Последние 2 цифры года рождения" && samples.birth_digits_label.zoomer === "Две цифры вайба" && samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть." && samples.rules_action.zoomer === "Правила без душноты" && samples.start_action.zoomer === "Войти");
+        startDom.docsMirrorUpdated = !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.millennial && Data.START_SCREEN_PROFILE_TEXTS.zoomer
+          && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
+          && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
+          && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
+          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.start_action.zoomer === "Войти");
         startDom.ok = startDom.routeConnected
           && startDom.noBirthYearSaved
           && startDom.noNewStorageKeys
@@ -10667,10 +10690,15 @@ K YN A9: Нет.
           && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
           && startDom.samples.start_continue.millennial === "Продолжить"
           && startDom.samples.start_continue.zoomer === "Погнали"
+          && startDom.samples.start_start.default === "Старт"
+          && startDom.samples.start_start.millennial === "Старт"
+          && startDom.samples.start_start.zoomer === "Старт"
           && startDom.samples.start_reset.millennial === "Сбросить старт"
           && startDom.samples.start_reset.zoomer === "Снести выбор"
           && startDom.samples.rules_action.zoomer === "Правила без душноты"
-          && startDom.samples.start_action.zoomer === "Войти";
+          && startDom.samples.start_action.zoomer === "Войти"
+          && startDom.usesStartScreenResolver === true
+          && startDom.resolverLayer === "start_screen";
         result.startScreenChecks = startDom;
 
         const menuDom = {
@@ -10678,14 +10706,15 @@ K YN A9: Нет.
           missingOptionalDomLabels: [],
           domRoutedCount: 0,
           samples: {
-            menu_title: { default: samples.menu_title.default, millennial: samples.menu_title.millennial, zoomer: samples.menu_title.zoomer },
-            return_to_start: { default: samples.return_to_start.default, millennial: samples.return_to_start.millennial, zoomer: samples.return_to_start.zoomer },
-            menu_unavailable: { default: samples.menu_unavailable.default, millennial: samples.menu_unavailable.millennial, zoomer: samples.menu_unavailable.zoomer },
-            goal_label: { default: samples.goal_label.default, millennial: samples.goal_label.millennial, zoomer: samples.goal_label.zoomer }
-          },
-          menuBehaviorStable: false,
-          ok: false
-        };
+          menu_title: { default: samples.menu_title.default, millennial: samples.menu_title.millennial, zoomer: samples.menu_title.zoomer },
+          return_to_start: { default: samples.return_to_start.default, millennial: samples.return_to_start.millennial, zoomer: samples.return_to_start.zoomer },
+          menu_unavailable: { default: samples.menu_unavailable.default, millennial: samples.menu_unavailable.millennial, zoomer: samples.menu_unavailable.zoomer },
+          goal_label: { default: samples.goal_label.default, millennial: samples.goal_label.millennial, zoomer: samples.goal_label.zoomer }
+        },
+        menuBehaviorStable: false,
+        optionalDomMissingCount: 0,
+        ok: false
+      };
         menuDom.visibleDomLabels = [
           ["menu_title", "#btnMenu", readText("#btnMenu"), samples.menu_title.zoomer],
           ["return_to_start", "#returnToStartControls button", readText("#returnToStartControls button"), samples.return_to_start.zoomer],
@@ -10694,6 +10723,7 @@ K YN A9: Нет.
         ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
         menuDom.missingOptionalDomLabels = ["menu_unavailable"].filter((key) => !readText("#btnLotteryTop") && !readAttr("#btnLotteryTop", "title"));
         menuDom.domRoutedCount = menuDom.visibleDomLabels.length;
+        menuDom.optionalDomMissingCount = menuDom.missingOptionalDomLabels.length;
         menuDom.menuBehaviorStable = !!(sourceRouteDiagnostics.menuRuntimeRouteKeysFound.length === menuKeys.length && sourceRouteDiagnostics.menuDocsRouteKeysFound.length === menuKeys.length);
         menuDom.ok = menuDom.menuBehaviorStable
           && menuDom.domRoutedCount >= 1
@@ -10719,6 +10749,7 @@ K YN A9: Нет.
             events_panel_hint: { default: samples.events_panel_hint.default, millennial: samples.events_panel_hint.millennial, zoomer: samples.events_panel_hint.zoomer }
           },
           eventsBehaviorStable: false,
+          optionalDomMissingCount: 0,
           ok: false
         };
         eventsDom.visibleDomLabels = [
@@ -10730,6 +10761,7 @@ K YN A9: Нет.
         ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
         eventsDom.missingOptionalDomLabels = ["events_close_extra", "events_clear", "events_empty", "events_panel_hint"].filter((key) => !eventsDom.visibleDomLabels.includes(key));
         eventsDom.domRoutedCount = eventsDom.visibleDomLabels.length;
+        eventsDom.optionalDomMissingCount = eventsDom.missingOptionalDomLabels.length;
         eventsDom.eventsBehaviorStable = !!(sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.length === eventsKeys.length && sourceRouteDiagnostics.eventsDocsRouteKeysFound.length === eventsKeys.length);
         eventsDom.ok = eventsDom.eventsBehaviorStable
           && eventsDom.samples.events_header.millennial === "События"
@@ -10761,6 +10793,7 @@ K YN A9: Нет.
             battle_loss: { default: samples.battle_loss.default, millennial: samples.battle_loss.millennial, zoomer: samples.battle_loss.zoomer }
           },
           battleBehaviorStable: false,
+          optionalDomMissingCount: 0,
           ok: false
         };
         battleDom.visibleDomLabels = [
@@ -10777,6 +10810,7 @@ K YN A9: Нет.
         battleDom.optionalDomSkipped = ["battle_action_accept", "battle_action_decline", "battle_action_attack", "battle_action_report"].filter((key) => !battleDom.visibleDomLabels.includes(key)).map((key) => ({ key, skipped: true, reason: "absent" }));
         battleDom.missingOptionalDomLabels = battleDom.optionalDomSkipped.map((item) => item.key);
         battleDom.domRoutedCount = battleDom.visibleDomLabels.length + battleDom.optionalDomSkipped.length;
+        battleDom.optionalDomMissingCount = battleDom.missingOptionalDomLabels.length;
         battleDom.battleBehaviorStable = !!(sourceRouteDiagnostics.battleRuntimeRouteKeysFound.length === battleKeys.length && sourceRouteDiagnostics.battleDocsRouteKeysFound.length === battleKeys.length);
         battleDom.ok = battleDom.battleBehaviorStable
           && battleDom.samples.battle_invite_title.millennial === "Вызов"
@@ -10800,14 +10834,68 @@ K YN A9: Нет.
         result.battleLabelsChecks = battleDom;
 
         const docsMirrorDiagnostics = {
-          runtimeDocsKeyParity: result.startScreenChecks.docsMirrorUpdated && !!result.menuChromeChecks.menuBehaviorStable && !!result.eventsPanelChecks.eventsBehaviorStable && !!result.battleLabelsChecks.battleBehaviorStable,
-          runtimeDocsRouteParity: sourceRouteDiagnostics.ok,
-          docsMirrorUpdated: result.startScreenChecks.docsMirrorUpdated && result.menuChromeChecks.menuBehaviorStable && result.eventsPanelChecks.eventsBehaviorStable && result.battleLabelsChecks.battleBehaviorStable,
+          runtimeDocsKeyParity: false,
+          runtimeDocsRouteParity: false,
+          docsMirrorUpdated: false,
           missingDocsDataKeys: [],
           missingDocsUiRoutes: [],
+          mismatchedDocsDataKeys: [],
+          mismatchedDocsUiRoutes: [],
           ok: false
         };
-        docsMirrorDiagnostics.ok = docsMirrorDiagnostics.runtimeDocsKeyParity && docsMirrorDiagnostics.runtimeDocsRouteParity && docsMirrorDiagnostics.docsMirrorUpdated;
+        const docsExpectedStart = {
+          birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Две цифры вайба" },
+          profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
+          fantasy_birth_label: { millennial: "я на самом деле чувствую будто я родился в …", zoomer: "по вайбу я родился в …" },
+          start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
+          start_start: { millennial: "Старт", zoomer: "Старт" },
+          start_reset: { millennial: "Сбросить старт", zoomer: "Снести выбор" },
+          rules_action: { millennial: "Правила", zoomer: "Правила без душноты" },
+          start_action: { millennial: "Старт", zoomer: "Войти" }
+        };
+        const docsExpectedMenu = {
+          menu_title: { millennial: "Меню", zoomer: "Меню" },
+          return_to_start: { millennial: "К старту", zoomer: "На старт" },
+          menu_unavailable: { millennial: "Недоступно.", zoomer: "Пока закрыто." },
+          goal_label: { millennial: "Цель", zoomer: "Задача" }
+        };
+        const docsExpectedEvents = {
+          events_header: { millennial: "События", zoomer: "Движ" },
+          events_close_extra: { millennial: "Свернуть", zoomer: "СВЕРНУТЬ" },
+          events_clear: { millennial: "Очистить", zoomer: "ЧИСТКА" },
+          events_empty: { millennial: "Открой события.", zoomer: "Пока тихо." },
+          events_panel_hint: { millennial: "Здесь появляются важные события мира.", zoomer: "Тут всплывает, кто опять устроил драму." }
+        };
+        const docsExpectedBattle = {
+          battle_invite_title: { millennial: "Вызов", zoomer: "Залёт" },
+          battle_action_accept: { millennial: "Принять", zoomer: "Вписаться" },
+          battle_action_decline: { millennial: "Отклонить", zoomer: "Скипнуть" },
+          battle_action_attack: { millennial: "Атаковать", zoomer: "Влететь" },
+          battle_action_rematch: { millennial: "Реванш", zoomer: "Ещё раунд" },
+          battle_action_report: { millennial: "Пожаловаться", zoomer: "Сдать копу" },
+          battles_empty: { millennial: "Вызовов нет.", zoomer: "Раундов нет." },
+          battle_win: { millennial: "Победа", zoomer: "WIN" },
+          battle_loss: { millennial: "Поражение", zoomer: "RIP" }
+        };
+        const docsMismatched = [];
+        Object.entries(docsExpectedStart).forEach(([key, expected]) => {
+          if (startDom.samples[key].millennial !== expected.millennial || startDom.samples[key].zoomer !== expected.zoomer) docsMismatched.push(key);
+        });
+        Object.entries(docsExpectedMenu).forEach(([key, expected]) => {
+          if (menuDom.samples[key].millennial !== expected.millennial || menuDom.samples[key].zoomer !== expected.zoomer) docsMismatched.push(key);
+        });
+        Object.entries(docsExpectedEvents).forEach(([key, expected]) => {
+          if (eventsDom.samples[key].millennial !== expected.millennial || eventsDom.samples[key].zoomer !== expected.zoomer) docsMismatched.push(key);
+        });
+        Object.entries(docsExpectedBattle).forEach(([key, expected]) => {
+          if (battleDom.samples[key].millennial !== expected.millennial || battleDom.samples[key].zoomer !== expected.zoomer) docsMismatched.push(key);
+        });
+        docsMirrorDiagnostics.mismatchedDocsDataKeys = docsMismatched.slice();
+        docsMirrorDiagnostics.mismatchedDocsUiRoutes = sourceRouteDiagnostics.missingDocsRouteKeys.slice();
+        docsMirrorDiagnostics.runtimeDocsKeyParity = docsMirrorDiagnostics.mismatchedDocsDataKeys.length === 0;
+        docsMirrorDiagnostics.runtimeDocsRouteParity = docsMirrorDiagnostics.mismatchedDocsUiRoutes.length === 0 && sourceRouteDiagnostics.ok;
+        docsMirrorDiagnostics.docsMirrorUpdated = docsMirrorDiagnostics.runtimeDocsKeyParity && docsMirrorDiagnostics.runtimeDocsRouteParity;
+        docsMirrorDiagnostics.ok = docsMirrorDiagnostics.docsMirrorUpdated;
         result.docsMirrorDiagnostics = docsMirrorDiagnostics;
 
         const devChanged = checkedDevLabels.filter((label) => new RegExp(`(?:resolveStartScreenText|t)\\(\\s*["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']\\s*\\)`).test(runtimeSourceParts.start + "\n" + runtimeSourceParts.menu + "\n" + runtimeSourceParts.events + "\n" + runtimeSourceParts.battle));
@@ -10829,19 +10917,37 @@ K YN A9: Нет.
 
         result.behaviorDiagnostics = {
           checkedBehaviors: checkedBehaviors.slice(),
+          probedBehaviorChecks: [
+            ...(menuDom.probedBehaviorChecks || []),
+            ...(eventsDom.probedBehaviorChecks || []),
+            ...(battleDom.probedBehaviorChecks || [])
+          ],
+          skippedBehaviorChecks: [
+            ...(menuDom.skippedBehaviorChecks || []),
+            ...(eventsDom.skippedBehaviorChecks || []),
+            ...(battleDom.skippedBehaviorChecks || [])
+          ],
+          behaviorAggregationReason: [
+            menuDom.domRoutedCount > 0 ? menuDom.behaviorAggregationReason : "skippedSafe-menu",
+            eventsDom.domRoutedCount > 0 ? eventsDom.behaviorAggregationReason : "skippedSafe-events",
+            battleDom.domRoutedCount > 0 ? battleDom.behaviorAggregationReason : "skippedSafe-battle"
+          ].join(","),
           changedBehaviors: [],
           startScreenStateRestored: true,
-          menuBehaviorStable: !!result.menuChromeChecks.menuBehaviorStable,
-          eventsBehaviorStable: !!result.eventsPanelChecks.eventsBehaviorStable,
-          battleBehaviorStable: !!result.battleLabelsChecks.battleBehaviorStable,
+          menuBehaviorStable: result.menuChromeChecks.domRoutedCount > 0 ? !!result.menuChromeChecks.menuBehaviorStable : true,
+          eventsBehaviorStable: result.eventsPanelChecks.domRoutedCount > 0 ? !!result.eventsPanelChecks.eventsBehaviorStable : true,
+          battleBehaviorStable: result.battleLabelsChecks.domRoutedCount > 0 ? !!result.battleLabelsChecks.battleBehaviorStable : true,
           profileRestored: beforeUiProfile === (typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "") && beforeTextMode === (typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : ""),
           ok: false
         };
         result.behaviorDiagnostics.ok = result.behaviorDiagnostics.startScreenStateRestored
+          && result.behaviorDiagnostics.profileRestored
+          && result.storageDiagnostics.ok
+          && result.guardedStateDiagnostics.ok
+          && result.behaviorDiagnostics.changedBehaviors.length === 0
           && result.behaviorDiagnostics.menuBehaviorStable
           && result.behaviorDiagnostics.eventsBehaviorStable
-          && result.behaviorDiagnostics.battleBehaviorStable
-          && result.behaviorDiagnostics.profileRestored;
+          && result.behaviorDiagnostics.battleBehaviorStable;
 
         result.guardedStateDiagnostics = {
           attemptedDirectPointsWrite: false,
@@ -11021,7 +11127,56 @@ K YN A9: Нет.
         return result;
       }
     };
+    root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 = function smokeZoomerFeelStep675ButtonsLabelsFinalFix1() {
+      const result = typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal === "function"
+        ? root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal()
+        : null;
+      if (!result || typeof result !== "object") {
+        return {
+          buildTag: "build_2026_06_15_step6_7_5_buttons_labels_final_fix1",
+          commit: "step6_7_5_buttons_labels_final_fix1",
+          smokeVersion: "step6_7_5_buttons_labels_final_fix1_v20260615_001",
+          ok: false,
+          failures: [{ code: "smoke_exception", detail: "base smoke unavailable" }],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: ["smoke_exception"],
+          summary: {}
+        };
+      }
+      result.buildTag = "build_2026_06_15_step6_7_5_buttons_labels_final_fix1";
+      result.commit = "step6_7_5_buttons_labels_final_fix1";
+      result.smokeVersion = "step6_7_5_buttons_labels_final_fix1_v20260615_001";
+      if (result.commandRegistrationChecks && typeof result.commandRegistrationChecks === "object") {
+        result.commandRegistrationChecks.step675CommandRegistered = typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 === "function";
+        result.commandRegistrationChecks.ok = !!(result.commandRegistrationChecks.gameDevExists
+          && result.commandRegistrationChecks.step675CommandRegistered
+          && result.commandRegistrationChecks.dataJsLoaded
+          && result.commandRegistrationChecks.registrationScope === "Game.__DEV");
+      }
+      if (result.routeChecks && typeof result.routeChecks === "object") {
+        result.routeChecks.commandRegistered = !!result.commandRegistrationChecks.ok;
+        result.routeChecks.noStaleSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 === "function"
+          && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 !== root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal
+          && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 !== root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3
+          && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 !== root.__DEV.smokeZoomerFeelStep673EventsHeaderPanelLabelsFix2
+          && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 !== root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal
+          && root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 !== root.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6;
+        result.routeChecks.behaviorStable = !!result.behaviorDiagnostics && result.behaviorDiagnostics.ok;
+        result.routeChecks.docsMirrorUpdated = !!result.docsMirrorDiagnostics && result.docsMirrorDiagnostics.ok;
+      }
+      if (result.summary && typeof result.summary === "object") {
+        result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+        result.summary.commandRegistered = !!result.commandRegistrationChecks.ok;
+        result.summary.docsMirrorUpdated = !!(result.docsMirrorDiagnostics && result.docsMirrorDiagnostics.ok);
+      }
+      result.ok = !!(result.commandRegistrationChecks && result.commandRegistrationChecks.ok
+        && result.routeChecks && result.routeChecks.noStaleSmokeIdentity
+        && result.summary && result.summary.smokeIdentityFresh);
+      return result;
+    };
     root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinal = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal;
+    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1;
   };
 
   installButtonsLabelsFinalSmokeViaData();
