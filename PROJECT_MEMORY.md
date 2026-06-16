@@ -6456,3 +6456,9 @@ Error: Download failure, code=1
 - Fix2 adds a fresh smoke identity `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()` with optional DOM skips, helper-aware source pattern recognition, and the same profile-aware battle copy contract.
 - Pending smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()`.
 - Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+## 2026-06-15 — Step 6.7.4 Fix3 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix2 resolved the helper-aware source route detection and optional DOM handling for accept/decline/report, but Safari still failed because `battle_action_attack` was treated as required even when the current safe DOM snapshot did not expose it.
+- Fix3 moves `battle_action_attack` into the optional DOM path when absent, keeps the source checks intact, and adds a fresh smoke identity `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
+- Pending smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
+- Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
