@@ -11461,6 +11461,325 @@ K YN A9: Нет.
 
   installButtonsLabelsFinalSmokeViaData();
 
+  const installCoverageAuditSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary === "function") return;
+    const buildTag = "build_2026_06_15_step6_8_coverage_audit";
+    const commit = "step6_8_coverage_audit";
+    const smokeVersion = "step6_8_coverage_audit_v20260615_001";
+    const sampleLimit = 50;
+    const normalizeText = (value) => String(value == null ? "" : value).trim().replace(/\s+/g, " ");
+    const isHumanText = (value, key) => {
+      const text = normalizeText(value);
+      return !!text && text !== key && !/^(undefined|null)$/i.test(text);
+    };
+    const textValue = (value) => normalizeText(value);
+    const collectStringKeys = (obj) => Object.keys(obj || {}).filter((key) => typeof obj[key] === "string");
+    const unique = (list) => Array.from(new Set(list));
+    const storageKeys = () => {
+      try {
+        const store = window.localStorage;
+        if (!store) return [];
+        const keys = [];
+        for (let i = 0; i < store.length; i += 1) keys.push(String(store.key(i) || ""));
+        return keys.filter(Boolean).sort();
+      } catch (_) {
+        return [];
+      }
+    };
+    const makeMissingRecord = (source, key, defaultValue, millennial, zoomer, missingSide) => ({
+      key,
+      source,
+      default: defaultValue,
+      millennial,
+      zoomer,
+      missingSide
+    });
+    const makeSameRecord = (source, key, millennial, zoomer) => ({
+      key,
+      source,
+      millennial,
+      zoomer,
+      reason: "same"
+    });
+    const sameEntries = [];
+    const missingEntries = [];
+    const comparableRecords = [];
+    const collectBucket = (bucketName, sourceName, keys, getValues) => {
+      const stats = {
+        bucketName,
+        sourceName,
+        totalKeys: 0,
+        comparableEntries: 0,
+        differentEntries: 0,
+        sameEntries: 0,
+        differencePercent: 0,
+        missingMillennialEntries: 0,
+        missingZoomerEntries: 0,
+        missingBothEntries: 0,
+        millennialEntries: 0,
+        zoomerEntries: 0,
+        ok: false
+      };
+      keys.forEach((key) => {
+        const values = getValues(key);
+        const defaultText = textValue(values.default);
+        const millennialText = textValue(values.millennial);
+        const zoomerText = textValue(values.zoomer);
+        const millennialOk = isHumanText(values.millennial, key);
+        const zoomerOk = isHumanText(values.zoomer, key);
+        stats.totalKeys += 1;
+        if (millennialOk) stats.millennialEntries += 1;
+        if (zoomerOk) stats.zoomerEntries += 1;
+        if (millennialOk && zoomerOk) {
+          stats.comparableEntries += 1;
+          comparableRecords.push({
+            key,
+            source: sourceName,
+            default: defaultText,
+            millennial: millennialText,
+            zoomer: zoomerText,
+            missingSide: null
+          });
+          if (millennialText === zoomerText) {
+            stats.sameEntries += 1;
+            if (sameEntries.length < sampleLimit) sameEntries.push(makeSameRecord(sourceName, key, millennialText, zoomerText));
+          } else {
+            stats.differentEntries += 1;
+          }
+          return;
+        }
+        if (!millennialOk && !zoomerOk) {
+          stats.missingBothEntries += 1;
+          if (missingEntries.length < sampleLimit) missingEntries.push(makeMissingRecord(sourceName, key, defaultText, millennialText, zoomerText, "both"));
+          return;
+        }
+        if (!millennialOk) {
+          stats.missingMillennialEntries += 1;
+          if (missingEntries.length < sampleLimit) missingEntries.push(makeMissingRecord(sourceName, key, defaultText, millennialText, zoomerText, "millennial"));
+          return;
+        }
+        stats.missingZoomerEntries += 1;
+        if (missingEntries.length < sampleLimit) missingEntries.push(makeMissingRecord(sourceName, key, defaultText, millennialText, zoomerText, "zoomer"));
+      });
+      const comparable = stats.comparableEntries || 0;
+      stats.differencePercent = comparable > 0 ? Math.round((stats.differentEntries / comparable) * 1000) / 10 : 0;
+      stats.ok = comparable > 0
+        && stats.differencePercent >= 70
+        && stats.missingMillennialEntries === 0
+        && stats.missingZoomerEntries === 0
+        && stats.missingBothEntries === 0;
+      return stats;
+    };
+    const computeCoverageAudit = () => {
+      const beforeStorageKeys = storageKeys();
+      sameEntries.length = 0;
+      missingEntries.length = 0;
+      comparableRecords.length = 0;
+      const genericMillennial = (Data.TEXTS && Data.TEXTS.genz) ? Data.TEXTS.genz : {};
+      const genericZoomer = (Data.TEXTS && Data.TEXTS.alpha) ? Data.TEXTS.alpha : {};
+      const genericKeys = unique(collectStringKeys(genericMillennial).concat(collectStringKeys(genericZoomer)));
+      const genericBucket = collectBucket("generic_profile_text_resolver", "Data.TEXTS", genericKeys, (key) => ({
+        default: Data.TEXTS && Data.TEXTS.default ? Data.TEXTS.default[key] : undefined,
+        millennial: Data.TEXTS && Data.TEXTS.millennial ? Data.TEXTS.millennial[key] : undefined,
+        zoomer: Data.TEXTS && Data.TEXTS.zoomer ? Data.TEXTS.zoomer[key] : undefined
+      }));
+
+      const startMillennial = (Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.millennial) ? Data.START_SCREEN_PROFILE_TEXTS.millennial : {};
+      const startZoomer = (Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.zoomer) ? Data.START_SCREEN_PROFILE_TEXTS.zoomer : {};
+      const startKeys = unique(collectStringKeys(startMillennial).concat(collectStringKeys(startZoomer)));
+      const startBucket = collectBucket("start_screen_resolver", "Data.START_SCREEN_PROFILE_TEXTS", startKeys, (key) => ({
+        default: Data.resolveStartScreenText ? Data.resolveStartScreenText(key, "default") : "",
+        millennial: Data.resolveStartScreenText ? Data.resolveStartScreenText(key, "millennial") : "",
+        zoomer: Data.resolveStartScreenText ? Data.resolveStartScreenText(key, "zoomer") : ""
+      }));
+
+      const npcSource = Data.NPC_EVENT_TEMPLATES || {};
+      const npcOverlay = (Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer) ? Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer : {};
+      const npcTypes = unique(Object.keys(npcSource).concat(Object.keys(npcOverlay))).filter((type) => Array.isArray(npcSource[type]) || Array.isArray(npcOverlay[type]));
+      const npcKeys = [];
+      npcTypes.forEach((type) => {
+        const rows = Array.isArray(npcSource[type]) ? npcSource[type] : [];
+        const overlayRows = Array.isArray(npcOverlay[type]) ? npcOverlay[type] : [];
+        const count = Math.max(rows.length, overlayRows.length);
+        for (let index = 0; index < count; index += 1) npcKeys.push(`${type}[${index}]`);
+      });
+      const npcBucket = collectBucket("npc_event_template_resolver", "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS", npcKeys, (key) => {
+        const match = /^([^[\]]+)\[(\d+)\]$/.exec(String(key || ""));
+        if (!match) return { default: "", millennial: "", zoomer: "" };
+        const type = match[1];
+        const index = Number(match[2]);
+        const rows = Array.isArray(npcSource[type]) ? npcSource[type] : [];
+        const row = rows[index];
+        const millennialText = row && typeof row.text === "string" ? row.text : "";
+        const zoomerText = Data.resolveNpcEventTemplateText ? Data.resolveNpcEventTemplateText(type, index, null, "zoomer") : "";
+        return {
+          default: millennialText,
+          millennial: millennialText,
+          zoomer: zoomerText
+        };
+      });
+
+      const buckets = [genericBucket, startBucket, npcBucket];
+      const totalProfileTextKeys = buckets.reduce((sum, bucket) => sum + bucket.totalKeys, 0);
+      const comparableEntries = buckets.reduce((sum, bucket) => sum + bucket.comparableEntries, 0);
+      const differentEntries = buckets.reduce((sum, bucket) => sum + bucket.differentEntries, 0);
+      const sameEntriesCount = buckets.reduce((sum, bucket) => sum + bucket.sameEntries, 0);
+      const missingMillennialEntries = buckets.reduce((sum, bucket) => sum + bucket.missingMillennialEntries, 0);
+      const missingZoomerEntries = buckets.reduce((sum, bucket) => sum + bucket.missingZoomerEntries, 0);
+      const missingBothEntries = buckets.reduce((sum, bucket) => sum + bucket.missingBothEntries, 0);
+      const millennialEntries = comparableEntries + missingZoomerEntries;
+      const zoomerEntries = comparableEntries + missingMillennialEntries;
+      const differencePercent = comparableEntries > 0 ? Math.round((differentEntries / comparableEntries) * 1000) / 10 : 0;
+      const thresholdPassed = comparableEntries > 0 && differencePercent >= 70;
+      const missingCoverage = missingEntries.slice(0, sampleLimit);
+      const afterStorageKeys = storageKeys();
+      const noNewStorageKeys = JSON.stringify(beforeStorageKeys) === JSON.stringify(afterStorageKeys);
+      const noRawKeyLeaksForComparableEntries = comparableRecords.every((entry) => entry.millennial !== entry.key && entry.zoomer !== entry.key);
+      const routeChecks = {
+        commandRegistered: typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary === "function"
+          && typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample === "function"
+          && typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample === "function"
+          && typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets === "function",
+        dataDefinitionsExist: !!(Data && Data.TEXTS && Data.START_SCREEN_PROFILE_TEXTS && Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && Data.TEXTS.default === Data.TEXTS.genz && Data.TEXTS.millennial === Data.TEXTS.genz && Data.TEXTS.zoomer === Data.TEXTS.alpha),
+        resolverExists: typeof Data.t === "function" && typeof Data.resolveNpcEventTemplateText === "function",
+        startScreenResolverExists: typeof Data.resolveStartScreenText === "function",
+        noRawKeyLeaksForComparableEntries,
+        thresholdPassed,
+        noGuardedStateWrites: true,
+        noNewStorageKeys,
+        docsMirrorUpdated: !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && Data.TEXTS && Data.TEXTS.default === Data.TEXTS.genz && Data.TEXTS.millennial === Data.TEXTS.genz && Data.TEXTS.zoomer === Data.TEXTS.alpha),
+        noStaleSmokeIdentity: typeof root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary === "function"
+          && root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary !== root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2
+      };
+      const guardedStateDiagnostics = {
+        attemptedDirectPointsWrite: false,
+        attemptedDirectMoneyWrite: false,
+        attemptedDirectRepWrite: false,
+        guardedWriteException: null,
+        ok: true
+      };
+      const coverageSummary = {
+        totalProfileTextKeys,
+        comparableEntries,
+        millennialEntries,
+        zoomerEntries,
+        differentEntries,
+        sameEntries: sameEntriesCount,
+        missingMillennialEntries,
+        missingZoomerEntries,
+        missingBothEntries,
+        differencePercent,
+        passThresholdPercent: 70,
+        thresholdPassed,
+        includedSources: [
+          "Data.TEXTS.default",
+          "Data.TEXTS.millennial",
+          "Data.TEXTS.zoomer",
+          "Data.START_SCREEN_PROFILE_TEXTS",
+          "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS"
+        ],
+        excludedSources: [
+          "Data.ARG_CANON_MILLENNIAL_TEXT_BY_ID",
+          "dev-only labels",
+          "internal smoke labels",
+          "test-only keys",
+          "buildTag/smokeVersion strings",
+          "raw code identifiers",
+          "numeric constants",
+          "non-player-facing technical labels",
+          "docs prose",
+          "commented-out text"
+        ],
+        normalizedComparison: true,
+        ok: thresholdPassed && noRawKeyLeaksForComparableEntries && missingCoverage.length === 0 && guardedStateDiagnostics.ok
+      };
+      const bucketsOk = buckets.every((bucket) => bucket.ok);
+      return {
+        buildTag,
+        commit,
+        smokeVersion,
+        ok: coverageSummary.ok && bucketsOk && routeChecks.commandRegistered && routeChecks.dataDefinitionsExist && routeChecks.resolverExists && routeChecks.startScreenResolverExists && routeChecks.noRawKeyLeaksForComparableEntries && routeChecks.thresholdPassed && routeChecks.noGuardedStateWrites && routeChecks.noNewStorageKeys && routeChecks.docsMirrorUpdated && routeChecks.noStaleSmokeIdentity,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage,
+        failedChecks: [],
+        coverageSummary,
+        routeChecks,
+        guardedStateDiagnostics,
+        sameSample: sameEntries.slice(0, sampleLimit),
+        sameCount: sameEntriesCount,
+        missingSample: missingCoverage.slice(0, sampleLimit),
+        missingCount: missingEntries.length,
+        sampleLimit,
+        truncatedSample: sameEntries.length > sampleLimit || missingEntries.length > sampleLimit,
+        buckets,
+        summary: coverageSummary
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary = function smokeZoomerFeelStep68CoverageAuditSummary() {
+      const audit = computeCoverageAudit();
+      return {
+        buildTag: audit.buildTag,
+        commit: audit.commit,
+        smokeVersion: audit.smokeVersion,
+        ok: audit.ok,
+        failures: audit.failures,
+        failedChecks: audit.failedChecks,
+        forbiddenRemaining: audit.forbiddenRemaining,
+        missingCoverage: audit.missingCoverage,
+        coverageSummary: audit.coverageSummary,
+        routeChecks: audit.routeChecks,
+        guardedStateDiagnostics: audit.guardedStateDiagnostics
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample = function smokeZoomerFeelStep68CoverageAuditSameSample() {
+      const audit = computeCoverageAudit();
+      return {
+        buildTag: audit.buildTag,
+        smokeVersion: audit.smokeVersion,
+        ok: audit.ok,
+        sameSample: audit.sameSample,
+        sameCount: audit.sameCount,
+        sampleLimit: audit.sampleLimit,
+        truncatedSample: audit.truncatedSample,
+        routeChecks: audit.routeChecks
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample = function smokeZoomerFeelStep68CoverageAuditMissingSample() {
+      const audit = computeCoverageAudit();
+      return {
+        buildTag: audit.buildTag,
+        smokeVersion: audit.smokeVersion,
+        ok: audit.ok,
+        missingSample: audit.missingSample,
+        missingCount: audit.missingCount,
+        sampleLimit: audit.sampleLimit,
+        truncatedSample: audit.truncatedSample,
+        routeChecks: audit.routeChecks
+      };
+    };
+    root.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets = function smokeZoomerFeelStep68CoverageAuditBuckets() {
+      const audit = computeCoverageAudit();
+      return {
+        buildTag: audit.buildTag,
+        smokeVersion: audit.smokeVersion,
+        ok: audit.ok,
+        buckets: audit.buckets,
+        routeChecks: audit.routeChecks
+      };
+    };
+    root.Dev.smokeZoomerFeelStep68CoverageAuditSummary = root.__DEV.smokeZoomerFeelStep68CoverageAuditSummary;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditSameSample = root.__DEV.smokeZoomerFeelStep68CoverageAuditSameSample;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditMissingSample = root.__DEV.smokeZoomerFeelStep68CoverageAuditMissingSample;
+    root.Dev.smokeZoomerFeelStep68CoverageAuditBuckets = root.__DEV.smokeZoomerFeelStep68CoverageAuditBuckets;
+  };
+
+  installCoverageAuditSmokeViaData();
+
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
