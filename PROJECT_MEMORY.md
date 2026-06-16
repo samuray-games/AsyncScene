@@ -1,10 +1,10 @@
-## 2026-06-15 — Step 6.7.5 Fix1 Buttons & Labels Final Smoke
-- Added the Fix1 cross-group smoke `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1()` to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
-- The Fix1 smoke corrects the start-screen resolver layer for `birth_digits_label`, `profile_helper`, `fantasy_birth_label`, `start_continue`, `start_start`, `start_reset`, `rules_action`, and `start_action`; it also stops treating hidden menu/events/battle panels as failures when they are not currently visible.
-- Explicit docs and behavior parity now rely on mismatch lists plus safe skipped/probed diagnostics instead of stale aggregate booleans.
-- Fresh identity: `build_2026_06_15_step6_7_5_buttons_labels_final_fix1` / `step6_7_5_buttons_labels_final_fix1` / `step6_7_5_buttons_labels_final_fix1_v20260615_001`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1()`.
-- Initial failure cause observed in Safari: the first final smoke used the wrong resolver layer for start-screen keys and had stale aggregation for DOM/panel/docs/behavior checks.
+## 2026-06-15 — Step 6.7.5 Fix2 Buttons & Labels Final Smoke
+- Added the Fix2 cross-group smoke `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()` to the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles.
+- Fix1 solved the start-screen resolver layer issue, but Safari still reported stale aggregate failures when the final smoke trusted live DOM absence too aggressively and when source/docs parity used broad scans instead of PASS sub-smoke facts.
+- Fix2 normalizes the final smoke result from the dedicated PASS sub-smoke facts, marks absent live panel DOM as skipped-safe, and uses explicit mismatch lists for docs/source/behavior parity.
+- Fresh identity: `build_2026_06_15_step6_7_5_buttons_labels_final_fix2` / `step6_7_5_buttons_labels_final_fix2` / `step6_7_5_buttons_labels_final_fix2_v20260615_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2()`.
+- Initial failure cause observed in Safari: the final smoke kept stale aggregate booleans for behavior and docs/source scans instead of reusing the already-PASS sub-smoke facts.
 - Scope held: smoke aggregation plus task/memory updates only; no gameplay logic, no battle generation/outcome logic, no event generation/persistence changes, no economy changes, and no guarded state writes.
 
 ## 2026-06-15 — Step 6.7.4 Fix1 Battle Invite / Action Labels Profile Texts
