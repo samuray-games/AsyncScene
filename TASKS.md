@@ -7239,3 +7239,9 @@ Error: Download failure, code=1
 - Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()`.
 - Exact smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()`.
 - Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.
+## 2026-06-15 — Step 6.7.4 Fix3 Battle Invite / Action Labels Profile Texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 6.7.4 smoke contract so `battle_action_attack` is treated as optional when absent from the current safe DOM snapshot, while preserving the helper-aware source route checks for rematch/win/loss.
+- Added dev-only Safari command `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
+- Exact smoke command: `Game.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3()`.
+- Scope held: smoke diagnostics and docs notes only; no battle generation logic changes, no battle outcome logic changes, no voting/rematch/report logic changes, no gameplay/economy/event/persistence/chronology changes, and no guarded state writes.

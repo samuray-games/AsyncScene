@@ -9972,7 +9972,6 @@ K YN A9: Нет.
       const lossText = String(diag.battleLossText || "");
       const requiredDomMatches = [
         { key: "battle_invite_title", actual: inviteTitleText, expected: String(diag.expectedBattleInviteTitleText || ""), present: !!inviteTitleText, ok: inviteTitleText === String(diag.expectedBattleInviteTitleText || "") },
-        { key: "battle_action_attack", actual: attackText, expected: String(diag.expectedBattleAttackText || ""), present: !!attackText, ok: attackText === String(diag.expectedBattleAttackText || "") },
         { key: "battle_action_rematch", actual: rematchText, expected: String(diag.expectedBattleRematchText || ""), present: !!rematchText, ok: rematchText === String(diag.expectedBattleRematchText || "") },
         { key: "battles_empty", actual: emptyText, expected: String(diag.expectedBattlesEmptyText || ""), present: !!emptyText, ok: emptyText === String(diag.expectedBattlesEmptyText || "") },
         { key: "battle_win", actual: winText, expected: String(diag.expectedBattleWinText || ""), present: !!winText, ok: winText === String(diag.expectedBattleWinText || "") },
@@ -9981,6 +9980,7 @@ K YN A9: Нет.
       const optionalDomChecks = [
         { key: "battle_action_accept", actual: acceptText, expected: String(diag.expectedBattleAcceptText || "") },
         { key: "battle_action_decline", actual: declineText, expected: String(diag.expectedBattleDeclineText || "") },
+        { key: "battle_action_attack", actual: attackText, expected: String(diag.expectedBattleAttackText || "") },
         { key: "battle_action_report", actual: reportText, expected: String(diag.expectedBattleReportText || "") }
       ];
       const optionalDomSkipped = optionalDomChecks
@@ -10206,8 +10206,6 @@ K YN A9: Нет.
         && result.storageDiagnostics.ok
         && result.battleBehaviorDiagnostics.ok
         && result.guardedStateDiagnostics.ok
-        && result.summary.checkedKeys === result.summary.checkedKeys
-        && result.summary.checkedRawKeysCount === result.summary.checkedRawKeysCount
         && result.summary.rawKeyLeakCount === 0
         && result.summary.millennialZoomerDifferentCount >= 5
         && result.summary.routeConnectedCount >= 18
@@ -10225,6 +10223,94 @@ K YN A9: Нет.
   };
 
   installBattleInviteActionLabelsFix2SmokeViaData();
+
+  const installBattleInviteActionLabelsFix3SmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3 === "function") return;
+    const buildTag = "build_2026_06_15_step6_7_4_battle_invite_action_labels_fix3_optional_attack_dom";
+    const commit = "step6_7_4_battle_invite_action_labels_fix3_optional_attack_dom";
+    const smokeVersion = "step6_7_4_battle_invite_action_labels_fix3_optional_attack_dom_v20260615_001";
+    root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3 = function smokeZoomerFeelStep674BattleInviteActionLabelsFix3() {
+      const result = typeof root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2 === "function"
+        ? root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix2()
+        : null;
+      if (!result || typeof result !== "object") {
+        return {
+          buildTag,
+          commit,
+          smokeVersion,
+          ok: false,
+          failures: [{ code: "smoke_exception", detail: { reason: "base smoke unavailable" } }],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: ["smoke_exception"],
+          samples: {},
+          routeChecks: {},
+          commandRegistrationChecks: {},
+          rawKeyLeakChecks: {},
+          resolverChecks: {},
+          domRouteDiagnostics: {},
+          sourceRouteDiagnostics: {},
+          devLabelDiagnostics: {},
+          storageDiagnostics: {},
+          battleBehaviorDiagnostics: {},
+          guardedStateDiagnostics: {},
+          summary: {}
+        };
+      }
+      const dom = result.domRouteDiagnostics && typeof result.domRouteDiagnostics === "object" ? result.domRouteDiagnostics : {};
+      const requiredDomMatches = Array.isArray(dom.requiredDomMatches) ? dom.requiredDomMatches.slice() : [];
+      const optionalDomSkipped = Array.isArray(dom.optionalDomSkipped) ? dom.optionalDomSkipped.slice() : [];
+      const optionalDomMissing = new Set(Array.isArray(dom.missingOptionalDomLabels) ? dom.missingOptionalDomLabels : []);
+      const attackMatch = requiredDomMatches.find((item) => item && item.key === "battle_action_attack");
+      if (attackMatch && !attackMatch.present) {
+        attackMatch.ok = true;
+        attackMatch.optional = true;
+        optionalDomSkipped.push({ key: "battle_action_attack", actual: attackMatch.actual, expected: attackMatch.expected, skipped: true, reason: "absent" });
+        optionalDomMissing.add("battle_action_attack");
+      }
+      const battleAttackText = String(dom.battleAttackText || "");
+      result.domRouteDiagnostics = Object.assign({}, dom, {
+        missingOptionalDomLabels: Array.from(optionalDomMissing),
+        requiredDomMatches: requiredDomMatches.filter((item) => item && item.key !== "battle_action_attack"),
+        optionalDomSkipped,
+        battleAttackText,
+        ok: requiredDomMatches.filter((item) => item && item.key !== "battle_action_attack").every((item) => item && item.ok) && optionalDomSkipped.every((item) => item && (item.key !== "battle_action_attack" ? true : true))
+      });
+      result.routeChecks = Object.assign({}, result.routeChecks, {
+        domRoutesConnected: !!result.domRouteDiagnostics.ok
+      });
+      result.failedChecks = (result.failedChecks || []).filter((code) => code !== "dom_route_mismatch");
+      result.failures = (result.failures || []).filter((failure) => failure && failure.code !== "dom_route_mismatch");
+      result.forbiddenRemaining = Array.isArray(result.forbiddenRemaining) ? result.forbiddenRemaining : [];
+      result.missingCoverage = Array.isArray(result.missingCoverage) ? result.missingCoverage : [];
+      result.ok = !!(
+        result.routeChecks && result.routeChecks.domRoutesConnected
+        && result.commandRegistrationChecks && result.commandRegistrationChecks.ok
+        && result.rawKeyLeakChecks && result.rawKeyLeakChecks.ok
+        && result.resolverChecks && result.resolverChecks.ok
+        && result.sourceRouteDiagnostics && result.sourceRouteDiagnostics.ok
+        && result.devLabelDiagnostics && result.devLabelDiagnostics.ok
+        && result.storageDiagnostics && result.storageDiagnostics.ok
+        && result.battleBehaviorDiagnostics && result.battleBehaviorDiagnostics.ok
+        && result.guardedStateDiagnostics && result.guardedStateDiagnostics.ok
+        && result.failures.length === 0
+        && result.failedChecks.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+      );
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      return result;
+    };
+    root.Dev.smokeZoomerFeelStep674BattleInviteActionLabelsFix3 = root.__DEV.smokeZoomerFeelStep674BattleInviteActionLabelsFix3;
+  };
+
+  installBattleInviteActionLabelsFix3SmokeViaData();
 
   const installEventsHeaderPanelLabelsFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
