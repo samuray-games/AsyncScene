@@ -79,6 +79,26 @@ window.Game = window.Game || {};
       separationRule: Object.freeze([
         "Pace/Tempo must be its own section.",
         "It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections."
+      ]),
+      explanations: Object.freeze([
+        "briefly explain why",
+        "briefly explain what happens next",
+        "one short reason",
+        "one short consequence",
+        "one short next-step hint",
+        "action + reason",
+        "error + reason",
+        "risk + consequence",
+        "result + next step",
+        "explanation is optional, not mandatory",
+        "maximum two short sentences",
+        "no teaching",
+        "no life advice",
+        "no lectures",
+        "no moralizing",
+        "no repetition",
+        "if explanation exceeds two short sentences, classify as lecture",
+        "Explanation section must be separate from Tone, Pace, Risk, Vocabulary, NPC."
       ])
     })
   });
@@ -11846,6 +11866,63 @@ K YN A9: Нет.
   };
 
   installCoverageAuditSmokeViaData();
+
+  const installBoomerDiffStep13ExplanationsSmokeViaData = () => {
+    const root = (typeof window !== "undefined") ? window.Game : Game;
+    if (!root || typeof root !== "object") return;
+    if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
+    if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
+    if (typeof root.__DEV.smokeBoomerDiffStep13ExplanationsOnce === "function") return;
+    const smokeVersion = "step1_3_boomer_explanations_section_v20260616_001";
+    const docText = () => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "UI_PROFILE_BOOMER_DIFF.md", false);
+        xhr.send(null);
+        return String(xhr.status >= 200 && xhr.status < 300 ? xhr.responseText : "");
+      } catch (_) {
+        return "";
+      }
+    };
+    root.__DEV.smokeBoomerDiffStep13ExplanationsOnce = function smokeBoomerDiffStep13ExplanationsOnce() {
+      const doc = docText();
+      const result = {
+        buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || root.__DEV.buildTag || null,
+        commit: (typeof window !== "undefined" && window.__COMMIT__) || root.__DEV.commit || null,
+        smokeVersion,
+        ok: false,
+        docPresent: false,
+        explanationsSectionPresent: false,
+        explainsWhyOrNextStep: false,
+        lectureCapPresent: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
+      result.explanationsSectionPresent = /## EXPLANATIONS[\s\S]*?Purpose:[\s\S]*?briefly explain why[\s\S]*?briefly explain what happens next/.test(doc);
+      result.explainsWhyOrNextStep = doc.includes("briefly explain why") && doc.includes("briefly explain what happens next");
+      result.lectureCapPresent = doc.includes("if explanation exceeds two short sentences, classify as lecture");
+      if (!result.docPresent) fail("doc_missing", null);
+      if (!result.explanationsSectionPresent) fail("explanations_section_missing", null);
+      if (!result.explainsWhyOrNextStep) fail("explain_why_or_next_step_missing", null);
+      if (!result.lectureCapPresent) fail("lecture_cap_missing", null);
+      result.ok = result.docPresent && result.explanationsSectionPresent && result.explainsWhyOrNextStep && result.lectureCapPresent
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    root.Dev.smokeBoomerDiffStep13ExplanationsOnce = root.__DEV.smokeBoomerDiffStep13ExplanationsOnce;
+  };
+
+  installBoomerDiffStep13ExplanationsSmokeViaData();
 
   const installCoverageAuditFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;

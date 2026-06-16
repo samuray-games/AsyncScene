@@ -32,6 +32,38 @@ Separation rule:
 - Pace/Tempo must be its own section.
 - It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections.
 
+## EXPLANATIONS
+
+Purpose:
+- briefly explain why
+- briefly explain what happens next
+
+Allowed:
+- one short reason
+- one short consequence
+- one short next-step hint
+
+Examples of structure:
+- action + reason
+- error + reason
+- risk + consequence
+- result + next step
+
+Rules:
+- explanation is optional, not mandatory
+- maximum two short sentences
+- no teaching
+- no life advice
+- no lectures
+- no moralizing
+- no repetition
+
+Explanation cap:
+- if explanation exceeds two short sentences, classify as lecture
+
+Separation rule:
+- Explanation section must be separate from Tone, Pace, Risk, Vocabulary, NPC.
+
 ## Source delta only
 
 - Base profile = `UI_PROFILE_MILLENNIAL`.
