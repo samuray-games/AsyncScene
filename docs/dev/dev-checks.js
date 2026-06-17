@@ -3416,6 +3416,189 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.smokeVersion.indexOf(String(result.commit || "")) !== -1;
       return result;
     };
+    const smokeZoomerTransformTableStep2Fix6Once = () => {
+      const buildTag = "build_2026_06_17_step2_2_fix6_zoomer_transform_table_v1";
+      const commit = "step2_2_zoomer_transform_table_fix6_v1";
+      const smokeVersion = `step2_2_zoomer_transform_table_fix6_v1_${buildTag}_commit_${commit}`;
+      const cacheBust = "smoke=step2_2_fix6";
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checkedCount: 0,
+        tableExists: false,
+        tableCount: 0,
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: [
+          "AsyncScene/Web/dev/dev-checks.js",
+          "docs/dev/dev-checks.js",
+          "TASKS.md",
+          "PROJECT_MEMORY.md"
+        ],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => normalizeProfileText(value)
+        .replace(/\r\n?/g, "\n")
+        .replace(/[“”]/g, "\"")
+        .replace(/→/g, "->")
+        .replace(/`/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      const expectedRows = [
+        'TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"',
+        'TR_0002 | replace "Возможно, ты потеряешь деньги" -> "Можно потерять деньги"',
+        'TR_0003 | replace "Может быть, толпа поддержит тебя" -> "Толпа может поддержать"',
+        'TR_0004 | replace "Стоит выбрать игрока" -> "Выбери игрока"',
+        'TR_0005 | replace "Стоит проверить цель" -> "Проверь цель"',
+        'TR_0006 | replace "Возможно, действие не сработает" -> "Действие может не сработать"',
+        'TR_0007 | replace "Ты можешь попробовать реванш" -> "Запроси реванш"',
+        'TR_0008 | replace "Есть риск потерять ресурс" -> "Можно потерять ресурс"',
+        'TR_0009 | replace "В этом случае очки могут снизиться" -> "Очки могут упасть"',
+        'TR_0010 | replace "Сейчас лучше подождать" -> "Подожди"',
+        'TR_0011 | replace "Можно попробовать сдать игрока копу" -> "Сдай игрока копу"',
+        'TR_0012 | replace "Вероятно, не хватает денег" -> "Мало денег"',
+        'TR_0013 | replace "Необходимо указать имя игрока" -> "Укажи имя"',
+        'TR_0014 | replace "Следует выбрать аргумент" -> "Выбери аргумент"',
+        'TR_0015 | replace "Возможно, голос уже учтён" -> "Голос уже учтён"'
+      ];
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          try {
+            xhr.setRequestHeader("Cache-Control", "no-store");
+            xhr.setRequestHeader("Pragma", "no-cache");
+          } catch (_) {}
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path, status: xhr.status || 200 };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path, status: xhr.status || 0 };
+        } catch (err) {
+          return { ok: false, reason: err && err.message ? String(err.message) : String(err), path, status: 0 };
+        }
+      };
+      const rootCandidates = (fileName) => [
+        `${fileName}?${cacheBust}`,
+        `./${fileName}?${cacheBust}`,
+        `/AsyncScene/${fileName}?${cacheBust}`
+      ];
+      const fetchArtifact = (label, candidates) => {
+        let last = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          last = res;
+          if (res.ok) {
+            addUnique(result.servedArtifacts, label === "root" ? "UI_PROFILE_ZOOMER_DIFF.md" : "docs/UI_PROFILE_ZOOMER_DIFF.md");
+            return res;
+          }
+        }
+        return last || { ok: false, reason: "unavailable", path: null, status: 0 };
+      };
+      const fetchTextFromCandidates = (fileName) => fetchArtifact(
+        fileName.indexOf("docs/") === 0 ? "docs" : "root",
+        fileName.indexOf("docs/") === 0
+          ? [
+              `${fileName}?${cacheBust}`,
+              `./${fileName}?${cacheBust}`,
+              `/AsyncScene/${fileName}?${cacheBust}`
+            ]
+          : rootCandidates(fileName)
+      );
+      const splitCollapsedRows = (textAfterMarker) => {
+        const normalized = normalize(textAfterMarker);
+        return normalized
+          .split(/(?=TR_\d{4}\s*\|\s*replace\s*")/)
+          .map((row) => row.trim())
+          .filter(Boolean)
+          .map((row) => row.replace(/\s*\|\s*/g, " | ").replace(/\s*->\s*/g, " -> "));
+      };
+      try {
+        const rootRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable", status: rootRes.status || 0 });
+        const rootText = normalize(rootRes.ok ? rootRes.text : "");
+        const markerIndex = rootText.indexOf("UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+        const markerFound = markerIndex >= 0;
+        result.tableExists = markerFound;
+        if (!markerFound) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+          fail("table_exists", {
+            reason: "missing_UI_PROFILE_ZOOMER_TRANSFORM_TABLE",
+            artifactLength: rootText.length,
+            artifactPreview: rootText.slice(0, 500)
+          });
+        } else {
+          const afterMarker = rootText.slice(markerIndex);
+          const parsedRows = splitCollapsedRows(afterMarker);
+          const matchedRows = [];
+          const missingRows = [];
+          expectedRows.forEach((expected) => {
+            if (afterMarker.indexOf(normalize(expected)) >= 0) {
+              matchedRows.push(expected);
+            } else {
+              missingRows.push(expected);
+            }
+          });
+          result.tableCount = matchedRows.length;
+          result.checkedCount = matchedRows.length;
+          if (missingRows.length) {
+            addUnique(result.missingCoverage, "missing_transform_rows");
+            fail("row_exact_match", {
+              foundCount: matchedRows.length,
+              expectedCount: expectedRows.length,
+              missingRows,
+              afterMarkerPreview: afterMarker.slice(0, 500)
+            });
+          }
+          const ids = parsedRows
+            .map((line) => (line.match(/^(TR_\d{4})\s*\|/) || [])[1])
+            .filter(Boolean);
+          const seenIds = new Set();
+          ids.forEach((id) => {
+            if (seenIds.has(id)) fail("duplicate_row_id", id);
+            seenIds.add(id);
+          });
+        }
+        const docsRes = fetchTextFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md");
+        if (docsRes.ok) {
+          addUnique(result.servedArtifacts, docsRes.path || "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          if (docsRes.status === 404 || String(docsRes.reason || "").indexOf("http_404") === 0) {
+            addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          } else if (normalize(rootText) !== normalize(docsRes.text || "")) {
+            addUnique(result.missingCoverage, "root/docs mismatch");
+            fail("doc_copy_mismatch", "UI_PROFILE_ZOOMER_DIFF root_and_docs_copies_differ");
+          }
+        } else if (docsRes.status === 404 || String(docsRes.reason || "").indexOf("http_404") === 0) {
+          addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+        } else {
+          addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.tableExists === true
+        && result.tableCount === expectedRows.length
+        && result.checkedCount === expectedRows.length
+        && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md")
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf("step2_2_zoomer_transform_table_fix6") !== -1
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1;
+      return result;
+    };
     const smokeZProfileDerivationMappingOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -8196,15 +8379,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     devStore.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     devStore.smokeZoomerTransformTableStep2Fix5Once = smokeZoomerTransformTableStep2Fix5Once;
+    devStore.smokeZoomerTransformTableStep2Fix6Once = smokeZoomerTransformTableStep2Fix6Once;
     devStore.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     devStore.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix5Once = smokeZoomerTransformTableStep2Fix5Once;
+    G.__DEV.smokeZoomerTransformTableStep2Fix6Once = smokeZoomerTransformTableStep2Fix6Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
     if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix5Once = smokeZoomerTransformTableStep2Fix5Once;
+    if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix6Once = smokeZoomerTransformTableStep2Fix6Once;
     if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
