@@ -7586,9 +7586,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
+    devStore.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     devStore.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
+    G.__DEV.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
+    if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
