@@ -298,3 +298,79 @@
 | POS_0012 | neutral_context | Сегодня уважение этому персонажу уже было отправлено. |
 
 - No visible UI changes are applied by this contract document.
+
+## Step 2.4 New Feature Coverage
+
+- Contract scope: UI-layer boomer new feature coverage only.
+- Smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep24Once()`
+- buildTag: `build_2026_06_17_step2_4_boomer_new_feature_coverage_v1`
+- commit: `step2_4_boomer_new_feature_coverage_v1`
+- smokeVersion: `step2_4_boomer_new_feature_coverage_v1_v20260617_001`
+
+| id | feature | sourceId | category | surface | millennialText | boomerText | rule |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| NF_0001 | respect | TXT_0035 | respect | system_copy | +1⭐ | Репутация увеличена на +1⭐. | expand reward into explicit reputation consequence |
+| NF_0002 | respect | TXT_0150 | toast | respect_flow | Не хватает 💰. | Не хватает 💰 для выражения уважения. | add feature-specific reason |
+| NF_0003 | respect | TXT_0151 | toast | respect_flow | Уже было уважение сегодня этому персонажу. | Сегодня уважение этому персонажу уже было отправлено. | clarify daily state without blame |
+| NF_0004 | respect | TXT_0152 | toast | respect_flow | Цепочка A->B->A сегодня не работает. | Цепочка A->B->A сегодня не сработает. | keep rule clear and neutral |
+| NF_0005 | respect | TXT_0153 | toast | respect_flow | Лимит уважения на сегодня исчерпан. | Лимит уважения на сегодня уже исчерпан. | add current-day context |
+| NF_0006 | respect | TXT_0154 | toast | respect_flow | Сейчас не получилось. Попробуй позже. | Сейчас действие не получилось, попробуйте позже. | make failure neutral and action-specific |
+| NF_0007 | respect | TXT_0155 | toast | respect_flow | Ты отдал 1💰 | Вы потратили 1💰 на это действие. | state cost and consequence clearly |
+| NF_0008 | respect | TXT_0156 | toast | respect_flow | Цель получила +1 ⭐ | Выбранная цель получила +1 ⭐. | clarify recipient without adding pressure |
+| NF_0009 | p2p | TXT_0048 | p2p | system_copy | {target}: +{amount}💰. | {target} получает перевод: +{amount}💰. | preserve variables and clarify transfer direction |
+| NF_0010 | p2p | TXT_0049 | p2p | system_copy | {target}: +{amount}💰 тебе. | {target} отправил вам +{amount}💰. | preserve variables and clarify incoming transfer |
+| NF_0011 | training | TXT_0040 | training | system_copy | Аргумент: {teacher} → {student}. | Аргумент передан: {teacher} → {student}. | preserve teacher-student direction and add result |
+| NF_0012 | training | TXT_0071 | training | battle | Для {student}: {arg}. Цена {cost} 💰. | Для {student} передаётся аргумент: {arg}. Цена {cost} 💰. | preserve all variables and clarify transfer action |
+| NF_0013 | training | TXT_0072 | training | battle | Аргумент: {teacher} → {student}. | Аргумент передан: {teacher} → {student}. | preserve teacher-student direction and add result |
+| NF_0014 | reports | TXT_0030 | error | system_copy | Штраф: -5 💰. | Будет списан штраф: -5 💰. | state consequence without blame |
+| NF_0015 | reports | TXT_0037 | report | system_copy | Проверяю. | Проверяю ситуацию по фактам. | add calm factual context |
+| NF_0016 | reports | TXT_0038 | report | system_copy | Сдать {name}: +2💰. | Сдать {name}: после проверки можно получить +2💰. | preserve variable and clarify reward condition |
+| NF_0017 | reports | TXT_0039 | report | system_copy | Коп: {name} сдан, +2💰. | Коп принял сдачу {name}, начислено +2💰. | preserve variable and clarify result |
+| NF_0018 | reports | TXT_0079 | cop_flow | cop_templates | Понял. Проверяю. | Понял. Проверю ситуацию по фактам. | add factual check context |
+| NF_0019 | reports | TXT_0080 | cop_flow | cop_templates | Принял. Разберусь. | Принял. Разберусь в ситуации. | add object of action |
+| NF_0020 | reports | TXT_0081 | cop_flow | cop_templates | Занят, связь позже. | Сейчас занят, выйду на связь позже. | make temporary state explicit |
+| NF_0021 | reports | TXT_0082 | cop_flow | cop_templates | Не могу, оформляю дело. | Сейчас не могу ответить, оформляю дело. | clarify current limitation |
+| NF_0022 | reports | TXT_0083 | cop_flow | cop_templates | Проверка сошлась. Вмешался. | Проверка сошлась, поэтому я вмешался. | add explicit cause and consequence |
+| NF_0023 | reports | TXT_0084 | cop_flow | cop_templates | Проверка сошлась. Занялся. | Проверка сошлась, поэтому я занялся ситуацией. | add explicit cause and action |
+| NF_0024 | reports | TXT_0085 | cop_flow | cop_templates | Не подтвердилось. Факты не сошлись. | Сообщение не подтвердилось, факты не сошлись. | clarify what was not confirmed |
+| NF_0025 | reports | TXT_0086 | cop_flow | cop_templates | Проверка займет время. | Проверка займёт немного времени. | soften timing without pressure |
+| NF_0026 | reports | TXT_0110 | notification | cop_templates | {cop.fullName} на связи. | {cop.fullName} на связи и готов принять информацию. | preserve variable and clarify availability |
+| NF_0027 | reports | TXT_0111 | warning | cop_templates | Опасная точка рядом. | Рядом отмечена опасная точка. | make warning factual |
+| NF_0028 | reports | TXT_0112 | notification | cop_templates | Вызов принят, экипаж в пути. | Вызов принят, экипаж уже направляется. | clarify action in progress |
+| NF_0029 | reports | TXT_0113 | notification | cop_templates | Ситуация под контролем. | Ситуация находится под контролем. | use complete neutral phrasing |
+| NF_0030 | reports | TXT_0114 | notification | cop_templates | Принято, наблюдаю. | Информация принята, продолжаю наблюдение. | clarify accepted object and ongoing action |
+| NF_0031 | reports | TXT_0115 | notification | cop_templates | Факт принят, идем дальше. | Факт принят, можно двигаться дальше. | keep progression calm and neutral |
+| NF_0032 | reports | TXT_0116 | notification | cop_templates | Занят расследованием, связь позже. | Сейчас занят расследованием, выйду на связь позже. | make temporary state explicit |
+| NF_0033 | reports | TXT_0117 | notification | cop_templates | Сдача принята — спокойнее. | Сдача принята, ситуация должна стать спокойнее. | state expected consequence without pressure |
+| NF_0034 | reports | TXT_0118 | warning | cop_templates | «Сдать» без фактов — шум. | Сдача без фактов создаёт лишний шум. | explain consequence without scolding |
+| NF_0035 | crowd | TXT_0036 | notification | system_copy | Голос учтён. | Ваш голос принят и учтён. | clarify result of voting |
+| NF_0036 | crowd | TXT_0053 | event | system_events | Толпа: {name} {aVotes}:{bVotes}. | Голосование толпы по {name}: {aVotes}:{bVotes}. | preserve variables and clarify score |
+| NF_0037 | crowd | TXT_0066 | battle | battle_results | Толпа решает | Решение остаётся за толпой | expand compressed label into clear result owner |
+| NF_0038 | crowd | TXT_0091 | menu | alpha_tie | ТОЛПА | РЕШЕНИЕ ТОЛПЫ | clarify menu subject |
+| NF_0039 | crowd | TXT_0092 | button | alpha_tie | ВПИСЫВАЙСЯ | ПРИСОЕДИНИТЬСЯ К ГОЛОСОВАНИЮ | replace slang command with explicit action |
+| NF_0040 | crowd | TXT_0093 | button | alpha_tie | ТЫКНИ ИМЯ | ВЫБЕРИТЕ ИМЯ | replace sharp command with neutral action |
+| NF_0041 | crowd | TXT_0094 | button | alpha_tie | ✓ ОК | ✓ Голос принят | explain confirmation |
+| NF_0042 | crowd | TXT_0095 | button | alpha_tie | ✓ УЖЕ | ✓ Уже голосовали | explain duplicate state |
+| NF_0043 | crowd | TXT_0096 | button | alpha_tie | ✕ НЕ | ✕ Голос не принят | explain failed action |
+| NF_0044 | crowd | TXT_0103 | battle | conflict_results | Ты в мейне. | Вы поддержали сторону большинства. | replace slang with explicit side |
+| NF_0045 | crowd | TXT_0104 | battle | conflict_results | Ты в андере. | Вы поддержали сторону меньшинства. | replace slang with explicit side |
+| NF_0046 | crowd | TXT_0105 | battle | conflict_results | Мейн забрал. | Большинство выиграло голосование. | replace slang result with clear outcome |
+| NF_0047 | crowd | TXT_0106 | battle | conflict_results | Андер просел. | Меньшинство проиграло голосование. | replace slang result with clear outcome |
+| NF_0048 | crowd | TXT_0141 | toast | events_vote_toast | Ты уже проголосовал. | Ваш голос уже был учтён. | state duplicate vote neutrally |
+| NF_0049 | crowd | TXT_0142 | toast | events_vote_toast | Не хватает 💰. | Не хватает 💰 для голосования. | add feature-specific reason |
+| NF_0050 | crowd | TXT_0164 | toast | events_vote | Не хватает 💰. | Не хватает 💰 для голосования. | add feature-specific reason |
+| NF_0051 | npc_vs_npc | TXT_0041 | battle | system_copy | {name} зовёт на реванш. | {name} предлагает реванш после прошлого баттла. | preserve variable and clarify invitation context |
+| NF_0052 | npc_vs_npc | TXT_0050 | battle | system_events | {attackerName} [{attackerInf}] бросил вызов. | {attackerName} [{attackerInf}] начал открытый вызов. | preserve variables and clarify action |
+| NF_0053 | npc_vs_npc | TXT_0051 | battle | system_events | Баттл с {oppName}: {text}. | Баттл с {oppName} завершён: {text}. | preserve variables and clarify result state |
+| NF_0054 | npc_vs_npc | TXT_0052 | battle | system_events | {a} и {b}: ничья. | {a} и {b} завершили спор ничьей. | preserve variables and clarify tie outcome |
+| NF_0055 | npc_vs_npc | TXT_0130 | npc_say | npc_say_toxic_m | слабый ход | это слабый ход | complete the phrase without adding moral pressure |
+| NF_0056 | npc_vs_npc | TXT_0131 | npc_say | npc_say_toxic_m | отвечай сейчас | ответ нужен сейчас | replace direct pressure with situational need |
+| NF_0057 | npc_vs_npc | TXT_0132 | npc_say | npc_say_bandit_m | кошелек ближе | кошелёк сейчас ближе | clarify timing and normalize spelling |
+| NF_0058 | npc_vs_npc | TXT_0133 | npc_say | npc_say_bandit_m | плати и уходи | заплати и спокойно уходи | make exit consequence explicit without extra drama |
+| NF_0059 | npc_vs_npc | TXT_0134 | npc_say | npc_say_cop_m | Принято. Дистанция | Принято. Держим дистанцию. | turn fragment into clear instruction |
+| NF_0060 | npc_vs_npc | TXT_0135 | npc_say | npc_say_mafia_m | Тише | Говорим тише. | make short command calmer |
+| NF_0061 | npc_vs_npc | TXT_0136 | npc_say | npc_say_crowd_m | ого | вот это поворот | expand reaction without drama |
+| NF_0062 | npc_vs_npc | TXT_0137 | npc_dm | npc_dm_profile_cop | Принято. Я рядом. | Принято. Я остаюсь рядом. | clarify supportive state |
+| NF_0063 | npc_vs_npc | TXT_0138 | npc_dm | npc_dm_profile_mafia | Тише. Решим. | Тише. Решим это спокойно. | add calm resolution context |
+| NF_0064 | npc_vs_npc | TXT_0139 | npc_dm | npc_dm_profile_bandit | Кошелек ближе. | Кошелёк сейчас ближе. | clarify timing and normalize spelling |
+| NF_0065 | npc_vs_npc | TXT_0140 | npc_dm | npc_dm_profile_toxic | Слабый ход. | Это слабый ход. | complete the phrase without adding moral pressure |

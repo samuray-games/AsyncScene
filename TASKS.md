@@ -33,6 +33,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionProhibitionsStep23Once()`.
 - Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
 
+## 2026-06-17 — Step 2.4 Boomer New Feature Coverage
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the Step 2.4 `New Feature Coverage` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 65-row coverage table for respect, p2p, training, reports, crowd, and npc_vs_npc.
+- Added dev-only smoke `Game.__DEV.smokeBoomerNewFeatureCoverageStep24Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate exact row coverage, feature counts, required fields, template-variable preservation, empty-text prohibition, and Step 2.3 linter compliance without changing visible UI or gameplay logic.
+- Build tag: `build_2026_06_17_step2_4_boomer_new_feature_coverage_v1`.
+- Commit identity: `step2_4_boomer_new_feature_coverage_v1`.
+- Smoke version: `step2_4_boomer_new_feature_coverage_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep24Once()`.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.2 Boomer Transformation Table
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the Step 2.2 `Transformation Table` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 fixed millennial -> boomer rows for UI, error, risk, and hint surfaces.
