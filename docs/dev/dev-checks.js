@@ -6757,6 +6757,152 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       return result;
     };
     const smokeZoomerTermsOnce = () => smokeZoomerTermsReadyOnce();
+    const smokeAlphaStep12DiffDocumentOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = "alpha_step_1_2_diff_document_v20260617_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        alphaDiffExists: false,
+        docsMirrorExists: false,
+        inheritsFromZoomer: false,
+        deltaOnly: false,
+        requiredRulesFound: [],
+        forbiddenRulesFound: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(`${location.origin}/AsyncScene/`);
+          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/docs/`);
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      let text = "";
+      const markRule = (needle, bucket) => {
+        if (text.includes(needle)) addUnique(result[bucket], needle);
+      };
+      try {
+        const rootRes = fetchFirst("UI_PROFILE_ALPHA_DIFF.md");
+        result.alphaDiffExists = !!rootRes.ok;
+        if (!rootRes.ok) fail("alpha_diff_exists", { path: "UI_PROFILE_ALPHA_DIFF.md", reason: rootRes.reason || "unavailable" });
+        const docsRes = fetchFirst("docs/UI_PROFILE_ALPHA_DIFF.md");
+        result.docsMirrorExists = !!docsRes.ok;
+        if (!docsRes.ok) fail("docs_mirror_exists", { path: "docs/UI_PROFILE_ALPHA_DIFF.md", reason: docsRes.reason || "unavailable" });
+        const rootText = normalize(rootRes.ok ? String(rootRes.text || "") : "");
+        const docsText = normalize(docsRes.ok ? String(docsRes.text || "") : "");
+        text = `${rootText}\n${docsText}`;
+        result.inheritsFromZoomer = /Base profile = `UI_PROFILE_ZOOMER`\.?/i.test(text) && /Alpha inherits from Zoomer\./i.test(text);
+        result.deltaOnly = /delta-only/i.test(text) && /not a separate base profile/i.test(text);
+        [
+          "shorter than Zoomer",
+          "almost no explanations",
+          "action over reason",
+          "fast rhythm",
+          "no infantilism"
+        ].forEach((rule) => markRule(rule, "requiredRulesFound"));
+        [
+          "copying Millennial style",
+          "copying Boomer style",
+          "creating a separate unrelated profile voice",
+          "baby talk",
+          "childish jokes",
+          "fake hype",
+          "over-memeing"
+        ].forEach((rule) => markRule(rule, "forbiddenRulesFound"));
+        if (!result.inheritsFromZoomer) fail("inherits_from_zoomer", "missing explicit Zoomer inheritance");
+        if (!result.deltaOnly) fail("delta_only", "missing delta-only contract");
+        [
+          "Base profile = `UI_PROFILE_ZOOMER`.",
+          "Alpha inherits from Zoomer.",
+          "Alpha is delta-only.",
+          "Alpha is not a separate base profile.",
+          "shorter than Zoomer",
+          "almost no explanations",
+          "action over reason",
+          "fast rhythm",
+          "no infantilism",
+          "## Allowed",
+          "## Forbidden",
+          "copying Millennial style",
+          "copying Boomer style",
+          "creating a separate unrelated profile voice",
+          "baby talk",
+          "childish jokes",
+          "fake hype",
+          "over-memeing"
+        ].forEach((phrase) => {
+          if (!text.includes(phrase)) {
+            addUnique(result.missingCoverage, phrase);
+            fail("required_phrase_missing", phrase);
+          }
+        });
+        if (/Console\.txt/i.test(text)) {
+          addUnique(result.forbiddenRemaining, "console_txt");
+          fail("forbidden_console_txt", "Console.txt reference detected");
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.alphaDiffExists === true
+        && result.docsMirrorExists === true
+        && result.inheritsFromZoomer === true
+        && result.deltaOnly === true
+        && result.requiredRulesFound.length === 5
+        && result.forbiddenRulesFound.length === 7
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -6782,6 +6928,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
+    Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -6797,6 +6944,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeZoomerTermsOnce = smokeZoomerTermsOnce;
     G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     G.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
+    G.__DEV.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -6832,6 +6980,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
+    devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
