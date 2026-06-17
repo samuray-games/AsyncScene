@@ -9,6 +9,9 @@
 ## 2026-06-17 — Step 1.5 Boomer Soft Verbs Section Fix1
 - [1.5] Смягчить глаголы - docs ready, runtime unchanged.
 
+## 2026-06-17 — Step 1.6 Boomer New Feature Surfaces
+- [1.6] Покрыть новые фичи - docs ready, runtime unchanged. Covered surfaces: battle, DM, respect, teach, report, rematch, crowd, timer, NPC events.
+
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Status: documentation-only.
 - Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.
