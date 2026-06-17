@@ -11,8 +11,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
-  const RUNTIME_BUILD_TAG = "build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix3";
-  const RUNTIME_COMMIT = "step2_1_zoomer_shorten_rule_step1_fix3";
+  const RUNTIME_BUILD_TAG = "build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4";
+  const RUNTIME_COMMIT = "step2_1_zoomer_shorten_rule_step1_fix4";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
     ? document.currentScript.src
     : "dev/dev-checks.js";
@@ -2028,7 +2028,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           const res = fetchTextSync(path);
           last = res;
           if (res.ok) {
-            addUnique(result.servedArtifacts, label === "root" ? path : `docs:${path}`);
+            addUnique(result.servedArtifacts, label === "root" ? "UI_PROFILE_ZOOMER_DIFF.md" : "docs/UI_PROFILE_ZOOMER_DIFF.md");
             return res;
           }
         }
@@ -2414,6 +2414,254 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && !!result.commit
         && !!result.smokeVersion
         && result.smokeVersion.indexOf("step2_1_zoomer_shorten_rule_step1_fix3") !== -1
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1;
+      return result;
+    };
+    const smokeZoomerShortenRuleStep1Fix4Once = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step2_1_zoomer_shorten_rule_step1_fix4_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checkedCount: 0,
+        ruleExists: false,
+        matrixCount: 0,
+        variablesPreserved: true,
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: ["UI_PROFILE_ZOOMER_DIFF.md", "docs/UI_PROFILE_ZOOMER_DIFF.md"],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path, status: xhr.status || 200 };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path, status: xhr.status || 0 };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path, status: 0 };
+        }
+      };
+      const rootCandidates = (fileName) => [fileName, `./${fileName}`, `/AsyncScene/${fileName}`];
+      const normalize = (value) => normalizeProfileText(value)
+        .replace(/[`]/g, "")
+        .replace(/[“”]/g, "\"")
+        .replace(/[‘’]/g, "'")
+        .replace(/\u2192/g, "->")
+        .replace(/\s*->\s*/g, " -> ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const extractRuleSection = (artifactText) => {
+        const text = String(artifactText || "");
+        const startMatch = text.match(/^\s*##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE\b/im);
+        if (!startMatch) return null;
+        const startIndex = startMatch.index || 0;
+        const afterStart = text.slice(startIndex);
+        const nextTopLevel = afterStart.slice(1).search(/\n#\s+/m);
+        return nextTopLevel >= 0 ? afterStart.slice(0, nextTopLevel + 1) : afterStart;
+      };
+      const countTxtIds = (text) => (String(text || "").match(/TXT_\d{4}/g) || []).length;
+      const extractTxtId = (text) => {
+        const match = String(text || "").match(/TXT_\d{4}/);
+        return match ? match[0] : null;
+      };
+      const splitPipeCells = (line) => String(line || "")
+        .replace(/^\s*[>*-]+\s*/, "")
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .map((cell) => normalize(cell))
+        .filter((cell) => cell.length > 0);
+      const parsePayload = (text, noteHint) => {
+        const raw = normalize(text);
+        if (!raw) return { before: "", after: "", note: noteHint || "" };
+        const noteMatch = raw.match(/\b(keep|replace)\b/i);
+        const note = noteHint || (noteMatch ? noteMatch[1].toLowerCase() : "");
+        const payload = noteMatch ? raw.slice(noteMatch.index + noteMatch[0].length).trim() : raw;
+        const arrowMatch = payload.match(/^(.*?)(?:\s*->\s*)(.*)$/);
+        if (arrowMatch) {
+          return {
+            before: normalize(arrowMatch[1]),
+            after: normalize(arrowMatch[2]),
+            note
+          };
+        }
+        return {
+          before: normalize(payload),
+          after: note === "keep" ? normalize(payload) : normalize(payload),
+          note
+        };
+      };
+      const parseRowLine = (line) => {
+        const normalized = normalize(line);
+        if (!/TXT_\d{4}/.test(normalized)) return null;
+        const id = extractTxtId(normalized);
+        if (!id) return null;
+        const cleaned = normalized.replace(/^\s*[>*-]+\s*/, "").replace(/^\s*\|/, "").replace(/\|\s*$/, "").trim();
+        const pipeCells = cleaned.includes("|") ? splitPipeCells(cleaned) : [];
+        const pipeIdCellIndex = pipeCells.findIndex((cell) => extractTxtId(cell) === id);
+        if (pipeCells.length >= 2 && pipeIdCellIndex >= 0) {
+          const afterId = pipeCells.filter((cell, idx) => idx !== pipeIdCellIndex);
+          const noteIndex = afterId.findIndex((cell) => /\b(keep|replace)\b/i.test(cell));
+          let note = "";
+          let payloadCells = afterId.slice();
+          if (afterId.length === 1) {
+            const parsed = parsePayload(afterId[0], "");
+            return { id, before: parsed.before, after: parsed.after, note: parsed.note || "" };
+          }
+          if (noteIndex >= 0) {
+            note = /\bkeep\b/i.test(afterId[noteIndex]) ? "keep" : "replace";
+            payloadCells = afterId.slice(0, noteIndex).concat(afterId.slice(noteIndex + 1));
+          }
+          if (payloadCells.length >= 2) {
+            return {
+              id,
+              before: normalize(payloadCells[0]),
+              after: normalize(payloadCells[1]),
+              note
+            };
+          }
+          if (payloadCells.length === 1) {
+            const parsed = parsePayload(payloadCells[0], note);
+            return { id, before: parsed.before, after: parsed.after, note: parsed.note || note };
+          }
+          return null;
+        }
+        const inline = cleaned.match(/^(TXT_\d{4})\s*(?:[:|–—-]\s*)?(.*)$/);
+        if (!inline) return null;
+        const tail = normalize(inline[2] || "");
+        const tailNoteMatch = tail.match(/\b(keep|replace)\b/i);
+        const note = tailNoteMatch ? tailNoteMatch[1].toLowerCase() : "";
+        const payload = tailNoteMatch ? tail.slice(tailNoteMatch.index + tailNoteMatch[0].length).trim() : tail;
+        const parsed = parsePayload(payload, note);
+        return { id, before: parsed.before, after: parsed.after, note: parsed.note || note };
+      };
+      const parseMatrixRows = (sectionText) => {
+        const rows = [];
+        const seen = new Set();
+        String(sectionText || "").split(/\r?\n/).forEach((line) => {
+          const trimmed = String(line || "").trim();
+          if (!trimmed) return;
+          if (/^\|?\s*[-|: ]*\s*$/.test(trimmed)) return;
+          if (/^\|?\s*id\s*\|\s*before\s*\|\s*after\s*\|\s*note\s*\|$/i.test(trimmed)) return;
+          const row = parseRowLine(trimmed);
+          if (!row || !/^TXT_\d{4}$/.test(row.id)) return;
+          if (seen.has(row.id)) {
+            fail("duplicate_row_id", row.id);
+            return;
+          }
+          seen.add(row.id);
+          rows.push(row);
+        });
+        return rows;
+      };
+      const placeholders = (text) => Array.from(String(text || "").matchAll(/\{[^}]+\}/g)).map((match) => match[0]);
+      const fetchArtifact = (label, candidates) => {
+        let last = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          last = res;
+          if (res.ok) {
+            addUnique(result.servedArtifacts, label === "root" ? path : `docs:${path}`);
+            return res;
+          }
+        }
+        return last || { ok: false, reason: "unavailable", path: null, status: 0 };
+      };
+      try {
+        const rootRes = fetchArtifact("root", rootCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
+        if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable", status: rootRes.status || 0 });
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const rootRuleSection = extractRuleSection(rootRaw) || "";
+        const rootRuleMatch = rootRaw.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE\b/i);
+        result.ruleExists = !!rootRuleMatch;
+        if (!rootRuleMatch) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+          fail("rule_exists", "missing_UI_PROFILE_ZOOMER_SHORTEN_RULE");
+        } else {
+          const wholeTxtHits = countTxtIds(rootRaw);
+          const sectionTxtHits = countTxtIds(rootRuleSection);
+          const rows = parseMatrixRows(rootRuleSection);
+          result.matrixCount = rows.length;
+          result.checkedCount = rows.length;
+          if (rows.length === 0) {
+            if (wholeTxtHits > 0 && sectionTxtHits === 0) {
+              addUnique(result.failedChecks, "section_boundary");
+              addUnique(result.missingCoverage, "rule_section_boundary");
+              fail("section_boundary", {
+                txtIdHitsInWholeArtifact: wholeTxtHits,
+                txtIdHitsInRuleSection: sectionTxtHits
+              });
+            }
+            addUnique(result.missingCoverage, "phrase_matrix_rows");
+            fail("matrix_parse", {
+              reason: "rule_exists_but_no_matrix_rows",
+              sectionLength: rootRuleSection.length,
+              sectionPreview: rootRuleSection.slice(0, 500),
+              txtIdHitsInWholeArtifact: wholeTxtHits,
+              txtIdHitsInRuleSection: sectionTxtHits
+            });
+          }
+          rows.forEach((entry) => {
+            if (!entry.id || !entry.before || !entry.after) {
+              fail("row_shape", { id: entry && entry.id ? entry.id : null, entry });
+              return;
+            }
+            const isKeep = entry.before === entry.after;
+            if ((isKeep && entry.note !== "keep") || (!isKeep && entry.note !== "replace")) {
+              fail("keep_marker_required", { id: entry.id, note: entry.note, isKeep });
+            }
+            if (placeholders(entry.before).join("|") !== placeholders(entry.after).join("|")) {
+              result.variablesPreserved = false;
+              fail("variables_preserved", { id: entry.id });
+            }
+          });
+          const docsRes = fetchTextSync("docs/UI_PROFILE_ZOOMER_DIFF.md");
+          if (docsRes.ok) {
+            addUnique(result.servedArtifacts, docsRes.path || "docs/UI_PROFILE_ZOOMER_DIFF.md");
+            const docsRuleSection = extractRuleSection(String(docsRes.text || "")) || "";
+            if (!/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE\b/i.test(String(docsRes.text || ""))) {
+              addUnique(result.missingCoverage, "docs/UI_PROFILE_ZOOMER_SHORTEN_RULE");
+              fail("doc_copy_mismatch", "docs_copy_missing_rule_section");
+            } else if (normalize(rootRuleSection) !== normalize(docsRuleSection)) {
+              addUnique(result.missingCoverage, "root/docs rule mismatch");
+              fail("doc_copy_mismatch", "root_and_docs_rule_section_differ");
+            }
+          } else if (docsRes.status === 404 || String(docsRes.reason || "").indexOf("http_404") === 0) {
+            addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          } else {
+            addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          }
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      if (!result.variablesPreserved) addUnique(result.missingCoverage, "variablesPreserved");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.ruleExists === true
+        && result.variablesPreserved === true
+        && result.matrixCount > 0
+        && result.checkedCount === result.matrixCount
+        && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md")
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf("step2_1_zoomer_shorten_rule_step1_fix4") !== -1
         && result.smokeVersion.indexOf(String(result.commit || "")) !== -1;
       return result;
     };
@@ -6519,6 +6767,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerShortenRuleStep1Fix1Once = smokeZoomerShortenRuleStep1Fix1Once;
     Game.Dev.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     Game.Dev.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
+    Game.Dev.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
@@ -6565,9 +6814,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShortenRuleStep1Fix1Once = smokeZoomerShortenRuleStep1Fix1Once;
     devStore.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     devStore.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
+    devStore.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
+    G.__DEV.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;

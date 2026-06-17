@@ -4,6 +4,15 @@
 - Inventory findings recorded: `UI_PROFILE_ZOOMER_DIFF.md`, `docs/UI_PROFILE_ZOOMER_DIFF.md`, `UI_PROFILE_ZOOMER_FINAL.md`, `docs/UI_PROFILE_ZOOMER_FINAL.md`, `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `AsyncScene/Web/data.js`, `docs/data.js`, `AsyncScene/Web/state.js`, `docs/state.js`.
 - Runtime PASS is not claimed; Safari still has to run `Game.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce()`.
 
+## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix4 Runtime Smoke Exposure
+- Added `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first lookup from Fix 3 and a parser that accepts the real deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` row shapes, including pipe rows, bullets, colons, and inline `keep` / `replace` forms.
+- The smoke normalizes curly quotes, arrows, and backticks, ignores table separators, tracks section boundaries with top-level heading detection, and emits section diagnostics when `matrixCount` is still zero.
+- Recorded the exact Fix 3 runtime issue: `ok:false`, `ruleExists:true`, `matrixCount:0`, `checkedCount:0`, `failedChecks:["matrix_parse"]`, `missingCoverage:["phrase_matrix_rows"]`, `servedArtifacts:["UI_PROFILE_ZOOMER_DIFF.md"]`, `skippedArtifacts:["docs/UI_PROFILE_ZOOMER_DIFF.md"]`.
+- Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4` / `step2_1_zoomer_shorten_rule_step1_fix4`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer dev-smoke exposure only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix3 Runtime Smoke Exposure
 - Exposed `Game.__DEV.smokeZoomerShortenRuleStep1Fix3Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first artifact lookup from Fix 2, explicit `matrix_parse` failure handling, and a 128-row committed-matrix count for `UI_PROFILE_ZOOMER_SHORTEN_RULE`.
 - The smoke returns the required single-object contract, skips `docs/UI_PROFILE_ZOOMER_DIFF.md` safely when it is 404, and does not mutate game state or touch `Console.txt`.
@@ -6632,3 +6641,7 @@ Error: Download failure, code=1
 
 ## 2026-06-17 — Stage 3 Boomer [1.7]
 - Stage 3 Boomer [1.7] adds runtime dev smoke Game.__DEV.smokeBoomerProfileDiffOnce() for the boomer profile diff document. The smoke verifies millennial base profile, document presence, delta-only contract, 39 soft-verb rows, 103 new-feature rows, required surfaces, and absence of officialese/moralizing in boomer-facing replacement text. No visible runtime copy changes.
+## 2026-06-17 — Step 4 Alpha profile, step 1.2 Zoomer delta document
+- Added `UI_PROFILE_ALPHA_DIFF.md` and mirrored `docs/UI_PROFILE_ALPHA_DIFF.md` as a delta-only Alpha document over `UI_PROFILE_ZOOMER`.
+- Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()` in both served dev-check bundles to verify the root doc, docs mirror, explicit Zoomer inheritance, delta-only wording, required Alpha rules, and forbidden style traps.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()`.

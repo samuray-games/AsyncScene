@@ -1,3 +1,12 @@
+## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix4 Runtime Smoke Exposure
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first lookup from Fix 3 and a parser that accepts the real deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` row shapes, including pipe rows, bullets, colons, and inline `keep` / `replace` forms.
+- The smoke now normalizes curly quotes, arrows, and backticks, ignores table separators, tracks section boundaries with top-level heading detection, and emits section diagnostics when `matrixCount` is still zero.
+- Recorded the exact Fix 3 runtime issue: `ok:false`, `ruleExists:true`, `matrixCount:0`, `checkedCount:0`, `failedChecks:["matrix_parse"]`, `missingCoverage:["phrase_matrix_rows"]`, `servedArtifacts:["UI_PROFILE_ZOOMER_DIFF.md"]`, `skippedArtifacts:["docs/UI_PROFILE_ZOOMER_DIFF.md"]`.
+- Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4` / `step2_1_zoomer_shorten_rule_step1_fix4`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()`.
+- Scope held: UI-layer dev-smoke exposure only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix3 Runtime Smoke Exposure
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Exposed `Game.__DEV.smokeZoomerShortenRuleStep1Fix3Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first artifact lookup from Fix 2, explicit `matrix_parse` failure handling, and a 128-row committed-matrix count for `UI_PROFILE_ZOOMER_SHORTEN_RULE`.
@@ -7448,3 +7457,8 @@ Error: Download failure, code=1
 - Documentation-only delta for `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md`.
 - Added the `NEW FEATURE SURFACES` section and the exact new feature coverage table for TXT_0021, TXT_0022, TXT_0023, TXT_0024, TXT_0025, TXT_0026, TXT_0027, TXT_0028, TXT_0029, TXT_0030, TXT_0038, TXT_0039, and TXT_0040.
 - Scope held: docs only; no runtime boomer changes, no `data.js`, no dev-checks, no index, no UI, no gameplay, no state, no system routing, and no `Console.txt` usage.
+## 2026-06-17 — Step 4 Alpha profile, step 1.2 Zoomer delta document
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ALPHA_DIFF.md` and `docs/UI_PROFILE_ALPHA_DIFF.md` as a delta-only Alpha document over `UI_PROFILE_ZOOMER`.
+- Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` to verify the root doc, docs mirror, Zoomer inheritance, delta-only wording, required Alpha rules, and forbidden style traps without changing runtime UI behavior.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()`.
