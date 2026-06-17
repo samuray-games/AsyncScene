@@ -1,11 +1,29 @@
 ## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix4 Runtime Smoke Exposure
-- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Status: Safari/runtime PASS recorded; `ok:true`, `matrixCount:128`, `checkedCount:128`.
 - Added `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first lookup from Fix 3 and a parser that accepts the real deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` row shapes, including pipe rows, bullets, colons, and inline `keep` / `replace` forms.
 - The smoke now normalizes curly quotes, arrows, and backticks, ignores table separators, tracks section boundaries with top-level heading detection, and emits section diagnostics when `matrixCount` is still zero.
 - Recorded the exact Fix 3 runtime issue: `ok:false`, `ruleExists:true`, `matrixCount:0`, `checkedCount:0`, `failedChecks:["matrix_parse"]`, `missingCoverage:["phrase_matrix_rows"]`, `servedArtifacts:["UI_PROFILE_ZOOMER_DIFF.md"]`, `skippedArtifacts:["docs/UI_PROFILE_ZOOMER_DIFF.md"]`.
 - Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4` / `step2_1_zoomer_shorten_rule_step1_fix4`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()`.
+- Safari runtime PASS recorded: `ok:true`, `matrixCount:128`, `checkedCount:128`.
 - Scope held: UI-layer dev-smoke exposure only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
+## 2026-06-17 — Step 2.2 Zoomer Transform Table
+## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
+TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
+TR_0002 | replace "Возможно, ты потеряешь деньги" -> "Можно потерять деньги"
+TR_0003 | replace "Может быть, толпа поддержит тебя" -> "Толпа может поддержать"
+TR_0004 | replace "Стоит выбрать игрока" -> "Выбери игрока"
+TR_0005 | replace "Стоит проверить цель" -> "Проверь цель"
+TR_0006 | replace "Возможно, действие не сработает" -> "Действие может не сработать"
+TR_0007 | replace "Ты можешь попробовать реванш" -> "Запроси реванш"
+TR_0008 | replace "Есть риск потерять ресурс" -> "Можно потерять ресурс"
+TR_0009 | replace "В этом случае очки могут снизиться" -> "Очки могут упасть"
+TR_0010 | replace "Сейчас лучше подождать" -> "Подожди"
+TR_0011 | replace "Можно попробовать сдать игрока копу" -> "Сдай игрока копу"
+TR_0012 | replace "Вероятно, не хватает денег" -> "Мало денег"
+TR_0013 | replace "Необходимо указать имя игрока" -> "Укажи имя"
+TR_0014 | replace "Следует выбрать аргумент" -> "Выбери аргумент"
+TR_0015 | replace "Возможно, голос уже учтён" -> "Голос уже учтён"
 
 ## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix3 Runtime Smoke Exposure
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
