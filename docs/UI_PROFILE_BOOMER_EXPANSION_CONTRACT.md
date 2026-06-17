@@ -254,6 +254,15 @@
   - `полный крах`
   - `трагедия`
   - `конец игры для вас`
+  - `следует.`
+  - `вы обязаны.`
+  - `обязаны.`
+  - `необходимо.`
+  - `надлежит.`
+  - `рекомендуется.`
+  - `запрещается.`
+  - `неправильно.`
+  - `виноваты.`
 
 ### Negative Probes
 
@@ -374,3 +383,36 @@
 | NF_0063 | npc_vs_npc | TXT_0138 | npc_dm | npc_dm_profile_mafia | Тише. Решим. | Тише. Решим это спокойно. | add calm resolution context |
 | NF_0064 | npc_vs_npc | TXT_0139 | npc_dm | npc_dm_profile_bandit | Кошелек ближе. | Кошелёк сейчас ближе. | clarify timing and normalize spelling |
 | NF_0065 | npc_vs_npc | TXT_0140 | npc_dm | npc_dm_profile_toxic | Слабый ход. | Это слабый ход. | complete the phrase without adding moral pressure |
+
+## Step 2.5 Aggregate Expansion Rule Smoke Pack
+
+- Contract scope: UI-layer boomer aggregate expansion rule only.
+- Smoke command: `Game.__DEV.smokeBoomerExpansionRuleOnce()`
+- buildTag: `build_2026_06_17_step2_5_boomer_expansion_rule_v1`
+- commit: `step2_5_boomer_expansion_rule_v1`
+- smokeVersion: `step2_5_boomer_expansion_rule_v1_v20260617_001`
+- Rule probe fields: `id`, `category`, `surface`, `feature`, `sourceText`, `boomerText`, `requiredContextCue`, `requiredConsequenceCue`, `minGrowthPercent`, `maxGrowthPercent`.
+- Growth calculation: normalized text = trim, collapse whitespace to one space. Percent = `((boomerLength - sourceLength) / sourceLength) * 100`. Character length uses normalized code points, and template variables such as `{cost}` are preserved exactly.
+
+| id | category | surface | feature | sourceText | boomerText | requiredContextCue | requiredConsequenceCue | minGrowthPercent | maxGrowthPercent |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| RP_0001 | risk | generic_warning | core_ui | Можно потерять очки | Риск потерять часть очков | часть | Риск | 30 | 50 |
+| RP_0002 | error | wallet | core_ui | Не хватает денег | Не хватает денег на ход | на ход | Не хватает | 30 | 50 |
+| RP_0003 | error | action_state | core_ui | Действие недоступно | Действие сейчас недоступно | сейчас | недоступно | 30 | 50 |
+| RP_0004 | error | cooldown | core_ui | Кулдаун активен | Кулдаун пока активен | пока | активен | 30 | 50 |
+| RP_0005 | crowd | vote_toast | crowd | Голос учтён | Голос уже учтён | уже | учтён | 30 | 50 |
+| RP_0006 | reports | cop_check | reports | Проверка займёт время | Проверка займёт немного времени | немного | займёт | 30 | 50 |
+| RP_0007 | risk | stake | core_ui | Ставка списывает ресурс | Ставка сейчас списывает ресурс | сейчас | списывает | 30 | 50 |
+| RP_0008 | risk | result | core_ui | Итог виден сразу | Итог будет виден сразу | будет | виден | 30 | 50 |
+| RP_0009 | risk | economy_result | core_ui | Цена и итог сразу | Цена и итог видны сразу | видны | итог | 30 | 50 |
+| RP_0010 | risk | rematch | npc_vs_npc | Реванш: -{cost}💰 | Реванш стоит -{cost}💰 | стоит | -{cost}💰 | 30 | 50 |
+| RP_0011 | hint | cop_dm | reports | Ответь: кто участвует | Ответьте, кто участвует сейчас | сейчас | участвует | 30 | 50 |
+| RP_0012 | hint | cop_dm | reports | Ответь где происходит | Ответьте, где это происходит | это | происходит | 30 | 50 |
+| RP_0013 | hint | cop_dm | reports | Ответь: о ком речь | Ответьте, о ком идёт речь | идёт | речь | 30 | 50 |
+| RP_0014 | hint | confirmation | core_ui | Подтверди ответ | Подтвердите этот ответ | этот | ответ | 30 | 50 |
+| RP_0015 | crowd | vote_state | crowd | Уже был голос | Голос уже был учтён | уже | учтён | 30 | 50 |
+| RP_0016 | crowd | vote_cost | core_ui | Не хватает 💰 на ход | Не хватает 💰 для этого хода | для этого | Не хватает | 30 | 50 |
+| RP_0017 | training | argument_transfer | training | Аргумент передан | Аргумент передан игроку | игроку | передан | 30 | 50 |
+| RP_0018 | reports | npc_status | reports | Занят, связь позже | Сейчас занят, связь позже | Сейчас | связь позже | 30 | 50 |
+| RP_0019 | reports | penalty | reports | Штраф: -5 💰 | Штраф будет -5 💰 | будет | -5 💰 | 30 | 50 |
+| RP_0020 | reports | cop_status | core_ui | Ситуация под контролем | Ситуация сейчас под контролем | сейчас | под контролем | 30 | 50 |
