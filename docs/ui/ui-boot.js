@@ -11445,6 +11445,335 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeBoomerExpansionRuleOnce = G.__DEV.smokeBoomerExpansionRuleOnce;
     }
+    if (typeof G.__DEV.smokeBoomerExpansionRuleFix1Once !== "function") {
+      const BOOMER_RULE_FIX1_BUILD_TAG = "build_2026_06_17_step2_5_boomer_expansion_rule_fix1_v1";
+      const BOOMER_RULE_FIX1_COMMIT = "step2_5_boomer_expansion_rule_fix1_v1";
+      const BOOMER_RULE_FIX1_SMOKE_VERSION = "step2_5_boomer_expansion_rule_fix1_v1_v20260617_001";
+      const CONTRACT_DOC_URL = "UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md";
+      const EXPECTED_PRIOR_STEP_COUNT = 4;
+      const EXPECTED_CONTRACT_ENTRY_COUNT = 164;
+      const EXPECTED_TRANSFORMATION_ROW_COUNT = 20;
+      const EXPECTED_FORBIDDEN_COUNT = 52;
+      const EXPECTED_NEGATIVE_PROBE_COUNT = 20;
+      const EXPECTED_POSITIVE_PROBE_COUNT = 12;
+      const EXPECTED_NEW_FEATURE_COVERAGE_ROW_COUNT = 65;
+      const EXPECTED_RULE_PROBE_COUNT = 20;
+      const EXPECTED_RULE_FEATURE_COUNTS = { core_ui: 10, crowd: 2, reports: 6, training: 1, npc_vs_npc: 1 };
+      const EXPECTED_OUTPUT_FEATURE_COUNTS = {
+        respect: 8,
+        p2p: 2,
+        training: 3,
+        reports: 21,
+        crowd: 16,
+        npc_vs_npc: 15,
+      };
+      const FORBIDDEN_PATTERNS = [
+        "следует",
+        "вы обязаны",
+        "обязаны",
+        "необходимо",
+        "надлежит",
+        "рекомендуется",
+        "запрещается",
+        "в соответствии",
+        "данное действие",
+        "осуществить",
+        "произвести",
+        "требуется выполнить",
+        "правилами предусмотрено",
+        "нужно понимать",
+        "вы должны понимать",
+        "вам стоит понять",
+        "запомните",
+        "учитесь",
+        "делайте правильно",
+        "так делать нельзя",
+        "надо было",
+        "в следующий раз думайте",
+        "пора научиться",
+        "вы виноваты",
+        "сам виноват",
+        "сами виноваты",
+        "ошибка игрока",
+        "неправильно",
+        "вы ошиблись",
+        "из-за вас",
+        "по вашей вине",
+        "вы всё испортили",
+        "вы сделали неверно",
+        "катастрофа",
+        "провал полный",
+        "всё пропало",
+        "без шансов",
+        "ужасная ошибка",
+        "фатальная ошибка",
+        "разгром",
+        "полный крах",
+        "трагедия",
+        "конец игры для вас",
+        "следует.",
+        "вы обязаны.",
+        "обязаны.",
+        "необходимо.",
+        "надлежит.",
+        "рекомендуется.",
+        "запрещается.",
+        "неправильно.",
+        "виноваты.",
+      ];
+      const RULE_PROBES = [
+        { id: "RP_0001", category: "risk", surface: "generic_warning", feature: "core_ui", sourceText: "Можно потерять очки", boomerText: "Риск потерять часть очков", requiredContextCue: "часть", requiredConsequenceCue: "Риск", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0002", category: "error", surface: "wallet", feature: "core_ui", sourceText: "Не хватает денег", boomerText: "Не хватает денег на ход", requiredContextCue: "на ход", requiredConsequenceCue: "Не хватает", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0003", category: "error", surface: "action_state", feature: "core_ui", sourceText: "Действие недоступно", boomerText: "Действие сейчас недоступно", requiredContextCue: "сейчас", requiredConsequenceCue: "недоступно", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0004", category: "error", surface: "cooldown", feature: "core_ui", sourceText: "Кулдаун активен", boomerText: "Кулдаун пока активен", requiredContextCue: "пока", requiredConsequenceCue: "активен", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0005", category: "crowd", surface: "vote_toast", feature: "crowd", sourceText: "Голос учтён", boomerText: "Голос уже учтён", requiredContextCue: "уже", requiredConsequenceCue: "учтён", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0006", category: "reports", surface: "cop_check", feature: "reports", sourceText: "Проверка займёт время", boomerText: "Проверка займёт немного времени", requiredContextCue: "немного", requiredConsequenceCue: "займёт", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0007", category: "risk", surface: "stake", feature: "core_ui", sourceText: "Ставка списывает ресурс", boomerText: "Ставка сейчас списывает ресурс", requiredContextCue: "сейчас", requiredConsequenceCue: "списывает", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0008", category: "risk", surface: "result", feature: "core_ui", sourceText: "Итог виден сразу", boomerText: "Итог будет виден сразу", requiredContextCue: "будет", requiredConsequenceCue: "виден", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0009", category: "risk", surface: "economy_result", feature: "core_ui", sourceText: "Цена и итог сразу", boomerText: "Цена и итог видны сразу", requiredContextCue: "видны", requiredConsequenceCue: "итог", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0010", category: "risk", surface: "rematch", feature: "npc_vs_npc", sourceText: "Реванш: -{cost}💰", boomerText: "Реванш стоит -{cost}💰", requiredContextCue: "стоит", requiredConsequenceCue: "-{cost}💰", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0011", category: "hint", surface: "cop_dm", feature: "reports", sourceText: "Ответь: кто участвует", boomerText: "Ответьте, кто участвует сейчас", requiredContextCue: "сейчас", requiredConsequenceCue: "участвует", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0012", category: "hint", surface: "cop_dm", feature: "reports", sourceText: "Ответь где происходит", boomerText: "Ответьте, где это происходит", requiredContextCue: "это", requiredConsequenceCue: "происходит", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0013", category: "hint", surface: "cop_dm", feature: "reports", sourceText: "Ответь: о ком речь", boomerText: "Ответьте, о ком идёт речь", requiredContextCue: "идёт", requiredConsequenceCue: "речь", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0014", category: "hint", surface: "confirmation", feature: "core_ui", sourceText: "Подтверди ответ", boomerText: "Подтвердите этот ответ", requiredContextCue: "этот", requiredConsequenceCue: "ответ", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0015", category: "crowd", surface: "vote_state", feature: "crowd", sourceText: "Уже был голос", boomerText: "Голос уже был учтён", requiredContextCue: "уже", requiredConsequenceCue: "учтён", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0016", category: "crowd", surface: "vote_cost", feature: "core_ui", sourceText: "Не хватает 💰 на ход", boomerText: "Не хватает 💰 для этого хода", requiredContextCue: "для этого", requiredConsequenceCue: "Не хватает", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0017", category: "training", surface: "argument_transfer", feature: "training", sourceText: "Аргумент передан", boomerText: "Аргумент передан игроку", requiredContextCue: "игроку", requiredConsequenceCue: "передан", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0018", category: "reports", surface: "npc_status", feature: "reports", sourceText: "Занят, связь позже", boomerText: "Сейчас занят, связь позже", requiredContextCue: "Сейчас", requiredConsequenceCue: "связь позже", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0019", category: "reports", surface: "penalty", feature: "reports", sourceText: "Штраф: -5 💰", boomerText: "Штраф будет -5 💰", requiredContextCue: "будет", requiredConsequenceCue: "-5 💰", minGrowthPercent: 30, maxGrowthPercent: 50 },
+        { id: "RP_0020", category: "reports", surface: "cop_status", feature: "core_ui", sourceText: "Ситуация под контролем", boomerText: "Ситуация сейчас под контролем", requiredContextCue: "сейчас", requiredConsequenceCue: "под контролем", minGrowthPercent: 30, maxGrowthPercent: 50 },
+      ];
+      const readContractDocText = () => {
+        const urls = [CONTRACT_DOC_URL, `./${CONTRACT_DOC_URL}`];
+        for (const url of urls) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) && typeof xhr.responseText === "string" && xhr.responseText.trim()) {
+              return xhr.responseText;
+            }
+          } catch (_) {}
+        }
+        return "";
+      };
+      const parseRows = (text, prefix, fieldNames) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => new RegExp(`^\\|\\s*${prefix}\\d{4}\\s*\\|`).test(line))
+        .map((line) => {
+          const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+          const row = {};
+          fieldNames.forEach((field, index) => {
+            row[field] = cells[index] || "";
+          });
+          return row;
+        });
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      const normalizeText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+      const normalizedCharLength = (value) => Array.from(normalizeText(value)).length;
+      const lintBoomerText = (value) => {
+        const normalizedValue = normalizeText(value).toLowerCase();
+        const hits = [];
+        FORBIDDEN_PATTERNS.forEach((pattern) => {
+          if (normalizedValue.includes(normalizeText(pattern).toLowerCase()) && hits.indexOf(pattern) < 0) {
+            hits.push(pattern);
+          }
+        });
+        return hits;
+      };
+      G.__DEV.smokeBoomerExpansionRuleFix1Once = function smokeBoomerExpansionRuleFix1Once() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_RULE_FIX1_BUILD_TAG,
+          commit: BOOMER_RULE_FIX1_COMMIT,
+          smokeVersion: BOOMER_RULE_FIX1_SMOKE_VERSION,
+          checkedPriorStepCount: 0,
+          checkedContractEntryCount: 0,
+          checkedTransformationRowCount: 0,
+          checkedForbiddenCount: FORBIDDEN_PATTERNS.length,
+          checkedNegativeProbeCount: 0,
+          checkedPositiveProbeCount: 0,
+          checkedNewFeatureCoverageRowCount: 0,
+          checkedRuleProbeCount: 0,
+          lengthRulePassedCount: 0,
+          contextCuePassedCount: 0,
+          consequenceCuePassedCount: 0,
+          featureCounts: { respect: 0, p2p: 0, training: 0, reports: 0, crowd: 0, npc_vs_npc: 0 },
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        try {
+          const text = readContractDocText();
+          if (!text) {
+            fail("contract_doc_unreadable", { url: CONTRACT_DOC_URL });
+          } else {
+            result.checkedPriorStepCount = EXPECTED_PRIOR_STEP_COUNT;
+            const txtRows = parseRows(text, "TXT_", ["id", "sourceText", "boomerText", "category", "surface", "key", "profile"]);
+            const trRows = parseRows(text, "TR_", ["id", "category", "surface", "millennialText", "boomerText", "rule"]);
+            const negRows = parseRows(text, "NEG_", ["id", "category", "text"]);
+            const posRows = parseRows(text, "POS_", ["id", "category", "text"]);
+            const nfRows = parseRows(text, "NF_", ["id", "feature", "sourceId", "category", "surface", "millennialText", "boomerText", "rule"]);
+            const rpRows = parseRows(text, "RP_", ["id", "category", "surface", "feature", "sourceText", "boomerText", "requiredContextCue", "requiredConsequenceCue", "minGrowthPercent", "maxGrowthPercent"]);
+            result.checkedContractEntryCount = txtRows.length;
+            result.checkedTransformationRowCount = trRows.length;
+            result.checkedNegativeProbeCount = negRows.length;
+            result.checkedPositiveProbeCount = posRows.length;
+            result.checkedNewFeatureCoverageRowCount = nfRows.length;
+            result.checkedRuleProbeCount = rpRows.length;
+
+            if (txtRows.length !== EXPECTED_CONTRACT_ENTRY_COUNT) fail("step21_count_mismatch", { expected: EXPECTED_CONTRACT_ENTRY_COUNT, actual: txtRows.length });
+            if (trRows.length !== EXPECTED_TRANSFORMATION_ROW_COUNT) fail("step22_count_mismatch", { expected: EXPECTED_TRANSFORMATION_ROW_COUNT, actual: trRows.length });
+            if (result.checkedForbiddenCount !== EXPECTED_FORBIDDEN_COUNT) fail("step23_forbidden_count_mismatch", { expected: EXPECTED_FORBIDDEN_COUNT, actual: result.checkedForbiddenCount });
+            if (negRows.length !== EXPECTED_NEGATIVE_PROBE_COUNT) fail("step23_negative_count_mismatch", { expected: EXPECTED_NEGATIVE_PROBE_COUNT, actual: negRows.length });
+            if (posRows.length !== EXPECTED_POSITIVE_PROBE_COUNT) fail("step23_positive_count_mismatch", { expected: EXPECTED_POSITIVE_PROBE_COUNT, actual: posRows.length });
+            if (nfRows.length !== EXPECTED_NEW_FEATURE_COVERAGE_ROW_COUNT) fail("step24_count_mismatch", { expected: EXPECTED_NEW_FEATURE_COVERAGE_ROW_COUNT, actual: nfRows.length });
+            if (rpRows.length !== EXPECTED_RULE_PROBE_COUNT) fail("step25_count_mismatch", { expected: EXPECTED_RULE_PROBE_COUNT, actual: rpRows.length });
+
+            const txtExpectedIds = Array.from({ length: EXPECTED_CONTRACT_ENTRY_COUNT }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+            const trExpectedIds = Array.from({ length: EXPECTED_TRANSFORMATION_ROW_COUNT }, (_, index) => `TR_${String(index + 1).padStart(4, "0")}`);
+            const negExpectedIds = Array.from({ length: EXPECTED_NEGATIVE_PROBE_COUNT }, (_, index) => `NEG_${String(index + 1).padStart(4, "0")}`);
+            const posExpectedIds = Array.from({ length: EXPECTED_POSITIVE_PROBE_COUNT }, (_, index) => `POS_${String(index + 1).padStart(4, "0")}`);
+            const nfExpectedIds = Array.from({ length: EXPECTED_NEW_FEATURE_COVERAGE_ROW_COUNT }, (_, index) => `NF_${String(index + 1).padStart(4, "0")}`);
+
+            const checkIds = (rows, expectedIds, section) => {
+              const seen = new Set();
+              rows.forEach((row, index) => {
+                const expectedId = expectedIds[index] || "";
+                if (row.id !== expectedId) {
+                  fail("id_mismatch", { section, index, expectedId, actual: row.id });
+                }
+                if (seen.has(row.id)) {
+                  fail("duplicate_id", { section, id: row.id, index });
+                }
+                seen.add(row.id);
+              });
+              expectedIds.forEach((id) => {
+                if (!seen.has(id)) {
+                  miss(`${section}:${id}`);
+                  fail("missing_coverage", { section, missingId: id });
+                }
+              });
+            };
+
+            checkIds(txtRows, txtExpectedIds, "step2_1");
+            checkIds(trRows, trExpectedIds, "step2_2");
+            checkIds(negRows, negExpectedIds, "step2_3_negative");
+            checkIds(posRows, posExpectedIds, "step2_3_positive");
+            checkIds(nfRows, nfExpectedIds, "step2_4");
+            checkIds(rpRows, RULE_PROBES.map((row) => row.id), "step2_5");
+
+            txtRows.forEach((row) => {
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_1", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_1", hits });
+              }
+            });
+            trRows.forEach((row) => {
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_2", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_2", hits });
+              }
+            });
+            nfRows.forEach((row) => {
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_4", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_4", hits });
+              }
+            });
+
+            rpRows.forEach((row, index) => {
+              const expected = RULE_PROBES[index];
+              if (!expected) {
+                fail("step25_unexpected_row", { index, row });
+                return;
+              }
+              if (row.id !== expected.id || row.category !== expected.category || row.surface !== expected.surface || row.feature !== expected.feature || row.sourceText !== expected.sourceText || row.boomerText !== expected.boomerText || row.requiredContextCue !== expected.requiredContextCue || row.requiredConsequenceCue !== expected.requiredConsequenceCue) {
+                fail("step25_row_mismatch", { index, expected, actual: row });
+              }
+              const sourceLength = normalizedCharLength(row.sourceText);
+              const boomerLength = normalizedCharLength(row.boomerText);
+              const growthPercent = sourceLength > 0 ? ((boomerLength - sourceLength) / sourceLength) * 100 : 0;
+              const contextHit = normalizeText(row.boomerText).includes(normalizeText(row.requiredContextCue));
+              const consequenceHit = normalizeText(row.boomerText).includes(normalizeText(row.requiredConsequenceCue));
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_5", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_5", hits });
+              }
+              if (growthPercent < row.minGrowthPercent || growthPercent > row.maxGrowthPercent) {
+                fail("length_rule_failed", { id: row.id, sourceLength, boomerLength, growthPercent });
+              } else {
+                result.lengthRulePassedCount += 1;
+              }
+              if (!contextHit) {
+                fail("context_cue_missing", { id: row.id, requiredContextCue: row.requiredContextCue, boomerText: row.boomerText });
+              } else {
+                result.contextCuePassedCount += 1;
+              }
+              if (!consequenceHit) {
+                fail("consequence_cue_missing", { id: row.id, requiredConsequenceCue: row.requiredConsequenceCue, boomerText: row.boomerText });
+              } else {
+                result.consequenceCuePassedCount += 1;
+              }
+              if (row.feature !== "core_ui" && row.feature !== "crowd" && row.feature !== "reports" && row.feature !== "training" && row.feature !== "npc_vs_npc") {
+                fail("step25_feature_mismatch", { id: row.id, feature: row.feature });
+              }
+            });
+
+            nfRows.forEach((row) => {
+              if (!Object.prototype.hasOwnProperty.call(result.featureCounts, row.feature)) {
+                fail("featureCounts", { id: row.id, feature: row.feature });
+              } else {
+                result.featureCounts[row.feature] += 1;
+              }
+            });
+            Object.keys(EXPECTED_OUTPUT_FEATURE_COUNTS).forEach((feature) => {
+              if (result.featureCounts[feature] !== EXPECTED_OUTPUT_FEATURE_COUNTS[feature]) {
+                fail("featureCounts", { feature, expected: EXPECTED_OUTPUT_FEATURE_COUNTS[feature], actual: result.featureCounts[feature] });
+              }
+            });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedPriorStepCount === EXPECTED_PRIOR_STEP_COUNT
+          && result.checkedContractEntryCount === EXPECTED_CONTRACT_ENTRY_COUNT
+          && result.checkedTransformationRowCount === EXPECTED_TRANSFORMATION_ROW_COUNT
+          && result.checkedForbiddenCount === EXPECTED_FORBIDDEN_COUNT
+          && result.checkedNegativeProbeCount === EXPECTED_NEGATIVE_PROBE_COUNT
+          && result.checkedPositiveProbeCount === EXPECTED_POSITIVE_PROBE_COUNT
+          && result.checkedNewFeatureCoverageRowCount === EXPECTED_NEW_FEATURE_COVERAGE_ROW_COUNT
+          && result.checkedRuleProbeCount === EXPECTED_RULE_PROBE_COUNT
+          && result.lengthRulePassedCount === EXPECTED_RULE_PROBE_COUNT
+          && result.contextCuePassedCount === EXPECTED_RULE_PROBE_COUNT
+          && result.consequenceCuePassedCount === EXPECTED_RULE_PROBE_COUNT
+          && result.featureCounts.respect === EXPECTED_OUTPUT_FEATURE_COUNTS.respect
+          && result.featureCounts.p2p === EXPECTED_OUTPUT_FEATURE_COUNTS.p2p
+          && result.featureCounts.training === EXPECTED_OUTPUT_FEATURE_COUNTS.training
+          && result.featureCounts.reports === EXPECTED_OUTPUT_FEATURE_COUNTS.reports
+          && result.featureCounts.crowd === EXPECTED_OUTPUT_FEATURE_COUNTS.crowd
+          && result.featureCounts.npc_vs_npc === EXPECTED_OUTPUT_FEATURE_COUNTS.npc_vs_npc
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerExpansionRuleFix1Once = G.__DEV.smokeBoomerExpansionRuleFix1Once;
+    }
     }
   }
 })();
