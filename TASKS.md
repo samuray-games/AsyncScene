@@ -1,3 +1,13 @@
+## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the Step 2.5 `Aggregate Expansion Rule Smoke Pack` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 rule probes, normalized length window, and cue requirements.
+- Added dev-only smoke `Game.__DEV.smokeBoomerExpansionRuleOnce()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to verify Step 2.1 through Step 2.5 contract counts, Step 2.3 forbidden coverage, Step 2.4 feature counts, and Step 2.5 rule growth/context/consequence checks without changing visible UI or gameplay logic.
+- Build tag: `build_2026_06_17_step2_5_boomer_expansion_rule_v1`.
+- Commit identity: `step2_5_boomer_expansion_rule_v1`.
+- Smoke version: `step2_5_boomer_expansion_rule_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionRuleOnce()`.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix4 Runtime Smoke Exposure
 - Status: Safari/runtime PASS recorded; `ok:true`, `matrixCount:128`, `checkedCount:128`.
 - Added `Game.__DEV.smokeZoomerShortenRuleStep1Fix4Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first lookup from Fix 3 and a parser that accepts the real deployed `UI_PROFILE_ZOOMER_SHORTEN_RULE` row shapes, including pipe rows, bullets, colons, and inline `keep` / `replace` forms.

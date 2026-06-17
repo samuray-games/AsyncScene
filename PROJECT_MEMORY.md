@@ -1,3 +1,14 @@
+## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule
+- Added the Step 2.5 `Aggregate Expansion Rule Smoke Pack` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 rule probes, normalized length rule, and required context/consequence cues.
+- Added dev-only smoke `Game.__DEV.smokeBoomerExpansionRuleOnce()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js`.
+- Smoke pack location: `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md`.
+- Build tag: `build_2026_06_17_step2_5_boomer_expansion_rule_v1`.
+- Commit identity: `step2_5_boomer_expansion_rule_v1`.
+- Smoke version: `step2_5_boomer_expansion_rule_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionRuleOnce()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 4 Alpha profile, step 1.1 Zoomer source inventory
 - Added the step 1.1 inventory note `UI_PROFILE_ALPHA_STEP_1_1_ZOOMER_SOURCE_INVENTORY.md` plus the mirrored `docs/UI_PROFILE_ALPHA_STEP_1_1_ZOOMER_SOURCE_INVENTORY.md`.
 - Added dev-only `Game.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce()` in both served dev-check bundles to report the exact Zoomer source docs, smoke functions, and profile registries found.
