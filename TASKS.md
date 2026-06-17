@@ -4,7 +4,6 @@
 - The smoke now normalizes curly quotes, arrows, and backticks, ignores table separators, tracks section boundaries with top-level heading detection, and emits section diagnostics when `matrixCount` is still zero.
 - Recorded the exact Fix 3 runtime issue: `ok:false`, `ruleExists:true`, `matrixCount:0`, `checkedCount:0`, `failedChecks:["matrix_parse"]`, `missingCoverage:["phrase_matrix_rows"]`, `servedArtifacts:["UI_PROFILE_ZOOMER_DIFF.md"]`, `skippedArtifacts:["docs/UI_PROFILE_ZOOMER_DIFF.md"]`.
 - Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4` / `step2_1_zoomer_shorten_rule_step1_fix4`.
-- Safari runtime PASS recorded: `ok:true`, `matrixCount:128`, `checkedCount:128`.
 - Scope held: UI-layer dev-smoke exposure only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
 
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table
