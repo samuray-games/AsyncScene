@@ -1366,6 +1366,63 @@ Stage 3 Boomer [1.6] documents new-feature surface coverage only. Covered surfac
 
 ## 2026-06-05 — Step 4 [7] normalize dependency fix only
 - `Game.__DEV.smokeZoomerNewFeaturesTermsOnce()` was still failing in Safari with `Can't find variable: normalize` because the smoke called `normalize(...)` without defining it in its own local scope.
+## 2026-06-18 — Step 2.4 Zoomer UI Copy Step 4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4` to `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` with the exact 43-row coverage matrix below.
+- Added dev-only smoke `Game.__DEV.smokeZoomerNewFeatureShortenStep4Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step2_4_zoomer_new_feature_shorten_v1`.
+- Commit identity: `step2_4_zoomer_new_feature_shorten_v1`.
+- Smoke version: `step2_4_zoomer_new_feature_shorten_v1_build_2026_06_18_step2_4_zoomer_new_feature_shorten_v1_commit_step2_4_zoomer_new_feature_shorten_v1`.
+- Step 2.3 Safari pass recorded: `ok:true`, `appliedCount:79`, `checkedCount:79`, `shorterCount:79`, `meaningPreserved:true`, `variablesPreserved:true`, `excludedRowsUntouched:true`.
+
+### Coverage Matrix
+
+```text
+NF_0001 | economy | TXT_0108 | before "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐." -> after "Лимит ⭐. Пополни 💰 для ⭐." | status applied_step3
+NF_0002 | economy | TXT_0109 | before "Cap: max Points на этой неделе. Используйте, пока не сбросили cap." -> after "Cap Points. Трать до сброса." | status applied_step3
+NF_0003 | economy | TXT_0142 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0004 | economy | TXT_0149 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0005 | economy | TXT_0150 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0006 | economy | TXT_0155 | before "Ты отдал 1💰" -> after "-1💰" | status applied_step3
+NF_0007 | economy | TXT_0156 | before "Цель получила +1 ⭐" -> after "Цель: +1⭐" | status applied_step3
+NF_0008 | economy | TXT_0164 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0009 | actions | TXT_0016 | before "Продолжить" -> after "Дальше" | status applied_step3
+NF_0010 | actions | TXT_0018 | before "Сбросить старт" -> after "Сбросить" | status applied_step3
+NF_0011 | actions | TXT_0020 | before "Снести выбор" -> after "Сбросить" | status applied_step3
+NF_0012 | actions | TXT_0042 | before "Свалить за 1💰." -> after "Свалить: 1💰." | status applied_step3
+NF_0013 | actions | TXT_0143 | before "Реванш уже запрошен." -> after "Реванш уже ждёт." | status applied_step3
+NF_0014 | actions | TXT_0144 | before "Недоступно. Баттл не завершён." -> after "Баттл не завершён." | status applied_step3
+NF_0015 | actions | TXT_0148 | before "Кулдаун активен." -> after "Кулдаун идёт." | status applied_step3
+NF_0016 | actions | TXT_0151 | before "Уже было уважение сегодня этому персонажу." -> after "Уже уважал сегодня." | status applied_step3
+NF_0017 | actions | TXT_0152 | before "Цепочка A->B->A сегодня не работает." -> after "A->B->A сегодня закрыта." | status applied_step3
+NF_0018 | actions | TXT_0153 | before "Лимит уважения на сегодня исчерпан." -> after "Лимит уважения исчерпан." | status applied_step3
+NF_0019 | actions | TXT_0154 | before "Сейчас не получилось. Попробуй позже." -> after "Не вышло. Позже." | status applied_step3
+NF_0020 | actions | TXT_0160 | before "Рано. Дай паузу." -> after "Рано. Пауза." | status applied_step3
+NF_0021 | npc_speech | TXT_0130 | keep "слабый ход" | status already_short
+NF_0022 | npc_speech | TXT_0131 | keep "отвечай сейчас" | status already_short
+NF_0023 | npc_speech | TXT_0132 | keep "кошелек ближе" | status already_short
+NF_0024 | npc_speech | TXT_0133 | keep "плати и уходи" | status already_short
+NF_0025 | npc_speech | TXT_0134 | keep "Принято. Дистанция" | status already_short
+NF_0026 | npc_speech | TXT_0135 | keep "Тише" | status already_short
+NF_0027 | npc_speech | TXT_0136 | keep "ого" | status already_short
+NF_0028 | npc_speech | TXT_0137 | keep "Принято. Я рядом." | status already_short
+NF_0029 | npc_speech | TXT_0138 | keep "Тише. Решим." | status already_short
+NF_0030 | npc_speech | TXT_0139 | keep "Кошелек ближе." | status already_short
+NF_0031 | npc_speech | TXT_0140 | keep "Слабый ход." | status already_short
+NF_0032 | system_copy | TXT_0111 | before "Опасная точка рядом." -> after "Риск рядом." | status applied_step3
+NF_0033 | system_copy | TXT_0112 | before "Вызов принят, экипаж в пути." -> after "Вызов принят. Едем." | status applied_step3
+NF_0034 | system_copy | TXT_0113 | before "Ситуация под контролем." -> after "Контролируем." | status applied_step3
+NF_0035 | system_copy | TXT_0114 | before "Принято, наблюдаю." -> after "Принято. Смотрю." | status applied_step3
+NF_0036 | system_copy | TXT_0115 | before "Факт принят, идем дальше." -> after "Факт принят. Идём." | status applied_step3
+NF_0037 | system_copy | TXT_0116 | before "Занят расследованием, связь позже." -> after "Занят. Связь позже." | status applied_step3
+NF_0038 | action_honesty | TXT_0003 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0039 | action_honesty | TXT_0004 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+NF_0040 | action_honesty | TXT_0005 | keep "Итог виден сразу." | status already_short
+NF_0041 | action_honesty | TXT_0006 | keep "Цена и итог сразу." | status already_short
+NF_0042 | action_honesty | TXT_0057 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+```
+
 - Fixed only the Step 4 [7] smoke in both served dev-check bundles by defining a self-contained local `normalize` helper inside the smoke. No external helper dependency was introduced and no terminology or behavior checks were changed.
 - Refreshed the served runtime identity markers in `AsyncScene/Web/index.html`, `docs/index.html`, `AsyncScene/Web/dev/dev-checks.js`, and `docs/dev/dev-checks.js` to `build_2026_06_05_an` / `cc85e22`, matching the current short git hash.
 - Scope held: no terminology changes, no UI text changes, no gameplay changes, no economy changes, and no `Console.txt` usage.

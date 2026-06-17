@@ -44,6 +44,66 @@ Each listed feature is covered by the zoomer terminology profile and keeps the s
 - escape: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
 - rematch: covered by the zoomer terminology profile, using existing millennial meaning + zoomer delta.
 
+## UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4
+
+### economy
+
+NF_0001 | economy | TXT_0108 | before "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐." -> after "Лимит ⭐. Пополни 💰 для ⭐." | status applied_step3
+NF_0002 | economy | TXT_0109 | before "Cap: max Points на этой неделе. Используйте, пока не сбросили cap." -> after "Cap Points. Трать до сброса." | status applied_step3
+NF_0003 | economy | TXT_0142 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0004 | economy | TXT_0149 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0005 | economy | TXT_0150 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0006 | economy | TXT_0155 | before "Ты отдал 1💰" -> after "-1💰" | status applied_step3
+NF_0007 | economy | TXT_0156 | before "Цель получила +1 ⭐" -> after "Цель: +1⭐" | status applied_step3
+NF_0008 | economy | TXT_0164 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+
+### actions
+
+NF_0009 | actions | TXT_0016 | before "Продолжить" -> after "Дальше" | status applied_step3
+NF_0010 | actions | TXT_0018 | before "Сбросить старт" -> after "Сбросить" | status applied_step3
+NF_0011 | actions | TXT_0020 | before "Снести выбор" -> after "Сбросить" | status applied_step3
+NF_0012 | actions | TXT_0042 | before "Свалить за 1💰." -> after "Свалить: 1💰." | status applied_step3
+NF_0013 | actions | TXT_0143 | before "Реванш уже запрошен." -> after "Реванш уже ждёт." | status applied_step3
+NF_0014 | actions | TXT_0144 | before "Недоступно. Баттл не завершён." -> after "Баттл не завершён." | status applied_step3
+NF_0015 | actions | TXT_0148 | before "Кулдаун активен." -> after "Кулдаун идёт." | status applied_step3
+NF_0016 | actions | TXT_0151 | before "Уже было уважение сегодня этому персонажу." -> after "Уже уважал сегодня." | status applied_step3
+NF_0017 | actions | TXT_0152 | before "Цепочка A->B->A сегодня не работает." -> after "A->B->A сегодня закрыта." | status applied_step3
+NF_0018 | actions | TXT_0153 | before "Лимит уважения на сегодня исчерпан." -> after "Лимит уважения исчерпан." | status applied_step3
+NF_0019 | actions | TXT_0154 | before "Сейчас не получилось. Попробуй позже." -> after "Не вышло. Позже." | status applied_step3
+NF_0020 | actions | TXT_0160 | before "Рано. Дай паузу." -> after "Рано. Пауза." | status applied_step3
+
+### npc_speech
+
+NF_0021 | npc_speech | TXT_0130 | keep "слабый ход" | status already_short
+NF_0022 | npc_speech | TXT_0131 | keep "отвечай сейчас" | status already_short
+NF_0023 | npc_speech | TXT_0132 | keep "кошелек ближе" | status already_short
+NF_0024 | npc_speech | TXT_0133 | keep "плати и уходи" | status already_short
+NF_0025 | npc_speech | TXT_0134 | keep "Принято. Дистанция" | status already_short
+NF_0026 | npc_speech | TXT_0135 | keep "Тише" | status already_short
+NF_0027 | npc_speech | TXT_0136 | keep "ого" | status already_short
+NF_0028 | npc_speech | TXT_0137 | keep "Принято. Я рядом." | status already_short
+NF_0029 | npc_speech | TXT_0138 | keep "Тише. Решим." | status already_short
+NF_0030 | npc_speech | TXT_0139 | keep "Кошелек ближе." | status already_short
+NF_0031 | npc_speech | TXT_0140 | keep "Слабый ход." | status already_short
+
+### SystemCopy
+
+NF_0032 | system_copy | TXT_0111 | before "Опасная точка рядом." -> after "Риск рядом." | status applied_step3
+NF_0033 | system_copy | TXT_0112 | before "Вызов принят, экипаж в пути." -> after "Вызов принят. Едем." | status applied_step3
+NF_0034 | system_copy | TXT_0113 | before "Ситуация под контролем." -> after "Контролируем." | status applied_step3
+NF_0035 | system_copy | TXT_0114 | before "Принято, наблюдаю." -> after "Принято. Смотрю." | status applied_step3
+NF_0036 | system_copy | TXT_0115 | before "Факт принят, идем дальше." -> after "Факт принят. Идём." | status applied_step3
+NF_0037 | system_copy | TXT_0116 | before "Занят расследованием, связь позже." -> after "Занят. Связь позже." | status applied_step3
+
+### action_honesty
+
+NF_0038 | action_honesty | TXT_0003 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0039 | action_honesty | TXT_0004 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+NF_0040 | action_honesty | TXT_0005 | keep "Итог виден сразу." | status already_short
+NF_0041 | action_honesty | TXT_0006 | keep "Цена и итог сразу." | status already_short
+NF_0042 | action_honesty | TXT_0057 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+
 ## UI_PROFILE_ZOOMER_SHORTEN_RULE
 
 - From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by 30-40%. Keep original meaning and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
