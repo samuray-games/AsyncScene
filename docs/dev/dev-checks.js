@@ -7376,6 +7376,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         "docs/ui/ui-menu.js"
       ]);
       const result = { ok: false, buildTag, commit, smokeVersion, ruleExists: false, tableExists: false, docsMirrorExists: false, entryCount: 0, expectedEntryCount, allExactEntriesPresent: false, noRuntimeFilesChanged: false, measurableRuleFound: false, compressionChecked: false, atomicExceptionsChecked: false, templateVariablesPreserved: false, failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+      result.tablePathChecked = null;
+      result.docsPathChecked = null;
+      result.jsPathChecked = null;
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
@@ -7454,14 +7457,17 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const rowMatches = (actual, expected) => actual && expected && actual.id === expected.id && actual.oldText === expected.oldText && actual.alphaText === expected.alphaText && actual.sourceFile === expected.sourceFile && Number(actual.sourceLine) === Number(expected.sourceLine) && actual.key === expected.key && actual.category === expected.category && actual.profile === expected.profile && actual.measurementClass === expected.measurementClass;
       try {
         const rootDocRes = fetchFirst("UI_PROFILE_ALPHA_LENGTH_RULES.md");
-        const docsDocRes = fetchFirst("docs/UI_PROFILE_ALPHA_LENGTH_RULES.md");
-        const rootJsRes = fetchFirst("AsyncScene/Web/ui/ui-profile-alpha-length-rules.js");
-        const docsJsRes = fetchFirst("docs/ui/ui-profile-alpha-length-rules.js");
+        const docsDocRes = fetchFirst("UI_PROFILE_ALPHA_LENGTH_RULES.md");
+        const rootJsRes = fetchFirst("ui/ui-profile-alpha-length-rules.js");
+        const docsJsRes = fetchFirst("ui/ui-profile-alpha-length-rules.js");
         result.ruleExists = !!rootDocRes.ok;
         result.tableExists = !!rootJsRes.ok;
         result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsPathChecked = docsDocRes && docsDocRes.path ? docsDocRes.path : null;
+        result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : null;
+        result.jsPathChecked = docsJsRes && docsJsRes.path ? docsJsRes.path : null;
         if (!rootDocRes.ok) fail("rule_exists", { path: "UI_PROFILE_ALPHA_LENGTH_RULES.md", reason: rootDocRes.reason || "unavailable" });
-        if (!rootJsRes.ok) fail("table_exists", { path: "AsyncScene/Web/ui/ui-profile-alpha-length-rules.js", reason: rootJsRes.reason || "unavailable" });
+        if (!rootJsRes.ok) fail("table_exists", { path: "ui/ui-profile-alpha-length-rules.js", reason: rootJsRes.reason || "unavailable" });
         if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
         const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
         const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
@@ -7516,6 +7522,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.noRuntimeFilesChanged === true && result.measurableRuleFound === true && result.compressionChecked === true && result.atomicExceptionsChecked === true && result.templateVariablesPreserved === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaStep13LengthRulesFix1 = () => {
+      const result = smokeAlphaStep13LengthRulesOnce();
+      result.buildTag = "build_2026_06_17_step4_alpha_profile_step1_3_fix1_v1";
+      result.commit = "step4_alpha_profile_step1_3_fix1_v1";
+      result.smokeVersion = "alpha_step_1_3_fix1_v20260617_001";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -7546,6 +7559,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     Game.Dev.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
+    Game.Dev.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     Game.Dev.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
@@ -7565,6 +7579,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     G.__DEV.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     G.__DEV.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
+    G.__DEV.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     G.__DEV.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
@@ -7611,6 +7626,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     devStore.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
+    devStore.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     devStore.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
