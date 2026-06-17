@@ -6,6 +6,14 @@
 - Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix4` / `step2_1_zoomer_shorten_rule_step1_fix4`.
 - Scope held: UI-layer dev-smoke exposure only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
 
+## 2026-06-17 — Step 2.2 Zoomer Transform Table Fix 1
+- Runtime issue: `smoke_exception`, `Can't find variable: fetchTextFromCandidates`.
+- Added `Game.__DEV.smokeZoomerTransformTableStep2Fix1Once()` with a self-contained deployed-safe root-first lookup that does not depend on `fetchTextFromCandidates` being in scope.
+- Fix scope: smoke helper only; the 15-row transform table was not changed.
+- Fresh identity: `build_2026_06_17_step2_2_fix1_zoomer_transform_table_v1` / `step2_2_zoomer_transform_table_fix1_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix1Once()`.
+- Scope held: helper wiring only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table
 ## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
 TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
