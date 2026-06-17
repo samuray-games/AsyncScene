@@ -4473,29 +4473,29 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         result.variablesPreserved = placeholderFailures.length === 0;
         if (!result.variablesPreserved) fail("variables_preserved", placeholderFailures);
         const forbiddenPatterns = [
-          { rule: "Погнали", re: /Погнали/ },
-          { rule: "Снести", re: /Снести/ },
+          { rule: "Погнали", re: /\bПогнали\b/ },
+          { rule: "Снести", re: /\bСнести\b/ },
           { rule: "без душноты", re: /без душноты/i },
-          { rule: "Свалить", re: /Свалить/ },
-          { rule: "свалить", re: /свалить/ },
-          { rule: "Кулдаун", re: /Кулдаун/ },
-          { rule: "мейн", re: /мейн/ },
-          { rule: "андер", re: /андер/ },
-          { rule: "вывез", re: /вывез/ },
-          { rule: "Не вывез", re: /Не вывез/ },
-          { rule: "Драма", re: /Драма/ },
+          { rule: "Свалить", re: /\bСвалить\b/ },
+          { rule: "свалить", re: /\bсвалить\b/ },
+          { rule: "Кулдаун", re: /\bКулдаун\b/ },
+          { rule: "мейн", re: /\bмейн\b/ },
+          { rule: "андер", re: /\bандер\b/ },
+          { rule: "вывез", re: /\bвывез\b/ },
+          { rule: "Не вывез", re: /\bНе вывез\b/ },
+          { rule: "Драма", re: /\bДрама\b/ },
           { rule: "RIP", re: /\bRIP\b/ },
           { rule: "WIN", re: /\bWIN\b/ },
           { rule: "DRAW", re: /\bDRAW\b/ },
-          { rule: "ого", re: /ого/ },
-          { rule: "тыкни", re: /тыкни/ },
-          { rule: "вписывайся", re: /вписывайся/ },
-          { rule: "Дай паузу", re: /Дай паузу/ },
-          { rule: "Такого нет", re: /Такого нет/ },
-          { rule: "Попробуй", re: /Попробуй/ },
-          { rule: "Ты ", re: /Ты\s/ },
-          { rule: "тебе", re: /тебе/ },
-          { rule: "ник", re: /ник/ },
+          { rule: "ого", re: /\bого\b/ },
+          { rule: "тыкни", re: /\bтыкни\b/ },
+          { rule: "вписывайся", re: /\bвписывайся\b/ },
+          { rule: "Дай паузу", re: /\bДай паузу\b/ },
+          { rule: "Такого нет", re: /\bТакого нет\b/ },
+          { rule: "Попробуй", re: /\bПопробуй\b/ },
+          { rule: "Ты ", re: /\bТы\s/ },
+          { rule: "тебе", re: /\bтебе\b/ },
+          { rule: "ник", re: /\bник\b/ },
           { rule: "Cap", re: /\bCap\b/ },
           { rule: "max Points", re: /max Points/ },
           { rule: "cap", re: /\bcap\b/ },
@@ -8014,9 +8014,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       const rowMatches = (actual, expected) => actual && expected && actual.id === expected.id && actual.oldText === expected.oldText && actual.alphaText === expected.alphaText && actual.explanationPolicy === expected.explanationPolicy;
       try {
         const rootDocRes = fetchFirst("UI_PROFILE_ALPHA_EXPLANATION_RULES.md");
-        const docsDocRes = fetchFirst("UI_PROFILE_ALPHA_EXPLANATION_RULES.md");
+        const docsDocRes = fetchFirst("docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md");
         const rootJsRes = fetchFirst("ui/ui-profile-alpha-explanation-rules.js");
-        const docsJsRes = fetchFirst("ui/ui-profile-alpha-explanation-rules.js");
+        const docsJsRes = fetchFirst("docs/ui/ui-profile-alpha-explanation-rules.js");
         result.ruleExists = !!rootDocRes.ok;
         result.tableExists = !!rootJsRes.ok;
         result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
