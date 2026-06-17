@@ -1,3 +1,13 @@
+## 2026-06-17 — Step 2.2 Boomer Transformation Table
+- Added the Step 2.2 `Transformation Table` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 fixed millennial -> boomer rows for UI, error, risk, and hint surfaces.
+- Added dev-only smoke `Game.__DEV.smokeBoomerTransformationTableStep22Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate row count, exact row ordering, category counts, field coverage, template-variable preservation, empty-text prohibition, and forbidden-word blocking without changing visible UI or gameplay logic.
+- Build tag: `build_2026_06_17_step2_2_boomer_transformation_table_v1`.
+- Commit identity: `step2_2_boomer_transformation_table_v1`.
+- Smoke version: `step2_2_boomer_transformation_table_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerTransformationTableStep22Once()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.1 Boomer Expansion Contract
 - Added UI-layer contract docs `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 164-row boomer expansion table.
 - Added dev-only smoke `Game.__DEV.smokeBoomerExpansionContractStep21Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate row count, required fields, template-variable preservation, empty-text prohibition, and forbidden-word blocking without changing visible UI or gameplay logic.
@@ -1427,6 +1437,14 @@ Stage 3 Boomer [1.6] documents new-feature surface coverage only. Covered surfac
 - The user-reported Safari runtime failure was `Game.__DEV.smokeZoomerShortenRuleStep1Once is undefined`.
 - No gameplay, economy, battle, NPC, persistence, or core runtime files were edited.
 - Required Safari command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix1Once()`.
+
+## 2026-06-17 — AsyncScene Step 2.1 Zoomer smoke exposure Fix 2
+- Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
+- Exposed `Game.__DEV.smokeZoomerShortenRuleStep1Fix2Once()` in both dev-check bundles with root-first artifact lookup and docs-mirror skipping on `http_404`.
+- The smoke return shape now includes `checkedCount`, `ruleExists`, `matrixCount`, `variablesPreserved`, `servedArtifacts`, `skippedArtifacts`, `changedFiles`, `buildTag`, `commit`, and `smokeVersion`, and the runtime metadata was refreshed away from `build_2026_06_13_step6_1_birth_year_value_contract` / `step6_1_birth_year_value_contract`.
+- Fix 1 failed in iPhone Safari with `failedChecks:["doc_exists","doc_copy_mismatch","rule_exists"]`, `failures` including `docs/UI_PROFILE_ZOOMER_DIFF.md http_404`, `missingCoverage:["root/docs rule mismatch","UI_PROFILE_ZOOMER_SHORTEN_RULE"]`, `matrixCount:0`, and `ruleExists:false`.
+- No gameplay, economy, battle, NPC, persistence, or core runtime files were edited.
+- Required Safari command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix2Once()`.
 
 ## 2026-06-04 — Zoomer new feature surfaces rules smoke
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
