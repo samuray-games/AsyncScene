@@ -6645,3 +6645,8 @@ Error: Download failure, code=1
 - Added `UI_PROFILE_ALPHA_DIFF.md` and mirrored `docs/UI_PROFILE_ALPHA_DIFF.md` as a delta-only Alpha document over `UI_PROFILE_ZOOMER`.
 - Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()` in both served dev-check bundles to verify the root doc, docs mirror, explicit Zoomer inheritance, delta-only wording, required Alpha rules, and forbidden style traps.
 - Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentOnce()`.
+
+## 2026-06-17 — Step 4 Alpha profile, step 1.2 Fix1 docs mirror path
+- Updated the Alpha smoke to probe the served `AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md` mirror path first instead of a non-served mirror URL that returned 404 in Safari.
+- Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentFix1()` in both served dev-check bundles with fresh smoke identity `alpha_step_1_2_diff_document_fix1_v20260617_002`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentFix1()`.
