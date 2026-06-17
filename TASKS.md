@@ -1495,12 +1495,13 @@
 - Next: Дима
 - Area: Docs|Infra
 - Files: `UI_PROFILE_ZOOMER_DIFF.md` `docs/UI_PROFILE_ZOOMER_DIFF.md` `AsyncScene/Web/dev/dev-checks.js` `docs/dev/dev-checks.js` `TASKS.md` `PROJECT_MEMORY.md`
-- Goal: Add the dev-profile-only `UI_PROFILE_ZOOMER_SHORTEN_RULE` and expose `Game.__DEV.smokeZoomerShortenRuleOnce()`.
+- Goal: Add the dev-profile-only `UI_PROFILE_ZOOMER_SHORTEN_RULE` with the exact 128-entry phrase matrix and expose `Game.__DEV.smokeZoomerShortenRuleOnce()`.
 - Acceptance:
   - [x] Rule says to shorten phrases by about 30-40%.
   - [x] Rule says to remove intro/filler words, reduce abstractions, and replace abstract wording with action verbs.
   - [x] Rule keeps original meaning, keeps `UI_PROFILE_MILLENNIAL` as source/base, and does not contradict `UI_PROFILE_ZOOMER_DIFF`.
   - [x] Rule forbids teen slang, memes, fake youth voice, and irony.
+  - [x] Rule includes the exact 128-entry phrase matrix and marks unchanged entries as `keep`.
   - [x] Smoke returns one JS object with `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, and `commit`.
   - [x] No gameplay, economy, UI rewrite, broad refactor, or `Console.txt` usage was introduced.
 - Notes: Safari runtime PASS is not claimed here; required command is `Game.__DEV.smokeZoomerShortenRuleOnce()`. Local Playwright smoke could not launch because the Chromium browser binary is not installed in this environment.

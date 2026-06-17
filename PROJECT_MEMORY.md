@@ -1404,7 +1404,7 @@ Stage 3 Boomer [1.6] documents new-feature surface coverage only. Covered surfac
 
 ## 2026-06-04 — AsyncScene Step 2.1 Zoomer phrase shortening rule
 - Status: READY_FOR_RUNTIME_SMOKE. Safari runtime PASS is not claimed.
-- Added only the dev-profile documentation rule `UI_PROFILE_ZOOMER_SHORTEN_RULE` to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md`.
+- Added only the dev-profile documentation rule `UI_PROFILE_ZOOMER_SHORTEN_RULE` to `UI_PROFILE_ZOOMER_DIFF.md` and mirrored it to `docs/UI_PROFILE_ZOOMER_DIFF.md`, including the exact 128-entry phrase matrix and `keep` markers for unchanged phrases.
 - Rule coverage: 30-40% phrase shortening; remove intro/filler words; reduce abstractions; replace abstract wording with action verbs; keep original meaning; keep `UI_PROFILE_MILLENNIAL` as source/base; no teen slang, memes, fake youth voice, or irony; no contradiction with `UI_PROFILE_ZOOMER_DIFF`.
 - Registered `Game.__DEV.smokeZoomerShortenRuleOnce()` in both dev-check bundles. It returns one object with `ok`, `failures`, `forbiddenRemaining`, `missingCoverage`, `failedChecks`, `buildTag`, and `commit`, and requires all arrays empty for `ok:true`.
 - No gameplay changes, no economy changes, no UI rewrite, no broad refactor, and no `Console.txt` usage.
