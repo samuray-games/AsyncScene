@@ -7,6 +7,17 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerTabooListStep32Fix2Once()`.
 - Scope held: dev-smoke aggregation/status logic only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 4 Alpha profile, step 1.5 Action-first rules
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md` and `docs/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md` with the exact Alpha action-first rules and anchor pairs.
+- Added `AsyncScene/Web/ui/ui-profile-alpha-action-first-rules.js` and `docs/ui/ui-profile-alpha-action-first-rules.js` as the UI-layer action-first rule table pair with all 164 exact rows.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep15ActionFirstRulesOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_5_action_first_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_5_action_first_rules_v1`.
+- Smoke version: `alpha_step_1_5_action_first_rules_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesOnce()`.
+- Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke identity and wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke version without reusing `boomer_taboo_list_step3_2_v20260618_001`.

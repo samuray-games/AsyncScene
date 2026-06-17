@@ -7,6 +7,11 @@
 - Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
 - Scope held: dev-smoke aggregation/status logic only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 4 Alpha profile, step 1.5 Action-first rules
+- Alpha action-first UI contract added with the exact rules: command/state first, context only when needed, no pre-action explanation, short visible blocked-state text, readable templates, and no dry instruction voice.
+- The 164-row table coverage is mirrored in `AsyncScene/Web/ui/ui-profile-alpha-action-first-rules.js` and `docs/ui/ui-profile-alpha-action-first-rules.js`.
+- This step is spec-only and does not activate runtime Alpha copy.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` now uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke identity instead of reusing `boomer_taboo_list_step3_2_v20260618_001`.

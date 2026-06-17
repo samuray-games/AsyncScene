@@ -2896,6 +2896,308 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         && (!!result.smokeVersion && String(result.smokeVersion).indexOf("step2_3_zoomer_apply_ui_copy") !== -1);
       return result;
     };
+    const smokeZoomerNewFeatureShortenStep4Once = () => {
+      const buildTag = "build_2026_06_18_step2_4_zoomer_new_feature_shorten_v1";
+      const commit = "step2_4_zoomer_new_feature_shorten_v1";
+      const smokeVersion = `step2_4_zoomer_new_feature_shorten_v1_${buildTag}_commit_${commit}`;
+      const expectedRows = Object.freeze(String.raw`
+NF_0001 | economy | TXT_0108 | before "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐." -> after "Лимит ⭐. Пополни 💰 для ⭐." | status applied_step3
+NF_0002 | economy | TXT_0109 | before "Cap: max Points на этой неделе. Используйте, пока не сбросили cap." -> after "Cap Points. Трать до сброса." | status applied_step3
+NF_0003 | economy | TXT_0142 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0004 | economy | TXT_0149 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0005 | economy | TXT_0150 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0006 | economy | TXT_0155 | before "Ты отдал 1💰" -> after "-1💰" | status applied_step3
+NF_0007 | economy | TXT_0156 | before "Цель получила +1 ⭐" -> after "Цель: +1⭐" | status applied_step3
+NF_0008 | economy | TXT_0164 | before "Не хватает 💰." -> after "Мало 💰." | status applied_step3
+NF_0009 | actions | TXT_0016 | before "Продолжить" -> after "Дальше" | status applied_step3
+NF_0010 | actions | TXT_0018 | before "Сбросить старт" -> after "Сбросить" | status applied_step3
+NF_0011 | actions | TXT_0020 | before "Снести выбор" -> after "Сбросить" | status applied_step3
+NF_0012 | actions | TXT_0042 | before "Свалить за 1💰." -> after "Свалить: 1💰." | status applied_step3
+NF_0013 | actions | TXT_0143 | before "Реванш уже запрошен." -> after "Реванш уже ждёт." | status applied_step3
+NF_0014 | actions | TXT_0144 | before "Недоступно. Баттл не завершён." -> after "Баттл не завершён." | status applied_step3
+NF_0015 | actions | TXT_0148 | before "Кулдаун активен." -> after "Кулдаун идёт." | status applied_step3
+NF_0016 | actions | TXT_0151 | before "Уже было уважение сегодня этому персонажу." -> after "Уже уважал сегодня." | status applied_step3
+NF_0017 | actions | TXT_0152 | before "Цепочка A->B->A сегодня не работает." -> after "A->B->A сегодня закрыта." | status applied_step3
+NF_0018 | actions | TXT_0153 | before "Лимит уважения на сегодня исчерпан." -> after "Лимит уважения исчерпан." | status applied_step3
+NF_0019 | actions | TXT_0154 | before "Сейчас не получилось. Попробуй позже." -> after "Не вышло. Позже." | status applied_step3
+NF_0020 | actions | TXT_0160 | before "Рано. Дай паузу." -> after "Рано. Пауза." | status applied_step3
+NF_0021 | npc_speech | TXT_0130 | keep "слабый ход" | status already_short
+NF_0022 | npc_speech | TXT_0131 | keep "отвечай сейчас" | status already_short
+NF_0023 | npc_speech | TXT_0132 | keep "кошелек ближе" | status already_short
+NF_0024 | npc_speech | TXT_0133 | keep "плати и уходи" | status already_short
+NF_0025 | npc_speech | TXT_0134 | keep "Принято. Дистанция" | status already_short
+NF_0026 | npc_speech | TXT_0135 | keep "Тише" | status already_short
+NF_0027 | npc_speech | TXT_0136 | keep "ого" | status already_short
+NF_0028 | npc_speech | TXT_0137 | keep "Принято. Я рядом." | status already_short
+NF_0029 | npc_speech | TXT_0138 | keep "Тише. Решим." | status already_short
+NF_0030 | npc_speech | TXT_0139 | keep "Кошелек ближе." | status already_short
+NF_0031 | npc_speech | TXT_0140 | keep "Слабый ход." | status already_short
+NF_0032 | system_copy | TXT_0111 | before "Опасная точка рядом." -> after "Риск рядом." | status applied_step3
+NF_0033 | system_copy | TXT_0112 | before "Вызов принят, экипаж в пути." -> after "Вызов принят. Едем." | status applied_step3
+NF_0034 | system_copy | TXT_0113 | before "Ситуация под контролем." -> after "Контролируем." | status applied_step3
+NF_0035 | system_copy | TXT_0114 | before "Принято, наблюдаю." -> after "Принято. Смотрю." | status applied_step3
+NF_0036 | system_copy | TXT_0115 | before "Факт принят, идем дальше." -> after "Факт принят. Идём." | status applied_step3
+NF_0037 | system_copy | TXT_0116 | before "Занят расследованием, связь позже." -> after "Занят. Связь позже." | status applied_step3
+NF_0038 | action_honesty | TXT_0003 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0039 | action_honesty | TXT_0004 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+NF_0040 | action_honesty | TXT_0005 | keep "Итог виден сразу." | status already_short
+NF_0041 | action_honesty | TXT_0006 | keep "Цена и итог сразу." | status already_short
+NF_0042 | action_honesty | TXT_0057 | before "Оппонент задаёт риск." -> after "Оппонент ставит риск." | status applied_step3
+NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает ресурс." -> after "Ставка снимает ресурс." | status applied_step3
+      `.trim().split(/\r?\n/).map((line) => {
+        const parts = line.split("|").map((cell) => cell.trim());
+        const status = parts[4] ? parts[4].replace(/^status\s+/i, "") : "";
+        return { id: parts[0] || "", group: parts[1] || "", txt: parts[2] || "", change: parts[3] || "", status };
+      }));
+      const expectedById = new Map(expectedRows.map((row) => [row.id, row]));
+      const expectedGroups = Object.freeze({
+        economy: 8,
+        actions: 12,
+        npc_speech: 11,
+        system_copy: 6,
+        action_honesty: 6
+      });
+      const forbiddenTxtIds = new Set([
+        ...Array.from({ length: 11 }, (_, idx) => `TXT_${String(119 + idx).padStart(4, "0")}`),
+        ...Array.from({ length: 17 }, (_, idx) => `TXT_${String(91 + idx).padStart(4, "0")}`)
+      ]);
+      const parseChange = (change) => {
+        const keepMatch = String(change || "").match(/^keep\s+"([\s\S]*)"$/);
+        if (keepMatch) return { mode: "keep", before: keepMatch[1], after: keepMatch[1] };
+        const replaceMatch = String(change || "").match(/^before\s+"([\s\S]*)"\s*->\s*after\s+"([\s\S]*)"$/);
+        if (replaceMatch) return { mode: "replace", before: replaceMatch[1], after: replaceMatch[2] };
+        return null;
+      };
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checkedCount: 0,
+        coverageCount: 0,
+        compliantCount: 0,
+        appliedStep3Count: 0,
+        alreadyShortCount: 0,
+        groupsCovered: 0,
+        newFeatureCoverageOk: false,
+        meaningPreserved: true,
+        variablesPreserved: true,
+        tableExists: false,
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: [
+          "UI_PROFILE_ZOOMER_DIFF.md",
+          "docs/UI_PROFILE_ZOOMER_DIFF.md",
+          "AsyncScene/Web/dev/dev-checks.js",
+          "docs/dev/dev-checks.js",
+          "TASKS.md",
+          "PROJECT_MEMORY.md"
+        ],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path, status: xhr.status || 200 };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path, status: xhr.status || 0 };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path, status: 0 };
+        }
+      };
+      const rootCandidates = (fileName) => [fileName, `./${fileName}`, `/AsyncScene/${fileName}`];
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const placeholders = (text) => Array.from(String(text || "").matchAll(/\{[^}]+\}/g)).map((match) => match[0]);
+      const wordCount = (text) => normalize(text).split(/[\s.,!?;:()\-–—]+/u).filter(Boolean).length;
+      const extractSection = (artifactText) => {
+        const text = String(artifactText || "");
+        const match = text.match(/##\s*UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4\s*\n([\s\S]*?)(?:\n## |\n# |$)/i);
+        return match ? match[1] : null;
+      };
+      const parseRows = (sectionText) => String(sectionText || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^NF_\d{4}\s*\|/.test(line))
+        .map((line) => {
+          const cells = line.split("|").map((cell) => normalize(cell));
+          if (cells.length < 5) return null;
+          const [id, group, txt, change, statusCell] = cells;
+          const parsed = parseChange(change);
+          if (!parsed) return { id, group, txt, change, status: statusCell.replace(/^status\s+/i, ""), before: "", after: "", parsedOk: false };
+          return { id, group, txt, change, status: statusCell.replace(/^status\s+/i, ""), before: parsed.before, after: parsed.after, parsedOk: true };
+        })
+        .filter(Boolean);
+      const fetchArtifact = (label, candidates) => {
+        let last = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          last = res;
+          if (res.ok) {
+            addUnique(result.servedArtifacts, label === "root" ? "UI_PROFILE_ZOOMER_DIFF.md" : "docs/UI_PROFILE_ZOOMER_DIFF.md");
+            return res;
+          }
+        }
+        return last || { ok: false, reason: "unavailable", path: null, status: 0 };
+      };
+      try {
+        const rootRes = fetchArtifact("root", rootCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
+        if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable", status: rootRes.status || 0 });
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const rootSection = extractSection(rootRaw);
+        result.tableExists = !!rootSection;
+        if (!rootSection) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+          fail("table_exists", "missing_UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+        } else {
+          const rootRows = parseRows(rootSection);
+          result.checkedCount = rootRows.length;
+          result.coverageCount = rootRows.length;
+          const actualIds = new Set();
+          const groupCounts = Object.create(null);
+          rootRows.forEach((row, idx) => {
+            const expected = expectedById.get(row.id);
+            if (!row.id || !row.group || !row.txt || !row.status || !row.parsedOk) {
+              fail("row_shape", { idx, row });
+              return;
+            }
+            if (actualIds.has(row.id)) fail("duplicate_row_id", row.id);
+            actualIds.add(row.id);
+            if (!expected) {
+              addUnique(result.forbiddenRemaining, row.id);
+              fail("unexpected_row", row.id);
+              return;
+            }
+            if (forbiddenTxtIds.has(row.txt)) {
+              addUnique(result.forbiddenRemaining, row.id);
+              fail("forbidden_source_row", { id: row.id, txt: row.txt });
+            }
+            groupCounts[row.group] = (groupCounts[row.group] || 0) + 1;
+            if (row.group === "npc_speech" && wordCount(row.after) > 4) {
+              fail("npc_speech_too_long", { id: row.id, after: row.after });
+            }
+            if (row.group === "system_copy" && !row.after) {
+              fail("system_copy_fact_first", { id: row.id, after: row.after });
+            }
+            if (row.group === "action_honesty" && !/^(Оппонент ставит риск|Ставка снимает ресурс|Итог виден сразу|Цена и итог сразу)/i.test(row.after)) {
+              fail("action_honesty_meaning", { id: row.id, after: row.after });
+            }
+            if (row.group !== expected.group || row.txt !== expected.txt || row.status !== expected.status) {
+              result.meaningPreserved = false;
+              fail("row_mismatch", { idx, expected, actual: row });
+              return;
+            }
+            if (expected.status === "applied_step3") {
+              if (normalize(row.after).length <= normalize(row.before).length) {
+                result.appliedStep3Count += 1;
+              } else {
+                result.meaningPreserved = false;
+                fail("applied_row_not_shorter", { id: row.id, before: row.before, after: row.after });
+              }
+            } else if (expected.status === "already_short") {
+              if (normalize(row.before) === normalize(row.after)) {
+                result.alreadyShortCount += 1;
+              } else {
+                result.meaningPreserved = false;
+                fail("already_short_mutated", { id: row.id, before: row.before, after: row.after });
+              }
+            }
+            if (placeholders(row.before).join("|") !== placeholders(row.after).join("|")) {
+              result.variablesPreserved = false;
+              fail("variables_preserved", { id: row.id, beforeVars: placeholders(row.before), afterVars: placeholders(row.after) });
+            }
+            const expectedChange = parseChange(expected.change);
+            if (!expectedChange || normalize(row.before) !== normalize(expectedChange.before) || normalize(row.after) !== normalize(expectedChange.after)) {
+              result.meaningPreserved = false;
+              fail("exact_pair_mismatch", { id: row.id, expected, actual: row });
+            }
+            result.compliantCount += 1;
+          });
+          if (rootRows.length !== expectedRows.length) {
+            fail("row_count", { expected: expectedRows.length, actual: rootRows.length });
+            addUnique(result.missingCoverage, `rowCount_${expectedRows.length}`);
+          }
+          expectedRows.forEach((expected) => {
+            if (!actualIds.has(expected.id)) {
+              addUnique(result.missingCoverage, expected.id);
+              fail("missing_row", expected.id);
+            }
+          });
+          rootRows.forEach((row) => {
+            if (!expectedById.has(row.id)) {
+              addUnique(result.forbiddenRemaining, row.id);
+              fail("unexpected_row", row.id);
+            }
+          });
+          Object.keys(expectedGroups).forEach((group) => {
+            const count = groupCounts[group] || 0;
+            if (count !== expectedGroups[group]) {
+              fail("group_count", { group, expected: expectedGroups[group], actual: count });
+              addUnique(result.missingCoverage, `${group}:${expectedGroups[group]}`);
+            }
+          });
+          result.groupsCovered = Object.keys(groupCounts).filter((group) => expectedGroups[group] === groupCounts[group]).length;
+          const docsRes = fetchTextSync("docs/UI_PROFILE_ZOOMER_DIFF.md");
+          if (docsRes.ok) {
+            addUnique(result.servedArtifacts, docsRes.path || "docs/UI_PROFILE_ZOOMER_DIFF.md");
+            const docsSection = extractSection(String(docsRes.text || ""));
+            if (!docsSection) {
+              addUnique(result.missingCoverage, "docs/UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+              fail("doc_copy_mismatch", "docs_copy_missing_step4_section");
+            } else if (normalize(rootSection) !== normalize(docsSection)) {
+              addUnique(result.missingCoverage, "root/docs step4 mismatch");
+              fail("doc_copy_mismatch", "root_and_docs_step4_section_differ");
+            }
+          } else if (docsRes.status === 404 || String(docsRes.reason || "").indexOf("http_404") === 0) {
+            addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          } else {
+            addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+          }
+          result.newFeatureCoverageOk = result.tableExists === true
+            && result.coverageCount === expectedRows.length
+            && result.compliantCount === expectedRows.length
+            && result.appliedStep3Count === 30
+            && result.alreadyShortCount === 13
+            && result.groupsCovered === 5
+            && result.meaningPreserved === true
+            && result.variablesPreserved === true
+            && result.forbiddenRemaining.length === 0
+            && result.missingCoverage.length === 0;
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      if (!result.variablesPreserved) addUnique(result.missingCoverage, "variablesPreserved");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.checkedCount === 43
+        && result.coverageCount === 43
+        && result.compliantCount === 43
+        && result.appliedStep3Count === 30
+        && result.alreadyShortCount === 13
+        && result.groupsCovered === 5
+        && result.newFeatureCoverageOk === true
+        && result.meaningPreserved === true
+        && result.variablesPreserved === true
+        && result.tableExists === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf("step2_4_zoomer_new_feature_shorten") !== -1
+        && result.buildTag.indexOf("step2_4") !== -1
+        && result.commit.indexOf("step2_4") !== -1;
+      return result;
+    };
     const smokeZoomerTransformTableStep2Once = () => {
       const buildTag = "build_2026_06_17_step2_2_zoomer_transform_table_v1";
       const commit = "step2_2_zoomer_transform_table_v1";
@@ -8828,7 +9130,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
         result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
         result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
-        result.jsPathChecked = docsJsRes && docsJsRes.path ? docsJsRes.path : servedJsMirrorPath;
+        result.jsPathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
         if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
         if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
         if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
@@ -8918,6 +9220,215 @@ TXT_0164|Не хватает 💰.|Мало 💰.
       result.smokeVersion = "alpha_step_1_4_fix2_v20260618_002";
       return result;
     };
+    const smokeAlphaStep15ActionFirstRulesOnce = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_5_action_first_rules_v1";
+      const commit = "step4_alpha_profile_step1_5_action_first_rules_v1";
+      const smokeVersion = "alpha_step_1_5_action_first_rules_v20260618_001";
+      const expectedEntryCount = 164;
+      const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md";
+      const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js";
+      const servedJsMirrorPath = "https://samuray-games.github.io/AsyncScene/docs/ui/ui-profile-alpha-action-first-rules.js";
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion,
+        ruleExists: false,
+        tableExists: false,
+        docsMirrorExists: false,
+        docsPathChecked: null,
+        tablePathChecked: null,
+        jsPathChecked: null,
+        entryCount: 0,
+        expectedEntryCount,
+        allExactEntriesPresent: false,
+        allPoliciesValid: false,
+        actionFirstRuleFound: false,
+        anchorPairsFound: false,
+        noRuntimeFilesChanged: false,
+        noReasonFirstDrift: false,
+        noDryInstructionDrift: false,
+        templateVariablesPreserved: false,
+        noAlphaLongDash: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => { if (!list.some((item) => JSON.stringify(item) === JSON.stringify(value))) list.push(value); };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const parseRowValue = (value) => {
+        try {
+          return JSON.parse(`"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`);
+        } catch (_) {
+          return String(value);
+        }
+      };
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      const sameVars = (a, b) => {
+        if (a.length !== b.length) return false;
+        const left = a.slice().sort();
+        const right = b.slice().sort();
+        return left.every((value, idx) => value === right[idx]);
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const parseManifest = (text) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const manifest = (new Function("window", "module", text + "\nreturn (window.Game && window.Game.__ALPHA_ACTION_FIRST_RULES__) || module.exports || null;"))(win, module);
+          return manifest && typeof manifest === "object" ? manifest : null;
+        } catch (_) {
+          return null;
+        }
+      };
+      const extractRawRows = (text) => {
+        const marker = "const RAW_ROWS=String.raw`";
+        const start = String(text || "").indexOf(marker);
+        if (start < 0) return "";
+        const rest = String(text || "").slice(start + marker.length);
+        const end = rest.indexOf("`;");
+        return end >= 0 ? rest.slice(0, end) : rest;
+      };
+      const parseRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+        const match = line.match(/^TXT_(\d{4}) \| oldText:"((?:\\.|[^"])*)" \| alphaText:"((?:\\.|[^"])*)" \| actionFirstPolicy:"([a-z_]+)"$/);
+        if (!match) return null;
+        return {
+          id: `TXT_${match[1]}`,
+          oldText: parseRowValue(match[2]),
+          alphaText: parseRowValue(match[3]),
+          actionFirstPolicy: match[4]
+        };
+      }).filter(Boolean);
+      const rowMatches = (actual, expected) => actual && expected && actual.id === expected.id && actual.oldText === expected.oldText && actual.alphaText === expected.alphaText && actual.actionFirstPolicy === expected.actionFirstPolicy;
+      const allowedPolicies = ["fixed", "atomic", "state_first", "command_first", "result_first", "cost_first", "target_first", "template_preserve"];
+      try {
+        const rootDocRes = fetchTextSync(servedDocPath);
+        const docsDocRes = fetchTextSync("https://samuray-games.github.io/AsyncScene/docs/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md");
+        const rootJsRes = fetchTextSync(servedTablePath);
+        const docsJsRes = fetchTextSync(servedJsMirrorPath);
+        result.ruleExists = !!rootDocRes.ok;
+        result.tableExists = !!rootJsRes.ok;
+        result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
+        result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
+        result.jsPathChecked = docsJsRes && docsJsRes.path ? docsJsRes.path : servedJsMirrorPath;
+        if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
+        if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
+        if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
+        const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
+        const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
+        const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
+        const docsJsText = docsJsRes.ok ? String(docsJsRes.text || "") : "";
+        if (rootDocText && docsDocText && rootDocText !== docsDocText) fail("docs_markdown_mirror_match", "markdown mirror mismatch");
+        if (rootJsText && docsJsText && rootJsText !== docsJsText) fail("docs_js_mirror_match", "js mirror mismatch");
+        const requiredDocPhrases = [
+          "Alpha inherits from Zoomer.",
+          "Alpha puts command or state first.",
+          "Alpha puts context after command or state only when needed.",
+          "Alpha does not explain before it calls action or shows state.",
+          "Alpha keeps blocked-state text short and visible.",
+          "Alpha keeps templates readable while preserving variables exactly.",
+          "Alpha does not become dry instruction text.",
+          "Alpha does not use baby talk, fake hype, over-memeing, or tutorial voice.",
+          "This step is spec-only and does not activate runtime Alpha copy.",
+          "Codex must not invent Alpha phrases."
+        ];
+        result.actionFirstRuleFound = requiredDocPhrases.every((phrase) => rootDocText.includes(phrase));
+        if (!result.actionFirstRuleFound) fail("action_first_rule_found", requiredDocPhrases.filter((phrase) => !rootDocText.includes(phrase)));
+        const requiredAnchors = [
+          'z: "Оппонент задаёт риск."',
+          'alpha: "Оппонент: риск."',
+          'z: "Свалить за 1💰."',
+          'alpha: "Выход: 1💰."',
+          'z: "Для {student}: {arg}. Цена {cost} 💰."',
+          'alpha: "{student}: {arg}. -{cost}💰."',
+          'z: "Ты отдал 1💰"',
+          'alpha: "-1💰 от тебя."',
+          'z: "Цель получила +1 ⭐"',
+          'alpha: "Цель: +1⭐."'
+        ];
+        result.anchorPairsFound = requiredAnchors.every((phrase) => rootDocText.includes(phrase));
+        if (!result.anchorPairsFound) fail("anchor_pairs_found", requiredAnchors.filter((phrase) => !rootDocText.includes(phrase)));
+        result.noDryInstructionDrift = !/(инструкц|manual|guide|step-by-step|tutorial voice)/i.test(rootDocText) && rootDocText.includes("Alpha does not become dry instruction text.");
+        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
+        const jsManifest = parseManifest(rootJsText);
+        const jsRows = jsManifest && Array.isArray(jsManifest.table) ? jsManifest.table : [];
+        const rawRows = parseRows(extractRawRows(rootJsText));
+        result.entryCount = jsRows.length;
+        if (jsRows.length !== expectedEntryCount) fail("entry_count", { expected: expectedEntryCount, actual: jsRows.length });
+        if (!jsManifest || jsManifest.expectedEntryCount !== expectedEntryCount) fail("expected_entry_count", jsManifest ? jsManifest.expectedEntryCount : null);
+        const expectedById = rawRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const actualById = jsRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const duplicateIds = jsRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
+        if (duplicateIds.length) fail("duplicate_ids", duplicateIds);
+        rawRows.forEach((expected) => {
+          const actual = actualById[expected.id];
+          if (!rowMatches(actual, expected)) addUnique(result.missingCoverage, expected.id);
+          if (actual && (!allowedPolicies.includes(actual.actionFirstPolicy) || actual.actionFirstPolicy !== expected.actionFirstPolicy)) addUnique(result.missingCoverage, `${expected.id}:policy`);
+        });
+        result.allExactEntriesPresent = result.missingCoverage.length === 0 && rawRows.length === expectedEntryCount && jsRows.length === expectedEntryCount;
+        if (!result.allExactEntriesPresent) fail("all_exact_entries_present", result.missingCoverage.slice());
+        result.allPoliciesValid = rawRows.length === expectedEntryCount && jsRows.every((row) => allowedPolicies.includes(row.actionFirstPolicy) && expectedById[row.id] && row.actionFirstPolicy === expectedById[row.id].actionFirstPolicy);
+        if (!result.allPoliciesValid) fail("all_policies_valid", jsRows.filter((row) => !allowedPolicies.includes(row.actionFirstPolicy) || !expectedById[row.id] || row.actionFirstPolicy !== expectedById[row.id].actionFirstPolicy).map((row) => row && row.id).filter(Boolean));
+        const templateFailures = rawRows.filter((row) => {
+          const oldVars = templateVars(row.oldText);
+          const alphaVars = templateVars(row.alphaText);
+          return oldVars.length || alphaVars.length ? !sameVars(oldVars, alphaVars) : false;
+        }).map((row) => row.id);
+        result.templateVariablesPreserved = templateFailures.length === 0;
+        if (!result.templateVariablesPreserved) fail("template_variables_preserved", templateFailures);
+        const alphaDashFailures = rawRows.filter((row) => row.alphaText.indexOf("—") !== -1).map((row) => row.id);
+        result.noAlphaLongDash = alphaDashFailures.length === 0;
+        if (!result.noAlphaLongDash) {
+          addUnique(result.forbiddenRemaining, "alpha_em_dash");
+          fail("alpha_em_dash_forbidden", alphaDashFailures);
+        }
+        const forbiddenRuntimeFiles = [
+          "AsyncScene/Web/data.js",
+          "AsyncScene/Web/system.js",
+          "AsyncScene/Web/npcs.js",
+          "AsyncScene/Web/state.js",
+          "AsyncScene/Web/index.html",
+          "AsyncScene/Web/ui/ui-core.js",
+          "AsyncScene/Web/ui/ui-events.js",
+          "AsyncScene/Web/ui/ui-battles.js",
+          "AsyncScene/Web/ui/ui-dm.js",
+          "AsyncScene/Web/ui/ui-menu.js",
+          "docs/data.js",
+          "docs/system.js",
+          "docs/npcs.js",
+          "docs/state.js",
+          "docs/index.html",
+          "docs/ui/ui-core.js",
+          "docs/ui/ui-events.js",
+          "docs/ui/ui-battles.js",
+          "docs/ui/ui-dm.js",
+          "docs/ui/ui-menu.js"
+        ];
+        result.noRuntimeFilesChanged = [rootDocText, docsDocText, rootJsText, docsJsText].every((text) => forbiddenRuntimeFiles.every((fileName) => !text.includes(fileName)));
+        if (!result.noRuntimeFilesChanged) fail("no_runtime_files_changed", "forbidden runtime file reference found in artifacts");
+        const reasonFirstPatterns = [/^(?:Потому|Из-за|Поскольку|Because|Since|Why)\b/i];
+        result.noReasonFirstDrift = rootDocText.includes("Alpha puts command or state first.") && rootDocText.includes("Alpha does not explain before it calls action or shows state.") && rawRows.every((row) => !reasonFirstPatterns.some((pattern) => pattern.test(String(row.alphaText || "").trim())));
+        if (!result.noReasonFirstDrift) fail("no_reason_first_drift", "reason-first drift detected");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allPoliciesValid === true && result.actionFirstRuleFound === true && result.anchorPairsFound === true && result.noRuntimeFilesChanged === true && result.noReasonFirstDrift === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -8930,6 +9441,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     Game.Dev.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     Game.Dev.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
+    Game.Dev.smokeZoomerNewFeatureShortenStep4Once = smokeZoomerNewFeatureShortenStep4Once;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     Game.Dev.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
@@ -8958,6 +9470,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     Game.Dev.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     Game.Dev.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
+    Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -8980,6 +9493,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     G.__DEV.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
+    G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -9004,6 +9518,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     devStore.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     devStore.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
+    devStore.smokeZoomerNewFeatureShortenStep4Once = smokeZoomerNewFeatureShortenStep4Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     devStore.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
@@ -9025,6 +9540,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     G.__DEV.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
+    G.__DEV.smokeZoomerNewFeatureShortenStep4Once = smokeZoomerNewFeatureShortenStep4Once;
     devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
@@ -9050,6 +9566,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     devStore.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     devStore.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
+    devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
