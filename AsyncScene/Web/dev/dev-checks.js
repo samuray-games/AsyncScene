@@ -6777,17 +6777,23 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
         if (typeof location !== "undefined" && location.origin) {
           bases.push(`${location.origin}/AsyncScene/`);
-          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/AsyncScene/docs/`);
           bases.push(`${location.origin}/docs/`);
+          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/__dev__/docs/`);
         }
         bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
         if (typeof location !== "undefined" && location.origin) {
           add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/AsyncScene/docs/${fileName}`);
           add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
           add(`${location.origin}/${fileName}`);
         }
         add(`/AsyncScene/${fileName}`);
+        add(`/AsyncScene/docs/${fileName}`);
         add(`/docs/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
         add(`/${fileName}`);
         return candidates;
       };
@@ -6819,9 +6825,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const rootRes = fetchFirst("UI_PROFILE_ALPHA_DIFF.md");
         result.alphaDiffExists = !!rootRes.ok;
         if (!rootRes.ok) fail("alpha_diff_exists", { path: "UI_PROFILE_ALPHA_DIFF.md", reason: rootRes.reason || "unavailable" });
-        const docsRes = fetchFirst("docs/UI_PROFILE_ALPHA_DIFF.md");
+        const docsRes = fetchFirst("AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md");
         result.docsMirrorExists = !!docsRes.ok;
-        if (!docsRes.ok) fail("docs_mirror_exists", { path: "docs/UI_PROFILE_ALPHA_DIFF.md", reason: docsRes.reason || "unavailable" });
+        if (!docsRes.ok) fail("docs_mirror_exists", { path: "AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md", reason: docsRes.reason || "unavailable" });
         const rootText = normalize(rootRes.ok ? String(rootRes.text || "") : "");
         const docsText = normalize(docsRes.ok ? String(docsRes.text || "") : "");
         text = `${rootText}\n${docsText}`;
@@ -6889,6 +6895,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaStep12DiffDocumentFix1 = () => {
+      const result = smokeAlphaStep12DiffDocumentOnce();
+      result.smokeVersion = "alpha_step_1_2_diff_document_fix1_v20260617_002";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -6915,6 +6926,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
+    Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -6931,6 +6943,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeZoomerNewFeaturesTermsOnce = smokeZoomerNewFeaturesTermsOnce;
     G.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     G.__DEV.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
+    G.__DEV.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -6967,6 +6980,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
+    devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
