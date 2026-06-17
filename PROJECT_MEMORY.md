@@ -100,6 +100,14 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix5Once()`.
 - Scope held: export wiring and artifact lookup only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
 
+## 2026-06-17 — Step 2.2 Zoomer Transform Table Fix 6
+- Runtime issue: `hasTransformTable:true` but `tableExists:false`, `tableCount:0`.
+- Added independent `Game.__DEV.smokeZoomerTransformTableStep2Fix6Once()` that detects the table by marker presence and validates exact normalized row presence after the marker.
+- Fix 6 validates by marker plus exact normalized row presence, not markdown section shape, and does not edit the 15-row phrase table.
+- Fresh identity: `build_2026_06_17_step2_2_fix6_zoomer_transform_table_v1` / `step2_2_zoomer_transform_table_fix6_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix6Once()`.
+- Scope held: marker detection and row validation only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table
 ## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
 TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
