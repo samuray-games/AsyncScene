@@ -25,6 +25,14 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix1Once()`.
 - Scope held: helper wiring only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
 
+## 2026-06-17 — Step 2.2 Zoomer Transform Table Fix 2
+- Runtime issue: `tableCount:1`, `checkedCount:1`, all 15 TR rows collapsed into one parsed row.
+- Added `Game.__DEV.smokeZoomerTransformTableStep2Fix2Once()` that reuses the deployed-safe root-first artifact lookup and splits collapsed TR rows with the required boundary regex before validating each row independently.
+- Fix 2 changes only row splitting/parsing in the transform-table smoke and does not edit the 15-row phrase table.
+- Fresh identity: `build_2026_06_17_step2_2_fix2_zoomer_transform_table_v1` / `step2_2_zoomer_transform_table_fix2_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix2Once()`.
+- Scope held: smoke parser wiring only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table
 ## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
 TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
