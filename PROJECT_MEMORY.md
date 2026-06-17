@@ -75,6 +75,14 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix4Once()`.
 - Scope held: export wiring only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
 
+## 2026-06-17 — Step 2.2 Zoomer Transform Table Fix 5
+- Runtime issue: `Game.__DEV.smokeZoomerTransformTableStep2Fix4Once()` returned stale Fix 2 metadata and `table_exists` failed because the root artifact did not expose the transform table.
+- Added independent `Game.__DEV.smokeZoomerTransformTableStep2Fix5Once()` with cache-busted root-first artifact lookup and explicit missing-table diagnostics.
+- Fix 5 is independent and uses cache-busted root artifact lookup; it does not wrap Fix 2, Fix 3, or Fix 4.
+- Fresh identity: `build_2026_06_17_step2_2_fix5_zoomer_transform_table_v1` / `step2_2_zoomer_transform_table_fix5_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix5Once()`.
+- Scope held: export wiring and artifact lookup only; no phrase content edits, no gameplay/runtime logic changes, and no forbidden file edits.
+
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table
 ## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
 TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
