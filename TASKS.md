@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Stage 3.2 smoke aggregation so `Game.__DEV.smokeBoomerTabooListStep32Fix2Once()` reports a real `ok` value instead of relying on the old commit-substring gate, and it now guards the impossible empty-problem-array state with `invalid_ok_aggregation`.
+- Build tag: `build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix2_v1`.
+- Commit placeholder: `step3_2_boomer_taboo_list_smoke_fix2`.
+- Smoke version: `boomer_taboo_list_step3_2_fix2_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerTabooListStep32Fix2Once()`.
+- Scope held: dev-smoke aggregation/status logic only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke identity and wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke version without reusing `boomer_taboo_list_step3_2_v20260618_001`.

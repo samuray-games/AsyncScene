@@ -5131,6 +5131,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         uiLayerOnly: true,
         runtimeLogicTouched: false
       };
+      result.impossibleOkState = false;
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
@@ -5288,6 +5289,14 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         && result.failures.length === 0
         && result.failedChecks.length === 0;
       if (!result.tabooConnectedToDevSmoke) fail("taboo_connected_to_dev_smoke", { tabooListExists: result.tabooListExists, forbiddenSamplesMissed: result.forbiddenSamplesMissed.length, falsePositiveSamples: result.falsePositiveSamples.length, missingCoverage: result.missingCoverage.length, failures: result.failures.length, failedChecks: result.failedChecks.length });
+      result.impossibleOkState = result.ok === false
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.forbiddenSamplesMissed.length === 0
+        && result.falsePositiveSamples.length === 0;
+      if (result.impossibleOkState) fail("invalid_ok_aggregation", "ok_false_with_empty_problem_arrays");
       result.ok = result.tabooListExists === true
         && result.tabooEntryCount === tabooEntries.length
         && result.tabooCategories.length === expectedCategories.length
@@ -5305,9 +5314,9 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         && !!result.buildTag
         && !!result.commit
         && !!result.smokeVersion
-        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
         && result.uiLayerOnly === true
-        && result.runtimeLogicTouched === false;
+        && result.runtimeLogicTouched === false
+        && result.impossibleOkState === false;
       return result;
     };
     const smokeBoomerTabooListStep32Once = () => smokeBoomerTabooListStep32CoreOnce({
@@ -5320,6 +5329,12 @@ TXT_0164|Не хватает 💰.|Мало 💰.
       buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix1_v1",
       commit: "step3_2_boomer_taboo_list_smoke_fix1",
       smokeVersion: "boomer_taboo_list_step3_2_fix1_v20260618_002",
+      reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
+    });
+    const smokeBoomerTabooListStep32Fix2Once = () => smokeBoomerTabooListStep32CoreOnce({
+      buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix2_v1",
+      commit: "step3_2_boomer_taboo_list_smoke_fix2",
+      smokeVersion: "boomer_taboo_list_step3_2_fix2_v20260618_003",
       reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
     });
 
@@ -8930,6 +8945,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     Game.Dev.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
+    Game.Dev.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -8969,6 +8985,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     G.__DEV.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
+    G.__DEV.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -9020,6 +9037,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     devStore.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     devStore.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
+    devStore.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
