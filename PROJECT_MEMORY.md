@@ -13,6 +13,16 @@
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Scope held: UI-layer dev-smoke exposure only; no gameplay/runtime logic changes, no forbidden file edits, and no docs/artifact rewrites.
 
+## 2026-06-17 — Step 2.3 Boomer Expansion Prohibitions
+- Added the Step 2.3 `Expansion Prohibitions` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact forbidden phrase groups plus the 20 negative and 12 positive probes.
+- Added dev-only smoke `Game.__DEV.smokeBoomerExpansionProhibitionsStep23Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate the 184 contract texts, forbidden-phrase coverage, negative-probe rejection, and positive-probe acceptance without changing visible UI or gameplay logic.
+- Build tag: `build_2026_06_17_step2_3_boomer_expansion_prohibitions_v1`.
+- Commit identity: `step2_3_boomer_expansion_prohibitions_v1`.
+- Smoke version: `step2_3_boomer_expansion_prohibitions_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionProhibitionsStep23Once()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.2 Boomer Transformation Table
 - Added the Step 2.2 `Transformation Table` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 fixed millennial -> boomer rows for UI, error, risk, and hint surfaces.
 - Added dev-only smoke `Game.__DEV.smokeBoomerTransformationTableStep22Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate row count, exact row ordering, category counts, field coverage, template-variable preservation, empty-text prohibition, and forbidden-word blocking without changing visible UI or gameplay logic.
