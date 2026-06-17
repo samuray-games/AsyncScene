@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Stage 3.2 smoke wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` now uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke identity instead of reusing `boomer_taboo_list_step3_2_v20260618_001`.
+- Build tag: `build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix1_v1`.
+- Commit placeholder: `step3_2_boomer_taboo_list_smoke_fix1`.
+- Smoke version: `boomer_taboo_list_step3_2_fix1_v20260618_002`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Scope held: UI/profile/dev-check smoke wiring only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_BOOMER_TABOO_LIST.md` and `docs/UI_PROFILE_BOOMER_TABOO_LIST.md` with the additive Boomer taboo list artifact. The list is machine-readable and keeps `UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` intact.
