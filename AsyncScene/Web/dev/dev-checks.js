@@ -4567,6 +4567,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         variablesPreserved: false,
         uiLayerOnly: true,
         runtimeLogicTouched: false,
+        regressionChecks: [],
       };
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
       const fail = (check, detail) => {
@@ -4633,6 +4634,20 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const bb = placeholderTokens(b);
         return aa.length === bb.length && aa.every((token, idx) => token === bb[idx]);
       };
+      const matchExactToken = (text, token) => {
+        const value = String(text || "");
+        const normalized = String(token || "").trim();
+        if (!normalized) return false;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u").test(value);
+      };
+      const matchExactPhrase = (text, phrase) => {
+        const value = String(text || "");
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return false;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u").test(value);
+      };
       try {
         const lexRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
         result.lexiconExists = !!(lexRes && lexRes.ok);
@@ -4656,43 +4671,52 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         result.variablesPreserved = placeholderFailures.length === 0;
         if (!result.variablesPreserved) fail("variables_preserved", placeholderFailures);
         const forbiddenPatterns = [
-          { rule: "Погнали", re: /\bПогнали\b/ },
-          { rule: "Снести", re: /\bСнести\b/ },
-          { rule: "без душноты", re: /без душноты/i },
-          { rule: "Свалить", re: /\bСвалить\b/ },
-          { rule: "свалить", re: /\bсвалить\b/ },
-          { rule: "Кулдаун", re: /\bКулдаун\b/ },
-          { rule: "мейн", re: /\bмейн\b/ },
-          { rule: "андер", re: /\bандер\b/ },
-          { rule: "вывез", re: /\bвывез\b/ },
-          { rule: "Не вывез", re: /\bНе вывез\b/ },
-          { rule: "Драма", re: /\bДрама\b/ },
-          { rule: "RIP", re: /\bRIP\b/ },
-          { rule: "WIN", re: /\bWIN\b/ },
-          { rule: "DRAW", re: /\bDRAW\b/ },
-          { rule: "ого", re: /\bого\b/ },
-          { rule: "тыкни", re: /\bтыкни\b/ },
-          { rule: "вписывайся", re: /\bвписывайся\b/ },
-          { rule: "Дай паузу", re: /\bДай паузу\b/ },
-          { rule: "Такого нет", re: /\bТакого нет\b/ },
-          { rule: "Попробуй", re: /\bПопробуй\b/ },
-          { rule: "Ты ", re: /\bТы\s/ },
-          { rule: "тебе", re: /\bтебе\b/ },
-          { rule: "ник", re: /\bник\b/ },
-          { rule: "Cap", re: /\bCap\b/ },
-          { rule: "max Points", re: /max Points/ },
-          { rule: "cap", re: /\bcap\b/ },
+          { rule: "Погнали", test: (text) => matchExactToken(text, "Погнали") },
+          { rule: "Снести", test: (text) => matchExactToken(text, "Снести") },
+          { rule: "без душноты", test: (text) => matchExactPhrase(text, "без душноты") },
+          { rule: "Свалить", test: (text) => matchExactToken(text, "Свалить") },
+          { rule: "свалить", test: (text) => matchExactToken(text, "свалить") },
+          { rule: "Кулдаун", test: (text) => matchExactToken(text, "Кулдаун") },
+          { rule: "мейн", test: (text) => matchExactToken(text, "мейн") },
+          { rule: "андер", test: (text) => matchExactToken(text, "андер") },
+          { rule: "вывез", test: (text) => matchExactToken(text, "вывез") },
+          { rule: "Не вывез", test: (text) => matchExactPhrase(text, "Не вывез") },
+          { rule: "Драма", test: (text) => matchExactToken(text, "Драма") },
+          { rule: "RIP", test: (text) => matchExactToken(text, "RIP") },
+          { rule: "WIN", test: (text) => matchExactToken(text, "WIN") },
+          { rule: "DRAW", test: (text) => matchExactToken(text, "DRAW") },
+          { rule: "ого", test: (text) => matchExactToken(text, "ого") },
+          { rule: "тыкни", test: (text) => matchExactToken(text, "тыкни") },
+          { rule: "вписывайся", test: (text) => matchExactToken(text, "вписывайся") },
+          { rule: "Дай паузу", test: (text) => matchExactPhrase(text, "Дай паузу") },
+          { rule: "Такого нет", test: (text) => matchExactPhrase(text, "Такого нет") },
+          { rule: "Попробуй", test: (text) => matchExactToken(text, "Попробуй") },
+          { rule: "Ты ", test: (text) => matchExactToken(text, "Ты") },
+          { rule: "тебе", test: (text) => matchExactToken(text, "тебе") },
+          { rule: "ник", test: (text) => matchExactToken(text, "ник") },
+          { rule: "Cap", test: (text) => matchExactToken(text, "Cap") },
+          { rule: "max Points", test: (text) => /max Points/.test(text) },
+          { rule: "cap", test: (text) => matchExactToken(text, "cap") },
         ];
         const allowedBattleIds = new Set(["TXT_0026", "TXT_0051", "TXT_0144"]);
         rows.forEach((row) => {
           const text = String(row && row.boomerText || "");
           forbiddenPatterns.forEach((pattern) => {
-            if (pattern.re.test(text)) addUnique(result.forbiddenRemaining, { id: row.id, rule: pattern.rule, text });
+            if (pattern.test(text)) addUnique(result.forbiddenRemaining, { id: row.id, rule: pattern.rule, text });
           });
           if (!allowedBattleIds.has(row.id) && /\bбаттл\b/i.test(text)) {
             addUnique(result.forbiddenRemaining, { id: row.id, rule: "баттл", text });
           }
         });
+        result.regressionChecks = [
+          { rule: "ого", text: "Вы уже проголосовали.", shouldMatch: false, matched: matchExactToken("Вы уже проголосовали.", "ого") },
+          { rule: "ого", text: "Слишком рано. Подождите немного.", shouldMatch: false, matched: matchExactToken("Слишком рано. Подождите немного.", "ого") },
+          { rule: "Попробуй", text: "Сейчас не получилось. Попробуйте позже.", shouldMatch: false, matched: matchExactToken("Сейчас не получилось. Попробуйте позже.", "Попробуй") },
+          { rule: "ого", text: "ого", shouldMatch: true, matched: matchExactToken("ого", "ого") },
+          { rule: "Попробуй", text: "Попробуй", shouldMatch: true, matched: matchExactToken("Попробуй", "Попробуй") },
+        ];
+        const regressionFailures = result.regressionChecks.filter((row) => row.shouldMatch !== row.matched).map((row) => ({ rule: row.rule, text: row.text, shouldMatch: row.shouldMatch, matched: row.matched }));
+        if (regressionFailures.length) fail("forbidden_matcher_regressions", regressionFailures);
         result.noSlang = result.forbiddenRemaining.length === 0;
         result.noAbbreviations = result.forbiddenRemaining.length === 0;
         result.noSharpColloquial = result.forbiddenRemaining.length === 0;
@@ -4716,6 +4740,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.variablesPreserved === true
         && result.uiLayerOnly === true
         && result.runtimeLogicTouched === false;
+      return result;
+    };
+    const smokeBoomerAllowedLexiconStep31Fix1Once = () => {
+      const result = smokeBoomerAllowedLexiconStep31Once();
+      result.buildTag = "build_2026_06_18_step3_1_boomer_allowed_lexicon_smoke_fix1_v1";
+      result.commit = "step3_1_boomer_allowed_lexicon_smoke_fix1";
+      result.smokeVersion = "boomer_allowed_lexicon_step3_1_smoke_fix1_v20260618_001";
       return result;
     };
 
@@ -8322,6 +8353,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
+    Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -8358,6 +8390,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
+    G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -8404,6 +8437,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
+    devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;

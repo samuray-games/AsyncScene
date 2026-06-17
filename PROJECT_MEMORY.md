@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 3.1 Boomer allowed lexicon smoke fix1
+- Fixed the Stage 3.1 smoke matcher false positives only by making the forbidden-token checks exact-token / exact-phrase matches in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Added the dev-only Safari smoke `Game.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once()`.
+- Build tag: `build_2026_06_18_step3_1_boomer_allowed_lexicon_smoke_fix1_v1`.
+- Commit placeholder: `step3_1_boomer_allowed_lexicon_smoke_fix1`.
+- Smoke version: `boomer_allowed_lexicon_step3_1_smoke_fix1_v20260618_001`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`.
+- Scope held: smoke logic only; no lexicon text changes, no runtime logic changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 4 Alpha profile, step 1.4 Alpha explanation-removal rules
 - Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` plus `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md`.
 - Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` plus `docs/ui/ui-profile-alpha-explanation-rules.js`.
