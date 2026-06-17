@@ -175,4 +175,29 @@
 | TXT_0163 | Недоступно. | Это действие сейчас недоступно. | boomer_expansion | ui_layer | TXT_0163 | boomer |
 | TXT_0164 | Не хватает 💰. | Не хватает 💰 для голосования. | boomer_expansion | ui_layer | TXT_0164 | boomer |
 
+## Step 2.2 Transformation Table
+
+| id | category | surface | millennialText | boomerText | rule |
+| --- | --- | --- | --- | --- | --- |
+| TR_0001 | ui | start_screen | Старт | Начать сцену | replace short action label with explicit action outcome |
+| TR_0002 | ui | start_screen | Суть | Краткая суть | replace compressed label with clear noun phrase |
+| TR_0003 | ui | onboarding | Продолжить | Продолжить выбор | add immediate context without moralizing |
+| TR_0004 | ui | menu | К старту | Вернуться к старту | make navigation direction explicit |
+| TR_0005 | ui | crowd_vote | ТЫКНИ ИМЯ | ВЫБЕРИТЕ ИМЯ | replace sharp slang-like command with neutral clear action |
+| TR_0006 | error | system_message | Не хватает 💰. | Не хватает 💰 для этого действия. | add concrete reason and action context |
+| TR_0007 | error | system_message | Недоступно. | Это действие сейчас недоступно. | add subject and current state |
+| TR_0008 | error | player_lookup | Игрок не найден. | Игрок с таким ником не найден. | add lookup context |
+| TR_0009 | error | input | Ввод некорректен. | Введённые данные не подходят для этого действия. | explain mismatch without blaming player |
+| TR_0010 | error | cooldown | Кулдаун активен. | Кулдаун ещё активен, действие пока закрыто. | add consequence and temporary state |
+| TR_0011 | risk | economy | Ставка списывает ресурс. | Ставка сразу списывает часть ресурса. | make cost timing explicit |
+| TR_0012 | risk | battle | Оппонент задаёт риск. | Оппонент выбирает риск для этого хода. | clarify who acts and what changes |
+| TR_0013 | risk | battle_result | Итог виден сразу. | Результат этого действия виден сразу. | expand abstract result into action result |
+| TR_0014 | risk | economy_result | Цена и итог сразу. | Цена и результат показываются сразу. | split compressed pair into clear terms |
+| TR_0015 | risk | rematch | Реванш: -{rematchCost}💰. | Реванш стоит -{rematchCost}💰. | preserve variable and clarify cost |
+| TR_0016 | hint | cop_dm | Ответь: кто? | Ответьте, кто участвует. | replace clipped prompt with complete question |
+| TR_0017 | hint | cop_dm | Ответь: где? | Ответьте, где это происходит. | add location context |
+| TR_0018 | hint | cop_dm | Ответь: о ком? | Ответьте, о ком идёт речь. | add topic context |
+| TR_0019 | hint | cop_dm | Ответь: да или нет? | Ответьте коротко: да или нет. | keep short answer requirement but soften wording |
+| TR_0020 | hint | crowd | Вы уверены? | Вы уверены в этом ответе? | add object of confirmation |
+
 - No visible UI changes are applied by this contract document.

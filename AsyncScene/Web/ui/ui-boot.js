@@ -9426,5 +9426,173 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeBoomerExpansionContractStep21Once = G.__DEV.smokeBoomerExpansionContractStep21Once;
     }
+    if (typeof G.__DEV.smokeBoomerTransformationTableStep22Once !== "function") {
+      const BOOMER_TRANSFORMATION_BUILD_TAG = "build_2026_06_17_step2_2_boomer_transformation_table_v1";
+      const BOOMER_TRANSFORMATION_COMMIT = "step2_2_boomer_transformation_table_v1";
+      const BOOMER_TRANSFORMATION_SMOKE_VERSION = "step2_2_boomer_transformation_table_v1_v20260617_001";
+      const CONTRACT_DOC_URL = "UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md";
+      const EXPECTED_COUNT = 20;
+      const EXPECTED_CATEGORY_COUNTS = { ui: 5, error: 5, risk: 5, hint: 5 };
+      const FORBIDDEN_WORDS = [
+        "обязаны",
+        "следует",
+        "необходимо",
+        "надлежит",
+        "неправильно",
+        "виноваты",
+        "должны понимать",
+        "рекомендуется",
+        "запрещается",
+        "нарушение правил",
+      ];
+      const expectedRows = [
+        { id: "TR_0001", category: "ui", surface: "start_screen", millennialText: "Старт", boomerText: "Начать сцену", rule: "replace short action label with explicit action outcome" },
+        { id: "TR_0002", category: "ui", surface: "start_screen", millennialText: "Суть", boomerText: "Краткая суть", rule: "replace compressed label with clear noun phrase" },
+        { id: "TR_0003", category: "ui", surface: "onboarding", millennialText: "Продолжить", boomerText: "Продолжить выбор", rule: "add immediate context without moralizing" },
+        { id: "TR_0004", category: "ui", surface: "menu", millennialText: "К старту", boomerText: "Вернуться к старту", rule: "make navigation direction explicit" },
+        { id: "TR_0005", category: "ui", surface: "crowd_vote", millennialText: "ТЫКНИ ИМЯ", boomerText: "ВЫБЕРИТЕ ИМЯ", rule: "replace sharp slang-like command with neutral clear action" },
+        { id: "TR_0006", category: "error", surface: "system_message", millennialText: "Не хватает 💰.", boomerText: "Не хватает 💰 для этого действия.", rule: "add concrete reason and action context" },
+        { id: "TR_0007", category: "error", surface: "system_message", millennialText: "Недоступно.", boomerText: "Это действие сейчас недоступно.", rule: "add subject and current state" },
+        { id: "TR_0008", category: "error", surface: "player_lookup", millennialText: "Игрок не найден.", boomerText: "Игрок с таким ником не найден.", rule: "add lookup context" },
+        { id: "TR_0009", category: "error", surface: "input", millennialText: "Ввод некорректен.", boomerText: "Введённые данные не подходят для этого действия.", rule: "explain mismatch without blaming player" },
+        { id: "TR_0010", category: "error", surface: "cooldown", millennialText: "Кулдаун активен.", boomerText: "Кулдаун ещё активен, действие пока закрыто.", rule: "add consequence and temporary state" },
+        { id: "TR_0011", category: "risk", surface: "economy", millennialText: "Ставка списывает ресурс.", boomerText: "Ставка сразу списывает часть ресурса.", rule: "make cost timing explicit" },
+        { id: "TR_0012", category: "risk", surface: "battle", millennialText: "Оппонент задаёт риск.", boomerText: "Оппонент выбирает риск для этого хода.", rule: "clarify who acts and what changes" },
+        { id: "TR_0013", category: "risk", surface: "battle_result", millennialText: "Итог виден сразу.", boomerText: "Результат этого действия виден сразу.", rule: "expand abstract result into action result" },
+        { id: "TR_0014", category: "risk", surface: "economy_result", millennialText: "Цена и итог сразу.", boomerText: "Цена и результат показываются сразу.", rule: "split compressed pair into clear terms" },
+        { id: "TR_0015", category: "risk", surface: "rematch", millennialText: "Реванш: -{rematchCost}💰.", boomerText: "Реванш стоит -{rematchCost}💰.", rule: "preserve variable and clarify cost" },
+        { id: "TR_0016", category: "hint", surface: "cop_dm", millennialText: "Ответь: кто?", boomerText: "Ответьте, кто участвует.", rule: "replace clipped prompt with complete question" },
+        { id: "TR_0017", category: "hint", surface: "cop_dm", millennialText: "Ответь: где?", boomerText: "Ответьте, где это происходит.", rule: "add location context" },
+        { id: "TR_0018", category: "hint", surface: "cop_dm", millennialText: "Ответь: о ком?", boomerText: "Ответьте, о ком идёт речь.", rule: "add topic context" },
+        { id: "TR_0019", category: "hint", surface: "cop_dm", millennialText: "Ответь: да или нет?", boomerText: "Ответьте коротко: да или нет.", rule: "keep short answer requirement but soften wording" },
+        { id: "TR_0020", category: "hint", surface: "crowd", millennialText: "Вы уверены?", boomerText: "Вы уверены в этом ответе?", rule: "add object of confirmation" },
+      ];
+      const expectedIds = expectedRows.map((row) => row.id);
+      const readContractDocText = () => {
+        const urls = [CONTRACT_DOC_URL, `./${CONTRACT_DOC_URL}`];
+        for (const url of urls) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) && typeof xhr.responseText === "string" && xhr.responseText.trim()) {
+              return xhr.responseText;
+            }
+          } catch (_) {}
+        }
+        return "";
+      };
+      const parseRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|\s*TR_\d{4}\s*\|/.test(line))
+        .map((line) => {
+          const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+          return {
+            id: cells[0] || "",
+            category: cells[1] || "",
+            surface: cells[2] || "",
+            millennialText: cells[3] || "",
+            boomerText: cells[4] || "",
+            rule: cells[5] || "",
+          };
+        });
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      G.__DEV.smokeBoomerTransformationTableStep22Once = function smokeBoomerTransformationTableStep22Once() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_TRANSFORMATION_BUILD_TAG,
+          commit: BOOMER_TRANSFORMATION_COMMIT,
+          smokeVersion: BOOMER_TRANSFORMATION_SMOKE_VERSION,
+          checkedCount: 0,
+          categoryCounts: { ui: 0, error: 0, risk: 0, hint: 0 },
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        try {
+          const text = readContractDocText();
+          if (!text) {
+            fail("contract_doc_unreadable", { url: CONTRACT_DOC_URL });
+          } else {
+            const rows = parseRows(text);
+            result.checkedCount = rows.length;
+            if (rows.length !== EXPECTED_COUNT) {
+              fail("row_count_mismatch", { expected: EXPECTED_COUNT, actual: rows.length });
+            }
+            const seen = new Set();
+            rows.forEach((row, index) => {
+              const expected = expectedRows[index];
+              if (!row.id || !row.category || !row.surface || !row.millennialText || !row.boomerText || !row.rule) {
+                fail("missing_field", { index, row });
+              }
+              if (!expected) {
+                fail("unexpected_row", { index, row });
+                return;
+              }
+              if (row.id !== expected.id || row.category !== expected.category || row.surface !== expected.surface || row.millennialText !== expected.millennialText || row.boomerText !== expected.boomerText || row.rule !== expected.rule) {
+                fail("row_mismatch", { index, expected, actual: row });
+              }
+              if (seen.has(row.id)) {
+                fail("duplicate_id", { id: row.id, index });
+              }
+              seen.add(row.id);
+              if (!Object.prototype.hasOwnProperty.call(result.categoryCounts, row.category)) {
+                fail("category_mismatch", { id: row.id, category: row.category });
+              } else {
+                result.categoryCounts[row.category] += 1;
+              }
+              if (!String(row.boomerText || "").trim()) {
+                fail("empty_boomer_text", { id: row.id });
+              }
+              if (row.boomerText === row.millennialText) {
+                fail("boomer_equals_millennial", { id: row.id });
+              }
+              const sourceVars = templateVars(row.millennialText);
+              const boomerVars = templateVars(row.boomerText);
+              if (sourceVars.join("|") !== boomerVars.join("|")) {
+                fail("template_vars_mismatch", { id: row.id, sourceVars, boomerVars });
+              }
+              const forbiddenWord = FORBIDDEN_WORDS.find((word) => String(row.boomerText || "").includes(word));
+              if (forbiddenWord) {
+                result.forbiddenRemaining.push({ id: row.id, word: forbiddenWord });
+                fail("forbidden_word_present", { id: row.id, word: forbiddenWord });
+              }
+            });
+            const missingIds = expectedIds.filter((id) => !seen.has(id));
+            if (missingIds.length) {
+              missingIds.forEach(miss);
+              fail("missing_coverage", { missingIds });
+            }
+            Object.keys(EXPECTED_CATEGORY_COUNTS).forEach((category) => {
+              if (result.categoryCounts[category] !== EXPECTED_CATEGORY_COUNTS[category]) {
+                fail("category_count_mismatch", { category, expected: EXPECTED_CATEGORY_COUNTS[category], actual: result.categoryCounts[category] });
+              }
+            });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedCount === EXPECTED_COUNT
+          && result.categoryCounts.ui === EXPECTED_CATEGORY_COUNTS.ui
+          && result.categoryCounts.error === EXPECTED_CATEGORY_COUNTS.error
+          && result.categoryCounts.risk === EXPECTED_CATEGORY_COUNTS.risk
+          && result.categoryCounts.hint === EXPECTED_CATEGORY_COUNTS.hint
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerTransformationTableStep22Once = G.__DEV.smokeBoomerTransformationTableStep22Once;
+    }
   }
 })();
