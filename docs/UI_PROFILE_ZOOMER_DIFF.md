@@ -283,6 +283,24 @@ Dedicated transformation table only: millennial-style long construction -> short
 | данная ошибка означает отсутствие связи | Нет связи, поэтому ошибка |
 | у тебя имеется возможность забрать награду | Можешь забрать награду сейчас |
 
+## UI_PROFILE_ZOOMER_TRANSFORM_TABLE
+
+TR_0001 | replace "Ты рискуешь потерять очки" -> "Можно потерять очки"
+TR_0002 | replace "Возможно, ты потеряешь деньги" -> "Можно потерять деньги"
+TR_0003 | replace "Может быть, толпа поддержит тебя" -> "Толпа может поддержать"
+TR_0004 | replace "Стоит выбрать игрока" -> "Выбери игрока"
+TR_0005 | replace "Стоит проверить цель" -> "Проверь цель"
+TR_0006 | replace "Возможно, действие не сработает" -> "Действие может не сработать"
+TR_0007 | replace "Ты можешь попробовать реванш" -> "Запроси реванш"
+TR_0008 | replace "Есть риск потерять ресурс" -> "Можно потерять ресурс"
+TR_0009 | replace "В этом случае очки могут снизиться" -> "Очки могут упасть"
+TR_0010 | replace "Сейчас лучше подождать" -> "Подожди"
+TR_0011 | replace "Можно попробовать сдать игрока копу" -> "Сдай игрока копу"
+TR_0012 | replace "Вероятно, не хватает денег" -> "Мало денег"
+TR_0013 | replace "Необходимо указать имя игрока" -> "Укажи имя"
+TR_0014 | replace "Следует выбрать аргумент" -> "Выбери аргумент"
+TR_0015 | replace "Возможно, голос уже учтён" -> "Голос уже учтён"
+
 ## UI_PROFILE_ZOOMER_CANONICAL_MAPPING_TABLE
 
 Canonical mapping table only. Source: Step 4 [1] inventory unique UI strings. Each millennial entry has exactly one zoomer replacement. No runtime strings are rewritten by this table. No gameplay, logic, category, or copy application changes.
