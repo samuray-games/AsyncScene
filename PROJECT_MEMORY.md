@@ -4,6 +4,9 @@
 - Fresh identity: `step1_4_boomer_risk_doc_table_fix1_v20260616_001`.
 - Scope held: documentation and smoke only; no UI changes, no gameplay changes, no runtime behavior changes, no refactors, and no `Console.txt` usage.
 
+## 2026-06-17 — Step 1.8 Boomer Profile Diff Runtime Safari Smoke Shape
+Stage 3 Boomer [1.8] canonicalizes Game.__DEV.smokeBoomerProfileDiffOnce() Safari smoke output by adding forbiddenRemaining:[], missingCoverage:[], and failedChecks:[]. No runtime copy changes. No data.js changes.
+
 ## 2026-06-17 — Step 1.5 Boomer Soft Verbs Section Fix1
 Stage 3 Boomer [1.5] documents soft verb replacements only. No runtime copy changes.
 

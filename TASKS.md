@@ -15,6 +15,9 @@
 ## 2026-06-17 — Step 1.7 Boomer Profile Diff Runtime Smoke
 - [1.7] Dev-smoke документа - ready for Safari runtime smoke. Added Game.__DEV.smokeBoomerProfileDiffOnce(). Expected PASS: ok:true, baseProfile:"millennial", docPresent:true, deltaOnly:true, forbiddenOfficialese:[], forbiddenMoralizing:[].
 
+## 2026-06-17 — Step 1.8 Boomer Profile Diff Runtime Safari Smoke Shape
+- [1.8] Runtime Safari smoke - ready for canonical Safari smoke. smokeBoomerProfileDiffOnce now returns forbiddenRemaining, missingCoverage, and failedChecks as empty arrays for strict PASS shape.
+
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Status: documentation-only.
 - Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.

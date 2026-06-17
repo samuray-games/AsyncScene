@@ -34408,6 +34408,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       deltaOnly: false,
       forbiddenOfficialese: [],
       forbiddenMoralizing: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
       requiredMarkers: {},
       requiredCounts: {
         softVerbRowsExpected: 39,
@@ -34568,6 +34571,9 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         && allRequiredMarkersPresent
         && result.forbiddenOfficialese.length === 0
         && result.forbiddenMoralizing.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
         && result.failures.length === 0;
     } catch (_) {
       fail("doc_missing");
