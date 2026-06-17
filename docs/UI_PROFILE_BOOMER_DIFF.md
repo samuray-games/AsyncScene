@@ -530,6 +530,876 @@ FROM:
 TO:
 Рано. Подождите немного.
 
+## NEW FEATURE SURFACES
+
+Boomer new-feature coverage is a delta from UI_PROFILE_MILLENNIAL.
+
+Rule:
+- every new surface must be listed explicitly
+- every listed surface uses the same boomer rules from steps [1.1]-[1.5]
+- wording is calmer than zoomer
+- wording is clearer than zoomer
+- wording does not become official
+- wording does not become moralizing
+- wording does not create pressure
+- wording does not create fear
+- wording does not change mechanics
+- wording does not change costs
+- wording does not change rewards
+- wording does not change cooldowns
+- wording does not change outcomes
+- no standalone boomer profile is created
+
+Required surfaces:
+- battle
+- DM
+- respect
+- teach
+- report
+- rematch
+- crowd
+- timer
+- NPC events
+
+Surface rules:
+- battle: explain action, cost, result, and next step calmly
+- DM: use direct but polite wording
+- respect: explain cost, limit, and result without pressure
+- teach: keep teacher, student, argument, and cost clear
+- report: explain check, reward, penalty, and cooldown calmly
+- rematch: explain repeat conflict and cost
+- crowd: explain vote, majority, minority, and result
+- timer: explain waiting and cooldown without urgency
+- NPC events: explain what happened without drama inflation
+
+## EXACT NEW FEATURE COVERAGE TABLE
+
+TXT_0021
+SURFACE:
+timer
+FROM:
+Ещё {sec} сек
+TO:
+Осталось {sec} сек.
+
+TXT_0022
+SURFACE:
+battle
+FROM:
+Победа
+TO:
+Победа.
+
+TXT_0023
+SURFACE:
+battle
+FROM:
+Поражение
+TO:
+Поражение.
+
+TXT_0024
+SURFACE:
+crowd
+FROM:
+Толпа решает
+TO:
+Голосование идёт.
+
+TXT_0025
+SURFACE:
+battle
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Проверьте баланс.
+
+TXT_0026
+SURFACE:
+battle
+FROM:
+Свалить {X}💰
+TO:
+Уйти за {X}💰
+
+TXT_0027
+SURFACE:
+teach
+FROM:
+Для {student}: {arg}. Цена {cost} 💰.
+TO:
+Аргумент для {student}: {arg}. Стоимость: {cost} 💰.
+
+TXT_0028
+SURFACE:
+teach
+FROM:
+Аргумент: {teacher} → {student}.
+TO:
+Аргумент передан: {teacher} → {student}.
+
+TXT_0029
+SURFACE:
+DM
+FROM:
+Введи точный ник.
+TO:
+Введите точный ник.
+
+TXT_0030
+SURFACE:
+DM
+FROM:
+Игрок не найден.
+TO:
+Игрок не найден. Проверьте имя.
+
+TXT_0038
+SURFACE:
+report
+FROM:
+Сдать {name}: +2💰.
+TO:
+Сообщить о {name}: +2💰.
+
+TXT_0039
+SURFACE:
+report
+FROM:
+Коп: {name} сдан, +2💰.
+TO:
+Коп: информация по {name} принята, +2💰.
+
+TXT_0040
+SURFACE:
+teach
+FROM:
+Аргумент: {teacher} → {student}.
+TO:
+Аргумент передан: {teacher} → {student}.
+
+TXT_0041
+SURFACE:
+rematch
+FROM:
+{name} зовёт на реванш.
+TO:
+{name} предлагает реванш.
+
+TXT_0042
+SURFACE:
+battle
+FROM:
+Свалить за 1💰.
+TO:
+Уйти за 1💰.
+
+TXT_0043
+SURFACE:
+battle
+FROM:
++1💰 возврат.
+TO:
+Возврат: +1💰.
+
+TXT_0044
+SURFACE:
+crowd
+FROM:
++1💰 возврат большинству.
+TO:
+Большинство получает возврат: +1💰.
+
+TXT_0045
+SURFACE:
+battle
+FROM:
++1💰 остаток победителю.
+TO:
+Победитель получает остаток: +1💰.
+
+TXT_0046
+SURFACE:
+rematch
+FROM:
+Реванш: -{rematchCost}💰.
+TO:
+Реванш стоит {rematchCost}💰.
+
+TXT_0047
+SURFACE:
+battle
+FROM:
+Свалить: -{escapeCost}💰.
+TO:
+Уйти: -{escapeCost}💰.
+
+TXT_0048
+SURFACE:
+DM
+FROM:
+{target}: +{amount}💰.
+TO:
+{target} получает +{amount}💰.
+
+TXT_0049
+SURFACE:
+DM
+FROM:
+{target}: +{amount}💰 тебе.
+TO:
+Вы получили +{amount}💰 от {target}.
+
+TXT_0050
+SURFACE:
+battle
+FROM:
+{attackerName} [{attackerInf}] бросил вызов.
+TO:
+{attackerName} [{attackerInf}] начал конфликт.
+
+TXT_0051
+SURFACE:
+battle
+FROM:
+Баттл с {oppName}: {text}.
+TO:
+Конфликт с {oppName}: {text}.
+
+TXT_0052
+SURFACE:
+battle
+FROM:
+{a} и {b}: ничья.
+TO:
+Между {a} и {b} ничья.
+
+TXT_0053
+SURFACE:
+crowd
+FROM:
+Толпа: {name} {aVotes}:{bVotes}.
+TO:
+Голосование: {name} {aVotes}:{bVotes}.
+
+TXT_0064
+SURFACE:
+battle
+FROM:
+Победа
+TO:
+Победа.
+
+TXT_0065
+SURFACE:
+battle
+FROM:
+Поражение
+TO:
+Поражение.
+
+TXT_0066
+SURFACE:
+battle
+FROM:
+Ничья
+TO:
+Ничья.
+
+TXT_0067
+SURFACE:
+battle
+FROM:
+Вы победили в конфликте.
+TO:
+Вы победили в конфликте. Результат применён.
+
+TXT_0068
+SURFACE:
+battle
+FROM:
+Вы проиграли конфликт.
+TO:
+Вы проиграли конфликт. Результат применён.
+
+TXT_0069
+SURFACE:
+battle
+FROM:
+Конфликт завершился ничьей.
+TO:
+Конфликт завершился ничьей. Результат применён.
+
+TXT_0070
+SURFACE:
+battle
+FROM:
+Свалить: {X}
+TO:
+Уйти: {X}
+
+TXT_0071
+SURFACE:
+teach
+FROM:
+Для {student}: {arg}. Цена {cost} 💰.
+TO:
+Аргумент для {student}: {arg}. Стоимость: {cost} 💰.
+
+TXT_0073
+SURFACE:
+DM
+FROM:
+Введи точный ник.
+TO:
+Введите точный ник.
+
+TXT_0074
+SURFACE:
+DM
+FROM:
+Игрок не найден.
+TO:
+Игрок не найден. Проверьте имя.
+
+TXT_0075
+SURFACE:
+report
+FROM:
+Сдать
+TO:
+Сообщить
+
+TXT_0076
+SURFACE:
+DM
+FROM:
+DM
+TO:
+Личные сообщения
+
+TXT_0077
+SURFACE:
+DM
+FROM:
+Недоступно.
+TO:
+Пока недоступно.
+
+TXT_0078
+SURFACE:
+report
+FROM:
+Ник бандита или токсика.
+TO:
+Имя бандита или токсика.
+
+TXT_0079
+SURFACE:
+report
+FROM:
+Понял. Проверяю.
+TO:
+Принято. Проверяю.
+
+TXT_0080
+SURFACE:
+report
+FROM:
+Принял. Разберусь.
+TO:
+Принято. Проверю.
+
+TXT_0081
+SURFACE:
+report
+FROM:
+Занят, связь позже.
+TO:
+Сейчас занят. Связь будет позже.
+
+TXT_0082
+SURFACE:
+report
+FROM:
+Не могу, оформляю дело.
+TO:
+Сейчас идёт оформление дела.
+
+TXT_0083
+SURFACE:
+report
+FROM:
+Проверка сошлась. Вмешался.
+TO:
+Проверка подтвердилась. Меры приняты.
+
+TXT_0084
+SURFACE:
+report
+FROM:
+Проверка сошлась. Занялся.
+TO:
+Проверка подтвердилась. Работа начата.
+
+TXT_0085
+SURFACE:
+report
+FROM:
+Не подтвердилось. Факты не сошлись.
+TO:
+Проверка не подтвердила информацию.
+
+TXT_0086
+SURFACE:
+timer
+FROM:
+Проверка займет время.
+TO:
+Проверка займёт время.
+
+TXT_0087
+SURFACE:
+DM
+FROM:
+Ответь: кто?
+TO:
+Ответьте: кто?
+
+TXT_0088
+SURFACE:
+DM
+FROM:
+Ответь: где?
+TO:
+Ответьте: где?
+
+TXT_0089
+SURFACE:
+DM
+FROM:
+Ответь: о ком?
+TO:
+Ответьте: о ком?
+
+TXT_0090
+SURFACE:
+DM
+FROM:
+Ответь: да или нет?
+TO:
+Ответьте: да или нет?
+
+TXT_0092
+SURFACE:
+crowd
+FROM:
+ВПИСЫВАЙСЯ
+TO:
+Участвовать
+
+TXT_0093
+SURFACE:
+DM
+FROM:
+ТЫКНИ ИМЯ
+TO:
+Выберите имя
+
+TXT_0096
+SURFACE:
+battle
+FROM:
+Баттл
+TO:
+Конфликт
+
+TXT_0097
+SURFACE:
+timer
+FROM:
+Таймер
+TO:
+Таймер
+
+TXT_0098
+SURFACE:
+battle
+FROM:
+RIP
+TO:
+Поражение.
+
+TXT_0099
+SURFACE:
+battle
+FROM:
+GG
+TO:
+Готово.
+
+TXT_0100
+SURFACE:
+battle
+FROM:
+Ты вывез.
+TO:
+Вы справились.
+
+TXT_0101
+SURFACE:
+battle
+FROM:
+Не вывез.
+TO:
+Не получилось.
+
+TXT_0102
+SURFACE:
+crowd
+FROM:
+Ничья. Все шумели зря.
+TO:
+Ничья. Решение не изменилось.
+
+TXT_0103
+SURFACE:
+crowd
+FROM:
+Голос учтён.
+TO:
+Голос учтён.
+
+TXT_0104
+SURFACE:
+crowd
+FROM:
+Ты в мейне.
+TO:
+Вы в большинстве.
+
+TXT_0105
+SURFACE:
+crowd
+FROM:
+Мейн забрал.
+TO:
+Большинство победило.
+
+TXT_0106
+SURFACE:
+crowd
+FROM:
+Андер просел.
+TO:
+Меньшинство проиграло.
+
+TXT_0107
+SURFACE:
+battle
+FROM:
+Драма закрыта.
+TO:
+Конфликт завершён.
+
+TXT_0108
+SURFACE:
+timer
+FROM:
+лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.
+TO:
+Лимит ⭐ на этой неделе. Можно пополнить 💰 для конвертации в ⭐.
+
+TXT_0109
+SURFACE:
+timer
+FROM:
+Cap: max Points на этой неделе. Используйте, пока не сбросили cap.
+TO:
+Лимит 💰 на этой неделе. Можно использовать ресурс до сброса.
+
+TXT_0111
+SURFACE:
+NPC events
+FROM:
+Опасная точка рядом.
+TO:
+Рядом есть риск. Лучше проверить ситуацию.
+
+TXT_0112
+SURFACE:
+NPC events
+FROM:
+Вызов принят, экипаж в пути.
+TO:
+Вызов принят. Экипаж в пути.
+
+TXT_0113
+SURFACE:
+NPC events
+FROM:
+Ситуация под контролем.
+TO:
+Ситуация под контролем.
+
+TXT_0114
+SURFACE:
+NPC events
+FROM:
+Принято, наблюдаю.
+TO:
+Информация принята. Наблюдаю.
+
+TXT_0115
+SURFACE:
+NPC events
+FROM:
+Факт принят, идем дальше.
+TO:
+Факт принят, продолжаем.
+
+TXT_0116
+SURFACE:
+timer
+FROM:
+Занят расследованием, связь позже.
+TO:
+Сейчас идёт расследование. Связь будет позже.
+
+TXT_0117
+SURFACE:
+report
+FROM:
+Сдача принята - спокойнее.
+TO:
+Информация принята. Спокойнее.
+
+TXT_0118
+SURFACE:
+report
+FROM:
+«Сдать» без фактов - шум.
+TO:
+Сообщение без фактов не подтверждается.
+
+TXT_0130
+SURFACE:
+battle
+FROM:
+слабый ход
+TO:
+Этот ход может сработать хуже.
+
+TXT_0131
+SURFACE:
+DM
+FROM:
+отвечай сейчас
+TO:
+можно ответить сейчас
+
+TXT_0132
+SURFACE:
+battle
+FROM:
+кошелек ближе
+TO:
+Есть риск потерять 💰.
+
+TXT_0133
+SURFACE:
+battle
+FROM:
+плати и уходи
+TO:
+можно заплатить и уйти
+
+TXT_0135
+SURFACE:
+NPC events
+FROM:
+Тише
+TO:
+Спокойнее
+
+TXT_0138
+SURFACE:
+NPC events
+FROM:
+Тише. Решим.
+TO:
+Спокойнее. Разберёмся.
+
+TXT_0139
+SURFACE:
+battle
+FROM:
+Кошелек ближе.
+TO:
+Есть риск потерять 💰.
+
+TXT_0140
+SURFACE:
+battle
+FROM:
+Слабый ход.
+TO:
+Этот ход может сработать хуже.
+
+TXT_0141
+SURFACE:
+crowd
+FROM:
+Ты уже проголосовал.
+TO:
+Голос уже учтён.
+
+TXT_0142
+SURFACE:
+crowd
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Проверьте баланс.
+
+TXT_0144
+SURFACE:
+battle
+FROM:
+Недоступно. Баттл не завершён.
+TO:
+Пока недоступно. Конфликт ещё не завершён.
+
+TXT_0145
+SURFACE:
+battle
+FROM:
+Недоступно.
+TO:
+Пока недоступно.
+
+TXT_0146
+SURFACE:
+report
+FROM:
+Выбери игрока.
+TO:
+Выберите игрока.
+
+TXT_0147
+SURFACE:
+report
+FROM:
+Такого нет.
+TO:
+Игрок не найден.
+
+TXT_0148
+SURFACE:
+timer
+FROM:
+Кулдаун активен.
+TO:
+Кулдаун активен. Повторить можно позже.
+
+TXT_0149
+SURFACE:
+battle
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Проверьте баланс.
+
+TXT_0150
+SURFACE:
+respect
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Проверьте баланс.
+
+TXT_0151
+SURFACE:
+respect
+FROM:
+Уже было уважение сегодня этому персонажу.
+TO:
+Уважение этому персонажу сегодня уже было.
+
+TXT_0152
+SURFACE:
+respect
+FROM:
+Цепочка A->B->A сегодня не работает.
+TO:
+Сегодня эта цепочка не сработает.
+
+TXT_0153
+SURFACE:
+respect
+FROM:
+Лимит уважения на сегодня исчерпан.
+TO:
+Лимит уважения на сегодня исчерпан.
+
+TXT_0154
+SURFACE:
+respect
+FROM:
+Сейчас не получилось. Попробуй позже.
+TO:
+Сейчас не получилось. Попробуйте позже.
+
+TXT_0155
+SURFACE:
+respect
+FROM:
+Ты отдал 1💰
+TO:
+Вы отдали 1💰
+
+TXT_0160
+SURFACE:
+timer
+FROM:
+Рано. Дай паузу.
+TO:
+Пока рано. Подождите немного.
+
+TXT_0161
+SURFACE:
+battle
+FROM:
+Недоступно.
+TO:
+Пока недоступно.
+
+TXT_0162
+SURFACE:
+DM
+FROM:
+Недоступно.
+TO:
+Пока недоступно.
+
+TXT_0163
+SURFACE:
+report
+FROM:
+Недоступно.
+TO:
+Пока недоступно.
+
+TXT_0164
+SURFACE:
+crowd
+FROM:
+Не хватает 💰.
+TO:
+Не хватает 💰. Проверьте баланс.
+
+## NEW FEATURE SURFACES CHECKS
+
 ## NEXT SECTION
 
 TXT_0026

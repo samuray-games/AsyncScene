@@ -7,6 +7,9 @@
 ## 2026-06-17 — Step 1.5 Boomer Soft Verbs Section Fix1
 Stage 3 Boomer [1.5] documents soft verb replacements only. No runtime copy changes.
 
+## 2026-06-17 — Step 1.6 Boomer New Feature Surfaces
+Stage 3 Boomer [1.6] documents new-feature surface coverage only. Covered surfaces: battle, DM, respect, teach, report, rematch, crowd, timer, NPC events. No runtime copy changes. No data.js changes. No smoke added.
+
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Added a dedicated `RISK LANGUAGE` section to `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md` with the exact risk copy table from TXT_0003 through TXT_0070.
 - Kept the change documentation-only; no runtime text bundles, UI files, or gameplay logic were modified.
