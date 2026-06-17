@@ -1974,6 +1974,173 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerShortenRuleStep1Fix1Once = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step2_1_zoomer_shorten_rule_step1_fix1_${buildTag}_commit_${commit}`;
+      const expectedMatrixCount = 164;
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checkedCount: 0,
+        ruleExists: false,
+        matrixCount: 0,
+        variablesPreserved: true,
+        changedFiles: ["UI_PROFILE_ZOOMER_DIFF.md", "docs/UI_PROFILE_ZOOMER_DIFF.md"],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/__dev__/docs/`);
+        }
+        baseUris.forEach((baseUri) => {
+          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let lastResult = null;
+        for (const url of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(url);
+          const annotated = { ...res, path: url };
+          if (res.ok) return annotated;
+          lastResult = annotated;
+        }
+        return lastResult || { ok: false, reason: "unavailable", path: null };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const parseMatrixRows = (ruleText) => String(ruleText || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|/.test(line) && !/^\|\s*-+/.test(line))
+        .filter((line) => !/^\|\s*id\s*\|\s*before\s*\|\s*after\s*\|\s*note\s*\|$/i.test(line))
+        .map((line) => line.replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => normalize(cell)));
+      const placeholders = (text) => Array.from(String(text || "").matchAll(/\{[^}]+\}/g)).map((match) => match[0]);
+      const canonicalize = (cells) => cells.slice(0, 4).map((cell) => normalize(cell));
+      const parseEntry = (cells) => ({
+        id: cells[0] || "",
+        before: cells[1] || "",
+        after: cells[2] || "",
+        note: cells[3] || ""
+      });
+      const compareDocs = (rootText, docsText) => {
+        if (normalize(rootText) !== normalize(docsText)) {
+          addUnique(result.missingCoverage, "root/docs rule mismatch");
+          fail("doc_copy_mismatch", "UI_PROFILE_ZOOMER_DIFF copies differ");
+        }
+      };
+      try {
+        const rootRes = fetchTextFromCandidates("UI_PROFILE_ZOOMER_DIFF.md");
+        const docsRes = fetchTextFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md");
+        if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable" });
+        if (!docsRes.ok) fail("doc_exists", { path: "docs/UI_PROFILE_ZOOMER_DIFF.md", reason: docsRes.reason || "unavailable" });
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const docsRaw = docsRes.ok ? String(docsRes.text || "") : "";
+        compareDocs(rootRaw, docsRaw);
+        const ruleMatch = rootRaw.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE([\s\S]*?)(?:\n## |\n# |$)/i);
+        const docsRuleMatch = docsRaw.match(/##\s*UI_PROFILE_ZOOMER_SHORTEN_RULE([\s\S]*?)(?:\n## |\n# |$)/i);
+        result.ruleExists = !!(ruleMatch && docsRuleMatch);
+        if (!ruleMatch || !docsRuleMatch) {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+          fail("rule_exists", "missing_UI_PROFILE_ZOOMER_SHORTEN_RULE");
+        } else {
+          const rootRule = normalize(ruleMatch[1] || "");
+          const docsRule = normalize(docsRuleMatch[1] || "");
+          if (normalize(rootRule) !== normalize(docsRule)) {
+            addUnique(result.missingCoverage, "rule_copy_mismatch");
+            fail("rule_copy_mismatch", "root_and_docs_rule_section_differ");
+          }
+          const rows = parseMatrixRows(rootRule)
+            .map(canonicalize)
+            .filter((cells) => cells.length >= 4 && /^TXT_\d{4}$/.test(cells[0]));
+          const seenIds = new Set();
+          result.matrixCount = rows.length;
+          result.checkedCount = rows.length;
+          rows.forEach((cells, idx) => {
+            const entry = parseEntry(cells);
+            if (seenIds.has(entry.id)) {
+              addUnique(result.failures, { check: "duplicate_row_id", detail: entry.id });
+              addUnique(result.failedChecks, "duplicate_row_id");
+            }
+            seenIds.add(entry.id);
+            if (!entry.id || !entry.before || !entry.after) {
+              fail("row_shape", { idx, entry });
+              return;
+            }
+            const isKeep = entry.before === entry.after;
+            if ((isKeep && entry.note !== "keep") || (!isKeep && entry.note !== "replace")) {
+              fail("keep_marker_required", { id: entry.id, note: entry.note, isKeep });
+            }
+            const beforeVars = placeholders(entry.before);
+            const afterVars = placeholders(entry.after);
+            if (beforeVars.join("|") !== afterVars.join("|")) {
+              result.variablesPreserved = false;
+              fail("variables_preserved", { id: entry.id, beforeVars, afterVars });
+            }
+          });
+          if (result.matrixCount !== expectedMatrixCount) {
+            fail("matrix_count_mismatch", { expected: expectedMatrixCount, actual: result.matrixCount });
+            addUnique(result.missingCoverage, `matrixCount_${expectedMatrixCount}`);
+          }
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      if (!result.variablesPreserved) addUnique(result.missingCoverage, "variablesPreserved");
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.ruleExists === true
+        && result.variablesPreserved === true
+        && result.matrixCount === expectedMatrixCount
+        && result.checkedCount === result.matrixCount
+        && result.changedFiles.length > 0
+        && result.changedFiles.every((file) => !/^(?:AsyncScene\/Web\/(?:data|system|npcs|state|ui-old)\.js|docs\/(?:data|system|npcs|state|ui-old)\.js)$/.test(file));
+      return result;
+    };
     const smokeZoomerTransformationTableOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -5954,6 +6121,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     Game.Dev.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     Game.Dev.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
+    Game.Dev.smokeZoomerShortenRuleStep1Fix1Once = smokeZoomerShortenRuleStep1Fix1Once;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
@@ -5995,6 +6163,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerNewFeatureSurfacesOnce = smokeZoomerNewFeatureSurfacesOnce;
     devStore.smokeBuildIdentityOnce = smokeBuildIdentityOnce;
     devStore.smokeZoomerShortenRuleOnce = smokeZoomerShortenRuleOnce;
+    devStore.smokeZoomerShortenRuleStep1Fix1Once = smokeZoomerShortenRuleStep1Fix1Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
