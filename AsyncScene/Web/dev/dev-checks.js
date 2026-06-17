@@ -33908,6 +33908,235 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3MillennialStyleGuideOnce);
   console.warn("STEP3_TERMINOLOGY_COMPLETION_GATE_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCompletionGateOnce);
 
+  const smokeBoomerProfileDiffOnce = function smokeBoomerProfileDiffOnce() {
+    const smokeVersion = "step1_7_boomer_profile_diff_doc_v20260617_001";
+    const requiredMarkerList = [
+      "UI_PROFILE_MILLENNIAL",
+      "delta from UI_PROFILE_MILLENNIAL",
+      "no standalone boomer profile is created",
+      "SOFT VERBS",
+      "EXACT SOFT VERB COPY TABLE",
+      "NEW FEATURE SURFACES",
+      "EXACT NEW FEATURE COVERAGE TABLE",
+      "battle",
+      "DM",
+      "respect",
+      "teach",
+      "report",
+      "rematch",
+      "crowd",
+      "timer",
+      "NPC events"
+    ];
+    const forbiddenOfficialeseList = [
+      "В соответствии",
+      "Согласно регламенту",
+      "Согласно правилам",
+      "Надлежит",
+      "Обязаны",
+      "Обязан",
+      "Обязана",
+      "Следует",
+      "Запрещается",
+      "Разрешается",
+      "Должностное лицо",
+      "Уполномоченный",
+      "Произвести действие",
+      "Осуществить действие"
+    ];
+    const forbiddenMoralizingList = [
+      "нельзя так делать",
+      "ведите себя нормально",
+      "думайте лучше",
+      "надо было думать",
+      "сам виноват",
+      "сама виновата",
+      "стыдно",
+      "это неправильно",
+      "так нельзя",
+      "не надо было",
+      "будь умнее",
+      "будьте умнее",
+      "хватит вести себя так"
+    ];
+    const result = {
+      ok: false,
+      smokeVersion,
+      baseProfile: "millennial",
+      docPresent: false,
+      deltaOnly: false,
+      forbiddenOfficialese: [],
+      forbiddenMoralizing: [],
+      requiredMarkers: {},
+      requiredCounts: {
+        softVerbRowsExpected: 39,
+        softVerbRowsActual: 0,
+        newFeatureRowsExpected: 103,
+        newFeatureRowsActual: 0
+      },
+      runtimeProfileChecks: {
+        dataTextsBoomerMissing: true,
+        dataTextsBoomersMissing: true,
+        standaloneBoomerProfileObjectMissing: true
+      },
+      failures: []
+    };
+    const addUnique = (arr, value) => {
+      if (!arr.includes(value)) arr.push(value);
+    };
+    const fail = (code) => addUnique(result.failures, code);
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const add = (value) => {
+        if (!value || candidates.includes(value)) return;
+        candidates.push(value);
+      };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => {
+        try { add(new URL(fileName, baseUri).href); } catch (_) {}
+      });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText, path };
+        return { ok: false, reason: `http_${xhr.status}`, path };
+      } catch (err) {
+        return { ok: false, reason: err && err.message ? String(err.message) : String(err), path };
+      }
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null, text: "" };
+    };
+    const getSection = (text, heading) => {
+      const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = text.match(new RegExp(`## ${escaped}\\n([\\s\\S]*?)(?=\\n## |$)`));
+      return match ? match[1] : "";
+    };
+    const countTxtRows = (sectionText) => {
+      const matches = String(sectionText || "").match(/^TXT_\d+/gm);
+      return matches ? matches.length : 0;
+    };
+    const collectToBlocks = (text) => {
+      const hits = [];
+      const parts = String(text || "").split("\nTO:\n");
+      for (let index = 1; index < parts.length; index += 1) {
+        const value = String(parts[index] || "").split(/\n(?=TXT_\d+\n|## )/)[0].trim();
+        if (value) hits.push(value);
+      }
+      return hits;
+    };
+    const findForbiddenHits = (phrases, sources) => {
+      const hits = [];
+      phrases.forEach((phrase) => {
+        if (sources.some((value) => value.includes(phrase))) addUnique(hits, phrase);
+      });
+      return hits;
+    };
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      const docText = normalize(docRes.ok ? docRes.text : "");
+      const requiredMarkerPresence = {};
+      requiredMarkerList.forEach((marker) => {
+        requiredMarkerPresence[marker] = docText.includes(marker);
+      });
+      result.requiredMarkers = requiredMarkerPresence;
+
+      const softVerbSection = getSection(docText, "EXACT SOFT VERB COPY TABLE");
+      const newFeatureSection = getSection(docText, "EXACT NEW FEATURE COVERAGE TABLE");
+      result.requiredCounts.softVerbRowsActual = countTxtRows(softVerbSection);
+      result.requiredCounts.newFeatureRowsActual = countTxtRows(newFeatureSection);
+
+      const allRequiredMarkersPresent = requiredMarkerList.every((marker) => requiredMarkerPresence[marker] === true);
+      result.docPresent = !!docRes.ok && allRequiredMarkersPresent;
+      if (!result.docPresent) fail("doc_missing");
+      if (!allRequiredMarkersPresent) fail("required_marker_missing");
+      if (result.baseProfile !== "millennial") fail("base_profile_not_millennial");
+
+      const data = (Game && Game.Data) ? Game.Data : null;
+      const texts = data && data.TEXTS && typeof data.TEXTS === "object" ? data.TEXTS : null;
+      const standaloneBoomerProfileObject = !!(
+        (texts && typeof texts.boomer === "object" && texts.boomer)
+        || (texts && typeof texts.boomers === "object" && texts.boomers)
+        || (data && data.START_SCREEN_PROFILE_TEXTS && typeof data.START_SCREEN_PROFILE_TEXTS.boomer === "object" && data.START_SCREEN_PROFILE_TEXTS.boomer)
+        || (data && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && typeof data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer === "object" && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer)
+        || (data && data.UI_PROFILE_BOOMER && typeof data.UI_PROFILE_BOOMER === "object")
+      );
+      result.runtimeProfileChecks = {
+        dataTextsBoomerMissing: !(texts && Object.prototype.hasOwnProperty.call(texts, "boomer")),
+        dataTextsBoomersMissing: !(texts && Object.prototype.hasOwnProperty.call(texts, "boomers")),
+        standaloneBoomerProfileObjectMissing: !standaloneBoomerProfileObject
+      };
+      if (!result.runtimeProfileChecks.standaloneBoomerProfileObjectMissing) fail("standalone_boomer_profile_found");
+
+      const documentStatesDelta = docText.includes("delta from UI_PROFILE_MILLENNIAL");
+      const documentReferencesBase = docText.includes("UI_PROFILE_MILLENNIAL");
+      const documentSaysNoStandalone = docText.includes("no standalone boomer profile is created");
+      result.deltaOnly = !!(
+        documentStatesDelta
+        && documentReferencesBase
+        && documentSaysNoStandalone
+        && result.runtimeProfileChecks.dataTextsBoomerMissing
+        && result.runtimeProfileChecks.dataTextsBoomersMissing
+        && result.runtimeProfileChecks.standaloneBoomerProfileObjectMissing
+      );
+      if (!result.deltaOnly) fail("delta_only_failed");
+
+      if (result.requiredCounts.softVerbRowsActual !== result.requiredCounts.softVerbRowsExpected) fail("soft_verb_count_failed");
+      if (result.requiredCounts.newFeatureRowsActual !== result.requiredCounts.newFeatureRowsExpected) fail("new_feature_count_failed");
+
+      const boomerFacingBlocks = collectToBlocks(docText);
+      result.forbiddenOfficialese = findForbiddenHits(forbiddenOfficialeseList, boomerFacingBlocks);
+      result.forbiddenMoralizing = findForbiddenHits(forbiddenMoralizingList, boomerFacingBlocks);
+      if (result.forbiddenOfficialese.length) fail("forbidden_officialese_found");
+      if (result.forbiddenMoralizing.length) fail("forbidden_moralizing_found");
+
+      result.ok = result.baseProfile === "millennial"
+        && result.docPresent === true
+        && result.deltaOnly === true
+        && result.requiredCounts.softVerbRowsActual === result.requiredCounts.softVerbRowsExpected
+        && result.requiredCounts.newFeatureRowsActual === result.requiredCounts.newFeatureRowsExpected
+        && allRequiredMarkersPresent
+        && result.forbiddenOfficialese.length === 0
+        && result.forbiddenMoralizing.length === 0
+        && result.failures.length === 0;
+    } catch (_) {
+      fail("doc_missing");
+    }
+    return result;
+  };
+  Game.__DEV.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
+  console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
+
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
     Game.__DEV.__shortcutBound = true;

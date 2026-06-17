@@ -6566,3 +6566,6 @@ Error: Download failure, code=1
 - Documentation-only delta for `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md`.
 - Added the `NEW FEATURE SURFACES` section and the exact new feature coverage table for TXT_0021, TXT_0022, TXT_0023, TXT_0024, TXT_0025, TXT_0026, TXT_0027, TXT_0028, TXT_0029, TXT_0030, TXT_0038, TXT_0039, and TXT_0040.
 - Scope held: docs only; no runtime boomer changes, no `data.js`, no dev-checks, no index, no UI, no gameplay, no state, no system routing, and no `Console.txt` usage.
+
+## 2026-06-17 — Stage 3 Boomer [1.7]
+- Stage 3 Boomer [1.7] adds runtime dev smoke Game.__DEV.smokeBoomerProfileDiffOnce() for the boomer profile diff document. The smoke verifies millennial base profile, document presence, delta-only contract, 39 soft-verb rows, 103 new-feature rows, required surfaces, and absence of officialese/moralizing in boomer-facing replacement text. No visible runtime copy changes.
