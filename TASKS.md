@@ -1,3 +1,24 @@
+## 2026-06-17 — Step 4 Alpha profile, step 1.4 Alpha explanation-removal rules
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` with the exact Alpha explanation-removal rules, the anchor examples, and the explicit spec-only boundary for runtime Alpha copy.
+- Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` and `docs/ui/ui-profile-alpha-explanation-rules.js` as the UI-layer Alpha explanation rule table mirror with exactly 164 entries and the required `explanationPolicy` field.
+- Build tag: `build_2026_06_17_step4_alpha_profile_step1_4_explanation_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_4_explanation_rules_v1`.
+- Smoke version: `alpha_step_1_4_explanation_rules_v20260617_001`.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep14ExplanationRulesOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep14ExplanationRulesOnce()`.
+- Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
+## 2026-06-17 — Step 3.1 Boomer allowed lexicon
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` with the full 164-row Boomer allowed lexicon inventory, including exact `currentText` and `boomerText` pairs for TXT_0001 through TXT_0164.
+- Added dev-only smoke `Game.__DEV.smokeBoomerAllowedLexiconStep31Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_17_step3_1_boomer_allowed_lexicon_v1`.
+- Commit identity: `step3_1_boomer_allowed_lexicon`.
+- Smoke version: `boomer_allowed_lexicon_step3_1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerAllowedLexiconStep31Once()`.
+- Scope held: UI/profile/copy docs and dev smoke only; no runtime logic changes, no gameplay changes, no persistence changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 4 Alpha profile, step 1.3 Alpha length rules Fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_ALPHA_LENGTH_RULES.md` and `docs/UI_PROFILE_ALPHA_LENGTH_RULES.md` with the measurable Alpha length rule, the exact 164-entry replacement table, and explicit statements that this step does not activate runtime Alpha copy and that Codex is not allowed to invent Alpha phrasing.
