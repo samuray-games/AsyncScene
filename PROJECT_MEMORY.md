@@ -1,3 +1,13 @@
+## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule Fix 1
+- Added the Step 2.5 fix1 smoke `Game.__DEV.smokeBoomerExpansionRuleFix1Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js`.
+- The fix1 smoke keeps the Step 2.1-Step 2.5 aggregate validation but now derives `featureCounts` from the Step 2.4 new-feature coverage rows, matching `{respect:8,p2p:2,training:3,reports:21,crowd:16,npc_vs_npc:15}`.
+- Smoke version: `step2_5_boomer_expansion_rule_fix1_v1_v20260617_001`.
+- Build tag: `build_2026_06_17_step2_5_boomer_expansion_rule_fix1_v1`.
+- Commit identity: `step2_5_boomer_expansion_rule_fix1_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionRuleFix1Once()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule
 - Added the Step 2.5 `Aggregate Expansion Rule Smoke Pack` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 rule probes, normalized length rule, and required context/consequence cues.
 - Added dev-only smoke `Game.__DEV.smokeBoomerExpansionRuleOnce()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js`.
