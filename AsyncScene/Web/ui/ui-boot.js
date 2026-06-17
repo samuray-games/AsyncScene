@@ -8543,7 +8543,7 @@ window.Game = window.Game || {};
         if (beforeTextMode !== (typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "")) fail("text_mode_changed", { beforeTextMode, afterTextMode: typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "" });
         if (beforeUiProfile !== (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "")) fail("ui_profile_changed", { beforeUiProfile, afterUiProfile: typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "" });
         if (beforeSave !== JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {})) fail("save_state_changed", { beforeSave, afterSave: JSON.stringify((G.__S && G.__S.save) || (G.State && G.State.save) || {}) });
-        result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0
           && result.routeChecks.dataDefinitionsExist === true
           && result.routeChecks.resolverExists === true
           && result.routeChecks.millennialFallbackPreserved === true
@@ -9283,6 +9283,148 @@ window.Game = window.Game || {};
         return result;
       };
       G.Dev.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 = G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6;
+    }
+    if (typeof G.__DEV.smokeBoomerExpansionContractStep21Once !== "function") {
+      const BOOMER_EXPANSION_BUILD_TAG = "build_2026_06_17_step2_1_boomer_expansion_contract_v1";
+      const BOOMER_EXPANSION_COMMIT = "step2_1_boomer_expansion_contract_v1";
+      const BOOMER_EXPANSION_SMOKE_VERSION = "step2_1_boomer_expansion_contract_v1_v20260617_001";
+      const CONTRACT_DOC_URL = "UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md";
+      const EXPECTED_COUNT = 164;
+      const EXPECTED_CATEGORY = "boomer_expansion";
+      const EXPECTED_SURFACE = "ui_layer";
+      const EXPECTED_PROFILE = "boomer";
+      const FORBIDDEN_WORDS = [
+        "обязаны",
+        "следует",
+        "необходимо",
+        "надлежит",
+        "неправильно",
+        "виноваты",
+        "должны понимать",
+        "рекомендуется",
+        "запрещается",
+        "нарушение правил",
+      ];
+      const expectedIds = Array.from({ length: EXPECTED_COUNT }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+      const readContractDocText = () => {
+        const urls = [CONTRACT_DOC_URL, `./${CONTRACT_DOC_URL}`];
+        for (const url of urls) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) && typeof xhr.responseText === "string" && xhr.responseText.trim()) {
+              return xhr.responseText;
+            }
+          } catch (_) {}
+        }
+        return "";
+      };
+      const parseRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|\s*TXT_\d{4}\s*\|/.test(line))
+        .map((line) => {
+          const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+          return {
+            id: cells[0] || "",
+            sourceText: cells[1] || "",
+            boomerText: cells[2] || "",
+            category: cells[3] || "",
+            surface: cells[4] || "",
+            key: cells[5] || "",
+            profile: cells[6] || "",
+          };
+        });
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      G.__DEV.smokeBoomerExpansionContractStep21Once = function smokeBoomerExpansionContractStep21Once() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_EXPANSION_BUILD_TAG,
+          commit: BOOMER_EXPANSION_COMMIT,
+          smokeVersion: BOOMER_EXPANSION_SMOKE_VERSION,
+          checkedCount: 0,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        try {
+          const text = readContractDocText();
+          if (!text) {
+            fail("contract_doc_unreadable", { url: CONTRACT_DOC_URL });
+          } else {
+            const rows = parseRows(text);
+            result.checkedCount = rows.length;
+            if (rows.length !== EXPECTED_COUNT) {
+              fail("row_count_mismatch", { expected: EXPECTED_COUNT, actual: rows.length });
+            }
+            const seen = new Set();
+            rows.forEach((row, index) => {
+              const expectedId = expectedIds[index] || "";
+              if (!row.id || !row.sourceText || !row.boomerText || !row.category || !row.surface || !row.key || !row.profile) {
+                fail("missing_field", { index, row });
+              }
+              if (row.id !== expectedId) {
+                fail("id_order_mismatch", { index, expectedId, actual: row.id });
+              }
+              if (seen.has(row.id)) {
+                fail("duplicate_id", { id: row.id, index });
+              }
+              seen.add(row.id);
+              if (row.category !== EXPECTED_CATEGORY) {
+                fail("category_mismatch", { id: row.id, category: row.category });
+              }
+              if (row.surface !== EXPECTED_SURFACE) {
+                fail("surface_mismatch", { id: row.id, surface: row.surface });
+              }
+              if (row.key !== row.id) {
+                fail("key_mismatch", { id: row.id, key: row.key });
+              }
+              if (row.profile !== EXPECTED_PROFILE) {
+                fail("profile_mismatch", { id: row.id, profile: row.profile });
+              }
+              if (!String(row.boomerText || "").trim()) {
+                fail("empty_boomer_text", { id: row.id });
+              }
+              if (row.id !== "TXT_0001" && row.id !== "TXT_0002" && row.sourceText === row.boomerText) {
+                fail("boomer_equals_source", { id: row.id });
+              }
+              const sourceVars = templateVars(row.sourceText);
+              const boomerVars = templateVars(row.boomerText);
+              if (sourceVars.join("|") !== boomerVars.join("|")) {
+                fail("template_vars_mismatch", { id: row.id, sourceVars, boomerVars });
+              }
+              const forbiddenWord = FORBIDDEN_WORDS.find((word) => String(row.boomerText || "").includes(word));
+              if (forbiddenWord) {
+                result.forbiddenRemaining.push({ id: row.id, word: forbiddenWord });
+                fail("forbidden_word_present", { id: row.id, word: forbiddenWord });
+              }
+            });
+            const missingIds = expectedIds.filter((id) => !seen.has(id));
+            if (missingIds.length) {
+              missingIds.forEach(miss);
+              fail("missing_coverage", { missingIds });
+            }
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedCount === EXPECTED_COUNT
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerExpansionContractStep21Once = G.__DEV.smokeBoomerExpansionContractStep21Once;
     }
   }
 })();
