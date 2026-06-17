@@ -1,3 +1,14 @@
+## 2026-06-17 — Step 4 Alpha profile, step 1.3 Alpha length rules
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ALPHA_LENGTH_RULES.md` and `docs/UI_PROFILE_ALPHA_LENGTH_RULES.md` with the measurable Alpha length rule, the exact 164-entry replacement table, and explicit statements that this step does not activate runtime Alpha copy and that Codex is not allowed to invent Alpha phrasing.
+- Added `AsyncScene/Web/ui/ui-profile-alpha-length-rules.js` and `docs/ui/ui-profile-alpha-length-rules.js` as the UI-layer Alpha length table mirror with all required fields for the same 164 exact entries.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep13LengthRulesOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_17_step4_alpha_profile_step1_3_length_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_3_length_rules_v1`.
+- Smoke version: `alpha_step_1_3_length_rules_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep13LengthRulesOnce()`.
+- Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule Fix 1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the Step 2.5 `Aggregate Expansion Rule Smoke Pack` fix1 smoke path so `Game.__DEV.smokeBoomerExpansionRuleFix1Once()` now reports Step 2.4 feature counts from the new-feature coverage rows instead of the Step 2.5 rule feature shape.
