@@ -1,3 +1,18 @@
+## 2026-06-17 — Step 4 Alpha profile, step 1.1 Zoomer source inventory
+- Added the step 1.1 inventory note `UI_PROFILE_ALPHA_STEP_1_1_ZOOMER_SOURCE_INVENTORY.md` plus the mirrored `docs/UI_PROFILE_ALPHA_STEP_1_1_ZOOMER_SOURCE_INVENTORY.md`.
+- Added dev-only `Game.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce()` in both served dev-check bundles to report the exact Zoomer source docs, smoke functions, and profile registries found.
+- Inventory findings recorded: `UI_PROFILE_ZOOMER_DIFF.md`, `docs/UI_PROFILE_ZOOMER_DIFF.md`, `UI_PROFILE_ZOOMER_FINAL.md`, `docs/UI_PROFILE_ZOOMER_FINAL.md`, `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `AsyncScene/Web/data.js`, `docs/data.js`, `AsyncScene/Web/state.js`, `docs/state.js`.
+- Runtime PASS is not claimed; Safari still has to run `Game.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce()`.
+
+## 2026-06-17 — Step 2.1 Boomer Shorten Rule Fix3 Runtime Smoke Exposure
+- Exposed `Game.__DEV.smokeZoomerShortenRuleStep1Fix3Once()` in the mirrored UI-layer dev-check bundles with the deployed-safe root-first artifact lookup from Fix 2, explicit `matrix_parse` failure handling, and a 128-row committed-matrix count for `UI_PROFILE_ZOOMER_SHORTEN_RULE`.
+- The smoke returns the required single-object contract, skips `docs/UI_PROFILE_ZOOMER_DIFF.md` safely when it is 404, and does not mutate game state or touch `Console.txt`.
+- Recorded the prior iPhone Safari runtime issue where the Step 2.1 smoke command path was undefined before this fix.
+- Fresh identity: `build_2026_06_17_step2_1_zoomer_shorten_rule_step1_fix3` / `step2_1_zoomer_shorten_rule_step1_fix3`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShortenRuleStep1Fix3Once()`.
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Scope held: UI-layer dev-smoke exposure only; no gameplay/runtime logic changes, no forbidden file edits, and no docs/artifact rewrites.
+
 ## 2026-06-17 — Step 2.2 Boomer Transformation Table
 - Added the Step 2.2 `Transformation Table` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 fixed millennial -> boomer rows for UI, error, risk, and hint surfaces.
 - Added dev-only smoke `Game.__DEV.smokeBoomerTransformationTableStep22Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate row count, exact row ordering, category counts, field coverage, template-variable preservation, empty-text prohibition, and forbidden-word blocking without changing visible UI or gameplay logic.
