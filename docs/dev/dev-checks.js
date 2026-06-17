@@ -3006,6 +3006,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         }
         return last || { ok: false, reason: "unavailable", path: null, status: 0 };
       };
+      const fetchTextFromCandidates = (fileName) => fetchArtifact(
+        fileName.indexOf("docs/") === 0 ? "docs" : "root",
+        fileName.indexOf("docs/") === 0
+          ? [fileName, `./${fileName}`, `/AsyncScene/${fileName}`]
+          : rootCandidates(fileName)
+      );
       try {
         const rootRes = fetchArtifact("root", rootCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
         if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable", status: rootRes.status || 0 });

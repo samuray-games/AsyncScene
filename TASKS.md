@@ -19,6 +19,7 @@
 ## 2026-06-17 — Step 2.2 Zoomer Transform Table Fix 1
 - Runtime issue: `smoke_exception`, `Can't find variable: fetchTextFromCandidates`.
 - Added `Game.__DEV.smokeZoomerTransformTableStep2Fix1Once()` with a self-contained deployed-safe root-first lookup that does not depend on `fetchTextFromCandidates` being in scope.
+- Fix 1 keeps only the Safari helper scope change for the transform-table smoke and does not edit the 15-row phrase table.
 - Fix scope: smoke helper only; the 15-row transform table was not changed.
 - Fresh identity: `build_2026_06_17_step2_2_fix1_zoomer_transform_table_v1` / `step2_2_zoomer_transform_table_fix1_v1`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerTransformTableStep2Fix1Once()`.
