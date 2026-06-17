@@ -5163,10 +5163,11 @@ TXT_0164|Не хватает 💰.|Мало 💰.
       result.smokeVersion = "boomer_allowed_lexicon_step3_1_smoke_fix1_v20260618_001";
       return result;
     };
-    const smokeBoomerTabooListStep32Once = () => {
-      const buildTag = "build_2026_06_18_step3_2_boomer_taboo_list_v1";
-      const commit = "step3_2_boomer_taboo_list";
-      const smokeVersion = "boomer_taboo_list_step3_2_v20260618_001";
+    const smokeBoomerTabooListStep32CoreOnce = (identity) => {
+      const buildTag = identity && identity.buildTag ? String(identity.buildTag) : "";
+      const commit = identity && identity.commit ? String(identity.commit) : "";
+      const smokeVersion = identity && identity.smokeVersion ? String(identity.smokeVersion) : "";
+      const reusedSmokeVersions = new Set([identity && identity.reusedSmokeVersion ? String(identity.reusedSmokeVersion) : ""]);
       const expectedCategories = ["slang", "sharp_colloquial", "meme_language", "abbreviations", "officialese", "moralizing"];
       const tabooByCategory = Object.freeze({
         slang: Object.freeze([
@@ -5413,7 +5414,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(lexRaw)) fail("allowed_lexicon_marker_present", "missing_marker");
         if (lexRows.length !== 164) fail("allowed_lexicon_inventory_count_164", { actual: lexRows.length });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "boomer_taboo_list_step3_2_v20260618_001" || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (reusedSmokeVersions.has(smokeVersion)) {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
       } catch (err) {
@@ -5425,6 +5426,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         && result.missingCoverage.length === 0
         && result.failures.length === 0
         && result.failedChecks.length === 0;
+      if (!result.tabooConnectedToDevSmoke) fail("taboo_connected_to_dev_smoke", { tabooListExists: result.tabooListExists, forbiddenSamplesMissed: result.forbiddenSamplesMissed.length, falsePositiveSamples: result.falsePositiveSamples.length, missingCoverage: result.missingCoverage.length, failures: result.failures.length, failedChecks: result.failedChecks.length });
       result.ok = result.tabooListExists === true
         && result.tabooEntryCount === tabooEntries.length
         && result.tabooCategories.length === expectedCategories.length
@@ -5447,6 +5449,18 @@ TXT_0164|Не хватает 💰.|Мало 💰.
         && result.runtimeLogicTouched === false;
       return result;
     };
+    const smokeBoomerTabooListStep32Once = () => smokeBoomerTabooListStep32CoreOnce({
+      buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_v1",
+      commit: "step3_2_boomer_taboo_list",
+      smokeVersion: "boomer_taboo_list_step3_2_v20260618_001",
+      reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
+    });
+    const smokeBoomerTabooListStep32Fix1Once = () => smokeBoomerTabooListStep32CoreOnce({
+      buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix1_v1",
+      commit: "step3_2_boomer_taboo_list_smoke_fix1",
+      smokeVersion: "boomer_taboo_list_step3_2_fix1_v20260618_002",
+      reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
+    });
 
 
     const smokeZoomerStopWordsOnce = () => {
@@ -8929,6 +8943,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
+    Game.Dev.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -8967,6 +8982,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
+    G.__DEV.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -9017,6 +9033,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     devStore.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
+    devStore.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
