@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 3.2 Boomer taboo list
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_BOOMER_TABOO_LIST.md` and `docs/UI_PROFILE_BOOMER_TABOO_LIST.md` with the additive Boomer taboo list artifact. The list is machine-readable and keeps `UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` intact.
+- Added dev-only smoke `Game.__DEV.smokeBoomerTabooListStep32Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step3_2_boomer_taboo_list_v1`.
+- Commit placeholder: `step3_2_boomer_taboo_list`.
+- Smoke version: `boomer_taboo_list_step3_2_v20260618_001`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `UI_PROFILE_BOOMER_TABOO_LIST.md`, `docs/UI_PROFILE_BOOMER_TABOO_LIST.md`, `TASKS.md`.
+- Scope held: UI/profile/copy docs and dev smoke only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 2.3 Zoomer UI Copy Step 3
 - Added `UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3` to `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` with the exact 79 applied rows.
 - Added dev-only `Game.__DEV.smokeZoomerApplyUiCopyStep3Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
