@@ -6282,6 +6282,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShortenRuleStep1Fix1Once = smokeZoomerShortenRuleStep1Fix1Once;
     devStore.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
+    G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
