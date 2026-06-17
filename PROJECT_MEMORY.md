@@ -6661,3 +6661,8 @@ Error: Download failure, code=1
 - Updated the Alpha smoke to probe the served `AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md` mirror path first instead of a non-served mirror URL that returned 404 in Safari.
 - Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentFix1()` in both served dev-check bundles with fresh smoke identity `alpha_step_1_2_diff_document_fix1_v20260617_002`.
 - Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentFix1()`.
+
+## 2026-06-17 — Step 4 Alpha profile, step 1.2 Fix2 docs mirror path and identity
+- Updated the Alpha smoke to report the actual deployed docs mirror path it checks and to treat `UI_PROFILE_ALPHA_DIFF.md` as the served mirror candidate instead of the non-served `AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md` path.
+- Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentFix2()` in both served dev-check bundles with fresh smoke identity `alpha_step_1_2_diff_document_fix2_v20260617_003`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentFix2()`.
