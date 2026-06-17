@@ -10,11 +10,11 @@
 ## 2026-06-17 — Step 4 Alpha profile, step 1.4 Alpha explanation-removal rules
 - Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` plus `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md`.
 - Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` plus `docs/ui/ui-profile-alpha-explanation-rules.js`.
-- Added dev-only `Game.__DEV.smokeAlphaStep14ExplanationRulesFix1()` in both served dev-check bundles.
+- Added dev-only `Game.__DEV.smokeAlphaStep14ExplanationRulesFix2()` in both served dev-check bundles.
 - The Alpha explanation-rule artifacts hold exactly 164 entries with fields `id`, `oldText`, `alphaText`, and `explanationPolicy`.
 - The spec states that Alpha inherits from Zoomer, removes explanation when the action is clear, keeps the action or state visible, avoids cause-explaining unless the player would be blocked, and stays out of dry instruction, baby talk, fake hype, over-memeing, and tutorial voice.
 - This step stays spec-only and does not activate runtime Alpha copy.
-- Fix1 served-path smoke check uses `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` for the document and `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js` for the UI table mirror.
+- Fix2 served-path smoke check uses `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` for the document and `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js` for the UI table mirror.
 
 ## 2026-06-17 — Step 3.1 Boomer allowed lexicon
 - Added `docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` with the exact 164-row Boomer allowed lexicon inventory, including every `TXT_0001` through `TXT_0164` entry with `currentText` and `boomerText`.

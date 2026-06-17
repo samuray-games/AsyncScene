@@ -13,12 +13,12 @@
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` with the exact Alpha explanation-removal rules, the anchor examples, and the explicit spec-only boundary for runtime Alpha copy.
 - Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` and `docs/ui/ui-profile-alpha-explanation-rules.js` as the UI-layer Alpha explanation rule table mirror with exactly 164 entries and the required `explanationPolicy` field.
-- Build tag: `build_2026_06_18_step4_alpha_profile_step1_4_fix1_docs_mirror_identity`.
-- Commit identity: `step4_alpha_profile_step1_4_fix1_docs_mirror_identity`.
-- Smoke version: `alpha_step_1_4_fix1_v20260618_001`.
-- Added dev-only smoke `Game.__DEV.smokeAlphaStep14ExplanationRulesFix1()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep14ExplanationRulesFix1()`.
-- Fix1 note: served doc path checks `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and the served UI table path checks `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_identity`.
+- Commit identity: `step4_alpha_profile_step1_4_fix2_js_mirror_identity`.
+- Smoke version: `alpha_step_1_4_fix2_v20260618_001`.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep14ExplanationRulesFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep14ExplanationRulesFix2()`.
+- Fix2 note: served doc path checks `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and the served JS mirror path checks `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js`.
 - Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
 ## 2026-06-17 — Step 3.1 Boomer allowed lexicon
