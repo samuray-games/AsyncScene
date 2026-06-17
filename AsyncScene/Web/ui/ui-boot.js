@@ -9594,5 +9594,230 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeBoomerTransformationTableStep22Once = G.__DEV.smokeBoomerTransformationTableStep22Once;
     }
+    if (typeof G.__DEV.smokeBoomerExpansionProhibitionsStep23Once !== "function") {
+      const BOOMER_PROHIBITION_BUILD_TAG = "build_2026_06_17_step2_3_boomer_expansion_prohibitions_v1";
+      const BOOMER_PROHIBITION_COMMIT = "step2_3_boomer_expansion_prohibitions_v1";
+      const BOOMER_PROHIBITION_SMOKE_VERSION = "step2_3_boomer_expansion_prohibitions_v1_v20260617_001";
+      const CONTRACT_DOC_URL = "UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md";
+      const EXPECTED_TXT_COUNT = 164;
+      const EXPECTED_TR_COUNT = 20;
+      const EXPECTED_CONTRACT_TEXT_COUNT = 184;
+      const FORBIDDEN_PATTERNS = [
+        "следует",
+        "вы обязаны",
+        "обязаны",
+        "необходимо",
+        "надлежит",
+        "рекомендуется",
+        "запрещается",
+        "в соответствии",
+        "данное действие",
+        "осуществить",
+        "произвести",
+        "требуется выполнить",
+        "правилами предусмотрено",
+        "нужно понимать",
+        "вы должны понимать",
+        "вам стоит понять",
+        "запомните",
+        "учитесь",
+        "делайте правильно",
+        "так делать нельзя",
+        "надо было",
+        "в следующий раз думайте",
+        "пора научиться",
+        "вы виноваты",
+        "сам виноват",
+        "сами виноваты",
+        "ошибка игрока",
+        "неправильно",
+        "вы ошиблись",
+        "из-за вас",
+        "по вашей вине",
+        "вы всё испортили",
+        "вы сделали неверно",
+        "катастрофа",
+        "провал полный",
+        "всё пропало",
+        "без шансов",
+        "ужасная ошибка",
+        "фатальная ошибка",
+        "разгром",
+        "полный крах",
+        "трагедия",
+        "конец игры для вас",
+        "следует.",
+        "вы обязаны.",
+        "обязаны.",
+        "необходимо.",
+        "надлежит.",
+        "рекомендуется.",
+        "запрещается.",
+        "неправильно.",
+        "виноваты.",
+      ];
+      const NEGATIVE_PROBES = [
+        { id: "NEG_0001", category: "officialese", text: "Следует выбрать игрока." },
+        { id: "NEG_0002", category: "officialese", text: "Вы обязаны выбрать игрока." },
+        { id: "NEG_0003", category: "officialese", text: "Необходимо подтвердить действие." },
+        { id: "NEG_0004", category: "officialese", text: "Данное действие сейчас недоступно." },
+        { id: "NEG_0005", category: "officialese", text: "Требуется выполнить проверку." },
+        { id: "NEG_0006", category: "mentoring", text: "Нужно понимать последствия действия." },
+        { id: "NEG_0007", category: "mentoring", text: "Вы должны понимать риск." },
+        { id: "NEG_0008", category: "mentoring", text: "Запомните, так делать нельзя." },
+        { id: "NEG_0009", category: "mentoring", text: "В следующий раз думайте заранее." },
+        { id: "NEG_0010", category: "mentoring", text: "Пора научиться выбирать правильно." },
+        { id: "NEG_0011", category: "player_blame", text: "Вы виноваты в потере очков." },
+        { id: "NEG_0012", category: "player_blame", text: "Сам виноват." },
+        { id: "NEG_0013", category: "player_blame", text: "Ошибка игрока." },
+        { id: "NEG_0014", category: "player_blame", text: "Вы сделали неправильно." },
+        { id: "NEG_0015", category: "player_blame", text: "Из-за вас конфликт проигран." },
+        { id: "NEG_0016", category: "excessive_drama", text: "Это катастрофа." },
+        { id: "NEG_0017", category: "excessive_drama", text: "Провал полный." },
+        { id: "NEG_0018", category: "excessive_drama", text: "Всё пропало." },
+        { id: "NEG_0019", category: "excessive_drama", text: "Фатальная ошибка." },
+        { id: "NEG_0020", category: "excessive_drama", text: "Полный крах." },
+      ];
+      const POSITIVE_PROBES = [
+        { id: "POS_0001", category: "neutral_context", text: "Выберите игрока для этого действия." },
+        { id: "POS_0002", category: "neutral_context", text: "Это действие сейчас недоступно." },
+        { id: "POS_0003", category: "neutral_context", text: "В этом случае есть риск потерять часть очков." },
+        { id: "POS_0004", category: "neutral_context", text: "Не хватает 💰 для этого действия." },
+        { id: "POS_0005", category: "neutral_context", text: "Кулдаун ещё активен, действие пока закрыто." },
+        { id: "POS_0006", category: "neutral_context", text: "Результат этого действия виден сразу." },
+        { id: "POS_0007", category: "neutral_context", text: "Ставка сразу списывает часть ресурса." },
+        { id: "POS_0008", category: "neutral_context", text: "Проверка займёт немного времени." },
+        { id: "POS_0009", category: "neutral_context", text: "Конфликт завершён, результат зафиксирован." },
+        { id: "POS_0010", category: "neutral_context", text: "Ваш голос уже был учтён." },
+        { id: "POS_0011", category: "neutral_context", text: "Реванш недоступен, потому что баттл ещё не завершён." },
+        { id: "POS_0012", category: "neutral_context", text: "Сегодня уважение этому персонажу уже было отправлено." },
+      ];
+      const readContractDocText = () => {
+        const urls = [CONTRACT_DOC_URL, `./${CONTRACT_DOC_URL}`];
+        for (const url of urls) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) && typeof xhr.responseText === "string" && xhr.responseText.trim()) {
+              return xhr.responseText;
+            }
+          } catch (_) {}
+        }
+        return "";
+      };
+      const parseRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|\s*(TXT_\d{4}|TR_\d{4})\s*\|/.test(line))
+        .map((line) => {
+          const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+          return {
+            id: cells[0] || "",
+            sourceText: cells[1] || "",
+            boomerText: cells[2] || "",
+            category: cells[3] || "",
+            surface: cells[4] || "",
+            key: cells[5] || "",
+            profile: cells[6] || "",
+            millennialText: cells[3] || "",
+            rule: cells[5] || "",
+          };
+        });
+      const normalizeText = (value) => String(value || "").toLowerCase().replace(/[^0-9a-zа-яё]+/gi, " ").replace(/\s+/g, " ").trim();
+      const lintBoomerText = (value) => {
+        const normalizedValue = normalizeText(value);
+        const hits = [];
+        FORBIDDEN_PATTERNS.forEach((pattern) => {
+          const normalizedPattern = normalizeText(pattern);
+          if (normalizedPattern && normalizedValue.includes(normalizedPattern) && hits.indexOf(pattern) < 0) {
+            hits.push(pattern);
+          }
+        });
+        return hits;
+      };
+      G.__DEV.smokeBoomerExpansionProhibitionsStep23Once = function smokeBoomerExpansionProhibitionsStep23Once() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_PROHIBITION_BUILD_TAG,
+          commit: BOOMER_PROHIBITION_COMMIT,
+          smokeVersion: BOOMER_PROHIBITION_SMOKE_VERSION,
+          checkedForbiddenCount: FORBIDDEN_PATTERNS.length,
+          checkedNegativeProbeCount: NEGATIVE_PROBES.length,
+          checkedPositiveProbeCount: POSITIVE_PROBES.length,
+          checkedContractTextCount: 0,
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        try {
+          const text = readContractDocText();
+          if (!text) {
+            fail("contract_doc_unreadable", { url: CONTRACT_DOC_URL });
+          } else {
+            const rows = parseRows(text);
+            const txtRows = rows.filter((row) => String(row.id || "").indexOf("TXT_") === 0);
+            const trRows = rows.filter((row) => String(row.id || "").indexOf("TR_") === 0);
+            result.checkedContractTextCount = txtRows.length + trRows.length;
+            if (txtRows.length !== EXPECTED_TXT_COUNT) {
+              fail("step21_count_mismatch", { expected: EXPECTED_TXT_COUNT, actual: txtRows.length });
+            }
+            if (trRows.length !== EXPECTED_TR_COUNT) {
+              fail("step22_count_mismatch", { expected: EXPECTED_TR_COUNT, actual: trRows.length });
+            }
+            txtRows.forEach((row) => {
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_1", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_1", hits });
+              }
+            });
+            trRows.forEach((row) => {
+              const hits = lintBoomerText(row.boomerText);
+              if (hits.length) {
+                result.forbiddenRemaining.push({ id: row.id, section: "step2_2", hits });
+                fail("contract_forbidden_hit", { id: row.id, section: "step2_2", hits });
+              }
+            });
+            if (result.checkedContractTextCount !== EXPECTED_CONTRACT_TEXT_COUNT) {
+              fail("contract_text_count_mismatch", { expected: EXPECTED_CONTRACT_TEXT_COUNT, actual: result.checkedContractTextCount });
+            }
+            NEGATIVE_PROBES.forEach((probe) => {
+              const hits = lintBoomerText(probe.text);
+              if (hits.length === 0) {
+                miss(probe.id);
+                fail("negative_probe_accepted", { id: probe.id, category: probe.category, text: probe.text });
+              }
+            });
+            POSITIVE_PROBES.forEach((probe) => {
+              const hits = lintBoomerText(probe.text);
+              if (hits.length) {
+                fail("positive_probe_rejected", { id: probe.id, category: probe.category, text: probe.text, hits });
+              }
+            });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedForbiddenCount === 52
+          && result.checkedNegativeProbeCount === NEGATIVE_PROBES.length
+          && result.checkedPositiveProbeCount === POSITIVE_PROBES.length
+          && result.checkedContractTextCount === EXPECTED_CONTRACT_TEXT_COUNT
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerExpansionProhibitionsStep23Once = G.__DEV.smokeBoomerExpansionProhibitionsStep23Once;
+    }
   }
 })();
