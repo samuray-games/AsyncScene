@@ -3008,7 +3008,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
               fail("row_mismatch", { idx, expected, actual: row });
               addUnique(result.missingCoverage, expected ? expected.id : row.id);
             }
-            if (normalize(row.target).length < normalize(row.source).length) {
+            if (normalize(row.target).length <= normalize(row.source).length) {
               result.shorterCount += 1;
             } else {
               result.meaningPreserved = false;

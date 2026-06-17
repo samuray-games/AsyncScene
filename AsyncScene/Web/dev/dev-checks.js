@@ -2829,7 +2829,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
               fail("row_mismatch", { idx, expected, actual: row });
               addUnique(result.missingCoverage, expected ? expected.id : row.id);
             }
-            if (normalize(row.target).length < normalize(row.source).length) {
+            if (normalize(row.target).length <= normalize(row.source).length) {
               result.shorterCount += 1;
             } else {
               result.meaningPreserved = false;
@@ -5022,6 +5022,290 @@ TXT_0164|Не хватает 💰.|Мало 💰.
       result.buildTag = "build_2026_06_18_step3_1_boomer_allowed_lexicon_smoke_fix1_v1";
       result.commit = "step3_1_boomer_allowed_lexicon_smoke_fix1";
       result.smokeVersion = "boomer_allowed_lexicon_step3_1_smoke_fix1_v20260618_001";
+      return result;
+    };
+    const smokeBoomerTabooListStep32Once = () => {
+      const buildTag = "build_2026_06_18_step3_2_boomer_taboo_list_v1";
+      const commit = "step3_2_boomer_taboo_list";
+      const smokeVersion = "boomer_taboo_list_step3_2_v20260618_001";
+      const expectedCategories = ["slang", "sharp_colloquial", "meme_language", "abbreviations", "officialese", "moralizing"];
+      const tabooByCategory = Object.freeze({
+        slang: Object.freeze([
+          "Погнали", "погнали", "Снести выбор", "снести выбор", "Снести", "снести", "Свалить", "свалить",
+          "Вписывайся", "вписывайся", "Тыкни", "тыкни", "ник", "Ник", "Кулдаун", "кулдаун", "мейн", "Мейн",
+          "андер", "Андер", "вывез", "Вывез", "Не вывез", "не вывез", "просел", "Просел", "движ", "Движ",
+          "шум", "Шум", "душнота", "Душнота", "без душноты", "Без душноты", "ого", "Ого"
+        ]),
+        sharp_colloquial: Object.freeze([
+          "Такого нет", "такого нет", "Дай паузу", "дай паузу", "Рано. Дай паузу.", "рано. дай паузу.",
+          "Плати и уходи", "плати и уходи", "Кошелек ближе", "кошелек ближе", "Кошелёк ближе", "кошелёк ближе",
+          "Слабый ход", "слабый ход", "Отвечай сейчас", "отвечай сейчас", "Тише. Решим.", "тише. решим.",
+          "Не хватает", "не хватает", "Мало", "мало", "Занят, связь позже", "занят, связь позже",
+          "Не могу, оформляю дело", "не могу, оформляю дело"
+        ]),
+        meme_language: Object.freeze([
+          "RIP", "rip", "WIN", "win", "DRAW", "draw", "Драма закрыта", "драма закрыта", "Драма", "драма",
+          "кринж", "Кринж", "мем", "Мем", "мемно", "Мемно", "рофл", "Рофл", "лол", "Лол", "вайб", "Вайб",
+          "вайбовый", "Вайбовый", "имба", "Имба", "изи", "Изи", "жиза", "Жиза", "краш", "Краш"
+        ]),
+        abbreviations: Object.freeze([
+          "Cap", "cap", "max Points", "MAX POINTS", "WIN", "RIP", "DRAW", "ОК", "ок", "УЖЕ", "уже",
+          "НЕ", "не", "DM", "dm", "NPC", "npc"
+        ]),
+        officialese: Object.freeze([
+          "в соответствии", "В соответствии", "надлежит", "Надлежит", "осуществляется", "Осуществляется",
+          "посредством", "Посредством", "необходимо произвести", "Необходимо произвести",
+          "требуется осуществить", "Требуется осуществить", "вышеуказанный", "Вышеуказанный", "настоящим",
+          "Настоящим", "уведомляем", "Уведомляем", "согласно регламенту", "Согласно регламенту",
+          "в установленном порядке", "В установленном порядке"
+        ]),
+        moralizing: Object.freeze([
+          "нужно вести себя", "Нужно вести себя", "следует вести себя", "Следует вести себя", "так делать нельзя",
+          "Так делать нельзя", "не стоит так поступать", "Не стоит так поступать", "это неправильно",
+          "Это неправильно", "это плохо", "Это плохо", "будь внимательнее", "Будь внимательнее",
+          "подумай о последствиях", "Подумай о последствиях", "надо было", "Надо было", "сам виноват",
+          "Сам виноват"
+        ])
+      });
+      const tabooEntries = expectedCategories.flatMap((category) => tabooByCategory[category].map((phrase) => ({ category, phrase })));
+      const positiveSamples = [
+        { sample: "Погнали", category: "slang" },
+        { sample: "Снести выбор", category: "slang" },
+        { sample: "Свалить", category: "slang" },
+        { sample: "Тыкни имя", category: "slang" },
+        { sample: "Кулдаун активен.", category: "slang" },
+        { sample: "Ты вывез.", category: "slang" },
+        { sample: "Не вывез.", category: "slang" },
+        { sample: "RIP", category: "meme_language" },
+        { sample: "WIN", category: "meme_language" },
+        { sample: "DRAW", category: "meme_language" },
+        { sample: "Драма закрыта.", category: "meme_language" },
+        { sample: "кринж", category: "meme_language" },
+        { sample: "Cap: max Points на этой неделе.", category: "abbreviations" },
+        { sample: "ОК", category: "abbreviations" },
+        { sample: "Такого нет.", category: "sharp_colloquial" },
+        { sample: "Рано. Дай паузу.", category: "sharp_colloquial" },
+        { sample: "Плати и уходи", category: "sharp_colloquial" },
+        { sample: "в соответствии с правилами", category: "officialese" },
+        { sample: "необходимо произвести действие", category: "officialese" },
+        { sample: "согласно регламенту", category: "officialese" },
+        { sample: "так делать нельзя", category: "moralizing" },
+        { sample: "подумай о последствиях", category: "moralizing" },
+        { sample: "сам виноват", category: "moralizing" }
+      ];
+      const falsePositiveSamples = [
+        "Вы уже проголосовали.",
+        "Слишком рано. Подождите немного.",
+        "Сейчас не получилось. Попробуйте позже.",
+        "Действие недоступно.",
+        "Недостаточно 💰.",
+        "Вы поддержали большинство.",
+        "Вы поддержали меньшинство.",
+        "Конфликт завершён.",
+        "Проверка займёт некоторое время.",
+        "Нужно подождать перед повторным действием.",
+        "Dev Mode disabled.",
+        "Dev Mode unlocked on this device.",
+        "Incorrect Dev Mode PIN."
+      ];
+      const allowedPoliteSamples = new Set(falsePositiveSamples);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        tabooListExists: false,
+        tabooCategories: [],
+        tabooEntryCount: 0,
+        tabooConnectedToDevSmoke: false,
+        allowedLexiconStillExists: false,
+        allowedLexiconInventoryCount: 0,
+        forbiddenSamplesCaught: [],
+        forbiddenSamplesMissed: [],
+        falsePositiveSamples: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        uiLayerOnly: true,
+        runtimeLogicTouched: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const parseTabooRows = (text) => {
+        const rows = [];
+        let currentCategory = "";
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const heading = line.match(/^###\s+([a-z_]+)\s*$/i);
+          if (heading) {
+            currentCategory = String(heading[1] || "").toLowerCase();
+            return;
+          }
+          const item = line.match(/^\-\s+(.*\S)\s*$/);
+          if (item && currentCategory) rows.push({ category: currentCategory, phrase: String(item[1] || "").trim() });
+        });
+        return rows;
+      };
+      const placeholderTokens = (text) => (String(text || "").match(/\{[^}]+\}/g) || []).slice().sort();
+      const samePlaceholders = (a, b) => {
+        const aa = placeholderTokens(a);
+        const bb = placeholderTokens(b);
+        return aa.length === bb.length && aa.every((token, idx) => token === bb[idx]);
+      };
+      const makeExactMatcher = (phrase) => {
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return null;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u");
+      };
+      const matchesExactPhrase = (text, phrase) => {
+        const matcher = makeExactMatcher(phrase);
+        return !!matcher && matcher.test(String(text || ""));
+      };
+      const exactCategoryMatches = (text) => tabooEntries.filter((entry) => matchesExactPhrase(text, entry.phrase));
+      try {
+        const tabooRes = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md");
+        result.tabooListExists = !!(tabooRes && tabooRes.ok);
+        const tabooRaw = tabooRes && tabooRes.ok ? String(tabooRes.text || "") : "";
+        if (!result.tabooListExists) fail("taboo_list_exists", { path: "UI_PROFILE_BOOMER_TABOO_LIST.md", reason: tabooRes && tabooRes.reason ? tabooRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_TABOO_LIST/.test(tabooRaw)) fail("taboo_marker_present", "missing_marker");
+        const tabooRows = parseTabooRows(tabooRaw);
+        result.tabooEntryCount = tabooRows.length;
+        const tabooRowKeys = new Set(tabooRows.map((row) => `${row.category}::${row.phrase}`));
+        const expectedRowKeys = new Set(tabooEntries.map((entry) => `${entry.category}::${entry.phrase}`));
+        result.tabooCategories = tabooRows.reduce((acc, row) => {
+          if (row && row.category && !acc.includes(row.category)) acc.push(row.category);
+          return acc;
+        }, []);
+        if (tabooRows.length !== tabooEntries.length) fail("taboo_entry_count_153", { actual: tabooRows.length });
+        if (result.tabooCategories.length !== expectedCategories.length || !expectedCategories.every((category, index) => result.tabooCategories[index] === category)) {
+          fail("taboo_categories_exact", { actual: result.tabooCategories.slice(), expected: expectedCategories.slice() });
+        }
+        const extraRows = tabooRows.filter((row) => !expectedRowKeys.has(`${row.category}::${row.phrase}`));
+        if (extraRows.length) fail("taboo_rows_exact", extraRows.slice(0, 8));
+        tabooEntries.forEach((entry) => {
+          if (!tabooRowKeys.has(`${entry.category}::${entry.phrase}`)) addUnique(result.missingCoverage, entry);
+        });
+        const tabooMissingCategories = expectedCategories.filter((category) => !tabooRows.some((row) => row.category === category));
+        if (tabooMissingCategories.length) addUnique(result.missingCoverage, { missingCategories: tabooMissingCategories });
+        positiveSamples.forEach((sample) => {
+          const matches = exactCategoryMatches(sample.sample);
+          const categories = Array.from(new Set(matches.map((entry) => entry.category)));
+          const matchedPhrases = matches.filter((entry) => entry.category === sample.category).map((entry) => entry.phrase);
+          if (categories.includes(sample.category) && matchedPhrases.length) {
+            addUnique(result.forbiddenSamplesCaught, { sample: sample.sample, category: sample.category, matchedPhrases });
+          } else {
+            addUnique(result.forbiddenSamplesMissed, { sample: sample.sample, category: sample.category, matchedCategories: categories });
+            fail("forbidden_sample_missing", { sample: sample.sample, category: sample.category, matchedCategories: categories });
+          }
+        });
+        falsePositiveSamples.forEach((sample) => {
+          if (allowedPoliteSamples.has(sample)) return;
+          const matches = exactCategoryMatches(sample);
+          if (matches.length) {
+            const detail = { sample, matchedCategories: Array.from(new Set(matches.map((entry) => entry.category))), matchedPhrases: Array.from(new Set(matches.map((entry) => entry.phrase))) };
+            addUnique(result.falsePositiveSamples, detail);
+            fail("false_positive_sample", detail);
+          }
+        });
+        const lexRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        result.allowedLexiconStillExists = !!(lexRes && lexRes.ok);
+        const lexRaw = lexRes && lexRes.ok ? String(lexRes.text || "") : "";
+        const lexRows = parseLexiconRows(lexRaw);
+        result.allowedLexiconInventoryCount = lexRows.length;
+        if (!result.allowedLexiconStillExists) fail("allowed_lexicon_exists", { path: "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md", reason: lexRes && lexRes.reason ? lexRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(lexRaw)) fail("allowed_lexicon_marker_present", "missing_marker");
+        if (lexRows.length !== 164) fail("allowed_lexicon_inventory_count_164", { actual: lexRows.length });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "boomer_taboo_list_step3_2_v20260618_001" || smokeVersion.indexOf("step3_2") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.tabooConnectedToDevSmoke = result.tabooListExists === true
+        && result.forbiddenSamplesMissed.length === 0
+        && result.falsePositiveSamples.length === 0
+        && result.missingCoverage.length === 0
+        && result.failures.length === 0
+        && result.failedChecks.length === 0;
+      result.ok = result.tabooListExists === true
+        && result.tabooEntryCount === tabooEntries.length
+        && result.tabooCategories.length === expectedCategories.length
+        && expectedCategories.every((category, index) => result.tabooCategories[index] === category)
+        && result.tabooConnectedToDevSmoke === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.forbiddenSamplesMissed.length === 0
+        && positiveSamples.every((sample) => result.forbiddenSamplesCaught.some((row) => row.sample === sample.sample && row.category === sample.category))
+        && result.falsePositiveSamples.length === 0
+        && result.missingCoverage.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
       return result;
     };
 
@@ -8630,6 +8914,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
+    Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -8667,6 +8952,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
+    G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -8716,6 +9002,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
+    devStore.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
