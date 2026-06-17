@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 2.3 Zoomer UI Copy Step 3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3` to `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` with the exact 79 applied rows.
+- Added dev-only smoke `Game.__DEV.smokeZoomerApplyUiCopyStep3Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step2_3_zoomer_apply_ui_copy_step3_v1`.
+- Commit identity: `step2_3_zoomer_apply_ui_copy_step3_v1`.
+- Smoke version: `step2_3_zoomer_apply_ui_copy_step3_v1_v20260618_001`.
+- Step 2.2 Safari pass recorded: `ok:true`, `tableExists:true`, `tableCount:15`, `checkedCount:15`.
+- Scope held: UI copy docs and dev smoke only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.1 Boomer allowed lexicon smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.1 forbidden-token matcher false positives only in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
@@ -9,16 +19,15 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once()`.
 - Scope held: UI/dev-check smoke logic only; no lexicon text changes, no runtime logic changes, and no `Console.txt` usage.
 
-## 2026-06-17 — Step 4 Alpha profile, step 1.4 Alpha explanation-removal rules
+## 2026-06-18 — Step 4 Alpha profile, step 1.4 Fix2 JS mirror path
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` with the exact Alpha explanation-removal rules, the anchor examples, and the explicit spec-only boundary for runtime Alpha copy.
-- Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` and `docs/ui/ui-profile-alpha-explanation-rules.js` as the UI-layer Alpha explanation rule table mirror with exactly 164 entries and the required `explanationPolicy` field.
-- Build tag: `build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_identity`.
-- Commit identity: `step4_alpha_profile_step1_4_fix2_js_mirror_identity`.
-- Smoke version: `alpha_step_1_4_fix2_v20260618_001`.
+- Fixed the Fix2 dev smoke so `docsMirrorExists` requires the served doc at `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` plus the served JS mirror at `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_path_fix`.
+- Commit identity: `step4_alpha_profile_step1_4_fix2_js_mirror_path_fix`.
+- Smoke version: `alpha_step_1_4_fix2_v20260618_002`.
 - Added dev-only smoke `Game.__DEV.smokeAlphaStep14ExplanationRulesFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep14ExplanationRulesFix2()`.
-- Fix2 note: served doc path checks `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md` and the served JS mirror path checks `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js`.
+- Fix2 note: served doc path stays `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md`; the JS mirror path now checks `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js`.
 - Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
 ## 2026-06-17 — Step 3.1 Boomer allowed lexicon

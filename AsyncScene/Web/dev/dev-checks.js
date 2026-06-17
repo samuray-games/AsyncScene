@@ -8600,9 +8600,9 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     };
     const smokeAlphaStep14ExplanationRulesFix2 = () => {
       const result = smokeAlphaStep14ExplanationRulesOnce();
-      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_identity";
-      result.commit = "step4_alpha_profile_step1_4_fix2_js_mirror_identity";
-      result.smokeVersion = "alpha_step_1_4_fix2_v20260618_001";
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_path_fix";
+      result.commit = "step4_alpha_profile_step1_4_fix2_js_mirror_path_fix";
+      result.smokeVersion = "alpha_step_1_4_fix2_v20260618_002";
       return result;
     };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -8616,6 +8616,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     Game.Dev.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     Game.Dev.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     Game.Dev.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
+    Game.Dev.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
     Game.Dev.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     Game.Dev.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     Game.Dev.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
@@ -8683,6 +8684,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     devStore.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     devStore.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     devStore.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
+    devStore.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
     devStore.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
@@ -8703,6 +8705,7 @@ TXT_0164|Не хватает 💰.|Мало 💰.
     G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
+    G.__DEV.smokeZoomerApplyUiCopyStep3Once = smokeZoomerApplyUiCopyStep3Once;
     devStore.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     devStore.smokeZoomerStatusTermsOnce = smokeZoomerStatusTermsOnce;
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
