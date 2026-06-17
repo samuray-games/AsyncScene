@@ -3228,6 +3228,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.smokeVersion.indexOf(String(result.commit || "")) !== -1;
       return result;
     };
+    const smokeZoomerTransformTableStep2Fix4Once = () => smokeZoomerTransformTableStep2Fix2Once();
     const smokeZProfileDerivationMappingOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -7601,11 +7602,14 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShortenRuleStep1Fix4Once = smokeZoomerShortenRuleStep1Fix4Once;
     devStore.smokeZoomerTransformationTableOnce = smokeZoomerTransformationTableOnce;
     devStore.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
+    devStore.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     devStore.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     devStore.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix1Once = smokeZoomerTransformTableStep2Fix1Once;
+    G.__DEV.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     G.__DEV.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerTransformTableStep2Once = smokeZoomerTransformTableStep2Once;
+    if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix4Once = smokeZoomerTransformTableStep2Fix4Once;
     if (G.Dev && typeof G.Dev === "object") G.Dev.smokeZoomerTransformTableStep2Fix3Once = smokeZoomerTransformTableStep2Fix3Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix2Once = smokeZoomerShortenRuleStep1Fix2Once;
     G.__DEV.smokeZoomerShortenRuleStep1Fix3Once = smokeZoomerShortenRuleStep1Fix3Once;
