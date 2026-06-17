@@ -8127,7 +8127,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ]);
       const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_EXPLANATION_RULES.md";
       const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js";
-      const servedJsMirrorPath = "https://samuray-games.github.io/AsyncScene/docs/ui/ui-profile-alpha-explanation-rules.js";
+      const servedJsMirrorPath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-explanation-rules.js";
       const result = {
         ok: false,
         buildTag,
@@ -8337,11 +8337,11 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.smokeVersion = "alpha_step_1_3_fix1_v20260617_001";
       return result;
     };
-    const smokeAlphaStep14ExplanationRulesFix1 = () => {
+    const smokeAlphaStep14ExplanationRulesFix2 = () => {
       const result = smokeAlphaStep14ExplanationRulesOnce();
-      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_4_fix1_docs_mirror_identity";
-      result.commit = "step4_alpha_profile_step1_4_fix1_docs_mirror_identity";
-      result.smokeVersion = "alpha_step_1_4_fix1_v20260618_001";
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_identity";
+      result.commit = "step4_alpha_profile_step1_4_fix2_js_mirror_identity";
+      result.smokeVersion = "alpha_step_1_4_fix2_v20260618_001";
       return result;
     };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -8378,7 +8378,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     Game.Dev.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     Game.Dev.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
-    Game.Dev.smokeAlphaStep14ExplanationRulesFix1 = smokeAlphaStep14ExplanationRulesFix1;
+    Game.Dev.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     Game.Dev.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
@@ -8400,7 +8400,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     G.__DEV.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     G.__DEV.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
-    G.__DEV.smokeAlphaStep14ExplanationRulesFix1 = smokeAlphaStep14ExplanationRulesFix1;
+    G.__DEV.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
@@ -8462,7 +8462,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     devStore.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     devStore.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
-    devStore.smokeAlphaStep14ExplanationRulesFix1 = smokeAlphaStep14ExplanationRulesFix1;
+    devStore.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     devStore.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
