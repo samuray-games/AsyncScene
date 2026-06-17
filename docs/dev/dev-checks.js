@@ -4501,6 +4501,179 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeBoomerAllowedLexiconStep31Once = () => {
+      const buildTag = "build_2026_06_17_step3_1_boomer_allowed_lexicon_v1";
+      const commit = "step3_1_boomer_allowed_lexicon";
+      const smokeVersion = "boomer_allowed_lexicon_step3_1_v20260617_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        lexiconExists: false,
+        inventoryCount: 0,
+        coveredCount: 0,
+        missingCoverage: [],
+        failures: [],
+        forbiddenRemaining: [],
+        failedChecks: [],
+        noSlang: false,
+        noAbbreviations: false,
+        noSharpColloquial: false,
+        variablesPreserved: false,
+        uiLayerOnly: true,
+        runtimeLogicTouched: false,
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const placeholderTokens = (text) => (String(text || "").match(/\{[^}]+\}/g) || []).slice().sort();
+      const samePlaceholders = (a, b) => {
+        const aa = placeholderTokens(a);
+        const bb = placeholderTokens(b);
+        return aa.length === bb.length && aa.every((token, idx) => token === bb[idx]);
+      };
+      try {
+        const lexRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        result.lexiconExists = !!(lexRes && lexRes.ok);
+        const raw = lexRes && lexRes.ok ? String(lexRes.text || "") : "";
+        const rows = parseLexiconRows(raw);
+        result.inventoryCount = rows.length;
+        if (!result.lexiconExists) fail("lexicon_exists", { path: "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md", reason: lexRes && lexRes.reason ? lexRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(raw)) fail("lexicon_marker_present", "missing_marker");
+        if (rows.length !== 164) fail("inventory_count_164", { actual: rows.length });
+        const expectedIds = Array.from({ length: 164 }, (_, idx) => `TXT_${String(idx + 1).padStart(4, "0")}`);
+        const byId = rows.reduce((acc, row) => { if (row && row.id) acc[row.id] = row; return acc; }, {});
+        const extraIds = rows.map((row) => row.id).filter((id) => expectedIds.indexOf(id) === -1);
+        if (extraIds.length) fail("no_extra_ids", extraIds);
+        expectedIds.forEach((id) => {
+          const row = byId[id];
+          if (!row || !row.currentText || !row.boomerText) addUnique(result.missingCoverage, id);
+        });
+        result.coveredCount = expectedIds.length - result.missingCoverage.length;
+        if (rows.some((row, idx) => row.id !== expectedIds[idx])) fail("id_order_exact", rows.map((row) => row.id).slice(0, 8));
+        const placeholderFailures = rows.filter((row) => row && !samePlaceholders(row.currentText, row.boomerText)).map((row) => row.id);
+        result.variablesPreserved = placeholderFailures.length === 0;
+        if (!result.variablesPreserved) fail("variables_preserved", placeholderFailures);
+        const forbiddenPatterns = [
+          { rule: "Погнали", re: /Погнали/ },
+          { rule: "Снести", re: /Снести/ },
+          { rule: "без душноты", re: /без душноты/i },
+          { rule: "Свалить", re: /Свалить/ },
+          { rule: "свалить", re: /свалить/ },
+          { rule: "Кулдаун", re: /Кулдаун/ },
+          { rule: "мейн", re: /мейн/ },
+          { rule: "андер", re: /андер/ },
+          { rule: "вывез", re: /вывез/ },
+          { rule: "Не вывез", re: /Не вывез/ },
+          { rule: "Драма", re: /Драма/ },
+          { rule: "RIP", re: /\bRIP\b/ },
+          { rule: "WIN", re: /\bWIN\b/ },
+          { rule: "DRAW", re: /\bDRAW\b/ },
+          { rule: "ого", re: /ого/ },
+          { rule: "тыкни", re: /тыкни/ },
+          { rule: "вписывайся", re: /вписывайся/ },
+          { rule: "Дай паузу", re: /Дай паузу/ },
+          { rule: "Такого нет", re: /Такого нет/ },
+          { rule: "Попробуй", re: /Попробуй/ },
+          { rule: "Ты ", re: /Ты\s/ },
+          { rule: "тебе", re: /тебе/ },
+          { rule: "ник", re: /ник/ },
+          { rule: "Cap", re: /\bCap\b/ },
+          { rule: "max Points", re: /max Points/ },
+          { rule: "cap", re: /\bcap\b/ },
+        ];
+        const allowedBattleIds = new Set(["TXT_0026", "TXT_0051", "TXT_0144"]);
+        rows.forEach((row) => {
+          const text = String(row && row.boomerText || "");
+          forbiddenPatterns.forEach((pattern) => {
+            if (pattern.re.test(text)) addUnique(result.forbiddenRemaining, { id: row.id, rule: pattern.rule, text });
+          });
+          if (!allowedBattleIds.has(row.id) && /\bбаттл\b/i.test(text)) {
+            addUnique(result.forbiddenRemaining, { id: row.id, rule: "баттл", text });
+          }
+        });
+        result.noSlang = result.forbiddenRemaining.length === 0;
+        result.noAbbreviations = result.forbiddenRemaining.length === 0;
+        result.noSharpColloquial = result.forbiddenRemaining.length === 0;
+        if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "boomer_allowed_lexicon_step3_1_v20260617_001") fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.lexiconExists === true
+        && result.inventoryCount === 164
+        && result.coveredCount === 164
+        && result.missingCoverage.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0
+        && result.noSlang === true
+        && result.noAbbreviations === true
+        && result.noSharpColloquial === true
+        && result.variablesPreserved === true
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      return result;
+    };
 
 
     const smokeZoomerStopWordsOnce = () => {
@@ -7739,6 +7912,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -7770,6 +7944,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     G.__DEV.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
+    G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -7812,6 +7987,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;

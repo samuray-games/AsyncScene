@@ -1,3 +1,20 @@
+## 2026-06-17 — Step 4 Alpha profile, step 1.4 Alpha explanation-removal rules
+- Added `UI_PROFILE_ALPHA_EXPLANATION_RULES.md` plus `docs/UI_PROFILE_ALPHA_EXPLANATION_RULES.md`.
+- Added `AsyncScene/Web/ui/ui-profile-alpha-explanation-rules.js` plus `docs/ui/ui-profile-alpha-explanation-rules.js`.
+- Added dev-only `Game.__DEV.smokeAlphaStep14ExplanationRulesOnce()` in both served dev-check bundles.
+- The Alpha explanation-rule artifacts hold exactly 164 entries with fields `id`, `oldText`, `alphaText`, and `explanationPolicy`.
+- The spec states that Alpha inherits from Zoomer, removes explanation when the action is clear, keeps the action or state visible, avoids cause-explaining unless the player would be blocked, and stays out of dry instruction, baby talk, fake hype, over-memeing, and tutorial voice.
+- This step stays spec-only and does not activate runtime Alpha copy.
+
+## 2026-06-17 — Step 3.1 Boomer allowed lexicon
+- Added `docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` with the exact 164-row Boomer allowed lexicon inventory, including every `TXT_0001` through `TXT_0164` entry with `currentText` and `boomerText`.
+- Added dev-only Safari smoke `Game.__DEV.smokeBoomerAllowedLexiconStep31Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_17_step3_1_boomer_allowed_lexicon_v1`.
+- Commit placeholder: `step3_1_boomer_allowed_lexicon`.
+- Smoke version: `boomer_allowed_lexicon_step3_1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerAllowedLexiconStep31Once()`.
+- Scope held: UI/profile/copy docs and dev smoke only; no runtime logic changes, no gameplay changes, no persistence changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 4 Alpha profile, step 1.3 Alpha length rules Fix1
 - Added `UI_PROFILE_ALPHA_LENGTH_RULES.md` plus `docs/UI_PROFILE_ALPHA_LENGTH_RULES.md`.
 - Added `AsyncScene/Web/ui/ui-profile-alpha-length-rules.js` plus `docs/ui/ui-profile-alpha-length-rules.js`.

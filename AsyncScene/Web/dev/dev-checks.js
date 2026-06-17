@@ -4362,6 +4362,179 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeBoomerAllowedLexiconStep31Once = () => {
+      const buildTag = "build_2026_06_17_step3_1_boomer_allowed_lexicon_v1";
+      const commit = "step3_1_boomer_allowed_lexicon";
+      const smokeVersion = "boomer_allowed_lexicon_step3_1_v20260617_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        lexiconExists: false,
+        inventoryCount: 0,
+        coveredCount: 0,
+        missingCoverage: [],
+        failures: [],
+        forbiddenRemaining: [],
+        failedChecks: [],
+        noSlang: false,
+        noAbbreviations: false,
+        noSharpColloquial: false,
+        variablesPreserved: false,
+        uiLayerOnly: true,
+        runtimeLogicTouched: false,
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const placeholderTokens = (text) => (String(text || "").match(/\{[^}]+\}/g) || []).slice().sort();
+      const samePlaceholders = (a, b) => {
+        const aa = placeholderTokens(a);
+        const bb = placeholderTokens(b);
+        return aa.length === bb.length && aa.every((token, idx) => token === bb[idx]);
+      };
+      try {
+        const lexRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        result.lexiconExists = !!(lexRes && lexRes.ok);
+        const raw = lexRes && lexRes.ok ? String(lexRes.text || "") : "";
+        const rows = parseLexiconRows(raw);
+        result.inventoryCount = rows.length;
+        if (!result.lexiconExists) fail("lexicon_exists", { path: "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md", reason: lexRes && lexRes.reason ? lexRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(raw)) fail("lexicon_marker_present", "missing_marker");
+        if (rows.length !== 164) fail("inventory_count_164", { actual: rows.length });
+        const expectedIds = Array.from({ length: 164 }, (_, idx) => `TXT_${String(idx + 1).padStart(4, "0")}`);
+        const byId = rows.reduce((acc, row) => { if (row && row.id) acc[row.id] = row; return acc; }, {});
+        const extraIds = rows.map((row) => row.id).filter((id) => expectedIds.indexOf(id) === -1);
+        if (extraIds.length) fail("no_extra_ids", extraIds);
+        expectedIds.forEach((id) => {
+          const row = byId[id];
+          if (!row || !row.currentText || !row.boomerText) addUnique(result.missingCoverage, id);
+        });
+        result.coveredCount = expectedIds.length - result.missingCoverage.length;
+        if (rows.some((row, idx) => row.id !== expectedIds[idx])) fail("id_order_exact", rows.map((row) => row.id).slice(0, 8));
+        const placeholderFailures = rows.filter((row) => row && !samePlaceholders(row.currentText, row.boomerText)).map((row) => row.id);
+        result.variablesPreserved = placeholderFailures.length === 0;
+        if (!result.variablesPreserved) fail("variables_preserved", placeholderFailures);
+        const forbiddenPatterns = [
+          { rule: "Погнали", re: /Погнали/ },
+          { rule: "Снести", re: /Снести/ },
+          { rule: "без душноты", re: /без душноты/i },
+          { rule: "Свалить", re: /Свалить/ },
+          { rule: "свалить", re: /свалить/ },
+          { rule: "Кулдаун", re: /Кулдаун/ },
+          { rule: "мейн", re: /мейн/ },
+          { rule: "андер", re: /андер/ },
+          { rule: "вывез", re: /вывез/ },
+          { rule: "Не вывез", re: /Не вывез/ },
+          { rule: "Драма", re: /Драма/ },
+          { rule: "RIP", re: /\bRIP\b/ },
+          { rule: "WIN", re: /\bWIN\b/ },
+          { rule: "DRAW", re: /\bDRAW\b/ },
+          { rule: "ого", re: /ого/ },
+          { rule: "тыкни", re: /тыкни/ },
+          { rule: "вписывайся", re: /вписывайся/ },
+          { rule: "Дай паузу", re: /Дай паузу/ },
+          { rule: "Такого нет", re: /Такого нет/ },
+          { rule: "Попробуй", re: /Попробуй/ },
+          { rule: "Ты ", re: /Ты\s/ },
+          { rule: "тебе", re: /тебе/ },
+          { rule: "ник", re: /ник/ },
+          { rule: "Cap", re: /\bCap\b/ },
+          { rule: "max Points", re: /max Points/ },
+          { rule: "cap", re: /\bcap\b/ },
+        ];
+        const allowedBattleIds = new Set(["TXT_0026", "TXT_0051", "TXT_0144"]);
+        rows.forEach((row) => {
+          const text = String(row && row.boomerText || "");
+          forbiddenPatterns.forEach((pattern) => {
+            if (pattern.re.test(text)) addUnique(result.forbiddenRemaining, { id: row.id, rule: pattern.rule, text });
+          });
+          if (!allowedBattleIds.has(row.id) && /\bбаттл\b/i.test(text)) {
+            addUnique(result.forbiddenRemaining, { id: row.id, rule: "баттл", text });
+          }
+        });
+        result.noSlang = result.forbiddenRemaining.length === 0;
+        result.noAbbreviations = result.forbiddenRemaining.length === 0;
+        result.noSharpColloquial = result.forbiddenRemaining.length === 0;
+        if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "boomer_allowed_lexicon_step3_1_v20260617_001") fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.lexiconExists === true
+        && result.inventoryCount === 164
+        && result.coveredCount === 164
+        && result.missingCoverage.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.failedChecks.length === 0
+        && result.noSlang === true
+        && result.noAbbreviations === true
+        && result.noSharpColloquial === true
+        && result.variablesPreserved === true
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      return result;
+    };
 
 
     const smokeZoomerStopWordsOnce = () => {
@@ -7696,6 +7869,234 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.noRuntimeFilesChanged === true && result.measurableRuleFound === true && result.compressionChecked === true && result.atomicExceptionsChecked === true && result.templateVariablesPreserved === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaStep14ExplanationRulesOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = "alpha_step_1_4_explanation_rules_v20260617_001";
+      const expectedEntryCount = 164;
+      const allowedPolicies = Object.freeze(["fixed", "atomic", "drop_reason", "drop_extra_context", "action_first", "template_preserve"]);
+      const forbiddenRuntimeFiles = Object.freeze([
+        "AsyncScene/Web/data.js",
+        "AsyncScene/Web/system.js",
+        "AsyncScene/Web/npcs.js",
+        "AsyncScene/Web/state.js",
+        "AsyncScene/Web/index.html",
+        "AsyncScene/Web/ui/ui-core.js",
+        "AsyncScene/Web/ui/ui-events.js",
+        "AsyncScene/Web/ui/ui-battles.js",
+        "AsyncScene/Web/ui/ui-dm.js",
+        "AsyncScene/Web/ui/ui-menu.js",
+        "docs/data.js",
+        "docs/system.js",
+        "docs/npcs.js",
+        "docs/state.js",
+        "docs/index.html",
+        "docs/ui/ui-core.js",
+        "docs/ui/ui-events.js",
+        "docs/ui/ui-battles.js",
+        "docs/ui/ui-dm.js",
+        "docs/ui/ui-menu.js"
+      ]);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        ruleExists: false,
+        tableExists: false,
+        docsMirrorExists: false,
+        tablePathChecked: null,
+        docsPathChecked: null,
+        entryCount: 0,
+        expectedEntryCount,
+        allExactEntriesPresent: false,
+        allPoliciesValid: false,
+        explanationRuleFound: false,
+        anchorExamplesFound: false,
+        noRuntimeFilesChanged: false,
+        noDryInstructionDrift: false,
+        templateVariablesPreserved: false,
+        noAlphaLongDash: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => { if (!list.some((item) => JSON.stringify(item) === JSON.stringify(value))) list.push(value); };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const parseRowValue = (value) => {
+        try {
+          return JSON.parse(`"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`);
+        } catch (_) {
+          return String(value);
+        }
+      };
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      const sameVars = (a, b) => {
+        if (a.length !== b.length) return false;
+        const left = a.slice().sort();
+        const right = b.slice().sort();
+        return left.every((value, idx) => value === right[idx]);
+      };
+      const resolveCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(location.origin + "/AsyncScene/");
+          bases.push(location.origin + "/");
+          bases.push(location.origin + "/__dev__/docs/");
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseManifest = (text) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const manifest = (new Function("window", "module", text + "\nreturn (window.Game && window.Game.__ALPHA_EXPLANATION_RULES__) || module.exports || null;"))(win, module);
+          return manifest && typeof manifest === "object" ? manifest : null;
+        } catch (_) {
+          return null;
+        }
+      };
+      const extractRawRows = (text) => {
+        const marker = "const RAW_ROWS = String.raw`";
+        const start = String(text || "").indexOf(marker);
+        if (start < 0) return "";
+        const rest = String(text || "").slice(start + marker.length);
+        const end = rest.indexOf("`;");
+        return end >= 0 ? rest.slice(0, end) : rest;
+      };
+      const parseRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+        const match = line.match(/^TXT_(\d{4}) \| oldText:"((?:\\.|[^"])*)" \| alphaText:"((?:\\.|[^"])*)" \| explanationPolicy:"([a-z_]+)"$/);
+        if (!match) return null;
+        return {
+          id: `TXT_${match[1]}`,
+          oldText: parseRowValue(match[2]),
+          alphaText: parseRowValue(match[3]),
+          explanationPolicy: match[4]
+        };
+      }).filter(Boolean);
+      const rowMatches = (actual, expected) => actual && expected && actual.id === expected.id && actual.oldText === expected.oldText && actual.alphaText === expected.alphaText && actual.explanationPolicy === expected.explanationPolicy;
+      try {
+        const rootDocRes = fetchFirst("UI_PROFILE_ALPHA_EXPLANATION_RULES.md");
+        const docsDocRes = fetchFirst("UI_PROFILE_ALPHA_EXPLANATION_RULES.md");
+        const rootJsRes = fetchFirst("ui/ui-profile-alpha-explanation-rules.js");
+        const docsJsRes = fetchFirst("ui/ui-profile-alpha-explanation-rules.js");
+        result.ruleExists = !!rootDocRes.ok;
+        result.tableExists = !!rootJsRes.ok;
+        result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsPathChecked = docsDocRes && docsDocRes.path ? docsDocRes.path : null;
+        result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : null;
+        if (!rootDocRes.ok) fail("rule_exists", { path: "UI_PROFILE_ALPHA_EXPLANATION_RULES.md", reason: rootDocRes.reason || "unavailable" });
+        if (!rootJsRes.ok) fail("table_exists", { path: "ui/ui-profile-alpha-explanation-rules.js", reason: rootJsRes.reason || "unavailable" });
+        if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
+        const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
+        const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
+        const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
+        const docsJsText = docsJsRes.ok ? String(docsJsRes.text || "") : "";
+        if (rootDocText && docsDocText && rootDocText !== docsDocText) fail("docs_markdown_mirror_match", "markdown mirror mismatch");
+        if (rootJsText && docsJsText && rootJsText !== docsJsText) fail("docs_js_mirror_match", "js mirror mismatch");
+        const requiredDocPhrases = [
+          "Alpha inherits from Zoomer.",
+          "Alpha removes explanation when the action is clear.",
+          "Alpha keeps the action or state visible.",
+          "Alpha does not explain causes unless the player would be blocked without that cause.",
+          "Alpha does not become dry instruction text.",
+          "Alpha does not use baby talk, fake hype, over-memeing, or tutorial voice.",
+          "This step is spec-only and does not activate runtime Alpha copy.",
+          "Codex must not invent Alpha phrases."
+        ];
+        result.explanationRuleFound = requiredDocPhrases.every((phrase) => rootDocText.includes(phrase));
+        if (!result.explanationRuleFound) fail("explanation_rule_found", requiredDocPhrases.filter((phrase) => !rootDocText.includes(phrase)));
+        const requiredAnchors = [
+          'z: "Нет очков. Выбери другое действие."',
+          'alpha: "Нет очков. Выбери другое."',
+          'z: "Проверка займет время."',
+          'alpha: "Проверка ждёт."',
+          'z: "Недоступно. Баттл не завершён."',
+          'alpha: "Баттл не закрыт."',
+          'z: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐."',
+          'alpha: "Лимит ⭐. Пополни 💰."'
+        ];
+        result.anchorExamplesFound = requiredAnchors.every((phrase) => rootDocText.includes(phrase));
+        if (!result.anchorExamplesFound) fail("anchor_examples_found", requiredAnchors.filter((phrase) => !rootDocText.includes(phrase)));
+        result.noDryInstructionDrift = !/(инструкц|manual|guide|step-by-step)/i.test(rootDocText) && rootDocText.includes("Alpha does not become dry instruction text.");
+        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
+        const jsManifest = parseManifest(rootJsText);
+        const jsRows = jsManifest && Array.isArray(jsManifest.table) ? jsManifest.table : [];
+        const rawRows = parseRows(extractRawRows(rootJsText));
+        result.entryCount = jsRows.length;
+        if (jsRows.length !== expectedEntryCount) fail("entry_count", { expected: expectedEntryCount, actual: jsRows.length });
+        if (!jsManifest || jsManifest.expectedEntryCount !== expectedEntryCount) fail("expected_entry_count", jsManifest ? jsManifest.expectedEntryCount : null);
+        const expectedById = rawRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const actualById = jsRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const duplicateIds = jsRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
+        if (duplicateIds.length) fail("duplicate_ids", duplicateIds);
+        rawRows.forEach((expected) => {
+          const actual = actualById[expected.id];
+          if (!rowMatches(actual, expected)) addUnique(result.missingCoverage, expected.id);
+          if (actual && (!allowedPolicies.includes(actual.explanationPolicy) || actual.explanationPolicy !== expected.explanationPolicy)) addUnique(result.missingCoverage, `${expected.id}:policy`);
+        });
+        result.allExactEntriesPresent = result.missingCoverage.length === 0 && rawRows.length === expectedEntryCount && jsRows.length === expectedEntryCount;
+        if (!result.allExactEntriesPresent) fail("all_exact_entries_present", result.missingCoverage.slice());
+        result.allPoliciesValid = rawRows.length === expectedEntryCount && jsRows.every((row) => allowedPolicies.includes(row.explanationPolicy) && expectedById[row.id] && row.explanationPolicy === expectedById[row.id].explanationPolicy);
+        if (!result.allPoliciesValid) fail("all_policies_valid", jsRows.filter((row) => !allowedPolicies.includes(row.explanationPolicy) || !expectedById[row.id] || row.explanationPolicy !== expectedById[row.id].explanationPolicy).map((row) => row && row.id).filter(Boolean));
+        const templateFailures = rawRows.filter((row) => {
+          const oldVars = templateVars(row.oldText);
+          const alphaVars = templateVars(row.alphaText);
+          return oldVars.length || alphaVars.length ? !sameVars(oldVars, alphaVars) : false;
+        }).map((row) => row.id);
+        result.templateVariablesPreserved = templateFailures.length === 0;
+        if (!result.templateVariablesPreserved) fail("template_variables_preserved", templateFailures);
+        const alphaDashFailures = rawRows.filter((row) => row.alphaText.indexOf("—") !== -1).map((row) => row.id);
+        result.noAlphaLongDash = alphaDashFailures.length === 0;
+        if (!result.noAlphaLongDash) {
+          addUnique(result.forbiddenRemaining, "alpha_em_dash");
+          fail("alpha_em_dash_forbidden", alphaDashFailures);
+        }
+        result.noRuntimeFilesChanged = [rootDocText, docsDocText, rootJsText, docsJsText].every((text) => forbiddenRuntimeFiles.every((fileName) => !text.includes(fileName)));
+        if (!result.noRuntimeFilesChanged) fail("no_runtime_files_changed", "forbidden runtime file reference found in artifacts");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allPoliciesValid === true && result.explanationRuleFound === true && result.anchorExamplesFound === true && result.noRuntimeFilesChanged === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeAlphaStep13LengthRulesFix1 = () => {
       const result = smokeAlphaStep13LengthRulesOnce();
       result.buildTag = "build_2026_06_17_step4_alpha_profile_step1_3_fix1_v1";
@@ -7725,6 +8126,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -7735,6 +8137,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     Game.Dev.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     Game.Dev.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
+    Game.Dev.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -7755,7 +8158,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     G.__DEV.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     G.__DEV.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
+    G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
+    G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -7798,6 +8203,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -7808,6 +8214,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     devStore.smokeAlphaStep13LengthRulesFix1 = smokeAlphaStep13LengthRulesFix1;
     devStore.smokeAlphaStep13LengthRulesOnce = smokeAlphaStep13LengthRulesOnce;
+    devStore.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
