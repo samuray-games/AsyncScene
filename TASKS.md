@@ -14,6 +14,16 @@
 - Inventory found: `UI_PROFILE_ZOOMER_DIFF.md`, `docs/UI_PROFILE_ZOOMER_DIFF.md`, `UI_PROFILE_ZOOMER_FINAL.md`, `docs/UI_PROFILE_ZOOMER_FINAL.md`, `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `AsyncScene/Web/data.js`, `docs/data.js`, `AsyncScene/Web/state.js`, `docs/state.js`.
 - Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce()`.
 
+## 2026-06-17 — Step 2.3 Boomer Expansion Prohibitions
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the Step 2.3 `Expansion Prohibitions` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact forbidden phrase groups plus the 20 negative and 12 positive probes.
+- Added dev-only smoke `Game.__DEV.smokeBoomerExpansionProhibitionsStep23Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js` to validate the 184 contract texts, forbidden-phrase coverage, negative-probe rejection, and positive-probe acceptance without changing visible UI or gameplay logic.
+- Build tag: `build_2026_06_17_step2_3_boomer_expansion_prohibitions_v1`.
+- Commit identity: `step2_3_boomer_expansion_prohibitions_v1`.
+- Smoke version: `step2_3_boomer_expansion_prohibitions_v1_v20260617_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerExpansionProhibitionsStep23Once()`.
+- Scope held: UI-layer contract and smoke only; no runtime/domain files, no visible UI changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-17 — Step 2.2 Boomer Transformation Table
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the Step 2.2 `Transformation Table` section to `AsyncScene/Web/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` and `docs/UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md` with the exact 20 fixed millennial -> boomer rows for UI, error, risk, and hint surfaces.
