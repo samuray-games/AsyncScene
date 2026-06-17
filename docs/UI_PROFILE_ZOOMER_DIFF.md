@@ -46,10 +46,159 @@ Each listed feature is covered by the zoomer terminology profile and keeps the s
 
 ## UI_PROFILE_ZOOMER_SHORTEN_RULE
 
-- From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by about 30-40%, keep original meaning, and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
-- Use fewer filler words: remove intro/filler words and skip throat-clearing.
-- Use fewer abstractions: reduce abstract nouns and name the concrete action.
-- Use more verbs: replace abstract wording with action verbs; do not add teen slang, memes, fake youth voice, or irony.
+- From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by 30-40%. Keep original meaning and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
+- Remove intro/filler words.
+- Remove softeners.
+- Replace abstractions with direct actions.
+- Reduce abstractions.
+- Fewer abstractions.
+- Replace abstract wording with action verbs.
+- Prefer verbs over nouns.
+- Keep variables unchanged.
+- Keep economy honesty unchanged.
+- Keep action honesty unchanged.
+- Do not promise success.
+- Do not change mechanics.
+- Do not make the text teen slang.
+- Do not add memes.
+- Do not add teen slang, memes, fake youth voice, or irony.
+- Do not make NPCs mentor the player.
+- If a phrase is already minimal, keep it unchanged and mark it as `keep`.
+
+### Required phrase matrix
+
+Use the full matrix below. Add every entry. No omissions.
+
+| id | before | after | note |
+| --- | --- | --- | --- |
+| TXT_0001 | AsyncScene | AsyncScene | keep |
+| TXT_0002 | AsyncScene | AsyncScene | keep |
+| TXT_0003 | Оппонент задаёт риск. | Оппонент ставит риск. | replace |
+| TXT_0004 | Ставка списывает ресурс. | Ставка снимает ресурс. | replace |
+| TXT_0005 | Итог виден сразу. | Итог виден сразу. | keep |
+| TXT_0006 | Цена и итог сразу. | Цена и итог сразу. | keep |
+| TXT_0007 | Старт | Старт | keep |
+| TXT_0008 | Суть | Суть | keep |
+| TXT_0009 | Последние 2 цифры года рождения | 2 цифры года | replace |
+| TXT_0010 | Увеличить первую цифру | Первая + | replace |
+| TXT_0011 | Уменьшить первую цифру | Первая - | replace |
+| TXT_0012 | Увеличить вторую цифру | Вторая + | replace |
+| TXT_0013 | Уменьшить вторую цифру | Вторая - | replace |
+| TXT_0014 | Только для интерфейса. Не сохраняем. Можно поменять позже. | Только UI. Не сохраняем. Меняется позже. | replace |
+| TXT_0015 | я на самом деле чувствую будто я родился в … | чувствую, что родился в ... | replace |
+| TXT_0016 | Продолжить | Дальше | replace |
+| TXT_0017 | Старт | Старт | keep |
+| TXT_0018 | Сбросить старт | Сбросить | replace |
+| TXT_0019 | Погнали | Погнали | keep |
+| TXT_0020 | Снести выбор | Сбросить | replace |
+| TXT_0021 | Правила без душноты | Правила коротко | replace |
+| TXT_0022 | Войти | Войти | keep |
+| TXT_0023 | Готово. | Готово. | keep |
+| TXT_0024 | Сообщение недоступно. | Сообщение закрыто. | replace |
+| TXT_0025 | Не хватает 💰. | Мало 💰. | replace |
+| TXT_0026 | Мало 💰 на баттл. | Мало 💰. | replace |
+| TXT_0027 | Недоступно. | Недоступно. | keep |
+| TXT_0028 | Не найдено. | Не найдено. | keep |
+| TXT_0029 | Игрок не указан. | Укажи игрока. | replace |
+| TXT_0030 | Штраф: -5 💰. | Штраф: -5💰. | replace |
+| TXT_0031 | Ввод некорректен. | Проверь ввод. | replace |
+| TXT_0032 | Кулдаун активен. | Кулдаун идёт. | replace |
+| TXT_0033 | Проверка займет время. | Проверка идёт. | replace |
+| TXT_0034 | +1💰 | +1💰 | keep |
+| TXT_0035 | +1⭐ | +1⭐ | keep |
+| TXT_0036 | Голос учтён. | Голос принят. | replace |
+| TXT_0037 | Проверяю. | Проверяю. | keep |
+| TXT_0038 | Сдать {name}: +2💰. | Сдать {name}: +2💰. | keep |
+| TXT_0039 | Коп: {name} сдан, +2💰. | {name} сдан: +2💰. | replace |
+| TXT_0040 | Аргумент: {teacher} → {student}. | {teacher} учит {student}. | replace |
+| TXT_0041 | {name} зовёт на реванш. | {name} зовёт реванш. | replace |
+| TXT_0042 | Свалить за 1💰. | Свалить: 1💰. | replace |
+| TXT_0043 | +1💰 возврат. | +1💰 назад. | replace |
+| TXT_0044 | +1💰 возврат большинству. | +1💰 большинству. | replace |
+| TXT_0045 | +1💰 остаток победителю. | +1💰 победителю. | replace |
+| TXT_0046 | Реванш: -{rematchCost}💰. | Реванш: -{rematchCost}💰. | keep |
+| TXT_0047 | Свалить: -{escapeCost}💰. | Свалить: -{escapeCost}💰. | keep |
+| TXT_0048 | {target}: +{amount}💰. | {target}: +{amount}💰. | keep |
+| TXT_0049 | {target}: +{amount}💰 тебе. | Тебе от {target}: +{amount}💰. | replace |
+| TXT_0050 | {attackerName} [{attackerInf}] бросил вызов. | {attackerName} [{attackerInf}] вызвал на баттл. | replace |
+| TXT_0051 | Баттл с {oppName}: {text}. | Баттл с {oppName}: {text}. | keep |
+| TXT_0052 | {a} и {b}: ничья. | {a} и {b}: ничья. | keep |
+| TXT_0053 | Толпа: {name} {aVotes}:{bVotes}. | Толпа: {name} {aVotes}:{bVotes}. | keep |
+| TXT_0054 | Оранжевые аргументы открыты. | Оранжевые открыты. | replace |
+| TXT_0055 | Красные аргументы открыты. | Красные открыты. | replace |
+| TXT_0056 | Чёрные аргументы открыты. | Чёрные открыты. | replace |
+| TXT_0057 | Оппонент задаёт риск. | Оппонент ставит риск. | replace |
+| TXT_0058 | Ставка списывает ресурс. | Ставка снимает ресурс. | replace |
+| TXT_0059 | Итог виден сразу. | Итог виден сразу. | keep |
+| TXT_0060 | Цена и итог сразу. | Цена и итог сразу. | keep |
+| TXT_0061 | Меню | Меню | keep |
+| TXT_0062 | К старту | К старту | keep |
+| TXT_0063 | Цель | Цель | keep |
+| TXT_0064 | Победа | Победа | keep |
+| TXT_0065 | Поражение | Поражение | keep |
+| TXT_0066 | Толпа решает | Толпа решает | keep |
+| TXT_0067 | Вы победили в конфликте. | Вы победили. | replace |
+| TXT_0068 | Вы проиграли конфликт. | Вы проиграли. | replace |
+| TXT_0069 | Конфликт завершился ничьей. | Ничья. | replace |
+| TXT_0070 | Свалить: {X} | Свалить: {X} | keep |
+| TXT_0071 | Для {student}: {arg}. Цена {cost} 💰. | {student}: {arg}. {cost}💰. | replace |
+| TXT_0072 | Аргумент: {teacher} → {student}. | {teacher} учит {student}. | replace |
+| TXT_0073 | Введи точный ник. | Введи ник. | replace |
+| TXT_0074 | Игрок не найден. | Игрока нет. | replace |
+| TXT_0075 | Меню | Меню | keep |
+| TXT_0076 | К старту | К старту | keep |
+| TXT_0077 | Недоступно. | Недоступно. | keep |
+| TXT_0078 | Цель | Цель | keep |
+| TXT_0079 | Понял. Проверяю. | Проверяю. | replace |
+| TXT_0080 | Принял. Разберусь. | Принял. Разберусь. | keep |
+| TXT_0081 | Занят, связь позже. | Занят. Позже. | replace |
+| TXT_0082 | Не могу, оформляю дело. | Оформляю дело. Позже. | replace |
+| TXT_0083 | Проверка сошлась. Вмешался. | Факты сошлись. Вмешался. | replace |
+| TXT_0084 | Проверка сошлась. Занялся. | Факты сошлись. Занялся. | replace |
+| TXT_0085 | Не подтвердилось. Факты не сошлись. | Не сошлось. | replace |
+| TXT_0086 | Проверка займет время. | Проверка идёт. | replace |
+| TXT_0087 | Ответь: кто? | Кто? | replace |
+| TXT_0088 | Ответь: где? | Где? | replace |
+| TXT_0089 | Ответь: о ком? | О ком? | replace |
+| TXT_0090 | Ответь: да или нет? | Да или нет? | replace |
+| TXT_0091 | ТОЛПА | ТОЛПА | keep |
+| TXT_0092 | ВПИСЫВАЙСЯ | ВПИСЫВАЙСЯ | keep |
+| TXT_0093 | ТЫКНИ ИМЯ | ТЫКНИ ИМЯ | keep |
+| TXT_0094 | ✓ ОК | ✓ ОК | keep |
+| TXT_0095 | ✓ УЖЕ | ✓ УЖЕ | keep |
+| TXT_0096 | ✕ НЕ | ✕ НЕ | keep |
+| TXT_0097 | WIN | WIN | keep |
+| TXT_0098 | RIP | RIP | keep |
+| TXT_0099 | DRAW | DRAW | keep |
+| TXT_0100 | Ты вывез. | Ты вывез. | keep |
+| TXT_0101 | Не вывез. | Не вывез. | keep |
+| TXT_0102 | Ничья. Все шумели зря. | Ничья. Шум зря. | replace |
+| TXT_0103 | Ты в мейне. | Ты в мейне. | keep |
+| TXT_0104 | Ты в андере. | Ты в андере. | keep |
+| TXT_0105 | Мейн забрал. | Мейн забрал. | keep |
+| TXT_0106 | Андер просел. | Андер просел. | keep |
+| TXT_0107 | Драма закрыта. | Драма закрыта. | keep |
+| TXT_0108 | лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐. | Лимит ⭐. Пополни 💰 для ⭐. | replace |
+| TXT_0109 | Cap: max Points на этой неделе. Используйте, пока не сбросили cap. | Cap Points. Трать до сброса. | replace |
+| TXT_0110 | {cop.fullName} на связи. | {cop.fullName} на связи. | keep |
+| TXT_0111 | Опасная точка рядом. | Риск рядом. | replace |
+| TXT_0112 | Вызов принят, экипаж в пути. | Вызов принят. Едем. | replace |
+| TXT_0113 | Ситуация под контролем. | Контролируем. | replace |
+| TXT_0114 | Принято, наблюдаю. | Принято. Смотрю. | replace |
+| TXT_0115 | Факт принят, идем дальше. | Факт принят. Идём. | replace |
+| TXT_0116 | Занят расследованием, связь позже. | Занят. Связь позже. | replace |
+| TXT_0117 | Сдача принята \u2014 спокойнее. | Сдал. Спокойнее. | replace |
+| TXT_0118 | «Сдать» без фактов \u2014 шум. | Без фактов это шум. | replace |
+| TXT_0119 | Кто сегодня на слуху, если не ошибаюсь? | Кто на слуху? | replace |
+| TXT_0120 | Кажется, про {NAME} говорят. | Про {NAME} говорят. | replace |
+| TXT_0121 | Кто, как вам кажется, был рядом? | Кто был рядом? | replace |
+| TXT_0122 | {NAME}. | {NAME}. | keep |
+| TXT_0123 | Где мы сейчас, как вам кажется? | Где мы сейчас? | replace |
+| TXT_0124 | Здесь. | Здесь. | keep |
+| TXT_0125 | Вы уверены? | Уверены? | replace |
+| TXT_0126 | Да. | Да. | keep |
+| TXT_0127 | Кто сегодня на слуху? | Кто на слуху? | replace |
+| TXT_0128 | Про {NAME} говорят. | Про {NAME} говорят. | keep |
 
 ## UI_PROFILE_ZOOMER_LEXICAL_FRAME
 
