@@ -6760,7 +6760,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     const smokeAlphaStep12DiffDocumentOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = "alpha_step_1_2_diff_document_v20260617_001";
+      const smokeVersion = "alpha_step_1_2_diff_document_fix2_v20260617_003";
       const result = {
         ok: false,
         buildTag,
@@ -6768,6 +6768,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         smokeVersion,
         alphaDiffExists: false,
         docsMirrorExists: false,
+        docsMirrorPathChecked: null,
         inheritsFromZoomer: false,
         deltaOnly: false,
         requiredRulesFound: [],
@@ -6791,22 +6792,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
         if (typeof location !== "undefined" && location.origin) {
           bases.push(`${location.origin}/AsyncScene/`);
-          bases.push(`${location.origin}/AsyncScene/docs/`);
-          bases.push(`${location.origin}/docs/`);
           bases.push(`${location.origin}/`);
           bases.push(`${location.origin}/__dev__/docs/`);
         }
         bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
         if (typeof location !== "undefined" && location.origin) {
           add(`${location.origin}/AsyncScene/${fileName}`);
-          add(`${location.origin}/AsyncScene/docs/${fileName}`);
-          add(`${location.origin}/docs/${fileName}`);
           add(`${location.origin}/__dev__/docs/${fileName}`);
           add(`${location.origin}/${fileName}`);
         }
         add(`/AsyncScene/${fileName}`);
-        add(`/AsyncScene/docs/${fileName}`);
-        add(`/docs/${fileName}`);
         add(`/__dev__/docs/${fileName}`);
         add(`/${fileName}`);
         return candidates;
@@ -6839,9 +6834,10 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         const rootRes = fetchFirst("UI_PROFILE_ALPHA_DIFF.md");
         result.alphaDiffExists = !!rootRes.ok;
         if (!rootRes.ok) fail("alpha_diff_exists", { path: "UI_PROFILE_ALPHA_DIFF.md", reason: rootRes.reason || "unavailable" });
-        const docsRes = fetchFirst("AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md");
+        const docsRes = fetchFirst("UI_PROFILE_ALPHA_DIFF.md");
+        result.docsMirrorPathChecked = docsRes && docsRes.path ? docsRes.path : null;
         result.docsMirrorExists = !!docsRes.ok;
-        if (!docsRes.ok) fail("docs_mirror_exists", { path: "AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md", reason: docsRes.reason || "unavailable" });
+        if (!docsRes.ok) fail("docs_mirror_exists", { path: result.docsMirrorPathChecked || "UI_PROFILE_ALPHA_DIFF.md", reason: docsRes.reason || "unavailable" });
         const rootText = normalize(rootRes.ok ? String(rootRes.text || "") : "");
         const docsText = normalize(docsRes.ok ? String(docsRes.text || "") : "");
         text = `${rootText}\n${docsText}`;
@@ -6914,6 +6910,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       result.smokeVersion = "alpha_step_1_2_diff_document_fix1_v20260617_002";
       return result;
     };
+    const smokeAlphaStep12DiffDocumentFix2 = () => {
+      const result = smokeAlphaStep12DiffDocumentOnce();
+      result.buildTag = "build_2026_06_17_step4_alpha_profile_step1_2_fix2_docs_mirror_identity";
+      result.commit = "step4_alpha_profile_step1_2_fix2_docs_mirror_identity";
+      result.smokeVersion = "alpha_step_1_2_diff_document_fix2_v20260617_003";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -6941,6 +6944,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
+    Game.Dev.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -6958,6 +6962,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     G.__DEV.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     G.__DEV.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     G.__DEV.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
+    G.__DEV.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -6995,6 +7000,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
+    devStore.smokeAlphaStep12DiffDocumentFix2 = smokeAlphaStep12DiffDocumentFix2;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
