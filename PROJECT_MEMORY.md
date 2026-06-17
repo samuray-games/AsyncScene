@@ -1,3 +1,11 @@
+## 2026-06-17 — Step 4 Alpha profile, step 1.3 Alpha length rules
+- Added `UI_PROFILE_ALPHA_LENGTH_RULES.md` plus `docs/UI_PROFILE_ALPHA_LENGTH_RULES.md`.
+- Added `AsyncScene/Web/ui/ui-profile-alpha-length-rules.js` plus `docs/ui/ui-profile-alpha-length-rules.js`.
+- Added dev-only `Game.__DEV.smokeAlphaStep13LengthRulesOnce()` in both served dev-check bundles.
+- The Alpha length-rule artifacts hold exactly 164 entries with fields `id`, `oldText`, `alphaText`, `sourceFile`, `sourceLine`, `key`, `category`, `profile`, and `measurementClass`.
+- The measurable rule is explicit, not a visual guess; this step still does not activate runtime Alpha copy; Codex is not allowed to invent Alpha phrasing.
+- The smoke version for this step is `alpha_step_1_3_length_rules_v20260617_001`.
+
 ## 2026-06-17 — Step 2.5 Boomer Aggregate Expansion Rule Fix 1
 - Added the Step 2.5 fix1 smoke `Game.__DEV.smokeBoomerExpansionRuleFix1Once()` in `AsyncScene/Web/ui/ui-boot.js` and `docs/ui/ui-boot.js`.
 - The fix1 smoke keeps the Step 2.1-Step 2.5 aggregate validation but now derives `featureCounts` from the Step 2.4 new-feature coverage rows, matching `{respect:8,p2p:2,training:3,reports:21,crowd:16,npc_vs_npc:15}`.
