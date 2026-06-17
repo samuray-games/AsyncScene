@@ -7352,3 +7352,8 @@ Error: Download failure, code=1
 - Added dev-only smoke `Game.__DEV.smokeBoomerTextInventoryStep0Once()` in the mirrored `AsyncScene/Web/data.js` and `docs/data.js` bundles to verify the inventory file is present and has non-zero coverage.
 - Fresh identity: `boomer_text_inventory_step0_v20260616_001`.
 - Scope held: inventory/doc and smoke only; no text changes, no UI changes, no gameplay changes, no profile behavior changes, and no `Console.txt` usage.
+
+## 2026-06-17 — Step 3 Boomer [1.6] New Feature Surfaces
+- Documentation-only delta for `UI_PROFILE_BOOMER_DIFF.md` and `docs/UI_PROFILE_BOOMER_DIFF.md`.
+- Added the `NEW FEATURE SURFACES` section and the exact new feature coverage table for TXT_0021, TXT_0022, TXT_0023, TXT_0024, TXT_0025, TXT_0026, TXT_0027, TXT_0028, TXT_0029, TXT_0030, TXT_0038, TXT_0039, and TXT_0040.
+- Scope held: docs only; no runtime boomer changes, no `data.js`, no dev-checks, no index, no UI, no gameplay, no state, no system routing, and no `Console.txt` usage.
