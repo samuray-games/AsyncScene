@@ -10815,6 +10815,294 @@ window.Game = window.Game || {};
         return result;
       };
       G.Dev.smokeBoomerExpansionProhibitionsStep23Once = G.__DEV.smokeBoomerExpansionProhibitionsStep23Once;
+    if (typeof G.__DEV.smokeBoomerNewFeatureCoverageStep24Once !== "function") {
+      const BOOMER_NEW_FEATURE_BUILD_TAG = "build_2026_06_17_step2_4_boomer_new_feature_coverage_v1";
+      const BOOMER_NEW_FEATURE_COMMIT = "step2_4_boomer_new_feature_coverage_v1";
+      const BOOMER_NEW_FEATURE_SMOKE_VERSION = "step2_4_boomer_new_feature_coverage_v1_v20260617_001";
+      const CONTRACT_DOC_URL = "UI_PROFILE_BOOMER_EXPANSION_CONTRACT.md";
+      const EXPECTED_ROW_COUNT = 65;
+      const EXPECTED_FEATURE_COUNT = 6;
+      const EXPECTED_FEATURE_COUNTS = {
+        respect: 8,
+        p2p: 2,
+        training: 3,
+        reports: 21,
+        crowd: 16,
+        npc_vs_npc: 15,
+      };
+      const FORBIDDEN_PATTERNS = [
+        "следует",
+        "вы обязаны",
+        "обязаны",
+        "необходимо",
+        "надлежит",
+        "рекомендуется",
+        "запрещается",
+        "в соответствии",
+        "данное действие",
+        "осуществить",
+        "произвести",
+        "требуется выполнить",
+        "правилами предусмотрено",
+        "нужно понимать",
+        "вы должны понимать",
+        "вам стоит понять",
+        "запомните",
+        "учитесь",
+        "делайте правильно",
+        "так делать нельзя",
+        "надо было",
+        "в следующий раз думайте",
+        "пора научиться",
+        "вы виноваты",
+        "сам виноват",
+        "сами виноваты",
+        "ошибка игрока",
+        "неправильно",
+        "вы ошиблись",
+        "из-за вас",
+        "по вашей вине",
+        "вы всё испортили",
+        "вы сделали неверно",
+        "катастрофа",
+        "провал полный",
+        "всё пропало",
+        "без шансов",
+        "ужасная ошибка",
+        "фатальная ошибка",
+        "разгром",
+        "полный крах",
+        "трагедия",
+        "конец игры для вас",
+        "следует.",
+        "вы обязаны.",
+        "обязаны.",
+        "необходимо.",
+        "надлежит.",
+        "рекомендуется.",
+        "запрещается.",
+        "неправильно.",
+        "виноваты.",
+      ];
+      const expectedRows = [
+        { id: "NF_0001", feature: "respect", sourceId: "TXT_0035", category: "respect", surface: "system_copy", millennialText: "+1⭐", boomerText: "Репутация увеличена на +1⭐.", rule: "expand reward into explicit reputation consequence" },
+        { id: "NF_0002", feature: "respect", sourceId: "TXT_0150", category: "toast", surface: "respect_flow", millennialText: "Не хватает 💰.", boomerText: "Не хватает 💰 для выражения уважения.", rule: "add feature-specific reason" },
+        { id: "NF_0003", feature: "respect", sourceId: "TXT_0151", category: "toast", surface: "respect_flow", millennialText: "Уже было уважение сегодня этому персонажу.", boomerText: "Сегодня уважение этому персонажу уже было отправлено.", rule: "clarify daily state without blame" },
+        { id: "NF_0004", feature: "respect", sourceId: "TXT_0152", category: "toast", surface: "respect_flow", millennialText: "Цепочка A->B->A сегодня не работает.", boomerText: "Цепочка A->B->A сегодня не сработает.", rule: "keep rule clear and neutral" },
+        { id: "NF_0005", feature: "respect", sourceId: "TXT_0153", category: "toast", surface: "respect_flow", millennialText: "Лимит уважения на сегодня исчерпан.", boomerText: "Лимит уважения на сегодня уже исчерпан.", rule: "add current-day context" },
+        { id: "NF_0006", feature: "respect", sourceId: "TXT_0154", category: "toast", surface: "respect_flow", millennialText: "Сейчас не получилось. Попробуй позже.", boomerText: "Сейчас действие не получилось, попробуйте позже.", rule: "make failure neutral and action-specific" },
+        { id: "NF_0007", feature: "respect", sourceId: "TXT_0155", category: "toast", surface: "respect_flow", millennialText: "Ты отдал 1💰", boomerText: "Вы потратили 1💰 на это действие.", rule: "state cost and consequence clearly" },
+        { id: "NF_0008", feature: "respect", sourceId: "TXT_0156", category: "toast", surface: "respect_flow", millennialText: "Цель получила +1 ⭐", boomerText: "Выбранная цель получила +1 ⭐.", rule: "clarify recipient without adding pressure" },
+        { id: "NF_0009", feature: "p2p", sourceId: "TXT_0048", category: "p2p", surface: "system_copy", millennialText: "{target}: +{amount}💰.", boomerText: "{target} получает перевод: +{amount}💰.", rule: "preserve variables and clarify transfer direction" },
+        { id: "NF_0010", feature: "p2p", sourceId: "TXT_0049", category: "p2p", surface: "system_copy", millennialText: "{target}: +{amount}💰 тебе.", boomerText: "{target} отправил вам +{amount}💰.", rule: "preserve variables and clarify incoming transfer" },
+        { id: "NF_0011", feature: "training", sourceId: "TXT_0040", category: "training", surface: "system_copy", millennialText: "Аргумент: {teacher} → {student}.", boomerText: "Аргумент передан: {teacher} → {student}.", rule: "preserve teacher-student direction and add result" },
+        { id: "NF_0012", feature: "training", sourceId: "TXT_0071", category: "training", surface: "battle", millennialText: "Для {student}: {arg}. Цена {cost} 💰.", boomerText: "Для {student} передаётся аргумент: {arg}. Цена {cost} 💰.", rule: "preserve all variables and clarify transfer action" },
+        { id: "NF_0013", feature: "training", sourceId: "TXT_0072", category: "training", surface: "battle", millennialText: "Аргумент: {teacher} → {student}.", boomerText: "Аргумент передан: {teacher} → {student}.", rule: "preserve teacher-student direction and add result" },
+        { id: "NF_0014", feature: "reports", sourceId: "TXT_0030", category: "error", surface: "system_copy", millennialText: "Штраф: -5 💰.", boomerText: "Будет списан штраф: -5 💰.", rule: "state consequence without blame" },
+        { id: "NF_0015", feature: "reports", sourceId: "TXT_0037", category: "report", surface: "system_copy", millennialText: "Проверяю.", boomerText: "Проверяю ситуацию по фактам.", rule: "add calm factual context" },
+        { id: "NF_0016", feature: "reports", sourceId: "TXT_0038", category: "report", surface: "system_copy", millennialText: "Сдать {name}: +2💰.", boomerText: "Сдать {name}: после проверки можно получить +2💰.", rule: "preserve variable and clarify reward condition" },
+        { id: "NF_0017", feature: "reports", sourceId: "TXT_0039", category: "report", surface: "system_copy", millennialText: "Коп: {name} сдан, +2💰.", boomerText: "Коп принял сдачу {name}, начислено +2💰.", rule: "preserve variable and clarify result" },
+        { id: "NF_0018", feature: "reports", sourceId: "TXT_0079", category: "cop_flow", surface: "cop_templates", millennialText: "Понял. Проверяю.", boomerText: "Понял. Проверю ситуацию по фактам.", rule: "add factual check context" },
+        { id: "NF_0019", feature: "reports", sourceId: "TXT_0080", category: "cop_flow", surface: "cop_templates", millennialText: "Принял. Разберусь.", boomerText: "Принял. Разберусь в ситуации.", rule: "add object of action" },
+        { id: "NF_0020", feature: "reports", sourceId: "TXT_0081", category: "cop_flow", surface: "cop_templates", millennialText: "Занят, связь позже.", boomerText: "Сейчас занят, выйду на связь позже.", rule: "make temporary state explicit" },
+        { id: "NF_0021", feature: "reports", sourceId: "TXT_0082", category: "cop_flow", surface: "cop_templates", millennialText: "Не могу, оформляю дело.", boomerText: "Сейчас не могу ответить, оформляю дело.", rule: "clarify current limitation" },
+        { id: "NF_0022", feature: "reports", sourceId: "TXT_0083", category: "cop_flow", surface: "cop_templates", millennialText: "Проверка сошлась. Вмешался.", boomerText: "Проверка сошлась, поэтому я вмешался.", rule: "add explicit cause and consequence" },
+        { id: "NF_0023", feature: "reports", sourceId: "TXT_0084", category: "cop_flow", surface: "cop_templates", millennialText: "Проверка сошлась. Занялся.", boomerText: "Проверка сошлась, поэтому я занялся ситуацией.", rule: "add explicit cause and action" },
+        { id: "NF_0024", feature: "reports", sourceId: "TXT_0085", category: "cop_flow", surface: "cop_templates", millennialText: "Не подтвердилось. Факты не сошлись.", boomerText: "Сообщение не подтвердилось, факты не сошлись.", rule: "clarify what was not confirmed" },
+        { id: "NF_0025", feature: "reports", sourceId: "TXT_0086", category: "cop_flow", surface: "cop_templates", millennialText: "Проверка займет время.", boomerText: "Проверка займёт немного времени.", rule: "soften timing without pressure" },
+        { id: "NF_0026", feature: "reports", sourceId: "TXT_0110", category: "notification", surface: "cop_templates", millennialText: "{cop.fullName} на связи.", boomerText: "{cop.fullName} на связи и готов принять информацию.", rule: "preserve variable and clarify availability" },
+        { id: "NF_0027", feature: "reports", sourceId: "TXT_0111", category: "warning", surface: "cop_templates", millennialText: "Опасная точка рядом.", boomerText: "Рядом отмечена опасная точка.", rule: "make warning factual" },
+        { id: "NF_0028", feature: "reports", sourceId: "TXT_0112", category: "notification", surface: "cop_templates", millennialText: "Вызов принят, экипаж в пути.", boomerText: "Вызов принят, экипаж уже направляется.", rule: "clarify action in progress" },
+        { id: "NF_0029", feature: "reports", sourceId: "TXT_0113", category: "notification", surface: "cop_templates", millennialText: "Ситуация под контролем.", boomerText: "Ситуация находится под контролем.", rule: "use complete neutral phrasing" },
+        { id: "NF_0030", feature: "reports", sourceId: "TXT_0114", category: "notification", surface: "cop_templates", millennialText: "Принято, наблюдаю.", boomerText: "Информация принята, продолжаю наблюдение.", rule: "clarify accepted object and ongoing action" },
+        { id: "NF_0031", feature: "reports", sourceId: "TXT_0115", category: "notification", surface: "cop_templates", millennialText: "Факт принят, идем дальше.", boomerText: "Факт принят, можно двигаться дальше.", rule: "keep progression calm and neutral" },
+        { id: "NF_0032", feature: "reports", sourceId: "TXT_0116", category: "notification", surface: "cop_templates", millennialText: "Занят расследованием, связь позже.", boomerText: "Сейчас занят расследованием, выйду на связь позже.", rule: "make temporary state explicit" },
+        { id: "NF_0033", feature: "reports", sourceId: "TXT_0117", category: "notification", surface: "cop_templates", millennialText: "Сдача принята — спокойнее.", boomerText: "Сдача принята, ситуация должна стать спокойнее.", rule: "state expected consequence without pressure" },
+        { id: "NF_0034", feature: "reports", sourceId: "TXT_0118", category: "warning", surface: "cop_templates", millennialText: "«Сдать» без фактов — шум.", boomerText: "Сдача без фактов создаёт лишний шум.", rule: "explain consequence without scolding" },
+        { id: "NF_0035", feature: "crowd", sourceId: "TXT_0036", category: "notification", surface: "system_copy", millennialText: "Голос учтён.", boomerText: "Ваш голос принят и учтён.", rule: "clarify result of voting" },
+        { id: "NF_0036", feature: "crowd", sourceId: "TXT_0053", category: "event", surface: "system_events", millennialText: "Толпа: {name} {aVotes}:{bVotes}.", boomerText: "Голосование толпы по {name}: {aVotes}:{bVotes}.", rule: "preserve variables and clarify score" },
+        { id: "NF_0037", feature: "crowd", sourceId: "TXT_0066", category: "battle", surface: "battle_results", millennialText: "Толпа решает", boomerText: "Решение остаётся за толпой", rule: "expand compressed label into clear result owner" },
+        { id: "NF_0038", feature: "crowd", sourceId: "TXT_0091", category: "menu", surface: "alpha_tie", millennialText: "ТОЛПА", boomerText: "РЕШЕНИЕ ТОЛПЫ", rule: "clarify menu subject" },
+        { id: "NF_0039", feature: "crowd", sourceId: "TXT_0092", category: "button", surface: "alpha_tie", millennialText: "ВПИСЫВАЙСЯ", boomerText: "ПРИСОЕДИНИТЬСЯ К ГОЛОСОВАНИЮ", rule: "replace slang command with explicit action" },
+        { id: "NF_0040", feature: "crowd", sourceId: "TXT_0093", category: "button", surface: "alpha_tie", millennialText: "ТЫКНИ ИМЯ", boomerText: "ВЫБЕРИТЕ ИМЯ", rule: "replace sharp command with neutral action" },
+        { id: "NF_0041", feature: "crowd", sourceId: "TXT_0094", category: "button", surface: "alpha_tie", millennialText: "✓ ОК", boomerText: "✓ Голос принят", rule: "explain confirmation" },
+        { id: "NF_0042", feature: "crowd", sourceId: "TXT_0095", category: "button", surface: "alpha_tie", millennialText: "✓ УЖЕ", boomerText: "✓ Уже голосовали", rule: "explain duplicate state" },
+        { id: "NF_0043", feature: "crowd", sourceId: "TXT_0096", category: "button", surface: "alpha_tie", millennialText: "✕ НЕ", boomerText: "✕ Голос не принят", rule: "explain failed action" },
+        { id: "NF_0044", feature: "crowd", sourceId: "TXT_0103", category: "battle", surface: "conflict_results", millennialText: "Ты в мейне.", boomerText: "Вы поддержали сторону большинства.", rule: "replace slang with explicit side" },
+        { id: "NF_0045", feature: "crowd", sourceId: "TXT_0104", category: "battle", surface: "conflict_results", millennialText: "Ты в андере.", boomerText: "Вы поддержали сторону меньшинства.", rule: "replace slang with explicit side" },
+        { id: "NF_0046", feature: "crowd", sourceId: "TXT_0105", category: "battle", surface: "conflict_results", millennialText: "Мейн забрал.", boomerText: "Большинство выиграло голосование.", rule: "replace slang result with clear outcome" },
+        { id: "NF_0047", feature: "crowd", sourceId: "TXT_0106", category: "battle", surface: "conflict_results", millennialText: "Андер просел.", boomerText: "Меньшинство проиграло голосование.", rule: "replace slang result with clear outcome" },
+        { id: "NF_0048", feature: "crowd", sourceId: "TXT_0141", category: "toast", surface: "events_vote_toast", millennialText: "Ты уже проголосовал.", boomerText: "Ваш голос уже был учтён.", rule: "state duplicate vote neutrally" },
+        { id: "NF_0049", feature: "crowd", sourceId: "TXT_0142", category: "toast", surface: "events_vote_toast", millennialText: "Не хватает 💰.", boomerText: "Не хватает 💰 для голосования.", rule: "add feature-specific reason" },
+        { id: "NF_0050", feature: "crowd", sourceId: "TXT_0164", category: "toast", surface: "events_vote", millennialText: "Не хватает 💰.", boomerText: "Не хватает 💰 для голосования.", rule: "add feature-specific reason" },
+        { id: "NF_0051", feature: "npc_vs_npc", sourceId: "TXT_0041", category: "battle", surface: "system_copy", millennialText: "{name} зовёт на реванш.", boomerText: "{name} предлагает реванш после прошлого баттла.", rule: "preserve variable and clarify invitation context" },
+        { id: "NF_0052", feature: "npc_vs_npc", sourceId: "TXT_0050", category: "battle", surface: "system_events", millennialText: "{attackerName} [{attackerInf}] бросил вызов.", boomerText: "{attackerName} [{attackerInf}] начал открытый вызов.", rule: "preserve variables and clarify action" },
+        { id: "NF_0053", feature: "npc_vs_npc", sourceId: "TXT_0051", category: "battle", surface: "system_events", millennialText: "Баттл с {oppName}: {text}.", boomerText: "Баттл с {oppName} завершён: {text}.", rule: "preserve variables and clarify result state" },
+        { id: "NF_0054", feature: "npc_vs_npc", sourceId: "TXT_0052", category: "battle", surface: "system_events", millennialText: "{a} и {b}: ничья.", boomerText: "{a} и {b} завершили спор ничьей.", rule: "preserve variables and clarify tie outcome" },
+        { id: "NF_0055", feature: "npc_vs_npc", sourceId: "TXT_0130", category: "npc_say", surface: "npc_say_toxic_m", millennialText: "слабый ход", boomerText: "это слабый ход", rule: "complete the phrase without adding moral pressure" },
+        { id: "NF_0056", feature: "npc_vs_npc", sourceId: "TXT_0131", category: "npc_say", surface: "npc_say_toxic_m", millennialText: "отвечай сейчас", boomerText: "ответ нужен сейчас", rule: "replace direct pressure with situational need" },
+        { id: "NF_0057", feature: "npc_vs_npc", sourceId: "TXT_0132", category: "npc_say", surface: "npc_say_bandit_m", millennialText: "кошелек ближе", boomerText: "кошелёк сейчас ближе", rule: "clarify timing and normalize spelling" },
+        { id: "NF_0058", feature: "npc_vs_npc", sourceId: "TXT_0133", category: "npc_say", surface: "npc_say_bandit_m", millennialText: "плати и уходи", boomerText: "заплати и спокойно уходи", rule: "make exit consequence explicit without extra drama" },
+        { id: "NF_0059", feature: "npc_vs_npc", sourceId: "TXT_0134", category: "npc_say", surface: "npc_say_cop_m", millennialText: "Принято. Дистанция", boomerText: "Принято. Держим дистанцию.", rule: "turn fragment into clear instruction" },
+        { id: "NF_0060", feature: "npc_vs_npc", sourceId: "TXT_0135", category: "npc_say", surface: "npc_say_mafia_m", millennialText: "Тише", boomerText: "Говорим тише.", rule: "make short command calmer" },
+        { id: "NF_0061", feature: "npc_vs_npc", sourceId: "TXT_0136", category: "npc_say", surface: "npc_say_crowd_m", millennialText: "ого", boomerText: "вот это поворот", rule: "expand reaction without drama" },
+        { id: "NF_0062", feature: "npc_vs_npc", sourceId: "TXT_0137", category: "npc_dm", surface: "npc_dm_profile_cop", millennialText: "Принято. Я рядом.", boomerText: "Принято. Я остаюсь рядом.", rule: "clarify supportive state" },
+        { id: "NF_0063", feature: "npc_vs_npc", sourceId: "TXT_0138", category: "npc_dm", surface: "npc_dm_profile_mafia", millennialText: "Тише. Решим.", boomerText: "Тише. Решим это спокойно.", rule: "add calm resolution context" },
+        { id: "NF_0064", feature: "npc_vs_npc", sourceId: "TXT_0139", category: "npc_dm", surface: "npc_dm_profile_bandit", millennialText: "Кошелек ближе.", boomerText: "Кошелёк сейчас ближе.", rule: "clarify timing and normalize spelling" },
+        { id: "NF_0065", feature: "npc_vs_npc", sourceId: "TXT_0140", category: "npc_dm", surface: "npc_dm_profile_toxic", millennialText: "Слабый ход.", boomerText: "Это слабый ход.", rule: "complete the phrase without adding moral pressure" },
+      ];
+      const expectedIds = expectedRows.map((row) => row.id);
+      const readContractDocText = () => {
+        const urls = [CONTRACT_DOC_URL, `./${CONTRACT_DOC_URL}`];
+        for (const url of urls) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url, false);
+            xhr.send(null);
+            if (((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0) && typeof xhr.responseText === "string" && xhr.responseText.trim()) {
+              return xhr.responseText;
+            }
+          } catch (_) {}
+        }
+        return "";
+      };
+      const parseRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|\s*NF_\d{4}\s*\|/.test(line))
+        .map((line) => {
+          const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+          return {
+            id: cells[0] || "",
+            feature: cells[1] || "",
+            sourceId: cells[2] || "",
+            category: cells[3] || "",
+            surface: cells[4] || "",
+            millennialText: cells[5] || "",
+            boomerText: cells[6] || "",
+            rule: cells[7] || "",
+          };
+        });
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      const normalizeText = (value) => String(value || "").toLowerCase().replace(/[^0-9a-zа-яё]+/gi, " ").replace(/\s+/g, " ").trim();
+      const lintBoomerText = (value) => {
+        const normalizedValue = normalizeText(value);
+        const hits = [];
+        FORBIDDEN_PATTERNS.forEach((pattern) => {
+          const normalizedPattern = normalizeText(pattern);
+          if (normalizedPattern && normalizedValue.includes(normalizedPattern) && hits.indexOf(pattern) < 0) {
+            hits.push(pattern);
+          }
+        });
+        return hits;
+      };
+      G.__DEV.smokeBoomerNewFeatureCoverageStep24Once = function smokeBoomerNewFeatureCoverageStep24Once() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_NEW_FEATURE_BUILD_TAG,
+          commit: BOOMER_NEW_FEATURE_COMMIT,
+          smokeVersion: BOOMER_NEW_FEATURE_SMOKE_VERSION,
+          checkedFeatureCount: EXPECTED_FEATURE_COUNT,
+          checkedCoverageRowCount: 0,
+          featureCounts: {
+            respect: 0,
+            p2p: 0,
+            training: 0,
+            reports: 0,
+            crowd: 0,
+            npc_vs_npc: 0,
+          },
+          failures: [],
+          forbiddenRemaining: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+        };
+        try {
+          const text = readContractDocText();
+          if (!text) {
+            fail("contract_doc_unreadable", { url: CONTRACT_DOC_URL });
+          } else {
+            const rows = parseRows(text);
+            result.checkedCoverageRowCount = rows.length;
+            if (rows.length !== EXPECTED_ROW_COUNT) {
+              fail("row_count_mismatch", { expected: EXPECTED_ROW_COUNT, actual: rows.length });
+            }
+            const seen = new Set();
+            rows.forEach((row, index) => {
+              const expected = expectedRows[index];
+              if (!row.id || !row.feature || !row.sourceId || !row.category || !row.surface || !row.millennialText || !row.boomerText || !row.rule) {
+                fail("missing_field", { index, row });
+              }
+              if (!expected) {
+                fail("unexpected_row", { index, row });
+                return;
+              }
+              if (row.id !== expected.id || row.feature !== expected.feature || row.sourceId !== expected.sourceId || row.category !== expected.category || row.surface !== expected.surface || row.millennialText !== expected.millennialText || row.boomerText !== expected.boomerText || row.rule !== expected.rule) {
+                fail("row_mismatch", { index, expected, actual: row });
+              }
+              if (seen.has(row.id)) {
+                fail("duplicate_id", { id: row.id, index });
+              }
+              seen.add(row.id);
+              if (!Object.prototype.hasOwnProperty.call(result.featureCounts, row.feature)) {
+                fail("feature_mismatch", { id: row.id, feature: row.feature });
+              } else {
+                result.featureCounts[row.feature] += 1;
+              }
+              if (!String(row.boomerText || "").trim()) {
+                fail("empty_boomer_text", { id: row.id });
+              }
+              if (row.boomerText === row.millennialText) {
+                fail("boomer_equals_millennial", { id: row.id });
+              }
+              const sourceVars = templateVars(row.millennialText);
+              const boomerVars = templateVars(row.boomerText);
+              if (sourceVars.join("|") !== boomerVars.join("|")) {
+                fail("template_vars_mismatch", { id: row.id, sourceVars, boomerVars });
+              }
+              const forbiddenHits = lintBoomerText(row.boomerText);
+              if (forbiddenHits.length) {
+                result.forbiddenRemaining.push({ id: row.id, hits: forbiddenHits });
+                fail("forbidden_word_present", { id: row.id, hits: forbiddenHits });
+              }
+            });
+            const missingIds = expectedIds.filter((id) => !seen.has(id));
+            if (missingIds.length) {
+              missingIds.forEach(miss);
+              fail("missing_coverage", { missingIds });
+            }
+            Object.keys(EXPECTED_FEATURE_COUNTS).forEach((feature) => {
+              if (result.featureCounts[feature] !== EXPECTED_FEATURE_COUNTS[feature]) {
+                fail("feature_count_mismatch", { feature, expected: EXPECTED_FEATURE_COUNTS[feature], actual: result.featureCounts[feature] });
+              }
+            });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedFeatureCount === EXPECTED_FEATURE_COUNT
+          && result.checkedCoverageRowCount === EXPECTED_ROW_COUNT
+          && result.featureCounts.respect === EXPECTED_FEATURE_COUNTS.respect
+          && result.featureCounts.p2p === EXPECTED_FEATURE_COUNTS.p2p
+          && result.featureCounts.training === EXPECTED_FEATURE_COUNTS.training
+          && result.featureCounts.reports === EXPECTED_FEATURE_COUNTS.reports
+          && result.featureCounts.crowd === EXPECTED_FEATURE_COUNTS.crowd
+          && result.featureCounts.npc_vs_npc === EXPECTED_FEATURE_COUNTS.npc_vs_npc
+          && result.failures.length === 0
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerNewFeatureCoverageStep24Once = G.__DEV.smokeBoomerNewFeatureCoverageStep24Once;
+    }
     }
   }
 })();
