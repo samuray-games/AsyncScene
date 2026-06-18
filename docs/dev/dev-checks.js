@@ -6557,9 +6557,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
     const smokeBoomerLexicalMappingStep33Fix1Once = () => {
-      const buildTag = "build_2026_06_18_step3_3_boomer_lexical_mapping_fix1_v1";
-      const commit = "step3_3_boomer_lexical_mapping_fix1";
-      const smokeVersion = "boomer_lexical_mapping_step3_3_fix1_v20260618_002";
+      const buildTag = "build_2026_06_18_step3_3_boomer_lexical_mapping_smoke_fix1_v2";
+      const commit = "step3_3_boomer_lexical_mapping_smoke_fix1";
+      const smokeVersion = "boomer_lexical_mapping_step3_3_fix1_v20260618_003";
       const expectedCount = 93;
       const expectedIds = Array.from({ length: expectedCount }, (_, idx) => `MAP_${String(idx + 1).padStart(4, "0")}`);
       const result = {

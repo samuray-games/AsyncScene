@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 3.3 Boomer lexical mapping smoke wiring Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added and exported `Game.__DEV.smokeBoomerLexicalMappingStep33Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so Safari can validate the exact 93-row `MAP_0001..MAP_0093` mapping artifact.
+- The smoke checks exact row count, exact id coverage, missing/extra ids, allowed lexicon coverage, taboo coverage, invariant counts, and UI-layer-only scope while leaving runtime logic and game mechanics untouched.
+- Build tag: `build_2026_06_18_step3_3_boomer_lexical_mapping_smoke_fix1_v2`.
+- Commit marker: `step3_3_boomer_lexical_mapping_smoke_fix1`.
+- Smoke version: `boomer_lexical_mapping_step3_3_fix1_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerLexicalMappingStep33Fix1Once()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 1.6 Fix2 New feature coverage
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Alpha new-feature table export/loading contract so the Safari smoke can load all 164 rows from the served `/ui/` table.
