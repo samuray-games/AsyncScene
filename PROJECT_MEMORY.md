@@ -25,6 +25,17 @@
 - Runtime-sensitive files remain gated by confirmation and were not edited.
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix7
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Reworked the Step 3.4 `coverageConnectedToDevSmoke` marker so it depends on the live artifact and inventory predicates directly instead of stale aggregation state.
+- Added Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, with install-time visibility markers for the Fix7 alias.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix7_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix7`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix7_v20260618_008`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once()`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Scope held: dev-smoke wiring and docs only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix6
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 3.4 validator aggregation so the “no-hit” booleans default to `true` and only flip to `false` on real violations, preventing empty-detail false failures.

@@ -12406,7 +12406,26 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         state.noMemeLanguageInCoveredTexts = state.noMemeLanguageInCoveredTexts !== false;
         state.noOfficialeseInCoveredTexts = state.noOfficialeseInCoveredTexts !== false;
         state.noMoralizingInCoveredTexts = state.noMoralizingInCoveredTexts !== false;
-        state.coverageConnectedToDevSmoke = state.coverageArtifactExists === true && state.requiredZonesFound === true && state.zoneCoverageComplete === true && state.allCoveredIdsExistInAllowedLexicon === true && state.allCoveredBoomerTextsNonEmpty === true && state.noTabooInCoveredTexts === true && state.noSlangInCoveredTexts === true && state.noMemeLanguageInCoveredTexts === true && state.noOfficialeseInCoveredTexts === true && state.noMoralizingInCoveredTexts === true && state.failedChecks.length === 0 && state.failures.length === 0 && state.forbiddenRemaining.length === 0;
+        state.coverageConnectedToDevSmoke = state.coverageArtifactExists === true
+          && state.allowedLexiconStillExists === true
+          && state.allowedLexiconInventoryCount === 164
+          && state.tabooListStillExists === true
+          && state.tabooEntryCount === 153
+          && state.lexicalMappingStillExists === true
+          && state.lexicalMappingRowCount === 93
+          && state.requiredZonesFound === true
+          && state.zoneCoverageComplete === true
+          && state.allCoveredIdsExistInAllowedLexicon === true
+          && state.allCoveredBoomerTextsNonEmpty === true
+          && state.noTabooInCoveredTexts === true
+          && state.noSlangInCoveredTexts === true
+          && state.noMemeLanguageInCoveredTexts === true
+          && state.noOfficialeseInCoveredTexts === true
+          && state.noMoralizingInCoveredTexts === true
+          && state.missingCoverage.length === 0
+          && state.forbiddenRemaining.length === 0
+          && state.failedChecks.length === 0
+          && state.failures.length === 0;
         return state;
       };
       try {
@@ -12521,6 +12540,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix4Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -12607,6 +12627,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
+    Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -12614,6 +12635,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -12681,6 +12703,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix4Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -16801,6 +16824,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX4_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX5_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX6_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once);
+  console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX7_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
