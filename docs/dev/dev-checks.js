@@ -13958,6 +13958,78 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX12", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
+    const smokeBoomerNewFeatureCoverageStep34Fix13Once = () => {
+      const baseResult = smokeBoomerNewFeatureCoverageStep34Once();
+      const result = {
+        ok: false,
+        buildTag: "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix13_v1",
+        commit: "step3_4_boomer_new_feature_coverage_fix13",
+        smokeVersion: "boomer_new_feature_coverage_step3_4_fix13_v20260619_005",
+        smokeFunctionName: "smokeBoomerNewFeatureCoverageStep34Fix13Once",
+        staleBodyDetected: false,
+        coverageArtifactExists: baseResult.coverageArtifactExists === true,
+        coverageArtifactMarkerPresent: baseResult.coverageArtifactMarkerPresent === true,
+        coverageConnectedToDevSmoke: false,
+        zoneCount: Number(baseResult.zoneCount || 0),
+        requiredZonesFound: baseResult.requiredZonesFound === true,
+        zoneCoverageComplete: baseResult.zoneCoverageComplete === true,
+        coveredZoneNames: Array.isArray(baseResult.coveredZoneNames) ? baseResult.coveredZoneNames.slice() : [],
+        coverageByZone: Array.isArray(baseResult.coverageByZone) ? baseResult.coverageByZone.map((zoneResult) => ({ zone: zoneResult.zone, requiredCount: zoneResult.requiredCount, coveredCount: zoneResult.coveredCount, missingIds: zoneResult.missingIds.slice(), extraInvalidIds: zoneResult.extraInvalidIds.slice() })) : [],
+        allCoveredIdsExistInAllowedLexicon: baseResult.allCoveredIdsExistInAllowedLexicon === true,
+        allCoveredBoomerTextsNonEmpty: baseResult.allCoveredBoomerTextsNonEmpty === true,
+        noTabooInCoveredTexts: baseResult.noTabooInCoveredTexts === true,
+        noSlangInCoveredTexts: baseResult.noSlangInCoveredTexts === true,
+        noMemeLanguageInCoveredTexts: baseResult.noMemeLanguageInCoveredTexts === true,
+        noOfficialeseInCoveredTexts: baseResult.noOfficialeseInCoveredTexts === true,
+        noMoralizingInCoveredTexts: baseResult.noMoralizingInCoveredTexts === true,
+        allowedLexiconStillExists: baseResult.allowedLexiconStillExists === true,
+        allowedLexiconInventoryCount: Number(baseResult.allowedLexiconInventoryCount || 0),
+        tabooListStillExists: baseResult.tabooListStillExists === true,
+        tabooEntryCount: Number(baseResult.tabooEntryCount || 0),
+        lexicalMappingStillExists: baseResult.lexicalMappingStillExists === true,
+        lexicalMappingRowCount: Number(baseResult.lexicalMappingRowCount || 0),
+        forbiddenRemaining: Array.isArray(baseResult.forbiddenRemaining) ? baseResult.forbiddenRemaining.slice() : [],
+        missingCoverage: Array.isArray(baseResult.missingCoverage) ? baseResult.missingCoverage.slice() : [],
+        failedChecks: [],
+        failures: [],
+        uiLayerOnly: baseResult.uiLayerOnly === true,
+        runtimeLogicTouched: baseResult.runtimeLogicTouched === true,
+        coverageArtifactMarkerPresent: baseResult.coverageArtifactMarkerPresent === true
+      };
+      const finalPredicates = [
+        ["coverage_artifact_exists", result.coverageArtifactExists === true],
+        ["coverage_connected_to_dev_smoke", result.coverageArtifactExists === true && result.coverageArtifactMarkerPresent === true && result.zoneCount === 10 && result.requiredZonesFound === true && result.zoneCoverageComplete === true && result.allCoveredIdsExistInAllowedLexicon === true && result.allCoveredBoomerTextsNonEmpty === true && result.noTabooInCoveredTexts === true && result.noSlangInCoveredTexts === true && result.noMemeLanguageInCoveredTexts === true && result.noOfficialeseInCoveredTexts === true && result.noMoralizingInCoveredTexts === true && result.allowedLexiconStillExists === true && result.allowedLexiconInventoryCount === 164 && result.tabooListStillExists === true && result.tabooEntryCount === 153 && result.lexicalMappingStillExists === true && result.lexicalMappingRowCount === 93 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0],
+        ["zone_count_10", result.zoneCount === 10],
+        ["required_zones_found", result.requiredZonesFound === true],
+        ["zone_coverage_complete", result.zoneCoverageComplete === true],
+        ["all_covered_ids_exist_in_allowed_lexicon", result.allCoveredIdsExistInAllowedLexicon === true],
+        ["all_covered_boomer_texts_non_empty", result.allCoveredBoomerTextsNonEmpty === true],
+        ["no_taboo_in_covered_texts", result.noTabooInCoveredTexts === true],
+        ["no_slang_in_covered_texts", result.noSlangInCoveredTexts === true],
+        ["no_meme_language_in_covered_texts", result.noMemeLanguageInCoveredTexts === true],
+        ["no_officialese_in_covered_texts", result.noOfficialeseInCoveredTexts === true],
+        ["no_moralizing_in_covered_texts", result.noMoralizingInCoveredTexts === true],
+        ["allowed_lexicon_inventory_count_164", result.allowedLexiconInventoryCount === 164],
+        ["taboo_entry_count_153", result.tabooEntryCount === 153],
+        ["lexical_mapping_row_count_93", result.lexicalMappingRowCount === 93],
+        ["missing_coverage_empty", result.missingCoverage.length === 0],
+        ["forbidden_remaining_empty", result.forbiddenRemaining.length === 0]
+      ];
+      finalPredicates.forEach(([check, pass]) => { if (!pass) addUniqueProfileAudit(result.failedChecks, check); });
+      if (result.coverageArtifactExists === true && result.coverageArtifactMarkerPresent === true && result.failedChecks.length === 0) {
+        result.coverageConnectedToDevSmoke = true;
+      } else if (result.coverageArtifactExists === true && result.coverageArtifactMarkerPresent === true) {
+        result.coverageConnectedToDevSmoke = false;
+      }
+      result.ok = finalPredicates.every(([, pass]) => pass) && result.failedChecks.length === 0 && result.failures.length === 0 && result.coverageConnectedToDevSmoke === true;
+      if (!result.ok) {
+        finalPredicates.forEach(([check, pass]) => {
+          if (!pass) addUniqueProfileAudit(result.failures, { check, detail: { actual: result[check] } });
+        });
+      }
+      try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX13", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -14159,6 +14231,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once = smokeBoomerNewFeatureCoverageStep34Fix12Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once = smokeBoomerNewFeatureCoverageStep34Fix13Once;
+    Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once = smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -14173,6 +14247,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -14250,6 +14325,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
