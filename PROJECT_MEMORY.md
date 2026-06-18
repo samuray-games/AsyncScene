@@ -1,3 +1,9 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 lexicon inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Step 4.3.1 inventory source is locked at 164 entries and 122 unique texts.
+- No replacements were made.
+- Coverage includes UI, system copy, arguments, NPC speech, NPC DM, toasts, cop flow, battle/rematch, crowd/vote, economy/caps, and new feature surfaces.
+
 ## 2026-06-19 — Step 3.4 system texts smoke path fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Safari Fix1 still failed `runtime_file_available:false` because the published runtime smoke was still resolving repository-style targets instead of app-root runtime paths.
