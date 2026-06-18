@@ -1,3 +1,10 @@
+## 2026-06-19 — Stage 4 Alpha, step 2.7 final aggregate runtime smoke
+- Added the final aggregate Safari smoke `Game.__DEV.smokeAlphaCompressionRuleOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke validates the loaded Step 2.1 through Step 2.6 artifacts, including the Step 2.1 compression rule, Step 2.2 source inventory, Step 2.3 mechanical compressor map, Step 2.4 intro ban audit, Step 2.5 instant meaning audit, and Step 2.6 new feature coverage audit.
+- No runtime text changed, no alpha profile routing was enabled, and no visible UI behavior changed.
+- Smoke version: `alpha_step_2_7_final_runtime_smoke_v20260618_001`.
+- Step 4.2 PASS remains unclaimed until Safari returns `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
