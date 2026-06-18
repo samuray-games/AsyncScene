@@ -17,6 +17,13 @@
 - Added Safari-exported `Game.__DEV.smokeAlphaIntroBanStep24Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Runtime PASS is still unclaimed until the user runs the Safari smoke command.
 
+## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix11
+- Fix10 still reported `coverageConnectedToDevSmoke:false` even though the artifact marker was found, so Fix11 makes the validator keep the explicit marker-hit boolean on the returned state and derives the final coverage connection from that boolean plus the already-passing coverage checks.
+- Added `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once()` in both served dev-check bundles.
+- Smoke identity: build tag `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1`, commit placeholder `step3_4_boomer_new_feature_coverage_fix11`, smoke version `boomer_new_feature_coverage_step3_4_fix11_v20260619_003`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once()`.
+
 ## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix10
 - Safari Fix9 failed with `Can't find variable: artifactRaw` in the live Step 3.4 smoke.
 - Fix10 threads the coverage artifact raw text into the validator so the marker check can run in scope, without changing UI copy, coverage ids, Step 3.1 allowed lexicon, Step 3.2 taboo list, or Step 3.3 lexical mapping.
