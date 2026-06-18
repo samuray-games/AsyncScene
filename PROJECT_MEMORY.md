@@ -1,3 +1,9 @@
+## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix9
+- Added an explicit `BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1` marker to `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, then wired `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once()` in both served dev-check bundles to treat that marker as the live marker contract for the already-clean Step 3.4 coverage artifact.
+- Smoke identity: build tag `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix9_v1`, commit placeholder `step3_4_boomer_new_feature_coverage_fix9`, smoke version `boomer_new_feature_coverage_step3_4_fix9_v20260619_001`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `TASKS.md`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once()`.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.3 mechanical compressor map
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Created `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP` in `AsyncScene/Web/ui/ui-profile-alpha-mechanical-compressor.js` and `docs/ui/ui-profile-alpha-mechanical-compressor.js` as a UI-layer-only table with the exact 164 rows and required metadata.
