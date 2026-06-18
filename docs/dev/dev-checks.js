@@ -10747,6 +10747,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     Game.Dev.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
+    Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
@@ -10802,6 +10803,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
+    G.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -10860,6 +10862,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     devStore.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
+    devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
