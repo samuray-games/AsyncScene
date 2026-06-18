@@ -1,12 +1,13 @@
-## 2026-06-18 — Step 4 Alpha profile, step 1.6 Fix1 New feature coverage
+## 2026-06-18 — Step 4 Alpha profile, step 1.6 Fix2 New feature coverage
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Restored `UI_PROFILE_ALPHA_NEW_FEATURES.md` and `docs/UI_PROFILE_ALPHA_NEW_FEATURES.md` as the served-root Alpha new-feature coverage docs.
-- Restored `AsyncScene/Web/ui/ui-profile-alpha-new-features.js` and `docs/ui/ui-profile-alpha-new-features.js` as the served `/ui/` Alpha new-feature coverage table pair with all 164 exact rows.
-- Added dev-only smoke `Game.__DEV.smokeAlphaStep16NewFeaturesFix1()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
-- Build tag: `build_2026_06_18_step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1`.
-- Commit identity: `step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1`.
-- Smoke version: `alpha_step_1_6_fix1_new_feature_coverage_v20260618_002`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep16NewFeaturesFix1()`.
+- Fixed the Alpha new-feature table export/loading contract so the Safari smoke can load all 164 rows from the served `/ui/` table.
+- Kept `UI_PROFILE_ALPHA_NEW_FEATURES.md` and `docs/UI_PROFILE_ALPHA_NEW_FEATURES.md` unchanged.
+- Kept `AsyncScene/Web/ui/ui-profile-alpha-new-features.js` and `docs/ui/ui-profile-alpha-new-features.js` row content unchanged while restoring the Safari-readable export contract.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep16NewFeaturesFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_6_fix2_new_feature_coverage_v1`.
+- Commit identity: `step4_alpha_profile_step1_6_fix2_new_feature_coverage_v1`.
+- Smoke version: `alpha_step_1_6_fix2_new_feature_coverage_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep16NewFeaturesFix2()`.
 - Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix3
