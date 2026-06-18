@@ -33,7 +33,7 @@ window.Game = window.Game || {};
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
-      fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
+      fantasy_birth_label: "Кажется, я родился в …",
       start_continue: "Продолжить",
       start_start: "Старт",
       start_reset: "Сбросить старт",
@@ -51,8 +51,8 @@ window.Game = window.Game || {};
       fantasy_birth_label: "по вайбу я родился в …",
       start_continue: "Погнали",
       start_start: "Старт",
-      start_reset: "Снести выбор",
-      rules_action: "Правила без душноты",
+      start_reset: "Сбросить выбор",
+      rules_action: "Правила коротко",
       start_action: "Войти",
     }),
   });
@@ -376,9 +376,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       battle_lose: "Поражение",
       battle_loss: "Поражение",
       battle_draw: "Толпа решает",
-      conflict_win: "Вы победили в конфликте.",
-      conflict_loss: "Вы проиграли конфликт.",
-      conflict_draw: "Конфликт завершился ничьей.",
+      conflict_win: "Победа в конфликте.",
+      conflict_loss: "Поражение в конфликте.",
+      conflict_draw: "Ничья в конфликте.",
       supported_majority: "Вы поддержали большинство.",
       supported_minority: "Вы оказались в меньшинстве.",
       majority_won: "Большинство победило.",
@@ -386,7 +386,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       conflict_finished: "Конфликт завершён.",
       battle_not_enough_points: "Не хватает 💰.",
 
-      escape_button_label: "Свалить: {X}",
+      escape_button_label: "Выйти: {X}",
       teach_sent_dm: "Для {student}: {arg}. Цена {cost} 💰.",
       teach_sent_chat: "Аргумент: {teacher} → {student}.",
       invite_open_hint: "Введи точный ник.",
@@ -398,7 +398,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
       // Authority templates (Canon)
       cop_report_accept: ["Понял. Проверяю.", "Принял. Разберусь."],
-      cop_busy: ["Занят, связь позже.", "Не могу, оформляю дело."],
+      cop_busy: ["Занят. Связь позже.", "Не могу. Дело в работе."],
       cop_report_ok: ["Проверка сошлась. Вмешался.", "Проверка сошлась. Занялся."],
       cop_report_fail: ["Не подтвердилось. Факты не сошлись."],
       cop_cooldown: [systemSay("warnings", "copCooldown") || "Проверка займет время."],
@@ -411,11 +411,11 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     },
     alpha: {
       tie_start: "ТОЛПА",
-      tie_call_to_action: "ВПИСЫВАЙСЯ",
-      tie_click_name_hint: "ТЫКНИ ИМЯ",
+      tie_call_to_action: "ГОЛОСУЙ",
+      tie_click_name_hint: "ВЫБЕРИ ИМЯ",
       vote_ok: "✓ ОК",
-      vote_already: "✓ УЖЕ",
-      vote_fail: "✕ НЕ",
+      vote_already: "✓ ЕСТЬ",
+      vote_fail: "✕ НЕТ",
       tie_timer: "⏳{sec}",
       tie_end_winner: "🏆 {name} {aVotes}:{bVotes}",
       tie_end_draw: "DRAW {aVotes}:{bVotes}",
@@ -443,18 +443,18 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       events_done: "OK",
       events_left: "⏳{sec}",
 
-      battle_win: "WIN",
-      battle_lose: "RIP",
-      battle_loss: "RIP",
-      battle_draw: "DRAW",
-      conflict_win: "Ты вывез.",
-      conflict_loss: "Не вывез.",
-      conflict_draw: "Ничья. Все шумели зря.",
-      supported_majority: "Ты в мейне.",
-      supported_minority: "Ты в андере.",
-      majority_won: "Мейн забрал.",
-      minority_lost: "Андер просел.",
-      conflict_finished: "Драма закрыта.",
+      battle_win: "ПОБЕДА",
+      battle_lose: "ПОРАЖЕНИЕ",
+      battle_loss: "ПОРАЖЕНИЕ",
+      battle_draw: "НИЧЬЯ",
+      conflict_win: "Ты победил.",
+      conflict_loss: "Ты проиграл.",
+      conflict_draw: "Ничья.",
+      supported_majority: "Ты в большинстве.",
+      supported_minority: "Ты в меньшинстве.",
+      majority_won: "Большинство выиграло.",
+      minority_lost: "Меньшинство проиграло.",
+      conflict_finished: "Конфликт закрыт.",
       battle_not_enough_points: "0 PTS",
 
       escape_button_label: "Свалить -{X} 💰",
@@ -503,7 +503,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     ],
     warnings: [
       "Опасная точка рядом.",
-      "Вызов принят, экипаж в пути.",
+      "Вызов принят. Экипаж в пути.",
       "Ситуация под контролем.",
       "Твои слова в журнале.",
       "Я рядом и наблюдаю.",
@@ -538,8 +538,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Бандит держит оружие или телефон."
     ],
     chatReplies: [
-      "Принято, наблюдаю.",
-      "Факт принят, идем дальше.",
+      "Принято. Наблюдаю.",
+      "Факт принят. Идём дальше.",
       "Я рядом, линия открыта.",
       "Контролирую. Детали приняты.",
       "Работаем дальше.",
@@ -550,7 +550,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Коллегам передал."
     ],
     cooldownReplies: [
-      "Занят расследованием, связь позже.",
+      "Занят расследованием. Связь позже.",
       "Разбираю дело, отвечу позже.",
       "Другой вызов, вернусь позже.",
       "Линия занята.",
@@ -562,7 +562,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "На вызове, вернусь."
     ],
     thanks: [
-      "Сдача принята — спокойнее.",
+      "Сдача принята. Спокойнее.",
       "Отметка принята.",
       "Район спокойнее.",
       "Его забрали.",
@@ -574,7 +574,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Сдача принята."
     ],
     scolds: [
-      "«Сдать» без фактов — шум.",
+      "Без фактов это шум.",
       "Сигнал без оснований мешает.",
       "Паника без доказательств растет.",
       "Такие сигналы тормозят дела.",
@@ -588,8 +588,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   };
 
   Data.CAP_MESSAGES = {
-    rep: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.",
-    points: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap."
+    rep: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.",
+    points: "Лимит 💰 на неделе. Потрать до сброса."
   };
 
   Data.OVERPOINTS_TO_REP = 5;
@@ -788,7 +788,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.ARG_BASE_Y = {
     about: [
-      { q:"Кто сегодня на слуху, если не ошибаюсь?", a:"Кажется, про {NAME} говорят." },
+      { q:"Кто сегодня на слуху?", a:"Про {NAME} говорят." },
       { q:"Кто тут, может быть, в центре внимания?", a:"Вроде бы про {NAME} шепчутся." },
       { q:"Кто сейчас, возможно, у всех в ленте?", a:"Похоже, про {NAME} пишут." },
       { q:"Кого, как будто, все обсуждают?", a:"Кажется, про {NAME} спорят." },
@@ -799,7 +799,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       { q:"Кто опять, кажется, в новостях?", a:"Кажется, про {NAME} снова новости." }
     ],
     who: [
-      { q:"Кто, как вам кажется, был рядом?", a:"{NAME}." },
+      { q:"Кто был рядом?", a:"{NAME}." },
       { q:"Кто, возможно, участвовал?", a:"{NAME}." },
       { q:"Кто, если не ошибаюсь, был вовлечён?", a:"{NAME}." },
       { q:"Кто, может быть, присутствовал?", a:"{NAME}." },
@@ -810,7 +810,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       { q:"Кто, как вам кажется, был внутри ситуации?", a:"{NAME}." }
     ],
     where: [
-      { q:"Где мы сейчас, как вам кажется?", a:"Здесь." },
+      { q:"Где мы сейчас?", a:"Здесь." },
       { q:"Где это, возможно, произошло?", a:"Тут." },
       { q:"Где, если не ошибаюсь, это видели?", a:"В {PLACE}." },
       { q:"Где, может быть, назначена встреча?", a:"В {PLACE}." },

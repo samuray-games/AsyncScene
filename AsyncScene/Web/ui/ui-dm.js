@@ -18,9 +18,9 @@ Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
   respect_no_points: systemSay("errors", "insufficientPoints"),
-  respect_pair_daily: systemSay("warnings", "respectPairDaily"),
-  respect_no_chain: systemSay("warnings", "respectNoChain"),
-  respect_emitter_empty: systemSay("warnings", "respectEmitterEmpty"),
+  respect_pair_daily: "Уважение уже было сегодня.",
+  respect_no_chain: "Цепочка A->B->A сегодня закрыта.",
+  respect_emitter_empty: "Лимит уважения исчерпан.",
 };
 
 const showRespectToast = (kind, text) => {
