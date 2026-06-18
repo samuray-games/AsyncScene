@@ -10900,10 +10900,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const expectedEntryCount = 164;
       const checkedSteps = Object.freeze(["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]);
       const tableSpecs = Object.freeze([
-        { name: "length", fetch: () => smokeAlphaStep13LengthRulesOnce() },
-        { name: "explanation", fetch: () => smokeAlphaStep14ExplanationRulesOnce() },
-        { name: "actionFirst", fetch: () => smokeAlphaStep15ActionFirstRulesOnce() },
-        { name: "newFeatures", fetch: () => smokeAlphaStep16NewFeaturesFix2() }
+        { name: "length", path: "ui/ui-profile-alpha-length-rules.js" },
+        { name: "explanation", path: "ui/ui-profile-alpha-explanation-rules.js" },
+        { name: "actionFirst", path: "ui/ui-profile-alpha-action-first-rules.js" },
+        { name: "newFeatures", path: "ui/ui-profile-alpha-new-features.js" }
       ]);
       const result = {
         ok: false,
@@ -10942,6 +10942,67 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(`${location.origin}/AsyncScene/`);
+          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/__dev__/docs/`);
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchTextFromCandidates = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseAlphaRows = (text) => {
+        const marker = "const RAW_ROWS=String.raw`";
+        const start = String(text || "").indexOf(marker);
+        if (start < 0) return [];
+        const rest = String(text || "").slice(start + marker.length);
+        const end = rest.indexOf("`;");
+        return (end >= 0 ? rest.slice(0, end) : rest)
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const match = line.match(/^TXT_(\d{4}) \| oldText:"((?:\\.|[^"])*)" \| alphaText:"((?:\\.|[^"])*)" \| [a-zA-Z_]+:"((?:\\.|[^"])*)"$/);
+            if (!match) return null;
+            return { id: `TXT_${match[1]}`, alphaText: JSON.parse(`"${String(match[3]).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`) };
+          })
+          .filter(Boolean);
+      };
       const absorb = (stepId, stepResult) => {
         if (!stepResult || typeof stepResult !== "object") {
           fail(`${stepId}_missing_result`, "missing_result");
@@ -10952,30 +11013,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           stepResult[key].forEach((item) => addUnique(result[key], { step: stepId, value: item }));
         });
       };
-      const parseRowsFromManifest = (text, fieldName) => {
-        const marker = "const RAW_ROWS=String.raw`";
-        const start = String(text || "").indexOf(marker);
-        if (start < 0) return [];
-        const rest = String(text || "").slice(start + marker.length);
-        const end = rest.indexOf("`;");
-        const rawRows = (end >= 0 ? rest.slice(0, end) : rest).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        return rawRows.map((line) => {
-          const match = line.match(/^TXT_(\d{4}) \| oldText:"((?:\\.|[^"])*)" \| alphaText:"((?:\\.|[^"])*)" \| [a-zA-Z_]+:"((?:\\.|[^"])*)"$/);
-          if (!match) return null;
-          return {
-            id: `TXT_${match[1]}`,
-            alphaText: JSON.parse(`"${String(match[3]).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`),
-            fieldName
-          };
-        }).filter(Boolean);
-      };
       try {
         const step11 = smokeAlphaStep11ZoomerSourceInventoryOnce();
         const step12 = smokeAlphaStep12DiffDocumentFix2();
-        const step13 = tableSpecs[0].fetch();
-        const step14 = tableSpecs[1].fetch();
-        const step15 = tableSpecs[2].fetch();
-        const step16 = tableSpecs[3].fetch();
+        const step13 = smokeAlphaStep13LengthRulesFix1();
+        const step14 = smokeAlphaStep14ExplanationRulesFix2();
+        const step15 = smokeAlphaStep15ActionFirstRulesFix2();
+        const step16 = smokeAlphaStep16NewFeaturesFix2();
 
         absorb("1.1", step11);
         absorb("1.2", step12);
@@ -11005,12 +11049,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.noLiveTextRegistryChanges = !!(step11 && step11.ok === true && step12 && step12.ok === true && result.noRuntimeAlphaActivation === true && result.noRuntimeFilesChanged === true);
         result.templateVariablesPreserved = !!(step13 && step13.templateVariablesPreserved === true && step14 && step14.templateVariablesPreserved === true && step15 && step15.templateVariablesPreserved === true && step16 && step16.templateVariablesPreserved === true);
         const alphaDashFailures = [];
-        tableSpecs.forEach((spec, index) => {
-          const stepResult = [step13, step14, step15, step16][index];
-          const rows = parseRowsFromManifest(stepResult && stepResult.rawRowsText ? stepResult.rawRowsText : "");
-          if (!rows.length && stepResult && stepResult.__ALPHA_TABLE_ROWS__) {
-            rows.push(...stepResult.__ALPHA_TABLE_ROWS__);
-          }
+        tableSpecs.forEach((spec) => {
+          const tableRes = fetchTextFromCandidates(spec.path);
+          const rows = parseAlphaRows(tableRes.ok ? tableRes.text : "");
           rows.forEach((row) => {
             if (String(row.alphaText || "").includes("—")) {
               alphaDashFailures.push({ table: spec.name, id: row.id, alphaText: row.alphaText });
