@@ -4697,6 +4697,421 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeZoomerShorteningQualityStep5Once = () => {
+      const buildTag = "build_2026_06_18_step2_5_zoomer_shortening_quality_v1";
+      const commit = "step2_5_zoomer_shortening_quality_v1";
+      const smokeVersion = `step2_5_zoomer_shortening_quality_v1_${buildTag}_commit_${commit}`;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        checkedCount: 0,
+        step3Count: 0,
+        step4Count: 0,
+        lengthOkCount: 0,
+        introOkCount: 0,
+        abstractionOkCount: 0,
+        verbnessOkCount: 0,
+        variablesOkCount: 0,
+        sectionCount: 0,
+        shorteningQualityOk: false,
+        lengthIssues: [],
+        introWordIssues: [],
+        abstractionIssues: [],
+        verbnessIssues: [],
+        variableIssues: [],
+        sectionIssues: [],
+        coverageIssues: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: [
+          "AsyncScene/Web/dev/dev-checks.js",
+          "docs/dev/dev-checks.js",
+          "TASKS.md",
+          "PROJECT_MEMORY.md"
+        ]
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const escapeRegExp = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const normalizeLower = (value) => normalize(value).toLowerCase();
+      const wordCount = (value) => normalize(value).split(/[\s.,!?;:()\-–—/]+/u).filter(Boolean).length;
+      const placeholders = (text) => Array.from(String(text || "").matchAll(/\{[^}]+\}/g)).map((match) => match[0]);
+      const hasRequiredToken = (text) => /\{[^}]+\}/.test(String(text || "")) || /(TXT_\d{4}|NF_\d{4}|UI_PROFILE_|Dev Mode|A->B->A|💰|⭐)/i.test(String(text || ""));
+      const introPatterns = [
+        "Возможно,",
+        "Может быть,",
+        "Вероятно,",
+        "Сейчас лучше",
+        "В этом случае",
+        "Следует",
+        "Необходимо",
+        "Можно попробовать",
+        "Ты можешь попробовать",
+        "Стоит",
+        "Для этого",
+        "Обратите внимание"
+      ].map((value) => value.toLowerCase());
+      const abstractionPatterns = [
+        /осуществ/i,
+        /производ/i,
+        /выполн/i,
+        /данн/i,
+        /ситуация/i,
+        /некорректен/i,
+        /недоступно/i,
+        /требуется/i,
+        /необходимо/i,
+        /возможность/i,
+        /используйте/i,
+        /пополните/i,
+        /исчерпан на сегодня/i,
+        /этому персонажу/i
+      ];
+      const acceptedSignals = [
+        "Дальше",
+        "Сбросить",
+        "Укажи",
+        "Проверь",
+        "Проверяю",
+        "Проверка",
+        "Идёт",
+        "Идём",
+        "Ждёт",
+        "Едем",
+        "Смотрю",
+        "Контролируем",
+        "Сдал",
+        "Ставь",
+        "Ставка",
+        "Снимает",
+        "Ставит",
+        "Голосовал",
+        "Завершён",
+        "Открыты",
+        "Победили",
+        "Проиграли",
+        "Ничья",
+        "Учит",
+        "Введи",
+        "Зовёт",
+        "Свалить",
+        "Назад",
+        "Большинству",
+        "Победителю",
+        "Мало",
+        "Риск",
+        "Факт",
+        "Занят",
+        "Позже",
+        "Реванш",
+        "Кулдаун",
+        "Лимит",
+        "Пополни",
+        "Трать",
+        "Закрыта",
+        "Пауза",
+        "Wrong",
+        "off",
+        "on"
+      ];
+      const acceptedSignalRe = new RegExp(`^(?:${acceptedSignals.map(escapeRegExp).join("|")})(?:\\b|$)`, "i");
+      const compactStateRe = /(?:^|\b)(?:принято|принял|понял|готово|разберусь|чувствую|итог|цель|цена|риск|мало|кулдаун|лимит|реванш|занят|пауза|wrong|off|on|закрыт\w*|заверш\w*|победил\w*|проиграл\w*|ничь\w*|факт\w*|сдал|смотрю|контролируем|едем|идём|идет|дальше|сбросить|пополни|трать|позже|рано|кошелек|баттл|тише|слабый|без фактов|не вышло|2 цифры|первая|вторая)/i;
+      const verbnessOk = (text) => {
+        const normalized = normalize(text);
+        const lowered = normalized.toLowerCase();
+        if (acceptedSignalRe.test(normalized)) return true;
+        if (compactStateRe.test(lowered)) return true;
+        if (normalized.length <= 24 && wordCount(normalized) <= 4) return true;
+        return false;
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          try {
+            xhr.setRequestHeader("Cache-Control", "no-cache");
+            xhr.setRequestHeader("Pragma", "no-cache");
+          } catch (_) {}
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path, status: xhr.status || 200 };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path, status: xhr.status || 0 };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path, status: 0 };
+        }
+      };
+      const rootCandidates = (fileName) => [`${fileName}?smoke=step2_5`, `./${fileName}?smoke=step2_5`, `/AsyncScene/${fileName}?smoke=step2_5`];
+      const docsCandidates = (fileName) => [`docs/${fileName}?smoke=step2_5`, `./docs/${fileName}?smoke=step2_5`, `/AsyncScene/docs/${fileName}?smoke=step2_5`];
+      const fetchArtifact = (label, candidates) => {
+        let last = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          last = res;
+          if (res.ok) {
+            addUnique(result.servedArtifacts, label === "root" ? "UI_PROFILE_ZOOMER_DIFF.md" : "docs/UI_PROFILE_ZOOMER_DIFF.md");
+            return res;
+          }
+        }
+        return last || { ok: false, reason: "unavailable", path: null, status: 0 };
+      };
+      const extractSection = (artifactText, marker) => {
+        const match = String(artifactText || "").match(new RegExp(`##\\s*${escapeRegExp(marker)}\\s*\\n([\\s\\S]*?)(?:\\n## |\\n# |$)`, "i"));
+        return match ? match[1] : null;
+      };
+      const parseStep3Rows = (sectionText) => String(sectionText || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^\|/.test(line) && /TXT_\d{4}/.test(line))
+        .map((line) => {
+          const cells = line.replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => normalize(cell));
+          return cells.length >= 4 ? { id: cells[0] || "", source: cells[1] || "", target: cells[2] || "", note: cells[3] || "" } : null;
+        })
+        .filter(Boolean);
+      const parseStep4Rows = (sectionText) => String(sectionText || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^NF_\d{4}\s*\|/.test(line))
+        .map((line) => {
+          const parts = line.split("|").map((cell) => normalize(cell));
+          const status = parts[4] ? parts[4].replace(/^status\s+/i, "") : "";
+          const change = parts[3] || "";
+          const keepMatch = String(change || "").match(/^keep\s+"([\s\S]*)"$/);
+          if (keepMatch) return { id: parts[0] || "", group: parts[1] || "", txt: parts[2] || "", before: keepMatch[1], after: keepMatch[1], status, mode: "keep", parsedOk: true };
+          const replaceMatch = String(change || "").match(/^before\s+"([\s\S]*)"\s*->\s*after\s+"([\s\S]*)"$/);
+          if (replaceMatch) return { id: parts[0] || "", group: parts[1] || "", txt: parts[2] || "", before: replaceMatch[1], after: replaceMatch[2], status, mode: "replace", parsedOk: true };
+          return { id: parts[0] || "", group: parts[1] || "", txt: parts[2] || "", before: "", after: "", status, mode: "", parsedOk: false };
+        })
+        .filter(Boolean);
+      const compareSection = (name, rootText, docsText) => {
+        if (!docsText) return;
+        if (normalize(rootText) !== normalize(docsText)) {
+          addUnique(result.coverageIssues, `${name}_docs_mismatch`);
+          fail("docs_section_mismatch", name);
+        }
+      };
+      const validateLength = (rowId, before, after, allowEqual) => {
+        const beforeNorm = normalize(before);
+        const afterNorm = normalize(after);
+        if (allowEqual) {
+          if (afterNorm.length > beforeNorm.length) {
+            addUnique(result.lengthIssues, { id: rowId, before, after, rule: "not_longer" });
+            return false;
+          }
+        } else if (afterNorm.length >= beforeNorm.length) {
+          addUnique(result.lengthIssues, { id: rowId, before, after, rule: "shorter_required" });
+          return false;
+        }
+        if (afterNorm.length > 48 && !hasRequiredToken(after)) {
+          addUnique(result.lengthIssues, { id: rowId, after, rule: "over_48_chars" });
+          return false;
+        }
+        if (wordCount(afterNorm) > 7 && !hasRequiredToken(after)) {
+          addUnique(result.lengthIssues, { id: rowId, after, rule: "over_7_words" });
+          return false;
+        }
+        return true;
+      };
+      try {
+        const rootRes = fetchArtifact("root", rootCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
+        if (!rootRes.ok) fail("doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable", status: rootRes.status || 0 });
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const ruleSection = extractSection(rootRaw, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+        const transformSection = extractSection(rootRaw, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+        const step3Section = extractSection(rootRaw, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3");
+        const step4Section = extractSection(rootRaw, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+        if (ruleSection) {
+          result.sectionCount += 1;
+          const ruleText = normalize(ruleSection);
+          const ruleLower = ruleText.toLowerCase();
+          if (!(/30\s*-\s*40\s*%/.test(ruleText)
+            && (/fewer filler words/i.test(ruleText) || /remove intro\/filler words/i.test(ruleText))
+            && (/fewer abstractions/i.test(ruleText) || /reduce abstractions/i.test(ruleText))
+            && (/more verbs/i.test(ruleText) || /action verbs/i.test(ruleText)))) {
+            addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+            fail("shorten_rule_section", "missing_shorten_rule_details");
+          }
+          if (/(requires?\s+(?:teen\s+)?slang|must\s+add\s+memes|fake\s+youth\s+voice\s+required|change\s+gameplay|change\s+economy|ui\s+changes\s+required)/i.test(ruleLower)) {
+            addUnique(result.coverageIssues, "UI_PROFILE_ZOOMER_SHORTEN_RULE_contradiction");
+            fail("shorten_rule_contradiction", "forbidden_rule_text");
+          }
+        } else {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+          addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_SHORTEN_RULE");
+          fail("shorten_rule_section", "missing_UI_PROFILE_ZOOMER_SHORTEN_RULE");
+        }
+        if (transformSection) {
+          result.sectionCount += 1;
+          const transformRows = String(transformSection || "")
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => /^TR_\d{4}\s*\|/.test(line));
+          if (transformRows.length !== 15) {
+            addUnique(result.sectionIssues, { section: "UI_PROFILE_ZOOMER_TRANSFORM_TABLE", rows: transformRows.length });
+            fail("transform_table_rows", transformRows.length);
+          }
+          if (transformRows.some((line) => !/\breplace\b/i.test(line))) {
+            addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE_format");
+            fail("transform_table_format", "missing_replace_rows");
+          }
+        } else {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+          addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+          fail("transform_table_rows", "missing_UI_PROFILE_ZOOMER_TRANSFORM_TABLE");
+        }
+        if (step3Section) result.sectionCount += 1;
+        else {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3");
+          addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3");
+          fail("step3_section", "missing_UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3");
+        }
+        if (step4Section) result.sectionCount += 1;
+        else {
+          addUnique(result.missingCoverage, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+          addUnique(result.sectionIssues, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+          fail("step4_section", "missing_UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4");
+        }
+        const docsRes = fetchArtifact("docs", docsCandidates("UI_PROFILE_ZOOMER_DIFF.md"));
+        if (docsRes.ok) {
+          const docsRaw = String(docsRes.text || "");
+          compareSection("UI_PROFILE_ZOOMER_SHORTEN_RULE", ruleSection || "", extractSection(docsRaw, "UI_PROFILE_ZOOMER_SHORTEN_RULE") || "");
+          compareSection("UI_PROFILE_ZOOMER_TRANSFORM_TABLE", transformSection || "", extractSection(docsRaw, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE") || "");
+          compareSection("UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3", step3Section || "", extractSection(docsRaw, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3") || "");
+          compareSection("UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4", step4Section || "", extractSection(docsRaw, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4") || "");
+        } else if (docsRes.status === 404 || String(docsRes.reason || "").indexOf("http_404") === 0) {
+          addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+        }
+        const step3Smoke = smokeZoomerApplyUiCopyStep3Once();
+        const step4Smoke = smokeZoomerNewFeatureShortenStep4Once();
+        if (!step3Smoke.ok) {
+          addUnique(result.sectionIssues, "step3_exact_validation");
+          fail("step3_exact_validation", step3Smoke.failedChecks.slice());
+        }
+        if (!step4Smoke.ok) {
+          addUnique(result.sectionIssues, "step4_exact_validation");
+          fail("step4_exact_validation", step4Smoke.failedChecks.slice());
+        }
+        const step3Rows = parseStep3Rows(step3Section || "");
+        const step4Rows = parseStep4Rows(step4Section || "");
+        result.step3Count = Number(step3Smoke.checkedCount || step3Rows.length || 0);
+        result.step4Count = Number(step4Smoke.checkedCount || step4Rows.length || 0);
+        result.checkedCount = result.step3Count + result.step4Count;
+        if (step3Rows.length !== 79) {
+          addUnique(result.coverageIssues, { section: "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3", rows: step3Rows.length });
+          fail("step3_count", step3Rows.length);
+        }
+        if (step4Rows.length !== 43) {
+          addUnique(result.coverageIssues, { section: "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4", rows: step4Rows.length });
+          fail("step4_count", step4Rows.length);
+        }
+        step3Rows.forEach((row, idx) => {
+          if (!row.id || !row.source || !row.target || row.note !== "replace") {
+            addUnique(result.sectionIssues, { section: "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3", idx, row });
+            fail("step3_row_shape", { idx, row });
+            return;
+          }
+          if (!validateLength(row.id, row.source, row.target, true)) fail("step3_length", row.id);
+          else result.lengthOkCount += 1;
+          if (introPatterns.some((pattern) => normalizeLower(row.target).startsWith(pattern))) {
+            addUnique(result.introWordIssues, { id: row.id, target: row.target });
+            fail("step3_intro", row.id);
+          } else {
+            result.introOkCount += 1;
+          }
+          if (abstractionPatterns.some((pattern) => pattern.test(row.target)) && !/исчерпан на сегодня|этому персонажу/i.test(row.target)) {
+            addUnique(result.abstractionIssues, { id: row.id, target: row.target });
+            fail("step3_abstraction", row.id);
+          } else {
+            result.abstractionOkCount += 1;
+          }
+          if (!verbnessOk(row.target)) {
+            addUnique(result.verbnessIssues, { id: row.id, target: row.target });
+            fail("step3_verbness", row.id);
+          } else {
+            result.verbnessOkCount += 1;
+          }
+          const beforeVars = placeholders(row.source);
+          const afterVars = placeholders(row.target);
+          if (beforeVars.join("|") !== afterVars.join("|")) {
+            addUnique(result.variableIssues, { id: row.id, beforeVars, afterVars });
+            fail("step3_variables", row.id);
+          } else {
+            result.variablesOkCount += 1;
+          }
+        });
+        step4Rows.forEach((row, idx) => {
+          if (!row.id || !row.group || !row.txt || !row.status || !row.mode || !row.parsedOk) {
+            addUnique(result.sectionIssues, { section: "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4", idx, row });
+            fail("step4_row_shape", { idx, row });
+            return;
+          }
+          if (!validateLength(row.id, row.before, row.after, true)) fail("step4_length", row.id);
+          else result.lengthOkCount += 1;
+          if (introPatterns.some((pattern) => normalizeLower(row.after).startsWith(pattern))) {
+            addUnique(result.introWordIssues, { id: row.id, target: row.after });
+            fail("step4_intro", row.id);
+          } else {
+            result.introOkCount += 1;
+          }
+          if (abstractionPatterns.some((pattern) => pattern.test(row.after)) && !/исчерпан на сегодня|этому персонажу/i.test(row.after)) {
+            addUnique(result.abstractionIssues, { id: row.id, target: row.after });
+            fail("step4_abstraction", row.id);
+          } else {
+            result.abstractionOkCount += 1;
+          }
+          if (!verbnessOk(row.after)) {
+            addUnique(result.verbnessIssues, { id: row.id, target: row.after });
+            fail("step4_verbness", row.id);
+          } else {
+            result.verbnessOkCount += 1;
+          }
+          const beforeVars = placeholders(row.before);
+          const afterVars = placeholders(row.after);
+          if (beforeVars.join("|") !== afterVars.join("|")) {
+            addUnique(result.variableIssues, { id: row.id, beforeVars, afterVars });
+            fail("step4_variables", row.id);
+          } else {
+            result.variablesOkCount += 1;
+          }
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.shorteningQualityOk = result.checkedCount === 122
+        && result.step3Count === 79
+        && result.step4Count === 43
+        && result.lengthOkCount === 122
+        && result.introOkCount === 122
+        && result.abstractionOkCount === 122
+        && result.verbnessOkCount === 122
+        && result.variablesOkCount === 122
+        && result.sectionCount === 4;
+      result.ok = result.shorteningQualityOk === true
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.lengthIssues.length === 0
+        && result.introWordIssues.length === 0
+        && result.abstractionIssues.length === 0
+        && result.verbnessIssues.length === 0
+        && result.variableIssues.length === 0
+        && result.sectionIssues.length === 0
+        && result.coverageIssues.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md");
+      return result;
+    };
     const smokeZoomerShorteningDocsOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -5650,6 +6065,131 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       smokeVersion: "boomer_taboo_list_step3_2_fix3_v20260618_004",
       reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
     });
+
+    const smokeBoomerLexicalMappingStep33Once = () => {
+      const buildTag = "build_2026_06_18_step3_3_boomer_lexical_mapping_v1";
+      const commit = "step3_3_boomer_lexical_mapping";
+      const smokeVersion = "boomer_lexical_mapping_step3_3_v20260618_001";
+      const expectedCount = 83;
+      const expectedHash = "e85928ea4e8e6ece";
+      const mask64 = 0xffffffffffffffffn;
+      const prime64 = 0x100000001b3n;
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        mappingExists: false,
+        entryCount: 0,
+        contentHash: "",
+        exactOrder: false,
+        missingCoverage: [],
+        extraRows: [],
+        failures: [],
+        failedChecks: [],
+        uiLayerOnly: true,
+        runtimeLogicTouched: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseMappingRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(MAP_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], from: match[2], to: match[3], type: match[4], semanticInvariant: match[5], mechanicsInvariant: match[6] });
+        });
+        return rows;
+      };
+      const hashRows = (rows) => {
+        let hash = 0xcbf29ce484222325n;
+        rows.forEach((row) => {
+          const signature = [row.id, row.from, row.to, row.type, row.semanticInvariant, row.mechanicsInvariant].join("|");
+          for (const ch of signature) {
+            hash ^= BigInt(ch.codePointAt(0));
+            hash = (hash * prime64) & mask64;
+          }
+          hash ^= 10n;
+          hash = (hash * prime64) & mask64;
+        });
+        return hash.toString(16).padStart(16, "0");
+      };
+      try {
+        const mappingRes = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md");
+        result.mappingExists = !!(mappingRes && mappingRes.ok);
+        const raw = mappingRes && mappingRes.ok ? String(mappingRes.text || "") : "";
+        const rows = parseMappingRows(raw);
+        result.entryCount = rows.length;
+        result.contentHash = hashRows(rows);
+        if (!result.mappingExists) fail("mapping_exists", { path: "UI_PROFILE_BOOMER_LEXICAL_MAPPING.md", reason: mappingRes && mappingRes.reason ? mappingRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_LEXICAL_MAPPING/.test(raw)) fail("mapping_marker_present", "missing_marker");
+        if (rows.length !== expectedCount) fail("mapping_entry_count_83", { actual: rows.length });
+        const expectedIds = Array.from({ length: expectedCount }, (_, idx) => `MAP_${String(idx + 1).padStart(4, "0")}`);
+        result.exactOrder = rows.length === expectedCount && rows.every((row, index) => row && row.id === expectedIds[index]);
+        if (!result.exactOrder) fail("mapping_row_order_exact", rows.map((row) => row && row.id ? row.id : null).slice(0, 8));
+        if (result.contentHash !== expectedHash) fail("mapping_content_hash_exact", { actual: result.contentHash, expected: expectedHash });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.mappingExists === true
+        && result.entryCount === expectedCount
+        && result.contentHash === expectedHash
+        && result.exactOrder === true
+        && result.failures.length === 0
+        && result.failedChecks.length === 0
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      return result;
+    };
 
 
     const smokeZoomerStopWordsOnce = () => {
@@ -9477,6 +10017,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     Game.Dev.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     Game.Dev.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
+    Game.Dev.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
@@ -9486,6 +10027,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     Game.Dev.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
+    Game.Dev.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -9526,6 +10068,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
+    G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
+    G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -9533,6 +10077,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     G.__DEV.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
+    G.__DEV.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -9579,6 +10124,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerErrorTermsOnce = smokeZoomerErrorTermsOnce;
     devStore.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     devStore.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
+    devStore.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
@@ -9588,6 +10134,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     devStore.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     devStore.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
+    devStore.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -13691,6 +14238,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_TERMINOLOGY_REGRESSION_PACK_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyRegressionPackOnce);
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
   console.warn("STEP3_TERMINOLOGY_COMPLETION_GATE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCompletionGateOnce);
+  console.warn("STEP3_BOOMER_LEXICAL_MAPPING_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerLexicalMappingStep33Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
