@@ -1,3 +1,10 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.3 mechanical compressor map
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP` in `AsyncScene/Web/ui/ui-profile-alpha-mechanical-compressor.js` and `docs/ui/ui-profile-alpha-mechanical-compressor.js` as a UI-layer-only compression map with the exact 164 rows and required metadata.
+- Added Safari-exported smoke `Game.__DEV.smokeAlphaMechanicalCompressorStep23Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` for the user-run runtime smoke.
+- Smoke version: `alpha_step_2_3_mechanical_compressor_v20260618_001`.
+- Scope held: map/docs and smoke wiring only; no runtime text changed, no map application, and no gameplay/economy/battle/NPC/state/save/routing changes.
+
 ## 2026-06-19 — Step 3.2 Allowed Dictionary Coverage
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the Step 3.2 allowed dictionary coverage section to `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` with the exact rule, surface coverage list, allowed dictionary, coverage matrix, and dryness guard.
