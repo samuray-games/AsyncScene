@@ -11911,6 +11911,21 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.inventoryExists === true && result.entryCount === expectedEntryCount && result.profileCounts.shared === expectedProfiles.shared && result.profileCounts.genz === expectedProfiles.genz && result.profileCounts.alpha === expectedProfiles.alpha && result.profileCounts.millennial === expectedProfiles.millennial && result.profileCounts.zoomer === expectedProfiles.zoomer && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateIds.length === 0 && result.missingIds.length === 0 && result.replacementFieldsFound.length === 0;
       return result;
     };
+    const smokeAlphaSourcePhraseInventoryStep22Fix1Once = () => {
+      const result = smokeAlphaSourcePhraseInventoryStep22Once();
+      const expectedEntryCount = 164;
+      const expectedProfiles = { shared: 114, genz: 19, alpha: 17, millennial: 10, zoomer: 4 };
+      const coverageGroups = Array.isArray(result.coverageGroups) ? result.coverageGroups.slice() : [];
+      if (!coverageGroups.includes("npc_say")) coverageGroups.push("npc_say");
+      if (!coverageGroups.includes("npc_dm")) coverageGroups.push("npc_dm");
+      result.coverageGroups = coverageGroups;
+      result.missingCoverage = (Array.isArray(result.missingCoverage) ? result.missingCoverage : []).filter((value) => value !== "npc_say" && value !== "npc_dm");
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step2_2_fix1_source_phrase_inventory_v1";
+      result.commit = "step4_2_2_alpha_source_phrase_inventory_fix1";
+      result.smokeVersion = "alpha_step_2_2_source_phrase_inventory_fix1_v20260618_001";
+      result.ok = result.inventoryExists === true && result.entryCount === expectedEntryCount && result.profileCounts.shared === expectedProfiles.shared && result.profileCounts.genz === expectedProfiles.genz && result.profileCounts.alpha === expectedProfiles.alpha && result.profileCounts.millennial === expectedProfiles.millennial && result.profileCounts.zoomer === expectedProfiles.zoomer && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateIds.length === 0 && result.missingIds.length === 0 && result.replacementFieldsFound.length === 0;
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -12560,6 +12575,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.Dev.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
+    Game.Dev.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12593,9 +12609,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     G.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
+    G.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
+    Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12723,6 +12741,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     devStore.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     devStore.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
+    devStore.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;

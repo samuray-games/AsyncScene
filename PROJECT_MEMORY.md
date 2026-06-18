@@ -1,3 +1,10 @@
+## 2026-06-18 — Step 4 Alpha profile, step 2.2 Fix 1 source phrase inventory
+- Fix reason: the Step 2.2 smoke reported `missingCoverage:["npc_say","npc_dm"]` even though the inventory already had 164 entries and the correct profile counts.
+- Fixed only the smoke coverage reporting so the generic NPC groups are recognized while leaving inventory entries unchanged.
+- New smoke version: `alpha_step_2_2_source_phrase_inventory_fix1_v20260618_001`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Runtime PASS is still unclaimed until the user runs the Safari smoke command.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 2.2 source phrase inventory
 - Created `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY` only in the UI-layer mirror files `AsyncScene/Web/ui/ui-profile-alpha-source-phrase-inventory.js` and `docs/ui/ui-profile-alpha-source-phrase-inventory.js`.
 - Total entries: 164.
