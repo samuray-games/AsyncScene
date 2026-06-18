@@ -2,11 +2,11 @@
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_ALPHA_NEW_FEATURES.md` and `docs/UI_PROFILE_ALPHA_NEW_FEATURES.md` with the exact Alpha new-feature coverage rules, required feature list, and anchor pairs.
 - Added `AsyncScene/Web/ui/ui-profile-alpha-new-features.js` and `docs/ui/ui-profile-alpha-new-features.js` as the UI-layer feature coverage table pair with all 164 exact rows.
-- Added dev-only smoke `Game.__DEV.smokeAlphaStep16NewFeatureCoverageOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep16NewFeaturesOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Build tag: `build_2026_06_18_step4_alpha_profile_step1_6_new_feature_coverage_v1`.
 - Commit identity: `step4_alpha_profile_step1_6_new_feature_coverage_v1`.
 - Smoke version: `alpha_step_1_6_new_feature_coverage_v20260618_001`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep16NewFeatureCoverageOnce()`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep16NewFeaturesOnce()`.
 - Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix3

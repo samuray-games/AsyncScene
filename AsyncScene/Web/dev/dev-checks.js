@@ -4823,14 +4823,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         "Wrong",
         "off",
         "on"
-      ];
+      ].map((signal) => String(signal).toLowerCase());
       const acceptedSignalRe = new RegExp(`^(?:${acceptedSignals.map(escapeRegExp).join("|")})(?:\\b|$)`, "i");
       const compactStateRe = /(?:^|\b)(?:принято|принял|понял|готово|разберусь|чувствую|итог|цель|цена|риск|мало|кулдаун|лимит|реванш|занят|пауза|wrong|off|on|закрыт\w*|заверш\w*|победил\w*|проиграл\w*|ничь\w*|факт\w*|сдал|смотрю|контролируем|едем|идём|идет|дальше|сбросить|пополни|трать|позже|рано|кошелек|баттл|тише|слабый|без фактов|не вышло|2 цифры|первая|вторая)/i;
       const verbnessOk = (text) => {
         const normalized = normalize(text);
         const lowered = normalized.toLowerCase();
-        if (acceptedSignalRe.test(normalized)) return true;
+        const variableTokens = placeholders(normalized);
+        const hasCompactCostToken = /(?:[💰⭐]|[+\-]|\b\d+\b)/.test(normalized);
+        if (variableTokens.length > 0 && hasCompactCostToken) return true;
+        if (acceptedSignalRe.test(lowered)) return true;
         if (compactStateRe.test(lowered)) return true;
+        if (/(сохраняем|меняется|учит|трать|закрыта)/i.test(lowered)) return true;
         if (normalized.length <= 24 && wordCount(normalized) <= 4) return true;
         return false;
       };
@@ -9996,7 +10000,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_5_fix2_action_first_rules_v20260618_003";
       return result;
     };
-    const smokeAlphaStep16NewFeatureCoverageOnce = () => {
+    const smokeAlphaStep16NewFeaturesOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_new_feature_coverage_v1";
       const commit = "step4_alpha_profile_step1_6_new_feature_coverage_v1";
       const smokeVersion = "alpha_step_1_6_new_feature_coverage_v20260618_001";
@@ -10283,7 +10287,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    Game.Dev.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
+    Game.Dev.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -10309,7 +10313,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    G.__DEV.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
+    G.__DEV.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
@@ -10392,7 +10396,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    devStore.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
+    devStore.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
