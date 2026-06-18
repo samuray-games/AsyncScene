@@ -11539,6 +11539,54 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const match = String(line || "").match(/^(TXT_\d{4}) \| /);
         return match ? match[1] : "";
       }).filter(Boolean);
+      const resolveCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(location.origin + "/__dev__/docs/");
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+          } else {
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+            bases.push(location.origin + "/__dev__/docs/");
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const readTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirstLocal = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName, preferDocs)) {
+          const res = readTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
       const result = {
         ok: false,
         buildTag,
@@ -11562,8 +11610,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       };
       const hasPhrase = (value, phrase) => lower(value).includes(lower(phrase));
       try {
-        const rootJsRes = fetchFirst("ui/ui-profile-alpha-compression-rule.js");
-        const docsJsRes = fetchFirst("ui/ui-profile-alpha-compression-rule.js");
+        const rootJsRes = fetchFirstLocal("ui/ui-profile-alpha-compression-rule.js", false);
+        const docsJsRes = fetchFirstLocal("ui/ui-profile-alpha-compression-rule.js", true);
         result.ruleFileExists = !!rootJsRes.ok;
         result.docsMirrorExists = !!docsJsRes.ok;
         if (!rootJsRes.ok) fail("rule_file_exists", { path: "ui/ui-profile-alpha-compression-rule.js", reason: rootJsRes.reason || "unavailable" });
@@ -11630,6 +11678,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
+    const smokeAlphaCompressionRuleStep21Fix1Once = () => {
+      const result = smokeAlphaCompressionRuleStep21Once();
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step2_1_fix1_alpha_compression_rule_v1";
+      result.commit = "step4_alpha_profile_step2_1_alpha_compression_rule_fix1";
+      result.smokeVersion = "alpha_step_2_1_alpha_compression_rule_fix1_v20260618_001";
       return result;
     };
     const smokeAlphaDiffOnce = () => {
