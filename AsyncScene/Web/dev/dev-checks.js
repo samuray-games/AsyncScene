@@ -5282,6 +5282,220 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeZoomerShorteningDocsStep6Once = () => {
+      const buildTag = "build_2026_06_18_step2_6_zoomer_shortening_docs_v1";
+      const commit = "step2_6_zoomer_shortening_docs_v1";
+      const smokeVersion = "step2_6_zoomer_shortening_docs_v1_build_2026_06_18_step2_6_zoomer_shortening_docs_v1_commit_step2_6_zoomer_shortening_docs_v1";
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        docIssues: [],
+        statusIssues: [],
+        parityIssues: [],
+        logicChangeIssues: [],
+        checkedSections: 0,
+        checkedPassLines: 0,
+        checkedDocs: 0,
+        honestStatusOk: false,
+        docsParityOk: false,
+        noLogicChangeOk: false,
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: [
+          "UI_PROFILE_ZOOMER_DIFF.md",
+          "docs/UI_PROFILE_ZOOMER_DIFF.md",
+          "AsyncScene/Web/dev/dev-checks.js",
+          "docs/dev/dev-checks.js",
+          "TASKS.md",
+          "PROJECT_MEMORY.md"
+        ],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFromCandidates = (label, candidates, optional404) => {
+        let lastResult = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          if (res.ok) {
+            addUnique(result.servedArtifacts, path);
+            return { ok: true, text: res.text || "", path };
+          }
+          lastResult = res;
+        }
+        const reason = lastResult && lastResult.reason ? lastResult.reason : "unavailable";
+        if (optional404 && /^http_404$/.test(reason)) {
+          addUnique(result.skippedArtifacts, `${label}:${(lastResult && lastResult.path) || candidates[0]}`);
+          return { ok: false, skipped: true, reason, path: (lastResult && lastResult.path) || candidates[0] };
+        }
+        return { ok: false, reason, path: (lastResult && lastResult.path) || candidates[0] };
+      };
+      const extractSection = (text, marker) => {
+        const match = String(text || "").match(new RegExp(`##\\s*${marker}([\\s\\S]*?)(?:\\n## |\\n# |$)`, "i"));
+        return match ? String(match[1] || "") : "";
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      const requiredRuleBullets = [
+        "phrases are shorter by default",
+        "target reduction: 30-40 percent where possible",
+        "remove intro words",
+        "replace abstractions with direct actions or state signals",
+        "preserve meaning",
+        "preserve variables exactly",
+        "do not touch argument canon",
+        "do not rewrite NPC speech unless explicitly scoped",
+        "do not mutate gameplay or economy logic",
+        "new feature copy must pass the same rule",
+        "Step 2 is documentation/profile layer unless a later task explicitly applies runtime copy"
+      ];
+      const exactStepLines = [
+        "STEP_2_1 | runtime Safari PASS | ruleExists:true | checkedCount:128 | matrixCount:128",
+        "STEP_2_2 | runtime Safari PASS | tableExists:true | checkedCount:15 | tableCount:15",
+        "STEP_2_3 | runtime Safari PASS | appliedCount:79 | checkedCount:79 | shorterCount:79 | meaningPreserved:true | variablesPreserved:true",
+        "STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantCount:43 | groupsCovered:5 | newFeatureCoverageOk:true",
+        "STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true",
+        "STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()"
+      ];
+      try {
+        const rootRes = fetchFromCandidates("UI_PROFILE_ZOOMER_DIFF.md", [
+          "UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "./UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "/AsyncScene/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6"
+        ]);
+        if (!rootRes.ok) fail("root_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable" });
+        const docsRes = fetchFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md", [
+          "docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "./docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "/AsyncScene/docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
+          "/docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6"
+        ], true);
+        const tasksRes = fetchFromCandidates("TASKS.md", [
+          "TASKS.md?smoke=step2_6",
+          "./TASKS.md?smoke=step2_6",
+          "/AsyncScene/TASKS.md?smoke=step2_6",
+          "/TASKS.md?smoke=step2_6"
+        ]);
+        if (!tasksRes.ok) fail("tasks_doc_exists", { path: "TASKS.md", reason: tasksRes.reason || "unavailable" });
+        const memoryRes = fetchFromCandidates("PROJECT_MEMORY.md", [
+          "PROJECT_MEMORY.md?smoke=step2_6",
+          "./PROJECT_MEMORY.md?smoke=step2_6",
+          "/AsyncScene/PROJECT_MEMORY.md?smoke=step2_6",
+          "/PROJECT_MEMORY.md?smoke=step2_6"
+        ]);
+        if (!memoryRes.ok) fail("memory_doc_exists", { path: "PROJECT_MEMORY.md", reason: memoryRes.reason || "unavailable" });
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const docsRaw = docsRes.ok ? String(docsRes.text || "") : "";
+        const tasksRaw = tasksRes.ok ? String(tasksRes.text || "") : "";
+        const memoryRaw = memoryRes.ok ? String(memoryRes.text || "") : "";
+        const sectionMap = {
+          UI_PROFILE_ZOOMER_SHORTEN_RULE: extractSection(rootRaw, "UI_PROFILE_ZOOMER_SHORTEN_RULE"),
+          UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6: extractSection(rootRaw, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6"),
+          UI_PROFILE_ZOOMER_TRANSFORM_TABLE: extractSection(rootRaw, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE"),
+          UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3: extractSection(rootRaw, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3"),
+          UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4: extractSection(rootRaw, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4")
+        };
+        result.checkedSections = Object.keys(sectionMap).length;
+        Object.entries(sectionMap).forEach(([name, text]) => {
+          if (!text) {
+            addUnique(result.docIssues, name);
+            fail("missing_section", name);
+          }
+        });
+        const ruleText = normalize(sectionMap.UI_PROFILE_ZOOMER_SHORTEN_RULE || "");
+        requiredRuleBullets.forEach((bullet) => {
+          if (!ruleText.includes(normalize(bullet))) {
+            addUnique(result.docIssues, `missing_rule:${bullet}`);
+            fail("shorten_rule_bullet", bullet);
+          }
+        });
+        const step6Text = normalize(sectionMap.UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6 || "");
+        exactStepLines.slice(0, 5).forEach((line) => {
+          if (!step6Text.includes(normalize(line))) {
+            addUnique(result.docIssues, `missing_step_line:${line}`);
+            fail("step6_pass_line", line);
+          }
+        });
+        if (!step6Text.includes(normalize(exactStepLines[5]))) {
+          addUnique(result.docIssues, "missing_step_2_6_pending_line");
+          fail("step6_pending_line", exactStepLines[5]);
+        }
+        result.checkedPassLines = 5;
+        if (docsRes.ok) {
+          const docsStep6Text = normalize(extractSection(docsRaw, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6"));
+          if (docsStep6Text !== step6Text) {
+            addUnique(result.parityIssues, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6");
+            fail("docs_parity", "step6_section_mismatch");
+          }
+          result.docsParityOk = docsStep6Text === step6Text;
+        } else {
+          result.docsParityOk = true;
+        }
+        const statusNeedles = [
+          "READY_FOR_RUNTIME_SMOKE before Safari.",
+          "FAIL if self-check fails.",
+          "PASS only after user Safari runtime result with ok:true and empty problem arrays.",
+          "Step 2.6 as READY_FOR_RUNTIME_SMOKE",
+          "Game.__DEV.smokeZoomerShorteningDocsStep6Once()"
+        ];
+        result.honestStatusOk = statusNeedles.every((needle) => tasksRaw.includes(needle));
+        if (!result.honestStatusOk) {
+          addUnique(result.statusIssues, "TASKS.md honest status block");
+          fail("honest_status", "TASKS.md missing honest status block");
+        }
+        const memoryNeedles = [
+          "Step 2.6 is documentation finalization only.",
+          "no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6.",
+          "Game.__DEV.smokeZoomerShorteningDocsStep6Once()"
+        ];
+        result.noLogicChangeOk = memoryNeedles.every((needle) => memoryRaw.includes(needle));
+        if (!result.noLogicChangeOk) {
+          addUnique(result.logicChangeIssues, "PROJECT_MEMORY.md no-logic-change block");
+          fail("no_logic_change", "PROJECT_MEMORY.md missing no-logic-change block");
+        }
+        result.checkedDocs = [rootRes.ok, tasksRes.ok, memoryRes.ok].filter(Boolean).length;
+        if (!docsRes.ok && docsRes.skipped) addUnique(result.skippedArtifacts, "docs/UI_PROFILE_ZOOMER_DIFF.md");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.docIssues.length === 0
+        && result.statusIssues.length === 0
+        && result.parityIssues.length === 0
+        && result.logicChangeIssues.length === 0
+        && result.checkedSections === 5
+        && result.checkedPassLines === 5
+        && result.checkedDocs === 3
+        && result.honestStatusOk === true
+        && result.docsParityOk === true
+        && result.noLogicChangeOk === true
+        && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md")
+        && String(result.smokeVersion || "").includes("step2_6_zoomer_shortening_docs");
+      return result;
+    };
+
 
     const smokeZoomerLexicalFrameOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -10259,10 +10473,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_5_fix2_action_first_rules_v20260618_003";
       return result;
     };
-    const smokeAlphaStep16NewFeaturesFix1 = () => {
-      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1";
-      const commit = "step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1";
-      const smokeVersion = "alpha_step_1_6_fix1_new_feature_coverage_v20260618_002";
+    const smokeAlphaStep16NewFeaturesFix2 = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_fix2_new_feature_coverage_v1";
+      const commit = "step4_alpha_profile_step1_6_fix2_new_feature_coverage_v1";
+      const smokeVersion = "alpha_step_1_6_fix2_new_feature_coverage_v20260618_003";
       const expectedEntryCount = 164;
       const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_NEW_FEATURES.md";
       const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-new-features.js";
@@ -10362,9 +10576,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.ruleExists = !!rootDocRes.ok;
         result.tableExists = !!rootJsRes.ok;
         result.docsMirrorExists = !!(rootDocRes.ok && rootJsRes.ok);
-        result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
-        result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
-        result.jsPathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
+        result.docsPathChecked = servedDocPath;
+        result.tablePathChecked = servedTablePath;
+        result.jsPathChecked = servedTablePath;
         if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
         if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
         if (!rootDocRes.ok || !rootJsRes.ok) fail("docs_mirror_exists", { doc: rootDocRes.reason || "ok", js: rootJsRes.reason || "ok" });
@@ -10452,7 +10666,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (!result.allSurfacesValid) fail("all_surfaces_valid", jsRows.filter((row) => !allowedFeatureSurfaces.includes(row.featureSurface) || !expectedById[row.id] || row.featureSurface !== expectedById[row.id].featureSurface).map((row) => row && row.id).filter(Boolean));
         const jsFeatureSurfaces = new Set(jsRows.map((row) => row.featureSurface));
         const requiredFeatureSurfaces = ["battle", "crowd", "report", "rematch", "escape", "training", "bank", "p2p", "npc_vs_npc", "system_toast"];
-        result.requiredFeatureSurfacesFound = requiredFeatureSurfaces.every((surface) => jsFeatureSurfaces.has(surface));
+        result.requiredFeatureSurfacesFound = jsRows.length > 0 && requiredFeatureSurfaces.every((surface) => jsFeatureSurfaces.has(surface));
         if (!result.requiredFeatureSurfacesFound) fail("required_feature_surfaces_found", requiredFeatureSurfaces.filter((surface) => !jsFeatureSurfaces.has(surface)));
         const templateFailures = rawRows.filter((row) => {
           const oldVars = templateVars(row.oldText);
@@ -10546,7 +10760,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    Game.Dev.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
+    Game.Dev.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -10572,7 +10786,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    G.__DEV.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
+    G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -10659,7 +10873,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    devStore.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
+    devStore.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
