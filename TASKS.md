@@ -1,3 +1,18 @@
+## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the unique Safari-visible smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1`.
+- Commit placeholder: `step3_5_boomer_runtime_lexical_linter`.
+- Smoke version: `step3_5_boomer_runtime_lexical_linter_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()`.
+- Scope held: dev-smoke wiring and docs only; no gameplay, economy, battle, NPC, state, save, or routing logic changed.
+
+## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
+- Status: PASS.
+- PASS summary: `ok:true`, `coverageConnectedToDevSmoke:true`, `zoneCount:10`, `requiredZonesFound:true`, `zoneCoverageComplete:true`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`, and `failures:[]`.
+- Coverage zones locked: `economy`, `npc_vs_npc`, `dm`, `reports`, `respect`, `learning`, `rematch`, `crowd`, `errors`, `hints`.
+- Scope held: UI-layer coverage audit only; no runtime/gameplay logic changes.
+
 ## 2026-06-19 — Step 3.4 system texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Applied the exact Step 3.4 system-text replacement map to the scoped runtime UI/system text surfaces in `AsyncScene/Web/data.js`, `AsyncScene/Web/system.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-menu.js`, and `AsyncScene/Web/state.js`.
