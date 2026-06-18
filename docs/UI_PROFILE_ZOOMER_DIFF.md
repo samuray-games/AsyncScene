@@ -393,6 +393,7 @@ PASS only after user Safari runtime result with ok:true and empty problem arrays
 
 Step 2.6 no-logic-change block
 served Step 2.6 no-logic-change block
+no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6.
 no gameplay logic changed in Step 2.6.
 no economy logic changed in Step 2.6.
 no NPC logic changed in Step 2.6.
