@@ -16305,6 +16305,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_LEXICAL_MAPPING_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerLexicalMappingStep33Once);
   console.warn("STEP3_BOOMER_LEXICAL_MAPPING_FIX1_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerLexicalMappingStep33Fix1Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Once);
+  console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX1_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once);
+  console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX2_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
