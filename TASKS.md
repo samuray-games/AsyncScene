@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 4 Alpha profile, step 2.2 Fix 1 source phrase inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 2.2 smoke coverage result so `npc_say` and `npc_dm` are recognized as generic coverage groups while leaving the 164 inventory rows untouched.
+- Added Safari-exported smoke `Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step2_2_fix1_source_phrase_inventory_v1`.
+- Commit placeholder: `step4_2_2_alpha_source_phrase_inventory_fix1`.
+- Smoke version: `alpha_step_2_2_source_phrase_inventory_fix1_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once()`.
+- Scope held: smoke coverage reporting and dev-smoke wiring only; no inventory entry changes, no currentText replacement, and no runtime/game logic changes.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 2.2 source phrase inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Created `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY` in `AsyncScene/Web/ui/ui-profile-alpha-source-phrase-inventory.js` and `docs/ui/ui-profile-alpha-source-phrase-inventory.js` as a UI-layer-only source inventory with the exact 164 rows, metadata, required coverage groups, and new feature coverage list.
