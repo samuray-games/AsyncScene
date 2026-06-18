@@ -36,6 +36,13 @@
 - Added Safari-exported `Game.__DEV.smokeAlphaIntroBanStep24Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Runtime PASS is still unclaimed until the user runs the Safari smoke command.
 
+## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix13
+- Fix12 still rebuilt from a stale base result, so Fix13 now computes the final Step 3.4 booleans first and then constructs fresh `failedChecks` and `failures` arrays from those final predicates only.
+- Added `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once()` in both served dev-check bundles.
+- Smoke identity: build tag `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix13_v1`, commit placeholder `step3_4_boomer_new_feature_coverage_fix13`, smoke version `boomer_new_feature_coverage_step3_4_fix13_v20260619_005`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`.
+- Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once()`.
+
 ## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix12
 - Fix11 still left stale `coverage_connected_to_dev_smoke` entries in the final failure arrays after the marker predicate passed, so Fix12 now removes that stale check from `failedChecks` and `failures` before the final aggregation runs.
 - Added `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once()` in both served dev-check bundles.
