@@ -20,6 +20,17 @@
 - Coverage zones locked: `economy`, `npc_vs_npc`, `dm`, `reports`, `respect`, `learning`, `rematch`, `crowd`, `errors`, `hints`.
 - Scope held: UI-layer coverage audit only; no runtime/gameplay logic changes.
 
+## 2026-06-19 — Step 3.4 system texts smoke path fix 1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Safari Step 3.4 runtime failed with `http_404` on the published runtime file fetches for `AsyncScene/Web/system.js`, `AsyncScene/Web/data.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-menu.js`, and `AsyncScene/Web/state.js`.
+- Added the unique Safari-visible fix command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix1()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Fix scope: only the Step 3.4 runtime file path resolver. Published runtime files are now resolved from the GitHub Pages app root as `Web/*.js` candidates instead of forcing `/AsyncScene/AsyncScene/Web/...`.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix1_v1`.
+- Commit placeholder: `step3_4_system_texts_fix1_v1`.
+- Smoke version: `step3_4_system_texts_fix1_v20260619_002`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix1()`.
+- Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, or routing logic changed.
+
 ## 2026-06-19 — Step 3.4 system texts
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Applied the exact Step 3.4 system-text replacement map to the scoped runtime UI/system text surfaces in `AsyncScene/Web/data.js`, `AsyncScene/Web/system.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-menu.js`, and `AsyncScene/Web/state.js`.
