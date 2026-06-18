@@ -3,7 +3,7 @@
 - UI/profile/copy artifact only.
 - Additive to `UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` and `UI_PROFILE_BOOMER_TABOO_LIST.md`; it does not replace or rewrite either artifact.
 - Machine-readable by dev smoke.
-- Entry count: 83.
+- Entry count: 93.
 - Table columns: `id`, `from`, `to`, `type`, `semanticInvariant`, `mechanicsInvariant`.
 
 | id | from | to | type | semanticInvariant | mechanicsInvariant |
@@ -91,3 +91,13 @@
 | MAP_0081 | Тише | Тише. | punctuation_clarity | quiet request is preserved | no mechanic changes |
 | MAP_0082 | ого | Понятно. | remove_slang | acknowledgement meaning is preserved | no mechanic changes |
 | MAP_0083 | Тише. Решим. | Тише. Решим спокойно. | calm_explanation | quiet resolution intent is preserved | no mechanic changes |
+| MAP_0084 | Суть | Правила | clarify_ui_label | core label remains rules label | no mechanic, cost, state, target, or outcome changes |
+| MAP_0085 | Сбросить старт | Сбросить выбор | clarify_ui_label | reset action remains reset action | no mechanic, cost, state, target, or outcome changes |
+| MAP_0086 | Опасная точка рядом. | Рядом опасная точка. | clarify_context | nearby danger remains nearby danger | no mechanic, cost, state, target, or outcome changes |
+| MAP_0087 | Принято, наблюдаю. | Принято. Наблюдаю. | punctuation_clarity | acceptance and observation remain preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0088 | Ты уже проголосовал. | Вы уже проголосовали. | formality_adjust | duplicate vote state is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0089 | Недоступно. Баттл не завершён. | Недоступно. Баттл ещё не завершён. | clarify_error | unavailable because battle is not finished | no mechanic, cost, state, target, or outcome changes |
+| MAP_0090 | Выбери игрока. | Выберите игрока. | formality_adjust | player selection remains player selection | no mechanic, cost, state, target, or outcome changes |
+| MAP_0091 | Такого нет. | Такой игрок не найден. | neutralize_error | missing player meaning is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0092 | Сейчас не получилось. Попробуй позже. | Сейчас не получилось. Попробуйте позже. | formality_adjust | temporary failure meaning is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0093 | Рано. Дай паузу. | Слишком рано. Подождите немного. | calm_explanation | early timing remains early timing | no mechanic, cost, state, target, or outcome changes |
