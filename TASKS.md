@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Stage 3.2 smoke core pass computation so `Game.__DEV.smokeBoomerTabooListStep32Fix3Once()` derives `ok` from the real predicates instead of the self-poisoning `ok` flag, and it now reports `corePass`, `coreFailedChecks`, and `impossibleOkState` explicitly.
+- Build tag: `build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix3_v1`.
+- Commit placeholder: `step3_2_boomer_taboo_list_smoke_fix3`.
+- Smoke version: `boomer_taboo_list_step3_2_fix3_v20260618_004`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerTabooListStep32Fix3Once()`.
+- Scope held: dev-smoke status computation only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke aggregation so `Game.__DEV.smokeBoomerTabooListStep32Fix2Once()` reports a real `ok` value instead of relying on the old commit-substring gate, and it now guards the impossible empty-problem-array state with `invalid_ok_aggregation`.
@@ -17,6 +26,17 @@
 - Smoke version: `alpha_step_1_5_action_first_rules_v20260618_001`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesOnce()`.
 - Scope held: docs, UI-layer mirror, and dev smoke only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
+## 2026-06-18 — Step 4 Alpha profile, step 1.5 Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 1.5 dev smoke so `docsMirrorExists` uses the served-root doc at `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md` and the served-root JS mirror at `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js`.
+- Fixed the dry-instruction scan scope so it checks only `alphaText` values and alpha anchor text, not the meta-rule prose.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix1()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_5_fix1_action_first_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_5_fix1_action_first_rules_v1`.
+- Smoke version: `alpha_step_1_5_fix1_action_first_rules_v20260618_002`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix1()`.
+- Scope held: docs mirror path, JS mirror path, and dev-smoke scan scope only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 2.4 Zoomer UI Copy Step 4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.

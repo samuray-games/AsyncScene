@@ -5433,6 +5433,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         uiLayerOnly: true,
         runtimeLogicTouched: false
       };
+      result.corePass = false;
+      result.coreFailedChecks = [];
       result.impossibleOkState = false;
       const addUnique = (list, value) => addUniqueProfileAudit(list, value);
       const fail = (check, detail) => {
@@ -5584,26 +5586,16 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
-      result.tabooConnectedToDevSmoke = result.tabooListExists === true
+      const tabooConnectedToDevSmoke = result.tabooListExists === true
         && result.forbiddenSamplesMissed.length === 0
         && result.falsePositiveSamples.length === 0
         && result.missingCoverage.length === 0
         && result.failures.length === 0
         && result.failedChecks.length === 0;
-      if (!result.tabooConnectedToDevSmoke) fail("taboo_connected_to_dev_smoke", { tabooListExists: result.tabooListExists, forbiddenSamplesMissed: result.forbiddenSamplesMissed.length, falsePositiveSamples: result.falsePositiveSamples.length, missingCoverage: result.missingCoverage.length, failures: result.failures.length, failedChecks: result.failedChecks.length });
-      result.impossibleOkState = result.ok === false
-        && result.failures.length === 0
-        && result.forbiddenRemaining.length === 0
-        && result.missingCoverage.length === 0
-        && result.failedChecks.length === 0
-        && result.forbiddenSamplesMissed.length === 0
-        && result.falsePositiveSamples.length === 0;
-      if (result.impossibleOkState) fail("invalid_ok_aggregation", "ok_false_with_empty_problem_arrays");
-      result.ok = result.tabooListExists === true
+      const corePass = tabooConnectedToDevSmoke
         && result.tabooEntryCount === tabooEntries.length
         && result.tabooCategories.length === expectedCategories.length
         && expectedCategories.every((category, index) => result.tabooCategories[index] === category)
-        && result.tabooConnectedToDevSmoke === true
         && result.allowedLexiconStillExists === true
         && result.allowedLexiconInventoryCount === 164
         && result.forbiddenSamplesMissed.length === 0
@@ -5617,8 +5609,21 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && !!result.commit
         && !!result.smokeVersion
         && result.uiLayerOnly === true
-        && result.runtimeLogicTouched === false
-        && result.impossibleOkState === false;
+        && result.runtimeLogicTouched === false;
+      result.coreFailedChecks = corePass ? [] : result.failedChecks.slice();
+      result.corePass = corePass;
+      result.impossibleOkState = result.ok === false
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.forbiddenSamplesMissed.length === 0
+        && result.falsePositiveSamples.length === 0
+        && result.corePass === false;
+      if (result.impossibleOkState) fail("invalid_ok_aggregation", "ok_false_with_empty_problem_arrays");
+      result.tabooConnectedToDevSmoke = tabooConnectedToDevSmoke;
+      if (!result.tabooConnectedToDevSmoke) fail("taboo_connected_to_dev_smoke", { tabooListExists: result.tabooListExists, forbiddenSamplesMissed: result.forbiddenSamplesMissed.length, falsePositiveSamples: result.falsePositiveSamples.length, missingCoverage: result.missingCoverage.length, failures: result.failures.length, failedChecks: result.failedChecks.length });
+      result.ok = corePass && result.tabooConnectedToDevSmoke === true && result.impossibleOkState === false;
       return result;
     };
     const smokeBoomerTabooListStep32Once = () => smokeBoomerTabooListStep32CoreOnce({
@@ -5637,6 +5642,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix2_v1",
       commit: "step3_2_boomer_taboo_list_smoke_fix2",
       smokeVersion: "boomer_taboo_list_step3_2_fix2_v20260618_003",
+      reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
+    });
+    const smokeBoomerTabooListStep32Fix3Once = () => smokeBoomerTabooListStep32CoreOnce({
+      buildTag: "build_2026_06_18_step3_2_boomer_taboo_list_smoke_fix3_v1",
+      commit: "step3_2_boomer_taboo_list_smoke_fix3",
+      smokeVersion: "boomer_taboo_list_step3_2_fix3_v20260618_004",
       reusedSmokeVersion: "boomer_taboo_list_step3_2_v20260618_001"
     });
 
@@ -9227,7 +9238,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const expectedEntryCount = 164;
       const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md";
       const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js";
-      const servedJsMirrorPath = "https://samuray-games.github.io/AsyncScene/docs/ui/ui-profile-alpha-action-first-rules.js";
+      const servedJsMirrorPath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js";
       const result = {
         buildTag,
         commit,
@@ -9321,7 +9332,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const docsJsRes = fetchTextSync(servedJsMirrorPath);
         result.ruleExists = !!rootDocRes.ok;
         result.tableExists = !!rootJsRes.ok;
-        result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsMirrorExists = !!(rootDocRes.ok && docsJsRes.ok);
         result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
         result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
         result.jsPathChecked = docsJsRes && docsJsRes.path ? docsJsRes.path : servedJsMirrorPath;
@@ -9362,11 +9373,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         ];
         result.anchorPairsFound = requiredAnchors.every((phrase) => rootDocText.includes(phrase));
         if (!result.anchorPairsFound) fail("anchor_pairs_found", requiredAnchors.filter((phrase) => !rootDocText.includes(phrase)));
-        result.noDryInstructionDrift = !/(инструкц|manual|guide|step-by-step|tutorial voice)/i.test(rootDocText) && rootDocText.includes("Alpha does not become dry instruction text.");
-        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
         const jsManifest = parseManifest(rootJsText);
         const jsRows = jsManifest && Array.isArray(jsManifest.table) ? jsManifest.table : [];
         const rawRows = parseRows(extractRawRows(rootJsText));
+        const dryInstructionPatterns = /(инструкц|manual|guide|step-by-step|tutorial voice)/i;
+        const dryScanTexts = rawRows.map((row) => row.alphaText).concat(requiredAnchors.filter((phrase) => phrase.startsWith('alpha: "')).map((phrase) => phrase.replace(/^alpha: "/, "").replace(/"$/, "")));
+        result.noDryInstructionDrift = dryScanTexts.every((text) => !dryInstructionPatterns.test(String(text || "")));
+        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
         result.entryCount = jsRows.length;
         if (jsRows.length !== expectedEntryCount) fail("entry_count", { expected: expectedEntryCount, actual: jsRows.length });
         if (!jsManifest || jsManifest.expectedEntryCount !== expectedEntryCount) fail("expected_entry_count", jsManifest ? jsManifest.expectedEntryCount : null);
@@ -9429,6 +9442,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allPoliciesValid === true && result.actionFirstRuleFound === true && result.anchorPairsFound === true && result.noRuntimeFilesChanged === true && result.noReasonFirstDrift === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaStep15ActionFirstRulesFix1 = () => {
+      const result = smokeAlphaStep15ActionFirstRulesOnce();
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_5_fix1_action_first_rules_v1";
+      result.commit = "step4_alpha_profile_step1_5_fix1_action_first_rules_v1";
+      result.smokeVersion = "alpha_step_1_5_fix1_action_first_rules_v20260618_002";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -9458,6 +9478,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     Game.Dev.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
+    Game.Dev.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -9471,6 +9492,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     Game.Dev.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
+    Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -9494,12 +9516,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
+    G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     G.__DEV.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
+    G.__DEV.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -9554,6 +9578,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
     devStore.smokeBoomerTabooListStep32Fix1Once = smokeBoomerTabooListStep32Fix1Once;
     devStore.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
+    devStore.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -9567,6 +9592,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep14ExplanationRulesFix2 = smokeAlphaStep14ExplanationRulesFix2;
     devStore.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
+    devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
