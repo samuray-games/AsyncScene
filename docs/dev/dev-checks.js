@@ -11271,6 +11271,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
+    const smokeBoomerNewFeatureCoverageStep34Once = () => ({ ok: false });
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
