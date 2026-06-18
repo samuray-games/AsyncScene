@@ -1,3 +1,11 @@
+## 2026-06-18 — AsyncScene Step 2.6 Fix 6 Zoomer shortening docs no-logic-change block
+- Status: READY_FOR_RUNTIME_SMOKE
+- Fix scope: documentation-manifest only. `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` are the only runtime-readable sources updated here.
+- Exact Safari failure: Fix4 smoke now accepts honestStatusOk:true but still fails noLogicChangeOk:false because the served Step 2.6 no-logic-change block is missing.
+- Added the missing Step 2.6 no-logic-change block to the served profile docs.
+- Runtime-sensitive files remain gated by confirmation and were not edited.
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Boomer coverage inventory in `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` by replacing the exact taboo-hit covered texts that were keeping the Step 3.4 smoke from passing.
