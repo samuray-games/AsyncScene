@@ -6567,6 +6567,138 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeLexicalFrameStep32AllowedDictionaryFix2 = () => {
+      const buildTag = "build_2026_06_19_step3_2_allowed_dictionary_fix2_v1";
+      const commit = "step3_2_allowed_dictionary_fix2";
+      const smokeVersion = "step3_2_allowed_dictionary_fix2_v20260619_002";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        artifactExists: false,
+        step32SectionExists: false,
+        allowedDictionary32Exists: false,
+        coverageMatrix32Exists: false,
+        drynessGuardExists: false,
+        userExamplesExist: false,
+        surfaceCoverageOk: false,
+        memeWordsInAllowedDictionary: [],
+        slangParasitesInAllowedDictionary: [],
+        ironyWordsInAllowedDictionary: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        sourceFiles: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSyncLocal = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidatesLocal = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirstLocal = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidatesLocal(fileName)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      try {
+        const artifactName = "UI_PROFILE_LEXICAL_FRAME_STEP31.md";
+        const artifactRes = fetchFirstLocal(artifactName);
+        result.artifactExists = !!(artifactRes && artifactRes.ok);
+        const raw = artifactRes && artifactRes.ok ? String(artifactRes.text || "") : "";
+        result.sourceFiles = result.artifactExists ? [artifactRes.path] : [];
+        if (!result.artifactExists) fail("artifact_exists", { path: artifactName, reason: artifactRes && artifactRes.reason ? artifactRes.reason : "unavailable" });
+        const sectionMatch = raw.match(/## Step 3\.2 Allowed Dictionary Coverage([\s\S]*?)(?:\n## |\n# |$)/);
+        const sectionText = sectionMatch ? String(sectionMatch[1] || "") : "";
+        result.step32SectionExists = !!sectionMatch;
+        result.allowedDictionary32Exists = sectionText.includes("ALLOWED_DICTIONARY_STEP_3_2 = {");
+        result.coverageMatrix32Exists = sectionText.includes("COVERAGE_MATRIX_STEP_3_2 = [");
+        result.drynessGuardExists = sectionText.includes("Dryness Guard");
+        const requiredExamples = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило"];
+        result.userExamplesExist = requiredExamples.every((word) => sectionText.includes(`"${word}"`));
+        const requiredSurfaces = ["UI_LABELS", "TOASTS", "ERRORS", "HINTS", "NPC_PHRASES", "BATTLE_RESULTS", "ECONOMY_ACTIONS", "DM_COP_PHRASES", "FUTURE_UI_COPY"];
+        result.surfaceCoverageOk = requiredSurfaces.every((surface) => sectionText.includes(`"${surface}"`));
+        const memeWords = ["мем", "мемно", "мемный"];
+        const slangParasites = ["кринж", "кринжово", "вайб", "вайбик", "рофл", "рофлить", "лол", "изи", "имба", "треш", "жиза", "душно", "душнота", "душный", "чилл", "чилить", "краш", "зашквар", "тик ток", "тикток", "RIP", "WIN", "DRAW", "мейн", "андер", "вывез", "не вывез", "го", "гоу", "затащил", "просел", "снести выбор", "без душноты", "вписывайся", "тыкни", "сигма", "база", "базированно", "ультануть", "флекс", "флексить", "зумерский", "по-зумерски"];
+        const ironyWords = ["ирония", "иронично", "ироничный"];
+        memeWords.forEach((word) => { if (sectionText.includes(`"${word}"`)) addUnique(result.memeWordsInAllowedDictionary, word); });
+        slangParasites.forEach((word) => { if (sectionText.includes(`"${word}"`)) addUnique(result.slangParasitesInAllowedDictionary, word); });
+        ironyWords.forEach((word) => { if (sectionText.includes(`"${word}"`)) addUnique(result.ironyWordsInAllowedDictionary, word); });
+        if (!result.step32SectionExists) fail("step32_section_exists", "missing_step32_section");
+        if (!result.allowedDictionary32Exists) fail("allowed_dictionary32_exists", "missing_allowed_dictionary32");
+        if (!result.coverageMatrix32Exists) fail("coverage_matrix32_exists", "missing_coverage_matrix32");
+        if (!result.drynessGuardExists) fail("dryness_guard_exists", "missing_dryness_guard");
+        if (!result.userExamplesExist) fail("user_examples_exist", requiredExamples);
+        if (!result.surfaceCoverageOk) fail("surface_coverage_ok", requiredSurfaces);
+        if (result.memeWordsInAllowedDictionary.length) fail("meme_words_in_allowed_dictionary", result.memeWordsInAllowedDictionary.slice());
+        if (result.slangParasitesInAllowedDictionary.length) fail("slang_parasites_in_allowed_dictionary", result.slangParasitesInAllowedDictionary.slice());
+        if (result.ironyWordsInAllowedDictionary.length) fail("irony_words_in_allowed_dictionary", result.ironyWordsInAllowedDictionary.slice());
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "step3_2_allowed_dictionary_fix2_v20260619_002" || smokeVersion.indexOf("step3_2_allowed_dictionary_fix2") === -1 || smokeVersion.indexOf("fix1") !== -1) {
+          fail("smoke_version_unique", "smokeVersion_not_unique_for_fix2");
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.artifactExists === true
+        && result.step32SectionExists === true
+        && result.allowedDictionary32Exists === true
+        && result.coverageMatrix32Exists === true
+        && result.drynessGuardExists === true
+        && result.userExamplesExist === true
+        && result.surfaceCoverageOk === true
+        && result.memeWordsInAllowedDictionary.length === 0
+        && result.slangParasitesInAllowedDictionary.length === 0
+        && result.ironyWordsInAllowedDictionary.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -12892,6 +13024,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     Game.Dev.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
+    Game.Dev.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
       const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -13434,6 +13567,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     G.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
+    G.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -13518,6 +13652,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     devStore.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
+    devStore.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;

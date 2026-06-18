@@ -1,3 +1,13 @@
+## 2026-06-19 — Step 3.2 allowed dictionary smoke exception fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Safari Fix1 runtime failed with `Can't find variable: resolveDocCandidates` from `Game.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1()`.
+- Added the unique Safari-visible Fix2 smoke `Game.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_2_allowed_dictionary_fix2_v1`.
+- Commit placeholder: `step3_2_allowed_dictionary_fix2`.
+- Smoke version: `step3_2_allowed_dictionary_fix2_v20260619_002`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix2()`.
+- Scope held: Step 3.2 smoke helper scope/reference fix only; no dictionary content, copy, gameplay, or UI behavior changed.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.4 intro/condition ban audit
 - Created `UI_PROFILE_ALPHA_INTRO_BAN_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-intro-ban-audit.js` and `docs/ui/ui-profile-alpha-intro-ban-audit.js` as an audit-only contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
 - The audit metadata records `auditId: UI_PROFILE_ALPHA_INTRO_BAN_AUDIT`, `stage: 4-alpha`, `step: 2.4`, `mode: alpha_intro_ban_audit_only`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `smokeVersion: alpha_step_2_4_intro_ban_v20260618_001`.
