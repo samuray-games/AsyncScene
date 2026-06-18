@@ -387,6 +387,16 @@ STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantC
 STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true
 STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()
 
+READY_FOR_RUNTIME_SMOKE before Safari.
+FAIL if self-check fails.
+PASS only after user Safari runtime result with ok:true and empty problem arrays.
+
+no gameplay logic changed in Step 2.6.
+no economy logic changed in Step 2.6.
+no NPC logic changed in Step 2.6.
+no argument canon changed in Step 2.6.
+no runtime copy logic changed in Step 2.6.
+
 ## UI_PROFILE_ZOOMER_STOP_WORDS
 
 Stop-word / forbidden lexicon inventory only. This runtime-visible profile marker blocks meme-like wording, parasite slang, and irony-for-irony for future zoomer-profile validation; it does not rewrite current UI text, NPC lines, or gameplay logic.
