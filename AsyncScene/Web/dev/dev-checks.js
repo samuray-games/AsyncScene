@@ -16532,7 +16532,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
   if (!DEV_FLAG) return;
 
-  const devStore = ensureDevStoreSurface();
+  var devStore = ensureDevStoreSurface();
   addStage3SmokeHelper(devStore);
   addRespectLedgerSmokeHelper(devStore);
   addRespectEmitterSmokeHelper(devStore);
