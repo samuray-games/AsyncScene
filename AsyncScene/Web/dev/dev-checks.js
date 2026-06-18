@@ -6202,6 +6202,258 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeBoomerLexicalMappingStep33Fix1Once = () => {
+      const buildTag = "build_2026_06_18_step3_3_boomer_lexical_mapping_fix1_v1";
+      const commit = "step3_3_boomer_lexical_mapping_fix1";
+      const smokeVersion = "boomer_lexical_mapping_step3_3_fix1_v20260618_002";
+      const expectedCount = 93;
+      const expectedIds = Array.from({ length: expectedCount }, (_, idx) => `MAP_${String(idx + 1).padStart(4, "0")}`);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        mappingExists: false,
+        mappingRowCount: 0,
+        mappingIdRangeExact: false,
+        sourceTextsFoundCount: 0,
+        targetTextsFoundInAllowedLexiconCount: 0,
+        semanticInvariantCount: 0,
+        mechanicsInvariantCount: 0,
+        variablesPreserved: false,
+        numericMechanicsPreserved: false,
+        noTabooInTargets: false,
+        noOfficialeseInTargets: true,
+        noMoralizingInTargets: true,
+        noMeaningDrift: false,
+        noMechanicsDrift: false,
+        notClerical: false,
+        allowedLexiconStillExists: false,
+        allowedLexiconInventoryCount: 0,
+        tabooListStillExists: false,
+        tabooEntryCount: 0,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        missingMappingIds: [],
+        extraMappingIds: [],
+        uiLayerOnly: true,
+        runtimeLogicTouched: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseMappingRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(MAP_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], from: match[2], to: match[3], type: match[4], semanticInvariant: match[5], mechanicsInvariant: match[6] });
+        });
+        return rows;
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const parseTabooRows = (text) => {
+        const rows = [];
+        let currentCategory = "";
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const heading = line.match(/^###\s+([a-z_]+)\s*$/i);
+          if (heading) {
+            currentCategory = String(heading[1] || "").toLowerCase();
+            return;
+          }
+          const item = line.match(/^\-\s+(.*\S)\s*$/);
+          if (item && currentCategory) rows.push({ category: currentCategory, phrase: String(item[1] || "").trim() });
+        });
+        return rows;
+      };
+      const placeholderTokens = (text) => (String(text || "").match(/\{[^}]+\}/g) || []).slice().sort();
+      const numericTokens = (text) => (String(text || "").match(/\d+/g) || []).slice().sort();
+      const sameTokens = (a, b) => {
+        const aa = a.slice().sort();
+        const bb = b.slice().sort();
+        return aa.length === bb.length && aa.every((token, idx) => token === bb[idx]);
+      };
+      const exactMatcher = (phrase) => {
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return null;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u");
+      };
+      const matchesExactPhrase = (text, phrase) => {
+        const matcher = exactMatcher(phrase);
+        return !!matcher && matcher.test(String(text || ""));
+      };
+      const loadTabooIndex = (tabooRows) => {
+        const index = { all: [], officialese: [], moralizing: [] };
+        tabooRows.forEach((row) => {
+          index.all.push(row.phrase);
+          if (row.category === "officialese") index.officialese.push(row.phrase);
+          if (row.category === "moralizing") index.moralizing.push(row.phrase);
+        });
+        return index;
+      };
+      const rowHasForbiddenPhrase = (text, phrases) => phrases.find((phrase) => matchesExactPhrase(text, phrase));
+      try {
+        const mappingRes = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md");
+        result.mappingExists = !!(mappingRes && mappingRes.ok);
+        const mappingRaw = normalize(mappingRes && mappingRes.ok ? mappingRes.text : "");
+        const rows = parseMappingRows(mappingRaw);
+        result.mappingRowCount = rows.length;
+        if (!result.mappingExists) fail("mapping_exists", { path: "UI_PROFILE_BOOMER_LEXICAL_MAPPING.md", reason: mappingRes && mappingRes.reason ? mappingRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_LEXICAL_MAPPING/.test(mappingRaw)) fail("mapping_marker_present", "missing_marker");
+        if (rows.length !== expectedCount) fail("mapping_row_count_93", { actual: rows.length });
+        const rowIds = rows.map((row) => row && row.id ? row.id : "");
+        result.mappingIdRangeExact = rows.length === expectedCount && rowIds.every((id, idx) => id === expectedIds[idx]);
+        if (!result.mappingIdRangeExact) {
+          expectedIds.forEach((id) => { if (!rowIds.includes(id)) addUnique(result.missingMappingIds, id); });
+          rowIds.forEach((id) => { if (!expectedIds.includes(id)) addUnique(result.extraMappingIds, id); });
+          fail("mapping_id_range_exact", { missing: result.missingMappingIds.slice(), extra: result.extraMappingIds.slice() });
+        }
+        const allowedRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        result.allowedLexiconStillExists = !!(allowedRes && allowedRes.ok);
+        const allowedRaw = normalize(allowedRes && allowedRes.ok ? allowedRes.text : "");
+        const allowedRows = parseLexiconRows(allowedRaw);
+        const allowedCurrentSet = new Set(allowedRows.map((row) => row.currentText));
+        const allowedBoomerSet = new Set(allowedRows.map((row) => row.boomerText));
+        result.allowedLexiconInventoryCount = allowedRows.length;
+        if (!result.allowedLexiconStillExists) fail("allowed_lexicon_exists", { path: "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md", reason: allowedRes && allowedRes.reason ? allowedRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(allowedRaw)) fail("allowed_lexicon_marker_present", "missing_marker");
+        if (allowedRows.length !== 164) fail("allowed_lexicon_inventory_count_164", { actual: allowedRows.length });
+        const tabooRes = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md");
+        result.tabooListStillExists = !!(tabooRes && tabooRes.ok);
+        const tabooRaw = normalize(tabooRes && tabooRes.ok ? tabooRes.text : "");
+        const tabooRows = parseTabooRows(tabooRaw);
+        result.tabooEntryCount = tabooRows.length;
+        if (!result.tabooListStillExists) fail("taboo_list_exists", { path: "UI_PROFILE_BOOMER_TABOO_LIST.md", reason: tabooRes && tabooRes.reason ? tabooRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_TABOO_LIST/.test(tabooRaw)) fail("taboo_marker_present", "missing_marker");
+        if (tabooRows.length !== 153) fail("taboo_entry_count_153", { actual: tabooRows.length });
+        const tabooIndex = loadTabooIndex(tabooRows);
+        rows.forEach((row) => {
+          if (!row || !row.id) return;
+          if (row.from && allowedCurrentSet.has(row.from)) result.sourceTextsFoundCount += 1;
+          if (row.to && allowedBoomerSet.has(row.to)) result.targetTextsFoundInAllowedLexiconCount += 1;
+          if (String(row.semanticInvariant || "").trim()) result.semanticInvariantCount += 1;
+          if (String(row.mechanicsInvariant || "").trim()) result.mechanicsInvariantCount += 1;
+          if (sameTokens(placeholderTokens(row.from), placeholderTokens(row.to))) result.variablesPreserved = true;
+          else addUnique(result.missingCoverage, row.id + ":placeholders");
+          if (sameTokens(numericTokens(row.from), numericTokens(row.to))) result.numericMechanicsPreserved = true;
+          else addUnique(result.missingCoverage, row.id + ":numeric");
+          const tabooHit = rowHasForbiddenPhrase(row.to, tabooIndex.all);
+          if (tabooHit) addUnique(result.forbiddenRemaining, { id: row.id, rule: tabooHit, text: row.to });
+          if (rowHasForbiddenPhrase(row.to, tabooIndex.officialese)) result.noOfficialeseInTargets = false;
+          if (rowHasForbiddenPhrase(row.to, tabooIndex.moralizing)) result.noMoralizingInTargets = false;
+        });
+        result.noTabooInTargets = result.forbiddenRemaining.length === 0;
+        result.noOfficialeseInTargets = result.noOfficialeseInTargets !== false;
+        result.noMoralizingInTargets = result.noMoralizingInTargets !== false;
+        if (result.sourceTextsFoundCount !== expectedCount) fail("source_texts_found_count_93", { actual: result.sourceTextsFoundCount });
+        if (result.targetTextsFoundInAllowedLexiconCount !== expectedCount) fail("target_texts_found_in_allowed_lexicon_count_93", { actual: result.targetTextsFoundInAllowedLexiconCount });
+        if (result.semanticInvariantCount !== expectedCount) fail("semantic_invariant_count_93", { actual: result.semanticInvariantCount });
+        if (result.mechanicsInvariantCount !== expectedCount) fail("mechanics_invariant_count_93", { actual: result.mechanicsInvariantCount });
+        if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining", result.forbiddenRemaining.slice());
+        result.variablesPreserved = rows.every((row) => sameTokens(placeholderTokens(row.from), placeholderTokens(row.to)));
+        result.numericMechanicsPreserved = rows.every((row) => sameTokens(numericTokens(row.from), numericTokens(row.to)));
+        result.noMeaningDrift = result.sourceTextsFoundCount === expectedCount
+          && result.targetTextsFoundInAllowedLexiconCount === expectedCount
+          && result.semanticInvariantCount === expectedCount
+          && result.missingCoverage.length === 0;
+        result.noMechanicsDrift = result.mechanicsInvariantCount === expectedCount
+          && result.numericMechanicsPreserved === true
+          && result.forbiddenRemaining.length === 0;
+        result.notClerical = result.noOfficialeseInTargets === true && result.noMoralizingInTargets === true;
+        if (!result.mappingExists || !result.allowedLexiconStillExists || !result.tabooListStillExists) fail("required_artifact_missing");
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.mappingExists === true
+        && result.mappingRowCount === expectedCount
+        && result.mappingIdRangeExact === true
+        && result.missingMappingIds.length === 0
+        && result.extraMappingIds.length === 0
+        && result.sourceTextsFoundCount === expectedCount
+        && result.targetTextsFoundInAllowedLexiconCount === expectedCount
+        && result.semanticInvariantCount === expectedCount
+        && result.mechanicsInvariantCount === expectedCount
+        && result.variablesPreserved === true
+        && result.numericMechanicsPreserved === true
+        && result.noTabooInTargets === true
+        && result.noOfficialeseInTargets === true
+        && result.noMoralizingInTargets === true
+        && result.noMeaningDrift === true
+        && result.noMechanicsDrift === true
+        && result.notClerical === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      return result;
+    };
+
 
     const smokeZoomerStopWordsOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -10007,15 +10259,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_5_fix2_action_first_rules_v20260618_003";
       return result;
     };
-    const smokeAlphaStep16NewFeaturesOnce = () => {
-      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_new_feature_coverage_v1";
-      const commit = "step4_alpha_profile_step1_6_new_feature_coverage_v1";
-      const smokeVersion = "alpha_step_1_6_new_feature_coverage_v20260618_001";
+    const smokeAlphaStep16NewFeaturesFix1 = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1";
+      const commit = "step4_alpha_profile_step1_6_fix1_new_feature_coverage_v1";
+      const smokeVersion = "alpha_step_1_6_fix1_new_feature_coverage_v20260618_002";
       const expectedEntryCount = 164;
       const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_NEW_FEATURES.md";
-      const docsDocPath = "https://samuray-games.github.io/AsyncScene/docs/UI_PROFILE_ALPHA_NEW_FEATURES.md";
       const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-new-features.js";
-      const docsTablePath = "https://samuray-games.github.io/AsyncScene/docs/ui/ui-profile-alpha-new-features.js";
       const result = {
         ok: false,
         buildTag,
@@ -10106,18 +10356,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const allowedFeatureSurfaces = Object.freeze(["brand", "start_screen", "profile_ui", "system_toast", "battle", "crowd", "report", "rematch", "escape", "training", "bank", "p2p", "npc_vs_npc", "npc_speech", "dev", "copy_rule"]);
       try {
         const rootDocRes = fetchTextSync(servedDocPath);
-        const docsDocRes = fetchTextSync(docsDocPath);
         const rootJsRes = fetchTextSync(servedTablePath);
-        const docsJsRes = fetchTextSync(docsTablePath);
+        const docsDocRes = fetchTextSync(servedDocPath);
+        const docsJsRes = fetchTextSync(servedTablePath);
         result.ruleExists = !!rootDocRes.ok;
         result.tableExists = !!rootJsRes.ok;
-        result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsMirrorExists = !!(rootDocRes.ok && rootJsRes.ok);
         result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
         result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
         result.jsPathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
         if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
         if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
-        if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
+        if (!rootDocRes.ok || !rootJsRes.ok) fail("docs_mirror_exists", { doc: rootDocRes.reason || "ok", js: rootJsRes.reason || "ok" });
         const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
         const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
         const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
@@ -10280,6 +10530,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     Game.Dev.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     Game.Dev.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
+    Game.Dev.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -10295,7 +10546,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    Game.Dev.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
+    Game.Dev.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -10321,7 +10572,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    G.__DEV.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
+    G.__DEV.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -10333,6 +10584,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     G.__DEV.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     G.__DEV.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
+    G.__DEV.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -10391,6 +10643,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTabooListStep32Fix2Once = smokeBoomerTabooListStep32Fix2Once;
     devStore.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     devStore.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
+    devStore.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -10406,7 +10659,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
-    devStore.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
+    devStore.smokeAlphaStep16NewFeaturesFix1 = smokeAlphaStep16NewFeaturesFix1;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -14496,6 +14749,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_MILLENNIAL_STYLE_GUIDE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3MillennialStyleGuideOnce);
   console.warn("STEP3_TERMINOLOGY_COMPLETION_GATE_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeStep3TerminologyCompletionGateOnce);
   console.warn("STEP3_BOOMER_LEXICAL_MAPPING_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerLexicalMappingStep33Once);
+  console.warn("STEP3_BOOMER_LEXICAL_MAPPING_FIX1_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerLexicalMappingStep33Fix1Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
