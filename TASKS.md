@@ -456,6 +456,8 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
 
 ## 2026-06-17 — Step 1.8 Boomer Profile Diff Runtime Safari Smoke Shape
 - [1.8] Runtime Safari smoke - ready for canonical Safari smoke. smokeBoomerProfileDiffOnce now returns forbiddenRemaining, missingCoverage, and failedChecks as empty arrays for strict PASS shape.
+- [1.8] Runtime Safari PASS on iMac Safari: `Game.__DEV.smokeAlphaDiffFix3()` -> `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`, `buildTag:build_2026_06_18_step4_alpha_profile_step1_7_fix3_aggregate_diff_smoke_v1`, `commit:step4_alpha_profile_step1_7_fix3_aggregate_diff_smoke_v1`, `smokeVersion:alpha_step_1_7_fix3_aggregate_diff_smoke_v20260618_004`.
+- [1.9] Project logs - READY_FOR_RUNTIME_SMOKE. Update recorded in TASKS.md and PROJECT_MEMORY.md only; no code changes required.
 
 ## 2026-06-17 — Step 1.4 Boomer Risk Language Section
 - Status: documentation-only.

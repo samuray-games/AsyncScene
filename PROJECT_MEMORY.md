@@ -351,6 +351,14 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
 ## 2026-06-17 — Step 1.8 Boomer Profile Diff Runtime Safari Smoke Shape
 Stage 3 Boomer [1.8] canonicalizes Game.__DEV.smokeBoomerProfileDiffOnce() Safari smoke output by adding forbiddenRemaining:[], missingCoverage:[], and failedChecks:[]. No runtime copy changes. No data.js changes.
 
+## 2026-06-18 — Step 4 Alpha Profile Step 1.8 Runtime Safari PASS
+- Completed on iMac Safari with `Game.__DEV.smokeAlphaDiffFix3()`.
+- Result: `ok:true`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_7_fix3_aggregate_diff_smoke_v1`.
+- Commit: `step4_alpha_profile_step1_7_fix3_aggregate_diff_smoke_v1`.
+- Smoke version: `alpha_step_1_7_fix3_aggregate_diff_smoke_v20260618_004`.
+- Aggregate coverage: steps 1.1 through 1.6 checked; all four Alpha tables loaded 164 entries; required docs/tables served; no runtime Alpha activation; no live text registry changes; no failures, forbiddenRemaining, missingCoverage, or failedChecks.
+
 ## 2026-06-17 — Step 1.5 Boomer Soft Verbs Section Fix1
 Stage 3 Boomer [1.5] documents soft verb replacements only. No runtime copy changes.
 
