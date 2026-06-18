@@ -15090,8 +15090,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const allowedRes = (typeof fetchFirst === "function") ? fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md") : null;
         const allowedRaw = normalize(allowedRes && allowedRes.ok ? allowedRes.text : "");
         const allowedRows = parseLexiconRows(allowedRaw);
-        const allowedByText = Object.create(null);
-        const currentByText = Object.create(null);
+        var allowedByText = Object.create(null);
+      var currentByText = Object.create(null);
         allowedRows.forEach((row) => {
           const boomerText = normalize(row.boomerText);
           const currentText = normalize(row.currentText);
