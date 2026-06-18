@@ -1811,6 +1811,15 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - New Safari commands: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once()` and `Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce()`
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — AsyncScene Step 2.6 Fix 5 Zoomer shortening docs manifest completion
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Fix scope: documentation-manifest only. `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` are the only runtime-readable sources updated here.
+- Exact Safari failure: Fix4 smoke runs but fails because served UI_PROFILE_ZOOMER_DIFF.md is missing Step 2.6 honest status and no-logic-change blocks.
+- Added the missing Step 2.6 honest status block and no-logic-change block to the served profile docs.
+- Runtime-sensitive files remain gated by confirmation and were not edited.
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-05 — AsyncScene Step 2.6 Zoomer shortening documentation finalization
 
 - Documentation finalization only: no gameplay changes, economy changes, UI changes, smoke logic beyond the documentation smoke, or refactors.
