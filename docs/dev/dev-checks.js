@@ -11098,6 +11098,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     Game.Dev.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
+    Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -11125,7 +11126,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
+    Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
+    G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
