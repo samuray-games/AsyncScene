@@ -13368,6 +13368,123 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.alphaTextMismatches.length === 0;
       return result;
     };
+    const smokeAlphaCompressionRuleOnce = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step2_7_final_runtime_smoke_v1";
+      const commit = "step4_2_7_alpha_compression_final_smoke";
+      const smokeVersion = "alpha_step_2_7_final_runtime_smoke_v20260618_001";
+      const exactFeatureGroups = ["npc_vs_npc", "world_events", "scheduler", "crowd", "rep_points", "dm"];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        maxWords: 0,
+        minWords: 0,
+        noIntroWords: false,
+        coverageOk: false,
+        totalSourceRows: 0,
+        totalMapRows: 0,
+        totalInstantMeaningRows: 0,
+        compressCount: 0,
+        skipAlreadyAtomicCount: 0,
+        skipBrandOrTokenCount: 0,
+        coveredFeatureGroups: [],
+        rowCountByFeature: {},
+        finalStepReady: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const mergeSmoke = (stepId, smoke) => {
+        if (!smoke || typeof smoke !== "object") {
+          fail(stepId, "smoke_missing");
+          addUnique(result.missingCoverage, stepId);
+          return null;
+        }
+        ["failures", "forbiddenRemaining", "missingCoverage", "failedChecks"].forEach((key) => {
+          if (!Array.isArray(smoke[key])) return;
+          smoke[key].forEach((item) => addUnique(result[key], { step: stepId, item }));
+        });
+        return smoke;
+      };
+      const callSmoke = (stepId, fn) => {
+        try {
+          return mergeSmoke(stepId, typeof fn === "function" ? fn() : null);
+        } catch (err) {
+          return mergeSmoke(stepId, {
+            ok: false,
+            failures: [`exception:${err && err.message ? String(err.message) : String(err)}`],
+            forbiddenRemaining: [],
+            missingCoverage: [stepId],
+            failedChecks: ["smoke_exception"]
+          });
+        }
+      };
+      try {
+        const step21 = callSmoke("2.1", devStore.smokeAlphaCompressionRuleStep21Fix1Once);
+        const step22 = callSmoke("2.2", devStore.smokeAlphaSourcePhraseInventoryStep22Fix1Once);
+        const step23 = callSmoke("2.3", devStore.smokeAlphaMechanicalCompressorStep23Once);
+        const step24 = callSmoke("2.4", devStore.smokeAlphaIntroBanStep24Once);
+        const step25 = callSmoke("2.5", devStore.smokeAlphaInstantMeaningStep25Once);
+        const step26 = callSmoke("2.6", devStore.smokeAlphaNewFeatureCoverageStep26Once);
+
+        result.minWords = 2;
+        result.maxWords = 5;
+        result.noIntroWords = !!(step21 && step21.ok === true && Array.isArray(step21.forbiddenRemaining) && step21.forbiddenRemaining.length === 0);
+        result.totalSourceRows = step22 && Number(step22.entryCount) ? Number(step22.entryCount) : 0;
+        result.totalMapRows = step23 && Number(step23.rowCount) ? Number(step23.rowCount) : 0;
+        result.totalInstantMeaningRows = step25 && Number(step25.rowCount) ? Number(step25.rowCount) : 0;
+        result.compressCount = step23 && Number(step23.compressCount) ? Number(step23.compressCount) : 0;
+        result.skipAlreadyAtomicCount = step23 && Number(step23.skipAlreadyAtomicCount) ? Number(step23.skipAlreadyAtomicCount) : 0;
+        result.skipBrandOrTokenCount = step23 && Number(step23.skipBrandOrTokenCount) ? Number(step23.skipBrandOrTokenCount) : 0;
+        result.coveredFeatureGroups = step26 && Array.isArray(step26.coveredFeatureGroups) ? step26.coveredFeatureGroups.slice() : [];
+        result.rowCountByFeature = step26 && step26.rowCountByFeature && typeof step26.rowCountByFeature === "object" ? Object.assign({}, step26.rowCountByFeature) : {};
+        result.coverageOk = !!(step26 && step26.ok === true && JSON.stringify(result.coveredFeatureGroups) === JSON.stringify(exactFeatureGroups));
+        result.finalStepReady = !!(
+          step21 && step21.ok === true &&
+          step22 && step22.ok === true &&
+          step23 && step23.ok === true &&
+          step24 && step24.ok === true &&
+          step25 && step25.ok === true &&
+          step26 && step26.ok === true &&
+          result.minWords >= 2 &&
+          result.maxWords <= 5 &&
+          result.noIntroWords === true &&
+          result.coverageOk === true &&
+          result.totalSourceRows === 164 &&
+          result.totalMapRows === 164 &&
+          result.totalInstantMeaningRows === 164 &&
+          result.compressCount === 84 &&
+          result.skipAlreadyAtomicCount === 60 &&
+          result.skipBrandOrTokenCount === 20 &&
+          JSON.stringify(result.coveredFeatureGroups) === JSON.stringify(exactFeatureGroups) &&
+          result.rowCountByFeature.npc_vs_npc === 13 &&
+          result.rowCountByFeature.world_events === 11 &&
+          result.rowCountByFeature.scheduler === 8 &&
+          result.rowCountByFeature.crowd === 17 &&
+          result.rowCountByFeature.rep_points === 26 &&
+          result.rowCountByFeature.dm === 19 &&
+          result.failures.length === 0 &&
+          result.forbiddenRemaining.length === 0 &&
+          result.missingCoverage.length === 0 &&
+          result.failedChecks.length === 0
+        );
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.finalStepReady === true
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -14844,6 +14961,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.Dev.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     Game.Dev.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
+    Game.Dev.smokeAlphaCompressionRuleOnce = smokeAlphaCompressionRuleOnce;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -14882,6 +15000,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     G.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     G.__DEV.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
+    G.__DEV.smokeAlphaCompressionRuleOnce = smokeAlphaCompressionRuleOnce;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
@@ -14890,6 +15009,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     Game.__DEV.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
+    Game.__DEV.smokeAlphaCompressionRuleOnce = smokeAlphaCompressionRuleOnce;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -15059,6 +15179,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     devStore.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     devStore.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
+    devStore.smokeAlphaCompressionRuleOnce = smokeAlphaCompressionRuleOnce;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;

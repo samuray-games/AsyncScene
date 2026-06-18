@@ -24,6 +24,13 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsOnce()`.
 - Scope held: exact system-text replacements, smoke wiring, and project tracking only; no gameplay, economy, battle, NPC, state, save, or routing logic changed.
 
+## 2026-06-19 — Stage 4 Alpha, step 2.7 final aggregate runtime smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the final aggregate Safari smoke `Game.__DEV.smokeAlphaCompressionRuleOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke validates the loaded Step 2.1 through Step 2.6 artifacts and returns the required final Step 4.2 contract fields with smokeVersion `alpha_step_2_7_final_runtime_smoke_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaCompressionRuleOnce()`.
+- Scope held: smoke wiring and tracking only; no runtime text changed, no alpha routing enabled, no visible UI changes, and no gameplay/economy/battle/NPC/persistence/state/save/routing logic changes.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.6 new feature coverage audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Created `UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-new-feature-coverage-audit.js` and `docs/ui/ui-profile-alpha-new-feature-coverage-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`.
