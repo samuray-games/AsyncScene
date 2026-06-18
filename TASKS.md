@@ -1,3 +1,11 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.6 new feature coverage audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created `UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-new-feature-coverage-audit.js` and `docs/ui/ui-profile-alpha-new-feature-coverage-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`.
+- Added Safari-exported smoke `Game.__DEV.smokeAlphaNewFeatureCoverageStep26Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Smoke version: `alpha_step_2_6_new_feature_coverage_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaNewFeatureCoverageStep26Once()`.
+- Scope held: audit contract, docs mirror, task tracking, and smoke wiring only; no runtime text changed, no mechanical map rows changed, no instant meaning audit rows changed, and no gameplay/economy/battle/NPC/state/save/routing logic changes.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.5 instant meaning audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Created `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-instant-meaning-audit.js` and `docs/ui/ui-profile-alpha-instant-meaning-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
