@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 4 Alpha profile, step 1.7 aggregate diff smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added and exported `Game.__DEV.smokeAlphaDiffOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as the aggregate Alpha diff/spec smoke for completed steps 1.1 through 1.6.
+- The smoke validates source inventory, diff document, length rules, explanation rules, action-first rules, new-feature coverage, entry counts, served-doc/table availability, template preservation, no em dash, no dry-instruction drift, no runtime Alpha activation, no live text registry changes, and old-UI non-limitation without changing runtime logic or gameplay logic.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_7_aggregate_diff_smoke_v1`.
+- Commit marker: `step4_alpha_profile_step1_7_aggregate_diff_smoke_v1`.
+- Smoke version: `alpha_step_1_7_aggregate_diff_smoke_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaDiffOnce()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime Alpha activation, no runtime behavior changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.3 Boomer lexical mapping smoke wiring Fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added and exported `Game.__DEV.smokeBoomerLexicalMappingStep33Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` for the exact 93-row `MAP_0001..MAP_0093` mapping contract.
