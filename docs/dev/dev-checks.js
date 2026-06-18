@@ -12663,6 +12663,21 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once = () => {
+      const result = smokeBoomerNewFeatureCoverageStep34Once();
+      result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix8_v1";
+      result.commit = "step3_4_boomer_new_feature_coverage_fix8";
+      result.smokeVersion = "boomer_new_feature_coverage_step3_4_fix8_v20260618_009";
+      result.smokeFunctionName = "smokeBoomerNewFeatureCoverageStep34Fix8Once";
+      const staleBodyDetected = String(result.buildTag || "").includes("fix6") || String(result.commit || "").includes("fix6") || String(result.smokeVersion || "").includes("fix6") || String(result.smokeFunctionName || "").includes("Fix7");
+      result.staleBodyDetected = staleBodyDetected;
+      if (staleBodyDetected) {
+        result.ok = false;
+        addUniqueProfileAudit(result.failedChecks, "stale_smoke_body");
+        addUniqueProfileAudit(result.failures, { check: "stale_smoke_body", detail: { expectedBuildTag: "fix8", actualBuildTag: result.buildTag, actualCommit: result.commit, actualSmokeVersion: result.smokeVersion, actualSmokeFunctionName: result.smokeFunctionName } });
+      }
+      return result;
+    };
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -12754,6 +12769,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
+    Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -12762,6 +12778,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -12831,6 +12848,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix5Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix6Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix7Once = smokeBoomerNewFeatureCoverageStep34Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -16953,6 +16971,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX5_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX6_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX7_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once);
+  console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX8_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
