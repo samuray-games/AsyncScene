@@ -1,3 +1,14 @@
+## 2026-06-19 — Step 3.4 system texts smoke path fix 2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Safari Fix1 still failed `runtime_file_available:false` because the published runtime smoke was still resolving repository-style targets instead of app-root runtime paths.
+- Added `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Changed count: 4 files (`AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`).
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix2_v1`.
+- Commit placeholder: `step3_4_system_texts_fix2_v1`.
+- Smoke version: `step3_4_system_texts_fix2_v20260619_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix2()`.
+- Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, save, or routing logic changed.
+
 ## 2026-06-19 — Stage 4 Alpha, step 2.7 final aggregate runtime smoke
 - Added the final aggregate Safari smoke `Game.__DEV.smokeAlphaCompressionRuleOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - The smoke validates the loaded Step 2.1 through Step 2.6 artifacts, including the Step 2.1 compression rule, Step 2.2 source inventory, Step 2.3 mechanical compressor map, Step 2.4 intro ban audit, Step 2.5 instant meaning audit, and Step 2.6 new feature coverage audit.

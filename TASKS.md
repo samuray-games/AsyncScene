@@ -1,3 +1,14 @@
+## 2026-06-19 — Step 3.4 system texts smoke path fix 2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Safari Fix1 still failed `runtime_file_available` because the Step 3.4 smoke kept treating repository-style `AsyncScene/Web/*.js` paths as published runtime targets.
+- Added the unique Safari-visible fix command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Fix scope: only the Step 3.4 runtime file path resolver. Published runtime files now resolve app-root logical paths `system.js`, `data.js`, `ui/ui-events.js`, `ui/ui-dm.js`, `ui/ui-menu.js`, and `state.js`, with loaded script `src` fallback before legacy `Web/*` candidates.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix2_v1`.
+- Commit placeholder: `step3_4_system_texts_fix2_v1`.
+- Smoke version: `step3_4_system_texts_fix2_v20260619_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix2()`.
+- Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, or routing logic changed.
+
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added the unique Safari-visible smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
