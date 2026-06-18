@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 4 Alpha profile, step 2.2 source phrase inventory
+- Created `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY` only in the UI-layer mirror files `AsyncScene/Web/ui/ui-profile-alpha-source-phrase-inventory.js` and `docs/ui/ui-profile-alpha-source-phrase-inventory.js`.
+- Total entries: 164.
+- Coverage recorded: crowd voting, cop flow, respect flow, rematch, p2p transfer, cap messages, argument base templates, NPC say, NPC DM, dev mode toasts, menu lottery, unavailable menu toasts, and vote toasts.
+- No runtime PASS exists yet; this step stays READY_FOR_RUNTIME_SMOKE until the user runs the Safari smoke command.
+- Smoke version: `alpha_step_2_2_source_phrase_inventory_v20260618_001`.
+- Added Safari-exported `Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Scope held: source inventory docs/UI mirror and smoke wiring only; no currentText replacement, no runtime/game logic changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 2.1 alpha compression rule
 - Created `UI_PROFILE_ALPHA_COMPRESSION_RULE` in `AsyncScene/Web/ui/ui-profile-alpha-compression-rule.js` and `docs/ui/ui-profile-alpha-compression-rule.js` as a UI-layer-only manifest with the exact Russian rule lines, fixture set, and locked inventory for Stage 4 Alpha Step 2.1.
 - Added Safari-exported `Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` for the user-run runtime smoke.
