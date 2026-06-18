@@ -6,6 +6,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaInstantMeaningStep25Once()`.
 - Scope held: audit contract, docs mirror, and smoke wiring only; no runtime text changed, no map rows changed, and no gameplay/economy/battle/NPC/state/save/routing logic changes.
 
+## 2026-06-19 — Step 3.3 stop words
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the exact `Step 3.3 Stop Words` section to `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` with the exact rule, exact `STOP_WORDS_STEP_3_3`, exact `FORBIDDEN_SAMPLE_MATRIX_STEP_3_3`, exact `STOP_WORD_REPLACEMENTS_STEP_3_3`, and exact `ALLOWED_CONTROL_SAMPLES_STEP_3_3`.
+- Added the unique Safari-visible smoke `Game.__DEV.smokeLexicalFrameStep33StopWordsOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_3_stop_words_v1`.
+- Commit placeholder: `step3_3_stop_words`.
+- Smoke version: `step3_3_stop_words_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep33StopWordsOnce()`.
+- Scope held: Step 3.3 stop-word artifact, smoke wiring, and project tracking only; no gameplay, economy, battle, NPC, state, routing, or UI behavior changed.
+
 ## 2026-06-19 — Step 3.2 allowed dictionary smoke exception fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Safari Fix1 runtime failed with `Can't find variable: resolveDocCandidates` from `Game.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1()`.

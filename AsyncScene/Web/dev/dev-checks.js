@@ -6736,6 +6736,251 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeLexicalFrameStep33StopWordsOnce = () => {
+      const buildTag = "build_2026_06_19_step3_3_stop_words_v1";
+      const commit = "step3_3_stop_words";
+      const smokeVersion = "step3_3_stop_words_v20260619_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        artifactExists: false,
+        step33SectionExists: false,
+        stopWords33Exists: false,
+        forbiddenSampleMatrixExists: false,
+        replacementMapExists: false,
+        allowedControlSamplesExist: false,
+        hardFailCoreSamplesRejected: false,
+        forbiddenSamplesRejected: false,
+        allowedControlSamplesPassed: false,
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        failures: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSyncLocal = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidatesLocal = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirstLocal = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidatesLocal(fileName)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseQuotedArray = (block) => {
+        const values = [];
+        const re = /"((?:\\.|[^"\\])*)"/g;
+        let match = null;
+        while ((match = re.exec(String(block || "")))) {
+          values.push(match[1].replace(/\\"/g, "\"").replace(/\\\\/g, "\\"));
+        }
+        return values;
+      };
+      const extractNamedQuotedArray = (text, label) => {
+        const match = String(text || "").match(new RegExp(`"${label}"\\s*:\\s*\\[([\\s\\S]*?)\\]`, "m"));
+        return match ? parseQuotedArray(match[1]) : null;
+      };
+      const extractArrayBlock = (text, label, nextLabel) => {
+        const pattern = nextLabel
+          ? new RegExp(`${label}\\s*=\\s*\\[([\\s\\S]*?)\\]\\s*\\n\\s*${nextLabel}`, "m")
+          : new RegExp(`${label}\\s*=\\s*\\[([\\s\\S]*?)\\]`, "m");
+        const match = String(text || "").match(pattern);
+        return match ? String(match[1] || "") : "";
+      };
+      const parseForbiddenMatrix = (block) => {
+        const rows = [];
+        const re = /\{sample:"([^"]+)", category:"([^"]+)", expected:"([^"]+)"\}/g;
+        let match = null;
+        while ((match = re.exec(String(block || "")))) rows.push({ sample: match[1], category: match[2], expected: match[3] });
+        return rows;
+      };
+      const parseReplacementMap = (block) => {
+        const rows = [];
+        const re = /\["([^"]+)","([^"]+)"\]/g;
+        let match = null;
+        while ((match = re.exec(String(block || "")))) rows.push([match[1], match[2]]);
+        return rows;
+      };
+      const makePhraseMatcher = (phrase) => {
+        const escaped = String(phrase || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(^|[^0-9A-Za-zА-Яа-яЁё_])${escaped}(?=$|[^0-9A-Za-zА-Яа-яЁё_])`, "i");
+      };
+      const includesForbidden = (text, phrases) => phrases.some((phrase) => makePhraseMatcher(phrase).test(String(text || "")));
+      try {
+        const expectedStopWords = {
+          hard_fail_core_examples: ["кринж", "вайб", "имба", "рофл", "изи", "лол"],
+          meme_language: ["кринж", "кринжово", "кринжуха", "вайб", "вайбик", "рофл", "рофлить", "лол", "мем", "мемно", "мемный", "жиза", "треш", "трэш", "угар", "угарно", "ору", "орнул", "ха-ха", "ахах", "ахаха", "ахахах", "RIP", "WIN", "DRAW"],
+          slang_parasites: ["изи", "имба", "чилл", "чилить", "краш", "крашиха", "крашнулся", "зашквар", "сигма", "база", "базированно", "ультануть", "флекс", "флексить", "мейн", "андер", "го", "гоу", "затащил", "вывез", "не вывез", "просел", "вписывайся", "тыкни", "снести", "снести выбор"],
+          forced_zoomer_tone: ["зумерский", "по-зумерски", "молодёжно", "молодежно", "по-молодёжному", "по-молодежному", "топчик", "кайф", "кайфово", "пушка", "пушечно", "огонь", "огнище", "бомба", "бомбически"],
+          irony_for_irony: ["ну конечно", "ну да", "ага, конечно", "шикарно", "гениально", "гениальный ход", "всё ясно", "все ясно", "что могло пойти не так", "какой сюрприз", "ну удачи", "смешно", "очень смешно", "драма закрыта", "все шумели зря"],
+          childish_copy: ["кнопочка", "денежки", "звёздочки", "звездочки", "игрушечка", "игрокик", "ходик", "голосочек", "ошибочка", "подсказочка", "ситуациячка"],
+          dry_corporate_copy: ["выполните действие", "данное действие недоступно", "недостаточно ресурсов для выполнения операции", "укажите корректного пользователя", "произошла ошибка", "операция завершена", "доступ запрещен", "доступ запрещён", "повторите попытку позднее", "система обрабатывает запрос", "ваш голос зарегистрирован", "инициализация", "авторизация", "валидация", "некорректные данные", "пользователь не найден", "ресурсов недостаточно"]
+        };
+        const expectedMatrix = [
+          { sample: "кринж", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "вайб", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "имба", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "рофл", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "изи", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "лол", category: "hard_fail_core_examples", expected: "FAIL" },
+          { sample: "Правила без душноты", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Снести выбор", category: "slang_parasites", expected: "FAIL" },
+          { sample: "ВПИСЫВАЙСЯ", category: "slang_parasites", expected: "FAIL" },
+          { sample: "ТЫКНИ ИМЯ", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Ты вывез.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Не вывез.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Ты в мейне.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Ты в андере.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Мейн забрал.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Андер просел.", category: "slang_parasites", expected: "FAIL" },
+          { sample: "Драма закрыта.", category: "irony_for_irony", expected: "FAIL" },
+          { sample: "Ничья. Все шумели зря.", category: "irony_for_irony", expected: "FAIL" },
+          { sample: "WIN", category: "meme_language", expected: "FAIL" },
+          { sample: "RIP", category: "meme_language", expected: "FAIL" },
+          { sample: "DRAW", category: "meme_language", expected: "FAIL" },
+          { sample: "Выполните действие", category: "dry_corporate_copy", expected: "FAIL" },
+          { sample: "Данное действие недоступно", category: "dry_corporate_copy", expected: "FAIL" },
+          { sample: "Недостаточно ресурсов для выполнения операции", category: "dry_corporate_copy", expected: "FAIL" },
+          { sample: "Ваш голос зарегистрирован", category: "dry_corporate_copy", expected: "FAIL" }
+        ];
+        const expectedReplacements = [
+          ["Правила без душноты", "Правила коротко"],
+          ["Снести выбор", "Сбросить выбор"],
+          ["ВПИСЫВАЙСЯ", "ГОЛОСУЙ"],
+          ["ТЫКНИ ИМЯ", "ВЫБЕРИ ИМЯ"],
+          ["Ты вывез.", "Ты победил."],
+          ["Не вывез.", "Ты проиграл."],
+          ["Ты в мейне.", "Ты в большинстве."],
+          ["Ты в андере.", "Ты в меньшинстве."],
+          ["Мейн забрал.", "Большинство выиграло."],
+          ["Андер просел.", "Меньшинство проиграло."],
+          ["Драма закрыта.", "Конфликт закрыт."],
+          ["Ничья. Все шумели зря.", "Ничья."],
+          ["WIN", "ПОБЕДА"],
+          ["RIP", "ПОРАЖЕНИЕ"],
+          ["DRAW", "НИЧЬЯ"],
+          ["Выполните действие", "Жми"],
+          ["Данное действие недоступно", "Недоступно"],
+          ["Недостаточно ресурсов для выполнения операции", "Не хватило"],
+          ["Ваш голос зарегистрирован", "Голос учтён"]
+        ];
+        const expectedAllowed = ["можно", "жми", "выбери", "риск есть", "ход сработал", "не хватило", "Правила коротко", "Сбросить выбор", "ГОЛОСУЙ", "ВЫБЕРИ ИМЯ", "Ты победил.", "Ты проиграл.", "Ты в большинстве.", "Ты в меньшинстве.", "Большинство выиграло.", "Меньшинство проиграло.", "Конфликт закрыт.", "Ничья.", "ПОБЕДА", "ПОРАЖЕНИЕ", "НИЧЬЯ", "Недоступно", "Голос учтён"];
+        const artifactName = "UI_PROFILE_LEXICAL_FRAME_STEP31.md";
+        const artifactRes = fetchFirstLocal(artifactName);
+        result.artifactExists = !!(artifactRes && artifactRes.ok);
+        const raw = artifactRes && artifactRes.ok ? String(artifactRes.text || "") : "";
+        if (!result.artifactExists) fail("artifactExists", { path: artifactName, reason: artifactRes && artifactRes.reason ? artifactRes.reason : "unavailable" });
+        const sectionMatch = raw.match(/## Step 3\.3 Stop Words([\s\S]*?)(?:\n## |\n# |$)/);
+        const sectionText = sectionMatch ? String(sectionMatch[1] || "") : "";
+        result.step33SectionExists = !!sectionMatch;
+        result.stopWords33Exists = sectionText.includes("STOP_WORDS_STEP_3_3 = {");
+        result.forbiddenSampleMatrixExists = sectionText.includes("FORBIDDEN_SAMPLE_MATRIX_STEP_3_3 = [");
+        result.replacementMapExists = sectionText.includes("STOP_WORD_REPLACEMENTS_STEP_3_3 = [");
+        result.allowedControlSamplesExist = sectionText.includes("ALLOWED_CONTROL_SAMPLES_STEP_3_3 = [");
+        if (!result.step33SectionExists) addUnique(result.missingCoverage, "Step 3.3 Stop Words");
+        if (!result.stopWords33Exists) addUnique(result.missingCoverage, "STOP_WORDS_STEP_3_3");
+        if (!result.forbiddenSampleMatrixExists) addUnique(result.missingCoverage, "FORBIDDEN_SAMPLE_MATRIX_STEP_3_3");
+        if (!result.replacementMapExists) addUnique(result.missingCoverage, "STOP_WORD_REPLACEMENTS_STEP_3_3");
+        if (!result.allowedControlSamplesExist) addUnique(result.missingCoverage, "ALLOWED_CONTROL_SAMPLES_STEP_3_3");
+        const parsedStopWords = {};
+        Object.keys(expectedStopWords).forEach((key) => {
+          parsedStopWords[key] = extractNamedQuotedArray(sectionText, key);
+          if (!parsedStopWords[key]) addUnique(result.missingCoverage, key);
+        });
+        const matrixBlock = extractArrayBlock(sectionText, "FORBIDDEN_SAMPLE_MATRIX_STEP_3_3", "STOP_WORD_REPLACEMENTS_STEP_3_3");
+        const replacementsBlock = extractArrayBlock(sectionText, "STOP_WORD_REPLACEMENTS_STEP_3_3", "ALLOWED_CONTROL_SAMPLES_STEP_3_3");
+        const allowedBlock = extractArrayBlock(sectionText, "ALLOWED_CONTROL_SAMPLES_STEP_3_3");
+        const parsedMatrix = parseForbiddenMatrix(matrixBlock);
+        const parsedReplacements = parseReplacementMap(replacementsBlock);
+        const parsedAllowed = parseQuotedArray(allowedBlock);
+        Object.keys(expectedStopWords).forEach((key) => {
+          if (JSON.stringify(parsedStopWords[key] || null) !== JSON.stringify(expectedStopWords[key])) fail("stopWords33Exists", { category: key, actual: parsedStopWords[key] || null });
+        });
+        if (JSON.stringify(parsedMatrix) !== JSON.stringify(expectedMatrix)) fail("forbiddenSampleMatrixExists", parsedMatrix);
+        if (JSON.stringify(parsedReplacements) !== JSON.stringify(expectedReplacements)) fail("replacementMapExists", parsedReplacements);
+        if (JSON.stringify(parsedAllowed) !== JSON.stringify(expectedAllowed)) fail("allowedControlSamplesExist", parsedAllowed);
+        const forbiddenPhrases = [];
+        Object.keys(expectedStopWords).forEach((key) => expectedStopWords[key].forEach((phrase) => addUnique(forbiddenPhrases, phrase)));
+        expectedMatrix.forEach((row) => addUnique(forbiddenPhrases, row.sample));
+        expectedReplacements.forEach((row) => addUnique(forbiddenPhrases, row[0]));
+        const hardFailCoreSamples = expectedStopWords.hard_fail_core_examples.slice();
+        const hardFailMisses = hardFailCoreSamples.filter((sample) => !includesForbidden(sample, forbiddenPhrases));
+        const forbiddenMisses = expectedMatrix.filter((row) => !includesForbidden(row.sample, forbiddenPhrases)).map((row) => row.sample);
+        const allowedHits = expectedAllowed.filter((sample) => includesForbidden(sample, forbiddenPhrases));
+        hardFailMisses.forEach((sample) => addUnique(result.forbiddenRemaining, sample));
+        forbiddenMisses.forEach((sample) => addUnique(result.forbiddenRemaining, sample));
+        allowedHits.forEach((sample) => addUnique(result.failures, { check: "allowed_control_sample_blocked", detail: sample }));
+        result.hardFailCoreSamplesRejected = hardFailMisses.length === 0;
+        result.forbiddenSamplesRejected = forbiddenMisses.length === 0;
+        result.allowedControlSamplesPassed = allowedHits.length === 0;
+        if (!result.hardFailCoreSamplesRejected) fail("hardFailCoreSamplesRejected", hardFailMisses);
+        if (!result.forbiddenSamplesRejected) fail("forbiddenSamplesRejected", forbiddenMisses);
+        if (!result.allowedControlSamplesPassed) fail("allowedControlSamplesPassed", allowedHits);
+        if (!buildTag || buildTag.indexOf("step3_3_stop_words") === -1) fail("buildTag", buildTag);
+        if (!commit || commit !== "step3_3_stop_words") fail("commit", commit);
+        if (!smokeVersion || smokeVersion.indexOf("step3_3_stop_words") === -1 || smokeVersion === "step3_1_lexical_frame_v20260618_001" || smokeVersion === "step3_2_allowed_dictionary_fix1_v20260619_001" || smokeVersion === "step3_2_allowed_dictionary_fix2_v20260619_002") fail("smokeVersion", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.artifactExists === true
+        && result.step33SectionExists === true
+        && result.stopWords33Exists === true
+        && result.forbiddenSampleMatrixExists === true
+        && result.replacementMapExists === true
+        && result.allowedControlSamplesExist === true
+        && result.hardFailCoreSamplesRejected === true
+        && result.forbiddenSamplesRejected === true
+        && result.allowedControlSamplesPassed === true
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -13261,6 +13506,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     Game.Dev.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
     Game.Dev.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
+    Game.Dev.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
       const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -13928,6 +14174,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     G.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
     G.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
+    G.__DEV.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -14019,6 +14266,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     devStore.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
     devStore.smokeLexicalFrameStep32AllowedDictionaryFix2 = smokeLexicalFrameStep32AllowedDictionaryFix2;
+    devStore.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
