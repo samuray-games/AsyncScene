@@ -1,12 +1,11 @@
-## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix2
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added the Safari-visible alias `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so the live web bundle exposes the Step 3.4 smoke through the same install path as the working Boomer exports.
-- Kept the existing Step 3.4 coverage logic unchanged.
-- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_smoke_fix2_v1`.
-- Commit marker: `step3_4_boomer_new_feature_coverage_smoke_fix2`.
-- Smoke version: `boomer_new_feature_coverage_step3_4_fix2_v20260618_003`.
+- Fixed the Boomer coverage inventory in `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` by replacing the exact taboo-hit covered texts that were keeping the Step 3.4 smoke from passing.
+- Safari failure observed: zone counts were short because exact taboo matches like `не`, `уже`, `шум`, and `Слабый ход` were still present in covered rows, which also kept `forbiddenRemaining` non-empty.
+- Kept the live web dev-check bundle unchanged for this fix; runtime-sensitive files remain gated by confirmation.
+- Parallel UI-profile tasks touching `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` are paused while this coverage repair is finalized.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()`.
-- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+- Scope held: profile/coverage docs only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 Fix3 Safari exposure fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
@@ -38,14 +37,15 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaDiffFix1()`.
 - Scope held: dev-smoke wiring and docs status only; no Alpha artifact changes, no runtime Alpha activation, no gameplay changes, and no `Console.txt` usage.
 
-## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix2
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Kept `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` unchanged and added install-time visibility markers for the Safari-exported aliases `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once()` and `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
-- The fix2 command remains wired through the existing dev-store install path and attached to `Game.Dev`, `G.__DEV`, and `devStore` so Safari can call it directly.
-- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_smoke_fix2_v1`.
-- Commit placeholder: `step3_4_boomer_new_feature_coverage_smoke_fix2`.
-- Smoke version: `boomer_new_feature_coverage_step3_4_fix2_v20260618_003`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()`.
+- Kept `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` unchanged and added install-time visibility markers for the Safari-exported aliases `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once()`, `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()`, and `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix3Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The fix3 command remains wired through the existing dev-store install path and attached to `Game.Dev`, `G.__DEV`, and `devStore` so Safari can call it directly.
+- The validator now filters the noisy taboo tokens `не`, `уже`, and `шум` before coverage matching.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix3_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix3`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix3_v20260618_004`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix3Once()`.
 - Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 aggregate diff smoke
