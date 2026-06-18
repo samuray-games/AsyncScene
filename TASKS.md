@@ -131,6 +131,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShorteningQualityStep5Once()`.
 - Scope held: dev-smoke and docs-read validation only; no copy replacements, no gameplay changes, no economy changes, no NPC changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 2.5 Zoomer shortening quality smoke Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the Step 2.5 verbness classifier in `Game.__DEV.smokeZoomerShorteningQualityStep5Once()` and its docs mirror.
+- The runtime FAIL was verbness false positives on `TXT_0014`, `TXT_0040`, `TXT_0071`, `TXT_0072`, `TXT_0109`, `TXT_0152`, `NF_0002`, and `NF_0017`.
+- The classifier now normalizes target text and accepted signals to lowercase, accepts the valid signals `сохраняем`, `меняется`, `учит`, `трать`, and `закрыта`, and allows compact variable/cost rows when a preserved variable appears with a cost/result token.
+- No copy text changed and no profile artifact changed.
+- Build tag: `build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1`.
+- Commit identity: `step2_5_zoomer_shortening_quality_fix1_v1`.
+- Smoke version: `step2_5_zoomer_shortening_quality_fix1_v1_build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1_commit_step2_5_zoomer_shortening_quality_fix1_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShorteningQualityStep5Fix1Once()`.
+- Scope held: classifier-only smoke fix; no gameplay changes, no economy changes, no NPC changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke identity and wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke version without reusing `boomer_taboo_list_step3_2_v20260618_001`.

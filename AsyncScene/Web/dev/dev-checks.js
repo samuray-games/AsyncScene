@@ -5116,6 +5116,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md");
       return result;
     };
+    const smokeZoomerShorteningQualityStep5Fix1Once = () => {
+      const result = smokeZoomerShorteningQualityStep5Once();
+      result.buildTag = "build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1";
+      result.commit = "step2_5_zoomer_shortening_quality_fix1_v1";
+      result.smokeVersion = "step2_5_zoomer_shortening_quality_fix1_v1_build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1_commit_step2_5_zoomer_shortening_quality_fix1_v1";
+      return result;
+    };
     const smokeZoomerShorteningDocsOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -10262,6 +10269,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     Game.Dev.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     Game.Dev.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
+    Game.Dev.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
@@ -10316,6 +10324,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep16NewFeaturesOnce = smokeAlphaStep16NewFeaturesOnce;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
+    G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -10371,6 +10380,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerHintTermsOnce = smokeZoomerHintTermsOnce;
     devStore.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     devStore.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
+    devStore.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;

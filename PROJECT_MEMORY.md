@@ -1491,6 +1491,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShorteningQualityStep5Once()`.
 - Scope held: dev-smoke and docs-read validation only; no copy replacements, no gameplay changes, no economy changes, no NPC changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 2.5 Zoomer shortening quality smoke Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed only the Step 2.5 verbness classifier in `Game.__DEV.smokeZoomerShorteningQualityStep5Once()` and its docs mirror.
+- The runtime FAIL was verbness false positives on `TXT_0014`, `TXT_0040`, `TXT_0071`, `TXT_0072`, `TXT_0109`, `TXT_0152`, `NF_0002`, and `NF_0017`.
+- The classifier now normalizes target text and accepted signals to lowercase, accepts the valid signals `сохраняем`, `меняется`, `учит`, `трать`, and `закрыта`, and allows compact variable/cost rows when a preserved variable appears with a cost/result token.
+- No copy text changed and no profile artifact changed.
+- Build tag: `build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1`.
+- Commit identity: `step2_5_zoomer_shortening_quality_fix1_v1`.
+- Smoke version: `step2_5_zoomer_shortening_quality_fix1_v1_build_2026_06_18_step2_5_zoomer_shortening_quality_fix1_v1_commit_step2_5_zoomer_shortening_quality_fix1_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShorteningQualityStep5Fix1Once()`.
+- Scope held: classifier-only smoke fix; no gameplay changes, no economy changes, no NPC changes, and no `Console.txt` usage.
+
 ## 2026-06-05 — Step 4 [5] missing error coverage only
 - Safari/runtime FAIL was narrowed to `Game.__DEV.smokeZoomerErrorTermsOnce()` missing only `Не удалось.` and `Повтори позже.`, while the served runtime identity was still stale at `build_2026_06_05_ac` / `a58c803`.
 - Changed only the served Step 4 [5] smoke bundles and served entry HTML: both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` now inject exact error inventory entries for `Не удалось.` and `Повтори позже.` inside `collectZoomerTermsInventoryEntries()`, and both served runtime markers/cache-busts were refreshed to `build_2026_06_05_ad` / `a3090e1` / `step4-5-zoomer-error-terms-ad`.
