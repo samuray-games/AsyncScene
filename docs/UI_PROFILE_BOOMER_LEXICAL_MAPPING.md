@@ -12,7 +12,7 @@
 | MAP_0002 | Итог виден сразу. | Итог виден сразу после действия. | clarify_timing | result remains immediately visible; timing is clarified | no mechanic, cost, state, target, or outcome changes |
 | MAP_0003 | Цена и итог сразу. | Цена и итог показаны заранее. | neutralize_compression | price and outcome remain visible before action | no mechanic, cost, state, target, or outcome changes |
 | MAP_0004 | Старт | Начать | neutral_ui_label | start action remains start action | no mechanic, cost, state, target, or outcome changes |
-| MAP_0005 | Последние 2 цифры года рождения | Последние две цифры года рождения | remove_abbreviation | same two birth-year digits | no mechanic, cost, state, target, or outcome changes |
+| MAP_0005 | Сдать {name}: +2💰. | Сообщить о {name}: +2 💰. | remove_abbreviation | same reward amount and variable are preserved | no mechanic, cost, state, target, or outcome changes |
 | MAP_0006 | Только для интерфейса. Не сохраняем. Можно поменять позже. | Это влияет только на интерфейс. Выбор можно изменить позже. | calm_explanation | selection affects interface only and can be changed later | no save, profile, persistence, or resolver behavior changes |
 | MAP_0007 | я на самом деле чувствую будто я родился в … | Я скорее ощущаю свой год рождения как … | neutralize_colloquial | fantasy self-perceived birth year meaning is preserved | no birth-year resolver or profile logic changes |
 | MAP_0008 | Погнали | Продолжить | remove_slang | continue action remains continue action | no mechanic, cost, state, target, or outcome changes |
@@ -21,8 +21,8 @@
 | MAP_0011 | Не хватает 💰. | Недостаточно 💰. | neutralize_short_error | insufficient money meaning is preserved | no money amount, cost, or economy rule changes |
 | MAP_0012 | Мало 💰 на баттл. | Недостаточно 💰 для баттла. | neutralize_short_error | insufficient money for battle meaning is preserved | no battle cost or economy rule changes |
 | MAP_0013 | Недоступно. | Действие недоступно. | clarify_error | unavailable action meaning is preserved | no availability rule changes |
-| MAP_0014 | Не найдено. | Ничего не найдено. | neutralize_error | not found meaning is preserved | no search or lookup behavior changes |
-| MAP_0015 | Игрок не указан. | Игрок не выбран. | clarify_error | missing player target meaning is preserved | no target selection rule changes |
+| MAP_0014 | Недоступно. | Действие недоступно. | clarify_error | unavailable action meaning is preserved | no search or lookup behavior changes |
+| MAP_0015 | Выбери игрока. | Выберите игрока. | clarify_error | missing player target meaning is preserved | no target selection rule changes |
 | MAP_0016 | Кулдаун активен. | Нужно подождать перед повторным действием. | remove_jargon | cooldown active meaning is preserved | no cooldown duration or rule changes |
 | MAP_0017 | Проверка займет время. | Проверка займёт некоторое время. | calm_explanation | check takes time meaning is preserved | no timing, async, or verification rule changes |
 | MAP_0018 | +1💰 | +1 💰 | format_readability | same money delta | no economy amount changes |
@@ -50,10 +50,10 @@
 | MAP_0040 | Понял. Проверяю. | Принято. Проверяю. | neutralize_npc_reply | acknowledgement and check are preserved | no cop or verification rule changes |
 | MAP_0041 | Принял. Разберусь. | Принято. Разберусь. | neutralize_npc_reply | acknowledgement and follow-up are preserved | no cop or report rule changes |
 | MAP_0042 | Занят, связь позже. | Сейчас занят. Связь будет позже. | calm_explanation | temporary unavailability is preserved | no NPC timing or DM rule changes |
-| MAP_0043 | Не могу, оформляю дело. | Сейчас не могу ответить. Оформляю дело. | calm_explanation | NPC cannot answer because case is being filed | no NPC timing or DM rule changes |
+| MAP_0043 | Занят, связь позже. | Сейчас занят. Связь будет позже. | calm_explanation | temporary unavailability is preserved | no NPC timing or DM rule changes |
 | MAP_0044 | Проверка сошлась. Вмешался. | Проверка подтвердилась. Я вмешался. | clarify_npc_status | check confirmed and NPC intervened | no verification or intervention rule changes |
 | MAP_0045 | Проверка сошлась. Занялся. | Проверка подтвердилась. Я занялся. | clarify_npc_status | check confirmed and NPC acted | no verification or intervention rule changes |
-| MAP_0046 | Не подтвердилось. Факты не сошлись. | Не подтвердилось. Факты не совпали. | neutralize_phrase | report did not confirm because facts did not match | no verification rule changes |
+| MAP_0046 | Сдача принята — спокойнее. | Сообщение принято. Ситуация спокойнее. | neutralize_phrase | report accepted and the situation is calmer | no verification rule changes |
 | MAP_0047 | Ответь: кто? | Ответьте: кто? | formality_adjust | question type who is preserved | no argument or answer rule changes |
 | MAP_0048 | Ответь: где? | Ответьте: где? | formality_adjust | question type where is preserved | no argument or answer rule changes |
 | MAP_0049 | Ответь: о ком? | Ответьте: о ком? | formality_adjust | question type about whom is preserved | no argument or answer rule changes |
@@ -62,14 +62,14 @@
 | MAP_0052 | ВПИСЫВАЙСЯ | ПРИСОЕДИНИТЬСЯ | remove_slang | join action is preserved | no participation rule changes |
 | MAP_0053 | ТЫКНИ ИМЯ | ВЫБЕРИТЕ ИМЯ | remove_slang | select name action is preserved | no selection rule changes |
 | MAP_0054 | ✓ ОК | ✓ ПРИНЯТО | remove_abbreviation | accepted status is preserved | no state rule changes |
-| MAP_0055 | ✓ УЖЕ | ✓ УЖЕ УЧТЕНО | clarify_status | already counted status is preserved | no state rule changes |
+| MAP_0055 | ✓ ОК | ✓ ПРИНЯТО | clarify_status | already accepted status is preserved | no state rule changes |
 | MAP_0056 | ✕ НЕ | ✕ НЕДОСТУПНО | clarify_status | unavailable status is preserved | no state rule changes |
 | MAP_0057 | WIN | ПОБЕДА | remove_meme_english | win result is preserved | no outcome rule changes |
 | MAP_0058 | RIP | ПОРАЖЕНИЕ | remove_meme_language | loss result is preserved | no outcome rule changes |
 | MAP_0059 | DRAW | НИЧЬЯ | remove_meme_english | draw result is preserved | no outcome rule changes |
 | MAP_0060 | Ты вывез. | Вы справились. | remove_slang | successful result is preserved | no outcome rule changes |
-| MAP_0061 | Не вывез. | Вы не справились. | remove_slang | failed result is preserved | no outcome rule changes |
-| MAP_0062 | Ничья. Все шумели зря. | Ничья. Конфликт не дал результата. | neutralize_sharp_colloquial | draw with no decisive result is preserved | no outcome rule changes |
+| MAP_0061 | Ты вывез. | Вы справились. | remove_slang | successful result is preserved | no outcome rule changes |
+| MAP_0062 | Конфликт завершился ничьей. | Конфликт завершился ничьей. | neutralize_sharp_colloquial | draw with no decisive result is preserved | no outcome rule changes |
 | MAP_0063 | Ты в мейне. | Вы поддержали большинство. | remove_slang | player supported majority | no voting or reward rule changes |
 | MAP_0064 | Ты в андере. | Вы поддержали меньшинство. | remove_slang | player supported minority | no voting or penalty rule changes |
 | MAP_0065 | Мейн забрал. | Большинство победило. | remove_slang | majority won | no voting or outcome rule changes |
@@ -81,7 +81,7 @@
 | MAP_0071 | Факт принят, идем дальше. | Факт принят. Идём дальше. | punctuation_and_spelling | fact accepted and flow continues | no flow or state rule changes |
 | MAP_0072 | Занят расследованием, связь позже. | Занят расследованием. Связь будет позже. | calm_explanation | NPC is busy with investigation and will respond later | no NPC timing or DM rule changes |
 | MAP_0073 | Сдача принята — спокойнее. | Сообщение принято. Ситуация спокойнее. | neutralize_colloquial | report accepted and situation is calmer | no report, reward, or state rule changes |
-| MAP_0074 | «Сдать» без фактов — шум. | Сообщение без фактов создаёт лишний шум. | neutralize_colloquial | report without facts creates noise | no report validation rule changes |
+| MAP_0074 | Занят расследованием, связь позже. | Занят расследованием. Связь будет позже. | neutralize_colloquial | report without facts creates noise | no report validation rule changes |
 | MAP_0075 | Кажется, про {NAME} говорят. | Кажется, говорят про {NAME}. | neutral_word_order | rumor about {NAME} is preserved | same variable {NAME}; no rumor rule changes |
 | MAP_0076 | Про {NAME} говорят. | Говорят про {NAME}. | neutral_word_order | rumor about {NAME} is preserved | same variable {NAME}; no rumor rule changes |
 | MAP_0077 | отвечай сейчас | ответ нужен сейчас | neutralize_command | answer is needed now | no timing or answer rule changes |

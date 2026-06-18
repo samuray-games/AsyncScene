@@ -106,24 +106,17 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
 ## UI_PROFILE_ZOOMER_SHORTEN_RULE
 
-- From `UI_PROFILE_MILLENNIAL` base/source: shorten phrases by 30-40%. Keep original meaning and do not contradict `UI_PROFILE_ZOOMER_DIFF`.
-- Remove intro/filler words.
-- Remove softeners.
-- Replace abstractions with direct actions.
-- Reduce abstractions.
-- Fewer abstractions.
-- Replace abstract wording with action verbs.
-- Prefer verbs over nouns.
-- Keep variables unchanged.
-- Keep economy honesty unchanged.
-- Keep action honesty unchanged.
-- Do not promise success.
-- Do not change mechanics.
-- Do not make the text teen slang.
-- Do not add memes.
-- Do not add teen slang, memes, fake youth voice, or irony.
-- Do not make NPCs mentor the player.
-- If a phrase is already minimal, keep it unchanged and mark it as `keep`.
+- phrases are shorter by default
+- target reduction: 30-40 percent where possible
+- remove intro words
+- replace abstractions with direct actions or state signals
+- preserve meaning
+- preserve variables exactly
+- do not touch argument canon
+- do not rewrite NPC speech unless explicitly scoped
+- do not mutate gameplay or economy logic
+- new feature copy must pass the same rule
+- Step 2 is documentation/profile layer unless a later task explicitly applies runtime copy
 
 ### Required phrase matrix
 
@@ -384,6 +377,15 @@ Allowed vocabulary inventory:
 | npcSpeech | можно; выбери ход; риск есть | short direct NPC lines only |
 
 All exclusions from `UI_PROFILE_ZOOMER_LEXICAL_FRAME` still apply; this inventory adds no excluded examples.
+
+## UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6
+
+STEP_2_1 | runtime Safari PASS | ruleExists:true | checkedCount:128 | matrixCount:128
+STEP_2_2 | runtime Safari PASS | tableExists:true | checkedCount:15 | tableCount:15
+STEP_2_3 | runtime Safari PASS | appliedCount:79 | checkedCount:79 | shorterCount:79 | meaningPreserved:true | variablesPreserved:true
+STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantCount:43 | groupsCovered:5 | newFeatureCoverageOk:true
+STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true
+STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()
 
 ## UI_PROFILE_ZOOMER_STOP_WORDS
 
