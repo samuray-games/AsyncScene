@@ -5636,6 +5636,187 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeZoomerShorteningDocsStep6Fix1Once = () => {
+      const buildTag = "build_2026_06_18_step2_6_zoomer_shortening_docs_fix1_v1";
+      const commit = "step2_6_zoomer_shortening_docs_fix1_v1";
+      const smokeVersion = "step2_6_zoomer_shortening_docs_fix1_v1_build_2026_06_18_step2_6_zoomer_shortening_docs_fix1_v1_commit_step2_6_zoomer_shortening_docs_fix1_v1";
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        docIssues: [],
+        statusIssues: [],
+        parityIssues: [],
+        logicChangeIssues: [],
+        checkedSections: 0,
+        checkedPassLines: 0,
+        checkedDocs: 0,
+        honestStatusOk: false,
+        docsParityOk: false,
+        noLogicChangeOk: false,
+        servedArtifacts: [],
+        skippedArtifacts: [],
+        changedFiles: [
+          "AsyncScene/Web/dev/dev-checks.js",
+          "docs/dev/dev-checks.js",
+          "TASKS.md",
+          "PROJECT_MEMORY.md"
+        ],
+        buildTag,
+        commit,
+        smokeVersion
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFromCandidates = (label, candidates, skip404) => {
+        let lastResult = null;
+        for (const path of candidates) {
+          const res = fetchTextSync(path);
+          if (res.ok) {
+            addUnique(result.servedArtifacts, label === "root" ? "UI_PROFILE_ZOOMER_DIFF.md" : path);
+            return { ok: true, text: res.text || "", path };
+          }
+          lastResult = res;
+        }
+        const reason = lastResult && lastResult.reason ? lastResult.reason : "unavailable";
+        if (skip404 && /^http_404$/.test(reason)) {
+          addUnique(result.skippedArtifacts, `${label}:${(lastResult && lastResult.path) || candidates[0]}`);
+          return { ok: false, skipped: true, reason, path: (lastResult && lastResult.path) || candidates[0] };
+        }
+        return { ok: false, reason, path: (lastResult && lastResult.path) || candidates[0] };
+      };
+      const extractSection = (text, marker) => {
+        const match = String(text || "").match(new RegExp(`##\\s*${marker}([\\s\\S]*?)(?:\\n## |\\n# |$)`, "i"));
+        return match ? String(match[1] || "") : "";
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/`/g, "").replace(/\s+/g, " ").trim();
+      try {
+        const rootRes = fetchFromCandidates("root", [
+          "UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "./UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "/AsyncScene/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1"
+        ]);
+        if (!rootRes.ok) fail("root_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable" });
+        const docsRes = fetchFromCandidates("docs", [
+          "docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "./docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "/AsyncScene/docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1",
+          "/docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6_fix1"
+        ], true);
+        const tasksRes = fetchFromCandidates("TASKS.md", [
+          "TASKS.md?smoke=step2_6_fix1",
+          "./TASKS.md?smoke=step2_6_fix1",
+          "/AsyncScene/TASKS.md?smoke=step2_6_fix1",
+          "/TASKS.md?smoke=step2_6_fix1"
+        ], true);
+        const memoryRes = fetchFromCandidates("PROJECT_MEMORY.md", [
+          "PROJECT_MEMORY.md?smoke=step2_6_fix1",
+          "./PROJECT_MEMORY.md?smoke=step2_6_fix1",
+          "/AsyncScene/PROJECT_MEMORY.md?smoke=step2_6_fix1",
+          "/PROJECT_MEMORY.md?smoke=step2_6_fix1"
+        ], true);
+        const rootRaw = rootRes.ok ? String(rootRes.text || "") : "";
+        const docsRaw = docsRes.ok ? String(docsRes.text || "") : "";
+        const tasksRaw = tasksRes.ok ? String(tasksRes.text || "") : "";
+        const memoryRaw = memoryRes.ok ? String(memoryRes.text || "") : "";
+        const sections = {
+          UI_PROFILE_ZOOMER_SHORTEN_RULE: extractSection(rootRaw, "UI_PROFILE_ZOOMER_SHORTEN_RULE"),
+          UI_PROFILE_ZOOMER_TRANSFORM_TABLE: extractSection(rootRaw, "UI_PROFILE_ZOOMER_TRANSFORM_TABLE"),
+          UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3: extractSection(rootRaw, "UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3"),
+          UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4: extractSection(rootRaw, "UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4"),
+          UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6: extractSection(rootRaw, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6")
+        };
+        result.checkedSections = Object.keys(sections).length;
+        Object.entries(sections).forEach(([name, text]) => {
+          if (!text) {
+            addUnique(result.docIssues, name);
+            fail("missing_section", name);
+          }
+        });
+        const step6Text = normalize(sections.UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6 || "");
+        const passLines = [
+          "STEP_2_1 | runtime Safari PASS | ruleExists:true | checkedCount:128 | matrixCount:128",
+          "STEP_2_2 | runtime Safari PASS | tableExists:true | checkedCount:15 | tableCount:15",
+          "STEP_2_3 | runtime Safari PASS | appliedCount:79 | checkedCount:79 | shorterCount:79 | meaningPreserved:true | variablesPreserved:true",
+          "STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantCount:43 | groupsCovered:5 | newFeatureCoverageOk:true",
+          "STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true",
+          "STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()"
+        ];
+        passLines.slice(0, 5).forEach((line) => {
+          if (!step6Text.includes(normalize(line))) {
+            addUnique(result.docIssues, `missing_step_line:${line}`);
+            fail("step6_pass_line", line);
+          }
+        });
+        if (!step6Text.includes(normalize(passLines[5]))) {
+          addUnique(result.docIssues, "missing_step_2_6_pending_line");
+          fail("step6_pending_line", passLines[5]);
+        }
+        result.checkedPassLines = 5;
+        if (docsRes.ok) {
+          const docsStep6Text = normalize(extractSection(docsRaw, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6"));
+          result.docsParityOk = docsStep6Text === step6Text;
+          if (!result.docsParityOk) {
+            addUnique(result.parityIssues, "UI_PROFILE_ZOOMER_SHORTEN_DOCS_STEP6");
+            fail("docs_parity", "step6_section_mismatch");
+          }
+        } else {
+          result.docsParityOk = true;
+        }
+        const statusNeedles = [
+          "READY_FOR_RUNTIME_SMOKE before Safari.",
+          "FAIL if self-check fails.",
+          "PASS only after user Safari runtime result with ok:true and empty problem arrays."
+        ];
+        result.honestStatusOk = statusNeedles.every((needle) => step6Text.includes(normalize(needle)));
+        if (!result.honestStatusOk) {
+          addUnique(result.statusIssues, "served Step 2.6 status block");
+          fail("honest_status", "served Step 2.6 status block missing");
+        }
+        result.noLogicChangeOk = step6Text.includes(normalize("no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6."));
+        if (!result.noLogicChangeOk) {
+          addUnique(result.logicChangeIssues, "served Step 2.6 no-logic-change block");
+          fail("no_logic_change", "served Step 2.6 no-logic-change block missing");
+        }
+        result.checkedDocs = 3;
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.docIssues.length === 0
+        && result.statusIssues.length === 0
+        && result.parityIssues.length === 0
+        && result.logicChangeIssues.length === 0
+        && result.checkedSections === 5
+        && result.checkedPassLines === 5
+        && result.checkedDocs === 3
+        && result.honestStatusOk === true
+        && result.docsParityOk === true
+        && result.noLogicChangeOk === true
+        && result.servedArtifacts.includes("UI_PROFILE_ZOOMER_DIFF.md")
+        && String(result.smokeVersion || "").includes("step2_6_zoomer_shortening_docs_fix1");
+      return result;
+    };
 
     const smokeZoomerLexicalFrameOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -10889,6 +11070,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
@@ -10948,6 +11130,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     G.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    G.__DEV.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -11007,6 +11190,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
     devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    devStore.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;

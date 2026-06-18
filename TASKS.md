@@ -1824,6 +1824,21 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
 - Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Once()`
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — AsyncScene Step 2.6 Fix 1 Zoomer shortening docs smoke GitHub Pages safety
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Fix scope: smoke deployment-surface only. `UI_PROFILE_ZOOMER_DIFF.md` stays served and validated; `TASKS.md` and `PROJECT_MEMORY.md` are repo-local docs.
+- Safari reported `TASKS.md` and `PROJECT_MEMORY.md` as `http_404` on GitHub Pages. The Fix 1 smoke must treat those repo-local docs as skipped artifacts instead of failures.
+- Exact Safari failure: `TASKS.md and PROJECT_MEMORY.md returned http_404 on GitHub Pages; smoke must treat them as repo-local docs and validate runtime-readable manifest lines from UI_PROFILE_ZOOMER_DIFF.md.`
+- The runtime-readable Step 2.6 manifest in `UI_PROFILE_ZOOMER_DIFF.md` remains the source of truth for honest status and no-logic-change validation:
+  - `STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()`
+  - `READY_FOR_RUNTIME_SMOKE before Safari.`
+  - `FAIL if self-check fails.`
+  - `PASS only after user Safari runtime result with ok:true and empty problem arrays.`
+  - `no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6.`
+- New Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once()`
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
 
 - Status: PASS. Runtime-confirmed PASS evidence is recorded in `PROJECT_MEMORY.md`.
