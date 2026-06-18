@@ -11336,7 +11336,330 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
-    const smokeBoomerNewFeatureCoverageStep34Once = () => ({ ok: false });
+    const smokeBoomerNewFeatureCoverageStep34Once = () => {
+      const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_v1";
+      const commit = "step3_4_boomer_new_feature_coverage";
+      const smokeVersion = "boomer_new_feature_coverage_step3_4_v20260618_001";
+      const zoneSpecs = [
+        { zone: "economy", ids: ["TXT_0025", "TXT_0026", "TXT_0030", "TXT_0034", "TXT_0038", "TXT_0039", "TXT_0042", "TXT_0043", "TXT_0044", "TXT_0045", "TXT_0046", "TXT_0047", "TXT_0048", "TXT_0049", "TXT_0070", "TXT_0071", "TXT_0108", "TXT_0109", "TXT_0132", "TXT_0133", "TXT_0139", "TXT_0142", "TXT_0149", "TXT_0150", "TXT_0155", "TXT_0164"] },
+        { zone: "npc_vs_npc", ids: ["TXT_0040", "TXT_0050", "TXT_0051", "TXT_0052", "TXT_0053", "TXT_0054", "TXT_0055", "TXT_0056", "TXT_0067", "TXT_0068", "TXT_0069", "TXT_0072", "TXT_0097", "TXT_0098", "TXT_0099", "TXT_0100", "TXT_0101", "TXT_0102", "TXT_0107", "TXT_0111", "TXT_0112", "TXT_0113", "TXT_0114", "TXT_0115", "TXT_0116", "TXT_0117", "TXT_0118"] },
+        { zone: "dm", ids: ["TXT_0079", "TXT_0080", "TXT_0081", "TXT_0082", "TXT_0083", "TXT_0084", "TXT_0085", "TXT_0086", "TXT_0110", "TXT_0114", "TXT_0116", "TXT_0134", "TXT_0135", "TXT_0136", "TXT_0137", "TXT_0138", "TXT_0140"] },
+        { zone: "reports", ids: ["TXT_0037", "TXT_0038", "TXT_0039", "TXT_0079", "TXT_0080", "TXT_0083", "TXT_0084", "TXT_0085", "TXT_0086", "TXT_0110", "TXT_0112", "TXT_0113", "TXT_0117", "TXT_0118"] },
+        { zone: "respect", ids: ["TXT_0151", "TXT_0152", "TXT_0153", "TXT_0154", "TXT_0155", "TXT_0156"] },
+        { zone: "learning", ids: ["TXT_0003", "TXT_0004", "TXT_0005", "TXT_0006", "TXT_0021", "TXT_0057", "TXT_0058", "TXT_0059", "TXT_0060", "TXT_0063", "TXT_0064", "TXT_0065", "TXT_0066", "TXT_0071", "TXT_0087", "TXT_0088", "TXT_0089", "TXT_0090", "TXT_0119", "TXT_0120", "TXT_0121", "TXT_0122", "TXT_0123", "TXT_0124", "TXT_0125", "TXT_0126", "TXT_0127", "TXT_0128", "TXT_0129"] },
+        { zone: "rematch", ids: ["TXT_0041", "TXT_0046", "TXT_0143", "TXT_0144"] },
+        { zone: "crowd", ids: ["TXT_0036", "TXT_0053", "TXT_0066", "TXT_0091", "TXT_0092", "TXT_0093", "TXT_0094", "TXT_0095", "TXT_0096", "TXT_0103", "TXT_0104", "TXT_0105", "TXT_0106", "TXT_0141"] },
+        { zone: "errors", ids: ["TXT_0024", "TXT_0025", "TXT_0026", "TXT_0027", "TXT_0028", "TXT_0029", "TXT_0031", "TXT_0032", "TXT_0073", "TXT_0074", "TXT_0077", "TXT_0141", "TXT_0142", "TXT_0143", "TXT_0144", "TXT_0145", "TXT_0146", "TXT_0147", "TXT_0148", "TXT_0149", "TXT_0150", "TXT_0151", "TXT_0152", "TXT_0153", "TXT_0154", "TXT_0160", "TXT_0161", "TXT_0162", "TXT_0163", "TXT_0164"] },
+        { zone: "hints", ids: ["TXT_0003", "TXT_0004", "TXT_0005", "TXT_0006", "TXT_0014", "TXT_0021", "TXT_0033", "TXT_0057", "TXT_0058", "TXT_0059", "TXT_0060", "TXT_0063", "TXT_0064", "TXT_0065", "TXT_0066", "TXT_0071", "TXT_0086", "TXT_0108", "TXT_0109"] }
+      ];
+      const zoneOrder = zoneSpecs.map((spec) => spec.zone);
+      const makeResult = () => ({
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        coverageArtifactExists: false,
+        coverageConnectedToDevSmoke: false,
+        zoneCount: 0,
+        requiredZonesFound: false,
+        zoneCoverageComplete: false,
+        coveredZoneNames: [],
+        coverageByZone: zoneSpecs.map((spec) => ({ zone: spec.zone, requiredCount: spec.ids.length, coveredCount: 0, missingIds: [], extraInvalidIds: [] })),
+        allCoveredIdsExistInAllowedLexicon: false,
+        allCoveredBoomerTextsNonEmpty: false,
+        noTabooInCoveredTexts: false,
+        noSlangInCoveredTexts: false,
+        noMemeLanguageInCoveredTexts: false,
+        noOfficialeseInCoveredTexts: false,
+        noMoralizingInCoveredTexts: false,
+        allowedLexiconStillExists: false,
+        allowedLexiconInventoryCount: 0,
+        tabooListStillExists: false,
+        tabooEntryCount: 0,
+        lexicalMappingStillExists: false,
+        lexicalMappingRowCount: 0,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        uiLayerOnly: true,
+        runtimeLogicTouched: false
+      });
+      const result = makeResult();
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? check : { check, detail }); };
+      const normalize = (text) => String(text == null ? "" : text).replace(/\r\n?/g, "\n").trim();
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) { return { ok: false, reason: "xhr_exception", path }; }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) { bases.push(`${location.origin}/AsyncScene/`); bases.push(`${location.origin}/`); bases.push(`${location.origin}/docs/`); }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) { add(`${location.origin}/AsyncScene/${fileName}`); add(`${location.origin}/docs/${fileName}`); add(`${location.origin}/${fileName}`); }
+        add(`/AsyncScene/${fileName}`); add(`/docs/${fileName}`); add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) { const res = fetchTextSync(candidate); last = res; if (res.ok) return res; }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseCoverageRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*([a-z_]+)\s*\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|$/i);
+          if (match) rows.push({ zone: String(match[1] || "").toLowerCase(), id: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const parseTabooRows = (text) => {
+        const rows = [];
+        let currentCategory = "";
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const heading = line.match(/^###\s+([a-z_]+)\s*$/i);
+          if (heading) { currentCategory = String(heading[1] || "").toLowerCase(); return; }
+          const item = line.match(/^\-\s+(.*\S)\s*$/);
+          if (item && currentCategory) rows.push({ category: currentCategory, phrase: String(item[1] || "").trim() });
+        });
+        return rows;
+      };
+      const parseMappingRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(MAP_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], from: match[2], to: match[3], type: match[4], semanticInvariant: match[5], mechanicsInvariant: match[6] });
+        });
+        return rows;
+      };
+      const makeExactMatcher = (phrase) => {
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return null;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u");
+      };
+      const matchesExactPhrase = (text, phrase) => {
+        const matcher = makeExactMatcher(phrase);
+        return !!matcher && matcher.test(String(text || ""));
+      };
+      const loadTabooIndex = (tabooRows) => {
+        const index = { all: [], slang: [], meme_language: [], officialese: [], moralizing: [] };
+        tabooRows.forEach((row) => {
+          index.all.push(row.phrase);
+          if (row.category === "slang") index.slang.push(row.phrase);
+          if (row.category === "meme_language") index.meme_language.push(row.phrase);
+          if (row.category === "officialese") index.officialese.push(row.phrase);
+          if (row.category === "moralizing") index.moralizing.push(row.phrase);
+        });
+        return index;
+      };
+      const validateRows = (candidateRows) => {
+        const state = makeResult();
+        const addLocal = (list, value) => addUniqueProfileAudit(list, value);
+        const failLocal = (check, detail) => { addLocal(state.failedChecks, check); addLocal(state.failures, detail === undefined ? check : { check, detail }); };
+        const allowedRes = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        state.allowedLexiconStillExists = !!(allowedRes && allowedRes.ok);
+        const allowedRaw = normalize(allowedRes && allowedRes.ok ? allowedRes.text : "");
+        const allowedRows = parseLexiconRows(allowedRaw);
+        const allowedById = Object.create(null);
+        allowedRows.forEach((row) => { if (row && row.id) allowedById[row.id] = row; });
+        state.allowedLexiconInventoryCount = allowedRows.length;
+        if (!state.allowedLexiconStillExists) failLocal("allowed_lexicon_exists", { path: "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md", reason: allowedRes && allowedRes.reason ? allowedRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_ALLOWED_LEXICON/.test(allowedRaw)) failLocal("allowed_lexicon_marker_present", "missing_marker");
+        if (allowedRows.length !== 164) failLocal("allowed_lexicon_inventory_count_164", { actual: allowedRows.length });
+        const tabooRes = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md");
+        state.tabooListStillExists = !!(tabooRes && tabooRes.ok);
+        const tabooRaw = normalize(tabooRes && tabooRes.ok ? tabooRes.text : "");
+        const tabooRows = parseTabooRows(tabooRaw);
+        const tabooIndex = loadTabooIndex(tabooRows);
+        state.tabooEntryCount = tabooRows.length;
+        if (!state.tabooListStillExists) failLocal("taboo_list_exists", { path: "UI_PROFILE_BOOMER_TABOO_LIST.md", reason: tabooRes && tabooRes.reason ? tabooRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_TABOO_LIST/.test(tabooRaw)) failLocal("taboo_marker_present", "missing_marker");
+        if (tabooRows.length !== 153) failLocal("taboo_entry_count_153", { actual: tabooRows.length });
+        const mappingRes = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md");
+        state.lexicalMappingStillExists = !!(mappingRes && mappingRes.ok);
+        const mappingRaw = normalize(mappingRes && mappingRes.ok ? mappingRes.text : "");
+        const mappingRows = parseMappingRows(mappingRaw);
+        state.lexicalMappingRowCount = mappingRows.length;
+        if (!state.lexicalMappingStillExists) failLocal("lexical_mapping_exists", { path: "UI_PROFILE_BOOMER_LEXICAL_MAPPING.md", reason: mappingRes && mappingRes.reason ? mappingRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_LEXICAL_MAPPING/.test(mappingRaw)) failLocal("lexical_mapping_marker_present", "missing_marker");
+        if (mappingRows.length !== 93) failLocal("lexical_mapping_row_count_93", { actual: mappingRows.length });
+        const zoneSeen = new Set();
+        const rowsByZone = Object.create(null);
+        candidateRows.forEach((row, index) => {
+          const zone = String(row && row.zone || "").toLowerCase();
+          const id = String(row && row.id || "").trim();
+          const boomerText = normalize(row && row.boomerText);
+          if (!zoneSpecs.some((spec) => spec.zone === zone)) { addLocal(state.missingCoverage, { zone, id, index, rule: "unknown_zone" }); failLocal("unknown_zone", { zone, id, index }); return; }
+          zoneSeen.add(zone);
+          if (!rowsByZone[zone]) rowsByZone[zone] = [];
+          rowsByZone[zone].push({ zone, id, boomerText, index });
+          if (!/^TXT_\d{4}$/.test(id) || Number(id.slice(4)) < 1 || Number(id.slice(4)) > 164) { addLocal(state.missingCoverage, { zone, id, index, rule: "invalid_id" }); failLocal("invalid_id", { zone, id, index }); }
+        });
+        state.zoneCount = zoneSeen.size;
+        state.coveredZoneNames = zoneOrder.filter((zone) => zoneSeen.has(zone));
+        state.requiredZonesFound = zoneOrder.every((zone) => zoneSeen.has(zone));
+        zoneSpecs.forEach((spec, specIndex) => {
+          const zoneRows = rowsByZone[spec.zone] || [];
+          const rowsById = Object.create(null);
+          zoneRows.forEach((row) => { if (!rowsById[row.id]) rowsById[row.id] = []; rowsById[row.id].push(row); });
+          const zoneResult = state.coverageByZone[specIndex];
+          const missingIds = [];
+          const extraInvalidIds = [];
+          const validCovered = [];
+          spec.ids.forEach((id) => {
+            const row = rowsById[id] && rowsById[id][0];
+            if (!row) { missingIds.push(id); addLocal(state.missingCoverage, { zone: spec.zone, id }); return; }
+            const allowedRow = allowedById[id];
+            const text = normalize(row.boomerText);
+            const tabooHit = tabooIndex.all.find((phrase) => matchesExactPhrase(text, phrase));
+            const slangHit = tabooIndex.slang.find((phrase) => matchesExactPhrase(text, phrase));
+            const memeHit = tabooIndex.meme_language.find((phrase) => matchesExactPhrase(text, phrase));
+            const officialeseHit = tabooIndex.officialese.find((phrase) => matchesExactPhrase(text, phrase));
+            const moralizingHit = tabooIndex.moralizing.find((phrase) => matchesExactPhrase(text, phrase));
+            if (!allowedRow) { state.allCoveredIdsExistInAllowedLexicon = false; extraInvalidIds.push(id); addLocal(state.missingCoverage, { zone: spec.zone, id, rule: "missing_allowed_lexicon_id" }); failLocal("missing_allowed_lexicon_id", { zone: spec.zone, id }); return; }
+            if (!text) { state.allCoveredBoomerTextsNonEmpty = false; missingIds.push(id); addLocal(state.missingCoverage, { zone: spec.zone, id, rule: "empty_boomerText" }); failLocal("empty_boomer_text", { zone: spec.zone, id }); return; }
+            if (normalize(allowedRow.boomerText) !== text) failLocal("boomer_text_mismatch", { zone: spec.zone, id, expected: allowedRow.boomerText, actual: text });
+            if (tabooHit) { state.noTabooInCoveredTexts = false; addLocal(state.forbiddenRemaining, { zone: spec.zone, id, rule: tabooHit, text }); }
+            if (slangHit) state.noSlangInCoveredTexts = false;
+            if (memeHit) state.noMemeLanguageInCoveredTexts = false;
+            if (officialeseHit) state.noOfficialeseInCoveredTexts = false;
+            if (moralizingHit) state.noMoralizingInCoveredTexts = false;
+            if (!tabooHit) validCovered.push(id);
+          });
+          zoneRows.forEach((row) => { if (!spec.ids.includes(row.id) || !allowedById[row.id] || !/^TXT_\d{4}$/.test(row.id)) extraInvalidIds.push(row.id); });
+          zoneResult.missingIds = Array.from(new Set(missingIds));
+          zoneResult.extraInvalidIds = Array.from(new Set(extraInvalidIds));
+          zoneResult.coveredCount = validCovered.length;
+          if (zoneResult.missingIds.length) addLocal(state.missingCoverage, { zone: spec.zone, missingIds: zoneResult.missingIds.slice() });
+          if (zoneResult.extraInvalidIds.length) addLocal(state.missingCoverage, { zone: spec.zone, extraInvalidIds: zoneResult.extraInvalidIds.slice() });
+        });
+        state.zoneCoverageComplete = state.requiredZonesFound && state.coverageByZone.every((zoneResult) => zoneResult.requiredCount === zoneResult.coveredCount && zoneResult.missingIds.length === 0 && zoneResult.extraInvalidIds.length === 0);
+        state.allCoveredIdsExistInAllowedLexicon = state.allCoveredIdsExistInAllowedLexicon !== false && state.failedChecks.indexOf("missing_allowed_lexicon_id") === -1 && state.failedChecks.indexOf("invalid_id") === -1;
+        state.allCoveredBoomerTextsNonEmpty = state.allCoveredBoomerTextsNonEmpty !== false && state.failedChecks.indexOf("empty_boomer_text") === -1;
+        state.noTabooInCoveredTexts = state.forbiddenRemaining.length === 0;
+        state.noSlangInCoveredTexts = state.noSlangInCoveredTexts !== false;
+        state.noMemeLanguageInCoveredTexts = state.noMemeLanguageInCoveredTexts !== false;
+        state.noOfficialeseInCoveredTexts = state.noOfficialeseInCoveredTexts !== false;
+        state.noMoralizingInCoveredTexts = state.noMoralizingInCoveredTexts !== false;
+        state.coverageConnectedToDevSmoke = state.coverageArtifactExists === true && state.requiredZonesFound === true && state.zoneCoverageComplete === true && state.failedChecks.length === 0 && state.failures.length === 0 && state.forbiddenRemaining.length === 0;
+        return state;
+      };
+      try {
+        const artifactRes = fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md");
+        result.coverageArtifactExists = !!(artifactRes && artifactRes.ok);
+        const artifactRaw = normalize(artifactRes && artifactRes.ok ? artifactRes.text : "");
+        if (!result.coverageArtifactExists) fail("coverage_artifact_exists", { path: "UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md", reason: artifactRes && artifactRes.reason ? artifactRes.reason : "unavailable" });
+        if (!/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE/.test(artifactRaw)) fail("coverage_marker_present", "missing_marker");
+        const rows = parseCoverageRows(artifactRaw);
+        const actual = validateRows(rows);
+        result.coverageConnectedToDevSmoke = actual.coverageConnectedToDevSmoke === true;
+        result.zoneCount = actual.zoneCount;
+        result.requiredZonesFound = actual.requiredZonesFound;
+        result.zoneCoverageComplete = actual.zoneCoverageComplete;
+        result.coveredZoneNames = actual.coveredZoneNames.slice();
+        result.coverageByZone = actual.coverageByZone.map((zoneResult) => ({ zone: zoneResult.zone, requiredCount: zoneResult.requiredCount, coveredCount: zoneResult.coveredCount, missingIds: zoneResult.missingIds.slice(), extraInvalidIds: zoneResult.extraInvalidIds.slice() }));
+        result.allCoveredIdsExistInAllowedLexicon = actual.allCoveredIdsExistInAllowedLexicon;
+        result.allCoveredBoomerTextsNonEmpty = actual.allCoveredBoomerTextsNonEmpty;
+        result.noTabooInCoveredTexts = actual.noTabooInCoveredTexts;
+        result.noSlangInCoveredTexts = actual.noSlangInCoveredTexts;
+        result.noMemeLanguageInCoveredTexts = actual.noMemeLanguageInCoveredTexts;
+        result.noOfficialeseInCoveredTexts = actual.noOfficialeseInCoveredTexts;
+        result.noMoralizingInCoveredTexts = actual.noMoralizingInCoveredTexts;
+        result.allowedLexiconStillExists = actual.allowedLexiconStillExists;
+        result.allowedLexiconInventoryCount = actual.allowedLexiconInventoryCount;
+        result.tabooListStillExists = actual.tabooListStillExists;
+        result.tabooEntryCount = actual.tabooEntryCount;
+        result.lexicalMappingStillExists = actual.lexicalMappingStillExists;
+        result.lexicalMappingRowCount = actual.lexicalMappingRowCount;
+        result.forbiddenRemaining = actual.forbiddenRemaining.slice();
+        result.missingCoverage = actual.missingCoverage.slice();
+        result.failedChecks = actual.failedChecks.slice();
+        result.failures = actual.failures.slice();
+        const negativeSamples = [
+          { name: "missing_zone_economy", rows: rows.filter((row) => row.zone !== "economy"), expect: (sample) => sample.requiredZonesFound === false && sample.missingCoverage.some((item) => item && item.zone === "economy") },
+          { name: "missing_id_TXT_0108_from_economy", rows: rows.filter((row) => !(row.zone === "economy" && row.id === "TXT_0108")), expect: (sample) => sample.zoneCoverageComplete === false && sample.missingCoverage.some((item) => item && item.zone === "economy" && Array.isArray(item.missingIds) && item.missingIds.indexOf("TXT_0108") !== -1) },
+          { name: "invalid_id_TXT_9999", rows: rows.concat([{ zone: "economy", id: "TXT_9999", boomerText: "Недостаточно 💰." }]), expect: (sample) => sample.failedChecks.indexOf("invalid_id") !== -1 || sample.missingCoverage.some((item) => item && item.rule === "invalid_id") },
+          { name: "taboo_text_Погнали", rows: rows.map((row) => (row.zone === "hints" && row.id === "TXT_0014") ? { zone: row.zone, id: row.id, boomerText: "Погнали" } : row), expect: (sample) => sample.forbiddenRemaining.some((item) => item && item.text === "Погнали") },
+          { name: "empty_boomerText", rows: rows.map((row) => (row.zone === "crowd" && row.id === "TXT_0091") ? { zone: row.zone, id: row.id, boomerText: "" } : row), expect: (sample) => sample.failedChecks.indexOf("empty_boomer_text") !== -1 || sample.missingCoverage.some((item) => item && item.rule === "empty_boomerText") }
+        ];
+        negativeSamples.forEach((sample) => {
+          const sampleResult = validateRows(sample.rows);
+          if (sampleResult.ok) fail("negative_sample_should_fail", sample.name);
+          if (!sample.expect(sampleResult)) fail("negative_sample_validator_caught", { sample: sample.name, result: sampleResult });
+        });
+        if (result.coverageArtifactExists !== true) fail("coverage_artifact_exists", result.coverageArtifactExists);
+        if (result.coverageConnectedToDevSmoke !== true) fail("coverage_connected_to_dev_smoke", result.coverageConnectedToDevSmoke);
+        if (result.zoneCount !== 10) fail("zone_count_10", { actual: result.zoneCount });
+        if (!result.requiredZonesFound) fail("required_zones_found", result.coveredZoneNames.slice());
+        if (!result.zoneCoverageComplete) fail("zone_coverage_complete", result.coverageByZone);
+        if (!result.allCoveredIdsExistInAllowedLexicon) fail("all_covered_ids_exist_in_allowed_lexicon", result.missingCoverage.slice(0, 12));
+        if (!result.allCoveredBoomerTextsNonEmpty) fail("all_covered_boomer_texts_non_empty", result.missingCoverage.slice(0, 12));
+        if (!result.noTabooInCoveredTexts) fail("no_taboo_in_covered_texts", result.forbiddenRemaining.slice(0, 12));
+        if (!result.noSlangInCoveredTexts) fail("no_slang_in_covered_texts", result.forbiddenRemaining.slice(0, 12));
+        if (!result.noMemeLanguageInCoveredTexts) fail("no_meme_language_in_covered_texts", result.forbiddenRemaining.slice(0, 12));
+        if (!result.noOfficialeseInCoveredTexts) fail("no_officialese_in_covered_texts", result.forbiddenRemaining.slice(0, 12));
+        if (!result.noMoralizingInCoveredTexts) fail("no_moralizing_in_covered_texts", result.forbiddenRemaining.slice(0, 12));
+        if (result.allowedLexiconInventoryCount !== 164) fail("allowed_lexicon_inventory_count_164", { actual: result.allowedLexiconInventoryCount });
+        if (result.tabooEntryCount !== 153) fail("taboo_entry_count_153", { actual: result.tabooEntryCount });
+        if (result.lexicalMappingRowCount !== 93) fail("lexical_mapping_row_count_93", { actual: result.lexicalMappingRowCount });
+        if (result.missingCoverage.length) fail("missing_coverage_empty", result.missingCoverage.slice(0, 12));
+        if (result.forbiddenRemaining.length) fail("forbidden_remaining_empty", result.forbiddenRemaining.slice(0, 12));
+        if (result.failedChecks.length) fail("failed_checks_empty", result.failedChecks.slice(0, 12));
+        if (result.failures.length) fail("failures_empty", result.failures.slice(0, 12));
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.coverageArtifactExists === true
+        && result.coverageConnectedToDevSmoke === true
+        && result.zoneCount === 10
+        && result.requiredZonesFound === true
+        && result.zoneCoverageComplete === true
+        && result.coveredZoneNames.length === 10
+        && result.coveredZoneNames.every((zone, index) => zone === zoneOrder[index])
+        && result.coverageByZone.length === 10
+        && result.coverageByZone.every((zoneResult, index) => zoneResult.zone === zoneOrder[index] && zoneResult.requiredCount === zoneSpecs[index].ids.length && zoneResult.coveredCount === zoneSpecs[index].ids.length && zoneResult.missingIds.length === 0 && zoneResult.extraInvalidIds.length === 0)
+        && result.allCoveredIdsExistInAllowedLexicon === true
+        && result.allCoveredBoomerTextsNonEmpty === true
+        && result.noTabooInCoveredTexts === true
+        && result.noSlangInCoveredTexts === true
+        && result.noMemeLanguageInCoveredTexts === true
+        && result.noOfficialeseInCoveredTexts === true
+        && result.noMoralizingInCoveredTexts === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.lexicalMappingStillExists === true
+        && result.lexicalMappingRowCount === 93
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     Game.Dev.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     Game.Dev.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     Game.Dev.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -11345,6 +11668,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     Game.Dev.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     Game.Dev.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -11410,6 +11734,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     G.__DEV.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     G.__DEV.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -11471,6 +11796,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTabooListStep32Fix3Once = smokeBoomerTabooListStep32Fix3Once;
     devStore.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     devStore.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
