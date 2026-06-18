@@ -12313,6 +12313,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     Game.Dev.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     Game.Dev.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
+    Game.Dev.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12344,7 +12345,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     G.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
+    G.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
+    Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12464,6 +12467,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     devStore.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     devStore.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
+    devStore.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
