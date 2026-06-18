@@ -6497,6 +6497,43 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
       const fetchFirst = (fileName) => {
         let last = null;
         for (const candidate of resolveDocCandidates(fileName)) {
@@ -12370,6 +12407,261 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.mapExists === true && result.rowCount === expectedRowCount && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.missingIds.length === 0 && result.duplicateIds.length === 0 && result.invalidStatuses.length === 0 && result.badWordCounts.length === 0 && result.notShorterCompressRows.length === 0 && result.forbiddenIntroHits.length === 0 && result.forbiddenConditionHits.length === 0 && result.sourceInventoryMatch === true && result.replacementLeakFound.length === 0;
       return result;
     };
+    const smokeAlphaIntroBanStep24Once = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step2_4_intro_ban_audit_v1";
+      const commit = "step4_2_4_alpha_intro_ban_audit";
+      const smokeVersion = "alpha_step_2_4_intro_ban_v20260618_001";
+      const expectedRowCount = 164;
+      const expectedIntroPhrases = [
+        "можно",
+        "если",
+        "в этом случае",
+        "похоже",
+        "кажется",
+        "если не ошибаюсь",
+        "как вам кажется",
+        "на самом деле",
+        "сейчас не получилось",
+        "попробуй позже"
+      ];
+      const expectedConditionPhrases = [
+        "если",
+        "когда",
+        "при условии",
+        "в случае",
+        "иначе",
+        "чтобы",
+        "нужно",
+        "требуется"
+      ];
+      const allowedSourceIntroRows = [
+        { id: "TXT_0014", sourceText: "Только для интерфейса. Не сохраняем. Можно поменять позже.", alphaText: "Интерфейс без сохранения" },
+        { id: "TXT_0015", sourceText: "я на самом деле чувствую будто я родился в …", alphaText: "Год по ощущению" },
+        { id: "TXT_0119", sourceText: "Кто сегодня на слуху, если не ошибаюсь?", alphaText: "Кто на слуху?" },
+        { id: "TXT_0120", sourceText: "Кажется, про {NAME} говорят.", alphaText: "Про {NAME} говорят" },
+        { id: "TXT_0121", sourceText: "Кто, как вам кажется, был рядом?", alphaText: "Кто был рядом?" },
+        { id: "TXT_0123", sourceText: "Где мы сейчас, как вам кажется?", alphaText: "Где мы?" },
+        { id: "TXT_0154", sourceText: "Сейчас не получилось. Попробуй позже.", alphaText: "Не получилось" }
+      ];
+      const expectedSourceIntroHits = [
+        { id: "TXT_0014", phrase: "можно" },
+        { id: "TXT_0015", phrase: "на самом деле" },
+        { id: "TXT_0119", phrase: "если не ошибаюсь" },
+        { id: "TXT_0120", phrase: "кажется" },
+        { id: "TXT_0121", phrase: "как вам кажется" },
+        { id: "TXT_0123", phrase: "как вам кажется" },
+        { id: "TXT_0154", phrase: "сейчас не получилось" },
+        { id: "TXT_0154", phrase: "попробуй позже" }
+      ];
+      const expectedAlphaIntroHits = [];
+      const expectedAlphaConditionHits = [];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        auditExists: false,
+        mapExists: false,
+        rowCount: 0,
+        sourceIntroHits: [],
+        alphaIntroHits: [],
+        alphaConditionHits: [],
+        unexpectedSourceIntroHits: [],
+        missingExpectedSourceIntroHits: [],
+        replacementLeakFound: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const resolveCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(location.origin + "/__dev__/docs/");
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+          } else {
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+            bases.push(location.origin + "/__dev__/docs/");
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const readTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirstLocal = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName, preferDocs)) {
+          const res = readTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseManifest = (text, exportName) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const body = `${String(text || "")}\nreturn (window.Game && window.Game.${exportName}) || window.${exportName} || module.exports || null;`;
+          return (new Function("window", "module", body))(win, module);
+        } catch (_) {
+          return null;
+        }
+      };
+      const parseMapRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const match = line.match(/^TXT_(\d{4}) \| (.*?) \| (.*?) \| (.*?) \| (.*)$/);
+          if (!match) return null;
+          return {
+            id: `TXT_${match[1]}`,
+            sourceText: match[2],
+            alphaText: match[3],
+            status: match[4],
+            reason: match[5]
+          };
+        })
+        .filter(Boolean);
+      const sameArray = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => JSON.stringify(item) === JSON.stringify(b[index]));
+      const hasPhrase = (text, phrase) => String(text || "").toLowerCase().includes(String(phrase || "").toLowerCase());
+      const collectHits = (rows, field, phrases) => {
+        const hits = [];
+        const sortedPhrases = phrases.slice().sort((a, b) => b.length - a.length || a.localeCompare(b));
+        rows.forEach((row) => {
+          const rowText = String(row && row[field] || "");
+          const rowHits = [];
+          sortedPhrases.forEach((phrase) => {
+            if (!phrase || !hasPhrase(rowText, phrase)) return;
+            if (rowHits.some((hit) => hit.phrase.includes(phrase))) return;
+            rowHits.push({ id: String(row && row.id || ""), phrase });
+          });
+          rowHits.forEach((hit) => hits.push(hit));
+        });
+        return hits;
+      };
+      try {
+        const auditRootRes = fetchFirstLocal("ui/ui-profile-alpha-intro-ban-audit.js", false);
+        const auditDocsRes = fetchFirstLocal("ui/ui-profile-alpha-intro-ban-audit.js", true);
+        if (!auditRootRes.ok) fail("audit_file_exists", { path: "ui/ui-profile-alpha-intro-ban-audit.js", reason: auditRootRes.reason || "unavailable" });
+        if (!auditDocsRes.ok) fail("audit_docs_mirror_exists", { path: "ui/ui-profile-alpha-intro-ban-audit.js", reason: auditDocsRes.reason || "unavailable" });
+        const auditRootText = auditRootRes.ok ? String(auditRootRes.text || "") : "";
+        const auditDocsText = auditDocsRes.ok ? String(auditDocsRes.text || "") : "";
+        if (auditRootText && auditDocsText && auditRootText !== auditDocsText) fail("audit_js_mirror_match", "js mirror mismatch");
+        const auditManifest = parseManifest(auditRootText || auditDocsText, "UI_PROFILE_ALPHA_INTRO_BAN_AUDIT");
+        result.auditExists = !!(auditManifest && auditManifest.metadata && Array.isArray(auditManifest.bannedIntroPhrases) && Array.isArray(auditManifest.bannedConditionPhrases) && Array.isArray(auditManifest.allowedSourceIntroRows));
+        if (!result.auditExists) fail("audit_exists", "UI_PROFILE_ALPHA_INTRO_BAN_AUDIT missing");
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.auditId !== "UI_PROFILE_ALPHA_INTRO_BAN_AUDIT") fail("audit_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.auditId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.stage !== "4-alpha") fail("audit_stage", auditManifest && auditManifest.metadata ? auditManifest.metadata.stage : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.step !== "2.4") fail("audit_step", auditManifest && auditManifest.metadata ? auditManifest.metadata.step : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.mode !== "alpha_intro_ban_audit_only") fail("audit_mode", auditManifest && auditManifest.metadata ? auditManifest.metadata.mode : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.sourceMapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("source_map_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.sourceMapId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.smokeVersion !== smokeVersion) fail("smoke_version", auditManifest && auditManifest.metadata ? auditManifest.metadata.smokeVersion : null);
+        if (!sameArray(auditManifest && auditManifest.bannedIntroPhrases ? auditManifest.bannedIntroPhrases : [], expectedIntroPhrases)) fail("banned_intro_phrases", auditManifest && auditManifest.bannedIntroPhrases ? auditManifest.bannedIntroPhrases : []);
+        if (!sameArray(auditManifest && auditManifest.bannedConditionPhrases ? auditManifest.bannedConditionPhrases : [], expectedConditionPhrases)) fail("banned_condition_phrases", auditManifest && auditManifest.bannedConditionPhrases ? auditManifest.bannedConditionPhrases : []);
+        if (!sameArray(auditManifest && auditManifest.allowedSourceIntroRows ? auditManifest.allowedSourceIntroRows : [], allowedSourceIntroRows)) fail("allowed_source_intro_rows", auditManifest && auditManifest.allowedSourceIntroRows ? auditManifest.allowedSourceIntroRows : []);
+        if (!sameArray(auditManifest && auditManifest.expectedSourceIntroHits ? auditManifest.expectedSourceIntroHits : [], expectedSourceIntroHits)) fail("expected_source_intro_hits", auditManifest && auditManifest.expectedSourceIntroHits ? auditManifest.expectedSourceIntroHits : []);
+        if (!sameArray(auditManifest && auditManifest.expectedAlphaIntroHits ? auditManifest.expectedAlphaIntroHits : [], expectedAlphaIntroHits)) fail("expected_alpha_intro_hits", auditManifest && auditManifest.expectedAlphaIntroHits ? auditManifest.expectedAlphaIntroHits : []);
+        if (!sameArray(auditManifest && auditManifest.expectedAlphaConditionHits ? auditManifest.expectedAlphaConditionHits : [], expectedAlphaConditionHits)) fail("expected_alpha_condition_hits", auditManifest && auditManifest.expectedAlphaConditionHits ? auditManifest.expectedAlphaConditionHits : []);
+        const mapRootRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", false);
+        const mapDocsRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", true);
+        if (!mapRootRes.ok) fail("map_file_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: mapRootRes.reason || "unavailable" });
+        if (!mapDocsRes.ok) fail("map_docs_mirror_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: mapDocsRes.reason || "unavailable" });
+        const mapRootText = mapRootRes.ok ? String(mapRootRes.text || "") : "";
+        const mapDocsText = mapDocsRes.ok ? String(mapDocsRes.text || "") : "";
+        if (mapRootText && mapDocsText && mapRootText !== mapDocsText) fail("map_js_mirror_match", "js mirror mismatch");
+        const mapManifest = parseManifest(mapRootText || mapDocsText, "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP");
+        const rows = mapManifest && Array.isArray(mapManifest.rows) ? mapManifest.rows.slice() : parseMapRows(mapRootText || mapDocsText);
+        result.mapExists = !!(mapManifest && mapManifest.metadata && Array.isArray(rows));
+        if (!result.mapExists) fail("map_exists", "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP missing");
+        result.rowCount = rows.length;
+        if (rows.length !== expectedRowCount) fail("row_count", { expected: expectedRowCount, actual: rows.length });
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("map_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.mapId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.stage !== "4-alpha") fail("map_stage", mapManifest && mapManifest.metadata ? mapManifest.metadata.stage : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.step !== "2.3") fail("map_step", mapManifest && mapManifest.metadata ? mapManifest.metadata.step : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mode !== "mechanical_compressor_map_only") fail("map_mode", mapManifest && mapManifest.metadata ? mapManifest.metadata.mode : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.sourceInventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.sourceInventoryId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.totalRows !== expectedRowCount) fail("total_rows", mapManifest && mapManifest.metadata ? mapManifest.metadata.totalRows : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.smokeVersion !== "alpha_step_2_3_mechanical_compressor_v20260618_001") fail("map_smoke_version", mapManifest && mapManifest.metadata ? mapManifest.metadata.smokeVersion : null);
+        const actualIds = rows.map((row) => String(row && row.id || ""));
+        const expectedIds = Array.from({ length: expectedRowCount }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+        const seenIds = new Set();
+        const duplicateIds = actualIds.filter((id) => id && (seenIds.has(id) ? true : (seenIds.add(id), false)));
+        const missingIds = expectedIds.filter((id, index) => actualIds[index] !== id);
+        if (duplicateIds.length) fail("duplicate_ids", duplicateIds);
+        if (missingIds.length) fail("missing_ids", missingIds);
+        rows.forEach((row, index) => {
+          const rowId = String(row && row.id || expectedIds[index] || `TXT_${String(index + 1).padStart(4, "0")}`);
+          const keys = row && typeof row === "object" ? Object.keys(row) : [];
+          if (!sameArray(keys, ["id", "sourceText", "alphaText", "status", "reason"])) addUnique(result.replacementLeakFound, { id: rowId, keys });
+        });
+        const sourceIntroHits = collectHits(rows, "sourceText", expectedIntroPhrases);
+        const alphaIntroHits = collectHits(rows, "alphaText", expectedIntroPhrases);
+        const alphaConditionHits = collectHits(rows, "alphaText", expectedConditionPhrases);
+        result.sourceIntroHits = sourceIntroHits.slice();
+        result.alphaIntroHits = alphaIntroHits.slice();
+        result.alphaConditionHits = alphaConditionHits.slice();
+        const hitKey = (item) => `${item.id}|${item.phrase}`;
+        const expectedHitSet = new Set(expectedSourceIntroHits.map(hitKey));
+        const actualHitSet = new Set(sourceIntroHits.map(hitKey));
+        result.unexpectedSourceIntroHits = sourceIntroHits.filter((item) => !expectedHitSet.has(hitKey(item)));
+        result.missingExpectedSourceIntroHits = expectedSourceIntroHits.filter((item) => !actualHitSet.has(hitKey(item)));
+        if (!sameArray(sourceIntroHits, expectedSourceIntroHits)) fail("source_intro_hits", sourceIntroHits);
+        if (!sameArray(alphaIntroHits, expectedAlphaIntroHits)) fail("alpha_intro_hits", alphaIntroHits);
+        if (!sameArray(alphaConditionHits, expectedAlphaConditionHits)) fail("alpha_condition_hits", alphaConditionHits);
+        if (result.unexpectedSourceIntroHits.length) fail("unexpected_source_intro_hits", result.unexpectedSourceIntroHits);
+        if (result.missingExpectedSourceIntroHits.length) fail("missing_expected_source_intro_hits", result.missingExpectedSourceIntroHits);
+        result.unexpectedSourceIntroHits.forEach((hit) => addUnique(result.forbiddenRemaining, hit));
+        alphaIntroHits.forEach((hit) => addUnique(result.forbiddenRemaining, hit));
+        alphaConditionHits.forEach((hit) => addUnique(result.forbiddenRemaining, hit));
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.auditExists === true
+        && result.mapExists === true
+        && result.rowCount === expectedRowCount
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.alphaIntroHits.length === 0
+        && result.alphaConditionHits.length === 0
+        && result.unexpectedSourceIntroHits.length === 0
+        && result.missingExpectedSourceIntroHits.length === 0
+        && result.replacementLeakFound.length === 0
+        && JSON.stringify(result.sourceIntroHits) === JSON.stringify(expectedSourceIntroHits);
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -13072,6 +13364,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.Dev.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
+    Game.Dev.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -13107,11 +13400,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     G.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
+    G.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
+    Game.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -13252,6 +13547,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     devStore.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     devStore.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
+    devStore.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
