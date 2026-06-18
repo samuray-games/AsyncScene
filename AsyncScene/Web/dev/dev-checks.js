@@ -6361,6 +6361,112 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeLexicalFrameStep31Once = () => {
+      const buildTag = "build_2026_06_18_step3_1_lexical_frame_v1";
+      const commit = "step3_1_lexical_frame_v1";
+      const smokeVersion = "step3_1_lexical_frame_v20260618_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        artifactExists: false,
+        ruleExists: false,
+        allowedListExists: false,
+        stopListExists: false,
+        targetMapExists: false,
+        sourceFiles: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      try {
+        const artifactName = "UI_PROFILE_LEXICAL_FRAME_STEP31.md";
+        const artifactRes = fetchFirst(artifactName);
+        result.artifactExists = !!(artifactRes && artifactRes.ok);
+        const raw = artifactRes && artifactRes.ok ? String(artifactRes.text || "") : "";
+        result.sourceFiles = result.artifactExists ? [artifactRes.path] : [];
+        if (!result.artifactExists) fail("artifact_exists", { path: artifactName, reason: artifactRes && artifactRes.reason ? artifactRes.reason : "unavailable" });
+        result.ruleExists = raw.includes("Short living language, not zoomer slang.");
+        result.allowedListExists = raw.includes("Allowed exact words and constructions:")
+          && raw.includes("\"Готово\",")
+          && raw.includes("\"Ого\"");
+        result.stopListExists = raw.includes("Forbidden exact stop words and forms:")
+          && raw.includes("\"кринж\",")
+          && raw.includes("\"по-зумерски\"");
+        result.targetMapExists = raw.includes("Absolute phrase target map.")
+          && raw.includes("TXT_0001 | AsyncScene/Web/system.js:115 | \"AsyncScene\" -> \"AsyncScene\"")
+          && raw.includes("TXT_0164 | AsyncScene/Web/ui/ui-events.js:897 | \"Не хватает 💰.\" -> \"Не хватает 💰.\"");
+        if (!result.ruleExists) fail("rule_exists", "missing_rule");
+        if (!result.allowedListExists) fail("allowed_list_exists", "missing_allowed_list");
+        if (!result.stopListExists) fail("stop_list_exists", "missing_stop_list");
+        if (!result.targetMapExists) fail("target_map_exists", "missing_target_map");
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.artifactExists === true
+        && result.ruleExists === true
+        && result.allowedListExists === true
+        && result.stopListExists === true
+        && result.targetMapExists === true
+        && result.failures.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -12191,6 +12297,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
+    Game.Dev.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -12632,6 +12739,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
     G.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
+    G.__DEV.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -12706,6 +12814,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     devStore.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
+    devStore.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;

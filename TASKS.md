@@ -1,3 +1,14 @@
+## 2026-06-18 — Step 3.1 lexical frame
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` with the exact rule `Short living language, not zoomer slang.`, the exact allowed-word list, the exact stop-word list, and the exact 164-row phrase target map.
+- Added Safari-exported smoke `Game.__DEV.smokeLexicalFrameStep31Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Applied only the exact mapped runtime/UI copy replacements in `AsyncScene/Web/system.js`, `AsyncScene/Web/data.js`, `AsyncScene/Web/npcs.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, and `AsyncScene/Web/ui/ui-menu.js`.
+- Build tag: `build_2026_06_18_step3_1_lexical_frame_v1`.
+- Commit placeholder: `step3_1_lexical_frame_v1`.
+- Smoke version: `step3_1_lexical_frame_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep31Once()`.
+- Scope held: lexical-frame artifact, smoke wiring, and exact mapped UI copy only; no gameplay logic, economy logic, battle logic, NPC logic, state logic, routing, refactor, or `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 2.2 Fix 1 source phrase inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 2.2 smoke coverage result so `npc_say` and `npc_dm` are recognized as generic coverage groups while leaving the 164 inventory rows untouched.

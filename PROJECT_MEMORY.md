@@ -1,3 +1,12 @@
+## 2026-06-18 — Step 3.1 lexical frame
+- Created `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` as the exact lexical-frame source with the required rule line, exact allowed list, exact stop list, and exact 164-row target map.
+- Added Safari-exported `Game.__DEV.smokeLexicalFrameStep31Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Applied only the mapped copy replacements in `AsyncScene/Web/system.js`, `AsyncScene/Web/data.js`, `AsyncScene/Web/npcs.js`, `AsyncScene/Web/state.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, and `AsyncScene/Web/ui/ui-menu.js`.
+- Local contract check passed: allowed count `60`, stop-word count `47`, phrase-map row count `164`, changed target count `48`, placeholder preservation ok, and no stop words remained in changed targets.
+- Build tag: `build_2026_06_18_step3_1_lexical_frame_v1`.
+- Smoke version: `step3_1_lexical_frame_v20260618_001`.
+- Runtime PASS is still unclaimed until the user runs `Game.__DEV.smokeLexicalFrameStep31Once()` in iPhone Safari.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 2.2 Fix 1 source phrase inventory
 - Fix reason: the Step 2.2 smoke reported `missingCoverage:["npc_say","npc_dm"]` even though the inventory already had 164 entries and the correct profile counts.
 - Fixed only the smoke coverage reporting so the generic NPC groups are recognized while leaving inventory entries unchanged.
