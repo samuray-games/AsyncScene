@@ -4,6 +4,7 @@
 - Additive to `UI_PROFILE_BOOMER_ALLOWED_LEXICON.md`, `UI_PROFILE_BOOMER_TABOO_LIST.md`, and `UI_PROFILE_BOOMER_LEXICAL_MAPPING.md`; it does not replace or rewrite any of them.
 - Machine-readable by dev smoke.
 - Step 3.4 coverage declaration only.
+- Coverage marker: `BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1`.
 - Coverage zone count: 10.
 - Covered zones, in order: `economy`, `npc_vs_npc`, `dm`, `reports`, `respect`, `learning`, `rematch`, `crowd`, `errors`, `hints`.
 
