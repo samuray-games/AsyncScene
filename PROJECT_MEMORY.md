@@ -1,3 +1,9 @@
+## 2026-06-19 — Step 3.2 Allowed Dictionary Coverage
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the Step 3.2 allowed dictionary coverage section to `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` with the exact rule, surface coverage list, allowed dictionary, coverage matrix, and dryness guard.
+- Tracking only: no runtime-sensitive files were changed, no smoke command was added or altered, and no gameplay, economy, battle, NPC, state, or routing logic was touched.
+- Scope held: docs and project memory only.
+
 ## 2026-06-18 — Step 3.1 lexical frame
 - Created `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` as the exact lexical-frame source with the required rule line, exact allowed list, exact stop list, and exact 164-row target map.
 - Added Safari-exported `Game.__DEV.smokeLexicalFrameStep31Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
