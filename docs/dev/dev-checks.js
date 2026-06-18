@@ -9352,7 +9352,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.jsPathChecked = docsJsRes && docsJsRes.path ? docsJsRes.path : servedJsMirrorPath;
         if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
         if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
-        if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
+        if (!rootDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: rootDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
         const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
         const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
         const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
@@ -9463,6 +9463,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_5_fix1_action_first_rules_v20260618_002";
       return result;
     };
+    const smokeAlphaStep15ActionFirstRulesFix2 = () => {
+      const result = smokeAlphaStep15ActionFirstRulesOnce();
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_5_fix2_action_first_rules_v1";
+      result.commit = "step4_alpha_profile_step1_5_fix2_action_first_rules_v1";
+      result.smokeVersion = "alpha_step_1_5_fix2_action_first_rules_v20260618_003";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -9507,6 +9514,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
+    Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -9531,6 +9539,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
+    G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
@@ -9607,6 +9616,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep14ExplanationRulesOnce = smokeAlphaStep14ExplanationRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
+    devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
