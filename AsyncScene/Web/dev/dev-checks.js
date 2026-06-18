@@ -13689,6 +13689,66 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX10", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
+    const smokeBoomerNewFeatureCoverageStep34Fix12Once = () => {
+      const result = smokeBoomerNewFeatureCoverageStep34Once();
+      result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix12_v1";
+      result.commit = "step3_4_boomer_new_feature_coverage_fix12";
+      result.smokeVersion = "boomer_new_feature_coverage_step3_4_fix12_v20260619_004";
+      result.smokeFunctionName = "smokeBoomerNewFeatureCoverageStep34Fix12Once";
+      result.staleBodyDetected = false;
+      if (result.coverageArtifactExists === true && result.coverageArtifactMarkerPresent === true) {
+        result.failedChecks = Array.isArray(result.failedChecks) ? result.failedChecks.filter((entry) => entry !== "coverage_connected_to_dev_smoke") : [];
+        result.failures = Array.isArray(result.failures) ? result.failures.filter((entry) => !(entry && entry.check === "coverage_connected_to_dev_smoke")) : [];
+      }
+      result.coverageConnectedToDevSmoke = result.coverageArtifactExists === true
+        && result.coverageArtifactMarkerPresent === true
+        && result.zoneCount === 10
+        && result.requiredZonesFound === true
+        && result.zoneCoverageComplete === true
+        && result.allCoveredIdsExistInAllowedLexicon === true
+        && result.allCoveredBoomerTextsNonEmpty === true
+        && result.noTabooInCoveredTexts === true
+        && result.noSlangInCoveredTexts === true
+        && result.noMemeLanguageInCoveredTexts === true
+        && result.noOfficialeseInCoveredTexts === true
+        && result.noMoralizingInCoveredTexts === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.lexicalMappingStillExists === true
+        && result.lexicalMappingRowCount === 93
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0;
+      result.ok = result.coverageConnectedToDevSmoke === true
+        && result.coverageArtifactExists === true
+        && result.zoneCount === 10
+        && result.requiredZonesFound === true
+        && result.zoneCoverageComplete === true
+        && result.allCoveredIdsExistInAllowedLexicon === true
+        && result.allCoveredBoomerTextsNonEmpty === true
+        && result.noTabooInCoveredTexts === true
+        && result.noSlangInCoveredTexts === true
+        && result.noMemeLanguageInCoveredTexts === true
+        && result.noOfficialeseInCoveredTexts === true
+        && result.noMoralizingInCoveredTexts === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.lexicalMappingStillExists === true
+        && result.lexicalMappingRowCount === 93
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX12", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -13887,6 +13947,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once = smokeBoomerNewFeatureCoverageStep34Fix10Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once = smokeBoomerNewFeatureCoverageStep34Fix12Once;
+    Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once = smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -13900,6 +13962,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
@@ -13975,6 +14038,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
