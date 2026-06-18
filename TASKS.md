@@ -24,6 +24,17 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaIntroBanStep24Once()`.
 - Scope held: audit contract, docs mirror, and smoke wiring only; no runtime text changed, no map rows changed, and no gameplay/economy/battle/NPC/state/save/routing logic changes.
 
+## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix12
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added a Fix12 cleanup wrapper that removes stale `coverage_connected_to_dev_smoke` failures once the marker predicate has already passed, then recomputes the final `ok` from the clean aggregated state.
+- Added the Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once()` install path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix12_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix12`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix12_v20260619_004`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once()`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Scope held: dev-smoke wiring and docs only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix11
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 3.4 marker boolean wiring so `coverageConnectedToDevSmoke` now tracks the explicit marker-hit state alongside the already-clean coverage checks.
