@@ -18,6 +18,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaDiffFix1()`.
 - Scope held: dev-smoke wiring and docs status only; no Alpha artifact changes, no runtime Alpha activation, no gameplay changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature lexical coverage
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` with the 10-zone machine-readable Boomer new-feature coverage artifact.
+- Added dev-only smoke `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Once()`.
+- Scope held: UI/profile/copy docs and dev-smoke only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 aggregate diff smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added and exported `Game.__DEV.smokeAlphaDiffOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` as the aggregate Alpha diff/spec smoke for completed steps 1.1 through 1.6.
