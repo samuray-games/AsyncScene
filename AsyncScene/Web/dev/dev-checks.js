@@ -6044,8 +6044,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
     const smokeZoomerLexicalFrameOnce = () => {
-
-    const smokeZoomerLexicalFrameOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
       const smokeVersion = "step3_1_zoomer_lexical_frame_v1_build_2026_06_05_d";
@@ -11858,6 +11856,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     Game.Dev.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -11927,6 +11926,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     G.__DEV.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -11989,6 +11989,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerLexicalMappingStep33Once = smokeBoomerLexicalMappingStep33Once;
     devStore.smokeBoomerLexicalMappingStep33Fix1Once = smokeBoomerLexicalMappingStep33Fix1Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -40160,6 +40161,26 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   Game.__DEV.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
+
+  if (Game.__DEV && typeof Game.__DEV === "object") {
+    Game.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
+    Game.__DEV.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
+    Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
+  }
+  if (Game.Dev && typeof Game.Dev === "object") {
+    Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
+    Game.Dev.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
+    Game.Dev.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
+  }
+  if (devStore && typeof devStore === "object") {
+    devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
+    devStore.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
+    devStore.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
+    devStore.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
+  }
+  console.warn("ZOOMER_SHORTENING_DOCS_SMOKE_INSTALLED_V3", typeof Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once);
 
   // Dev shortcut: Ctrl+Shift+T
   if (!Game.__DEV.__shortcutBound) {
