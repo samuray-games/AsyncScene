@@ -18,6 +18,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once()`.
 - Scope held: UI-layer rule and dev-smoke wiring only; fixed Safari smoke exception `Can't find variable: fetchFirst`, no currentText replacement, no runtime/game logic changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix7
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the `coverageConnectedToDevSmoke` marker logic so it now keys off the live artifact/inventory predicates directly and only reports true when the actual Step 3.4 coverage artifact validates cleanly.
+- Added the Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once()` install path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix7_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix7`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix7_v20260618_008`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix6
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 3.4 smoke aggregation so the no-hit booleans now default to `true` and only flip to `false` when a real violation is found, which keeps empty diagnostic cases from failing spuriously.
