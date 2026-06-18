@@ -391,11 +391,13 @@ READY_FOR_RUNTIME_SMOKE before Safari.
 FAIL if self-check fails.
 PASS only after user Safari runtime result with ok:true and empty problem arrays.
 
-no gameplay logic changed in Step 2.6
-no economy logic changed in Step 2.6
-no NPC logic changed in Step 2.6
-no argument canon changed in Step 2.6
-no runtime copy logic changed in Step 2.6
+Step 2.6 no-logic-change block
+served Step 2.6 no-logic-change block
+no gameplay logic changed in Step 2.6.
+no economy logic changed in Step 2.6.
+no NPC logic changed in Step 2.6.
+no argument canon changed in Step 2.6.
+no runtime copy logic changed in Step 2.6.
 
 ## UI_PROFILE_ZOOMER_STOP_WORDS
 
