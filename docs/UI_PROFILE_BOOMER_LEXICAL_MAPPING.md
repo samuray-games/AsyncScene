@@ -95,9 +95,9 @@
 | MAP_0085 | Сбросить старт | Сбросить выбор | clarify_ui_label | reset action remains reset action | no mechanic, cost, state, target, or outcome changes |
 | MAP_0086 | Опасная точка рядом. | Рядом опасная точка. | clarify_context | nearby danger remains nearby danger | no mechanic, cost, state, target, or outcome changes |
 | MAP_0087 | Принято, наблюдаю. | Принято. Наблюдаю. | punctuation_clarity | acceptance and observation remain preserved | no mechanic, cost, state, target, or outcome changes |
-| MAP_0088 | Ты уже проголосовал. | Вы уже проголосовали. | formality_adjust | duplicate vote state is preserved | no mechanic, cost, state, target, or outcome changes |
-| MAP_0089 | Недоступно. Баттл не завершён. | Недоступно. Баттл ещё не завершён. | clarify_error | unavailable because battle is not finished | no mechanic, cost, state, target, or outcome changes |
-| MAP_0090 | Выбери игрока. | Выберите игрока. | formality_adjust | player selection remains player selection | no mechanic, cost, state, target, or outcome changes |
-| MAP_0091 | Такого нет. | Такой игрок не найден. | neutralize_error | missing player meaning is preserved | no mechanic, cost, state, target, or outcome changes |
-| MAP_0092 | Сейчас не получилось. Попробуй позже. | Сейчас не получилось. Попробуйте позже. | formality_adjust | temporary failure meaning is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0088 | Кошелек ближе. | Кошелёк важнее. | neutralize_colloquial | wallet/resource priority meaning is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0089 | Выбери игрока. | Выберите игрока. | formality_adjust | player selection remains player selection | no mechanic, cost, state, target, or outcome changes |
+| MAP_0090 | Цель получила +1 ⭐ | Цель получила +1 ⭐. | format_readability | target reputation gain remains unchanged | no reputation amount changes |
+| MAP_0091 | Цепочка A->B->A сегодня не работает. | Цепочка A → B → A сегодня недоступна. | clarify_context | chain restriction meaning is preserved | no mechanic, cost, state, target, or outcome changes |
+| MAP_0092 | Ты отдал 1💰 | Вы потратили 1 💰. | neutralize_colloquial | spent 1 money meaning is preserved | same money delta 1 💰; no economy rule changes |
 | MAP_0093 | Рано. Дай паузу. | Слишком рано. Подождите немного. | calm_explanation | early timing remains early timing | no mechanic, cost, state, target, or outcome changes |
