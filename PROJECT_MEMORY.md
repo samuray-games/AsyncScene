@@ -1699,6 +1699,24 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - No gameplay changes, economy changes, UI changes, copy rewrites, or refactors.
 - Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
 
+## 2026-06-18 — AsyncScene Step 2.6 Zoomer shortening documentation finalization
+
+- Step 2.1 PASS — `Game.__DEV.smokeZoomerShortenRuleOnce()`
+- STEP_2_1 | runtime Safari PASS | ruleExists:true | checkedCount:128 | matrixCount:128
+- Step 2.2 PASS — `Game.__DEV.smokeZoomerTransformationTableOnce()`
+- STEP_2_2 | runtime Safari PASS | tableExists:true | checkedCount:15 | tableCount:15
+- Step 2.3 PASS — `Game.__DEV.smokeDevMenuMinimalOnce()`
+- STEP_2_3 | runtime Safari PASS | appliedCount:79 | checkedCount:79 | shorterCount:79 | meaningPreserved:true | variablesPreserved:true
+- Step 2.4 PASS — `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`
+- STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantCount:43 | groupsCovered:5 | newFeatureCoverageOk:true
+- Step 2.5 PASS — `Game.__DEV.smokeZoomerShorteningQualityOnce()`
+- STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true
+- Step 2.6 is documentation finalization only.
+- STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()
+- no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6.
+- Game.__DEV.smokeZoomerShorteningDocsStep6Once()
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-05 — AsyncScene Step 2.6 Zoomer shortening documentation finalization
 
 - Documentation finalization only: no gameplay changes, economy changes, UI changes, smoke logic beyond the documentation smoke, or refactors.
