@@ -14460,6 +14460,275 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX13", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
+    const smokeBoomerRuntimeLexicalLinterStep35Once = () => {
+      const baseResult = smokeBoomerNewFeatureCoverageStep34Once();
+      const buildTag = "build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1";
+      const commit = "step3_5_boomer_runtime_lexical_linter";
+      const smokeVersion = "step3_5_boomer_runtime_lexical_linter_v20260619_001";
+      const requiredCoverageZones = new Set(["economy", "npc_vs_npc", "dm", "reports", "respect", "learning", "rematch", "crowd", "errors", "hints"]);
+      const result = {
+        ...baseResult,
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Once",
+        staleBodyDetected: false,
+        runtimeInventoryExists: false,
+        runtimeInventoryCount: 0,
+        checkedSurfaceCount: 0,
+        checkedTextCount: 0,
+        allowedLexiconConnected: baseResult.allowedLexiconStillExists === true && baseResult.allowedLexiconInventoryCount === 164,
+        tabooListConnected: baseResult.tabooListStillExists === true && baseResult.tabooEntryCount === 153,
+        lexicalMappingConnected: baseResult.lexicalMappingStillExists === true && baseResult.lexicalMappingRowCount === 93,
+        newFeatureCoverageStillExists: baseResult.coverageArtifactExists === true,
+        newFeatureCoverageConnectedToDevSmoke: false,
+        failures: Array.isArray(baseResult.failures) ? baseResult.failures.slice() : [],
+        forbiddenRemaining: Array.isArray(baseResult.forbiddenRemaining) ? baseResult.forbiddenRemaining.slice() : [],
+        missingCoverage: Array.isArray(baseResult.missingCoverage) ? baseResult.missingCoverage.slice() : [],
+        failedChecks: Array.isArray(baseResult.failedChecks) ? baseResult.failedChecks.slice() : [],
+        uiLayerOnly: true,
+        runtimeLogicTouched: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const normalize = (value) => String(value == null ? "" : value).replace(/\r\n?/g, "\n").replace(/\s+/g, " ").trim();
+      const matchExactPhrase = (text, phrase) => {
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return false;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u").test(String(text || ""));
+      };
+      const parseLexiconRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+          if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+        });
+        return rows;
+      };
+      const parseTabooRows = (text) => {
+        const rows = [];
+        let currentCategory = "";
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const heading = line.match(/^###\s+([a-z_]+)\s*$/i);
+          if (heading) { currentCategory = String(heading[1] || "").toLowerCase(); return; }
+          const item = line.match(/^\-\s+(.*\S)\s*$/);
+          if (item && currentCategory) rows.push({ category: currentCategory, phrase: String(item[1] || "").trim() });
+        });
+        return rows;
+      };
+      const inferZone = (source, key) => {
+        const k = String(key || "").toLowerCase();
+        const s = String(source || "").toLowerCase();
+        if (s.includes("start_screen") || k.includes("start_") || k.includes("menu_") || k.includes("goal_") || k.includes("return_to_start")) return "ui";
+        if (s.includes("cap_messages") || k.includes("cap_") || k.includes("points") || k.includes("money") || k.includes("cost") || k.includes("reward") || k.includes("escape_button_label")) return "economy";
+        if (k.includes("respect")) return "respect";
+        if (k.includes("rematch")) return "rematch";
+        if (k.includes("teach") || k.startsWith("hint_type_")) return "learning";
+        if (k.includes("report") || k.includes("cop_")) return "reports";
+        if (k.startsWith("dm_")) return "dm";
+        if (k.startsWith("battle_") || k.startsWith("conflict_")) return "npc_vs_npc";
+        if (k.startsWith("tie_") || k.includes("supported_") || k.includes("majority_") || k.includes("minority_")) return "crowd";
+        if (k.includes("hint") || k.includes("event")) return "hints";
+        if (/unavailable|invalid|missing|not_found|cooldown/i.test(k)) return "errors";
+        if (s.includes("npc_event_templates")) return "npc_vs_npc";
+        if (s.includes("cop_templates")) return "reports";
+        return "system";
+      };
+      const runtime = (Game && Game.Data) ? Game.Data : null;
+      const runtimeRecords = [];
+      const recordKeys = new Set();
+      const addRecord = (record) => {
+        const text = normalize(record && record.text);
+        if (!text) return;
+        const entry = {
+          id: record && record.id ? String(record.id) : null,
+          text,
+          source: record && record.source ? String(record.source) : null,
+          surface: record && record.surface ? String(record.surface) : (record && record.source ? String(record.source) : null),
+          category: record && record.category ? String(record.category) : inferZone(record && record.source, record && record.surface)
+        };
+        const key = JSON.stringify(entry);
+        if (recordKeys.has(key)) return;
+        recordKeys.add(key);
+        runtimeRecords.push(entry);
+      };
+      const collectFlat = (obj, source, categoryFn) => {
+        if (!obj || typeof obj !== "object") {
+          addUnique(result.missingCoverage, { source, reason: "missing_surface_registration" });
+          fail("missing_surface_registration", { source, reason: "missing_surface_registration" });
+          return;
+        }
+        Object.keys(obj).forEach((key) => {
+          const value = obj[key];
+          if (typeof value === "string") {
+            addRecord({ id: key, text: value, source, surface: `${source}.${key}`, category: categoryFn ? categoryFn(key, value) : inferZone(source, key) });
+          } else if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+              const text = typeof item === "string" ? item : (item && typeof item.text === "string" ? item.text : "");
+              if (text) addRecord({ id: `${key}[${index}]`, text, source, surface: `${source}.${key}[${index}]`, category: categoryFn ? categoryFn(key, text) : inferZone(source, key) });
+            });
+          }
+        });
+      };
+      try {
+        const allowedRes = (typeof fetchFirst === "function") ? fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md") : null;
+        const allowedRaw = normalize(allowedRes && allowedRes.ok ? allowedRes.text : "");
+        const allowedRows = parseLexiconRows(allowedRaw);
+        const allowedByText = Object.create(null);
+        const currentByText = Object.create(null);
+        allowedRows.forEach((row) => {
+          const boomerText = normalize(row.boomerText);
+          const currentText = normalize(row.currentText);
+          if (!allowedByText[boomerText]) allowedByText[boomerText] = [];
+          allowedByText[boomerText].push(row);
+          if (!currentByText[currentText]) currentByText[currentText] = [];
+          currentByText[currentText].push(row);
+        });
+        const tabooRes = (typeof fetchFirst === "function") ? fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md") : null;
+        const tabooRaw = normalize(tabooRes && tabooRes.ok ? tabooRes.text : "");
+        const tabooRows = parseTabooRows(tabooRaw);
+        const tabooIndex = {
+          slang: tabooRows.filter((row) => row.category === "slang"),
+          abbreviations: tabooRows.filter((row) => row.category === "abbreviations"),
+          sharp_colloquial: tabooRows.filter((row) => row.category === "sharp_colloquial"),
+          meme_language: tabooRows.filter((row) => row.category === "meme_language"),
+          officialese: tabooRows.filter((row) => row.category === "officialese"),
+          moralizing: tabooRows.filter((row) => row.category === "moralizing"),
+          all: tabooRows
+        };
+        const parseCoverageRows = (text) => {
+          const rows = [];
+          String(text || "").split(/\r?\n/).forEach((line) => {
+            const match = line.match(/^\|\s*([a-z_]+)\s*\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|$/i);
+            if (match) rows.push({ zone: String(match[1] || "").toLowerCase(), id: match[2], boomerText: match[3] });
+          });
+          return rows;
+        };
+        const coverageRes = (typeof fetchFirst === "function") ? fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md") : null;
+        const coverageRaw = normalize(coverageRes && coverageRes.ok ? coverageRes.text : "");
+        const coverageRows = parseCoverageRows(coverageRaw);
+        const coverageById = Object.create(null);
+        const coverageZoneNames = new Set();
+        coverageRows.forEach((row) => {
+          coverageZoneNames.add(row.zone);
+          if (row.id && !coverageById[row.id]) coverageById[row.id] = row.zone;
+        });
+        if (runtime && runtime.TEXTS && runtime.TEXTS.zoomer) collectFlat(runtime.TEXTS.zoomer, "Data.TEXTS.zoomer");
+        if (runtime && runtime.START_SCREEN_PROFILE_TEXTS && runtime.START_SCREEN_PROFILE_TEXTS.zoomer) collectFlat(runtime.START_SCREEN_PROFILE_TEXTS.zoomer, "Data.START_SCREEN_PROFILE_TEXTS.zoomer", () => "ui");
+        if (runtime && runtime.START_SCREEN) {
+          addRecord({ id: "title", text: runtime.START_SCREEN.title, source: "Data.START_SCREEN", surface: "Data.START_SCREEN.title", category: "ui" });
+          (Array.isArray(runtime.START_SCREEN.introLines) ? runtime.START_SCREEN.introLines : []).forEach((line, index) => addRecord({ id: `introLines[${index}]`, text: line, source: "Data.START_SCREEN", surface: `Data.START_SCREEN.introLines[${index}]`, category: "hints" }));
+          addRecord({ id: "economyHonestyLine", text: runtime.START_SCREEN.economyHonestyLine, source: "Data.START_SCREEN", surface: "Data.START_SCREEN.economyHonestyLine", category: "economy" });
+          if (runtime.START_SCREEN.actions) {
+            addRecord({ id: "actions.start", text: runtime.START_SCREEN.actions.start, source: "Data.START_SCREEN", surface: "Data.START_SCREEN.actions.start", category: "ui" });
+            addRecord({ id: "actions.rules", text: runtime.START_SCREEN.actions.rules, source: "Data.START_SCREEN", surface: "Data.START_SCREEN.actions.rules", category: "ui" });
+          }
+        } else {
+          addUnique(result.missingCoverage, { source: "Data.START_SCREEN", reason: "missing_surface_registration" });
+        }
+        if (runtime && runtime.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && runtime.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer) {
+          Object.keys(runtime.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer).forEach((type) => {
+            const rows = runtime.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer[type];
+            if (!Array.isArray(rows)) return;
+            rows.forEach((text, index) => addRecord({ id: `${type}[${index}]`, text, source: "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer", surface: `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer.${type}[${index}]`, category: "npc_vs_npc" }));
+          });
+        } else {
+          addUnique(result.missingCoverage, { source: "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer", reason: "missing_surface_registration" });
+        }
+        if (runtime && runtime.COP_TEMPLATES) collectFlat(runtime.COP_TEMPLATES, "Data.COP_TEMPLATES", (key) => {
+          const k = String(key || "").toLowerCase();
+          if (k.includes("cooldown") || k.includes("warning")) return "errors";
+          if (k.includes("thank") || k.includes("scold")) return "reports";
+          if (k.includes("chat")) return "dm";
+          return "reports";
+        });
+        if (runtime && runtime.CAP_MESSAGES) collectFlat(runtime.CAP_MESSAGES, "Data.CAP_MESSAGES", () => "economy");
+      } catch (err) {
+        fail("runtime_inventory_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.runtimeInventoryExists = runtimeRecords.length > 0;
+      result.runtimeInventoryCount = runtimeRecords.length;
+      result.checkedTextCount = runtimeRecords.length;
+      const checkedZones = new Set();
+      runtimeRecords.forEach((record) => {
+        const text = normalize(record.text);
+        const boomerMatches = allowedByText[text] || [];
+        const legacyMatches = currentByText[text] || [];
+        if (!boomerMatches.length) {
+          const detail = { id: legacyMatches.length ? legacyMatches[0].id : null, text: record.text, source: record.source, surface: record.surface, reason: legacyMatches.length ? "not_in_allowed_lexicon" : "unknown_runtime_text" };
+          addUnique(result.missingCoverage, detail);
+          fail("all_runtime_texts_covered", detail);
+          return;
+        }
+        const matchedRow = boomerMatches[0];
+        const zone = inferZone(record.source, record.surface);
+        if (requiredCoverageZones.has(zone)) {
+          checkedZones.add(zone);
+          if (!coverageById[matchedRow.id]) {
+            const detail = { textId: matchedRow.id, text: record.text, source: record.source, surface: record.surface, reason: "missing_surface_registration" };
+            addUnique(result.missingCoverage, detail);
+            fail("all_runtime_texts_covered", detail);
+          }
+        }
+        const tabooHit = tabooIndex.all.find((row) => matchExactPhrase(text, row.phrase));
+        if (tabooHit) {
+          const entry = { textId: matchedRow.id, text: record.text, matchedTabooRule: tabooHit.phrase, category: tabooHit.category, source: record.source, surface: record.surface };
+          addUnique(result.forbiddenRemaining, entry);
+          if (tabooHit.category === "slang") fail("no_slang", entry);
+          if (tabooHit.category === "abbreviations") fail("no_abbreviations", entry);
+          if (tabooHit.category === "sharp_colloquial") fail("no_sharp_wording", entry);
+          if (tabooHit.category === "meme_language") fail("no_meme_language", entry);
+          if (tabooHit.category === "officialese") fail("no_officialese", entry);
+          if (tabooHit.category === "moralizing") fail("no_moralizing", entry);
+        }
+      });
+      allowedRows.forEach((row) => {
+        if (!runtimeRecords.some((record) => normalize(record.text) === normalize(row.boomerText))) {
+          addUnique(result.missingCoverage, { id: row.id, text: row.boomerText, reason: "not_in_allowed_lexicon", source: "allowed_lexicon", surface: row.id });
+          fail("all_runtime_texts_covered", { id: row.id, text: row.boomerText, reason: "not_in_allowed_lexicon" });
+        }
+      });
+      result.checkedSurfaceCount = checkedZones.size;
+      result.newFeatureCoverageStillExists = baseResult.coverageArtifactExists === true;
+      result.newFeatureCoverageConnectedToDevSmoke = baseResult.coverageArtifactExists === true
+        && baseResult.coverageArtifactMarkerPresent === true
+        && baseResult.zoneCount === 10
+        && baseResult.requiredZonesFound === true
+        && baseResult.zoneCoverageComplete === true
+        && baseResult.forbiddenRemaining.length === 0
+        && baseResult.missingCoverage.length === 0
+        && baseResult.failedChecks.length === 0
+        && baseResult.failures.length === 0
+        && coverageZoneNames.size === 10;
+      const finalChecks = [
+        { check: "runtime_inventory_exists", pass: result.runtimeInventoryExists === true, actual: result.runtimeInventoryExists },
+        { check: "allowed_lexicon_connected", pass: result.allowedLexiconConnected === true, actual: result.allowedLexiconConnected },
+        { check: "taboo_list_connected", pass: result.tabooListConnected === true, actual: result.tabooListConnected },
+        { check: "lexical_mapping_connected", pass: result.lexicalMappingConnected === true, actual: result.lexicalMappingConnected },
+        { check: "new_feature_coverage_connected", pass: result.newFeatureCoverageConnectedToDevSmoke === true, actual: result.newFeatureCoverageConnectedToDevSmoke },
+        { check: "all_runtime_texts_covered", pass: result.missingCoverage.length === 0, actual: result.missingCoverage.length },
+        { check: "no_slang", pass: result.forbiddenRemaining.every((row) => row.category !== "slang"), actual: result.forbiddenRemaining.filter((row) => row.category === "slang").length },
+        { check: "no_abbreviations", pass: result.forbiddenRemaining.every((row) => row.category !== "abbreviations"), actual: result.forbiddenRemaining.filter((row) => row.category === "abbreviations").length },
+        { check: "no_sharp_wording", pass: result.forbiddenRemaining.every((row) => row.category !== "sharp_colloquial"), actual: result.forbiddenRemaining.filter((row) => row.category === "sharp_colloquial").length },
+        { check: "no_meme_language", pass: result.forbiddenRemaining.every((row) => row.category !== "meme_language"), actual: result.forbiddenRemaining.filter((row) => row.category === "meme_language").length },
+        { check: "no_officialese", pass: result.forbiddenRemaining.every((row) => row.category !== "officialese"), actual: result.forbiddenRemaining.filter((row) => row.category === "officialese").length },
+        { check: "no_moralizing", pass: result.forbiddenRemaining.every((row) => row.category !== "moralizing"), actual: result.forbiddenRemaining.filter((row) => row.category === "moralizing").length },
+        { check: "failures_empty", pass: result.failures.length === 0, actual: result.failures.length },
+        { check: "forbidden_remaining_empty", pass: result.forbiddenRemaining.length === 0, actual: result.forbiddenRemaining.length },
+        { check: "missing_coverage_empty", pass: result.missingCoverage.length === 0, actual: result.missingCoverage.length },
+        { check: "checked_surface_count_10", pass: result.checkedSurfaceCount >= 10, actual: result.checkedSurfaceCount },
+        { check: "checked_text_count_164", pass: result.checkedTextCount >= 164, actual: result.checkedTextCount }
+      ];
+      finalChecks.forEach(({ check, pass, actual }) => { if (!pass) fail(check, { actual, checkedSurfaceCount: result.checkedSurfaceCount, checkedTextCount: result.checkedTextCount }); });
+      result.ok = finalChecks.every(({ pass }) => pass) && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      try { console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -14669,6 +14938,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once = smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once = smokeBoomerRuntimeLexicalLinterStep35Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -14683,6 +14954,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -14762,6 +15034,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix12Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix12Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Once = smokeBoomerRuntimeLexicalLinterStep35Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -18889,6 +19162,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX6_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix6Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX7_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX8_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once);
+  console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
