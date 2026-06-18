@@ -13256,8 +13256,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         state.noOfficialeseInCoveredTexts = state.noOfficialeseInCoveredTexts !== false;
         state.noMoralizingInCoveredTexts = state.noMoralizingInCoveredTexts !== false;
         const coverageArtifactMarkerPresent = /BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1/.test(String(coverageArtifactRaw || ""));
+        state.coverageArtifactMarkerPresent = coverageArtifactMarkerPresent === true;
         state.coverageConnectedToDevSmoke = state.coverageArtifactExists === true
-          && coverageArtifactMarkerPresent === true
+          && state.coverageArtifactMarkerPresent === true
           && state.allowedLexiconStillExists === true
           && state.allowedLexiconInventoryCount === 164
           && state.tabooListStillExists === true
@@ -13288,6 +13289,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const rows = parseCoverageRows(artifactRaw);
         const actual = validateRows(rows, artifactRaw);
         result.coverageConnectedToDevSmoke = actual.coverageConnectedToDevSmoke === true;
+        result.coverageArtifactMarkerPresent = actual.coverageArtifactMarkerPresent === true;
         result.zoneCount = actual.zoneCount;
         result.requiredZonesFound = actual.requiredZonesFound;
         result.zoneCoverageComplete = actual.zoneCoverageComplete;
@@ -13451,6 +13453,65 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX10", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
+    const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
+      const result = smokeBoomerNewFeatureCoverageStep34Once();
+      result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
+      result.commit = "step3_4_boomer_new_feature_coverage_fix11";
+      result.smokeVersion = "boomer_new_feature_coverage_step3_4_fix11_v20260619_003";
+      result.smokeFunctionName = "smokeBoomerNewFeatureCoverageStep34Fix11Once";
+      result.staleBodyDetected = false;
+      result.coverageConnectedToDevSmoke = result.coverageArtifactExists === true
+        && result.coverageArtifactMarkerPresent === true
+        && result.zoneCount === 10
+        && result.requiredZonesFound === true
+        && result.zoneCoverageComplete === true
+        && result.allCoveredIdsExistInAllowedLexicon === true
+        && result.allCoveredBoomerTextsNonEmpty === true
+        && result.noTabooInCoveredTexts === true
+        && result.noSlangInCoveredTexts === true
+        && result.noMemeLanguageInCoveredTexts === true
+        && result.noOfficialeseInCoveredTexts === true
+        && result.noMoralizingInCoveredTexts === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.lexicalMappingStillExists === true
+        && result.lexicalMappingRowCount === 93
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.filter((entry) => entry !== "coverage_connected_to_dev_smoke").length === 0
+        && result.failures.filter((entry) => !(entry && entry.check === "coverage_connected_to_dev_smoke")).length === 0;
+      if (!result.coverageConnectedToDevSmoke) {
+        addUniqueProfileAudit(result.failedChecks, "coverage_connected_to_dev_smoke");
+        addUniqueProfileAudit(result.failures, { check: "coverage_connected_to_dev_smoke", detail: { expectedMarker: "BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1", actualMarker: result.coverageArtifactMarkerPresent === true, artifactRawLoaded: result.coverageArtifactExists === true, markerFound: result.coverageArtifactMarkerPresent === true } });
+      }
+      result.ok = result.coverageConnectedToDevSmoke === true
+        && result.zoneCount === 10
+        && result.requiredZonesFound === true
+        && result.zoneCoverageComplete === true
+        && result.allCoveredIdsExistInAllowedLexicon === true
+        && result.allCoveredBoomerTextsNonEmpty === true
+        && result.noTabooInCoveredTexts === true
+        && result.noSlangInCoveredTexts === true
+        && result.noMemeLanguageInCoveredTexts === true
+        && result.noOfficialeseInCoveredTexts === true
+        && result.noMoralizingInCoveredTexts === true
+        && result.allowedLexiconStillExists === true
+        && result.allowedLexiconInventoryCount === 164
+        && result.tabooListStillExists === true
+        && result.tabooEntryCount === 153
+        && result.lexicalMappingStillExists === true
+        && result.lexicalMappingRowCount === 93
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.uiLayerOnly === true
+        && result.runtimeLogicTouched === false;
+      try { console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX11", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix9Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix9_v1";
       const commit = "step3_4_boomer_new_feature_coverage_fix9";
@@ -13587,6 +13648,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once = smokeBoomerNewFeatureCoverageStep34Fix10Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once = smokeBoomerNewFeatureCoverageStep34Fix11Once;
+    Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -13598,6 +13661,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -13672,6 +13736,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix8Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix8Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix9Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix9Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix10Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix10Once;
+    devStore.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
