@@ -1,3 +1,12 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.4 intro/condition ban audit
+- Created `UI_PROFILE_ALPHA_INTRO_BAN_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-intro-ban-audit.js` and `docs/ui/ui-profile-alpha-intro-ban-audit.js` as an audit-only contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
+- The audit metadata records `auditId: UI_PROFILE_ALPHA_INTRO_BAN_AUDIT`, `stage: 4-alpha`, `step: 2.4`, `mode: alpha_intro_ban_audit_only`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `smokeVersion: alpha_step_2_4_intro_ban_v20260618_001`.
+- `alphaText` has no banned intro or condition phrases.
+- The seven allowed source rows with source-only intro language are `TXT_0014`, `TXT_0015`, `TXT_0119`, `TXT_0120`, `TXT_0121`, `TXT_0123`, and `TXT_0154`.
+- No runtime text was changed and the mechanical compressor rows were not mutated.
+- Added Safari-exported `Game.__DEV.smokeAlphaIntroBanStep24Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Runtime PASS is still unclaimed until the user runs the Safari smoke command.
+
 ## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix9
 - Added an explicit `BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1` marker to `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, then wired `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix9Once()` in both served dev-check bundles to treat that marker as the live marker contract for the already-clean Step 3.4 coverage artifact.
 - Smoke identity: build tag `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix9_v1`, commit placeholder `step3_4_boomer_new_feature_coverage_fix9`, smoke version `boomer_new_feature_coverage_step3_4_fix9_v20260619_001`.

@@ -1,3 +1,11 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.4 intro/condition ban audit
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created `UI_PROFILE_ALPHA_INTRO_BAN_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-intro-ban-audit.js` and `docs/ui/ui-profile-alpha-intro-ban-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
+- Added Safari-exported smoke `Game.__DEV.smokeAlphaIntroBanStep24Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Smoke version: `alpha_step_2_4_intro_ban_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaIntroBanStep24Once()`.
+- Scope held: audit contract, docs mirror, and smoke wiring only; no runtime text changed, no map rows changed, and no gameplay/economy/battle/NPC/state/save/routing logic changes.
+
 ## 2026-06-19 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix9
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added an explicit coverage marker to `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, then wired the Fix9 smoke to treat that marker as the live connection contract for the already-clean Step 3.4 coverage artifact.
