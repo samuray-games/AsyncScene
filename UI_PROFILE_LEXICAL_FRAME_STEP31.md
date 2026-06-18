@@ -742,3 +742,55 @@ ALLOWED_CONTROL_SAMPLES_STEP_3_3 = [
 ["Система обрабатывает запрос","Проверяю"],
 ["Ваш голос зарегистрирован","Голос учтён"]
 ]
+
+## Step 3.4 System Text Application
+
+System text must be short, direct, and neutral. Errors, hints, toasts, and buttons must not explain too long, joke, tease, or use meme/slang residue.
+
+STEP_3_4_SYSTEM_TEXT_REPLACEMENT_MAP = [
+  {id:"S34_0001",file:"AsyncScene/Web/data.js",current:"я на самом деле чувствую будто я родился в …",target:"Кажется, я родился в …",surface:"hint"},
+  {id:"S34_0002",file:"AsyncScene/Web/data.js",current:"Снести выбор",target:"Сбросить выбор",surface:"button"},
+  {id:"S34_0003",file:"AsyncScene/Web/data.js",current:"Правила без душноты",target:"Правила коротко",surface:"button"},
+  {id:"S34_0004",file:"AsyncScene/Web/system.js",current:"Свалить за 1💰.",target:"Выйти за 1💰.",surface:"toast"},
+  {id:"S34_0005",file:"AsyncScene/Web/system.js",current:"Свалить: -{escapeCost}💰.",target:"Выйти: -{escapeCost}💰.",surface:"toast"},
+  {id:"S34_0006",file:"AsyncScene/Web/data.js",current:"Вы победили в конфликте.",target:"Победа в конфликте.",surface:"system_result"},
+  {id:"S34_0007",file:"AsyncScene/Web/data.js",current:"Вы проиграли конфликт.",target:"Поражение в конфликте.",surface:"system_result"},
+  {id:"S34_0008",file:"AsyncScene/Web/data.js",current:"Конфликт завершился ничьей.",target:"Ничья в конфликте.",surface:"system_result"},
+  {id:"S34_0009",file:"AsyncScene/Web/data.js",current:"Свалить: {X}",target:"Выйти: {X}",surface:"button"},
+  {id:"S34_0010",file:"AsyncScene/Web/data.js",current:"Занят, связь позже.",target:"Занят. Связь позже.",surface:"system_message"},
+  {id:"S34_0011",file:"AsyncScene/Web/data.js",current:"Не могу, оформляю дело.",target:"Не могу. Дело в работе.",surface:"system_message"},
+  {id:"S34_0012",file:"AsyncScene/Web/data.js",current:"ВПИСЫВАЙСЯ",target:"ГОЛОСУЙ",surface:"button"},
+  {id:"S34_0013",file:"AsyncScene/Web/data.js",current:"ТЫКНИ ИМЯ",target:"ВЫБЕРИ ИМЯ",surface:"button"},
+  {id:"S34_0014",file:"AsyncScene/Web/data.js",current:"✓ УЖЕ",target:"✓ ЕСТЬ",surface:"button"},
+  {id:"S34_0015",file:"AsyncScene/Web/data.js",current:"WIN",target:"ПОБЕДА",surface:"system_result"},
+  {id:"S34_0016",file:"AsyncScene/Web/data.js",current:"RIP",target:"ПОРАЖЕНИЕ",surface:"system_result"},
+  {id:"S34_0017",file:"AsyncScene/Web/data.js",current:"DRAW",target:"НИЧЬЯ",surface:"system_result"},
+  {id:"S34_0018",file:"AsyncScene/Web/data.js",current:"Ты вывез.",target:"Ты победил.",surface:"system_result"},
+  {id:"S34_0019",file:"AsyncScene/Web/data.js",current:"Не вывез.",target:"Ты проиграл.",surface:"system_result"},
+  {id:"S34_0020",file:"AsyncScene/Web/data.js",current:"Ничья. Все шумели зря.",target:"Ничья.",surface:"system_result"},
+  {id:"S34_0021",file:"AsyncScene/Web/data.js",current:"Ты в мейне.",target:"Ты в большинстве.",surface:"system_result"},
+  {id:"S34_0022",file:"AsyncScene/Web/data.js",current:"Ты в андере.",target:"Ты в меньшинстве.",surface:"system_result"},
+  {id:"S34_0023",file:"AsyncScene/Web/data.js",current:"Мейн забрал.",target:"Большинство выиграло.",surface:"system_result"},
+  {id:"S34_0024",file:"AsyncScene/Web/data.js",current:"Андер просел.",target:"Меньшинство проиграло.",surface:"system_result"},
+  {id:"S34_0025",file:"AsyncScene/Web/data.js",current:"Драма закрыта.",target:"Конфликт закрыт.",surface:"system_result"},
+  {id:"S34_0026",file:"AsyncScene/Web/data.js",current:"лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.",target:"Лимит ⭐ на неделе. Пополни 💰 для ⭐.",surface:"hint"},
+  {id:"S34_0027",file:"AsyncScene/Web/data.js",current:"Cap: max Points на этой неделе. Используйте, пока не сбросили cap.",target:"Лимит 💰 на неделе. Потрать до сброса.",surface:"hint"},
+  {id:"S34_0028",file:"AsyncScene/Web/data.js",current:"Вызов принят, экипаж в пути.",target:"Вызов принят. Экипаж в пути.",surface:"toast"},
+  {id:"S34_0029",file:"AsyncScene/Web/data.js",current:"Принято, наблюдаю.",target:"Принято. Наблюдаю.",surface:"system_message"},
+  {id:"S34_0030",file:"AsyncScene/Web/data.js",current:"Факт принят, идем дальше.",target:"Факт принят. Идём дальше.",surface:"system_message"},
+  {id:"S34_0031",file:"AsyncScene/Web/data.js",current:"Занят расследованием, связь позже.",target:"Занят расследованием. Связь позже.",surface:"system_message"},
+  {id:"S34_0032",file:"AsyncScene/Web/data.js",current:"Сдача принята — спокойнее.",target:"Сдача принята. Спокойнее.",surface:"toast"},
+  {id:"S34_0033",file:"AsyncScene/Web/data.js",current:"«Сдать» без фактов — шум.",target:"Без фактов это шум.",surface:"hint"},
+  {id:"S34_0034",file:"AsyncScene/Web/data.js",current:"Кто сегодня на слуху, если не ошибаюсь?",target:"Кто сегодня на слуху?",surface:"hint"},
+  {id:"S34_0035",file:"AsyncScene/Web/data.js",current:"Кажется, про {NAME} говорят.",target:"Про {NAME} говорят.",surface:"toast"},
+  {id:"S34_0036",file:"AsyncScene/Web/data.js",current:"Кто, как вам кажется, был рядом?",target:"Кто был рядом?",surface:"hint"},
+  {id:"S34_0037",file:"AsyncScene/Web/data.js",current:"Где мы сейчас, как вам кажется?",target:"Где мы сейчас?",surface:"hint"},
+  {id:"S34_0038",file:"AsyncScene/Web/ui/ui-events.js",current:"Ты уже проголосовал.",target:"Голос уже есть.",surface:"toast"},
+  {id:"S34_0039",file:"AsyncScene/Web/ui/ui-dm.js",current:"Уже было уважение сегодня этому персонажу.",target:"Уважение уже было сегодня.",surface:"error"},
+  {id:"S34_0040",file:"AsyncScene/Web/ui/ui-dm.js",current:"Цепочка A->B->A сегодня не работает.",target:"Цепочка A->B->A сегодня закрыта.",surface:"error"},
+  {id:"S34_0041",file:"AsyncScene/Web/ui/ui-dm.js",current:"Лимит уважения на сегодня исчерпан.",target:"Лимит уважения исчерпан.",surface:"error"},
+  {id:"S34_0042",file:"AsyncScene/Web/state.js",current:"Цель получила +1 ⭐",target:"Цель получила +1⭐",surface:"toast"},
+  {id:"S34_0043",file:"AsyncScene/Web/ui/ui-menu.js",current:"Dev Mode disabled.",target:"Dev Mode выключен.",surface:"toast"},
+  {id:"S34_0044",file:"AsyncScene/Web/ui/ui-menu.js",current:"Dev Mode unlocked on this device.",target:"Dev Mode открыт на этом устройстве.",surface:"toast"},
+  {id:"S34_0045",file:"AsyncScene/Web/ui/ui-menu.js",current:"Incorrect Dev Mode PIN.",target:"Неверный PIN Dev Mode.",surface:"error"}
+]

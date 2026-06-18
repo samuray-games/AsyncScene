@@ -1,3 +1,15 @@
+## 2026-06-19 — Step 3.4 system texts
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Applied the exact Step 3.4 system-text replacement map to the scoped runtime UI/system text surfaces in `AsyncScene/Web/data.js`, `AsyncScene/Web/system.js`, `AsyncScene/Web/ui/ui-events.js`, `AsyncScene/Web/ui/ui-dm.js`, `AsyncScene/Web/ui/ui-menu.js`, and `AsyncScene/Web/state.js`.
+- Changed count: 45 mapped system-text replacements.
+- Added the exact `Step 3.4 System Text Application` section to `UI_PROFILE_LEXICAL_FRAME_STEP31.md` and `docs/UI_PROFILE_LEXICAL_FRAME_STEP31.md` with the exact rule and the full 45-row Step 3.4 replacement map.
+- Added the unique Safari-visible smoke `Game.__DEV.smokeLexicalFrameStep34SystemTextsOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_4_system_texts_v1`.
+- Commit placeholder: `step3_4_system_texts_v1`.
+- Smoke version: `step3_4_system_texts_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsOnce()`.
+- Scope held: exact system-text replacements, smoke wiring, and project tracking only; no gameplay, economy, battle, NPC, state, save, or routing logic changed.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.6 new feature coverage audit
 - Created `UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-new-feature-coverage-audit.js` and `docs/ui/ui-profile-alpha-new-feature-coverage-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`.
 - The audit metadata records `auditId: UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT`, `stage: 4-alpha`, `step: 2.6`, `mode: new_feature_coverage_audit_only`, `sourceInventoryId: UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, `instantMeaningAuditId: UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`, and `smokeVersion: alpha_step_2_6_new_feature_coverage_v20260618_001`.

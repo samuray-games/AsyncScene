@@ -418,10 +418,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       vote_fail: "✕ НЕТ",
       tie_timer: "⏳{sec}",
       tie_end_winner: "🏆 {name} {aVotes}:{bVotes}",
-      tie_end_draw: "DRAW {aVotes}:{bVotes}",
-      tie_chat_start: "ТОЛПА - ВПИСЫВАЙСЯ",
+      tie_end_draw: "НИЧЬЯ {aVotes}:{bVotes}",
+      tie_chat_start: "ТОЛПА - ГОЛОСУЙ",
       tie_chat_end_winner: "ТОЛПА: 🏆 {name} {aVotes}:{bVotes}",
-      tie_chat_end_draw: "ТОЛПА: DRAW {aVotes}:{bVotes}",
+      tie_chat_end_draw: "ТОЛПА: НИЧЬЯ {aVotes}:{bVotes}",
 
       events_header: "Движ",
       events_title: "EVENTS {count}",
@@ -9283,8 +9283,8 @@ K YN A9: Нет.
       battle_action_rematch: { default: "Реванш", millennial: "Реванш", zoomer: "Ещё раунд" },
       battle_action_report: { default: "Пожаловаться", millennial: "Пожаловаться", zoomer: "Сдать копу" },
       battles_empty: { default: "Вызовов нет.", millennial: "Вызовов нет.", zoomer: "Раундов нет." },
-      battle_win: { default: "Победа", millennial: "Победа", zoomer: "WIN" },
-      battle_loss: { default: "Поражение", millennial: "Поражение", zoomer: "RIP" }
+      battle_win: { default: "Победа", millennial: "Победа", zoomer: "ПОБЕДА" },
+      battle_loss: { default: "Поражение", millennial: "Поражение", zoomer: "ПОРАЖЕНИЕ" }
     };
     const sampleOf = (profile, key, vars) => {
       const prev = Data.TEXT_MODE;
@@ -9533,9 +9533,9 @@ K YN A9: Нет.
           && Data.TEXTS.genz.battles_empty === "Вызовов нет."
           && Data.TEXTS.alpha.battles_empty === "Раундов нет."
           && Data.TEXTS.genz.battle_win === "Победа"
-          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
           && Data.TEXTS.genz.battle_loss === "Поражение"
-          && Data.TEXTS.alpha.battle_loss === "RIP"
+          && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
         );
         result.routeChecks.resolverExists = typeof Data.t === "function";
         result.routeChecks.millennialFallbackPreserved = battleKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key));
@@ -9713,9 +9713,9 @@ K YN A9: Нет.
           && Data.TEXTS.genz.battles_empty === "Вызовов нет."
           && Data.TEXTS.alpha.battles_empty === "Раундов нет."
           && Data.TEXTS.genz.battle_win === "Победа"
-          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
           && Data.TEXTS.genz.battle_loss === "Поражение"
-          && Data.TEXTS.alpha.battle_loss === "RIP"
+          && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
         );
         result.routeChecks.noNewStorageKeys = false;
         const storageAfter = storageKeys();
@@ -10145,9 +10145,9 @@ K YN A9: Нет.
         && Data.TEXTS.genz.battles_empty === "Вызовов нет."
         && Data.TEXTS.alpha.battles_empty === "Раундов нет."
         && Data.TEXTS.genz.battle_win === "Победа"
-        && Data.TEXTS.alpha.battle_win === "WIN"
+        && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
         && Data.TEXTS.genz.battle_loss === "Поражение"
-        && Data.TEXTS.alpha.battle_loss === "RIP"
+        && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
       );
       result.commandRegistrationChecks = {
         gameDevExists: !!(root && typeof root === "object" && root.__DEV && typeof root.__DEV === "object"),
@@ -10669,13 +10669,13 @@ K YN A9: Нет.
           "Две цифры вайба",
           "Только для интерфейса. Не сохраняем. Можно поменять позже.",
           "Это только стиль интерфейса. Потом можно перекинуть.",
-          "я на самом деле чувствую будто я родился в …",
+          "Кажется, я родился в …",
           "по вайбу я родился в …",
           "Продолжить",
           "Погнали",
           "Сбросить старт",
-          "Снести выбор",
-          "Правила без душноты",
+          "Сбросить выбор",
+          "Правила коротко",
           "Войти",
           "Меню",
           "К старту",
@@ -10708,9 +10708,9 @@ K YN A9: Нет.
           "Вызовов нет.",
           "Раундов нет.",
           "Победа",
-          "WIN",
+          "ПОБЕДА",
           "Поражение",
-          "RIP"
+          "ПОРАЖЕНИЕ"
         ].filter((phrase) => runtimeSourceParts.start.includes(phrase) || runtimeSourceParts.menu.includes(phrase) || runtimeSourceParts.events.includes(phrase) || runtimeSourceParts.battle.includes(phrase));
         sourceRouteDiagnostics.ok = sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0
           && sourceRouteDiagnostics.missingDocsRouteKeys.length === 0
@@ -10770,7 +10770,7 @@ K YN A9: Нет.
           && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
           && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.rules_action.zoomer === "Правила коротко"
           && startDom.samples.start_action.zoomer === "Войти");
         startDom.ok = startDom.routeConnected
           && startDom.noBirthYearSaved
@@ -10781,7 +10781,7 @@ K YN A9: Нет.
           && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
           && startDom.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+          && startDom.samples.fantasy_birth_label.millennial === "Кажется, я родился в …"
           && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
           && startDom.samples.start_continue.millennial === "Продолжить"
           && startDom.samples.start_continue.zoomer === "Погнали"
@@ -10789,8 +10789,8 @@ K YN A9: Нет.
           && startDom.samples.start_start.millennial === "Старт"
           && startDom.samples.start_start.zoomer === "Старт"
           && startDom.samples.start_reset.millennial === "Сбросить старт"
-          && startDom.samples.start_reset.zoomer === "Снести выбор"
-          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.start_reset.zoomer === "Сбросить выбор"
+          && startDom.samples.rules_action.zoomer === "Правила коротко"
           && startDom.samples.start_action.zoomer === "Войти"
           && startDom.usesStartScreenResolver === true
           && startDom.resolverLayer === "start_screen";
@@ -10934,11 +10934,11 @@ K YN A9: Нет.
         const docsExpectedStart = {
           birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Две цифры вайба" },
           profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
-          fantasy_birth_label: { millennial: "я на самом деле чувствую будто я родился в …", zoomer: "по вайбу я родился в …" },
+          fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
           start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
           start_start: { millennial: "Старт", zoomer: "Старт" },
-          start_reset: { millennial: "Сбросить старт", zoomer: "Снести выбор" },
-          rules_action: { millennial: "Правила", zoomer: "Правила без душноты" },
+          start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
+          rules_action: { millennial: "Правила", zoomer: "Правила коротко" },
           start_action: { millennial: "Старт", zoomer: "Войти" }
         };
         const docsExpectedMenu = {
@@ -10962,8 +10962,8 @@ K YN A9: Нет.
           battle_action_rematch: { millennial: "Реванш", zoomer: "Ещё раунд" },
           battle_action_report: { millennial: "Пожаловаться", zoomer: "Сдать копу" },
           battles_empty: { millennial: "Вызовов нет.", zoomer: "Раундов нет." },
-          battle_win: { millennial: "Победа", zoomer: "WIN" },
-          battle_loss: { millennial: "Поражение", zoomer: "RIP" }
+          battle_win: { millennial: "Победа", zoomer: "ПОБЕДА" },
+          battle_loss: { millennial: "Поражение", zoomer: "ПОРАЖЕНИЕ" }
         };
         const docsMismatched = [];
         Object.entries(docsExpectedStart).forEach(([key, expected]) => {
@@ -11295,8 +11295,8 @@ K YN A9: Нет.
         && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
         && startSamples.start_continue && startSamples.start_continue.zoomer === "Погнали"
         && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
-        && startSamples.start_reset && startSamples.start_reset.zoomer === "Снести выбор"
-        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила без душноты"
+        && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
+        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила коротко"
         && startSamples.start_action && startSamples.start_action.zoomer === "Войти"
       );
       const menuSamplesOk = !!(
@@ -11320,8 +11320,8 @@ K YN A9: Нет.
         && battleSamples.battle_action_rematch && battleSamples.battle_action_rematch.zoomer === "Ещё раунд"
         && battleSamples.battle_action_report && battleSamples.battle_action_report.zoomer === "Сдать копу"
         && battleSamples.battles_empty && battleSamples.battles_empty.zoomer === "Раундов нет."
-        && battleSamples.battle_win && battleSamples.battle_win.zoomer === "WIN"
-        && battleSamples.battle_loss && battleSamples.battle_loss.zoomer === "RIP"
+        && battleSamples.battle_win && battleSamples.battle_win.zoomer === "ПОБЕДА"
+        && battleSamples.battle_loss && battleSamples.battle_loss.zoomer === "ПОРАЖЕНИЕ"
       );
       start.routeConnected = startRouteConnected;
       start.domProbeStatus = Array.isArray(start.visibleDomLabels) && start.visibleDomLabels.length ? "probedVisibleDom" : "skippedSafeNoVisiblePanel";
@@ -12386,35 +12386,35 @@ K YN A9: Нет.
       { id: "TXT_0031", from: "Ввод некорректен.", to: "Ввод некорректен. Лучше проверить формат." },
       { id: "TXT_0032", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
       { id: "TXT_0033", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
-      { id: "TXT_0042", from: "Свалить за 1💰.", to: "Можно выйти за 1💰. Ресурс будет списан." },
+      { id: "TXT_0042", from: "Выйти за 1💰.", to: "Можно выйти за 1💰. Ресурс будет списан." },
       { id: "TXT_0046", from: "Реванш: -{rematchCost}💰.", to: "Реванш стоит {rematchCost}💰. Ресурс будет списан." },
-      { id: "TXT_0047", from: "Свалить: -{escapeCost}💰.", to: "Выход стоит {escapeCost}💰. Ресурс будет списан." },
+      { id: "TXT_0047", from: "Выйти: -{escapeCost}💰.", to: "Выход стоит {escapeCost}💰. Ресурс будет списан." },
       { id: "TXT_0057", from: "Оппонент задаёт риск.", to: "Есть риск со стороны оппонента." },
       { id: "TXT_0058", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
       { id: "TXT_0060", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
       { id: "TXT_0065", from: "Поражение", to: "Поражение. Возможны потери по итогам." },
-      { id: "TXT_0068", from: "Вы проиграли конфликт.", to: "Вы проиграли конфликт. Возможны потери по итогам." },
-      { id: "TXT_0070", from: "Свалить: {X}", to: "Выход: {X}. Перед выбором лучше проверить стоимость." },
+      { id: "TXT_0068", from: "Поражение в конфликте.", to: "Поражение в конфликте. Возможны потери по итогам." },
+      { id: "TXT_0070", from: "Выйти: {X}", to: "Выход: {X}. Перед выбором лучше проверить стоимость." },
       { id: "TXT_0071", from: "Для {student}: {arg}. Цена {cost} 💰.", to: "Аргумент для {student}: {arg}. Перед передачей лучше проверить стоимость: {cost} 💰." },
       { id: "TXT_0073", from: "Введи точный ник.", to: "Введите точный ник. Лучше проверить написание." },
       { id: "TXT_0074", from: "Игрок не найден.", to: "Игрок не найден. Лучше проверить имя." },
       { id: "TXT_0077", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
-      { id: "TXT_0081", from: "Занят, связь позже.", to: "Сейчас занят. Связь будет позже." },
-      { id: "TXT_0082", from: "Не могу, оформляю дело.", to: "Сейчас идёт оформление дела. Ответ будет позже." },
+      { id: "TXT_0081", from: "Занят. Связь позже.", to: "Сейчас занят. Связь будет позже." },
+      { id: "TXT_0082", from: "Не могу. Дело в работе.", to: "Сейчас идёт оформление дела. Ответ будет позже." },
       { id: "TXT_0085", from: "Не подтвердилось. Факты не сошлись.", to: "Проверка не подтвердила информацию. Награда не начисляется." },
       { id: "TXT_0086", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
-      { id: "TXT_0092", from: "ВПИСЫВАЙСЯ", to: "Можно присоединиться к голосованию." },
-      { id: "TXT_0093", from: "ТЫКНИ ИМЯ", to: "Выберите имя." },
-      { id: "TXT_0098", from: "RIP", to: "Поражение." },
-      { id: "TXT_0100", from: "Ты вывез.", to: "Вы справились." },
-      { id: "TXT_0101", from: "Не вывез.", to: "Не получилось." },
-      { id: "TXT_0102", from: "Ничья. Все шумели зря.", to: "Ничья. Решение не изменилось." },
-      { id: "TXT_0106", from: "Андер просел.", to: "Меньшинство получило отрицательный итог." },
-      { id: "TXT_0108", from: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.", to: "Есть недельный лимит ⭐. Лучше проверить 💰 перед конвертацией." },
-      { id: "TXT_0109", from: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap.", to: "Есть недельный лимит 💰. Лучше использовать ресурс до сброса." },
+      { id: "TXT_0092", from: "ГОЛОСУЙ", to: "Можно присоединиться к голосованию." },
+      { id: "TXT_0093", from: "ВЫБЕРИ ИМЯ", to: "Выберите имя." },
+      { id: "TXT_0098", from: "ПОРАЖЕНИЕ", to: "Поражение." },
+      { id: "TXT_0100", from: "Ты победил.", to: "Вы справились." },
+      { id: "TXT_0101", from: "Ты проиграл.", to: "Не получилось." },
+      { id: "TXT_0102", from: "Ничья.", to: "Ничья. Решение не изменилось." },
+      { id: "TXT_0106", from: "Меньшинство проиграло.", to: "Меньшинство получило отрицательный итог." },
+      { id: "TXT_0108", from: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.", to: "Есть недельный лимит ⭐. Лучше проверить 💰 перед конвертацией." },
+      { id: "TXT_0109", from: "Лимит 💰 на неделе. Потрать до сброса.", to: "Есть недельный лимит 💰. Лучше использовать ресурс до сброса." },
       { id: "TXT_0111", from: "Опасная точка рядом.", to: "Рядом есть риск. Лучше проверить ситуацию." },
-      { id: "TXT_0116", from: "Занят расследованием, связь позже.", to: "Сейчас идёт расследование. Связь будет позже." },
-      { id: "TXT_0118", from: "«Сдать» без фактов — шум.", to: "Без фактов проверка может не подтвердиться." },
+      { id: "TXT_0116", from: "Занят расследованием. Связь позже.", to: "Сейчас идёт расследование. Связь будет позже." },
+      { id: "TXT_0118", from: "Без фактов это шум.", to: "Без фактов проверка может не подтвердиться." },
       { id: "TXT_0130", from: "слабый ход", to: "Этот ход может сработать хуже." },
       { id: "TXT_0131", from: "отвечай сейчас", to: "Можно ответить сейчас." },
       { id: "TXT_0132", from: "кошелек ближе", to: "Есть риск потерять 💰." },
@@ -12429,9 +12429,9 @@ K YN A9: Нет.
       { id: "TXT_0148", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
       { id: "TXT_0149", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
       { id: "TXT_0150", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс перед уважением." },
-      { id: "TXT_0151", from: "Уже было уважение сегодня этому персонажу.", to: "Уважение этому персонажу сегодня уже было. Повторить можно позже." },
-      { id: "TXT_0152", from: "Цепочка A->B->A сегодня не работает.", to: "Сегодня эта цепочка не сработает. Лучше выбрать другой ход." },
-      { id: "TXT_0153", from: "Лимит уважения на сегодня исчерпан.", to: "Лимит уважения на сегодня исчерпан. Повторить можно позже." },
+      { id: "TXT_0151", from: "Уважение уже было сегодня.", to: "Уважение этому персонажу сегодня уже было. Повторить можно позже." },
+      { id: "TXT_0152", from: "Цепочка A->B->A сегодня закрыта.", to: "Сегодня эта цепочка не сработает. Лучше выбрать другой ход." },
+      { id: "TXT_0153", from: "Лимит уважения исчерпан.", to: "Лимит уважения исчерпан. Повторить можно позже." },
       { id: "TXT_0154", from: "Сейчас не получилось. Попробуй позже.", to: "Сейчас не получилось. Есть шанс повторить позже." },
       { id: "TXT_0160", from: "Рано. Дай паузу.", to: "Пока рано. Лучше подождать немного." },
       { id: "TXT_0161", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
