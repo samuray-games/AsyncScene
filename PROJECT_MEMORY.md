@@ -1405,6 +1405,7 @@ Stage 3 Boomer [1.6] documents new-feature surface coverage only. Covered surfac
 - Commit identity: `step2_4_zoomer_new_feature_shorten_v1`.
 - Smoke version: `step2_4_zoomer_new_feature_shorten_v1_build_2026_06_18_step2_4_zoomer_new_feature_shorten_v1_commit_step2_4_zoomer_new_feature_shorten_v1`.
 - Step 2.3 Safari pass recorded: `ok:true`, `appliedCount:79`, `checkedCount:79`, `shorterCount:79`, `meaningPreserved:true`, `variablesPreserved:true`, `excludedRowsUntouched:true`.
+- Step 2.4 Safari pass recorded: `ok:true`, `checkedCount:43`, `coverageCount:43`, `compliantCount:43`, `appliedStep3Count:30`, `alreadyShortCount:13`, `groupsCovered:5`, `newFeatureCoverageOk:true`.
 
 ### Coverage Matrix
 
@@ -1464,6 +1465,20 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - The smoke checks terminology/copy only for bank, P2P, respect, training, report, crowd, DM, battle, escape, and rematch; it requires the zoomer profile coverage lines, rejects remaining legacy wording in those covered lines, and returns `buildTag`, `commit`, and unique `smokeVersion`.
 - Scope held: no gameplay, economy, UI behavior, or Console.txt changes were made. Safari runtime PASS is not claimed.
 - Runtime wiring fix: `fetchTextFromCandidates` now uses the local doc helpers already defined in the smoke scope so Safari no longer throws a missing-variable exception.
+
+## 2026-06-18 — Step 2.5 Zoomer shortening quality smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added dev-only smoke `Game.__DEV.smokeZoomerShorteningQualityStep5Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Root-first deployed-safe lookup uses `UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_5`, `./UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_5`, and `/AsyncScene/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_5`; the docs mirror is skipped when it returns `http_404`.
+- The smoke validates four sections: `UI_PROFILE_ZOOMER_SHORTEN_RULE`, `UI_PROFILE_ZOOMER_TRANSFORM_TABLE`, `UI_PROFILE_ZOOMER_APPLIED_UI_COPY_STEP3`, and `UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4`.
+- The smoke checks 122 rows total: 79 Step 2.3 rows and 43 Step 2.4 rows.
+- Quality rules: length after whitespace normalization, no target over 48 characters unless it contains a required variable or system token, no target over 7 words unless it contains a required variable or system token, no banned intro words, no abstract slow-reading substrings unless part of a required preserved phrase, verbness/state-first/compact-status acceptance, and exact variable preservation per row.
+- Section and coverage checks: root/docs section mirroring, `checkedCount:122`, `step3Count:79`, `step4Count:43`, `lengthOkCount:122`, `introOkCount:122`, `abstractionOkCount:122`, `verbnessOkCount:122`, `variablesOkCount:122`, `sectionCount:4`.
+- Build tag: `build_2026_06_18_step2_5_zoomer_shortening_quality_v1`.
+- Commit identity: `step2_5_zoomer_shortening_quality_v1`.
+- Smoke version: `step2_5_zoomer_shortening_quality_v1_build_2026_06_18_step2_5_zoomer_shortening_quality_v1_commit_step2_5_zoomer_shortening_quality_v1`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeZoomerShorteningQualityStep5Once()`.
+- Scope held: dev-smoke and docs-read validation only; no copy replacements, no gameplay changes, no economy changes, no NPC changes, and no `Console.txt` usage.
 
 ## 2026-06-05 — Step 4 [5] missing error coverage only
 - Safari/runtime FAIL was narrowed to `Game.__DEV.smokeZoomerErrorTermsOnce()` missing only `Не удалось.` and `Повтори позже.`, while the served runtime identity was still stale at `build_2026_06_05_ac` / `a58c803`.
