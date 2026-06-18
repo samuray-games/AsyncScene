@@ -1,3 +1,12 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.6 new feature coverage audit
+- Created `UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-new-feature-coverage-audit.js` and `docs/ui/ui-profile-alpha-new-feature-coverage-audit.js` as a UI-layer-only audit contract over `UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, and `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`.
+- The audit metadata records `auditId: UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT`, `stage: 4-alpha`, `step: 2.6`, `mode: new_feature_coverage_audit_only`, `sourceInventoryId: UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, `instantMeaningAuditId: UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`, and `smokeVersion: alpha_step_2_6_new_feature_coverage_v20260618_001`.
+- Covered groups: `npc_vs_npc`, `world_events`, `scheduler`, `crowd`, `rep_points`, `dm`.
+- Row counts: `npc_vs_npc` 13, `world_events` 11, `scheduler` 8, `crowd` 17, `rep_points` 26, `dm` 19.
+- No runtime text was changed and the audit does not mutate the source inventory, mechanical compressor rows, or instant meaning audit rows.
+- Added Safari-exported `Game.__DEV.smokeAlphaNewFeatureCoverageStep26Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Runtime PASS is still unclaimed until the user runs the Safari smoke command.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 2.5 instant meaning audit
 - Created `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-instant-meaning-audit.js` and `docs/ui/ui-profile-alpha-instant-meaning-audit.js` as an audit-only contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
 - The audit metadata records `auditId: UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`, `stage: 4-alpha`, `step: 2.5`, `mode: alpha_instant_meaning_audit_only`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, `totalRows: 164`, and `smokeVersion: alpha_step_2_5_instant_meaning_v20260618_001`.

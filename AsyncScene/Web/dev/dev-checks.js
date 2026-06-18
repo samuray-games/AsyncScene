@@ -13455,6 +13455,268 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaNewFeatureCoverageStep26Once = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step2_6_new_feature_coverage_audit_v1";
+      const commit = "step4_2_6_alpha_new_feature_coverage_audit";
+      const smokeVersion = "alpha_step_2_6_new_feature_coverage_v20260618_001";
+      const expectedFeatureGroups = ["npc_vs_npc", "world_events", "scheduler", "crowd", "rep_points", "dm"];
+      const expectedFeatureRowCount = 94;
+      const expectedRowCounts = { npc_vs_npc: 13, world_events: 11, scheduler: 8, crowd: 17, rep_points: 26, dm: 19 };
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        auditExists: false,
+        sourceInventoryExists: false,
+        mapExists: false,
+        instantMeaningAuditExists: false,
+        featureGroupCount: 0,
+        coveredFeatureGroups: [],
+        missingFeatureGroups: [],
+        rowCountByFeature: {
+          npc_vs_npc: 0,
+          world_events: 0,
+          scheduler: 0,
+          crowd: 0,
+          rep_points: 0,
+          dm: 0
+        },
+        missingFeatureRows: [],
+        alphaTextMismatches: [],
+        meaningTypeMismatches: [],
+        instantMeaningMissingRows: [],
+        legacyUncoveredRows: [],
+        replacementLeakFound: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const resolveCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(location.origin + "/__dev__/docs/");
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+          } else {
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+            bases.push(location.origin + "/__dev__/docs/");
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const readTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirstLocal = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName, preferDocs)) {
+          const res = readTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseManifest = (text, exportName) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const body = `${String(text || "")}\nreturn (window.Game && window.Game.${exportName}) || window.${exportName} || module.exports || null;`;
+          return (new Function("window", "module", body))(win, module);
+        } catch (_) {
+          return null;
+        }
+      };
+      const sameArray = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => JSON.stringify(item) === JSON.stringify(b[index]));
+      try {
+        const auditRootRes = fetchFirstLocal("ui/ui-profile-alpha-new-feature-coverage-audit.js", false);
+        const auditDocsRes = fetchFirstLocal("ui/ui-profile-alpha-new-feature-coverage-audit.js", true);
+        if (!auditRootRes.ok) fail("audit_file_exists", { path: "ui/ui-profile-alpha-new-feature-coverage-audit.js", reason: auditRootRes.reason || "unavailable" });
+        if (!auditDocsRes.ok) fail("audit_docs_mirror_exists", { path: "ui/ui-profile-alpha-new-feature-coverage-audit.js", reason: auditDocsRes.reason || "unavailable" });
+        const auditRootText = auditRootRes.ok ? String(auditRootRes.text || "") : "";
+        const auditDocsText = auditDocsRes.ok ? String(auditDocsRes.text || "") : "";
+        if (auditRootText && auditDocsText && auditRootText !== auditDocsText) fail("audit_js_mirror_match", "js mirror mismatch");
+        const auditManifest = parseManifest(auditRootText || auditDocsText, "UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT");
+        const featureRows = auditManifest && Array.isArray(auditManifest.featureRows) ? auditManifest.featureRows.slice() : [];
+        const requiredFeatureGroups = auditManifest && Array.isArray(auditManifest.requiredFeatureGroups) ? auditManifest.requiredFeatureGroups.slice() : [];
+        result.auditExists = !!(auditManifest && auditManifest.metadata && Array.isArray(featureRows) && Array.isArray(requiredFeatureGroups));
+        if (!result.auditExists) fail("audit_exists", "UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT missing");
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.auditId !== "UI_PROFILE_ALPHA_NEW_FEATURE_COVERAGE_AUDIT") fail("audit_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.auditId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.stage !== "4-alpha") fail("audit_stage", auditManifest && auditManifest.metadata ? auditManifest.metadata.stage : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.step !== "2.6") fail("audit_step", auditManifest && auditManifest.metadata ? auditManifest.metadata.step : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.mode !== "new_feature_coverage_audit_only") fail("audit_mode", auditManifest && auditManifest.metadata ? auditManifest.metadata.mode : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.sourceInventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.sourceInventoryId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.sourceMapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("source_map_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.sourceMapId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.instantMeaningAuditId !== "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT") fail("instant_meaning_audit_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.instantMeaningAuditId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.smokeVersion !== smokeVersion) fail("smoke_version", auditManifest && auditManifest.metadata ? auditManifest.metadata.smokeVersion : null);
+        if (!sameArray(Object.keys(auditManifest || {}), ["metadata", "requiredFeatureGroups", "featureRows"])) addUnique(result.replacementLeakFound, { id: "manifest", keys: Object.keys(auditManifest || {}) });
+        if (!sameArray(Object.keys(auditManifest && auditManifest.metadata || {}), ["auditId", "stage", "step", "mode", "sourceInventoryId", "sourceMapId", "instantMeaningAuditId", "smokeVersion"])) addUnique(result.replacementLeakFound, { id: "metadata", keys: Object.keys(auditManifest && auditManifest.metadata || {}) });
+        if (featureRows.length !== expectedFeatureRowCount) fail("feature_row_count", { expected: expectedFeatureRowCount, actual: featureRows.length });
+        if (!sameArray(requiredFeatureGroups, expectedFeatureGroups)) fail("required_feature_groups", requiredFeatureGroups);
+        featureRows.forEach((row) => {
+          if (!sameArray(Object.keys(row || {}), ["featureGroup", "id", "sourceText", "alphaText", "meaningType"])) {
+            addUnique(result.replacementLeakFound, { id: String(row && row.id || ""), keys: Object.keys(row || {}) });
+          }
+        });
+        const rootSourceRes = fetchFirstLocal("ui/ui-profile-alpha-source-phrase-inventory.js", false);
+        const docsSourceRes = fetchFirstLocal("ui/ui-profile-alpha-source-phrase-inventory.js", true);
+        if (!rootSourceRes.ok) fail("source_inventory_file_exists", { path: "ui/ui-profile-alpha-source-phrase-inventory.js", reason: rootSourceRes.reason || "unavailable" });
+        if (!docsSourceRes.ok) fail("source_inventory_docs_mirror_exists", { path: "ui/ui-profile-alpha-source-phrase-inventory.js", reason: docsSourceRes.reason || "unavailable" });
+        const sourceRootText = rootSourceRes.ok ? String(rootSourceRes.text || "") : "";
+        const sourceDocsText = docsSourceRes.ok ? String(docsSourceRes.text || "") : "";
+        if (sourceRootText && sourceDocsText && sourceRootText !== sourceDocsText) fail("source_inventory_js_mirror_match", "js mirror mismatch");
+        const sourceManifest = parseManifest(sourceRootText || sourceDocsText, "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY");
+        const sourceEntries = sourceManifest && Array.isArray(sourceManifest.entries) ? sourceManifest.entries.slice() : [];
+        result.sourceInventoryExists = !!(sourceManifest && sourceManifest.metadata && Array.isArray(sourceEntries));
+        if (!result.sourceInventoryExists) fail("source_inventory_exists", "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY missing");
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.inventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_id", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.inventoryId : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.stage !== "4-alpha") fail("source_inventory_stage", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.stage : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.step !== "2.2") fail("source_inventory_step", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.step : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.mode !== "source_inventory_only") fail("source_inventory_mode", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.mode : null);
+        const rootMapRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", false);
+        const docsMapRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", true);
+        if (!rootMapRes.ok) fail("map_file_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: rootMapRes.reason || "unavailable" });
+        if (!docsMapRes.ok) fail("map_docs_mirror_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: docsMapRes.reason || "unavailable" });
+        const mapRootText = rootMapRes.ok ? String(rootMapRes.text || "") : "";
+        const mapDocsText = docsMapRes.ok ? String(docsMapRes.text || "") : "";
+        if (mapRootText && mapDocsText && mapRootText !== mapDocsText) fail("map_js_mirror_match", "js mirror mismatch");
+        const mapManifest = parseManifest(mapRootText || mapDocsText, "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP");
+        const mapRows = mapManifest && Array.isArray(mapManifest.rows) ? mapManifest.rows.slice() : [];
+        result.mapExists = !!(mapManifest && mapManifest.metadata && Array.isArray(mapRows));
+        if (!result.mapExists) fail("map_exists", "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP missing");
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("map_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.mapId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.stage !== "4-alpha") fail("map_stage", mapManifest && mapManifest.metadata ? mapManifest.metadata.stage : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.step !== "2.3") fail("map_step", mapManifest && mapManifest.metadata ? mapManifest.metadata.step : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mode !== "mechanical_compressor_map_only") fail("map_mode", mapManifest && mapManifest.metadata ? mapManifest.metadata.mode : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.sourceInventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("map_source_inventory_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.sourceInventoryId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.smokeVersion !== "alpha_step_2_3_mechanical_compressor_v20260618_001") fail("map_smoke_version", mapManifest && mapManifest.metadata ? mapManifest.metadata.smokeVersion : null);
+        const rootMeaningRes = fetchFirstLocal("ui/ui-profile-alpha-instant-meaning-audit.js", false);
+        const docsMeaningRes = fetchFirstLocal("ui/ui-profile-alpha-instant-meaning-audit.js", true);
+        if (!rootMeaningRes.ok) fail("instant_meaning_file_exists", { path: "ui/ui-profile-alpha-instant-meaning-audit.js", reason: rootMeaningRes.reason || "unavailable" });
+        if (!docsMeaningRes.ok) fail("instant_meaning_docs_mirror_exists", { path: "ui/ui-profile-alpha-instant-meaning-audit.js", reason: docsMeaningRes.reason || "unavailable" });
+        const meaningRootText = rootMeaningRes.ok ? String(rootMeaningRes.text || "") : "";
+        const meaningDocsText = docsMeaningRes.ok ? String(docsMeaningRes.text || "") : "";
+        if (meaningRootText && meaningDocsText && meaningRootText !== meaningDocsText) fail("instant_meaning_js_mirror_match", "js mirror mismatch");
+        const meaningManifest = parseManifest(meaningRootText || meaningDocsText, "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT");
+        const meaningRows = meaningManifest && Array.isArray(meaningManifest.rows) ? meaningManifest.rows.slice() : [];
+        result.instantMeaningAuditExists = !!(meaningManifest && meaningManifest.metadata && Array.isArray(meaningRows));
+        if (!result.instantMeaningAuditExists) fail("instant_meaning_audit_exists", "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT missing");
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.auditId !== "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT") fail("instant_meaning_audit_id", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.auditId : null);
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.stage !== "4-alpha") fail("instant_meaning_stage", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.stage : null);
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.step !== "2.5") fail("instant_meaning_step", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.step : null);
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.mode !== "alpha_instant_meaning_audit_only") fail("instant_meaning_mode", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.mode : null);
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.sourceMapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("instant_meaning_source_map_id", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.sourceMapId : null);
+        if (!meaningManifest || !meaningManifest.metadata || meaningManifest.metadata.smokeVersion !== "alpha_step_2_5_instant_meaning_v20260618_001") fail("instant_meaning_smoke_version", meaningManifest && meaningManifest.metadata ? meaningManifest.metadata.smokeVersion : null);
+        const sourceById = new Map(sourceEntries.map((entry) => [String(entry && entry.id || ""), entry]));
+        const mapById = new Map(mapRows.map((entry) => [String(entry && entry.id || ""), entry]));
+        const meaningById = new Map(meaningRows.map((entry) => [String(entry && entry.id || ""), entry]));
+        featureRows.forEach((row) => {
+          const featureGroup = String(row && row.featureGroup || "");
+          const id = String(row && row.id || "");
+          const sourceText = String(row && row.sourceText || "");
+          const alphaText = String(row && row.alphaText || "");
+          const meaningType = String(row && row.meaningType || "");
+          if (!featureGroup || !id) {
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: "row_shape" });
+            return;
+          }
+          result.rowCountByFeature[featureGroup] = (result.rowCountByFeature[featureGroup] || 0) + 1;
+          if (!result.coveredFeatureGroups.includes(featureGroup)) result.coveredFeatureGroups.push(featureGroup);
+          const sourceRow = sourceById.get(id);
+          if (!sourceRow || String(sourceRow.currentText || "") !== sourceText) {
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: !sourceRow ? "source_missing" : "source_text_mismatch" });
+            return;
+          }
+          const mapRow = mapById.get(id);
+          if (!mapRow) {
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: "map_missing" });
+            addUnique(result.legacyUncoveredRows, { featureGroup, id, issue: "map_missing" });
+          } else if (String(mapRow.alphaText || "") !== alphaText) {
+            addUnique(result.alphaTextMismatches, { featureGroup, id, expected: alphaText, actual: String(mapRow.alphaText || "") });
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: "alpha_text_mismatch" });
+            addUnique(result.legacyUncoveredRows, { featureGroup, id, issue: "alpha_text_mismatch" });
+          }
+          const meaningRow = meaningById.get(id);
+          if (!meaningRow) {
+            addUnique(result.instantMeaningMissingRows, { featureGroup, id });
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: "instant_meaning_missing" });
+            addUnique(result.legacyUncoveredRows, { featureGroup, id, issue: "instant_meaning_missing" });
+          } else if (String(meaningRow.meaningType || "") !== meaningType) {
+            addUnique(result.meaningTypeMismatches, { featureGroup, id, expected: meaningType, actual: String(meaningRow.meaningType || "") });
+            addUnique(result.missingFeatureRows, { featureGroup, id });
+            addUnique(result.missingCoverage, { featureGroup, id, issue: "meaning_type_mismatch" });
+            addUnique(result.legacyUncoveredRows, { featureGroup, id, issue: "meaning_type_mismatch" });
+          }
+        });
+        result.featureGroupCount = result.coveredFeatureGroups.length;
+        result.missingFeatureGroups = expectedFeatureGroups.filter((group) => !result.coveredFeatureGroups.includes(group));
+        if (featureRows.length !== expectedFeatureRowCount) fail("feature_row_count", { expected: expectedFeatureRowCount, actual: featureRows.length });
+        if (!sameArray(result.coveredFeatureGroups, expectedFeatureGroups)) fail("covered_feature_groups", result.coveredFeatureGroups);
+        if (result.missingFeatureGroups.length) {
+          addUnique(result.missingCoverage, { featureGroup: "feature_groups", missing: result.missingFeatureGroups.slice(), issue: "missing_feature_groups" });
+          fail("missing_feature_groups", result.missingFeatureGroups);
+        }
+        Object.keys(expectedRowCounts).forEach((group) => {
+          if (result.rowCountByFeature[group] !== expectedRowCounts[group]) {
+            addUnique(result.missingCoverage, { featureGroup: group, expected: expectedRowCounts[group], actual: result.rowCountByFeature[group], issue: "row_count_mismatch" });
+            fail("row_count_" + group, { expected: expectedRowCounts[group], actual: result.rowCountByFeature[group] });
+          }
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.auditExists === true
+        && result.sourceInventoryExists === true
+        && result.mapExists === true
+        && result.instantMeaningAuditExists === true
+        && result.featureGroupCount === 6
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.missingFeatureGroups.length === 0
+        && result.missingFeatureRows.length === 0
+        && result.alphaTextMismatches.length === 0
+        && result.meaningTypeMismatches.length === 0
+        && result.instantMeaningMissingRows.length === 0
+        && result.legacyUncoveredRows.length === 0
+        && result.replacementLeakFound.length === 0;
+      return result;
+    };
     const smokeAlphaDiffFix1 = () => {
       const result = smokeAlphaDiffOnce();
       result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -14181,6 +14443,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.Dev.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.Dev.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
+    Game.Dev.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -14218,6 +14481,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     G.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     G.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
+    G.__DEV.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
@@ -14225,6 +14489,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     Game.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
+    Game.__DEV.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -14387,6 +14652,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     devStore.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
     devStore.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
+    devStore.smokeAlphaNewFeatureCoverageStep26Once = smokeAlphaNewFeatureCoverageStep26Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
