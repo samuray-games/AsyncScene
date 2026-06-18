@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 4 Alpha profile, step 1.7 Fix2 Safari exposure fix
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Exposed `Game.__DEV.smokeAlphaDiffFix2()` through the served Safari registration path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Kept the Fix1 aggregate logic intact, including the `alphaText`-only `no_alpha_long_dash` scan across the four Alpha tables.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_7_fix2_aggregate_diff_smoke_v1`.
+- Commit marker: `step4_alpha_profile_step1_7_fix2_aggregate_diff_smoke_v1`.
+- Smoke version: `alpha_step_1_7_fix2_aggregate_diff_smoke_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaDiffFix2()`.
+- Scope held: dev-smoke wiring and docs status only; no Alpha artifact changes, no runtime Alpha activation, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 Fix1 aggregate diff smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the aggregate Alpha diff/spec smoke so `no_alpha_long_dash` now scans only loaded `alphaText` values from the four Alpha tables and reports table/id/text details on failure.
