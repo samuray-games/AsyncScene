@@ -1,9 +1,10 @@
 ## 2026-06-18 — Step 4 Alpha profile, step 2.1 alpha compression rule
 - Created `UI_PROFILE_ALPHA_COMPRESSION_RULE` in `AsyncScene/Web/ui/ui-profile-alpha-compression-rule.js` and `docs/ui/ui-profile-alpha-compression-rule.js` as a UI-layer-only manifest with the exact Russian rule lines, fixture set, and locked inventory for Stage 4 Alpha Step 2.1.
-- Added Safari-exported `Game.__DEV.smokeAlphaCompressionRuleStep21Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` for the user-run runtime smoke.
-- No runtime PASS exists yet; the step remains READY_FOR_RUNTIME_SMOKE until Safari runs the smoke command.
-- Changed files: `AsyncScene/Web/ui/ui-profile-alpha-compression-rule.js`, `docs/ui/ui-profile-alpha-compression-rule.js`, `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
-- Smoke version: `alpha_step_2_1_alpha_compression_rule_v20260618_001`.
+- Added Safari-exported `Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` for the user-run runtime smoke.
+- Fix reason: Safari smoke exception `Can't find variable: fetchFirst` on the initial Step 2.1 smoke path.
+- No runtime PASS exists yet; the step remains READY_FOR_RUNTIME_SMOKE until Safari runs the Fix1 smoke command.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Smoke version: `alpha_step_2_1_alpha_compression_rule_fix1_v20260618_001`.
 - Scope held: UI-layer rule and smoke wiring only; no currentText replacement, no runtime/game logic changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — AsyncScene Step 2.6 Fix 7 Zoomer shortening docs no-logic-change block
