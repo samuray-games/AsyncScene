@@ -6,6 +6,18 @@
 - Runtime-sensitive files remain gated by confirmation and were not edited.
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Synced `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` back to the exact Step 3.1 allowed-lexicon boomerText values for the covered ids.
+- Added Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, with install-time visibility markers for the Fix4 alias.
+- Tightened the Step 3.4 coverage smoke diagnostics so category-level hits are recorded in `forbiddenRemaining` when they occur and `coverageConnectedToDevSmoke` reflects the live validation state.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix4_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix4`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix4_v20260618_005`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Scope held: dev-smoke wiring and docs only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix3
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Boomer coverage inventory in `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` by replacing the exact taboo-hit covered texts that were keeping the Step 3.4 smoke from passing.

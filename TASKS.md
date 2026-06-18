@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Synced the Boomer new-feature coverage artifact rows to the Step 3.1 allowed lexicon values and added the Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()` install path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Tightened the Step 3.4 coverage smoke diagnostics so category hits now keep detail rows when they occur, and `coverageConnectedToDevSmoke` reflects the live validation state.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix4_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix4`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix4_v20260618_005`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — AsyncScene Step 2.6 Fix 6 Zoomer shortening docs no-logic-change block
 - Status: READY_FOR_RUNTIME_SMOKE
 - Fix scope: documentation-manifest only. `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` are the only runtime-readable sources updated here.
