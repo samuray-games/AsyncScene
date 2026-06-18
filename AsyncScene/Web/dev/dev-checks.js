@@ -7504,6 +7504,248 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeLexicalFrameStep34SystemTextsFix2 = () => {
+      const buildTag = "build_2026_06_19_step3_4_system_texts_fix2_v1";
+      const commit = ((typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || "step3_4_system_texts_fix2_v1");
+      const smokeVersion = "step3_4_system_texts_fix2_v20260619_003";
+      const replacementMap = [
+        { id: "S34_0001", file: "AsyncScene/Web/data.js", current: "я на самом деле чувствую будто я родился в …", target: "Кажется, я родился в …", surface: "hint" },
+        { id: "S34_0002", file: "AsyncScene/Web/data.js", current: "Снести выбор", target: "Сбросить выбор", surface: "button" },
+        { id: "S34_0003", file: "AsyncScene/Web/data.js", current: "Правила без душноты", target: "Правила коротко", surface: "button" },
+        { id: "S34_0004", file: "AsyncScene/Web/system.js", current: "Свалить за 1💰.", target: "Выйти за 1💰.", surface: "toast" },
+        { id: "S34_0005", file: "AsyncScene/Web/system.js", current: "Свалить: -{escapeCost}💰.", target: "Выйти: -{escapeCost}💰.", surface: "toast" },
+        { id: "S34_0006", file: "AsyncScene/Web/data.js", current: "Вы победили в конфликте.", target: "Победа в конфликте.", surface: "system_result" },
+        { id: "S34_0007", file: "AsyncScene/Web/data.js", current: "Вы проиграли конфликт.", target: "Поражение в конфликте.", surface: "system_result" },
+        { id: "S34_0008", file: "AsyncScene/Web/data.js", current: "Конфликт завершился ничьей.", target: "Ничья в конфликте.", surface: "system_result" },
+        { id: "S34_0009", file: "AsyncScene/Web/data.js", current: "Свалить: {X}", target: "Выйти: {X}", surface: "button" },
+        { id: "S34_0010", file: "AsyncScene/Web/data.js", current: "Занят, связь позже.", target: "Занят. Связь позже.", surface: "system_message" },
+        { id: "S34_0011", file: "AsyncScene/Web/data.js", current: "Не могу, оформляю дело.", target: "Не могу. Дело в работе.", surface: "system_message" },
+        { id: "S34_0012", file: "AsyncScene/Web/data.js", current: "ВПИСЫВАЙСЯ", target: "ГОЛОСУЙ", surface: "button" },
+        { id: "S34_0013", file: "AsyncScene/Web/data.js", current: "ТЫКНИ ИМЯ", target: "ВЫБЕРИ ИМЯ", surface: "button" },
+        { id: "S34_0014", file: "AsyncScene/Web/data.js", current: "✓ УЖЕ", target: "✓ ЕСТЬ", surface: "button" },
+        { id: "S34_0015", file: "AsyncScene/Web/data.js", current: "WIN", target: "ПОБЕДА", surface: "system_result" },
+        { id: "S34_0016", file: "AsyncScene/Web/data.js", current: "RIP", target: "ПОРАЖЕНИЕ", surface: "system_result" },
+        { id: "S34_0017", file: "AsyncScene/Web/data.js", current: "DRAW", target: "НИЧЬЯ", surface: "system_result" },
+        { id: "S34_0018", file: "AsyncScene/Web/data.js", current: "Ты вывез.", target: "Ты победил.", surface: "system_result" },
+        { id: "S34_0019", file: "AsyncScene/Web/data.js", current: "Не вывез.", target: "Ты проиграл.", surface: "system_result" },
+        { id: "S34_0020", file: "AsyncScene/Web/data.js", current: "Ничья. Все шумели зря.", target: "Ничья.", surface: "system_result" },
+        { id: "S34_0021", file: "AsyncScene/Web/data.js", current: "Ты в мейне.", target: "Ты в большинстве.", surface: "system_result" },
+        { id: "S34_0022", file: "AsyncScene/Web/data.js", current: "Ты в андере.", target: "Ты в меньшинстве.", surface: "system_result" },
+        { id: "S34_0023", file: "AsyncScene/Web/data.js", current: "Мейн забрал.", target: "Большинство выиграло.", surface: "system_result" },
+        { id: "S34_0024", file: "AsyncScene/Web/data.js", current: "Андер просел.", target: "Меньшинство проиграло.", surface: "system_result" },
+        { id: "S34_0025", file: "AsyncScene/Web/data.js", current: "Драма закрыта.", target: "Конфликт закрыт.", surface: "system_result" },
+        { id: "S34_0026", file: "AsyncScene/Web/data.js", current: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.", target: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.", surface: "hint" },
+        { id: "S34_0027", file: "AsyncScene/Web/data.js", current: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap.", target: "Лимит 💰 на неделе. Потрать до сброса.", surface: "hint" },
+        { id: "S34_0028", file: "AsyncScene/Web/data.js", current: "Вызов принят, экипаж в пути.", target: "Вызов принят. Экипаж в пути.", surface: "toast" },
+        { id: "S34_0029", file: "AsyncScene/Web/data.js", current: "Принято, наблюдаю.", target: "Принято. Наблюдаю.", surface: "system_message" },
+        { id: "S34_0030", file: "AsyncScene/Web/data.js", current: "Факт принят, идем дальше.", target: "Факт принят. Идём дальше.", surface: "system_message" },
+        { id: "S34_0031", file: "AsyncScene/Web/data.js", current: "Занят расследованием, связь позже.", target: "Занят расследованием. Связь позже.", surface: "system_message" },
+        { id: "S34_0032", file: "AsyncScene/Web/data.js", current: "Сдача принята — спокойнее.", target: "Сдача принята. Спокойнее.", surface: "toast" },
+        { id: "S34_0033", file: "AsyncScene/Web/data.js", current: "«Сдать» без фактов — шум.", target: "Без фактов это шум.", surface: "hint" },
+        { id: "S34_0034", file: "AsyncScene/Web/data.js", current: "Кто сегодня на слуху, если не ошибаюсь?", target: "Кто сегодня на слуху?", surface: "hint" },
+        { id: "S34_0035", file: "AsyncScene/Web/data.js", current: "Кажется, про {NAME} говорят.", target: "Про {NAME} говорят.", surface: "toast" },
+        { id: "S34_0036", file: "AsyncScene/Web/data.js", current: "Кто, как вам кажется, был рядом?", target: "Кто был рядом?", surface: "hint" },
+        { id: "S34_0037", file: "AsyncScene/Web/data.js", current: "Где мы сейчас, как вам кажется?", target: "Где мы сейчас?", surface: "hint" },
+        { id: "S34_0038", file: "AsyncScene/Web/ui/ui-events.js", current: "Ты уже проголосовал.", target: "Голос уже есть.", surface: "toast" },
+        { id: "S34_0039", file: "AsyncScene/Web/ui/ui-dm.js", current: "Уже было уважение сегодня этому персонажу.", target: "Уважение уже было сегодня.", surface: "error" },
+        { id: "S34_0040", file: "AsyncScene/Web/ui/ui-dm.js", current: "Цепочка A->B->A сегодня не работает.", target: "Цепочка A->B->A сегодня закрыта.", surface: "error" },
+        { id: "S34_0041", file: "AsyncScene/Web/ui/ui-dm.js", current: "Лимит уважения на сегодня исчерпан.", target: "Лимит уважения исчерпан.", surface: "error" },
+        { id: "S34_0042", file: "AsyncScene/Web/state.js", current: "Цель получила +1 ⭐", target: "Цель получила +1⭐", surface: "toast" },
+        { id: "S34_0043", file: "AsyncScene/Web/ui/ui-menu.js", current: "Dev Mode disabled.", target: "Dev Mode выключен.", surface: "toast" },
+        { id: "S34_0044", file: "AsyncScene/Web/ui/ui-menu.js", current: "Dev Mode unlocked on this device.", target: "Dev Mode открыт на этом устройстве.", surface: "toast" },
+        { id: "S34_0045", file: "AsyncScene/Web/ui/ui-menu.js", current: "Incorrect Dev Mode PIN.", target: "Неверный PIN Dev Mode.", surface: "error" }
+      ];
+      const unchangedTargets = [
+        "Готово.","Сообщение недоступно.","Не хватает 💰.","Мало 💰 на баттл.","Недоступно.","Не найдено.","Игрок не указан.","Штраф: -5 💰.","Ввод некорректен.","Кулдаун активен.","Проверка займет время.","+1💰","+1⭐","Голос учтён.","Проверяю.","Сдать {name}: +2💰.","Коп: {name} сдан, +2💰.","Аргумент: {teacher} → {student}.","{name} зовёт на реванш.","+1💰 возврат.","+1💰 возврат большинству.","+1💰 остаток победителю.","Реванш: -{rematchCost}💰.","{target}: +{amount}💰.","{target}: +{amount}💰 тебе.","{attackerName} [{attackerInf}] бросил вызов.","Баттл с {oppName}: {text}.","{a} и {b}: ничья.","Толпа: {name} {aVotes}:{bVotes}.","Оранжевые аргументы открыты.","Красные аргументы открыты.","Чёрные аргументы открыты.","Меню","К старту","Цель","Победа","Поражение","Толпа решает","Введи точный ник.","Игрок не найден.","Понял. Проверяю.","Принял. Разберусь.","Проверка сошлась. Вмешался.","Проверка сошлась. Занялся.","Не подтвердилось. Факты не сошлись.","Ответь: кто?","Ответь: где?","Ответь: о ком?","Ответь: да или нет?","ТОЛПА","✓ ОК","✕ НЕТ","{cop.fullName} на связи.","Опасная точка рядом.","Ситуация под контролем.","Такого нет.","Сейчас не получилось. Попробуй позже.","Рано. Дай паузу."
+      ];
+      const forbiddenTexts = [
+        "Правила без душноты","Снести выбор","Свалить за 1💰.","Свалить: -{escapeCost}💰.","Свалить: {X}","ВПИСЫВАЙСЯ","ТЫКНИ ИМЯ","WIN","RIP","DRAW","Ты вывез.","Не вывез.","Ничья. Все шумели зря.","Ты в мейне.","Ты в андере.","Мейн забрал.","Андер просел.","Драма закрыта.","Ты уже проголосовал.","Уже было уважение сегодня этому персонажу.","Цепочка A->B->A сегодня не работает.","Лимит уважения на сегодня исчерпан.","Dev Mode disabled.","Dev Mode unlocked on this device.","Incorrect Dev Mode PIN."
+      ];
+      const runtimeFiles = ["system.js","data.js","ui/ui-events.js","ui/ui-dm.js","ui/ui-menu.js","state.js"];
+      const repoToLogicalFile = {
+        "AsyncScene/Web/system.js": "system.js",
+        "AsyncScene/Web/data.js": "data.js",
+        "AsyncScene/Web/ui/ui-events.js": "ui/ui-events.js",
+        "AsyncScene/Web/ui/ui-dm.js": "ui/ui-dm.js",
+        "AsyncScene/Web/ui/ui-menu.js": "ui/ui-menu.js",
+        "AsyncScene/Web/state.js": "state.js"
+      };
+      const result = { ok: false, buildTag, commit, smokeVersion, replacementMapExists: false, runtimeFilesAvailable: false, resolvedRuntimeFiles: [], changedTargetsApplied: false, unchangedTargetsStable: false, forbiddenSystemTextRemaining: [], tooLongSystemTexts: [], ironyHits: [], memeHits: [], slangHits: [], dryCorporateHits: [], failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [] };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? check : { check, detail }); };
+      const fetchTextSyncLocal = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) { return { ok: false, reason: "xhr_exception", path }; }
+      };
+      const resolveDocCandidatesLocal = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          baseUris.push(`${location.origin}/AsyncScene/`);
+          baseUris.push(`${location.origin}/`);
+          baseUris.push(`${location.origin}/docs/`);
+        }
+        baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const fetchFirstDocLocal = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidatesLocal(fileName)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const resolveRuntimeCandidatesFix2 = (logicalFile) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUri = (typeof document !== "undefined" && document.baseURI) || (typeof window !== "undefined" && window.location && window.location.href) || "";
+        if (baseUri) {
+          try { add(new URL(logicalFile, baseUri).href); } catch (_) {}
+          try { add(new URL(`./${logicalFile}`, baseUri).href); } catch (_) {}
+        }
+        if (typeof document !== "undefined" && document.scripts) {
+          Array.prototype.forEach.call(document.scripts, (script) => {
+            const src = script && script.src ? String(script.src) : "";
+            if (!src) return;
+            try {
+              const url = new URL(src, baseUri || window.location.href);
+              if (url.pathname.endsWith(`/${logicalFile}`)) add(url.href);
+            } catch (_) {}
+          });
+        }
+        const legacyRelativePath = `Web/${logicalFile}`;
+        if (baseUri) {
+          try { add(new URL(legacyRelativePath, baseUri).href); } catch (_) {}
+          try { add(new URL(`./${legacyRelativePath}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`AsyncScene/${legacyRelativePath}`, baseUri).href); } catch (_) {}
+        }
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/${legacyRelativePath}`);
+          add(`${location.origin}/AsyncScene/${legacyRelativePath}`);
+        }
+        add(`/${legacyRelativePath}`);
+        add(`/AsyncScene/${legacyRelativePath}`);
+        return candidates;
+      };
+      const fetchFirstRuntimeFix2 = (logicalFile) => {
+        let last = null;
+        for (const candidate of resolveRuntimeCandidatesFix2(logicalFile)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: logicalFile };
+      };
+      const textByFile = Object.create(null);
+      runtimeFiles.forEach((logicalFile) => {
+        const res = fetchFirstRuntimeFix2(logicalFile);
+        if (!res.ok) {
+          addUnique(result.missingCoverage, { file: logicalFile, reason: res.reason || "unavailable", path: res.path || logicalFile });
+          textByFile[logicalFile] = "";
+          return;
+        }
+        textByFile[logicalFile] = String(res.text || "");
+        addUnique(result.resolvedRuntimeFiles, logicalFile);
+      });
+      result.runtimeFilesAvailable = runtimeFiles.every((logicalFile) => !!String(textByFile[logicalFile] || ""));
+      if (!result.runtimeFilesAvailable) fail("runtime_file_available", result.missingCoverage.slice());
+      try {
+        const artifactRes = fetchFirstDocLocal("UI_PROFILE_LEXICAL_FRAME_STEP31.md");
+        const artifactRaw = artifactRes && artifactRes.ok ? String(artifactRes.text || "") : "";
+        if (!(artifactRes && artifactRes.ok)) fail("artifact_exists", { file: "UI_PROFILE_LEXICAL_FRAME_STEP31.md", reason: artifactRes && artifactRes.reason ? artifactRes.reason : "unavailable" });
+        result.replacementMapExists = artifactRaw.includes("## Step 3.4 System Text Application")
+          && artifactRaw.includes("System text must be short, direct, and neutral. Errors, hints, toasts, and buttons must not explain too long, joke, tease, or use meme/slang residue.")
+          && artifactRaw.includes("S34_0001")
+          && artifactRaw.includes("S34_0045")
+          && artifactRaw.includes("STEP_3_4_SYSTEM_TEXT_REPLACEMENT_MAP = [");
+        if (!result.replacementMapExists) fail("replacement_map_exists", "missing_step34_section");
+      } catch (err) {
+        fail("artifact_exception", err && err.message ? String(err.message) : String(err));
+      }
+      const allRuntimeText = runtimeFiles.map((logicalFile) => textByFile[logicalFile] || "").join("\n");
+      if (result.runtimeFilesAvailable) {
+        result.changedTargetsApplied = replacementMap.every((row) => {
+          const logicalFile = repoToLogicalFile[row.file] || row.file;
+          const fileText = String(textByFile[logicalFile] || "");
+          const targetOk = fileText.indexOf(row.target) !== -1;
+          const currentGone = fileText.indexOf(row.current) === -1;
+          if (!targetOk) addUnique(result.missingCoverage, { id: row.id, file: logicalFile, expected: row.target });
+          if (!currentGone) addUnique(result.forbiddenSystemTextRemaining, { id: row.id, file: logicalFile, text: row.current });
+          return targetOk && currentGone;
+        });
+        if (!result.changedTargetsApplied) fail("changed_targets_applied", "step34_runtime_strings_mismatch");
+        result.unchangedTargetsStable = unchangedTargets.every((text) => allRuntimeText.indexOf(text) !== -1);
+        if (!result.unchangedTargetsStable) {
+          unchangedTargets.forEach((text) => { if (allRuntimeText.indexOf(text) === -1) addUnique(result.missingCoverage, { unchanged: text }); });
+          fail("unchanged_targets_stable", "missing_unchanged_controls");
+        }
+      }
+      replacementMap.forEach((row) => {
+        const text = String(row.target || "").trim();
+        const sentenceCount = (text.match(/[.!?…]+/g) || []).length || (text ? 1 : 0);
+        if (text.length > 46 || sentenceCount > 2) addUnique(result.tooLongSystemTexts, { id: row.id, file: row.file, text, length: text.length, sentenceCount });
+        if (/(шумели зря|если не ошибаюсь|как вам кажется)/i.test(text)) addUnique(result.ironyHits, { id: row.id, file: row.file, text });
+        if (/\b(WIN|RIP|DRAW)\b/.test(text)) addUnique(result.memeHits, { id: row.id, file: row.file, text });
+        if (/(душнот|снести выбор|вписывайся|тыкни|мейн|андер|вывез|просел)/i.test(text)) addUnique(result.slangHits, { id: row.id, file: row.file, text });
+        if (/(выполните действие|данное действие недоступно|недостаточно ресурсов для выполнения операции|ваш голос зарегистрирован)/i.test(text)) addUnique(result.dryCorporateHits, { id: row.id, file: row.file, text });
+      });
+      forbiddenTexts.forEach((text) => {
+        if (replacementMap.some((row) => String(row.target || "").indexOf(text) !== -1)) addUnique(result.forbiddenSystemTextRemaining, text);
+      });
+      result.forbiddenRemaining = result.forbiddenSystemTextRemaining.slice();
+      if (result.forbiddenSystemTextRemaining.length) fail("forbidden_system_text_remaining", result.forbiddenSystemTextRemaining.slice());
+      if (result.tooLongSystemTexts.length) fail("too_long_system_texts", result.tooLongSystemTexts.slice());
+      if (result.ironyHits.length) fail("irony_hits", result.ironyHits.slice());
+      if (result.memeHits.length) fail("meme_hits", result.memeHits.slice());
+      if (result.slangHits.length) fail("slang_hits", result.slangHits.slice());
+      if (result.dryCorporateHits.length) fail("dry_corporate_hits", result.dryCorporateHits.slice());
+      if (String(buildTag).indexOf("step3_4_system_texts_fix2") === -1) fail("build_tag_identity", buildTag);
+      if (String(smokeVersion).indexOf("step3_4_system_texts_fix2") === -1) fail("smoke_version_identity", smokeVersion);
+      result.ok = result.replacementMapExists === true
+        && result.runtimeFilesAvailable === true
+        && result.resolvedRuntimeFiles.length === runtimeFiles.length
+        && result.changedTargetsApplied === true
+        && result.unchangedTargetsStable === true
+        && result.forbiddenSystemTextRemaining.length === 0
+        && result.tooLongSystemTexts.length === 0
+        && result.ironyHits.length === 0
+        && result.memeHits.length === 0
+        && result.slangHits.length === 0
+        && result.dryCorporateHits.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -14411,6 +14653,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     Game.Dev.smokeLexicalFrameStep34SystemTextsOnce = smokeLexicalFrameStep34SystemTextsOnce;
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
+    Game.Dev.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
       const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -15428,6 +15671,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     G.__DEV.smokeLexicalFrameStep34SystemTextsOnce = smokeLexicalFrameStep34SystemTextsOnce;
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
+    G.__DEV.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -15528,6 +15772,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep33StopWordsOnce = smokeLexicalFrameStep33StopWordsOnce;
     devStore.smokeLexicalFrameStep34SystemTextsOnce = smokeLexicalFrameStep34SystemTextsOnce;
     devStore.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
+    devStore.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
