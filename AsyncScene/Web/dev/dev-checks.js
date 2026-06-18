@@ -5382,6 +5382,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           "/AsyncScene/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",
           "/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6"
         ]);
+        if (rootRes.ok) addUnique(result.servedArtifacts, "UI_PROFILE_ZOOMER_DIFF.md");
         if (!rootRes.ok) fail("root_doc_exists", { path: "UI_PROFILE_ZOOMER_DIFF.md", reason: rootRes.reason || "unavailable" });
         const docsRes = fetchFromCandidates("docs/UI_PROFILE_ZOOMER_DIFF.md", [
           "docs/UI_PROFILE_ZOOMER_DIFF.md?smoke=step2_6",

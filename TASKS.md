@@ -1780,6 +1780,30 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
 - Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsOnce()`.
 - Result: READY_FOR_RUNTIME_SMOKE for the new documentation smoke only; prior Step 2.1-Step 2.5 entries are marked PASS from recorded runtime-confirmed PASS evidence.
 
+## 2026-06-18 — AsyncScene Step 2.6 Zoomer shortening documentation finalization
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Documentation finalization only: no gameplay changes, economy changes, NPC changes, argument canon changes, runtime copy changes, or refactors.
+- Step 2.1 Safari PASS — `Game.__DEV.smokeZoomerShortenRuleOnce()`
+- STEP_2_1 | runtime Safari PASS | ruleExists:true | checkedCount:128 | matrixCount:128
+- Step 2.2 Safari PASS — `Game.__DEV.smokeZoomerTransformationTableOnce()`
+- STEP_2_2 | runtime Safari PASS | tableExists:true | checkedCount:15 | tableCount:15
+- Step 2.3 Safari PASS — `Game.__DEV.smokeDevMenuMinimalOnce()`
+- STEP_2_3 | runtime Safari PASS | appliedCount:79 | checkedCount:79 | shorterCount:79 | meaningPreserved:true | variablesPreserved:true
+- Step 2.4 Safari PASS — `Game.__DEV.smokeZoomerNewFeatureCopyOnce()`
+- STEP_2_4 | runtime Safari PASS | checkedCount:43 | coverageCount:43 | compliantCount:43 | groupsCovered:5 | newFeatureCoverageOk:true
+- Step 2.5 Safari PASS — `Game.__DEV.smokeZoomerShorteningQualityOnce()`
+- STEP_2_5 | runtime Safari PASS | checkedCount:122 | lengthOkCount:122 | introOkCount:122 | abstractionOkCount:122 | verbnessOkCount:122 | shorteningQualityOk:true
+- Step 2.6 READY_FOR_RUNTIME_SMOKE — `Game.__DEV.smokeZoomerShorteningDocsStep6Once()`
+- STEP_2_6 | runtime Safari PENDING | requires Game.__DEV.smokeZoomerShorteningDocsStep6Once()
+- Honest status rule:
+  - READY_FOR_RUNTIME_SMOKE before Safari.
+  - FAIL if self-check fails.
+  - PASS only after user Safari runtime result with `ok:true` and empty problem arrays.
+- The new smoke stays documentation-only and does not claim runtime PASS.
+- Required Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Once()`
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
 
 - Status: PASS. Runtime-confirmed PASS evidence is recorded in `PROJECT_MEMORY.md`.
