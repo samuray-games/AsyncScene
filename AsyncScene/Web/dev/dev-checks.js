@@ -11454,6 +11454,184 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allSurfacesValid === true && result.requiredFeatureSurfacesFound === true && result.requiredDocumentFeaturesFound === true && result.anchorPairsFound === true && result.notLimitedToOldUi === true && result.noRuntimeFilesChanged === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaCompressionRuleStep21Once = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = "alpha_step_2_1_alpha_compression_rule_v20260618_001";
+      const toLines = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+      const normalize = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+      const lower = (value) => normalize(value).toLowerCase();
+      const wordCount = (value) => normalize(value).split(" ").filter(Boolean).length;
+      const sameArray = (left, right) => Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => value === right[index]);
+      const sameFixtures = (left, right) => Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((item, index) => item && right[index] && normalize(item.source) === normalize(right[index].source) && normalize(item.alpha) === normalize(right[index].alpha));
+      const expectedRuleLines = Object.freeze([
+        "Фраза: 2-5 слов.",
+        "Вводные запрещены.",
+        "Условия запрещены.",
+        "Действие первым.",
+        "Риск первым.",
+        "Итог первым.",
+        "Смысл сразу.",
+        "Без объяснений.",
+        "Без инфантилизма.",
+        "Текст короче z.",
+        "Канон не менять.",
+        "Codex не пишет текст."
+      ]);
+      const expectedIntroPhrases = Object.freeze([
+        "можно",
+        "похоже",
+        "кажется",
+        "если не ошибаюсь",
+        "как вам кажется",
+        "на самом деле",
+        "в этом случае",
+        "для этого",
+        "попробуй позже",
+        "сейчас не получилось"
+      ]);
+      const expectedConditionPhrases = Object.freeze([
+        "если",
+        "когда",
+        "при условии",
+        "в случае",
+        "иначе",
+        "чтобы",
+        "нужно",
+        "требуется"
+      ]);
+      const expectedFillerPhrases = Object.freeze([
+        "спокойно",
+        "немного",
+        "просто",
+        "давай",
+        "попробуй",
+        "вероятно",
+        "возможно",
+        "видимо"
+      ]);
+      const expectedFixtures = Object.freeze([
+        Object.freeze({ source: "Можно потерять очки", alpha: "Риск потери очков" }),
+        Object.freeze({ source: "Если не хватает денег, действие недоступно", alpha: "Действие недоступно" }),
+        Object.freeze({ source: "Проверка займет время", alpha: "Проверка ждёт" }),
+        Object.freeze({ source: "Оранжевые аргументы открыты", alpha: "Оранжевые открыты" }),
+        Object.freeze({ source: "Сейчас не получилось. Попробуй позже.", alpha: "Не получилось" }),
+        Object.freeze({ source: "Недоступно. Баттл не завершён.", alpha: "Баттл не завершён" }),
+        Object.freeze({ source: "Уже было уважение сегодня этому персонажу.", alpha: "Уважение уже было" }),
+        Object.freeze({ source: "Цепочка A->B->A сегодня не работает.", alpha: "Цепочка закрыта" }),
+        Object.freeze({ source: "Лимит уважения на сегодня исчерпан.", alpha: "Лимит уважения" }),
+        Object.freeze({ source: "Не подтвердилось. Факты не сошлись.", alpha: "Факты не сошлись" })
+      ]);
+      const parseManifest = (text) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          return (new Function("window", "module", text + "\nreturn (window.Game && window.Game.UI_PROFILE_ALPHA_COMPRESSION_RULE) || window.UI_PROFILE_ALPHA_COMPRESSION_RULE || module.exports || null;"))(win, module);
+        } catch (_) {
+          return null;
+        }
+      };
+      const parseInventorySource = (text) => {
+        const match = String(text || "").match(/const LOCKED_INVENTORY_SOURCE = String\.raw`([\s\S]*?)`;/);
+        return match ? match[1] : "";
+      };
+      const idsFromLines = (rows) => rows.map((line) => {
+        const match = String(line || "").match(/^(TXT_\d{4}) \| /);
+        return match ? match[1] : "";
+      }).filter(Boolean);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        ruleExists: false,
+        ruleFileExists: false,
+        docsMirrorExists: false,
+        ruleLineCount: 0,
+        fixtureCount: 0,
+        lockedInventoryCount: 0,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const hasPhrase = (value, phrase) => lower(value).includes(lower(phrase));
+      try {
+        const rootJsRes = fetchFirst("ui/ui-profile-alpha-compression-rule.js");
+        const docsJsRes = fetchFirst("ui/ui-profile-alpha-compression-rule.js");
+        result.ruleFileExists = !!rootJsRes.ok;
+        result.docsMirrorExists = !!docsJsRes.ok;
+        if (!rootJsRes.ok) fail("rule_file_exists", { path: "ui/ui-profile-alpha-compression-rule.js", reason: rootJsRes.reason || "unavailable" });
+        if (!docsJsRes.ok) fail("docs_mirror_exists", { path: "ui/ui-profile-alpha-compression-rule.js", reason: docsJsRes.reason || "unavailable" });
+        const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
+        const docsJsText = docsJsRes.ok ? String(docsJsRes.text || "") : "";
+        if (rootJsText && docsJsText && rootJsText !== docsJsText) fail("docs_js_mirror_match", "js mirror mismatch");
+        const rootManifest = rootJsText ? parseManifest(rootJsText) : null;
+        const docsManifest = docsJsText ? parseManifest(docsJsText) : null;
+        const manifest = (typeof window !== "undefined" && window.UI_PROFILE_ALPHA_COMPRESSION_RULE) || G.__DEV.alphaCompressionRuleManifest || rootManifest || docsManifest || null;
+        result.ruleExists = !!manifest;
+        if (!manifest) fail("rule_exists", "UI_PROFILE_ALPHA_COMPRESSION_RULE missing");
+        if (manifest && manifest.id !== "UI_PROFILE_ALPHA_COMPRESSION_RULE") fail("rule_id", { expected: "UI_PROFILE_ALPHA_COMPRESSION_RULE", actual: manifest.id });
+        if (manifest && manifest.stage !== "4-alpha") fail("rule_stage", { expected: "4-alpha", actual: manifest.stage });
+        if (manifest && manifest.step !== "2.1") fail("rule_step", { expected: "2.1", actual: manifest.step });
+        if (manifest && manifest.name !== "Alpha phrase compression rule") fail("rule_name", { expected: "Alpha phrase compression rule", actual: manifest.name });
+        if (manifest && manifest.mode !== "mechanical") fail("rule_mode", { expected: "mechanical", actual: manifest.mode });
+        if (manifest && Number(manifest.minWords) !== 2) fail("min_words", { expected: 2, actual: manifest.minWords });
+        if (manifest && Number(manifest.maxWords) !== 5) fail("max_words", { expected: 5, actual: manifest.maxWords });
+        result.ruleLineCount = manifest && Array.isArray(manifest.russianRuleLines) ? manifest.russianRuleLines.length : 0;
+        result.fixtureCount = manifest && Array.isArray(manifest.compressionFixtures) ? manifest.compressionFixtures.length : 0;
+        const inventoryLines = toLines(parseInventorySource(rootJsText || docsJsText));
+        result.lockedInventoryCount = inventoryLines.length;
+        if (manifest && !sameArray(manifest.russianRuleLines || [], expectedRuleLines)) fail("rule_lines", { expected: expectedRuleLines, actual: manifest.russianRuleLines || [] });
+        if (manifest && !sameArray(manifest.forbiddenIntroPhrases || [], expectedIntroPhrases)) fail("forbidden_intro_phrases", { expected: expectedIntroPhrases, actual: manifest.forbiddenIntroPhrases || [] });
+        if (manifest && !sameArray(manifest.forbiddenConditionPhrases || [], expectedConditionPhrases)) fail("forbidden_condition_phrases", { expected: expectedConditionPhrases, actual: manifest.forbiddenConditionPhrases || [] });
+        if (manifest && !sameArray(manifest.forbiddenFillerPhrases || [], expectedFillerPhrases)) fail("forbidden_filler_phrases", { expected: expectedFillerPhrases, actual: manifest.forbiddenFillerPhrases || [] });
+        if (manifest && !sameFixtures(manifest.compressionFixtures || [], expectedFixtures)) fail("compression_fixtures", { expected: expectedFixtures, actual: manifest.compressionFixtures || [] });
+        if (!manifest || !Array.isArray(manifest.lockedInventory)) fail("locked_inventory_present", "lockedInventory missing");
+        if ((manifest && Array.isArray(manifest.lockedInventory) ? manifest.lockedInventory.length : 0) !== 164) fail("locked_inventory_count", { expected: 164, actual: manifest && Array.isArray(manifest.lockedInventory) ? manifest.lockedInventory.length : 0 });
+        if (inventoryLines.length !== 164) fail("inventory_source_count", { expected: 164, actual: inventoryLines.length });
+        const ids = idsFromLines(inventoryLines);
+        const expectedIds = Array.from({ length: 164 }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+        const missingIds = expectedIds.filter((id, index) => ids[index] !== id);
+        if (missingIds.length) {
+          addUnique(result.missingCoverage, missingIds);
+          fail("locked_inventory_ids", missingIds);
+        }
+        if (manifest && Array.isArray(manifest.lockedInventory) && inventoryLines.length === manifest.lockedInventory.length) {
+          const exactLocked = manifest.lockedInventory.every((line, index) => String(line || "") === inventoryLines[index]);
+          if (!exactLocked) fail("locked_inventory_exact", "manifest lockedInventory does not match source block");
+        }
+        if (manifest && Array.isArray(manifest.compressionFixtures)) {
+          manifest.compressionFixtures.forEach((fixture, index) => {
+            const source = fixture && fixture.source != null ? String(fixture.source) : "";
+            const alpha = fixture && fixture.alpha != null ? String(fixture.alpha) : "";
+            if (!source || !alpha) fail("fixture_present", { index, fixture });
+            const words = wordCount(alpha);
+            if (!(words >= 2 && words <= 5)) fail("fixture_word_count", { index, alpha, words });
+            expectedIntroPhrases.forEach((phrase) => { if (hasPhrase(alpha, phrase)) addUnique(result.forbiddenRemaining, { type: "intro", phrase, fixture: index + 1, alpha }); });
+            expectedConditionPhrases.forEach((phrase) => { if (hasPhrase(alpha, phrase)) addUnique(result.forbiddenRemaining, { type: "condition", phrase, fixture: index + 1, alpha }); });
+            expectedFillerPhrases.forEach((phrase) => { if (hasPhrase(alpha, phrase)) addUnique(result.forbiddenRemaining, { type: "filler", phrase, fixture: index + 1, alpha }); });
+          });
+        }
+        expectedFixtures.forEach((expected, index) => {
+          const actual = manifest && Array.isArray(manifest.compressionFixtures) ? manifest.compressionFixtures[index] : null;
+          if (!actual || normalize(actual.source) !== normalize(expected.source) || normalize(actual.alpha) !== normalize(expected.alpha)) {
+            addUnique(result.missingCoverage, `fixture_${index + 1}`);
+          }
+        });
+        if (result.ruleLineCount !== expectedRuleLines.length) fail("rule_line_count", { expected: expectedRuleLines.length, actual: result.ruleLineCount });
+        if (result.fixtureCount !== expectedFixtures.length) fail("fixture_count", { expected: expectedFixtures.length, actual: result.fixtureCount });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -12078,6 +12256,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     Game.Dev.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    Game.Dev.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12108,6 +12287,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    G.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
+    Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12223,6 +12404,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     devStore.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    devStore.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;

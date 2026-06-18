@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 4 Alpha profile, step 2.1 alpha compression rule
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created `UI_PROFILE_ALPHA_COMPRESSION_RULE` in `AsyncScene/Web/ui/ui-profile-alpha-compression-rule.js` and `docs/ui/ui-profile-alpha-compression-rule.js` with the exact rule object, locked inventory, and compression fixtures for Stage 4 Alpha Step 2.1.
+- Added Safari-exported smoke `Game.__DEV.smokeAlphaCompressionRuleStep21Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step2_1_alpha_compression_rule_v1`.
+- Commit placeholder: `step4_alpha_profile_step2_1_alpha_compression_rule_v1`.
+- Smoke version: `alpha_step_2_1_alpha_compression_rule_v20260618_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaCompressionRuleStep21Once()`.
+- Scope held: UI-layer rule and dev-smoke wiring only; no currentText replacement, no runtime/game logic changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Synced the Boomer new-feature coverage artifact rows to the Step 3.1 allowed lexicon values and added the Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()` install path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
