@@ -33,6 +33,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix1()`.
 - Scope held: mirror path fix and dry-scan scope fix only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 4 Alpha profile, step 1.5 Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 1.5 smoke so `docsMirrorExists` is only true when the served doc at `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md` and the served JS mirror at `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js` are both available.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_5_fix2_action_first_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_5_fix2_action_first_rules_v1`.
+- Smoke version: `alpha_step_1_5_fix2_action_first_rules_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix2()`.
+- Scope held: docs mirror availability and docsMirrorExists consistency only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3.2 Boomer taboo list smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Stage 3.2 smoke wiring so `Game.__DEV.smokeBoomerTabooListStep32Fix1Once()` now uses the real `UI_PROFILE_BOOMER_TABOO_LIST.md` artifact and a fresh smoke identity instead of reusing `boomer_taboo_list_step3_2_v20260618_001`.

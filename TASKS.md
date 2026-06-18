@@ -38,6 +38,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix1()`.
 - Scope held: docs mirror path, JS mirror path, and dev-smoke scan scope only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
 
+## 2026-06-18 — Step 4 Alpha profile, step 1.5 Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fixed the Step 1.5 smoke so `docsMirrorExists` is only true when the served doc at `https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_ACTION_FIRST_RULES.md` and the served JS mirror at `https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-action-first-rules.js` are both available.
+- Added dev-only smoke `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_18_step4_alpha_profile_step1_5_fix2_action_first_rules_v1`.
+- Commit identity: `step4_alpha_profile_step1_5_fix2_action_first_rules_v1`.
+- Smoke version: `alpha_step_1_5_fix2_action_first_rules_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaStep15ActionFirstRulesFix2()`.
+- Scope held: docs mirror availability and docsMirrorExists consistency only; no runtime Alpha activation, no gameplay changes, no runtime behavior changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 2.4 Zoomer UI Copy Step 4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_NEW_FEATURE_SHORTEN_STEP4` to `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` with the exact 43-row coverage matrix below.
