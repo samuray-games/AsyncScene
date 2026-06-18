@@ -1,3 +1,13 @@
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the Safari-visible alias `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so the live web bundle exposes the Step 3.4 smoke through the same install path as the working Boomer exports.
+- Kept the existing Step 3.4 coverage logic unchanged.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_smoke_fix2_v1`.
+- Commit marker: `step3_4_boomer_new_feature_coverage_smoke_fix2`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix2_v20260618_003`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 Fix3 Safari exposure fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Exposed `Game.__DEV.smokeAlphaDiffFix3()` through the served Safari registration path in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
