@@ -12032,6 +12032,244 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.inventoryExists === true && result.entryCount === expectedEntryCount && result.profileCounts.shared === expectedProfiles.shared && result.profileCounts.genz === expectedProfiles.genz && result.profileCounts.alpha === expectedProfiles.alpha && result.profileCounts.millennial === expectedProfiles.millennial && result.profileCounts.zoomer === expectedProfiles.zoomer && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.duplicateIds.length === 0 && result.missingIds.length === 0 && result.replacementFieldsFound.length === 0;
       return result;
     };
+    const smokeAlphaMechanicalCompressorStep23Once = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step2_3_mechanical_compressor_map_v1";
+      const commit = "step4_2_3_alpha_mechanical_compressor_map";
+      const smokeVersion = "alpha_step_2_3_mechanical_compressor_v20260618_001";
+      const expectedRowCount = 164;
+      const allowedStatuses = ["COMPRESS", "SKIP_ALREADY_ATOMIC", "SKIP_BRAND_OR_TOKEN"];
+      const forbiddenIntroPhrases = [
+        "можно",
+        "похоже",
+        "кажется",
+        "если не ошибаюсь",
+        "как вам кажется",
+        "на самом деле",
+        "в этом случае",
+        "для этого",
+        "попробуй позже",
+        "сейчас не получилось"
+      ];
+      const forbiddenConditionPhrases = [
+        "если",
+        "когда",
+        "при условии",
+        "в случае",
+        "иначе",
+        "чтобы",
+        "нужно",
+        "требуется"
+      ];
+      const requiredRowKeys = ["id", "sourceText", "alphaText", "status", "reason"];
+      const wordCount = (value) => String(value == null ? "" : value).trim().split(/\s+/).filter(Boolean).length;
+      const hasPhrase = (text, phrase) => String(text || "").toLowerCase().includes(String(phrase || "").toLowerCase());
+      const sameArray = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => String(item) === String(b[index]));
+      const resolveCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(location.origin + "/__dev__/docs/");
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+          } else {
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+            bases.push(location.origin + "/__dev__/docs/");
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const readTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirstLocal = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName, preferDocs)) {
+          const res = readTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseManifest = (text, exportName) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const body = `${String(text || "")}\nreturn (window.Game && window.Game.${exportName}) || window.${exportName} || module.exports || null;`;
+          return (new Function("window", "module", body))(win, module);
+        } catch (_) {
+          return null;
+        }
+      };
+      const parseSourceEntries = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const match = line.match(/^TXT_(\d{4}) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| (.*)$/);
+          if (!match) return null;
+          return {
+            id: `TXT_${match[1]}`,
+            profile: match[2].trim(),
+            category: match[3].trim(),
+            surface: match[4].trim(),
+            key: match[5].trim(),
+            currentText: match[6]
+          };
+        })
+        .filter(Boolean);
+      const parseMapRows = (text) => String(text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const match = line.match(/^TXT_(\d{4}) \| (.*?) \| (.*?) \| (.*?) \| (.*)$/);
+          if (!match) return null;
+          return {
+            id: `TXT_${match[1]}`,
+            sourceText: match[2],
+            alphaText: match[3],
+            status: match[4],
+            reason: match[5]
+          };
+        })
+        .filter(Boolean);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        mapExists: false,
+        rowCount: 0,
+        compressCount: 0,
+        skipAlreadyAtomicCount: 0,
+        skipBrandOrTokenCount: 0,
+        missingIds: [],
+        duplicateIds: [],
+        invalidStatuses: [],
+        badWordCounts: [],
+        notShorterCompressRows: [],
+        forbiddenIntroHits: [],
+        forbiddenConditionHits: [],
+        sourceInventoryMatch: false,
+        replacementLeakFound: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      try {
+        const rootMapRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", false);
+        const docsMapRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", true);
+        if (!rootMapRes.ok) fail("map_file_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: rootMapRes.reason || "unavailable" });
+        if (!docsMapRes.ok) fail("map_docs_mirror_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: docsMapRes.reason || "unavailable" });
+        const rootMapText = rootMapRes.ok ? String(rootMapRes.text || "") : "";
+        const docsMapText = docsMapRes.ok ? String(docsMapRes.text || "") : "";
+        if (rootMapText && docsMapText && rootMapText !== docsMapText) fail("map_js_mirror_match", "js mirror mismatch");
+        const mapManifest = parseManifest(rootMapText || docsMapText, "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP");
+        const rows = mapManifest && Array.isArray(mapManifest.rows) ? mapManifest.rows.slice() : parseMapRows(rootMapText || docsMapText);
+        result.mapExists = !!(mapManifest && mapManifest.metadata && Array.isArray(rows));
+        if (!result.mapExists) fail("map_exists", "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP missing");
+        result.rowCount = rows.length;
+        if (rows.length !== expectedRowCount) fail("row_count", { expected: expectedRowCount, actual: rows.length });
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("map_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.mapId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.stage !== "4-alpha") fail("map_stage", mapManifest && mapManifest.metadata ? mapManifest.metadata.stage : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.step !== "2.3") fail("map_step", mapManifest && mapManifest.metadata ? mapManifest.metadata.step : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mode !== "mechanical_compressor_map_only") fail("map_mode", mapManifest && mapManifest.metadata ? mapManifest.metadata.mode : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.sourceInventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.sourceInventoryId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.totalRows !== expectedRowCount) fail("total_rows", mapManifest && mapManifest.metadata ? mapManifest.metadata.totalRows : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.smokeVersion !== smokeVersion) fail("smoke_version", mapManifest && mapManifest.metadata ? mapManifest.metadata.smokeVersion : null);
+        const actualIds = rows.map((row) => String(row && row.id || ""));
+        const expectedIds = Array.from({ length: expectedRowCount }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+        const seenIds = new Set();
+        result.duplicateIds = actualIds.filter((id) => id && (seenIds.has(id) ? true : (seenIds.add(id), false)));
+        result.missingIds = expectedIds.filter((id, index) => actualIds[index] !== id);
+        if (result.duplicateIds.length) fail("duplicate_ids", result.duplicateIds);
+        if (result.missingIds.length) fail("missing_ids", result.missingIds);
+        rows.forEach((row, index) => {
+          const rowId = String(row && row.id || expectedIds[index] || `TXT_${String(index + 1).padStart(4, "0")}`);
+          const keys = row && typeof row === "object" ? Object.keys(row) : [];
+          if (!sameArray(keys, requiredRowKeys)) addUnique(result.replacementLeakFound, { id: rowId, keys });
+          const status = String(row && row.status || "");
+          if (!allowedStatuses.includes(status)) addUnique(result.invalidStatuses, { id: rowId, status });
+          const sourceText = String(row && row.sourceText || "");
+          const alphaText = String(row && row.alphaText || "");
+          if (status === "COMPRESS") {
+            result.compressCount += 1;
+            const words = wordCount(alphaText);
+            if (!(words >= 2 && words <= 5)) addUnique(result.badWordCounts, { id: rowId, words, alphaText });
+            if (!(wordCount(alphaText) < wordCount(sourceText) || alphaText.length < sourceText.length)) addUnique(result.notShorterCompressRows, { id: rowId, sourceText, alphaText });
+            forbiddenIntroPhrases.forEach((phrase) => {
+              if (hasPhrase(alphaText, phrase)) {
+                const hit = { id: rowId, phrase, alphaText };
+                addUnique(result.forbiddenIntroHits, hit);
+                addUnique(result.forbiddenRemaining, hit);
+              }
+            });
+            forbiddenConditionPhrases.forEach((phrase) => {
+              if (hasPhrase(alphaText, phrase)) {
+                const hit = { id: rowId, phrase, alphaText };
+                addUnique(result.forbiddenConditionHits, hit);
+                addUnique(result.forbiddenRemaining, hit);
+              }
+            });
+          } else if (status === "SKIP_ALREADY_ATOMIC") {
+            result.skipAlreadyAtomicCount += 1;
+            if (alphaText !== sourceText) addUnique(result.replacementLeakFound, { id: rowId, expected: sourceText, actual: alphaText });
+          } else if (status === "SKIP_BRAND_OR_TOKEN") {
+            result.skipBrandOrTokenCount += 1;
+            if (alphaText !== sourceText) addUnique(result.replacementLeakFound, { id: rowId, expected: sourceText, actual: alphaText });
+          }
+        });
+        const rootSourceRes = fetchFirstLocal("ui/ui-profile-alpha-source-phrase-inventory.js", false);
+        const docsSourceRes = fetchFirstLocal("ui/ui-profile-alpha-source-phrase-inventory.js", true);
+        if (!rootSourceRes.ok) fail("source_inventory_file_exists", { path: "ui/ui-profile-alpha-source-phrase-inventory.js", reason: rootSourceRes.reason || "unavailable" });
+        if (!docsSourceRes.ok) fail("source_inventory_docs_mirror_exists", { path: "ui/ui-profile-alpha-source-phrase-inventory.js", reason: docsSourceRes.reason || "unavailable" });
+        const rootSourceText = rootSourceRes.ok ? String(rootSourceRes.text || "") : "";
+        const docsSourceText = docsSourceRes.ok ? String(docsSourceRes.text || "") : "";
+        if (rootSourceText && docsSourceText && rootSourceText !== docsSourceText) fail("source_inventory_js_mirror_match", "js mirror mismatch");
+        const sourceManifest = parseManifest(rootSourceText || docsSourceText, "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY");
+        const sourceEntries = sourceManifest && Array.isArray(sourceManifest.entries) ? sourceManifest.entries.slice() : parseSourceEntries(rootSourceText || docsSourceText);
+        const sourceTexts = sourceEntries.map((entry) => String(entry && entry.currentText || ""));
+        const mapSourceTexts = rows.map((row) => String(row && row.sourceText || ""));
+        result.sourceInventoryMatch = sourceTexts.length === mapSourceTexts.length && sameArray(mapSourceTexts, sourceTexts);
+        if (!result.sourceInventoryMatch) fail("source_inventory_match", { expected: sourceTexts, actual: mapSourceTexts });
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.inventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_manifest_id", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.inventoryId : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.stage !== "4-alpha") fail("source_inventory_manifest_stage", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.stage : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.step !== "2.2") fail("source_inventory_manifest_step", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.step : null);
+        if (!sourceManifest || !sourceManifest.metadata || sourceManifest.metadata.mode !== "source_inventory_only") fail("source_inventory_manifest_mode", sourceManifest && sourceManifest.metadata ? sourceManifest.metadata.mode : null);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.mapExists === true && result.rowCount === expectedRowCount && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0 && result.missingIds.length === 0 && result.duplicateIds.length === 0 && result.invalidStatuses.length === 0 && result.badWordCounts.length === 0 && result.notShorterCompressRows.length === 0 && result.forbiddenIntroHits.length === 0 && result.forbiddenConditionHits.length === 0 && result.sourceInventoryMatch === true && result.replacementLeakFound.length === 0;
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -12698,6 +12936,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
+    Game.Dev.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12732,10 +12971,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
+    G.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
+    Game.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -12869,6 +13110,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     devStore.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     devStore.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
+    devStore.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
