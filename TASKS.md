@@ -1,12 +1,12 @@
-## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature lexical coverage
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature lexical coverage smoke fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
-- Added `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` as the machine-readable Boomer new-feature coverage artifact for the 10 required zones.
-- Added dev-only smoke `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
-- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_v1`.
-- Commit placeholder: `step3_4_boomer_new_feature_coverage`.
-- Smoke version: `boomer_new_feature_coverage_step3_4_v20260618_001`.
-- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Once()`.
-- Scope held: UI/profile/copy docs and dev-smoke only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+- Kept `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` unchanged as the machine-readable Boomer new-feature coverage artifact for the 10 required zones.
+- Added the Safari-exported fix1 alias `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, reachable through the same install path as the earlier Boomer smoke exports.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_smoke_fix1_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_smoke_fix1`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix1_v20260618_002`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once()`.
+- Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
 ## 2026-06-18 — Step 4 Alpha profile, step 1.7 Fix3 Safari exposure fix
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
@@ -1877,6 +1877,15 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
   - `PASS only after user Safari runtime result with ok:true and empty problem arrays.`
   - `no gameplay, economy, NPC, argument canon, or runtime copy logic was changed in Step 2.6.`
 - New Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once()`
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
+## 2026-06-18 — AsyncScene Step 2.6 Fix 3 Zoomer shortening docs smoke registry export
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Fix scope: export/registry only. `UI_PROFILE_ZOOMER_DIFF.md` stays served and validated; `TASKS.md` and `PROJECT_MEMORY.md` remain repo-local docs.
+- Exact Safari evidence: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once was undefined.`, `Game.__DEV.smokeZoomerShorteningDocsStep6Fix2Once was undefined.`, `Game.__DEV.smokeZoomerShorteningDocsStep6Once was undefined.`, and `Object.keys(Game.__DEV).filter(k => k.includes("ShorteningDocs") || k.includes("Step6")).sort()` showed zero `ShorteningDocs` commands.
+- Fix 3 registers the docs smoke in the actual loaded dev-check registry, not just as a local function.
+- New Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once()`
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
 ## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
