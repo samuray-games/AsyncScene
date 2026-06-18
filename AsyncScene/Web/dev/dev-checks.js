@@ -9996,6 +9996,246 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_5_fix2_action_first_rules_v20260618_003";
       return result;
     };
+    const smokeAlphaStep16NewFeatureCoverageOnce = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_6_new_feature_coverage_v1";
+      const commit = "step4_alpha_profile_step1_6_new_feature_coverage_v1";
+      const smokeVersion = "alpha_step_1_6_new_feature_coverage_v20260618_001";
+      const expectedEntryCount = 164;
+      const servedDocPath = "https://samuray-games.github.io/AsyncScene/UI_PROFILE_ALPHA_NEW_FEATURES.md";
+      const docsDocPath = "https://samuray-games.github.io/AsyncScene/docs/UI_PROFILE_ALPHA_NEW_FEATURES.md";
+      const servedTablePath = "https://samuray-games.github.io/AsyncScene/ui/ui-profile-alpha-new-features.js";
+      const docsTablePath = "https://samuray-games.github.io/AsyncScene/docs/ui/ui-profile-alpha-new-features.js";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        ruleExists: false,
+        tableExists: false,
+        docsMirrorExists: false,
+        tablePathChecked: null,
+        docsPathChecked: null,
+        jsPathChecked: null,
+        entryCount: 0,
+        expectedEntryCount,
+        allExactEntriesPresent: false,
+        allSurfacesValid: false,
+        requiredFeatureSurfacesFound: false,
+        requiredDocumentFeaturesFound: false,
+        anchorPairsFound: false,
+        notLimitedToOldUi: false,
+        noRuntimeFilesChanged: false,
+        noDryInstructionDrift: false,
+        templateVariablesPreserved: false,
+        noAlphaLongDash: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => { if (!list.some((item) => JSON.stringify(item) === JSON.stringify(value))) list.push(value); };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const parseRowValue = (value) => {
+        try {
+          return JSON.parse(`"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`);
+        } catch (_) {
+          return String(value);
+        }
+      };
+      const templateVars = (value) => String(value || "").match(/\{[^}]+\}/g) || [];
+      const sameVars = (a, b) => {
+        if (a.length !== b.length) return false;
+        const left = a.slice().sort();
+        const right = b.slice().sort();
+        return left.every((value, idx) => value === right[idx]);
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const parseManifest = (text) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const manifest = (new Function("window", "module", text + "\nreturn (window.Game && window.Game.__ALPHA_NEW_FEATURES__) || module.exports || null;"))(win, module);
+          return manifest && typeof manifest === "object" ? manifest : null;
+        } catch (_) {
+          return null;
+        }
+      };
+      const extractRawRows = (text) => {
+        const marker = "const RAW_ROWS=String.raw`";
+        const start = String(text || "").indexOf(marker);
+        if (start < 0) return "";
+        const rest = String(text || "").slice(start + marker.length);
+        const end = rest.indexOf("`;");
+        return end >= 0 ? rest.slice(0, end) : rest;
+      };
+      const parseRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+        const match = line.match(/^TXT_(\d{4}) \| oldText:"((?:\\.|[^"])*)" \| alphaText:"((?:\\.|[^"])*)" \| featureSurface:"((?:\\.|[^"])*)"$/);
+        if (!match) return null;
+        return {
+          id: `TXT_${match[1]}`,
+          oldText: parseRowValue(match[2]),
+          alphaText: parseRowValue(match[3]),
+          featureSurface: parseRowValue(match[4])
+        };
+      }).filter(Boolean);
+      const rowMatches = (actual, expected) => actual && expected && actual.id === expected.id && actual.oldText === expected.oldText && actual.alphaText === expected.alphaText && actual.featureSurface === expected.featureSurface;
+      const allowedFeatureSurfaces = Object.freeze(["brand", "start_screen", "profile_ui", "system_toast", "battle", "crowd", "report", "rematch", "escape", "training", "bank", "p2p", "npc_vs_npc", "npc_speech", "dev", "copy_rule"]);
+      try {
+        const rootDocRes = fetchTextSync(servedDocPath);
+        const docsDocRes = fetchTextSync(docsDocPath);
+        const rootJsRes = fetchTextSync(servedTablePath);
+        const docsJsRes = fetchTextSync(docsTablePath);
+        result.ruleExists = !!rootDocRes.ok;
+        result.tableExists = !!rootJsRes.ok;
+        result.docsMirrorExists = !!(docsDocRes.ok && docsJsRes.ok);
+        result.docsPathChecked = rootDocRes && rootDocRes.path ? rootDocRes.path : servedDocPath;
+        result.tablePathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
+        result.jsPathChecked = rootJsRes && rootJsRes.path ? rootJsRes.path : servedTablePath;
+        if (!rootDocRes.ok) fail("rule_exists", { path: servedDocPath, reason: rootDocRes.reason || "unavailable" });
+        if (!rootJsRes.ok) fail("table_exists", { path: servedTablePath, reason: rootJsRes.reason || "unavailable" });
+        if (!docsDocRes.ok || !docsJsRes.ok) fail("docs_mirror_exists", { doc: docsDocRes.reason || "ok", js: docsJsRes.reason || "ok" });
+        const rootDocText = rootDocRes.ok ? String(rootDocRes.text || "") : "";
+        const docsDocText = docsDocRes.ok ? String(docsDocRes.text || "") : "";
+        const rootJsText = rootJsRes.ok ? String(rootJsRes.text || "") : "";
+        const docsJsText = docsJsRes.ok ? String(docsJsRes.text || "") : "";
+        if (rootDocText && docsDocText && rootDocText !== docsDocText) fail("docs_markdown_mirror_match", "markdown mirror mismatch");
+        if (rootJsText && docsJsText && rootJsText !== docsJsText) fail("docs_js_mirror_match", "js mirror mismatch");
+        const requiredDocPhrases = [
+          "Alpha inherits from Zoomer.",
+          "Alpha covers current and planned feature surfaces.",
+          "Alpha is not limited to start screen or old UI.",
+          "Alpha covers battle, crowd, report, rematch, escape, training, bank, P2P, NPC vs NPC, and system toasts.",
+          "Alpha keeps feature copy short, direct, and visual.",
+          "Alpha keeps command or state first.",
+          "Alpha removes explanation when action is clear.",
+          "Alpha preserves template variables exactly.",
+          "Alpha does not become dry instruction text.",
+          "Alpha does not use baby talk, fake hype, over-memeing, or tutorial voice.",
+          "This step is spec-only and does not activate runtime Alpha copy.",
+          "Codex must not invent Alpha phrases."
+        ];
+        result.notLimitedToOldUi = requiredDocPhrases.every((phrase) => rootDocText.includes(phrase));
+        if (!result.notLimitedToOldUi) fail("not_limited_to_old_ui", requiredDocPhrases.filter((phrase) => !rootDocText.includes(phrase)));
+        const requiredFeatureList = ["battle", "crowd", "report", "rematch", "escape", "training", "bank", "P2P", "NPC vs NPC", "system toasts"];
+        result.requiredDocumentFeaturesFound = requiredFeatureList.every((feature) => rootDocText.includes(feature));
+        if (!result.requiredDocumentFeaturesFound) fail("required_document_features_found", requiredFeatureList.filter((feature) => !rootDocText.includes(feature)));
+        const requiredAnchors = [
+          'feature: battle',
+          'z: "Баттл с {oppName}: {text}."',
+          'alpha: "{oppName}: {text}."',
+          'feature: crowd',
+          'z: "Толпа: {name} {aVotes}:{bVotes}."',
+          'alpha: "{name}: {aVotes}:{bVotes}."',
+          'feature: report',
+          'z: "Сдать {name}: +2💰."',
+          'alpha: "{name}: +2💰."',
+          'feature: rematch',
+          'z: "{name} зовёт на реванш."',
+          'alpha: "{name}: реванш."',
+          'feature: escape',
+          'z: "Свалить за 1💰."',
+          'alpha: "Выход: 1💰."',
+          'feature: training',
+          'z: "Аргумент: {teacher} → {student}."',
+          'alpha: "{teacher} → {student}: аргумент."',
+          'feature: bank',
+          'z: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐."',
+          'alpha: "Лимит ⭐. Пополни 💰."',
+          'feature: P2P',
+          'z: "{target}: +{amount}💰 тебе."',
+          'alpha: "От {target}: +{amount}💰."',
+          'feature: NPC vs NPC',
+          'z: "{attackerName} [{attackerInf}] бросил вызов."',
+          'alpha: "{attackerName} [{attackerInf}]: вызов."',
+          'feature: system toasts',
+          'z: "Не хватает 💰."',
+          'alpha: "Мало 💰."'
+        ];
+        result.anchorPairsFound = requiredAnchors.every((phrase) => rootDocText.includes(phrase));
+        if (!result.anchorPairsFound) fail("anchor_pairs_found", requiredAnchors.filter((phrase) => !rootDocText.includes(phrase)));
+        const jsManifest = parseManifest(rootJsText);
+        const jsRows = jsManifest && Array.isArray(jsManifest.table) ? jsManifest.table : [];
+        const rawRows = parseRows(extractRawRows(rootJsText));
+        const dryInstructionPatterns = /(инструкц|manual|guide|step-by-step|tutorial voice)/i;
+        const dryScanTexts = rawRows.map((row) => row.alphaText).concat(requiredAnchors.filter((phrase) => phrase.startsWith('alpha: "')).map((phrase) => phrase.replace(/^alpha: "/, "").replace(/"$/, "")));
+        result.noDryInstructionDrift = dryScanTexts.every((text) => !dryInstructionPatterns.test(String(text || "")));
+        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
+        result.entryCount = jsRows.length;
+        if (jsRows.length !== expectedEntryCount) fail("entry_count", { expected: expectedEntryCount, actual: jsRows.length });
+        if (!jsManifest || jsManifest.expectedEntryCount !== expectedEntryCount) fail("expected_entry_count", jsManifest ? jsManifest.expectedEntryCount : null);
+        const expectedById = rawRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const actualById = jsRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const duplicateIds = jsRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
+        if (duplicateIds.length) fail("duplicate_ids", duplicateIds);
+        rawRows.forEach((expected) => {
+          const actual = actualById[expected.id];
+          if (!rowMatches(actual, expected)) addUnique(result.missingCoverage, expected.id);
+          if (actual && (!allowedFeatureSurfaces.includes(actual.featureSurface) || actual.featureSurface !== expected.featureSurface)) addUnique(result.missingCoverage, `${expected.id}:surface`);
+        });
+        result.allExactEntriesPresent = result.missingCoverage.length === 0 && rawRows.length === expectedEntryCount && jsRows.length === expectedEntryCount;
+        if (!result.allExactEntriesPresent) fail("all_exact_entries_present", result.missingCoverage.slice());
+        result.allSurfacesValid = rawRows.length === expectedEntryCount && jsRows.every((row) => allowedFeatureSurfaces.includes(row.featureSurface) && expectedById[row.id] && row.featureSurface === expectedById[row.id].featureSurface);
+        if (!result.allSurfacesValid) fail("all_surfaces_valid", jsRows.filter((row) => !allowedFeatureSurfaces.includes(row.featureSurface) || !expectedById[row.id] || row.featureSurface !== expectedById[row.id].featureSurface).map((row) => row && row.id).filter(Boolean));
+        const jsFeatureSurfaces = new Set(jsRows.map((row) => row.featureSurface));
+        const requiredFeatureSurfaces = ["battle", "crowd", "report", "rematch", "escape", "training", "bank", "p2p", "npc_vs_npc", "system_toast"];
+        result.requiredFeatureSurfacesFound = requiredFeatureSurfaces.every((surface) => jsFeatureSurfaces.has(surface));
+        if (!result.requiredFeatureSurfacesFound) fail("required_feature_surfaces_found", requiredFeatureSurfaces.filter((surface) => !jsFeatureSurfaces.has(surface)));
+        const templateFailures = rawRows.filter((row) => {
+          const oldVars = templateVars(row.oldText);
+          const alphaVars = templateVars(row.alphaText);
+          return oldVars.length || alphaVars.length ? !sameVars(oldVars, alphaVars) : false;
+        }).map((row) => row.id);
+        result.templateVariablesPreserved = templateFailures.length === 0;
+        if (!result.templateVariablesPreserved) fail("template_variables_preserved", templateFailures);
+        const alphaDashFailures = rawRows.filter((row) => row.alphaText.indexOf("—") !== -1).map((row) => row.id);
+        result.noAlphaLongDash = alphaDashFailures.length === 0;
+        if (!result.noAlphaLongDash) {
+          addUnique(result.forbiddenRemaining, "alpha_em_dash");
+          fail("alpha_em_dash_forbidden", alphaDashFailures);
+        }
+        const forbiddenRuntimeFiles = [
+          "AsyncScene/Web/data.js",
+          "AsyncScene/Web/system.js",
+          "AsyncScene/Web/npcs.js",
+          "AsyncScene/Web/state.js",
+          "AsyncScene/Web/index.html",
+          "AsyncScene/Web/ui/ui-core.js",
+          "AsyncScene/Web/ui/ui-events.js",
+          "AsyncScene/Web/ui/ui-battles.js",
+          "AsyncScene/Web/ui/ui-dm.js",
+          "AsyncScene/Web/ui/ui-menu.js",
+          "docs/data.js",
+          "docs/system.js",
+          "docs/npcs.js",
+          "docs/state.js",
+          "docs/index.html",
+          "docs/ui/ui-core.js",
+          "docs/ui/ui-events.js",
+          "docs/ui/ui-battles.js",
+          "docs/ui/ui-dm.js",
+          "docs/ui/ui-menu.js"
+        ];
+        result.noRuntimeFilesChanged = [rootDocText, docsDocText, rootJsText, docsJsText].every((text) => forbiddenRuntimeFiles.every((fileName) => !text.includes(fileName)));
+        if (!result.noRuntimeFilesChanged) fail("no_runtime_files_changed", "forbidden runtime file reference found in artifacts");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allSurfacesValid === true && result.requiredFeatureSurfacesFound === true && result.requiredDocumentFeaturesFound === true && result.anchorPairsFound === true && result.notLimitedToOldUi === true && result.noRuntimeFilesChanged === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -10043,6 +10283,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
+    Game.Dev.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -10068,6 +10309,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
+    G.__DEV.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
@@ -10150,6 +10392,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesOnce = smokeAlphaStep15ActionFirstRulesOnce;
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
+    devStore.smokeAlphaStep16NewFeatureCoverageOnce = smokeAlphaStep16NewFeatureCoverageOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
