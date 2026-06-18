@@ -8,10 +8,11 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix4Once()`.
 - Scope held: dev-smoke wiring and docs status only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
 
-## 2026-06-18 — AsyncScene Step 2.6 Fix 6 Zoomer shortening docs no-logic-change block
+## 2026-06-18 — AsyncScene Step 2.6 Fix 7 Zoomer shortening docs no-logic-change block
 - Status: READY_FOR_RUNTIME_SMOKE
 - Fix scope: documentation-manifest only. `UI_PROFILE_ZOOMER_DIFF.md` and `docs/UI_PROFILE_ZOOMER_DIFF.md` are the only runtime-readable sources updated here.
-- Exact Safari failure: Fix4 smoke now accepts honestStatusOk:true but still fails noLogicChangeOk:false because the served Step 2.6 no-logic-change block is missing.
+- Exact Safari failure: Fix4 smoke still has honestStatusOk:true but noLogicChangeOk:false because served UI_PROFILE_ZOOMER_DIFF.md lacks the exact Step 2.6 no-logic-change block.
+- Fix 6 only changed TASKS.md and PROJECT_MEMORY.md and therefore did not affect the served profile manifest.
 - Added the missing Step 2.6 no-logic-change block to the served profile docs.
 - Runtime-sensitive files remain gated by confirmation and were not edited.
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
