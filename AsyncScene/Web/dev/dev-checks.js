@@ -43725,6 +43725,181 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     });
   }
 
+  function installAlphaLexiconInventorySmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaLexiconInventoryOnce === "function") return;
+    devStore.smokeAlphaLexiconInventoryOnce = function smokeAlphaLexiconInventoryOnce() {
+      const buildTag = "build_2026_06_19_step4_3_1_alpha_lexicon_inventory_v1";
+      const commit = "step4_3_1_alpha_lexicon_inventory";
+      const smokeVersion = "step4_3_1_alpha_lexicon_inventory_v20260619_001";
+      const expectedEntryCount = 164;
+      const expectedUniqueTextCount = 122;
+      const requiredCategories = [
+        "start_screen", "button", "label", "tooltip", "notification", "error", "warning",
+        "cop_flow", "battle", "conflict_feed", "event", "report", "economy", "respect",
+        "p2p", "training", "menu", "placeholder", "npc_say", "npc_dm", "toast", "system_message"
+      ];
+      const requiredProfiles = ["alpha", "genz", "millennial", "shared", "zoomer"];
+      const requiredMarkers = [
+        "# Alpha Lexicon Inventory - Step 4.3.1",
+        "- source inventory only, no replacements",
+        "- entryCount: 164",
+        "- uniqueTextCount: 122",
+        "- scannedFileCount: 26",
+        "- toastEntryCount: 24",
+        "- duplicateTextDifferentSourcesCount: 8",
+        "- every TXT_0001 through TXT_0164 present exactly once",
+        "- no replacement text added"
+      ];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        entryCount: 0,
+        uniqueTextCount: null,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        docsMirrorMatches: false,
+        noReplacementTextAdded: false
+      };
+      const addUnique = (arr, value) => {
+        const key = JSON.stringify(value);
+        if (!arr.some((item) => JSON.stringify(item) === key)) arr.push(value);
+      };
+      const fail = (code, detail) => {
+        addUnique(result.failedChecks, code);
+        addUnique(result.failures, detail === undefined ? code : { code, detail });
+      };
+      const resolveDocCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const baseUris = [];
+        if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            baseUris.push(`${location.origin}/__dev__/docs/`);
+            baseUris.push(`${location.origin}/AsyncScene/`);
+            baseUris.push(`${location.origin}/`);
+          } else {
+            baseUris.push(`${location.origin}/AsyncScene/`);
+            baseUris.push(`${location.origin}/`);
+            baseUris.push(`${location.origin}/__dev__/docs/`);
+          }
+        }
+        baseUris.forEach((baseUri) => {
+          try { add(new URL(fileName, baseUri).href); } catch (_) {}
+        });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/__dev__/docs/${fileName}`);
+        add(`/${fileName}`);
+        return candidates;
+      };
+      const readTextSync = (fileName, preferDocs) => {
+        let last = { ok: false, reason: "unavailable", path: fileName };
+        for (const candidate of resolveDocCandidates(fileName, preferDocs)) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", candidate, false);
+            xhr.send(null);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              return { ok: true, text: String(xhr.responseText || ""), path: candidate };
+            }
+            last = { ok: false, reason: `http_${xhr.status || 0}`, path: candidate };
+          } catch (_) {
+            last = { ok: false, reason: "xhr_exception", path: candidate };
+          }
+        }
+        return last;
+      };
+      try {
+        const rootRes = readTextSync("UI_PROFILE_ALPHA_WORD_INVENTORY.md", false);
+        const docsRes = readTextSync("UI_PROFILE_ALPHA_WORD_INVENTORY.md", true);
+        if (!rootRes.ok) fail("web_inventory_available", rootRes);
+        if (!docsRes.ok) fail("docs_inventory_available", docsRes);
+        const rootText = rootRes.ok ? rootRes.text : "";
+        const docsText = docsRes.ok ? docsRes.text : "";
+        result.docsMirrorMatches = !!rootText && rootText === docsText;
+        if (!result.docsMirrorMatches) fail("docs_mirror_matches_web_mirror");
+        const auditText = rootText || docsText;
+        requiredMarkers.forEach((marker) => {
+          if (!auditText.includes(marker)) fail("required_marker_missing", marker);
+        });
+        const entryLines = auditText.match(/^TXT_\d{4} \| .*$/gm) || [];
+        result.entryCount = entryLines.length;
+        if (result.entryCount !== expectedEntryCount) fail("entry_count", { expected: expectedEntryCount, actual: result.entryCount });
+        const expectedIds = Array.from({ length: expectedEntryCount }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+        const seenIds = new Set();
+        const duplicateIds = [];
+        const parsedRows = entryLines.map((line) => {
+          const parts = line.split(" | ");
+          if (parts.length < 11) fail("row_shape_invalid", line);
+          const id = parts[0];
+          if (seenIds.has(id)) duplicateIds.push(id);
+          seenIds.add(id);
+          return {
+            id,
+            category: parts[1] || "",
+            surface: parts[2] || "",
+            key: parts[3] || "",
+            currentText: parts[4] || "",
+            sourceFile: (parts[5] || "").split(":")[0] || "",
+            sourceLine: (parts[5] || "").split(":").slice(1).join(":"),
+            profile: parts[7] || ""
+          };
+        });
+        if (duplicateIds.length) fail("duplicate_ids", duplicateIds);
+        const missingIds = expectedIds.filter((id) => !seenIds.has(id));
+        if (missingIds.length) fail("missing_ids", missingIds);
+        const categorySet = new Set(parsedRows.map((row) => row.category));
+        requiredCategories.forEach((category) => {
+          if (!categorySet.has(category)) addUnique(result.missingCoverage, category);
+        });
+        const profileSet = new Set(parsedRows.map((row) => row.profile));
+        requiredProfiles.forEach((profile) => {
+          if (!profileSet.has(profile)) addUnique(result.missingCoverage, `profile:${profile}`);
+        });
+        parsedRows.forEach((row) => {
+          if (!row.currentText || !row.sourceFile || !row.sourceLine || !row.category || !row.surface || !row.key || !row.profile) {
+            fail("required_field_missing", row.id);
+          }
+        });
+        result.uniqueTextCount = auditText.includes("- uniqueTextCount: 122") ? expectedUniqueTextCount : null;
+        if (result.uniqueTextCount !== expectedUniqueTextCount) fail("unique_text_count_contract_missing", result.uniqueTextCount);
+        result.noReplacementTextAdded = auditText.includes("- source inventory only, no replacements") && auditText.includes("- no replacement text added");
+        if (!result.noReplacementTextAdded) fail("no_replacement_text_added_contract_missing");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.entryCount === expectedEntryCount
+        && result.uniqueTextCount === expectedUniqueTextCount
+        && result.docsMirrorMatches === true
+        && result.noReplacementTextAdded === true
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      console.warn("ALPHA_LEXICON_INVENTORY_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    if (!Game.Dev) Game.Dev = {};
+    Game.Dev.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
+    if (!Game.__DEV) Game.__DEV = {};
+    Game.__DEV.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
+    console.warn("ALPHA_LEXICON_INVENTORY_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryOnce);
+  }
+
 
   installDevMenuMinimalSmoke(Game.__DEV);
   installOnboardingSpecSmoke(Game.__DEV);
@@ -43732,6 +43907,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   installNeutralReplacementAuditSmoke(Game.__DEV);
   installFakeToneSampleAuditSmoke(Game.__DEV);
   installZoomerShorteningDocsSmoke(Game.__DEV);
+  installAlphaLexiconInventorySmoke(Game.__DEV);
   installStep3TerminologyInventorySmoke(Game.__DEV);
   installStep3TerminologyCanonSmoke(Game.__DEV);
   installStep3UiTaxonomySmoke(Game.__DEV);
@@ -43755,6 +43931,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("STOP_FAKE_LEXICON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStopFakeLexiconOnce);
   console.warn("NEUTRAL_REPLACEMENT_AUDIT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeNeutralReplacementAuditOnce);
   console.warn("FAKE_TONE_SAMPLE_AUDIT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeFakeToneSampleAuditOnce);
+  console.warn("ALPHA_LEXICON_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeAlphaLexiconInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);

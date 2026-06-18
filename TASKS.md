@@ -1,3 +1,13 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 lexicon inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created `docs/UI_PROFILE_ALPHA_WORD_INVENTORY.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_WORD_INVENTORY.md` as the exact source-only alpha lexicon inventory with the provided 164 rows, fixed coverage summary contract, mechanical token extraction, taboo-candidate list, and new-feature coverage section.
+- Added the Safari-visible smoke `Game.__DEV.smokeAlphaLexiconInventoryOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step4_3_1_alpha_lexicon_inventory_v1`.
+- Commit placeholder: `step4_3_1_alpha_lexicon_inventory`.
+- Smoke version: `step4_3_1_alpha_lexicon_inventory_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaLexiconInventoryOnce()`.
+- Scope held: inventory docs, dev-smoke wiring, and project tracking only; no runtime UI text, gameplay, economy, battle, NPC, state, save, or routing logic changed.
+
 ## 2026-06-19 — Step 3.4 system texts smoke path fix 2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Safari Fix1 still failed `runtime_file_available` because the Step 3.4 smoke kept treating repository-style `AsyncScene/Web/*.js` paths as published runtime targets.
