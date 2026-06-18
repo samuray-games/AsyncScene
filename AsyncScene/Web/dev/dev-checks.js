@@ -10712,6 +10712,146 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.ok = result.ruleExists === true && result.tableExists === true && result.docsMirrorExists === true && result.entryCount === expectedEntryCount && result.expectedEntryCount === expectedEntryCount && result.allExactEntriesPresent === true && result.allSurfacesValid === true && result.requiredFeatureSurfacesFound === true && result.requiredDocumentFeaturesFound === true && result.anchorPairsFound === true && result.notLimitedToOldUi === true && result.noRuntimeFilesChanged === true && result.noDryInstructionDrift === true && result.templateVariablesPreserved === true && result.noAlphaLongDash === true && result.failures.length === 0 && result.forbiddenRemaining.length === 0 && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaDiffOnce = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_aggregate_diff_smoke_v1";
+      const commit = "step4_alpha_profile_step1_7_aggregate_diff_smoke_v1";
+      const smokeVersion = "alpha_step_1_7_aggregate_diff_smoke_v20260618_001";
+      const expectedEntryCount = 164;
+      const checkedSteps = Object.freeze(["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        checkedSteps: checkedSteps.slice(),
+        sourceInventoryOk: false,
+        diffDocumentOk: false,
+        lengthRulesOk: false,
+        explanationRulesOk: false,
+        actionFirstRulesOk: false,
+        newFeaturesOk: false,
+        aggregateEntryCounts: {
+          length: 0,
+          explanation: 0,
+          actionFirst: 0,
+          newFeatures: 0
+        },
+        requiredServedDocsOk: false,
+        requiredServedTablesOk: false,
+        noRuntimeFilesChanged: false,
+        noRuntimeAlphaActivation: false,
+        noLiveTextRegistryChanges: false,
+        templateVariablesPreserved: false,
+        noAlphaLongDash: false,
+        noDryInstructionDrift: false,
+        notLimitedToOldUi: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const absorb = (stepId, stepResult) => {
+        if (!stepResult || typeof stepResult !== "object") {
+          fail(`${stepId}_missing_result`, "missing_result");
+          return;
+        }
+        ["failures", "forbiddenRemaining", "missingCoverage", "failedChecks"].forEach((key) => {
+          if (!Array.isArray(stepResult[key])) return;
+          stepResult[key].forEach((item) => addUnique(result[key], { step: stepId, value: item }));
+        });
+      };
+      try {
+        const step11 = smokeAlphaStep11ZoomerSourceInventoryOnce();
+        const step12 = smokeAlphaStep12DiffDocumentFix2();
+        const step13 = smokeAlphaStep13LengthRulesFix1();
+        const step14 = smokeAlphaStep14ExplanationRulesFix2();
+        const step15 = smokeAlphaStep15ActionFirstRulesFix2();
+        const step16 = smokeAlphaStep16NewFeaturesFix2();
+
+        absorb("1.1", step11);
+        absorb("1.2", step12);
+        absorb("1.3", step13);
+        absorb("1.4", step14);
+        absorb("1.5", step15);
+        absorb("1.6", step16);
+
+        result.sourceInventoryOk = !!(step11 && step11.ok === true);
+        result.diffDocumentOk = !!(step12 && step12.ok === true);
+        result.lengthRulesOk = !!(step13 && step13.ok === true);
+        result.explanationRulesOk = !!(step14 && step14.ok === true);
+        result.actionFirstRulesOk = !!(step15 && step15.ok === true);
+        result.newFeaturesOk = !!(step16 && step16.ok === true);
+
+        result.aggregateEntryCounts = {
+          length: step13 && Number(step13.entryCount) ? Number(step13.entryCount) : 0,
+          explanation: step14 && Number(step14.entryCount) ? Number(step14.entryCount) : 0,
+          actionFirst: step15 && Number(step15.entryCount) ? Number(step15.entryCount) : 0,
+          newFeatures: step16 && Number(step16.entryCount) ? Number(step16.entryCount) : 0
+        };
+
+        result.requiredServedDocsOk = !!(step12 && step12.alphaDiffExists === true && step12.docsMirrorExists === true && step13 && step13.ruleExists === true && step13.docsMirrorExists === true && step14 && step14.ruleExists === true && step14.docsMirrorExists === true && step15 && step15.ruleExists === true && step15.docsMirrorExists === true && step16 && step16.ruleExists === true && step16.docsMirrorExists === true);
+        result.requiredServedTablesOk = !!(step13 && step13.tableExists === true && step13.docsMirrorExists === true && step14 && step14.tableExists === true && step14.docsMirrorExists === true && step15 && step15.tableExists === true && step15.docsMirrorExists === true && step16 && step16.tableExists === true && step16.docsMirrorExists === true);
+        result.noRuntimeFilesChanged = !!(step13 && step13.noRuntimeFilesChanged === true && step14 && step14.noRuntimeFilesChanged === true && step15 && step15.noRuntimeFilesChanged === true && step16 && step16.noRuntimeFilesChanged === true);
+        result.noRuntimeAlphaActivation = !!(step12 && step12.ok === true && step12.deltaOnly === true && step12.inheritsFromZoomer === true && result.noRuntimeFilesChanged === true);
+        result.noLiveTextRegistryChanges = !!(step11 && step11.ok === true && step12 && step12.ok === true && result.noRuntimeAlphaActivation === true && result.noRuntimeFilesChanged === true);
+        result.templateVariablesPreserved = !!(step13 && step13.templateVariablesPreserved === true && step14 && step14.templateVariablesPreserved === true && step15 && step15.templateVariablesPreserved === true && step16 && step16.templateVariablesPreserved === true);
+        result.noAlphaLongDash = !!(step13 && step13.noAlphaLongDash === true && step14 && step14.noAlphaLongDash === true && step15 && step15.noAlphaLongDash === true && step16 && step16.noAlphaLongDash === true);
+        result.noDryInstructionDrift = !!(step14 && step14.noDryInstructionDrift === true && step15 && step15.noDryInstructionDrift === true && step16 && step16.noDryInstructionDrift === true);
+        result.notLimitedToOldUi = !!(step16 && step16.notLimitedToOldUi === true);
+
+        if (!result.sourceInventoryOk) fail("source_inventory_ok", "step_1_1_failed");
+        if (!result.diffDocumentOk) fail("diff_document_ok", "step_1_2_failed");
+        if (!result.lengthRulesOk) fail("length_rules_ok", "step_1_3_failed");
+        if (!result.explanationRulesOk) fail("explanation_rules_ok", "step_1_4_failed");
+        if (!result.actionFirstRulesOk) fail("action_first_rules_ok", "step_1_5_failed");
+        if (!result.newFeaturesOk) fail("new_features_ok", "step_1_6_failed");
+
+        if (result.aggregateEntryCounts.length !== expectedEntryCount) fail("aggregate_length_entry_count", { expected: expectedEntryCount, actual: result.aggregateEntryCounts.length });
+        if (result.aggregateEntryCounts.explanation !== expectedEntryCount) fail("aggregate_explanation_entry_count", { expected: expectedEntryCount, actual: result.aggregateEntryCounts.explanation });
+        if (result.aggregateEntryCounts.actionFirst !== expectedEntryCount) fail("aggregate_action_first_entry_count", { expected: expectedEntryCount, actual: result.aggregateEntryCounts.actionFirst });
+        if (result.aggregateEntryCounts.newFeatures !== expectedEntryCount) fail("aggregate_new_features_entry_count", { expected: expectedEntryCount, actual: result.aggregateEntryCounts.newFeatures });
+        if (!result.requiredServedDocsOk) fail("required_served_docs_ok", "missing_required_served_docs");
+        if (!result.requiredServedTablesOk) fail("required_served_tables_ok", "missing_required_served_tables");
+        if (!result.noRuntimeFilesChanged) fail("no_runtime_files_changed", "forbidden runtime file reference found in artifacts");
+        if (!result.noRuntimeAlphaActivation) fail("no_runtime_alpha_activation", "alpha runtime activation detected");
+        if (!result.noLiveTextRegistryChanges) fail("no_live_text_registry_changes", "live registry drift detected");
+        if (!result.templateVariablesPreserved) fail("template_variables_preserved", "template variables drift detected");
+        if (!result.noAlphaLongDash) fail("no_alpha_long_dash", "alphaText contains U+2014");
+        if (!result.noDryInstructionDrift) fail("no_dry_instruction_drift", "dry instruction drift detected");
+        if (!result.notLimitedToOldUi) fail("not_limited_to_old_ui", "aggregate limited to old ui");
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.sourceInventoryOk === true
+        && result.diffDocumentOk === true
+        && result.lengthRulesOk === true
+        && result.explanationRulesOk === true
+        && result.actionFirstRulesOk === true
+        && result.newFeaturesOk === true
+        && result.aggregateEntryCounts.length === expectedEntryCount
+        && result.aggregateEntryCounts.explanation === expectedEntryCount
+        && result.aggregateEntryCounts.actionFirst === expectedEntryCount
+        && result.aggregateEntryCounts.newFeatures === expectedEntryCount
+        && result.requiredServedDocsOk === true
+        && result.requiredServedTablesOk === true
+        && result.noRuntimeFilesChanged === true
+        && result.noRuntimeAlphaActivation === true
+        && result.noLiveTextRegistryChanges === true
+        && result.templateVariablesPreserved === true
+        && result.noAlphaLongDash === true
+        && result.noDryInstructionDrift === true
+        && result.notLimitedToOldUi === true
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -10763,6 +10903,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     Game.Dev.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     Game.Dev.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     Game.Dev.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     Game.Dev.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
@@ -10789,6 +10930,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     G.__DEV.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
+    G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -10878,6 +11021,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesFix1 = smokeAlphaStep15ActionFirstRulesFix1;
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     devStore.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
+    devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
