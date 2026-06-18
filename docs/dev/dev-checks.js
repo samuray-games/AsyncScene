@@ -12757,6 +12757,205 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && JSON.stringify(result.sourceIntroHits) === JSON.stringify(expectedSourceIntroHits);
       return result;
     };
+    const smokeAlphaInstantMeaningStep25Once = () => {
+      const buildTag = "build_2026_06_18_step4_alpha_profile_step2_5_instant_meaning_audit_v1";
+      const commit = "step4_2_5_alpha_instant_meaning_audit";
+      const smokeVersion = "alpha_step_2_5_instant_meaning_v20260618_001";
+      const expectedRowCount = 164;
+      const allowedMeaningTypes = Object.freeze(["command", "status", "label", "token", "question", "answer", "navigation", "result"]);
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        auditExists: false,
+        mapExists: false,
+        rowCount: 0,
+        mapRowCount: 0,
+        duplicateIds: [],
+        rowIdMismatches: [],
+        invalidRowShapes: [],
+        invalidMeaningTypes: [],
+        emptyAlphaTexts: [],
+        instantMeaningFailures: [],
+        rereadRiskFailures: [],
+        noteFailures: [],
+        alphaTextMismatches: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const resolveCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(location.origin + "/__dev__/docs/");
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+          } else {
+            bases.push(location.origin + "/AsyncScene/");
+            bases.push(location.origin + "/");
+            bases.push(location.origin + "/__dev__/docs/");
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const readTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirstLocal = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName, preferDocs)) {
+          const res = readTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseManifest = (text, exportName) => {
+        try {
+          const win = { Game: {} };
+          const module = { exports: null };
+          const body = `${String(text || "")}\nreturn (window.Game && window.Game.${exportName}) || window.${exportName} || module.exports || null;`;
+          return (new Function("window", "module", body))(win, module);
+        } catch (_) {
+          return null;
+        }
+      };
+      const sameArray = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => JSON.stringify(item) === JSON.stringify(b[index]));
+      try {
+        const auditRootRes = fetchFirstLocal("ui/ui-profile-alpha-instant-meaning-audit.js", false);
+        const auditDocsRes = fetchFirstLocal("ui/ui-profile-alpha-instant-meaning-audit.js", true);
+        if (!auditRootRes.ok) fail("audit_file_exists", { path: "ui/ui-profile-alpha-instant-meaning-audit.js", reason: auditRootRes.reason || "unavailable" });
+        if (!auditDocsRes.ok) fail("audit_docs_mirror_exists", { path: "ui/ui-profile-alpha-instant-meaning-audit.js", reason: auditDocsRes.reason || "unavailable" });
+        const auditRootText = auditRootRes.ok ? String(auditRootRes.text || "") : "";
+        const auditDocsText = auditDocsRes.ok ? String(auditDocsRes.text || "") : "";
+        if (auditRootText && auditDocsText && auditRootText !== auditDocsText) fail("audit_js_mirror_match", "js mirror mismatch");
+        const auditManifest = parseManifest(auditRootText || auditDocsText, "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT");
+        const rows = auditManifest && Array.isArray(auditManifest.rows) ? auditManifest.rows.slice() : [];
+        result.auditExists = !!(auditManifest && auditManifest.metadata && Array.isArray(rows));
+        if (!result.auditExists) fail("audit_exists", "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT missing");
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.auditId !== "UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT") fail("audit_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.auditId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.stage !== "4-alpha") fail("audit_stage", auditManifest && auditManifest.metadata ? auditManifest.metadata.stage : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.step !== "2.5") fail("audit_step", auditManifest && auditManifest.metadata ? auditManifest.metadata.step : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.mode !== "alpha_instant_meaning_audit_only") fail("audit_mode", auditManifest && auditManifest.metadata ? auditManifest.metadata.mode : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.sourceMapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("source_map_id", auditManifest && auditManifest.metadata ? auditManifest.metadata.sourceMapId : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.totalRows !== expectedRowCount) fail("audit_total_rows", auditManifest && auditManifest.metadata ? auditManifest.metadata.totalRows : null);
+        if (!auditManifest || !auditManifest.metadata || auditManifest.metadata.smokeVersion !== smokeVersion) fail("smoke_version", auditManifest && auditManifest.metadata ? auditManifest.metadata.smokeVersion : null);
+        result.rowCount = rows.length;
+        if (rows.length !== expectedRowCount) fail("row_count", { expected: expectedRowCount, actual: rows.length });
+        const expectedKeys = ["id", "alphaText", "meaningType", "instantMeaningOk", "rereadRisk", "note"];
+        const seenIds = new Set();
+        rows.forEach((row, index) => {
+          const expectedId = `TXT_${String(index + 1).padStart(4, "0")}`;
+          const rowId = String(row && row.id || "");
+          const keys = row && typeof row === "object" ? Object.keys(row) : [];
+          if (!sameArray(keys, expectedKeys)) addUnique(result.invalidRowShapes, { id: rowId || expectedId, keys });
+          if (!rowId || rowId !== expectedId) addUnique(result.rowIdMismatches, { expected: expectedId, actual: rowId });
+          if (rowId) {
+            if (seenIds.has(rowId)) addUnique(result.duplicateIds, rowId);
+            seenIds.add(rowId);
+          }
+          if (!allowedMeaningTypes.includes(String(row && row.meaningType || ""))) addUnique(result.invalidMeaningTypes, { id: rowId || expectedId, meaningType: row && row.meaningType });
+          if (!String(row && row.alphaText || "").trim()) addUnique(result.emptyAlphaTexts, rowId || expectedId);
+          if (!row || row.instantMeaningOk !== true) addUnique(result.instantMeaningFailures, rowId || expectedId);
+          if (!row || row.rereadRisk !== false) addUnique(result.rereadRiskFailures, rowId || expectedId);
+          if (!String(row && row.note || "").trim()) addUnique(result.noteFailures, rowId || expectedId);
+        });
+        if (result.duplicateIds.length) fail("duplicate_ids", result.duplicateIds);
+        if (result.rowIdMismatches.length) fail("row_id_mismatches", result.rowIdMismatches);
+        if (result.invalidRowShapes.length) fail("invalid_row_shapes", result.invalidRowShapes);
+        if (result.invalidMeaningTypes.length) fail("invalid_meaning_types", result.invalidMeaningTypes);
+        if (result.emptyAlphaTexts.length) fail("empty_alpha_texts", result.emptyAlphaTexts);
+        if (result.instantMeaningFailures.length) fail("instant_meaning_failures", result.instantMeaningFailures);
+        if (result.rereadRiskFailures.length) fail("reread_risk_failures", result.rereadRiskFailures);
+        if (result.noteFailures.length) fail("note_failures", result.noteFailures);
+        const mapRootRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", false);
+        const mapDocsRes = fetchFirstLocal("ui/ui-profile-alpha-mechanical-compressor.js", true);
+        if (!mapRootRes.ok) fail("map_file_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: mapRootRes.reason || "unavailable" });
+        if (!mapDocsRes.ok) fail("map_docs_mirror_exists", { path: "ui/ui-profile-alpha-mechanical-compressor.js", reason: mapDocsRes.reason || "unavailable" });
+        const mapRootText = mapRootRes.ok ? String(mapRootRes.text || "") : "";
+        const mapDocsText = mapDocsRes.ok ? String(mapDocsRes.text || "") : "";
+        if (mapRootText && mapDocsText && mapRootText !== mapDocsText) fail("map_js_mirror_match", "js mirror mismatch");
+        const mapManifest = parseManifest(mapRootText || mapDocsText, "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP");
+        const mapRows = mapManifest && Array.isArray(mapManifest.rows) ? mapManifest.rows.slice() : [];
+        result.mapExists = !!(mapManifest && mapManifest.metadata && Array.isArray(mapRows));
+        if (!result.mapExists) fail("map_exists", "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP missing");
+        result.mapRowCount = mapRows.length;
+        if (mapRows.length !== expectedRowCount) fail("map_row_count", { expected: expectedRowCount, actual: mapRows.length });
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mapId !== "UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP") fail("map_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.mapId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.stage !== "4-alpha") fail("map_stage", mapManifest && mapManifest.metadata ? mapManifest.metadata.stage : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.step !== "2.3") fail("map_step", mapManifest && mapManifest.metadata ? mapManifest.metadata.step : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.mode !== "mechanical_compressor_map_only") fail("map_mode", mapManifest && mapManifest.metadata ? mapManifest.metadata.mode : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.sourceInventoryId !== "UI_PROFILE_ALPHA_SOURCE_PHRASE_INVENTORY") fail("source_inventory_id", mapManifest && mapManifest.metadata ? mapManifest.metadata.sourceInventoryId : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.totalRows !== expectedRowCount) fail("total_rows", mapManifest && mapManifest.metadata ? mapManifest.metadata.totalRows : null);
+        if (!mapManifest || !mapManifest.metadata || mapManifest.metadata.smokeVersion !== "alpha_step_2_3_mechanical_compressor_v20260618_001") fail("map_smoke_version", mapManifest && mapManifest.metadata ? mapManifest.metadata.smokeVersion : null);
+        rows.forEach((row, index) => {
+          const expectedId = `TXT_${String(index + 1).padStart(4, "0")}`;
+          const mapRow = mapRows[index];
+          if (!mapRow) {
+            addUnique(result.missingCoverage, expectedId);
+            return;
+          }
+          if (String(mapRow.id || "") !== expectedId) addUnique(result.alphaTextMismatches, { id: expectedId, expectedMapId: expectedId, actualMapId: String(mapRow.id || "") });
+          if (String(mapRow.alphaText || "") !== String(row && row.alphaText || "")) {
+            addUnique(result.alphaTextMismatches, {
+              id: expectedId,
+              expected: String(mapRow.alphaText || ""),
+              actual: String(row && row.alphaText || "")
+            });
+          }
+        });
+        if (result.alphaTextMismatches.length) fail("alpha_text_mismatches", result.alphaTextMismatches);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.auditExists === true
+        && result.mapExists === true
+        && result.rowCount === expectedRowCount
+        && result.mapRowCount === expectedRowCount
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.duplicateIds.length === 0
+        && result.rowIdMismatches.length === 0
+        && result.invalidRowShapes.length === 0
+        && result.invalidMeaningTypes.length === 0
+        && result.emptyAlphaTexts.length === 0
+        && result.instantMeaningFailures.length === 0
+        && result.rereadRiskFailures.length === 0
+        && result.noteFailures.length === 0
+        && result.alphaTextMismatches.length === 0;
+      return result;
+    };
     const smokeAlphaDiffOnce = () => {
       const buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
       const commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
@@ -13566,6 +13765,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.Dev.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.Dev.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
+    Game.Dev.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     Game.Dev.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.Dev.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.Dev.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -13602,12 +13802,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     G.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     G.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
+    G.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Once = smokeAlphaCompressionRuleStep21Once;
     Game.__DEV.smokeAlphaCompressionRuleStep21Fix1Once = smokeAlphaCompressionRuleStep21Fix1Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Once = smokeAlphaSourcePhraseInventoryStep22Once;
     Game.__DEV.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     Game.__DEV.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     Game.__DEV.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
+    Game.__DEV.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -13759,6 +13961,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaSourcePhraseInventoryStep22Fix1Once = smokeAlphaSourcePhraseInventoryStep22Fix1Once;
     devStore.smokeAlphaMechanicalCompressorStep23Once = smokeAlphaMechanicalCompressorStep23Once;
     devStore.smokeAlphaIntroBanStep24Once = smokeAlphaIntroBanStep24Once;
+    devStore.smokeAlphaInstantMeaningStep25Once = smokeAlphaInstantMeaningStep25Once;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;

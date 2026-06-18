@@ -1,3 +1,11 @@
+## 2026-06-19 — Step 4 Alpha profile, step 2.5 instant meaning audit
+- Created `UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT` in `AsyncScene/Web/ui/ui-profile-alpha-instant-meaning-audit.js` and `docs/ui/ui-profile-alpha-instant-meaning-audit.js` as an audit-only contract over `UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`.
+- The audit metadata records `auditId: UI_PROFILE_ALPHA_INSTANT_MEANING_AUDIT`, `stage: 4-alpha`, `step: 2.5`, `mode: alpha_instant_meaning_audit_only`, `sourceMapId: UI_PROFILE_ALPHA_MECHANICAL_COMPRESSION_MAP`, `totalRows: 164`, and `smokeVersion: alpha_step_2_5_instant_meaning_v20260618_001`.
+- Every audit row carries the exact `id`, `alphaText`, `meaningType`, `instantMeaningOk`, `rereadRisk`, and `note` fields, with `instantMeaningOk:true` and `rereadRisk:false`.
+- No runtime text was changed and the mechanical compressor rows were not mutated.
+- Added Safari-exported `Game.__DEV.smokeAlphaInstantMeaningStep25Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Runtime PASS is still unclaimed until the user runs the Safari smoke command.
+
 ## 2026-06-19 — Step 3.2 allowed dictionary smoke exception fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Safari Fix1 runtime failed with `Can't find variable: resolveDocCandidates` from `Game.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1()`.
