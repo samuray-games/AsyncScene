@@ -1888,6 +1888,16 @@ TR_0015 | replace "Возможно, голос уже учтён" -> "Голо�
 - New Safari command: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once()`
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — AsyncScene Step 2.6 Fix 4 Zoomer shortening docs smoke registry consolidation
+
+- Status: READY_FOR_RUNTIME_SMOKE
+- Fix scope: export/registry consolidation only. `UI_PROFILE_ZOOMER_DIFF.md` stays served and validated; `TASKS.md` and `PROJECT_MEMORY.md` remain repo-local docs.
+- Exact Safari evidence: `Game.__DEV.smokeZoomerShorteningDocsStep6Once was undefined.`, `Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once was undefined.`, `Game.__DEV.smokeZoomerShorteningDocsStep6Fix2Once was undefined.`, `Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once was undefined.`, and the `Game.__DEV` key diagnostic showed zero `ShorteningDocs` commands.
+- All other UI-profile tasks must pause while the shared dev-check registry is being fixed.
+- Fix 4 consolidates the zoomer shortening docs smoke into the actual loaded registry and adds a registry probe.
+- New Safari commands: `Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once()` and `Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce()`
+- Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+
 ## 2026-06-05 — AsyncScene Step 2.5 Zoomer shortening quality smoke
 
 - Status: PASS. Runtime-confirmed PASS evidence is recorded in `PROJECT_MEMORY.md`.
