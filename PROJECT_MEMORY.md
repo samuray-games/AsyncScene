@@ -15,6 +15,17 @@
 - Runtime-sensitive files remain gated by confirmation and were not edited.
 - Result: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 
+## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix5
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Corrected `TXT_0140` in `docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md` from `Слабый ход.` to `Аргумент слабый.` and mirrored that exact text into `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`.
+- Added Safari-exported `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`, with install-time visibility markers for the Fix5 alias.
+- Build tag: `build_2026_06_18_step3_4_boomer_new_feature_coverage_fix5_v1`.
+- Commit placeholder: `step3_4_boomer_new_feature_coverage_fix5`.
+- Smoke version: `boomer_new_feature_coverage_step3_4_fix5_v20260618_006`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix5Once()`.
+- Changed files: `AsyncScene/Web/dev/dev-checks.js`, `docs/dev/dev-checks.js`, `docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md`, `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md`, `TASKS.md`, `PROJECT_MEMORY.md`.
+- Scope held: dev-smoke wiring and docs only; no runtime logic changes, no gameplay changes, and no `Console.txt` usage.
+
 ## 2026-06-18 — Step 3 Boomer profile, step 3.4 new-feature coverage smoke fix4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Synced `UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` and `docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md` back to the exact Step 3.1 allowed-lexicon boomerText values for the covered ids.
@@ -1559,7 +1570,7 @@ NF_0027 | npc_speech | TXT_0136 | keep "ого" | status already_short
 NF_0028 | npc_speech | TXT_0137 | keep "Принято. Я рядом." | status already_short
 NF_0029 | npc_speech | TXT_0138 | keep "Тише. Решим." | status already_short
 NF_0030 | npc_speech | TXT_0139 | keep "Кошелек ближе." | status already_short
-NF_0031 | npc_speech | TXT_0140 | keep "Слабый ход." | status already_short
+NF_0031 | npc_speech | TXT_0140 | keep "Аргумент слабый." | status already_short
 NF_0032 | system_copy | TXT_0111 | before "Опасная точка рядом." -> after "Риск рядом." | status applied_step3
 NF_0033 | system_copy | TXT_0112 | before "Вызов принят, экипаж в пути." -> after "Вызов принят. Едем." | status applied_step3
 NF_0034 | system_copy | TXT_0113 | before "Ситуация под контролем." -> after "Контролируем." | status applied_step3
