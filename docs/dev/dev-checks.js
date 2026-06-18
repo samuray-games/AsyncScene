@@ -11229,6 +11229,20 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.failedChecks.length === 0;
       return result;
     };
+    const smokeAlphaDiffFix1 = () => {
+      const result = smokeAlphaDiffOnce();
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
+      result.commit = "step4_alpha_profile_step1_7_fix1_aggregate_diff_smoke_v1";
+      result.smokeVersion = "alpha_step_1_7_fix1_aggregate_diff_smoke_v20260618_002";
+      return result;
+    };
+    const smokeAlphaDiffFix2 = () => {
+      const result = smokeAlphaDiffFix1();
+      result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_7_fix2_aggregate_diff_smoke_v1";
+      result.commit = "step4_alpha_profile_step1_7_fix2_aggregate_diff_smoke_v1";
+      result.smokeVersion = "alpha_step_1_7_fix2_aggregate_diff_smoke_v20260618_003";
+      return result;
+    };
     const smokeZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.profileSelfCheck = profileSelfCheck;
     Game.Dev.smokeZoomerDiffTableOnce = smokeZoomerDiffTableOnce;
@@ -11311,8 +11325,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     Game.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
+    Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
+    G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -11405,6 +11421,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeAlphaStep15ActionFirstRulesFix2 = smokeAlphaStep15ActionFirstRulesFix2;
     devStore.smokeAlphaStep16NewFeaturesFix2 = smokeAlphaStep16NewFeaturesFix2;
     devStore.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
+    devStore.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
+    devStore.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     devStore.smokeZoomerArgumentInventoryOnce = smokeZoomerArgumentInventoryOnce;
     devStore.smokeZoomerArgumentWrapperRulesOnce = smokeZoomerArgumentWrapperRulesOnce;
     devStore.smokeZoomerArgumentWrapperPilotOnce = smokeZoomerArgumentWrapperPilotOnce;
