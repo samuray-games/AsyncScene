@@ -51,6 +51,8 @@
 - Fix4 scope is source resolution only: reconnect the exact Step 3.1-3.4 loader/parser/marker contracts, resolve raw profile rows through stable keys and millennial-to-boomer targets, classify registered surfaces, and report only genuine uncovered rows. Runtime PASS remains unclaimed pending Safari.
 - Safari Fix4 connected all four boomer artifacts, checked 184 texts across 13 surfaces, and returned `forbiddenRemaining:[]`; its remaining failures are genuine `missing_boomer_mapping` coverage gaps.
 - Fix5 freezes the complete 128-occurrence runtime gap inventory and adds a parity smoke. No boomer copy decisions or target phrases were made; Step 3.5 remains IN_PROGRESS.
+- Fix5 gap inventory validation passed with all 128 occurrences represented and no parity, sequence, variable, or invented-target failures.
+- Fix6 records 128 exact approved copy decisions across 20 semantic groups, with GAP_0113 aliasing GAP_0112 and GAP_0126 aliasing GAP_0118. No runtime integration has occurred and runtime PASS is not claimed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.
