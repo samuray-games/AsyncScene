@@ -40,6 +40,21 @@ window.Game = window.Game || {};
       rules_action: String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules),
       start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
     }),
+    boomer: Object.freeze({
+      start_title: "AsyncScene",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      fantasy_birth_label: "Я скорее ощущаю свой год рождения как …",
+      start_continue: "Продолжить",
+      start_start: "Старт",
+      start_reset: "Сбросить старт",
+      rules_action: String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules),
+      start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
+    }),
     zoomer: Object.freeze({
       start_title: "AsyncScene",
       birth_digits_label: "Две цифры вайба",
@@ -208,7 +223,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   // UI profile resolver (default | silent | ancient | medieval | renaissance | industrial | boomer | genX | millennial | zoomer | alpha | future)
   const UI_PROFILE_REGISTRY = Object.freeze({
-    supported: Object.freeze(["default", "millennial", "zoomer", "alpha"]),
+    supported: Object.freeze(["default", "millennial", "boomer", "zoomer", "alpha"]),
     future: Object.freeze(["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"]),
   });
   const UI_PROFILE_RULES = Object.freeze({
@@ -337,6 +352,25 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   // Text mode (genz | alpha)
   Data.TEXT_MODE = "millennial";
+  const resolveUiTextMode = (profile) => {
+    const normalized = typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(profile)
+      : String(profile || "").trim().toLowerCase();
+    if (normalized === "zoomer" || normalized === "alpha") return "zoomer";
+    if (normalized === "boomer") return "boomer";
+    return "millennial";
+  };
+  const resolveUiTextProfileName = (forcedProfile) => {
+    const rawForced = String(forcedProfile == null ? "" : forcedProfile).trim();
+    if (rawForced) return resolveUiTextMode(rawForced);
+    const rawMode = String(Data.TEXT_MODE || "").trim().toLowerCase();
+    if (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") return "zoomer";
+    if (rawMode === "boomer") return "boomer";
+    const activeProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
+    return resolveUiTextMode(activeProfile);
+  };
+  Data.resolveUiTextMode = resolveUiTextMode;
+  Data.resolveUiTextProfileName = resolveUiTextProfileName;
   Data.TEXTS = {
     genz: {
       tie_start: "Толпа решает.",
@@ -486,9 +520,39 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.TEXTS.millennial = Data.TEXTS.genz;
   Data.TEXTS.default = Data.TEXTS.genz;
   Data.TEXTS.zoomer = Data.TEXTS.alpha;
+  Data.TEXTS.boomer = Object.freeze({
+    ...Data.TEXTS.genz,
+    battle_action_accept: "Принять",
+    battle_action_attack: "Атаковать",
+    battle_action_decline: "Отказаться",
+    battle_action_rematch: "Реванш",
+    battle_action_report: "Сообщить копу",
+    battle_energy_locked_hint: "Требуется ⚡{energy}",
+    battle_invite_title: "Вызов",
+    battles_empty: "Конфликтов нет.",
+    dm_empty: "Сообщений пока нет.",
+    escape_button_label: "Выйти: -{X} 💰",
+    events_clear: "Очистить",
+    events_clear_all: "Очистить",
+    events_close_extra: "Свернуть",
+    events_done: "Готово.",
+    events_empty: "Событий пока нет.",
+    events_header: "События",
+    events_left: "Осталось: {sec}",
+    events_panel_hint: "Здесь показаны последние события.",
+    events_title: "События: {count}",
+    tie_chat_end_draw: "Голосование: ничья {aVotes}:{bVotes}",
+    tie_chat_end_winner: "Голосование: {name} победил {aVotes}:{bVotes}",
+    tie_chat_start: "Голосование началось. Присоединяйтесь.",
+    tie_end_draw: "Ничья {aVotes}:{bVotes}",
+    tie_end_winner: "{name} победил {aVotes}:{bVotes}",
+    tie_timer: "Осталось: {sec}",
+    vote_already: "✓ ГОЛОС УЧТЁН",
+    vote_fail: "✕ НЕДОСТУПНО",
+  });
 
   // Cop templates (authoritative strings, insert as-is; placeholders are replaced at send time)
-  Data.COP_TEMPLATES = {
+  const COP_TEMPLATES_MILLENNIAL = Object.freeze({
     intros: [
       "{cop.fullName} на связи.",
       "{cop.fullName} на связи, район держу.",
@@ -585,7 +649,127 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "На каждый слух не реагируем.",
       "«Сдать» без фактов в отчет."
     ]
+  });
+  const applyCopTemplateOverrides = (base, overrides) => {
+    const result = {};
+    Object.keys(base || {}).forEach((key) => {
+      const sourceRows = Array.isArray(base[key]) ? base[key].slice() : [];
+      const patchRows = Array.isArray(overrides && overrides[key]) ? overrides[key] : [];
+      patchRows.forEach((entry) => {
+        if (!Array.isArray(entry) || entry.length !== 2) return;
+        const index = Number(entry[0]);
+        if (!Number.isFinite(index) || index < 0) return;
+        sourceRows[index] = String(entry[1] == null ? "" : entry[1]);
+      });
+      result[key] = Object.freeze(sourceRows);
+    });
+    return Object.freeze(result);
   };
+  const COP_TEMPLATES_BOOMER = applyCopTemplateOverrides(COP_TEMPLATES_MILLENNIAL, {
+    banditDescriptions: [
+      [0, "Бандит ищет лёгкую добычу."],
+      [1, "Он скрывает лицо и избегает внимания."],
+      [2, "Бандит перемещается между районами и собирает долги."],
+      [3, "Он действует быстро, но часто отвлекается."],
+      [4, "Бандит угрожает и старается удерживать контроль."],
+      [5, "Он живёт рискованно, но хорошо знает район."],
+      [6, "Он замечает слабые места и сразу действует."],
+      [7, "Бандит ищет лёгкую цель и отступает при сопротивлении."],
+      [8, "Он молчит и внимательно наблюдает."],
+      [9, "Бандит обычно носит с собой оружие или телефон."]
+    ],
+    chatReplies: [
+      [1, "Факт принят. Продолжаю проверку."],
+      [2, "Я на связи. Можно продолжать."],
+      [3, "Ситуация под контролем. Детали записаны."],
+      [4, "Проверяю сведения и перехожу к следующей цели."],
+      [5, "Связь работает. Я рядом."],
+      [6, "Я на связи. Работа продолжается."],
+      [7, "Понятно. Сведения записаны."],
+      [8, "Хорошо. Сообщение принято."],
+      [9, "Информация передана. Продолжаю наблюдение."]
+    ],
+    cooldownReplies: [
+      [0, "Сейчас занят расследованием. Отвечу позже."],
+      [1, "Сейчас разбираю дело. Отвечу позже."],
+      [2, "Сейчас другой вызов. Вернусь позже."],
+      [3, "Сейчас линия занята. Подключусь позже."],
+      [4, "Оформляю материалы. Связь будет позже."],
+      [5, "Сейчас много работы. Сообщение принято."],
+      [6, "Разбираю ситуацию. Скоро вернусь."],
+      [7, "Сейчас ответить не получится. Вернусь позже."],
+      [8, "Оформляю материалы. Отвечу позже."],
+      [9, "Сейчас на вызове. Вернусь через минуту."]
+    ],
+    intros: [
+      [1, "Здравствуйте. {cop.fullName} на связи и следит за районом."],
+      [2, "Здравствуйте. Я {cop.fullName}, отвечаю за этот район."],
+      [3, "{cop.fullName} на связи. Сообщение принято."],
+      [4, "Здравствуйте. {cop.fullName} следит за порядком."],
+      [5, "{cop.fullName} на связи. Можно сообщить детали."],
+      [6, "Добрый день. Это {cop.fullName}. Я на связи."],
+      [7, "{cop.fullName} на связи. Детали будут записаны."],
+      [8, "Здравствуйте. Я {cop.fullName}, работаю в этом районе."],
+      [9, "Здравствуйте. {cop.fullName} подключился и остаётся на связи."]
+    ],
+    scolds: [
+      [0, "Для сообщения нужны факты."],
+      [1, "Сообщению нужны основания."],
+      [2, "Без доказательств проверка займёт лишнее время."],
+      [3, "Неточные сообщения задерживают проверку важных дел."],
+      [4, "Для сообщения недостаточно деталей."],
+      [5, "Перед вызовом нужна проверка фактов."],
+      [6, "Без оснований ситуацию трудно проверить."],
+      [7, "Сообщение без фактов будет отмечено в отчёте."],
+      [8, "Не каждый слух можно проверить сразу."],
+      [9, "Сообщение без фактов будет добавлено в отчёт."]
+    ],
+    thanks: [
+      [0, "Сообщение принято. Ситуация стала спокойнее."],
+      [1, "Сообщение принято. В районе стало спокойнее."],
+      [2, "В районе стало спокойнее."],
+      [3, "Подозреваемого убрали с улиц."],
+      [4, "Подозреваемый задержан."],
+      [5, "Запись добавлена в журнал."],
+      [6, "Совместная работа отмечена."],
+      [7, "В доме стало тише."],
+      [8, "Ваш вклад отмечен."],
+      [9, "Сообщение принято. На улицах стало спокойнее."]
+    ],
+    toxicDescriptions: [
+      [0, "Токсик скрывает слабые аргументы за оскорблениями."],
+      [1, "Он угрожает и ищет повод для конфликта."],
+      [2, "Токсик старается унизить других."],
+      [3, "Он говорит резко, но его аргументы слабы."],
+      [4, "Он привлекает внимание негативными историями."],
+      [5, "Токсик искажает факты."],
+      [6, "Он направляет раздражение на окружающих."],
+      [7, "Токсик повышает голос и пытается давить."],
+      [8, "Он портит разговор, цепляясь к каждому."],
+      [9, "Токсик пытается получить ресурсы давлением."]
+    ],
+    warnings: [
+      [3, "Ваши слова записаны."],
+      [4, "Я рядом и наблюдаю."],
+      [5, "Ситуация может обостриться. Держим дистанцию."],
+      [6, "Детали приняты. Реакция последует."],
+      [7, "Я вас слышу. Резкие действия сейчас опасны."],
+      [8, "Патруль приближается."],
+      [9, "Происходящее зафиксировано."]
+    ]
+  });
+  Data.COP_TEMPLATES_PROFILE_TEXTS = Object.freeze({
+    millennial: COP_TEMPLATES_MILLENNIAL,
+    zoomer: COP_TEMPLATES_MILLENNIAL,
+    boomer: COP_TEMPLATES_BOOMER
+  });
+  Object.defineProperty(Data, "COP_TEMPLATES", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return resolveUiTextProfileName() === "boomer" ? COP_TEMPLATES_BOOMER : COP_TEMPLATES_MILLENNIAL;
+    }
+  });
 
   Data.CAP_MESSAGES = {
     rep: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.",
@@ -595,8 +779,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.OVERPOINTS_TO_REP = 5;
 
   Data.t = (key, vars = {}) => {
-    const rawMode = String(Data.TEXT_MODE || "").trim().toLowerCase();
-    const mode = (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") ? "zoomer" : "millennial";
+    const mode = resolveUiTextProfileName();
     const layer = (Data.TEXTS && Data.TEXTS[mode]) ? Data.TEXTS[mode] : {};
     const millennial = (Data.TEXTS && Data.TEXTS.millennial) ? Data.TEXTS.millennial : ((Data.TEXTS && Data.TEXTS.genz) ? Data.TEXTS.genz : {});
     let str = (layer && layer[key] != null) ? layer[key] : (millennial && millennial[key] != null) ? millennial[key] : String(key || "");
@@ -608,8 +791,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   };
   Data.resolveConflictResultText = (key) => Data.t(key);
   Data.resolveStartScreenText = (key, forcedProfile) => {
-    const rawMode = String(forcedProfile == null ? Data.TEXT_MODE : forcedProfile).trim().toLowerCase();
-    const mode = (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") ? "zoomer" : "millennial";
+    const mode = resolveUiTextProfileName(forcedProfile);
     const tables = Data.START_SCREEN_PROFILE_TEXTS || {};
     const active = tables[mode] || tables.millennial || {};
     const fallback = tables.millennial || {};
@@ -3584,6 +3766,43 @@ K YN A9: Нет.
   });
 
   Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS = Object.freeze({
+    boomer: Object.freeze({
+      victory: Object.freeze([
+        "Полицейский: {winner} победил в раунде.",
+        "Мафиози: победа досталась {winner}.",
+        "Бандит: {winner} получил преимущество.",
+        "Токсик: {winner} добился своего.",
+        "Толпа: {winner} победил."
+      ]),
+      defeat: Object.freeze([
+        "Полицейский: {loser} проиграл раунд.",
+        "Мафиози: {loser} оставил след после поражения.",
+        "Бандит: {loser} потерял инициативу.",
+        "Токсик: {loser} не смог ответить.",
+        "Толпа: {loser} проиграл раунд."
+      ]),
+      arrest: Object.freeze([
+        "Полицейский: {target} задержан.",
+        "Мафиози: {target} исчез из поля зрения.",
+        "Бандит: {target} оказался под арестом.",
+        "Токсик: {target} больше не отвечает.",
+        "Толпа: {target} уехал с патрулём."
+      ]),
+      rumor: Object.freeze([
+        "Полицейский: поступил сигнал о {target}.",
+        "Мафиози: о {target} говорят вполголоса.",
+        "Бандит: о {target} говорят у выхода.",
+        "Токсик: {target} снова стал темой разговора.",
+        "Толпа: о {target} уже говорят."
+      ]),
+      accusationInjection: Object.freeze([
+        "Полицейский: поступило заявление.",
+        "Мафиози: остался лишний след.",
+        "Бандит: кто-то привлёк внимание.",
+        "Токсик: кто-то сам выдал себя.",
+        "Толпа: началось обсуждение."
+      ])
+    }),
     zoomer: Object.freeze({
       victory: Object.freeze([
         "Коп: {winner} забрал раунд.",
@@ -3627,10 +3846,12 @@ K YN A9: Нет.
     const templateRows = Data.NPC_EVENT_TEMPLATES && Data.NPC_EVENT_TEMPLATES[type];
     const originalRow = Array.isArray(templateRows) ? templateRows[rowIndex] : null;
     if (!originalRow) return "";
-    const profile = forcedProfile || (typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE);
+    const profile = resolveUiTextProfileName(forcedProfile || (typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE));
     const overlayRows = profile === "zoomer"
       ? (((Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS || {}).zoomer || {})[type])
-      : null;
+      : (profile === "boomer"
+        ? (((Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS || {}).boomer || {})[type])
+        : null);
     const overlayText = Array.isArray(overlayRows) ? overlayRows[rowIndex] : null;
     return typeof overlayText === "string" && overlayText ? overlayText : String(originalRow.text == null ? "" : originalRow.text);
   };

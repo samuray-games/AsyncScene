@@ -324,7 +324,9 @@ window.Game = window.Game || {};
     const normalized = typeof Data.normalizeUiProfile === "function"
       ? Data.normalizeUiProfile(uiProfile)
       : String(uiProfile || "").trim().toLowerCase();
-    const mode = (normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial";
+    const mode = typeof Data.resolveUiTextMode === "function"
+      ? Data.resolveUiTextMode(uiProfile)
+      : (normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial"));
     Data.TEXT_MODE = mode;
     return mode;
   }
