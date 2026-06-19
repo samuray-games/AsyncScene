@@ -1,3 +1,11 @@
+## 2026-06-19 — Step 3.5 Boomer runtime lexical linter Fix8
+- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Added the final live acceptance smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Fix8 rechecks the live boomer-resolved runtime inventory, the 128 integrated gap mappings, the 126 gap targets, the 164-row base allowed lexicon, the 153-row taboo list, the 93-row lexical mapping, the Step 3.4 coverage contract, variable preservation, aliases, and profile isolation.
+- Expected live acceptance contract: 184 checked texts across 13 surfaces, `step35StillPending:false`, `finalLinterRun:true`, and empty `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
+- Pending Safari command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once()`.
+- Scope held: final dev-smoke wiring and tracking only; no runtime copy, `data.js`, `ui-boot.js`, profile routing, gameplay, economy, battle, NPC behavior, state, save, or routing logic changed.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Refreshed the published `docs/index.html` dev-checks asset marker to the unique Fix4 URL and added `Game.__DEV.smokeAlphaLexiconInventoryFix4()` on the existing alpha lexicon smoke registration path in `docs/dev/dev-checks.js`.
@@ -9,7 +17,7 @@
 - Scope held: smoke visibility wiring and tracking only; inventory content, UI copy, gameplay, economy, battle, NPC, state, save, and routing behavior were not changed.
 
 ## 2026-06-19 — Step 3.5 Boomer runtime gap integration Fix7
-- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Status: PASS; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Integrated the approved Fix6 boomer runtime copy into the live boomer UI/profile layer through 126 additive canonical targets, 128 runtime mappings, and 2 aliases with approvedCopyHash `10bafa48`.
 - Added the canonical additive artifacts `UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` / `docs/UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` and `UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md` / `docs/UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md`.
 - Added the live validation smoke `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
@@ -69,7 +77,7 @@
 - Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, or routing logic changed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
-- Status: IN_PROGRESS; Fix5 gap inventory is READY_FOR_RUNTIME_SMOKE, but Step 3.5 PASS is not claimed.
+- Status: IN_PROGRESS; Fix5, Fix6, and Fix7 are PASS inputs, Fix8 is READY_FOR_RUNTIME_SMOKE, and Step 3.5 PASS is not claimed.
 - Added the unique Safari-visible smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Build tag: `build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1`.
 - Commit placeholder: `step3_5_boomer_runtime_lexical_linter`.

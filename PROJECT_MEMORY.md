@@ -60,7 +60,10 @@
 - Fix5 gap inventory validation passed with all 128 occurrences represented and no parity, sequence, variable, or invented-target failures.
 - Fix6 records 128 exact approved copy decisions across 20 semantic groups, with GAP_0113 aliasing GAP_0112 and GAP_0126 aliasing GAP_0118. Fix5 and Fix6 are now treated as PASS inputs for integration, but runtime PASS is still unclaimed.
 - Fix7 adds 126 additive canonical boomer targets and 128 runtime mappings, keeps the 2 aliases sharing canonical target ids, and wires the approvedCopyHash `10bafa48` texts into the live boomer profile routing only.
-- Live boomer integration is pending Safari verification through `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()`. The final Step 3.5 lexical linter has not been rerun and Step 3.5 PASS is not claimed.
+- Live boomer integration is pending Safari verification through `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()`.
+- Fix8 prepares the final live lexical acceptance smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once()` without changing runtime copy, data routing, or gameplay logic.
+- The final live linter expects 184 boomer-resolved texts across 13 checked surfaces and validates the 128 integrated runtime gap mappings, the 126 additive boomer targets, taboo rules, coverage, aliases, and profile isolation.
+- Safari acceptance is still pending and Step 3.5 PASS is not claimed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.
