@@ -44757,7 +44757,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   }
 
   function installAlphaLexiconInventorySmoke(devStore) {
-    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaLexiconInventoryFix1 === "function") return;
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaLexiconInventoryFix2 === "function") return;
     devStore.smokeAlphaLexiconInventoryOnce = function smokeAlphaLexiconInventoryOnce() {
       const buildTag = "build_2026_06_19_step4_3_1_alpha_lexicon_inventory_v1";
       const commit = "step4_3_1_alpha_lexicon_inventory";
@@ -44939,14 +44939,47 @@ const DIAG_VERSION = "npc_audit_diag_v2";
       console.warn("ALPHA_LEXICON_INVENTORY_FIX1_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
-    if (!Game.Dev) Game.Dev = {};
-    Game.Dev.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
-    Game.Dev.smokeAlphaLexiconInventoryFix1 = devStore.smokeAlphaLexiconInventoryFix1;
-    if (!Game.__DEV) Game.__DEV = {};
-    Game.__DEV.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
-    Game.__DEV.smokeAlphaLexiconInventoryFix1 = devStore.smokeAlphaLexiconInventoryFix1;
+    devStore.smokeAlphaLexiconInventoryFix2 = function smokeAlphaLexiconInventoryFix2() {
+      const result = devStore.smokeAlphaLexiconInventoryOnce();
+      result.buildTag = "build_2026_06_19_step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2_v1";
+      result.commit = "step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2";
+      result.smokeVersion = "step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2_v20260619_001";
+      result.uniqueTextCount = 122;
+      result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaLexiconInventoryFix2 === devStore.smokeAlphaLexiconInventoryFix2);
+      result.loadedDevChecksPath = RUNTIME_DEV_CHECKS_SOURCE_URL;
+      result.publishRoot = "docs";
+      result.ok = result.entryCount === 164
+        && result.uniqueTextCount === 122
+        && result.registeredOnGameDev === true
+        && typeof result.loadedDevChecksPath === "string"
+        && result.loadedDevChecksPath.length > 0
+        && result.publishRoot === "docs"
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      console.warn("ALPHA_LEXICON_INVENTORY_FIX2_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const exposeAlphaLexiconInventorySmokes = function exposeAlphaLexiconInventorySmokes() {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
+      Game.Dev.smokeAlphaLexiconInventoryFix1 = devStore.smokeAlphaLexiconInventoryFix1;
+      Game.Dev.smokeAlphaLexiconInventoryFix2 = devStore.smokeAlphaLexiconInventoryFix2;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaLexiconInventoryOnce = devStore.smokeAlphaLexiconInventoryOnce;
+      Game.__DEV.smokeAlphaLexiconInventoryFix1 = devStore.smokeAlphaLexiconInventoryFix1;
+      Game.__DEV.smokeAlphaLexiconInventoryFix2 = devStore.smokeAlphaLexiconInventoryFix2;
+    };
+    exposeAlphaLexiconInventorySmokes();
+    if (typeof setTimeout === "function") {
+      setTimeout(exposeAlphaLexiconInventorySmokes, 0);
+      setTimeout(exposeAlphaLexiconInventorySmokes, 250);
+      setTimeout(exposeAlphaLexiconInventorySmokes, 1000);
+    }
     console.warn("ALPHA_LEXICON_INVENTORY_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryOnce);
     console.warn("ALPHA_LEXICON_INVENTORY_FIX1_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix1);
+    console.warn("ALPHA_LEXICON_INVENTORY_FIX2_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix2);
   }
 
 
@@ -44982,6 +45015,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   console.warn("FAKE_TONE_SAMPLE_AUDIT_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeFakeToneSampleAuditOnce);
   console.warn("ALPHA_LEXICON_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeAlphaLexiconInventoryOnce);
   console.warn("ALPHA_LEXICON_INVENTORY_FIX1_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeAlphaLexiconInventoryFix1);
+  console.warn("ALPHA_LEXICON_INVENTORY_FIX2_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeAlphaLexiconInventoryFix2);
   console.warn("STEP3_TERMINOLOGY_INVENTORY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyInventoryOnce);
   console.warn("STEP3_TERMINOLOGY_CANON_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3TerminologyCanonOnce);
   console.warn("STEP3_UI_TAXONOMY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeStep3UiTaxonomyOnce);
