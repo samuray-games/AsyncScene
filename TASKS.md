@@ -1,3 +1,13 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Diagnosed the actual GitHub Pages runtime as `docs/index.html` loading `docs/dev/dev-checks.js`; added `Game.__DEV.smokeAlphaLexiconInventoryFix2()` through the existing alpha lexicon smoke registration block, with post-boot re-expose wiring and runtime fields for `registeredOnGameDev`, `loadedDevChecksPath`, and `publishRoot`.
+- Refreshed the published `docs/index.html` dev-checks script URL and mirrored the same runtime bundle wiring into `AsyncScene/Web/dev/dev-checks.js` plus `AsyncScene/Web/index.html` to keep the runtime trees aligned.
+- Build tag: `build_2026_06_19_step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2_v1`.
+- Commit placeholder: `step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2`.
+- Smoke version: `step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix2_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaLexiconInventoryFix2()`.
+- Scope held: smoke visibility wiring and tracking only; inventory content, UI copy, gameplay, economy, battle, NPC, state, save, and routing behavior were not changed.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 4.3.1 Safari smoke visibility path by exporting `Game.__DEV.smokeAlphaLexiconInventoryFix1()` through the served `AsyncScene/Web/dev/dev-checks.js` registration path and bumping the `dev/dev-checks.js` cache-busted load URL in `AsyncScene/Web/index.html`.
