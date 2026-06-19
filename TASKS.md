@@ -1,3 +1,11 @@
+## 2026-06-19 — Step 3.5 Boomer runtime gap integration Fix7
+- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Integrated the approved Fix6 boomer runtime copy into the live boomer UI/profile layer through 126 additive canonical targets, 128 runtime mappings, and 2 aliases with approvedCopyHash `10bafa48`.
+- Added the canonical additive artifacts `UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` / `docs/UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` and `UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md` / `docs/UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md`.
+- Added the live validation smoke `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Pending Safari command: `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()`.
+- Scope held: boomer profile copy integration, additive mapping artifacts, and dev-smoke wiring only; no mechanics, economy, battle, NPC behavior, state, persistence, save, or routing logic changed.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Diagnosed the actual GitHub Pages runtime as `docs/index.html` loading `docs/dev/dev-checks.js`; added `Game.__DEV.smokeAlphaLexiconInventoryFix2()` through the existing alpha lexicon smoke registration block, with post-boot re-expose wiring and runtime fields for `registeredOnGameDev`, `loadedDevChecksPath`, and `publishRoot`.
@@ -9,13 +17,13 @@
 - Scope held: smoke visibility wiring and tracking only; inventory content, UI copy, gameplay, economy, battle, NPC, state, save, and routing behavior were not changed.
 
 ## 2026-06-19 — Step 3.5 Boomer runtime gap copy Fix6
-- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Status: PASS; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Recorded the exact supplied approved copy for all 128 Fix5 gaps across 20 semantic groups, including the two required runtime aliases.
 - Pending Safari command: `Game.__DEV.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once()`.
 - Scope held: copy-decision artifact, validation smoke, and tracking only; no runtime integration or base profile artifact changes.
 
 ## 2026-06-19 — Step 3.5 Boomer runtime gap inventory Fix5
-- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Status: PASS; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Froze all genuine Fix4 `missing_boomer_mapping` occurrences in `UI_PROFILE_BOOMER_RUNTIME_GAPS.md` and its docs mirror without making copy decisions.
 - Pending Safari command: `Game.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once()`.
 - Scope held: gap inventory, parity smoke, and tracking only; no runtime copy, allowed lexicon, taboo list, lexical mapping, or Step 3.4 coverage changes.
