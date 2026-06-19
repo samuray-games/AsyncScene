@@ -1,3 +1,9 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- The original Step 4.3.1 smoke was undefined in Safari because the published runtime was still loading the older cache-busted `dev/dev-checks.js` URL.
+- Added the new Safari command `Game.__DEV.smokeAlphaLexiconInventoryFix1()` through the existing `Game.__DEV` registration path and updated the served `dev/dev-checks.js` load URL only.
+- Inventory content remains unchanged at 164 entries and uniqueTextCount 122.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 lexicon inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Step 4.3.1 inventory source is locked at 164 entries and 122 unique texts.
