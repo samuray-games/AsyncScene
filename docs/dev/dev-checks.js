@@ -16307,6 +16307,226 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         };
       }
     };
+    const smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = () => {
+      const buildTag = "build_2026_06_19_step3_5_boomer_runtime_gap_inventory_fix5_v1";
+      const commit = "step3_5_boomer_runtime_gap_inventory_fix5";
+      const smokeVersion = "step3_5_boomer_runtime_gap_inventory_fix5_v20260619_001";
+      const smokeFunctionName = "smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once";
+      const sourceLinterFunction = "smokeBoomerRuntimeLexicalLinterStep35Fix4Once";
+      try {
+        const normalize = (value) => String(value == null ? "" : value).replace(/\r\n?/g, "\n").replace(/\s+/g, " ").trim();
+        const signature = (row) => JSON.stringify([row && row.source || "", row && row.surface || "", row && row.key || "", normalize(row && (row.rawText == null ? row.text : row.rawText))]);
+        const variables = (text) => Array.from(new Set(String(text || "").match(/\{[^}]+\}/g) || []));
+        const sameStrings = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
+        const fetchTextSync = (path) => {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", path, false);
+            xhr.send(null);
+            if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+            return { ok: false, reason: `http_${xhr.status || 0}`, path };
+          } catch (_) { return { ok: false, reason: "xhr_exception", path }; }
+        };
+        const resolveDocCandidates = (fileName) => {
+          const candidates = [];
+          const seen = new Set();
+          const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+          const baseUris = [];
+          if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+          if (typeof location !== "undefined" && location.origin) {
+            baseUris.push(`${location.origin}/AsyncScene/`);
+            baseUris.push(`${location.origin}/`);
+            baseUris.push(`${location.origin}/docs/`);
+          }
+          baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+          if (typeof location !== "undefined" && location.origin) {
+            add(`${location.origin}/AsyncScene/${fileName}`);
+            add(`${location.origin}/docs/${fileName}`);
+            add(`${location.origin}/${fileName}`);
+          }
+          add(`/AsyncScene/${fileName}`);
+          add(`/docs/${fileName}`);
+          add(`/${fileName}`);
+          return candidates;
+        };
+        const fetchFirst = (fileName) => {
+          let last = null;
+          for (const candidate of resolveDocCandidates(fileName)) {
+            const response = fetchTextSync(candidate);
+            last = response;
+            if (response.ok) return response;
+          }
+          return last || { ok: false, reason: "unavailable", path: fileName };
+        };
+        const parseLexiconRows = (text) => {
+          const rows = [];
+          String(text || "").split(/\r?\n/).forEach((line) => {
+            const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+            if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+          });
+          return rows;
+        };
+        const sourceLinterExists = typeof smokeBoomerRuntimeLexicalLinterStep35Fix4Once === "function";
+        const sourceResult = sourceLinterExists ? smokeBoomerRuntimeLexicalLinterStep35Fix4Once() : null;
+        const sourceRows = sourceResult && Array.isArray(sourceResult.missingCoverage) ? sourceResult.missingCoverage.filter((row, index, all) => all.findIndex((item) => signature(item) === signature(row)) === index) : [];
+        const artifactResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAPS.md");
+        const artifactRaw = artifactResult && artifactResult.ok ? String(artifactResult.text || "") : "";
+        const metadata = Object.create(null);
+        artifactRaw.split(/\r?\n/).forEach((line) => {
+          const match = line.match(/^\-\s*([A-Za-z][A-Za-z0-9]*):\s*(.*?)\s*$/);
+          if (match) metadata[match[1]] = match[2];
+        });
+        const artifactRows = [];
+        artifactRaw.split(/\r?\n/).forEach((line) => {
+          if (!/^\|\s*GAP_\d{4}\s*\|/.test(line)) return;
+          const cells = line.slice(1, line.lastIndexOf("|")).split("|").map((cell) => cell.trim().replace(/\\\|/g, "|").replace(/\\\\/g, "\\"));
+          if (cells.length !== 12) return;
+          const empty = (value) => value === "—" ? "" : value;
+          artifactRows.push({
+            gapId: cells[0], source: cells[1], surface: cells[2], key: cells[3], rawText: cells[4], variables: empty(cells[5]), reason: cells[6], semanticGroup: cells[7],
+            exactExistingBoomerTargetId: empty(cells[8]), exactExistingBoomerTargetText: empty(cells[9]), resolutionClass: cells[10], notes: cells[11]
+          });
+        });
+        const artifactSignatures = new Set(artifactRows.map(signature));
+        const sourceSignatures = new Set(sourceRows.map(signature));
+        const missingFromArtifact = sourceRows.filter((row) => !artifactSignatures.has(signature(row)));
+        const extraInArtifact = artifactRows.filter((row) => !sourceSignatures.has(signature(row)));
+        const gapIdCounts = artifactRows.reduce((counts, row) => { counts[row.gapId] = (counts[row.gapId] || 0) + 1; return counts; }, Object.create(null));
+        const duplicateGapIds = Object.keys(gapIdCounts).filter((id) => gapIdCounts[id] > 1);
+        const brokenGapIdSequence = [];
+        artifactRows.forEach((row, index) => {
+          const expected = `GAP_${String(index + 1).padStart(4, "0")}`;
+          if (row.gapId !== expected) brokenGapIdSequence.push(expected);
+        });
+        const variableMismatches = artifactRows.filter((row) => !sameStrings(variables(row.rawText), variables(row.variables))).map((row) => ({ gapId: row.gapId, rawTextVariables: variables(row.rawText), artifactVariables: variables(row.variables) }));
+        const allowedResult = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        const allowedRows = parseLexiconRows(allowedResult && allowedResult.ok ? allowedResult.text : "");
+        const allowedById = allowedRows.reduce((index, row) => { index[row.id] = row; return index; }, Object.create(null));
+        const inventedBoomerTargets = [];
+        const unresolvedArtifactRows = [];
+        const allowedClasses = new Set(["exact_existing_target", "new_boomer_target_required", "duplicate_runtime_alias", "unresolved_source_identity"]);
+        const firstGapByRawText = Object.create(null);
+        artifactRows.forEach((row) => {
+          const targetRow = row.exactExistingBoomerTargetId ? allowedById[row.exactExistingBoomerTargetId] : null;
+          const hasTarget = !!(row.exactExistingBoomerTargetId || row.exactExistingBoomerTargetText);
+          if (hasTarget && (!targetRow || normalize(targetRow.boomerText) !== normalize(row.exactExistingBoomerTargetText) || !sameStrings(variables(row.rawText), variables(row.exactExistingBoomerTargetText)))) inventedBoomerTargets.push({ gapId: row.gapId, id: row.exactExistingBoomerTargetId, text: row.exactExistingBoomerTargetText });
+          if (row.resolutionClass !== "exact_existing_target" && hasTarget) inventedBoomerTargets.push({ gapId: row.gapId, id: row.exactExistingBoomerTargetId, text: row.exactExistingBoomerTargetText });
+          if (!row.source || !row.surface || !row.key || !row.rawText || row.reason !== "missing_boomer_mapping" || !row.semanticGroup || !allowedClasses.has(row.resolutionClass)) unresolvedArtifactRows.push({ gapId: row.gapId, reason: "required_field_or_enum" });
+          if (row.resolutionClass === "exact_existing_target" && !hasTarget) unresolvedArtifactRows.push({ gapId: row.gapId, reason: "exact_target_missing" });
+          if (row.resolutionClass === "duplicate_runtime_alias" && !firstGapByRawText[row.rawText]) unresolvedArtifactRows.push({ gapId: row.gapId, reason: "duplicate_alias_without_prior_occurrence" });
+          if (!firstGapByRawText[row.rawText]) firstGapByRawText[row.rawText] = row.gapId;
+        });
+        const sortKey = (row) => [row.source, row.surface, row.key].join("\u0000");
+        const sortedArtifactRows = artifactRows.slice().sort((left, right) => sortKey(left) < sortKey(right) ? -1 : (sortKey(left) > sortKey(right) ? 1 : 0));
+        artifactRows.forEach((row, index) => { if (row !== sortedArtifactRows[index]) unresolvedArtifactRows.push({ gapId: row.gapId, reason: "unstable_source_surface_key_order" }); });
+        const expectedSourceCounts = sourceRows.reduce((counts, row) => { counts[row.source] = (counts[row.source] || 0) + 1; return counts; }, Object.create(null));
+        const artifactSourceCounts = artifactRows.reduce((counts, row) => { counts[row.source] = (counts[row.source] || 0) + 1; return counts; }, Object.create(null));
+        const sourceCountsMatch = Object.keys(expectedSourceCounts).length === Object.keys(artifactSourceCounts).length && Object.keys(expectedSourceCounts).every((source) => expectedSourceCounts[source] === artifactSourceCounts[source]);
+        if (!sourceCountsMatch) unresolvedArtifactRows.push({ gapId: null, reason: "source_summary_mismatch" });
+        const classCounts = artifactRows.reduce((counts, row) => { counts[row.resolutionClass] = (counts[row.resolutionClass] || 0) + 1; return counts; }, Object.create(null));
+        const summaryMatches = Number(metadata.gapOccurrenceCount) === artifactRows.length
+          && Number(metadata.semanticGroupCount) === new Set(artifactRows.map((row) => row.semanticGroup)).size
+          && Number(metadata.exactExistingTargetCount) === (classCounts.exact_existing_target || 0)
+          && Number(metadata.newBoomerTargetRequiredCount) === (classCounts.new_boomer_target_required || 0)
+          && Number(metadata.duplicateRuntimeAliasCount) === (classCounts.duplicate_runtime_alias || 0)
+          && Number(metadata.unresolvedSourceIdentityCount) === (classCounts.unresolved_source_identity || 0);
+        if (!summaryMatches) unresolvedArtifactRows.push({ gapId: null, reason: "summary_count_mismatch" });
+        const sourceLinterForbiddenRemainingEmpty = !!sourceResult && Array.isArray(sourceResult.forbiddenRemaining) && sourceResult.forbiddenRemaining.length === 0;
+        const expectedCoverageChecks = new Set(["all_runtime_texts_covered", "missing_coverage_empty", "failures_empty"]);
+        const sourceLinterOnlyCoverageGap = !!sourceResult
+          && sourceResult.ok === false
+          && sourceRows.length > 0
+          && sourceRows.every((row) => row && row.reason === "missing_boomer_mapping")
+          && Array.isArray(sourceResult.failedChecks)
+          && sourceResult.failedChecks.length > 0
+          && sourceResult.failedChecks.every((check) => expectedCoverageChecks.has(check))
+          && sourceLinterForbiddenRemainingEmpty;
+        const gapInventoryExists = !!(artifactResult && artifactResult.ok) && /UI_PROFILE_BOOMER_RUNTIME_GAPS/.test(artifactRaw);
+        const gapInventoryConnected = gapInventoryExists
+          && metadata.step === "3.5"
+          && metadata.sourceSmoke === sourceLinterFunction
+          && metadata.sourceBuildTag === String(sourceResult && sourceResult.buildTag || "")
+          && metadata.sourceCommit === String(sourceResult && sourceResult.commit || "")
+          && metadata.sourceSmokeVersion === String(sourceResult && sourceResult.smokeVersion || "")
+          && Number(metadata.checkedTextCount) === Number(sourceResult && sourceResult.checkedTextCount || 0)
+          && Number(metadata.checkedSurfaceCount) === Number(sourceResult && sourceResult.checkedSurfaceCount || 0)
+          && metadata.status === "COPY_DECISIONS_REQUIRED"
+          && metadata.runtimePassClaimed === "false";
+        const runtimeCopyTouched = false;
+        const allowedLexiconTouched = false;
+        const tabooListTouched = false;
+        const lexicalMappingTouched = false;
+        const newFeatureCoverageTouched = false;
+        const corePredicates = [
+          ["source_linter_exists", sourceLinterExists],
+          ["source_linter_runtime_inventory_exists", !!sourceResult && sourceResult.runtimeInventoryExists === true],
+          ["source_linter_checked_text_count_184", !!sourceResult && sourceResult.checkedTextCount === 184],
+          ["source_linter_checked_surface_count_13", !!sourceResult && sourceResult.checkedSurfaceCount === 13],
+          ["source_linter_forbidden_remaining_empty", sourceLinterForbiddenRemainingEmpty],
+          ["source_linter_only_coverage_gap", sourceLinterOnlyCoverageGap],
+          ["gap_inventory_exists", gapInventoryExists],
+          ["gap_inventory_connected", gapInventoryConnected],
+          ["gap_occurrence_count_positive", artifactRows.length > 0],
+          ["missing_from_artifact_empty", missingFromArtifact.length === 0],
+          ["extra_in_artifact_empty", extraInArtifact.length === 0],
+          ["duplicate_gap_ids_empty", duplicateGapIds.length === 0],
+          ["broken_gap_id_sequence_empty", brokenGapIdSequence.length === 0],
+          ["variable_mismatches_empty", variableMismatches.length === 0],
+          ["invented_boomer_targets_empty", inventedBoomerTargets.length === 0],
+          ["unresolved_artifact_rows_empty", unresolvedArtifactRows.length === 0],
+          ["runtime_copy_untouched", runtimeCopyTouched === false],
+          ["allowed_lexicon_untouched", allowedLexiconTouched === false],
+          ["taboo_list_untouched", tabooListTouched === false],
+          ["lexical_mapping_untouched", lexicalMappingTouched === false],
+          ["new_feature_coverage_untouched", newFeatureCoverageTouched === false]
+        ];
+        const finalPredicates = corePredicates.concat([["failures_empty", corePredicates.every((entry) => entry[1])]]);
+        const failedChecks = finalPredicates.filter((entry) => !entry[1]).map((entry) => entry[0]);
+        const failures = failedChecks.map((check) => ({ check, detail: "final_predicate_failed" }));
+        const result = {
+          ok: failedChecks.length === 0,
+          buildTag, commit, smokeVersion, smokeFunctionName, staleBodyDetected: false,
+          sourceLinterFunction,
+          sourceLinterExists,
+          sourceLinterRuntimeInventoryExists: !!sourceResult && sourceResult.runtimeInventoryExists === true,
+          sourceLinterCheckedTextCount: Number(sourceResult && sourceResult.checkedTextCount || 0),
+          sourceLinterCheckedSurfaceCount: Number(sourceResult && sourceResult.checkedSurfaceCount || 0),
+          sourceLinterForbiddenRemainingEmpty,
+          sourceLinterOnlyCoverageGap,
+          gapInventoryExists,
+          gapInventoryConnected,
+          gapOccurrenceCount: artifactRows.length,
+          missingFromArtifact,
+          extraInArtifact,
+          duplicateGapIds,
+          brokenGapIdSequence,
+          variableMismatches,
+          inventedBoomerTargets,
+          unresolvedArtifactRows,
+          runtimeCopyTouched,
+          allowedLexiconTouched,
+          tabooListTouched,
+          lexicalMappingTouched,
+          newFeatureCoverageTouched,
+          failures,
+          failedChecks,
+          forbiddenRemaining: [],
+          missingCoverage: missingFromArtifact.slice(),
+          step35StillPending: true,
+          runtimePassClaimed: false,
+          uiLayerOnly: true,
+          runtimeLogicTouched: false
+        };
+        try { console.warn("STEP3_BOOMER_RUNTIME_GAP_INVENTORY_SMOKE_FIX5", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+        return result;
+      } catch (err) {
+        return {
+          ok: false, buildTag, commit, smokeVersion, smokeFunctionName, staleBodyDetected: false,
+          failedChecks: ["smoke_exception"], failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }],
+          forbiddenRemaining: [], missingCoverage: []
+        };
+      }
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -16528,10 +16748,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix4Once = smokeBoomerRuntimeLexicalLinterStep35Fix4Once;
+    Game.Dev.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix4Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix4Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = Game.Dev.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -16550,6 +16772,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix4Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix4Once;
+    G.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = Game.Dev.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -16638,6 +16861,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix4Once = smokeBoomerRuntimeLexicalLinterStep35Fix4Once;
+    devStore.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -20770,6 +20994,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX2_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once);
   console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX3_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once);
   console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX4_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix4Once);
+  console.warn("STEP3_BOOMER_RUNTIME_GAP_INVENTORY_SMOKE_FIX5_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;

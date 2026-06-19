@@ -36,7 +36,7 @@
 - Step 4.2 PASS remains unclaimed until Safari returns `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
-- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Status: IN_PROGRESS; Fix5 gap inventory is READY_FOR_RUNTIME_SMOKE, but Step 3.5 PASS is not claimed.
 - Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Build tag: `build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1`.
 - Commit placeholder: `step3_5_boomer_runtime_lexical_linter`.
@@ -49,6 +49,8 @@
 - Fix3 adds the self-contained `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once()`, with the lexical rows, runtime inventory, lookup maps, accumulators, final predicates, and exception result built in callable scope. Fix3 has not yet been run in Safari.
 - Safari Fix3 failed after finding 184 runtime strings because all four boomer artifacts were incorrectly resolved as absent; it also compared raw `Data.TEXTS.zoomer` values directly and reported `checkedSurfaceCount:0`.
 - Fix4 scope is source resolution only: reconnect the exact Step 3.1-3.4 loader/parser/marker contracts, resolve raw profile rows through stable keys and millennial-to-boomer targets, classify registered surfaces, and report only genuine uncovered rows. Runtime PASS remains unclaimed pending Safari.
+- Safari Fix4 connected all four boomer artifacts, checked 184 texts across 13 surfaces, and returned `forbiddenRemaining:[]`; its remaining failures are genuine `missing_boomer_mapping` coverage gaps.
+- Fix5 freezes the complete 128-occurrence runtime gap inventory and adds a parity smoke. No boomer copy decisions or target phrases were made; Step 3.5 remains IN_PROGRESS.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.
