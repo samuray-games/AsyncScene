@@ -33,7 +33,7 @@ window.Game = window.Game || {};
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
-      fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
+      fantasy_birth_label: "Кажется, я родился в …",
       start_continue: "Продолжить",
       start_start: "Старт",
       start_reset: "Сбросить старт",
@@ -441,7 +441,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       tie_click_name_hint: "ТЫКНИ ИМЯ",
       vote_ok: "✓ ОК",
       vote_already: "✓ УЖЕ",
-      vote_fail: "✕ НЕ",
+      vote_fail: "✕ НЕТ",
       tie_timer: "⏳{sec}",
       tie_end_winner: "🏆 {name} {aVotes}:{bVotes}",
       tie_end_draw: "DRAW {aVotes}:{bVotes}",
@@ -10660,7 +10660,7 @@ K YN A9: Нет.
           "Две цифры вайба",
           "Только для интерфейса. Не сохраняем. Можно поменять позже.",
           "Это только стиль интерфейса. Потом можно перекинуть.",
-          "я на самом деле чувствую будто я родился в …",
+          "Кажется, я родился в …",
           "по вайбу я родился в …",
           "Продолжить",
           "Погнали",
@@ -10772,7 +10772,7 @@ K YN A9: Нет.
           && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
           && startDom.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
+          && startDom.samples.fantasy_birth_label.millennial === "Кажется, я родился в …"
           && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
           && startDom.samples.start_continue.millennial === "Продолжить"
           && startDom.samples.start_continue.zoomer === "Погнали"
@@ -10932,7 +10932,7 @@ K YN A9: Нет.
         const docsExpectedStart = {
           birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Две цифры вайба" },
           profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
-          fantasy_birth_label: { millennial: "я на самом деле чувствую будто я родился в …", zoomer: "по вайбу я родился в …" },
+          fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
           start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
           start_start: { millennial: "Старт", zoomer: "Старт" },
           start_reset: { millennial: "Сбросить старт", zoomer: "Снести выбор" },

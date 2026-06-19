@@ -8228,3 +8228,13 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix3_v20260619_004`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix3()`.
 - Scope held: Step 3.4 smoke identity and exact runtime verification only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-19 — Step 3.4 served data file fix 4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Runtime safety gate confirmed the published app-root page loads `data.js` from `docs/index.html`, so the currently served repository file is `docs/data.js`; `AsyncScene/Web/data.js` already held the approved target strings and only the published mirror was stale.
+- Applied exactly two approved replacements in `docs/data.js`: `я на самом деле чувствую будто я родился в …` -> `Кажется, я родился в …` and `✕ НЕ` -> `✕ НЕТ`.
+- Added `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix4()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix4_v1`.
+- Commit placeholder: `step3_4_system_texts_fix4_v1`.
+- Smoke version: `step3_4_system_texts_fix4_v20260619_005`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix4()`.
+- Scope held: served data.js synchronization and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.

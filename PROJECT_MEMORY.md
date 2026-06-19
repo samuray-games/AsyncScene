@@ -7379,3 +7379,14 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix3_v20260619_004`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix3()`.
 - Scope held: Step 3.4 smoke identity and exact runtime verification only; no new runtime copy was introduced beyond the already-approved `data.js` text state, and no gameplay, economy, battle, NPC, state, save, or routing logic changed.
+## 2026-06-19 — Step 3.4 served data file fix 4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Safari Fix3 showed `runtimeFilesAvailable:true` and resolved `data.js`, but `exactReplacementCheck:false`, `exactVoteControlCheck:false`, and `forbiddenSourceRemovalCheck:false`, proving the smoke was reading a stale published `data.js` mirror.
+- Runtime safety gate inspection confirmed `docs/index.html` serves app-root `data.js`, so the actual published repository file is `docs/data.js`; `AsyncScene/Web/data.js` already contained the approved target strings.
+- Applied exactly the two approved replacements only in `docs/data.js`: `я на самом деле чувствую будто я родился в …` -> `Кажется, я родился в …` and `✕ НЕ` -> `✕ НЕТ`, leaving all other text unchanged.
+- Added the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix4()` in both served dev-check bundles, exposing `resolvedDataUrl` and `resolvedDataRepositoryFile` and preserving all earlier Step 3.4 smoke commands unchanged.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix4_v1`.
+- Commit placeholder: `step3_4_system_texts_fix4_v1`.
+- Smoke version: `step3_4_system_texts_fix4_v20260619_005`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix4()`.
+- Scope held: served data.js synchronization and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
