@@ -40,6 +40,8 @@
 - Safari Fix1 failed because `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix1Once` was not installed in live Safari.
 - Safari Fix2 failed with `ReferenceError: Can't find variable: allowedRows`; Fix2 incorrectly delegated to the original broken Step 3.5 smoke.
 - Fix3 adds the self-contained `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once()`, with the lexical rows, runtime inventory, lookup maps, accumulators, final predicates, and exception result built in callable scope. Fix3 has not yet been run in Safari.
+- Safari Fix3 failed after finding 184 runtime strings because all four boomer artifacts were incorrectly resolved as absent; it also compared raw `Data.TEXTS.zoomer` values directly and reported `checkedSurfaceCount:0`.
+- Fix4 scope is source resolution only: reconnect the exact Step 3.1-3.4 loader/parser/marker contracts, resolve raw profile rows through stable keys and millennial-to-boomer targets, classify registered surfaces, and report only genuine uncovered rows. Runtime PASS remains unclaimed pending Safari.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.
