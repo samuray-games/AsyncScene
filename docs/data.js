@@ -51,7 +51,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "по вайбу я родился в …",
       start_continue: "Погнали",
       start_start: "Старт",
-      start_reset: "Снести выбор",
+      start_reset: "Сбросить выбор",
       rules_action: "Правила без душноты",
       start_action: "Войти",
     }),
@@ -10665,7 +10665,7 @@ K YN A9: Нет.
           "Продолжить",
           "Погнали",
           "Сбросить старт",
-          "Снести выбор",
+          "Сбросить выбор",
           "Правила без душноты",
           "Войти",
           "Меню",
@@ -10780,7 +10780,7 @@ K YN A9: Нет.
           && startDom.samples.start_start.millennial === "Старт"
           && startDom.samples.start_start.zoomer === "Старт"
           && startDom.samples.start_reset.millennial === "Сбросить старт"
-          && startDom.samples.start_reset.zoomer === "Снести выбор"
+          && startDom.samples.start_reset.zoomer === "Сбросить выбор"
           && startDom.samples.rules_action.zoomer === "Правила без душноты"
           && startDom.samples.start_action.zoomer === "Войти"
           && startDom.usesStartScreenResolver === true
@@ -10935,7 +10935,7 @@ K YN A9: Нет.
           fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
           start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
           start_start: { millennial: "Старт", zoomer: "Старт" },
-          start_reset: { millennial: "Сбросить старт", zoomer: "Снести выбор" },
+          start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
           rules_action: { millennial: "Правила", zoomer: "Правила без душноты" },
           start_action: { millennial: "Старт", zoomer: "Войти" }
         };
@@ -11295,7 +11295,7 @@ K YN A9: Нет.
         && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
         && startSamples.start_continue && startSamples.start_continue.zoomer === "Погнали"
         && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
-        && startSamples.start_reset && startSamples.start_reset.zoomer === "Снести выбор"
+        && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
         && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила без душноты"
         && startSamples.start_action && startSamples.start_action.zoomer === "Войти"
       );

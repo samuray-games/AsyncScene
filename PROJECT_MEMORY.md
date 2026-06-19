@@ -7392,3 +7392,14 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix4_v20260619_005`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix4()`.
 - Scope held: served data.js synchronization and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-19 — Step 3.4 served data file fix 5
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix4 Safari returned `ok:false` with `runtimeFilesAvailable:true`, `resolvedDataRepositoryFile:"docs/data.js"`, `exactReplacementCheck:true`, `exactVoteControlCheck:true`, and `unchangedTargetsStable:true`; the only remaining failure was S34_0002 because served `docs/data.js` still contained `Снести выбор`.
+- Approved Fix5 scope: replace exactly `Снести выбор` with `Сбросить выбор` in `docs/data.js`, keep `AsyncScene/Web/data.js` untouched, and add the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix5()`.
+- Applied exactly the one approved served-copy correction in `docs/data.js` and left all other runtime text unchanged.
+- Added the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix5()` in both served dev-check bundles, preserving every earlier Step 3.4 smoke command unchanged and reusing the working Fix4 app-root resolver.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix5_v1`.
+- Commit placeholder: `step3_4_system_texts_fix5_v1`.
+- Smoke version: `step3_4_system_texts_fix5_v20260619_006`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix5()`.
+- Scope held: one served `data.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
