@@ -7425,3 +7425,15 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix6_v20260619_007`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix6()`.
 - Scope held: one served `data.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-19 — Step 3.4 served system file fix 7
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix6 Safari returned `ok:false` with `runtimeFilesAvailable:true`, `changedTargetsApplied:false`, and `unchangedTargetsStable:true`; the only remaining failure was S34_0004 because served `system.js` still contained `Свалить за 1💰.` instead of `Выйти за 1💰.`.
+- Runtime inspection identified the served repository file as `docs/system.js`; `AsyncScene/Web/system.js` already contained the approved target string and was left untouched.
+- Approved Fix7 scope: replace exactly `Свалить за 1💰.` with `Выйти за 1💰.` in `docs/system.js`, keep `AsyncScene/Web/system.js` untouched, and add the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()`.
+- Applied exactly the one approved served-copy correction in `docs/system.js` and left all other runtime text unchanged.
+- Added the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()` in both served dev-check bundles, preserving every earlier Step 3.4 smoke command unchanged and reusing the working Fix6 app-root resolver.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix7_v1`.
+- Commit placeholder: `step3_4_system_texts_fix7_v1`.
+- Smoke version: `step3_4_system_texts_fix7_v20260619_008`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()`.
+- Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.

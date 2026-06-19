@@ -64,7 +64,7 @@ window.Game = window.Game || {};
       reportReturnAmount: "+{returnAmount}💰",
       trainingSent: "Аргумент: {teacher} → {student}.",
       rematchRequested: "{name} зовёт на реванш.",
-      escapePaid: "Свалить за 1💰.",
+      escapePaid: "Выйти за 1💰.",
       pointsDeltaRefund: "+1💰 возврат.",
       pointsDeltaRefundMajority: "+1💰 возврат большинству.",
       pointsDeltaRemainderWin: "+1💰 остаток победителю.",
