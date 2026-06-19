@@ -8280,3 +8280,13 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix6_v20260619_007`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix6()`.
 - Scope held: one served `data.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-19 — Step 3.4 served system file fix 7
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Runtime inspection identified the served app-root `system.js` file as `docs/system.js`; `AsyncScene/Web/system.js` already held the approved target string and was left untouched.
+- Applied exactly one approved replacement in `docs/system.js`: `Свалить за 1💰.` -> `Выйти за 1💰.`.
+- Added `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix7_v1`.
+- Commit placeholder: `step3_4_system_texts_fix7_v1`.
+- Smoke version: `step3_4_system_texts_fix7_v20260619_008`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()`.
+- Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
