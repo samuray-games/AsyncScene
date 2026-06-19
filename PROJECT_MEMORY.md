@@ -38,6 +38,8 @@
 - Scope held: dev-smoke wiring and docs only; no gameplay, economy, battle, NPC, state, save, or routing logic changed.
 - Safari Fix0 failed with `ReferenceError: Can't find variable: allowedByText` in `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()`.
 - Safari Fix1 failed because `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix1Once` was not installed in live Safari.
+- Safari Fix2 failed with `ReferenceError: Can't find variable: allowedRows`; Fix2 incorrectly delegated to the original broken Step 3.5 smoke.
+- Fix3 adds the self-contained `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once()`, with the lexical rows, runtime inventory, lookup maps, accumulators, final predicates, and exception result built in callable scope. Fix3 has not yet been run in Safari.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.
