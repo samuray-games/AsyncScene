@@ -8209,3 +8209,13 @@ Error: Download failure, code=1
 - Updated the Alpha smoke to report the actual deployed docs mirror path it checks and to treat `UI_PROFILE_ALPHA_DIFF.md` as the served mirror candidate instead of the non-served `AsyncScene/docs/UI_PROFILE_ALPHA_DIFF.md` path.
 - Added dev-only `Game.__DEV.smokeAlphaStep12DiffDocumentFix2()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` with fresh smoke identity `alpha_step_1_2_diff_document_fix2_v20260617_003`.
 - Runtime PASS is not claimed; Safari must run `Game.__DEV.smokeAlphaStep12DiffDocumentFix2()`.
+## 2026-06-19 — Step 3.4 system texts smoke path fix 3
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix2 was stale/invalid for this task because the returned identity and Safari command were reused from Fix2 instead of a new Step 3.4 Fix3 smoke.
+- Added `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix3()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Fix3 smoke keeps the working app-root runtime resolver from Fix2 and adds exact runtime checks for `Кажется, я родился в …`, `✕ НЕТ`, forbidden removal of `я на самом деле чувствую будто я родился в …`, forbidden removal of exact `✕ НЕ`, and unique Fix3 build/commit/smoke identity.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix3_v1`.
+- Commit placeholder: `step3_4_system_texts_fix3_v1`.
+- Smoke version: `step3_4_system_texts_fix3_v20260619_004`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix3()`.
+- Scope held: Step 3.4 smoke identity and exact runtime verification only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
