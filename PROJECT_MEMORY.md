@@ -1,3 +1,9 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Refreshed the published `docs/index.html` dev-checks asset marker to the unique Fix4 URL and added `Game.__DEV.smokeAlphaLexiconInventoryFix4()` on the existing alpha lexicon smoke registration path in `docs/dev/dev-checks.js`.
+- Mirrored the same smoke visibility wiring into `AsyncScene/Web/index.html` and `AsyncScene/Web/dev/dev-checks.js` to keep the runtime trees aligned with the published docs root.
+- Inventory content remains unchanged at 164 entries and uniqueTextCount 122.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Actual GitHub Pages publish root is `docs`; actual deployed entrypoint is `docs/index.html`; actual deployed smoke bundle is `docs/dev/dev-checks.js`.

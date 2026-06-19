@@ -1,3 +1,13 @@
+## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix4
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Refreshed the published `docs/index.html` dev-checks asset marker to the unique Fix4 URL and added `Game.__DEV.smokeAlphaLexiconInventoryFix4()` on the existing alpha lexicon smoke registration path in `docs/dev/dev-checks.js`.
+- Mirrored the same smoke visibility wiring into `AsyncScene/Web/index.html` and `AsyncScene/Web/dev/dev-checks.js` to keep the runtime trees aligned with the published docs root.
+- Build tag: `build_2026_06_19_step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix4_v1`.
+- Commit placeholder: `step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix4`.
+- Smoke version: `step4_3_1_alpha_lexicon_inventory_smoke_visibility_fix4_v20260619_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaLexiconInventoryFix4()`.
+- Scope held: smoke visibility wiring and tracking only; inventory content, UI copy, gameplay, economy, battle, NPC, state, save, and routing behavior were not changed.
+
 ## 2026-06-19 — Step 3.5 Boomer runtime gap integration Fix7
 - Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Integrated the approved Fix6 boomer runtime copy into the live boomer UI/profile layer through 126 additive canonical targets, 128 runtime mappings, and 2 aliases with approvedCopyHash `10bafa48`.
