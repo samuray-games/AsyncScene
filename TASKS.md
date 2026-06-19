@@ -8,6 +8,12 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaLexiconInventoryFix2()`.
 - Scope held: smoke visibility wiring and tracking only; inventory content, UI copy, gameplay, economy, battle, NPC, state, save, and routing behavior were not changed.
 
+## 2026-06-19 — Step 3.5 Boomer runtime gap inventory Fix5
+- Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Froze all genuine Fix4 `missing_boomer_mapping` occurrences in `UI_PROFILE_BOOMER_RUNTIME_GAPS.md` and its docs mirror without making copy decisions.
+- Pending Safari command: `Game.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once()`.
+- Scope held: gap inventory, parity smoke, and tracking only; no runtime copy, allowed lexicon, taboo list, lexical mapping, or Step 3.4 coverage changes.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Fixed the Step 4.3.1 Safari smoke visibility path by exporting `Game.__DEV.smokeAlphaLexiconInventoryFix1()` through the served `AsyncScene/Web/dev/dev-checks.js` registration path and bumping the `dev/dev-checks.js` cache-busted load URL in `AsyncScene/Web/index.html`.
@@ -39,7 +45,7 @@
 - Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, or routing logic changed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
-- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Status: IN_PROGRESS; Fix5 gap inventory is READY_FOR_RUNTIME_SMOKE, but Step 3.5 PASS is not claimed.
 - Added the unique Safari-visible smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Build tag: `build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1`.
 - Commit placeholder: `step3_5_boomer_runtime_lexical_linter`.
