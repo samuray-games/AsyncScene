@@ -7439,3 +7439,14 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix7_v20260619_008`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix7()`.
 - Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-19 — Step 3.4 served system file fix 8
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix7 Safari returned `ok:false` with `runtimeFilesAvailable:true`, `resolvedSystemRepositoryFile:"docs/system.js"`, `exactExitForOneCheck:true`, and `unchangedTargetsStable:true`; the only remaining failure was S34_0005 because served `docs/system.js` still contained `Свалить: -{escapeCost}💰.`.
+- Approved Fix8 scope: replace exactly `Свалить: -{escapeCost}💰.` with `Выйти: -{escapeCost}💰.` in `docs/system.js`, keep `AsyncScene/Web/system.js` untouched, and add the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix8()`.
+- Applied exactly the one approved served-copy correction in `docs/system.js` and preserved `{escapeCost}` exactly.
+- Added the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix8()` in both served dev-check bundles, preserving every earlier Step 3.4 smoke command unchanged and reusing the working Fix7 app-root resolver.
+- Build tag: `build_2026_06_19_step3_4_system_texts_fix8_v1`.
+- Commit placeholder: `step3_4_system_texts_fix8_v1`.
+- Smoke version: `step3_4_system_texts_fix8_v20260619_009`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix8()`.
+- Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
