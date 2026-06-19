@@ -31,6 +31,7 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()`.
 - Scope held: dev-smoke wiring and docs only; no gameplay, economy, battle, NPC, state, save, or routing logic changed.
 - Safari Fix0 failed with `ReferenceError: Can't find variable: allowedByText` in `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()`.
+- Safari Fix1 failed because `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix1Once` was not installed in live Safari.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage
 - Status: PASS.

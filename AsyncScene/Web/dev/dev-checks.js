@@ -15483,6 +15483,19 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try { console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
       return result;
     };
+    const smokeBoomerRuntimeLexicalLinterStep35Fix2Once = () => {
+      const baseResult = smokeBoomerRuntimeLexicalLinterStep35Once();
+      const result = {
+        ...baseResult,
+        buildTag: "build_2026_06_19_step3_5_boomer_runtime_lexical_linter_fix2_v1",
+        commit: "step3_5_boomer_runtime_lexical_linter_fix2",
+        smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix2_v20260619_001",
+        smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix2Once",
+        staleBodyDetected: false
+      };
+      try { console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX2", result.ok ? "PASS" : "FAIL", result); } catch (_) {}
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -15698,7 +15711,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once = smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once = smokeBoomerRuntimeLexicalLinterStep35Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -15714,6 +15729,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -15796,6 +15812,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerNewFeatureCoverageStep34Fix13Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix13Once;
     devStore.smokeBoomerNewFeatureCoverageStep34Fix11Once = Game.Dev.smokeBoomerNewFeatureCoverageStep34Fix11Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Once = smokeBoomerRuntimeLexicalLinterStep35Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -19925,6 +19942,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX7_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix7Once);
   console.warn("STEP3_BOOMER_NEW_FEATURE_COVERAGE_SMOKE_FIX8_INSTALLED_V1", typeof G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix8Once);
   console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once);
+  console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX2_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
