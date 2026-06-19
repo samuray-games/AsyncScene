@@ -7678,6 +7678,140 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeLexicalFrameStep34SystemTextsFix4 = () => {
+      const buildTag = "build_2026_06_19_step3_4_system_texts_fix4_v1";
+      const commit = "step3_4_system_texts_fix4_v1";
+      const smokeVersion = "step3_4_system_texts_fix4_v20260619_005";
+      const result = {
+        ...smokeLexicalFrameStep34SystemTextsFix3(),
+        buildTag,
+        commit,
+        smokeVersion,
+        resolvedDataUrl: null,
+        resolvedDataRepositoryFile: null,
+        forbiddenVoteControlCheck: false,
+        uniqueSmokeIdentityCheck: false
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => { addUnique(result.failedChecks, check); addUnique(result.failures, detail === undefined ? check : { check, detail }); };
+      const fetchTextSyncLocal = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) { return { ok: false, reason: "xhr_exception", path }; }
+      };
+      const resolveRuntimeCandidatesFix4 = (logicalFile) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        if (typeof document !== "undefined" && document.scripts) {
+          Array.prototype.forEach.call(document.scripts, (script) => {
+            const src = script && script.src ? String(script.src) : "";
+            if (!src) return;
+            try {
+              const url = new URL(src, ((typeof document !== "undefined" && document.baseURI) || (typeof window !== "undefined" && window.location && window.location.href) || ""));
+              const pathname = String(url.pathname || "");
+              if (pathname.endsWith(`/${logicalFile}`)) add(url.href);
+            } catch (_) {}
+          });
+        }
+        const baseUri = (typeof document !== "undefined" && document.baseURI) || (typeof window !== "undefined" && window.location && window.location.href) || "";
+        if (baseUri) {
+          try { add(new URL(logicalFile, baseUri).href); } catch (_) {}
+          try { add(new URL(`./${logicalFile}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`Web/${logicalFile}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`./Web/${logicalFile}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`AsyncScene/Web/${logicalFile}`, baseUri).href); } catch (_) {}
+        }
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/${logicalFile}`);
+          add(`${location.origin}/Web/${logicalFile}`);
+          add(`${location.origin}/AsyncScene/Web/${logicalFile}`);
+        }
+        add(`/${logicalFile}`);
+        add(`/Web/${logicalFile}`);
+        add(`/AsyncScene/Web/${logicalFile}`);
+        return candidates;
+      };
+      const inferDataRepositoryFile = (resolvedUrl) => {
+        const text = String(resolvedUrl || "");
+        if (!text) return null;
+        if (/\/AsyncScene\/Web\/data\.js(?:[?#]|$)/.test(text) || /\/Web\/data\.js(?:[?#]|$)/.test(text)) return "AsyncScene/Web/data.js";
+        if (/\/data\.js(?:[?#]|$)/.test(text)) return "docs/data.js";
+        return null;
+      };
+      const makeExactMatcher = (phrase) => {
+        const normalized = String(phrase || "").trim();
+        if (!normalized) return null;
+        const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u");
+      };
+      const hasExactPhrase = (text, phrase) => {
+        const matcher = makeExactMatcher(phrase);
+        return !!matcher && matcher.test(String(text || ""));
+      };
+      const fetchFirstRuntimeFix4 = (logicalFile) => {
+        let last = null;
+        for (const candidate of resolveRuntimeCandidatesFix4(logicalFile)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: logicalFile };
+      };
+      const dataRes = fetchFirstRuntimeFix4("data.js");
+      result.resolvedDataUrl = dataRes && dataRes.ok ? String(dataRes.path || "") : String((dataRes && dataRes.path) || "");
+      result.resolvedDataRepositoryFile = inferDataRepositoryFile(result.resolvedDataUrl);
+      if (!dataRes.ok) {
+        fail("step3_4_fix4_served_data_js_path_check", { file: "data.js", reason: dataRes.reason || "unavailable", path: dataRes.path || "data.js" });
+      } else {
+        const dataText = String(dataRes.text || "");
+        result.exactReplacementCheck = hasExactPhrase(dataText, "Кажется, я родился в …");
+        result.exactVoteControlCheck = hasExactPhrase(dataText, "✕ НЕТ");
+        result.forbiddenSourceRemovalCheck = !hasExactPhrase(dataText, "я на самом деле чувствую будто я родился в …");
+        result.forbiddenVoteControlCheck = !hasExactPhrase(dataText, "✕ НЕ");
+        if (!result.exactReplacementCheck) fail("step3_4_fix4_exact_S34_0001_replacement_check", { expected: "Кажется, я родился в …", file: result.resolvedDataRepositoryFile || "data.js", url: result.resolvedDataUrl });
+        if (!result.exactVoteControlCheck) fail("step3_4_fix4_exact_vote_control_check", { expected: "✕ НЕТ", file: result.resolvedDataRepositoryFile || "data.js", url: result.resolvedDataUrl });
+        if (!result.forbiddenSourceRemovalCheck) fail("step3_4_fix4_forbidden_source_removal_check", { forbidden: "я на самом деле чувствую будто я родился в …", file: result.resolvedDataRepositoryFile || "data.js", url: result.resolvedDataUrl });
+        if (!result.forbiddenVoteControlCheck) fail("step3_4_fix4_forbidden_vote_control_check", { forbidden: "✕ НЕ", file: result.resolvedDataRepositoryFile || "data.js", url: result.resolvedDataUrl });
+      }
+      if (!result.resolvedDataRepositoryFile) fail("step3_4_fix4_source_and_published_mirror_synchronization_check", { resolvedDataUrl: result.resolvedDataUrl, resolvedDataRepositoryFile: result.resolvedDataRepositoryFile });
+      const uniqueIdentityOk = String(buildTag).includes("step3_4_system_texts_fix4")
+        && String(commit).includes("step3_4_system_texts_fix4")
+        && String(smokeVersion).includes("step3_4_system_texts_fix4")
+        && String(buildTag).indexOf("fix3") === -1
+        && String(commit).indexOf("fix3") === -1
+        && String(smokeVersion).indexOf("fix3") === -1;
+      result.uniqueSmokeIdentityCheck = uniqueIdentityOk;
+      if (!uniqueIdentityOk) fail("step3_4_fix4_unique_smoke_identity_check", { buildTag, commit, smokeVersion });
+      result.ok = result.replacementMapExists === true
+        && result.runtimeFilesAvailable === true
+        && result.changedTargetsApplied === true
+        && result.unchangedTargetsStable === true
+        && result.exactReplacementCheck === true
+        && result.exactVoteControlCheck === true
+        && result.forbiddenSourceRemovalCheck === true
+        && result.forbiddenVoteControlCheck === true
+        && result.forbiddenSystemTextRemaining.length === 0
+        && result.tooLongSystemTexts.length === 0
+        && result.ironyHits.length === 0
+        && result.memeHits.length === 0
+        && result.slangHits.length === 0
+        && result.dryCorporateHits.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
 
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -14587,6 +14721,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix3 = smokeLexicalFrameStep34SystemTextsFix3;
+    Game.Dev.smokeLexicalFrameStep34SystemTextsFix4 = smokeLexicalFrameStep34SystemTextsFix4;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
       const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -15885,6 +16020,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix3 = smokeLexicalFrameStep34SystemTextsFix3;
+    G.__DEV.smokeLexicalFrameStep34SystemTextsFix4 = smokeLexicalFrameStep34SystemTextsFix4;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -15993,6 +16129,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep34SystemTextsFix1 = smokeLexicalFrameStep34SystemTextsFix1;
     devStore.smokeLexicalFrameStep34SystemTextsFix2 = smokeLexicalFrameStep34SystemTextsFix2;
     devStore.smokeLexicalFrameStep34SystemTextsFix3 = smokeLexicalFrameStep34SystemTextsFix3;
+    devStore.smokeLexicalFrameStep34SystemTextsFix4 = smokeLexicalFrameStep34SystemTextsFix4;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
