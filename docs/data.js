@@ -52,7 +52,7 @@ window.Game = window.Game || {};
       start_continue: "Погнали",
       start_start: "Старт",
       start_reset: "Сбросить выбор",
-      rules_action: "Правила без душноты",
+      rules_action: "Правила коротко",
       start_action: "Войти",
     }),
   });
@@ -10666,7 +10666,7 @@ K YN A9: Нет.
           "Погнали",
           "Сбросить старт",
           "Сбросить выбор",
-          "Правила без душноты",
+          "Правила коротко",
           "Войти",
           "Меню",
           "К старту",
@@ -10761,7 +10761,7 @@ K YN A9: Нет.
           && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
           && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.rules_action.zoomer === "Правила коротко"
           && startDom.samples.start_action.zoomer === "Войти");
         startDom.ok = startDom.routeConnected
           && startDom.noBirthYearSaved
@@ -10781,7 +10781,7 @@ K YN A9: Нет.
           && startDom.samples.start_start.zoomer === "Старт"
           && startDom.samples.start_reset.millennial === "Сбросить старт"
           && startDom.samples.start_reset.zoomer === "Сбросить выбор"
-          && startDom.samples.rules_action.zoomer === "Правила без душноты"
+          && startDom.samples.rules_action.zoomer === "Правила коротко"
           && startDom.samples.start_action.zoomer === "Войти"
           && startDom.usesStartScreenResolver === true
           && startDom.resolverLayer === "start_screen";
@@ -10936,7 +10936,7 @@ K YN A9: Нет.
           start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
           start_start: { millennial: "Старт", zoomer: "Старт" },
           start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
-          rules_action: { millennial: "Правила", zoomer: "Правила без душноты" },
+          rules_action: { millennial: "Правила", zoomer: "Правила коротко" },
           start_action: { millennial: "Старт", zoomer: "Войти" }
         };
         const docsExpectedMenu = {
@@ -11296,7 +11296,7 @@ K YN A9: Нет.
         && startSamples.start_continue && startSamples.start_continue.zoomer === "Погнали"
         && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
         && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
-        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила без душноты"
+        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила коротко"
         && startSamples.start_action && startSamples.start_action.zoomer === "Войти"
       );
       const menuSamplesOk = !!(
