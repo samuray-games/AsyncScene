@@ -853,7 +853,7 @@ window.Game = window.Game || {};
           // One vote per player: lock only the player, never stop NPC voting.
           if (!canVoteOnEvent(ne, e)) {
             const secLeft = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
-            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : "Ты уже проголосовал.");
+            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : "Голос уже есть.");
             // Prefer a soft render to avoid click flicker
             if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
             else rerenderEventsOnly();
