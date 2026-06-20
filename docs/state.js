@@ -3226,12 +3226,12 @@ window.Game = window.Game || {};
       "С нулем в кармане бой неинтересен.",
       "Не сейчас. Нужны очки.",
       "Бой? С такими ресурсами?",
-      "Я не благотворительность.",
+      "Без ставки не пойду.",
       "Сейчас не хочу.",
       "Будут очки — будет ставка.",
-      "Пустой кошелек - пустой разговор.",
+      "Пустой кошелёк. Боя не будет.",
       "Ты серьезно?",
-      "Позже.",
+      "Позже, когда будут очки.",
     ];
 
     const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs, { devSmoke: !!payload.devSmoke });
@@ -3703,8 +3703,8 @@ window.Game = window.Game || {};
       if (!pool.length) return;
       const npc = pool[Math.floor(Math.random() * pool.length)];
       if (!npc || !npc.id) return;
-      let line = "ты за это ответишь";
-      if (roleKey === "bandit") line = "долг вернем, не забудь";
+      let line = "за это спрошу";
+      if (roleKey === "bandit") line = "долг вернём";
       if (Game.NPC && typeof Game.NPC.generateAggroDMLine === "function") {
         const fallback = Game.NPC.generateAggroDMLine(npc);
         if (!line && fallback) line = fallback;
@@ -4006,7 +4006,7 @@ window.Game = window.Game || {};
     try {
       const victimized = checkIfVictimized(targetId);
       if (victimized) {
-        copDmTo(copId, "Сообщение принято. Я вмешался.");
+        copDmTo(copId, "Принял. Уже вмешался.");
         const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
         const returnAmount = victimized.stolenAmount || 0;
         if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
