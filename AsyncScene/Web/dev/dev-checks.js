@@ -8947,6 +8947,86 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
 
+    const smokeLexicalFrameStep35NpcSpeechFix1 = function smokeLexicalFrameStep35NpcSpeechFix1() {
+      const buildTag = "build_2026_06_20_step3_5_npc_speech_fix1_v1";
+      const commit = "step3_5_npc_speech_fix1";
+      const smokeVersion = "step3_5_npc_speech_fix1_v20260620_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        dependencies: {
+          step3_1_lexicalFrame: false,
+          step3_2_allowedLexicon: false,
+          step3_3_stopWords: false,
+          step3_4_systemTexts: false
+        },
+        dependencyResults: {},
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const dependencySpecs = [
+        ["step3_1_lexicalFrame", "smokeLexicalFrameStep31Once"],
+        ["step3_2_allowedLexicon", "smokeLexicalFrameStep32AllowedDictionaryFix2"],
+        ["step3_3_stopWords", "smokeLexicalFrameStep33StopWordsOnce"],
+        ["step3_4_systemTexts", "smokeLexicalFrameStep34SystemTextsFix10"]
+      ];
+      try {
+        dependencySpecs.forEach(([key, fnName]) => {
+          const fn = G.__DEV && G.__DEV[fnName];
+          if (typeof fn !== "function") {
+            fail(`${key}_pass_dependency_present`, `missing_${fnName}`);
+            return;
+          }
+          const dep = fn();
+          result.dependencyResults[key] = {
+            ok: !!(dep && dep.ok === true),
+            buildTag: dep && dep.buildTag,
+            commit: dep && dep.commit,
+            smokeVersion: dep && dep.smokeVersion,
+            failures: dep && Array.isArray(dep.failures) ? dep.failures.length : null,
+            forbiddenRemaining: dep && Array.isArray(dep.forbiddenRemaining) ? dep.forbiddenRemaining.length : null,
+            missingCoverage: dep && Array.isArray(dep.missingCoverage) ? dep.missingCoverage.length : null,
+            failedChecks: dep && Array.isArray(dep.failedChecks) ? dep.failedChecks.length : null
+          };
+          const depClean = !!(dep && dep.ok === true
+            && Array.isArray(dep.failures) && dep.failures.length === 0
+            && Array.isArray(dep.forbiddenRemaining) && dep.forbiddenRemaining.length === 0
+            && Array.isArray(dep.missingCoverage) && dep.missingCoverage.length === 0
+            && Array.isArray(dep.failedChecks) && dep.failedChecks.length === 0
+            && dep.buildTag && dep.commit && dep.smokeVersion);
+          result.dependencies[key] = depClean;
+          if (!depClean) fail(`${key}_pass_dependency_present`, result.dependencyResults[key]);
+          addAll(result.forbiddenRemaining, dep && dep.forbiddenRemaining);
+          addAll(result.missingCoverage, dep && dep.missingCoverage);
+          addAll(result.failedChecks, dep && dep.failedChecks);
+        });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.dependencies.step3_1_lexicalFrame === true
+        && result.dependencies.step3_2_allowedLexicon === true
+        && result.dependencies.step3_3_stopWords === true
+        && result.dependencies.step3_4_systemTexts === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -10490,7 +10570,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       const dependencySpecs = [
-        ["step3_1_lexicalFrame", "smokeZoomerLexicalFrameOnce"],
+        ["step3_1_lexicalFrame", "smokeLexicalFrameStep35NpcSpeechFix1"],
         ["step3_2_allowedLexicon", "smokeZoomerAllowedLexiconOnce"],
         ["step3_3_stopWords", "smokeZoomerStopWordsOnce"],
         ["step3_4_systemTexts", "smokeZoomerSystemTextsOnce"],
@@ -20539,6 +20619,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+    devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     return smokeZoomerNpcSpeechInventoryOnce;
   };
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
