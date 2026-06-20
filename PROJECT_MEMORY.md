@@ -1,3 +1,12 @@
+## 2026-06-20 — Step 3.5 NPC speech alpha replacement map
+- Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
+- Applied replacements: 52 approved NPC-speech source-to-target replacements across `docs/data.js`, `docs/npcs.js`, `docs/ui/ui-dm.js`, `docs/state.js`, and `docs/ui/ui-loops.js`.
+- Rejected candidates preserved: all 18 rejected Step 3.5 candidates remain unchanged, including crowd/event wrappers and system-routed non-NPC feed text.
+- Invariants preserved: placeholders are unchanged in all approved replacements; canonical mechanic term `Вброс` remains unchanged; shared argument canon was not edited.
+- Smoke wiring: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechOnce()` is exposed from both `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`; Step 3.5 smoke identity uses `build_2026_06_20_step3_5_npc_speech_v1`, `step3_5_npc_speech_v1`, and `step3_5_npc_speech_v20260620_001`.
+- Static verification only: exact 52 replacement map present, approved source strings absent, rejected strings unchanged, excluded non-NPC surfaces unchanged, mirrors aligned, and `node --check` passed on all touched runtime/dev-check files.
+- Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechOnce()`.
+
 ## 2026-06-20 — Step 3.6 documentation smoke parser and source-dependency Fix2
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Observed Safari failure after Fix1: the smoke function was visible, but it returned false zero counts for the allowed lexicon, runtime targets, runtime mappings, semantic groups, and live Fix9 dependency state.
