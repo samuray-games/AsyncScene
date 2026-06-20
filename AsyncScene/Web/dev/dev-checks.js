@@ -48805,6 +48805,602 @@ ALX_0187 | protected_tokens | {text}`;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
 
+  const smokeBoomerLexiconDocumentationStep36Once = () => {
+    const result = {
+      ok: false,
+      rootDocumentExists: false,
+      docsDocumentExists: false,
+      documentsByteIdentical: false,
+      requiredSectionsPresent: false,
+      metadataPresent: false,
+      metadataMismatches: [],
+      countMismatches: [],
+      missingSections: [],
+      missingAllowedRows: [],
+      extraAllowedRows: [],
+      changedAllowedRows: [],
+      missingTabooRows: [],
+      extraTabooRows: [],
+      changedTabooRows: [],
+      missingMappingRows: [],
+      extraMappingRows: [],
+      changedMappingRows: [],
+      missingRuntimeTargetRows: [],
+      changedRuntimeTargetRows: [],
+      missingRuntimeMappingRows: [],
+      changedRuntimeMappingRows: [],
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: [],
+      sourceRuntimeSmokeExists: false,
+      sourceRuntimeSmokeFunction: "smokeBoomerRuntimeLexicalLinterStep35Fix9Once",
+      sourceRuntimeSmokeOk: false,
+      sourceForbiddenRemainingEmpty: false,
+      sourceMissingCoverageEmpty: false,
+      sourceFailedChecksEmpty: false,
+      sourceFailuresEmpty: false,
+      rootDocumentPath: null,
+      docsDocumentPath: null,
+      baseAllowedLexiconCount: 0,
+      runtimeGapTargetCount: 0,
+      combinedAllowedTargetCount: 0,
+      tabooEntryCount: 0,
+      lexicalMappingRowCount: 0,
+      runtimeGapMappingCount: 0,
+      runtimeAliasCount: 0,
+      legacyRuntimeMappingCount: 0,
+      runtimeInventoryCount: 0,
+      runtimeSurfaceCount: 0,
+      semanticGroupCount: 0,
+      allowedLexiconParity: false,
+      runtimeTargetParity: false,
+      tabooListParity: false,
+      lexicalMappingParity: false,
+      runtimeMappingParity: false,
+      matcherRulesPresent: false,
+      newFeatureZonesPresent: false,
+      runtimeSurfacesPresent: false,
+      passContractPresent: false,
+      sourceArtifactListComplete: false,
+      runtimeLogicTouched: false,
+      uiLayerOnly: true,
+      runtimePassClaimed: false,
+      staleBodyDetected: false
+    };
+    const addUnique = (arr, value) => {
+      if (!arr.includes(value)) arr.push(value);
+    };
+    const fail = (code) => addUnique(result.failedChecks, code);
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n").trimEnd();
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const add = (value) => {
+        if (!value || candidates.includes(value)) return;
+        candidates.push(value);
+      };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => {
+        try { add(new URL(fileName, baseUri).href); } catch (_) {}
+      });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText, path };
+        return { ok: false, reason: `http_${xhr.status}`, path };
+      } catch (err) {
+        return { ok: false, reason: err && err.message ? String(err.message) : String(err), path };
+      }
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null, text: "" };
+    };
+    const getSection = (text, heading) => {
+      const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = text.match(new RegExp(`## ${escaped}\\n([\\s\\S]*?)(?=\\n## |$)`));
+      return match ? match[1] : "";
+    };
+    const extractTable = (sectionText) => {
+      const lines = String(sectionText || "").split("\n");
+      const startIndex = lines.findIndex((line) => /^\\| /.test(line));
+      if (startIndex < 0) return "";
+      const tail = lines.slice(startIndex);
+      const endIndex = tail.slice(1).findIndex((line) => /^## /.test(line));
+      const tableLines = endIndex >= 0 ? tail.slice(0, endIndex + 1) : tail;
+      return tableLines.join("\n").trimEnd();
+    };
+    const countLines = (text, pattern) => {
+      const matches = String(text || "").match(pattern);
+      return matches ? matches.length : 0;
+    };
+    const countTabooEntries = (text) => {
+      const categoryIndex = String(text || "").indexOf("### slang");
+      if (categoryIndex === -1) return 0;
+      return countLines(String(text).slice(categoryIndex), /^- /gm);
+    };
+    const hasAll = (text, items) => items.every((item) => String(text || "").includes(item));
+    const buildSection3 = (table) => [
+      "Copy all 164 base allowed lexicon rows verbatim from:",
+      "- docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md",
+      "",
+      "Preserve exactly:",
+      "- IDs",
+      "- source text",
+      "- boomer text",
+      "- variables",
+      "- categories",
+      "- punctuation",
+      "- letter case",
+      "",
+      "Do not omit rows.",
+      "Do not add rows.",
+      "Do not renumber rows.",
+      "",
+      table
+    ].join("\n");
+    const buildSection4 = (table) => [
+      "Copy all 126 BRT target rows verbatim from:",
+      "- UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md",
+      "",
+      "Preserve exactly:",
+      "- targetId",
+      "- approvedBoomerText",
+      "- sourceGapIds",
+      "- variables",
+      "- semanticGroup",
+      "- approvedCopyHash",
+      "",
+      "Expected:",
+      "- BRT target count:126",
+      "- combined allowed target count:290",
+      "",
+      table
+    ].join("\n");
+    const buildSection5 = (body) => [
+      "Copy all 153 taboo entries verbatim from:",
+      "- UI_PROFILE_BOOMER_TABOO_LIST.md",
+      "- docs/UI_PROFILE_BOOMER_TABOO_LIST.md",
+      "",
+      "Group them under the canonical categories:",
+      "- slang",
+      "- sharp_colloquial",
+      "- meme_language",
+      "- abbreviations",
+      "- officialese",
+      "- moralizing",
+      "",
+      "Preserve:",
+      "- exact rule",
+      "- category",
+      "- matching mode",
+      "- notes",
+      "- letter case where meaningful",
+      "",
+      body
+    ].join("\n");
+    const buildSection7 = (table) => [
+      "Copy all 93 rows verbatim from:",
+      "- UI_PROFILE_BOOMER_LEXICAL_MAPPING.md",
+      "",
+      "Preserve:",
+      "- mapping ID",
+      "- millennial source",
+      "- boomer target",
+      "- variables",
+      "- semantic invariant",
+      "- mechanics invariant",
+      "",
+      table
+    ].join("\n");
+    const buildSection8 = (table) => [
+      "Copy all 128 rows verbatim from:",
+      "- UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md",
+      "",
+      "Preserve:",
+      "- gapId",
+      "- source",
+      "- surface",
+      "- key",
+      "- targetId",
+      "- approvedBoomerText",
+      "- variables",
+      "- decisionClass",
+      "- aliasOf",
+      "",
+      "Explicitly document:",
+      "- GAP_0113 aliases GAP_0112",
+      "- GAP_0126 aliases GAP_0118",
+      "- unresolved runtime mappings:0",
+      "",
+      table
+    ].join("\n");
+    const rootCandidates = [];
+    const docsCandidates = [];
+    if (typeof location !== "undefined" && location.origin) {
+      rootCandidates.push(`${location.origin}/AsyncScene/BOOMER_LEXICON.md`);
+      rootCandidates.push(`${location.origin}/BOOMER_LEXICON.md`);
+      rootCandidates.push(`${location.origin}/AsyncScene/docs/BOOMER_LEXICON.md`);
+      rootCandidates.push(`${location.origin}/docs/BOOMER_LEXICON.md`);
+      docsCandidates.push(`${location.origin}/docs/BOOMER_LEXICON.md`);
+      docsCandidates.push(`${location.origin}/AsyncScene/docs/BOOMER_LEXICON.md`);
+      docsCandidates.push(`${location.origin}/AsyncScene/BOOMER_LEXICON.md`);
+      docsCandidates.push(`${location.origin}/BOOMER_LEXICON.md`);
+    }
+    rootCandidates.push(...resolveDocCandidates("BOOMER_LEXICON.md"));
+    docsCandidates.push(...resolveDocCandidates("docs/BOOMER_LEXICON.md"));
+    const fetchFirst = (paths) => {
+      let last = null;
+      for (const path of paths) {
+        const res = fetchTextSync(path);
+        const annotated = { ...res, path };
+        if (res.ok) return annotated;
+        last = annotated;
+      }
+      return last || { ok: false, path: null, text: "" };
+    };
+    try {
+      const rootRes = fetchFirst(rootCandidates);
+      const docsRes = fetchFirst(docsCandidates);
+      result.rootDocumentExists = !!rootRes.ok;
+      result.docsDocumentExists = !!docsRes.ok;
+      result.rootDocumentPath = rootRes.path || null;
+      result.docsDocumentPath = docsRes.path || null;
+      const rootText = normalize(rootRes.ok ? rootRes.text : "");
+      const docsText = normalize(docsRes.ok ? docsRes.text : "");
+      result.documentsByteIdentical = !!(rootRes.ok && docsRes.ok && rootText === docsText);
+      if (!result.rootDocumentExists) fail("root_document_missing");
+      if (!result.docsDocumentExists) fail("docs_document_missing");
+      if (!result.documentsByteIdentical) fail("documents_byte_identical_failed");
+
+      const docText = rootText || docsText;
+      const section1 = getSection(docText, "## 1. Profile purpose");
+      const section2 = getSection(docText, "## 2. Canonical counts");
+      const section3 = getSection(docText, "## 3. Allowed lexicon");
+      const section4 = getSection(docText, "## 4. Runtime allowed target extension");
+      const section5 = getSection(docText, "## 5. Taboo list");
+      const section6 = getSection(docText, "## 6. Taboo matching rules");
+      const section7 = getSection(docText, "## 7. Millennial to boomer replacement table");
+      const section8 = getSection(docText, "## 8. Runtime replacement mapping");
+      const section9 = getSection(docText, "## 9. Replacement rules");
+      const section10 = getSection(docText, "## 10. New-feature coverage");
+      const section11 = getSection(docText, "## 11. Runtime surfaces");
+      const section12 = getSection(docText, "## 12. Adding new text");
+      const section13 = getSection(docText, "## 13. PASS contract");
+      const section14 = getSection(docText, "## 14. Source artifacts");
+      const sectionHeadings = [
+        "## 1. Profile purpose",
+        "## 2. Canonical counts",
+        "## 3. Allowed lexicon",
+        "## 4. Runtime allowed target extension",
+        "## 5. Taboo list",
+        "## 6. Taboo matching rules",
+        "## 7. Millennial to boomer replacement table",
+        "## 8. Runtime replacement mapping",
+        "## 9. Replacement rules",
+        "## 10. New-feature coverage",
+        "## 11. Runtime surfaces",
+        "## 12. Adding new text",
+        "## 13. PASS contract",
+        "## 14. Source artifacts"
+      ];
+      result.requiredSectionsPresent = sectionHeadings.every((heading) => docText.includes(heading));
+      result.missingSections = sectionHeadings.filter((heading) => !docText.includes(heading));
+      if (!result.requiredSectionsPresent) fail("required_sections_missing");
+
+      const metadataNeedles = [
+        "documentId: BOOMER_LEXICON",
+        "stage: 3",
+        "step: 3.6",
+        "status: READY_FOR_RUNTIME_SMOKE",
+        "version: boomer_lexicon_step3_6_v20260620_001",
+        "buildTag: build_2026_06_20_step3_6_boomer_lexicon_documentation_v1",
+        "commit: step3_6_boomer_lexicon_documentation",
+        "sourceRuntimeSmoke: smokeBoomerRuntimeLexicalLinterStep35Fix9Once",
+        "approvedCopyHash: 10bafa48",
+        "runtimePassClaimed: false"
+      ];
+      result.metadataPresent = hasAll(docText, metadataNeedles);
+      result.metadataMismatches = metadataNeedles.filter((needle) => !docText.includes(needle));
+      if (!result.metadataPresent) fail("metadata_missing");
+
+      const allowedSource = normalize(fetchTextFromCandidates("docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md").text);
+      const targetSource = normalize(fetchTextFromCandidates("UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md").text);
+      const tabooSource = normalize(fetchTextFromCandidates("UI_PROFILE_BOOMER_TABOO_LIST.md").text);
+      const lexicalSource = normalize(fetchTextFromCandidates("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md").text);
+      const runtimeMappingSource = normalize(fetchTextFromCandidates("UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md").text);
+      const allowedTable = extractTable(allowedSource);
+      const targetTable = extractTable(targetSource);
+      const tabooBody = normalize(tabooSource.replace(/^# .*?\\n+/, ""));
+      const lexicalTable = extractTable(lexicalSource);
+      const runtimeMappingTable = extractTable(runtimeMappingSource);
+      const allowedSection = normalize(section3);
+      const targetSection = normalize(section4);
+      const tabooSection = normalize(section5);
+      const lexicalSection = normalize(section7);
+      const runtimeMappingSection = normalize(section8);
+      const expectedSection3 = buildSection3(allowedTable);
+      const expectedSection4 = buildSection4(targetTable);
+      const expectedSection5 = buildSection5(tabooBody);
+      const expectedSection7 = buildSection7(lexicalTable);
+      const expectedSection8 = buildSection8(runtimeMappingTable);
+      result.allowedLexiconParity = allowedSection === normalize(expectedSection3);
+      result.runtimeTargetParity = targetSection === normalize(expectedSection4);
+      result.tabooListParity = tabooSection === normalize(expectedSection5);
+      result.lexicalMappingParity = lexicalSection === normalize(expectedSection7);
+      result.runtimeMappingParity = runtimeMappingSection === normalize(expectedSection8);
+      if (!result.allowedLexiconParity) fail("allowed_lexicon_parity_failed");
+      if (!result.runtimeTargetParity) fail("runtime_target_parity_failed");
+      if (!result.tabooListParity) fail("taboo_list_parity_failed");
+      if (!result.lexicalMappingParity) fail("lexical_mapping_parity_failed");
+      if (!result.runtimeMappingParity) fail("runtime_mapping_parity_failed");
+
+      const section1Needles = [
+        "Boomer is derived from the millennial profile.",
+        "Tone is calm, neutral, and explanatory.",
+        "No officialese.",
+        "No moralizing.",
+        "No slang.",
+        "No sharp colloquial wording.",
+        "Mechanics and logic are unchanged.",
+        "Only UI/profile copy changes."
+      ];
+      const section2Needles = [
+        "Base allowed lexicon: 164",
+        "Runtime target extension: 126",
+        "Combined allowed targets: 290",
+        "Taboo entries: 153",
+        "Millennial to boomer lexical mappings: 93",
+        "Runtime gap mappings: 128",
+        "Runtime aliases: 2",
+        "Legacy runtime mappings: 32",
+        "Runtime inventory texts: 184",
+        "Runtime surfaces: 13",
+        "Semantic groups: 20",
+        "Approved copy hash: 10bafa48"
+      ];
+      const section6Needles = [
+        "Multiword taboo phrases use exact phrase boundaries.",
+        "Ordinary words inside grammatical sentences must not trigger short-token rules.",
+        "Short compressed UI tokens such as НЕ, УЖЕ and ОК match only when the complete normalized UI string equals that token, optionally surrounded by approved status symbols or whitespace.",
+        "Игрок не найден.",
+        "Токсик: {loser} не смог ответить.",
+        "Толпа: о {target} уже говорят.",
+        "✕ НЕ",
+        "✓ УЖЕ",
+        "ОК",
+        "Longer abbreviation rules such as Cap, max Points, DRAW, WIN, RIP, DM and NPC remain phrase-detectable.",
+        "Matcher must avoid unsafe substring false positives."
+      ];
+      const section9Needles = [
+        "Preserve the original mechanic and meaning.",
+        "Replace only profile copy.",
+        "Preserve every variable exactly.",
+        "Preserve runtime source keys and array indexes.",
+        "Prefer neutral common vocabulary.",
+        "Use calm explanatory phrasing where clarity requires it.",
+        "Do not add slang.",
+        "Do not use abbreviations in normal prose.",
+        "Do not use sharp conversational commands.",
+        "Do not use officialese.",
+        "Do not moralize.",
+        "Do not modify numbers, costs, rewards, timers, outcomes, state, or routing.",
+        "Do not change millennial, zoomer, alpha, or default profile copy.",
+        "Runtime aliases must resolve to the same canonical target.",
+        "New runtime text requires allowed-target registration, mapping, taboo validation, and Safari runtime smoke."
+      ];
+      const section10Needles = [
+        "economy",
+        "npc_vs_npc",
+        "dm",
+        "reports",
+        "respect",
+        "learning",
+        "rematch",
+        "crowd",
+        "errors",
+        "hints",
+        "Zone comparison is set-based and order-independent.",
+        "Missing, extra, and duplicate zones are failures.",
+        "Current connected zone count:10."
+      ];
+      const section11Needles = [
+        "DM",
+        "NPC speech",
+        "NPC vs NPC",
+        "UI labels",
+        "crowd",
+        "economy",
+        "errors",
+        "hints",
+        "learning",
+        "rematch",
+        "reports",
+        "respect",
+        "system messages",
+        "Current runtime text count:184.",
+        "Current missing coverage:0.",
+        "Current taboo violations:0.",
+        "Current unresolved mappings:0."
+      ];
+      const section12Needles = [
+        "Register the runtime source and surface.",
+        "Add or reuse an approved boomer target.",
+        "Preserve variables.",
+        "Add the runtime mapping.",
+        "Run the taboo matcher.",
+        "Update feature coverage when a new zone is introduced.",
+        "Run the complete runtime lexical linter in Safari.",
+        "Do not mark PASS from local tests, Playwright, VM smoke, or static checks."
+      ];
+      const section13Needles = [
+        "forbiddenRemaining:[]",
+        "missingCoverage:[]",
+        "failedChecks:[]",
+        "failures:[]",
+        "runtimeLogicTouched:false",
+        "profile isolation preserved",
+        "user Safari runtime smoke ok:true"
+      ];
+      const section14Needles = [
+        "BOOMER_LEXICON.md is a compiled documentation artifact.",
+        "Canonical row ownership remains in the source profile artifacts.",
+        "The document must be regenerated when source counts, texts, mappings, matcher rules, or approvedCopyHash change.",
+        "UI_PROFILE_BOOMER_ALLOWED_LEXICON.md",
+        "docs/UI_PROFILE_BOOMER_ALLOWED_LEXICON.md",
+        "UI_PROFILE_BOOMER_TABOO_LIST.md",
+        "docs/UI_PROFILE_BOOMER_TABOO_LIST.md",
+        "UI_PROFILE_BOOMER_LEXICAL_MAPPING.md",
+        "docs/UI_PROFILE_BOOMER_LEXICAL_MAPPING.md",
+        "UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md",
+        "docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md",
+        "UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md",
+        "docs/UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md",
+        "UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md",
+        "docs/UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md",
+        "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md",
+        "docs/UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
+      ];
+      result.matcherRulesPresent = hasAll(docText, section6Needles);
+      result.newFeatureZonesPresent = hasAll(docText, section10Needles);
+      result.runtimeSurfacesPresent = hasAll(docText, section11Needles);
+      result.passContractPresent = hasAll(docText, section13Needles);
+      result.sourceArtifactListComplete = hasAll(docText, section14Needles);
+      if (!result.matcherRulesPresent) fail("matcher_rules_missing");
+      if (!result.newFeatureZonesPresent) fail("new_feature_zones_missing");
+      if (!result.runtimeSurfacesPresent) fail("runtime_surfaces_missing");
+      if (!result.passContractPresent) fail("pass_contract_missing");
+      if (!result.sourceArtifactListComplete) fail("source_artifact_list_incomplete");
+
+      const baseAllowedLexiconCount = countLines(allowedTable, /^\\| TXT_/gm);
+      const runtimeGapTargetCount = countLines(targetTable, /^\\| BRT_/gm);
+      const combinedAllowedTargetCount = baseAllowedLexiconCount + runtimeGapTargetCount;
+      const tabooEntryCount = countTabooEntries(tabooBody);
+      const lexicalMappingRowCount = countLines(lexicalTable, /^\\| MAP_/gm);
+      const runtimeGapMappingCount = countLines(runtimeMappingTable, /^\\| GAP_/gm);
+      const runtimeAliasCount = countLines(runtimeMappingTable, /\\| runtime_alias \\|/gm);
+      const semanticGroupCount = new Set(
+        String(targetTable || "").split("\n")
+          .filter((line) => /^\\| BRT_/.test(line))
+          .map((line) => line.split("|")[4].trim())
+      ).size;
+      result.baseAllowedLexiconCount = baseAllowedLexiconCount;
+      result.runtimeGapTargetCount = runtimeGapTargetCount;
+      result.combinedAllowedTargetCount = combinedAllowedTargetCount;
+      result.tabooEntryCount = tabooEntryCount;
+      result.lexicalMappingRowCount = lexicalMappingRowCount;
+      result.runtimeGapMappingCount = runtimeGapMappingCount;
+      result.runtimeAliasCount = runtimeAliasCount;
+      result.semanticGroupCount = semanticGroupCount;
+      result.countMismatches = [];
+      if (baseAllowedLexiconCount !== 164) result.countMismatches.push({ name: "baseAllowedLexiconCount", actual: baseAllowedLexiconCount, expected: 164 });
+      if (runtimeGapTargetCount !== 126) result.countMismatches.push({ name: "runtimeGapTargetCount", actual: runtimeGapTargetCount, expected: 126 });
+      if (combinedAllowedTargetCount !== 290) result.countMismatches.push({ name: "combinedAllowedTargetCount", actual: combinedAllowedTargetCount, expected: 290 });
+      if (tabooEntryCount !== 153) result.countMismatches.push({ name: "tabooEntryCount", actual: tabooEntryCount, expected: 153 });
+      if (lexicalMappingRowCount !== 93) result.countMismatches.push({ name: "lexicalMappingRowCount", actual: lexicalMappingRowCount, expected: 93 });
+      if (runtimeGapMappingCount !== 128) result.countMismatches.push({ name: "runtimeGapMappingCount", actual: runtimeGapMappingCount, expected: 128 });
+      if (runtimeAliasCount !== 2) result.countMismatches.push({ name: "runtimeAliasCount", actual: runtimeAliasCount, expected: 2 });
+      if (semanticGroupCount !== 20) result.countMismatches.push({ name: "semanticGroupCount", actual: semanticGroupCount, expected: 20 });
+
+      const sourceSmoke = (Game && Game.__DEV && typeof Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once === "function")
+        ? Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once()
+        : null;
+      result.sourceRuntimeSmokeExists = !!sourceSmoke;
+      result.sourceRuntimeSmokeOk = !!(sourceSmoke && sourceSmoke.ok === true);
+      result.sourceForbiddenRemainingEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.forbiddenRemaining) && sourceSmoke.forbiddenRemaining.length === 0);
+      result.sourceMissingCoverageEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.missingCoverage) && sourceSmoke.missingCoverage.length === 0);
+      result.sourceFailedChecksEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.failedChecks) && sourceSmoke.failedChecks.length === 0);
+      result.sourceFailuresEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.failures) && sourceSmoke.failures.length === 0);
+      if (!result.sourceRuntimeSmokeExists) fail("source_runtime_smoke_missing");
+      if (!result.sourceRuntimeSmokeOk) fail("source_runtime_smoke_failed");
+      if (!result.sourceForbiddenRemainingEmpty) fail("source_forbidden_remaining_not_empty");
+      if (!result.sourceMissingCoverageEmpty) fail("source_missing_coverage_not_empty");
+      if (!result.sourceFailedChecksEmpty) fail("source_failed_checks_not_empty");
+      if (!result.sourceFailuresEmpty) fail("source_failures_not_empty");
+
+      result.runtimeInventoryCount = sourceSmoke && typeof sourceSmoke.checkedTextCount === "number" ? sourceSmoke.checkedTextCount : 184;
+      result.runtimeSurfaceCount = sourceSmoke && typeof sourceSmoke.checkedSurfaceCount === "number" ? sourceSmoke.checkedSurfaceCount : 13;
+      result.legacyRuntimeMappingCount = sourceSmoke && typeof sourceSmoke.legacyRuntimeMappingCount === "number" ? sourceSmoke.legacyRuntimeMappingCount : 32;
+      result.allowedLexiconParity = result.allowedLexiconParity && baseAllowedLexiconCount === 164;
+      result.runtimeTargetParity = result.runtimeTargetParity && runtimeGapTargetCount === 126;
+      result.tabooListParity = result.tabooListParity && tabooEntryCount === 153;
+      result.lexicalMappingParity = result.lexicalMappingParity && lexicalMappingRowCount === 93;
+      result.runtimeMappingParity = result.runtimeMappingParity && runtimeGapMappingCount === 128;
+
+      result.ok = result.rootDocumentExists === true
+        && result.docsDocumentExists === true
+        && result.documentsByteIdentical === true
+        && result.requiredSectionsPresent === true
+        && result.metadataPresent === true
+        && result.countMismatches.length === 0
+        && result.allowedLexiconParity === true
+        && result.runtimeTargetParity === true
+        && result.tabooListParity === true
+        && result.lexicalMappingParity === true
+        && result.runtimeMappingParity === true
+        && result.matcherRulesPresent === true
+        && result.newFeatureZonesPresent === true
+        && result.runtimeSurfacesPresent === true
+        && result.passContractPresent === true
+        && result.sourceArtifactListComplete === true
+        && result.sourceRuntimeSmokeExists === true
+        && result.sourceRuntimeSmokeOk === true
+        && result.sourceForbiddenRemainingEmpty === true
+        && result.sourceMissingCoverageEmpty === true
+        && result.sourceFailedChecksEmpty === true
+        && result.sourceFailuresEmpty === true
+        && result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.runtimeLogicTouched === false
+        && result.uiLayerOnly === true
+        && result.runtimePassClaimed === false;
+    } catch (err) {
+      return {
+        ok: false,
+        failedChecks: ["smoke_exception"],
+        failures: [{
+          check: "smoke_exception",
+          detail: err && err.message ? String(err.message) : String(err)
+        }],
+        forbiddenRemaining: [],
+        missingCoverage: []
+      };
+    }
+    return result;
+  };
+  Game.__DEV.smokeBoomerLexiconDocumentationStep36Once = smokeBoomerLexiconDocumentationStep36Once;
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerLexiconDocumentationStep36Once = smokeBoomerLexiconDocumentationStep36Once;
+  console.warn("BOOMER_LEXICON_DOCUMENTATION_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerLexiconDocumentationStep36Once);
+
   if (Game.__DEV && typeof Game.__DEV === "object") {
     Game.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
     Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;

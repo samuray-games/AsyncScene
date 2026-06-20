@@ -1,3 +1,14 @@
+## 2026-06-20 — Step 3 Boomer profile, step 3.6 boomer lexicon documentation
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Created the byte-identical documentation package in `BOOMER_LEXICON.md` and `docs/BOOMER_LEXICON.md`.
+- Locked source-backed counts: base allowed lexicon 164, runtime target extension 126, combined allowed targets 290, taboo entries 153, lexical mappings 93, runtime gap mappings 128, runtime aliases 2, legacy runtime mappings 32, runtime inventory texts 184, runtime surfaces 13, semantic groups 20.
+- Added the Safari-visible smoke `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_20_step3_6_boomer_lexicon_documentation_v1`.
+- Commit marker: `step3_6_boomer_lexicon_documentation`.
+- Smoke version: `boomer_lexicon_step3_6_v20260620_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()`.
+- Scope held: documentation artifacts, smoke wiring, and bookkeeping only; no runtime copy, gameplay, economy, battle, NPC, state, save, or routing logic changed.
+
 ## 2026-06-20 — Step 4 Alpha profile, step 4.3.2 alpha allowed lexicon
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Exact artifacts created: `docs/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md`.
