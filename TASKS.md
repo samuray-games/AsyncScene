@@ -8326,3 +8326,13 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix8_v20260619_009`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix8()`.
 - Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-20 — Step 3.4 coherent system exit strings fix 9
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix8 regressed the plain exit branch by overwriting `escapePaid` with the placeholder-cost branch while `escapeVoteCost` still needed the placeholder form.
+- Applied the coherent served `docs/system.js` exit pair: `escapePaid` is `Выйти за 1💰.` and `escapeVoteCost` is `Выйти: -{escapeCost}💰.`, with both `Свалить` variants removed.
+- Added `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Build tag: `build_2026_06_20_step3_4_system_texts_fix9_v1`.
+- Commit placeholder: `step3_4_system_texts_fix9_v1`.
+- Smoke version: `step3_4_system_texts_fix9_v20260620_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()`.
+- Scope held: coherent served `system.js` exit-string correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.

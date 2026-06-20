@@ -7459,3 +7459,14 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix8_v20260619_009`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix8()`.
 - Scope held: one served `system.js` copy correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-20 — Step 3.4 coherent system exit strings fix 9
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Fix8 Safari returned `ok:false` with `runtimeFilesAvailable:true`, `resolvedSystemRepositoryFile:"docs/system.js"`, `exactExitCostCheck:true`, `exactExitForOneCheck:false`, `forbiddenEscapeForOneCheck:true`, `forbiddenEscapeCostCheck:false`, and `unchangedTargetsStable:true`.
+- The regression cause was a branch mix-up inside served `docs/system.js`: `escapePaid` had been overwritten with the placeholder-cost text, while `escapeVoteCost` still carried the stale `Свалить: -{escapeCost}💰.` text.
+- Approved Fix9 scope: restore the coherent pair in `docs/system.js` so `escapePaid` is exactly `Выйти за 1💰.` and `escapeVoteCost` is exactly `Выйти: -{escapeCost}💰.`, ensure both `Свалить` variants are absent, and add `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()`.
+- Added the unique Safari command `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()` in both served dev-check bundles, preserving every earlier Step 3.4 smoke command unchanged and reusing the working published app-root resolver.
+- Build tag: `build_2026_06_20_step3_4_system_texts_fix9_v1`.
+- Commit placeholder: `step3_4_system_texts_fix9_v1`.
+- Smoke version: `step3_4_system_texts_fix9_v20260620_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()`.
+- Scope held: coherent served `system.js` exit-string correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
