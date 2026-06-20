@@ -7566,3 +7566,8 @@ Error: Download failure, code=1
 - Contract: 16 changed mappings, 7 identity mappings, and 3 canonical target convergences.
 - No duplicate source mappings or empty replacements; variables are preserved and targets are taboo-free.
 - Mapping is not applied to runtime; Safari PASS is pending user execution.
+## 2026-06-20 — Step 4.3.5 alpha new feature copy
+- Applied alpha copy for cop, mafia, crowd, rematch, NPC vs NPC, timers, and economy UI.
+- Covered 73 of 73 registered rows: 66 text replacements and 7 identity mappings.
+- Variables were preserved, target taboo hits are zero, and gameplay and economy logic are unchanged.
+- Safari PASS is pending user execution of `Game.__DEV.smokeAlphaNewFeaturesOnce()`.

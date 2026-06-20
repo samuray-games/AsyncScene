@@ -18,9 +18,9 @@ Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
 const mapRespectReason = {
   respect_no_points: systemSay("errors", "insufficientPoints"),
-  respect_pair_daily: "Уважение уже было сегодня.",
-  respect_no_chain: "Цепочка A->B->A сегодня закрыта.",
-  respect_emitter_empty: "Лимит уважения исчерпан.",
+  respect_pair_daily: "Уважение уже выбрано",
+  respect_no_chain: "Действие недоступно",
+  respect_emitter_empty: "Лимит уважения",
 };
 
 const showRespectToast = (kind, text) => {
@@ -78,7 +78,7 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
     } catch (_) {}
     return res;
   }
-  const reasonText = mapRespectReason[res.reason] || "Сейчас не получилось. Попробуй позже.";
+  const reasonText = mapRespectReason[res.reason] || "Ошибка. Повторить позже";
   showRespectToast("points", reasonText);
   callDevToastProbe(reasonText);
   return res;

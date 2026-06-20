@@ -1086,11 +1086,11 @@
       return;
     }
     if (normalized === "already_requested") {
-      toast("Реванш уже запрошен.");
+      toast("Реванш: ожидание");
       return;
     }
     if (normalized === "not_eligible") {
-      toast("Недоступно. Баттл не завершён.");
+      toast("Недоступно. Конфликт: активно");
       return;
     }
     if (normalized === "not_found") {
