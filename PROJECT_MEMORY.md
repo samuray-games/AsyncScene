@@ -1,3 +1,10 @@
+## 2026-06-20 — Step 4 Alpha profile, step 4.3.2 alpha allowed lexicon
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Step 4.3.2 canonical alpha allowed lexicon created in `docs/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md`.
+- Locked to 187 exact entries across 8 categories: neutral nouns, verbs, statuses, risks, service words, short forms, and protected tokens.
+- No runtime phrase replacements were made.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaAllowedLexiconOnce()`.
+
 ## 2026-06-19 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix4
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Refreshed the published `docs/index.html` dev-checks asset marker to the unique Fix4 URL and added `Game.__DEV.smokeAlphaLexiconInventoryFix4()` on the existing alpha lexicon smoke registration path in `docs/dev/dev-checks.js`.
