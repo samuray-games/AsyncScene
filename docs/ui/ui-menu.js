@@ -211,7 +211,7 @@ window.Game = window.Game || {};
       e.stopPropagation();
       if (isDevModeActive()) {
         setLocalDevModeUnlocked(false);
-        notify("Dev Mode выключен.");
+        notify("Dev Mode disabled.");
         if (UI.renderMenu) UI.renderMenu();
         return;
       }
@@ -225,9 +225,9 @@ window.Game = window.Game || {};
             console.error("DEV_MODE_CONSOLE_TAPE_LOAD_ERR", err);
           });
         }
-        notify("Dev Mode открыт на этом устройстве.");
+        notify("Dev Mode unlocked on this device.");
       } else if (entered !== null) {
-        notify("Неверный PIN Dev Mode.");
+        notify("Incorrect Dev Mode PIN.");
       }
       if (UI.renderMenu) UI.renderMenu();
     };
