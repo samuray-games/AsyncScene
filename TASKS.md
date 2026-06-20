@@ -1,3 +1,11 @@
+## 2026-06-20 — Step 3.5 NPC speech alpha replacement map
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Applied and statically verified the exact 52 approved Step 3.5 NPC-speech replacements across `docs/data.js`, `docs/npcs.js`, `docs/ui/ui-dm.js`, `docs/state.js`, and `docs/ui/ui-loops.js`.
+- Preserved all 18 rejected candidates unchanged, including the excluded shared/crowd/system-routed non-NPC surfaces.
+- Preserved placeholders exactly and kept the canonical mechanic term `Вброс` unchanged.
+- Added and mirrored the Step 3.5 runtime smoke in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` with unique identity values containing `step3_5_npc_speech`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechOnce()`.
+
 ## 2026-06-20 — Step 4 Alpha profile, Step 4.3.3 alpha taboo list
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Exact artifacts: `docs/UI_PROFILE_ALPHA_TABOO_LIST.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_TABOO_LIST.md`.
