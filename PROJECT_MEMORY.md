@@ -63,6 +63,10 @@
 - Live boomer integration is pending Safari verification through `Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once()`.
 - Fix8 prepares the final live lexical acceptance smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once()` without changing runtime copy, data routing, or gameplay logic.
 - The final live linter expects 184 boomer-resolved texts across 13 checked surfaces and validates the 128 integrated runtime gap mappings, the 126 additive boomer targets, taboo rules, coverage, aliases, and profile isolation.
+- Safari Fix8 failed with 32 `missingCoverage` rows and 11 `forbiddenRemaining` rows: older covered keys still returned legacy text, the ten-zone comparison was order-sensitive, and short abbreviation tokens matched ordinary words inside sentences.
+- Fix9 connects those 32 stable runtime keys to exact existing Step 3.1/3.3 targets, including both CAP messages, without creating copy or modifying the base artifacts.
+- Fix9 compares the ten Step 3.4 zones as a set and restricts `НЕ`/`не`/`УЖЕ`/`уже`/`ОК`/`ок` to complete normalized status-token matches while preserving phrase matching for longer abbreviation rules.
+- The final Fix9 Safari command is `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once()`; preliminary local validation returned 184 texts, 13 surfaces, 128 gap mappings, 32 legacy mappings, and empty diagnostic arrays.
 - Safari acceptance is still pending and Step 3.5 PASS is not claimed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.4] new-feature coverage

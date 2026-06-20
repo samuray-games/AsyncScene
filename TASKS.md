@@ -1,5 +1,14 @@
-## 2026-06-19 — Step 3.5 Boomer runtime lexical linter Fix8
+## 2026-06-20 — Step 3.5 Boomer runtime lexical linter Fix9
 - Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
+- Safari Fix8 failed with 32 `missingCoverage` rows, 11 `forbiddenRemaining` rows, an order-sensitive new-feature zone comparison, and false abbreviation hits for short tokens inside ordinary sentences.
+- Connected all 32 legacy runtime keys to exact existing Step 3.1/3.3 boomer targets, including the approved CAP messages; no new copy was created.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once()` with order-independent zone-set validation and exact-only matching for the short abbreviation tokens `НЕ`, `не`, `УЖЕ`, `уже`, `ОК`, and `ок`.
+- Preliminary local smoke: `ok:true`, 184 texts, 13 surfaces, 128 integrated gap mappings, 32 legacy mappings, and empty `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
+- Pending Safari command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once()`.
+- Scope held: boomer UI/profile copy and dev-smoke validation only; no gameplay, economy rules, battle outcomes, NPC behavior, timers, rewards, persistence, state, save, or routing behavior changed.
+
+## 2026-06-19 — Step 3.5 Boomer runtime lexical linter Fix8
+- Status: FAIL in Safari; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Added the final live acceptance smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Fix8 rechecks the live boomer-resolved runtime inventory, the 128 integrated gap mappings, the 126 gap targets, the 164-row base allowed lexicon, the 153-row taboo list, the 93-row lexical mapping, the Step 3.4 coverage contract, variable preservation, aliases, and profile isolation.
 - Expected live acceptance contract: 184 checked texts across 13 surfaces, `step35StillPending:false`, `finalLinterRun:true`, and empty `forbiddenRemaining`, `missingCoverage`, `failedChecks`, and `failures`.
@@ -77,7 +86,7 @@
 - Scope held: Step 3.4 smoke path resolution only; no system text copy, UI behavior, gameplay, economy, battle, NPC, state, or routing logic changed.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
-- Status: IN_PROGRESS; Fix5, Fix6, and Fix7 are PASS inputs, Fix8 is READY_FOR_RUNTIME_SMOKE, and Step 3.5 PASS is not claimed.
+- Status: IN_PROGRESS; Fix5, Fix6, and Fix7 are PASS inputs, Fix8 failed in Safari, Fix9 is READY_FOR_RUNTIME_SMOKE, and Step 3.5 PASS is not claimed.
 - Added the unique Safari-visible smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
 - Build tag: `build_2026_06_19_step3_5_boomer_runtime_lexical_linter_v1`.
 - Commit placeholder: `step3_5_boomer_runtime_lexical_linter`.

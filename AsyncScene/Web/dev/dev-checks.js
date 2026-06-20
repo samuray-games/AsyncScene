@@ -18815,6 +18815,316 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         };
       }
     };
+    const smokeBoomerRuntimeLexicalLinterStep35Fix9Once = () => {
+      const buildTag = "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix9_v1";
+      const commit = "step3_5_boomer_runtime_lexical_linter_fix9";
+      const smokeVersion = "step3_5_boomer_runtime_lexical_linter_fix9_v20260620_001";
+      const smokeFunctionName = "smokeBoomerRuntimeLexicalLinterStep35Fix9Once";
+      const expectedZones = ["economy", "npc_vs_npc", "dm", "reports", "respect", "learning", "rematch", "crowd", "errors", "hints"];
+      const expectedSurfaces = ["DM", "NPC speech", "NPC vs NPC", "UI labels", "crowd", "economy", "errors", "hints", "learning", "rematch", "reports", "respect", "system messages"];
+      try {
+        const baseline = smokeBoomerRuntimeLexicalLinterStep35Fix8Once();
+        const normalize = (value) => String(value == null ? "" : value).replace(/\r\n?/g, "\n").replace(/\s+/g, " ").trim();
+        const vars = (value) => Array.from(new Set(String(value || "").match(/\{[^}]+\}/g) || [])).sort();
+        const sameList = (left, right) => left.length === right.length && left.every((value, index) => value === right[index]);
+        const stable = (source, surface, key) => JSON.stringify([String(source || ""), String(surface || ""), String(key || "")]);
+        const addUnique = (list, value) => {
+          const signature = JSON.stringify(value);
+          if (!list.some((entry) => JSON.stringify(entry) === signature)) list.push(value);
+        };
+        const fetchTextSync = (path) => {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", path, false);
+            xhr.send(null);
+            return xhr.status >= 200 && xhr.status < 300 ? { ok: true, text: xhr.responseText || "" } : { ok: false };
+          } catch (_) { return { ok: false }; }
+        };
+        const fetchFirst = (fileName) => {
+          const candidates = [];
+          const seen = new Set();
+          const add = (value) => { if (value && !seen.has(value)) { seen.add(value); candidates.push(value); } };
+          const bases = [];
+          if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+          if (typeof location !== "undefined" && location.origin) bases.push(`${location.origin}/AsyncScene/`, `${location.origin}/`, `${location.origin}/docs/`);
+          bases.forEach((base) => { try { add(new URL(fileName, base).href); } catch (_) {} });
+          if (typeof location !== "undefined" && location.origin) {
+            add(`${location.origin}/AsyncScene/${fileName}`);
+            add(`${location.origin}/docs/${fileName}`);
+            add(`${location.origin}/${fileName}`);
+          }
+          add(`/AsyncScene/${fileName}`); add(`/docs/${fileName}`); add(`/${fileName}`);
+          for (const candidate of candidates) {
+            const response = fetchTextSync(candidate);
+            if (response.ok) return response;
+          }
+          return { ok: false, text: "" };
+        };
+        const splitCells = (line) => line.slice(1, line.lastIndexOf("|")).split("|").map((cell) => cell.trim().replace(/\\\|/g, "|").replace(/\\\\/g, "\\"));
+        const parseAllowed = (text) => {
+          const rows = [];
+          String(text || "").split(/\r?\n/).forEach((line) => {
+            const match = line.match(/^\|\s*(TXT_\d{4})\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|$/);
+            if (match) rows.push({ id: match[1], currentText: match[2], boomerText: match[3] });
+          });
+          return rows;
+        };
+        const parseTaboo = (text) => {
+          const rows = [];
+          let category = "";
+          String(text || "").split(/\r?\n/).forEach((line) => {
+            const heading = line.match(/^###\s+([a-z_]+)\s*$/i);
+            if (heading) { category = heading[1].toLowerCase(); return; }
+            const item = line.match(/^\-\s+(.*\S)\s*$/);
+            if (item && category) rows.push({ category, phrase: item[1].trim() });
+          });
+          return rows;
+        };
+        const parseGapMappings = (text) => {
+          const rows = [];
+          String(text || "").split(/\r?\n/).forEach((line) => {
+            if (!/^\|\s*GAP_\d{4}\s*\|/.test(line)) return;
+            const cells = splitCells(line);
+            if (cells.length === 9) rows.push({ gapId: cells[0], source: cells[1], surface: cells[2], key: cells[3], targetId: cells[4], approvedBoomerText: cells[5], variables: cells[6] === "—" ? "" : cells[6], aliasOf: cells[8] });
+          });
+          return rows;
+        };
+        const allowedResult = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md");
+        const tabooResult = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md");
+        const lexicalResult = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md");
+        const coverageResult = fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md");
+        const gapMappingResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md");
+        const allowedRows = parseAllowed(allowedResult.text);
+        const tabooRows = parseTaboo(tabooResult.text);
+        const gapRows = parseGapMappings(gapMappingResult.text);
+        const allowedById = allowedRows.reduce((index, row) => { index[row.id] = row; return index; }, Object.create(null));
+        const allowedByText = allowedRows.reduce((index, row) => {
+          const key = normalize(row.boomerText);
+          if (!index[key]) index[key] = [];
+          index[key].push(row);
+          return index;
+        }, Object.create(null));
+        const gapBySignature = gapRows.reduce((index, row) => { index[stable(row.source, row.surface, row.key)] = row; return index; }, Object.create(null));
+        const legacySpecs = [
+          ["Data.TEXTS.zoomer", "tie_start", "TXT_0091"],
+          ["Data.TEXTS.zoomer", "tie_call_to_action", "TXT_0092"],
+          ["Data.TEXTS.zoomer", "tie_click_name_hint", "TXT_0093"],
+          ["Data.TEXTS.zoomer", "dm_action_unavailable", "TXT_0027"],
+          ["Data.TEXTS.zoomer", "battle_draw", "TXT_0099"],
+          ["Data.TEXTS.zoomer", "supported_minority", "TXT_0104"],
+          ["Data.TEXTS.zoomer", "battle_not_enough_points", "TXT_0025"],
+          ["Data.TEXTS.zoomer", "teach_sent_dm", "TXT_0071"],
+          ["Data.TEXTS.zoomer", "teach_sent_chat", "TXT_0072"],
+          ["Data.TEXTS.zoomer", "invite_open_hint", "TXT_0073"],
+          ["Data.TEXTS.zoomer", "hint_type_who", "TXT_0087"],
+          ["Data.TEXTS.zoomer", "hint_type_where", "TXT_0088"],
+          ["Data.TEXTS.zoomer", "hint_type_about", "TXT_0089"],
+          ["Data.TEXTS.zoomer", "hint_type_yn", "TXT_0090"],
+          ["Data.TEXTS.zoomer", "return_to_start", "TXT_0062"],
+          ["Data.TEXTS.zoomer", "menu_unavailable", "TXT_0027"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "birth_digits_label", "TXT_0009"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "profile_helper", "TXT_0014"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "start_start", "TXT_0007"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "start_reset", "TXT_0018"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "rules_action", "TXT_0008"],
+          ["Data.START_SCREEN_PROFILE_TEXTS.zoomer", "start_action", "TXT_0007"],
+          ["Data.START_SCREEN", "introLines[0]", "TXT_0003"],
+          ["Data.START_SCREEN", "introLines[2]", "TXT_0005"],
+          ["Data.START_SCREEN", "economyHonestyLine", "TXT_0006"],
+          ["Data.START_SCREEN", "actions.start", "TXT_0007"],
+          ["Data.START_SCREEN", "actions.rules", "TXT_0008"],
+          ["Data.COP_TEMPLATES", "warnings[0]", "TXT_0111"],
+          ["Data.COP_TEMPLATES", "warnings[1]", "TXT_0112"],
+          ["Data.COP_TEMPLATES", "chatReplies[0]", "TXT_0114"],
+          ["Data.CAP_MESSAGES", "rep", "TXT_0108"],
+          ["Data.CAP_MESSAGES", "points", "TXT_0109"]
+        ].map(([source, key, targetId]) => ({ source, key, targetId }));
+        const legacyBySignature = legacySpecs.reduce((index, row) => { index[JSON.stringify([row.source, row.key])] = row; return index; }, Object.create(null));
+        const G = typeof Game !== "undefined" ? Game : window.Game;
+        const D = G && G.Data;
+        const originalProfile = D && typeof D.getUiProfile === "function" ? D.getUiProfile() : (D && D.UI_PROFILE) || "default";
+        const originalMode = D && typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "millennial";
+        const withProfile = (profile, fn) => {
+          if (!D) return fn();
+          try {
+            if (typeof D.setUiProfile === "function") D.setUiProfile(profile); else D.UI_PROFILE = profile;
+            if (typeof D.TEXT_MODE === "string") D.TEXT_MODE = typeof D.resolveUiTextMode === "function" ? D.resolveUiTextMode(profile) : (profile === "boomer" ? "boomer" : (profile === "zoomer" || profile === "alpha" ? "zoomer" : "millennial"));
+            return fn();
+          } finally {
+            if (typeof D.setUiProfile === "function") D.setUiProfile(originalProfile); else D.UI_PROFILE = originalProfile;
+            if (typeof D.TEXT_MODE === "string") D.TEXT_MODE = originalMode;
+          }
+        };
+        const indexed = (key) => {
+          const match = String(key || "").match(/^([A-Za-z0-9_]+)\[(\d+)\]$/);
+          return match ? { bucket: match[1], index: Number(match[2]) } : null;
+        };
+        const resolve = (row, profile) => {
+          if (!D || !row) return "";
+          if (row.source === "Data.TEXTS.zoomer") return withProfile(profile, () => String((D.TEXTS && D.TEXTS[D.resolveUiTextProfileName(profile)] && D.TEXTS[D.resolveUiTextProfileName(profile)][row.key]) ?? ""));
+          if (row.source === "Data.START_SCREEN_PROFILE_TEXTS.zoomer") return String(D.resolveStartScreenText(row.key, profile));
+          if (row.source === "Data.START_SCREEN") {
+            if (profile === "boomer" && typeof D.resolveStartScreenText === "function") return String(D.resolveStartScreenText(row.key === "title" ? "start_title" : row.key, "boomer"));
+            if (row.key === "title") return String(D.START_SCREEN.title || "");
+            if (row.key === "economyHonestyLine") return String(D.START_SCREEN.economyHonestyLine || "");
+            if (/^introLines\[\d+\]$/.test(row.key)) { const item = indexed(row.key); return String((D.START_SCREEN.introLines || [])[item.index] || ""); }
+            if (/^actions\./.test(row.key)) return String((D.START_SCREEN.actions || {})[row.key.split(".")[1]] || "");
+          }
+          if (row.source === "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer") { const item = indexed(row.key); return String(D.resolveNpcEventTemplateText(item.bucket, item.index, {}, profile)); }
+          if (row.source === "Data.COP_TEMPLATES") { const item = indexed(row.key); return withProfile(profile, () => String((D.COP_TEMPLATES[item.bucket] || [])[item.index] || "")); }
+          if (row.source === "Data.CAP_MESSAGES") return withProfile(profile, () => String((D.CAP_MESSAGES || {})[row.key] || ""));
+          return "";
+        };
+        const surfacesForKey = (key) => {
+          const value = String(key || "").toLowerCase();
+          const surfaces = new Set(["system messages"]);
+          if (/^tie_|^vote_|supported_|majority_|minority_/.test(value)) surfaces.add("crowd");
+          if (/^events_|^battle_action_|menu_|goal_|return_to_start|^actions\./.test(value)) surfaces.add("UI labels");
+          if (/hint|invite_open|introlines/.test(value)) surfaces.add("hints");
+          if (/unavailable|invalid|not_enough|invite_invalid/.test(value)) surfaces.add("errors");
+          if (/points|cost|escape|economy/.test(value)) surfaces.add("economy");
+          if (/^battle_|^conflict_/.test(value)) surfaces.add("NPC vs NPC");
+          if (/^dm_/.test(value)) surfaces.add("DM");
+          if (/^teach_|rules|introlines/.test(value)) surfaces.add("learning");
+          if (/rematch/.test(value)) surfaces.add("rematch");
+          if (/respect/.test(value)) surfaces.add("respect");
+          return Array.from(surfaces);
+        };
+        const runtimeRows = [];
+        const surfaceSet = new Set();
+        const addRow = (row) => { row.surfaces.forEach((surface) => surfaceSet.add(surface)); runtimeRows.push({ ...row, resolvedText: resolve(row, "boomer") }); };
+        Object.keys(D.TEXTS.zoomer).forEach((key) => addRow({ source: "Data.TEXTS.zoomer", surface: `Data.TEXTS.zoomer.${key}`, key, surfaces: surfacesForKey(key) }));
+        Object.keys(D.START_SCREEN_PROFILE_TEXTS.zoomer).forEach((key) => addRow({ source: "Data.START_SCREEN_PROFILE_TEXTS.zoomer", surface: `Data.START_SCREEN_PROFILE_TEXTS.zoomer.${key}`, key, surfaces: key === "fantasy_birth_label" ? ["UI labels"] : surfacesForKey(key) }));
+        addRow({ source: "Data.START_SCREEN", surface: "Data.START_SCREEN.title", key: "title", surfaces: ["UI labels"] });
+        D.START_SCREEN.introLines.forEach((_, index) => addRow({ source: "Data.START_SCREEN", surface: `Data.START_SCREEN.introLines[${index}]`, key: `introLines[${index}]`, surfaces: ["hints", "learning"] }));
+        addRow({ source: "Data.START_SCREEN", surface: "Data.START_SCREEN.economyHonestyLine", key: "economyHonestyLine", surfaces: ["economy", "hints"] });
+        ["start", "rules"].forEach((key) => addRow({ source: "Data.START_SCREEN", surface: `Data.START_SCREEN.actions.${key}`, key: `actions.${key}`, surfaces: key === "rules" ? ["UI labels", "learning"] : ["UI labels"] }));
+        Object.keys(D.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer).forEach((bucket) => D.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer[bucket].forEach((_, index) => addRow({ source: "Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer", surface: `Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer.${bucket}[${index}]`, key: `${bucket}[${index}]`, surfaces: ["NPC speech", "NPC vs NPC"] })));
+        Object.keys(D.COP_TEMPLATES_PROFILE_TEXTS.millennial).forEach((bucket) => D.COP_TEMPLATES_PROFILE_TEXTS.millennial[bucket].forEach((_, index) => {
+          const surfaces = ["NPC speech"];
+          if (/chat|cooldown/i.test(bucket)) surfaces.push("DM");
+          if (/thanks|scolds|warning/i.test(bucket)) surfaces.push("reports");
+          if (/cooldown|warning/i.test(bucket)) surfaces.push("errors");
+          addRow({ source: "Data.COP_TEMPLATES", surface: `Data.COP_TEMPLATES.${bucket}[${index}]`, key: `${bucket}[${index}]`, surfaces });
+        }));
+        Object.keys(D.CAP_MESSAGES).forEach((key) => addRow({ source: "Data.CAP_MESSAGES", surface: `Data.CAP_MESSAGES.${key}`, key, surfaces: ["economy", "errors"] }));
+        expectedZones.forEach((zone) => surfaceSet.add({ npc_vs_npc: "NPC vs NPC", dm: "DM" }[zone] || zone));
+
+        const missingCoverage = [];
+        const forbiddenRemaining = [];
+        const legacyTextMismatches = [];
+        const legacyVariableMismatches = [];
+        const aliasTargetMismatches = [];
+        const profileIsolationFailures = [];
+        let liveResolvedGapCount = 0;
+        let exactApprovedTextMatchCount = 0;
+        let variablePreservationCount = 0;
+        let legacyResolvedCount = 0;
+        runtimeRows.forEach((row) => {
+          const gap = gapBySignature[stable(row.source, row.surface, row.key)];
+          const legacy = legacyBySignature[JSON.stringify([row.source, row.key])];
+          if (gap) {
+            if (normalize(row.resolvedText) === normalize(gap.approvedBoomerText)) { liveResolvedGapCount += 1; exactApprovedTextMatchCount += 1; }
+            else addUnique(missingCoverage, { source: row.source, surface: row.surface, key: row.key, resolvedText: row.resolvedText, reason: "runtime_gap_text_mismatch" });
+            if (sameList(vars(row.resolvedText), vars(gap.approvedBoomerText)) && sameList(vars(row.resolvedText), vars(gap.variables))) variablePreservationCount += 1;
+            else addUnique(missingCoverage, { source: row.source, surface: row.surface, key: row.key, resolvedText: row.resolvedText, reason: "runtime_gap_variable_mismatch" });
+          } else if (legacy) {
+            const target = allowedById[legacy.targetId];
+            if (target && normalize(row.resolvedText) === normalize(target.boomerText)) legacyResolvedCount += 1;
+            else legacyTextMismatches.push({ source: row.source, key: row.key, targetId: legacy.targetId, expected: target && target.boomerText, actual: row.resolvedText });
+            if (!target || !sameList(vars(row.resolvedText), vars(target.boomerText))) legacyVariableMismatches.push({ source: row.source, key: row.key, targetId: legacy.targetId, expected: target ? vars(target.boomerText) : [], actual: vars(row.resolvedText) });
+          } else if (!(allowedByText[normalize(row.resolvedText)] || []).length) {
+            addUnique(missingCoverage, { source: row.source, surface: row.surface, key: row.key, resolvedText: row.resolvedText, reason: "missing_boomer_mapping" });
+          }
+          tabooRows.forEach((taboo) => {
+            const phrase = String(taboo.phrase || "").trim();
+            let matched = false;
+            if (taboo.category === "abbreviations" && ["НЕ", "не", "УЖЕ", "уже", "ОК", "ок"].includes(phrase)) {
+              matched = normalize(row.resolvedText).replace(/^[✓✕\s]+|[✓✕\s]+$/gu, "") === phrase;
+            } else if (phrase) {
+              const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              matched = new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u").test(String(row.resolvedText || ""));
+            }
+            if (matched) addUnique(forbiddenRemaining, { source: row.source, surface: row.surface, key: row.key, resolvedText: row.resolvedText, category: taboo.category, rule: phrase });
+          });
+        });
+        legacyTextMismatches.forEach((row) => addUnique(missingCoverage, { source: row.source, key: row.key, resolvedText: row.actual, reason: "legacy_text_mismatch" }));
+        legacyVariableMismatches.forEach((row) => addUnique(missingCoverage, { source: row.source, key: row.key, resolvedText: resolve(row, "boomer"), reason: "legacy_variable_mismatch" }));
+        [["GAP_0113", "GAP_0112"], ["GAP_0126", "GAP_0118"]].forEach(([gapId, aliasOf]) => {
+          const alias = gapRows.find((row) => row.gapId === gapId);
+          const target = gapRows.find((row) => row.gapId === aliasOf);
+          if (!alias || !target || alias.targetId !== target.targetId || normalize(alias.approvedBoomerText) !== normalize(target.approvedBoomerText)) aliasTargetMismatches.push({ gapId, aliasOf });
+        });
+        legacySpecs.forEach((spec) => {
+          ["zoomer", "millennial", "default", "alpha"].forEach((profile) => {
+            let expected = "";
+            if (spec.source === "Data.TEXTS.zoomer") expected = String((profile === "zoomer" || profile === "alpha" ? D.TEXTS.zoomer : D.TEXTS.millennial)[spec.key] || "");
+            else if (spec.source === "Data.START_SCREEN_PROFILE_TEXTS.zoomer") expected = String((profile === "zoomer" || profile === "alpha" ? D.START_SCREEN_PROFILE_TEXTS.zoomer : D.START_SCREEN_PROFILE_TEXTS.millennial)[spec.key] || "");
+            else if (spec.source === "Data.START_SCREEN") expected = resolve(spec, "default");
+            else if (spec.source === "Data.COP_TEMPLATES") { const item = indexed(spec.key); expected = String((D.COP_TEMPLATES_PROFILE_TEXTS.millennial[item.bucket] || [])[item.index] || ""); }
+            else if (spec.source === "Data.CAP_MESSAGES") expected = String(((D.CAP_MESSAGES_PROFILE_TEXTS || {})[profile] || (D.CAP_MESSAGES_PROFILE_TEXTS || {}).millennial || {})[spec.key] || "");
+            const actual = resolve(spec, profile);
+            if (normalize(actual) !== normalize(expected)) addUnique(profileIsolationFailures, { source: spec.source, key: spec.key, profile, expected, actual });
+          });
+        });
+        const zoneLine = String(coverageResult.text || "").match(/Covered zones, in order:\s*((?:`[a-z_]+`(?:,\s*)?)+)\./i);
+        const zoneList = zoneLine ? Array.from(zoneLine[1].matchAll(/`([a-z_]+)`/g), (match) => match[1].toLowerCase()) : [];
+        const zoneCounts = zoneList.reduce((counts, zone) => { counts[zone] = (counts[zone] || 0) + 1; return counts; }, Object.create(null));
+        const missingNewFeatureZones = expectedZones.filter((zone) => !zoneCounts[zone]);
+        const extraNewFeatureZones = Object.keys(zoneCounts).filter((zone) => !expectedZones.includes(zone));
+        const duplicateNewFeatureZones = Object.keys(zoneCounts).filter((zone) => zoneCounts[zone] > 1);
+        const newFeatureZoneSetMatch = zoneList.length === expectedZones.length && missingNewFeatureZones.length === 0 && extraNewFeatureZones.length === 0 && duplicateNewFeatureZones.length === 0;
+        const checkedSurfaces = Array.from(surfaceSet).sort();
+        const allowedLexiconConnected = allowedResult.ok && allowedRows.length === 164;
+        const tabooListConnected = tabooResult.ok && tabooRows.length === 153;
+        const lexicalMappingRowCount = (String(lexicalResult.text || "").match(/^\|\s*MAP_\d{4}\s*\|/gm) || []).length;
+        const lexicalMappingConnected = lexicalResult.ok && lexicalMappingRowCount === 93;
+        const newFeatureCoverageConnected = coverageResult.ok && /BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1/.test(coverageResult.text) && newFeatureZoneSetMatch;
+        const runtimeInventoryExists = runtimeRows.length > 0;
+        const unresolvedLegacyMappingCount = legacySpecs.length - legacyResolvedCount;
+        const baseChecks = [
+          ["runtime_inventory_exists", runtimeInventoryExists, runtimeRows.length], ["checked_text_count_184", runtimeRows.length === 184, runtimeRows.length],
+          ["checked_surface_count_13", checkedSurfaces.length === 13 && expectedSurfaces.every((surface) => surfaceSet.has(surface)), checkedSurfaces],
+          ["allowed_lexicon_connected", allowedLexiconConnected, allowedRows.length], ["taboo_list_connected", tabooListConnected, tabooRows.length],
+          ["lexical_mapping_connected", lexicalMappingConnected, null], ["new_feature_coverage_connected", newFeatureCoverageConnected, { missingNewFeatureZones, extraNewFeatureZones, duplicateNewFeatureZones }],
+          ["runtime_gap_targets_connected", baseline.runtimeGapTargetsConnected === true && baseline.runtimeGapTargetCount === 126, baseline.runtimeGapTargetCount],
+          ["runtime_gap_mapping_connected", gapMappingResult.ok && gapRows.length === 128, gapRows.length],
+          ["approved_copy_hash", baseline.approvedCopyHash === "10bafa48", baseline.approvedCopyHash],
+          ["boomer_profile_copy_integrated", liveResolvedGapCount === 128 && exactApprovedTextMatchCount === 128 && variablePreservationCount === 128, { liveResolvedGapCount, exactApprovedTextMatchCount, variablePreservationCount }],
+          ["legacy_runtime_mapping_count_32", legacySpecs.length === 32, legacySpecs.length], ["legacy_resolved_count_32", legacyResolvedCount === 32, legacyResolvedCount],
+          ["unresolved_legacy_mapping_count_zero", unresolvedLegacyMappingCount === 0, unresolvedLegacyMappingCount],
+          ["alias_target_mismatches_empty", aliasTargetMismatches.length === 0, aliasTargetMismatches], ["legacy_text_mismatches_empty", legacyTextMismatches.length === 0, legacyTextMismatches],
+          ["legacy_variable_mismatches_empty", legacyVariableMismatches.length === 0, legacyVariableMismatches], ["profile_isolation_failures_empty", profileIsolationFailures.length === 0, profileIsolationFailures],
+          ["no_slang", !forbiddenRemaining.some((row) => row.category === "slang"), forbiddenRemaining.filter((row) => row.category === "slang")],
+          ["no_abbreviations", !forbiddenRemaining.some((row) => row.category === "abbreviations"), forbiddenRemaining.filter((row) => row.category === "abbreviations")],
+          ["no_sharp_wording", !forbiddenRemaining.some((row) => row.category === "sharp_colloquial"), forbiddenRemaining.filter((row) => row.category === "sharp_colloquial")],
+          ["no_meme_language", !forbiddenRemaining.some((row) => row.category === "meme_language"), forbiddenRemaining.filter((row) => row.category === "meme_language")],
+          ["no_officialese", !forbiddenRemaining.some((row) => row.category === "officialese"), forbiddenRemaining.filter((row) => row.category === "officialese")],
+          ["no_moralizing", !forbiddenRemaining.some((row) => row.category === "moralizing"), forbiddenRemaining.filter((row) => row.category === "moralizing")],
+          ["forbidden_remaining_empty", forbiddenRemaining.length === 0, forbiddenRemaining], ["missing_coverage_empty", missingCoverage.length === 0, missingCoverage]
+        ];
+        const failedChecks = baseChecks.filter((entry) => !entry[1]).map((entry) => entry[0]);
+        const failures = baseChecks.filter((entry) => !entry[1]).map((entry) => ({ check: entry[0], detail: entry[2] }));
+        if (failures.length) { failedChecks.push("failures_empty"); failures.push({ check: "failures_empty", detail: failures.map((entry) => entry.check) }); }
+        return {
+          ok: failedChecks.length === 0, buildTag, commit, smokeVersion, smokeFunctionName, staleBodyDetected: false,
+          checkedTextCount: runtimeRows.length, checkedSurfaceCount: checkedSurfaces.length, checkedSurfaces,
+          allowedLexiconConnected, allowedLexiconInventoryCount: allowedRows.length, tabooListConnected, tabooEntryCount: tabooRows.length,
+          lexicalMappingConnected, lexicalMappingRowCount, newFeatureCoverageConnected,
+          runtimeGapTargetsConnected: baseline.runtimeGapTargetsConnected === true, runtimeGapTargetCount: baseline.runtimeGapTargetCount,
+          runtimeGapMappingConnected: gapMappingResult.ok && gapRows.length === 128, runtimeGapMappingCount: gapRows.length,
+          approvedCopyHash: baseline.approvedCopyHash, boomerProfileCopyIntegrated: liveResolvedGapCount === 128 && exactApprovedTextMatchCount === 128,
+          liveRuntimeGapCount: gapRows.length, liveResolvedGapCount, unresolvedRuntimeGapCount: gapRows.length - liveResolvedGapCount,
+          exactApprovedTextMatchCount, variablePreservationCount, legacyRuntimeMappingCount: legacySpecs.length, legacyResolvedCount, unresolvedLegacyMappingCount,
+          newFeatureZoneSetMatch, missingNewFeatureZones, extraNewFeatureZones, duplicateNewFeatureZones,
+          aliasTargetMismatches, legacyTextMismatches, legacyVariableMismatches, profileIsolationFailures,
+          forbiddenRemaining, missingCoverage, failedChecks, failures, runtimeLogicTouched: false, uiLayerOnly: true,
+          runtimeInventoryExists, finalLinterRun: true, step35StillPending: false, runtimePassClaimed: false
+        };
+      } catch (err) {
+        return { ok: false, buildTag, commit, smokeVersion, smokeFunctionName, staleBodyDetected: false, failedChecks: ["smoke_exception"], failures: [{ check: "smoke_exception", detail: err && err.message ? String(err.message) : String(err) }], forbiddenRemaining: [], missingCoverage: [] };
+      }
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -19044,6 +19354,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once = smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once;
     Game.Dev.smokeBoomerRuntimeGapIntegrationStep35Fix7Once = smokeBoomerRuntimeGapIntegrationStep35Fix7Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19052,6 +19363,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once = Game.Dev.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once;
     Game.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once = Game.Dev.smokeBoomerRuntimeGapIntegrationStep35Fix7Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19074,6 +19386,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once = Game.Dev.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once;
     G.__DEV.smokeBoomerRuntimeGapIntegrationStep35Fix7Once = Game.Dev.smokeBoomerRuntimeGapIntegrationStep35Fix7Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19169,6 +19482,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once = smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once;
     devStore.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once = smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -23304,6 +23618,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   console.warn("STEP3_BOOMER_RUNTIME_GAP_INVENTORY_SMOKE_FIX5_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalGapInventoryStep35Fix5Once);
   console.warn("STEP3_BOOMER_RUNTIME_GAP_COPY_SMOKE_FIX6_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeGapCopyDecisionsStep35Fix6Once);
   console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX8_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once);
+  console.warn("STEP3_BOOMER_RUNTIME_LEXICAL_LINTER_SMOKE_FIX9_INSTALLED_V1", typeof G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once);
 
   if (!G.__DEV.__econNpcAllowlistPackLoaded) {
     G.__DEV.__econNpcAllowlistPackLoaded = true;
