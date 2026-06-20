@@ -1,3 +1,10 @@
+## 2026-06-20 — Step 4 Alpha profile, step 4.3.2 alpha allowed lexicon
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Exact artifacts created: `docs/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md`.
+- Lexicon contract: `lexiconEntryCount: 187`, `categoryCount: 8`, `duplicateExactEntryCount: 0`, `protectedTokensCaseSensitive: true`.
+- Added Safari-visible smoke `Game.__DEV.smokeAlphaAllowedLexiconOnce()` in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`, and refreshed the mirrored `dev/dev-checks.js` cache marker in `docs/index.html` and `AsyncScene/Web/index.html`.
+- No runtime copy replacements were made; runtime PASS must be confirmed only from the user's Safari smoke.
+
 ## 2026-06-20 — Step 3.5 Boomer runtime lexical linter Fix9
 - Status: READY_FOR_RUNTIME_SMOKE; Step 3.5 remains IN_PROGRESS and runtime PASS is not claimed.
 - Safari Fix8 failed with 32 `missingCoverage` rows, 11 `forbiddenRemaining` rows, an order-sensitive new-feature zone comparison, and false abbreviation hits for short tokens inside ordinary sentences.
