@@ -4,10 +4,10 @@
 
 - step: 3.5
 - sourceArtifact: UI_PROFILE_BOOMER_RUNTIME_GAPS.md
-- sourceGapOccurrenceCount: 128
+- sourceGapOccurrenceCount: 132
 - sourceSemanticGroupCount: 20
-- decisionRowCount: 128
-- approvedRowCount: 128
+- decisionRowCount: 132
+- approvedRowCount: 132
 - runtimeAliasCount: 2
 - status: APPROVED_COPY_PENDING_INTEGRATION
 - runtimePassClaimed: false
@@ -144,6 +144,10 @@
 | GAP_0126 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.tie_timer | tie_timer | ⏳{sec} | {sec} | crowd_controls | Осталось: {sec} | runtime_alias | GAP_0118 | APPROVED |
 | GAP_0127 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_already | vote_already | ✓ УЖЕ | — | crowd_controls | ✓ ГОЛОС УЧТЁН | new_boomer_target | — | APPROVED |
 | GAP_0128 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_fail | vote_fail | ✕ НЕТ | — | crowd_controls | ✕ НЕДОСТУПНО | new_boomer_target | — | APPROVED |
+| GAP_0129 | Data.COP_TEMPLATES | Data.COP_TEMPLATES.warnings[2] | warnings[2] | Ситуацию держу. | — | cop_warnings | Ситуацию держу. | new_boomer_target | — | APPROVED |
+| GAP_0130 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_win | conflict_win | Победа в конфликте. | — | battle_ui | Победа в конфликте. | new_boomer_target | — | APPROVED |
+| GAP_0131 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_loss | conflict_loss | Поражение в конфликте. | — | battle_ui | Поражение в конфликте. | new_boomer_target | — | APPROVED |
+| GAP_0132 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_draw | conflict_draw | Ничья в конфликте. | — | battle_ui | Ничья в конфликте. | new_boomer_target | — | APPROVED |
 
 ## Integrity
 

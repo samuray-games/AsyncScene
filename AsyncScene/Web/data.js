@@ -533,6 +533,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     tie_click_name_hint: "ВЫБЕРИТЕ ИМЯ",
     dm_action_unavailable: "Действие недоступно.",
     battle_draw: "НИЧЬЯ",
+    conflict_win: "Победа в конфликте.",
+    conflict_loss: "Поражение в конфликте.",
+    conflict_draw: "Ничья в конфликте.",
     supported_minority: "Вы поддержали меньшинство.",
     battle_not_enough_points: "Недостаточно 💰.",
     teach_sent_dm: "Для {student}: {arg}. Цена: {cost} 💰.",
@@ -774,6 +777,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     warnings: [
       [0, "Рядом опасная точка."],
       [1, "Вызов принят. Экипаж в пути."],
+      [2, "Ситуацию держу."],
       [3, "Ваши слова записаны."],
       [4, "Я рядом и наблюдаю."],
       [5, "Ситуация может обостриться. Держим дистанцию."],

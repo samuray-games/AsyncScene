@@ -14,10 +14,10 @@
 
 ## Summary
 
-- gapOccurrenceCount: 128
+- gapOccurrenceCount: 132
 - semanticGroupCount: 20
 - exactExistingTargetCount: 0
-- newBoomerTargetRequiredCount: 126
+- newBoomerTargetRequiredCount: 130
 - duplicateRuntimeAliasCount: 2
 - unresolvedSourceIdentityCount: 0
 
@@ -25,28 +25,28 @@
 
 | source | count |
 | --- | ---: |
-| Data.COP_TEMPLATES | 75 |
+| Data.COP_TEMPLATES | 76 |
 | Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer | 25 |
 | Data.START_SCREEN_PROFILE_TEXTS.zoomer | 1 |
-| Data.TEXTS.zoomer | 27 |
+| Data.TEXTS.zoomer | 30 |
 
 ### Counts by checked surface
 
 | checkedSurface | count |
 | --- | ---: |
 | DM | 20 |
-| NPC speech | 100 |
-| NPC vs NPC | 32 |
+| NPC speech | 101 |
+| NPC vs NPC | 35 |
 | UI labels | 14 |
 | crowd | 8 |
 | economy | 1 |
-| errors | 17 |
+| errors | 18 |
 | hints | 2 |
 | learning | 0 |
 | rematch | 1 |
-| reports | 27 |
+| reports | 28 |
 | respect | 0 |
-| system messages | 28 |
+| system messages | 31 |
 
 ### Counts by resolutionClass
 
@@ -54,7 +54,7 @@
 | --- | ---: |
 | duplicate_runtime_alias | 2 |
 | exact_existing_target | 0 |
-| new_boomer_target_required | 126 |
+| new_boomer_target_required | 130 |
 | unresolved_source_identity | 0 |
 
 ## Gap Inventory
@@ -189,6 +189,10 @@
 | GAP_0126 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.tie_timer | tie_timer | ⏳{sec} | {sec} | missing_boomer_mapping | crowd_controls | — | — | duplicate_runtime_alias | Exact runtime alias of GAP_0118. |
 | GAP_0127 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_already | vote_already | ✓ УЖЕ | — | missing_boomer_mapping | crowd_controls | — | — | new_boomer_target_required | Copy decision required. |
 | GAP_0128 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_fail | vote_fail | ✕ НЕТ | — | missing_boomer_mapping | crowd_controls | — | — | new_boomer_target_required | Copy decision required. |
+| GAP_0129 | Data.COP_TEMPLATES | Data.COP_TEMPLATES.warnings[2] | warnings[2] | Ситуацию держу. | — | missing_boomer_mapping | cop_warnings | — | — | new_boomer_target_required | Copy decision required. |
+| GAP_0130 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_win | conflict_win | Победа в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
+| GAP_0131 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_loss | conflict_loss | Поражение в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
+| GAP_0132 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_draw | conflict_draw | Ничья в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
 
 ## Integrity
 
