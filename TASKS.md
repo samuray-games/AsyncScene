@@ -1,3 +1,10 @@
+## 2026-06-20 — Step 4 Alpha profile, Step 4.3.3 alpha taboo list
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Exact artifacts: `docs/UI_PROFILE_ALPHA_TABOO_LIST.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_TABOO_LIST.md`.
+- Contract: `tabooEntryCount: 60`, `categoryCount: 4`.
+- Active matcher smoke: `Game.__DEV.smokeAlphaTabooListOnce()`.
+- Runtime copy was not scanned and remains unchanged.
+
 ## 2026-06-20 — Step 3.6 documentation smoke visibility Fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Safari on GitHub Pages reported `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once` as undefined.

@@ -1,3 +1,8 @@
+## 2026-06-20 — Step 4.3.3 alpha taboo list
+- Created the byte-identical alpha taboo artifacts with 60 exact blockers across 4 categories.
+- `Game.__DEV.smokeAlphaTabooListOnce()` actively checks every blocker and scans the 187-entry allowed lexicon for taboo hits.
+- Runtime copy replacement is deferred; Safari PASS is pending user execution.
+
 ## 2026-06-20 — Step 3.6 documentation smoke visibility Fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Observed Safari failure on GitHub Pages: `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once` was undefined.
