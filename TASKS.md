@@ -8345,3 +8345,8 @@ Error: Download failure, code=1
 - Smoke version: `step3_4_system_texts_fix9_v20260620_001`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep34SystemTextsFix9()`.
 - Scope held: coherent served `system.js` exit-string correction and Step 3.4 smoke identity/reporting only; no gameplay, economy, battle, NPC, state, save, routing, handler, or UI behavior changes.
+## 2026-06-20 — Step 4 Alpha profile, step 4.3.1 smoke visibility fix5
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Registered the alpha inventory smoke before the production `DEV_FLAG` early return and exposed the unique command `Game.__DEV.smokeAlphaLexiconInventoryFix5()` through the existing installer.
+- Refreshed the published `docs/index.html` dev-checks marker and mirrored the same targeted wiring in `AsyncScene/Web`.
+- Inventory content remains unchanged at 164 entries and uniqueTextCount 122; no UI copy, gameplay, economy, battle, NPC, persistence, state, save, or routing behavior changed.
