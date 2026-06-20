@@ -1,18 +1,25 @@
 {
   "name": "asynchronia",
   "version": "0.1.0",
-  "description": "Asynchronia plugin",
+  "description": "Project-specific safety gates for Codex work in the Asynchronia repository.",
   "author": {
-    "name": "Local developer"
+    "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Use Asynchronia in Codex.",
-    "longDescription": "Asynchronia adds a local Codex plugin scaffold.",
-    "developerName": "Local developer",
-    "category": "Productivity",
-    "capabilities": [],
-    "defaultPrompt": "Help me use Asynchronia."
+    "shortDescription": "Apply Asynchronia repository safety gates.",
+    "longDescription": "Provides project-specific repository context, runtime isolation, atomic execution, and validation rules for safe Asynchronia changes.",
+    "developerName": "Asynchronia Project",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Repository safety",
+      "Change validation"
+    ],
+    "defaultPrompt": [
+      "Gate this Asynchronia task for runtime safety.",
+      "Review this task scope before making edits.",
+      "Validate this non-runtime Asynchronia change."
+    ]
   }
 }

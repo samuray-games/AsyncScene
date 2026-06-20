@@ -1,3 +1,8 @@
+## 2026-06-20 — Asynchronia Codex plugin v0.1.0 scaffold
+- Created the repo-scoped Asynchronia Codex plugin v0.1.0 scaffold and added the `runtime-safety-gate` skill.
+- Hooks, MCP servers, apps, external authentication, external services, and automatic runtime edits remain disabled.
+- Plugin installation and Codex UI visibility smoke remain pending user verification; the plugin is not marked accepted.
+
 ## 2026-06-20 — Step 3.5 NPC speech alpha replacement map
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Applied and statically verified the exact 52 approved Step 3.5 NPC-speech replacements across `docs/data.js`, `docs/npcs.js`, `docs/ui/ui-dm.js`, `docs/state.js`, and `docs/ui/ui-loops.js`.
