@@ -8387,3 +8387,21 @@ Error: Download failure, code=1
 - Registered the alpha inventory smoke before the production `DEV_FLAG` early return and exposed the unique command `Game.__DEV.smokeAlphaLexiconInventoryFix5()` through the existing installer.
 - Refreshed the published `docs/index.html` dev-checks marker and mirrored the same targeted wiring in `AsyncScene/Web`.
 - Inventory content remains unchanged at 164 entries and uniqueTextCount 122; no UI copy, gameplay, economy, battle, NPC, persistence, state, save, or routing behavior changed.
+## 2026-06-20 — Step 3.6 documentation smoke parser and source-dependency Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Keep the existing Fix2 installer-path parser/source dependency smoke as the live exported command, and stop later stale Step 3.6 blocks from overwriting it after boot.
+- Completed:
+  - [x] Confirmed the live installer-path Fix2 smoke exists in both mirrored `dev-checks.js` bundles.
+  - [x] Replaced the later stale Step 3.6 expose helper in both mirrors so it preserves the already-registered function instead of re-exporting a second body.
+  - [x] Replaced the later stale Step 3.6 registration block in both mirrors with a preserve-existing guard instead of another parser definition/override.
+  - [x] Kept Step 3.6 status at READY_FOR_RUNTIME_SMOKE only and left BOOMER_LEXICON.md content unchanged.
+- Static checks:
+  - `node --check docs/dev/dev-checks.js`
+  - `node --check AsyncScene/Web/dev/dev-checks.js`
+  - `git diff --check`
+  - assignment scan confirms the late Step 3.6 blocks now rebind to the existing function instead of a stale parser body
+- Preliminary local browser validation:
+  - Existing local docs server on `http://127.0.0.1:8090/index.html` was reachable.
+  - Terminal Playwright smoke attempt for `smokeBoomerLexiconDocumentationStep36Once` was environment-blocked by Chromium launch permission failure on this machine.
+  - In-app browser smoke fallback was environment-blocked by the browser tool bootstrap error `missing field sandboxPolicy`.
+- Result: READY_FOR_RUNTIME_SMOKE only. Safari must run `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()` to confirm the Fix2 parser, alias counting, semantic-group counting, mirror parity, and live Fix9 dependency.
