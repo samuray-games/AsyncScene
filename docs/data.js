@@ -441,10 +441,10 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       battle_win: "Победа",
       battle_lose: "Поражение",
       battle_loss: "Поражение",
-      battle_draw: "Толпа решает",
-      conflict_win: "Победа в конфликте.",
-      conflict_loss: "Поражение в конфликте.",
-      conflict_draw: "Ничья в конфликте.",
+      battle_draw: "Ничья",
+      conflict_win: "Победа",
+      conflict_loss: "Поражение",
+      conflict_draw: "Ничья",
       supported_majority: "Вы поддержали большинство.",
       supported_minority: "Вы оказались в меньшинстве.",
       majority_won: "Большинство победило.",
@@ -452,7 +452,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       conflict_finished: "Конфликт завершён.",
       battle_not_enough_points: "Не хватает 💰.",
 
-      escape_button_label: "Выйти: {X}",
+      escape_button_label: "Уйти: {X}",
       teach_sent_dm: "Для {student}: {arg}. Цена {cost} 💰.",
       teach_sent_chat: "Аргумент: {teacher} → {student}.",
       invite_open_hint: "Введи точный ник.",
@@ -463,11 +463,11 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       goal_label: "Цель",
 
       // Authority templates (Canon)
-      cop_report_accept: ["Понял. Проверяю.", "Принял. Разберусь."],
-      cop_busy: ["Занят. Связь позже.", "Не могу. Дело в работе."],
-      cop_report_ok: ["Проверка сошлась. Вмешался.", "Проверка сошлась. Занялся."],
-      cop_report_fail: ["Не подтвердилось. Факты не сошлись."],
-      cop_cooldown: [systemSay("warnings", "copCooldown") || "Проверка займет время."],
+      cop_report_accept: ["Принято. Проверка", "Принято. Проверка"],
+      cop_busy: ["Занято. Позже", "Недоступно. Проверка"],
+      cop_report_ok: ["Проверка: верно", "Проверка: верно"],
+      cop_report_fail: ["Проверка: неверно"],
+      cop_cooldown: [systemSay("warnings", "copCooldown") || "Проверка: ожидание"],
 
       // UI type hints (Canon)
       hint_type_who: "Ответь: кто?",
@@ -606,7 +606,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   // Cop templates (authoritative strings, insert as-is; placeholders are replaced at send time)
   const COP_TEMPLATES_MILLENNIAL = Object.freeze({
     intros: [
-      "{cop.fullName} на связи.",
+      "{cop.fullName}: доступно",
       "{cop.fullName} на связи. Район вижу.",
       "Привет, я {cop.fullName}, майор в округе.",
       "{cop.fullName} на связи. Слежу.",
@@ -618,9 +618,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "{cop.fullName} на связи."
     ],
     warnings: [
-      "Опасная точка рядом.",
-      "Вызов принят. Экипаж в пути.",
-      "Ситуацию держу.",
+      "Риск рядом",
+      "Вызов: принято",
+      "Статус: готово",
       "Твои слова записал.",
       "Я рядом и наблюдаю.",
       "Обстановка может сорваться. Держи дистанцию.",
@@ -654,8 +654,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Бандит всегда держит с собой оружие или телефон."
     ],
     chatReplies: [
-      "Принято. Наблюдаю.",
-      "Факт принял. Иду дальше.",
+      "Принято",
+      "Факт: принято",
       "Я рядом. Пиши.",
       "Слежу. Детали записал.",
       "Иду дальше по цепочке.",
@@ -666,7 +666,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Передал коллегам, продолжаю наблюдение."
     ],
     cooldownReplies: [
-      "Занят расследованием. Связь позже.",
+      "Занято. Позже",
       "Сейчас разгребаю дело, не могу отвечать.",
       "На линии другой вызов, вернусь позже.",
       "Пока не могу подключиться, линия занята.",
@@ -678,7 +678,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Я на вызове. Вернусь через минуту."
     ],
     thanks: [
-      "Сдача принята. Спокойнее.",
+      "Отчёт: принято",
       "Принял. В районе спокойнее.",
       "Район спокойнее.",
       "Его забрали с улиц.",
@@ -690,7 +690,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Сдача принята — улицы спокойнее."
     ],
     scolds: [
-      "Без фактов это шум.",
+      "Факт: нет",
       "Сигнал без оснований мешает делу.",
       "Паника без доказательств растет быстро.",
       "Такие сигналы тормозят реальные дела.",
@@ -828,8 +828,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   });
 
   const CAP_MESSAGES_MILLENNIAL = Object.freeze({
-    rep: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.",
-    points: "Лимит 💰 на неделе. Потрать до сброса."
+    rep: "Лимит ⭐. Пополнить 💰",
+    points: "Максимум 💰. Сбросить позже"
   });
   const CAP_MESSAGES_BOOMER = Object.freeze({
     rep: "Лимит ⭐ на этой неделе исчерпан. Пополните 💰, чтобы конвертировать их в ⭐.",

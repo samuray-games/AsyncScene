@@ -844,7 +844,7 @@ window.Game = window.Game || {};
             ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            const msg = "Не хватает 💰.";
+            const msg = "Мало 💰";
             try { showVoteBtnToast(btn, msg); } catch (_) {}
             try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
@@ -853,7 +853,7 @@ window.Game = window.Game || {};
           // One vote per player: lock only the player, never stop NPC voting.
           if (!canVoteOnEvent(ne, e)) {
             const secLeft = Math.max(0, Math.ceil((ne.endsAt - Date.now()) / 1000));
-            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : "Голос уже есть.");
+            setEventNote(e, secLeft <= 0 ? "Всё, тайм-аут." : "Голос: уже принято");
             // Prefer a soft render to avoid click flicker
             if (UI && typeof UI.requestRenderAll === "function") UI.requestRenderAll();
             else rerenderEventsOnly();
@@ -892,10 +892,10 @@ window.Game = window.Game || {};
             try {
               if (Game && Game.__S && Array.isArray(Game.__S.events)) {
                 const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
-                if (freshEvent && String(freshEvent.note || "") === "Не хватает 💰.") {
-                  setEventNote(e, "Не хватает 💰.");
-                  try { showVoteBtnToast(btn, "Не хватает 💰."); } catch (_) {}
-                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Не хватает 💰."); } catch(_) {}
+                if (freshEvent && String(freshEvent.note || "") === "Мало 💰") {
+                  setEventNote(e, "Мало 💰");
+                  try { showVoteBtnToast(btn, "Мало 💰"); } catch (_) {}
+                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Мало 💰"); } catch(_) {}
                 }
               }
             } catch (_) {}

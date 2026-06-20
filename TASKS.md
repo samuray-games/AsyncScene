@@ -8443,3 +8443,9 @@ Error: Download failure, code=1
 - Contract: `sourceZEntryCount: 23`, `mappingCount: 23`, `coveragePercent: 100`.
 - `duplicateMappings` and `emptyReplacements` are empty.
 - Runtime copy is unchanged; mapping is not applied.
+## 2026-06-20 — Step 4.3.5 alpha new feature copy
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Covered seven feature groups: cop, mafia, crowd, rematch, NPC vs NPC, timers, and economy UI.
+- Applied 73 mapped runtime entries: 66 changed entries and 7 identity entries, with 100 percent coverage.
+- Runtime alpha copy was applied; gameplay and economy logic are unchanged.
+- Pending Safari command: `Game.__DEV.smokeAlphaNewFeaturesOnce()`.

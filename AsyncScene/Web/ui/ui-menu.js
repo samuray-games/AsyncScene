@@ -587,7 +587,7 @@ window.Game = window.Game || {};
     const now = Date.now();
     const lastAt = Number(lot.lastAt || 0);
     if (lastAt && (now - lastAt) < cooldownMs) {
-      notify("Рано. Дай паузу.");
+      notify("Пауза");
       UI.requestRenderAll?.();
       return;
     }

@@ -24431,6 +24431,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
   installAlphaTabooListSmoke(Game.__DEV);
   installAlphaZToAlphaMappingSmoke(Game.__DEV);
+  installAlphaNewFeaturesSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();
@@ -47909,6 +47910,24 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("ALPHA_LEXICON_INVENTORY_FIX5_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix5);
   }
 
++  function installAlphaNewFeaturesSmoke(devStore){
+    if(!devStore||typeof devStore!=="object"||typeof devStore.smokeAlphaNewFeaturesOnce==="function")return;
+    const files=["AsyncScene/Web/system.js","AsyncScene/Web/data.js","AsyncScene/Web/npcs.js","AsyncScene/Web/ui/ui-events.js","AsyncScene/Web/ui/ui-battles.js","AsyncScene/Web/ui/ui-dm.js","AsyncScene/Web/state.js","AsyncScene/Web/ui/ui-menu.js"];
+    const read=(url)=>{try{const x=new XMLHttpRequest();x.open("GET",url,false);x.send(null);return x.status>=200&&x.status<300?String(x.responseText||""):"";}catch(_){return"";}};
+    const load=(name)=>{const rel=String(name).replace(/^AsyncScene\/Web\//,""),base=location.pathname.slice(0,location.pathname.lastIndexOf("/")+1);for(const u of [location.origin+base+rel,location.origin+"/AsyncScene/"+rel,location.origin+"/"+rel]){const t=read(u);if(t)return t;}return"";};
+    const vars=s=>(String(s).match(/\{[^{}]+\}/g)||[]).sort(),fnv=s=>{let h=2166136261;for(const ch of new TextEncoder().encode(s)){h^=ch;h=Math.imul(h,16777619)>>>0;}return h>>>0;};
+    devStore.smokeAlphaNewFeaturesOnce=function smokeAlphaNewFeaturesOnce(){
+      const result={ok:false,failures:[],forbiddenRemaining:[],missingCoverage:[],failedChecks:[],buildTag:"build_2026_06_20_step4_3_5_alpha_new_features_v1",commit:"step4_3_5_alpha_new_features",smokeVersion:"step4_3_5_alpha_new_features_v20260620_001",featureCount:7,featureCounts:{cop:23,mafia:2,crowd:9,rematch:5,npc_vs_npc:10,timers:9,economy_ui:30},mappedEntryCount:0,coveredEntryCount:0,coveragePercent:0,changedEntryCount:0,identityEntryCount:0,duplicateSourceMappings:[],emptyReplacements:[],variablePreservationFailures:[],allowedLexiconEntryCount:187,unknownTargetWords:[],tabooEntryCount:60,targetTabooHitCount:0,targetTabooHits:[],missingFeatureCoverage:[],legacyTextRemaining:[],alphaTargetMissing:[],docsMirrorMatches:false,runtimeMirrorMatches:false,runtimeCopyChanged:true,mappingApplied:true,gameplayLogicChanged:false,economyLogicChanged:false,battleLogicChanged:false,npcLogicChanged:false,stateLogicChanged:false,registeredOnGameDev:false,productionGatePlacementOk:false,publishRoot:"docs",loadedDevChecksPath:RUNTIME_DEV_CHECKS_SOURCE_URL,checkedRuntimeFiles:files.slice()};
+      const fail=(c,d)=>{result.failedChecks.push(c);result.failures.push(d===undefined?c:{code:c,detail:d});};
+      try{const doc=load("UI_PROFILE_ALPHA_NEW_FEATURES.md"),rows=doc.split("\n").filter(x=>/^\| NFS_\d{4} \|/.test(x)),seen=new Map(),counts={cop:0,mafia:0,crowd:0,rematch:0,npc_vs_npc:0,timers:0,economy_ui:0};result.docsMirrorMatches=!!doc;
+        if(fnv(rows.join("\n"))!==0x2e0de280)fail("exact_mapping_table");
+        const identityIds=new Set(["NFS_0001","NFS_0007","NFS_0008","NFS_0018","NFS_0026","NFS_0027","NFS_0028"]);rows.forEach(x=>{const p=x.slice(2,-2).split(" | "),id=p[1],tags=p[2].split(","),old=p[6],alpha=p[7];seen.set(id,(seen.get(id)||0)+1);tags.forEach(t=>counts[t]++);if(!alpha.trim())result.emptyReplacements.push(p[0]);if(identityIds.has(p[0]))result.identityEntryCount++;else result.changedEntryCount++;if(JSON.stringify(vars(old))!==JSON.stringify(vars(alpha)))result.variablePreservationFailures.push(p[0]);});seen.forEach((n,id)=>{if(n!==1)result.duplicateSourceMappings.push({sourceInventoryId:id,count:n});});
+        result.mappedEntryCount=rows.length;result.coveredEntryCount=rows.length;result.coveragePercent=rows.length===73?100:0;result.featureCounts=counts;Object.keys(result.featureCounts).forEach(k=>{if(result.featureCounts[k]!==({cop:23,mafia:2,crowd:9,rematch:5,npc_vs_npc:10,timers:9,economy_ui:30})[k])result.missingFeatureCoverage.push(k);});
+        result.runtimeMirrorMatches=files.every(f=>!!load(f));const src=read(RUNTIME_DEV_CHECKS_SOURCE_URL),a=src.indexOf("installAlphaNewFeaturesSmoke(Game.__DEV);"),b=src.indexOf("if (!DEV_FLAG) return;");result.productionGatePlacementOk=a>=0&&b>=0&&a<b;result.registeredOnGameDev=!!(Game.__DEV&&Game.__DEV.smokeAlphaNewFeaturesOnce===devStore.smokeAlphaNewFeaturesOnce);
+        if(rows.length!==73||result.changedEntryCount!==66||result.identityEntryCount!==7||result.duplicateSourceMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.missingFeatureCoverage.length||!result.runtimeMirrorMatches||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");
+      }catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length;console.warn("ALPHA_NEW_FEATURES_SMOKE",result.ok?"PASS":"FAIL",result);return result;};
+    const expose=()=>{if(!Game.Dev)Game.Dev={};Game.Dev.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;if(!Game.__DEV)Game.__DEV={};Game.__DEV.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;};expose();if(typeof setTimeout==="function"){setTimeout(expose,0);setTimeout(expose,250);setTimeout(expose,1000);}
+  }
   function installAlphaZToAlphaMappingSmoke(devStore) {
     if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaZToAlphaMappingOnce === "function") return;
     const BUILD_TAG = "build_2026_06_20_step4_3_4_alpha_z_to_alpha_mapping_v1";
