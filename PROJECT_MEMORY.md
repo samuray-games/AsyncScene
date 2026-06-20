@@ -1,3 +1,15 @@
+## 2026-06-20 — Step 3.6 documentation smoke visibility Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Observed Safari failure on GitHub Pages: `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once` was undefined.
+- Fixed only the Step 3.6 smoke visibility path by registering the existing documentation smoke from the live installer section in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`, then re-exposing it on `Game.__DEV`, `Game.Dev`, and `G.__DEV` after boot.
+- Updated the published docs entrypoint in `docs/index.html` and mirrored the same `dev/dev-checks.js` cache-busted URL in `AsyncScene/Web/index.html`.
+- Build tag: `build_2026_06_20_step3_6_boomer_lexicon_documentation_visibility_fix1`.
+- Commit marker: `step3_6_boomer_lexicon_documentation_visibility_fix1`.
+- Smoke version: `boomer_lexicon_step3_6_visibility_fix1_v20260620_001`.
+- Preliminary local browser visibility confirmed `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once` and `Game.Dev.smokeBoomerLexiconDocumentationStep36Once` as functions; this is not Safari PASS.
+- Safari acceptance remains pending on `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()`.
+- No runtime PASS claimed.
+
 ## 2026-06-20 — Step 3 Boomer profile, step 3.6 boomer lexicon documentation
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - BOOMER_LEXICON.md created as a compiled documentation artifact in `BOOMER_LEXICON.md` and `docs/BOOMER_LEXICON.md`.
