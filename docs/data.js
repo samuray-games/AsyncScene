@@ -42,18 +42,24 @@ window.Game = window.Game || {};
     }),
     boomer: Object.freeze({
       start_title: "AsyncScene",
-      birth_digits_label: "Последние 2 цифры года рождения",
+      birth_digits_label: "Последние две цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      profile_helper: "Это влияет только на интерфейс. Выбор можно изменить позже.",
       fantasy_birth_label: "Я скорее ощущаю свой год рождения как …",
       start_continue: "Продолжить",
-      start_start: "Старт",
-      start_reset: "Сбросить старт",
-      rules_action: String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules),
-      start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
+      start_start: "Начать",
+      start_reset: "Сбросить выбор",
+      rules_action: "Правила",
+      start_action: "Начать",
+      "introLines[0]": "Оппонент задаёт риск действия.",
+      "introLines[1]": "Ставка списывает ресурс.",
+      "introLines[2]": "Итог виден сразу после действия.",
+      economyHonestyLine: "Цена и итог показаны заранее.",
+      "actions.start": "Начать",
+      "actions.rules": "Правила",
     }),
     zoomer: Object.freeze({
       start_title: "AsyncScene",
@@ -549,6 +555,22 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.TEXTS.zoomer = Data.TEXTS.alpha;
   Data.TEXTS.boomer = Object.freeze({
     ...Data.TEXTS.genz,
+    tie_start: "ГОЛОСОВАНИЕ",
+    tie_call_to_action: "ПРИСОЕДИНИТЬСЯ",
+    tie_click_name_hint: "ВЫБЕРИТЕ ИМЯ",
+    dm_action_unavailable: "Действие недоступно.",
+    battle_draw: "НИЧЬЯ",
+    supported_minority: "Вы поддержали меньшинство.",
+    battle_not_enough_points: "Недостаточно 💰.",
+    teach_sent_dm: "Для {student}: {arg}. Цена: {cost} 💰.",
+    teach_sent_chat: "Аргумент передан: {teacher} → {student}.",
+    invite_open_hint: "Введите точное имя игрока.",
+    hint_type_who: "Ответьте: кто?",
+    hint_type_where: "Ответьте: где?",
+    hint_type_about: "Ответьте: о ком?",
+    hint_type_yn: "Ответьте: да или нет?",
+    return_to_start: "К стартовому экрану",
+    menu_unavailable: "Действие недоступно.",
     battle_action_accept: "Принять",
     battle_action_attack: "Атаковать",
     battle_action_decline: "Отказаться",
@@ -706,6 +728,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       [9, "Бандит обычно носит с собой оружие или телефон."]
     ],
     chatReplies: [
+      [0, "Принято. Наблюдаю."],
       [1, "Факт принят. Продолжаю проверку."],
       [2, "Я на связи. Можно продолжать."],
       [3, "Ситуация под контролем. Детали записаны."],
@@ -776,6 +799,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       [9, "Токсик пытается получить ресурсы давлением."]
     ],
     warnings: [
+      [0, "Рядом опасная точка."],
+      [1, "Вызов принят. Экипаж в пути."],
       [3, "Ваши слова записаны."],
       [4, "Я рядом и наблюдаю."],
       [5, "Ситуация может обостриться. Держим дистанцию."],
@@ -798,10 +823,31 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     }
   });
 
-  Data.CAP_MESSAGES = {
+  const CAP_MESSAGES_MILLENNIAL = Object.freeze({
     rep: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.",
     points: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap."
-  };
+  });
+  const CAP_MESSAGES_BOOMER = Object.freeze({
+    rep: "Лимит ⭐ на этой неделе исчерпан. Пополните 💰, чтобы конвертировать их в ⭐.",
+    points: "Лимит 💰 на этой неделе достигнут. Используйте ресурс до следующего сброса."
+  });
+  Data.CAP_MESSAGES_PROFILE_TEXTS = Object.freeze({
+    millennial: CAP_MESSAGES_MILLENNIAL,
+    default: CAP_MESSAGES_MILLENNIAL,
+    zoomer: CAP_MESSAGES_MILLENNIAL,
+    alpha: CAP_MESSAGES_MILLENNIAL,
+    boomer: CAP_MESSAGES_BOOMER
+  });
+  Data.CAP_MESSAGES = {};
+  ["rep", "points"].forEach((key) => {
+    Object.defineProperty(Data.CAP_MESSAGES, key, {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return resolveUiTextProfileName() === "boomer" ? CAP_MESSAGES_BOOMER[key] : CAP_MESSAGES_MILLENNIAL[key];
+      }
+    });
+  });
 
   Data.OVERPOINTS_TO_REP = 5;
 
