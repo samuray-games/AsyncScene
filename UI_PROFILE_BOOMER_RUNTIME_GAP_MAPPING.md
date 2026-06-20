@@ -5,8 +5,8 @@
 - step: 3.5
 - sourceArtifact: UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md
 - targetArtifact: UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md
-- approvedCopyHash: 10bafa48
-- runtimeGapMappingCount: 128
+- approvedCopyHash: a082a582
+- runtimeGapMappingCount: 132
 - runtimeAliasCount: 2
 - unresolvedRuntimeGapCount: 0
 - status: INTEGRATION_MAPPING_READY
@@ -144,9 +144,13 @@
 | GAP_0126 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.tie_timer | tie_timer | BRT_0117 | Осталось: {sec} | {sec} | runtime_alias | GAP_0118 |
 | GAP_0127 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_already | vote_already | BRT_0125 | ✓ ГОЛОС УЧТЁН | — | new_boomer_target | — |
 | GAP_0128 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.vote_fail | vote_fail | BRT_0126 | ✕ НЕДОСТУПНО | — | new_boomer_target | — |
+| GAP_0129 | Data.COP_TEMPLATES | Data.COP_TEMPLATES.warnings[2] | warnings[2] | BRT_0127 | Ситуацию держу. | — | new_boomer_target | — |
+| GAP_0130 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_win | conflict_win | BRT_0128 | Победа в конфликте. | — | new_boomer_target | — |
+| GAP_0131 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_loss | conflict_loss | BRT_0129 | Поражение в конфликте. | — | new_boomer_target | — |
+| GAP_0132 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_draw | conflict_draw | BRT_0130 | Ничья в конфликте. | — | new_boomer_target | — |
 
 ## Integrity
 
-- all 128 gaps mapped: true
+- all 132 gaps mapped: true
 - aliases share canonical targets: true
 - runtime pass claimed: false

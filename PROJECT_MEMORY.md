@@ -1,7 +1,28 @@
+## 2026-06-20 — Step 3.5 Boomer runtime lexical linter Fix10
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari through the Step 3.6 source dependency reported exactly four `missingCoverage` rows while `forbiddenRemaining` stayed empty: `Data.TEXTS.zoomer.conflict_win`, `Data.TEXTS.zoomer.conflict_loss`, `Data.TEXTS.zoomer.conflict_draw`, and `Data.COP_TEMPLATES.warnings[2]`.
+- Added explicit boomer-only runtime resolution for those four live strings in `AsyncScene/Web/data.js` and `docs/data.js`; the original source locations were preserved and no millennial, zoomer, alpha, default, gameplay, economy, battle outcome, state, save, or routing behavior was changed.
+- Advanced the canonical Step 3.5 additive artifacts to the new counts and current hash: gap occurrences `132`, approved copy decisions `132`, runtime targets `130`, runtime mappings `132`, runtime aliases `2`, semantic groups `20`, approvedCopyHash `a082a582`.
+- Added the new live smoke `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The current-artifact Step 3.5 linter path now validates all four new surfaces, requires the two canonical aliases only (`GAP_0113 -> GAP_0112`, `GAP_0126 -> GAP_0118`), derives counts from the updated artifacts, and keeps `runtimePassClaimed:false`.
+- Static validation passed: `node --check AsyncScene/Web/dev/dev-checks.js`, `node --check docs/dev/dev-checks.js`, and direct artifact-count verification for `130` targets, `132` mappings, `2` aliases, and `20` semantic groups.
+- Preliminary local browser smoke was attempted via the existing Playwright harness and failed before page execution because local Chromium launch hit a macOS permission fault; this is an environment limitation, not Safari PASS.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once()`.
+
+## 2026-06-20 — Runtime-safety-gate acceptance recording
+- Root `AGENTS.md` is the authoritative repository policy for Asynchronia.
+- The record now includes the canonical mechanics and economy invariants, the runtime safety gate, the exact model-selection rule, installed-plugin boundaries, validation and acceptance rules, and the required final Codex report contract.
+- Documentation-only scope stayed limited to `AGENTS.md`, `TASKS.md`, and `PROJECT_MEMORY.md`; no runtime or plugin file changed.
+- Safe-task acceptance smoke: PASS (`SAFE_TO_PROCEED`, exact allowed scope `docs/gate-safe-smoke.md`, no runtime-sensitive files required, isolated serialized runtime slot not required, no files changed, Safari smoke `N/A - gate inspection only`).
+- Runtime-task acceptance smoke: PASS (`RUNTIME_SAFETY_GATE_REQUIRED`, `AsyncScene/Web/data.js` runtime-sensitive, `docs/data.js` mirrored runtime copy, both index-file wiring paths inspected, isolated serialized runtime slot required, no files changed, Safari smoke `PENDING_USER`).
+- Runtime safety gate acceptance: COMPLETE.
+- Asynchronia plugin `0.1.0` installation and Codex UI visibility: PASS.
+- Codex Security and Build Web Apps remain installed; all plugins remain subordinate to `AGENTS.md` and the runtime safety gate.
+
 ## 2026-06-20 — Asynchronia Codex plugin v0.1.0 scaffold
 - Created the repo-scoped Asynchronia Codex plugin v0.1.0 scaffold and added the `runtime-safety-gate` skill.
 - Hooks, MCP servers, apps, external authentication, external services, and automatic runtime edits remain disabled.
-- Plugin installation and Codex UI visibility smoke remain pending user verification; the plugin is not marked accepted.
+- Plugin installation and Codex UI visibility smoke: PASS; the plugin is marked accepted.
 
 ## 2026-06-20 — Step 3.5 NPC speech alpha replacement map
 - Status: READY_FOR_RUNTIME_SMOKE. Runtime PASS is not claimed.
