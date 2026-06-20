@@ -1,3 +1,17 @@
+## 2026-06-20 — Step 3.6 documentation smoke parser and source-dependency Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Observed Safari failure after Fix1: the smoke function was visible, but it returned false zero counts for the allowed lexicon, runtime targets, runtime mappings, semantic groups, and live Fix9 dependency state.
+- Root cause: later duplicate Step 3.6 smoke definitions in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js` were still overwriting the installer-path Fix2 smoke after boot, so Safari kept executing the stale parser body.
+- Fixed only the Step 3.6 smoke wiring path by keeping the installer-path async parser/source-dependency implementation as the live command and converting the later duplicate expose/registration blocks into preserve-existing guards.
+- The live smoke keeps the Fix2 parser contract, exact alias counting, real mirror parity path, and awaited `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once()` dependency.
+- Build tag: `build_2026_06_20_step3_6_boomer_lexicon_documentation_parser_fix2`.
+- Commit marker: `step3_6_boomer_lexicon_documentation_parser_fix2`.
+- Smoke version: `boomer_lexicon_step3_6_parser_fix2_v20260620_001`.
+- Static validation passed: `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, and `git diff --check`.
+- Preliminary local browser smoke was attempted twice and blocked by environment issues outside repo code: terminal Playwright Chromium launch hit a local macOS permission failure, and the in-app browser bootstrap failed with `missing field sandboxPolicy`.
+- Safari acceptance remains pending on `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()`.
+- No runtime PASS claimed.
+
 ## 2026-06-20 — Step 4.3.3 alpha taboo list
 - Created the byte-identical alpha taboo artifacts with 60 exact blockers across 4 categories.
 - `Game.__DEV.smokeAlphaTabooListOnce()` actively checks every blocker and scans the 187-entry allowed lexicon for taboo hits.
