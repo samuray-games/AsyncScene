@@ -25,6 +25,10 @@ window.Game = window.Game || {};
     REP_EMITTER_REFILL: "rep_emitter_refill",
     BLOCK_PREFIX: "respect_block_",
   });
+  const RESPECT_FLOW_STEP31_TEXT = Object.freeze({
+    spent: "Ты отдал 1💰",
+    gained: "Цель получила +1⭐",
+  });
   let respectEntrypointLogged = false;
   function logRespectEntrypointReady(){
     if (respectEntrypointLogged) return;
