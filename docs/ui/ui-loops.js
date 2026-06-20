@@ -853,7 +853,7 @@ window.Game = window.Game || {};
                   // Optional: add NPC chat line about rematch decision
                   try {
                     if (responder && responder.name && UI && typeof UI.pushChat === "function") {
-                      const line = accept ? "Реванш принят." : "Реванш отклонён.";
+                      const line = accept ? "Иду на реванш." : "На реванш не иду.";
                       UI.pushChat({ name: responder.name, text: line, system: false });
                     }
                   } catch (_) {}

@@ -930,7 +930,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const btnLike = mkBtn("Лайк", () => {
       dmPushLine(withId, getS().me.name, "❤️");
-      dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["каеф","ну норм","хех","ладно"]) : "каеф"));
+      dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["приятно","ну норм","забавно","ладно"]) : "приятно"));
       UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }), { routed: true, kind: "systemEvents", code: "dmReaction" });
       requestAll();
     });
@@ -1312,7 +1312,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (target && target.role === "mafia") {
           // Per spec: mafia immediate trap DM and start battle
           const mafiaName = "Аркадий Петрович";
-          const reply = "Ты мне пишешь? Тогда поговорим лично.";
+          const reply = "Пишешь мне? Тогда лично поговорим.";
           dmPushLine(curId, mafiaName, reply);
           dmInput.value = "";
           UI.renderDM();
