@@ -24058,6 +24058,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installAlphaLexiconInventorySmoke(Game.__DEV);
   installAlphaAllowedLexiconSmoke(Game.__DEV);
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
+  installAlphaTabooListSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();
@@ -47534,6 +47535,386 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("ALPHA_LEXICON_INVENTORY_FIX3_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix3);
     console.warn("ALPHA_LEXICON_INVENTORY_FIX4_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix4);
     console.warn("ALPHA_LEXICON_INVENTORY_FIX5_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix5);
+  }
+
+  function installAlphaTabooListSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaTabooListOnce === "function") return;
+    const BUILD_TAG = "build_2026_06_20_step4_3_3_alpha_taboo_list_v1";
+    const COMMIT = "step4_3_3_alpha_taboo_list";
+    const SMOKE_VERSION = "step4_3_3_alpha_taboo_list_v20260620_001";
+    const TABOO_FILE = "UI_PROFILE_ALPHA_TABOO_LIST.md";
+    const ALLOWED_FILE = "UI_PROFILE_ALPHA_ALLOWED_LEXICON.md";
+    const EXPECTED_CATEGORY_COUNTS = Object.freeze({
+      slang_markers: 20,
+      diminutives: 12,
+      complex_links: 12,
+      artificial_youth: 16
+    });
+    const EXPECTED_ROWS_RAW = String.raw`TAB_0001 | slang_markers | Погнали
+TAB_0002 | slang_markers | душноты
+TAB_0003 | slang_markers | Снести
+TAB_0004 | slang_markers | Свалить
+TAB_0005 | slang_markers | баттл
+TAB_0006 | slang_markers | Кулдаун
+TAB_0007 | slang_markers | мейн
+TAB_0008 | slang_markers | андер
+TAB_0009 | slang_markers | вывез
+TAB_0010 | slang_markers | Драма
+TAB_0011 | slang_markers | ТЫКНИ
+TAB_0012 | slang_markers | ВПИСЫВАЙСЯ
+TAB_0013 | slang_markers | ого
+TAB_0014 | slang_markers | WIN
+TAB_0015 | slang_markers | RIP
+TAB_0016 | slang_markers | DRAW
+TAB_0017 | slang_markers | Cap
+TAB_0018 | slang_markers | Points
+TAB_0019 | slang_markers | max
+TAB_0020 | slang_markers | коп
+TAB_0021 | diminutives | очочки
+TAB_0022 | diminutives | денежки
+TAB_0023 | diminutives | звёздочки
+TAB_0024 | diminutives | кнопочка
+TAB_0025 | diminutives | вопросик
+TAB_0026 | diminutives | ответик
+TAB_0027 | diminutives | игрокишка
+TAB_0028 | diminutives | соперничек
+TAB_0029 | diminutives | победка
+TAB_0030 | diminutives | штрафик
+TAB_0031 | diminutives | наградка
+TAB_0032 | diminutives | ошибочка
+TAB_0033 | complex_links | в случае если
+TAB_0034 | complex_links | при условии что
+TAB_0035 | complex_links | в связи с тем что
+TAB_0036 | complex_links | в результате того что
+TAB_0037 | complex_links | таким образом
+TAB_0038 | complex_links | следует отметить
+TAB_0039 | complex_links | необходимо учитывать
+TAB_0040 | complex_links | обратите внимание
+TAB_0041 | complex_links | имеется возможность
+TAB_0042 | complex_links | предоставляется возможность
+TAB_0043 | complex_links | в рамках
+TAB_0044 | complex_links | посредством
+TAB_0045 | artificial_youth | кайф
+TAB_0046 | artificial_youth | кринж
+TAB_0047 | artificial_youth | рофл
+TAB_0048 | artificial_youth | имба
+TAB_0049 | artificial_youth | изи
+TAB_0050 | artificial_youth | топчик
+TAB_0051 | artificial_youth | жиза
+TAB_0052 | artificial_youth | чилл
+TAB_0053 | artificial_youth | вайб
+TAB_0054 | artificial_youth | флекс
+TAB_0055 | artificial_youth | хайп
+TAB_0056 | artificial_youth | врывайся
+TAB_0057 | artificial_youth | залетай
+TAB_0058 | artificial_youth | жёстко
+TAB_0059 | artificial_youth | на максималках
+TAB_0060 | artificial_youth | без шансов`;
+    const EXPECTED_ROWS = Object.freeze(EXPECTED_ROWS_RAW.split("\n").map((line) => {
+      const parts = line.split(" | ");
+      return Object.freeze({ id: parts[0], category: parts[1], value: parts.slice(2).join(" | ") });
+    }));
+    const REQUIRED_MARKERS = Object.freeze([
+      "# Alpha Taboo List - Step 4.3.3",
+      "- Canonical alpha taboo list.",
+      "- Validation only.",
+      "- Runtime copy replacement is not part of this step.",
+      "- Current zoomer runtime copy is not scanned.",
+      "- Matcher scope is alpha validation artifacts.",
+      "- Full mapped-copy enforcement is deferred to later alpha steps.",
+      "- tabooEntryCount: 60",
+      "- categoryCount: 4",
+      "- duplicateExactEntryCount: 0",
+      "- matchCaseInsensitive: true",
+      "- regexRulesUsed: false",
+      "- runtimeCopyChanged: false",
+      "- replacementTextAdded: false",
+      "- runtimeCopyScanned: false",
+      "- allowedLexiconScanned: true",
+      "- slang_markers: 20",
+      "- diminutives: 12",
+      "- complex_links: 12",
+      "- artificial_youth: 16"
+    ]);
+    const EXPECTED_PROTECTED_TOKENS = Object.freeze([
+      "AsyncScene", "Dev Mode", "PIN", "💰", "⭐", "{NAME}", "{PLACE}", "{X}", "{a}", "{aVotes}",
+      "{amount}", "{arg}", "{attackerInf}", "{attackerName}", "{b}", "{bVotes}", "{cop.fullName}", "{cost}",
+      "{escapeCost}", "{name}", "{oppName}", "{rematchCost}", "{student}", "{target}", "{teacher}", "{text}"
+    ]);
+    const CASE_PROBES = Object.freeze([
+      ["погнали", "TAB_0001"],
+      ["КРИЖ", null],
+      ["КРИНЖ", "TAB_0046"],
+      ["win", "TAB_0014"],
+      ["points", "TAB_0018"],
+      ["MAX", "TAB_0019"],
+      ["коп", "TAB_0020"],
+      ["В СЛУЧАЕ ЕСЛИ", "TAB_0033"],
+      ["НА МАКСИМАЛКАХ", "TAB_0059"]
+    ]);
+    const CLEAN_PROBES = Object.freeze([
+      "Начать", "Продолжить", "Выбрать", "Действие недоступно", "Очков мало", "Проверка завершена",
+      "Голос принят", "Победа", "Поражение", "Полиция", "Максимум", "Игрок"
+    ]);
+    const REQUIRED_RESULT_FIELDS = Object.freeze([
+      "ok", "failures", "forbiddenRemaining", "missingCoverage", "failedChecks", "buildTag", "commit", "smokeVersion",
+      "tabooEntryCount", "categoryCount", "categoryCounts", "duplicateExactEntryCount", "matchCaseInsensitive", "regexRulesUsed",
+      "positiveProbeCount", "positiveProbeDetectedCount", "caseProbeCount", "caseProbePassedCount", "cleanProbeCount",
+      "cleanProbePassedCount", "allowedLexiconEntryCount", "allowedLexiconTabooHitCount", "allowedLexiconTabooHits",
+      "docsMirrorMatches", "runtimeCopyChanged", "replacementTextAdded", "runtimeCopyScanned", "allowedLexiconScanned",
+      "registeredOnGameDev", "productionGatePlacementOk", "publishRoot", "loadedDevChecksPath"
+    ]);
+    const addUnique = (arr, value) => {
+      const key = JSON.stringify(value);
+      if (!arr.some((item) => JSON.stringify(item) === key)) arr.push(value);
+    };
+    const resolveCandidates = (fileName, preferDocs) => {
+      const candidates = [];
+      const seen = new Set();
+      const add = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+      if (typeof document !== "undefined" && document.baseURI) {
+        try { add(new URL(fileName, document.baseURI).href); } catch (_) {}
+      }
+      if (typeof location !== "undefined" && location.origin) {
+        if (preferDocs) {
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+          add(`${location.origin}/AsyncScene/${fileName}`);
+        } else {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/__dev__/docs/${fileName}`);
+        }
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const readUrlSync = (url) => {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: String(xhr.responseText || ""), path: url };
+        return { ok: false, reason: `http_${xhr.status || 0}`, path: url };
+      } catch (_) {
+        return { ok: false, reason: "xhr_exception", path: url };
+      }
+    };
+    const readTextSync = (fileName, preferDocs) => {
+      let last = { ok: false, reason: "unavailable", path: fileName };
+      for (const candidate of resolveCandidates(fileName, preferDocs)) {
+        const response = readUrlSync(candidate);
+        if (response.ok) return response;
+        last = response;
+      }
+      return last;
+    };
+    const parseRows = (text, prefix) => String(text || "").split("\n").map((line) => line.trim()).filter((line) => line.startsWith(`| ${prefix}`)).map((line) => {
+      const parts = line.slice(1, -1).split("|").map((part) => part.trim());
+      return { id: parts[0] || "", category: parts[1] || "", value: parts.slice(2).join(" | ") };
+    });
+    const normalizeText = (input) => {
+      const source = String(input).toLowerCase().trim();
+      let output = "";
+      let pendingSpace = false;
+      for (const char of source) {
+        const isDigit = char >= "0" && char <= "9";
+        const isLetter = char.toLowerCase() !== char.toUpperCase();
+        if (isDigit || isLetter) {
+          if (pendingSpace && output) output += " ";
+          output += char;
+          pendingSpace = false;
+        } else {
+          pendingSpace = true;
+        }
+      }
+      return output.trim();
+    };
+    const matchTaboo = (input, tabooRows) => {
+      const normalizedInput = normalizeText(input);
+      const paddedInput = ` ${normalizedInput} `;
+      return tabooRows.filter((row) => paddedInput.includes(` ${normalizeText(row.value)} `)).map((row) => ({ id: row.id, category: row.category }));
+    };
+    devStore.smokeAlphaTabooListOnce = function smokeAlphaTabooListOnce() {
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        tabooEntryCount: 0,
+        categoryCount: 0,
+        categoryCounts: {},
+        duplicateExactEntryCount: 0,
+        matchCaseInsensitive: true,
+        regexRulesUsed: false,
+        positiveProbeCount: EXPECTED_ROWS.length,
+        positiveProbeDetectedCount: 0,
+        caseProbeCount: CASE_PROBES.length,
+        caseProbePassedCount: 0,
+        cleanProbeCount: CLEAN_PROBES.length,
+        cleanProbePassedCount: 0,
+        allowedLexiconEntryCount: 0,
+        allowedLexiconTabooHitCount: 0,
+        allowedLexiconTabooHits: [],
+        docsMirrorMatches: false,
+        runtimeCopyChanged: false,
+        replacementTextAdded: false,
+        runtimeCopyScanned: false,
+        allowedLexiconScanned: true,
+        registeredOnGameDev: false,
+        productionGatePlacementOk: false,
+        publishRoot: "docs",
+        loadedDevChecksPath: RUNTIME_DEV_CHECKS_SOURCE_URL
+      };
+      const fail = (code, detail) => {
+        addUnique(result.failedChecks, code);
+        addUnique(result.failures, detail === undefined ? code : { code, detail });
+      };
+      try {
+        const webRes = readTextSync(TABOO_FILE, false);
+        const docsRes = readTextSync(TABOO_FILE, true);
+        if (!webRes.ok) fail("web_taboo_artifact_available", webRes);
+        if (!docsRes.ok) fail("docs_taboo_artifact_available", docsRes);
+        const webText = webRes.ok ? webRes.text : "";
+        const docsText = docsRes.ok ? docsRes.text : "";
+        result.docsMirrorMatches = !!webText && webText === docsText;
+        if (!result.docsMirrorMatches) fail("docs_mirror_matches");
+        const tabooText = webText || docsText;
+        REQUIRED_MARKERS.forEach((marker) => {
+          if (!tabooText.includes(marker)) fail("required_marker_missing", marker);
+        });
+        const tabooRows = parseRows(tabooText, "TAB_");
+        result.tabooEntryCount = tabooRows.length;
+        const categoryCounts = {};
+        tabooRows.forEach((row) => { categoryCounts[row.category] = (categoryCounts[row.category] || 0) + 1; });
+        result.categoryCounts = categoryCounts;
+        result.categoryCount = Object.keys(categoryCounts).length;
+        const exactValues = new Set();
+        tabooRows.forEach((row) => {
+          if (exactValues.has(row.value)) result.duplicateExactEntryCount += 1;
+          exactValues.add(row.value);
+        });
+        if (tabooRows.length !== EXPECTED_ROWS.length) fail("taboo_entry_count", tabooRows.length);
+        const seenIds = new Set();
+        tabooRows.forEach((row) => {
+          if (seenIds.has(row.id)) fail("duplicate_tab_id", row.id);
+          seenIds.add(row.id);
+        });
+        EXPECTED_ROWS.forEach((expected, index) => {
+          const actual = tabooRows[index];
+          if (!actual || actual.id !== expected.id || actual.category !== expected.category || actual.value !== expected.value) {
+            fail("taboo_row_exact_order", { index, expected, actual: actual || null });
+          }
+        });
+        Object.keys(EXPECTED_CATEGORY_COUNTS).forEach((category) => {
+          if (categoryCounts[category] !== EXPECTED_CATEGORY_COUNTS[category]) fail("category_count", { category, actual: categoryCounts[category] || 0 });
+        });
+        if (result.categoryCount !== 4) fail("category_count_total", result.categoryCount);
+        if (result.duplicateExactEntryCount !== 0) fail("duplicate_exact_entry_count", result.duplicateExactEntryCount);
+        EXPECTED_ROWS.forEach((row) => {
+          const hits = matchTaboo(`(${row.value})`, tabooRows);
+          if (hits.length === 1 && hits[0].id === row.id && hits[0].category === row.category) {
+            result.positiveProbeDetectedCount += 1;
+          } else {
+            addUnique(result.missingCoverage, row.id);
+            fail("positive_probe", { id: row.id, hits });
+          }
+        });
+        CASE_PROBES.forEach(([probe, expectedId]) => {
+          const hits = matchTaboo(probe, tabooRows);
+          const passed = expectedId === null ? hits.length === 0 : hits.length === 1 && hits[0].id === expectedId;
+          if (passed) result.caseProbePassedCount += 1;
+          else fail("case_probe", { probe, expectedId, hits });
+        });
+        CLEAN_PROBES.forEach((probe) => {
+          const hits = matchTaboo(probe, tabooRows);
+          if (hits.length === 0) result.cleanProbePassedCount += 1;
+          else fail("clean_probe", { probe, hits });
+        });
+        const allowedRes = readTextSync(ALLOWED_FILE, false);
+        if (!allowedRes.ok) fail("allowed_lexicon_available", allowedRes);
+        const allowedRows = parseRows(allowedRes.ok ? allowedRes.text : "", "ALX_");
+        result.allowedLexiconEntryCount = allowedRows.length;
+        if (allowedRows.length !== 187) fail("allowed_lexicon_entry_count", allowedRows.length);
+        const allowedSnapshot = JSON.stringify(allowedRows);
+        allowedRows.forEach((row) => {
+          const hits = matchTaboo(row.value, tabooRows);
+          if (hits.length) result.allowedLexiconTabooHits.push({ id: row.id, value: row.value, hits });
+        });
+        result.allowedLexiconTabooHitCount = result.allowedLexiconTabooHits.length;
+        result.forbiddenRemaining = result.allowedLexiconTabooHits.slice();
+        if (result.allowedLexiconTabooHitCount !== 0) fail("allowed_lexicon_taboo_hits", result.allowedLexiconTabooHits);
+        if (JSON.stringify(allowedRows) !== allowedSnapshot) fail("allowed_lexicon_mutated");
+        const protectedTokens = allowedRows.filter((row) => row.category === "protected_tokens").map((row) => row.value);
+        if (JSON.stringify(protectedTokens) !== JSON.stringify(EXPECTED_PROTECTED_TOKENS)) fail("protected_tokens_unchanged", protectedTokens);
+        result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaTabooListOnce === devStore.smokeAlphaTabooListOnce);
+        if (!result.registeredOnGameDev) fail("registered_on_game_dev");
+        const sourceRes = readUrlSync(RUNTIME_DEV_CHECKS_SOURCE_URL);
+        if (!sourceRes.ok) {
+          fail("dev_checks_source_available", sourceRes);
+        } else {
+          const installerIndex = sourceRes.text.indexOf("installAlphaTabooListSmoke(Game.__DEV);");
+          const gateIndex = sourceRes.text.indexOf("if (!DEV_FLAG) return;");
+          result.productionGatePlacementOk = installerIndex >= 0 && gateIndex >= 0 && installerIndex < gateIndex;
+          if (!result.productionGatePlacementOk) fail("production_gate_placement", { installerIndex, gateIndex });
+        }
+        REQUIRED_RESULT_FIELDS.forEach((field) => {
+          if (!Object.prototype.hasOwnProperty.call(result, field)) fail("required_result_field", field);
+        });
+      } catch (error) {
+        fail("smoke_exception", String(error && error.message ? error.message : error));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.tabooEntryCount === 60
+        && result.categoryCount === 4
+        && result.duplicateExactEntryCount === 0
+        && result.matchCaseInsensitive === true
+        && result.regexRulesUsed === false
+        && result.positiveProbeCount === 60
+        && result.positiveProbeDetectedCount === 60
+        && result.caseProbeCount === 9
+        && result.caseProbePassedCount === 9
+        && result.cleanProbeCount === 12
+        && result.cleanProbePassedCount === 12
+        && result.allowedLexiconEntryCount === 187
+        && result.allowedLexiconTabooHitCount === 0
+        && result.allowedLexiconTabooHits.length === 0
+        && result.docsMirrorMatches === true
+        && result.runtimeCopyChanged === false
+        && result.replacementTextAdded === false
+        && result.runtimeCopyScanned === false
+        && result.allowedLexiconScanned === true
+        && result.registeredOnGameDev === true
+        && result.productionGatePlacementOk === true
+        && result.publishRoot === "docs";
+      console.warn("ALPHA_TABOO_LIST_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const exposeAlphaTabooListSmoke = function exposeAlphaTabooListSmoke() {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaTabooListOnce = devStore.smokeAlphaTabooListOnce;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaTabooListOnce = devStore.smokeAlphaTabooListOnce;
+    };
+    exposeAlphaTabooListSmoke();
+    if (typeof setTimeout === "function") {
+      setTimeout(exposeAlphaTabooListSmoke, 0);
+      setTimeout(exposeAlphaTabooListSmoke, 250);
+      setTimeout(exposeAlphaTabooListSmoke, 1000);
+    }
+    console.warn("ALPHA_TABOO_LIST_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaTabooListOnce);
   }
 
   function installAlphaAllowedLexiconSmoke(devStore) {
