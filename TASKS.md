@@ -8413,3 +8413,9 @@ Error: Download failure, code=1
   - Terminal Playwright smoke attempt for `smokeBoomerLexiconDocumentationStep36Once` was environment-blocked by Chromium launch permission failure on this machine.
   - In-app browser smoke fallback was environment-blocked by the browser tool bootstrap error `missing field sandboxPolicy`.
 - Result: READY_FOR_RUNTIME_SMOKE only. Safari must run `Game.__DEV.smokeBoomerLexiconDocumentationStep36Once()` to confirm the Fix2 parser, alias counting, semantic-group counting, mirror parity, and live Fix9 dependency.
+## 2026-06-20 — Step 4 Alpha profile, Step 4.3.4 z -> alpha mapping
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Artifacts: `docs/UI_PROFILE_ALPHA_Z_TO_ALPHA_MAPPING.md` and `AsyncScene/Web/UI_PROFILE_ALPHA_Z_TO_ALPHA_MAPPING.md`.
+- Contract: `sourceZEntryCount: 23`, `mappingCount: 23`, `coveragePercent: 100`.
+- `duplicateMappings` and `emptyReplacements` are empty.
+- Runtime copy is unchanged; mapping is not applied.

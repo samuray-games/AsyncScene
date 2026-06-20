@@ -7535,3 +7535,8 @@ Error: Download failure, code=1
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - The production bundle exited at `if (!DEV_FLAG) return` before the alpha installer; Fix5 invokes the existing hoisted installer before that gate and exposes `Game.__DEV.smokeAlphaLexiconInventoryFix5()`.
 - Published `docs` and `AsyncScene/Web` wiring use the unique Fix5 asset marker. Inventory remains unchanged at 164 entries and uniqueTextCount 122.
+## 2026-06-20 — Step 4.3.4 z -> alpha mapping
+- Step 4.3.4 z -> alpha mapping created; 23 of 23 z source entries are covered.
+- Contract: 16 changed mappings, 7 identity mappings, and 3 canonical target convergences.
+- No duplicate source mappings or empty replacements; variables are preserved and targets are taboo-free.
+- Mapping is not applied to runtime; Safari PASS is pending user execution.

@@ -24753,6 +24753,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installAlphaAllowedLexiconSmoke(Game.__DEV);
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
   installAlphaTabooListSmoke(Game.__DEV);
+  installAlphaZToAlphaMappingSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();
@@ -48229,6 +48230,52 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("ALPHA_LEXICON_INVENTORY_FIX3_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix3);
     console.warn("ALPHA_LEXICON_INVENTORY_FIX4_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix4);
     console.warn("ALPHA_LEXICON_INVENTORY_FIX5_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix5);
+  }
+
+  function installAlphaZToAlphaMappingSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaZToAlphaMappingOnce === "function") return;
+    const BUILD_TAG = "build_2026_06_20_step4_3_4_alpha_z_to_alpha_mapping_v1";
+    const COMMIT = "step4_3_4_alpha_z_to_alpha_mapping";
+    const SMOKE_VERSION = "step4_3_4_alpha_z_to_alpha_mapping_v20260620_001";
+    const FILE = "UI_PROFILE_ALPHA_Z_TO_ALPHA_MAPPING.md";
+    const INVENTORY_FILE = "UI_PROFILE_ALPHA_WORD_INVENTORY.md";
+    const ALLOWED_FILE = "UI_PROFILE_ALPHA_ALLOWED_LEXICON.md";
+    const TABOO_FILE = "UI_PROFILE_ALPHA_TABOO_LIST.md";
+    const RAW = String.raw`MAP_0001 | TXT_0019 | zoomer | button | start_profile_zoomer | start_continue | Погнали | Начать | changed | []
+MAP_0002 | TXT_0020 | zoomer | button | start_profile_zoomer | start_reset | Снести выбор | Сбросить | changed | []
+MAP_0003 | TXT_0021 | zoomer | button | start_profile_zoomer | rules_action | Правила без душноты | Правило | changed | []
+MAP_0004 | TXT_0022 | zoomer | button | start_profile_zoomer | start_action | Войти | Войти | identity | []
+MAP_0005 | TXT_0064 | genz | battle | battle_results | battle_win | Победа | Победа | identity | []
+MAP_0006 | TXT_0065 | genz | battle | battle_results | battle_loss | Поражение | Поражение | identity | []
+MAP_0007 | TXT_0066 | genz | battle | battle_results | battle_draw | Толпа решает | Ничья | changed | []
+MAP_0008 | TXT_0067 | genz | battle | conflict_results | conflict_win | Вы победили в конфликте. | Победа | changed | []
+MAP_0009 | TXT_0068 | genz | battle | conflict_results | conflict_loss | Вы проиграли конфликт. | Поражение | changed | []
+MAP_0010 | TXT_0069 | genz | battle | conflict_results | conflict_draw | Конфликт завершился ничьей. | Ничья | changed | []
+MAP_0011 | TXT_0070 | genz | button | battle | escape_button_label | Свалить: {X} | Уйти: {X} | changed | [X]
+MAP_0012 | TXT_0071 | genz | training | battle | teach_sent_dm | Для {student}: {arg}. Цена {cost} 💰. | {student}: {arg}. Цена {cost} 💰. | changed | [student,arg,cost]
+MAP_0013 | TXT_0072 | genz | training | battle | teach_sent_chat | Аргумент: {teacher} → {student}. | Аргумент: {teacher} → {student}. | identity | [teacher,student]
+MAP_0014 | TXT_0073 | genz | placeholder | battle | invite_open_hint | Введи точный ник. | Указать имя | changed | []
+MAP_0015 | TXT_0074 | genz | error | battle | invite_invalid | Игрок не найден. | Игрок: нет | changed | []
+MAP_0016 | TXT_0075 | genz | button | battle | menu_title | Меню | Меню | identity | []
+MAP_0017 | TXT_0076 | genz | button | battle | return_to_start | К старту | Старт | changed | []
+MAP_0018 | TXT_0077 | genz | error | battle | menu_unavailable | Недоступно. | Недоступно. | identity | []
+MAP_0019 | TXT_0078 | genz | label | battle | goal_label | Цель | Цель | identity | []
+MAP_0020 | TXT_0087 | genz | tooltip | type_hint | hint_type_who | Ответь: кто? | Кто? | changed | []
+MAP_0021 | TXT_0088 | genz | tooltip | type_hint | hint_type_where | Ответь: где? | Где? | changed | []
+MAP_0022 | TXT_0089 | genz | tooltip | type_hint | hint_type_about | Ответь: о ком? | О ком? | changed | []
+MAP_0023 | TXT_0090 | genz | tooltip | type_hint | hint_type_yn | Ответь: да или нет? | Да или нет? | changed | []`;
+    const expected = RAW.split("\n").map((line) => line.split(" | "));
+    const read = (url) => { try { const x = new XMLHttpRequest(); x.open("GET", url, false); x.send(null); return x.status >= 200 && x.status < 300 ? String(x.responseText || "") : ""; } catch (_) { return ""; } };
+    const candidates = (name, docsFirst) => { const a=[];if(typeof document!=="undefined"&&document.baseURI){try{a.push(new URL(name,document.baseURI).href);}catch(_){}}if(typeof location!=="undefined"&&location.origin){if(docsFirst)a.push(`${location.origin}/__dev__/docs/${name}`,`${location.origin}/AsyncScene/${name}`);else a.push(`${location.origin}/AsyncScene/${name}`,`${location.origin}/__dev__/docs/${name}`);a.push(`${location.origin}/${name}`);}return a; };
+    const load = (name, docsFirst) => { for (const url of candidates(name, docsFirst)) { const text = read(url); if (text) return text; } return ""; };
+    const vars = (text) => Array.from(String(text).matchAll(/\{([^{}]+)\}/g), (m) => m[1]).sort();
+    const norm = (text) => String(text).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    devStore.smokeAlphaZToAlphaMappingOnce = function smokeAlphaZToAlphaMappingOnce() {
+      const result={ok:false,failures:[],forbiddenRemaining:[],missingCoverage:[],failedChecks:[],buildTag:BUILD_TAG,commit:COMMIT,smokeVersion:SMOKE_VERSION,sourceInventoryEntryCount:0,sourceInventoryUniqueTextCount:0,sourceZEntryCount:0,sourceZUniqueTextCount:0,sourceProfileCounts:{zoomer:0,genz:0},mappingCount:0,coveredSourceCount:0,coveragePercent:0,changedMappingCount:0,identityMappingCount:0,duplicateMappings:[],emptyReplacements:[],canonicalConvergenceCount:0,canonicalConvergences:[],variablePreservationFailures:[],allowedLexiconEntryCount:0,allowedInflectionExceptions:["ком"],unknownTargetWords:[],tabooEntryCount:0,targetTabooHitCount:0,targetTabooHits:[],docsMirrorMatches:false,runtimeCopyChanged:false,mappingApplied:false,registeredOnGameDev:false,productionGatePlacementOk:false,publishRoot:"docs",loadedDevChecksPath:RUNTIME_DEV_CHECKS_SOURCE_URL};
+      const fail=(code,detail)=>{if(!result.failedChecks.includes(code))result.failedChecks.push(code);result.failures.push(detail===undefined?code:{code,detail});};
+      try{const web=load(FILE,false),docs=load(FILE,true);result.docsMirrorMatches=!!web&&web===docs;if(!result.docsMirrorMatches)fail("docs_mirror_matches");const rows=String(web||docs).split("\n").filter((line)=>/^\| MAP_\d{4} \|/.test(line)).map((line)=>line.slice(2,-2).split(" | "));result.mappingCount=rows.length;rows.forEach((row,i)=>{if(JSON.stringify(row)!==JSON.stringify(expected[i]))fail("mapping_row_exact",{index:i,row});});if(rows.length!==23)fail("mapping_count",rows.length);const ids=new Map(),sources=new Map();rows.forEach((r)=>{ids.set(r[0],(ids.get(r[0])||0)+1);sources.set(r[1],(sources.get(r[1])||0)+1);if(!r[7].trim())result.emptyReplacements.push(r[1]);if(r[8]==="changed")result.changedMappingCount++;if(r[8]==="identity")result.identityMappingCount++;if(JSON.stringify(vars(r[6]))!==JSON.stringify(vars(r[7])))result.variablePreservationFailures.push(r[1]);});ids.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({mappingId:id,count:n});});sources.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({sourceInventoryId:id,count:n});});const inv=load(INVENTORY_FILE,false)||load(INVENTORY_FILE,true);const invRows=inv.split("\n").filter((line)=>/^TXT_\d{4} \|/.test(line));result.sourceInventoryEntryCount=invRows.length;result.sourceInventoryUniqueTextCount=inv.includes("uniqueTextCount: 122")?122:0;const zRows=invRows.filter((line)=>/ \| (zoomer|genz) \| dynamic:/.test(line));result.sourceZEntryCount=zRows.length;result.sourceZUniqueTextCount=new Set(zRows.map((line)=>line.split(" | ")[4])).size;zRows.forEach((line)=>{const p=line.split(" | ")[7];result.sourceProfileCounts[p]++;});expected.forEach((e)=>{const hit=zRows.filter((line)=>{const p=line.split(" | ");return p[0]===e[1]&&p[1]===e[3]&&p[2]===e[4]&&p[3]===e[5]&&p[4]===e[6]&&p[7]===e[2];});if(hit.length!==1)result.missingCoverage.push(e[1]);});result.coveredSourceCount=23-result.missingCoverage.length;result.coveragePercent=result.sourceZEntryCount?result.coveredSourceCount/result.sourceZEntryCount*100:0;const groups={};rows.forEach((r)=>(groups[r[7]]||(groups[r[7]]=[])).push(r[1]));result.canonicalConvergences=Object.keys(groups).filter((k)=>groups[k].length>1).map((alphaText)=>({alphaText,sourceInventoryIds:groups[alphaText]}));result.canonicalConvergenceCount=result.canonicalConvergences.length;const allowed=load(ALLOWED_FILE,false)||load(ALLOWED_FILE,true);const allowedRows=allowed.split("\n").filter((line)=>/^\| ALX_/.test(line));result.allowedLexiconEntryCount=allowedRows.length;const allowedWords=new Set(allowedRows.map((line)=>norm(line.slice(2,-2).split(" | ")[2])));rows.forEach((r)=>{String(r[7]).replace(/\{[^{}]+\}/g," ").replace(/→/g," ").match(/[\p{L}\p{N}]+/gu)?.forEach((w)=>{const n=norm(w);if(n!=="ком"&&!allowedWords.has(n)&&!result.unknownTargetWords.includes(n))result.unknownTargetWords.push(n);});});const taboo=load(TABOO_FILE,false)||load(TABOO_FILE,true);const tabooRows=taboo.split("\n").filter((line)=>/^\| TAB_/.test(line)).map((line)=>{const p=line.slice(2,-2).split(" | ");return{id:p[0],value:p[2]};});result.tabooEntryCount=tabooRows.length;rows.forEach((r)=>tabooRows.forEach((t)=>{if((` ${norm(r[7])} `).includes(` ${norm(t.value)} `))result.targetTabooHits.push({sourceInventoryId:r[1],tabooId:t.id});}));result.targetTabooHitCount=result.targetTabooHits.length;result.forbiddenRemaining=result.targetTabooHits.slice();const expectedConv=JSON.stringify([{alphaText:"Победа",sourceInventoryIds:["TXT_0064","TXT_0067"]},{alphaText:"Поражение",sourceInventoryIds:["TXT_0065","TXT_0068"]},{alphaText:"Ничья",sourceInventoryIds:["TXT_0066","TXT_0069"]}]);if(JSON.stringify(result.canonicalConvergences)!==expectedConv)fail("canonical_convergences",result.canonicalConvergences);result.registeredOnGameDev=!!(Game.__DEV&&Game.__DEV.smokeAlphaZToAlphaMappingOnce===devStore.smokeAlphaZToAlphaMappingOnce);const src=read(RUNTIME_DEV_CHECKS_SOURCE_URL);const a=src.indexOf("installAlphaZToAlphaMappingSmoke(Game.__DEV);");const b=src.indexOf("if (!DEV_FLAG) return;");result.productionGatePlacementOk=a>=0&&b>=0&&a<b;if(result.sourceInventoryEntryCount!==164||result.sourceInventoryUniqueTextCount!==122||result.sourceZEntryCount!==23||result.sourceZUniqueTextCount!==23||result.sourceProfileCounts.zoomer!==4||result.sourceProfileCounts.genz!==19||result.coveragePercent!==100||result.changedMappingCount!==16||result.identityMappingCount!==7||result.duplicateMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.allowedLexiconEntryCount!==187||result.unknownTargetWords.length||result.tabooEntryCount!==60||result.targetTabooHitCount||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");}catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length&&!result.runtimeCopyChanged&&!result.mappingApplied;console.warn("ALPHA_Z_TO_ALPHA_MAPPING_SMOKE",result.ok?"PASS":"FAIL",result);return result;
+    };
+    const expose=()=>{if(!Game.Dev)Game.Dev={};Game.Dev.smokeAlphaZToAlphaMappingOnce=devStore.smokeAlphaZToAlphaMappingOnce;if(!Game.__DEV)Game.__DEV={};Game.__DEV.smokeAlphaZToAlphaMappingOnce=devStore.smokeAlphaZToAlphaMappingOnce;};expose();if(typeof setTimeout==="function"){setTimeout(expose,0);setTimeout(expose,250);setTimeout(expose,1000);}console.warn("ALPHA_Z_TO_ALPHA_MAPPING_SMOKE_INSTALLED_V1",typeof devStore.smokeAlphaZToAlphaMappingOnce);
   }
 
   function installAlphaTabooListSmoke(devStore) {
