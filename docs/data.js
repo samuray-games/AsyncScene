@@ -442,9 +442,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       battle_lose: "Поражение",
       battle_loss: "Поражение",
       battle_draw: "Толпа решает",
-      conflict_win: "Вы победили в конфликте.",
-      conflict_loss: "Вы проиграли конфликт.",
-      conflict_draw: "Конфликт завершился ничьей.",
+      conflict_win: "Победа в конфликте.",
+      conflict_loss: "Поражение в конфликте.",
+      conflict_draw: "Ничья в конфликте.",
       supported_majority: "Вы поддержали большинство.",
       supported_minority: "Вы оказались в меньшинстве.",
       majority_won: "Большинство победило.",
@@ -452,7 +452,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       conflict_finished: "Конфликт завершён.",
       battle_not_enough_points: "Не хватает 💰.",
 
-      escape_button_label: "Свалить {X}💰",
+      escape_button_label: "Выйти: {X}",
       teach_sent_dm: "Для {student}: {arg}. Цена {cost} 💰.",
       teach_sent_chat: "Аргумент: {teacher} → {student}.",
       invite_open_hint: "Введи точный ник.",
@@ -464,7 +464,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
       // Authority templates (Canon)
       cop_report_accept: ["Понял. Проверяю.", "Принял. Разберусь."],
-      cop_busy: ["Я сейчас занят, связь позже.", "Сейчас не могу, оформляю другое дело."],
+      cop_busy: ["Занят. Связь позже.", "Не могу. Дело в работе."],
       cop_report_ok: ["Проверка сошлась. Вмешался.", "Проверка сошлась. Занялся."],
       cop_report_fail: ["Не подтвердилось. Факты не сошлись."],
       cop_cooldown: [systemSay("warnings", "copCooldown") || "Проверка займет время."],
@@ -477,17 +477,17 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     },
     alpha: {
       tie_start: "ТОЛПА",
-      tie_call_to_action: "ВПИСЫВАЙСЯ",
-      tie_click_name_hint: "ТЫКНИ ИМЯ",
+      tie_call_to_action: "ГОЛОСУЙ",
+      tie_click_name_hint: "ВЫБЕРИ ИМЯ",
       vote_ok: "✓ ОК",
-      vote_already: "✓ УЖЕ",
+      vote_already: "✓ ЕСТЬ",
       vote_fail: "✕ НЕТ",
       tie_timer: "⏳{sec}",
       tie_end_winner: "🏆 {name} {aVotes}:{bVotes}",
-      tie_end_draw: "DRAW {aVotes}:{bVotes}",
-      tie_chat_start: "ТОЛПА - ВПИСЫВАЙСЯ",
+      tie_end_draw: "НИЧЬЯ {aVotes}:{bVotes}",
+      tie_chat_start: "ТОЛПА - ГОЛОСУЙ",
       tie_chat_end_winner: "ТОЛПА: 🏆 {name} {aVotes}:{bVotes}",
-      tie_chat_end_draw: "ТОЛПА: DRAW {aVotes}:{bVotes}",
+      tie_chat_end_draw: "ТОЛПА: НИЧЬЯ {aVotes}:{bVotes}",
 
       events_header: "Движ",
       events_title: "EVENTS {count}",
@@ -509,18 +509,18 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       events_done: "OK",
       events_left: "⏳{sec}",
 
-      battle_win: "WIN",
-      battle_lose: "RIP",
-      battle_loss: "RIP",
-      battle_draw: "DRAW",
-      conflict_win: "Ты вывез.",
-      conflict_loss: "Не вывез.",
-      conflict_draw: "Ничья. Все шумели зря.",
-      supported_majority: "Ты в мейне.",
-      supported_minority: "Ты в андере.",
-      majority_won: "Мейн забрал.",
-      minority_lost: "Андер просел.",
-      conflict_finished: "Драма закрыта.",
+      battle_win: "ПОБЕДА",
+      battle_lose: "ПОРАЖЕНИЕ",
+      battle_loss: "ПОРАЖЕНИЕ",
+      battle_draw: "НИЧЬЯ",
+      conflict_win: "Ты победил.",
+      conflict_loss: "Ты проиграл.",
+      conflict_draw: "Ничья.",
+      supported_majority: "Ты в большинстве.",
+      supported_minority: "Ты в меньшинстве.",
+      majority_won: "Большинство выиграло.",
+      minority_lost: "Меньшинство проиграло.",
+      conflict_finished: "Конфликт закрыт.",
       battle_not_enough_points: "0 PTS",
 
       escape_button_label: "Свалить -{X} 💰",
@@ -616,7 +616,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     ],
     warnings: [
       "Опасная точка рядом.",
-      "Вызов принят, экипаж в пути.",
+      "Вызов принят. Экипаж в пути.",
       "Ситуация под контролем.",
       "Твои слова в журнале.",
       "Я рядом и наблюдаю.",
@@ -651,8 +651,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Бандит всегда держит с собой оружие или телефон."
     ],
     chatReplies: [
-      "Принято, наблюдаю.",
-      "Фиксирую факт, ведём дальше.",
+      "Принято. Наблюдаю.",
+      "Факт принят. Идём дальше.",
       "Я рядом, линия открыта.",
       "Контролирую. Детали в журнале.",
       "Работаем по цепочке, перехожу к следующей цели.",
@@ -663,7 +663,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Передал коллегам, продолжаю наблюдение."
     ],
     cooldownReplies: [
-      "Я занят расследованием, связь через пару минут.",
+      "Занят расследованием. Связь позже.",
       "Сейчас разгребаю дело, не могу отвечать.",
       "На линии другой вызов, вернусь позже.",
       "Пока не могу подключиться, линия занята.",
@@ -675,7 +675,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Я на случке, вернусь через минуту."
     ],
     thanks: [
-      "Сдача принята — стало спокойнее.",
+      "Сдача принята. Спокойнее.",
       "Отметка принята, район спокойнее.",
       "Район спокойнее.",
       "Его забрали с улиц.",
@@ -687,7 +687,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       "Сдача принята — улицы спокойнее."
     ],
     scolds: [
-      "«Сдать» без фактов — лишняя бумага.",
+      "Без фактов это шум.",
       "Сигнал без оснований грузит систему.",
       "Паника без доказательств растет быстро.",
       "Такие сигналы тормозят реальные дела.",
@@ -824,8 +824,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   });
 
   const CAP_MESSAGES_MILLENNIAL = Object.freeze({
-    rep: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.",
-    points: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap."
+    rep: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.",
+    points: "Лимит 💰 на неделе. Потрать до сброса."
   });
   const CAP_MESSAGES_BOOMER = Object.freeze({
     rep: "Лимит ⭐ на этой неделе исчерпан. Пополните 💰, чтобы конвертировать их в ⭐.",
@@ -1043,7 +1043,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.ARG_BASE_Y = {
     about: [
-      { q:"Кто сегодня на слуху, если не ошибаюсь?", a:"Кажется, про {NAME} говорят." },
+      { q:"Кто сегодня на слуху?", a:"Про {NAME} говорят." },
       { q:"Кто тут, может быть, в центре внимания?", a:"Вроде бы про {NAME} шепчутся." },
       { q:"Кто сейчас, возможно, у всех в ленте?", a:"Похоже, про {NAME} пишут." },
       { q:"Кого, как будто, все обсуждают?", a:"Кажется, про {NAME} спорят." },
@@ -1054,7 +1054,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       { q:"Кто опять, кажется, в новостях?", a:"Кажется, про {NAME} снова новости." }
     ],
     who: [
-      { q:"Кто, как вам кажется, был рядом?", a:"{NAME}." },
+      { q:"Кто был рядом?", a:"{NAME}." },
       { q:"Кто, возможно, участвовал?", a:"{NAME}." },
       { q:"Кто, если не ошибаюсь, был вовлечён?", a:"{NAME}." },
       { q:"Кто, может быть, присутствовал?", a:"{NAME}." },
@@ -1065,7 +1065,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       { q:"Кто, как вам кажется, был внутри ситуации?", a:"{NAME}." }
     ],
     where: [
-      { q:"Где мы сейчас, как вам кажется?", a:"Здесь." },
+      { q:"Где мы сейчас?", a:"Здесь." },
       { q:"Где это, возможно, произошло?", a:"Тут." },
       { q:"Где, если не ошибаюсь, это видели?", a:"В {PLACE}." },
       { q:"Где, может быть, назначена встреча?", a:"В {PLACE}." },
@@ -9544,8 +9544,8 @@ K YN A9: Нет.
       battle_action_rematch: { default: "Реванш", millennial: "Реванш", zoomer: "Ещё раунд" },
       battle_action_report: { default: "Пожаловаться", millennial: "Пожаловаться", zoomer: "Сдать копу" },
       battles_empty: { default: "Вызовов нет.", millennial: "Вызовов нет.", zoomer: "Раундов нет." },
-      battle_win: { default: "Победа", millennial: "Победа", zoomer: "WIN" },
-      battle_loss: { default: "Поражение", millennial: "Поражение", zoomer: "RIP" }
+      battle_win: { default: "Победа", millennial: "Победа", zoomer: "ПОБЕДА" },
+      battle_loss: { default: "Поражение", millennial: "Поражение", zoomer: "ПОРАЖЕНИЕ" }
     };
     const sampleOf = (profile, key, vars) => {
       const prev = Data.TEXT_MODE;
@@ -9794,9 +9794,9 @@ K YN A9: Нет.
           && Data.TEXTS.genz.battles_empty === "Вызовов нет."
           && Data.TEXTS.alpha.battles_empty === "Раундов нет."
           && Data.TEXTS.genz.battle_win === "Победа"
-          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
           && Data.TEXTS.genz.battle_loss === "Поражение"
-          && Data.TEXTS.alpha.battle_loss === "RIP"
+          && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
         );
         result.routeChecks.resolverExists = typeof Data.t === "function";
         result.routeChecks.millennialFallbackPreserved = battleKeys.every((key) => sampleOf("default", key) === sampleOf("millennial", key));
@@ -9974,9 +9974,9 @@ K YN A9: Нет.
           && Data.TEXTS.genz.battles_empty === "Вызовов нет."
           && Data.TEXTS.alpha.battles_empty === "Раундов нет."
           && Data.TEXTS.genz.battle_win === "Победа"
-          && Data.TEXTS.alpha.battle_win === "WIN"
+          && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
           && Data.TEXTS.genz.battle_loss === "Поражение"
-          && Data.TEXTS.alpha.battle_loss === "RIP"
+          && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
         );
         result.routeChecks.noNewStorageKeys = false;
         const storageAfter = storageKeys();
@@ -10406,9 +10406,9 @@ K YN A9: Нет.
         && Data.TEXTS.genz.battles_empty === "Вызовов нет."
         && Data.TEXTS.alpha.battles_empty === "Раундов нет."
         && Data.TEXTS.genz.battle_win === "Победа"
-        && Data.TEXTS.alpha.battle_win === "WIN"
+        && Data.TEXTS.alpha.battle_win === "ПОБЕДА"
         && Data.TEXTS.genz.battle_loss === "Поражение"
-        && Data.TEXTS.alpha.battle_loss === "RIP"
+        && Data.TEXTS.alpha.battle_loss === "ПОРАЖЕНИЕ"
       );
       result.commandRegistrationChecks = {
         gameDevExists: !!(root && typeof root === "object" && root.__DEV && typeof root.__DEV === "object"),
@@ -10966,9 +10966,9 @@ K YN A9: Нет.
           "Вызовов нет.",
           "Раундов нет.",
           "Победа",
-          "WIN",
+          "ПОБЕДА",
           "Поражение",
-          "RIP"
+          "ПОРАЖЕНИЕ"
         ].filter((phrase) => runtimeSourceParts.start.includes(phrase) || runtimeSourceParts.menu.includes(phrase) || runtimeSourceParts.events.includes(phrase) || runtimeSourceParts.battle.includes(phrase));
         sourceRouteDiagnostics.ok = sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0
           && sourceRouteDiagnostics.missingDocsRouteKeys.length === 0
@@ -11181,9 +11181,9 @@ K YN A9: Нет.
           && battleDom.samples.battles_empty.millennial === "Вызовов нет."
           && battleDom.samples.battles_empty.zoomer === "Раундов нет."
           && battleDom.samples.battle_win.millennial === "Победа"
-          && battleDom.samples.battle_win.zoomer === "WIN"
+          && battleDom.samples.battle_win.zoomer === "ПОБЕДА"
           && battleDom.samples.battle_loss.millennial === "Поражение"
-          && battleDom.samples.battle_loss.zoomer === "RIP";
+          && battleDom.samples.battle_loss.zoomer === "ПОРАЖЕНИЕ";
         result.battleLabelsChecks = battleDom;
 
         const docsMirrorDiagnostics = {
@@ -11227,8 +11227,8 @@ K YN A9: Нет.
           battle_action_rematch: { millennial: "Реванш", zoomer: "Ещё раунд" },
           battle_action_report: { millennial: "Пожаловаться", zoomer: "Сдать копу" },
           battles_empty: { millennial: "Вызовов нет.", zoomer: "Раундов нет." },
-          battle_win: { millennial: "Победа", zoomer: "WIN" },
-          battle_loss: { millennial: "Поражение", zoomer: "RIP" }
+          battle_win: { millennial: "Победа", zoomer: "ПОБЕДА" },
+          battle_loss: { millennial: "Поражение", zoomer: "ПОРАЖЕНИЕ" }
         };
         const docsMismatched = [];
         Object.entries(docsExpectedStart).forEach(([key, expected]) => {
@@ -11587,8 +11587,8 @@ K YN A9: Нет.
         && battleSamples.battle_action_rematch && battleSamples.battle_action_rematch.zoomer === "Ещё раунд"
         && battleSamples.battle_action_report && battleSamples.battle_action_report.zoomer === "Сдать копу"
         && battleSamples.battles_empty && battleSamples.battles_empty.zoomer === "Раундов нет."
-        && battleSamples.battle_win && battleSamples.battle_win.zoomer === "WIN"
-        && battleSamples.battle_loss && battleSamples.battle_loss.zoomer === "RIP"
+        && battleSamples.battle_win && battleSamples.battle_win.zoomer === "ПОБЕДА"
+        && battleSamples.battle_loss && battleSamples.battle_loss.zoomer === "ПОРАЖЕНИЕ"
       );
       start.routeConnected = startRouteConnected;
       start.domProbeStatus = Array.isArray(start.visibleDomLabels) && start.visibleDomLabels.length ? "probedVisibleDom" : "skippedSafeNoVisiblePanel";
@@ -12725,28 +12725,28 @@ K YN A9: Нет.
       { id: "TXT_0058", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
       { id: "TXT_0060", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
       { id: "TXT_0065", from: "Поражение", to: "Поражение. Возможны потери по итогам." },
-      { id: "TXT_0068", from: "Вы проиграли конфликт.", to: "Вы проиграли конфликт. Возможны потери по итогам." },
-      { id: "TXT_0070", from: "Свалить: {X}", to: "Выход: {X}. Перед выбором лучше проверить стоимость." },
+      { id: "TXT_0068", from: "Поражение в конфликте.", to: "Поражение в конфликте. Возможны потери по итогам." },
+      { id: "TXT_0070", from: "Выйти: {X}", to: "Выход: {X}. Перед выбором лучше проверить стоимость." },
       { id: "TXT_0071", from: "Для {student}: {arg}. Цена {cost} 💰.", to: "Аргумент для {student}: {arg}. Перед передачей лучше проверить стоимость: {cost} 💰." },
       { id: "TXT_0073", from: "Введи точный ник.", to: "Введите точный ник. Лучше проверить написание." },
       { id: "TXT_0074", from: "Игрок не найден.", to: "Игрок не найден. Лучше проверить имя." },
       { id: "TXT_0077", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },
-      { id: "TXT_0081", from: "Занят, связь позже.", to: "Сейчас занят. Связь будет позже." },
-      { id: "TXT_0082", from: "Не могу, оформляю дело.", to: "Сейчас идёт оформление дела. Ответ будет позже." },
+      { id: "TXT_0081", from: "Занят. Связь позже.", to: "Сейчас занят. Связь будет позже." },
+      { id: "TXT_0082", from: "Не могу. Дело в работе.", to: "Сейчас идёт оформление дела. Ответ будет позже." },
       { id: "TXT_0085", from: "Не подтвердилось. Факты не сошлись.", to: "Проверка не подтвердила информацию. Награда не начисляется." },
       { id: "TXT_0086", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
-      { id: "TXT_0092", from: "ВПИСЫВАЙСЯ", to: "Можно присоединиться к голосованию." },
-      { id: "TXT_0093", from: "ТЫКНИ ИМЯ", to: "Выберите имя." },
-      { id: "TXT_0098", from: "RIP", to: "Поражение." },
-      { id: "TXT_0100", from: "Ты вывез.", to: "Вы справились." },
-      { id: "TXT_0101", from: "Не вывез.", to: "Не получилось." },
-      { id: "TXT_0102", from: "Ничья. Все шумели зря.", to: "Ничья. Решение не изменилось." },
-      { id: "TXT_0106", from: "Андер просел.", to: "Меньшинство получило отрицательный итог." },
-      { id: "TXT_0108", from: "лимит ⭐ на этой неделе. Пополните 💰, чтобы конвертировать в ⭐.", to: "Есть недельный лимит ⭐. Лучше проверить 💰 перед конвертацией." },
-      { id: "TXT_0109", from: "Cap: max Points на этой неделе. Используйте, пока не сбросили cap.", to: "Есть недельный лимит 💰. Лучше использовать ресурс до сброса." },
+      { id: "TXT_0092", from: "ГОЛОСУЙ", to: "Можно присоединиться к голосованию." },
+      { id: "TXT_0093", from: "ВЫБЕРИ ИМЯ", to: "Выберите имя." },
+      { id: "TXT_0098", from: "ПОРАЖЕНИЕ", to: "Поражение." },
+      { id: "TXT_0100", from: "Ты победил.", to: "Вы справились." },
+      { id: "TXT_0101", from: "Ты проиграл.", to: "Не получилось." },
+      { id: "TXT_0102", from: "Ничья.", to: "Ничья. Решение не изменилось." },
+      { id: "TXT_0106", from: "Меньшинство проиграло.", to: "Меньшинство получило отрицательный итог." },
+      { id: "TXT_0108", from: "Лимит ⭐ на неделе. Пополни 💰 для ⭐.", to: "Есть недельный лимит ⭐. Лучше проверить 💰 перед конвертацией." },
+      { id: "TXT_0109", from: "Лимит 💰 на неделе. Потрать до сброса.", to: "Есть недельный лимит 💰. Лучше использовать ресурс до сброса." },
       { id: "TXT_0111", from: "Опасная точка рядом.", to: "Рядом есть риск. Лучше проверить ситуацию." },
-      { id: "TXT_0116", from: "Занят расследованием, связь позже.", to: "Сейчас идёт расследование. Связь будет позже." },
-      { id: "TXT_0118", from: "«Сдать» без фактов — шум.", to: "Без фактов проверка может не подтвердиться." },
+      { id: "TXT_0116", from: "Занят расследованием. Связь позже.", to: "Сейчас идёт расследование. Связь будет позже." },
+      { id: "TXT_0118", from: "Без фактов это шум.", to: "Без фактов проверка может не подтвердиться." },
       { id: "TXT_0130", from: "слабый ход", to: "Этот ход может сработать хуже." },
       { id: "TXT_0131", from: "отвечай сейчас", to: "Можно ответить сейчас." },
       { id: "TXT_0132", from: "кошелек ближе", to: "Есть риск потерять 💰." },

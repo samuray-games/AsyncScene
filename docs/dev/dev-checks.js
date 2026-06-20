@@ -8508,6 +8508,259 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
 
+    const smokeLexicalFrameStep34SystemTextsFix10 = () => {
+      const buildTag = "build_2026_06_20_step3_4_system_texts_fix10_v1";
+      const commit = "step3_4_system_texts_fix10_v1";
+      const smokeVersion = "step3_4_system_texts_fix10_v20260620_002";
+      const logicalByRepositoryFile = {
+        "AsyncScene/Web/system.js": "system.js",
+        "AsyncScene/Web/data.js": "data.js",
+        "AsyncScene/Web/ui/ui-events.js": "ui/ui-events.js",
+        "AsyncScene/Web/ui/ui-dm.js": "ui/ui-dm.js",
+        "AsyncScene/Web/ui/ui-menu.js": "ui/ui-menu.js",
+        "AsyncScene/Web/state.js": "state.js"
+      };
+      const unchangedTargets = [
+        "Готово.","Сообщение недоступно.","Не хватает 💰.","Мало 💰 на баттл.","Недоступно.","Не найдено.","Игрок не указан.","Штраф: -5 💰.","Ввод некорректен.","Кулдаун активен.","Проверка займет время.","+1💰","+1⭐","Голос учтён.","Проверяю.","Сдать {name}: +2💰.","Коп: {name} сдан, +2💰.","Аргумент: {teacher} → {student}.","{name} зовёт на реванш.","+1💰 возврат.","+1💰 возврат большинству.","+1💰 остаток победителю.","Реванш: -{rematchCost}💰.","{target}: +{amount}💰.","{target}: +{amount}💰 тебе.","{attackerName} [{attackerInf}] бросил вызов.","Баттл с {oppName}: {text}.","{a} и {b}: ничья.","Толпа: {name} {aVotes}:{bVotes}.","Оранжевые аргументы открыты.","Красные аргументы открыты.","Чёрные аргументы открыты.","Меню","К старту","Цель","Победа","Поражение","Толпа решает","Введи точный ник.","Игрок не найден.","Понял. Проверяю.","Принял. Разберусь.","Проверка сошлась. Вмешался.","Проверка сошлась. Занялся.","Не подтвердилось. Факты не сошлись.","Ответь: кто?","Ответь: где?","Ответь: о ком?","Ответь: да или нет?","ТОЛПА","✓ ОК","✕ НЕТ","{cop.fullName} на связи.","Опасная точка рядом.","Ситуация под контролем.","Такого нет.","Сейчас не получилось. Попробуй позже.","Рано. Дай паузу."
+      ];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        replacementMapExists: false,
+        runtimeFilesAvailable: false,
+        resolvedRuntimeFiles: [],
+        resolvedDataUrl: "",
+        resolvedDataRepositoryFile: null,
+        resolvedSystemUrl: "",
+        resolvedSystemRepositoryFile: null,
+        changedTargetsApplied: false,
+        unchangedTargetsStable: false,
+        exactReplacementCheck: false,
+        exactVoteControlCheck: false,
+        exactResetSelectionCheck: false,
+        exactRulesShortCheck: false,
+        exactExitForOneCheck: false,
+        exactExitCostCheck: false,
+        forbiddenSourceRemovalCheck: false,
+        forbiddenVoteControlCheck: false,
+        forbiddenResetSelectionCheck: false,
+        forbiddenRulesWithoutBoredomCheck: false,
+        forbiddenEscapeForOneCheck: false,
+        forbiddenEscapeCostCheck: false,
+        exitPairCoherent: false,
+        aggregateReplacementCount: 0,
+        replacementResults: [],
+        forbiddenSystemTextRemaining: [],
+        tooLongSystemTexts: [],
+        ironyHits: [],
+        memeHits: [],
+        slangHits: [],
+        dryCorporateHits: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const replacementMap = [];
+      const mapSource = String(smokeLexicalFrameStep34SystemTextsFix1);
+      const mapStart = mapSource.indexOf("const replacementMap = [");
+      const mapEnd = mapStart === -1 ? -1 : mapSource.indexOf("const unchangedTargets", mapStart);
+      if (mapStart !== -1 && mapEnd !== -1) {
+        const rowPattern = /\{ id: "(S34_\d{4})", file: "([^"]+)", current: "([^"]*)", target: "([^"]*)", surface: "([^"]+)" \}/g;
+        let match = null;
+        const mapBlock = mapSource.slice(mapStart, mapEnd);
+        while ((match = rowPattern.exec(mapBlock))) {
+          replacementMap.push({ id: match[1], file: match[2], current: match[3], target: match[4], surface: match[5] });
+        }
+      }
+      result.replacementMapExists = replacementMap.length === 45
+        && replacementMap[0].id === "S34_0001"
+        && replacementMap[44].id === "S34_0045";
+      result.aggregateReplacementCount = replacementMap.length;
+      if (!result.replacementMapExists) fail("step3_4_fix10_replacement_map_exists", { count: replacementMap.length });
+      const fetchTextSyncLocal = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) { return { ok: false, reason: "xhr_exception", path }; }
+      };
+      const resolveRuntimeCandidatesFix10 = (logicalFile) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        if (typeof document !== "undefined" && document.scripts) {
+          Array.prototype.forEach.call(document.scripts, (script) => {
+            const src = script && script.src ? String(script.src) : "";
+            if (!src) return;
+            try {
+              const url = new URL(src, document.baseURI || "");
+              if (String(url.pathname || "").endsWith(`/${logicalFile}`)) add(url.href);
+            } catch (_) {}
+          });
+        }
+        const baseUri = (typeof document !== "undefined" && document.baseURI) || (typeof window !== "undefined" && window.location && window.location.href) || "";
+        if (baseUri) {
+          try { add(new URL(logicalFile, baseUri).href); } catch (_) {}
+          try { add(new URL(`./${logicalFile}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`Web/${logicalFile}`, baseUri).href); } catch (_) {}
+          try { add(new URL(`AsyncScene/Web/${logicalFile}`, baseUri).href); } catch (_) {}
+        }
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/${logicalFile}`);
+          add(`${location.origin}/Web/${logicalFile}`);
+          add(`${location.origin}/AsyncScene/Web/${logicalFile}`);
+        }
+        add(`/${logicalFile}`);
+        add(`/Web/${logicalFile}`);
+        add(`/AsyncScene/Web/${logicalFile}`);
+        return candidates;
+      };
+      const fetchFirstRuntimeFix10 = (logicalFile) => {
+        let last = null;
+        for (const candidate of resolveRuntimeCandidatesFix10(logicalFile)) {
+          const res = fetchTextSyncLocal(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: logicalFile };
+      };
+      const inferRepositoryFile = (logicalFile, resolvedUrl) => {
+        const text = String(resolvedUrl || "");
+        if (!text) return null;
+        if (text.includes("/AsyncScene/Web/") || text.includes("/Web/")) return `AsyncScene/Web/${logicalFile}`;
+        return `docs/${logicalFile}`;
+      };
+      const stringValues = (source) => {
+        const values = [];
+        const literals = String(source || "").match(/"(?:\\.|[^"\\])*"/g) || [];
+        literals.forEach((literal) => {
+          try { values.push(JSON.parse(literal)); } catch (_) {}
+        });
+        return values;
+      };
+      const makeExactMatcher = (phrase) => {
+        const escaped = String(phrase || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return escaped ? new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`, "u") : null;
+      };
+      const hasExactPhrase = (values, phrase) => {
+        const matcher = makeExactMatcher(phrase);
+        return !!matcher && values.some((value) => matcher.test(String(value || "")));
+      };
+      const runtimeFiles = ["system.js", "data.js", "ui/ui-events.js", "ui/ui-dm.js", "ui/ui-menu.js", "state.js"];
+      const textByLogicalFile = Object.create(null);
+      const valuesByLogicalFile = Object.create(null);
+      runtimeFiles.forEach((logicalFile) => {
+        const res = fetchFirstRuntimeFix10(logicalFile);
+        const resolvedUrl = String((res && res.path) || "");
+        const resolvedRepositoryFile = inferRepositoryFile(logicalFile, resolvedUrl);
+        result.resolvedRuntimeFiles.push({ logicalFile, resolvedUrl, resolvedRepositoryFile, ok: !!(res && res.ok) });
+        if (!(res && res.ok)) {
+          addUnique(result.missingCoverage, { file: logicalFile, reason: (res && res.reason) || "unavailable" });
+          textByLogicalFile[logicalFile] = "";
+          valuesByLogicalFile[logicalFile] = [];
+          return;
+        }
+        textByLogicalFile[logicalFile] = String(res.text || "");
+        valuesByLogicalFile[logicalFile] = stringValues(res.text || "");
+        if (logicalFile === "data.js") {
+          result.resolvedDataUrl = resolvedUrl;
+          result.resolvedDataRepositoryFile = resolvedRepositoryFile;
+        }
+        if (logicalFile === "system.js") {
+          result.resolvedSystemUrl = resolvedUrl;
+          result.resolvedSystemRepositoryFile = resolvedRepositoryFile;
+        }
+      });
+      result.runtimeFilesAvailable = runtimeFiles.every((logicalFile) => !!String(textByLogicalFile[logicalFile] || ""));
+      if (!result.runtimeFilesAvailable) fail("step3_4_fix10_runtime_files_available", result.missingCoverage.slice());
+      replacementMap.forEach((row) => {
+        const logicalFile = logicalByRepositoryFile[row.file];
+        const values = valuesByLogicalFile[logicalFile] || [];
+        const targetExists = hasExactPhrase(values, row.target);
+        const forbiddenAbsent = !hasExactPhrase(values, row.current);
+        result.replacementResults.push({ id: row.id, file: logicalFile, targetExists, forbiddenAbsent });
+        if (!targetExists) addUnique(result.missingCoverage, { id: row.id, file: logicalFile, expected: row.target });
+        if (!forbiddenAbsent) addUnique(result.forbiddenSystemTextRemaining, { id: row.id, file: logicalFile, text: row.current });
+        const text = String(row.target || "").trim();
+        const sentenceCount = (text.match(/[.!?…]+/g) || []).length || (text ? 1 : 0);
+        if (text.length > 46 || sentenceCount > 2) addUnique(result.tooLongSystemTexts, { id: row.id, file: logicalFile, text, length: text.length, sentenceCount });
+        if (/(шумели зря|если не ошибаюсь|как вам кажется)/i.test(text)) addUnique(result.ironyHits, { id: row.id, file: logicalFile, text });
+        if (/\b(WIN|RIP|DRAW)\b/.test(text)) addUnique(result.memeHits, { id: row.id, file: logicalFile, text });
+        if (/(душнот|снести выбор|вписывайся|тыкни|мейн|андер|вывез|просел)/i.test(text)) addUnique(result.slangHits, { id: row.id, file: logicalFile, text });
+        if (/(выполните действие|данное действие недоступно|недостаточно ресурсов для выполнения операции|ваш голос зарегистрирован)/i.test(text)) addUnique(result.dryCorporateHits, { id: row.id, file: logicalFile, text });
+      });
+      result.changedTargetsApplied = result.replacementResults.length === 45
+        && result.replacementResults.every((row) => row.targetExists && row.forbiddenAbsent);
+      if (!result.changedTargetsApplied) fail("step3_4_fix10_aggregate_replacements_applied", { missingCoverage: result.missingCoverage.slice(), forbiddenSystemTextRemaining: result.forbiddenSystemTextRemaining.slice() });
+      const allRuntimeText = runtimeFiles.map((logicalFile) => textByLogicalFile[logicalFile] || "").join("\n");
+      result.unchangedTargetsStable = unchangedTargets.every((text) => allRuntimeText.includes(text));
+      if (!result.unchangedTargetsStable) {
+        unchangedTargets.forEach((text) => { if (!allRuntimeText.includes(text)) addUnique(result.missingCoverage, { unchanged: text }); });
+        fail("step3_4_fix10_unchanged_targets_stable", "missing_unchanged_controls");
+      }
+      const rowOk = (id) => {
+        const row = result.replacementResults.find((entry) => entry.id === id);
+        return !!row && row.targetExists === true && row.forbiddenAbsent === true;
+      };
+      result.exactReplacementCheck = rowOk("S34_0001");
+      result.exactResetSelectionCheck = rowOk("S34_0002");
+      result.exactRulesShortCheck = rowOk("S34_0003");
+      result.exactExitForOneCheck = rowOk("S34_0004");
+      result.exactExitCostCheck = rowOk("S34_0005");
+      result.exactVoteControlCheck = hasExactPhrase(valuesByLogicalFile["data.js"] || [], "✕ НЕТ");
+      result.forbiddenSourceRemovalCheck = !hasExactPhrase(valuesByLogicalFile["data.js"] || [], "я на самом деле чувствую будто я родился в …");
+      result.forbiddenVoteControlCheck = !hasExactPhrase(valuesByLogicalFile["data.js"] || [], "✕ НЕ");
+      result.forbiddenResetSelectionCheck = !hasExactPhrase(valuesByLogicalFile["data.js"] || [], "Снести выбор");
+      result.forbiddenRulesWithoutBoredomCheck = !hasExactPhrase(valuesByLogicalFile["data.js"] || [], "Правила без душноты");
+      result.forbiddenEscapeForOneCheck = !hasExactPhrase(valuesByLogicalFile["system.js"] || [], "Свалить за 1💰.");
+      result.forbiddenEscapeCostCheck = !hasExactPhrase(valuesByLogicalFile["system.js"] || [], "Свалить: -{escapeCost}💰.");
+      result.exitPairCoherent = result.exactExitForOneCheck && result.exactExitCostCheck && result.forbiddenEscapeForOneCheck && result.forbiddenEscapeCostCheck;
+      result.forbiddenRemaining = result.forbiddenSystemTextRemaining.slice();
+      if (result.forbiddenSystemTextRemaining.length) fail("step3_4_fix10_forbidden_system_text_remaining", result.forbiddenSystemTextRemaining.slice());
+      if (result.tooLongSystemTexts.length) fail("step3_4_fix10_too_long_system_texts", result.tooLongSystemTexts.slice());
+      if (result.ironyHits.length) fail("step3_4_fix10_irony_hits", result.ironyHits.slice());
+      if (result.memeHits.length) fail("step3_4_fix10_meme_hits", result.memeHits.slice());
+      if (result.slangHits.length) fail("step3_4_fix10_slang_hits", result.slangHits.slice());
+      if (result.dryCorporateHits.length) fail("step3_4_fix10_dry_corporate_hits", result.dryCorporateHits.slice());
+      const uniqueIdentityOk = String(buildTag).includes("step3_4_system_texts_fix10")
+        && String(commit).includes("step3_4_system_texts_fix10")
+        && String(smokeVersion).includes("step3_4_system_texts_fix10")
+        && !String(buildTag).includes("fix9")
+        && !String(commit).includes("fix9")
+        && !String(smokeVersion).includes("fix9");
+      if (!uniqueIdentityOk) fail("step3_4_fix10_unique_smoke_identity_check", { buildTag, commit, smokeVersion });
+      result.ok = result.replacementMapExists === true
+        && result.runtimeFilesAvailable === true
+        && result.changedTargetsApplied === true
+        && result.unchangedTargetsStable === true
+        && result.exitPairCoherent === true
+        && result.forbiddenSystemTextRemaining.length === 0
+        && result.tooLongSystemTexts.length === 0
+        && result.ironyHits.length === 0
+        && result.memeHits.length === 0
+        && result.slangHits.length === 0
+        && result.dryCorporateHits.length === 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const smokeZoomerAllowedLexiconOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -15422,6 +15675,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix7 = smokeLexicalFrameStep34SystemTextsFix7;
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix8 = smokeLexicalFrameStep34SystemTextsFix8;
     Game.Dev.smokeLexicalFrameStep34SystemTextsFix9 = smokeLexicalFrameStep34SystemTextsFix9;
+    Game.Dev.smokeLexicalFrameStep34SystemTextsFix10 = smokeLexicalFrameStep34SystemTextsFix10;
     Game.Dev.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
       const smokeBoomerNewFeatureCoverageStep34Once = () => {
       const buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix6_v1";
@@ -18878,6 +19132,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix7 = smokeLexicalFrameStep34SystemTextsFix7;
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix8 = smokeLexicalFrameStep34SystemTextsFix8;
     G.__DEV.smokeLexicalFrameStep34SystemTextsFix9 = smokeLexicalFrameStep34SystemTextsFix9;
+    G.__DEV.smokeLexicalFrameStep34SystemTextsFix10 = smokeLexicalFrameStep34SystemTextsFix10;
     G.__DEV.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     G.__DEV.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
     G.__DEV.smokeBoomerTabooListStep32Once = smokeBoomerTabooListStep32Once;
@@ -19010,6 +19265,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep34SystemTextsFix7 = smokeLexicalFrameStep34SystemTextsFix7;
     devStore.smokeLexicalFrameStep34SystemTextsFix8 = smokeLexicalFrameStep34SystemTextsFix8;
     devStore.smokeLexicalFrameStep34SystemTextsFix9 = smokeLexicalFrameStep34SystemTextsFix9;
+    devStore.smokeLexicalFrameStep34SystemTextsFix10 = smokeLexicalFrameStep34SystemTextsFix10;
     devStore.smokeZoomerAllowedLexiconOnce = smokeZoomerAllowedLexiconOnce;
     devStore.smokeBoomerAllowedLexiconStep31Once = smokeBoomerAllowedLexiconStep31Once;
     devStore.smokeBoomerAllowedLexiconStep31Fix1Once = smokeBoomerAllowedLexiconStep31Fix1Once;
