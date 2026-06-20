@@ -24056,6 +24056,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   };
 
   installAlphaLexiconInventorySmoke(Game.__DEV);
+  installAlphaAllowedLexiconSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();
@@ -47535,7 +47536,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
   }
 
   function installAlphaAllowedLexiconSmoke(devStore) {
-    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaAllowedLexiconOnce === "function") return;
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaAllowedLexiconFix1 === "function") return;
     const BUILD_TAG = "build_2026_06_20_step4_3_2_alpha_allowed_lexicon_v1";
     const COMMIT = "step4_3_2_alpha_allowed_lexicon";
     const SMOKE_VERSION = "step4_3_2_alpha_allowed_lexicon_v20260620_001";
@@ -48056,11 +48057,23 @@ ALX_0187 | protected_tokens | {text}`;
       console.warn("ALPHA_ALLOWED_LEXICON_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
+    devStore.smokeAlphaAllowedLexiconFix1 = function smokeAlphaAllowedLexiconFix1() {
+      const result = devStore.smokeAlphaAllowedLexiconOnce();
+      result.buildTag = "build_2026_06_20_step4_3_2_alpha_allowed_lexicon_fix1_v1";
+      result.commit = "step4_3_2_alpha_allowed_lexicon_fix1";
+      result.smokeVersion = "step4_3_2_alpha_allowed_lexicon_fix1_v20260620_001";
+      result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaAllowedLexiconFix1 === devStore.smokeAlphaAllowedLexiconFix1);
+      result.ok = result.ok === true && result.registeredOnGameDev === true;
+      console.warn("ALPHA_ALLOWED_LEXICON_FIX1_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
     const exposeAlphaAllowedLexiconSmoke = function exposeAlphaAllowedLexiconSmoke() {
       if (!Game.Dev) Game.Dev = {};
       Game.Dev.smokeAlphaAllowedLexiconOnce = devStore.smokeAlphaAllowedLexiconOnce;
+      Game.Dev.smokeAlphaAllowedLexiconFix1 = devStore.smokeAlphaAllowedLexiconFix1;
       if (!Game.__DEV) Game.__DEV = {};
       Game.__DEV.smokeAlphaAllowedLexiconOnce = devStore.smokeAlphaAllowedLexiconOnce;
+      Game.__DEV.smokeAlphaAllowedLexiconFix1 = devStore.smokeAlphaAllowedLexiconFix1;
     };
     exposeAlphaAllowedLexiconSmoke();
     if (typeof setTimeout === "function") {
@@ -48069,6 +48082,7 @@ ALX_0187 | protected_tokens | {text}`;
       setTimeout(exposeAlphaAllowedLexiconSmoke, 1000);
     }
     console.warn("ALPHA_ALLOWED_LEXICON_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaAllowedLexiconOnce);
+    console.warn("ALPHA_ALLOWED_LEXICON_FIX1_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaAllowedLexiconFix1);
   }
 
 
