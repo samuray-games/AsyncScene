@@ -8465,3 +8465,17 @@ Error: Download failure, code=1
 - Applied 73 mapped runtime entries: 66 changed entries and 7 identity entries, with 100 percent coverage.
 - Runtime alpha copy was applied; gameplay and economy logic are unchanged.
 - Pending Safari command: `Game.__DEV.smokeAlphaNewFeaturesOnce()`.
+## 2026-06-21 — Step 3.5 NPC speech Fix2 export/registration
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Correct the Step 3.5 Fix2 export and registration path so `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()` is attached to the final deployed `Game.__DEV` object without weakening any dependency checks or removing legacy smoke commands.
+- Completed:
+  - [x] Confirmed both dev-check mirrors contain the same Fix2 implementation.
+  - [x] Rebound the Fix2 symbol through the final `Game.__DEV`, `Game.Dev`, and `G.__DEV` expose path with delayed re-expose guards.
+  - [x] Preserved Fix1, the legacy Step 3.5 public smoke command, and the Step 3.1 through Step 3.4 dependency checks.
+  - [x] Kept the unique Fix2 identity fields intact: `build_2026_06_21_step3_5_npc_speech_fix2_v1`, `step3_5_npc_speech_fix2`, and `step3_5_npc_speech_fix2_v20260621_001`.
+- Static checks:
+  - `node --check AsyncScene/Web/dev/dev-checks.js`
+  - `node --check docs/dev/dev-checks.js`
+  - `git diff --check`
+  - `rg` verification confirms the Fix2 command is attached on the final runtime export path in both mirrors and no later overwrite removes it in these files
+- Result: READY_FOR_RUNTIME_SMOKE only. Safari must run `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()`; runtime PASS is not claimed.
