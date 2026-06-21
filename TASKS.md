@@ -1,3 +1,10 @@
+## 2026-06-21 — Step 3.5 NPC speech Fix8 expectation correction
+- Status: READY_FOR_PUBLISH only; Safari/runtime PASS is not claimed.
+- Corrected the active Step 3.4 Fix10 expectations for `S34_0032` and `S34_0042` in both dev-check mirrors.
+- Preserved the `S34_0038` matcher retarget to canonical `data.js` / `vote_already` and left production copy files unchanged.
+- Static verification is pending in this pass; runtime validation remains pending.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+
 ## 2026-06-21 — Step 3.5 NPC speech Fix6 expectation refresh
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Refreshed the stale Step 3.4 Fix10 expectation rows in both dev-check mirrors so the Step 3.5 dependency chain now matches the current accepted Step 3.4 contract.
