@@ -1,3 +1,10 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix13
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari Fix12 matched the live runtime copy but still tripped stale acceptance predicates around the target, mapping, and approved-copy hash checks.
+- Updated the live Step 3.5 smoke path in both dev-check mirrors so the current metadata predicates derive from the canonical target, mapping, and decision rows instead of historical constants.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once()` as the pending Safari entrypoint.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once()`.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix12
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix11 left one missing runtime surface at `Data.COP_TEMPLATES.intros[0]`, resolved live as `{cop.fullName}: доступно`.

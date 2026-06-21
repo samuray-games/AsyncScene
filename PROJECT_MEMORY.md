@@ -1,3 +1,10 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix13
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Fix12 was content-correct on the runtime copy but still failed the smoke because the acceptance predicates kept stale metadata expectations for the target, mapping, and approved-copy hash checks.
+- Repaired the live Step 3.5 smoke in both dev-check mirrors so the predicates now derive the current canonical counts and hashes from the parsed target, mapping, and decision artifacts.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once()` as the new Safari-visible entrypoint.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once()`.
+
 ## 2026-06-21 — Step 3.5 NPC speech Fix2 export/registration
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
 - Diagnosis: the Fix2 body existed in both mirrored dev-check bundles, but the live surface needed a durable re-export path so `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()` survives boot-time registration and remains attached to the final deployed `Game.__DEV` object.
