@@ -1,3 +1,10 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix14
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Fix13 still surfaced a `ReferenceError` for `approvedCopyHashConsistent` because the active docs mirror was missing the local binding in the current smoke body.
+- Repaired the variable declaration/reference scope in both dev-check mirrors without changing the Fix13 predicate semantics, canonical artifacts, or approved copy.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once()` as the pending Safari entrypoint.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once()`.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix13
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix12 matched the live runtime copy but still tripped stale acceptance predicates around the target, mapping, and approved-copy hash checks.
