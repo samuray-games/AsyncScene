@@ -1,3 +1,11 @@
+## 2026-06-21 — Step 3.5 NPC speech Fix6 expectation refresh
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Root cause: Step 3.5 inherited stale Step 3.4 Fix10 expectations after later accepted Step 3.4 fixes changed the canonical accepted contract.
+- Corrected only the expectation data in both dev-check mirrors for `S34_0032`, `S34_0038`, and `S34_0042`; production copy files were not edited.
+- Static verification passed: `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, `git diff --check`, and the focused VM harness now reports `smokeLexicalFrameStep34SystemTextsFix10()` as `ok:true`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
+
 ## 2026-06-21 — Asynchronia Codex plugin v0.1.1 approval protocol
 - Status: READY_FOR_INSTALL_REFRESH only; protocol smoke remains pending.
 - The repository policy now defines the canonical final `APPROVE` block, the accepted English and Russian aliases, the case-insensitive token rule, the same-thread and single-pending-task safeguards, and the separation from native Codex permission dialogs.
