@@ -1,3 +1,10 @@
+## 2026-06-22 — Step 3.5 NPC speech Fix9 runtime copy correction
+- Status: READY_FOR_PUBLISH only; Safari/runtime PASS is not claimed.
+- Corrected the two Pages-served runtime rows in `docs/data.js` for `S34_0005` and `S34_0032`.
+- Left `AsyncScene/Web/data.js` unchanged and kept the accepted canonical values aligned.
+- Static verification is pending in this pass; runtime validation remains pending.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+
 ## 2026-06-21 — Step 3.5 NPC speech Fix8 expectation correction
 - Status: READY_FOR_PUBLISH only; Safari/runtime PASS is not claimed.
 - Corrected the active Step 3.4 Fix10 expectations for `S34_0032` and `S34_0042` in both dev-check mirrors.
