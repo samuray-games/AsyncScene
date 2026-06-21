@@ -1,3 +1,11 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix11
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari Fix10 reported exactly one remaining runtime mismatch: `Data.COP_TEMPLATES.chatReplies[3]` resolved live as `Ситуацию держу. Детали записаны.` while the canonical approved target remained `Ситуация под контролем. Детали записаны.`.
+- Corrected only the stale boomer `chatReplies[3]` runtime text to the existing approved target and kept the existing GAP/BRT/copy-decision rows, counts, aliases, semantic groups, variables, and approvedCopyHash unchanged.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once()` in both dev-check mirrors as the new Safari entrypoint for the unchanged exact-match linter contract.
+- Regression scope held: the four Fix10 mappings remain covered, no zoomer fallback is introduced, and non-boomer profiles remain unchanged.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once()`.
+
 ## 2026-06-20 — Step 3.5 Boomer runtime lexical linter Fix10
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari source dependency surfaced exactly four missing-coverage runtime strings: `Data.TEXTS.zoomer.conflict_win`, `Data.TEXTS.zoomer.conflict_loss`, `Data.TEXTS.zoomer.conflict_draw`, and `Data.COP_TEMPLATES.warnings[2]`.

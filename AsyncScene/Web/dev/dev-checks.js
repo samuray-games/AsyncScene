@@ -19553,6 +19553,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix10_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix10Once"
     });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix11Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix11_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix11",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix11_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix11Once"
+    });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix11_v1";
@@ -19785,6 +19791,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19795,6 +19802,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19819,6 +19827,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19917,6 +19926,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix8Once = smokeBoomerRuntimeLexicalLinterStep35Fix8Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
