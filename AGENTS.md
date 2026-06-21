@@ -63,6 +63,20 @@ If no runtime-sensitive file is required:
 
 Never bypass the gate because a change appears small.
 
+### 5.1 Approval protocol
+
+When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the final response must end with exactly one standalone code block containing:
+
+```text
+APPROVE
+```
+
+Accepted confirmation tokens in the same Codex thread are case-insensitive after trimming whitespace: `approve`, `confirm`, `ok`, `okay`, `ок`, `окей`, and `подтверждаю`.
+
+The token applies only to one exact pending runtime task in the same thread and means approval for the isolated serialized runtime slot for that exact task and file scope.
+
+Native Codex permission dialogs remain separate and are not approved by this token.
+
 ## 6. Canonical mechanics
 
 ### Arguments
