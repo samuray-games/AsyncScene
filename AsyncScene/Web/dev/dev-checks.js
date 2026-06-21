@@ -11,6 +11,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   const Game = window.Game;
   const G = Game;
   if (!G.__DEV) G.__DEV = {};
+  installAlphaLexiconAggregateSmoke(G.__DEV);
   const RUNTIME_BUILD_TAG = "build_2026_06_19_step3_4_system_texts_v1";
   const RUNTIME_COMMIT = "step3_4_system_texts_v1";
   const RUNTIME_DEV_CHECKS_SOURCE_URL = (typeof document !== "undefined" && document.currentScript && document.currentScript.src)
@@ -25116,6 +25117,126 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       };
     };
   };
+
+  function installAlphaLexiconAggregateSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaLexiconOnce === "function") return;
+    const completedSteps = ["4.3.1", "4.3.2", "4.3.3", "4.3.4", "4.3.5"];
+    const childSmokeCommands = [
+      "smokeAlphaLexiconInventoryFix5",
+      "smokeAlphaAllowedLexiconFix1",
+      "smokeAlphaTabooListOnce",
+      "smokeAlphaZToAlphaMappingOnce",
+      "smokeAlphaNewFeaturesFix1"
+    ];
+    devStore.smokeAlphaLexiconOnce = function smokeAlphaLexiconOnce() {
+      const result = {
+        ok: false,
+        failures: [], forbiddenRemaining: [], missingCoverage: [], failedChecks: [],
+        buildTag: "build_2026_06_21_step4_3_6_alpha_lexicon_runtime_smoke_v1",
+        commit: "step4_3_6_alpha_lexicon_runtime_smoke",
+        smokeVersion: "step4_3_6_alpha_lexicon_runtime_smoke_v20260621_001",
+        completedSteps: completedSteps.slice(), childSmokeCommands: childSmokeCommands.slice(),
+        childSmokeResults: [], childSmokeCount: childSmokeCommands.length, passedChildSmokeCount: 0,
+        inventoryEntryCount: null, inventoryUniqueTextCount: null, allowedLexiconEntryCount: null,
+        tabooEntryCount: null, zMappingCount: null, zMappingCoveragePercent: null,
+        newFeatureCount: null, newFeatureMappedEntryCount: null, newFeatureCoveragePercent: null,
+        targetTabooHitCount: null, runtimeCopyChanged: null, mappingApplied: null,
+        gameplayLogicChanged: null, economyLogicChanged: null, battleLogicChanged: null,
+        npcLogicChanged: null, stateLogicChanged: null, registeredOnGameDev: false,
+        productionGatePlacementOk: false, registrationPrecedesThrowingInstallers: false,
+        docsMirrorMatches: false, publishRoot: "docs", loadedDevChecksPath: null
+      };
+      const add = (array, value) => { if (!array.includes(value)) array.push(value); };
+      const label = (step, command, entry) => `${step} ${command}: ${typeof entry === "string" ? entry : JSON.stringify(entry)}`;
+      childSmokeCommands.forEach((command, index) => {
+        const step = completedSteps[index];
+        const child = Game.__DEV && Game.__DEV[command];
+        if (typeof child !== "function") {
+          add(result.missingCoverage, label(step, command, "command missing"));
+          add(result.failures, label(step, command, "command missing"));
+          result.childSmokeResults.push({ step, command, result: null });
+          return;
+        }
+        let childResult;
+        try { childResult = child(); }
+        catch (error) {
+          add(result.failures, label(step, command, `threw ${String(error && error.message || error)}`));
+          result.childSmokeResults.push({ step, command, result: null });
+          return;
+        }
+        result.childSmokeResults.push({ step, command, result: childResult });
+        if (!childResult || typeof childResult !== "object" || Array.isArray(childResult)) {
+          add(result.failures, label(step, command, "result is not an object"));
+          return;
+        }
+        let childPassed = childResult.ok === true;
+        if (childResult.ok !== true) add(result.failures, label(step, command, "ok is not true"));
+        ["failures", "forbiddenRemaining", "missingCoverage", "failedChecks"].forEach((field) => {
+          if (!Array.isArray(childResult[field])) {
+            add(result.failures, label(step, command, `${field} is not an array`));
+            if (field !== "failures") add(result[field], label(step, command, `${field} is not an array`));
+            childPassed = false;
+            return;
+          }
+          childResult[field].forEach((entry) => add(result[field], label(step, command, entry)));
+          if (childResult[field].length) childPassed = false;
+        });
+        if (childPassed) result.passedChildSmokeCount += 1;
+      });
+      const child = (index) => {
+        const row = result.childSmokeResults[index];
+        return row && row.result && typeof row.result === "object" ? row.result : {};
+      };
+      const inventory = child(0), allowed = child(1), taboo = child(2), mapping = child(3), features = child(4);
+      result.inventoryEntryCount = inventory.inventoryEntryCount === undefined ? inventory.entryCount : inventory.inventoryEntryCount;
+      result.inventoryUniqueTextCount = inventory.uniqueTextCount;
+      result.allowedLexiconEntryCount = allowed.allowedLexiconEntryCount === undefined ? allowed.lexiconEntryCount : allowed.allowedLexiconEntryCount;
+      result.tabooEntryCount = taboo.tabooEntryCount;
+      result.zMappingCount = mapping.mappingCount;
+      result.zMappingCoveragePercent = mapping.coveragePercent;
+      result.newFeatureCount = features.featureCount;
+      result.newFeatureMappedEntryCount = features.mappedEntryCount;
+      result.newFeatureCoveragePercent = features.coveragePercent;
+      result.targetTabooHitCount = Number(mapping.targetTabooHitCount) + Number(features.targetTabooHitCount);
+      ["runtimeCopyChanged", "mappingApplied", "gameplayLogicChanged", "economyLogicChanged", "battleLogicChanged", "npcLogicChanged", "stateLogicChanged"].forEach((field) => { result[field] = features[field]; });
+      result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaLexiconOnce === devStore.smokeAlphaLexiconOnce);
+      try {
+        result.loadedDevChecksPath = new URL(RUNTIME_DEV_CHECKS_SOURCE_URL, document.baseURI).pathname;
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", RUNTIME_DEV_CHECKS_SOURCE_URL, false); xhr.send(null);
+        const source = xhr.status >= 200 && xhr.status < 300 ? String(xhr.responseText || "") : "";
+        const registrationIndex = source.indexOf("installAlphaLexiconAggregateSmoke(G.__DEV);");
+        const gateIndex = source.indexOf("if (!DEV_FLAG) return;");
+        const firstInstallerIndex = source.indexOf("installAlphaLexiconInventorySmoke(Game.__DEV);");
+        result.productionGatePlacementOk = registrationIndex >= 0 && gateIndex >= 0 && registrationIndex < gateIndex;
+        result.registrationPrecedesThrowingInstallers = registrationIndex >= 0 && firstInstallerIndex >= 0 && registrationIndex < firstInstallerIndex;
+        result.docsMirrorMatches = source.includes(result.smokeVersion) && source.includes("function installAlphaLexiconAggregateSmoke(devStore)");
+      } catch (error) { add(result.failedChecks, `aggregate source inspection: ${String(error && error.message || error)}`); }
+      const expected = {
+        inventoryEntryCount: 164, inventoryUniqueTextCount: 122, allowedLexiconEntryCount: 187,
+        tabooEntryCount: 60, zMappingCount: 23, zMappingCoveragePercent: 100,
+        newFeatureCount: 7, newFeatureMappedEntryCount: 73, newFeatureCoveragePercent: 100,
+        targetTabooHitCount: 0, runtimeCopyChanged: true, mappingApplied: true,
+        gameplayLogicChanged: false, economyLogicChanged: false, battleLogicChanged: false,
+        npcLogicChanged: false, stateLogicChanged: false, registeredOnGameDev: true,
+        productionGatePlacementOk: true, registrationPrecedesThrowingInstallers: true,
+        docsMirrorMatches: true, publishRoot: "docs"
+      };
+      Object.keys(expected).forEach((field) => {
+        if (result[field] !== expected[field]) add(result.failedChecks, `aggregate ${field}: expected ${JSON.stringify(expected[field])}, actual ${JSON.stringify(result[field])}`);
+      });
+      if (JSON.stringify(result.completedSteps) !== JSON.stringify(completedSteps)) add(result.failedChecks, "aggregate completedSteps mismatch");
+      if (result.childSmokeCount !== 5) add(result.failedChecks, `aggregate childSmokeCount: ${result.childSmokeCount}`);
+      if (result.passedChildSmokeCount !== 5) add(result.failedChecks, `aggregate passedChildSmokeCount: ${result.passedChildSmokeCount}`);
+      result.ok = result.failures.length === 0 && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0 && result.failedChecks.length === 0;
+      console.warn("ALPHA_LEXICON_AGGREGATE_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    if (!Game.Dev) Game.Dev = {};
+    Game.Dev.smokeAlphaLexiconOnce = devStore.smokeAlphaLexiconOnce;
+    console.warn("ALPHA_LEXICON_AGGREGATE_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconOnce);
+  }
 
   installAlphaLexiconInventorySmoke(Game.__DEV);
   installAlphaAllowedLexiconSmoke(Game.__DEV);
