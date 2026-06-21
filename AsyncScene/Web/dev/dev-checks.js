@@ -10570,7 +10570,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       const dependencySpecs = [
-        ["step3_1_lexicalFrame", "smokeLexicalFrameStep35NpcSpeechFix1"],
+        ["step3_1_lexicalFrame", "smokeLexicalFrameStep31Once"],
         ["step3_2_allowedLexicon", "smokeZoomerAllowedLexiconOnce"],
         ["step3_3_stopWords", "smokeZoomerStopWordsOnce"],
         ["step3_4_systemTexts", "smokeZoomerSystemTextsOnce"],
@@ -19018,28 +19018,28 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const runtimeGapTargetsConnected = !!(gapTargetResult && gapTargetResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS/.test(gapTargetRaw)
           && gapTargetMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
-          && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === 126
+          && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === 131
           && Number(gapTargetMetadata.baseAllowedLexiconCount || 0) === 164
-          && Number(gapTargetMetadata.combinedBoomerTargetCount || 0) === 290
-          && runtimeGapTargetRows.length === 126;
+          && Number(gapTargetMetadata.combinedBoomerTargetCount || 0) === 295
+          && runtimeGapTargetRows.length === 131;
         const runtimeGapMappingConnected = !!(gapMappingResult && gapMappingResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING/.test(gapMappingRaw)
           && gapMappingMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
           && gapMappingMetadata.targetArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"
-          && Number(gapMappingMetadata.runtimeGapMappingCount || 0) === 128
+          && Number(gapMappingMetadata.runtimeGapMappingCount || 0) === 133
           && Number(gapMappingMetadata.runtimeAliasCount || 0) === 2
           && Number(gapMappingMetadata.unresolvedRuntimeGapCount || 0) === 0
-          && runtimeGapMappingRows.length === 128;
+          && runtimeGapMappingRows.length === 133;
         const approvedCopyConnected = !!(gapDecisionResult && gapDecisionResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS/.test(gapDecisionRaw)
-          && Number(decisionMetadata.decisionRowCount || 0) === 128
-          && Number(decisionMetadata.approvedRowCount || 0) === 128
+          && Number(decisionMetadata.decisionRowCount || 0) === 133
+          && Number(decisionMetadata.approvedRowCount || 0) === 133
           && approvedCopyHash === expectedApprovedCopyHash;
         const boomerProfileCopyIntegrated = runtimeGapTargetsConnected
           && runtimeGapMappingConnected
           && approvedCopyConnected
-          && exactApprovedTextMatchCount === 128
-          && variablePreservationCount === 128
+          && exactApprovedTextMatchCount === 133
+          && variablePreservationCount === 133
           && aliasTargetMismatches.length === 0
           && profileIsolationFailures.length === 0;
         const runtimeInventoryExists = checkedTextCount > 0;
@@ -19061,18 +19061,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           { check: "taboo_list_connected", ok: tabooListConnected, detail: { actual: tabooRows.length, expected: 153 } },
           { check: "lexical_mapping_connected", ok: lexicalMappingConnected, detail: { actual: lexicalMappingRows.length, expected: 93 } },
           { check: "new_feature_coverage_connected", ok: newFeatureCoverageConnected, detail: { actualZones: Array.from(coverageZones).sort(), expectedZones: requiredCoverageZones } },
-          { check: "runtime_gap_targets_connected", ok: runtimeGapTargetsConnected, detail: { actual: runtimeGapTargetRows.length, expected: 126 } },
-          { check: "runtime_gap_mapping_connected", ok: runtimeGapMappingConnected, detail: { actual: runtimeGapMappingRows.length, expected: 128 } },
+          { check: "runtime_gap_targets_connected", ok: runtimeGapTargetsConnected, detail: { actual: runtimeGapTargetRows.length, expected: 131 } },
+          { check: "runtime_gap_mapping_connected", ok: runtimeGapMappingConnected, detail: { actual: runtimeGapMappingRows.length, expected: 133 } },
           { check: "approved_copy_hash_exact", ok: approvedCopyHash === expectedApprovedCopyHash, detail: { actual: approvedCopyHash, expected: expectedApprovedCopyHash } },
           { check: "boomer_profile_copy_integrated", ok: boomerProfileCopyIntegrated, detail: { exactApprovedTextMatchCount, variablePreservationCount, aliasTargetMismatches: aliasTargetMismatches.length, profileIsolationFailures: profileIsolationFailures.length } },
           { check: "checked_text_count_expected_184", ok: checkedTextCountMatches, detail: { actual: checkedTextCount, expected: expectedCheckedTextCount } },
           { check: "checked_surface_count_expected_13", ok: checkedSurfaceCountMatches, detail: { actual: checkedSurfaces.length, expected: expectedCheckedSurfaceCount } },
           { check: "all_expected_surfaces_present", ok: allExpectedSurfacesPresent, detail: { actual: checkedSurfaces, expected: expectedCheckedSurfaces } },
-          { check: "live_runtime_gap_count_128", ok: liveRuntimeGapCount === 128, detail: { actual: liveRuntimeGapCount, expected: 128 } },
-          { check: "live_resolved_gap_count_128", ok: liveResolvedGapCount === 128, detail: { actual: liveResolvedGapCount, expected: 128 } },
+          { check: "live_runtime_gap_count_128", ok: liveRuntimeGapCount === 133, detail: { actual: liveRuntimeGapCount, expected: 133 } },
+          { check: "live_resolved_gap_count_128", ok: liveResolvedGapCount === 133, detail: { actual: liveResolvedGapCount, expected: 133 } },
           { check: "unresolved_runtime_gap_count_zero", ok: unresolvedRuntimeGapCount === 0, detail: { actual: unresolvedRuntimeGapCount, expected: 0 } },
-          { check: "exact_approved_text_match_count_128", ok: exactApprovedTextMatchCount === 128, detail: { actual: exactApprovedTextMatchCount, expected: 128 } },
-          { check: "variable_preservation_count_128", ok: variablePreservationCount === 128, detail: { actual: variablePreservationCount, expected: 128 } },
+          { check: "exact_approved_text_match_count_128", ok: exactApprovedTextMatchCount === 133, detail: { actual: exactApprovedTextMatchCount, expected: 133 } },
+          { check: "variable_preservation_count_128", ok: variablePreservationCount === 133, detail: { actual: variablePreservationCount, expected: 133 } },
           { check: "alias_target_mismatches_empty", ok: aliasTargetMismatches.length === 0, detail: aliasTargetMismatches },
           { check: "profile_isolation_failures_empty", ok: profileIsolationFailures.length === 0, detail: profileIsolationFailures },
           { check: "all_runtime_texts_covered", ok: allRuntimeTextsCovered, detail: { count: missingCoverage.length } },
@@ -19110,6 +19110,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           runtimeGapTargetCount: runtimeGapTargetRows.length,
           runtimeGapMappingConnected,
           runtimeGapMappingCount: runtimeGapMappingRows.length,
+          copIntroCovered,
+          copIntroVariablePreserved,
           approvedCopyHash,
           boomerProfileCopyIntegrated,
           runtimeInventoryExists,
@@ -19154,6 +19156,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const expectedSurfaces = ["DM", "NPC speech", "NPC vs NPC", "UI labels", "crowd", "economy", "errors", "hints", "learning", "rematch", "reports", "respect", "system messages"];
       const requiredGapCoverage = [
         { gapId: "GAP_0129", source: "Data.COP_TEMPLATES", surface: "Data.COP_TEMPLATES.warnings[2]", key: "warnings[2]", approvedBoomerText: "Ситуацию держу." },
+        { gapId: "GAP_0133", source: "Data.COP_TEMPLATES", surface: "Data.COP_TEMPLATES.intros[0]", key: "intros[0]", approvedBoomerText: "{cop.fullName}: доступно" },
         { gapId: "GAP_0130", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_win", key: "conflict_win", approvedBoomerText: "Победа в конфликте." },
         { gapId: "GAP_0131", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_loss", key: "conflict_loss", approvedBoomerText: "Поражение в конфликте." },
         { gapId: "GAP_0132", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_draw", key: "conflict_draw", approvedBoomerText: "Ничья в конфликте." }
@@ -19500,11 +19503,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           ["approved_copy_hash_consistent", gapDecisionRows.length === 132 && targetHashConsistent && mappingRowsHashConsistent && targetRowsHashConsistent, { approvedCopyHash, decisionRowCount: gapDecisionRows.length, targetMetadataHash, mappingMetadataHash }],
           ["runtime_alias_count_2", runtimeAliasCount === 2, runtimeAliasCount],
           ["semantic_group_count_20", semanticGroupCount === 20, semanticGroupCount],
-          ["boomer_profile_copy_integrated", liveResolvedGapCount === 132 && exactApprovedTextMatchCount === 132 && variablePreservationCount === 132, { liveResolvedGapCount, exactApprovedTextMatchCount, variablePreservationCount }],
+          ["boomer_profile_copy_integrated", liveResolvedGapCount === 133 && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133, { liveResolvedGapCount, exactApprovedTextMatchCount, variablePreservationCount }],
           ["legacy_runtime_mapping_count_32", legacySpecs.length === 32, legacySpecs.length], ["legacy_resolved_count_32", legacyResolvedCount === 32, legacyResolvedCount],
           ["unresolved_legacy_mapping_count_zero", unresolvedLegacyMappingCount === 0, unresolvedLegacyMappingCount],
           ["conflict_win_covered", conflictWinCovered, requiredCoverageStatus], ["conflict_loss_covered", conflictLossCovered, requiredCoverageStatus],
           ["conflict_draw_covered", conflictDrawCovered, requiredCoverageStatus], ["cop_warning_covered", copWarningCovered, requiredCoverageStatus],
+          ["cop_intro_covered", copIntroCovered, requiredCoverageStatus], ["cop_intro_variable_preserved", copIntroVariablePreserved, requiredCoverageStatus],
           ["all_four_resolve_through_boomer_mappings", allFourResolveThroughBoomerMappings, requiredCoverageStatus],
           ["none_resolve_through_zoomer_fallback", noneResolveThroughZoomerFallback, requiredCoverageStatus],
           ["all_other_profiles_unchanged", allOtherProfilesUnchanged, profileIsolationFailures],
@@ -19528,7 +19532,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           lexicalMappingConnected, lexicalMappingRowCount, newFeatureCoverageConnected,
           runtimeGapTargetsConnected, runtimeGapTargetCount: gapTargetRows.length,
           runtimeGapMappingConnected, runtimeGapMappingCount: gapRows.length,
-          runtimeAliasCount, semanticGroupCount, approvedCopyHash, boomerProfileCopyIntegrated: liveResolvedGapCount === 132 && exactApprovedTextMatchCount === 132,
+          runtimeAliasCount, semanticGroupCount, approvedCopyHash, boomerProfileCopyIntegrated: liveResolvedGapCount === 133 && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133,
           liveRuntimeGapCount: gapRows.length, liveResolvedGapCount, unresolvedRuntimeGapCount: gapRows.length - liveResolvedGapCount,
           exactApprovedTextMatchCount, variablePreservationCount, legacyRuntimeMappingCount: legacySpecs.length, legacyResolvedCount, unresolvedLegacyMappingCount,
           newFeatureZoneSetMatch, missingNewFeatureZones, extraNewFeatureZones, duplicateNewFeatureZones,
@@ -19558,6 +19562,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       commit: "step3_5_boomer_runtime_lexical_linter_fix11",
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix11_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix11Once"
+    });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix12Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix12_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix12",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix12_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix12Once"
     });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
@@ -19792,6 +19802,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19803,6 +19814,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19828,6 +19840,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19927,6 +19940,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -20591,7 +20605,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (!String(fileTextMap["data.js"] || "").includes("вброс услышан.")) addUnique(result.canonicalTermViolations, { file: "data.js", text: "вброс услышан." });
         if (!String(fileTextMap["data.js"] || "").includes("вброс пошёл.")) addUnique(result.canonicalTermViolations, { file: "data.js", text: "вброс пошёл." });
         [
-          ["step3_1", "smokeZoomerLexicalFrameOnce"],
+          ["step3_1", "smokeLexicalFrameStep31Once"],
           ["step3_2", "smokeZoomerAllowedLexiconOnce"],
           ["step3_3", "smokeZoomerStopWordsOnce"],
           ["step3_4", "smokeZoomerSystemTextsOnce"]
@@ -20632,6 +20646,117 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+    const smokeLexicalFrameStep35NpcSpeechFix2 = function smokeLexicalFrameStep35NpcSpeechFix2() {
+      const buildTag = "build_2026_06_21_step3_5_npc_speech_fix2_v1";
+      const commit = "step3_5_npc_speech_fix2";
+      const smokeVersion = "step3_5_npc_speech_fix2_v20260621_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeLexicalFrameStep35NpcSpeechFix2",
+        fix1Visible: false,
+        dependencyResults: {},
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const expose = () => {
+        if (typeof devStore === "object" && devStore) {
+          devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+          devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        }
+        if (!Game.Dev) Game.Dev = {};
+        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        if (!Game.__DEV) Game.__DEV = {};
+        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      };
+      expose();
+      if (typeof setTimeout === "function") {
+        setTimeout(expose, 0);
+        setTimeout(expose, 250);
+        setTimeout(expose, 1000);
+      }
+      try {
+        const fn = G.__DEV && typeof G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 === "function"
+          ? G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1
+          : null;
+        if (typeof fn !== "function") {
+          fail("step3_5_npc_speech_fix1_visible", "missing_smokeLexicalFrameStep35NpcSpeechFix1");
+        } else {
+          const dep = fn();
+          result.fix1Visible = true;
+          result.dependencyResults.fix1 = {
+            ok: !!(dep && dep.ok === true),
+            buildTag: dep && dep.buildTag,
+            commit: dep && dep.commit,
+            smokeVersion: dep && dep.smokeVersion,
+            failures: dep && Array.isArray(dep.failures) ? dep.failures.length : null,
+            forbiddenRemaining: dep && Array.isArray(dep.forbiddenRemaining) ? dep.forbiddenRemaining.length : null,
+            missingCoverage: dep && Array.isArray(dep.missingCoverage) ? dep.missingCoverage.length : null,
+            failedChecks: dep && Array.isArray(dep.failedChecks) ? dep.failedChecks.length : null
+          };
+          const depClean = !!(dep && dep.ok === true
+            && Array.isArray(dep.failures) && dep.failures.length === 0
+            && Array.isArray(dep.forbiddenRemaining) && dep.forbiddenRemaining.length === 0
+            && Array.isArray(dep.missingCoverage) && dep.missingCoverage.length === 0
+            && Array.isArray(dep.failedChecks) && dep.failedChecks.length === 0
+            && dep.buildTag && dep.commit && dep.smokeVersion);
+          if (!depClean) fail("step3_5_npc_speech_fix1_visible", result.dependencyResults.fix1);
+          addAll(result.forbiddenRemaining, dep && dep.forbiddenRemaining);
+          addAll(result.missingCoverage, dep && dep.missingCoverage);
+          addAll(result.failedChecks, dep && dep.failedChecks);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.fix1Visible === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    const exposeLexicalFrameStep35NpcSpeechFixes = () => {
+      if (typeof devStore === "object" && devStore) {
+        devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      }
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    };
+    exposeLexicalFrameStep35NpcSpeechFixes();
+    if (typeof setTimeout === "function") {
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 0);
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 250);
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 1000);
+    }
     return smokeZoomerNpcSpeechInventoryOnce;
   };
   installZoomerNpcSpeechInventorySmoke(G.__DEV);

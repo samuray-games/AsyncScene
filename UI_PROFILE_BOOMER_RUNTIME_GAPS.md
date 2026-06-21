@@ -3,10 +3,10 @@
 ## Metadata
 
 - step: 3.5
-- sourceSmoke: smokeBoomerRuntimeLexicalLinterStep35Fix4Once
-- sourceBuildTag: build_2026_06_19_step3_5_boomer_runtime_lexical_linter_fix4_v1
-- sourceCommit: step3_5_boomer_runtime_lexical_linter_fix4
-- sourceSmokeVersion: step3_5_boomer_runtime_lexical_linter_fix4_v20260619_001
+- sourceSmoke: smokeBoomerRuntimeLexicalLinterStep35Fix12Once
+- sourceBuildTag: build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix12_v1
+- sourceCommit: step3_5_boomer_runtime_lexical_linter_fix12
+- sourceSmokeVersion: step3_5_boomer_runtime_lexical_linter_fix12_v20260620_001
 - checkedTextCount: 184
 - checkedSurfaceCount: 13
 - status: COPY_DECISIONS_REQUIRED
@@ -14,10 +14,10 @@
 
 ## Summary
 
-- gapOccurrenceCount: 132
+- gapOccurrenceCount: 133
 - semanticGroupCount: 20
 - exactExistingTargetCount: 0
-- newBoomerTargetRequiredCount: 130
+- newBoomerTargetRequiredCount: 131
 - duplicateRuntimeAliasCount: 2
 - unresolvedSourceIdentityCount: 0
 
@@ -25,7 +25,7 @@
 
 | source | count |
 | --- | ---: |
-| Data.COP_TEMPLATES | 76 |
+| Data.COP_TEMPLATES | 77 |
 | Data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.zoomer | 25 |
 | Data.START_SCREEN_PROFILE_TEXTS.zoomer | 1 |
 | Data.TEXTS.zoomer | 30 |
@@ -193,6 +193,7 @@
 | GAP_0130 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_win | conflict_win | Победа в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
 | GAP_0131 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_loss | conflict_loss | Поражение в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
 | GAP_0132 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_draw | conflict_draw | Ничья в конфликте. | — | missing_boomer_mapping | battle_ui | — | — | new_boomer_target_required | Copy decision required. |
+| GAP_0133 | Data.COP_TEMPLATES | Data.COP_TEMPLATES.intros[0] | intros[0] | {cop.fullName}: доступно | {cop.fullName} | missing_boomer_mapping | cop_intros | — | — | new_boomer_target_required | Copy decision required. |
 
 ## Integrity
 

@@ -4,10 +4,10 @@
 
 - step: 3.5
 - sourceArtifact: UI_PROFILE_BOOMER_RUNTIME_GAPS.md
-- sourceGapOccurrenceCount: 132
+- sourceGapOccurrenceCount: 133
 - sourceSemanticGroupCount: 20
-- decisionRowCount: 132
-- approvedRowCount: 132
+- decisionRowCount: 133
+- approvedRowCount: 133
 - runtimeAliasCount: 2
 - status: APPROVED_COPY_PENDING_INTEGRATION
 - runtimePassClaimed: false
@@ -148,6 +148,7 @@
 | GAP_0130 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_win | conflict_win | Победа в конфликте. | — | battle_ui | Победа в конфликте. | new_boomer_target | — | APPROVED |
 | GAP_0131 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_loss | conflict_loss | Поражение в конфликте. | — | battle_ui | Поражение в конфликте. | new_boomer_target | — | APPROVED |
 | GAP_0132 | Data.TEXTS.zoomer | Data.TEXTS.zoomer.conflict_draw | conflict_draw | Ничья в конфликте. | — | battle_ui | Ничья в конфликте. | new_boomer_target | — | APPROVED |
+| GAP_0133 | Data.COP_TEMPLATES | Data.COP_TEMPLATES.intros[0] | intros[0] | {cop.fullName}: доступно | {cop.fullName} | cop_intros | {cop.fullName}: доступно | new_boomer_target | — | APPROVED |
 
 ## Integrity
 

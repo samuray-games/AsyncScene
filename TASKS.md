@@ -1,3 +1,11 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix12
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari Fix11 left one missing runtime surface at `Data.COP_TEMPLATES.intros[0]`, resolved live as `{cop.fullName}: доступно`.
+- Added the canonical boomer target `BRT_0131`, the matching runtime mapping `GAP_0133`, and the copy-decision row for the COP intro surface while preserving `{cop.fullName}` and all non-boomer profiles.
+- Updated the live Step 3.5 smoke path in both dev-check mirrors to require the new COP intro coverage explicitly, with additive counts now `131` targets, `133` mappings, `133` source gaps, `2` aliases, `20` semantic groups, and approvedCopyHash `afba6cb8`.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once()` as the pending Safari entrypoint.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once()`.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix11
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix10 reported exactly one remaining runtime mismatch: `Data.COP_TEMPLATES.chatReplies[3]` resolved live as `Ситуацию держу. Детали записаны.` while the canonical approved target remained `Ситуация под контролем. Детали записаны.`.
