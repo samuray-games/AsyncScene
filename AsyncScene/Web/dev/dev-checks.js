@@ -19468,11 +19468,42 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const newFeatureCoverageConnected = coverageResult.ok && /BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1/.test(coverageResult.text) && newFeatureZoneSetMatch;
         const runtimeInventoryExists = runtimeRows.length > 0;
         const unresolvedLegacyMappingCount = legacySpecs.length - legacyResolvedCount;
-        const targetRowsHashConsistent = gapTargetRows.every((row) => normalize(row.approvedCopyHash) === approvedCopyHash);
-        const mappingRowsHashConsistent = normalize(mappingMetadataHash) === approvedCopyHash;
-        const targetHashConsistent = normalize(targetMetadataHash) === approvedCopyHash;
-        const runtimeGapTargetsConnected = gapTargetsResult.ok && gapTargetRows.length === 130 && targetMetadataCount === 130 && targetMetadataCombinedCount === 294 && targetHashConsistent && targetRowsHashConsistent;
-        const runtimeGapMappingConnected = gapMappingResult.ok && gapRows.length === 132 && mappingMetadataCount === 132 && mappingRowsHashConsistent;
+        const runtimeGapTargetUniqueIds = new Set(gapTargetRows.map((row) => String(row.targetId || "").trim()).filter(Boolean));
+        const runtimeGapTargetFieldsComplete = gapTargetRows.every((row) => String(row.targetId || "").trim() && String(row.approvedBoomerText || "").trim() && String(row.sourceGapIds || "").trim() && String(row.semanticGroup || "").trim() && String(row.approvedCopyHash || "").trim());
+        const runtimeGapTargetHashesMatch = gapTargetRows.every((row) => normalize(row.approvedCopyHash) === approvedCopyHash);
+        const runtimeGapMappingUniqueIds = new Set(gapRows.map((row) => String(row.gapId || "").trim()).filter(Boolean));
+        const runtimeGapMappingTargetsExist = gapRows.every((row) => !!targetRowsById[row.targetId]);
+        const runtimeGapTargetsConnected = !!(gapTargetsResult && gapTargetsResult.ok)
+          && /UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS/.test(gapTargetRaw)
+          && gapTargetMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
+          && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === targetMetadataCount
+          && Number(gapTargetMetadata.baseAllowedLexiconCount || 0) === allowedRows.length
+          && Number(gapTargetMetadata.combinedBoomerTargetCount || 0) === allowedRows.length + gapTargetRows.length
+          && normalize(targetMetadataHash) === approvedCopyHash
+          && gapTargetRows.length === targetMetadataCount
+          && gapTargetRows.length === runtimeGapTargetUniqueIds.size
+          && runtimeGapTargetFieldsComplete
+          && runtimeGapTargetHashesMatch;
+        const runtimeGapMappingConnected = !!(gapMappingResult && gapMappingResult.ok)
+          && /UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING/.test(gapMappingRaw)
+          && gapMappingMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
+          && gapMappingMetadata.targetArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"
+          && Number(gapMappingMetadata.runtimeGapMappingCount || 0) === mappingMetadataCount
+          && Number(gapMappingMetadata.runtimeAliasCount || 0) === runtimeAliasCount
+          && Number(gapMappingMetadata.unresolvedRuntimeGapCount || 0) === 0
+          && normalize(mappingMetadataHash) === approvedCopyHash
+          && gapRows.length === mappingMetadataCount
+          && gapRows.length === runtimeGapMappingUniqueIds.size
+          && runtimeGapMappingTargetsExist
+          && aliasTargetMismatches.length === 0;
+        const approvedCopyHashConsistent = !!approvedCopyHash
+          && !!(gapDecisionResult && gapDecisionResult.ok)
+          && /UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS/.test(gapDecisionRaw)
+          && Number(decisionMetadata.decisionRowCount || 0) === gapDecisionRows.length
+          && Number(decisionMetadata.approvedRowCount || 0) === gapDecisionRows.length
+          && normalize(targetMetadataHash) === approvedCopyHash
+          && normalize(mappingMetadataHash) === approvedCopyHash
+          && (!decisionMetadata.approvedCopyHash || normalize(decisionMetadata.approvedCopyHash) === approvedCopyHash);
         const requiredCoverageStatus = requiredGapCoverage.map((spec) => {
           const runtimeRow = runtimeRowBySignature[stable(spec.source, spec.surface, spec.key)] || null;
           const gapRow = gapRowsById[spec.gapId] || null;
@@ -19500,10 +19531,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           ["lexical_mapping_connected", lexicalMappingConnected, null], ["new_feature_coverage_connected", newFeatureCoverageConnected, { missingNewFeatureZones, extraNewFeatureZones, duplicateNewFeatureZones }],
           ["runtime_gap_targets_connected", runtimeGapTargetsConnected, { rowCount: gapTargetRows.length, metadataCount: targetMetadataCount, metadataCombinedCount: targetMetadataCombinedCount, approvedCopyHash, targetMetadataHash }],
           ["runtime_gap_mapping_connected", runtimeGapMappingConnected, { rowCount: gapRows.length, metadataCount: mappingMetadataCount, approvedCopyHash, mappingMetadataHash }],
-          ["approved_copy_hash_consistent", gapDecisionRows.length === 132 && targetHashConsistent && mappingRowsHashConsistent && targetRowsHashConsistent, { approvedCopyHash, decisionRowCount: gapDecisionRows.length, targetMetadataHash, mappingMetadataHash }],
+          ["approved_copy_hash_consistent", approvedCopyHashConsistent, { approvedCopyHash, decisionRowCount: gapDecisionRows.length, targetMetadataHash, mappingMetadataHash }],
           ["runtime_alias_count_2", runtimeAliasCount === 2, runtimeAliasCount],
           ["semantic_group_count_20", semanticGroupCount === 20, semanticGroupCount],
-          ["boomer_profile_copy_integrated", liveResolvedGapCount === 133 && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133, { liveResolvedGapCount, exactApprovedTextMatchCount, variablePreservationCount }],
+          ["boomer_profile_copy_integrated", runtimeGapTargetsConnected && runtimeGapMappingConnected && approvedCopyHashConsistent && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133, { liveResolvedGapCount, exactApprovedTextMatchCount, variablePreservationCount }],
           ["legacy_runtime_mapping_count_32", legacySpecs.length === 32, legacySpecs.length], ["legacy_resolved_count_32", legacyResolvedCount === 32, legacyResolvedCount],
           ["unresolved_legacy_mapping_count_zero", unresolvedLegacyMappingCount === 0, unresolvedLegacyMappingCount],
           ["conflict_win_covered", conflictWinCovered, requiredCoverageStatus], ["conflict_loss_covered", conflictLossCovered, requiredCoverageStatus],
@@ -19532,7 +19563,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           lexicalMappingConnected, lexicalMappingRowCount, newFeatureCoverageConnected,
           runtimeGapTargetsConnected, runtimeGapTargetCount: gapTargetRows.length,
           runtimeGapMappingConnected, runtimeGapMappingCount: gapRows.length,
-          runtimeAliasCount, semanticGroupCount, approvedCopyHash, boomerProfileCopyIntegrated: liveResolvedGapCount === 133 && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133,
+          approvedCopyHashConsistent, runtimeAliasCount, semanticGroupCount, approvedCopyHash, boomerProfileCopyIntegrated: runtimeGapTargetsConnected && runtimeGapMappingConnected && approvedCopyHashConsistent && exactApprovedTextMatchCount === 133 && variablePreservationCount === 133,
           liveRuntimeGapCount: gapRows.length, liveResolvedGapCount, unresolvedRuntimeGapCount: gapRows.length - liveResolvedGapCount,
           exactApprovedTextMatchCount, variablePreservationCount, legacyRuntimeMappingCount: legacySpecs.length, legacyResolvedCount, unresolvedLegacyMappingCount,
           newFeatureZoneSetMatch, missingNewFeatureZones, extraNewFeatureZones, duplicateNewFeatureZones,
@@ -19568,6 +19599,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       commit: "step3_5_boomer_runtime_lexical_linter_fix12",
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix12_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix12Once"
+    });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix13Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix13_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix13",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix13_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix13Once"
     });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
@@ -19803,6 +19840,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19815,6 +19853,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19841,6 +19880,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19941,6 +19981,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
