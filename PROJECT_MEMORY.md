@@ -28,6 +28,16 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()`.
 - Runtime PASS is not claimed.
 
+## 2026-06-21 — Step 3.5 NPC speech Fix3 export-order correction
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Root cause confirmed: inline `Game.Dev` mirroring in the Step 3.5 registration block could interrupt the installer before the final `Game.__DEV` export became reachable, so the live surface could expose Once while leaving Fix1/Fix2 unreachable.
+- Corrected the Step 3.5 export order in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js` so all Step 3.5 commands are attached to `Game.__DEV` first and `Game.Dev` mirroring runs only through one guarded non-throwing helper.
+- Preserved every existing smoke implementation, dependency check, and legacy public command.
+- Build tag: `build_2026_06_21_step3_5_npc_speech_fix3_v1`.
+- Smoke version: `step3_5_npc_speech_fix3_v20260621_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix12
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix11 left one missing runtime surface at `Data.COP_TEMPLATES.intros[0]`, resolved live as `{cop.fullName}: доступно`.

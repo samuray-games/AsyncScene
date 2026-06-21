@@ -8499,6 +8499,23 @@ Error: Download failure, code=1
   - `git diff --check`
   - `rg` verification confirms the Fix2 command is attached on the final runtime export path in both mirrors and no later overwrite removes it in these files
 - Result: READY_FOR_RUNTIME_SMOKE only. Safari must run `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()`; runtime PASS is not claimed.
+## 2026-06-21 — Step 3.5 NPC speech Fix3 export-order correction
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Correct the Step 3.5 registration order so all Step 3.5 commands are attached to `Game.__DEV` before any `Game.Dev` access, with `Game.Dev` mirroring handled by one guarded non-throwing helper.
+- Completed:
+  - [x] Confirmed both dev-check mirrors contain the same Fix3 implementation.
+  - [x] Moved the Step 3.5 `Game.__DEV` assignments ahead of any `Game.Dev` access for `smokeLexicalFrameStep35NpcSpeechOnce`, `smokeLexicalFrameStep35NpcSpeechFix1`, `smokeLexicalFrameStep35NpcSpeechFix2`, and `smokeLexicalFrameStep35NpcSpeechFix3`.
+  - [x] Replaced inline `Game.Dev` writes in the Step 3.5 path with one guarded non-throwing mirror helper that cannot interrupt `Game.__DEV` registration.
+  - [x] Preserved every existing smoke implementation, dependency check, and legacy public command.
+- Static checks:
+  - `node --check AsyncScene/Web/dev/dev-checks.js`
+  - `node --check docs/dev/dev-checks.js`
+  - `git diff --check`
+  - mirror equality verification for the Step 3.5 Fix3 block
+- Build tag: `build_2026_06_21_step3_5_npc_speech_fix3_v1`.
+- Smoke version: `step3_5_npc_speech_fix3_v20260621_001`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
 ## 2026-06-21 — Step 4.3.6 aggregate alpha lexicon runtime smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari PASS is pending user execution.
 - Added `Game.__DEV.smokeAlphaLexiconOnce()` to aggregate the five completed Step 4.3 smokes covering Steps 4.3.1 through 4.3.5.
