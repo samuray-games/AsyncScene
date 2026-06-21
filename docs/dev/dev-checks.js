@@ -10384,7 +10384,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       const dependencySpecs = [
-        ["step3_1_lexicalFrame", "smokeZoomerLexicalFrameOnce"],
+        ["step3_1_lexicalFrame", "smokeLexicalFrameStep31Once"],
         ["step3_2_allowedLexicon", "smokeZoomerAllowedLexiconOnce"],
         ["step3_3_stopWords", "smokeZoomerStopWordsOnce"],
         ["step3_4_systemTexts", "smokeZoomerSystemTextsOnce"],
@@ -18832,28 +18832,28 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const runtimeGapTargetsConnected = !!(gapTargetResult && gapTargetResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS/.test(gapTargetRaw)
           && gapTargetMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
-          && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === 126
+          && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === 131
           && Number(gapTargetMetadata.baseAllowedLexiconCount || 0) === 164
-          && Number(gapTargetMetadata.combinedBoomerTargetCount || 0) === 290
-          && runtimeGapTargetRows.length === 126;
+          && Number(gapTargetMetadata.combinedBoomerTargetCount || 0) === 295
+          && runtimeGapTargetRows.length === 131;
         const runtimeGapMappingConnected = !!(gapMappingResult && gapMappingResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING/.test(gapMappingRaw)
           && gapMappingMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
           && gapMappingMetadata.targetArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"
-          && Number(gapMappingMetadata.runtimeGapMappingCount || 0) === 128
+          && Number(gapMappingMetadata.runtimeGapMappingCount || 0) === 133
           && Number(gapMappingMetadata.runtimeAliasCount || 0) === 2
           && Number(gapMappingMetadata.unresolvedRuntimeGapCount || 0) === 0
-          && runtimeGapMappingRows.length === 128;
+          && runtimeGapMappingRows.length === 133;
         const approvedCopyConnected = !!(gapDecisionResult && gapDecisionResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS/.test(gapDecisionRaw)
-          && Number(decisionMetadata.decisionRowCount || 0) === 128
-          && Number(decisionMetadata.approvedRowCount || 0) === 128
+          && Number(decisionMetadata.decisionRowCount || 0) === 133
+          && Number(decisionMetadata.approvedRowCount || 0) === 133
           && approvedCopyHash === expectedApprovedCopyHash;
         const boomerProfileCopyIntegrated = runtimeGapTargetsConnected
           && runtimeGapMappingConnected
           && approvedCopyConnected
-          && exactApprovedTextMatchCount === 128
-          && variablePreservationCount === 128
+          && exactApprovedTextMatchCount === 133
+          && variablePreservationCount === 133
           && aliasTargetMismatches.length === 0
           && profileIsolationFailures.length === 0;
         const runtimeInventoryExists = checkedTextCount > 0;
@@ -18875,18 +18875,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           { check: "taboo_list_connected", ok: tabooListConnected, detail: { actual: tabooRows.length, expected: 153 } },
           { check: "lexical_mapping_connected", ok: lexicalMappingConnected, detail: { actual: lexicalMappingRows.length, expected: 93 } },
           { check: "new_feature_coverage_connected", ok: newFeatureCoverageConnected, detail: { actualZones: Array.from(coverageZones).sort(), expectedZones: requiredCoverageZones } },
-          { check: "runtime_gap_targets_connected", ok: runtimeGapTargetsConnected, detail: { actual: runtimeGapTargetRows.length, expected: 126 } },
-          { check: "runtime_gap_mapping_connected", ok: runtimeGapMappingConnected, detail: { actual: runtimeGapMappingRows.length, expected: 128 } },
+          { check: "runtime_gap_targets_connected", ok: runtimeGapTargetsConnected, detail: { actual: runtimeGapTargetRows.length, expected: 131 } },
+          { check: "runtime_gap_mapping_connected", ok: runtimeGapMappingConnected, detail: { actual: runtimeGapMappingRows.length, expected: 133 } },
           { check: "approved_copy_hash_exact", ok: approvedCopyHash === expectedApprovedCopyHash, detail: { actual: approvedCopyHash, expected: expectedApprovedCopyHash } },
           { check: "boomer_profile_copy_integrated", ok: boomerProfileCopyIntegrated, detail: { exactApprovedTextMatchCount, variablePreservationCount, aliasTargetMismatches: aliasTargetMismatches.length, profileIsolationFailures: profileIsolationFailures.length } },
           { check: "checked_text_count_expected_184", ok: checkedTextCountMatches, detail: { actual: checkedTextCount, expected: expectedCheckedTextCount } },
           { check: "checked_surface_count_expected_13", ok: checkedSurfaceCountMatches, detail: { actual: checkedSurfaces.length, expected: expectedCheckedSurfaceCount } },
           { check: "all_expected_surfaces_present", ok: allExpectedSurfacesPresent, detail: { actual: checkedSurfaces, expected: expectedCheckedSurfaces } },
-          { check: "live_runtime_gap_count_128", ok: liveRuntimeGapCount === 128, detail: { actual: liveRuntimeGapCount, expected: 128 } },
-          { check: "live_resolved_gap_count_128", ok: liveResolvedGapCount === 128, detail: { actual: liveResolvedGapCount, expected: 128 } },
+          { check: "live_runtime_gap_count_128", ok: liveRuntimeGapCount === 133, detail: { actual: liveRuntimeGapCount, expected: 133 } },
+          { check: "live_resolved_gap_count_128", ok: liveResolvedGapCount === 133, detail: { actual: liveResolvedGapCount, expected: 133 } },
           { check: "unresolved_runtime_gap_count_zero", ok: unresolvedRuntimeGapCount === 0, detail: { actual: unresolvedRuntimeGapCount, expected: 0 } },
-          { check: "exact_approved_text_match_count_128", ok: exactApprovedTextMatchCount === 128, detail: { actual: exactApprovedTextMatchCount, expected: 128 } },
-          { check: "variable_preservation_count_128", ok: variablePreservationCount === 128, detail: { actual: variablePreservationCount, expected: 128 } },
+          { check: "exact_approved_text_match_count_128", ok: exactApprovedTextMatchCount === 133, detail: { actual: exactApprovedTextMatchCount, expected: 133 } },
+          { check: "variable_preservation_count_128", ok: variablePreservationCount === 133, detail: { actual: variablePreservationCount, expected: 133 } },
           { check: "alias_target_mismatches_empty", ok: aliasTargetMismatches.length === 0, detail: aliasTargetMismatches },
           { check: "profile_isolation_failures_empty", ok: profileIsolationFailures.length === 0, detail: profileIsolationFailures },
           { check: "all_runtime_texts_covered", ok: allRuntimeTextsCovered, detail: { count: missingCoverage.length } },
@@ -18924,6 +18924,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           runtimeGapTargetCount: runtimeGapTargetRows.length,
           runtimeGapMappingConnected,
           runtimeGapMappingCount: runtimeGapMappingRows.length,
+          copIntroCovered,
+          copIntroVariablePreserved,
           approvedCopyHash,
           boomerProfileCopyIntegrated,
           runtimeInventoryExists,
@@ -18968,6 +18970,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const expectedSurfaces = ["DM", "NPC speech", "NPC vs NPC", "UI labels", "crowd", "economy", "errors", "hints", "learning", "rematch", "reports", "respect", "system messages"];
       const requiredGapCoverage = [
         { gapId: "GAP_0129", source: "Data.COP_TEMPLATES", surface: "Data.COP_TEMPLATES.warnings[2]", key: "warnings[2]", approvedBoomerText: "Ситуацию держу." },
+        { gapId: "GAP_0133", source: "Data.COP_TEMPLATES", surface: "Data.COP_TEMPLATES.intros[0]", key: "intros[0]", approvedBoomerText: "{cop.fullName}: доступно" },
         { gapId: "GAP_0130", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_win", key: "conflict_win", approvedBoomerText: "Победа в конфликте." },
         { gapId: "GAP_0131", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_loss", key: "conflict_loss", approvedBoomerText: "Поражение в конфликте." },
         { gapId: "GAP_0132", source: "Data.TEXTS.zoomer", surface: "Data.TEXTS.zoomer.conflict_draw", key: "conflict_draw", approvedBoomerText: "Ничья в конфликте." }
@@ -19032,9 +19035,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         runtimeRows.forEach((row)=>{runtimeRowBySignature[stable(row.source,row.surface,row.key)]=row;const gap=gapBySignature[stable(row.source,row.surface,row.key)];const legacy=legacyBySignature[JSON.stringify([row.source,row.key])];if(gap){if(normalize(row.resolvedText)===normalize(gap.approvedBoomerText)){liveResolvedGapCount++;exactApprovedTextMatchCount++;}else addUnique(missingCoverage,{source:row.source,surface:row.surface,key:row.key,resolvedText:row.resolvedText,reason:"runtime_gap_text_mismatch"});if(sameList(vars(row.resolvedText),vars(gap.approvedBoomerText))&&sameList(vars(row.resolvedText),vars(gap.variables)))variablePreservationCount++;else addUnique(missingCoverage,{source:row.source,surface:row.surface,key:row.key,resolvedText:row.resolvedText,reason:"runtime_gap_variable_mismatch"});}else if(legacy){const target=allowedById[legacy.targetId];if(target&&normalize(row.resolvedText)===normalize(target.boomerText))legacyResolvedCount++;else legacyTextMismatches.push({source:row.source,key:row.key,targetId:legacy.targetId,expected:target&&target.boomerText,actual:row.resolvedText});if(!target||!sameList(vars(row.resolvedText),vars(target.boomerText)))legacyVariableMismatches.push({source:row.source,key:row.key,targetId:legacy.targetId,expected:target?vars(target.boomerText):[],actual:vars(row.resolvedText)});}else if(!(allowedByText[normalize(row.resolvedText)]||[]).length)addUnique(missingCoverage,{source:row.source,surface:row.surface,key:row.key,resolvedText:row.resolvedText,reason:"missing_boomer_mapping"});tabooRows.forEach((taboo)=>{const phrase=String(taboo.phrase||"").trim();let matched=false;if(taboo.category==="abbreviations"&&["НЕ","не","УЖЕ","уже","ОК","ок"].includes(phrase))matched=normalize(row.resolvedText).replace(/^[✓✕\s]+|[✓✕\s]+$/gu,"")===phrase;else if(phrase){const escaped=phrase.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");matched=new RegExp(`(?:^|[^\\p{L}\\p{N}_])${escaped}(?:$|[^\\p{L}\\p{N}_])`,"u").test(String(row.resolvedText||""));}if(matched)addUnique(forbiddenRemaining,{source:row.source,surface:row.surface,key:row.key,resolvedText:row.resolvedText,category:taboo.category,rule:phrase});});});
         legacyTextMismatches.forEach((row)=>addUnique(missingCoverage,{source:row.source,key:row.key,resolvedText:row.actual,reason:"legacy_text_mismatch"}));legacyVariableMismatches.forEach((row)=>addUnique(missingCoverage,{source:row.source,key:row.key,resolvedText:resolve(row,"boomer"),reason:"legacy_variable_mismatch"}));[["GAP_0113","GAP_0112"],["GAP_0126","GAP_0118"]].forEach(([gapId,aliasOf])=>{const alias=gapRows.find((row)=>row.gapId===gapId);const target=gapRows.find((row)=>row.gapId===aliasOf);if(!alias||!target||alias.targetId!==target.targetId||normalize(alias.approvedBoomerText)!==normalize(target.approvedBoomerText))aliasTargetMismatches.push({gapId,aliasOf});});
         legacySpecs.forEach((spec)=>{["zoomer","millennial","default","alpha"].forEach((profile)=>{let expected="";if(spec.source==="Data.TEXTS.zoomer")expected=String((profile==="zoomer"||profile==="alpha"?D.TEXTS.zoomer:D.TEXTS.millennial)[spec.key]||"");else if(spec.source==="Data.START_SCREEN_PROFILE_TEXTS.zoomer")expected=String((profile==="zoomer"||profile==="alpha"?D.START_SCREEN_PROFILE_TEXTS.zoomer:D.START_SCREEN_PROFILE_TEXTS.millennial)[spec.key]||"");else if(spec.source==="Data.START_SCREEN")expected=resolve(spec,"default");else if(spec.source==="Data.COP_TEMPLATES"){const item=indexed(spec.key);expected=String((D.COP_TEMPLATES_PROFILE_TEXTS.millennial[item.bucket]||[])[item.index]||"");}else if(spec.source==="Data.CAP_MESSAGES")expected=String(((D.CAP_MESSAGES_PROFILE_TEXTS||{})[profile]||(D.CAP_MESSAGES_PROFILE_TEXTS||{}).millennial||{})[spec.key]||"");const actual=resolve(spec,profile);if(normalize(actual)!==normalize(expected))addUnique(profileIsolationFailures,{source:spec.source,key:spec.key,profile,expected,actual});});});
-        const zoneLine=String(coverageResult.text||"").match(/Covered zones, in order:\s*((?:`[a-z_]+`(?:,\s*)?)+)\./i);const zoneList=zoneLine?Array.from(zoneLine[1].matchAll(/`([a-z_]+)`/g),(match)=>match[1].toLowerCase()):[];const zoneCounts=zoneList.reduce((counts,zone)=>{counts[zone]=(counts[zone]||0)+1;return counts;},Object.create(null));const missingNewFeatureZones=expectedZones.filter((zone)=>!zoneCounts[zone]);const extraNewFeatureZones=Object.keys(zoneCounts).filter((zone)=>!expectedZones.includes(zone));const duplicateNewFeatureZones=Object.keys(zoneCounts).filter((zone)=>zoneCounts[zone]>1);const newFeatureZoneSetMatch=zoneList.length===expectedZones.length&&missingNewFeatureZones.length===0&&extraNewFeatureZones.length===0&&duplicateNewFeatureZones.length===0;const checkedSurfaces=Array.from(surfaceSet).sort();const allowedLexiconConnected=allowedResult.ok&&allowedRows.length===164;const tabooListConnected=tabooResult.ok&&tabooRows.length===153;const lexicalMappingRowCount=(String(lexicalResult.text||"").match(/^\|\s*MAP_\d{4}\s*\|/gm)||[]).length;const lexicalMappingConnected=lexicalResult.ok&&lexicalMappingRowCount===93;const newFeatureCoverageConnected=coverageResult.ok&&/BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1/.test(coverageResult.text)&&newFeatureZoneSetMatch;const runtimeInventoryExists=runtimeRows.length>0;const unresolvedLegacyMappingCount=legacySpecs.length-legacyResolvedCount;const targetRowsHashConsistent=gapTargetRows.every((row)=>normalize(row.approvedCopyHash)===approvedCopyHash);const mappingRowsHashConsistent=normalize(mappingMetadataHash)===approvedCopyHash;const targetHashConsistent=normalize(targetMetadataHash)===approvedCopyHash;const runtimeGapTargetsConnected=gapTargetsResult.ok&&gapTargetRows.length===130&&targetMetadataCount===130&&targetMetadataCombinedCount===294&&targetHashConsistent&&targetRowsHashConsistent;const runtimeGapMappingConnected=gapMappingResult.ok&&gapRows.length===132&&mappingMetadataCount===132&&mappingRowsHashConsistent;const requiredCoverageStatus=requiredGapCoverage.map((spec)=>{const runtimeRow=runtimeRowBySignature[stable(spec.source,spec.surface,spec.key)]||null;const gapRow=gapRowsById[spec.gapId]||null;const targetRow=gapRow?targetRowsById[gapRow.targetId]||null:null;const mapped=!!(runtimeRow&&gapRow&&targetRow&&normalize(runtimeRow.resolvedText)===normalize(spec.approvedBoomerText)&&normalize(gapRow.approvedBoomerText)===normalize(spec.approvedBoomerText)&&normalize(targetRow.approvedBoomerText)===normalize(spec.approvedBoomerText));let explicit=false;if(spec.source==="Data.TEXTS.zoomer")explicit=!!(D&&D.TEXTS&&D.TEXTS.boomer&&Object.prototype.hasOwnProperty.call(D.TEXTS.boomer,spec.key));if(spec.source==="Data.COP_TEMPLATES"){const item=indexed(spec.key);explicit=!!(item&&D&&D.COP_TEMPLATES_PROFILE_TEXTS&&D.COP_TEMPLATES_PROFILE_TEXTS.boomer&&Array.isArray(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket])&&normalize(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket][item.index])===normalize(spec.approvedBoomerText));}return {...spec,mapped,explicit};});const conflictWinCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0130"&&row.mapped);const conflictLossCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0131"&&row.mapped);const conflictDrawCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0132"&&row.mapped);const copWarningCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0129"&&row.mapped);const allFourResolveThroughBoomerMappings=requiredCoverageStatus.every((row)=>row.mapped);const noneResolveThroughZoomerFallback=requiredCoverageStatus.every((row)=>row.explicit);const allOtherProfilesUnchanged=profileIsolationFailures.length===0;
-        const baseChecks=[["runtime_inventory_exists",runtimeInventoryExists,runtimeRows.length],["checked_text_count_184",runtimeRows.length===184,runtimeRows.length],["checked_surface_count_13",checkedSurfaces.length===13&&expectedSurfaces.every((surface)=>surfaceSet.has(surface)),checkedSurfaces],["allowed_lexicon_connected",allowedLexiconConnected,allowedRows.length],["taboo_list_connected",tabooListConnected,tabooRows.length],["lexical_mapping_connected",lexicalMappingConnected,null],["new_feature_coverage_connected",newFeatureCoverageConnected,{missingNewFeatureZones,extraNewFeatureZones,duplicateNewFeatureZones}],["runtime_gap_targets_connected",runtimeGapTargetsConnected,{rowCount:gapTargetRows.length,metadataCount:targetMetadataCount,metadataCombinedCount:targetMetadataCombinedCount,approvedCopyHash,targetMetadataHash}],["runtime_gap_mapping_connected",runtimeGapMappingConnected,{rowCount:gapRows.length,metadataCount:mappingMetadataCount,approvedCopyHash,mappingMetadataHash}],["approved_copy_hash_consistent",gapDecisionRows.length===132&&targetHashConsistent&&mappingRowsHashConsistent&&targetRowsHashConsistent,{approvedCopyHash,decisionRowCount:gapDecisionRows.length,targetMetadataHash,mappingMetadataHash}],["runtime_alias_count_2",runtimeAliasCount===2,runtimeAliasCount],["semantic_group_count_20",semanticGroupCount===20,semanticGroupCount],["boomer_profile_copy_integrated",liveResolvedGapCount===132&&exactApprovedTextMatchCount===132&&variablePreservationCount===132,{liveResolvedGapCount,exactApprovedTextMatchCount,variablePreservationCount}],["legacy_runtime_mapping_count_32",legacySpecs.length===32,legacySpecs.length],["legacy_resolved_count_32",legacyResolvedCount===32,legacyResolvedCount],["unresolved_legacy_mapping_count_zero",unresolvedLegacyMappingCount===0,unresolvedLegacyMappingCount],["conflict_win_covered",conflictWinCovered,requiredCoverageStatus],["conflict_loss_covered",conflictLossCovered,requiredCoverageStatus],["conflict_draw_covered",conflictDrawCovered,requiredCoverageStatus],["cop_warning_covered",copWarningCovered,requiredCoverageStatus],["all_four_resolve_through_boomer_mappings",allFourResolveThroughBoomerMappings,requiredCoverageStatus],["none_resolve_through_zoomer_fallback",noneResolveThroughZoomerFallback,requiredCoverageStatus],["all_other_profiles_unchanged",allOtherProfilesUnchanged,profileIsolationFailures],["alias_target_mismatches_empty",aliasTargetMismatches.length===0,aliasTargetMismatches],["legacy_text_mismatches_empty",legacyTextMismatches.length===0,legacyTextMismatches],["legacy_variable_mismatches_empty",legacyVariableMismatches.length===0,legacyVariableMismatches],["profile_isolation_failures_empty",profileIsolationFailures.length===0,profileIsolationFailures],["no_slang",!forbiddenRemaining.some((row)=>row.category==="slang"),forbiddenRemaining.filter((row)=>row.category==="slang")],["no_abbreviations",!forbiddenRemaining.some((row)=>row.category==="abbreviations"),forbiddenRemaining.filter((row)=>row.category==="abbreviations")],["no_sharp_wording",!forbiddenRemaining.some((row)=>row.category==="sharp_colloquial"),forbiddenRemaining.filter((row)=>row.category==="sharp_colloquial")],["no_meme_language",!forbiddenRemaining.some((row)=>row.category==="meme_language"),forbiddenRemaining.filter((row)=>row.category==="meme_language")],["no_officialese",!forbiddenRemaining.some((row)=>row.category==="officialese"),forbiddenRemaining.filter((row)=>row.category==="officialese")],["no_moralizing",!forbiddenRemaining.some((row)=>row.category==="moralizing"),forbiddenRemaining.filter((row)=>row.category==="moralizing")],["forbidden_remaining_empty",forbiddenRemaining.length===0,forbiddenRemaining],["missing_coverage_empty",missingCoverage.length===0,missingCoverage]];const failedChecks=baseChecks.filter((entry)=>!entry[1]).map((entry)=>entry[0]);const failures=baseChecks.filter((entry)=>!entry[1]).map((entry)=>({check:entry[0],detail:entry[2]}));if(failures.length){failedChecks.push("failures_empty");failures.push({check:"failures_empty",detail:failures.map((entry)=>entry.check)});}
-        return {ok:failedChecks.length===0,buildTag,commit,smokeVersion,smokeFunctionName,staleBodyDetected:false,checkedTextCount:runtimeRows.length,checkedSurfaceCount:checkedSurfaces.length,checkedSurfaces,allowedLexiconConnected,allowedLexiconInventoryCount:allowedRows.length,tabooListConnected,tabooEntryCount:tabooRows.length,lexicalMappingConnected,lexicalMappingRowCount,newFeatureCoverageConnected,runtimeGapTargetsConnected,runtimeGapTargetCount:gapTargetRows.length,runtimeGapMappingConnected,runtimeGapMappingCount:gapRows.length,runtimeAliasCount,semanticGroupCount,approvedCopyHash,boomerProfileCopyIntegrated:liveResolvedGapCount===132&&exactApprovedTextMatchCount===132,liveRuntimeGapCount:gapRows.length,liveResolvedGapCount,unresolvedRuntimeGapCount:gapRows.length-liveResolvedGapCount,exactApprovedTextMatchCount,variablePreservationCount,legacyRuntimeMappingCount:legacySpecs.length,legacyResolvedCount,unresolvedLegacyMappingCount,newFeatureZoneSetMatch,missingNewFeatureZones,extraNewFeatureZones,duplicateNewFeatureZones,conflictWinCovered,conflictLossCovered,conflictDrawCovered,copWarningCovered,allFourResolveThroughBoomerMappings,noneResolveThroughZoomerFallback,allOtherProfilesUnchanged,aliasTargetMismatches,legacyTextMismatches,legacyVariableMismatches,profileIsolationFailures,forbiddenRemaining,missingCoverage,failedChecks,failures,runtimeLogicTouched:false,uiLayerOnly:true,runtimeInventoryExists,finalLinterRun:true,runtimePassClaimed:false};
+        const zoneLine=String(coverageResult.text||"").match(/Covered zones, in order:\s*((?:`[a-z_]+`(?:,\s*)?)+)\./i);const zoneList=zoneLine?Array.from(zoneLine[1].matchAll(/`([a-z_]+)`/g),(match)=>match[1].toLowerCase()):[];const zoneCounts=zoneList.reduce((counts,zone)=>{counts[zone]=(counts[zone]||0)+1;return counts;},Object.create(null));const missingNewFeatureZones=expectedZones.filter((zone)=>!zoneCounts[zone]);const extraNewFeatureZones=Object.keys(zoneCounts).filter((zone)=>!expectedZones.includes(zone));const duplicateNewFeatureZones=Object.keys(zoneCounts).filter((zone)=>zoneCounts[zone]>1);const newFeatureZoneSetMatch=zoneList.length===expectedZones.length&&missingNewFeatureZones.length===0&&extraNewFeatureZones.length===0&&duplicateNewFeatureZones.length===0;const checkedSurfaces=Array.from(surfaceSet).sort();const allowedLexiconConnected=allowedResult.ok&&allowedRows.length===164;const tabooListConnected=tabooResult.ok&&tabooRows.length===153;const lexicalMappingRowCount=(String(lexicalResult.text||"").match(/^\|\s*MAP_\d{4}\s*\|/gm)||[]).length;const lexicalMappingConnected=lexicalResult.ok&&lexicalMappingRowCount===93;const newFeatureCoverageConnected=coverageResult.ok&&/BOOMER_NEW_FEATURE_COVERAGE_CONNECTED_TO_DEV_SMOKE_V1/.test(coverageResult.text)&&newFeatureZoneSetMatch;const runtimeInventoryExists=runtimeRows.length>0;const unresolvedLegacyMappingCount=legacySpecs.length-legacyResolvedCount;const targetRowsHashConsistent=gapTargetRows.every((row)=>normalize(row.approvedCopyHash)===approvedCopyHash);const mappingRowsHashConsistent=normalize(mappingMetadataHash)===approvedCopyHash;const targetHashConsistent=normalize(targetMetadataHash)===approvedCopyHash;const runtimeGapTargetsConnected=gapTargetsResult.ok&&gapTargetRows.length===130&&targetMetadataCount===130&&targetMetadataCombinedCount===294&&targetHashConsistent&&targetRowsHashConsistent;const runtimeGapMappingConnected=gapMappingResult.ok&&gapRows.length===132&&mappingMetadataCount===132&&mappingRowsHashConsistent;const requiredCoverageStatus=requiredGapCoverage.map((spec)=>{const runtimeRow=runtimeRowBySignature[stable(spec.source,spec.surface,spec.key)]||null;const gapRow=gapRowsById[spec.gapId]||null;const targetRow=gapRow?targetRowsById[gapRow.targetId]||null:null;const mapped=!!(runtimeRow&&gapRow&&targetRow&&normalize(runtimeRow.resolvedText)===normalize(spec.approvedBoomerText)&&normalize(gapRow.approvedBoomerText)===normalize(spec.approvedBoomerText)&&normalize(targetRow.approvedBoomerText)===normalize(spec.approvedBoomerText));let explicit=false;if(spec.source==="Data.TEXTS.zoomer")explicit=!!(D&&D.TEXTS&&D.TEXTS.boomer&&Object.prototype.hasOwnProperty.call(D.TEXTS.boomer,spec.key));if(spec.source==="Data.COP_TEMPLATES"){const item=indexed(spec.key);explicit=!!(item&&D&&D.COP_TEMPLATES_PROFILE_TEXTS&&D.COP_TEMPLATES_PROFILE_TEXTS.boomer&&Array.isArray(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket])&&normalize(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket][item.index])===normalize(spec.approvedBoomerText));}return {...spec,mapped,explicit,runtimeText: runtimeRow ? runtimeRow.resolvedText : "",variableMatch: !!(runtimeRow && gapRow && targetRow && sameList(vars(runtimeRow.resolvedText), vars(spec.approvedBoomerText)))};});const conflictWinCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0130"&&row.mapped);const conflictLossCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0131"&&row.mapped);const conflictDrawCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0132"&&row.mapped);const copWarningCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0129"&&row.mapped);const copIntroCovered=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0133"&&row.mapped);const copIntroVariablePreserved=requiredCoverageStatus.some((row)=>row.gapId==="GAP_0133"&&row.mapped&&row.variableMatch);const allFourResolveThroughBoomerMappings=requiredCoverageStatus.every((row)=>row.mapped);const noneResolveThroughZoomerFallback=requiredCoverageStatus.every((row)=>row.explicit);const allOtherProfilesUnchanged=profileIsolationFailures.length===0;
+        const baseChecks=[["runtime_inventory_exists",runtimeInventoryExists,runtimeRows.length],["checked_text_count_184",runtimeRows.length===184,runtimeRows.length],["checked_surface_count_13",checkedSurfaces.length===13&&expectedSurfaces.every((surface)=>surfaceSet.has(surface)),checkedSurfaces],["allowed_lexicon_connected",allowedLexiconConnected,allowedRows.length],["taboo_list_connected",tabooListConnected,tabooRows.length],["lexical_mapping_connected",lexicalMappingConnected,null],["new_feature_coverage_connected",newFeatureCoverageConnected,{missingNewFeatureZones,extraNewFeatureZones,duplicateNewFeatureZones}],["runtime_gap_targets_connected",runtimeGapTargetsConnected,{rowCount:gapTargetRows.length,metadataCount:targetMetadataCount,metadataCombinedCount:targetMetadataCombinedCount,approvedCopyHash,targetMetadataHash}],["runtime_gap_mapping_connected",runtimeGapMappingConnected,{rowCount:gapRows.length,metadataCount:mappingMetadataCount,approvedCopyHash,mappingMetadataHash}],["approved_copy_hash_consistent",gapDecisionRows.length===132&&targetHashConsistent&&mappingRowsHashConsistent&&targetRowsHashConsistent,{approvedCopyHash,decisionRowCount:gapDecisionRows.length,targetMetadataHash,mappingMetadataHash}],["runtime_alias_count_2",runtimeAliasCount===2,runtimeAliasCount],["semantic_group_count_20",semanticGroupCount===20,semanticGroupCount],["boomer_profile_copy_integrated",liveResolvedGapCount===133&&exactApprovedTextMatchCount===133&&variablePreservationCount===133,{liveResolvedGapCount,exactApprovedTextMatchCount,variablePreservationCount}],["legacy_runtime_mapping_count_32",legacySpecs.length===32,legacySpecs.length],["legacy_resolved_count_32",legacyResolvedCount===32,legacyResolvedCount],["unresolved_legacy_mapping_count_zero",unresolvedLegacyMappingCount===0,unresolvedLegacyMappingCount],["conflict_win_covered",conflictWinCovered,requiredCoverageStatus],["conflict_loss_covered",conflictLossCovered,requiredCoverageStatus],["conflict_draw_covered",conflictDrawCovered,requiredCoverageStatus],["cop_warning_covered",copWarningCovered,requiredCoverageStatus],["cop_intro_covered",copIntroCovered,requiredCoverageStatus],["cop_intro_variable_preserved",copIntroVariablePreserved,requiredCoverageStatus],["all_four_resolve_through_boomer_mappings",allFourResolveThroughBoomerMappings,requiredCoverageStatus],["none_resolve_through_zoomer_fallback",noneResolveThroughZoomerFallback,requiredCoverageStatus],["all_other_profiles_unchanged",allOtherProfilesUnchanged,profileIsolationFailures],["alias_target_mismatches_empty",aliasTargetMismatches.length===0,aliasTargetMismatches],["legacy_text_mismatches_empty",legacyTextMismatches.length===0,legacyTextMismatches],["legacy_variable_mismatches_empty",legacyVariableMismatches.length===0,legacyVariableMismatches],["profile_isolation_failures_empty",profileIsolationFailures.length===0,profileIsolationFailures],["no_slang",!forbiddenRemaining.some((row)=>row.category==="slang"),forbiddenRemaining.filter((row)=>row.category==="slang")],["no_abbreviations",!forbiddenRemaining.some((row)=>row.category==="abbreviations"),forbiddenRemaining.filter((row)=>row.category==="abbreviations")],["no_sharp_wording",!forbiddenRemaining.some((row)=>row.category==="sharp_colloquial"),forbiddenRemaining.filter((row)=>row.category==="sharp_colloquial")],["no_meme_language",!forbiddenRemaining.some((row)=>row.category==="meme_language"),forbiddenRemaining.filter((row)=>row.category==="meme_language")],["no_officialese",!forbiddenRemaining.some((row)=>row.category==="officialese"),forbiddenRemaining.filter((row)=>row.category==="officialese")],["no_moralizing",!forbiddenRemaining.some((row)=>row.category==="moralizing"),forbiddenRemaining.filter((row)=>row.category==="moralizing")],["forbidden_remaining_empty",forbiddenRemaining.length===0,forbiddenRemaining],["missing_coverage_empty",missingCoverage.length===0,missingCoverage]];const failedChecks=baseChecks.filter((entry)=>!entry[1]).map((entry)=>entry[0]);const failures=baseChecks.filter((entry)=>!entry[1]).map((entry)=>({check:entry[0],detail:entry[2]}));if(failures.length){failedChecks.push("failures_empty");failures.push({check:"failures_empty",detail:failures.map((entry)=>entry.check)});}
+        return {ok:failedChecks.length===0,buildTag,commit,smokeVersion,smokeFunctionName,staleBodyDetected:false,checkedTextCount:runtimeRows.length,checkedSurfaceCount:checkedSurfaces.length,checkedSurfaces,allowedLexiconConnected,allowedLexiconInventoryCount:allowedRows.length,tabooListConnected,tabooEntryCount:tabooRows.length,lexicalMappingConnected,lexicalMappingRowCount,newFeatureCoverageConnected,runtimeGapTargetsConnected,runtimeGapTargetCount:gapTargetRows.length,runtimeGapMappingConnected,runtimeGapMappingCount:gapRows.length,runtimeAliasCount,semanticGroupCount,approvedCopyHash,boomerProfileCopyIntegrated:liveResolvedGapCount===133&&exactApprovedTextMatchCount===133&&variablePreservationCount===133,liveRuntimeGapCount:gapRows.length,liveResolvedGapCount,unresolvedRuntimeGapCount:gapRows.length-liveResolvedGapCount,exactApprovedTextMatchCount,variablePreservationCount,legacyRuntimeMappingCount:legacySpecs.length,legacyResolvedCount,unresolvedLegacyMappingCount,newFeatureZoneSetMatch,missingNewFeatureZones,extraNewFeatureZones,duplicateNewFeatureZones,conflictWinCovered,conflictLossCovered,conflictDrawCovered,copWarningCovered,allFourResolveThroughBoomerMappings,noneResolveThroughZoomerFallback,allOtherProfilesUnchanged,aliasTargetMismatches,legacyTextMismatches,legacyVariableMismatches,profileIsolationFailures,forbiddenRemaining,missingCoverage,failedChecks,failures,runtimeLogicTouched:false,uiLayerOnly:true,runtimeInventoryExists,finalLinterRun:true,runtimePassClaimed:false};
       } catch (err) { return {ok:false,buildTag,commit,smokeVersion,smokeFunctionName,staleBodyDetected:false,failedChecks:["smoke_exception"],failures:[{check:"smoke_exception",detail:err&&err.message?String(err.message):String(err)}],forbiddenRemaining:[],missingCoverage:[]}; }
     };
     const smokeBoomerRuntimeLexicalLinterStep35Fix9Once = () => runBoomerRuntimeLexicalLinterStep35Current({
@@ -19054,6 +19057,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       commit: "step3_5_boomer_runtime_lexical_linter_fix11",
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix11_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix11Once"
+    });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix12Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix12_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix12",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix12_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix12Once"
     });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
@@ -19288,6 +19297,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19299,6 +19309,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19324,6 +19335,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19423,6 +19435,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix9Once = smokeBoomerRuntimeLexicalLinterStep35Fix9Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix10Once = smokeBoomerRuntimeLexicalLinterStep35Fix10Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix11Once = smokeBoomerRuntimeLexicalLinterStep35Fix11Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
@@ -20087,7 +20100,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (!String(fileTextMap["data.js"] || "").includes("вброс услышан.")) addUnique(result.canonicalTermViolations, { file: "data.js", text: "вброс услышан." });
         if (!String(fileTextMap["data.js"] || "").includes("вброс пошёл.")) addUnique(result.canonicalTermViolations, { file: "data.js", text: "вброс пошёл." });
         [
-          ["step3_1", "smokeZoomerLexicalFrameOnce"],
+          ["step3_1", "smokeLexicalFrameStep31Once"],
           ["step3_2", "smokeZoomerAllowedLexiconOnce"],
           ["step3_3", "smokeZoomerStopWordsOnce"],
           ["step3_4", "smokeZoomerSystemTextsOnce"]
@@ -20128,6 +20141,117 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+    const smokeLexicalFrameStep35NpcSpeechFix2 = function smokeLexicalFrameStep35NpcSpeechFix2() {
+      const buildTag = "build_2026_06_21_step3_5_npc_speech_fix2_v1";
+      const commit = "step3_5_npc_speech_fix2";
+      const smokeVersion = "step3_5_npc_speech_fix2_v20260621_001";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeLexicalFrameStep35NpcSpeechFix2",
+        fix1Visible: false,
+        dependencyResults: {},
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const expose = () => {
+        if (typeof devStore === "object" && devStore) {
+          devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+          devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        }
+        if (!Game.Dev) Game.Dev = {};
+        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        if (!Game.__DEV) Game.__DEV = {};
+        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      };
+      expose();
+      if (typeof setTimeout === "function") {
+        setTimeout(expose, 0);
+        setTimeout(expose, 250);
+        setTimeout(expose, 1000);
+      }
+      try {
+        const fn = G.__DEV && typeof G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 === "function"
+          ? G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1
+          : null;
+        if (typeof fn !== "function") {
+          fail("step3_5_npc_speech_fix1_visible", "missing_smokeLexicalFrameStep35NpcSpeechFix1");
+        } else {
+          const dep = fn();
+          result.fix1Visible = true;
+          result.dependencyResults.fix1 = {
+            ok: !!(dep && dep.ok === true),
+            buildTag: dep && dep.buildTag,
+            commit: dep && dep.commit,
+            smokeVersion: dep && dep.smokeVersion,
+            failures: dep && Array.isArray(dep.failures) ? dep.failures.length : null,
+            forbiddenRemaining: dep && Array.isArray(dep.forbiddenRemaining) ? dep.forbiddenRemaining.length : null,
+            missingCoverage: dep && Array.isArray(dep.missingCoverage) ? dep.missingCoverage.length : null,
+            failedChecks: dep && Array.isArray(dep.failedChecks) ? dep.failedChecks.length : null
+          };
+          const depClean = !!(dep && dep.ok === true
+            && Array.isArray(dep.failures) && dep.failures.length === 0
+            && Array.isArray(dep.forbiddenRemaining) && dep.forbiddenRemaining.length === 0
+            && Array.isArray(dep.missingCoverage) && dep.missingCoverage.length === 0
+            && Array.isArray(dep.failedChecks) && dep.failedChecks.length === 0
+            && dep.buildTag && dep.commit && dep.smokeVersion);
+          if (!depClean) fail("step3_5_npc_speech_fix1_visible", result.dependencyResults.fix1);
+          addAll(result.forbiddenRemaining, dep && dep.forbiddenRemaining);
+          addAll(result.missingCoverage, dep && dep.missingCoverage);
+          addAll(result.failedChecks, dep && dep.failedChecks);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.fix1Visible === true
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    const exposeLexicalFrameStep35NpcSpeechFixes = () => {
+      if (typeof devStore === "object" && devStore) {
+        devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      }
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+    };
+    exposeLexicalFrameStep35NpcSpeechFixes();
+    if (typeof setTimeout === "function") {
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 0);
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 250);
+      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 1000);
+    }
     return smokeZoomerNpcSpeechInventoryOnce;
   };
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
