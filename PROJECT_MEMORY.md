@@ -47,6 +47,15 @@
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
 - Runtime validation remains pending; runtime PASS is not claimed.
 
+## 2026-06-21 — Step 3.5 NPC speech Fix5 helper-scope repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Root cause confirmed: `addUniqueProfileAudit` was referenced outside the active Step 3.5 lexical scope, so Fix2 and Fix3 execution could abort with `ReferenceError` when Fix3 exercised its failure-collection path.
+- Corrected only the helper scope in both dev-check mirrors by making the existing `addUniqueProfileAudit` implementation available inside the Step 3.5 installer scope before `addUnique` first uses it.
+- Static verification passed: `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, `git diff --check`, Step 3.5 hunk parity, and the static VM harness now executes Fix3 without `ReferenceError` while keeping Once/Fix1/Fix2/Fix3 exported as functions.
+- Preserved all Step 3.5 smoke logic, dependencies, exports, identifiers, and the pre-existing full-file mirror drift outside the Fix5 hunk.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix12
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix11 left one missing runtime surface at `Data.COP_TEMPLATES.intros[0]`, resolved live as `{cop.fullName}: доступно`.
