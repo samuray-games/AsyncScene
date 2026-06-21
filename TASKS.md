@@ -8499,3 +8499,8 @@ Error: Download failure, code=1
   - `git diff --check`
   - `rg` verification confirms the Fix2 command is attached on the final runtime export path in both mirrors and no later overwrite removes it in these files
 - Result: READY_FOR_RUNTIME_SMOKE only. Safari must run `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2()`; runtime PASS is not claimed.
+## 2026-06-21 — Step 4.3.6 aggregate alpha lexicon runtime smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari PASS is pending user execution.
+- Added `Game.__DEV.smokeAlphaLexiconOnce()` to aggregate the five completed Step 4.3 smokes covering Steps 4.3.1 through 4.3.5.
+- Registered the aggregate before the production gate and before potentially throwing child installers.
+- No runtime copy, gameplay, economy, battle, NPC, state, persistence, or routing logic changed.

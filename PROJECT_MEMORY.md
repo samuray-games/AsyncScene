@@ -7618,3 +7618,7 @@ Error: Download failure, code=1
 - Covered 73 of 73 registered rows: 66 text replacements and 7 identity mappings.
 - Variables were preserved, target taboo hits are zero, and gameplay and economy logic are unchanged.
 - Safari PASS is pending user execution of `Game.__DEV.smokeAlphaNewFeaturesOnce()`.
+## 2026-06-21 — Step 4.3.6 aggregate alpha lexicon smoke
+- Added `Game.__DEV.smokeAlphaLexiconOnce()` covering Steps 4.3.1 through 4.3.5.
+- No runtime copy or gameplay changes were made.
+- Safari PASS is pending user execution.
