@@ -20254,6 +20254,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     }
     return smokeZoomerNpcSpeechInventoryOnce;
   };
+  installAlphaNewFeaturesFix1Smoke(G.__DEV);
   installZoomerNpcSpeechInventorySmoke(G.__DEV);
 
   console.warn("NPC_SPEECH_INVENTORY_SMOKE_INSTALLED_V1", typeof G.__DEV.smokeZoomerNpcSpeechInventoryOnce);
@@ -48044,7 +48045,7 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     console.warn("ALPHA_LEXICON_INVENTORY_FIX5_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconInventoryFix5);
   }
 
-+  function installAlphaNewFeaturesSmoke(devStore){
+  function installAlphaNewFeaturesSmoke(devStore){
     if(!devStore||typeof devStore!=="object"||typeof devStore.smokeAlphaNewFeaturesOnce==="function")return;
     const files=["AsyncScene/Web/system.js","AsyncScene/Web/data.js","AsyncScene/Web/npcs.js","AsyncScene/Web/ui/ui-events.js","AsyncScene/Web/ui/ui-battles.js","AsyncScene/Web/ui/ui-dm.js","AsyncScene/Web/state.js","AsyncScene/Web/ui/ui-menu.js"];
     const read=(url)=>{try{const x=new XMLHttpRequest();x.open("GET",url,false);x.send(null);return x.status>=200&&x.status<300?String(x.responseText||""):"";}catch(_){return"";}};
@@ -48061,6 +48062,57 @@ const DIAG_VERSION = "npc_audit_diag_v2";
         if(rows.length!==73||result.changedEntryCount!==66||result.identityEntryCount!==7||result.duplicateSourceMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.missingFeatureCoverage.length||!result.runtimeMirrorMatches||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");
       }catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length;console.warn("ALPHA_NEW_FEATURES_SMOKE",result.ok?"PASS":"FAIL",result);return result;};
     const expose=()=>{if(!Game.Dev)Game.Dev={};Game.Dev.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;if(!Game.__DEV)Game.__DEV={};Game.__DEV.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;};expose();if(typeof setTimeout==="function"){setTimeout(expose,0);setTimeout(expose,250);setTimeout(expose,1000);}
+  }
+  function installAlphaNewFeaturesFix1Smoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaNewFeaturesFix1 === "function") return;
+    installAlphaNewFeaturesSmoke(devStore);
+    const baseSmoke = devStore.smokeAlphaNewFeaturesOnce;
+    if (typeof baseSmoke !== "function") return;
+    devStore.smokeAlphaNewFeaturesFix1 = function smokeAlphaNewFeaturesFix1() {
+      const result = baseSmoke();
+      result.buildTag = "build_2026_06_21_step4_3_5_alpha_new_features_fix1_v1";
+      result.commit = "step4_3_5_alpha_new_features_fix1";
+      result.smokeVersion = "step4_3_5_alpha_new_features_fix1_v20260621_001";
+      result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaNewFeaturesFix1 === devStore.smokeAlphaNewFeaturesFix1);
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", RUNTIME_DEV_CHECKS_SOURCE_URL, false);
+        xhr.send(null);
+        const source = xhr.status >= 200 && xhr.status < 300 ? String(xhr.responseText || "") : "";
+        const fixIndex = source.indexOf("installAlphaNewFeaturesFix1Smoke(G.__DEV);");
+        const failingInstallerIndex = source.indexOf("installZoomerNpcSpeechInventorySmoke(G.__DEV);");
+        const gateIndex = source.indexOf("if (!DEV_FLAG) return;");
+        result.productionGatePlacementOk = fixIndex >= 0
+          && failingInstallerIndex >= 0
+          && gateIndex >= 0
+          && fixIndex < failingInstallerIndex
+          && fixIndex < gateIndex;
+      } catch (_) {
+        result.productionGatePlacementOk = false;
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.registeredOnGameDev === true
+        && result.productionGatePlacementOk === true;
+      console.warn("ALPHA_NEW_FEATURES_FIX1_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const expose = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaNewFeaturesFix1 = devStore.smokeAlphaNewFeaturesFix1;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaNewFeaturesFix1 = devStore.smokeAlphaNewFeaturesFix1;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeAlphaNewFeaturesFix1 = devStore.smokeAlphaNewFeaturesFix1;
+    };
+    expose();
+    if (typeof setTimeout === "function") {
+      setTimeout(expose, 0);
+      setTimeout(expose, 250);
+      setTimeout(expose, 1000);
+    }
   }
   function installAlphaZToAlphaMappingSmoke(devStore) {
     if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaZToAlphaMappingOnce === "function") return;
