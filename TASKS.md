@@ -8516,6 +8516,22 @@ Error: Download failure, code=1
 - Smoke version: `step3_5_npc_speech_fix3_v20260621_001`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
 - Runtime validation remains pending; runtime PASS is not claimed.
+## 2026-06-21 — Step 3.5 NPC speech Fix4 lexical-scope repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Correct the confirmed Step 3.5 lexical-scope failure so the existing Fix1 implementation is in scope before the installer first references it, without changing smoke behavior or dependencies.
+- Completed:
+  - [x] Confirmed the root cause: `smokeLexicalFrameStep35NpcSpeechFix1` was referenced outside its lexical scope inside `installZoomerNpcSpeechInventorySmoke`, aborting the installer after Once and before Fix1/Fix2/Fix3 registration.
+  - [x] Moved the existing Fix1 implementation into the live Step 3.5 installer scope before its first use in both dev-check mirrors.
+  - [x] Preserved the existing Fix1, Fix2, and Fix3 behavior, public command names, and Step 3.1 through Step 3.4 dependency checks.
+  - [x] Kept the Fix4 change isolated to the same logical hunk in `docs/dev/dev-checks.js` and `AsyncScene/Web/dev/dev-checks.js`; pre-existing full-file mirror drift outside this hunk was left untouched.
+- Static checks:
+  - `node --check docs/dev/dev-checks.js`
+  - `node --check AsyncScene/Web/dev/dev-checks.js`
+  - `git diff --check`
+  - static VM export harness: no top-level exception; `smokeLexicalFrameStep35NpcSpeechOnce`, `smokeLexicalFrameStep35NpcSpeechFix1`, `smokeLexicalFrameStep35NpcSpeechFix2`, and `smokeLexicalFrameStep35NpcSpeechFix3` all export as functions in both mirrors
+  - Fix4 hunk equivalence verification across both mirrors
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
 ## 2026-06-21 — Step 4.3.6 aggregate alpha lexicon runtime smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari PASS is pending user execution.
 - Added `Game.__DEV.smokeAlphaLexiconOnce()` to aggregate the five completed Step 4.3 smokes covering Steps 4.3.1 through 4.3.5.
