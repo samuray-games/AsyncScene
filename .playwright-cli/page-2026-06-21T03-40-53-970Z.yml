@@ -1,0 +1,56 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: Площадь
+        - generic [ref=e6]: "Локация: Площадь"
+      - generic [ref=e8]:
+        - textbox "Пиши по теме." [ref=e10]
+        - button "Заслать" [ref=e11] [cursor=pointer]
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: "Твой тон: очень скромный"
+          - generic [ref=e17]: "До скромного: 3 ⚡"
+        - generic "Профиль" [ref=e18]:
+          - generic [ref=e19]:
+            - generic "Влияние" [ref=e20]: ⚡
+            - generic [ref=e21]: "0"
+          - generic [ref=e22]:
+            - generic "⭐" [ref=e23]
+            - generic [ref=e24]: "0"
+            - generic [ref=e25]: до
+            - generic [ref=e26]: "12"
+          - generic [ref=e28]:
+            - generic "💰" [ref=e29]
+            - generic [ref=e30]: "0"
+          - generic [ref=e31]:
+            - generic "Победы" [ref=e32]: 🏆
+            - generic [ref=e33]: "0"
+        - button "Меню" [ref=e34] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic [ref=e38] [cursor=pointer]:
+          - text: баттл
+          - generic [ref=e39]: (0)
+        - generic [ref=e42] [cursor=pointer]: События
+  - generic [ref=e44]:
+    - heading "AsyncScene" [level=1] [ref=e45]
+    - generic [ref=e46]:
+      - generic [ref=e47]: Оппонент задаёт риск.
+      - generic [ref=e48]: Ставка списывает ресурс.
+      - generic [ref=e49]: Итог виден сразу.
+    - generic [ref=e50]: Цена и итог сразу.
+    - generic [ref=e51]: Последние 2 цифры года рождения
+    - generic "Последние 2 цифры года рождения" [ref=e52]:
+      - generic [ref=e53]:
+        - button "Увеличить первую цифру" [ref=e54] [cursor=pointer]: ▲
+        - generic [ref=e55]: "0"
+        - button "Уменьшить первую цифру" [ref=e56] [cursor=pointer]: ▼
+      - generic [ref=e57]:
+        - button "Увеличить вторую цифру" [ref=e58] [cursor=pointer]: ▲
+        - generic [ref=e59]: "0"
+        - button "Уменьшить вторую цифру" [ref=e60] [cursor=pointer]: ▼
+    - generic [ref=e61]: Только для интерфейса. Не сохраняем. Можно поменять позже.
+    - generic [ref=e62]:
+      - button "Старт" [ref=e63] [cursor=pointer]
+      - button "Суть" [ref=e64] [cursor=pointer]
