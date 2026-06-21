@@ -1,3 +1,12 @@
+## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix11
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari Fix10 returned a single remaining `runtime_gap_text_mismatch` at `Data.COP_TEMPLATES.chatReplies[3]`: live boomer text `Ситуацию держу. Детали записаны.` vs canonical approved target `Ситуация под контролем. Детали записаны.`.
+- Canonical inspection showed the Step 3.5 artifacts were already correct and internally aligned: `GAP_0013 -> BRT_0013 -> "Ситуация под контролем. Детали записаны."`, semantic group `cop_chatReplies`, variables `—`, approvedCopyHash unchanged.
+- Corrected only the stale boomer runtime override so `chatReplies[3]` now resolves exactly to the existing approved target in both `AsyncScene/Web/data.js` and `docs/data.js`.
+- Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix11Once()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`; the underlying exact-match, missing-coverage, alias, semantic-group, and profile-isolation checks were not weakened.
+- Expected Step 3.5 Fix11 healthy totals remain unchanged: runtime targets `130`, runtime mappings `132`, aliases `2`, semantic groups `20`, checked texts `184`, checked surfaces `13`, exact approved matches `132`, unresolved runtime gaps `0`.
+- Preliminary static validation passed; local smoke remains non-Safari and no runtime PASS is claimed.
+
 ## 2026-06-20 — Step 3.5 Boomer runtime lexical linter Fix10
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari through the Step 3.6 source dependency reported exactly four `missingCoverage` rows while `forbiddenRemaining` stayed empty: `Data.TEXTS.zoomer.conflict_win`, `Data.TEXTS.zoomer.conflict_loss`, `Data.TEXTS.zoomer.conflict_draw`, and `Data.COP_TEMPLATES.warnings[2]`.
