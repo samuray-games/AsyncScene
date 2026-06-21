@@ -20171,11 +20171,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
-    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
-    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
     devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
     const smokeLexicalFrameStep35NpcSpeechFix2 = function smokeLexicalFrameStep35NpcSpeechFix2() {
       const buildTag = "build_2026_06_21_step3_5_npc_speech_fix2_v1";
       const commit = "step3_5_npc_speech_fix2";
@@ -20200,19 +20197,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
       const expose = () => {
-        if (typeof devStore === "object" && devStore) {
-          devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-          devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-        }
-        if (!Game.Dev) Game.Dev = {};
-        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-        Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-        if (!Game.__DEV) Game.__DEV = {};
-        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-        Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-        if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
-        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        mirrorStep35NpcSpeechExports();
       };
       expose();
       if (typeof setTimeout === "function") {
@@ -20265,27 +20250,50 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
     devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-    if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-    const exposeLexicalFrameStep35NpcSpeechFixes = () => {
+    const smokeLexicalFrameStep35NpcSpeechFix3 = function smokeLexicalFrameStep35NpcSpeechFix3() {
+      const result = smokeLexicalFrameStep35NpcSpeechFix2();
+      if (result && typeof result === "object") {
+        result.buildTag = "build_2026_06_21_step3_5_npc_speech_fix3_v1";
+        result.commit = "step3_5_npc_speech_fix3";
+        result.smokeVersion = "step3_5_npc_speech_fix3_v20260621_001";
+        result.smokeName = "smokeLexicalFrameStep35NpcSpeechFix3";
+      }
+      return result;
+    };
+    devStore.smokeLexicalFrameStep35NpcSpeechFix3 = smokeLexicalFrameStep35NpcSpeechFix3;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3 = smokeLexicalFrameStep35NpcSpeechFix3;
+    const mirrorStep35NpcSpeechExports = () => {
       if (typeof devStore === "object" && devStore) {
+        devStore.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+        devStore.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
         devStore.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
         devStore.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        devStore.smokeLexicalFrameStep35NpcSpeechFix3 = smokeLexicalFrameStep35NpcSpeechFix3;
       }
-      if (!Game.Dev) Game.Dev = {};
-      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-      Game.Dev.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
-      if (!Game.__DEV) Game.__DEV = {};
-      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-      Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      try {
+        const gameDevSurface = Game && Game.Dev;
+        if (gameDevSurface && typeof gameDevSurface === "object") {
+          gameDevSurface.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+          gameDevSurface.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+          gameDevSurface.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+          gameDevSurface.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+          gameDevSurface.smokeLexicalFrameStep35NpcSpeechFix3 = smokeLexicalFrameStep35NpcSpeechFix3;
+        }
+      } catch (err) {}
       if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
-      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
-      G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+      if (G.__DEV && typeof G.__DEV === "object") {
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+        G.__DEV.smokeZoomerNpcSpeechOnce = smokeLexicalFrameStep35NpcSpeechOnce;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix1 = smokeLexicalFrameStep35NpcSpeechFix1;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix2 = smokeLexicalFrameStep35NpcSpeechFix2;
+        G.__DEV.smokeLexicalFrameStep35NpcSpeechFix3 = smokeLexicalFrameStep35NpcSpeechFix3;
+      }
     };
-    exposeLexicalFrameStep35NpcSpeechFixes();
+    mirrorStep35NpcSpeechExports();
     if (typeof setTimeout === "function") {
-      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 0);
-      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 250);
-      setTimeout(exposeLexicalFrameStep35NpcSpeechFixes, 1000);
+      setTimeout(mirrorStep35NpcSpeechExports, 0);
+      setTimeout(mirrorStep35NpcSpeechExports, 250);
+      setTimeout(mirrorStep35NpcSpeechExports, 1000);
     }
     return smokeZoomerNpcSpeechInventoryOnce;
   };
