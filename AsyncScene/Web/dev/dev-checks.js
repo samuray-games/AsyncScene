@@ -20457,6 +20457,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const right = step35ExtractPlaceholders(b);
       return left.length === right.length && left.every((item, index) => item === right[index]);
     };
+    const addUniqueProfileAudit = (arr, item) => {
+      const key = JSON.stringify(item);
+      if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item);
+    };
     const smokeLexicalFrameStep35NpcSpeechOnce = function smokeLexicalFrameStep35NpcSpeechOnce() {
       const result = {
         ok: false,
