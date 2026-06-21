@@ -8532,6 +8532,22 @@ Error: Download failure, code=1
   - Fix4 hunk equivalence verification across both mirrors
 - Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
 - Runtime validation remains pending; runtime PASS is not claimed.
+## 2026-06-21 — Step 3.5 NPC speech Fix5 helper-scope repair
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Goal: Correct the confirmed `addUniqueProfileAudit` lexical-scope failure so Fix3 can execute its failure-collection path without `ReferenceError`, while preserving all Step 3.5 smoke logic, dependencies, exports, and identifiers.
+- Completed:
+  - [x] Confirmed the root cause: `addUniqueProfileAudit` was referenced outside the active Step 3.5 lexical scope, which could abort Fix2 and Fix3 execution when Fix3 exercised the failure path.
+  - [x] Exposed the existing `addUniqueProfileAudit` implementation inside the Step 3.5 installer scope before `addUnique` first uses it in both dev-check mirrors.
+  - [x] Preserved Once, Fix1, Fix2, Fix3 logic, dependency checks, exports, and identifiers.
+  - [x] Kept the Fix5 hunk logically equivalent in both mirrors without unrelated refactors or fallbacks.
+- Static checks:
+  - `node --check docs/dev/dev-checks.js`
+  - `node --check AsyncScene/Web/dev/dev-checks.js`
+  - `git diff --check`
+  - Step 3.5 hunk parity check
+  - static VM harness executing Fix3 without `ReferenceError`
+- Pending Safari runtime smoke command: `Game.__DEV.smokeLexicalFrameStep35NpcSpeechFix3()`.
+- Runtime validation remains pending; runtime PASS is not claimed.
 ## 2026-06-21 — Step 4.3.6 aggregate alpha lexicon runtime smoke
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari PASS is pending user execution.
 - Added `Game.__DEV.smokeAlphaLexiconOnce()` to aggregate the five completed Step 4.3 smokes covering Steps 4.3.1 through 4.3.5.
