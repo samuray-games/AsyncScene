@@ -1,3 +1,9 @@
+## 2026-06-21 — Asynchronia Codex plugin v0.1.1 approval protocol
+- Status: READY_FOR_INSTALL_REFRESH only; protocol smoke remains pending.
+- Updated the repository policy to define the canonical final `APPROVE` block, the accepted English and Russian aliases, the case-insensitive token rule, the same-thread and single-pending-task safeguards, and the separation from native Codex permission dialogs.
+- Plugin manifest version is now `0.1.1`.
+- installation refresh and protocol smoke remain pending.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix14
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Fix13 still surfaced a `ReferenceError` for `approvedCopyHashConsistent` because the active docs mirror was missing the local binding in the current smoke body.
