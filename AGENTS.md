@@ -140,14 +140,20 @@ Available reasoning levels are low, medium, high, and extra high.
 For every task, Codex must:
 
 - analyze the exact task and compare it with existing infrastructure and similar completed work;
-- choose the best option among all available models;
+- choose the cheapest reliable option among all available models;
 - state the selected model and reasoning level;
 - briefly explain why weaker options are insufficient;
 - briefly explain why a stronger option is unnecessary or unavailable;
-- never invent model names or silently downgrade the selected model; and
+- justify any stronger-model promotion from task characteristics such as runtime sensitivity, architectural risk, ambiguity, concurrency, validation cost, or release impact;
+- never invent model names or silently downgrade the selected model;
+- never silently claim or change the active model; and
 - treat the selection as a recommendation unless the user selected it in the Codex interface.
 
-The user selects the model in the Codex interface. Codex may recommend a model but must not falsely claim it changed the active model.
+The user selects the active model in the Codex interface. Codex may recommend a model but must not falsely claim it changed or verified the active model.
+
+If the active model cannot be verified from external metadata, report it as `USER_SELECTED_UNVERIFIED`.
+
+If Codex reports its own model name without external verification, label it `SELF_REPORTED_UNVERIFIED`; self-report is not proof of the active model.
 
 ## 9. Plugin usage
 

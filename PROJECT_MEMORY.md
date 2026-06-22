@@ -1,3 +1,12 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
+- Status: PASS for implementation and static validation only; acceptance smoke remains pending.
+- Added `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill for the exact allowed model set `GPT-5.5`, `GPT-5.4`, and `GPT-5.4-Mini`, and the exact allowed reasoning levels `low`, `medium`, `high`, and `extra high`.
+- Locked the default objective to the cheapest reliable option and limited promotion to task-justified cases such as runtime sensitivity, architectural risk, ambiguity, concurrency, validation complexity, or release acceptance.
+- Locked truthfulness requirements: the skill cannot verify or change the active Codex interface model, must report `USER_SELECTED_UNVERIFIED` when the active model is not externally verified, and must label unverified self-reported model claims as `SELF_REPORTED_UNVERIFIED`.
+- `task-router` and `parallel-scope-planner` remain pending.
+- Plugin version remains `0.1.1` until v0.2.0 integration.
+- model-selector smoke remains pending.
+
 ## 2026-06-22 — Step 3.5 Boomer runtime lexical linter Fix16
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Observed Safari Fix15 failure: `failedChecks:["smoke_exception"]` with `Can't find variable: gapDecisionRaw`.
