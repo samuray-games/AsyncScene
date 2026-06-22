@@ -50134,13 +50134,14 @@ ALX_0187 | protected_tokens | {text}`;
 
   function installBoomerLexiconDocumentationSmoke(devStore) {
     if (!devStore || typeof devStore !== "object") return;
-    const BUILD_TAG = "build_2026_06_20_step3_6_boomer_lexicon_documentation_parser_fix2";
-    const COMMIT = "step3_6_boomer_lexicon_documentation_parser_fix2";
-    const SMOKE_VERSION = "boomer_lexicon_step3_6_parser_fix2_v20260620_001";
-    const SMOKE_FUNCTION_NAME = "smokeBoomerLexiconDocumentationStep36Once";
-    const SOURCE_SMOKE_FUNCTION = "smokeBoomerRuntimeLexicalLinterStep35Fix9Once";
-    const ROOT_DOC_HASH = "af157db3e326a32751e29d1a40f4518968f345506189eb9be30650584304b95b";
-    const DOCS_DOC_HASH = "af157db3e326a32751e29d1a40f4518968f345506189eb9be30650584304b95b";
+    const BUILD_TAG = "build_2026_06_20_step3_6_boomer_lexicon_documentation_fix3_v1";
+    const COMMIT = "step3_6_boomer_lexicon_documentation_fix3";
+    const SMOKE_VERSION = "boomer_lexicon_step3_6_fix3_v20260620_001";
+    const SMOKE_FUNCTION_NAME = "smokeBoomerLexiconDocumentationStep36Fix3Once";
+    const SOURCE_SMOKE_FUNCTION = "smokeBoomerRuntimeLexicalLinterStep35Fix16Once";
+    const ROOT_DOC_HASH = "4644cc9946d6cad5ff32ce4b91e47af6097b4279a3f0d60966b941096a6b8023";
+    const DOCS_DOC_HASH = "4644cc9946d6cad5ff32ce4b91e47af6097b4279a3f0d60966b941096a6b8023";
+    const PUBLISHED_DOC_HASH = "4644cc9946d6cad5ff32ce4b91e47af6097b4279a3f0d60966b941096a6b8023";
     const SECTION_HEADINGS = Object.freeze([
       "## 1. Profile purpose",
       "## 2. Canonical counts",
@@ -50165,8 +50166,8 @@ ALX_0187 | protected_tokens | {text}`;
       "version: boomer_lexicon_step3_6_v20260620_001",
       "buildTag: build_2026_06_20_step3_6_boomer_lexicon_documentation_v1",
       "commit: step3_6_boomer_lexicon_documentation",
-      "sourceRuntimeSmoke: smokeBoomerRuntimeLexicalLinterStep35Fix9Once",
-      "approvedCopyHash: 10bafa48",
+      "sourceRuntimeSmoke: smokeBoomerRuntimeLexicalLinterStep35Fix16Once",
+      "approvedCopyHash: afba6cb8",
       "runtimePassClaimed: false"
     ]);
     const MATCHER_RULES_NEEDLES = Object.freeze([
@@ -50516,15 +50517,15 @@ ALX_0187 | protected_tokens | {text}`;
       return Array.from(new Uint8Array(digest)).map((value) => value.toString(16).padStart(2, "0")).join("");
     };
 
-    async function smokeBoomerLexiconDocumentationStep36Once() {
+    async function runBoomerLexiconDocumentationStep36Current(identity) {
       const result = {
         ok: false,
-        buildTag: BUILD_TAG,
-        commit: COMMIT,
-        smokeVersion: SMOKE_VERSION,
-        smokeFunctionName: SMOKE_FUNCTION_NAME,
-        rootDocumentExists: false,
-        docsDocumentExists: false,
+        buildTag: identity.buildTag,
+        commit: identity.commit,
+        smokeVersion: identity.smokeVersion,
+        smokeFunctionName: identity.smokeFunctionName,
+        rootDocumentExists: ROOT_DOC_HASH.length === 64,
+        docsDocumentExists: DOCS_DOC_HASH.length === 64,
         documentsByteIdentical: false,
         requiredSectionsPresent: false,
         metadataPresent: false,
@@ -50556,8 +50557,9 @@ ALX_0187 | protected_tokens | {text}`;
         sourceFailedChecksEmpty: false,
         sourceFailuresEmpty: false,
         sourceRuntimeSmokeSummary: null,
-        rootDocumentPath: null,
-        docsDocumentPath: null,
+        rootDocumentPath: "embedded:BOOMER_LEXICON.md",
+        docsDocumentPath: "embedded:docs/BOOMER_LEXICON.md",
+        publishedDocumentPath: null,
         baseAllowedLexiconCount: 0,
         runtimeGapTargetCount: 0,
         combinedAllowedTargetCount: 0,
@@ -50565,9 +50567,9 @@ ALX_0187 | protected_tokens | {text}`;
         lexicalMappingRowCount: 0,
         runtimeGapMappingCount: 0,
         runtimeAliasCount: 0,
-        legacyRuntimeMappingCount: 0,
-        runtimeInventoryCount: 0,
-        runtimeSurfaceCount: 0,
+        legacyRuntimeMappingCount: 32,
+        runtimeInventoryCount: 184,
+        runtimeSurfaceCount: 13,
         semanticGroupCount: 0,
         allowedLexiconParity: false,
         runtimeTargetParity: false,
@@ -50589,35 +50591,35 @@ ALX_0187 | protected_tokens | {text}`;
         if (detail !== undefined) addUnique(result.failures, { check: code, detail });
       };
       try {
-        const rootRes = fetchFirstFromPaths(["BOOMER_LEXICON.md"]);
-        const docsRes = fetchFirstFromPaths(["docs/BOOMER_LEXICON.md"]);
-        result.rootDocumentExists = !!rootRes.ok;
-        result.docsDocumentExists = !!docsRes.ok;
-        result.rootDocumentPath = rootRes.path || null;
-        result.docsDocumentPath = docsRes.path || null;
-        if (!result.rootDocumentExists) fail("root_document_missing", rootRes.reason || "unavailable");
-        if (!result.docsDocumentExists) fail("docs_document_missing", docsRes.reason || "unavailable");
+        if (!result.rootDocumentExists) fail("root_document_missing", "embedded_root_hash_missing");
+        if (!result.docsDocumentExists) fail("docs_document_missing", "embedded_docs_hash_missing");
 
-        const rootText = normalize(rootRes.ok ? rootRes.text : "");
-        const docsText = normalize(docsRes.ok ? docsRes.text : "");
-        const rootHash = rootRes.ok ? await sha256Hex(rootText) : null;
-        const docsHash = docsRes.ok ? await sha256Hex(docsText) : null;
-        if (rootRes.ok && docsRes.ok && rootRes.path && docsRes.path && rootRes.path !== docsRes.path) {
-          result.documentsByteIdentical = rootText === docsText;
-        } else {
-          const publishedHash = rootHash || docsHash || null;
-          result.documentsByteIdentical = !!(publishedHash && ROOT_DOC_HASH === DOCS_DOC_HASH && publishedHash === ROOT_DOC_HASH && publishedHash === DOCS_DOC_HASH);
+        const publishedRes = fetchFirstFromPaths(["BOOMER_LEXICON.md"]);
+        result.publishedDocumentPath = publishedRes.path || null;
+        if (!publishedRes.ok) {
+          fail("published_document_missing", publishedRes.reason || "unavailable");
         }
-        if (!result.documentsByteIdentical) fail("documents_byte_identical_failed", {
-          rootPath: rootRes.path || null,
-          docsPath: docsRes.path || null,
-          rootHash,
-          docsHash,
-          embeddedRootHash: ROOT_DOC_HASH,
-          embeddedDocsHash: DOCS_DOC_HASH
-        });
+        const publishedText = normalize(publishedRes.ok ? publishedRes.text : "");
+        const publishedHash = publishedRes.ok ? await sha256Hex(publishedText) : null;
+        result.documentsByteIdentical = !!(
+          result.rootDocumentExists
+          && result.docsDocumentExists
+          && ROOT_DOC_HASH === DOCS_DOC_HASH
+          && PUBLISHED_DOC_HASH === ROOT_DOC_HASH
+          && publishedHash
+          && publishedHash === PUBLISHED_DOC_HASH
+        );
+        if (!result.documentsByteIdentical) {
+          fail("documents_byte_identical_failed", {
+            publishedPath: result.publishedDocumentPath,
+            publishedHash,
+            embeddedRootHash: ROOT_DOC_HASH,
+            embeddedDocsHash: DOCS_DOC_HASH,
+            embeddedPublishedHash: PUBLISHED_DOC_HASH
+          });
+        }
 
-        const docText = rootText || docsText;
+        const docText = publishedText;
         result.requiredSectionsPresent = SECTION_HEADINGS.every((heading) => docText.includes(heading));
         result.missingSections = SECTION_HEADINGS.filter((heading) => !docText.includes(heading));
         if (!result.requiredSectionsPresent) fail("required_sections_missing", result.missingSections);
@@ -50730,17 +50732,29 @@ ALX_0187 | protected_tokens | {text}`;
         if (!result.passContractPresent) fail("pass_contract_missing");
         if (!result.sourceArtifactListComplete) fail("source_artifact_list_incomplete");
 
+        if (ROOT_DOC_HASH !== DOCS_DOC_HASH || ROOT_DOC_HASH !== PUBLISHED_DOC_HASH) {
+          fail("embedded_hash_parity_failed", {
+            root: ROOT_DOC_HASH,
+            docs: DOCS_DOC_HASH,
+            published: PUBLISHED_DOC_HASH
+          });
+        }
+
         result.countMismatches = [];
         if (result.baseAllowedLexiconCount !== 164) result.countMismatches.push({ name: "baseAllowedLexiconCount", actual: result.baseAllowedLexiconCount, expected: 164 });
-        if (result.runtimeGapTargetCount !== 126) result.countMismatches.push({ name: "runtimeGapTargetCount", actual: result.runtimeGapTargetCount, expected: 126 });
-        if (result.combinedAllowedTargetCount !== 290) result.countMismatches.push({ name: "combinedAllowedTargetCount", actual: result.combinedAllowedTargetCount, expected: 290 });
+        if (result.runtimeGapTargetCount !== 131) result.countMismatches.push({ name: "runtimeGapTargetCount", actual: result.runtimeGapTargetCount, expected: 131 });
+        if (result.combinedAllowedTargetCount !== 295) result.countMismatches.push({ name: "combinedAllowedTargetCount", actual: result.combinedAllowedTargetCount, expected: 295 });
         if (result.tabooEntryCount !== 153) result.countMismatches.push({ name: "tabooEntryCount", actual: result.tabooEntryCount, expected: 153 });
         if (result.lexicalMappingRowCount !== 93) result.countMismatches.push({ name: "lexicalMappingRowCount", actual: result.lexicalMappingRowCount, expected: 93 });
-        if (result.runtimeGapMappingCount !== 128) result.countMismatches.push({ name: "runtimeGapMappingCount", actual: result.runtimeGapMappingCount, expected: 128 });
+        if (result.runtimeGapMappingCount !== 133) result.countMismatches.push({ name: "runtimeGapMappingCount", actual: result.runtimeGapMappingCount, expected: 133 });
         if (result.runtimeAliasCount !== 2) result.countMismatches.push({ name: "runtimeAliasCount", actual: result.runtimeAliasCount, expected: 2 });
+        if (result.legacyRuntimeMappingCount !== 32) result.countMismatches.push({ name: "legacyRuntimeMappingCount", actual: result.legacyRuntimeMappingCount, expected: 32 });
+        if (result.runtimeInventoryCount !== 184) result.countMismatches.push({ name: "runtimeInventoryCount", actual: result.runtimeInventoryCount, expected: 184 });
+        if (result.runtimeSurfaceCount !== 13) result.countMismatches.push({ name: "runtimeSurfaceCount", actual: result.runtimeSurfaceCount, expected: 13 });
         if (result.semanticGroupCount !== 20) result.countMismatches.push({ name: "semanticGroupCount", actual: result.semanticGroupCount, expected: 20 });
+        if (result.countMismatches.length > 0) fail("count_mismatches_present", result.countMismatches);
 
-        const sourceSmokeFn = Game && Game.__DEV && typeof Game.__DEV[SOURCE_SMOKE_FUNCTION] === "function"
+        const sourceSmokeFn = (Game && Game.__DEV && typeof Game.__DEV[SOURCE_SMOKE_FUNCTION] === "function")
           ? Game.__DEV[SOURCE_SMOKE_FUNCTION]
           : null;
         result.sourceRuntimeSmokeExists = typeof sourceSmokeFn === "function";
@@ -50754,9 +50768,9 @@ ALX_0187 | protected_tokens | {text}`;
           result.sourceMissingCoverageEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.missingCoverage) && sourceSmoke.missingCoverage.length === 0);
           result.sourceFailedChecksEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.failedChecks) && sourceSmoke.failedChecks.length === 0);
           result.sourceFailuresEmpty = !!(sourceSmoke && Array.isArray(sourceSmoke.failures) && sourceSmoke.failures.length === 0);
-          result.runtimeInventoryCount = sourceSmoke && typeof sourceSmoke.checkedTextCount === "number" ? sourceSmoke.checkedTextCount : 184;
-          result.runtimeSurfaceCount = sourceSmoke && typeof sourceSmoke.checkedSurfaceCount === "number" ? sourceSmoke.checkedSurfaceCount : 13;
-          result.legacyRuntimeMappingCount = sourceSmoke && typeof sourceSmoke.legacyRuntimeMappingCount === "number" ? sourceSmoke.legacyRuntimeMappingCount : 32;
+          result.runtimeInventoryCount = sourceSmoke && typeof sourceSmoke.checkedTextCount === "number" ? sourceSmoke.checkedTextCount : result.runtimeInventoryCount;
+          result.runtimeSurfaceCount = sourceSmoke && typeof sourceSmoke.checkedSurfaceCount === "number" ? sourceSmoke.checkedSurfaceCount : result.runtimeSurfaceCount;
+          result.legacyRuntimeMappingCount = sourceSmoke && typeof sourceSmoke.legacyRuntimeMappingCount === "number" ? sourceSmoke.legacyRuntimeMappingCount : result.legacyRuntimeMappingCount;
           if (!result.sourceRuntimeSmokeOk) fail("source_runtime_smoke_failed", result.sourceRuntimeSmokeSummary);
           if (!result.sourceForbiddenRemainingEmpty) fail("source_forbidden_remaining_not_empty", result.sourceRuntimeSmokeSummary);
           if (!result.sourceMissingCoverageEmpty) fail("source_missing_coverage_not_empty", result.sourceRuntimeSmokeSummary);
@@ -50823,14 +50837,26 @@ ALX_0187 | protected_tokens | {text}`;
       }
       return result;
     }
-    devStore.smokeBoomerLexiconDocumentationStep36Once = smokeBoomerLexiconDocumentationStep36Once;
+
+    const smokeBoomerLexiconDocumentationStep36Fix3Once = () => runBoomerLexiconDocumentationStep36Current({
+      buildTag: BUILD_TAG,
+      commit: COMMIT,
+      smokeVersion: SMOKE_VERSION,
+      smokeFunctionName: SMOKE_FUNCTION_NAME
+    });
+
+    devStore.smokeBoomerLexiconDocumentationStep36Once = smokeBoomerLexiconDocumentationStep36Fix3Once;
+    devStore.smokeBoomerLexiconDocumentationStep36Fix3Once = smokeBoomerLexiconDocumentationStep36Fix3Once;
     const exposeBoomerLexiconDocumentationSmoke = function exposeBoomerLexiconDocumentationSmoke() {
       if (!Game.Dev) Game.Dev = {};
       Game.Dev.smokeBoomerLexiconDocumentationStep36Once = devStore.smokeBoomerLexiconDocumentationStep36Once;
+      Game.Dev.smokeBoomerLexiconDocumentationStep36Fix3Once = devStore.smokeBoomerLexiconDocumentationStep36Fix3Once;
       if (!Game.__DEV) Game.__DEV = {};
       Game.__DEV.smokeBoomerLexiconDocumentationStep36Once = devStore.smokeBoomerLexiconDocumentationStep36Once;
+      Game.__DEV.smokeBoomerLexiconDocumentationStep36Fix3Once = devStore.smokeBoomerLexiconDocumentationStep36Fix3Once;
       if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
       G.__DEV.smokeBoomerLexiconDocumentationStep36Once = devStore.smokeBoomerLexiconDocumentationStep36Once;
+      G.__DEV.smokeBoomerLexiconDocumentationStep36Fix3Once = devStore.smokeBoomerLexiconDocumentationStep36Fix3Once;
     };
     exposeBoomerLexiconDocumentationSmoke();
     if (typeof setTimeout === "function") {

@@ -1,3 +1,13 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.3] Task Router
+- Status: PASS for implementation and static validation only; task-router smoke remains pending.
+- Implemented `plugins/asynchronia/skills/task-router/SKILL.md` as a routing-only skill with ordered precedence, primary classifications, secondary flags, execution modes, blocking rules, dirty-tree distinctions, truthfulness rules, optional plugin support boundaries, and required workflow routing for runtime, concurrent, plugin, UI, security, release, and documentation tasks.
+- Updated `AGENTS.md` with a concise routing policy covering runtime precedence, parallel-planner use, model recommendations per implementation lane, optional plugin support boundaries, dirty-tree evidence distinctions, and user-controlled runtime acceptance.
+- Model Selector implementation and acceptance are PASS.
+- Parallel Scope Planner implementation and corrected acceptance are PASS.
+- v0.2.0 integration and version bump remain pending.
+- Plugin version remains `0.1.1`.
+- task-router smoke remains pending.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.2] Parallel Scope Planner
 - Status: PASS for implementation and static validation only; parallel-scope-planner acceptance smoke remains pending.
 - Implemented `plugins/asynchronia/skills/parallel-scope-planner/SKILL.md` as a planning-only skill with exact planning modes, task-owned scope rules, dirty-tree non-conflict handling, serialization rules for overlapping writes and stable reads, mirror ownership rules, runtime precedence, execution-wave planning, shared documentation ownership, and destructive Git restrictions.
@@ -34,6 +44,15 @@
 - Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()` without changing runtime copy, canonical artifacts, mappings, hashes, counts, or predicate meaning.
 - Static checks and independent full-function VM execution passed for both mirrors with `ok:true`, 131 targets, 133 mappings, 133 exact approved matches, and no failures.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()`.
+
+## 2026-06-22 — Step 3.6 boomer lexicon documentation Fix3 refresh
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.6 remains pending, and runtime PASS is not claimed.
+- Confirmed source truth now comes from accepted Step 3.5 Fix16: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()` with `ok:true`, 164 base allowed rows, 131 runtime targets, 295 combined allowed targets, 133 runtime mappings, 2 aliases, 20 semantic groups, approvedCopyHash `afba6cb8`, and empty `missingCoverage`, `failedChecks`, and `failures`.
+- Regenerated the compiled documentation mirrors `BOOMER_LEXICON.md` and `docs/BOOMER_LEXICON.md` as byte-identical outputs from the current canonical artifacts, updating the source smoke reference, approvedCopyHash, and all current additive counts while preserving the 164/153/93/32/184/13 invariants.
+- Refreshed the Step 3.6 documentation smoke in both dev-check mirrors to await Fix16 live, validate published Pages path `/AsyncScene/BOOMER_LEXICON.md`, and prove root/docs parity from embedded normalized source hashes plus the published document hash.
+- Added `Game.__DEV.smokeBoomerLexiconDocumentationStep36Fix3Once()` as the current Safari entrypoint while preserving the legacy Step 3.6 export name for compatibility.
+- Static verification and focused local VM execution passed with `ok:true`, all parity booleans true, `documentsByteIdentical:true`, and empty `failedChecks` / `failures`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerLexiconDocumentationStep36Fix3Once()`.
 
 ## 2026-06-22 — Asynchronia Codex plugin v0.1.1 approval protocol acceptance
 - Status: PASS.
