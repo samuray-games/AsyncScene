@@ -7680,3 +7680,7 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeAlphaLexiconOnce()` covering Steps 4.3.1 through 4.3.5.
 - No runtime copy or gameplay changes were made.
 - Safari PASS is pending user execution.
+## 2026-06-22 — Step 4.3.6 Fix1 aggregate alpha lexicon smoke
+- Restored the four prerequisite alpha smoke registrations before the production gate and earlier throwing installers.
+- Step 4.3.5 now validates the loaded dev-checks asset structurally without pinning its cache-marker value.
+- Added `Game.__DEV.smokeAlphaLexiconFix1()`; runtime copy and gameplay logic are unchanged, and Safari PASS is pending user execution.

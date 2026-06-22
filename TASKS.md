@@ -8582,3 +8582,8 @@ Error: Download failure, code=1
 - Added `Game.__DEV.smokeAlphaLexiconOnce()` to aggregate the five completed Step 4.3 smokes covering Steps 4.3.1 through 4.3.5.
 - Registered the aggregate before the production gate and before potentially throwing child installers.
 - No runtime copy, gameplay, economy, battle, NPC, state, persistence, or routing logic changed.
+## 2026-06-22 — Step 4.3.6 Fix1 aggregate alpha lexicon runtime smoke
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari PASS is pending user execution.
+- Restored production-visible registration of the four prerequisite inventory, allowed-lexicon, taboo-list, and z-to-alpha mapping smokes before the production gate and earlier throwing installers.
+- Made the Step 4.3.5 loaded dev-checks asset contract version-agnostic but structurally strict for current origin, canonical pathname, and a nonempty version query.
+- Added `Game.__DEV.smokeAlphaLexiconFix1()` without changing runtime copy or gameplay logic.
