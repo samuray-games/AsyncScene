@@ -1,3 +1,15 @@
+## 2026-06-22 — Asynchronia Codex plugin v0.1.1 approval protocol acceptance
+- Status: PASS.
+- Asynchronia plugin version: `0.1.1`.
+- approval-protocol smoke: PASS.
+- The `RUNTIME_SAFETY_GATE_REQUIRED` response ended with the canonical standalone `APPROVE` block.
+- Forbidden `approvalOptions` output was absent.
+- Russian alias `ок` was accepted case-insensitively.
+- Approval remained limited to the single pending task scope: `AsyncScene/Web/data.js` and `docs/data.js`.
+- No files were modified during the protocol smoke.
+- Native Codex permissions, mirror synchronization, `AGENTS.md` rules, and Safari smoke were not waived.
+- Approval protocol acceptance: COMPLETE.
+
 ## 2026-06-22 — Step 3.5 NPC speech Fix9 runtime copy correction
 - Status: READY_FOR_PUBLISH only; Safari/runtime PASS is not claimed.
 - Corrected the two Pages-served runtime rows in `docs/data.js` for `S34_0005` and `S34_0032`.
