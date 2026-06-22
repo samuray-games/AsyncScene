@@ -1,3 +1,11 @@
+## 2026-06-22 — Step 3.5 Boomer runtime lexical linter Fix16
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Observed Safari Fix15 failure: `failedChecks:["smoke_exception"]` with `Can't find variable: gapDecisionRaw`.
+- Replaced the accidental plural-result/alias chain with explicit `gapTargetResult`, `gapMappingResult`, `gapDecisionResult`, corresponding raw-text locals, and corresponding metadata objects in both dev-check mirrors.
+- The complete current smoke body now executes independently in both local VM mirrors with `ok:true`, all connectivity predicates true, 131 targets, 133 mappings, 133 exact approved matches, and empty failure arrays.
+- Scope held: `data.js`, runtime copy, canonical artifacts, mappings, hashes, counts, documentation, and predicate meaning remain unchanged.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()`.
+
 ## 2026-06-22 — Asynchronia Codex plugin v0.1.1 approval protocol acceptance
 - Status: PASS.
 - Asynchronia plugin version: `0.1.1`.
