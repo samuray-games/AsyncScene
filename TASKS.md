@@ -7,6 +7,19 @@
 - Plugin version remains `0.1.1` until v0.2.0 integration.
 - parallel-scope-planner smoke remains pending.
 
+## 2026-06-22 — Step 4.3.6 alpha lexicon runtime smoke Fix1
+- Status: Safari PASS for Step 4.3.6 only; Step 4.3.7 Safari acceptance remains pending.
+- Accepted Safari command: `Game.__DEV.smokeAlphaLexiconFix1()`.
+- Accepted commit: `step4_3_6_alpha_lexicon_runtime_smoke_fix1`.
+- Accepted buildTag: `build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1`.
+- Accepted smokeVersion: `step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001`.
+- PASS summary: `ok:true`, `inventoryEntryCount:164`, `inventoryUniqueTextCount:122`, `allowedLexiconEntryCount:187`, `tabooEntryCount:60`, `zMappingCount:23`, `zMappingCoveragePercent:100`, `newFeatureCount:7`, `newFeatureMappedEntryCount:73`, `newFeatureCoveragePercent:100`, `targetTabooHitCount:0`.
+- Child smokes: `5/5` passed.
+- Empty arrays confirmed: `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`.
+- Contract markers: `docsMirrorMatches:true`, `runtimeCopyChanged:true`, `mappingApplied:true`, `gameplayLogicChanged:false`, `economyLogicChanged:false`, `battleLogicChanged:false`, `npcLogicChanged:false`, `stateLogicChanged:false`, `productionGatePlacementOk:true`, `registrationPrecedesThrowingInstallers:true`.
+- Step 4.3.7 implementation ready.
+- Step 4.3.7 Safari acceptance pending on `Game.__DEV.smokeAlphaLexiconDocsOnce()`.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; model-selector acceptance smoke remains pending.
 - Implemented `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill with the exact allowed model set, exact allowed reasoning levels, cheapest-reliable default rule, promotion criteria, invalid-model blocking, and truthfulness requirements for `USER_SELECTED_UNVERIFIED` and `SELF_REPORTED_UNVERIFIED`.

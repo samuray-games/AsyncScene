@@ -10,6 +10,16 @@
 - Plugin version remains `0.1.1` until v0.2.0 integration.
 - parallel-scope-planner smoke remains pending.
 
+## 2026-06-22 — Step 4.3.6 alpha lexicon final PASS and Step 4.3.7 docs package
+- Step 4.3.6 final Safari PASS command: `Game.__DEV.smokeAlphaLexiconFix1()`.
+- Accepted aggregate command markers: commit `step4_3_6_alpha_lexicon_runtime_smoke_fix1`, buildTag `build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1`, smokeVersion `step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001`.
+- Final PASS evidence: `ok:true`, `childSmokeCount:5`, `passedChildSmokeCount:5`, `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`.
+- Canonical alpha lexicon document path: `ALPHA_LEXICON.md`.
+- Deployed alpha lexicon document path: `docs/ALPHA_LEXICON.md`.
+- Final alpha counts: source inventory `164` entries and `122` unique texts; allowed lexicon `187` entries across `8` categories; taboo list `60` entries across `4` categories; Z-to-alpha mapping `23` rows at `100%` coverage with `16` changed, `7` identity, and `3` canonical convergences; new feature coverage `7` groups and `73` mappings at `100%` coverage with `66` changed and `7` identity; target taboo hits `0`.
+- Step 4.3.7 docs smoke command: `Game.__DEV.smokeAlphaLexiconDocsOnce()`.
+- Step 4.3.7 Safari PASS pending.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; acceptance smoke remains pending.
 - Added `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill for the exact allowed model set `GPT-5.5`, `GPT-5.4`, and `GPT-5.4-Mini`, and the exact allowed reasoning levels `low`, `medium`, `high`, and `extra high`.
