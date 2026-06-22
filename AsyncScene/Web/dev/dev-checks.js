@@ -19187,15 +19187,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const tabooResult = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md");
         const lexicalResult = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md");
         const coverageResult = fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md");
-        const gapTargetsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md");
-        const gapDecisionsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md");
-        const gapDecisionResult = gapDecisionsResult;
+        const gapTargetResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md");
         const gapMappingResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md");
+        const gapDecisionResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md");
+        const gapTargetRaw = gapTargetResult && gapTargetResult.ok ? String(gapTargetResult.text || "") : "";
+        const gapMappingRaw = gapMappingResult && gapMappingResult.ok ? String(gapMappingResult.text || "") : "";
+        const gapDecisionRaw = gapDecisionResult && gapDecisionResult.ok ? String(gapDecisionResult.text || "") : "";
         const allowedRows = parseAllowed(allowedResult.text);
         const tabooRows = parseTaboo(tabooResult.text);
-        const gapTargetRows = parseGapTargets(gapTargetsResult.text);
-        const gapDecisionRows = parseGapDecisions(gapDecisionsResult.text);
-        const gapRows = parseGapMappings(gapMappingResult.text);
+        const gapTargetRows = parseGapTargets(gapTargetRaw);
+        const gapMappingRows = parseGapMappings(gapMappingRaw);
+        const gapDecisionRows = parseGapDecisions(gapDecisionRaw);
+        const gapRows = gapMappingRows;
         const allowedById = allowedRows.reduce((index, row) => { index[row.id] = row; return index; }, Object.create(null));
         const allowedByText = allowedRows.reduce((index, row) => {
           const key = normalize(row.boomerText);
@@ -19215,11 +19218,31 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           }
         });
         approvedCopyHash = hashState.toString(16).padStart(8, "0");
-        const targetMetadataHash = metadataValue(gapTargetsResult.text, "approvedCopyHash");
-        const mappingMetadataHash = metadataValue(gapMappingResult.text, "approvedCopyHash");
-        const targetMetadataCount = Number(metadataValue(gapTargetsResult.text, "runtimeGapTargetCount")) || 0;
-        const mappingMetadataCount = Number(metadataValue(gapMappingResult.text, "runtimeGapMappingCount")) || 0;
-        const targetMetadataCombinedCount = Number(metadataValue(gapTargetsResult.text, "combinedBoomerTargetCount")) || 0;
+        const gapTargetMetadata = {
+          sourceArtifact: metadataValue(gapTargetRaw, "sourceArtifact"),
+          runtimeGapTargetCount: metadataValue(gapTargetRaw, "runtimeGapTargetCount"),
+          baseAllowedLexiconCount: metadataValue(gapTargetRaw, "baseAllowedLexiconCount"),
+          combinedBoomerTargetCount: metadataValue(gapTargetRaw, "combinedBoomerTargetCount"),
+          approvedCopyHash: metadataValue(gapTargetRaw, "approvedCopyHash")
+        };
+        const gapMappingMetadata = {
+          sourceArtifact: metadataValue(gapMappingRaw, "sourceArtifact"),
+          targetArtifact: metadataValue(gapMappingRaw, "targetArtifact"),
+          runtimeGapMappingCount: metadataValue(gapMappingRaw, "runtimeGapMappingCount"),
+          runtimeAliasCount: metadataValue(gapMappingRaw, "runtimeAliasCount"),
+          unresolvedRuntimeGapCount: metadataValue(gapMappingRaw, "unresolvedRuntimeGapCount"),
+          approvedCopyHash: metadataValue(gapMappingRaw, "approvedCopyHash")
+        };
+        const decisionMetadata = {
+          decisionRowCount: metadataValue(gapDecisionRaw, "decisionRowCount"),
+          approvedRowCount: metadataValue(gapDecisionRaw, "approvedRowCount"),
+          approvedCopyHash: metadataValue(gapDecisionRaw, "approvedCopyHash")
+        };
+        const targetMetadataHash = gapTargetMetadata.approvedCopyHash;
+        const mappingMetadataHash = gapMappingMetadata.approvedCopyHash;
+        const targetMetadataCount = Number(gapTargetMetadata.runtimeGapTargetCount) || 0;
+        const mappingMetadataCount = Number(gapMappingMetadata.runtimeGapMappingCount) || 0;
+        const targetMetadataCombinedCount = Number(gapTargetMetadata.combinedBoomerTargetCount) || 0;
         const aliasRows = gapRows.filter((row) => row.aliasOf && row.aliasOf !== "—");
         const runtimeAliasCount = aliasRows.length;
         const semanticGroupCount = Array.from(new Set(gapTargetRows.map((row) => String(row.semanticGroup || "").trim()).filter(Boolean))).length;
@@ -19407,7 +19430,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const runtimeGapTargetHashesMatch = gapTargetRows.every((row) => normalize(row.approvedCopyHash) === approvedCopyHash);
         const runtimeGapMappingUniqueIds = new Set(gapRows.map((row) => String(row.gapId || "").trim()).filter(Boolean));
         const runtimeGapMappingTargetsExist = gapRows.every((row) => !!targetRowsById[row.targetId]);
-        const runtimeGapTargetsConnected = !!(gapTargetsResult && gapTargetsResult.ok)
+        const runtimeGapTargetsConnected = !!(gapTargetResult && gapTargetResult.ok)
           && /UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS/.test(gapTargetRaw)
           && gapTargetMetadata.sourceArtifact === "UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
           && Number(gapTargetMetadata.runtimeGapTargetCount || 0) === targetMetadataCount
@@ -19449,12 +19472,20 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
             const item = indexed(spec.key);
             explicit = !!(item && D && D.COP_TEMPLATES_PROFILE_TEXTS && D.COP_TEMPLATES_PROFILE_TEXTS.boomer && Array.isArray(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket]) && normalize(D.COP_TEMPLATES_PROFILE_TEXTS.boomer[item.bucket][item.index]) === normalize(spec.approvedBoomerText));
           }
-          return { ...spec, mapped, explicit };
+          return {
+            ...spec,
+            mapped,
+            explicit,
+            runtimeText: runtimeRow ? runtimeRow.resolvedText : "",
+            variableMatch: !!(runtimeRow && gapRow && targetRow && sameList(vars(runtimeRow.resolvedText), vars(spec.approvedBoomerText)))
+          };
         });
         const conflictWinCovered = requiredCoverageStatus.some((row) => row.gapId === "GAP_0130" && row.mapped);
         const conflictLossCovered = requiredCoverageStatus.some((row) => row.gapId === "GAP_0131" && row.mapped);
         const conflictDrawCovered = requiredCoverageStatus.some((row) => row.gapId === "GAP_0132" && row.mapped);
         const copWarningCovered = requiredCoverageStatus.some((row) => row.gapId === "GAP_0129" && row.mapped);
+        const copIntroCovered = requiredCoverageStatus.some((row) => row.gapId === "GAP_0133" && row.mapped);
+        const copIntroVariablePreserved = requiredCoverageStatus.some((row) => row.gapId === "GAP_0133" && row.mapped && row.variableMatch);
         const allFourResolveThroughBoomerMappings = requiredCoverageStatus.every((row) => row.mapped);
         const noneResolveThroughZoomerFallback = requiredCoverageStatus.every((row) => row.explicit);
         const allOtherProfilesUnchanged = profileIsolationFailures.length === 0;
@@ -19551,6 +19582,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       commit: "step3_5_boomer_runtime_lexical_linter_fix15",
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix15_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix15Once"
+    });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix16Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix16_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix16",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix16_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix16Once"
     });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
@@ -19789,6 +19826,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix16Once = smokeBoomerRuntimeLexicalLinterStep35Fix16Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19804,6 +19842,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix16Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19833,6 +19872,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix16Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19936,6 +19976,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix16Once = smokeBoomerRuntimeLexicalLinterStep35Fix16Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
