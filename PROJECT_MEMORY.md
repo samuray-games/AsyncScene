@@ -1,3 +1,15 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.2] Parallel Scope Planner
+- Status: PASS for implementation and static validation only; acceptance smoke remains pending.
+- Added `plugins/asynchronia/skills/parallel-scope-planner/SKILL.md` as a planning-only skill that analyzes atomic objectives, task-owned write scope, stable-read scope, runtime-sensitive scope, mirrors, shared wiring, dependencies, validation surfaces, current concurrent changes, and unresolved scope.
+- Locked exact planning modes to `PARALLEL_SAFE`, `SERIAL_REQUIRED`, `RUNTIME_GATE_REQUIRED`, and `BLOCKED`.
+- Locked the dirty-tree non-conflict rule so unrelated dirty files do not automatically block work, while overlapping writes, stable-read dependencies, mirror pairs, shared wiring, unresolved write scope, and runtime serialization require serialization.
+- Locked source and deployed mirrors into one ownership lane and assigned shared `TASKS.md` / `PROJECT_MEMORY.md` updates to a final documentation owner by default.
+- Locked runtime precedence so the planner cannot approve runtime work and must keep dependent tasks behind runtime-gated tasks.
+- Model Selector implementation and acceptance are PASS.
+- `task-router` remains pending.
+- Plugin version remains `0.1.1` until v0.2.0 integration.
+- parallel-scope-planner smoke remains pending.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; acceptance smoke remains pending.
 - Added `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill for the exact allowed model set `GPT-5.5`, `GPT-5.4`, and `GPT-5.4-Mini`, and the exact allowed reasoning levels `low`, `medium`, `high`, and `extra high`.
@@ -257,6 +269,13 @@
 - No runtime text changed, no alpha profile routing was enabled, and no visible UI behavior changed.
 - Smoke version: `alpha_step_2_7_final_runtime_smoke_v20260618_001`.
 - Step 4.2 PASS remains unclaimed until Safari returns `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
+
+## 2026-06-22 — Stage 4 Alpha, step 4.3.6 lexical checks
+- Added `Game.__DEV.smokeAlphaLexicalChecksOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke verifies the canonical alpha allowed lexicon, alpha taboo list, and zoomer lexical pack as the source of truth, then checks positive, stop-word, meme, slang, and artificial-youth fixtures without counting expected rejections as smoke failures.
+- Static validation passed with `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, and `git diff --check`.
+- Safari runtime smoke is still pending; PASS is not claimed.
+- Smoke metadata: `build_2026_06_22_step4_3_6_alpha_lexical_checks_v1`, `step4_3_6_alpha_lexical_checks`, and `step4_3_6_alpha_lexical_checks_v20260622_001`.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
 - Status: IN_PROGRESS; Fix5 gap inventory is READY_FOR_RUNTIME_SMOKE, but Step 3.5 PASS is not claimed.
