@@ -19,7 +19,6 @@
 - Final alpha counts: source inventory `164` entries and `122` unique texts; allowed lexicon `187` entries across `8` categories; taboo list `60` entries across `4` categories; Z-to-alpha mapping `23` rows at `100%` coverage with `16` changed, `7` identity, and `3` canonical convergences; new feature coverage `7` groups and `73` mappings at `100%` coverage with `66` changed and `7` identity; target taboo hits `0`.
 - Step 4.3.7 docs smoke command: `Game.__DEV.smokeAlphaLexiconDocsOnce()`.
 - Step 4.3.7 Safari PASS pending.
-
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; acceptance smoke remains pending.
 - Added `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill for the exact allowed model set `GPT-5.5`, `GPT-5.4`, and `GPT-5.4-Mini`, and the exact allowed reasoning levels `low`, `medium`, `high`, and `extra high`.
@@ -279,13 +278,6 @@
 - No runtime text changed, no alpha profile routing was enabled, and no visible UI behavior changed.
 - Smoke version: `alpha_step_2_7_final_runtime_smoke_v20260618_001`.
 - Step 4.2 PASS remains unclaimed until Safari returns `ok:true` with empty `failures`, `forbiddenRemaining`, `missingCoverage`, and `failedChecks`.
-
-## 2026-06-22 — Stage 4 Alpha, step 4.3.6 lexical checks
-- Added `Game.__DEV.smokeAlphaLexicalChecksOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
-- The smoke verifies the canonical alpha allowed lexicon, alpha taboo list, and zoomer lexical pack as the source of truth, then checks positive, stop-word, meme, slang, and artificial-youth fixtures without counting expected rejections as smoke failures.
-- Static validation passed with `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, and `git diff --check`.
-- Safari runtime smoke is still pending; PASS is not claimed.
-- Smoke metadata: `build_2026_06_22_step4_3_6_alpha_lexical_checks_v1`, `step4_3_6_alpha_lexical_checks`, and `step4_3_6_alpha_lexical_checks_v20260622_001`.
 
 ## 2026-06-19 — Step 3 Boomer profile, [3.5] runtime lexical linter
 - Status: IN_PROGRESS; Fix5 gap inventory is READY_FOR_RUNTIME_SMOKE, but Step 3.5 PASS is not claimed.
