@@ -1,3 +1,12 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.2] Parallel Scope Planner
+- Status: PASS for implementation and static validation only; parallel-scope-planner acceptance smoke remains pending.
+- Implemented `plugins/asynchronia/skills/parallel-scope-planner/SKILL.md` as a planning-only skill with exact planning modes, task-owned scope rules, dirty-tree non-conflict handling, serialization rules for overlapping writes and stable reads, mirror ownership rules, runtime precedence, execution-wave planning, shared documentation ownership, and destructive Git restrictions.
+- Updated `AGENTS.md` with a concise parallel-work policy covering task-owned writes, unrelated dirty files, serialization triggers, mirror ownership lanes, final documentation ownership, and runtime-gate precedence.
+- Model Selector implementation and acceptance are PASS.
+- `task-router` remains pending.
+- Plugin version remains `0.1.1` until v0.2.0 integration.
+- parallel-scope-planner smoke remains pending.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; model-selector acceptance smoke remains pending.
 - Implemented `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill with the exact allowed model set, exact allowed reasoning levels, cheapest-reliable default rule, promotion criteria, invalid-model blocking, and truthfulness requirements for `USER_SELECTED_UNVERIFIED` and `SELF_REPORTED_UNVERIFIED`.
@@ -290,6 +299,14 @@
 - The smoke validates the loaded Step 2.1 through Step 2.6 artifacts and returns the required final Step 4.2 contract fields with smokeVersion `alpha_step_2_7_final_runtime_smoke_v20260618_001`.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaCompressionRuleOnce()`.
 - Scope held: smoke wiring and tracking only; no runtime text changed, no alpha routing enabled, no visible UI changes, and no gameplay/economy/battle/NPC/persistence/state/save/routing logic changes.
+
+## 2026-06-22 — Stage 4 Alpha, step 4.3.6 lexical checks
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
+- Added the shared dev smoke `Game.__DEV.smokeAlphaLexicalChecksOnce()` in `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- The smoke reuses the canonical alpha allowed lexicon, alpha taboo list, and zoomer lexical pack smokes as source-of-truth checks.
+- Static checks passed: `node --check docs/dev/dev-checks.js`, `node --check AsyncScene/Web/dev/dev-checks.js`, and `git diff --check`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeAlphaLexicalChecksOnce()`.
+- Scope held: shared dev-check wiring only; no gameplay, economy, battle, NPC, state, save, or routing logic changes.
 
 ## 2026-06-19 — Step 4 Alpha profile, step 2.6 new feature coverage audit
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari/runtime PASS is not claimed.
