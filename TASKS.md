@@ -1,3 +1,11 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
+- Status: PASS for implementation and static validation only; model-selector acceptance smoke remains pending.
+- Implemented `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill with the exact allowed model set, exact allowed reasoning levels, cheapest-reliable default rule, promotion criteria, invalid-model blocking, and truthfulness requirements for `USER_SELECTED_UNVERIFIED` and `SELF_REPORTED_UNVERIFIED`.
+- Updated `AGENTS.md` model-selection policy concisely to require cheapest-reliable selection by default, explicit justification for stronger-model promotion, and truthful handling of the user-controlled active model.
+- `task-router` and `parallel-scope-planner` remain pending.
+- Plugin version remains `0.1.1` until v0.2.0 integration.
+- model-selector smoke remains pending.
+
 ## 2026-06-22 — Step 3.5 Boomer runtime lexical linter Fix16
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix15 failed before validation with `Can't find variable: gapDecisionRaw`.
