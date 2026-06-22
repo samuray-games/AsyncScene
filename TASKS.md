@@ -33,6 +33,13 @@
 - Added `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once()` as the pending Safari entrypoint.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once()`.
 
+## 2026-06-22 — Step 3.5 Boomer runtime lexical linter Fix15
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
+- Safari Fix14 still failed before content validation because the live Step 3.5 smoke referenced undeclared identifiers, beginning with `gapDecisionResult`.
+- Audited the active Fix14/Fix15 smoke body, added the local `gapDecisionResult = gapDecisionsResult` alias in the web mirror to match the docs mirror, and exposed `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once()` through both dev-check installers without changing predicates, counts, hashes, runtime copy, or canonical artifacts.
+- Static verification passed: `node --check AsyncScene/Web/dev/dev-checks.js`, `node --check docs/dev/dev-checks.js`, and `git diff --check`.
+- Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once()`.
+
 ## 2026-06-21 — Step 3.5 Boomer runtime lexical linter Fix13
 - Status: READY_FOR_RUNTIME_SMOKE only; Step 3.5 remains IN_PROGRESS, Step 3.6 remains pending, and runtime PASS is not claimed.
 - Safari Fix12 matched the live runtime copy but still tripped stale acceptance predicates around the target, mapping, and approved-copy hash checks.
