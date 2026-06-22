@@ -155,6 +155,15 @@ If the active model cannot be verified from external metadata, report it as `USE
 
 If Codex reports its own model name without external verification, label it `SELF_REPORTED_UNVERIFIED`; self-report is not proof of the active model.
 
+## 8.1 Parallel work policy
+
+- Evaluate task-owned writes separately from the entire dirty tree.
+- Unrelated dirty files do not automatically block work.
+- Overlapping writes, stable-read dependencies, mirror pairs, shared wiring, and unresolved scopes require serialization.
+- Source and deployed mirrors share one ownership lane.
+- Shared `TASKS.md` and `PROJECT_MEMORY.md` updates should normally be assigned to one final documentation owner.
+- Runtime gate decisions take precedence over parallel planning.
+
 ## 9. Plugin usage
 
 Installed plugins:
