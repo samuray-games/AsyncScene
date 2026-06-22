@@ -1,3 +1,15 @@
+## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.3] Task Router
+- Status: PASS for implementation and static validation only; acceptance smoke remains pending.
+- Added `plugins/asynchronia/skills/task-router/SKILL.md` as a routing-only skill that classifies requests, applies ordered precedence, selects the minimum required workflow, and refuses to bypass runtime approval, active-model truthfulness, or user-owned Safari acceptance.
+- Locked primary classifications to `READ_ONLY_ANALYSIS`, `DOCUMENTATION_ONLY`, `PLUGIN_POLICY`, `UI_ONLY`, `RUNTIME_LOGIC`, `ECONOMY_CRITICAL`, `BATTLE_OR_NPC_CRITICAL`, `PERSISTENCE_OR_MIGRATION`, `SECURITY_SENSITIVE`, `MULTI_TASK_OR_CONCURRENT`, `RELEASE_ACCEPTANCE`, and `AMBIGUOUS_OR_MIXED`.
+- Locked execution modes to `READ_ONLY`, `DIRECT_NON_RUNTIME`, `SERIAL_NON_RUNTIME`, `RUNTIME_GATE_REQUIRED`, `PARALLEL_PLAN_REQUIRED`, and `BLOCKED`.
+- Locked routing precedence so runtime safety overrides routing, multi-task or overlapping work routes through the parallel planner, every implementation lane receives a model recommendation, external plugin support is optional and non-overriding, dirty-tree evidence distinguishes task-owned versus scenario-declared versus repository-observed changes, and runtime acceptance remains user-controlled.
+- Model Selector implementation and acceptance are PASS.
+- Parallel Scope Planner implementation and corrected acceptance are PASS.
+- v0.2.0 integration and version bump remain pending.
+- Plugin version remains `0.1.1`.
+- task-router smoke remains pending.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.2] Parallel Scope Planner
 - Status: PASS for implementation and static validation only; acceptance smoke remains pending.
 - Added `plugins/asynchronia/skills/parallel-scope-planner/SKILL.md` as a planning-only skill that analyzes atomic objectives, task-owned write scope, stable-read scope, runtime-sensitive scope, mirrors, shared wiring, dependencies, validation surfaces, current concurrent changes, and unresolved scope.
@@ -35,6 +47,15 @@
 - The complete current smoke body now executes independently in both local VM mirrors with `ok:true`, all connectivity predicates true, 131 targets, 133 mappings, 133 exact approved matches, and empty failure arrays.
 - Scope held: `data.js`, runtime copy, canonical artifacts, mappings, hashes, counts, documentation, and predicate meaning remain unchanged.
 - Pending Safari runtime smoke command: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()`.
+
+## 2026-06-22 — Step 3.6 boomer lexicon documentation Fix3 refresh
+- Status: READY_FOR_RUNTIME_SMOKE only; Step 3.6 remains pending, and runtime PASS is not claimed.
+- Confirmed Step 3.5 Fix16 Safari PASS is now the required source dependency for Step 3.6: `Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix16Once()` with `ok:true`, `runtimeGapTargetCount:131`, `combinedAllowedTargetCount:295`, `runtimeGapMappingCount:133`, `runtimeAliasCount:2`, `semanticGroupCount:20`, approvedCopyHash `afba6cb8`, and empty `missingCoverage`, `failedChecks`, and `failures`.
+- Regenerated the compiled `BOOMER_LEXICON.md` mirrors from the current canonical source artifacts and kept `BOOMER_LEXICON.md` and `docs/BOOMER_LEXICON.md` byte-identical.
+- Current locked Step 3.6 counts are: allowed lexicon `164`, runtime targets `131`, combined allowed targets `295`, taboo entries `153`, lexical mappings `93`, runtime mappings `133`, aliases `2`, legacy runtime mappings `32`, runtime inventory texts `184`, runtime surfaces `13`, semantic groups `20`, approvedCopyHash `afba6cb8`.
+- Refreshed the documentation smoke implementation to use the Fix16 live dependency, the published Pages path `/AsyncScene/BOOMER_LEXICON.md`, and embedded normalized root/docs/published document hashes for real parity validation.
+- Current Step 3.6 identity: buildTag `build_2026_06_20_step3_6_boomer_lexicon_documentation_fix3_v1`, commit marker `step3_6_boomer_lexicon_documentation_fix3`, smokeVersion `boomer_lexicon_step3_6_fix3_v20260620_001`, Safari entrypoint `Game.__DEV.smokeBoomerLexiconDocumentationStep36Fix3Once()`.
+- Static verification and focused local VM execution passed with `ok:true`; Safari acceptance is still pending and no runtime PASS is claimed.
 
 ## 2026-06-22 — Asynchronia Codex plugin v0.1.1 approval protocol acceptance
 - Status: PASS.
