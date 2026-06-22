@@ -164,6 +164,15 @@ If Codex reports its own model name without external verification, label it `SEL
 - Shared `TASKS.md` and `PROJECT_MEMORY.md` updates should normally be assigned to one final documentation owner.
 - Runtime gate decisions take precedence over parallel planning.
 
+## 8.2 Routing policy
+
+- Runtime safety has precedence over routing convenience.
+- Multi-task or overlapping work uses the parallel planner.
+- Implementation lanes receive model recommendations.
+- Security and web-app plugins are optional supporting tools, not policy overrides.
+- Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
+- Runtime acceptance remains user-controlled.
+
 ## 9. Plugin usage
 
 Installed plugins:
