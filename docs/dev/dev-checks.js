@@ -18937,7 +18937,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const parseGapMappings = (text) => { const rows = []; String(text || "").split(/\r?\n/).forEach((line) => { if (!/^\|\s*GAP_\d{4}\s*\|/.test(line)) return; const cells = splitCells(line); if (cells.length === 9) rows.push({ gapId: cells[0], source: cells[1], surface: cells[2], key: cells[3], targetId: cells[4], approvedBoomerText: cells[5], variables: cells[6] === "—" ? "" : cells[6], aliasOf: cells[8] }); }); return rows; };
         const parseGapTargets = (text) => { const rows = []; String(text || "").split(/\r?\n/).forEach((line) => { if (!/^\|\s*BRT_\d{4}\s*\|/.test(line)) return; const cells = splitCells(line); if (cells.length === 6) rows.push({ targetId: cells[0], approvedBoomerText: cells[1], sourceGapIds: cells[2], variables: cells[3] === "—" ? "" : cells[3], semanticGroup: cells[4], approvedCopyHash: cells[5] }); }); return rows; };
         const parseGapDecisions = (text) => { const rows = []; String(text || "").split(/\r?\n/).forEach((line) => { if (!/^\|\s*GAP_\d{4}\s*\|/.test(line)) return; const cells = splitCells(line); if (cells.length === 11) rows.push({ gapId: cells[0], approvedBoomerText: cells[7] }); }); return rows; };
-        const allowedResult = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md"); const tabooResult = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md"); const lexicalResult = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md"); const coverageResult = fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md"); const gapTargetsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"); const gapDecisionsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"); const gapMappingResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md");
+        const allowedResult = fetchFirst("UI_PROFILE_BOOMER_ALLOWED_LEXICON.md"); const tabooResult = fetchFirst("UI_PROFILE_BOOMER_TABOO_LIST.md"); const lexicalResult = fetchFirst("UI_PROFILE_BOOMER_LEXICAL_MAPPING.md"); const coverageResult = fetchFirst("UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md"); const gapTargetsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"); const gapDecisionsResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"); const gapDecisionResult = gapDecisionsResult; const gapMappingResult = fetchFirst("UI_PROFILE_BOOMER_RUNTIME_GAP_MAPPING.md");
         const allowedRows = parseAllowed(allowedResult.text); const tabooRows = parseTaboo(tabooResult.text); const gapTargetRows = parseGapTargets(gapTargetsResult.text); const gapDecisionRows = parseGapDecisions(gapDecisionsResult.text); const gapRows = parseGapMappings(gapMappingResult.text);
         const allowedById = allowedRows.reduce((index, row) => { index[row.id] = row; return index; }, Object.create(null));
         const allowedByText = allowedRows.reduce((index, row) => { const key = normalize(row.boomerText); if (!index[key]) index[key] = []; index[key].push(row); return index; }, Object.create(null));
@@ -19009,6 +19009,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       commit: "step3_5_boomer_runtime_lexical_linter_fix14",
       smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix14_v20260620_001",
       smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix14Once"
+    });
+    const smokeBoomerRuntimeLexicalLinterStep35Fix15Once = () => runBoomerRuntimeLexicalLinterStep35Current({
+      buildTag: "build_2026_06_20_step3_5_boomer_runtime_lexical_linter_fix15_v1",
+      commit: "step3_5_boomer_runtime_lexical_linter_fix15",
+      smokeVersion: "step3_5_boomer_runtime_lexical_linter_fix15_v20260620_001",
+      smokeFunctionName: "smokeBoomerRuntimeLexicalLinterStep35Fix15Once"
     });
     const smokeBoomerNewFeatureCoverageStep34Fix11Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
@@ -19246,6 +19252,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
+    Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix2Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix2Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix3Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix3Once;
@@ -19260,6 +19267,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
+    Game.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix1Once = smokeBoomerNewFeatureCoverageStep34Once;
     G.__DEV.smokeBoomerNewFeatureCoverageStep34Fix2Once = smokeBoomerNewFeatureCoverageStep34Once;
@@ -19288,6 +19296,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
+    G.__DEV.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = Game.Dev.smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
     Game.Dev.smokeZoomerDiffProfileOnce = smokeZoomerDiffProfileOnce;
     Game.Dev.validateZoomerDiffProfileOnce = validateZoomerDiffProfileOnce;
     Game.Dev.smokeProfileAdultToneOnce = smokeProfileAdultToneOnce;
@@ -19390,6 +19399,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix12Once = smokeBoomerRuntimeLexicalLinterStep35Fix12Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix13Once = smokeBoomerRuntimeLexicalLinterStep35Fix13Once;
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix14Once = smokeBoomerRuntimeLexicalLinterStep35Fix14Once;
+    devStore.smokeBoomerRuntimeLexicalLinterStep35Fix15Once = smokeBoomerRuntimeLexicalLinterStep35Fix15Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
