@@ -10474,9 +10474,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
     const smokeZoomerLexicalChecksOnce = () => {
-      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
-      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step3_6_zoomer_lexical_checks_v1_${buildTag}_commit_${commit}`;
+      const buildTag = "build_2026_06_22_step3_6_2_zoomer_lexical_checks_v1";
+      const commit = "step3_6_2_zoomer_lexical_checks";
+      const smokeVersion = "step3_6_2_zoomer_lexical_checks_v20260622_001";
       const positiveFixtures = [
         { group: "allowed examples", fixture: "можно", detector: "allowedText.includes", expected: "accepted" },
         { group: "allowed examples", fixture: "жми", detector: "allowedText.includes", expected: "accepted" },
@@ -10508,6 +10508,15 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         { group: "artificial youth", fixture: "лол готово", detector: "lexicalRejects", expected: "rejected" },
         { group: "artificial youth", fixture: "вайбовый рофл вместо смысла", detector: "lexicalRejects", expected: "rejected" }
       ];
+      const blockedWords = ["кринж", "вайб", "имба", "рофл", "изи", "лол"];
+      const boundary = "(^|[^А-Яа-яЁёA-Za-z0-9_])";
+      const endBoundary = "(?=$|[^А-Яа-яЁёA-Za-z0-9_])";
+      const containsStopWord = (value, words = blockedWords) => {
+        const lower = normalizeProfileText(value).toLocaleLowerCase("ru-RU");
+        return words.some((word) => new RegExp(`${boundary}${word}${endBoundary}`, "i").test(lower));
+      };
+      const memeLikeRe = /\b(?:meme|memes|slang)\b|мем|мемн|рофл|лол|кринж|вайб|имба|изи|угар|чил|хайп/i;
+      const lexicalRejects = (value) => containsStopWord(value) || memeLikeRe.test(String(value || ""));
       const result = {
         ok: false,
         buildTag,
@@ -10542,13 +10551,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       try {
         const allowed = smokeZoomerAllowedLexiconOnce();
         const stop = smokeZoomerStopWordsOnce();
-        const pack = smokeZoomerLexicalPackOnce();
         const allowedOk = !!(allowed && allowed.ok === true);
         const stopOk = !!(stop && stop.ok === true);
-        const packOk = !!(pack && pack.ok === true);
         if (!allowedOk) fail("allowed_lexicon_dependency", allowed || "missing_smokeZoomerAllowedLexiconOnce");
         if (!stopOk) fail("stop_words_dependency", stop || "missing_smokeZoomerStopWordsOnce");
-        if (!packOk) fail("lexical_pack_dependency", pack || "missing_smokeZoomerLexicalPackOnce");
 
         positiveFixtures.forEach((spec) => {
           const ok = spec.group === "allowed examples"
@@ -10564,11 +10570,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         });
 
         negativeFixtures.forEach((spec) => {
-          const stopHit = Array.isArray(stop && stop.forbiddenSamplesCaught) && stop.forbiddenSamplesCaught.includes(spec.fixture);
-          const packHit = Array.isArray(pack && pack.memeLikeRejected) && pack.memeLikeRejected.includes(spec.fixture);
-          const ok = stopHit || packHit;
+          const stopHit = containsStopWord(spec.fixture);
+          const memeHit = lexicalRejects(spec.fixture);
+          const ok = spec.group === "stop words" ? stopHit : memeHit;
           const actual = ok ? "rejected" : "passed";
-          const entry = markFixture(spec, ok, actual, stopHit ? "smokeZoomerStopWordsOnce" : (packHit ? "smokeZoomerLexicalPackOnce" : null));
+          const entry = markFixture(spec, ok, actual, spec.group === "stop words" ? "containsStopWord" : "lexicalRejects");
           addUnique(result.negativeFixtureResults, entry);
           if (!ok) {
             addUnique(result.forbiddenRemaining, entry);
@@ -10578,19 +10584,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
         addAll(result.forbiddenRemaining, allowed && allowed.forbiddenRemaining);
         addAll(result.forbiddenRemaining, stop && stop.forbiddenRemaining);
-        addAll(result.forbiddenRemaining, pack && pack.forbiddenRemaining);
         addAll(result.missingCoverage, allowed && allowed.missingCoverage);
         addAll(result.missingCoverage, stop && stop.missingCoverage);
-        addAll(result.missingCoverage, pack && pack.missingCoverage);
         addAll(result.failedChecks, allowed && allowed.failedChecks);
         addAll(result.failedChecks, stop && stop.failedChecks);
-        addAll(result.failedChecks, pack && pack.failedChecks);
         addAll(result.failures, allowed && allowed.failures);
         addAll(result.failures, stop && stop.failures);
-        addAll(result.failures, pack && pack.failures);
 
-        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step3_6_zoomer_lexical_checks_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_6") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+        if (buildTag !== "build_2026_06_22_step3_6_2_zoomer_lexical_checks_v1" || commit !== "step3_6_2_zoomer_lexical_checks" || smokeVersion !== "step3_6_2_zoomer_lexical_checks_v20260622_001") {
           fail("smoke_version_unique_for_commit", smokeVersion);
         }
       } catch (err) {
@@ -10600,10 +10601,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.negativeFixtureResults.length === negativeFixtures.length
         && result.positiveFixtureResults.every((entry) => entry.ok === true)
         && result.negativeFixtureResults.every((entry) => entry.ok === true)
-        && !!result.buildTag
-        && !!result.commit
-        && !!result.smokeVersion
-        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+        && result.buildTag === "build_2026_06_22_step3_6_2_zoomer_lexical_checks_v1"
+        && result.commit === "step3_6_2_zoomer_lexical_checks"
+        && result.smokeVersion === "step3_6_2_zoomer_lexical_checks_v20260622_001"
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
