@@ -29,6 +29,13 @@
 - Smoke version: `step4_1_alpha_zoomer_inventory_fix1_v20260627_001`.
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()`.
 
+## 2026-06-27 — Step 4.1 Zoomer UI terms inventory Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Expanded the canonical Zoomer inventory mirrors to the current 223-row runtime set and added `artifactCount` to the Step 4.1 smoke contract while keeping the existing UI/gameplay/persistence/routing scope untouched.
+- Added isolated Safari command `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2()`.
+- Smoke version: `step4_1_alpha_zoomer_inventory_fix2_v20260627_002`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2()`.
+
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical Zoomer UI term inventory, mirrored in `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md`.

@@ -255,8 +255,9 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     };
     const normalizeProfileText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
     const addUniqueProfileAudit = (arr, item) => {
+      const target = Array.isArray(arr) ? arr : [];
       const key = JSON.stringify(item);
-      if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item);
+      if (!target.some((x) => JSON.stringify(x) === key)) target.push(item);
     };
     const smokeProfileAdultToneOnce = () => {
       const failures = [];
@@ -17133,6 +17134,25 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix2 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix2_v20260627_002";
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix2";
+        result.artifactCount = result.inventoryCount;
+        result.ok = result.inventoryCount > 0
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && !!result.buildTag
+          && !!result.commit
+          && !!result.smokeVersion;
+      }
+      return result;
+    };
     const smokeBoomerNewFeatureCoverageStep34Fix10Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix10_v1";
@@ -20563,11 +20583,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     if (!Game.__DEV) Game.__DEV = {};
     Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
     Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+    Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
     Game.Dev.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+    Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     if (!G.__DEV) G.__DEV = {};
     G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
     G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+    G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryFix1 = smokeBoomerTermsStep41InventoryFix1;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
@@ -20875,6 +20898,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryFix1 = smokeBoomerTermsStep41InventoryFix1;
     devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+    devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
