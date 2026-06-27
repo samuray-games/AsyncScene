@@ -11172,6 +11172,194 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeAlphaStep41ZoomerInventoryOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step4_1_alpha_zoomer_inventory_v1_${buildTag}_commit_${commit}`;
+      const inventoryFile = "UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md";
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        inventoryCount: 0,
+        scannedFiles: [],
+        missingCoverage: [],
+        failures: [],
+        forbiddenRemaining: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName, preferDocs) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          if (preferDocs) {
+            bases.push(`${location.origin}/docs/`);
+            bases.push(`${location.origin}/AsyncScene/`);
+            bases.push(`${location.origin}/AsyncScene/Web/`);
+            bases.push(`${location.origin}/`);
+          } else {
+            bases.push(`${location.origin}/AsyncScene/`);
+            bases.push(`${location.origin}/`);
+            bases.push(`${location.origin}/docs/`);
+            bases.push(`${location.origin}/AsyncScene/Web/`);
+          }
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/AsyncScene/Web/${fileName}`);
+          add(`${location.origin}/${fileName}`);
+        }
+        add(`/AsyncScene/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/AsyncScene/Web/${fileName}`);
+        add(`/${fileName}`);
+        add(fileName);
+        return candidates;
+      };
+      const fetchFirst = (fileName, preferDocs) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName, preferDocs)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const splitSourceFileAndLine = (value) => {
+        const raw = normalize(value);
+        const idx = raw.lastIndexOf(":");
+        if (idx <= 0) return { file: raw, line: "" };
+        return { file: raw.slice(0, idx), line: raw.slice(idx + 1) };
+      };
+      const parseArtifactRows = (text) => {
+        const rows = [];
+        const lines = String(text || "").split(/\r?\n/);
+        let inBlock = false;
+        lines.forEach((line) => {
+          const trimmed = String(line || "").trim();
+          if (trimmed === "```text") { inBlock = true; return; }
+          if (trimmed === "```" && inBlock) { inBlock = false; return; }
+          if (!inBlock || !/^TXT_\d+/.test(trimmed)) return;
+          const parts = line.split("|").map((part) => normalize(part));
+          if (parts.length !== 11) {
+            rows.push({ parseError: "inventory_row_shape", raw: line });
+            return;
+          }
+          const [id, category, surface, key, currentText, sourceFileLine, kind, profile, dynamic, vars, notes] = parts;
+          const source = splitSourceFileAndLine(sourceFileLine);
+          rows.push({ id, category, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, kind, profile, dynamic, vars, notes });
+        });
+        return rows;
+      };
+      const artifactMatchesRuntime = (row, entry) => {
+        const source = entry && entry.source ? entry.source : {};
+        if (normalize(row.text) !== normalize(entry && entry.text)) return false;
+        const rowFile = normalize(row.sourceFile);
+        const entryFile = normalize(source.file);
+        if (rowFile !== entryFile) return false;
+        const rowKey = normalize(row.key);
+        if (!rowKey) return true;
+        const entryKey = normalize(source.key);
+        const entryPath = normalize(source.path);
+        return rowKey === entryKey || rowKey === entryPath || entryKey.endsWith(`.${rowKey}`) || entryPath.endsWith(`.${rowKey}`);
+      };
+      const runtimeMatchesArtifact = (entry, row) => artifactMatchesRuntime(row, entry);
+      try {
+        const rootRes = fetchFirst(inventoryFile, false);
+        const docsRes = fetchFirst(inventoryFile, true);
+        if (!rootRes.ok) fail("root_inventory_load", rootRes);
+        if (!docsRes.ok) fail("docs_inventory_load", docsRes);
+        const rootText = rootRes.ok ? rootRes.text : "";
+        const docsText = docsRes.ok ? docsRes.text : "";
+        if (rootText && docsText && rootText !== docsText) fail("inventory_mirror_mismatch", { rootPath: rootRes.path, docsPath: docsRes.path });
+        const artifactText = rootText || docsText;
+        [
+          "# UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY",
+          "- source inventory only, no replacements",
+          "- entryCount: 164",
+          "- uniqueTextCount: 122",
+          "- scannedFileCount: 26",
+          "- toastEntryCount: 24",
+          "- duplicateTextDifferentSourcesCount: 8",
+          "- every TXT_0001 through TXT_0164 present exactly once",
+          "- no replacement text added"
+        ].forEach((marker) => {
+          if (!artifactText.includes(marker)) addUnique(result.missingCoverage, marker);
+        });
+        const artifactRows = parseArtifactRows(artifactText);
+        const runtimeEntries = collectZoomerTermsInventoryEntries().filter((entry) => entry && normalizeProfileText(entry.text));
+        result.inventoryCount = runtimeEntries.length;
+        const scannedFiles = new Set([inventoryFile, `docs/${inventoryFile}`]);
+        if (artifactRows.some((row) => row.parseError)) fail("inventory_row_parse", artifactRows.filter((row) => row.parseError));
+        if (!artifactRows.length) addUnique(result.missingCoverage, "artifact_rows_empty");
+        if (!runtimeEntries.length) addUnique(result.missingCoverage, "runtime_inventory_empty");
+        artifactRows.forEach((row) => {
+          if (!row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.kind || !row.profile || !row.dynamic || !row.vars || !row.notes) {
+            fail("inventory_row_required_fields", row.id || row.key || "unknown");
+            addUnique(result.missingCoverage, row.id || row.key || "unknown");
+            return;
+          }
+          addUnique(scannedFiles, row.sourceFile);
+          if (/Console\.txt/i.test(row.text) || /Console\.txt/i.test(row.notes) || /Console\.txt/i.test(row.sourceFile)) {
+            addUnique(result.forbiddenRemaining, { id: row.id, sourceFile: row.sourceFile, text: row.text });
+          }
+          const match = runtimeEntries.find((entry) => artifactMatchesRuntime(row, entry));
+          if (!match) addUnique(result.missingCoverage, { id: row.id, category: row.category, surface: row.surface, key: row.key, text: row.text, sourceFile: row.sourceFile, sourceLine: row.sourceLine });
+        });
+        runtimeEntries.forEach((entry) => {
+          const source = entry.source || {};
+          if (source.file) addUnique(scannedFiles, source.file);
+          if (/Console\.txt/i.test(entry.text || "") || /Console\.txt/i.test(source.file || "") || /Console\.txt/i.test(source.path || "")) {
+            addUnique(result.forbiddenRemaining, { category: entry.category, text: entry.text, sourceFile: source.file || null, sourcePath: source.path || null });
+          }
+          const match = artifactRows.find((row) => runtimeMatchesArtifact(entry, row));
+          if (!match) addUnique(result.missingCoverage, { category: entry.category, text: entry.text, sourceFile: source.file || null, sourceKey: source.key || null, sourcePath: source.path || null });
+        });
+        result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
+        if (artifactRows.length !== runtimeEntries.length) fail("inventory_count_matches_runtime", { artifact: artifactRows.length, runtime: runtimeEntries.length });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_v1_${buildTag}_commit_${commit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.inventoryCount > 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
+
     const smokeBoomerTermsStep41InventoryOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -20127,6 +20315,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    if (!Game.__DEV) Game.__DEV = {};
+    Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+    Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+    if (!G.__DEV) G.__DEV = {};
+    G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
