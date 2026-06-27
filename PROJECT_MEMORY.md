@@ -29,6 +29,13 @@
 - The canonical Zoomer inventory documents remain unchanged.
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()`.
 
+## 2026-06-27 — Step 4.1 Zoomer UI terms inventory Fix2
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Expanded the mirrored canonical Zoomer inventory to the current 223-row runtime coverage set and added `artifactCount` to the Step 4.1 smoke result so runtime and artifact counts are compared explicitly.
+- Added isolated Safari entrypoint `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2()` with smoke version `step4_1_alpha_zoomer_inventory_fix2_v20260627_002`.
+- The canonical Zoomer inventory documents remain mirrored and no gameplay/UI/persistence/routing behavior changed.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2()`.
+
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` and `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical/mirrored Zoomer UI term inventory artifacts, derived from the current full-text inventory export baseline after verification against the current repository.

@@ -4,8 +4,8 @@
 - source inventory only, no replacements
 
 ## Coverage Summary
-- entryCount: 164
-- uniqueTextCount: 122
+- entryCount: 223
+- uniqueTextCount: 191
 - scannedFileCount: 26
 - requiredCategoriesMissing: []
 - toastEntryCount: 24
@@ -208,6 +208,65 @@ TXT_0161 | toast | menu_unavailable | menu_unavailable | Недоступно. |
 TXT_0162 | toast | menu_unavailable | menu_unavailable_again | Недоступно. | AsyncScene/Web/ui/ui-menu.js:568 | resolver | shared | dynamic:no | vars: | notes:menu lottery toast
 TXT_0163 | toast | menu_unavailable | menu_unavailable_notify | Недоступно. | AsyncScene/Web/ui/ui-menu.js:581 | resolver | shared | dynamic:no | vars: | notes:menu lottery toast
 TXT_0164 | toast | events_vote | vote_not_enough_points | Не хватает 💰. | AsyncScene/Web/ui/ui-events.js:897 | literal | shared | dynamic:no | vars: | notes:duplicate runtime source
+TXT_0165 | label | start_profile_zoomer | birth_digits_label | Две цифры вайба | AsyncScene/Web/data.js:66 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0166 | button | start_profile_zoomer | digit_up_first | Первая цифра выше | AsyncScene/Web/data.js:67 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0167 | button | start_profile_zoomer | digit_down_first | Первая цифра ниже | AsyncScene/Web/data.js:68 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0168 | button | start_profile_zoomer | digit_up_second | Вторая цифра выше | AsyncScene/Web/data.js:69 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0169 | button | start_profile_zoomer | digit_down_second | Вторая цифра ниже | AsyncScene/Web/data.js:70 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0170 | tooltip | start_profile_zoomer | profile_helper | Это только стиль интерфейса. Потом можно перекинуть. | AsyncScene/Web/data.js:71 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0171 | label | start_profile_zoomer | fantasy_birth_label | по вайбу я родился в … | AsyncScene/Web/data.js:72 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0172 | button | start_profile_zoomer | start_continue | Погнали | AsyncScene/Web/data.js:73 | button | zoomer | dynamic:no | vars: | notes:
+TXT_0173 | button | start_profile_zoomer | start_action | Войти | AsyncScene/Web/data.js:77 | button | zoomer | dynamic:no | vars: | notes:
+TXT_0174 | button | start_screen | start_title | AsyncScene | AsyncScene/Web/data.js:65 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0175 | button | start_profile_zoomer | start_reset | Сбросить выбор | AsyncScene/Web/data.js:75 | button | zoomer | dynamic:no | vars: | notes:
+TXT_0176 | button | start_profile_zoomer | rules_action | Правила коротко | AsyncScene/Web/data.js:76 | button | zoomer | dynamic:no | vars: | notes:
+TXT_0177 | status | topbar | meBar | Площадь | AsyncScene/Web/index.html:74 | dom | shared | dynamic:no | vars: | notes:
+TXT_0178 | status | topbar | locPill | Локация: Площадь | AsyncScene/Web/index.html:75 | dom | shared | dynamic:no | vars: | notes:
+TXT_0179 | hint | chat_input | chatInput.placeholder | Пиши по теме. | AsyncScene/Web/index.html:81 | dom | shared | dynamic:no | vars: | notes:
+TXT_0180 | button | chat_input | btnSend | Заслать | AsyncScene/Web/index.html:82 | dom | shared | dynamic:no | vars: | notes:
+TXT_0181 | hint | chat_input | chatResizeHandle.aria-label | Изменить высоту чата | AsyncScene/Web/index.html:85 | dom | shared | dynamic:no | vars: | notes:
+TXT_0182 | status | profile_stat | balance.aria-label | Профиль | AsyncScene/Web/index.html:90 | dom | shared | dynamic:no | vars: | notes:
+TXT_0183 | status | profile_stat | statIcon.title | Влияние | AsyncScene/Web/index.html:91 | dom | shared | dynamic:no | vars: | notes:
+TXT_0184 | status | profile_stat | statIcon.title | ⭐ | AsyncScene/Web/index.html:92 | dom | shared | dynamic:no | vars: | notes:
+TXT_0185 | status | profile_stat | statIcon.title | 💰 | AsyncScene/Web/index.html:93 | dom | shared | dynamic:no | vars: | notes:
+TXT_0186 | status | profile_stat | statIcon.title | Победы | AsyncScene/Web/index.html:94 | dom | shared | dynamic:no | vars: | notes:
+TXT_0187 | button | topbar | btnMenu | Меню | AsyncScene/Web/index.html:97 | dom | shared | dynamic:no | vars: | notes:
+TXT_0188 | button | menu | menu_title | Меню | AsyncScene/Web/ui/ui-menu.js:50 | literal | shared | dynamic:no | vars: | notes:
+TXT_0189 | error | menu | menu_unavailable | Недоступно. | AsyncScene/Web/ui/ui-menu.js:48 | resolver | shared | dynamic:no | vars: | notes:
+TXT_0190 | label | menu | goal_label | Задача | AsyncScene/Web/ui/ui-menu.js:91 | literal | shared | dynamic:no | vars: | notes:
+TXT_0191 | button | menu | return_to_start | На старт | AsyncScene/Web/ui/ui-menu.js:163 | literal | shared | dynamic:no | vars: | notes:
+TXT_0192 | button | menu | close_x | × | AsyncScene/Web/ui/ui-menu.js:105 | literal | shared | dynamic:no | vars: | notes:
+TXT_0193 | button | menu_dev_mode | dev_mode_disabled | Disable Dev Mode | AsyncScene/Web/ui/ui-menu.js:207 | literal | shared | dynamic:no | vars: | notes:
+TXT_0194 | tooltip | menu_dev_mode | dev_mode_help | Local convenience gate for device-only dev tools | AsyncScene/Web/ui/ui-menu.js:208 | literal | shared | dynamic:no | vars: | notes:
+TXT_0195 | button | menu_logger | logger_controls | Console Panel | AsyncScene/Web/ui/ui-menu.js:258 | literal | shared | dynamic:no | vars: | notes:
+TXT_0196 | tooltip | menu_logger | logger_help | Open expanded console panel | AsyncScene/Web/ui/ui-menu.js:259 | literal | shared | dynamic:no | vars: | notes:
+TXT_0197 | status | training | trainingStatusText | Аргумент грузится. | AsyncScene/Web/ui/ui-menu.js:380 | literal | shared | dynamic:no | vars: | notes:
+TXT_0198 | button | training | trainingActionBtn | Передать | AsyncScene/Web/ui/ui-menu.js:386 | literal | shared | dynamic:no | vars: | notes:
+TXT_0199 | status | training | trainingResultText | xp: 0, уровень: 0 | AsyncScene/Web/ui/ui-menu.js:391 | literal | shared | dynamic:no | vars: | notes:
+TXT_0200 | status | training | trainingStatusDisabled | Передача недоступна | AsyncScene/Web/ui/ui-menu.js:427 | literal | shared | dynamic:no | vars: | notes:
+TXT_0201 | status | training | trainingStatusUnavailable | Статус передачи недоступен | AsyncScene/Web/ui/ui-menu.js:435 | literal | shared | dynamic:no | vars: | notes:
+TXT_0202 | status | training | trainingStatusReady | Можно передать | AsyncScene/Web/ui/ui-menu.js:443 | literal | shared | dynamic:no | vars: | notes:
+TXT_0203 | status | lottery | btnLotteryTop.title | Недоступно. | AsyncScene/Web/ui/ui-menu.js:53 | resolver | shared | dynamic:no | vars: | notes:
+TXT_0204 | status | lottery | lotteryControls.textContent | Недоступно. | AsyncScene/Web/ui/ui-menu.js:326 | resolver | shared | dynamic:no | vars: | notes:
+TXT_0205 | hint | dm | dmTitle | Личка | AsyncScene/Web/index.html:113 | dom | shared | dynamic:no | vars: | notes:
+TXT_0206 | hint | dm | dmInput.placeholder | Пиши в личку. | AsyncScene/Web/index.html:130 | dom | shared | dynamic:no | vars: | notes:
+TXT_0207 | button | dm | dmSend | Заслать | AsyncScene/Web/index.html:131 | dom | shared | dynamic:no | vars: | notes:
+TXT_0208 | hint | report | reportInput.placeholder | Ник бандита или токсика. | AsyncScene/Web/index.html:135 | dom | shared | dynamic:no | vars: | notes:
+TXT_0209 | button | report | reportBtn | Сдать | AsyncScene/Web/index.html:136 | dom | shared | dynamic:no | vars: | notes:
+TXT_0210 | hint | report | reportHint | Сдай токсика, бандита или мафиози. | AsyncScene/Web/index.html:137 | dom | shared | dynamic:no | vars: | notes:
+TXT_0211 | status | battles | battleTitleText | баттл | AsyncScene/Web/index.html:146 | dom | shared | dynamic:no | vars: | notes:
+TXT_0212 | status | events | headerTitleText | События | AsyncScene/Web/index.html:157 | dom | shared | dynamic:no | vars: | notes:
+TXT_0213 | button | events | events_close_extra | СВЕРНУТЬ | AsyncScene/Web/data.js:480 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0214 | button | events | events_clear_all | ЧИСТКА | AsyncScene/Web/data.js:481 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0215 | button | events | events_clear | ЧИСТКА | AsyncScene/Web/data.js:482 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0216 | status | events | events_done | OK | AsyncScene/Web/data.js:483 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0217 | status | events | events_left | ⏳{sec} | AsyncScene/Web/data.js:484 | template | zoomer | dynamic:yes | vars:sec | notes:
+TXT_0218 | status | battles | battles_empty | Раундов нет. | AsyncScene/Web/data.js:470 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0219 | button | battles | battle_invite_title | Залёт | AsyncScene/Web/data.js:471 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0220 | button | battles | battle_action_accept | Вписаться | AsyncScene/Web/data.js:472 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0221 | button | battles | battle_action_decline | Скипнуть | AsyncScene/Web/data.js:473 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0222 | button | battles | battle_action_attack | Влететь | AsyncScene/Web/data.js:474 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0223 | button | battles | battle_action_rematch | Ещё раунд | AsyncScene/Web/data.js:475 | data_map | zoomer | dynamic:no | vars: | notes:
 ```
 
 ## Zoomer UI Term Extraction
@@ -248,9 +307,9 @@ A, AsyncScene, B, Cap, DRAW, Dev, Incorrect, Mode, PIN, Points, RIP, WIN, cap, d
 - forbiddenRemaining:[]
 - missingCoverage:[]
 - failedChecks:[]
-- entryCount === 164
-- uniqueTextCount === 122
-- every TXT_0001 through TXT_0164 present exactly once
+- entryCount === 223
+- uniqueTextCount === 191
+- every TXT_0001 through TXT_0223 present exactly once
 - every entry has currentText, sourceFile, sourceLine, category, surface, key, profile
 - all categories covered
 - no replacement text added
