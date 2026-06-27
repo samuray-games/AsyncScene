@@ -126,6 +126,12 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 - Transfers identify source, receiver, amount, reason, and related event or battle.
 - NPC and player cases use the same canonical economy unless explicitly specified.
 - Crowd refunds, remainder, winner transfers, and loser transfers remain traceable.
+- Economy-sensitive work requires positive conservation and traceability evidence.
+- Explicit sources and sinks must be canonical and fully recorded.
+- Duplicate settlement, lost remainders, invalid refunds, and untraceable deltas are `FAIL`.
+- Ambiguous economy behavior routes to Canon Audit.
+- Deployed mirror parity routes to Mirror Audit.
+- Runtime acceptance remains user-controlled.
 
 ## 8. Model selection rule
 
