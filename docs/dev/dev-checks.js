@@ -10287,6 +10287,144 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeZoomerLexicalChecksOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = `step3_6_zoomer_lexical_checks_v1_${buildTag}_commit_${commit}`;
+      const positiveFixtures = [
+        { group: "allowed examples", fixture: "можно", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed examples", fixture: "жми", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed examples", fixture: "выбери", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed examples", fixture: "риск есть", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed examples", fixture: "ход сработал", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed examples", fixture: "не хватило", detector: "allowedText.includes", expected: "accepted" },
+        { group: "allowed surfaces", fixture: "ui", detector: "surface regex", expected: "accepted" },
+        { group: "allowed surfaces", fixture: "toasts", detector: "surface regex", expected: "accepted" },
+        { group: "allowed surfaces", fixture: "errors", detector: "surface regex", expected: "accepted" },
+        { group: "allowed surfaces", fixture: "hints", detector: "surface regex", expected: "accepted" },
+        { group: "allowed surfaces", fixture: "npcSpeech", detector: "surface regex", expected: "accepted" }
+      ];
+      const negativeFixtures = [
+        { group: "stop words", fixture: "это кринж", detector: "containsStopWord", expected: "rejected" },
+        { group: "stop words", fixture: "лови вайб", detector: "containsStopWord", expected: "rejected" },
+        { group: "stop words", fixture: "просто имба", detector: "containsStopWord", expected: "rejected" },
+        { group: "stop words", fixture: "чистый рофл", detector: "containsStopWord", expected: "rejected" },
+        { group: "stop words", fixture: "изи ход", detector: "containsStopWord", expected: "rejected" },
+        { group: "stop words", fixture: "лол готово", detector: "containsStopWord", expected: "rejected" },
+        { group: "memes", fixture: "мемный ход", detector: "lexicalRejects", expected: "rejected" },
+        { group: "memes", fixture: "ну это кринж, лол", detector: "lexicalRejects", expected: "rejected" },
+        { group: "memes", fixture: "вайбовый рофл вместо смысла", detector: "lexicalRejects", expected: "rejected" },
+        { group: "forced slang", fixture: "лови вайб", detector: "lexicalRejects", expected: "rejected" },
+        { group: "forced slang", fixture: "чистый рофл", detector: "lexicalRejects", expected: "rejected" },
+        { group: "cringe", fixture: "это кринж", detector: "lexicalRejects", expected: "rejected" },
+        { group: "cringe", fixture: "ну это кринж, лол", detector: "lexicalRejects", expected: "rejected" },
+        { group: "artificial youth", fixture: "изи ход", detector: "lexicalRejects", expected: "rejected" },
+        { group: "artificial youth", fixture: "лол готово", detector: "lexicalRejects", expected: "rejected" },
+        { group: "artificial youth", fixture: "вайбовый рофл вместо смысла", detector: "lexicalRejects", expected: "rejected" }
+      ];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeZoomerLexicalChecksOnce",
+        positiveFixtureResults: [],
+        negativeFixtureResults: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addAll = (list, values) => (Array.isArray(values) ? values : []).forEach((value) => addUnique(list, value));
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const markFixture = (spec, ok, actual, sourceSmoke) => {
+        const entry = {
+          group: spec.group,
+          fixture: spec.fixture,
+          detector: spec.detector,
+          expected: spec.expected,
+          actual,
+          ok: !!ok
+        };
+        if (sourceSmoke) entry.sourceSmoke = sourceSmoke;
+        return entry;
+      };
+      try {
+        const allowed = smokeZoomerAllowedLexiconOnce();
+        const stop = smokeZoomerStopWordsOnce();
+        const pack = smokeZoomerLexicalPackOnce();
+        const allowedOk = !!(allowed && allowed.ok === true);
+        const stopOk = !!(stop && stop.ok === true);
+        const packOk = !!(pack && pack.ok === true);
+        if (!allowedOk) fail("allowed_lexicon_dependency", allowed || "missing_smokeZoomerAllowedLexiconOnce");
+        if (!stopOk) fail("stop_words_dependency", stop || "missing_smokeZoomerStopWordsOnce");
+        if (!packOk) fail("lexical_pack_dependency", pack || "missing_smokeZoomerLexicalPackOnce");
+
+        positiveFixtures.forEach((spec) => {
+          const ok = spec.group === "allowed examples"
+            ? Array.isArray(allowed && allowed.requiredExamplesPresent) && allowed.requiredExamplesPresent.includes(spec.fixture)
+            : Array.isArray(allowed && allowed.coverage) && allowed.coverage.includes(spec.fixture);
+          const actual = ok ? "accepted" : "missing";
+          const entry = markFixture(spec, ok, actual, "smokeZoomerAllowedLexiconOnce");
+          addUnique(result.positiveFixtureResults, entry);
+          if (!ok) {
+            addUnique(result.missingCoverage, spec.group === "allowed examples" ? spec.fixture : `surface:${spec.fixture}`);
+            fail("positive_fixture_accepted", entry);
+          }
+        });
+
+        negativeFixtures.forEach((spec) => {
+          const stopHit = Array.isArray(stop && stop.forbiddenSamplesCaught) && stop.forbiddenSamplesCaught.includes(spec.fixture);
+          const packHit = Array.isArray(pack && pack.memeLikeRejected) && pack.memeLikeRejected.includes(spec.fixture);
+          const ok = stopHit || packHit;
+          const actual = ok ? "rejected" : "passed";
+          const entry = markFixture(spec, ok, actual, stopHit ? "smokeZoomerStopWordsOnce" : (packHit ? "smokeZoomerLexicalPackOnce" : null));
+          addUnique(result.negativeFixtureResults, entry);
+          if (!ok) {
+            addUnique(result.forbiddenRemaining, entry);
+            fail("negative_fixture_rejected", entry);
+          }
+        });
+
+        addAll(result.forbiddenRemaining, allowed && allowed.forbiddenRemaining);
+        addAll(result.forbiddenRemaining, stop && stop.forbiddenRemaining);
+        addAll(result.forbiddenRemaining, pack && pack.forbiddenRemaining);
+        addAll(result.missingCoverage, allowed && allowed.missingCoverage);
+        addAll(result.missingCoverage, stop && stop.missingCoverage);
+        addAll(result.missingCoverage, pack && pack.missingCoverage);
+        addAll(result.failedChecks, allowed && allowed.failedChecks);
+        addAll(result.failedChecks, stop && stop.failedChecks);
+        addAll(result.failedChecks, pack && pack.failedChecks);
+        addAll(result.failures, allowed && allowed.failures);
+        addAll(result.failures, stop && stop.failures);
+        addAll(result.failures, pack && pack.failures);
+
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== `step3_6_zoomer_lexical_checks_v1_${buildTag}_commit_${commit}` || smokeVersion.indexOf("step3_6") === -1 || smokeVersion.indexOf(String(commit || "")) === -1) {
+          fail("smoke_version_unique_for_commit", smokeVersion);
+        }
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.positiveFixtureResults.length === positiveFixtures.length
+        && result.negativeFixtureResults.length === negativeFixtures.length
+        && result.positiveFixtureResults.every((entry) => entry.ok === true)
+        && result.negativeFixtureResults.every((entry) => entry.ok === true)
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion
+        && result.smokeVersion.indexOf(String(result.commit || "")) !== -1
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+
     const smokeZoomerLexicalCorrectionReadyOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -19137,6 +19275,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
     Game.Dev.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     Game.Dev.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
+    Game.Dev.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
+    if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
@@ -19434,6 +19574,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerRuntimeLexicalLinterStep35Fix16Once = smokeBoomerRuntimeLexicalLinterStep35Fix16Once;
     devStore.smokeZoomerStopWordsOnce = smokeZoomerStopWordsOnce;
     devStore.smokeZoomerLexicalPackOnce = smokeZoomerLexicalPackOnce;
+    devStore.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;

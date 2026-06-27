@@ -173,13 +173,23 @@ If Codex reports its own model name without external verification, label it `SEL
 - Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
 - Runtime acceptance remains user-controlled.
 
+## 8.3 v0.2.0 workflow
+
+- `task-router` classifies the request.
+- `runtime-safety-gate` has precedence for runtime-sensitive scope.
+- `parallel-scope-planner` separates lanes when multiple tasks, mirrors, shared ownership, or concurrency exist.
+- `model-selector` recommends the cheapest reliable model per implementation lane.
+- Codex performs static validation.
+- The user performs required Safari runtime smoke.
+- Runtime acceptance remains pending until user confirmation.
+
 ## 9. Plugin usage
 
 Installed plugins:
 
 - Codex Security;
 - Build Web Apps; and
-- Asynchronia v0.1.0.
+- Asynchronia v0.2.0.
 
 Use Codex Security before persistence, before server or account systems, before public release, and after major security-sensitive or runtime changes.
 
