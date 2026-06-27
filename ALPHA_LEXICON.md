@@ -5,10 +5,10 @@ documentId: ALPHA_LEXICON
 stage: 4
 step: 4.3.7
 status: READY_FOR_RUNTIME_SMOKE
-version: step4_3_7_alpha_lexicon_docs_memory_v20260622_001
-buildTag: build_2026_06_22_step4_3_7_alpha_lexicon_docs_memory_v1
-commit: step4_3_7_alpha_lexicon_docs_memory
-sourceRuntimeSmoke: smokeAlphaLexiconDocsOnce
+version: step4_3_7_alpha_lexicon_docs_memory_fix1_v20260622_001
+buildTag: build_2026_06_22_step4_3_7_alpha_lexicon_docs_memory_fix1_v1
+commit: step4_3_7_alpha_lexicon_docs_memory_fix1
+sourceRuntimeSmoke: smokeAlphaLexiconDocsFix1
 runtimePassClaimed: false
 publishRoot: docs
 ```
@@ -142,7 +142,13 @@ publishRoot: docs
   - `docsMirrorMatches:true`
   - `productionGatePlacementOk:true`
   - `registrationPrecedesThrowingInstallers:true`
-- Step 4.3.7 documentation acceptance smoke: `Game.__DEV.smokeAlphaLexiconDocsOnce()`
+- Initial Step 4.3.7 Safari documentation smoke failed only because repository paths were treated as browser URLs under the GitHub Pages publish-root layout.
+- Source documentation content checks passed before Fix1.
+- Fix1 uses a deployable acceptance manifest: `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`
+- `docs/` is the GitHub Pages publish root, so the deployed alpha path is `ALPHA_LEXICON.md`.
+- Source `TASKS.md` and `PROJECT_MEMORY.md` are verified through the generated acceptance manifest instead of browser-fetching repository-root paths.
+- Repository paths must not be treated as browser URLs.
+- Step 4.3.7 documentation acceptance smoke: `Game.__DEV.smokeAlphaLexiconDocsFix1()`
 - Step 4.3.7 Safari PASS is pending and must not be claimed here.
 
 ## Invariants
@@ -173,3 +179,5 @@ publishRoot: docs
 - `AsyncScene/Web/UI_PROFILE_ALPHA_NEW_FEATURES.md`
 - `TASKS.md`
 - `PROJECT_MEMORY.md`
+- `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`
+- `docs/ALPHA_LEXICON_DOCS_ACCEPTANCE.json`

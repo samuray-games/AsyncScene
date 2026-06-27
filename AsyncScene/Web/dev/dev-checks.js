@@ -18,6 +18,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   installAlphaNewFeaturesFix1Smoke(G.__DEV);
   installAlphaLexiconAggregateSmoke(G.__DEV);
   installAlphaLexiconDocsSmoke(G.__DEV);
+  installAlphaLexiconDocsFix1Smoke(G.__DEV);
   console.warn("ALPHA_LEXICON_FIX1_COMMAND_TYPES_V1", JSON.stringify({
     smokeAlphaLexiconInventoryFix5: typeof G.__DEV.smokeAlphaLexiconInventoryFix5,
     smokeAlphaAllowedLexiconFix1: typeof G.__DEV.smokeAlphaAllowedLexiconFix1,
@@ -25,7 +26,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     smokeAlphaZToAlphaMappingOnce: typeof G.__DEV.smokeAlphaZToAlphaMappingOnce,
     smokeAlphaNewFeaturesFix1: typeof G.__DEV.smokeAlphaNewFeaturesFix1,
     smokeAlphaLexiconFix1: typeof G.__DEV.smokeAlphaLexiconFix1,
-    smokeAlphaLexiconDocsOnce: typeof G.__DEV.smokeAlphaLexiconDocsOnce
+    smokeAlphaLexiconDocsOnce: typeof G.__DEV.smokeAlphaLexiconDocsOnce,
+    smokeAlphaLexiconDocsFix1: typeof G.__DEV.smokeAlphaLexiconDocsFix1
   }));
   const RUNTIME_BUILD_TAG = "build_2026_06_19_step3_4_system_texts_v1";
   const RUNTIME_COMMIT = "step3_4_system_texts_v1";
@@ -25599,6 +25601,304 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     console.warn("ALPHA_LEXICON_DOCS_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconDocsOnce);
   }
 
+
+  function installAlphaLexiconDocsFix1Smoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaLexiconDocsFix1 === "function") return;
+    const BUILD_TAG = "build_2026_06_22_step4_3_7_alpha_lexicon_docs_memory_fix1_v1";
+    const COMMIT = "step4_3_7_alpha_lexicon_docs_memory_fix1";
+    const SMOKE_VERSION = "step4_3_7_alpha_lexicon_docs_memory_fix1_v20260622_001";
+    const ALPHA_DOC_PATH = "ALPHA_LEXICON.md";
+    const ACCEPTANCE_MANIFEST_PATH = "ALPHA_LEXICON_DOCS_ACCEPTANCE.json";
+    const REQUIRED_SECTIONS = Object.freeze([
+      "## Purpose and scope",
+      "## Alpha lexicon rules",
+      "## Allowed lexicon",
+      "## Taboo list",
+      "## Zoomer to Alpha mapping",
+      "## New feature coverage",
+      "## Runtime acceptance",
+      "## Invariants",
+      "## Source references"
+    ]);
+    const REQUIRED_COUNTS = Object.freeze([
+      "source inventory: 164 entries, 122 unique texts",
+      "allowed lexicon: 187 entries, 8 categories",
+      "taboo list: 60 entries, 4 categories",
+      "Zoomer/Gen Z source mappings: 23",
+      "mapping coverage: 100%",
+      "changed mappings: 16",
+      "identity mappings: 7",
+      "canonical convergences: 3",
+      "new feature groups: 7",
+      "new feature mappings: 73",
+      "new feature coverage: 100%",
+      "changed new-feature mappings: 66",
+      "identity new-feature mappings: 7",
+      "target taboo hits: 0"
+    ]);
+    const ACCEPTED_SMOKES = Object.freeze([
+      "Game.__DEV.smokeAlphaLexiconInventoryFix5()",
+      "Game.__DEV.smokeAlphaAllowedLexiconFix1()",
+      "Game.__DEV.smokeAlphaTabooListOnce()",
+      "Game.__DEV.smokeAlphaZToAlphaMappingOnce()",
+      "Game.__DEV.smokeAlphaNewFeaturesFix1()",
+      "Game.__DEV.smokeAlphaLexiconFix1()"
+    ]);
+    const INVARIANTS = Object.freeze([
+      "Alpha is derived from Zoomer",
+      "text/profile layer only",
+      "no gameplay logic changes",
+      "no economy logic changes",
+      "no battle logic changes",
+      "no NPC logic changes",
+      "no state logic changes",
+      "variables and protected tokens remain intact",
+      "runtime mappings are explicit",
+      "no replacement text may bypass the allowed lexicon or taboo checks",
+      "future feature text must be added to the alpha coverage registry"
+    ]);
+    const ACCEPTED_STEP436_COMMIT = "step4_3_6_alpha_lexicon_runtime_smoke_fix1";
+    const ACCEPTED_STEP436_BUILD_TAG = "build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1";
+    const ACCEPTED_STEP436_SMOKE_VERSION = "step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001";
+    const addUnique = (array, value) => {
+      const key = JSON.stringify(value);
+      if (!array.some((entry) => JSON.stringify(entry) === key)) array.push(value);
+    };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n").trimEnd();
+    const countPresent = (text, values) => values.filter((value) => String(text || "").includes(value)).length;
+    const includesAll = (text, values) => countPresent(text, values) === values.length;
+    const fetchTextSync = (url) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path: url, text: "" };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, reason: null, path: url, text: String(xhr.responseText || "") };
+        return { ok: false, reason: `http_${xhr.status || 0}`, path: url, text: "" };
+      } catch (error) {
+        return { ok: false, reason: error && error.message ? String(error.message) : String(error), path: url, text: "" };
+      }
+    };
+    const resolveSiteRootFromDevChecksAsset = () => {
+      try {
+        const baseHref = (typeof document !== "undefined" && document.baseURI)
+          ? document.baseURI
+          : ((typeof location !== "undefined" && location.href) ? location.href : "http://localhost/");
+        const assetUrl = new URL(RUNTIME_DEV_CHECKS_SOURCE_URL, baseHref);
+        const assetHref = assetUrl.href.split("#")[0];
+        if (!/\/dev\/dev-checks\.js(?:\?|$)/.test(assetHref)) {
+          return { ok: false, reason: "unexpected_dev_checks_asset_path", assetUrl: assetUrl.href, siteRoot: null };
+        }
+        return {
+          ok: true,
+          assetUrl: assetUrl.href,
+          siteRoot: assetHref.replace(/\/dev\/dev-checks\.js(?:\?.*)?$/, "/")
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          reason: error && error.message ? String(error.message) : String(error),
+          assetUrl: String(RUNTIME_DEV_CHECKS_SOURCE_URL || ""),
+          siteRoot: null
+        };
+      }
+    };
+    const sha256Hex = async (text) => {
+      if (!(typeof crypto !== "undefined" && crypto && crypto.subtle && typeof TextEncoder === "function")) return null;
+      const bytes = new TextEncoder().encode(String(text || ""));
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(digest)).map((value) => value.toString(16).padStart(2, "0")).join("");
+    };
+    devStore.smokeAlphaLexiconDocsFix1 = async function smokeAlphaLexiconDocsFix1() {
+      const result = {
+        ok: false,
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        alphaDocumentPath: ALPHA_DOC_PATH,
+        deployedAlphaDocumentPath: ALPHA_DOC_PATH,
+        tasksUpdated: false,
+        projectMemoryUpdated: false,
+        alphaDocumentUpdated: false,
+        requiredSectionCount: REQUIRED_SECTIONS.length,
+        presentRequiredSectionCount: 0,
+        requiredCountCheckCount: REQUIRED_COUNTS.length,
+        passedRequiredCountCheckCount: 0,
+        acceptedSmokeReferenceCount: ACCEPTED_SMOKES.length,
+        acceptedSmokeReferencesPresent: false,
+        invariantsPresent: false,
+        docsMirrorMatches: false,
+        safariPassFalselyClaimed: false,
+        registeredOnGameDev: false,
+        productionGatePlacementOk: false,
+        registrationPrecedesThrowingInstallers: false,
+        publishRoot: "docs",
+        acceptanceManifestPath: ACCEPTANCE_MANIFEST_PATH,
+        acceptanceManifestLoaded: false,
+        deployedAlphaDocumentLoaded: false,
+        deployedAlphaHashMatches: false,
+        tasksSourceHashPresent: false,
+        projectMemorySourceHashPresent: false,
+        siteRootResolvedFromDevChecksAsset: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        if (detail !== undefined) addUnique(result.failures, { check, detail });
+      };
+      try {
+        result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaLexiconDocsFix1 === devStore.smokeAlphaLexiconDocsFix1);
+        const resolved = resolveSiteRootFromDevChecksAsset();
+        result.siteRootResolvedFromDevChecksAsset = !!resolved.ok;
+        if (!resolved.ok) fail("site_root_resolution_failed", resolved.reason || "unavailable");
+        const manifestRes = resolved.ok
+          ? fetchTextSync(`${resolved.siteRoot}${ACCEPTANCE_MANIFEST_PATH}`)
+          : { ok: false, reason: "site_root_unresolved", path: ACCEPTANCE_MANIFEST_PATH, text: "" };
+        const alphaRes = resolved.ok
+          ? fetchTextSync(`${resolved.siteRoot}${ALPHA_DOC_PATH}`)
+          : { ok: false, reason: "site_root_unresolved", path: ALPHA_DOC_PATH, text: "" };
+        result.deployedAlphaDocumentLoaded = !!alphaRes.ok;
+        if (!manifestRes.ok) fail("acceptance_manifest_fetch_failed", manifestRes.reason || "unavailable");
+        if (!alphaRes.ok) fail("deployed_alpha_document_missing", alphaRes.reason || "unavailable");
+        let manifest = null;
+        if (manifestRes.ok) {
+          try {
+            manifest = JSON.parse(String(manifestRes.text || "{}"));
+            result.acceptanceManifestLoaded = true;
+          } catch (error) {
+            fail("acceptance_manifest_parse_failed", error && error.message ? String(error.message) : String(error));
+          }
+        }
+        const alphaRawText = String(alphaRes.ok ? alphaRes.text : "");
+        const alphaText = normalize(alphaRawText);
+        if (manifest) {
+          const sourceHashes = manifest.sourceHashes && typeof manifest.sourceHashes === "object" ? manifest.sourceHashes : {};
+          const canonicalAlphaHash = typeof sourceHashes["ALPHA_LEXICON.md"] === "string" ? sourceHashes["ALPHA_LEXICON.md"] : "";
+          const deployedMirrorHash = typeof sourceHashes["docs/ALPHA_LEXICON.md"] === "string" ? sourceHashes["docs/ALPHA_LEXICON.md"] : "";
+          const tasksHash = typeof sourceHashes["TASKS.md"] === "string" ? sourceHashes["TASKS.md"] : "";
+          const projectMemoryHash = typeof sourceHashes["PROJECT_MEMORY.md"] === "string" ? sourceHashes["PROJECT_MEMORY.md"] : "";
+          const deployedHash = alphaRes.ok ? await sha256Hex(alphaRawText) : null;
+          result.tasksSourceHashPresent = /^[a-f0-9]{64}$/i.test(tasksHash);
+          result.projectMemorySourceHashPresent = /^[a-f0-9]{64}$/i.test(projectMemoryHash);
+          result.presentRequiredSectionCount = countPresent(alphaText, REQUIRED_SECTIONS);
+          result.passedRequiredCountCheckCount = countPresent(alphaText, REQUIRED_COUNTS);
+          result.acceptedSmokeReferenceCount = typeof manifest.acceptedSmokeReferenceCount === "number"
+            ? manifest.acceptedSmokeReferenceCount
+            : ACCEPTED_SMOKES.length;
+          result.acceptedSmokeReferencesPresent = manifest.acceptedSmokeReferencesPresent === true && includesAll(alphaText, ACCEPTED_SMOKES);
+          result.invariantsPresent = manifest.invariantsPresent === true && includesAll(alphaText, INVARIANTS);
+          result.docsMirrorMatches = manifest.alphaMirrorMatches === true
+            && /^[a-f0-9]{64}$/i.test(canonicalAlphaHash)
+            && canonicalAlphaHash === deployedMirrorHash;
+          result.safariPassFalselyClaimed = manifest.safariPassFalselyClaimed === true;
+          result.tasksUpdated = manifest.tasksStep436PassRecordPresent === true;
+          result.projectMemoryUpdated = manifest.projectMemoryStep436PassRecordPresent === true;
+          result.deployedAlphaHashMatches = !!(deployedHash && canonicalAlphaHash && deployedHash === canonicalAlphaHash);
+          result.alphaDocumentUpdated = result.deployedAlphaDocumentLoaded === true
+            && result.deployedAlphaHashMatches === true
+            && result.docsMirrorMatches === true
+            && manifest.alphaDocumentRequiredSectionsPresent === true
+            && manifest.alphaDocumentRequiredCountsPresent === true
+            && result.presentRequiredSectionCount === result.requiredSectionCount
+            && result.passedRequiredCountCheckCount === result.requiredCountCheckCount
+            && result.acceptedSmokeReferencesPresent === true
+            && result.invariantsPresent === true
+            && alphaText.includes("Game.__DEV.smokeAlphaLexiconDocsFix1()")
+            && alphaText.includes("ALPHA_LEXICON_DOCS_ACCEPTANCE.json")
+            && alphaText.includes("repository paths were treated as browser URLs");
+          if (manifest.schemaVersion !== 1) fail("manifest_schema_version", manifest.schemaVersion);
+          if (manifest.generatedForStep !== "4.3.7-fix1") fail("manifest_generated_for_step", manifest.generatedForStep);
+          if (manifest.publishRoot !== "docs") fail("publish_root_manifest", manifest.publishRoot);
+          if (manifest.acceptedStep436Commit !== ACCEPTED_STEP436_COMMIT) fail("accepted_step436_commit_mismatch", manifest.acceptedStep436Commit);
+          if (manifest.acceptedStep436BuildTag !== ACCEPTED_STEP436_BUILD_TAG) fail("accepted_step436_build_tag_mismatch", manifest.acceptedStep436BuildTag);
+          if (manifest.acceptedStep436SmokeVersion !== ACCEPTED_STEP436_SMOKE_VERSION) fail("accepted_step436_smoke_version_mismatch", manifest.acceptedStep436SmokeVersion);
+          if (manifest.step437Commit !== COMMIT) fail("step437_commit_mismatch", manifest.step437Commit);
+          if (manifest.step437BuildTag !== BUILD_TAG) fail("step437_build_tag_mismatch", manifest.step437BuildTag);
+          if (manifest.step437SmokeVersion !== SMOKE_VERSION) fail("step437_smoke_version_mismatch", manifest.step437SmokeVersion);
+          if (manifest.alphaDocumentRequiredSectionsPresent !== true) fail("required_sections_manifest_missing");
+          if (manifest.alphaDocumentRequiredCountsPresent !== true) fail("required_counts_manifest_missing");
+          if (result.presentRequiredSectionCount !== result.requiredSectionCount) fail("required_sections_missing", { present: result.presentRequiredSectionCount, expected: result.requiredSectionCount });
+          if (result.passedRequiredCountCheckCount !== result.requiredCountCheckCount) fail("required_counts_missing", { present: result.passedRequiredCountCheckCount, expected: result.requiredCountCheckCount });
+          if (result.acceptedSmokeReferenceCount !== ACCEPTED_SMOKES.length) fail("accepted_smoke_reference_count", result.acceptedSmokeReferenceCount);
+          if (!result.acceptedSmokeReferencesPresent) fail("accepted_smoke_references_missing");
+          if (!result.invariantsPresent) fail("invariants_missing");
+          if (!result.docsMirrorMatches) fail("docs_mirror_mismatch");
+          if (!result.tasksUpdated) fail("tasks_updated");
+          if (!result.projectMemoryUpdated) fail("project_memory_updated");
+          if (!result.alphaDocumentUpdated) fail("alpha_document_updated");
+          if (!result.deployedAlphaHashMatches) fail("deployed_alpha_hash_mismatch");
+          if (!result.tasksSourceHashPresent) fail("tasks_source_hash_missing");
+          if (!result.projectMemorySourceHashPresent) fail("project_memory_source_hash_missing");
+          if (result.safariPassFalselyClaimed) fail("safari_pass_falsely_claimed");
+        }
+        const sourceRes = fetchTextSync(RUNTIME_DEV_CHECKS_SOURCE_URL);
+        const source = sourceRes.ok ? String(sourceRes.text || "") : "";
+        const registrationIndex = source.indexOf("\n  installAlphaLexiconDocsFix1Smoke(G.__DEV);");
+        const gateIndex = source.indexOf("\n  if (!DEV_FLAG) return;");
+        const firstThrowingInstallerIndex = source.indexOf("installZoomerNpcSpeechInventorySmoke(G.__DEV);");
+        const fallbackInstallerIndex = source.indexOf("installDevMenuMinimalSmoke(Game.__DEV);");
+        result.productionGatePlacementOk = registrationIndex >= 0 && gateIndex >= 0 && registrationIndex < gateIndex;
+        result.registrationPrecedesThrowingInstallers = registrationIndex >= 0 && (
+          (firstThrowingInstallerIndex >= 0 && registrationIndex < firstThrowingInstallerIndex)
+          || (firstThrowingInstallerIndex < 0 && fallbackInstallerIndex >= 0 && registrationIndex < fallbackInstallerIndex)
+        );
+        if (!result.acceptanceManifestLoaded) fail("acceptance_manifest_loaded");
+        if (!result.deployedAlphaDocumentLoaded) fail("deployed_alpha_document_loaded");
+        if (!result.siteRootResolvedFromDevChecksAsset) fail("site_root_resolved_from_dev_checks_asset");
+        if (!result.registeredOnGameDev) fail("registered_on_game_dev");
+        if (!result.productionGatePlacementOk) fail("production_gate_placement");
+        if (!result.registrationPrecedesThrowingInstallers) fail("registration_precedes_throwing_installers");
+        if (result.publishRoot !== "docs") fail("publish_root");
+        result.ok = result.failedChecks.length === 0
+          && result.failures.length === 0
+          && result.tasksUpdated === true
+          && result.projectMemoryUpdated === true
+          && result.alphaDocumentUpdated === true
+          && result.presentRequiredSectionCount === result.requiredSectionCount
+          && result.passedRequiredCountCheckCount === result.requiredCountCheckCount
+          && result.acceptedSmokeReferenceCount === ACCEPTED_SMOKES.length
+          && result.acceptedSmokeReferencesPresent === true
+          && result.invariantsPresent === true
+          && result.docsMirrorMatches === true
+          && result.safariPassFalselyClaimed === false
+          && result.registeredOnGameDev === true
+          && result.productionGatePlacementOk === true
+          && result.registrationPrecedesThrowingInstallers === true
+          && result.publishRoot === "docs"
+          && result.acceptanceManifestLoaded === true
+          && result.deployedAlphaDocumentLoaded === true
+          && result.deployedAlphaHashMatches === true
+          && result.tasksSourceHashPresent === true
+          && result.projectMemorySourceHashPresent === true
+          && result.siteRootResolvedFromDevChecksAsset === true
+          && result.forbiddenRemaining.length === 0
+          && result.missingCoverage.length === 0;
+      } catch (error) {
+        fail("smoke_exception", error && error.message ? String(error.message) : String(error));
+      }
+      console.warn("ALPHA_LEXICON_DOCS_FIX1_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const expose = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaLexiconDocsFix1 = devStore.smokeAlphaLexiconDocsFix1;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaLexiconDocsFix1 = devStore.smokeAlphaLexiconDocsFix1;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeAlphaLexiconDocsFix1 = devStore.smokeAlphaLexiconDocsFix1;
+    };
+    expose();
+    if (typeof setTimeout === "function") {
+      setTimeout(expose, 0);
+      setTimeout(expose, 250);
+      setTimeout(expose, 1000);
+    }
+    console.warn("ALPHA_LEXICON_DOCS_FIX1_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconDocsFix1);
+  }
+
   installAlphaLexiconInventorySmoke(Game.__DEV);
   installAlphaAllowedLexiconSmoke(Game.__DEV);
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
@@ -25606,6 +25906,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installAlphaZToAlphaMappingSmoke(Game.__DEV);
   installAlphaNewFeaturesSmoke(Game.__DEV);
   installAlphaLexiconDocsSmoke(Game.__DEV);
+  installAlphaLexiconDocsFix1Smoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();

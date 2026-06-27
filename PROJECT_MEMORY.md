@@ -29,7 +29,10 @@
 - Canonical alpha lexicon document path: `ALPHA_LEXICON.md`.
 - Deployed alpha lexicon document path: `docs/ALPHA_LEXICON.md`.
 - Final alpha counts: source inventory `164` entries and `122` unique texts; allowed lexicon `187` entries across `8` categories; taboo list `60` entries across `4` categories; Z-to-alpha mapping `23` rows at `100%` coverage with `16` changed, `7` identity, and `3` canonical convergences; new feature coverage `7` groups and `73` mappings at `100%` coverage with `66` changed and `7` identity; target taboo hits `0`.
-- Step 4.3.7 docs smoke command: `Game.__DEV.smokeAlphaLexiconDocsOnce()`.
+- Initial Step 4.3.7 Safari documentation smoke failed only because repository paths were treated as browser URLs under the GitHub Pages publish-root layout.
+- Source documentation content checks passed.
+- Fix1 uses the deployable acceptance manifest `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`.
+- Step 4.3.7 docs smoke command: `Game.__DEV.smokeAlphaLexiconDocsFix1()`.
 - Step 4.3.7 Safari PASS pending.
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; acceptance smoke remains pending.
