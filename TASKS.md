@@ -1,3 +1,22 @@
+## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.2] Canon Audit
+- Status: PASS for implementation and static validation only; Canon Audit smoke remains pending.
+- Added `plugins/asynchronia/skills/canon-audit/SKILL.md` as a read-only audit skill for `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `IMPLEMENTATION_AUDIT`, and `SMOKE_RESULT_AUDIT`.
+- Locked authoritative-source precedence to the explicit current user instruction for the exact task, `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active accepted `TASKS.md` contracts, dedicated accepted specifications, accepted tests and implementation behavior, and examples/comments only as supporting evidence.
+- Locked terminology, mechanic behavior, player/NPC parity, prerequisites, outcomes, caps, lifecycle, undocumented exceptions, regression surface, and scope discipline as required canon checks with positive-evidence `PASS` only.
+- Locked economy interaction to `ECONOMY_AUDIT_REQUIRED` when economy mutations are involved, deployed/source parity escalation to `MIRROR_AUDIT_REQUIRED`, and runtime-sensitive scope escalation to `RUNTIME_GATE_REQUIRED` without granting any of them automatically.
+- Step [3.1] Economy Invariant Audit implementation and acceptance are PASS.
+- Mirror Audit remains pending.
+- Task Router integration remains pending.
+- Plugin version remains `0.2.0` until v0.3.0 integration.
+- Canon Audit smoke remains pending.
+
+## 2026-06-27 — Step 4.1 Zoomer UI terms inventory Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Fixed `Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce()` in both served dev-check bundles so duplicate/containment helpers no longer call `.some` on non-arrays, runtime identity reads come from the live current build values first, and stale older runtime markers are rejected explicitly.
+- Added isolated Safari command `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()`.
+- Smoke version: `step4_1_alpha_zoomer_inventory_fix1_v20260627_001`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()`.
+
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical Zoomer UI term inventory, mirrored in `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md`.
@@ -9,16 +28,17 @@
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce()`.
 
 ## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.1] Economy Invariant Audit
-- Status: PASS for implementation and static validation only; Economy Invariant Audit smoke remains pending.
+- Status: PASS for implementation, static validation, and acceptance.
 - Added `plugins/asynchronia/skills/economy-invariant-audit/SKILL.md` as a read-only audit skill for `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `TRACE_AUDIT`, and `SMOKE_RESULT_AUDIT`.
 - Locked authoritative-source precedence to `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active `TASKS.md` mechanic contracts, accepted implementation/tests, and then the user task contract.
 - Locked conservation, traceability, atomic settlement, remainder handling, bounds, cross-resource separation, causal linkage, rollback, player/NPC parity, and long-run stability as required audit checks with positive-evidence `PASS` only.
 - Locked runtime precedence to `RUNTIME_GATE_REQUIRED`, canon ambiguity routing to Canon Audit, and deployed mirror escalation to Mirror Audit without granting either audit automatically.
+- Economy Invariant Audit implementation and acceptance are PASS.
 - Canon Audit remains pending.
 - Mirror Audit remains pending.
 - Task Router integration remains pending.
 - Plugin version remains `0.2.0` until v0.3.0 integration.
-- Economy Invariant Audit smoke remains pending.
+- Economy Invariant Audit acceptance smoke: PASS.
 
 ## 2026-06-27 — Step 4.1 Millennial UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
