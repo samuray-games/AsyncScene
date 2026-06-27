@@ -28,7 +28,10 @@
 - Empty arrays confirmed: `failures:[]`, `forbiddenRemaining:[]`, `missingCoverage:[]`, `failedChecks:[]`.
 - Contract markers: `docsMirrorMatches:true`, `runtimeCopyChanged:true`, `mappingApplied:true`, `gameplayLogicChanged:false`, `economyLogicChanged:false`, `battleLogicChanged:false`, `npcLogicChanged:false`, `stateLogicChanged:false`, `productionGatePlacementOk:true`, `registrationPrecedesThrowingInstallers:true`.
 - Step 4.3.7 implementation ready.
-- Step 4.3.7 Safari acceptance pending on `Game.__DEV.smokeAlphaLexiconDocsOnce()`.
+- Initial Step 4.3.7 Safari documentation smoke failed only because repository paths were treated as browser URLs instead of GitHub Pages publish-root URLs.
+- Source documentation content checks passed.
+- Fix1 uses a deployable acceptance manifest: `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`.
+- Step 4.3.7 Safari acceptance pending on `Game.__DEV.smokeAlphaLexiconDocsFix1()`.
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.1] Model Selector
 - Status: PASS for implementation and static validation only; model-selector acceptance smoke remains pending.
 - Implemented `plugins/asynchronia/skills/model-selector/SKILL.md` as a recommendation-only skill with the exact allowed model set, exact allowed reasoning levels, cheapest-reliable default rule, promotion criteria, invalid-model blocking, and truthfulness requirements for `USER_SELECTED_UNVERIFIED` and `SELF_REPORTED_UNVERIFIED`.

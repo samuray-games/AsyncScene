@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "generatedForStep": "4.3.7-fix1",
+  "publishRoot": "docs",
+  "sourceFiles": {
+    "tasks": "TASKS.md",
+    "projectMemory": "PROJECT_MEMORY.md",
+    "alphaCanonical": "ALPHA_LEXICON.md",
+    "alphaDeployedMirror": "docs/ALPHA_LEXICON.md"
+  },
+  "sourceHashes": {
+    "TASKS.md": "0fb2f0f648d52a1e531a82d7bb6612ba340382ebbd85188bd1df55f60c1db98d",
+    "PROJECT_MEMORY.md": "1d524159bc31a0a5dbec40d92b929bde4b198b74d1dfe815508bd527af2215b5",
+    "ALPHA_LEXICON.md": "ff02bc50dd8bdcd00822e0fd783ec3e34197a371dd739d5ce816697ffc809bac",
+    "docs/ALPHA_LEXICON.md": "ff02bc50dd8bdcd00822e0fd783ec3e34197a371dd739d5ce816697ffc809bac"
+  },
+  "alphaMirrorMatches": true,
+  "tasksStep436PassRecordPresent": true,
+  "projectMemoryStep436PassRecordPresent": true,
+  "alphaDocumentRequiredSectionsPresent": true,
+  "alphaDocumentRequiredCountsPresent": true,
+  "acceptedSmokeReferenceCount": 6,
+  "acceptedSmokeReferencesPresent": true,
+  "invariantsPresent": true,
+  "safariPassFalselyClaimed": false,
+  "acceptedStep436Commit": "step4_3_6_alpha_lexicon_runtime_smoke_fix1",
+  "acceptedStep436BuildTag": "build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1",
+  "acceptedStep436SmokeVersion": "step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001",
+  "step437Commit": "step4_3_7_alpha_lexicon_docs_memory_fix1",
+  "step437BuildTag": "build_2026_06_22_step4_3_7_alpha_lexicon_docs_memory_fix1_v1",
+  "step437SmokeVersion": "step4_3_7_alpha_lexicon_docs_memory_fix1_v20260622_001"
+}
