@@ -1,5 +1,17 @@
+## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.3] Mirror Audit
+- Status: PASS for implementation and static validation only; Mirror Audit smoke remains pending.
+- Added `plugins/asynchronia/skills/mirror-audit/SKILL.md` as a read-only audit skill with exact modes `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `DEPLOYMENT_AUDIT`, and `SMOKE_RESULT_AUDIT`.
+- The skill resolves mirror ownership groups across `AsyncScene/Web/**` and `docs/**`, requires one serialized ownership lane per shared deployed behavior, and separates source/deployed membership, byte parity, semantic parity, wiring parity, dependency parity, release metadata, freshness, runtime reachability, and smoke linkage into distinct audit dimensions.
+- Accepted transformations must be authoritative, deterministic, and validation-backed; unresolved ownership, counterpart mapping, or transformation rules block the audit rather than guessing parity.
+- Canon ambiguity is escalated to `CANON_AUDIT_REQUIRED`, cross-mirror economy behavior differences are escalated to `ECONOMY_AUDIT_REQUIRED`, and runtime-sensitive synchronization remains `RUNTIME_GATE_REQUIRED` with user Safari smoke still `PENDING_USER`.
+- Step [3.1] Economy Invariant Audit implementation and acceptance are PASS.
+- Step [3.2] Canon Audit implementation and acceptance are PASS.
+- Task Router integration remains pending.
+- Plugin version remains `0.2.0` until v0.3.0 integration.
+- Mirror Audit smoke remains pending.
+
 ## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.2] Canon Audit
-- Status: PASS for implementation and static validation only; Canon Audit smoke remains pending.
+- Status: PASS for implementation, static validation, and acceptance.
 - Added `plugins/asynchronia/skills/canon-audit/SKILL.md` as a read-only audit skill with exact modes `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `IMPLEMENTATION_AUDIT`, and `SMOKE_RESULT_AUDIT`.
 - The skill resolves canon from the explicit current user instruction for the exact task, `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active accepted `TASKS.md` contracts, dedicated accepted specifications, accepted tests and implementation behavior, and examples/comments only as supporting evidence, and it blocks when authoritative sources conflict or accepted canon cannot be resolved safely.
 - The audit contract requires positive evidence for terminology, behavior, player/NPC parity, prerequisites, outcomes, caps, lifecycle, exceptions, regression surface, and scope discipline, and it fails silent mechanic drift and undocumented exceptions explicitly.
@@ -8,7 +20,7 @@
 - Mirror Audit remains pending.
 - Task Router integration remains pending.
 - Plugin version remains `0.2.0` until v0.3.0 integration.
-- Canon Audit smoke remains pending.
+- Canon Audit acceptance smoke: PASS.
 
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory Fix1
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
