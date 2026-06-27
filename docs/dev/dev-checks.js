@@ -52505,6 +52505,7 @@ ALX_0187 | protected_tokens | {text}`;
     Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
     Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
     Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Game.__DEV.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
   if (Game.Dev && typeof Game.Dev === "object") {
     Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
@@ -52513,6 +52514,7 @@ ALX_0187 | protected_tokens | {text}`;
     Game.Dev.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
     Game.Dev.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
     Game.Dev.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Game.Dev.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
   if (devStore && typeof devStore === "object") {
     devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
@@ -52521,6 +52523,7 @@ ALX_0187 | protected_tokens | {text}`;
     devStore.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
     devStore.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
     devStore.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    devStore.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
   console.warn("ZOOMER_SHORTENING_DOCS_SMOKE_INSTALLED_V4", typeof Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once, typeof Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce);
 
