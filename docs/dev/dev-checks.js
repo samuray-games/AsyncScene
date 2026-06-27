@@ -14065,6 +14065,222 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.smokeVersion = "alpha_step_1_3_fix1_v20260617_001";
       return result;
     };
+    const smokeZoomerFeelStep63UiNpcLengthOnce = () => {
+      const buildTag = "build_2026_06_22_step3_6_3_alpha_vs_zoomer_length_v1";
+      const commit = "step3_6_3_alpha_vs_zoomer_length";
+      const smokeVersion = "step3_6_3_alpha_vs_zoomer_length_v20260622_001";
+      const smokeName = "smokeZoomerFeelStep63UiNpcLengthOnce";
+      const requiredSurfaces = Object.freeze([
+        "start_screen",
+        "button",
+        "label",
+        "tooltip",
+        "notification",
+        "error",
+        "warning",
+        "cop_flow",
+        "battle",
+        "conflict_feed",
+        "event",
+        "report",
+        "economy",
+        "respect",
+        "p2p",
+        "training",
+        "menu",
+        "placeholder",
+        "npc_say",
+        "npc_dm",
+        "toast",
+        "system_message"
+      ]);
+      const result = {
+        ok: false,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: [],
+        checkedRows: [],
+        longerRows: [],
+        unmappedRows: [],
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName
+      };
+      const addUnique = (list, value) => { if (!list.some((item) => JSON.stringify(item) === JSON.stringify(value))) list.push(value); };
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const decodeCell = (value) => {
+        try {
+          return JSON.parse(`"${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`);
+        } catch (_) {
+          return String(value);
+        }
+      };
+      const normalizeText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+      const normalizedLength = (value) => Array.from(normalizeText(value)).length;
+      const resolveCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => { if (!value || seen.has(value)) return; seen.add(value); candidates.push(value); };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(location.origin + "/AsyncScene/");
+          bases.push(location.origin + "/");
+          bases.push(location.origin + "/__dev__/docs/");
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(location.origin + "/AsyncScene/" + fileName);
+          add(location.origin + "/__dev__/docs/" + fileName);
+          add(location.origin + "/" + fileName);
+        }
+        add("/AsyncScene/" + fileName);
+        add("/__dev__/docs/" + fileName);
+        add("/" + fileName);
+        return candidates;
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: "http_" + (xhr.status || 0), path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const parseLengthRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => /^\| TXT_\d{4} \|/.test(line)).map((line) => {
+        const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+        if (!cells.length || !/^TXT_\d{4}$/.test(cells[0])) return null;
+        return {
+          id: cells[0],
+          oldText: decodeCell(cells[1] || ""),
+          alphaText: decodeCell(cells[2] || ""),
+          sourceFile: decodeCell(cells[3] || ""),
+          sourceLine: Number(cells[4] || 0) || 0,
+          key: cells[5] || "",
+          category: cells[6] || "",
+          profile: cells[7] || "",
+          measurementClass: cells[8] || ""
+        };
+      }).filter(Boolean);
+      const parseSurfaceRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => /^\| TXT_\d{4} \|/.test(line)).map((line) => {
+        const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
+        if (!cells.length || !/^TXT_\d{4}$/.test(cells[0])) return null;
+        return {
+          id: cells[0],
+          surface: cells[1] || "",
+          sourceGroup: cells[2] || "",
+          key: cells[3] || "",
+          currentText: decodeCell(cells[4] || ""),
+          sourcePath: cells[5] || "",
+          kind: cells[6] || "",
+          profile: cells[7] || "",
+          dynamic: cells[8] || "",
+          vars: cells[9] || "",
+          notes: cells[10] || ""
+        };
+      }).filter(Boolean);
+      try {
+        const lengthDocRes = fetchFirst("UI_PROFILE_ALPHA_LENGTH_RULES.md");
+        const surfaceDocRes = fetchFirst("UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md");
+        if (!lengthDocRes.ok) fail("length_rules_doc_loaded", { path: lengthDocRes.path, reason: lengthDocRes.reason || "unavailable" });
+        if (!surfaceDocRes.ok) fail("surface_inventory_doc_loaded", { path: surfaceDocRes.path, reason: surfaceDocRes.reason || "unavailable" });
+        const lengthRows = lengthDocRes.ok ? parseLengthRows(lengthDocRes.text || "") : [];
+        const surfaceRows = surfaceDocRes.ok ? parseSurfaceRows(surfaceDocRes.text || "") : [];
+        const lengthById = lengthRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const surfaceById = surfaceRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
+        const lengthDuplicateIds = lengthRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
+        const surfaceDuplicateIds = surfaceRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
+        if (lengthRows.length !== 164) fail("length_row_count", { expected: 164, actual: lengthRows.length });
+        if (surfaceRows.length !== 164) fail("surface_row_count", { expected: 164, actual: surfaceRows.length });
+        if (lengthDuplicateIds.length) fail("length_duplicate_ids", lengthDuplicateIds);
+        if (surfaceDuplicateIds.length) fail("surface_duplicate_ids", surfaceDuplicateIds);
+        if (Object.keys(lengthById).length !== 164) fail("length_unique_ids", { expected: 164, actual: Object.keys(lengthById).length });
+        if (Object.keys(surfaceById).length !== 164) fail("surface_unique_ids", { expected: 164, actual: Object.keys(surfaceById).length });
+        lengthRows.forEach((row) => {
+          const surfaceRow = surfaceById[row.id];
+          if (!surfaceRow) {
+            addUnique(result.unmappedRows, { id: row.id, reason: "missing_surface_inventory" });
+            addUnique(result.missingCoverage, row.id);
+            fail("surface_mapping_missing", row.id);
+            return;
+          }
+          const baselineText = row.oldText;
+          const candidateText = row.alphaText;
+          const baselineLength = normalizedLength(baselineText);
+          const alphaLength = normalizedLength(candidateText);
+          const checkedRow = {
+            id: row.id,
+            surface: surfaceRow.surface,
+            sourceGroup: surfaceRow.sourceGroup,
+            profile: row.profile,
+            measurementClass: row.measurementClass,
+            baselineText,
+            candidateText,
+            baselineLength,
+            alphaLength
+          };
+          result.checkedRows.push(checkedRow);
+          if (!baselineText && baselineText !== "") {
+            addUnique(result.unmappedRows, { id: row.id, reason: "missing_zoomer_baseline" });
+            addUnique(result.missingCoverage, row.id);
+            fail("zoomer_baseline_missing", row.id);
+          }
+          if (!candidateText && candidateText !== "") {
+            addUnique(result.unmappedRows, { id: row.id, reason: "missing_alpha_text" });
+            addUnique(result.missingCoverage, row.id + ":alpha");
+            fail("alpha_text_missing", row.id);
+          }
+          if (alphaLength > baselineLength) {
+            const longerRow = {
+              id: row.id,
+              surface: surfaceRow.surface,
+              sourceGroup: surfaceRow.sourceGroup,
+              baselineLength,
+              alphaLength,
+              baselineText,
+              candidateText
+            };
+            result.longerRows.push(longerRow);
+            fail("alpha_longer_than_zoomer", longerRow);
+          }
+        });
+        const surfaceSet = new Set(result.checkedRows.map((row) => row.surface).filter(Boolean));
+        requiredSurfaces.forEach((surface) => {
+          if (!surfaceSet.has(surface)) addUnique(result.missingCoverage, `surface:${surface}`);
+        });
+        if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
+        if (result.unmappedRows.length) fail("unmapped_rows", result.unmappedRows.slice());
+        if (result.longerRows.length) fail("alpha_longer_rows", result.longerRows.slice());
+        if (result.checkedRows.length !== 164) fail("checked_row_count", { expected: 164, actual: result.checkedRows.length });
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.checkedRows.length === 164
+        && result.longerRows.length === 0
+        && result.unmappedRows.length === 0;
+      return result;
+    };
     const smokeAlphaStep14ExplanationRulesFix2 = () => {
       const result = smokeAlphaStep14ExplanationRulesOnce();
       result.buildTag = "build_2026_06_18_step4_alpha_profile_step1_4_fix2_js_mirror_path_fix";
