@@ -197,15 +197,26 @@ If Codex reports its own model name without external verification, label it `SEL
 - Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
 - Runtime acceptance remains user-controlled.
 
-## 8.3 v0.2.0 workflow
+## 8.3 v0.3.0 workflow
 
 - `task-router` classifies the request.
 - `runtime-safety-gate` has precedence for runtime-sensitive scope.
-- `parallel-scope-planner` separates lanes when multiple tasks, mirrors, shared ownership, or concurrency exist.
+- `canon-audit` resolves intended accepted rules.
+- `economy-invariant-audit` verifies conservation and traces.
+- `mirror-audit` verifies source/deployed and deployment parity.
+- `parallel-scope-planner` controls ownership and serialization when multiple tasks, mirrors, shared ownership, or concurrency exist.
 - `model-selector` recommends the cheapest reliable model per implementation lane.
 - Codex performs static validation.
 - The user performs required Safari runtime smoke.
 - Runtime acceptance remains pending until user confirmation.
+
+Boundaries:
+
+- Canon Audit does not prove economy conservation or mirror correctness.
+- Economy Invariant Audit does not define canon or deployment parity.
+- Mirror Audit does not define canon or economy conservation.
+- Audits do not approve runtime writes.
+- Audits do not replace user Safari acceptance.
 
 ## 9. Plugin usage
 
@@ -256,5 +267,5 @@ A Codex `PASS` means only that the authorized implementation and static checks p
 ## 12. Documentation state
 
 - This root `AGENTS.md` is the authoritative repository policy.
-- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, model-selection rule, and final Codex report contract.
+- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated audit workflow, model-selection rule, and final Codex report contract.
 - Safe-task and runtime-task acceptance smokes remain pending and must be run separately.

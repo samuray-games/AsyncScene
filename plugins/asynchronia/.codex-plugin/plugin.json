@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Project-specific safety gates for Codex work in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
