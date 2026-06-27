@@ -1,14 +1,31 @@
+## 2026-06-27 — Step 4.1 Millennial UI terms inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md` as the dedicated source inventory for Millennial/shared copy visible under the Millennial profile.
+- Inventory scope: 124 entries across exactly seven primary categories (`buttons`, `statuses`, `errors`, `hints`, `economy`, `battles`, `dm`), preserving exact text, key, source surface, source file/line, profile, dynamic variables, and duplicate-source notes from the current inventory export.
+- Added dev-only `Game.__DEV.smokeBoomerTermsStep41InventoryOnce()` in both served dev-check bundles for the new inventory artifact and full phrase inventory export comparison.
+- Build tag: `build_2026_06_27_step4_1_millennial_terms_inventory_v1`.
+- Smoke version: `millennial_terms_inventory_step4_1_v20260627_001`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeBoomerTermsStep41InventoryOnce()`.
+
 ## 2026-06-27 — Asynchronia plugin v0.2.0 integration
-- Status: PASS for manifest and documentation integration only; integrated acceptance smoke remains pending.
+- Status: PASS for manifest, documentation integration, and final acceptance recording.
 - Updated `plugins/asynchronia/.codex-plugin/plugin.json` to version `0.2.0` without adding unsupported manifest fields.
 - Updated `AGENTS.md` installed-plugin reference to `Asynchronia v0.2.0`.
 - Model Selector implementation and acceptance are PASS.
 - Parallel Scope Planner implementation and corrected acceptance are PASS.
 - Task Router implementation and acceptance are PASS.
 - Plugin integration completed.
-- Installation refresh and integrated acceptance smoke remain pending.
-- Plugin version is `0.2.0`.
-- v0.2.0 final acceptance is not COMPLETE yet.
+- Installed-package smoke: PASS.
+- Installed version verified as `0.2.0`.
+- Metadata source: `/Users/User/.codex/plugins/cache/personal/asynchronia/0.2.0/.codex-plugin/plugin.json`.
+- All four installed skills resolved: `runtime-safety-gate`, `task-router`, `model-selector`, and `parallel-scope-planner`.
+- Integrated workflow: PASS.
+- Approval protocol: PASS.
+- Model truthfulness rules: PASS.
+- Changed files during smoke: none.
+- Missing installed-package coverage: none.
+- Safari smoke: N/A because no runtime implementation was performed.
+- Asynchronia plugin v0.2.0 final acceptance: COMPLETE.
 
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.3] Task Router
 - Status: PASS for implementation and static validation only; task-router smoke remains pending.
