@@ -1,3 +1,30 @@
+## 2026-06-28 — Asynchronia plugin v0.3.0 step [3.6] final acceptance and installed-package verification
+- Status: PASS for final acceptance and installed-package verification.
+- Installed an exact deterministic local package copy from `plugins/asynchronia/` into `/Users/User/.codex/plugins/cache/personal/asynchronia/0.3.0/` without modifying the source package, marketplace metadata, or the retained `0.2.0` installation.
+- Source and installed manifests matched exactly with identical relative file sets and identical SHA-256 for every corresponding regular file.
+- Source manifest and installed manifest both parsed as package identity `asynchronia` at version `0.3.0`.
+- Verified seven accepted installed skills: `runtime-safety-gate`, `task-router`, `model-selector`, `parallel-scope-planner`, `economy-invariant-audit`, `canon-audit`, and `mirror-audit`.
+- Verified source and installed Task Router audit routes for `economy-invariant-audit`, `canon-audit`, and `mirror-audit`, retained runtime-gate precedence, and preserved the required order `runtime-safety-gate -> canon-audit -> economy-invariant-audit -> mirror-audit -> user Safari smoke`.
+- Verified the installed package contains no runtime, mirror, or game files.
+- Verified the previous installed `0.2.0` package remains retained and unchanged.
+- Step [3.1] Economy Invariant Audit: PASS.
+- Step [3.2] Canon Audit: PASS.
+- Step [3.3] Mirror Audit: PASS.
+- Step [3.4] integration and source version `0.3.0`: PASS.
+- Step [3.5.1] Economy integrated smoke: PASS.
+- Step [3.5.2] Canon integrated smoke: PASS.
+- Step [3.5.3] Mirror integrated smoke: PASS.
+- Step [3.5] three separate integrated smokes: PASS.
+- Step [3.6] Final acceptance: PASS.
+- installed-package verification: PASS.
+- source plugin version: `0.3.0`.
+- installed and accepted plugin version: `0.3.0`.
+- installed path: `/Users/User/.codex/plugins/cache/personal/asynchronia/0.3.0/`.
+- [3.1] through [3.6] complete.
+- Asynchronia plugin v0.3.0 acceptance: COMPLETE.
+- Safari smoke: N/A because this package has no game runtime surface.
+- No commit was requested.
+
 ## 2026-06-28 — Asynchronia plugin v0.3.0 step [3.4] integrated audits and source version
 - Status: PASS for source integration and static validation only; final acceptance remains pending.
 - Integrated `economy-invariant-audit`, `canon-audit`, and `mirror-audit` into `plugins/asynchronia/skills/task-router/SKILL.md` with explicit economy, canon, and mirror routing triggers plus required dependency order `runtime-safety-gate -> canon-audit -> economy-invariant-audit -> mirror-audit -> user Safari smoke`.
