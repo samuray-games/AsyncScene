@@ -1,3 +1,25 @@
+## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical Zoomer UI term inventory, mirrored in `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md`.
+- Inventory scope: current Zoomer interface terms across buttons and action labels, statuses, errors, hints and toasts, chips and badges, DM tabs and DM actions, report and cop flow, social actions, P2P labels, economy labels, start screen, battles and rematch, NPC vs NPC surfaces, and other currently implemented features; exact text, source locator, profile, dynamic-template flag, variables, and notes preserved from the current export baseline.
+- Added dev-only `Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce()` in both served dev-check bundles to verify the runtime collector against the canonical inventory artifact and reject `Console.txt`.
+- Build tag: `build_2026_06_27_step4_1_zoomer_terms_inventory_v1`.
+- Commit marker: `step4_1_alpha_zoomer_inventory`.
+- Smoke version: `step4_1_alpha_zoomer_inventory_v1_${buildTag}_commit_${commit}`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce()`.
+
+## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.1] Economy Invariant Audit
+- Status: PASS for implementation and static validation only; Economy Invariant Audit smoke remains pending.
+- Added `plugins/asynchronia/skills/economy-invariant-audit/SKILL.md` as a read-only audit skill for `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `TRACE_AUDIT`, and `SMOKE_RESULT_AUDIT`.
+- Locked authoritative-source precedence to `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active `TASKS.md` mechanic contracts, accepted implementation/tests, and then the user task contract.
+- Locked conservation, traceability, atomic settlement, remainder handling, bounds, cross-resource separation, causal linkage, rollback, player/NPC parity, and long-run stability as required audit checks with positive-evidence `PASS` only.
+- Locked runtime precedence to `RUNTIME_GATE_REQUIRED`, canon ambiguity routing to Canon Audit, and deployed mirror escalation to Mirror Audit without granting either audit automatically.
+- Canon Audit remains pending.
+- Mirror Audit remains pending.
+- Task Router integration remains pending.
+- Plugin version remains `0.2.0` until v0.3.0 integration.
+- Economy Invariant Audit smoke remains pending.
+
 ## 2026-06-27 — Step 4.1 Millennial UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md` as the dedicated source inventory for Millennial/shared copy visible under the Millennial profile.
