@@ -17153,6 +17153,56 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix3 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        result.buildTag = "build_2026_06_27_step4_1_zoomer_terms_inventory_fix3_v1";
+        result.commit = "step4_1_alpha_zoomer_inventory_fix3";
+        result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix3_v20260627_003";
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix3";
+        result.artifactCount = result.inventoryCount;
+        result.ok = result.inventoryCount > 0
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === "build_2026_06_27_step4_1_zoomer_terms_inventory_fix3_v1"
+          && result.commit === "step4_1_alpha_zoomer_inventory_fix3"
+          && result.smokeVersion === "step4_1_alpha_zoomer_inventory_fix3_v20260627_003";
+      }
+      return result;
+    };
+    const exposeAlphaStep41ZoomerInventorySmoke = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+      Game.Dev.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+      Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+      Game.Dev.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+      G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+      G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+      G.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
+      if (typeof devStore === "object" && devStore) {
+        devStore.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+        devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
+        devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+        devStore.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
+      }
+    };
+    exposeAlphaStep41ZoomerInventorySmoke();
+    if (typeof setTimeout === "function") {
+      setTimeout(exposeAlphaStep41ZoomerInventorySmoke, 0);
+      setTimeout(exposeAlphaStep41ZoomerInventorySmoke, 250);
+      setTimeout(exposeAlphaStep41ZoomerInventorySmoke, 1000);
+    }
     const smokeBoomerNewFeatureCoverageStep34Fix10Once = () => {
       const result = smokeBoomerNewFeatureCoverageStep34Once();
       result.buildTag = "build_2026_06_18_step3_4_boomer_new_feature_coverage_fix10_v1";
