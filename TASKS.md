@@ -1,3 +1,15 @@
+## 2026-06-27 — Asynchronia plugin v0.2.0 integration
+- Status: PASS for manifest and documentation integration only; integrated acceptance smoke remains pending.
+- Updated `plugins/asynchronia/.codex-plugin/plugin.json` to version `0.2.0` without adding unsupported manifest fields.
+- Updated `AGENTS.md` installed-plugin reference to `Asynchronia v0.2.0`.
+- Model Selector implementation and acceptance are PASS.
+- Parallel Scope Planner implementation and corrected acceptance are PASS.
+- Task Router implementation and acceptance are PASS.
+- Plugin integration completed.
+- Installation refresh and integrated acceptance smoke remain pending.
+- Plugin version is `0.2.0`.
+- v0.2.0 final acceptance is not COMPLETE yet.
+
 ## 2026-06-22 — Asynchronia plugin v0.2.0 step [2.3] Task Router
 - Status: PASS for implementation and static validation only; task-router smoke remains pending.
 - Implemented `plugins/asynchronia/skills/task-router/SKILL.md` as a routing-only skill with ordered precedence, primary classifications, secondary flags, execution modes, blocking rules, dirty-tree distinctions, truthfulness rules, optional plugin support boundaries, and required workflow routing for runtime, concurrent, plugin, UI, security, release, and documentation tasks.
