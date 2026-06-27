@@ -141,6 +141,16 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 - Canon Audit determines the intended rule but does not prove economy conservation or mirror parity.
 - Runtime acceptance remains user-controlled.
 
+## 7.2 Mirror audit
+
+- Source and deployed counterparts form one serialized ownership lane.
+- Byte parity, semantic parity, and wiring parity are separate checks.
+- Matching contents do not prove reachability or deployment correctness.
+- Accepted transformations must be authoritative and deterministic.
+- Unresolved ownership or transformation rules return `BLOCKED`.
+- Runtime synchronization remains subject to runtime-safety-gate approval.
+- Deployed acceptance remains user-controlled through Safari smoke.
+
 ## 8. Model selection rule
 
 Available Codex models are exactly:
