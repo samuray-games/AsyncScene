@@ -48,6 +48,14 @@
 - Added `Game.__DEV.smokeBoomerTermsStep41InventoryOnce()` in both served dev-check bundles with unique build identity `build_2026_06_27_step4_1_millennial_terms_inventory_v1` and smoke version `millennial_terms_inventory_step4_1_v20260627_001`.
 - Safari runtime smoke remains pending on `Game.__DEV.smokeBoomerTermsStep41InventoryOnce()`.
 
+## 2026-06-27 — Step 4.1 Millennial UI terms inventory Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added served copies of the Millennial inventory artifact at `AsyncScene/Web/UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md` and `docs/UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md` so Safari can load the artifact from the deployed tree instead of the absent repository-root markdown URL.
+- Updated the Step 4.1 smoke entrypoint to `Game.__DEV.smokeBoomerTermsStep41InventoryFix1()` in both dev-check bundles.
+- Build identity for the fix: `build_2026_06_27_step4_1_millennial_terms_inventory_fix1_v1`.
+- Smoke version for the fix: `millennial_terms_inventory_step4_1_fix1_v20260627_002`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeBoomerTermsStep41InventoryFix1()`.
+
 ## 2026-06-27 — Asynchronia plugin v0.2.0 integration
 - Status: PASS for manifest, documentation integration, and final acceptance recording.
 - Bumped `plugins/asynchronia/.codex-plugin/plugin.json` from `0.1.1` to `0.2.0` without introducing unsupported manifest fields.
