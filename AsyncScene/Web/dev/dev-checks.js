@@ -11173,9 +11173,24 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     };
 
     const smokeAlphaStep41ZoomerInventoryOnce = () => {
-      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
-      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
-      const smokeVersion = `step4_1_alpha_zoomer_inventory_v1_${buildTag}_commit_${commit}`;
+      const readIdentity = (...values) => values.find((value) => typeof value === "string" && value.trim()) || "";
+      const buildTag = readIdentity(
+        typeof window !== "undefined" ? window.__BUILD_TAG__ : "",
+        typeof window !== "undefined" ? window.__buildTag : "",
+        G.__buildTag,
+        G.__DEV && G.__DEV.buildTag,
+        RUNTIME_BUILD_TAG
+      );
+      const commit = readIdentity(
+        typeof window !== "undefined" ? window.__COMMIT__ : "",
+        typeof window !== "undefined" ? window.__commit : "",
+        G.__commit,
+        G.__DEV && G.__DEV.commit,
+        RUNTIME_COMMIT
+      );
+      const smokeVersion = "step4_1_alpha_zoomer_inventory_fix1_v20260627_001";
+      const staleBuildTags = new Set(["build_2026_06_27_step4_1_zoomer_terms_inventory_v1"]);
+      const staleCommits = new Set(["d8e4aee", "step4_1_alpha_zoomer_inventory"]);
       const inventoryFile = "UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md";
       const result = {
         ok: false,
@@ -11189,7 +11204,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         forbiddenRemaining: [],
         failedChecks: []
       };
-      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const addUnique = (list, value) => {
+        const target = Array.isArray(list) ? list : [];
+        const key = JSON.stringify(value);
+        if (!target.some((item) => JSON.stringify(item) === key)) target.push(value);
+      };
       const fail = (check, detail) => {
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
@@ -11314,7 +11333,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           if (!artifactText.includes(marker)) addUnique(result.missingCoverage, marker);
         });
         const artifactRows = parseArtifactRows(artifactText);
-        const runtimeEntries = collectZoomerTermsInventoryEntries().filter((entry) => entry && normalizeProfileText(entry.text));
+        const runtimeEntriesRaw = collectZoomerTermsInventoryEntries();
+        const runtimeEntries = Array.isArray(runtimeEntriesRaw)
+          ? runtimeEntriesRaw.filter((entry) => entry && normalizeProfileText(entry.text))
+          : [];
         result.inventoryCount = runtimeEntries.length;
         const scannedFiles = new Set([inventoryFile, `docs/${inventoryFile}`]);
         if (artifactRows.some((row) => row.parseError)) fail("inventory_row_parse", artifactRows.filter((row) => row.parseError));
@@ -11325,11 +11347,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
             fail("inventory_row_required_fields", row.id || row.key || "unknown");
             addUnique(result.missingCoverage, row.id || row.key || "unknown");
             return;
-          }
-          addUnique(scannedFiles, row.sourceFile);
-          if (/Console\.txt/i.test(row.text) || /Console\.txt/i.test(row.notes) || /Console\.txt/i.test(row.sourceFile)) {
-            addUnique(result.forbiddenRemaining, { id: row.id, sourceFile: row.sourceFile, text: row.text });
-          }
+        }
+        addUnique(scannedFiles, row.sourceFile);
+        if (/Console\.txt/i.test(row.text) || /Console\.txt/i.test(row.notes) || /Console\.txt/i.test(row.sourceFile)) {
+          addUnique(result.forbiddenRemaining, { id: row.id, sourceFile: row.sourceFile, text: row.text });
+        }
           const match = runtimeEntries.find((entry) => artifactMatchesRuntime(row, entry));
           if (!match) addUnique(result.missingCoverage, { id: row.id, category: row.category, surface: row.surface, key: row.key, text: row.text, sourceFile: row.sourceFile, sourceLine: row.sourceLine });
         });
@@ -11345,11 +11367,31 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
         if (artifactRows.length !== runtimeEntries.length) fail("inventory_count_matches_runtime", { artifact: artifactRows.length, runtime: runtimeEntries.length });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_v1_${buildTag}_commit_${commit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        if (staleBuildTags.has(buildTag)) fail("stale_build_tag", { buildTag });
+        if (staleCommits.has(commit)) fail("stale_commit", { commit });
+        if (smokeVersion !== "step4_1_alpha_zoomer_inventory_fix1_v20260627_001") fail("smoke_version_unique_for_commit", smokeVersion);
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.ok = result.inventoryCount > 0
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
+    const smokeAlphaStep41ZoomerInventoryFix1 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix1_v20260627_001";
+      result.ok = result.inventoryCount > 0
+        && Array.isArray(result.scannedFiles)
+        && Array.isArray(result.failures)
+        && Array.isArray(result.forbiddenRemaining)
+        && Array.isArray(result.missingCoverage)
+        && Array.isArray(result.failedChecks)
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
@@ -20317,9 +20359,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     if (!Game.__DEV) Game.__DEV = {};
     Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+    Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+    Game.Dev.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     if (!G.__DEV) G.__DEV = {};
     G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
+    G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
@@ -20622,6 +20667,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
+    devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;

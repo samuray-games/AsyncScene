@@ -1,3 +1,22 @@
+## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.2] Canon Audit
+- Status: PASS for implementation and static validation only; Canon Audit smoke remains pending.
+- Added `plugins/asynchronia/skills/canon-audit/SKILL.md` as a read-only audit skill with exact modes `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `IMPLEMENTATION_AUDIT`, and `SMOKE_RESULT_AUDIT`.
+- The skill resolves canon from the explicit current user instruction for the exact task, `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active accepted `TASKS.md` contracts, dedicated accepted specifications, accepted tests and implementation behavior, and examples/comments only as supporting evidence, and it blocks when authoritative sources conflict or accepted canon cannot be resolved safely.
+- The audit contract requires positive evidence for terminology, behavior, player/NPC parity, prerequisites, outcomes, caps, lifecycle, exceptions, regression surface, and scope discipline, and it fails silent mechanic drift and undocumented exceptions explicitly.
+- Economy mutations are escalated to `ECONOMY_AUDIT_REQUIRED`; mirror parity and runtime approval remain separate workflows reported as `MIRROR_AUDIT_REQUIRED` and `RUNTIME_GATE_REQUIRED`.
+- Step [3.1] Economy Invariant Audit implementation and acceptance are PASS.
+- Mirror Audit remains pending.
+- Task Router integration remains pending.
+- Plugin version remains `0.2.0` until v0.3.0 integration.
+- Canon Audit smoke remains pending.
+
+## 2026-06-27 — Step 4.1 Zoomer UI terms inventory Fix1
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Fixed the Step 4.1 Zoomer inventory smoke in both dev-check mirrors so array dedupe helpers guard non-array inputs, runtime identity reads prefer the live current values, and stale older runtime markers are rejected explicitly.
+- Added isolated Safari entrypoint `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()` with a new smoke version `step4_1_alpha_zoomer_inventory_fix1_v20260627_001`.
+- The canonical Zoomer inventory documents remain unchanged.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1()`.
+
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` and `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical/mirrored Zoomer UI term inventory artifacts, derived from the current full-text inventory export baseline after verification against the current repository.
@@ -10,16 +29,17 @@
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce()`.
 
 ## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.1] Economy Invariant Audit
-- Status: PASS for implementation and static validation only; Economy Invariant Audit smoke remains pending.
+- Status: PASS for implementation, static validation, and acceptance.
 - Added `plugins/asynchronia/skills/economy-invariant-audit/SKILL.md` as a read-only audit skill with exact modes `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `TRACE_AUDIT`, and `SMOKE_RESULT_AUDIT`.
 - The skill resolves canon from `AGENTS.md`, accepted `PROJECT_MEMORY.md`, active `TASKS.md` mechanic contracts, accepted implementation/tests, and the user task contract, and blocks when those authorities conflict or stay ambiguous.
 - The audit contract requires positive evidence for conservation, traceability, atomic settlement, remainder handling, bounds, cross-resource separation, causal linkage, rollback, player/NPC parity, and long-run stability.
 - Runtime-sensitive economy writes are escalated to `RUNTIME_GATE_REQUIRED`; Canon Audit and Mirror Audit remain separate pending workflows and are not implied by this step.
+- Economy Invariant Audit implementation and acceptance are PASS.
 - Canon Audit remains pending.
 - Mirror Audit remains pending.
 - Task Router integration remains pending.
 - Plugin version remains `0.2.0` until v0.3.0 integration.
-- Economy Invariant Audit smoke remains pending.
+- Economy Invariant Audit acceptance smoke: PASS.
 
 ## 2026-06-27 — Step 4.1 Millennial UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
