@@ -11172,6 +11172,305 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
 
+    const smokeBoomerTermsStep41InventoryOnce = () => {
+      const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
+      const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
+      const smokeVersion = "millennial_terms_inventory_step4_1_v20260627_001";
+      const allowedCategories = ["buttons", "statuses", "errors", "hints", "economy", "battles", "dm"];
+      const result = {
+        ok: false,
+        buildTag,
+        commit,
+        smokeVersion,
+        smokeName: "smokeBoomerTermsStep41InventoryOnce",
+        categories: allowedCategories.slice(),
+        categoryCounts: { buttons: 0, statuses: 0, errors: 0, hints: 0, economy: 0, battles: 0, dm: 0 },
+        artifactPath: "",
+        sourcePath: "",
+        artifactRows: [],
+        sourceRows: [],
+        totalArtifactRows: 0,
+        totalSourceRows: 0,
+        duplicateSourceNoteCount: 0,
+        expectedDuplicateSourceNoteCount: 0,
+        featureCoverage: [],
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      const fetchTextSync = (path) => {
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", path, false);
+          xhr.send(null);
+          if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText || "", path };
+          return { ok: false, reason: `http_${xhr.status || 0}`, path };
+        } catch (_) {
+          return { ok: false, reason: "xhr_exception", path };
+        }
+      };
+      const resolveDocCandidates = (fileName) => {
+        const candidates = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || seen.has(value)) return;
+          seen.add(value);
+          candidates.push(value);
+        };
+        const bases = [];
+        if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
+        if (typeof location !== "undefined" && location.origin) {
+          bases.push(`${location.origin}/`);
+          bases.push(`${location.origin}/docs/`);
+          bases.push(`${location.origin}/AsyncScene/`);
+          bases.push(`${location.origin}/AsyncScene/Web/`);
+        }
+        bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+        if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/${fileName}`);
+          add(`${location.origin}/docs/${fileName}`);
+          add(`${location.origin}/AsyncScene/${fileName}`);
+          add(`${location.origin}/AsyncScene/Web/${fileName}`);
+        }
+        add(`/${fileName}`);
+        add(`/docs/${fileName}`);
+        add(`/AsyncScene/${fileName}`);
+        add(`/AsyncScene/Web/${fileName}`);
+        add(fileName);
+        return candidates;
+      };
+      const fetchFirst = (fileName) => {
+        let last = null;
+        for (const candidate of resolveDocCandidates(fileName)) {
+          const res = fetchTextSync(candidate);
+          last = res;
+          if (res.ok) return res;
+        }
+        return last || { ok: false, reason: "unavailable", path: fileName };
+      };
+      const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const splitSourceFileAndLine = (value) => {
+        const raw = normalize(value);
+        const idx = raw.lastIndexOf(":");
+        if (idx <= 0) return { file: raw, line: "" };
+        return { file: raw.slice(0, idx), line: raw.slice(idx + 1) };
+      };
+      const parseArtifactRows = (text) => {
+        const rows = [];
+        const lines = String(text || "").split(/\r?\n/);
+        let inBlock = false;
+        lines.forEach((line) => {
+          const trimmed = String(line || "").trim();
+          if (trimmed === "```text") { inBlock = true; return; }
+          if (trimmed === "```" && inBlock) { inBlock = false; return; }
+          if (!inBlock || !/^TXT_\d+/.test(trimmed)) return;
+          const parts = line.split("|").map((part) => normalize(part));
+          if (parts.length < 9) {
+            rows.push({ parseError: "artifact_row_too_short", raw: line });
+            return;
+          }
+          const [id, category, surface, key, currentText, sourceFileLine, dynamic, vars, notes] = parts;
+          const source = splitSourceFileAndLine(sourceFileLine);
+          rows.push({ id, category, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, dynamic, vars, notes });
+        });
+        return rows;
+      };
+      const parseSourceRows = (text) => {
+        const rows = [];
+        String(text || "").split(/\r?\n/).forEach((line) => {
+          const trimmed = String(line || "").trim();
+          if (!/^TXT_\d+/.test(trimmed)) return;
+          const parts = line.split("|").map((part) => normalize(part));
+          if (parts.length !== 11) {
+            rows.push({ parseError: "source_row_shape", raw: line });
+            return;
+          }
+          const [id, sourceCategory, surface, key, currentText, sourceFileLine, kind, profile, dynamic, vars, notes] = parts;
+          const source = splitSourceFileAndLine(sourceFileLine);
+          rows.push({ id, sourceCategory, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, kind, profile, dynamic, vars, notes });
+        });
+        return rows;
+      };
+      const classifySourceRow = (row) => {
+        const s = row.surface;
+        const k = row.key;
+        const sc = row.sourceCategory;
+        if (sc === "button") return "buttons";
+        if (s === "start_profile_millennial" && k.startsWith("digit_")) return "buttons";
+        if (s === "menu" && k === "menu_title") return "buttons";
+        if (s === "menu" && k === "return_to_start") return "buttons";
+        if (s === "battle" && k === "escape_button_label") return "buttons";
+        if (s === "system_copy" && (k === "escapePaid" || k === "escapeVoteCost")) return "buttons";
+        if (s === "alpha_tie" && k === "tie_call_to_action") return "buttons";
+        if (s === "alpha_tie" && (k === "vote_ok" || k === "vote_already" || k === "vote_fail")) return "buttons";
+        if (s === "start_screen_title") return "statuses";
+        if (s === "start_profile_millennial" && (k === "birth_digits_label" || k === "fantasy_birth_label")) return "statuses";
+        if (s === "system_copy" && (k === "saved" || k === "voteAccepted")) return "statuses";
+        if (s === "menu" && k === "goal_label") return "statuses";
+        if (s === "alpha_tie" && k === "tie_start") return "statuses";
+        if (s === "events_vote_toast" && k === "showVoteBtnToast") return "statuses";
+        if (s === "menu_dev_mode" && (k === "dev_mode_disabled" || k === "dev_mode_unlocked")) return "statuses";
+        if (sc === "error" || sc === "warning") return "errors";
+        if (s === "system_copy" && (k === "missingMessage" || k === "insufficientPoints" || k === "pointsLowBattle" || k === "unavailable" || k === "notFound" || k === "choosePlayer" || k === "reportFalsePenalty" || k === "checkInput" || k === "cooldownShort")) return "errors";
+        if (s === "battle" && (k === "invite_invalid" || k === "menu_unavailable")) return "errors";
+        if (s === "battle_invite" && (k === "cooldown_short" || k === "insufficient_points" || k === "target_missing")) return "errors";
+        if (s === "menu_unavailable") return "errors";
+        if (s === "menu_dev_mode" && k === "dev_mode_pin_incorrect") return "errors";
+        if (s === "respect_flow" && (k === "respect_no_points" || k === "respect_pair_daily" || k === "respect_no_chain" || k === "respect_emitter_empty" || k === "respect_fallback")) return "errors";
+        if (sc === "toast" && s === "events_vote_toast" && k === "insufficient_points_vote") return "errors";
+        if (sc === "toast" && s === "events_vote" && k === "vote_not_enough_points") return "errors";
+        if (s === "battle_rematch" && (k === "rematch_not_eligible" || k === "rematch_not_found" || k === "rematch_already_requested")) return "errors";
+        if (s === "battle_invite" && k === "choose_player") return "hints";
+        if (s === "start_screen_intro") return "hints";
+        if (s === "start_profile_millennial" && k === "profile_helper") return "hints";
+        if (s === "system_copy" && k === "copCooldown") return "hints";
+        if (s === "system_events" && (k === "startIntroPick" || k === "startIntroStake" || k === "startIntroResult" || k === "startEconomyHonesty")) return "hints";
+        if (s === "battle" && k === "invite_open_hint") return "hints";
+        if (s === "menu_lottery") return "hints";
+        if (s === "type_hint") return "hints";
+        if (s === "alpha_tie" && k === "tie_click_name_hint") return "hints";
+        if (s === "arg_base_y_about" || s === "arg_base_y_who" || s === "arg_base_y_where" || s === "arg_base_y_yn" || s === "arg_base_o_about" || s === "arg_base_o_yn") return "hints";
+        if (sc === "toast" && s === "respect_flow" && (k === "respect_paid" || k === "respect_target_rep")) return "economy";
+        if (s === "system_copy" && (k === "pointsDeltaPlusOne" || k === "repDeltaPlusOne" || k === "pointsDeltaRefund" || k === "pointsDeltaRefundMajority" || k === "pointsDeltaRemainderWin" || k === "reportTrueReward" || k === "p2pTransferSent" || k === "p2pTransferReceived" || k === "rematchCost")) return "economy";
+        if (s === "cap_messages") return "economy";
+        if (s === "system_copy" && (k === "reportPending" || k === "reportOk" || k === "trainingSent")) return "dm";
+        if (sc === "cop_flow") return "dm";
+        if (sc === "npc_say" || sc === "npc_dm") return "dm";
+        if (sc === "report" && k === "reportPending") return "dm";
+        if (sc === "training" && k === "teach_sent_dm") return "dm";
+        if (s === "cop_templates") return "dm";
+        if (s === "system_copy" && k === "rematchRequested") return "battles";
+        if (s === "system_events" && (k === "battleChallenge" || k === "battleResult" || k === "battleDraw" || k === "crowdResolved" || k === "unlockOrange" || k === "unlockRed" || k === "unlockBlack")) return "battles";
+        if (s === "battle_results" || s === "conflict_results") return "battles";
+        if (s === "battle" && k === "teach_sent_chat") return "battles";
+        if (s === "battle_rematch" && k === "rematch_already_requested") return "battles";
+        if (s === "conflict_feed") return "battles";
+        if (sc === "battle" || sc === "event" || sc === "report" || sc === "training") return "battles";
+        if (s === "alpha_battle") return "battles";
+        if (sc === "toast" && s === "events_vote_toast") return "battles";
+        return "errors";
+      };
+      const makeSignature = (row, category) => [
+        row.id,
+        category,
+        row.surface,
+        row.key,
+        row.text,
+        row.sourceFile,
+        row.sourceLine,
+        row.profile,
+        row.dynamic,
+        row.vars,
+        row.notes
+      ].join("|");
+      try {
+        const artifactRes = fetchFirst("UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md");
+        result.artifactPath = artifactRes.path || "";
+        if (!artifactRes.ok) fail("artifact_load", artifactRes.reason || "unavailable");
+        const sourceRes = fetchFirst("AsyncScene/Web/UI_PROFILE_ALPHA_WORD_INVENTORY.md");
+        result.sourcePath = sourceRes.path || "";
+        if (!sourceRes.ok) fail("source_load", sourceRes.reason || "unavailable");
+        const artifactRows = artifactRes.ok ? parseArtifactRows(artifactRes.text || "") : [];
+        const sourceRowsRaw = sourceRes.ok ? parseSourceRows(sourceRes.text || "") : [];
+        if (artifactRows.some((row) => row.parseError)) fail("artifact_parse", artifactRows.filter((row) => row.parseError));
+        if (sourceRowsRaw.some((row) => row.parseError)) fail("source_parse", sourceRowsRaw.filter((row) => row.parseError));
+        const sourceRows = sourceRowsRaw.filter((row) => row.profile === "millennial" || row.profile === "shared");
+        result.artifactRows = artifactRows;
+        result.sourceRows = sourceRows;
+        result.totalArtifactRows = artifactRows.length;
+        result.totalSourceRows = sourceRows.length;
+        if (!artifactRows.length) fail("artifact_row_count", "empty");
+        if (!sourceRows.length) fail("source_row_count", "empty");
+        const artifactMap = new Map();
+        artifactRows.forEach((row) => {
+          if (!row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.profile || !row.dynamic || !row.vars || !row.notes) {
+            addUnique(result.missingCoverage, `missing_field:${row.id || "unknown"}`);
+          }
+          if (!artifactMap.has(row.id)) artifactMap.set(row.id, row);
+          if (!allowedCategories.includes(row.category)) addUnique(result.unknownCategories, row.category);
+          if (allowedCategories.includes(row.category)) result.categoryCounts[row.category] += 1;
+          if (String(row.notes || "").indexOf("duplicate runtime source") !== -1) result.duplicateSourceNoteCount += 1;
+        });
+        sourceRows.forEach((row) => {
+          const category = classifySourceRow(row);
+          const sig = makeSignature({
+            id: row.id,
+            surface: row.surface,
+            key: row.key,
+            text: row.text,
+            sourceFile: row.sourceFile,
+            sourceLine: row.sourceLine,
+            profile: row.profile,
+            dynamic: row.dynamic,
+            vars: row.vars,
+            notes: row.notes
+          }, category);
+          if (!artifactRows.find((artifactRow) => makeSignature(artifactRow, artifactRow.category) === sig)) {
+            addUnique(result.missingCoverage, sig);
+          }
+          if (String(row.notes || "").indexOf("duplicate runtime source") !== -1) result.expectedDuplicateSourceNoteCount += 1;
+        });
+        result.featureCoverage = [
+          ["helpers", (row) => row.surface === "start_profile_millennial" && row.key === "profile_helper"],
+          ["points", (row) => row.key === "pointsDeltaPlusOne"],
+          ["rep", (row) => row.key === "repDeltaPlusOne"],
+          ["influence", (row) => row.key === "battleChallenge" && String(row.text || "").indexOf("{attackerInf}") !== -1],
+          ["rematch", (row) => row.key === "rematchRequested" || row.key === "rematchCost" || row.key === "rematch_already_requested"],
+          ["reports", (row) => row.key === "reportPending" || row.key === "reportOk" || row.key === "reportTrueReward"],
+          ["rumors", (row) => row.surface === "arg_base_y_about" || row.surface === "arg_base_o_about"],
+          ["consequences", (row) => row.key === "reportFalsePenalty" || row.key === "rematch_not_eligible" || row.key === "respect_fallback"],
+          ["outcomes", (row) => row.key === "battleDraw" || row.key === "voteAccepted" || row.key === "respect_target_rep"],
+          ["battle_logs", (row) => row.key === "battleChallenge" || row.key === "battleResult" || row.key === "crowdResolved"],
+          ["npc_vs_npc", (row) => row.key === "battleChallenge" || row.key === "battleResult" || row.surface === "npc_dm_profile_cop" || row.surface === "npc_say_cop_m"],
+          ["crowd", (row) => row.key === "crowdResolved" || row.key === "showVoteBtnToast"],
+          ["dm", (row) => row.category === "dm" || row.surface === "cop_templates" || row.surface === "npc_dm_profile_cop" || row.surface === "npc_say_cop_m"]
+        ].map(([id, predicate]) => {
+          const matched = artifactRows.some((row) => predicate(row));
+          if (!matched) addUnique(result.missingCoverage, `feature:${id}`);
+          return { id, matched };
+        });
+        if (artifactRows.length !== sourceRows.length) fail("inventory_row_count_matches", { artifact: artifactRows.length, source: sourceRows.length });
+        artifactRows.forEach((row) => {
+          if (!row.text || !row.surface || !row.key || !row.sourceFile || !row.sourceLine || !row.profile || !row.category) {
+            fail("inventory_row_required_fields", row.id || row.key || "unknown");
+          }
+        });
+        result.categories.forEach((category) => {
+          if ((result.categoryCounts[category] || 0) <= 0) addUnique(result.missingCoverage, `category:${category}`);
+        });
+        if (result.unknownCategories.length > 0) fail("unknown_category_present", result.unknownCategories.slice());
+        if (result.duplicateSourceNoteCount !== result.expectedDuplicateSourceNoteCount) fail("duplicate_source_notes_preserved", { artifact: result.duplicateSourceNoteCount, source: result.expectedDuplicateSourceNoteCount });
+        if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
+        if (smokeVersion !== "millennial_terms_inventory_step4_1_v20260627_001") fail("smoke_version_unique_for_commit", smokeVersion);
+      } catch (err) {
+        fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+      }
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.unknownCategories.length === 0
+        && result.totalArtifactRows === result.totalSourceRows
+        && result.duplicateSourceNoteCount === result.expectedDuplicateSourceNoteCount
+        && result.categoryCounts.buttons > 0
+        && result.categoryCounts.statuses > 0
+        && result.categoryCounts.errors > 0
+        && result.categoryCounts.hints > 0
+        && result.categoryCounts.economy > 0
+        && result.categoryCounts.battles > 0
+        && result.categoryCounts.dm > 0
+        && !!result.buildTag
+        && !!result.commit
+        && !!result.smokeVersion;
+      return result;
+    };
+
     const smokeAlphaStep11ZoomerSourceInventoryOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
       const commit = (typeof window !== "undefined" && window.__COMMIT__) || G.__DEV.commit || G.__commit || RUNTIME_COMMIT;
@@ -19828,6 +20127,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
@@ -19901,10 +20201,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     Game.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     Game.__DEV.smokeAlphaDiffFix3 = smokeAlphaDiffFix3;
+    Game.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     G.__DEV.smokeAlphaDiffFix3 = smokeAlphaDiffFix3;
+    G.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -20126,6 +20428,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     devStore.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
+    devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
