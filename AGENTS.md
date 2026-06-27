@@ -133,6 +133,14 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 - Deployed mirror parity routes to Mirror Audit.
 - Runtime acceptance remains user-controlled.
 
+## 7.1 Canon audit
+
+- Accepted canon outranks current implementation and stale plans.
+- Authoritative conflicts return `BLOCKED` and require user resolution.
+- Silent mechanic drift and undocumented exceptions are `FAIL`.
+- Canon Audit determines the intended rule but does not prove economy conservation or mirror parity.
+- Runtime acceptance remains user-controlled.
+
 ## 8. Model selection rule
 
 Available Codex models are exactly:
