@@ -12,6 +12,7 @@ The router is an orchestration and recommendation skill.
 It does not:
 
 - edit task files
+- pass an audit on behalf of another skill
 - approve runtime work
 - change the active Codex model
 - create branches
@@ -52,6 +53,7 @@ Apply these rules in order:
 ### 4. Parallel planning
 
 - Multiple proposed tasks, concurrent work, shared files, mirrors, dependencies, or unresolved ownership require `parallel-scope-planner`.
+- Source and deployed counterparts in one mirror group remain one serialized ownership lane.
 - One narrow task with exact disjoint ownership does not require parallel planning.
 
 ### 5. Model selection
@@ -73,6 +75,7 @@ Apply these rules in order:
 - Runtime Safari smoke belongs to the user.
 - Runtime acceptance cannot be marked PASS before user smoke.
 - Documentation-only and read-only tasks must not invent Safari requirements.
+- Routing a task to an audit does not mean that audit passed.
 
 ## 3. Task classification
 
@@ -103,6 +106,8 @@ Secondary flags may include:
 - user-smoke-required
 - canon-sensitive
 - economy-invariant
+- canon-audit-required
+- mirror-audit-required
 - destructive-operation-risk
 
 ## 4. Route rules
@@ -126,6 +131,7 @@ Secondary flags may include:
 - runtime-safety-gate
 - model-selector
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
+- `canon-audit`, `economy-invariant-audit`, or `mirror-audit` when the plugin task changes routing policy for accepted canon, economy invariants, or deployed/source parity workflows
 - plugin validation
 - no Safari smoke unless the plugin protocol explicitly requires a user interaction smoke
 
@@ -149,15 +155,19 @@ Secondary flags may include:
 ### `ECONOMY_CRITICAL`
 
 - all `RUNTIME_LOGIC` requirements
-- economy invariant audit
+- `economy-invariant-audit`
 - conservation and traceability validation
+- `canon-audit` first when the intended economy rule is unclear
+- `mirror-audit` when the economy behavior touches mirrored source or deployed runtime files
 - strongest justified model recommendation
 - user Safari smoke
 
 ### `BATTLE_OR_NPC_CRITICAL`
 
 - all `RUNTIME_LOGIC` requirements
-- canon and regression audit
+- `canon-audit`
+- `economy-invariant-audit` when balances, transfers, settlements, refunds, remainders, rollback accounting, or player/NPC economy parity are involved
+- `mirror-audit` when mirrored source or deployed runtime files are involved
 - crowd cap and economy checks when relevant
 - user Safari smoke
 
@@ -187,6 +197,9 @@ Secondary flags may include:
 - runtime-safety-gate
 - parallel-scope-planner when multiple lanes remain
 - model-selector
+- `canon-audit` when the intended accepted behavior is part of the release evidence
+- `economy-invariant-audit` when release scope includes economy-sensitive behavior
+- `mirror-audit` for deployed/source parity, wiring, reachability, or release metadata
 - all required static checks
 - deployment and mirror verification
 - user Safari smoke
@@ -213,21 +226,102 @@ Only overlapping writes, stable-read conflicts, mirror ownership, shared wiring,
 
 Do not attribute pre-existing changes to the current task.
 
-## 6. Output contract
+## 6. Audit routing rules
+
+Route to `economy-invariant-audit` for:
+
+- points or resource conservation
+- source and sink accounting
+- balances
+- transfers
+- settlements
+- ledger or `moneyLog` traces
+- unexplained emission or destruction
+- refunds
+- remainders
+- duplicate settlement
+- rollback accounting
+- player or NPC economy parity
+- long-run economy stability
+
+Route to `canon-audit` for:
+
+- accepted versus proposed rules
+- authoritative source conflicts
+- terminology drift
+- mechanic drift
+- player or NPC behavioral parity
+- prerequisites and eligibility
+- outcomes and consequences
+- caps and boundaries
+- battle lifecycle
+- undocumented exceptions
+- unclear intended behavior
+- smoke evidence that may contradict accepted rules
+
+Route to `mirror-audit` for:
+
+- `AsyncScene/Web/**` and corresponding `docs/**`
+- source and deployed counterparts
+- missing or stale mirrors
+- byte parity
+- semantic parity
+- wiring parity
+- deployment freshness
+- `buildTag` or `smokeVersion` parity
+- entrypoints
+- routes
+- script inclusion
+- imports or exports
+- boot registration
+- runtime reachability
+- installed or deployed surface verification
+
+Canon Audit determines intended behavior but does not prove economy conservation or mirror parity.
+
+Economy Invariant Audit verifies conservation and traces but does not define canon or deployment parity.
+
+Mirror Audit verifies source or deployed parity but does not define canon or economy conservation.
+
+## 7. Multi-audit order
+
+When multiple audits apply, use this dependency order:
+
+1. `runtime-safety-gate`
+2. `canon-audit`
+3. `economy-invariant-audit`
+4. `mirror-audit`
+5. user Safari smoke for runtime acceptance
+
+Rules:
+
+- Canon Audit precedes Economy Invariant Audit when the intended economy rule is unclear.
+- Canon Audit precedes Mirror Audit when semantic differences exist and intended behavior is unclear.
+- Economy Invariant Audit and Mirror Audit may both be required after economy behavior changes in mirrored runtime files.
+- Source and deployed counterparts form one serialized ownership lane.
+- Stable-read dependencies must not run concurrently with their writers.
+- Shared documentation has one final owner.
+- Dirty tree evidence alone is not a blocker.
+
+## 8. Output contract
 
 Return:
 
 - `status: TASK_ROUTE`
-- primary classification
+- task classification
 - secondary flags
 - task objective
 - authorized or proposed scope
+- applicable audits
+- audit order
 - required skills in execution order
 - optional supporting plugins
 - execution mode
-- runtime gate status
+- runtime gate requirement
+- serialization requirement
 - parallel planning requirement
 - model recommendation status
+- user Safari status
 - implementation prerequisites
 - validation requirements
 - user acceptance requirements
@@ -248,7 +342,7 @@ Allowed execution modes:
 
 Do not output an implementation plan when status is `BLOCKED`.
 
-## 7. Block conditions
+## 9. Block conditions
 
 Return `BLOCKED` when:
 
@@ -263,14 +357,16 @@ Return `BLOCKED` when:
 - the user asks to bypass runtime approval or Safari acceptance
 - canon or economy requirements conflict and no authoritative rule resolves them
 
-## 8. Truthfulness
+## 10. Truthfulness
 
 Never claim:
 
 - the active model was verified
 - runtime approval exists when it does not
+- routing to `canon-audit`, `economy-invariant-audit`, or `mirror-audit` means that audit passed
 - an external plugin was invoked without evidence
 - runtime acceptance passed without user smoke
+- installed plugin version `0.3.0` was verified before installed-package verification exists
 - unrelated dirty changes belong to the current task
 
 Use:

@@ -1,3 +1,18 @@
+## 2026-06-28 — Asynchronia plugin v0.3.0 step [3.4] integrated audits and source version
+- Status: PASS for source integration and static validation only; final acceptance remains pending.
+- Integrated `economy-invariant-audit`, `canon-audit`, and `mirror-audit` into `plugins/asynchronia/skills/task-router/SKILL.md` with explicit economy, canon, and mirror routing triggers plus required dependency order `runtime-safety-gate -> canon-audit -> economy-invariant-audit -> mirror-audit -> user Safari smoke`.
+- Locked router boundaries so Canon Audit does not prove economy or mirror correctness, Economy Invariant Audit does not define canon or deployment parity, Mirror Audit does not define canon or economy conservation, and routing to any audit does not imply that audit passed.
+- Updated source plugin metadata to version `0.3.0` in `plugins/asynchronia/.codex-plugin/plugin.json` and the authoritative marketplace source entry in `.agents/plugins/marketplace.json` while preserving package identity, ownership, and exactly one Asynchronia marketplace entry.
+- Step [3.1] Economy Invariant Audit: PASS.
+- Step [3.2] Canon Audit: PASS.
+- Step [3.3] Mirror Audit: PASS.
+- Step [3.4] integration and source version `0.3.0`: implemented.
+- Step [3.5] three integrated audit smokes: pending.
+- Step [3.6] final acceptance and installed-package verification: pending.
+- Source plugin version: `0.3.0`.
+- Installed and accepted plugin version: `0.2.0`.
+- No runtime or Safari validation applies to this integration task.
+
 ## 2026-06-27 — Asynchronia plugin v0.3.0 step [3.3] Mirror Audit
 - Status: PASS for implementation and static validation only; Mirror Audit smoke remains pending.
 - Added `plugins/asynchronia/skills/mirror-audit/SKILL.md` as a read-only audit skill for `PROPOSAL_AUDIT`, `DIFF_AUDIT`, `DEPLOYMENT_AUDIT`, and `SMOKE_RESULT_AUDIT`.
