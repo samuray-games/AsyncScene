@@ -1,3 +1,13 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix10
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Bound the existing `createAlphaStep41SemanticHelperSuite({ fail, result })` exactly once inside the real `smokeAlphaStep41ZoomerInventoryOnce()` production body in both dev-check mirrors after `result`/`fail` initialization and before the first semantic helper invocation.
+- The production function now locally destructures the bare helper identifiers it uses: `extractTemplateVariables`, `buildSemanticDescriptor`, `collectSemanticBuckets`, `compareSemanticBuckets`, `validateArtifactRow`, `validateRuntimeSource`, and `runSemanticMatcherFixture`.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix10()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix10_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix10_v20260628_010_commit_ce007cd4450e2fe56d50e93961464e51b3ac81e0`, smokeName `smokeAlphaStep41ZoomerInventoryFix10`, and commit marker `ce007cd4450e2fe56d50e93961464e51b3ac81e0`.
+- Fix10 is exported on `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Both mirrored boot pages now load `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix10_20260628a`.
+- Local source-backed execution reached `validateArtifactRow`, `validateRuntimeSource`, and the unchanged semantic matcher fixture through the real production `smokeAlphaStep41ZoomerInventoryOnce()` path without `ReferenceError` or `smoke_exception`.
+- Safari runtime smoke remains `PENDING_USER`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix9
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - The Fix8 semantic helper suite now lives in a shared lexical-scope factory, so `validateArtifactRow`, `validateRuntimeSource`, and the semantic matcher fixture are reachable from both Step 4.1 smoke call sites without global exposure or `window` fallback lookups.

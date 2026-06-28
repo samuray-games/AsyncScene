@@ -1,3 +1,14 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix10
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Bound the existing `createAlphaStep41SemanticHelperSuite({ fail, result })` exactly once inside the real `smokeAlphaStep41ZoomerInventoryOnce()` production execution scope in both dev-check mirrors, after `result`/`fail` initialization and before the first semantic helper call.
+- The production smoke now locally destructures the bare helper identifiers it invokes: `extractTemplateVariables`, `buildSemanticDescriptor`, `collectSemanticBuckets`, `compareSemanticBuckets`, `validateArtifactRow`, `validateRuntimeSource`, and `runSemanticMatcherFixture`.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix10()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix10_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix10_v20260628_010_commit_ce007cd4450e2fe56d50e93961464e51b3ac81e0`, smokeName `smokeAlphaStep41ZoomerInventoryFix10`, and runtime commit marker `ce007cd4450e2fe56d50e93961464e51b3ac81e0`.
+- Exposed Fix10 through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix10_20260628a`.
+- Commit A SHA: `ce007cd4450e2fe56d50e93961464e51b3ac81e0`.
+- Final repository state is delivered by commit B after the cache-bust and status-doc updates.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix10()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix9
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Lifted the Fix8 semantic helper suite into a shared lexical-scope factory so `validateArtifactRow`, `validateRuntimeSource`, and the semantic matcher fixture are visible to both Step 4.1 smoke call sites without adding globals or window fallback lookups.
