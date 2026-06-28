@@ -59,6 +59,15 @@ Apply these rules in order:
 ### 5. Model selection
 
 - Every implementation recommendation must include `model-selector`.
+- Before any implementation, routing must enter `MODEL_PREFLIGHT_ONLY`.
+- `MODEL_PREFLIGHT_ONLY` is read-only, creates no repository or workspace lock, and ends with `WAITING_FOR_MODEL_SELECTION`.
+- The router must not begin implementation in the same response as the preflight recommendation.
+- A valid `MODEL_PREFLIGHT_ONLY` response must end the entire response with exactly one standalone fenced code block containing only `CONTINUE`.
+- No content may appear after that fenced `CONTINUE` block.
+- The fenced `CONTINUE` block is an output-format requirement only and does not authorize implementation automatically.
+- Implementation may begin only after the user replies `CONTINUE` in the same thread after a valid recommendation exists.
+- If task scope changes after the recommendation, the router must require a fresh `MODEL_PREFLIGHT_ONLY` pass before implementation.
+- After `CONTINUE`, re-read workspace locks before creating any implementation lock or beginning edits.
 - The router may repeat the selector recommendation but cannot verify or change the active interface model.
 - Active model remains `USER_SELECTED_UNVERIFIED`.
 
@@ -130,6 +139,7 @@ Secondary flags may include:
 
 - runtime-safety-gate
 - model-selector
+- mandatory `MODEL_PREFLIGHT_ONLY` before implementation
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
 - `canon-audit`, `economy-invariant-audit`, or `mirror-audit` when the plugin task changes routing policy for accepted canon, economy invariants, or deployed/source parity workflows
 - plugin validation
@@ -334,6 +344,7 @@ Return:
 Allowed execution modes:
 
 - `READ_ONLY`
+- `MODEL_PREFLIGHT_ONLY`
 - `DIRECT_NON_RUNTIME`
 - `SERIAL_NON_RUNTIME`
 - `RUNTIME_GATE_REQUIRED`
@@ -354,6 +365,7 @@ Return `BLOCKED` when:
 - destructive Git operations are requested against unrelated work
 - a requested model or plugin does not exist
 - required repository context is unavailable
+- the user replies `CONTINUE` before a valid model preflight recommendation exists
 - the user asks to bypass runtime approval or Safari acceptance
 - canon or economy requirements conflict and no authoritative rule resolves them
 
@@ -372,5 +384,6 @@ Never claim:
 Use:
 
 - `USER_SELECTED_UNVERIFIED` for the active model
+- `SELF_REPORTED_UNVERIFIED` for any unverified Codex self-report
 - `PENDING_USER` for required user smoke
 - `NOT_REQUIRED` when user smoke genuinely does not apply

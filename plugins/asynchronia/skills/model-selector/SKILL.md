@@ -9,6 +9,8 @@ Use this skill for Asynchronia tasks that need a model recommendation before imp
 
 The skill recommends a model and reasoning level only. It cannot inspect, verify, or change the actual model selected in the Codex interface.
 
+For implementation work that requires a model pause before edits, this skill may be used in `MODEL_PREFLIGHT_ONLY` mode. In that mode, the skill is strictly read-only, creates no repository or workspace lock, returns the recommendation, and stops with `WAITING_FOR_MODEL_SELECTION` until the user replies `CONTINUE`.
+
 ## 1. Allowed model set
 
 Only these model names are valid:
@@ -75,6 +77,7 @@ Return `status: BLOCKED` when:
 - model choice depends on unresolved runtime scope
 - the requested model does not exist
 - the task requires information not available in the repository or prompt
+- `CONTINUE` was supplied before a valid recommendation exists for the exact current scope
 
 ## 4. Model guidance
 
@@ -162,6 +165,7 @@ Use for:
 - If the active model cannot be externally verified, report `actual active model: USER_SELECTED_UNVERIFIED`.
 - If Codex mentions its own model name without external verification, label it `SELF_REPORTED_UNVERIFIED`.
 - Never silently claim or change the active model.
+- If the task scope changes after a recommendation, require a fresh recommendation before implementation resumes.
 
 ## 7. Required output
 
@@ -180,3 +184,20 @@ Return all of the following:
 - exact next user action
 
 The recommendation must stay within the allowed model names and allowed reasoning levels exactly.
+
+## 8. `MODEL_PREFLIGHT_ONLY` mode
+
+When the caller requires a mandatory model-selection pause before implementation:
+
+- perform read-only analysis only
+- create no repository lock
+- create no workspace lock
+- do not begin implementation in the same response
+- include estimated retry risk
+- include recommendation confidence
+- end with `WAITING_FOR_MODEL_SELECTION`
+- require the user to change or confirm the model in the Codex interface
+- end the entire response with exactly one standalone fenced code block containing only `CONTINUE`
+- permit no content after that fenced `CONTINUE` block
+- treat the fenced `CONTINUE` block as an output-format requirement only, not as implementation authorization
+- after `CONTINUE`, require the caller to re-read workspace locks before any implementation lock or edit
