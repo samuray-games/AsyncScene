@@ -17216,35 +17216,38 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const alphaStep41ZoomerInventorySmokeExports = [
+      ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
+      ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
+      ["smokeAlphaStep41ZoomerInventoryFix3", smokeAlphaStep41ZoomerInventoryFix3],
+      ["smokeAlphaStep41ZoomerInventoryFix4", smokeAlphaStep41ZoomerInventoryFix4],
+      ["smokeAlphaStep41ZoomerInventoryFix5", smokeAlphaStep41ZoomerInventoryFix5],
+    ];
+    const assertAlphaStep41ZoomerInventorySmokeExports = () => {
+      for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
+        if (typeof fn !== "function") {
+          throw new ReferenceError(`Missing declaration for ${name}`);
+        }
+      }
+    };
     const exposeAlphaStep41ZoomerInventorySmoke = () => {
+      assertAlphaStep41ZoomerInventorySmokeExports();
       if (!Game.Dev) Game.Dev = {};
-      Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-      Game.Dev.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
-      Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-      Game.Dev.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
-      Game.Dev.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
-      Game.Dev.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
+      for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
+        Game.Dev[name] = fn;
+      }
       if (!Game.__DEV) Game.__DEV = {};
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
-      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
+      for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
+        Game.__DEV[name] = fn;
+      }
       if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
-      G.__DEV.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
+      for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
+        G.__DEV[name] = fn;
+      }
       if (typeof devStore === "object" && devStore) {
-        devStore.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-        devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
-        devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-        devStore.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
-        devStore.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
-        devStore.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
+        for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
+          devStore[name] = fn;
+        }
       }
     };
     exposeAlphaStep41ZoomerInventorySmoke();
@@ -20682,14 +20685,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     if (!Game.__DEV) Game.__DEV = {};
     Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    Game.Dev.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     if (!G.__DEV) G.__DEV = {};
     G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
@@ -20997,7 +20997,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
-    devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
     devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
