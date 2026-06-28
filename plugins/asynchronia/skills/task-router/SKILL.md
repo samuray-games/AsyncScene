@@ -141,6 +141,9 @@ Secondary flags may include:
 - model-selector
 - mandatory `MODEL_PREFLIGHT_ONLY` before implementation
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
+- `smoke-orchestrator` when the plugin task changes smoke workflow, enclosing smoke verdict rules, or contract-smoke requirements
+- `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules
+- `acceptance-evidence-gate` when the plugin task changes status-promotion, acceptance, evidence-ownership, or package-acceptance rules
 - `canon-audit`, `economy-invariant-audit`, or `mirror-audit` when the plugin task changes routing policy for accepted canon, economy invariants, or deployed/source parity workflows
 - plugin validation
 - no Safari smoke unless the plugin protocol explicitly requires a user interaction smoke
@@ -210,6 +213,9 @@ Secondary flags may include:
 - `canon-audit` when the intended accepted behavior is part of the release evidence
 - `economy-invariant-audit` when release scope includes economy-sensitive behavior
 - `mirror-audit` for deployed/source parity, wiring, reachability, or release metadata
+- `deployment-verifier` for deployed entrypoint, asset freshness, release lineage, cache-bust, or runtime-marker linkage
+- `smoke-orchestrator` for the enclosing release smoke workflow and nested component verdict handling
+- `acceptance-evidence-gate` for the final release or milestone status-promotion decision
 - all required static checks
 - deployment and mirror verification
 - user Safari smoke
@@ -293,27 +299,74 @@ Economy Invariant Audit verifies conservation and traces but does not define can
 
 Mirror Audit verifies source or deployed parity but does not define canon or economy conservation.
 
-## 7. Multi-audit order
+## 7. Smoke and acceptance routing rules
 
-When multiple audits apply, use this dependency order:
+Route to `smoke-orchestrator` for:
+
+- contract or schema smoke planning
+- static smoke planning
+- integration smoke planning
+- local runtime smoke planning
+- deployed runtime smoke planning
+- user acceptance smoke planning
+- release acceptance smoke planning
+- evidence ownership and pass-condition definition
+- expected nested component failure handling
+- enclosing smoke verdict calculation
+
+Route to `deployment-verifier` for:
+
+- source-to-artifact verification
+- artifact-to-deployment verification
+- deployed entrypoint verification
+- deployed asset verification
+- release-lineage verification
+- cache-bust verification
+- rollout-state verification
+- runtime-marker linkage verification
+- deployment freshness or mixed-revision questions
+
+Route to `acceptance-evidence-gate` for:
+
+- any request to mark a task, smoke, package, milestone, or release as accepted, complete, or PASS from supplied evidence
+- package-acceptance or installed-package-acceptance decisions
+- final milestone or release-acceptance decisions
+- stale, mismatched, incomplete, or contradictory evidence resolution
+- evidence-ownership enforcement
+- status-promotion gating after audits, deployment checks, or smoke evaluation
+
+Smoke Orchestrator defines the enclosing smoke workflow and verdict but does not replace deployment verification or acceptance gating.
+
+Deployment Verifier determines deployment identity, freshness, and entrypoint truth but does not claim runtime behavior or user acceptance.
+
+Acceptance Evidence Gate decides whether supplied evidence authorizes status promotion but does not manufacture evidence or bypass required audits, deployment checks, or user Safari smoke.
+
+## 8. Multi-skill order
+
+When multiple audits or acceptance skills apply, use this dependency order:
 
 1. `runtime-safety-gate`
 2. `canon-audit`
 3. `economy-invariant-audit`
 4. `mirror-audit`
-5. user Safari smoke for runtime acceptance
+5. `deployment-verifier` when deployed identity or freshness matters
+6. `smoke-orchestrator` when an enclosing smoke workflow or verdict is required
+7. `acceptance-evidence-gate` when status promotion is requested
+8. user Safari smoke for runtime or user acceptance when the contract still requires user-owned evidence
 
 Rules:
 
 - Canon Audit precedes Economy Invariant Audit when the intended economy rule is unclear.
 - Canon Audit precedes Mirror Audit when semantic differences exist and intended behavior is unclear.
 - Economy Invariant Audit and Mirror Audit may both be required after economy behavior changes in mirrored runtime files.
+- Deployment Verifier may provide a component verdict consumed by Smoke Orchestrator.
+- Acceptance Evidence Gate consumes audit, deployment, smoke, and user evidence; it does not replace them.
 - Source and deployed counterparts form one serialized ownership lane.
 - Stable-read dependencies must not run concurrently with their writers.
 - Shared documentation has one final owner.
 - Dirty tree evidence alone is not a blocker.
 
-## 8. Output contract
+## 9. Output contract
 
 Return:
 
@@ -353,7 +406,7 @@ Allowed execution modes:
 
 Do not output an implementation plan when status is `BLOCKED`.
 
-## 9. Block conditions
+## 10. Block conditions
 
 Return `BLOCKED` when:
 
@@ -369,7 +422,7 @@ Return `BLOCKED` when:
 - the user asks to bypass runtime approval or Safari acceptance
 - canon or economy requirements conflict and no authoritative rule resolves them
 
-## 10. Truthfulness
+## 11. Truthfulness
 
 Never claim:
 
@@ -378,7 +431,7 @@ Never claim:
 - routing to `canon-audit`, `economy-invariant-audit`, or `mirror-audit` means that audit passed
 - an external plugin was invoked without evidence
 - runtime acceptance passed without user smoke
-- installed plugin version `0.3.0` was verified before installed-package verification exists
+- an installed plugin version was verified before installed-package verification exists
 - unrelated dirty changes belong to the current task
 
 Use:

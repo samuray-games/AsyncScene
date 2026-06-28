@@ -1,7 +1,7 @@
 {
   "name": "asynchronia",
-  "version": "0.3.0",
-  "description": "Project-specific safety gates for Codex work in the Asynchronia repository.",
+  "version": "0.4.0",
+  "description": "Project-specific safety gates and evidence workflows for Codex work in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
@@ -9,17 +9,23 @@
   "interface": {
     "displayName": "Asynchronia",
     "shortDescription": "Apply Asynchronia repository safety gates.",
-    "longDescription": "Provides project-specific repository context, runtime isolation, atomic execution, and validation rules for safe Asynchronia changes.",
+    "longDescription": "Provides project-specific repository context, runtime isolation, routing, smoke orchestration, deployment verification, acceptance gating, and validation rules for safe Asynchronia changes.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
       "Repository safety",
+      "Workflow routing",
+      "Smoke orchestration",
+      "Deployment verification",
+      "Acceptance evidence gating",
       "Change validation"
     ],
     "defaultPrompt": [
       "Gate this Asynchronia task for runtime safety.",
       "Review this task scope before making edits.",
-      "Validate this non-runtime Asynchronia change."
+      "Validate this non-runtime Asynchronia change.",
+      "Plan the smallest sufficient smoke workflow for this Asynchronia task.",
+      "Check whether this Asynchronia evidence is enough to mark the task accepted."
     ]
   }
 }
