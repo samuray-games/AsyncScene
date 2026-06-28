@@ -86,6 +86,31 @@
 - The accepted Safari command remains `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()`.
 - Safari runtime smoke remains pending.
 
+## 2026-06-29 — Asynchronia plugin v0.4.0 step [4.6] final acceptance and installed-package verification
+- Status: PASS for final acceptance and installed-package verification.
+- Installed an exact deterministic local package copy from `plugins/asynchronia/` into `/Users/User/.codex/plugins/cache/personal/asynchronia/0.4.0/` without modifying the source package, marketplace metadata, or the retained `0.2.0` and `0.3.0` installations.
+- Source and installed manifests matched exactly with identical relative file sets, identical regular-file count `11`, zero missing files, zero unexpected files, and zero SHA-256 content mismatches.
+- Source manifest and installed manifest both parsed as package identity `asynchronia` at version `0.4.0`.
+- Verified ten accepted installed skills: `runtime-safety-gate`, `task-router`, `model-selector`, `parallel-scope-planner`, `economy-invariant-audit`, `canon-audit`, `mirror-audit`, `smoke-orchestrator`, `deployment-verifier`, and `acceptance-evidence-gate`.
+- Verified the installed Task Router retains the v0.4.0 workflow, including `MODEL_PREFLIGHT_ONLY`, the mandatory standalone fenced `CONTINUE` contract, workspace-lock re-read guidance after `CONTINUE`, and explicit routing for `smoke-orchestrator`, `deployment-verifier`, and `acceptance-evidence-gate`.
+- Verified the previous installed `0.2.0` and `0.3.0` packages remain retained and unchanged.
+- Step [4.1] Smoke Orchestrator: PASS.
+- Step [4.2] Deployment Verifier: PASS.
+- Step [4.3] Acceptance Evidence Gate: PASS.
+- Step [4.3.1] two-phase Model Selection Preflight: PASS.
+- Step [4.4] source integration and repository workflow status: PASS.
+- Step [4.5] integrated smokes: PASS.
+- Step [4.6] Final acceptance: PASS.
+- installed-package verification: PASS.
+- source plugin version: `0.4.0`.
+- installed and accepted plugin version: `0.4.0`.
+- installed path: `/Users/User/.codex/plugins/cache/personal/asynchronia/0.4.0/`.
+- manifest file count and parity result: `11` files, exact parity.
+- [4.1] through [4.6] complete.
+- Asynchronia plugin v0.4.0 acceptance: COMPLETE.
+- Safari smoke: N/A because this package has no game runtime surface.
+- No commit was requested.
+
 ## 2026-06-28 — Asynchronia plugin v0.4.0 step [4.4] source integration and repository workflow status
 - Status: PASS for source integration and static validation only; integrated smokes, installed-package verification, and final acceptance remain pending.
 - Integrated `smoke-orchestrator`, `deployment-verifier`, and `acceptance-evidence-gate` into `plugins/asynchronia/skills/task-router/SKILL.md` with explicit routing triggers for smoke workflow planning, deployment identity and freshness verification, and acceptance-status promotion, while preserving the mandatory `MODEL_PREFLIGHT_ONLY` pause and the final standalone fenced `CONTINUE` contract.
