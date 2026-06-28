@@ -1,3 +1,13 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix15
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, appended exactly one mirrored canonical production row as `TXT_0314` for `status | system_copy | respectTargetRep | Цели +1⭐.` from `AsyncScene/Web/system.js:58`, while preserving `TXT_0001` through `TXT_0313` unchanged.
+- Both canonical artifact mirrors now contain 314 contiguous rows. Final metadata is `entryCount:314`, `uniqueTextCount:282`, `scannedFileCount:11`, `toastEntryCount:24`, and `duplicateTextDifferentSourcesCount:15`.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix15()` and mirrored exposure through `Game.Dev`, `G.__DEV`, and `devStore`, reusing the accepted Fix14 matcher and collector without changing semantic signature rules, source classification, runtime behavior, or existing inventory rows.
+- Fix15 identity: buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix15_v1`, implementation commit `b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix15_v20260628_015_commit_b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1`, cache-bust `step4_1_millennial_inventory_smoke_fix15_20260628a`.
+- Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix15_20260628a`.
+- Static validation covered mirror parity for the new row, contiguous IDs through `TXT_0314`, unchanged preserved rows `TXT_0001`–`TXT_0313`, Fix15 export-block parity across both dev-check mirrors, `node --check` on both dev-check mirrors, and `git diff --check`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix15()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix14
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
 - The approved serialized lane `ALPHA-A4T41-FIX5-20260628T1038JST` replaced source-file-bound traceability with the canonical signature: exact whitespace-normalized text, derived template/static state, and sorted placeholder variables. Category, source metadata, and runtime multiplicity are excluded from representation matching.
