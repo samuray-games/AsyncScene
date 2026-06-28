@@ -504,7 +504,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ),
         makeFixtureCase(
           "same text and category with equal template variable sets",
-          [makeArtifact("TXT_0006", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeArtifact("TXT_0006", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "arg,student")],
           [makeRuntime("status", "Для {student}: {arg}.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.TEXTS.genz.teach_sent_dm" })],
           true
         ),
@@ -545,13 +545,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ),
         makeFixtureCase(
           "template versus non-template mismatch",
-          [makeArtifact("TXT_0013", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeArtifact("TXT_0013", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "arg,student")],
           [makeRuntime("status", "Для student: arg.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.teachSentDm" })],
           false
         ),
         makeFixtureCase(
           "different template variable sets",
-          [makeArtifact("TXT_0014", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeArtifact("TXT_0014", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "arg,student")],
           [makeRuntime("status", "Для {teacher}: {arg}.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.teachSentDm" })],
           false
         ),
@@ -17840,7 +17840,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     const smokeAlphaStep41ZoomerInventoryFix13 = () => {
       const result = smokeAlphaStep41ZoomerInventoryOnce();
       if (result && typeof result === "object") {
-        const implementationCommit = "FIX13_IMPLEMENTATION_COMMIT_SHA";
+        const implementationCommit = "60438957b63d86821a70b770c6663872ff6d49fc";
         const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix13_v1";
         const smokeVersion = `step4_1_alpha_zoomer_inventory_fix13_v20260628_013_commit_${implementationCommit}`;
         const fail = (check, detail) => {
