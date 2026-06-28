@@ -197,38 +197,48 @@ If Codex reports its own model name without external verification, label it `SEL
 - Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
 - Runtime acceptance remains user-controlled.
 
-## 8.3 v0.3.0 workflow
+## 8.3 v0.4.0 workflow
 
 - `task-router` classifies the request.
 - `runtime-safety-gate` has precedence for runtime-sensitive scope.
+- `model-selector` runs the two-phase model-selection workflow: `MODEL_PREFLIGHT_ONLY`, the final standalone fenced `CONTINUE` output contract, then post-`CONTINUE` implementation only for the unchanged authorized scope.
 - `canon-audit` resolves intended accepted rules.
 - `economy-invariant-audit` verifies conservation and traces.
 - `mirror-audit` verifies source/deployed and deployment parity.
 - `parallel-scope-planner` controls ownership and serialization when multiple tasks, mirrors, shared ownership, or concurrency exist.
-- `model-selector` recommends the cheapest reliable model per implementation lane.
+- `smoke-orchestrator` plans the smallest sufficient smoke workflow and evaluates the enclosing smoke verdict without conflating nested component failures.
+- `deployment-verifier` verifies deployment lineage, entrypoint freshness, served artifact identity, and release-marker coherence when deployed evidence matters.
+- `acceptance-evidence-gate` decides whether the supplied evidence authorizes status promotion.
 - Codex performs static validation.
 - The user performs required Safari runtime smoke.
+- Installed-package verification and final package acceptance remain separate from source-package integration.
 - Runtime acceptance remains pending until user confirmation.
 
 Boundaries:
 
-- Canon Audit does not prove economy conservation or mirror correctness.
+- Canon Audit does not prove economy conservation, mirror correctness, deployment freshness, or acceptance authorization.
 - Economy Invariant Audit does not define canon or deployment parity.
-- Mirror Audit does not define canon or economy conservation.
-- Audits do not approve runtime writes.
-- Audits do not replace user Safari acceptance.
+- Mirror Audit does not define canon, deployment freshness, or acceptance authorization.
+- Smoke Orchestrator does not replace deployment verification or acceptance gating.
+- Deployment Verifier does not claim runtime behavior or user acceptance.
+- Acceptance Evidence Gate does not manufacture evidence or bypass audits, deployment verification, or user Safari acceptance.
+- Audits and acceptance skills do not approve runtime writes.
 
 ## 9. Plugin usage
 
-Installed plugins:
+Repository-tracked plugins:
 
 - Codex Security;
 - Build Web Apps; and
-- Asynchronia v0.2.0.
+- Asynchronia source package v0.4.0.
+
+Installed-package acceptance currently remains recorded at `0.3.0` until a later installed-package verification step.
 
 Use Codex Security before persistence, before server or account systems, before public release, and after major security-sensitive or runtime changes.
 
 Use Build Web Apps for isolated UI screens, responsive layout, visual prototypes, and visual smoke support. Build Web Apps must not bypass the runtime safety gate or modify game logic through a UI task.
+
+Use the Asynchronia source package workflow for repository safety, routing, model preflight, smoke orchestration, deployment verification, and acceptance-evidence gating on repository-scoped work.
 
 ## 10. Validation and acceptance
 
@@ -267,5 +277,5 @@ A Codex `PASS` means only that the authorized implementation and static checks p
 ## 12. Documentation state
 
 - This root `AGENTS.md` is the authoritative repository policy.
-- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated audit workflow, model-selection rule, and final Codex report contract.
+- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated v0.4.0 plugin workflow, model-selection rule, and final Codex report contract.
 - Safe-task and runtime-task acceptance smokes remain pending and must be run separately.
