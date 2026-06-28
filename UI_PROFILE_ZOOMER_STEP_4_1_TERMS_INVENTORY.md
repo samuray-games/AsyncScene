@@ -162,17 +162,17 @@ TXT_0115 | notification | cop_templates | chatReplies[1] | Факт принят
 TXT_0116 | notification | cop_templates | cooldownReplies[0] | Занят расследованием, связь позже. | AsyncScene/Web/data.js:553 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0117 | notification | cop_templates | thanks[0] | Сдача принята - спокойнее. | AsyncScene/Web/data.js:565 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0118 | warning | cop_templates | scolds[0] | «Сдать» без фактов - шум. | AsyncScene/Web/data.js:577 | data_map | shared | dynamic:no | vars: | notes:
-TXT_0119 | battle | arg_base_y_about | q0 | Кто сегодня на слуху, если не ошибаюсь? | AsyncScene/Web/data.js:791 | template | shared | dynamic:yes | vars:NAME | notes:
+TXT_0119 | battle | arg_base_y_about | q0 | Кто сегодня на слуху, если не ошибаюсь? | AsyncScene/Web/data.js:791 | template | shared | dynamic:no | vars: | notes:
 TXT_0120 | battle | arg_base_y_about | a0 | Кажется, про {NAME} говорят. | AsyncScene/Web/data.js:791 | template | shared | dynamic:yes | vars:NAME | notes:
-TXT_0121 | battle | arg_base_y_who | q0 | Кто, как вам кажется, был рядом? | AsyncScene/Web/data.js:802 | template | shared | dynamic:yes | vars:NAME | notes:
+TXT_0121 | battle | arg_base_y_who | q0 | Кто, как вам кажется, был рядом? | AsyncScene/Web/data.js:802 | template | shared | dynamic:no | vars: | notes:
 TXT_0122 | battle | arg_base_y_who | a0 | {NAME}. | AsyncScene/Web/data.js:802 | template | shared | dynamic:yes | vars:NAME | notes:
-TXT_0123 | battle | arg_base_y_where | q0 | Где мы сейчас, как вам кажется? | AsyncScene/Web/data.js:813 | template | shared | dynamic:yes | vars:PLACE | notes:
+TXT_0123 | battle | arg_base_y_where | q0 | Где мы сейчас, как вам кажется? | AsyncScene/Web/data.js:813 | template | shared | dynamic:no | vars: | notes:
 TXT_0124 | battle | arg_base_y_where | a0 | Здесь. | AsyncScene/Web/data.js:813 | template | shared | dynamic:no | vars: | notes:
-TXT_0125 | battle | arg_base_y_yn | q0 | Вы уверены? | AsyncScene/Web/data.js:824 | template | shared | dynamic:yes | vars:NAME | notes:
+TXT_0125 | battle | arg_base_y_yn | q0 | Вы уверены? | AsyncScene/Web/data.js:824 | template | shared | dynamic:no | vars: | notes:
 TXT_0126 | battle | arg_base_y_yn | a0 | Да. | AsyncScene/Web/data.js:824 | template | shared | dynamic:no | vars: | notes:
-TXT_0127 | battle | arg_base_o_about | q0 | Кто сегодня на слуху? | AsyncScene/Web/data.js:838 | template | shared | dynamic:yes | vars:NAME | notes:
+TXT_0127 | battle | arg_base_o_about | q0 | Кто сегодня на слуху? | AsyncScene/Web/data.js:838 | template | shared | dynamic:no | vars: | notes:
 TXT_0128 | battle | arg_base_o_about | a0 | Про {NAME} говорят. | AsyncScene/Web/data.js:838 | template | shared | dynamic:yes | vars:NAME | notes:
-TXT_0129 | battle | arg_base_o_yn | q0 | Вы уверены? | AsyncScene/Web/data.js:878 | template | shared | dynamic:yes | vars:NAME | notes:
+TXT_0129 | battle | arg_base_o_yn | q0 | Вы уверены? | AsyncScene/Web/data.js:878 | template | shared | dynamic:no | vars: | notes:
 TXT_0130 | npc_say | npc_say_toxic_m | 0 | слабый ход | AsyncScene/Web/npcs.js:147 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0131 | npc_say | npc_say_toxic_m | 1 | отвечай сейчас | AsyncScene/Web/npcs.js:148 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0132 | npc_say | npc_say_bandit_m | 0 | кошелек ближе | AsyncScene/Web/npcs.js:168 | data_map | shared | dynamic:no | vars: | notes:
