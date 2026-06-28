@@ -18037,6 +18037,44 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix15 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "__FIX15_IMPLEMENTATION_COMMIT__";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix15_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix15_v20260628_015_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix15";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix15_v20260628_015_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount > 0
+          && result.runtimeSnapshotCount === result.inventoryCount
+          && result.artifactCount === result.finalArtifactCount
+          && result.artifactCount === 314
+          && result.canonicalProductionRowsAddedCount === 91
+          && result.canonicalProductionGapOccurrenceCount === 0
+          && result.canonicalProductionGapUniqueCount === 0
+          && result.stableTraceabilityMissingCount === 0
+          && result.unknownRuntimeSourceCount === 0
+          && result.devOnlyRuntimeCount === 2
+          && Array.isArray(result.scannedFiles) && result.scannedFiles.length > 0
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix15";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -18051,6 +18089,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix12", smokeAlphaStep41ZoomerInventoryFix12],
       ["smokeAlphaStep41ZoomerInventoryFix13", smokeAlphaStep41ZoomerInventoryFix13],
       ["smokeAlphaStep41ZoomerInventoryFix14", smokeAlphaStep41ZoomerInventoryFix14],
+      ["smokeAlphaStep41ZoomerInventoryFix15", smokeAlphaStep41ZoomerInventoryFix15],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
