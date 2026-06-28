@@ -17011,7 +17011,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       const result = smokeAlphaStep41ZoomerInventoryOnce();
       if (result && typeof result === "object") {
         result.buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix5_v1";
-        result.commit = "step4_1_alpha_zoomer_inventory_fix5";
+        result.commit = "903f6df251cdb78a7344b909b6ac14e3521372da";
         result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix5_v20260628_005";
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix5";
         result.artifactCount = result.inventoryCount;
@@ -17023,7 +17023,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
           && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
           && result.buildTag === "build_2026_06_28_step4_1_zoomer_terms_inventory_fix5_v1"
-          && result.commit === "step4_1_alpha_zoomer_inventory_fix5"
+          && result.commit === "903f6df251cdb78a7344b909b6ac14e3521372da"
           && result.smokeVersion === "step4_1_alpha_zoomer_inventory_fix5_v20260628_005";
       }
       return result;
