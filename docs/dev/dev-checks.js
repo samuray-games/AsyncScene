@@ -11315,6 +11315,16 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
+      const semanticHelpers = createAlphaStep41SemanticHelperSuite({ fail, result });
+      const {
+        extractTemplateVariables,
+        buildSemanticDescriptor,
+        collectSemanticBuckets,
+        compareSemanticBuckets,
+        validateArtifactRow,
+        validateRuntimeSource,
+        runSemanticMatcherFixture
+      } = semanticHelpers;
       const fetchTextSync = (path) => {
         try {
           const xhr = new XMLHttpRequest();
@@ -17448,6 +17458,37 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix10 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "__FIX10_IMPLEMENTATION_COMMIT__";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix10_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix10_v20260628_010_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix10";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix10_v20260628_010_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount === 223
+          && result.artifactCount === 223
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix10";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -17457,6 +17498,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix7", smokeAlphaStep41ZoomerInventoryFix7],
       ["smokeAlphaStep41ZoomerInventoryFix8", smokeAlphaStep41ZoomerInventoryFix8],
       ["smokeAlphaStep41ZoomerInventoryFix9", smokeAlphaStep41ZoomerInventoryFix9],
+      ["smokeAlphaStep41ZoomerInventoryFix10", smokeAlphaStep41ZoomerInventoryFix10],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
