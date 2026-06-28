@@ -1,3 +1,11 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix9
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- The Fix8 semantic helper suite now lives in a shared lexical-scope factory, so `validateArtifactRow`, `validateRuntimeSource`, and the semantic matcher fixture are reachable from both Step 4.1 smoke call sites without global exposure or `window` fallback lookups.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix9()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix9_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix9_v20260628_009_commit_b53c0c2f7ff42d453f42c4e595b0777dc5df353a`, smokeName `smokeAlphaStep41ZoomerInventoryFix9`, and commit marker `b53c0c2f7ff42d453f42c4e595b0777dc5df353a`.
+- Fix9 is exported on `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Both mirrored boot pages now load `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix9_20260628a`.
+- Safari runtime smoke remains `PENDING_USER`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix8
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - The Step 4.1 smoke now validates the mirrored 223-row artifact through a static provenance contract and a separate runtime semantic multiset contract, so runtime locator shapes can differ from the artifact provenance while the live meanings still match.

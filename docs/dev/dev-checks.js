@@ -377,6 +377,16 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       const makeRuntime = (category, text, source) => ({ category, text, source });
       const makeFixtureCase = (name, artifactRows, runtimeEntries, expectOk) => ({ name, artifactRows, runtimeEntries, expectOk });
+      const fixtureResult = { missingCoverage: [] };
+      const fixtureFail = () => {};
+      const fixtureHelpers = createAlphaStep41SemanticHelperSuite({ fail: fixtureFail, result: fixtureResult });
+      const {
+        buildSemanticDescriptor: fixtureBuildSemanticDescriptor,
+        collectSemanticBuckets: fixtureCollectSemanticBuckets,
+        compareSemanticBuckets: fixtureCompareSemanticBuckets,
+        validateArtifactRow: fixtureValidateArtifactRow,
+        validateRuntimeSource: fixtureValidateRuntimeSource
+      } = fixtureHelpers;
       const passCases = [
         makeFixtureCase(
           "snake_case artifact key versus camelCase runtime key",
@@ -479,12 +489,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       ];
       const fixtureCases = passCases.concat(failCases);
       fixtureCases.forEach((fixtureCase) => {
-        const artifactBuckets = collectSemanticBuckets(fixtureCase.artifactRows, (row) => buildSemanticDescriptor(row.category, row.text));
-        const runtimeBuckets = collectSemanticBuckets(fixtureCase.runtimeEntries, (entry) => buildSemanticDescriptor(entry.category, entry.text));
+        const artifactBuckets = fixtureCollectSemanticBuckets(fixtureCase.artifactRows, (row) => fixtureBuildSemanticDescriptor(row.category, row.text));
+        const runtimeBuckets = fixtureCollectSemanticBuckets(fixtureCase.runtimeEntries, (entry) => fixtureBuildSemanticDescriptor(entry.category, entry.text));
         let sourceFailures = 0;
-        fixtureCase.artifactRows.forEach((row) => { if (!validateArtifactRow(row)) sourceFailures += 1; });
-        fixtureCase.runtimeEntries.forEach((entry, index) => { if (!validateRuntimeSource(entry, index)) sourceFailures += 1; });
-        const deltas = compareSemanticBuckets(artifactBuckets, runtimeBuckets);
+        fixtureCase.artifactRows.forEach((row) => { if (!fixtureValidateArtifactRow(row)) sourceFailures += 1; });
+        fixtureCase.runtimeEntries.forEach((entry, index) => { if (!fixtureValidateRuntimeSource(entry, index)) sourceFailures += 1; });
+        const deltas = fixtureCompareSemanticBuckets(artifactBuckets, runtimeBuckets);
         const actualOk = sourceFailures === 0 && deltas.length === 0;
         if (actualOk !== fixtureCase.expectOk) {
           fail("semantic_matcher_fixture", {
@@ -17410,7 +17420,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     const smokeAlphaStep41ZoomerInventoryFix9 = () => {
       const result = smokeAlphaStep41ZoomerInventoryOnce();
       if (result && typeof result === "object") {
-        const implementationCommit = "commit_a_pending";
+        const implementationCommit = "b53c0c2f7ff42d453f42c4e595b0777dc5df353a";
         const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix9_v1";
         const smokeVersion = `step4_1_alpha_zoomer_inventory_fix9_v20260628_009_commit_${implementationCommit}`;
         const fail = (check, detail) => {
