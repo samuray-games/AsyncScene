@@ -1,3 +1,15 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix8
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Split the Step 4.1 smoke into two explicit contracts: static artifact provenance validation and runtime semantic multiset coverage validation, while preserving the live 223-row artifact and the live collector semantics.
+- Added semantic-signature matching on category, whitespace-normalized text, derived template state, and sorted placeholder variables; runtime source structure is validated without requiring artifact provenance equality.
+- Added compact missingCoverage deltas with signature, artifact/runtime counts, and representative artifact/runtime samples instead of raw duplicate lists.
+- Added the focused semantic matcher fixture covering the requested PASS and FAIL cases, including camelCase versus snake_case keys, runtime/dom selectors, resolver paths, multiplicity, template-variable checks, category/text/case/punctuation mismatches, and malformed source evidence.
+- Added the new Safari command `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix8()`.
+- Fix8 is exported through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Implementation commit A SHA: `d42015991a6ae0f71c89be10a25575e613b54a7d`.
+- Final repository state is delivered by commit B after the cache-bust and status-doc updates.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix8()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix7
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Regenerated the mirrored Step 4.1 Zoomer inventory metadata from the current 223 parsed artifact rows, keeping the row table mirrored and correcting the summary counts to `entryCount: 223`, `uniqueTextCount: 191`, `scannedFileCount: 9`, `toastEntryCount: 24`, and `duplicateTextDifferentSourcesCount: 15`.
