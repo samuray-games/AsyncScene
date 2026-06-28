@@ -1,3 +1,11 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix15
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, appended exactly one mirrored canonical production row as `TXT_0314` for `status | system_copy | respectTargetRep | Цели +1⭐.` from `AsyncScene/Web/system.js:58`, while preserving `TXT_0001` through `TXT_0313` unchanged.
+- Both canonical artifact mirrors now contain 314 contiguous rows with metadata `entryCount:314`, `uniqueTextCount:282`, `scannedFileCount:11`, `toastEntryCount:24`, and `duplicateTextDifferentSourcesCount:15`.
+- Fix15 is exposed through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`. Identity: buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix15_v1`, implementation commit `b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix15_v20260628_015_commit_b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1`, cache-bust `step4_1_millennial_inventory_smoke_fix15_20260628a`.
+- Static validation covered the append-only artifact change, contiguous IDs through `TXT_0314`, Fix15 export-block parity across both dev-check mirrors, both `node --check` passes, and `git diff --check`.
+- Safari smoke remains `PENDING_USER` on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix15()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix14
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
 - Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, stable traceability now matches globally by exact normalized text, template/static state, and sorted placeholder variables. Source file, category, source key/path, and runtime multiplicity remain provenance evidence but are not semantic identity.
