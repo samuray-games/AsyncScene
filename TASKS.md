@@ -94,7 +94,7 @@
 
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix5
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
-- Added the missing production-ready export `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()` in the mirrored dev-check bundles and bumped both mirrored HTML entrypoints to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix5_20260628a` so the published page loads the fresh bundle.
+- Added the missing production-ready export `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()` in the mirrored dev-check bundles and bumped both mirrored HTML entrypoints to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix5_20260628b` so the published page loads the fresh bundle.
 - Static assertions now cover the exact Fix5 export in both dev-check copies and the exact Fix5 cache-bust in both index copies.
 - The Fix5 smoke now records the full implementation SHA `903f6df251cdb78a7344b909b6ac14e3521372da` instead of the symbolic marker.
 - Smoke version: `step4_1_alpha_zoomer_inventory_fix5_v20260628_005`.
