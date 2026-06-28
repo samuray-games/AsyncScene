@@ -11746,7 +11746,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
         result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
         if (result.artifactCount !== result.finalArtifactCount) fail("artifact_count_matches_final", { artifactCount: result.artifactCount, finalArtifactCount: result.finalArtifactCount });
-        if (result.canonicalProductionRowsAddedCount !== 90) fail("canonical_production_rows_added_90", result.canonicalProductionRowsAddedCount);
+        if (result.canonicalProductionRowsAddedCount !== 91) fail("canonical_production_rows_added_91", result.canonicalProductionRowsAddedCount);
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -17887,6 +17887,44 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix16 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix16_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix16_v20260628_001_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix16";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix16_v20260628_001_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount > 0
+          && result.runtimeSnapshotCount === result.inventoryCount
+          && result.artifactCount === result.finalArtifactCount
+          && result.artifactCount === 314
+          && result.canonicalProductionRowsAddedCount === 91
+          && result.canonicalProductionGapOccurrenceCount === 0
+          && result.canonicalProductionGapUniqueCount === 0
+          && result.stableTraceabilityMissingCount === 0
+          && result.unknownRuntimeSourceCount === 0
+          && result.devOnlyRuntimeCount === 2
+          && Array.isArray(result.scannedFiles) && result.scannedFiles.length > 0
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix16";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -17902,6 +17940,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix13", smokeAlphaStep41ZoomerInventoryFix13],
       ["smokeAlphaStep41ZoomerInventoryFix14", smokeAlphaStep41ZoomerInventoryFix14],
       ["smokeAlphaStep41ZoomerInventoryFix15", smokeAlphaStep41ZoomerInventoryFix15],
+      ["smokeAlphaStep41ZoomerInventoryFix16", smokeAlphaStep41ZoomerInventoryFix16],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
