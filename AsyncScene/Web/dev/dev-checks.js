@@ -14823,10 +14823,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
     const smokeZoomerFeelStep63UiNpcLengthOnce = () => {
-      const buildTag = "build_2026_06_28_step3_6_3_boot_registration_fix1";
-      const commit = "step3_6_3_boot_registration_fix1";
-      const smokeVersion = "step3_6_3_boot_registration_fix1_v20260628_001";
+      const buildTag = "build_2026_06_29_step3_6_3_surface_inventory_fix1_v1";
+      const commit = "step3_6_3_surface_inventory_fix1";
+      const smokeVersion = "step3_6_3_surface_inventory_fix1_v20260629_001";
       const smokeName = "smokeZoomerFeelStep63UiNpcLengthOnce";
+      const expectedLengthRowCount = 164;
+      const expectedSurfaceRowCount = 314;
       const requiredSurfaces = Object.freeze([
         "start_screen",
         "button",
@@ -14876,6 +14878,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         } catch (_) {
           return String(value);
         }
+      };
+      const metadataValue = (text, label) => {
+        const escaped = String(label || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const match = String(text || "").match(new RegExp(`^\\-\\s+${escaped}:\\s*(.+)$`, "m"));
+        return match ? String(match[1] || "").trim() : "";
       };
       const normalizeText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
       const normalizedLength = (value) => Array.from(normalizeText(value)).length;
@@ -14936,9 +14943,17 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           measurementClass: cells[8] || ""
         };
       }).filter(Boolean);
-      const parseSurfaceRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => /^\| TXT_\d{4} \|/.test(line)).map((line) => {
-        const cells = line.slice(1, -1).split("|").map((cell) => cell.trim());
-        if (!cells.length || !/^TXT_\d{4}$/.test(cells[0])) return null;
+      const parseSurfaceRows = (text) => String(text || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => /^\| TXT_\d{4} \|/.test(line) || /^TXT_\d{4}\s*\|/.test(line)).map((line) => {
+        let rawCells = [];
+        if (/^\| TXT_\d{4} \|/.test(line)) {
+          rawCells = line.slice(1, -1).split("|");
+        } else if (/^TXT_\d{4}\s*\|/.test(line)) {
+          rawCells = line.split("|");
+        } else {
+          return null;
+        }
+        const cells = rawCells.map((cell) => cell.trim());
+        if (cells.length !== 11 || !/^TXT_\d{4}$/.test(cells[0])) return null;
         return {
           id: cells[0],
           surface: cells[1] || "",
@@ -14960,16 +14975,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (!surfaceDocRes.ok) fail("surface_inventory_doc_loaded", { path: surfaceDocRes.path, reason: surfaceDocRes.reason || "unavailable" });
         const lengthRows = lengthDocRes.ok ? parseLengthRows(lengthDocRes.text || "") : [];
         const surfaceRows = surfaceDocRes.ok ? parseSurfaceRows(surfaceDocRes.text || "") : [];
+        const surfaceMetadataEntryCount = Number(metadataValue(surfaceDocRes.text || "", "entryCount") || 0) || 0;
         const lengthById = lengthRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
         const surfaceById = surfaceRows.reduce((acc, row) => { acc[row.id] = row; return acc; }, {});
         const lengthDuplicateIds = lengthRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
         const surfaceDuplicateIds = surfaceRows.map((row) => row.id).filter((id, idx, arr) => id && arr.indexOf(id) !== idx);
-        if (lengthRows.length !== 164) fail("length_row_count", { expected: 164, actual: lengthRows.length });
-        if (surfaceRows.length !== 164) fail("surface_row_count", { expected: 164, actual: surfaceRows.length });
+        if (lengthRows.length !== expectedLengthRowCount) fail("length_row_count", { expected: expectedLengthRowCount, actual: lengthRows.length });
+        if (surfaceMetadataEntryCount !== expectedSurfaceRowCount) fail("surface_metadata_entry_count", { expected: expectedSurfaceRowCount, actual: surfaceMetadataEntryCount });
+        if (surfaceRows.length !== expectedSurfaceRowCount) fail("surface_row_count", { expected: expectedSurfaceRowCount, actual: surfaceRows.length });
         if (lengthDuplicateIds.length) fail("length_duplicate_ids", lengthDuplicateIds);
         if (surfaceDuplicateIds.length) fail("surface_duplicate_ids", surfaceDuplicateIds);
-        if (Object.keys(lengthById).length !== 164) fail("length_unique_ids", { expected: 164, actual: Object.keys(lengthById).length });
-        if (Object.keys(surfaceById).length !== 164) fail("surface_unique_ids", { expected: 164, actual: Object.keys(surfaceById).length });
+        if (Object.keys(lengthById).length !== expectedLengthRowCount) fail("length_unique_ids", { expected: expectedLengthRowCount, actual: Object.keys(lengthById).length });
+        if (Object.keys(surfaceById).length !== expectedSurfaceRowCount) fail("surface_unique_ids", { expected: expectedSurfaceRowCount, actual: Object.keys(surfaceById).length });
         lengthRows.forEach((row) => {
           const surfaceRow = surfaceById[row.id];
           if (!surfaceRow) {
@@ -15025,7 +15042,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (result.missingCoverage.length) fail("missing_coverage", result.missingCoverage.slice());
         if (result.unmappedRows.length) fail("unmapped_rows", result.unmappedRows.slice());
         if (result.longerRows.length) fail("alpha_longer_rows", result.longerRows.slice());
-        if (result.checkedRows.length !== 164) fail("checked_row_count", { expected: 164, actual: result.checkedRows.length });
+        if (result.checkedRows.length !== expectedLengthRowCount) fail("checked_row_count", { expected: expectedLengthRowCount, actual: result.checkedRows.length });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
@@ -15033,7 +15050,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0
-        && result.checkedRows.length === 164
+        && result.checkedRows.length === expectedLengthRowCount
         && result.longerRows.length === 0
         && result.unmappedRows.length === 0;
       return result;
