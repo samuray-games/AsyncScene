@@ -7988,3 +7988,11 @@ Error: Download failure, code=1
 - Restored the four prerequisite alpha smoke registrations before the production gate and earlier throwing installers.
 - Step 4.3.5 now validates the loaded dev-checks asset structurally without pinning its cache-marker value.
 - Added `Game.__DEV.smokeAlphaLexiconFix1()`; runtime copy and gameplay logic are unchanged, and Safari PASS is pending user execution.
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix12
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- The canonical artifact and live collector are now validated as different domains: the 223-row static artifact keeps its own mirror, metadata, id, category, template, variable, provenance, and forbidden-text checks; every live entry independently requires valid text, category, source evidence, derived template state, variables, and forbidden-text compliance.
+- One-way stable-source traceability excludes category and multiplicity but requires exact whitespace-normalized text, template/static state, sorted placeholder variables, and tracked source-file family. Only the explicit `runtime/dom` domain is snapshot-only; unknown non-DOM files fail.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix12()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix12_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix12_v20260628_012_commit_12dfeec3581bd92c1f3d7796e9c37025b83086ad`, smokeName `smokeAlphaStep41ZoomerInventoryFix12`, and commit marker `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
+- Fix12 is exposed on `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`; both boot mirrors use cache-bust `step4_1_millennial_inventory_smoke_fix12_20260628a`.
+- Commit A SHA: `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
+- Static validation passed; local headless runtime smoke infrastructure did not complete. Safari smoke remains `PENDING_USER`.
