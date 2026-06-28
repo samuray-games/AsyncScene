@@ -1,3 +1,14 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix13
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Corrected exactly seven mirrored artifact `vars` values so TXT_0040, TXT_0048, TXT_0049, TXT_0050, TXT_0053, TXT_0071, and TXT_0072 now match the sorted placeholder order extracted from their text while preserving every other row field unchanged.
+- Fixed the real `smokeAlphaStep41ZoomerInventoryOnce()` production path in both dev-check mirrors by locally destructuring `traceStableRuntimeEntries` from a single `createAlphaStep41SemanticHelperSuite({ fail, result })` instance before its first invocation, and kept the helper implemented exactly once and returned through the helper suite object.
+- Normalized the three semantic matcher fixture artifact rows that use `Для {student}: {arg}.` so the pass/fail fixture expectations still execute under the sorted-vars contract without weakening the matcher.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix13()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix13_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix13_v20260628_013_commit_60438957b63d86821a70b770c6663872ff6d49fc`, smokeName `smokeAlphaStep41ZoomerInventoryFix13`, and runtime commit marker `60438957b63d86821a70b770c6663872ff6d49fc`.
+- Exposed Fix13 through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix13_20260628a`.
+- Local source-backed VM execution of the real Fix13 production smoke path returned `ok:true`, `artifactCount:223`, `inventoryCount:223`, `runtimeSnapshotCount:223`, `stableTraceabilityMissingCount:0`, `unknownRuntimeSourceCount:0`, `failures:[]`, `failedChecks:[]`, `forbiddenRemaining:[]`, and `missingCoverage:[]`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix13()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix11
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Corrected the six mirrored artifact metadata defects for TXT_0119, TXT_0121, TXT_0123, TXT_0125, TXT_0127, and TXT_0129 by changing only their dynamic flags to `dynamic:no` and clearing `vars` to `vars:`.
