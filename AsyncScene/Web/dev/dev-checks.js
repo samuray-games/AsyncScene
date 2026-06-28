@@ -260,7 +260,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     if (!target.some((x) => JSON.stringify(x) === key)) target.push(item);
   };
   const createAlphaStep41SemanticHelperSuite = ({ fail, result }) => {
-    const extractTemplateVariables = (text) => Array.from(String(text || "").matchAll(/\{([^{}]+)\}/g), (match) => normalizeProfileText(match[1])).filter(Boolean).sort();
+    const extractTemplateVariables = (text) => Array.from(new Set(Array.from(String(text || "").matchAll(/\{([^{}]+)\}/g), (match) => normalizeProfileText(match[1])).filter(Boolean))).sort();
     const buildSemanticDescriptor = (category, text) => {
       const templateVariables = extractTemplateVariables(text);
       return {
@@ -271,15 +271,13 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         templateVariables
       };
     };
-    const buildTraceabilityDescriptor = (text, sourceFile) => {
+    const buildTraceabilityDescriptor = (text) => {
       const templateVariables = extractTemplateVariables(text);
-      const normalizedSourceFile = normalizeProfileText(sourceFile).replace(/^docs\//, "");
       return {
-        signature: [normalizeProfileText(text), templateVariables.length ? "template" : "static", templateVariables.join(","), normalizedSourceFile].join("|"),
+        signature: [normalizeProfileText(text), templateVariables.length ? "template" : "static", templateVariables.join(",")].join("|"),
         text: normalizeProfileText(text),
         templateState: templateVariables.length ? "template" : "static",
-        templateVariables,
-        sourceFile: normalizedSourceFile
+        templateVariables
       };
     };
     const sampleArtifactRow = (row) => (row ? {
@@ -397,30 +395,78 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       }
       return true;
     };
+    const validateCanonicalArtifactAdditions = (artifactRows, baselineCount = 223) => {
+      const seenSignatures = new Map();
+      artifactRows.forEach((row) => {
+        const descriptor = buildTraceabilityDescriptor(row && row.text);
+        const numericId = Number(String(row && row.id || "").replace(/^TXT_/, ""));
+        if (numericId > baselineCount && seenSignatures.has(descriptor.signature)) {
+          fail("duplicate_canonical_artifact_signature", {
+            signature: descriptor.signature,
+            existingId: seenSignatures.get(descriptor.signature),
+            duplicateId: row.id
+          });
+        }
+        if (!seenSignatures.has(descriptor.signature)) seenSignatures.set(descriptor.signature, row && row.id);
+      });
+    };
+    const classifyDevOnlyRuntimeEntry = (entry) => {
+      const source = entry && entry.source && typeof entry.source === "object" ? entry.source : {};
+      const file = normalizeProfileText(source.file).replace(/^docs\//, "");
+      const moduleName = normalizeProfileText(source.module);
+      const key = normalizeProfileText(source.key);
+      const path = normalizeProfileText(source.path);
+      const expectedPathByKey = {
+        operationFailed: "Step4_5.errorCoverage.operationFailed",
+        retryLater: "Step4_5.errorCoverage.retryLater"
+      };
+      return file === "AsyncScene/Web/dev/dev-checks.js"
+        && moduleName === "Step4_5.errorCoverage"
+        && Object.prototype.hasOwnProperty.call(expectedPathByKey, key)
+        && path === expectedPathByKey[key];
+    };
     const classifyRuntimeSource = (entry, trackedSourceFiles) => {
       const source = entry && entry.source && typeof entry.source === "object" ? entry.source : {};
       const file = normalizeProfileText(source.file).replace(/^docs\//, "");
       if (file === "runtime/dom") return { kind: "snapshot", file };
+      if (classifyDevOnlyRuntimeEntry(entry)) return { kind: "dev_only", file };
       if (file && trackedSourceFiles instanceof Set && trackedSourceFiles.has(file)) return { kind: "stable", file };
       return { kind: "unknown", file: file || null };
     };
     const traceStableRuntimeEntries = (artifactRows, runtimeEntries) => {
       if (typeof result.unknownRuntimeSourceCount !== "number") result.unknownRuntimeSourceCount = 0;
       if (typeof result.stableTraceabilityMissingCount !== "number") result.stableTraceabilityMissingCount = 0;
+      if (typeof result.devOnlyRuntimeCount !== "number") result.devOnlyRuntimeCount = 0;
+      if (typeof result.crossFileAliasCoveredCount !== "number") result.crossFileAliasCoveredCount = 0;
+      if (typeof result.canonicalProductionGapOccurrenceCount !== "number") result.canonicalProductionGapOccurrenceCount = 0;
+      if (typeof result.canonicalProductionGapUniqueCount !== "number") result.canonicalProductionGapUniqueCount = 0;
+      if (!Array.isArray(result.crossFileAliases)) result.crossFileAliases = [];
+      if (!Array.isArray(result.canonicalProductionGaps)) result.canonicalProductionGaps = [];
+      if (!Array.isArray(result.nonProductionRuntimeEntries)) result.nonProductionRuntimeEntries = [];
       const trackedSourceFiles = new Set(artifactRows.map((row) => normalizeProfileText(row.sourceFile).replace(/^docs\//, "")).filter(Boolean));
       const artifactBySignature = new Map();
       artifactRows.forEach((row) => {
-        const descriptor = buildTraceabilityDescriptor(row.text, row.sourceFile);
+        const descriptor = buildTraceabilityDescriptor(row.text);
         const bucket = artifactBySignature.get(descriptor.signature) || [];
         bucket.push(row);
         artifactBySignature.set(descriptor.signature, bucket);
       });
-      const seenStable = new Set();
+      const seenStableSourceSignatures = new Set();
+      const seenGapSignatures = new Set();
+      const seenDevOnly = new Set();
       runtimeEntries.forEach((entry) => {
         const classification = classifyRuntimeSource(entry, trackedSourceFiles);
-        const source = entry && entry.source ? entry.source : {};
-        const descriptor = buildTraceabilityDescriptor(entry && entry.text, classification.file || "");
+        const descriptor = buildTraceabilityDescriptor(entry && entry.text);
         if (classification.kind === "snapshot") return;
+        if (classification.kind === "dev_only") {
+          const devKey = [classification.file, descriptor.signature, normalizeProfileText(entry && entry.source && entry.source.key)].join("|");
+          if (!seenDevOnly.has(devKey)) {
+            seenDevOnly.add(devKey);
+            result.devOnlyRuntimeCount += 1;
+            result.nonProductionRuntimeEntries.push({ classification: "dev_only", semanticSignature: descriptor.signature, runtimeSample: sampleRuntimeEntry(entry) });
+          }
+          return;
+        }
         if (classification.kind === "unknown") {
           result.unknownRuntimeSourceCount += 1;
           const detail = { check: "unknown_runtime_source_domain", semanticSignature: descriptor.signature, sourceClassification: classification, runtimeSample: sampleRuntimeEntry(entry), artifactSample: null };
@@ -428,16 +474,33 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           addUniqueProfileAudit(result.missingCoverage, detail);
           return;
         }
-        if (seenStable.has(descriptor.signature)) return;
-        seenStable.add(descriptor.signature);
+        const stableSourceSignature = [classification.file, descriptor.signature].join("|");
+        if (seenStableSourceSignatures.has(stableSourceSignature)) return;
+        seenStableSourceSignatures.add(stableSourceSignature);
         const representatives = artifactBySignature.get(descriptor.signature) || [];
         if (!representatives.length) {
           result.stableTraceabilityMissingCount += 1;
+          result.canonicalProductionGapOccurrenceCount += 1;
+          if (!seenGapSignatures.has(descriptor.signature)) {
+            seenGapSignatures.add(descriptor.signature);
+            result.canonicalProductionGapUniqueCount += 1;
+          }
           const sameFileRows = artifactRows.filter((row) => normalizeProfileText(row.sourceFile).replace(/^docs\//, "") === classification.file);
           const closest = sameFileRows.find((row) => normalizeProfileText(row.text).toLocaleLowerCase("ru-RU") === descriptor.text.toLocaleLowerCase("ru-RU")) || sameFileRows[0] || null;
           const detail = { check: "stable_runtime_missing_artifact_representation", semanticSignature: descriptor.signature, sourceClassification: classification, runtimeSample: sampleRuntimeEntry(entry), artifactSample: sampleArtifactRow(closest) };
+          result.canonicalProductionGaps.push(detail);
           fail("stable_runtime_missing_artifact_representation", detail);
           addUniqueProfileAudit(result.missingCoverage, detail);
+          return;
+        }
+        const sameSourceRepresentative = representatives.some((row) => normalizeProfileText(row.sourceFile).replace(/^docs\//, "") === classification.file);
+        if (!sameSourceRepresentative) {
+          result.crossFileAliasCoveredCount += 1;
+          result.crossFileAliases.push({
+            semanticSignature: descriptor.signature,
+            runtimeSample: sampleRuntimeEntry(entry),
+            artifactRepresentative: sampleArtifactRow(representatives[0])
+          });
         }
       });
     };
@@ -491,15 +554,45 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         ),
         makeFixtureCase(
           "same stable text repeated multiple times in runtime",
-          [
-            makeArtifact("TXT_0004", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
-            makeArtifact("TXT_0005", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
-          ],
+          [makeArtifact("TXT_0004", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
           [
             makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedA", path: "System.savedA" }),
             makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedB", path: "System.savedB" }),
             makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedC", path: "System.savedC" })
           ],
+          true
+        ),
+        makeFixtureCase(
+          "same semantic signature represented across tracked files",
+          [
+            makeArtifact("TXT_0007", "button", "Суть", "AsyncScene/Web/system.js", "121", "startActionRules", "dynamic:no", ""),
+            makeArtifact("TXT_0008", "status", "Другая строка", "AsyncScene/Web/data.js", "382", "tracker", "dynamic:no", "")
+          ],
+          [makeRuntime("hint", "Суть", { file: "AsyncScene/Web/data.js", key: "rules", path: "Data.START_SCREEN.actions.rules" })],
+          true
+        ),
+        makeFixtureCase(
+          "production ui-boot duplicate represented elsewhere",
+          [
+            makeArtifact("TXT_0009", "button", "Сбросить старт", "AsyncScene/Web/data.js", "39", "start_reset", "dynamic:no", ""),
+            makeArtifact("TXT_0010", "button", "Скрыть", "AsyncScene/Web/ui/ui-boot.js", "845", "tracker", "dynamic:no", "")
+          ],
+          [makeRuntime("button", "Сбросить старт", { file: "AsyncScene/Web/ui/ui-boot.js", key: "btnResetOnboarding.textContent", path: "#btnResetOnboarding" })],
+          true
+        ),
+        makeFixtureCase(
+          "production ui-core duplicate represented elsewhere",
+          [
+            makeArtifact("TXT_0011", "button", "Почему?", "AsyncScene/Web/data.js", "39", "why", "dynamic:no", ""),
+            makeArtifact("TXT_0012", "button", "Другая кнопка", "AsyncScene/Web/ui/ui-core.js", "283", "tracker", "dynamic:no", "")
+          ],
+          [makeRuntime("button", "Почему?", { file: "AsyncScene/Web/ui/ui-core.js", key: "explain.textContent", path: "explain button" })],
+          true
+        ),
+        makeFixtureCase(
+          "explicit dev-check fixture classified dev_only",
+          [],
+          [makeRuntime("error", "Не удалось.", { file: "AsyncScene/Web/dev/dev-checks.js", module: "Step4_5.errorCoverage", key: "operationFailed", path: "Step4_5.errorCoverage.operationFailed" })],
           true
         ),
         makeFixtureCase(
@@ -574,6 +667,12 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           false
         ),
         makeFixtureCase(
+          "player-visible dev-check entry cannot be hidden as dev_only",
+          [],
+          [makeRuntime("button", "Играть", { file: "AsyncScene/Web/dev/dev-checks.js", module: "PlayerUi", key: "play", path: "PlayerUi.play" })],
+          false
+        ),
+        makeFixtureCase(
           "artifact row with invalid dynamic vars metadata",
           [makeArtifact("TXT_0018", "status", "Для {student}.", "AsyncScene/Web/data.js", "71", "teach", "dynamic:no", "")],
           [],
@@ -599,6 +698,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           });
         }
       });
+      const duplicateCanonicalFailures = [];
+      const duplicateCanonicalHelpers = createAlphaStep41SemanticHelperSuite({ fail: (check, detail) => duplicateCanonicalFailures.push({ check, detail }), result: { missingCoverage: [] } });
+      duplicateCanonicalHelpers.validateCanonicalArtifactAdditions([
+        makeArtifact("TXT_0001", "status", "Один раз", "AsyncScene/Web/system.js", "53", "original", "dynamic:no", ""),
+        makeArtifact("TXT_0224", "hint", "Один раз", "AsyncScene/Web/data.js", "382", "duplicate", "dynamic:no", "")
+      ]);
+      if (!duplicateCanonicalFailures.some((entry) => entry.check === "duplicate_canonical_artifact_signature")) {
+        fail("semantic_matcher_fixture", { name: "duplicate canonical rows added for one signature", expected: false, actual: true });
+      }
     };
     return {
       extractTemplateVariables,
@@ -610,6 +718,8 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       compareSemanticBuckets,
       validateArtifactRow,
       validateRuntimeSource,
+      validateCanonicalArtifactAdditions,
+      classifyDevOnlyRuntimeEntry,
       classifyRuntimeSource,
       traceStableRuntimeEntries,
       runSemanticMatcherFixture
@@ -11590,7 +11700,16 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         failedChecks: [],
         runtimeSnapshotCount: 0,
         stableTraceabilityMissingCount: 0,
-        unknownRuntimeSourceCount: 0
+        unknownRuntimeSourceCount: 0,
+        devOnlyRuntimeCount: 0,
+        crossFileAliasCoveredCount: 0,
+        canonicalProductionGapOccurrenceCount: 0,
+        canonicalProductionGapUniqueCount: 0,
+        canonicalProductionRowsAddedCount: 0,
+        finalArtifactCount: 0,
+        crossFileAliases: [],
+        canonicalProductionGaps: [],
+        nonProductionRuntimeEntries: []
       };
       const addUnique = (list, value) => {
         const target = Array.isArray(list) ? list : [];
@@ -11609,6 +11728,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         compareSemanticBuckets,
         validateArtifactRow,
         validateRuntimeSource,
+        validateCanonicalArtifactAdditions,
         traceStableRuntimeEntries,
         runSemanticMatcherFixture
       } = semanticHelpers;
@@ -11762,6 +11882,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const allowedCategories = new Set(artifactValidRows.map((row) => normalize(row.category)).filter(Boolean));
         result.inventoryCount = runtimeEntries.length;
         result.artifactCount = artifactValidRows.length;
+        result.finalArtifactCount = artifactValidRows.length;
+        result.canonicalProductionRowsAddedCount = artifactValidRows.filter((row) => Number(String(row.id || "").replace(/^TXT_/, "")) > 223).length;
         if (artifactRows.some((row) => row.parseError)) fail("inventory_row_parse", artifactRows.filter((row) => row.parseError));
         if (!artifactValidRows.length) addUnique(result.missingCoverage, "artifact_rows_empty");
         if (!runtimeEntries.length) addUnique(result.missingCoverage, "runtime_inventory_empty");
@@ -11787,6 +11909,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const missingIds = expectedIds.filter((id) => ids.indexOf(id) === -1);
         const unexpectedIds = ids.filter((id) => expectedIds.indexOf(id) === -1);
         if (missingIds.length || unexpectedIds.length) fail("artifact_ids_contiguous", { missingIds, unexpectedIds });
+        validateCanonicalArtifactAdditions(artifactValidRows, 223);
 
         artifactValidRows.forEach((row) => {
           validateArtifactRow(row);
@@ -11808,13 +11931,18 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         runSemanticMatcherFixture();
 
         result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
-        if (result.artifactCount !== 223) fail("artifact_count_223", result.artifactCount);
+        if (result.artifactCount !== result.finalArtifactCount) fail("artifact_count_matches_final", { artifactCount: result.artifactCount, finalArtifactCount: result.finalArtifactCount });
+        if (result.canonicalProductionRowsAddedCount !== 90) fail("canonical_production_rows_added_90", result.canonicalProductionRowsAddedCount);
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.ok = result.inventoryCount > 0
-        && result.artifactCount === 223
+        && result.runtimeSnapshotCount === result.inventoryCount
+        && result.artifactCount === result.finalArtifactCount
+        && result.canonicalProductionRowsAddedCount === 90
+        && result.stableTraceabilityMissingCount === 0
+        && result.unknownRuntimeSourceCount === 0
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
@@ -17870,6 +17998,45 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix14 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "FIX14_IMPLEMENTATION_COMMIT";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix14_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix14_v20260628_014_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix14";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix14_v20260628_014_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount > 0
+          && result.runtimeSnapshotCount === result.inventoryCount
+          && result.artifactCount === result.finalArtifactCount
+          && result.artifactCount === 313
+          && result.canonicalProductionRowsAddedCount === 90
+          && result.crossFileAliasCoveredCount === 11
+          && result.canonicalProductionGapOccurrenceCount === 0
+          && result.canonicalProductionGapUniqueCount === 0
+          && result.stableTraceabilityMissingCount === 0
+          && result.unknownRuntimeSourceCount === 0
+          && result.devOnlyRuntimeCount === 2
+          && Array.isArray(result.scannedFiles) && result.scannedFiles.length > 0
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix14";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -17883,6 +18050,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix11", smokeAlphaStep41ZoomerInventoryFix11],
       ["smokeAlphaStep41ZoomerInventoryFix12", smokeAlphaStep41ZoomerInventoryFix12],
       ["smokeAlphaStep41ZoomerInventoryFix13", smokeAlphaStep41ZoomerInventoryFix13],
+      ["smokeAlphaStep41ZoomerInventoryFix14", smokeAlphaStep41ZoomerInventoryFix14],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {

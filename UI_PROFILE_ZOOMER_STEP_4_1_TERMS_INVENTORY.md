@@ -4,9 +4,9 @@
 - source inventory only, no replacements
 
 ## Coverage Summary
-- entryCount: 223
-- uniqueTextCount: 191
-- scannedFileCount: 9
+- entryCount: 313
+- uniqueTextCount: 281
+- scannedFileCount: 11
 - requiredCategoriesMissing: []
 - toastEntryCount: 24
 - duplicateTextDifferentSourcesCount: 15
@@ -267,6 +267,96 @@ TXT_0220 | button | battles | battle_action_accept | Вписаться | AsyncS
 TXT_0221 | button | battles | battle_action_decline | Скипнуть | AsyncScene/Web/data.js:473 | data_map | zoomer | dynamic:no | vars: | notes:
 TXT_0222 | button | battles | battle_action_attack | Влететь | AsyncScene/Web/data.js:474 | data_map | zoomer | dynamic:no | vars: | notes:
 TXT_0223 | button | battles | battle_action_rematch | Ещё раунд | AsyncScene/Web/data.js:475 | data_map | zoomer | dynamic:no | vars: | notes:
+TXT_0224 | status | battle | tie_start | Толпа решает. | AsyncScene/Web/data.js:382 | data_map | genz | dynamic:no | vars: | notes:canonical production gap; alias:Data.TEXTS.genz.tie_start,SystemCopy.systemEvents.crowdStart
+TXT_0225 | hint | battle | tie_call_to_action | Имя задаёт сторону. | AsyncScene/Web/data.js:383 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0226 | hint | battle | tie_click_name_hint | Имя в списке — сторона. | AsyncScene/Web/data.js:384 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0227 | status | battle | vote_already | Уже учтён. | AsyncScene/Web/data.js:386 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0228 | error | battle | vote_fail | Голос не учтён. | AsyncScene/Web/data.js:387 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0229 | status | battle | tie_timer | Осталось: {sec}s | AsyncScene/Web/data.js:388 | template | genz | dynamic:yes | vars:sec | notes:canonical production gap
+TXT_0230 | status | battle | tie_end_winner | Победил {name} - {aVotes}:{bVotes}. | AsyncScene/Web/data.js:389 | template | genz | dynamic:yes | vars:aVotes,bVotes,name | notes:canonical production gap
+TXT_0231 | status | battle | tie_end_draw | Поровну по голосам - {aVotes}:{bVotes}. | AsyncScene/Web/data.js:390 | template | genz | dynamic:yes | vars:aVotes,bVotes | notes:canonical production gap
+TXT_0232 | hint | battle | tie_chat_start | Толпа решает по именам. | AsyncScene/Web/data.js:391 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0233 | status | battle | tie_chat_end_winner | Толпа решает. Победил {name} - {aVotes}:{bVotes}. | AsyncScene/Web/data.js:392 | template | genz | dynamic:yes | vars:aVotes,bVotes,name | notes:canonical production gap
+TXT_0234 | status | battle | tie_chat_end_draw | Толпа решает. Поровну - {aVotes}:{bVotes}. | AsyncScene/Web/data.js:393 | template | genz | dynamic:yes | vars:aVotes,bVotes | notes:canonical production gap
+TXT_0235 | status | events | events_title | События ({count}) | AsyncScene/Web/data.js:396 | template | genz | dynamic:yes | vars:count | notes:canonical production gap
+TXT_0236 | hint | events | events_empty | Открой события. | AsyncScene/Web/data.js:397 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0237 | button | events | events_close_extra | Свернуть | AsyncScene/Web/data.js:409 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0238 | button | events | events_clear_all | Очистить | AsyncScene/Web/data.js:410 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0239 | status | events | events_done | Готово | AsyncScene/Web/data.js:412 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0240 | status | events | events_left | Ещё {sec} сек | AsyncScene/Web/data.js:413 | template | genz | dynamic:yes | vars:sec | notes:canonical production gap
+TXT_0241 | status | battle | battle_draw | Ничья | AsyncScene/Web/data.js:418 | data_map | genz | dynamic:no | vars: | notes:canonical production gap
+TXT_0242 | button | battle | escape_button_label | Уйти: {X} | AsyncScene/Web/data.js:429 | template | genz | dynamic:yes | vars:X | notes:canonical production gap
+TXT_0243 | error | system_copy | insufficientPoints | Мало 💰 | AsyncScene/Web/system.js:31 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0244 | error | system_copy | reportFalsePenalty | Штраф: -5💰 | AsyncScene/Web/system.js:36 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0245 | error | system_copy | reportNo | Коп: донос пустой, -5💰. | AsyncScene/Web/system.js:37 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0246 | error | system_copy | p2pInvalidAmount | Сумма некорректна. | AsyncScene/Web/system.js:38 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0247 | error | system_copy | p2pSelfTransferForbidden | Себе нельзя. | AsyncScene/Web/system.js:39 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0248 | error | system_copy | p2pTransferFailed | Передача не прошла. | AsyncScene/Web/system.js:40 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0249 | error | system_copy | cooldownShort | Пауза: активно | AsyncScene/Web/system.js:44 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0250 | error | system_copy | copCooldown | Проверка: ожидание | AsyncScene/Web/system.js:45 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0251 | error | system_copy | alreadyVoted | Уже принято. | AsyncScene/Web/system.js:46 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0252 | error | system_copy | respectPairDaily | Уважение уже отправлено. | AsyncScene/Web/system.js:47 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0253 | error | system_copy | respectNoChain | Цепочка закрыта. | AsyncScene/Web/system.js:48 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0254 | error | system_copy | respectEmitterEmpty | Уважение недоступно. | AsyncScene/Web/system.js:49 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0255 | error | system_copy | escapeNeedsPoints | Не хватает 💰 на Свалить. | AsyncScene/Web/system.js:50 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0256 | status | system_copy | pointsDeltaVoteCost | -{voteCost}💰 | AsyncScene/Web/system.js:56 | template | shared | dynamic:yes | vars:voteCost | notes:canonical production gap
+TXT_0257 | status | system_copy | respectPaid | Списано 1💰. | AsyncScene/Web/system.js:57 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0258 | status | system_copy | respectTargetRep | Цель получила +1⭐ | AsyncScene/Web/system.js:58 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0259 | status | system_copy | voteAccepted | Голос: принято | AsyncScene/Web/system.js:59 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0260 | status | system_copy | reportPending | Проверка | AsyncScene/Web/system.js:60 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0261 | status | system_copy | reportOk | Отчёт: {name}. +2💰 | AsyncScene/Web/system.js:62 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0262 | status | system_copy | reportCompensationBundle | +1⭐ +1💰 | AsyncScene/Web/system.js:63 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0263 | status | system_copy | reportReturnAmount | +{returnAmount}💰 | AsyncScene/Web/system.js:64 | template | shared | dynamic:yes | vars:returnAmount | notes:canonical production gap
+TXT_0264 | status | system_copy | rematchRequested | {name}: реванш | AsyncScene/Web/system.js:66 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0265 | status | system_copy | escapePaid | Уйти: 1💰 | AsyncScene/Web/system.js:67 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0266 | status | system_copy | pointsDeltaRefund | Возврат: +1💰 | AsyncScene/Web/system.js:68 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0267 | status | system_copy | pointsDeltaRefundMajority | Большинство: +1💰 | AsyncScene/Web/system.js:69 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0268 | status | system_copy | pointsDeltaRemainderWin | Остаток: +1💰 | AsyncScene/Web/system.js:70 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0269 | status | system_copy | escapeVoteCost | Уйти: -{escapeCost}💰 | AsyncScene/Web/system.js:72 | template | shared | dynamic:yes | vars:escapeCost | notes:canonical production gap
+TXT_0270 | status | system_copy | p2pTransferReceived | {target}: +{amount}💰 | AsyncScene/Web/system.js:74 | template | shared | dynamic:yes | vars:amount,target | notes:canonical production gap
+TXT_0271 | status | system_copy | dmReaction | {name} ↔ {target}: реакция. | AsyncScene/Web/system.js:78 | template | shared | dynamic:yes | vars:name,target | notes:canonical production gap
+TXT_0272 | status | system_copy | dmInvite | {name}: +{guest} к {target}. | AsyncScene/Web/system.js:79 | template | shared | dynamic:yes | vars:guest,name,target | notes:canonical production gap
+TXT_0273 | status | system_copy | joined | {name} на площади. | AsyncScene/Web/system.js:80 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0274 | status | system_copy | moved | Переход: {location}. | AsyncScene/Web/system.js:81 | template | shared | dynamic:yes | vars:location | notes:canonical production gap
+TXT_0275 | status | system_copy | battleChallenge | {attackerName} [{attackerInf}]: вызов | AsyncScene/Web/system.js:82 | template | shared | dynamic:yes | vars:attackerInf,attackerName | notes:canonical production gap
+TXT_0276 | status | system_copy | npcBattleStart | {a} вызывает {b}. | AsyncScene/Web/system.js:83 | template | shared | dynamic:yes | vars:a,b | notes:canonical production gap
+TXT_0277 | status | system_copy | battleWin | {winner} победил. {loser} проиграл. | AsyncScene/Web/system.js:84 | template | shared | dynamic:yes | vars:loser,winner | notes:canonical production gap
+TXT_0278 | status | system_copy | battleResult | {oppName}: {text} | AsyncScene/Web/system.js:85 | template | shared | dynamic:yes | vars:oppName,text | notes:canonical production gap
+TXT_0279 | status | system_copy | mafiaShame | {meName} бросил вызов мафиози. ⚡ обнулено. | AsyncScene/Web/system.js:86 | template | shared | dynamic:yes | vars:meName | notes:canonical production gap
+TXT_0280 | status | system_copy | toxicStealLine | Токсик забрал {cost}💰. | AsyncScene/Web/system.js:87 | template | shared | dynamic:yes | vars:cost | notes:canonical production gap
+TXT_0281 | status | system_copy | toxicRobbed | Токсик забрал 💰. | AsyncScene/Web/system.js:88 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0282 | status | system_copy | banditRobbed | Бандит забрал 💰. | AsyncScene/Web/system.js:89 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0283 | status | system_copy | battleDraw | {a} и {b}: ничья | AsyncScene/Web/system.js:90 | template | shared | dynamic:yes | vars:a,b | notes:canonical production gap
+TXT_0284 | status | system_copy | crowdResolved | Толпа: {name} {aVotes}:{bVotes} | AsyncScene/Web/system.js:92 | template | shared | dynamic:yes | vars:aVotes,bVotes,name | notes:canonical production gap
+TXT_0285 | status | system_copy | unlockOrangeOther | Аргументы {name} теперь сильные. | AsyncScene/Web/system.js:96 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0286 | status | system_copy | unlockRedOther | Аргументы {name} теперь мощные. | AsyncScene/Web/system.js:97 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0287 | status | system_copy | unlockBlackOther | Аргументы {name} теперь абсолютные. | AsyncScene/Web/system.js:98 | template | shared | dynamic:yes | vars:name | notes:canonical production gap
+TXT_0288 | status | system_copy | npcVictoryCop | Коп: победа за {winner}. | AsyncScene/Web/system.js:99 | template | shared | dynamic:yes | vars:winner | notes:canonical production gap
+TXT_0289 | status | system_copy | npcVictoryMafia | Мафиози: итог за {winner}. | AsyncScene/Web/system.js:100 | template | shared | dynamic:yes | vars:winner | notes:canonical production gap
+TXT_0290 | status | system_copy | npcVictoryBandit | Бандит: {winner} забрал раунд. | AsyncScene/Web/system.js:101 | template | shared | dynamic:yes | vars:winner | notes:canonical production gap
+TXT_0291 | status | system_copy | npcVictoryToxic | Токсик: {winner} победил. | AsyncScene/Web/system.js:102 | template | shared | dynamic:yes | vars:winner | notes:canonical production gap
+TXT_0292 | status | system_copy | npcVictoryCrowd | Толпа: {winner} победил. | AsyncScene/Web/system.js:103 | template | shared | dynamic:yes | vars:winner | notes:canonical production gap
+TXT_0293 | status | system_copy | npcDefeatCop | Коп: {loser} проиграл. | AsyncScene/Web/system.js:104 | template | shared | dynamic:yes | vars:loser | notes:canonical production gap
+TXT_0294 | status | system_copy | npcDefeatMafia | Мафиози: {loser} проиграл. | AsyncScene/Web/system.js:105 | template | shared | dynamic:yes | vars:loser | notes:canonical production gap
+TXT_0295 | status | system_copy | npcDefeatBandit | Бандит: {loser} проиграл. | AsyncScene/Web/system.js:106 | template | shared | dynamic:yes | vars:loser | notes:canonical production gap
+TXT_0296 | status | system_copy | npcDefeatToxic | Токсик: {loser} проиграл. | AsyncScene/Web/system.js:107 | template | shared | dynamic:yes | vars:loser | notes:canonical production gap
+TXT_0297 | status | system_copy | npcDefeatCrowd | Толпа: {loser} проиграл. | AsyncScene/Web/system.js:108 | template | shared | dynamic:yes | vars:loser | notes:canonical production gap
+TXT_0298 | status | system_copy | npcArrestCop | Коп: {target} закрыт. | AsyncScene/Web/system.js:109 | template | shared | dynamic:yes | vars:target | notes:canonical production gap
+TXT_0299 | status | system_copy | npcArrestMafia | Мафиози: {target} закрыт. | AsyncScene/Web/system.js:110 | template | shared | dynamic:yes | vars:target | notes:canonical production gap
+TXT_0300 | status | system_copy | npcArrestBandit | Бандит: {target} за решёткой. | AsyncScene/Web/system.js:111 | template | shared | dynamic:yes | vars:target | notes:canonical production gap
+TXT_0301 | status | system_copy | npcArrestToxic | Токсик: {target} закрыт. | AsyncScene/Web/system.js:112 | template | shared | dynamic:yes | vars:target | notes:canonical production gap
+TXT_0302 | status | system_copy | npcArrestCrowd | Толпа: {target} закрыт. | AsyncScene/Web/system.js:113 | template | shared | dynamic:yes | vars:target | notes:canonical production gap
+TXT_0303 | status | system_copy | p2pBacklogReason | P2P: анти-абуз. | AsyncScene/Web/system.js:114 | data_map | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0304 | button | chat | arrow.textContent.collapsed | Скрыть | AsyncScene/Web/ui/ui-boot.js:845 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0305 | button | chat | arrow.textContent.expanded | Развернуть | AsyncScene/Web/ui/ui-boot.js:848 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0306 | button | battles | closeBtn.textContent | Закрыть | AsyncScene/Web/ui/ui-battles.js:2154 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0307 | button | battles | off.textContent | Отвали | AsyncScene/Web/ui/ui-battles.js:2003 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0308 | button | argument_explain | explain.textContent | Почему? | AsyncScene/Web/ui/ui-core.js:283 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0309 | status | battles | pickDefense.line | Выбери контраргумент | AsyncScene/Web/ui/ui-battles.js:1986 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0310 | status | battles | pickAttack.line | Выбери аргумент | AsyncScene/Web/ui/ui-battles.js:1987 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0311 | status | battle | battles_empty | Вызовов нет. | AsyncScene/Web/data.js:399 | data_map | genz | dynamic:no | vars: | notes:canonical production gap; runtime alias:ui-battles emptyChallenges.hint
+TXT_0312 | hint | battles | voteHint.textContent | Выбери сторону. | AsyncScene/Web/ui/ui-battles.js:2027 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0313 | hint | battles | answerFallback.hint | Ответь ... | AsyncScene/Web/ui/ui-battles.js:2457 | literal | shared | dynamic:no | vars: | notes:canonical production gap
 ```
 
 ## Zoomer UI Term Extraction
