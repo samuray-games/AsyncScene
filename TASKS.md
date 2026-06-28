@@ -8891,3 +8891,13 @@ Error: Download failure, code=1
 - Restored production-visible registration of the four prerequisite inventory, allowed-lexicon, taboo-list, and z-to-alpha mapping smokes before the production gate and earlier throwing installers.
 - Made the Step 4.3.5 loaded dev-checks asset contract version-agnostic but structurally strict for current origin, canonical pathname, and a nonempty version query.
 - Added `Game.__DEV.smokeAlphaLexiconFix1()` without changing runtime copy or gameplay logic.
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix12
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Replaced the invalid full artifact/runtime semantic multiset equality with independent static artifact integrity and live runtime snapshot integrity contracts plus one-way traceability for unique stable runtime source entries.
+- Category differences, runtime duplicate multiplicity, runtime-only DOM controls, and artifact-only dormant rows no longer fail cross-domain validation; stable tracked-source entries still require exact text, template state, sorted variables, and tracked source-file family representation.
+- Added focused PASS/FAIL fixtures for dormant artifact rows, DOM-only entries, category/key/path/multiplicity differences, aliases, stable-source omissions, exact text/case/punctuation/symbol drift, template drift, malformed sources, unknown domains, and artifact provenance/metadata failures.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix12()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix12_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix12_v20260628_012_commit_12dfeec3581bd92c1f3d7796e9c37025b83086ad`, smokeName `smokeAlphaStep41ZoomerInventoryFix12`, and runtime commit marker `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
+- Exposed Fix12 through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix12_20260628a`.
+- Commit A SHA: `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix12()`.
