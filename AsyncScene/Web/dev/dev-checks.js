@@ -18078,9 +18078,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     const smokeAlphaStep41ZoomerInventoryFix16 = () => {
       const result = smokeAlphaStep41ZoomerInventoryOnce();
       if (result && typeof result === "object") {
-        const implementationCommit = "b854ef01f847aebf63b7bbaeb8dbbc6bbae4ced1";
+        const implementationCommit = "__FIX16_IMPLEMENTATION_COMMIT__";
         const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix16_v1";
-        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix16_v20260628_001_commit_${implementationCommit}`;
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix16_v20260628_016_commit_${implementationCommit}`;
         const fail = (check, detail) => {
           addUniqueProfileAudit(result.failedChecks, check);
           addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
@@ -18090,7 +18090,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.smokeVersion = smokeVersion;
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix16";
         if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
-        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix16_v20260628_001_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix16_v20260628_016_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
         result.ok = result.inventoryCount > 0
           && result.runtimeSnapshotCount === result.inventoryCount
           && result.artifactCount === result.finalArtifactCount
