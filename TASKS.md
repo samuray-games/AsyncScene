@@ -1,3 +1,11 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix6
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Removed the stale `smokeAlphaStep41ZoomerInventoryFix1` runtime references from both mirrored dev-check bundles and kept the Step 4.1 export surface limited to `Once`, `Fix2`, `Fix3`, `Fix4`, and `Fix5`.
+- Added a focused declaration/export consistency check in both mirrored dev-check bundles so the Step 4.1 registration block verifies its declared exports before registration.
+- Updated both mirrored boot pages to load `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix6_20260628a`.
+- Smoke command remains `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()`.
+- Safari runtime smoke remains pending.
+
 ## 2026-06-28 — Asynchronia plugin v0.3.0 step [3.6] final acceptance and installed-package verification
 - Status: PASS for final acceptance and installed-package verification.
 - Installed an exact deterministic local package copy from `plugins/asynchronia/` into `/Users/User/.codex/plugins/cache/personal/asynchronia/0.3.0/` without modifying the source package, marketplace metadata, or the retained `0.2.0` installation.
