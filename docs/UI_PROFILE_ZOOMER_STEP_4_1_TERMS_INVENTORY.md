@@ -4,8 +4,8 @@
 - source inventory only, no replacements
 
 ## Coverage Summary
-- entryCount: 313
-- uniqueTextCount: 281
+- entryCount: 314
+- uniqueTextCount: 282
 - scannedFileCount: 11
 - requiredCategoriesMissing: []
 - toastEntryCount: 24
@@ -357,6 +357,7 @@ TXT_0310 | status | battles | pickAttack.line | Выбери аргумент | 
 TXT_0311 | status | battle | battles_empty | Вызовов нет. | AsyncScene/Web/data.js:399 | data_map | genz | dynamic:no | vars: | notes:canonical production gap; runtime alias:ui-battles emptyChallenges.hint
 TXT_0312 | hint | battles | voteHint.textContent | Выбери сторону. | AsyncScene/Web/ui/ui-battles.js:2027 | literal | shared | dynamic:no | vars: | notes:canonical production gap
 TXT_0313 | hint | battles | answerFallback.hint | Ответь ... | AsyncScene/Web/ui/ui-battles.js:2457 | literal | shared | dynamic:no | vars: | notes:canonical production gap
+TXT_0314 | status | system_copy | respectTargetRep | Цели +1⭐. | AsyncScene/Web/system.js:58 | data_map | shared | dynamic:no | vars: | notes:canonical production gap discovered by Safari Fix14
 ```
 
 ## Zoomer UI Term Extraction
