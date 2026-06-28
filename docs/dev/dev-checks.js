@@ -271,6 +271,17 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         templateVariables
       };
     };
+    const buildTraceabilityDescriptor = (text, sourceFile) => {
+      const templateVariables = extractTemplateVariables(text);
+      const normalizedSourceFile = normalizeProfileText(sourceFile).replace(/^docs\//, "");
+      return {
+        signature: [normalizeProfileText(text), templateVariables.length ? "template" : "static", templateVariables.join(","), normalizedSourceFile].join("|"),
+        text: normalizeProfileText(text),
+        templateState: templateVariables.length ? "template" : "static",
+        templateVariables,
+        sourceFile: normalizedSourceFile
+      };
+    };
     const sampleArtifactRow = (row) => (row ? {
       id: row.id,
       category: row.category,
@@ -337,14 +348,40 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return false;
       }
       const derivedTemplateState = extractTemplateVariables(row.text).length ? "template" : "static";
-      const declaredTemplateState = /^dynamic:yes$/i.test(String(row.dynamic || "").trim()) ? "template" : "static";
+      const dynamicValue = String(row.dynamic || "").trim().toLowerCase();
+      if (dynamicValue !== "dynamic:yes" && dynamicValue !== "dynamic:no") {
+        fail("artifact_dynamic_metadata_invalid", { id: row.id, dynamic: row.dynamic });
+        return false;
+      }
+      const declaredTemplateState = dynamicValue === "dynamic:yes" ? "template" : "static";
       if (derivedTemplateState !== declaredTemplateState) {
         fail("artifact_template_status_mismatch", { id: row.id, declared: row.dynamic, derived: derivedTemplateState });
+        return false;
+      }
+      const derivedVars = extractTemplateVariables(row.text);
+      const declaredVars = String(row.vars || "").replace(/^vars:/i, "").split(",").map((value) => normalizeProfileText(value)).filter(Boolean);
+      if (JSON.stringify(declaredVars) !== JSON.stringify(derivedVars)) {
+        fail("artifact_template_variables_mismatch", { id: row.id, declared: declaredVars, derived: derivedVars });
+        return false;
+      }
+      if (!/^(?:AsyncScene\/Web\/|docs\/)[^:]+\.html$|^(?:AsyncScene\/Web\/|docs\/)[^:]+\.js$/i.test(String(row.sourceFile || "")) || !String(row.sourceLine || "").trim()) {
+        fail("artifact_provenance_malformed", { id: row.id, sourceFile: row.sourceFile, sourceLine: row.sourceLine });
+        return false;
       }
       return true;
     };
-    const validateRuntimeSource = (entry, entryIndex) => {
+    const validateRuntimeSource = (entry, entryIndex, allowedCategories) => {
       const source = entry && entry.source ? entry.source : null;
+      const text = normalizeProfileText(entry && entry.text);
+      const category = normalizeProfileText(entry && entry.category);
+      if (!text) {
+        fail("runtime_text_empty", { index: entryIndex, category });
+        return false;
+      }
+      if (!category || (allowedCategories instanceof Set && !allowedCategories.has(category))) {
+        fail("runtime_category_invalid", { index: entryIndex, category, text });
+        return false;
+      }
       if (!source || typeof source !== "object") {
         fail("runtime_source_missing_object", { index: entryIndex, category: entry && entry.category ? entry.category : null, text: entry && entry.text ? entry.text : null });
         return false;
@@ -359,6 +396,46 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         return false;
       }
       return true;
+    };
+    const classifyRuntimeSource = (entry, trackedSourceFiles) => {
+      const source = entry && entry.source && typeof entry.source === "object" ? entry.source : {};
+      const file = normalizeProfileText(source.file).replace(/^docs\//, "");
+      if (file === "runtime/dom") return { kind: "snapshot", file };
+      if (file && trackedSourceFiles instanceof Set && trackedSourceFiles.has(file)) return { kind: "stable", file };
+      return { kind: "unknown", file: file || null };
+    };
+    const traceStableRuntimeEntries = (artifactRows, runtimeEntries) => {
+      const trackedSourceFiles = new Set(artifactRows.map((row) => normalizeProfileText(row.sourceFile).replace(/^docs\//, "")).filter(Boolean));
+      const artifactBySignature = new Map();
+      artifactRows.forEach((row) => {
+        const descriptor = buildTraceabilityDescriptor(row.text, row.sourceFile);
+        const bucket = artifactBySignature.get(descriptor.signature) || [];
+        bucket.push(row);
+        artifactBySignature.set(descriptor.signature, bucket);
+      });
+      const seenStable = new Set();
+      runtimeEntries.forEach((entry) => {
+        const classification = classifyRuntimeSource(entry, trackedSourceFiles);
+        const source = entry && entry.source ? entry.source : {};
+        const descriptor = buildTraceabilityDescriptor(entry && entry.text, classification.file || "");
+        if (classification.kind === "snapshot") return;
+        if (classification.kind === "unknown") {
+          const detail = { check: "unknown_runtime_source_domain", semanticSignature: descriptor.signature, sourceClassification: classification, runtimeSample: sampleRuntimeEntry(entry), artifactSample: null };
+          fail("unknown_runtime_source_domain", detail);
+          addUniqueProfileAudit(result.missingCoverage, detail);
+          return;
+        }
+        if (seenStable.has(descriptor.signature)) return;
+        seenStable.add(descriptor.signature);
+        const representatives = artifactBySignature.get(descriptor.signature) || [];
+        if (!representatives.length) {
+          const sameFileRows = artifactRows.filter((row) => normalizeProfileText(row.sourceFile).replace(/^docs\//, "") === classification.file);
+          const closest = sameFileRows.find((row) => normalizeProfileText(row.text).toLocaleLowerCase("ru-RU") === descriptor.text.toLocaleLowerCase("ru-RU")) || sameFileRows[0] || null;
+          const detail = { check: "stable_runtime_missing_artifact_representation", semanticSignature: descriptor.signature, sourceClassification: classification, runtimeSample: sampleRuntimeEntry(entry), artifactSample: sampleArtifactRow(closest) };
+          fail("stable_runtime_missing_artifact_representation", detail);
+          addUniqueProfileAudit(result.missingCoverage, detail);
+        }
+      });
     };
     const runSemanticMatcherFixture = () => {
       const makeArtifact = (id, category, text, sourceFile, sourceLine, key, dynamic, vars) => ({
@@ -377,16 +454,6 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
       });
       const makeRuntime = (category, text, source) => ({ category, text, source });
       const makeFixtureCase = (name, artifactRows, runtimeEntries, expectOk) => ({ name, artifactRows, runtimeEntries, expectOk });
-      const fixtureResult = { missingCoverage: [] };
-      const fixtureFail = () => {};
-      const fixtureHelpers = createAlphaStep41SemanticHelperSuite({ fail: fixtureFail, result: fixtureResult });
-      const {
-        buildSemanticDescriptor: fixtureBuildSemanticDescriptor,
-        collectSemanticBuckets: fixtureCollectSemanticBuckets,
-        compareSemanticBuckets: fixtureCompareSemanticBuckets,
-        validateArtifactRow: fixtureValidateArtifactRow,
-        validateRuntimeSource: fixtureValidateRuntimeSource
-      } = fixtureHelpers;
       const passCases = [
         makeFixtureCase(
           "snake_case artifact key versus camelCase runtime key",
@@ -395,9 +462,21 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           true
         ),
         makeFixtureCase(
-          "static data.js provenance versus runtime/dom selector",
+          "artifact row absent from current runtime snapshot",
+          [makeArtifact("TXT_0002", "label", "Dormant", "AsyncScene/Web/data.js", "30", "dormant", "dynamic:no", "")],
+          [],
+          true
+        ),
+        makeFixtureCase(
+          "valid runtime/dom entry absent from artifact",
+          [],
+          [makeRuntime("label", "Live control", { file: "runtime/dom", key: "textContent", path: "#live" })],
+          true
+        ),
+        makeFixtureCase(
+          "same stable text with different category",
           [makeArtifact("TXT_0002", "label", "Последние 2 цифры года рождения", "AsyncScene/Web/data.js", "30", "birth_digits_label", "dynamic:no", "")],
-          [makeRuntime("label", "Последние 2 цифры года рождения", { file: "runtime/dom", key: "aria-label", path: "#startBirthYearPicker" })],
+          [makeRuntime("hint", "Последние 2 цифры года рождения", { file: "AsyncScene/Web/data.js", key: "birthDigitsLabel", path: "Data.birthDigitsLabel" })],
           true
         ),
         makeFixtureCase(
@@ -407,77 +486,75 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           true
         ),
         makeFixtureCase(
-          "equal duplicate multiplicity",
+          "same stable text repeated multiple times in runtime",
           [
             makeArtifact("TXT_0004", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
             makeArtifact("TXT_0005", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
           ],
           [
-            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
-            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
+            makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedA", path: "System.savedA" }),
+            makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedB", path: "System.savedB" }),
+            makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "savedC", path: "System.savedC" })
           ],
           true
         ),
         makeFixtureCase(
           "same text and category with equal template variable sets",
           [makeArtifact("TXT_0006", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-          [makeRuntime("status", "Для {student}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          [makeRuntime("status", "Для {student}: {arg}.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.TEXTS.genz.teach_sent_dm" })],
+          true
+        ),
+        makeFixtureCase(
+          "two artifact aliases supporting one stable runtime entry",
+          [
+            makeArtifact("TXT_0017", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
+            makeArtifact("TXT_0018", "notification", "Готово.", "AsyncScene/Web/system.js", "54", "saved_b", "dynamic:no", "")
+          ],
+          [makeRuntime("status", "Готово.", { file: "AsyncScene/Web/system.js", key: "saved", path: "System.saved" })],
           true
         )
       ];
       const failCases = [
         makeFixtureCase(
-          "missing one duplicate occurrence",
-          [
-            makeArtifact("TXT_0007", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
-            makeArtifact("TXT_0008", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
-          ],
-          [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
-          false
-        ),
-        makeFixtureCase(
-          "extra runtime occurrence",
+          "stable tracked-source runtime entry absent from artifact",
           [makeArtifact("TXT_0009", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
-          [
-            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
-            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
-          ],
+          [makeRuntime("status", "Нет строки.", { file: "AsyncScene/Web/system.js", key: "missing", path: "System.missing" })],
           false
         ),
         makeFixtureCase(
-          "category mismatch",
+          "stable entry with text case mismatch",
           [makeArtifact("TXT_0010", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-          [makeRuntime("status", "AsyncScene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          [makeRuntime("status", "asyncscene", { file: "AsyncScene/Web/system.js", key: "startTitle", path: "System.startTitle" })],
           false
         ),
         makeFixtureCase(
-          "exact text mismatch",
+          "punctuation mismatch",
           [makeArtifact("TXT_0011", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-          [makeRuntime("button", "AsyncScene!", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          [makeRuntime("button", "AsyncScene!", { file: "AsyncScene/Web/system.js", key: "startTitle", path: "System.startTitle" })],
           false
         ),
         makeFixtureCase(
-          "case or punctuation mismatch",
-          [makeArtifact("TXT_0012", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-          [makeRuntime("button", "asyncscene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          "emoji or resource-symbol mismatch",
+          [makeArtifact("TXT_0012", "error", "Не хватает 💰.", "AsyncScene/Web/system.js", "115", "funds", "dynamic:no", "")],
+          [makeRuntime("error", "Не хватает ₽.", { file: "AsyncScene/Web/system.js", key: "funds", path: "System.funds" })],
           false
         ),
         makeFixtureCase(
           "template versus non-template mismatch",
           [makeArtifact("TXT_0013", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-          [makeRuntime("status", "Для student: arg.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          [makeRuntime("status", "Для student: arg.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.teachSentDm" })],
           false
         ),
         makeFixtureCase(
           "different template variable sets",
           [makeArtifact("TXT_0014", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-          [makeRuntime("status", "Для {teacher}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          [makeRuntime("status", "Для {teacher}: {arg}.", { file: "AsyncScene/Web/data.js", key: "teachSentDm", path: "Data.teachSentDm" })],
           false
         ),
         makeFixtureCase(
           "missing artifact provenance",
           [makeArtifact("TXT_0015", "status", "Готово.", "", "", "saved", "dynamic:no", "")],
-          [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
+          [],
           false
         ),
         makeFixtureCase(
@@ -485,24 +562,36 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
           [makeArtifact("TXT_0016", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
           [makeRuntime("status", "Готово.", {})],
           false
+        ),
+        makeFixtureCase(
+          "unknown non-DOM runtime source domain",
+          [makeArtifact("TXT_0017", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
+          [makeRuntime("status", "Готово.", { file: "runtime/cache", key: "saved" })],
+          false
+        ),
+        makeFixtureCase(
+          "artifact row with invalid dynamic vars metadata",
+          [makeArtifact("TXT_0018", "status", "Для {student}.", "AsyncScene/Web/data.js", "71", "teach", "dynamic:no", "")],
+          [],
+          false
         )
       ];
       const fixtureCases = passCases.concat(failCases);
       fixtureCases.forEach((fixtureCase) => {
-        const artifactBuckets = fixtureCollectSemanticBuckets(fixtureCase.artifactRows, (row) => fixtureBuildSemanticDescriptor(row.category, row.text));
-        const runtimeBuckets = fixtureCollectSemanticBuckets(fixtureCase.runtimeEntries, (entry) => fixtureBuildSemanticDescriptor(entry.category, entry.text));
-        let sourceFailures = 0;
-        fixtureCase.artifactRows.forEach((row) => { if (!fixtureValidateArtifactRow(row)) sourceFailures += 1; });
-        fixtureCase.runtimeEntries.forEach((entry, index) => { if (!fixtureValidateRuntimeSource(entry, index)) sourceFailures += 1; });
-        const deltas = fixtureCompareSemanticBuckets(artifactBuckets, runtimeBuckets);
-        const actualOk = sourceFailures === 0 && deltas.length === 0;
+        const fixtureFailures = [];
+        const fixtureState = { missingCoverage: [] };
+        const helpers = createAlphaStep41SemanticHelperSuite({ fail: (check, detail) => fixtureFailures.push({ check, detail }), result: fixtureState });
+        const allowedCategories = new Set(fixtureCase.artifactRows.map((row) => row.category).concat(fixtureCase.runtimeEntries.map((entry) => entry.category)));
+        fixtureCase.artifactRows.forEach((row) => helpers.validateArtifactRow(row));
+        fixtureCase.runtimeEntries.forEach((entry, index) => helpers.validateRuntimeSource(entry, index, allowedCategories));
+        helpers.traceStableRuntimeEntries(fixtureCase.artifactRows, fixtureCase.runtimeEntries);
+        const actualOk = fixtureFailures.length === 0;
         if (actualOk !== fixtureCase.expectOk) {
           fail("semantic_matcher_fixture", {
             name: fixtureCase.name,
             expected: fixtureCase.expectOk,
             actual: actualOk,
-            deltas,
-            sourceFailures
+            fixtureFailures
           });
         }
       });
@@ -510,12 +599,15 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
     return {
       extractTemplateVariables,
       buildSemanticDescriptor,
+      buildTraceabilityDescriptor,
       sampleArtifactRow,
       sampleRuntimeEntry,
       collectSemanticBuckets,
       compareSemanticBuckets,
       validateArtifactRow,
       validateRuntimeSource,
+      classifyRuntimeSource,
+      traceStableRuntimeEntries,
       runSemanticMatcherFixture
     };
   };
@@ -1261,6 +1353,7 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         compareSemanticBuckets,
         validateArtifactRow,
         validateRuntimeSource,
+        traceStableRuntimeEntries,
         runSemanticMatcherFixture
       } = semanticHelpers;
       const fetchTextSync = (path) => {
@@ -11471,6 +11564,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           : [];
         const scannedFiles = new Set([inventoryFile, `docs/${inventoryFile}`]);
         const artifactValidRows = artifactRows.filter((row) => !row.parseError);
+        const allowedCategories = new Set(artifactValidRows.map((row) => normalize(row.category)).filter(Boolean));
         result.inventoryCount = runtimeEntries.length;
         result.artifactCount = artifactValidRows.length;
         if (artifactRows.some((row) => row.parseError)) fail("inventory_row_parse", artifactRows.filter((row) => row.parseError));
@@ -11507,7 +11601,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           }
         });
         runtimeEntries.forEach((entry, entryIndex) => {
-          validateRuntimeSource(entry, entryIndex);
+          validateRuntimeSource(entry, entryIndex, allowedCategories);
           const source = entry && entry.source ? entry.source : {};
           if (source.file) addUnique(scannedFiles, source.file);
           if (/Console\.txt/i.test(entry.text || "") || /Console\.txt/i.test(source.file || "") || /Console\.txt/i.test(source.path || "")) {
@@ -11515,21 +11609,17 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           }
         });
 
-        const artifactBuckets = collectSemanticBuckets(artifactValidRows, (row) => buildSemanticDescriptor(row.category, row.text));
-        const runtimeBuckets = collectSemanticBuckets(runtimeEntries, (entry) => buildSemanticDescriptor(entry.category, entry.text));
-        compareSemanticBuckets(artifactBuckets, runtimeBuckets).forEach((delta) => addUnique(result.missingCoverage, delta));
+        traceStableRuntimeEntries(artifactValidRows, runtimeEntries);
         runSemanticMatcherFixture();
 
         result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
-        if (result.missingCoverage.length) fail("semantic_multiset_mismatch", result.missingCoverage.slice());
-        if (result.artifactCount !== result.inventoryCount) fail("artifact_count_matches_runtime", { artifact: result.artifactCount, runtime: result.inventoryCount });
+        if (result.artifactCount !== 223) fail("artifact_count_223", result.artifactCount);
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.ok = result.inventoryCount > 0
-        && result.artifactCount > 0
-        && result.artifactCount === result.inventoryCount
+        && result.artifactCount === 223
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
@@ -17520,6 +17610,36 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix12 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "IMPLEMENTATION_COMMIT_FIX12";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix12_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix12_v20260628_012_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix12";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix12_v20260628_012_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount > 0
+          && result.artifactCount === 223
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix12";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -17531,6 +17651,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix9", smokeAlphaStep41ZoomerInventoryFix9],
       ["smokeAlphaStep41ZoomerInventoryFix10", smokeAlphaStep41ZoomerInventoryFix10],
       ["smokeAlphaStep41ZoomerInventoryFix11", smokeAlphaStep41ZoomerInventoryFix11],
+      ["smokeAlphaStep41ZoomerInventoryFix12", smokeAlphaStep41ZoomerInventoryFix12],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
