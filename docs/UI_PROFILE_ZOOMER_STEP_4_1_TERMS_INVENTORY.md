@@ -83,7 +83,7 @@ TXT_0036 | notification | system_copy | voteAccepted | Голос учтён. | 
 TXT_0037 | report | system_copy | reportPending | Проверяю. | AsyncScene/Web/system.js:60 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0038 | report | system_copy | reportTrueReward | Сдать {name}: +2💰. | AsyncScene/Web/system.js:61 | template | shared | dynamic:yes | vars:name | notes:
 TXT_0039 | report | system_copy | reportOk | Коп: {name} сдан, +2💰. | AsyncScene/Web/system.js:62 | template | shared | dynamic:yes | vars:name | notes:
-TXT_0040 | training | system_copy | trainingSent | Аргумент: {teacher} → {student}. | AsyncScene/Web/system.js:65 | template | shared | dynamic:yes | vars:teacher,student | notes:
+TXT_0040 | training | system_copy | trainingSent | Аргумент: {teacher} → {student}. | AsyncScene/Web/system.js:65 | template | shared | dynamic:yes | vars:student,teacher | notes:
 TXT_0041 | battle | system_copy | rematchRequested | {name} зовёт на реванш. | AsyncScene/Web/system.js:66 | template | shared | dynamic:yes | vars:name | notes:
 TXT_0042 | button | system_copy | escapePaid | Свалить за 1💰. | AsyncScene/Web/system.js:67 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0043 | notification | system_copy | pointsDeltaRefund | +1💰 возврат. | AsyncScene/Web/system.js:68 | data_map | shared | dynamic:no | vars: | notes:
@@ -91,12 +91,12 @@ TXT_0044 | notification | system_copy | pointsDeltaRefundMajority | +1💰 во�
 TXT_0045 | notification | system_copy | pointsDeltaRemainderWin | +1💰 остаток победителю. | AsyncScene/Web/system.js:70 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0046 | battle | system_copy | rematchCost | Реванш: -{rematchCost}💰. | AsyncScene/Web/system.js:71 | template | shared | dynamic:yes | vars:rematchCost | notes:
 TXT_0047 | button | system_copy | escapeVoteCost | Свалить: -{escapeCost}💰. | AsyncScene/Web/system.js:72 | template | shared | dynamic:yes | vars:escapeCost | notes:
-TXT_0048 | p2p | system_copy | p2pTransferSent | {target}: +{amount}💰. | AsyncScene/Web/system.js:73 | template | shared | dynamic:yes | vars:target,amount | notes:
-TXT_0049 | p2p | system_copy | p2pTransferReceived | {target}: +{amount}💰 тебе. | AsyncScene/Web/system.js:74 | template | shared | dynamic:yes | vars:target,amount | notes:
-TXT_0050 | system_message | system_events | battleChallenge | {attackerName} [{attackerInf}] бросил вызов. | AsyncScene/Web/system.js:82 | template | shared | dynamic:yes | vars:attackerName,attackerInf | notes:
+TXT_0048 | p2p | system_copy | p2pTransferSent | {target}: +{amount}💰. | AsyncScene/Web/system.js:73 | template | shared | dynamic:yes | vars:amount,target | notes:
+TXT_0049 | p2p | system_copy | p2pTransferReceived | {target}: +{amount}💰 тебе. | AsyncScene/Web/system.js:74 | template | shared | dynamic:yes | vars:amount,target | notes:
+TXT_0050 | system_message | system_events | battleChallenge | {attackerName} [{attackerInf}] бросил вызов. | AsyncScene/Web/system.js:82 | template | shared | dynamic:yes | vars:attackerInf,attackerName | notes:
 TXT_0051 | battle | system_events | battleResult | Баттл с {oppName}: {text}. | AsyncScene/Web/system.js:85 | template | shared | dynamic:yes | vars:oppName,text | notes:
 TXT_0052 | battle | system_events | battleDraw | {a} и {b}: ничья. | AsyncScene/Web/system.js:90 | template | shared | dynamic:yes | vars:a,b | notes:
-TXT_0053 | event | system_events | crowdResolved | Толпа: {name} {aVotes}:{bVotes}. | AsyncScene/Web/system.js:92 | template | shared | dynamic:yes | vars:name,aVotes,bVotes | notes:
+TXT_0053 | event | system_events | crowdResolved | Толпа: {name} {aVotes}:{bVotes}. | AsyncScene/Web/system.js:92 | template | shared | dynamic:yes | vars:aVotes,bVotes,name | notes:
 TXT_0054 | event | system_events | unlockOrange | Оранжевые аргументы открыты. | AsyncScene/Web/system.js:93 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0055 | event | system_events | unlockRed | Красные аргументы открыты. | AsyncScene/Web/system.js:94 | data_map | shared | dynamic:no | vars: | notes:
 TXT_0056 | event | system_events | unlockBlack | Чёрные аргументы открыты. | AsyncScene/Web/system.js:95 | data_map | shared | dynamic:no | vars: | notes:
@@ -114,8 +114,8 @@ TXT_0067 | battle | conflict_results | conflict_win | Вы победили в �
 TXT_0068 | battle | conflict_results | conflict_loss | Вы проиграли конфликт. | AsyncScene/Web/data.js:380 | data_map | genz | dynamic:no | vars: | notes:
 TXT_0069 | battle | conflict_results | conflict_draw | Конфликт завершился ничьей. | AsyncScene/Web/data.js:381 | data_map | genz | dynamic:no | vars: | notes:
 TXT_0070 | button | battle | escape_button_label | Свалить: {X} | AsyncScene/Web/data.js:389 | template | genz | dynamic:yes | vars:X | notes:
-TXT_0071 | training | battle | teach_sent_dm | Для {student}: {arg}. Цена {cost} 💰. | AsyncScene/Web/data.js:390 | template | genz | dynamic:yes | vars:student,arg,cost | notes:
-TXT_0072 | training | battle | teach_sent_chat | Аргумент: {teacher} → {student}. | AsyncScene/Web/data.js:391 | template | genz | dynamic:yes | vars:teacher,student | notes:
+TXT_0071 | training | battle | teach_sent_dm | Для {student}: {arg}. Цена {cost} 💰. | AsyncScene/Web/data.js:390 | template | genz | dynamic:yes | vars:arg,cost,student | notes:
+TXT_0072 | training | battle | teach_sent_chat | Аргумент: {teacher} → {student}. | AsyncScene/Web/data.js:391 | template | genz | dynamic:yes | vars:student,teacher | notes:
 TXT_0073 | placeholder | battle | invite_open_hint | Введи точный ник. | AsyncScene/Web/data.js:392 | dom | genz | dynamic:no | vars: | notes:
 TXT_0074 | error | battle | invite_invalid | Игрок не найден. | AsyncScene/Web/data.js:393 | dom | genz | dynamic:no | vars: | notes:
 TXT_0075 | button | battle | menu_title | Меню | AsyncScene/Web/data.js:394 | dom | genz | dynamic:no | vars: | notes:duplicate runtime source
