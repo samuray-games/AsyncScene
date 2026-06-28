@@ -1,3 +1,12 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix14
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, stable traceability now matches globally by exact normalized text, template/static state, and sorted placeholder variables. Source file, category, source key/path, and runtime multiplicity remain provenance evidence but are not semantic identity.
+- The Fix13 pre-edit production collector deterministically produced 8 original cross-file aliases, 88 stable gap occurrences / 87 unique gap signatures, and 6 unknown-source entries. Final classification adds one production UI alias, three production UI gaps, and two structurally exact `dev_only` Step4_5 fixtures.
+- Both canonical artifact mirrors now contain 313 contiguous rows. The original 223 rows are unchanged; 90 unique canonical production rows were appended as `TXT_0224`–`TXT_0313`. Metadata is `entryCount:313`, `uniqueTextCount:281`, `scannedFileCount:11`, `toastEntryCount:24`, and `duplicateTextDifferentSourcesCount:15`.
+- Fix14 is exposed through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`. Identity: buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix14_v1`, implementation commit `306a1a9e2240d0b43c24f69d152785f96361f618`, smokeVersion `step4_1_alpha_zoomer_inventory_fix14_v20260628_014_commit_306a1a9e2240d0b43c24f69d152785f96361f618`, cache-bust `step4_1_millennial_inventory_smoke_fix14_20260628a`.
+- The one-time local Fix14 production-path launch returned `ok:true`, live counts `201/201`, artifact counts `313/313`, 11 covered cross-file aliases, 90 canonical rows added, 2 dev-only entries, zero remaining canonical gaps, zero unknown runtime sources, and empty `failures`, `failedChecks`, `forbiddenRemaining`, and `missingCoverage`.
+- Safari smoke remains `PENDING_USER` on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix14()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix13
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Corrected exactly seven mirrored artifact `vars` values so TXT_0040, TXT_0048, TXT_0049, TXT_0050, TXT_0053, TXT_0071, and TXT_0072 now match the sorted placeholder order derived from their text while preserving every other artifact field unchanged.
