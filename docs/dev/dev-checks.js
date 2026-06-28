@@ -17116,7 +17116,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     const smokeAlphaStep41ZoomerInventoryFix7 = () => {
       const result = smokeAlphaStep41ZoomerInventoryOnce();
       if (result && typeof result === "object") {
-        const implementationCommit = "__STEP41_FIX7_IMPLEMENTATION_COMMIT__";
+        const implementationCommit = "cd564d09038e0fc2e04908d2a41af0bad65b55c0";
         const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix7_v1";
         const smokeVersion = `step4_1_alpha_zoomer_inventory_fix7_v20260628_007_commit_${implementationCommit}`;
         const fail = (check, detail) => {

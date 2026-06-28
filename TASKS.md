@@ -1,3 +1,15 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix7
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Regenerated the mirrored Step 4.1 Zoomer inventory metadata from the current 223 parsed artifact rows, keeping the row table mirrored and correcting the summary counts to `entryCount: 223`, `uniqueTextCount: 191`, `scannedFileCount: 9`, `toastEntryCount: 24`, and `duplicateTextDifferentSourcesCount: 15`.
+- Reworked both mirrored Step 4.1 runtime smokes so artifact metadata is validated from parsed rows, TXT ids are checked for uniqueness and contiguity through `TXT_0223`, artifact/runtime coverage stays bidirectional, and `artifactCount` is derived independently from `artifactRows.length`.
+- Removed the stale Fix1 identity inheritance from the Step 4.1 base smoke path; the new Safari command is `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix7()`.
+- Exposed Fix7 through the supported runtime surfaces `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Updated both mirrored boot pages to load `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix7_20260628a`.
+- Two-commit identity sequence used:
+- Implementation commit A: `cd564d09038e0fc2e04908d2a41af0bad65b55c0`.
+- Final repository commit will be commit B; the runtime result `commit` marker now points to commit A exactly.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix7()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix6
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Removed the stale `smokeAlphaStep41ZoomerInventoryFix1` runtime references from both mirrored dev-check bundles and kept the Step 4.1 export surface limited to `Once`, `Fix2`, `Fix3`, `Fix4`, and `Fix5`.
