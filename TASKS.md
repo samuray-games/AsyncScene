@@ -92,6 +92,13 @@
 - Smoke version: `step4_1_alpha_zoomer_inventory_fix4_v20260627_004`.
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix4()`.
 
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix5
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Added the missing production-ready export `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()` in the mirrored dev-check bundles and bumped both mirrored HTML entrypoints to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix5_20260628a` so the published page loads the fresh bundle.
+- Static assertions now cover the exact Fix5 export in both dev-check copies and the exact Fix5 cache-bust in both index copies.
+- Smoke version: `step4_1_alpha_zoomer_inventory_fix5_v20260628_005`.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5()`.
+
 ## 2026-06-27 — Step 4.1 Zoomer UI terms inventory
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Added `UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md` as the canonical Zoomer UI term inventory, mirrored in `docs/UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md`.

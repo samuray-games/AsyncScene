@@ -17007,6 +17007,27 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix5 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        result.buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix5_v1";
+        result.commit = "step4_1_alpha_zoomer_inventory_fix5";
+        result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix5_v20260628_005";
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix5";
+        result.artifactCount = result.inventoryCount;
+        result.ok = result.inventoryCount > 0
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === "build_2026_06_28_step4_1_zoomer_terms_inventory_fix5_v1"
+          && result.commit === "step4_1_alpha_zoomer_inventory_fix5"
+          && result.smokeVersion === "step4_1_alpha_zoomer_inventory_fix5_v20260628_005";
+      }
+      return result;
+    };
     const exposeAlphaStep41ZoomerInventorySmoke = () => {
       if (!Game.Dev) Game.Dev = {};
       Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
@@ -17014,24 +17035,28 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
       Game.Dev.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
       Game.Dev.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
+      Game.Dev.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
       if (!Game.__DEV) Game.__DEV = {};
       Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
       Game.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
       Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
       Game.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
       Game.__DEV.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
+      Game.__DEV.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
       if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
       G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
       G.__DEV.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
       G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
       G.__DEV.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
       G.__DEV.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
+      G.__DEV.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
       if (typeof devStore === "object" && devStore) {
         devStore.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
         devStore.smokeAlphaStep41ZoomerInventoryFix1 = smokeAlphaStep41ZoomerInventoryFix1;
         devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
         devStore.smokeAlphaStep41ZoomerInventoryFix3 = smokeAlphaStep41ZoomerInventoryFix3;
         devStore.smokeAlphaStep41ZoomerInventoryFix4 = smokeAlphaStep41ZoomerInventoryFix4;
+        devStore.smokeAlphaStep41ZoomerInventoryFix5 = smokeAlphaStep41ZoomerInventoryFix5;
       }
     };
     exposeAlphaStep41ZoomerInventorySmoke();
