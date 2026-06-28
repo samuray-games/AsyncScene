@@ -1,3 +1,13 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix11
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- Corrected the six mirrored artifact metadata defects for TXT_0119, TXT_0121, TXT_0123, TXT_0125, TXT_0127, and TXT_0129 by changing only their `dynamic` flags from `yes` to `no` and clearing `vars` to empty, while preserving the TXT id, category, surface, key, exact text, source file and line, kind, profile, and notes.
+- Added `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix11()` with buildTag `build_2026_06_28_step4_1_zoomer_terms_inventory_fix11_v1`, smokeVersion `step4_1_alpha_zoomer_inventory_fix11_v20260628_011_commit_953498a7358d3477d071e4f217561900ba5e8e92`, smokeName `smokeAlphaStep41ZoomerInventoryFix11`, and runtime commit marker `953498a7358d3477d071e4f217561900ba5e8e92`.
+- Exposed Fix11 through `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix11_20260628a`.
+- Commit A SHA: `953498a7358d3477d071e4f217561900ba5e8e92`.
+- Final repository state is delivered by the follow-up commit that carries the cache-bust and status-doc updates.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix11()`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix10
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Bound the existing `createAlphaStep41SemanticHelperSuite({ fail, result })` exactly once inside the real `smokeAlphaStep41ZoomerInventoryOnce()` production body in both dev-check mirrors after `result`/`fail` initialization and before the first semantic helper invocation.
