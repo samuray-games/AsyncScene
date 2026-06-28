@@ -99,7 +99,7 @@
 | TXT_0076 | К старту | Старт | UI_PROFILE_ALPHA_LENGTH_RULES.md | 99 | TXT_0076 | alpha_length_rules | alpha | compressible |
 | TXT_0077 | Недоступно. | Нет. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 100 | TXT_0077 | alpha_length_rules | alpha | compressible |
 | TXT_0078 | Цель | Цель | UI_PROFILE_ALPHA_LENGTH_RULES.md | 101 | TXT_0078 | alpha_length_rules | alpha | atomic |
-| TXT_0079 | Понял. Проверяю. | Принял. Проверка. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 102 | TXT_0079 | alpha_length_rules | alpha | compressible |
+| TXT_0079 | Понял. Проверяю. | Принял. Проверю. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 102 | TXT_0079 | alpha_length_rules | alpha | compressible |
 | TXT_0080 | Принял. Разберусь. | Принял. Разбор. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 103 | TXT_0080 | alpha_length_rules | alpha | compressible |
 | TXT_0081 | Занят, связь позже. | Занят. Позже. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 104 | TXT_0081 | alpha_length_rules | alpha | compressible |
 | TXT_0082 | Не могу, оформляю дело. | Занят делом. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 105 | TXT_0082 | alpha_length_rules | alpha | compressible |
@@ -175,7 +175,7 @@
 | TXT_0152 | Цепочка A->B->A сегодня не работает. | A->B->A закрыто. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 175 | TXT_0152 | alpha_length_rules | alpha | compressible |
 | TXT_0153 | Лимит уважения на сегодня исчерпан. | Лимит уважения. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 176 | TXT_0153 | alpha_length_rules | alpha | compressible |
 | TXT_0154 | Сейчас не получилось. Попробуй позже. | Не вышло. Позже. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 177 | TXT_0154 | alpha_length_rules | alpha | compressible |
-| TXT_0155 | Ты отдал 1💰 | -1💰 от тебя. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 178 | TXT_0155 | alpha_length_rules | alpha | compressible |
+| TXT_0155 | Ты отдал 1💰 | С тебя -1💰. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 178 | TXT_0155 | alpha_length_rules | alpha | compressible |
 | TXT_0156 | Цель получила +1 ⭐ | Цель: +1⭐. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 179 | TXT_0156 | alpha_length_rules | alpha | compressible |
 | TXT_0157 | Dev Mode disabled. | Dev off. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 180 | TXT_0157 | alpha_length_rules | alpha | compressible |
 | TXT_0158 | Dev Mode unlocked on this device. | Dev unlocked. | UI_PROFILE_ALPHA_LENGTH_RULES.md | 181 | TXT_0158 | alpha_length_rules | alpha | compressible |
