@@ -253,13 +253,263 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         failures
       };
     };
-    const normalizeProfileText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
-    const addUniqueProfileAudit = (arr, item) => {
-      const target = Array.isArray(arr) ? arr : [];
-      const key = JSON.stringify(item);
-      if (!target.some((x) => JSON.stringify(x) === key)) target.push(item);
+  const normalizeProfileText = (value) => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  const addUniqueProfileAudit = (arr, item) => {
+    const target = Array.isArray(arr) ? arr : [];
+    const key = JSON.stringify(item);
+    if (!target.some((x) => JSON.stringify(x) === key)) target.push(item);
+  };
+  const createAlphaStep41SemanticHelperSuite = ({ fail, result }) => {
+    const extractTemplateVariables = (text) => Array.from(String(text || "").matchAll(/\{([^{}]+)\}/g), (match) => normalizeProfileText(match[1])).filter(Boolean).sort();
+    const buildSemanticDescriptor = (category, text) => {
+      const templateVariables = extractTemplateVariables(text);
+      return {
+        signature: [normalizeProfileText(category), normalizeProfileText(text), templateVariables.length ? "template" : "static", templateVariables.join(",")].join("|"),
+        category: normalizeProfileText(category),
+        text: normalizeProfileText(text),
+        templateState: templateVariables.length ? "template" : "static",
+        templateVariables
+      };
     };
-    const smokeProfileAdultToneOnce = () => {
+    const sampleArtifactRow = (row) => (row ? {
+      id: row.id,
+      category: row.category,
+      surface: row.surface,
+      key: row.key,
+      text: row.text,
+      sourceFile: row.sourceFile,
+      sourceLine: row.sourceLine,
+      kind: row.kind,
+      profile: row.profile,
+      dynamic: row.dynamic,
+      vars: row.vars,
+      notes: row.notes
+    } : null);
+    const sampleRuntimeEntry = (entry) => {
+      const source = entry && entry.source ? entry.source : {};
+      return {
+        category: entry && entry.category ? entry.category : null,
+        text: entry && entry.text ? entry.text : null,
+        source: {
+          file: source.file || null,
+          key: source.key || null,
+          path: source.path || null
+        }
+      };
+    };
+    const collectSemanticBuckets = (items, signatureFn) => {
+      const buckets = new Map();
+      items.forEach((item, index) => {
+        const descriptor = signatureFn(item);
+        const bucket = buckets.get(descriptor.signature) || { count: 0, items: [], descriptor };
+        bucket.count += 1;
+        bucket.items.push({ item, index, descriptor });
+        buckets.set(descriptor.signature, bucket);
+      });
+      return buckets;
+    };
+    const compareSemanticBuckets = (artifactBuckets, runtimeBuckets) => {
+      const deltas = [];
+      const signatures = new Set([...artifactBuckets.keys(), ...runtimeBuckets.keys()]);
+      signatures.forEach((signature) => {
+        const artifactBucket = artifactBuckets.get(signature) || { count: 0, items: [] };
+        const runtimeBucket = runtimeBuckets.get(signature) || { count: 0, items: [] };
+        if (artifactBucket.count === runtimeBucket.count) return;
+        deltas.push({
+          signature,
+          artifactCount: artifactBucket.count,
+          runtimeCount: runtimeBucket.count,
+          artifactSample: sampleArtifactRow(artifactBucket.items[0] && artifactBucket.items[0].item),
+          runtimeSample: sampleRuntimeEntry(runtimeBucket.items[0] && runtimeBucket.items[0].item)
+        });
+      });
+      return deltas;
+    };
+    const validateArtifactRow = (row) => {
+      if (!row || !row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.kind || !row.profile || !row.dynamic) {
+        fail("inventory_row_required_fields", row && (row.id || row.key) ? row.id || row.key : "unknown");
+        addUniqueProfileAudit(result.missingCoverage, row && (row.id || row.key) ? row.id || row.key : "unknown");
+        return false;
+      }
+      if (row.vars === undefined || row.notes === undefined) {
+        fail("inventory_row_optional_columns_present", row.id || row.key || "unknown");
+        addUniqueProfileAudit(result.missingCoverage, row.id || row.key || "unknown");
+        return false;
+      }
+      const derivedTemplateState = extractTemplateVariables(row.text).length ? "template" : "static";
+      const declaredTemplateState = /^dynamic:yes$/i.test(String(row.dynamic || "").trim()) ? "template" : "static";
+      if (derivedTemplateState !== declaredTemplateState) {
+        fail("artifact_template_status_mismatch", { id: row.id, declared: row.dynamic, derived: derivedTemplateState });
+      }
+      return true;
+    };
+    const validateRuntimeSource = (entry, entryIndex) => {
+      const source = entry && entry.source ? entry.source : null;
+      if (!source || typeof source !== "object") {
+        fail("runtime_source_missing_object", { index: entryIndex, category: entry && entry.category ? entry.category : null, text: entry && entry.text ? entry.text : null });
+        return false;
+      }
+      if (!source.file && !source.key && !source.path) {
+        fail("runtime_source_missing_evidence", {
+          index: entryIndex,
+          category: entry && entry.category ? entry.category : null,
+          text: entry && entry.text ? entry.text : null,
+          source: { file: source.file || null, key: source.key || null, path: source.path || null }
+        });
+        return false;
+      }
+      return true;
+    };
+    const runSemanticMatcherFixture = () => {
+      const makeArtifact = (id, category, text, sourceFile, sourceLine, key, dynamic, vars) => ({
+        id,
+        category,
+        surface: category,
+        key,
+        text,
+        sourceFile,
+        sourceLine,
+        kind: "data_map",
+        profile: "zoomer",
+        dynamic,
+        vars,
+        notes: ""
+      });
+      const makeRuntime = (category, text, source) => ({ category, text, source });
+      const makeFixtureCase = (name, artifactRows, runtimeEntries, expectOk) => ({ name, artifactRows, runtimeEntries, expectOk });
+      const passCases = [
+        makeFixtureCase(
+          "snake_case artifact key versus camelCase runtime key",
+          [makeArtifact("TXT_0001", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
+          [makeRuntime("button", "AsyncScene", { file: "AsyncScene/Web/system.js", key: "startTitle", path: "SystemCopy.systemEvents.startTitle" })],
+          true
+        ),
+        makeFixtureCase(
+          "static data.js provenance versus runtime/dom selector",
+          [makeArtifact("TXT_0002", "label", "Последние 2 цифры года рождения", "AsyncScene/Web/data.js", "30", "birth_digits_label", "dynamic:no", "")],
+          [makeRuntime("label", "Последние 2 цифры года рождения", { file: "runtime/dom", key: "aria-label", path: "#startBirthYearPicker" })],
+          true
+        ),
+        makeFixtureCase(
+          "static system.js provenance versus resolver path",
+          [makeArtifact("TXT_0003", "button", "Увеличить первую цифру", "AsyncScene/Web/data.js", "31", "digit_up_first", "dynamic:no", "")],
+          [makeRuntime("button", "Увеличить первую цифру", { file: "runtime/dom", key: "title", path: "#startBirthYear0Up" })],
+          true
+        ),
+        makeFixtureCase(
+          "equal duplicate multiplicity",
+          [
+            makeArtifact("TXT_0004", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
+            makeArtifact("TXT_0005", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
+          ],
+          [
+            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
+            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
+          ],
+          true
+        ),
+        makeFixtureCase(
+          "same text and category with equal template variable sets",
+          [makeArtifact("TXT_0006", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeRuntime("status", "Для {student}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          true
+        )
+      ];
+      const failCases = [
+        makeFixtureCase(
+          "missing one duplicate occurrence",
+          [
+            makeArtifact("TXT_0007", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
+            makeArtifact("TXT_0008", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
+          ],
+          [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
+          false
+        ),
+        makeFixtureCase(
+          "extra runtime occurrence",
+          [makeArtifact("TXT_0009", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
+          [
+            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
+            makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
+          ],
+          false
+        ),
+        makeFixtureCase(
+          "category mismatch",
+          [makeArtifact("TXT_0010", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
+          [makeRuntime("status", "AsyncScene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          false
+        ),
+        makeFixtureCase(
+          "exact text mismatch",
+          [makeArtifact("TXT_0011", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
+          [makeRuntime("button", "AsyncScene!", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          false
+        ),
+        makeFixtureCase(
+          "case or punctuation mismatch",
+          [makeArtifact("TXT_0012", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
+          [makeRuntime("button", "asyncscene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
+          false
+        ),
+        makeFixtureCase(
+          "template versus non-template mismatch",
+          [makeArtifact("TXT_0013", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeRuntime("status", "Для student: arg.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          false
+        ),
+        makeFixtureCase(
+          "different template variable sets",
+          [makeArtifact("TXT_0014", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
+          [makeRuntime("status", "Для {teacher}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
+          false
+        ),
+        makeFixtureCase(
+          "missing artifact provenance",
+          [makeArtifact("TXT_0015", "status", "Готово.", "", "", "saved", "dynamic:no", "")],
+          [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
+          false
+        ),
+        makeFixtureCase(
+          "malformed runtime source object",
+          [makeArtifact("TXT_0016", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
+          [makeRuntime("status", "Готово.", {})],
+          false
+        )
+      ];
+      const fixtureCases = passCases.concat(failCases);
+      fixtureCases.forEach((fixtureCase) => {
+        const artifactBuckets = collectSemanticBuckets(fixtureCase.artifactRows, (row) => buildSemanticDescriptor(row.category, row.text));
+        const runtimeBuckets = collectSemanticBuckets(fixtureCase.runtimeEntries, (entry) => buildSemanticDescriptor(entry.category, entry.text));
+        let sourceFailures = 0;
+        fixtureCase.artifactRows.forEach((row) => { if (!validateArtifactRow(row)) sourceFailures += 1; });
+        fixtureCase.runtimeEntries.forEach((entry, index) => { if (!validateRuntimeSource(entry, index)) sourceFailures += 1; });
+        const deltas = compareSemanticBuckets(artifactBuckets, runtimeBuckets);
+        const actualOk = sourceFailures === 0 && deltas.length === 0;
+        if (actualOk !== fixtureCase.expectOk) {
+          fail("semantic_matcher_fixture", {
+            name: fixtureCase.name,
+            expected: fixtureCase.expectOk,
+            actual: actualOk,
+            deltas,
+            sourceFailures
+          });
+        }
+      });
+    };
+    return {
+      extractTemplateVariables,
+      buildSemanticDescriptor,
+      sampleArtifactRow,
+      sampleRuntimeEntry,
+      collectSemanticBuckets,
+      compareSemanticBuckets,
+      validateArtifactRow,
+      validateRuntimeSource,
+      runSemanticMatcherFixture
+    };
+  };
+  const smokeProfileAdultToneOnce = () => {
       const failures = [];
       const forbiddenRemaining = [];
       const missingCoverage = [];
@@ -991,243 +1241,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
-      const extractTemplateVariables = (text) => Array.from(String(text || "").matchAll(/\{([^{}]+)\}/g), (match) => normalize(match[1])).filter(Boolean).sort();
-      const buildSemanticDescriptor = (category, text) => {
-        const templateVariables = extractTemplateVariables(text);
-        return {
-          signature: [normalize(category), normalize(text), templateVariables.length ? "template" : "static", templateVariables.join(",")].join("|"),
-          category: normalize(category),
-          text: normalize(text),
-          templateState: templateVariables.length ? "template" : "static",
-          templateVariables
-        };
-      };
-      const sampleArtifactRow = (row) => (row ? {
-        id: row.id,
-        category: row.category,
-        surface: row.surface,
-        key: row.key,
-        text: row.text,
-        sourceFile: row.sourceFile,
-        sourceLine: row.sourceLine,
-        kind: row.kind,
-        profile: row.profile,
-        dynamic: row.dynamic,
-        vars: row.vars,
-        notes: row.notes
-      } : null);
-      const sampleRuntimeEntry = (entry) => {
-        const source = entry && entry.source ? entry.source : {};
-        return {
-          category: entry && entry.category ? entry.category : null,
-          text: entry && entry.text ? entry.text : null,
-          source: {
-            file: source.file || null,
-            key: source.key || null,
-            path: source.path || null
-          }
-        };
-      };
-      const collectSemanticBuckets = (items, signatureFn) => {
-        const buckets = new Map();
-        items.forEach((item, index) => {
-          const descriptor = signatureFn(item);
-          const bucket = buckets.get(descriptor.signature) || { count: 0, items: [], descriptor };
-          bucket.count += 1;
-          bucket.items.push({ item, index, descriptor });
-          buckets.set(descriptor.signature, bucket);
-        });
-        return buckets;
-      };
-      const compareSemanticBuckets = (artifactBuckets, runtimeBuckets) => {
-        const deltas = [];
-        const signatures = new Set([...artifactBuckets.keys(), ...runtimeBuckets.keys()]);
-        signatures.forEach((signature) => {
-          const artifactBucket = artifactBuckets.get(signature) || { count: 0, items: [] };
-          const runtimeBucket = runtimeBuckets.get(signature) || { count: 0, items: [] };
-          if (artifactBucket.count === runtimeBucket.count) return;
-          deltas.push({
-            signature,
-            artifactCount: artifactBucket.count,
-            runtimeCount: runtimeBucket.count,
-            artifactSample: sampleArtifactRow(artifactBucket.items[0] && artifactBucket.items[0].item),
-            runtimeSample: sampleRuntimeEntry(runtimeBucket.items[0] && runtimeBucket.items[0].item)
-          });
-        });
-        return deltas;
-      };
-      const validateArtifactRow = (row) => {
-        if (!row || !row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.kind || !row.profile || !row.dynamic) {
-          fail("inventory_row_required_fields", row && (row.id || row.key) ? row.id || row.key : "unknown");
-          addUnique(result.missingCoverage, row && (row.id || row.key) ? row.id || row.key : "unknown");
-          return false;
-        }
-        if (row.vars === undefined || row.notes === undefined) {
-          fail("inventory_row_optional_columns_present", row.id || row.key || "unknown");
-          addUnique(result.missingCoverage, row.id || row.key || "unknown");
-          return false;
-        }
-        const derivedTemplateState = extractTemplateVariables(row.text).length ? "template" : "static";
-        const declaredTemplateState = /^dynamic:yes$/i.test(String(row.dynamic || "").trim()) ? "template" : "static";
-        if (derivedTemplateState !== declaredTemplateState) {
-          fail("artifact_template_status_mismatch", { id: row.id, declared: row.dynamic, derived: derivedTemplateState });
-        }
-        return true;
-      };
-      const validateRuntimeSource = (entry, entryIndex) => {
-        const source = entry && entry.source ? entry.source : null;
-        if (!source || typeof source !== "object") {
-          fail("runtime_source_missing_object", { index: entryIndex, category: entry && entry.category ? entry.category : null, text: entry && entry.text ? entry.text : null });
-          return false;
-        }
-        if (!source.file && !source.key && !source.path) {
-          fail("runtime_source_missing_evidence", {
-            index: entryIndex,
-            category: entry && entry.category ? entry.category : null,
-            text: entry && entry.text ? entry.text : null,
-            source: { file: source.file || null, key: source.key || null, path: source.path || null }
-          });
-          return false;
-        }
-        return true;
-      };
-      const runSemanticMatcherFixture = () => {
-        const makeArtifact = (id, category, text, sourceFile, sourceLine, key, dynamic, vars) => ({
-          id,
-          category,
-          surface: category,
-          key,
-          text,
-          sourceFile,
-          sourceLine,
-          kind: "data_map",
-          profile: "zoomer",
-          dynamic,
-          vars,
-          notes: ""
-        });
-        const makeRuntime = (category, text, source) => ({ category, text, source });
-        const makeFixtureCase = (name, artifactRows, runtimeEntries, expectOk) => ({ name, artifactRows, runtimeEntries, expectOk });
-        const passCases = [
-          makeFixtureCase(
-            "snake_case artifact key versus camelCase runtime key",
-            [makeArtifact("TXT_0001", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-            [makeRuntime("button", "AsyncScene", { file: "AsyncScene/Web/system.js", key: "startTitle", path: "SystemCopy.systemEvents.startTitle" })],
-            true
-          ),
-          makeFixtureCase(
-            "static data.js provenance versus runtime/dom selector",
-            [makeArtifact("TXT_0002", "label", "Последние 2 цифры года рождения", "AsyncScene/Web/data.js", "30", "birth_digits_label", "dynamic:no", "")],
-            [makeRuntime("label", "Последние 2 цифры года рождения", { file: "runtime/dom", key: "aria-label", path: "#startBirthYearPicker" })],
-            true
-          ),
-          makeFixtureCase(
-            "static system.js provenance versus resolver path",
-            [makeArtifact("TXT_0003", "button", "Увеличить первую цифру", "AsyncScene/Web/data.js", "31", "digit_up_first", "dynamic:no", "")],
-            [makeRuntime("button", "Увеличить первую цифру", { file: "runtime/dom", key: "title", path: "#startBirthYear0Up" })],
-            true
-          ),
-          makeFixtureCase(
-            "equal duplicate multiplicity",
-            [
-              makeArtifact("TXT_0004", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
-              makeArtifact("TXT_0005", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
-            ],
-            [
-              makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
-              makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
-            ],
-            true
-          ),
-          makeFixtureCase(
-            "same text and category with equal template variable sets",
-            [makeArtifact("TXT_0006", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-            [makeRuntime("status", "Для {student}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
-            true
-          )
-        ];
-        const failCases = [
-          makeFixtureCase(
-            "missing one duplicate occurrence",
-            [
-              makeArtifact("TXT_0007", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_a", "dynamic:no", ""),
-              makeArtifact("TXT_0008", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved_b", "dynamic:no", "")
-            ],
-            [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
-            false
-          ),
-          makeFixtureCase(
-            "extra runtime occurrence",
-            [makeArtifact("TXT_0009", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
-            [
-              makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" }),
-              makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusB" })
-            ],
-            false
-          ),
-          makeFixtureCase(
-            "category mismatch",
-            [makeArtifact("TXT_0010", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-            [makeRuntime("status", "AsyncScene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
-            false
-          ),
-          makeFixtureCase(
-            "exact text mismatch",
-            [makeArtifact("TXT_0011", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-            [makeRuntime("button", "AsyncScene!", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
-            false
-          ),
-          makeFixtureCase(
-            "case or punctuation mismatch",
-            [makeArtifact("TXT_0012", "button", "AsyncScene", "AsyncScene/Web/system.js", "115", "start_title", "dynamic:no", "")],
-            [makeRuntime("button", "asyncscene", { file: "runtime/dom", key: "textContent", path: "#startTitle" })],
-            false
-          ),
-          makeFixtureCase(
-            "template versus non-template mismatch",
-            [makeArtifact("TXT_0013", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-            [makeRuntime("status", "Для student: arg.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
-            false
-          ),
-          makeFixtureCase(
-            "different template variable sets",
-            [makeArtifact("TXT_0014", "status", "Для {student}: {arg}.", "AsyncScene/Web/data.js", "71", "teach_sent_dm", "dynamic:yes", "student,arg")],
-            [makeRuntime("status", "Для {teacher}: {arg}.", { file: "runtime/dom", key: "textContent", path: "#teachPanel" })],
-            false
-          ),
-          makeFixtureCase(
-            "missing artifact provenance",
-            [makeArtifact("TXT_0015", "status", "Готово.", "", "", "saved", "dynamic:no", "")],
-            [makeRuntime("status", "Готово.", { file: "runtime/dom", key: "textContent", path: "#statusA" })],
-            false
-          ),
-          makeFixtureCase(
-            "malformed runtime source object",
-            [makeArtifact("TXT_0016", "status", "Готово.", "AsyncScene/Web/system.js", "53", "saved", "dynamic:no", "")],
-            [makeRuntime("status", "Готово.", {})],
-            false
-          )
-        ];
-        const fixtureCases = passCases.concat(failCases);
-        fixtureCases.forEach((fixtureCase) => {
-          const artifactBuckets = collectSemanticBuckets(fixtureCase.artifactRows, (row) => buildSemanticDescriptor(row.category, row.text));
-          const runtimeBuckets = collectSemanticBuckets(fixtureCase.runtimeEntries, (entry) => buildSemanticDescriptor(entry.category, entry.text));
-          let sourceFailures = 0;
-          fixtureCase.artifactRows.forEach((row) => { if (!validateArtifactRow(row)) sourceFailures += 1; });
-          fixtureCase.runtimeEntries.forEach((entry, index) => { if (!validateRuntimeSource(entry, index)) sourceFailures += 1; });
-          const deltas = compareSemanticBuckets(artifactBuckets, runtimeBuckets);
-          const actualOk = sourceFailures === 0 && deltas.length === 0;
-          if (actualOk !== fixtureCase.expectOk) {
-            fail("semantic_matcher_fixture", {
-              name: fixtureCase.name,
-              expected: fixtureCase.expectOk,
-              actual: actualOk,
-              deltas,
-              sourceFailures
-            });
-          }
-        });
-      };
+      const semanticHelpers = createAlphaStep41SemanticHelperSuite({ fail, result });
+      const {
+        extractTemplateVariables,
+        buildSemanticDescriptor,
+        sampleArtifactRow,
+        sampleRuntimeEntry,
+        collectSemanticBuckets,
+        compareSemanticBuckets,
+        validateArtifactRow,
+        validateRuntimeSource,
+        runSemanticMatcherFixture
+      } = semanticHelpers;
       const fetchTextSync = (path) => {
         try {
           const xhr = new XMLHttpRequest();
@@ -1457,6 +1482,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
         addUnique(result.failedChecks, check);
         addUnique(result.failures, detail === undefined ? check : { check, detail });
       };
+      const semanticHelpers = createAlphaStep41SemanticHelperSuite({ fail, result });
+      const {
+        extractTemplateVariables,
+        buildSemanticDescriptor,
+        sampleArtifactRow,
+        sampleRuntimeEntry,
+        collectSemanticBuckets,
+        compareSemanticBuckets,
+        validateArtifactRow,
+        validateRuntimeSource,
+        runSemanticMatcherFixture
+      } = semanticHelpers;
       const fetchTextSync = (path) => {
         try {
           const xhr = new XMLHttpRequest();
@@ -17558,6 +17595,37 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix9 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "commit_a_pending";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix9_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix9_v20260628_009_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix9";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix9_v20260628_009_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount === 223
+          && result.artifactCount === 223
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix9";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
@@ -17566,6 +17634,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       ["smokeAlphaStep41ZoomerInventoryFix5", smokeAlphaStep41ZoomerInventoryFix5],
       ["smokeAlphaStep41ZoomerInventoryFix7", smokeAlphaStep41ZoomerInventoryFix7],
       ["smokeAlphaStep41ZoomerInventoryFix8", smokeAlphaStep41ZoomerInventoryFix8],
+      ["smokeAlphaStep41ZoomerInventoryFix9", smokeAlphaStep41ZoomerInventoryFix9],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
