@@ -1,3 +1,15 @@
+## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix8
+- Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
+- The Step 4.1 smoke now validates the mirrored 223-row artifact through a static provenance contract and a separate runtime semantic multiset contract, so runtime locator shapes can differ from the artifact provenance while the live meanings still match.
+- Semantic matching uses category, whitespace-normalized text, derived template state, and sorted placeholder variables; runtime source evidence is still structurally validated, but exact equality against artifact source provenance is no longer required.
+- Missing coverage is now reported as compact signature deltas with artifact/runtime counts and representative samples instead of raw duplicate missing rows.
+- Added the focused semantic matcher fixture covering the requested PASS and FAIL cases, including key-shape differences, runtime/dom selectors, resolver paths, multiplicity, template checks, category mismatches, text/case/punctuation mismatches, and malformed source evidence.
+- The current runtime entrypoint is `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix8()`.
+- Fix8 is exported on `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`.
+- Implementation commit A SHA recorded in runtime markers: `d42015991a6ae0f71c89be10a25575e613b54a7d`.
+- Final repository state is delivered by commit B after marker/cache-bust/status-document updates.
+- Safari smoke remains `PENDING_USER`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix7
 - Status: READY_FOR_RUNTIME_SMOKE only; runtime PASS is not claimed.
 - Step 4.1 Zoomer inventory smoke now validates the mirrored artifact against the live collector without stale Fix1/Fix6 metadata markers in the active execution path.
