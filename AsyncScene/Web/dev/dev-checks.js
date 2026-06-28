@@ -6749,6 +6749,23 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         smokeVersion
       };
     };
+    const zoomerShorteningDocsBootSmokeExports = [
+      ["smokeZoomerShorteningDocsStep6Fix1Once", typeof smokeZoomerShorteningDocsStep6Fix1Once === "function" ? smokeZoomerShorteningDocsStep6Fix1Once : null],
+      ["smokeZoomerShorteningDocsStep6Fix2Once", typeof smokeZoomerShorteningDocsStep6Fix2Once === "function" ? smokeZoomerShorteningDocsStep6Fix2Once : null],
+      ["smokeZoomerShorteningDocsStep6Fix3Once", typeof smokeZoomerShorteningDocsStep6Fix3Once === "function" ? smokeZoomerShorteningDocsStep6Fix3Once : null],
+      ["smokeZoomerShorteningDocsStep6Fix4Once", typeof smokeZoomerShorteningDocsStep6Fix4Once === "function" ? smokeZoomerShorteningDocsStep6Fix4Once : null],
+      ["smokeZoomerShorteningDocsStep6RegistryProbeOnce", typeof smokeZoomerShorteningDocsStep6RegistryProbeOnce === "function" ? smokeZoomerShorteningDocsStep6RegistryProbeOnce : null],
+    ];
+    const getZoomerShorteningDocsBootSmokeRegistry = () => {
+      const registry = {};
+      for (const [name, fn] of zoomerShorteningDocsBootSmokeExports) {
+        if (typeof fn !== "function") {
+          throw new ReferenceError(`Missing declaration for ${name}`);
+        }
+        registry[name] = fn;
+      }
+      return registry;
+    };
 
     const smokeZoomerLexicalFrameOnce = () => {
       const buildTag = (typeof window !== "undefined" && window.__BUILD_TAG__) || G.__DEV.buildTag || G.__buildTag || RUNTIME_BUILD_TAG;
@@ -14806,9 +14823,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       return result;
     };
     const smokeZoomerFeelStep63UiNpcLengthOnce = () => {
-      const buildTag = "build_2026_06_22_step3_6_3_alpha_vs_zoomer_length_v1";
-      const commit = "step3_6_3_alpha_vs_zoomer_length";
-      const smokeVersion = "step3_6_3_alpha_vs_zoomer_length_v20260622_001";
+      const buildTag = "build_2026_06_28_step3_6_3_boot_registration_fix1";
+      const commit = "step3_6_3_boot_registration_fix1";
+      const smokeVersion = "step3_6_3_boot_registration_fix1_v20260628_001";
       const smokeName = "smokeZoomerFeelStep63UiNpcLengthOnce";
       const requiredSurfaces = Object.freeze([
         "start_screen",
@@ -17296,8 +17313,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     Game.Dev.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     Game.Dev.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
-    Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
+    Object.assign(Game.Dev, getZoomerShorteningDocsBootSmokeRegistry());
     Game.Dev.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     Game.Dev.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     Game.Dev.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
@@ -21677,12 +21693,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
-    G.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Object.assign(G.__DEV, getZoomerShorteningDocsBootSmokeRegistry());
+    G.__DEV.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
     G.__DEV.smokeZProfileDerivationMappingOnce = smokeZProfileDerivationMappingOnce;
     G.__DEV.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     G.__DEV.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
@@ -21835,8 +21847,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     devStore.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
     devStore.smokeZoomerShorteningDocsOnce = smokeZoomerShorteningDocsOnce;
-    devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    devStore.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
+    Object.assign(devStore, getZoomerShorteningDocsBootSmokeRegistry());
     devStore.smokeZoomerLexicalFrameOnce = smokeZoomerLexicalFrameOnce;
     devStore.smokeLexicalFrameStep31Once = smokeLexicalFrameStep31Once;
     devStore.smokeLexicalFrameStep32AllowedDictionaryFix1 = smokeLexicalFrameStep32AllowedDictionaryFix1;
@@ -50977,19 +50988,14 @@ const DIAG_VERSION = "npc_audit_diag_v2";
 
   function installZoomerShorteningDocsSmoke(devStore) {
     if (!devStore || typeof devStore !== "object") return;
-    const registry = {
-      smokeZoomerShorteningDocsStep6Once,
-      smokeZoomerShorteningDocsStep6Fix1Once,
-      smokeZoomerShorteningDocsStep6Fix2Once,
-      smokeZoomerShorteningDocsStep6Fix3Once,
-      smokeZoomerShorteningDocsStep6Fix4Once,
-      smokeZoomerShorteningDocsStep6RegistryProbeOnce
-    };
+    const registry = getZoomerShorteningDocsBootSmokeRegistry();
     Object.assign(devStore, registry);
     if (!Game.__DEV) Game.__DEV = {};
     Object.assign(Game.__DEV, registry);
     if (!Game.Dev) Game.Dev = {};
     Object.assign(Game.Dev, registry);
+    if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+    Object.assign(G.__DEV, registry);
     console.warn("ZOOMER_SHORTENING_DOCS_SMOKE_INSTALLED_V4", {
       hasFix4: typeof Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once === "function",
       hasProbe: typeof Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce === "function",
@@ -54030,30 +54036,18 @@ ALX_0187 | protected_tokens | {text}`;
   console.warn("BOOMER_LEXICON_DOCUMENTATION_SMOKE_INSTALLED_V1", typeof (G.__DEV && G.__DEV.smokeBoomerLexiconDocumentationStep36Once));
 
   if (Game.__DEV && typeof Game.__DEV === "object") {
-    Game.__DEV.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    Game.__DEV.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
-    Game.__DEV.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
-    Game.__DEV.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
-    Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
-    Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Object.assign(Game.__DEV, getZoomerShorteningDocsBootSmokeRegistry());
     Game.__DEV.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
+  if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+  Object.assign(G.__DEV, getZoomerShorteningDocsBootSmokeRegistry());
+  G.__DEV.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   if (Game.Dev && typeof Game.Dev === "object") {
-    Game.Dev.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
-    Game.Dev.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Object.assign(Game.Dev, getZoomerShorteningDocsBootSmokeRegistry());
     Game.Dev.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
   if (devStore && typeof devStore === "object") {
-    devStore.smokeZoomerShorteningDocsStep6Once = smokeZoomerShorteningDocsStep6Once;
-    devStore.smokeZoomerShorteningDocsStep6Fix1Once = smokeZoomerShorteningDocsStep6Fix1Once;
-    devStore.smokeZoomerShorteningDocsStep6Fix2Once = smokeZoomerShorteningDocsStep6Fix2Once;
-    devStore.smokeZoomerShorteningDocsStep6Fix3Once = smokeZoomerShorteningDocsStep6Fix3Once;
-    devStore.smokeZoomerShorteningDocsStep6Fix4Once = smokeZoomerShorteningDocsStep6Fix4Once;
-    devStore.smokeZoomerShorteningDocsStep6RegistryProbeOnce = smokeZoomerShorteningDocsStep6RegistryProbeOnce;
+    Object.assign(devStore, getZoomerShorteningDocsBootSmokeRegistry());
     devStore.smokeZoomerFeelStep63UiNpcLengthOnce = smokeZoomerFeelStep63UiNpcLengthOnce;
   }
   console.warn("ZOOMER_SHORTENING_DOCS_SMOKE_INSTALLED_V4", typeof Game.__DEV.smokeZoomerShorteningDocsStep6Fix4Once, typeof Game.__DEV.smokeZoomerShorteningDocsStep6RegistryProbeOnce);
