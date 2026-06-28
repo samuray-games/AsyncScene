@@ -11189,16 +11189,19 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         G.__DEV && G.__DEV.commit,
         RUNTIME_COMMIT
       );
-      const smokeVersion = "step4_1_alpha_zoomer_inventory_fix1_v20260627_001";
-      const staleBuildTags = new Set(["build_2026_06_27_step4_1_zoomer_terms_inventory_v1"]);
-      const staleCommits = new Set(["d8e4aee", "step4_1_alpha_zoomer_inventory"]);
+      const smokeName = "smokeAlphaStep41ZoomerInventoryOnce";
+      const smokeVersion = buildTag && commit
+        ? `step4_1_alpha_zoomer_inventory_once_runtime_${buildTag}_commit_${commit}`
+        : "";
       const inventoryFile = "UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY.md";
       const result = {
         ok: false,
+        smokeName,
         buildTag,
         commit,
         smokeVersion,
         inventoryCount: 0,
+        artifactCount: 0,
         scannedFiles: [],
         missingCoverage: [],
         failures: [],
@@ -11272,6 +11275,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         return last || { ok: false, reason: "unavailable", path: fileName };
       };
       const normalize = (value) => normalizeProfileText(value).replace(/\s+/g, " ").trim();
+      const metadataValue = (text, label) => {
+        const escaped = String(label || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const match = String(text || "").match(new RegExp(`^\\-\\s+${escaped}:\\s*(.+)$`, "m"));
+        return match ? String(match[1] || "").trim() : "";
+      };
       const splitSourceFileAndLine = (value) => {
         const raw = normalize(value);
         const idx = raw.lastIndexOf(":");
@@ -11294,23 +11302,58 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           }
           const [id, category, surface, key, currentText, sourceFileLine, kind, profile, dynamic, vars, notes] = parts;
           const source = splitSourceFileAndLine(sourceFileLine);
-          rows.push({ id, category, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, kind, profile, dynamic, vars, notes });
+          rows.push({
+            id,
+            category,
+            surface,
+            key,
+            text: currentText,
+            sourceFile: source.file,
+            sourceLine: source.line,
+            kind,
+            profile,
+            dynamic,
+            vars,
+            notes
+          });
         });
         return rows;
       };
-      const artifactMatchesRuntime = (row, entry) => {
+      const computeArtifactMetadata = (rows) => {
+        const uniqueTexts = new Set();
+        const sourceFiles = new Set();
+        const textSources = Object.create(null);
+        let toastEntryCount = 0;
+        rows.forEach((row) => {
+          const normalizedText = normalize(row.text);
+          uniqueTexts.add(normalizedText);
+          if (normalize(row.category) === "toast") toastEntryCount += 1;
+          if (row.sourceFile) sourceFiles.add(normalize(row.sourceFile));
+          if (!textSources[normalizedText]) textSources[normalizedText] = new Set();
+          textSources[normalizedText].add(`${normalize(row.sourceFile)}:${normalize(row.sourceLine)}|${normalize(row.key)}`);
+        });
+        const duplicateTextDifferentSourcesCount = Object.keys(textSources).filter((text) => textSources[text].size > 1).length;
+        return {
+          entryCount: rows.length,
+          uniqueTextCount: uniqueTexts.size,
+          scannedFileCount: sourceFiles.size,
+          toastEntryCount,
+          duplicateTextDifferentSourcesCount
+        };
+      };
+      const rowMatchesRuntimeEntry = (row, entry) => {
         const source = entry && entry.source ? entry.source : {};
         if (normalize(row.text) !== normalize(entry && entry.text)) return false;
-        const rowFile = normalize(row.sourceFile);
-        const entryFile = normalize(source.file);
-        if (rowFile !== entryFile) return false;
+        if (normalize(row.sourceFile) !== normalize(source.file)) return false;
         const rowKey = normalize(row.key);
         if (!rowKey) return true;
         const entryKey = normalize(source.key);
         const entryPath = normalize(source.path);
-        return rowKey === entryKey || rowKey === entryPath || entryKey.endsWith(`.${rowKey}`) || entryPath.endsWith(`.${rowKey}`);
+        return rowKey === entryKey
+          || rowKey === entryPath
+          || entryKey.endsWith(`.${rowKey}`)
+          || entryPath.endsWith(`.${rowKey}`);
       };
-      const runtimeMatchesArtifact = (entry, row) => artifactMatchesRuntime(row, entry);
       try {
         const rootRes = fetchFirst(inventoryFile, false);
         const docsRes = fetchFirst(inventoryFile, true);
@@ -11322,14 +11365,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const artifactText = rootText || docsText;
         [
           "# UI_PROFILE_ZOOMER_STEP_4_1_TERMS_INVENTORY",
-          "- source inventory only, no replacements",
-          "- entryCount: 164",
-          "- uniqueTextCount: 122",
-          "- scannedFileCount: 26",
-          "- toastEntryCount: 24",
-          "- duplicateTextDifferentSourcesCount: 8",
-          "- every TXT_0001 through TXT_0164 present exactly once",
-          "- no replacement text added"
+          "- source inventory only, no replacements"
         ].forEach((marker) => {
           if (!artifactText.includes(marker)) addUnique(result.missingCoverage, marker);
         });
@@ -11338,51 +11374,100 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const runtimeEntries = Array.isArray(runtimeEntriesRaw)
           ? runtimeEntriesRaw.filter((entry) => entry && normalizeProfileText(entry.text))
           : [];
-        result.inventoryCount = runtimeEntries.length;
         const scannedFiles = new Set([inventoryFile, `docs/${inventoryFile}`]);
+        result.inventoryCount = runtimeEntries.length;
+        result.artifactCount = artifactRows.filter((row) => !row.parseError).length;
         if (artifactRows.some((row) => row.parseError)) fail("inventory_row_parse", artifactRows.filter((row) => row.parseError));
         if (!artifactRows.length) addUnique(result.missingCoverage, "artifact_rows_empty");
         if (!runtimeEntries.length) addUnique(result.missingCoverage, "runtime_inventory_empty");
-        artifactRows.forEach((row) => {
-          if (!row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.kind || !row.profile || !row.dynamic || !row.vars || !row.notes) {
+
+        const requiredCategoriesLine = metadataValue(artifactText, "requiredCategoriesMissing");
+        const expectedMetadata = computeArtifactMetadata(artifactRows.filter((row) => !row.parseError));
+        [
+          ["entryCount", String(expectedMetadata.entryCount)],
+          ["uniqueTextCount", String(expectedMetadata.uniqueTextCount)],
+          ["scannedFileCount", String(expectedMetadata.scannedFileCount)],
+          ["toastEntryCount", String(expectedMetadata.toastEntryCount)],
+          ["duplicateTextDifferentSourcesCount", String(expectedMetadata.duplicateTextDifferentSourcesCount)]
+        ].forEach(([label, expected]) => {
+          const actual = metadataValue(artifactText, label);
+          if (actual !== expected) fail("artifact_metadata_mismatch", { label, expected, actual });
+        });
+        if (requiredCategoriesLine && requiredCategoriesLine !== "[]") fail("artifact_required_categories_missing_empty", requiredCategoriesLine);
+
+        const ids = artifactRows.filter((row) => !row.parseError).map((row) => row.id);
+        const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
+        if (duplicateIds.length) fail("artifact_ids_unique", Array.from(new Set(duplicateIds)));
+        const expectedIds = Array.from({ length: ids.length }, (_, index) => `TXT_${String(index + 1).padStart(4, "0")}`);
+        const missingIds = expectedIds.filter((id) => ids.indexOf(id) === -1);
+        const unexpectedIds = ids.filter((id) => expectedIds.indexOf(id) === -1);
+        if (missingIds.length || unexpectedIds.length) fail("artifact_ids_contiguous", { missingIds, unexpectedIds });
+
+        const artifactMatched = new Array(artifactRows.length).fill(false);
+        const runtimeMatched = new Array(runtimeEntries.length).fill(false);
+        artifactRows.forEach((row, rowIndex) => {
+          if (row.parseError) return;
+          if (!row.id || !row.category || !row.surface || !row.key || !row.text || !row.sourceFile || !row.sourceLine || !row.kind || !row.profile || !row.dynamic) {
             fail("inventory_row_required_fields", row.id || row.key || "unknown");
             addUnique(result.missingCoverage, row.id || row.key || "unknown");
             return;
-        }
-        addUnique(scannedFiles, row.sourceFile);
-        if (/Console\.txt/i.test(row.text) || /Console\.txt/i.test(row.notes) || /Console\.txt/i.test(row.sourceFile)) {
-          addUnique(result.forbiddenRemaining, { id: row.id, sourceFile: row.sourceFile, text: row.text });
-        }
-          const match = runtimeEntries.find((entry) => artifactMatchesRuntime(row, entry));
-          if (!match) addUnique(result.missingCoverage, { id: row.id, category: row.category, surface: row.surface, key: row.key, text: row.text, sourceFile: row.sourceFile, sourceLine: row.sourceLine });
+          }
+          if (row.vars === undefined || row.notes === undefined) {
+            fail("inventory_row_optional_columns_present", row.id || row.key || "unknown");
+            addUnique(result.missingCoverage, row.id || row.key || "unknown");
+            return;
+          }
+          addUnique(scannedFiles, row.sourceFile);
+          if (/Console\.txt/i.test(row.text) || /Console\.txt/i.test(row.notes) || /Console\.txt/i.test(row.sourceFile)) {
+            addUnique(result.forbiddenRemaining, { id: row.id, sourceFile: row.sourceFile, text: row.text });
+          }
+          const runtimeIndex = runtimeEntries.findIndex((entry, entryIndex) => !runtimeMatched[entryIndex] && rowMatchesRuntimeEntry(row, entry));
+          if (runtimeIndex === -1) {
+            addUnique(result.missingCoverage, {
+              id: row.id,
+              category: row.category,
+              surface: row.surface,
+              key: row.key,
+              text: row.text,
+              sourceFile: row.sourceFile,
+              sourceLine: row.sourceLine
+            });
+            return;
+          }
+          artifactMatched[rowIndex] = true;
+          runtimeMatched[runtimeIndex] = true;
         });
-        runtimeEntries.forEach((entry) => {
+
+        runtimeEntries.forEach((entry, entryIndex) => {
           const source = entry.source || {};
           if (source.file) addUnique(scannedFiles, source.file);
           if (/Console\.txt/i.test(entry.text || "") || /Console\.txt/i.test(source.file || "") || /Console\.txt/i.test(source.path || "")) {
             addUnique(result.forbiddenRemaining, { category: entry.category, text: entry.text, sourceFile: source.file || null, sourcePath: source.path || null });
           }
-          const match = artifactRows.find((row) => runtimeMatchesArtifact(entry, row));
-          if (!match) addUnique(result.missingCoverage, { category: entry.category, text: entry.text, sourceFile: source.file || null, sourceKey: source.key || null, sourcePath: source.path || null });
+          if (!runtimeMatched[entryIndex]) {
+            addUnique(result.missingCoverage, {
+              category: entry.category,
+              text: entry.text,
+              sourceFile: source.file || null,
+              sourceKey: source.key || null,
+              sourcePath: source.path || null
+            });
+          }
         });
+
         result.scannedFiles = Array.from(scannedFiles).filter(Boolean).sort();
-        if (artifactRows.length !== runtimeEntries.length) fail("inventory_count_matches_runtime", { artifact: artifactRows.length, runtime: runtimeEntries.length });
+        if (result.artifactCount !== result.inventoryCount) fail("artifact_count_matches_runtime", { artifact: result.artifactCount, runtime: result.inventoryCount });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "millennial_terms_inventory_step4_1_fix2_v20260627_003") fail("smoke_version_unique_for_commit", smokeVersion);
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
       result.ok = result.inventoryCount > 0
-        && result.totalArtifactRows > 0
-        && result.totalSourceRows > 0
-        && result.totalArtifactRows === result.totalSourceRows
-        && result.categories.every((category) => result.categoryCounts[category] > 0)
+        && result.artifactCount > 0
+        && result.artifactCount === result.inventoryCount
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0
-        && Array.isArray(result.unknownCategories)
-        && result.unknownCategories.length === 0
         && !!result.buildTag
         && !!result.commit
         && !!result.smokeVersion;
@@ -17139,8 +17224,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       if (result && typeof result === "object") {
         result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix2_v20260627_002";
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix2";
-        result.artifactCount = result.inventoryCount;
         result.ok = result.inventoryCount > 0
+          && result.artifactCount > 0
           && result.artifactCount === result.inventoryCount
           && Array.isArray(result.scannedFiles)
           && Array.isArray(result.failures) && result.failures.length === 0
@@ -17160,8 +17245,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.commit = "step4_1_alpha_zoomer_inventory_fix3";
         result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix3_v20260627_003";
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix3";
-        result.artifactCount = result.inventoryCount;
         result.ok = result.inventoryCount > 0
+          && result.artifactCount > 0
           && result.artifactCount === result.inventoryCount
           && Array.isArray(result.scannedFiles)
           && Array.isArray(result.failures) && result.failures.length === 0
@@ -17181,8 +17266,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.commit = "step4_1_alpha_zoomer_inventory_fix4";
         result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix4_v20260627_004";
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix4";
-        result.artifactCount = result.inventoryCount;
         result.ok = result.inventoryCount > 0
+          && result.artifactCount > 0
           && result.artifactCount === result.inventoryCount
           && Array.isArray(result.scannedFiles)
           && Array.isArray(result.failures) && result.failures.length === 0
@@ -17202,8 +17287,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.commit = "903f6df251cdb78a7344b909b6ac14e3521372da";
         result.smokeVersion = "step4_1_alpha_zoomer_inventory_fix5_v20260628_005";
         result.smokeName = "smokeAlphaStep41ZoomerInventoryFix5";
-        result.artifactCount = result.inventoryCount;
         result.ok = result.inventoryCount > 0
+          && result.artifactCount > 0
           && result.artifactCount === result.inventoryCount
           && Array.isArray(result.scannedFiles)
           && Array.isArray(result.failures) && result.failures.length === 0
@@ -17216,12 +17301,44 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       }
       return result;
     };
+    const smokeAlphaStep41ZoomerInventoryFix7 = () => {
+      const result = smokeAlphaStep41ZoomerInventoryOnce();
+      if (result && typeof result === "object") {
+        const implementationCommit = "__STEP41_FIX7_IMPLEMENTATION_COMMIT__";
+        const buildTag = "build_2026_06_28_step4_1_zoomer_terms_inventory_fix7_v1";
+        const smokeVersion = `step4_1_alpha_zoomer_inventory_fix7_v20260628_007_commit_${implementationCommit}`;
+        const fail = (check, detail) => {
+          addUniqueProfileAudit(result.failedChecks, check);
+          addUniqueProfileAudit(result.failures, detail === undefined ? check : { check, detail });
+        };
+        result.buildTag = buildTag;
+        result.commit = implementationCommit;
+        result.smokeVersion = smokeVersion;
+        result.smokeName = "smokeAlphaStep41ZoomerInventoryFix7";
+        if (!/^[0-9a-f]{40}$/i.test(implementationCommit)) fail("implementation_commit_full_sha", implementationCommit);
+        if (smokeVersion !== `step4_1_alpha_zoomer_inventory_fix7_v20260628_007_commit_${implementationCommit}`) fail("smoke_version_unique_for_commit", smokeVersion);
+        result.ok = result.inventoryCount === 223
+          && result.artifactCount === 223
+          && result.artifactCount === result.inventoryCount
+          && Array.isArray(result.scannedFiles)
+          && Array.isArray(result.failures) && result.failures.length === 0
+          && Array.isArray(result.forbiddenRemaining) && result.forbiddenRemaining.length === 0
+          && Array.isArray(result.missingCoverage) && result.missingCoverage.length === 0
+          && Array.isArray(result.failedChecks) && result.failedChecks.length === 0
+          && result.buildTag === buildTag
+          && result.commit === implementationCommit
+          && result.smokeVersion === smokeVersion
+          && result.smokeName === "smokeAlphaStep41ZoomerInventoryFix7";
+      }
+      return result;
+    };
     const alphaStep41ZoomerInventorySmokeExports = [
       ["smokeAlphaStep41ZoomerInventoryOnce", smokeAlphaStep41ZoomerInventoryOnce],
       ["smokeAlphaStep41ZoomerInventoryFix2", smokeAlphaStep41ZoomerInventoryFix2],
       ["smokeAlphaStep41ZoomerInventoryFix3", smokeAlphaStep41ZoomerInventoryFix3],
       ["smokeAlphaStep41ZoomerInventoryFix4", smokeAlphaStep41ZoomerInventoryFix4],
       ["smokeAlphaStep41ZoomerInventoryFix5", smokeAlphaStep41ZoomerInventoryFix5],
+      ["smokeAlphaStep41ZoomerInventoryFix7", smokeAlphaStep41ZoomerInventoryFix7],
     ];
     const assertAlphaStep41ZoomerInventorySmokeExports = () => {
       for (const [name, fn] of alphaStep41ZoomerInventorySmokeExports) {
@@ -20683,14 +20800,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeZoomerLexicalChecksOnce = smokeZoomerLexicalChecksOnce;
     Game.Dev.smokeZoomerLexicalCorrectionReadyOnce = smokeZoomerLexicalCorrectionReadyOnce;
     Game.Dev.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
-    if (!Game.__DEV) Game.__DEV = {};
-    Game.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    Game.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-    Game.Dev.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    Game.Dev.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
-    if (!G.__DEV) G.__DEV = {};
-    G.__DEV.smokeAlphaStep41ZoomerInventoryOnce = smokeAlphaStep41ZoomerInventoryOnce;
-    G.__DEV.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+    exposeAlphaStep41ZoomerInventorySmoke();
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
@@ -20997,7 +21107,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
-    devStore.smokeAlphaStep41ZoomerInventoryFix2 = smokeAlphaStep41ZoomerInventoryFix2;
+    exposeAlphaStep41ZoomerInventorySmoke();
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     devStore.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;

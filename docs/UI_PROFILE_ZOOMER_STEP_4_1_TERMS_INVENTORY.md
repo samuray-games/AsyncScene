@@ -6,10 +6,10 @@
 ## Coverage Summary
 - entryCount: 223
 - uniqueTextCount: 191
-- scannedFileCount: 26
+- scannedFileCount: 9
 - requiredCategoriesMissing: []
 - toastEntryCount: 24
-- duplicateTextDifferentSourcesCount: 8
+- duplicateTextDifferentSourcesCount: 15
 
 ## Categories Covered
 - start_screen
