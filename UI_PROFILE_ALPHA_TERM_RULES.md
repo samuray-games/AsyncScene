@@ -11,6 +11,7 @@
 - Terms exclude explanatory sentences, dynamic templates, proper names, technical diagnostics, and accessibility-only descriptions.
 - Word count uses lexical Cyrillic or Latin words.
 - Emoji, numbers, punctuation, operators, and placeholders do not add lexical words.
+- One semantic meaning uses one canonical term.
 
 ALPHA_TERM_RULES_JSON_START
 ```json
@@ -20,6 +21,8 @@ ALPHA_TERM_RULES_JSON_START
   "inherits": "zoomer",
   "scope": "stable_action_state_entity_terms",
   "runtimeActivation": false,
+  "buildTag": "build_2026_06_28_step4_2_alpha_term_rules_v1",
+  "smokeVersion": "alpha_step_4_2_term_rules_v20260628_001",
   "maxWordsPerTerm": 2,
   "oneMeaningOneTerm": true,
   "synonymPolicy": "forbidden",
