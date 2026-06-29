@@ -12024,21 +12024,21 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         const bases = [];
         if (typeof document !== "undefined" && document.baseURI) bases.push(document.baseURI);
         if (typeof location !== "undefined" && location.origin) {
+          bases.push(`${location.origin}/AsyncScene/`);
           bases.push(`${location.origin}/`);
           bases.push(`${location.origin}/docs/`);
-          bases.push(`${location.origin}/AsyncScene/`);
           bases.push(`${location.origin}/AsyncScene/Web/`);
         }
         bases.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
         if (typeof location !== "undefined" && location.origin) {
+          add(`${location.origin}/AsyncScene/${fileName}`);
           add(`${location.origin}/${fileName}`);
           add(`${location.origin}/docs/${fileName}`);
-          add(`${location.origin}/AsyncScene/${fileName}`);
           add(`${location.origin}/AsyncScene/Web/${fileName}`);
         }
+        add(`/AsyncScene/${fileName}`);
         add(`/${fileName}`);
         add(`/docs/${fileName}`);
-        add(`/AsyncScene/${fileName}`);
         add(`/AsyncScene/Web/${fileName}`);
         add(fileName);
         return candidates;
@@ -12168,10 +12168,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         row.notes
       ].join("|");
       try {
-        const artifactRes = fetchFirst("AsyncScene/Web/UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md");
+        const artifactRes = fetchFirst("UI_PROFILE_MILLENNIAL_STEP_4_1_TERMS_INVENTORY.md");
         result.artifactPath = artifactRes.path || "";
         if (!artifactRes.ok) fail("artifact_load", artifactRes.reason || "unavailable");
-        const sourceRes = fetchFirst("AsyncScene/Web/UI_PROFILE_ALPHA_WORD_INVENTORY.md");
+        const sourceRes = fetchFirst("UI_PROFILE_ALPHA_WORD_INVENTORY.md");
         result.sourcePath = sourceRes.path || "";
         if (!sourceRes.ok) fail("source_load", sourceRes.reason || "unavailable");
         const artifactRows = artifactRes.ok ? parseArtifactRows(artifactRes.text || "") : [];
@@ -12245,7 +12245,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (result.unknownCategories.length > 0) fail("unknown_category_present", result.unknownCategories.slice());
         if (result.duplicateSourceNoteCount !== result.expectedDuplicateSourceNoteCount) fail("duplicate_source_notes_preserved", { artifact: result.duplicateSourceNoteCount, source: result.expectedDuplicateSourceNoteCount });
         if (!buildTag || !commit || !smokeVersion) fail("identity_fields_returned", { buildTag, commit, smokeVersion });
-        if (smokeVersion !== "millennial_terms_inventory_step4_1_v20260627_001") fail("smoke_version_unique_for_commit", smokeVersion);
+        if (smokeVersion !== "millennial_terms_inventory_step4_1_fix2_v20260627_003") fail("smoke_version_unique_for_commit", smokeVersion);
       } catch (err) {
         fail("smoke_exception", err && err.message ? String(err.message) : String(err));
       }
@@ -12274,6 +12274,41 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.commit = "step4_1_millennial_terms_inventory_fix3";
       result.smokeVersion = "millennial_terms_inventory_step4_1_fix3_v20260629_004";
       result.smokeName = "smokeBoomerTermsStep41InventoryFix3";
+      return result;
+    };
+    const smokeBoomerTermsStep41InventoryFix4 = () => {
+      const result = smokeBoomerTermsStep41InventoryFix2();
+      const buildTag = "build_2026_06_29_step4_1_millennial_terms_inventory_fix4_v1";
+      const commit = "step4_1_millennial_terms_inventory_fix4";
+      const smokeVersion = "millennial_terms_inventory_step4_1_fix4_v20260629_005";
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.smokeName = "smokeBoomerTermsStep41InventoryFix4";
+      if (smokeVersion !== "millennial_terms_inventory_step4_1_fix4_v20260629_005") fail("smoke_version_unique_for_commit", smokeVersion);
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.unknownCategories.length === 0
+        && result.totalArtifactRows === result.totalSourceRows
+        && result.duplicateSourceNoteCount === result.expectedDuplicateSourceNoteCount
+        && result.categoryCounts.buttons > 0
+        && result.categoryCounts.statuses > 0
+        && result.categoryCounts.errors > 0
+        && result.categoryCounts.hints > 0
+        && result.categoryCounts.economy > 0
+        && result.categoryCounts.battles > 0
+        && result.categoryCounts.dm > 0
+        && result.buildTag === buildTag
+        && result.commit === commit
+        && result.smokeVersion === smokeVersion
+        && result.smokeName === "smokeBoomerTermsStep41InventoryFix4";
       return result;
     };
     const smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryFix2;
@@ -21635,6 +21670,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.Dev.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
@@ -21711,6 +21747,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -21718,6 +21755,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     G.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     G.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -21937,6 +21975,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     devStore.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
+    devStore.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
     exposeAlphaStep41ZoomerInventorySmoke();
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
