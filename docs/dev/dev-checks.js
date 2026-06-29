@@ -12069,13 +12069,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           if (trimmed === "```" && inBlock) { inBlock = false; return; }
           if (!inBlock || !/^TXT_\d+/.test(trimmed)) return;
           const parts = line.split("|").map((part) => normalize(part));
-          if (parts.length < 9) {
-            rows.push({ parseError: "artifact_row_too_short", raw: line });
+          if (parts.length !== 11) {
+            rows.push({ parseError: "artifact_row_shape", raw: line });
             return;
           }
-          const [id, category, surface, key, currentText, sourceFileLine, dynamic, vars, notes] = parts;
+          const [id, category, surface, key, currentText, sourceFileLine, kind, profile, dynamic, vars, notes] = parts;
           const source = splitSourceFileAndLine(sourceFileLine);
-          rows.push({ id, category, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, dynamic, vars, notes });
+          rows.push({ id, category, surface, key, text: currentText, sourceFile: source.file, sourceLine: source.line, kind, profile, dynamic, vars, notes });
         });
         return rows;
       };
@@ -12320,6 +12320,41 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       result.commit = commit;
       result.smokeVersion = smokeVersion;
       result.smokeName = "smokeBoomerTermsStep41InventoryFix5";
+      return result;
+    };
+    const smokeBoomerTermsStep41InventoryFix6 = () => {
+      const result = smokeBoomerTermsStep41InventoryFix5();
+      const buildTag = "build_2026_06_29_step4_1_millennial_terms_inventory_fix6_v1";
+      const commit = "step4_1_millennial_terms_inventory_fix6";
+      const smokeVersion = "millennial_terms_inventory_step4_1_fix6_v20260629_007";
+      const addUnique = (list, value) => addUniqueProfileAudit(list, value);
+      const fail = (check, detail) => {
+        addUnique(result.failedChecks, check);
+        addUnique(result.failures, detail === undefined ? check : { check, detail });
+      };
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.smokeName = "smokeBoomerTermsStep41InventoryFix6";
+      if (smokeVersion !== "millennial_terms_inventory_step4_1_fix6_v20260629_007") fail("smoke_version_unique_for_commit", smokeVersion);
+      result.ok = result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0
+        && result.unknownCategories.length === 0
+        && result.totalArtifactRows === result.totalSourceRows
+        && result.duplicateSourceNoteCount === result.expectedDuplicateSourceNoteCount
+        && result.categoryCounts.buttons > 0
+        && result.categoryCounts.statuses > 0
+        && result.categoryCounts.errors > 0
+        && result.categoryCounts.hints > 0
+        && result.categoryCounts.economy > 0
+        && result.categoryCounts.battles > 0
+        && result.categoryCounts.dm > 0
+        && result.buildTag === buildTag
+        && result.commit === commit
+        && result.smokeVersion === smokeVersion
+        && result.smokeName === "smokeBoomerTermsStep41InventoryFix6";
       return result;
     };
     const smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryFix2;
@@ -21682,10 +21717,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.Dev.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     Game.Dev.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
-    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    devStore.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
@@ -21763,10 +21802,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
-    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    devStore.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -21775,10 +21818,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     G.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     G.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
-    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
-    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    devStore.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -22000,9 +22047,13 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     devStore.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
     devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    devStore.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix6 = smokeBoomerTermsStep41InventoryFix6;
     exposeAlphaStep41ZoomerInventorySmoke();
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
