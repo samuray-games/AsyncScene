@@ -12268,6 +12268,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && !!result.smokeVersion;
       return result;
     };
+    const smokeBoomerTermsStep41InventoryFix3 = () => {
+      const result = smokeBoomerTermsStep41InventoryFix2();
+      result.buildTag = "build_2026_06_29_step4_1_millennial_terms_inventory_fix3_v1";
+      result.commit = "step4_1_millennial_terms_inventory_fix3";
+      result.smokeVersion = "millennial_terms_inventory_step4_1_fix3_v20260629_004";
+      result.smokeName = "smokeBoomerTermsStep41InventoryFix3";
+      return result;
+    };
     const smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryFix2;
 
     const smokeAlphaStep11ZoomerSourceInventoryOnce = () => {
@@ -21626,6 +21634,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     exposeAlphaStep41ZoomerInventorySmoke();
     Game.Dev.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
@@ -21701,12 +21710,14 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeAlphaDiffFix3 = smokeAlphaDiffFix3;
     Game.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
     G.__DEV.smokeAlphaDiffFix3 = smokeAlphaDiffFix3;
     G.__DEV.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     G.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -21925,6 +21936,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeZoomerTermsInventoryOnce = smokeZoomerTermsInventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryOnce;
     devStore.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
+    devStore.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     exposeAlphaStep41ZoomerInventorySmoke();
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
