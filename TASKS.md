@@ -8972,3 +8972,11 @@ Error: Download failure, code=1
 - Updated both served boot pages to `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix12_20260628a`.
 - Commit A SHA: `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
 - Safari runtime smoke remains pending on `Game.__DEV.smokeAlphaStep41ZoomerInventoryFix12()`.
+
+## 2026-06-29 — Step 4.1 Boomer UI terms inventory Fix5
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- Fixed the published 124-row inventory mirrors so each row now carries the required `kind` and `profile` fields alongside `dynamic`, `vars`, and `notes`, matching the source inventory contract without changing row count, coverage buckets, or forbidden-term validation.
+- Added `Game.__DEV.smokeBoomerTermsStep41InventoryFix5()` and registered it through the normal dev-check boot path in both mirrored runtime bundles.
+- Updated the published dev-check cache-bust to `step4_1_millennial_inventory_smoke_fix5_20260629c`.
+- Focused local checks completed: mirrored artifact parsing, source parsing, row-count parity, and syntax/readiness checks.
+- Safari runtime smoke remains pending on `Game.__DEV.smokeBoomerTermsStep41InventoryFix5()`.

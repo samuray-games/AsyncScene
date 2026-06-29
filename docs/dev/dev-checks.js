@@ -12311,6 +12311,17 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.smokeName === "smokeBoomerTermsStep41InventoryFix4";
       return result;
     };
+    const smokeBoomerTermsStep41InventoryFix5 = () => {
+      const result = smokeBoomerTermsStep41InventoryFix4();
+      const buildTag = "build_2026_06_29_step4_1_millennial_terms_inventory_fix5_v1";
+      const commit = "step4_1_millennial_terms_inventory_fix5";
+      const smokeVersion = "millennial_terms_inventory_step4_1_fix5_v20260629_006";
+      result.buildTag = buildTag;
+      result.commit = commit;
+      result.smokeVersion = smokeVersion;
+      result.smokeName = "smokeBoomerTermsStep41InventoryFix5";
+      return result;
+    };
     const smokeBoomerTermsStep41InventoryOnce = smokeBoomerTermsStep41InventoryFix2;
 
     const smokeAlphaStep11ZoomerSourceInventoryOnce = () => {
@@ -21671,6 +21682,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.Dev.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.Dev.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     Game.Dev.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     Game.Dev.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;
     Game.Dev.smokeAlphaStep12DiffDocumentFix1 = smokeAlphaStep12DiffDocumentFix1;
@@ -21748,6 +21763,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     Game.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     Game.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     G.__DEV.smokeAlphaDiffOnce = smokeAlphaDiffOnce;
     G.__DEV.smokeAlphaDiffFix1 = smokeAlphaDiffFix1;
     G.__DEV.smokeAlphaDiffFix2 = smokeAlphaDiffFix2;
@@ -21756,6 +21775,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     G.__DEV.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     G.__DEV.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     G.__DEV.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     G.__DEV.smokeZoomerShorteningQualityOnce = smokeZoomerShorteningQualityOnce;
     G.__DEV.smokeZoomerShorteningQualityStep5Once = smokeZoomerShorteningQualityStep5Once;
     G.__DEV.smokeZoomerShorteningQualityStep5Fix1Once = smokeZoomerShorteningQualityStep5Fix1Once;
@@ -21976,6 +21999,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     devStore.smokeBoomerTermsStep41InventoryFix2 = smokeBoomerTermsStep41InventoryFix2;
     devStore.smokeBoomerTermsStep41InventoryFix3 = smokeBoomerTermsStep41InventoryFix3;
     devStore.smokeBoomerTermsStep41InventoryFix4 = smokeBoomerTermsStep41InventoryFix4;
+    devStore.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    G.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.__DEV.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
+    Game.Dev.smokeBoomerTermsStep41InventoryFix5 = smokeBoomerTermsStep41InventoryFix5;
     exposeAlphaStep41ZoomerInventorySmoke();
     devStore.smokeAlphaStep11ZoomerSourceInventoryOnce = smokeAlphaStep11ZoomerSourceInventoryOnce;
     devStore.smokeAlphaStep12DiffDocumentOnce = smokeAlphaStep12DiffDocumentOnce;

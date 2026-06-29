@@ -8064,3 +8064,10 @@ Error: Download failure, code=1
 - Fix12 is exposed on `Game.Dev`, `Game.__DEV`, `G.__DEV`, and `devStore`; both boot mirrors use cache-bust `step4_1_millennial_inventory_smoke_fix12_20260628a`.
 - Commit A SHA: `12dfeec3581bd92c1f3d7796e9c37025b83086ad`.
 - Static validation passed; local headless runtime smoke infrastructure did not complete. Safari smoke remains `PENDING_USER`.
+
+## 2026-06-29 — Step 4.1 Boomer UI terms inventory Fix5
+- Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
+- The Boomer Step 4.1 artifact mirrors now preserve all 124 rows while restoring the required `kind` and `profile` fields from the source inventory contract.
+- `Game.__DEV.smokeBoomerTermsStep41InventoryFix5()` is registered through the normal boot path in both `AsyncScene/Web/dev/dev-checks.js` and `docs/dev/dev-checks.js`.
+- Published boot pages now load `dev/dev-checks.js?v=step4_1_millennial_inventory_smoke_fix5_20260629c`.
+- Static readiness evidence remains separate from user Safari PASS.
