@@ -103,6 +103,7 @@ Every bundle must carry, at minimum, the following identity fields:
 - `artifactVersion` when applicable
 - `contentDigest` or equivalent immutable content identity
 - `producerIdentity` or origin
+- `verifierIdentity` when applicable
 - `observedAt` or creation timestamp
 - `verificationMethod`
 - `verificationStatus`
@@ -117,6 +118,9 @@ Every bundle must carry, at minimum, the following identity fields:
 - `artifactVersion` identifies the version marker when the artifact type has a version.
 - `contentDigest` identifies immutable content identity such as a hash, digest, or equivalent stable fingerprint.
 - `producerIdentity` identifies who or what produced the evidence.
+- `verifierIdentity` identifies who or what performed the verification represented by `verificationMethod` and `verificationStatus`.
+- `verifierIdentity` is explicitly `N/A` when the evidence has not been verified yet.
+- `verifierIdentity` is required when `verificationStatus` is `verified` or `user_accepted`.
 - `observedAt` identifies when the evidence was created or observed.
 - `verificationMethod` identifies how the evidence was produced or checked.
 - `verificationStatus` identifies the current truth level or verification state.
@@ -173,6 +177,7 @@ The bundle must support at least these evidence classes:
 - Safari evidence is user-owned evidence and must stay user-owned.
 - User acceptance evidence is only valid when the user supplied the matching current result for the exact current artifact.
 - Lock evidence reference and approval evidence reference are pointers to external gate evidence, not substitutes for artifact identity.
+- When verification status is not yet verified, `verifierIdentity` must be `N/A` rather than inferred.
 
 ## 7. Bundle completeness and acceptance readiness
 
@@ -185,6 +190,7 @@ A bundle is acceptance-ready only when:
 - the evidence is fresh for the current attempt
 - the evidence is owned by the correct party
 - the evidence is not stale, superseded, or foreign
+- if the evidence is verified or user_accepted, `verifierIdentity` is present and coherent with `verificationMethod` and `verificationStatus`
 - all mandatory evidence classes for the scope are present
 - no authoritative contradiction remains unresolved
 
@@ -250,6 +256,7 @@ Compatible match is allowed only when a deterministic, explicitly accepted trans
 
 - Provenance identifies who produced the evidence, how it was produced, and from what source or environment it arose.
 - Provenance must be sufficient to distinguish user-owned evidence from Codex-owned evidence and from repository documentation.
+- Provenance, lineage, and auditability must preserve the distinct identities of producer, verifier, method, and status when verification is present.
 
 ### Immutability
 
@@ -320,6 +327,7 @@ This contract must provide deterministic reasons for the bundle state.
 - freshness is current
 - provenance is authoritative
 - lineage is intact
+- when verification is claimed, `verifierIdentity` is present, unambiguous, and coherent with the recorded verifier method and status
 - no unresolved contradiction remains
 - all required evidence classes for the scope are present
 
@@ -333,6 +341,7 @@ This contract must provide deterministic reasons for the bundle state.
 - unverifiable claim treated as fact
 - duplicate or superseded record used as current authority
 - conflicting provenance or ownership
+- missing, unknown, malformed, ambiguous, or unverifiable `verifierIdentity` where verification is claimed
 - ambiguous current subject
 
 ### Revalidate reasons
@@ -343,6 +352,7 @@ This contract must provide deterministic reasons for the bundle state.
 - smoke identity changed
 - runtime identity changed
 - user-acceptance identity changed
+- verifier identity changed
 - scope changed
 - transform definition changed
 - freshness window expired
@@ -365,6 +375,7 @@ Every bundle record set must preserve:
 - identity fields
 - truth level
 - provenance
+- verifier identity when applicable
 - timestamp
 - source or origin
 - verification method
@@ -379,6 +390,7 @@ Every bundle record set must preserve:
 - Mismatched identity fails closed.
 - Stale identity fails closed for current readiness.
 - Foreign identity fails closed unless explicitly authorized by a current deterministic linkage.
+- Missing required `verifierIdentity` fails closed when verification is claimed.
 
 Do not infer current authority from partial overlap.
 
@@ -429,4 +441,3 @@ When this skill is used as a report contract, it must return all of these fields
 - `mismatch result` must identify exact identity conflicts rather than vague failure labels.
 - `acceptance-readiness result` must say whether the bundle is ready for downstream acceptance review.
 - `exact next action` must be the next concrete step, not a fix unless the caller explicitly requests a fix.
-
