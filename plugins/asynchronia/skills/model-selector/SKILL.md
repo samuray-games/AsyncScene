@@ -173,11 +173,16 @@ Return all of the following:
 
 - `status: MODEL_RECOMMENDATION`
 - optimization objective: `MINIMIZE_EXPECTED_USER_TOKEN_COST`
+- evaluated pair count: `12/12`
 - recommended model
 - recommended reasoning level
 - task classification
 - risk level: `low`, `medium`, `high`, or `critical`
 - analyzed factors
+- pair evaluation matrix
+- sufficient pairs
+- rejected pairs
+- non-dominated frontier
 - cheapest plausible candidate
 - cheapest rejected candidate
 - concrete rejection failure mode
@@ -192,6 +197,12 @@ Return all of the following:
 - overprovisioning check
 - why weaker options are insufficient
 - why stronger options are unnecessary or unavailable
+- same-model lower-reasoning comparison
+- same-model higher-reasoning comparison
+- weaker-model same-reasoning comparison
+- stronger-model same-reasoning comparison
+- weaker-model higher-reasoning comparison
+- stronger-model lower-reasoning comparison
 - final recommendation
 - confidence: `low`, `medium`, or `high`
 - actual active model: `USER_SELECTED_UNVERIFIED`
@@ -235,6 +246,8 @@ It must also separate:
 - capability bottleneck from reasoning bottleneck
 - first-attempt cost from expected retry cost
 
+When the selected pair sits at the weakest available model-family boundary, the weaker-model same-reasoning comparison and weaker-model higher-reasoning comparison fields must be `UNAVAILABLE`; do not substitute a same-family neighbor into either field.
+
 The report must return `OVERPROVISIONED_RECOMMENDATION` if the proposed model or reasoning level lacks a concrete justification against the next cheaper plausible candidate.
 
 ### Cost frontier rules
@@ -262,6 +275,8 @@ For each task, assess the relevant frontier among combinations such as:
 - `GPT-5.5 / Extra High`
 
 The selector does not need to print every irrelevant combination, but it must not omit a cheaper plausible alternative that could perform the task reliably.
+
+Any `first-pass cost` values in the pair evaluation matrix must use only `low`, `medium`, `high`, or `highest`.
 
 ### Escalation criteria
 
