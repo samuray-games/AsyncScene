@@ -18,8 +18,8 @@ publishRoot: docs
 - This is the canonical compiled alpha lexicon document for Step 4.3.7.
 - Alpha is derived from Zoomer and remains a text/profile layer only.
 - This document reconciles the accepted Step 4.3.1 through Step 4.3.6 alpha artifacts.
-- source inventory: 164 entries, 122 unique texts
-- allowed lexicon: 187 entries, 8 categories
+- source inventory: 174 entries, 152 unique texts
+- allowed lexicon: 206 entries, 8 categories
 - taboo list: 60 entries, 4 categories
 - Zoomer/Gen Z source mappings: 23
 - mapping coverage: 100%
@@ -47,7 +47,7 @@ publishRoot: docs
 
 - Canonical list: `docs/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md`
 - Runtime mirror: `AsyncScene/Web/UI_PROFILE_ALPHA_ALLOWED_LEXICON.md`
-- allowed lexicon: 187 entries, 8 categories
+- allowed lexicon: 206 entries, 8 categories
 - Categories:
   - `core_ui_nouns`
   - `gameplay_nouns`
