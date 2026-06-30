@@ -27691,8 +27691,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       "## Source references"
     ]);
     const REQUIRED_COUNTS = Object.freeze([
-      "source inventory: 164 entries, 122 unique texts",
-      "allowed lexicon: 187 entries, 8 categories",
+      "source inventory: 174 entries, 152 unique texts",
+      "allowed lexicon: 206 entries, 8 categories",
       "taboo list: 60 entries, 4 categories",
       "Zoomer/Gen Z source mappings: 23",
       "mapping coverage: 100%",
@@ -27705,6 +27705,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       "changed new-feature mappings: 66",
       "identity new-feature mappings: 7",
       "target taboo hits: 0"
+    ]);
+    const REQUIRED_EXTENSION_MARKERS = Object.freeze([
+      "inventory extension rows: `TXT_0165` through `TXT_0174`",
+      "allowed lexicon extension rows: `ALX_0188` through `ALX_0206`",
+      "The Step 6.4 published reputation strings are preserved exactly."
     ]);
     const ACCEPTED_SMOKES = Object.freeze([
       "Game.__DEV.smokeAlphaLexiconInventoryFix5()",
@@ -27874,6 +27879,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
             && manifest.alphaDocumentRequiredCountsPresent === true
             && result.presentRequiredSectionCount === result.requiredSectionCount
             && result.passedRequiredCountCheckCount === result.requiredCountCheckCount
+            && includesAll(alphaText, REQUIRED_EXTENSION_MARKERS)
             && result.acceptedSmokeReferencesPresent === true
             && result.invariantsPresent === true
             && alphaText.includes("Game.__DEV.smokeAlphaLexiconDocsFix1()")
@@ -27892,6 +27898,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           if (manifest.alphaDocumentRequiredCountsPresent !== true) fail("required_counts_manifest_missing");
           if (result.presentRequiredSectionCount !== result.requiredSectionCount) fail("required_sections_missing", { present: result.presentRequiredSectionCount, expected: result.requiredSectionCount });
           if (result.passedRequiredCountCheckCount !== result.requiredCountCheckCount) fail("required_counts_missing", { present: result.passedRequiredCountCheckCount, expected: result.requiredCountCheckCount });
+          if (!includesAll(alphaText, REQUIRED_EXTENSION_MARKERS)) fail("required_extension_markers_missing");
           if (result.acceptedSmokeReferenceCount !== ACCEPTED_SMOKES.length) fail("accepted_smoke_reference_count", result.acceptedSmokeReferenceCount);
           if (!result.acceptedSmokeReferencesPresent) fail("accepted_smoke_references_missing");
           if (!result.invariantsPresent) fail("invariants_missing");
