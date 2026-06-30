@@ -9,7 +9,7 @@
 - source baseline: Step 4.3.1 inventory
 
 ## Contract
-- lexiconEntryCount: 187
+- lexiconEntryCount: 206
 - categoryCount: 8
 - duplicateExactEntryCount: 0
 - protectedTokensCaseSensitive: true
@@ -18,11 +18,11 @@
 
 ## Categories
 - core_ui_nouns: 20
-- gameplay_nouns: 26
-- action_verbs: 38
-- status_terms: 24
+- gameplay_nouns: 32
+- action_verbs: 46
+- status_terms: 25
 - risk_constraint_terms: 12
-- neutral_service_words: 29
+- neutral_service_words: 33
 - short_forms: 12
 - protected_tokens: 26
 
@@ -216,6 +216,25 @@
 | ALX_0185 | protected_tokens | {target} |
 | ALX_0186 | protected_tokens | {teacher} |
 | ALX_0187 | protected_tokens | {text} |
+| ALX_0188 | gameplay_nouns | репа |
+| ALX_0189 | action_verbs | подросла |
+| ALX_0190 | action_verbs | просела |
+| ALX_0191 | neutral_service_words | по |
+| ALX_0192 | gameplay_nouns | репе |
+| ALX_0193 | neutral_service_words | без |
+| ALX_0194 | gameplay_nouns | движухи |
+| ALX_0195 | neutral_service_words | тебя |
+| ALX_0196 | action_verbs | начали |
+| ALX_0197 | action_verbs | респектить |
+| ALX_0198 | gameplay_nouns | респект |
+| ALX_0199 | action_verbs | просел |
+| ALX_0200 | neutral_service_words | косо |
+| ALX_0201 | action_verbs | смотрят |
+| ALX_0202 | gameplay_nouns | весу |
+| ALX_0203 | status_terms | тонкая |
+| ALX_0204 | action_verbs | отлипла |
+| ALX_0205 | gameplay_nouns | репу |
+| ALX_0206 | action_verbs | помяло |
 
 Protected tokens are case-sensitive.
 These are distinct:

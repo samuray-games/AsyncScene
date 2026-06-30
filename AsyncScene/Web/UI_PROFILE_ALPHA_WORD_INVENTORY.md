@@ -4,12 +4,12 @@
 - source inventory only, no replacements
 
 ## Coverage Summary
-- entryCount: 164
-- uniqueTextCount: 122
-- scannedFileCount: 26
+- entryCount: 174
+- uniqueTextCount: 152
+- scannedFileCount: 9
 - requiredCategoriesMissing: []
 - toastEntryCount: 24
-- duplicateTextDifferentSourcesCount: 8
+- duplicateTextDifferentSourcesCount: 11
 
 ## Categories Covered
 - start_screen
@@ -208,6 +208,16 @@ TXT_0161 | toast | menu_unavailable | menu_unavailable | Недоступно. |
 TXT_0162 | toast | menu_unavailable | menu_unavailable_again | Недоступно. | AsyncScene/Web/ui/ui-menu.js:568 | resolver | shared | dynamic:no | vars: | notes:menu lottery toast
 TXT_0163 | toast | menu_unavailable | menu_unavailable_notify | Недоступно. | AsyncScene/Web/ui/ui-menu.js:581 | resolver | shared | dynamic:no | vars: | notes:menu lottery toast
 TXT_0164 | toast | events_vote | vote_not_enough_points | Не хватает 💰. | AsyncScene/Web/ui/ui-events.js:897 | literal | shared | dynamic:no | vars: | notes:duplicate runtime source
+TXT_0165 | respect | system_profile_text | reputation_increased | Репа подросла. | docs/system.js:209 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0166 | respect | system_profile_text | reputation_decreased | Репа просела. | docs/system.js:210 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0167 | respect | system_profile_text | reputation_unchanged | По репе без движухи. | docs/system.js:211 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0168 | respect | system_profile_text | respect_gained | Тебя начали респектить. | docs/system.js:212 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0169 | respect | system_profile_text | respect_lost | Респект просел. | docs/system.js:213 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0170 | respect | system_profile_text | disrespect_event | На тебя косо смотрят. | docs/system.js:214 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0171 | respect | system_profile_text | reputation_high | Репа на весу. | docs/system.js:215 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0172 | respect | system_profile_text | reputation_low | Репа тонкая. | docs/system.js:216 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0173 | respect | system_profile_text | reputation_recovered | Репа отлипла. | docs/system.js:217 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
+TXT_0174 | respect | system_profile_text | reputation_damaged | Репу помяло. | docs/system.js:218 | data_map | zoomer | dynamic:no | vars: | notes:step6.4 served source
 ```
 
 ## Alpha Lexicon Extraction
@@ -216,7 +226,7 @@ TXT_0164 | toast | events_vote | vote_not_enough_points | Не хватает �
 - Emoji/resource tokens preserved as tokens.
 
 ### Russian Words
-активен, Андер, андере, Аргумент, аргументы, баттл, Баттл, без, ближе, большинству, бросил, будто, был, было, в, вам, Введи, Ввод, виден, Вмешался, возврат, Войти, ВПИСЫВАЙСЯ, время, Все, вторую, Вы, Выбери, выбор, вывез, вызов, Вызов, где, Где, говорят, года, Голос, Готово, да, Да, Дай, дальше, деле, дело, Дистанция, для, Для, Драма, душноты, если, за, забрал, завершён, завершился, задаёт, займет, закрыта, Занялся, Занят, запрошен, Здесь, зовёт, зря, и, Игрок, игрока, идем, или, ИМЯ, интерфейса, Используйте, исчерпан, итог, Итог, К, кажется, Кажется, как, ком, конвертировать, контролем, конфликт, Конфликт, конфликте, Коп, кошелек, Кошелек, Красные, кто, Кто, Кулдаун, лимит, Лимит, Мало, Мейн, мейне, Меню, могу, Можно, мы, на, наблюдаю, найден, найдено, не, Не, НЕ, неделе, недоступно, Недоступно, некорректен, нет, ник, ничьей, ничья, Ничья, о, ого, ОК, Опасная, Оппонент, Оранжевые, остаток, Ответь, отвечай, отдал, открыты, оформляю, ошибаюсь, паузу, первую, персонажу, плати, Победа, победили, победителю, Погнали, под, подтвердилось, позже, пока, получила, получилось, поменять, Понял, Пополните, Попробуй, Поражение, Последние, Правила, Принял, принят, принята, Принято, про, Про, Проверка, Проверяю, проголосовал, Продолжить, проиграли, просел, пути, работает, Разберусь, Рано, расследованием, реванш, Реванш, ресурс, решает, Решим, риск, родился, рождения, рядом, с, самом, сбросили, Сбросить, Свалить, связи, связь, сдан, Сдать, Сдача, сегодня, сейчас, Сейчас, Ситуация, слабый, Слабый, слуху, Снести, Сообщение, сохраняем, сошлась, сошлись, списывает, спокойнее, сразу, Ставка, старт, Старт, старту, Суть, Такого, тебе, Тише, Толпа, ТОЛПА, Только, точка, точный, Ты, ТЫКНИ, уважение, уважения, Увеличить, уверены, уже, Уже, УЖЕ, указан, Уменьшить, уходи, учтён, Факт, фактов, Факты, хватает, ход, Цель, Цена, Цепочка, цифру, цифры, Чёрные, чтобы, чувствую, Штраф, шум, шумели, экипаж, этой, этому, я, Я
+активен, Андер, андере, Аргумент, аргументы, баттл, Баттл, без, ближе, большинству, бросил, будто, был, было, в, вам, Введи, Ввод, весу, виден, Вмешался, возврат, Войти, ВПИСЫВАЙСЯ, время, Все, вторую, Вы, Выбери, выбор, вывез, вызов, Вызов, где, Где, говорят, года, Голос, Готово, да, Да, Дай, дальше, деле, дело, движухи, Дистанция, для, Для, Драма, душноты, если, за, забрал, завершён, завершился, задаёт, займет, закрыта, Занялся, Занят, запрошен, Здесь, зовёт, зря, и, Игрок, игрока, идем, или, ИМЯ, интерфейса, Используйте, исчерпан, итог, Итог, К, кажется, Кажется, как, ком, конвертировать, контролем, конфликт, Конфликт, конфликте, Коп, косо, кошелек, Кошелек, Красные, кто, Кто, Кулдаун, лимит, Лимит, Мало, Мейн, мейне, Меню, могу, Можно, мы, на, На, начали, наблюдаю, найден, найдено, не, Не, НЕ, неделе, недоступно, Недоступно, некорректен, нет, ник, ничьей, ничья, Ничья, о, ого, ОК, Опасная, Оппонент, Оранжевые, остаток, Ответь, отвечай, отдал, отлипла, открыты, оформляю, ошибаюсь, паузу, первую, персонажу, плати, Победа, победили, победителю, По, под, подросла, Погнали, подтвердилось, позже, пока, получила, получилось, поменять, помяло, Понял, Пополните, Попробуй, Поражение, Последние, Правила, Принял, принят, принята, Принято, про, Про, Проверка, Проверяю, проголосовал, Продолжить, проиграли, просел, просела, пути, работает, Репа, репе, Репу, Решим, ресурс, решает, респектить, Респект, риск, родился, рождения, рядом, с, самом, сбросили, Сбросить, Свалить, связи, связь, сдан, Сдать, Сдача, сегодня, сейчас, Сейчас, Ситуация, слабый, Слабый, слуху, Снести, Сообщение, сохраняем, сошлась, сошлись, смотрят, списывает, спокойнее, сразу, Ставка, старт, Старт, старту, Суть, Такого, тебя, Тебя, тебе, Тише, тонкая, Толпа, ТОЛПА, Только, точка, точный, Ты, ТЫКНИ, уважение, уважения, Увеличить, уверены, уже, Уже, УЖЕ, указан, Уменьшить, уходи, учтён, Факт, фактов, Факты, хватает, ход, Цель, Цена, Цепочка, цифру, цифры, Чёрные, чтобы, чувствую, Штраф, шум, шумели, экипаж, этой, этому, я, Я
 
 ### English Words
 A, AsyncScene, B, Cap, DRAW, Dev, Incorrect, Mode, PIN, Points, RIP, WIN, cap, device, disabled, max, on, this, unlocked
@@ -248,9 +258,9 @@ A, AsyncScene, B, Cap, DRAW, Dev, Incorrect, Mode, PIN, Points, RIP, WIN, cap, d
 - forbiddenRemaining:[]
 - missingCoverage:[]
 - failedChecks:[]
-- entryCount === 164
-- uniqueTextCount === 122
-- every TXT_0001 through TXT_0164 present exactly once
+- entryCount === 174
+- uniqueTextCount === 152
+- every TXT_0001 through TXT_0174 present exactly once
 - every entry has currentText, sourceFile, sourceLine, category, surface, key, profile
 - all categories covered
 - no replacement text added
