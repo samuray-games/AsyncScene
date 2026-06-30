@@ -86,7 +86,10 @@ Each failure must be classified into exactly one primary class:
 - `retryable_failure`
 - `corrective_action_required`
 - `scope_revalidation_required`
-- `lock_conflict`
+- `lock_missing`
+- `lock_expired`
+- `lock_revalidation_required`
+- `active_lock_conflict`
 - `runtime_approval_required`
 - `user_action_required`
 - `external_dependency_block`
@@ -99,7 +102,10 @@ Each failure must be classified into exactly one primary class:
 - `retryable_failure`: the same exact action may be tried again without changing scope or artifact identity.
 - `corrective_action_required`: the failure requires an explicit content, evidence, wiring, or configuration correction before the same stage can continue.
 - `scope_revalidation_required`: the authorized scope, artifact identity, or ownership boundary changed and must be revalidated before further progress.
-- `lock_conflict`: a workspace or ownership lock is missing, stale, expired, or held by another owner.
+- `lock_missing`: no valid active workspace lock exists for the exact write scope, and no conflicting owner is necessarily present.
+- `lock_expired`: a previously valid lock exists, but its expiry time has passed.
+- `lock_revalidation_required`: lock identity, owner, scope, revision, or status is stale, ambiguous, malformed, or mismatched.
+- `active_lock_conflict`: another current ACTIVE lock overlaps the intended write scope or serialized ownership group.
 - `runtime_approval_required`: the failure cannot proceed until runtime approval exists for the exact sensitive scope.
 - `user_action_required`: the next action depends on user-owned evidence, user acceptance, or another user-only step.
 - `external_dependency_block`: the workflow is blocked by an unavailable external dependency, service, or environment prerequisite.
@@ -115,8 +121,11 @@ The next action must be one of:
 
 - `retry`
 - `retry_with_correction`
-- `revalidate_scope`
-- `wait_for_lock`
+- `ACQUIRE_LOCK_REQUIRED`
+- `REACQUIRE_LOCK_REQUIRED`
+- `LOCK_REVALIDATION_REQUIRED`
+- `WAITING_ON_LOCK`
+- `SCOPE_REVALIDATION_REQUIRED`
 - `wait_for_runtime_approval`
 - `wait_for_user`
 - `wait_for_dependency`
@@ -130,14 +139,27 @@ The next action must be one of:
 
 - `retryable_failure` -> `retry`
 - `corrective_action_required` -> `retry_with_correction`
-- `scope_revalidation_required` -> `revalidate_scope`
-- `lock_conflict` -> `wait_for_lock`
+- `scope_revalidation_required` -> `SCOPE_REVALIDATION_REQUIRED`
+- `lock_missing` -> `ACQUIRE_LOCK_REQUIRED`
+- `lock_expired` -> `REACQUIRE_LOCK_REQUIRED`
+- `lock_revalidation_required` -> `LOCK_REVALIDATION_REQUIRED`
+- `active_lock_conflict` -> `WAITING_ON_LOCK`
 - `runtime_approval_required` -> `wait_for_runtime_approval`
 - `user_action_required` -> `wait_for_user`
 - `external_dependency_block` -> `wait_for_dependency`
 - `terminal_failure` -> `terminate`
 - `cancellation` -> `cancel`
 - `superseded_attempt` -> `restart`
+
+### Lock routing rules
+
+- `scope_revalidation_required` -> `SCOPE_REVALIDATION_REQUIRED` when the lock question is caused by a changed or unresolved scope rather than a lock-state defect.
+- A valid exact-scope ACTIVE lock with no overlap is not a failure and must continue without corrective lock routing.
+- The four lock conditions must remain mutually distinguishable:
+  - no lock exists -> `lock_missing`
+  - a prior lock expired -> `lock_expired`
+  - lock evidence is stale or unverifiable -> `lock_revalidation_required`
+  - another ACTIVE lock conflicts -> `active_lock_conflict`
 
 ### Determinism rules
 
@@ -257,7 +279,8 @@ The routing boundary between restart and resume is explicit.
 
 - A valid lock must be preserved only while the owned scope remains unchanged and the lock remains current.
 - A lock must be revalidated when ownership, scope, or timing changes.
-- An expired or conflicting lock must route to `wait_for_lock` or `scope_revalidation_required`.
+- An expired or conflicting lock must not be collapsed into a generic catch-all.
+- A valid exact-scope ACTIVE lock with no overlap is not a failure and must not trigger corrective routing.
 
 ### Model selection
 
@@ -313,6 +336,19 @@ Auditability requires the record to preserve:
 - loop count
 - affected identities
 
+For every lock-related failure, the record must also preserve:
+
+- relevant lock ID, when one exists
+- lock owner, when known
+- requested scope
+- conflicting or mismatched scope
+- observed status
+- observed expiry
+- detector identity
+- detection timestamp
+- selected route
+- reason the other lock routes were not selected
+
 ## 12. Fail-closed behavior
 
 Unknown, malformed, contradictory, stale, or ambiguous failure states must fail closed.
@@ -323,7 +359,7 @@ Unknown, malformed, contradictory, stale, or ambiguous failure states must fail 
 - If the failure reason is contradictory, route to `block`.
 - If the artifact identity is unresolved, route to `scope_revalidation_required` or `block` depending on whether identity can be recovered safely.
 - If evidence ownership is unclear, route to `block`.
-- If the lock state cannot be trusted, route to `wait_for_lock` or `block`.
+- If the lock state cannot be trusted, route to `LOCK_REVALIDATION_REQUIRED` or `block`.
 - If runtime approval is required but absent, route to `wait_for_runtime_approval`.
 - If the state is superseded, route to `restart`.
 - If the failure state is terminal, do not retry.
@@ -343,7 +379,10 @@ This contract must route at least the following cases:
 - stale evidence -> `scope_revalidation_required`
 - artifact identity mismatch -> `scope_revalidation_required`
 - verifier identity failure -> `terminal_failure`
-- lock conflict or expired lock -> `lock_conflict`
+- no lock exists -> `lock_missing`
+- prior lock expired -> `lock_expired`
+- lock evidence is stale, unverifiable, or mismatched -> `lock_revalidation_required`
+- another ACTIVE lock overlaps the scope -> `active_lock_conflict`
 - runtime approval missing or invalidated -> `runtime_approval_required`
 - scope expansion -> `scope_revalidation_required`
 - dependency unavailable -> `external_dependency_block`
@@ -391,6 +430,7 @@ Return all of these fields:
 - bounded-loop rules
 - preservation rules
 - invalidation rules
+- lock-related audit fields
 - assumptions
 - confidence
 - exact next user action
