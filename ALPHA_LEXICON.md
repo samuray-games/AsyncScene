@@ -32,6 +32,9 @@ publishRoot: docs
 - changed new-feature mappings: 66
 - identity new-feature mappings: 7
 - target taboo hits: 0
+- inventory extension rows: `TXT_0165` through `TXT_0174`
+- allowed lexicon extension rows: `ALX_0188` through `ALX_0206`
+- The Step 6.4 published reputation strings are preserved exactly.
 
 ## Alpha lexicon rules
 
@@ -108,6 +111,8 @@ publishRoot: docs
 
 ## Runtime acceptance
 
+- Historical Step 4.3.6 aggregate identity is preserved below.
+- The current compiled package extends that accepted base with `TXT_0165` through `TXT_0174` and `ALX_0188` through `ALX_0206`.
 - Accepted smoke references:
   - `Game.__DEV.smokeAlphaLexiconInventoryFix5()`
   - `Game.__DEV.smokeAlphaAllowedLexiconFix1()`
