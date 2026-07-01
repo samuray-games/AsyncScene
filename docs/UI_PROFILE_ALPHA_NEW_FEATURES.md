@@ -112,3 +112,13 @@
 | NFS_0071 | TXT_0156 | economy_ui | AsyncScene/Web/state.js | respect_flow | respect_target_rep | Цель получила +1 ⭐ | Цель: +1⭐ |
 | NFS_0072 | TXT_0160 | timers | AsyncScene/Web/ui/ui-menu.js | menu_lottery | menu_lottery_rano | Рано. Дай паузу. | Пауза |
 | NFS_0073 | TXT_0164 | crowd,economy_ui | AsyncScene/Web/ui/ui-events.js | events_vote | vote_not_enough_points | Не хватает 💰. | Мало 💰 |
+| NFS_0074 | TXT_0165 | respect | docs/system.js | system_profile_text | reputation_increased | Репа подросла. | Репа подросла. |
+| NFS_0075 | TXT_0166 | respect | docs/system.js | system_profile_text | reputation_decreased | Репа просела. | Репа просела. |
+| NFS_0076 | TXT_0167 | respect | docs/system.js | system_profile_text | reputation_unchanged | По репе без движухи. | По репе без движухи. |
+| NFS_0077 | TXT_0168 | respect | docs/system.js | system_profile_text | respect_gained | Тебя начали респектить. | Тебя начали респектить. |
+| NFS_0078 | TXT_0169 | respect | docs/system.js | system_profile_text | respect_lost | Респект просел. | Респект просел. |
+| NFS_0079 | TXT_0170 | respect | docs/system.js | system_profile_text | disrespect_event | На тебя косо смотрят. | На тебя косо смотрят. |
+| NFS_0080 | TXT_0171 | respect | docs/system.js | system_profile_text | reputation_high | Репа на весу. | Репа на весу. |
+| NFS_0081 | TXT_0172 | respect | docs/system.js | system_profile_text | reputation_low | Репа тонкая. | Репа тонкая. |
+| NFS_0082 | TXT_0173 | respect | docs/system.js | system_profile_text | reputation_recovered | Репа отлипла. | Репа отлипла. |
+| NFS_0083 | TXT_0174 | respect | docs/system.js | system_profile_text | reputation_damaged | Репу помяло. | Репу помяло. |
