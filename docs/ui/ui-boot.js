@@ -11776,6 +11776,407 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeBoomerExpansionRuleFix1Once = G.__DEV.smokeBoomerExpansionRuleFix1Once;
     }
+    if (typeof G.__DEV.smokeBoomerStep42B1StartScreenSafe10 !== "function") {
+      const BOOMER_SAFE10_BUILD_TAG = "build_2026_07_02_step4_2_boomer_start_screen_safe10_v1";
+      const BOOMER_SAFE10_COMMIT = "step4_2_boomer_start_screen_safe10_v1";
+      const BOOMER_SAFE10_SMOKE_VERSION = "boomer_step4_2b1_start_screen_safe10_v20260702_001";
+      const BOOMER_SAFE10_IDS = Object.freeze(["TXT_0007", "TXT_0008", "TXT_0009", "TXT_0014", "TXT_0015", "TXT_0016", "TXT_0017", "TXT_0019", "TXT_0021", "TXT_0022"]);
+      const BOOMER_SAFE10_KEYS = Object.freeze(["start_action", "rules_action", "birth_digits_label", "profile_helper", "fantasy_birth_label", "start_continue", "start_start"]);
+      const BOOMER_SAFE10_DUPLICATE_ALIASES = Object.freeze(["TXT_0019 -> TXT_0016", "TXT_0021 -> TXT_0008", "TXT_0022 -> TXT_0007"]);
+      const BOOMER_SAFE10_PROFILES = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
+      const BOOMER_SAFE10_ROWS = Object.freeze([
+        Object.freeze({ id: "TXT_0007", key: "start_action", aliasOf: null }),
+        Object.freeze({ id: "TXT_0008", key: "rules_action", aliasOf: null }),
+        Object.freeze({ id: "TXT_0009", key: "birth_digits_label", aliasOf: null }),
+        Object.freeze({ id: "TXT_0014", key: "fantasy_birth_label", aliasOf: null }),
+        Object.freeze({ id: "TXT_0015", key: "start_continue", aliasOf: null }),
+        Object.freeze({ id: "TXT_0016", key: "profile_helper", aliasOf: null }),
+        Object.freeze({ id: "TXT_0017", key: "start_start", aliasOf: null }),
+        Object.freeze({ id: "TXT_0019", key: "profile_helper", aliasOf: "TXT_0016" }),
+        Object.freeze({ id: "TXT_0021", key: "rules_action", aliasOf: "TXT_0008" }),
+        Object.freeze({ id: "TXT_0022", key: "start_action", aliasOf: "TXT_0007" }),
+      ]);
+      G.__DEV.smokeBoomerStep42B1StartScreenSafe10 = function smokeBoomerStep42B1StartScreenSafe10() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_SAFE10_BUILD_TAG,
+          commit: BOOMER_SAFE10_COMMIT,
+          smokeVersion: BOOMER_SAFE10_SMOKE_VERSION,
+          checkedIds: Array.from(BOOMER_SAFE10_IDS),
+          manifestRows: 10,
+          uniqueRuntimeKeys: 7,
+          requiredChanges: 6,
+          alreadyMatchedIds: ["TXT_0009"],
+          duplicateAliases: Array.from(BOOMER_SAFE10_DUPLICATE_ALIASES),
+          checkedProfiles: Array.from(BOOMER_SAFE10_PROFILES),
+          checkedProfileCount: 0,
+          profileChecks: {},
+          boomerKeyChecks: {},
+          domChecks: {
+            fresh: {},
+            resume: {},
+          },
+          stateRestored: false,
+          failures: [],
+          missingCoverage: [],
+          failedChecks: [],
+          duplicateKeyConflicts: [],
+          stateRestoreFailures: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const miss = (code, detail) => {
+          if (result.missingCoverage.indexOf(code) < 0) result.missingCoverage.push(code);
+          if (detail !== undefined) fail("missing_coverage", { code, detail });
+        };
+        const G = window.Game || {};
+        const D = G.Data || null;
+        const UI = typeof getUI === "function" ? getUI() : null;
+        const stateTargets = [UI && UI.S, G.__S, G.State].filter((state, index, list) => state && list.indexOf(state) === index);
+        const boomerExpected = Object.freeze({
+          start_action: "Начать игру",
+          rules_action: "Правила игры",
+          birth_digits_label: "Последние две цифры года рождения",
+          profile_helper: "Эти данные используются только для настройки интерфейса. Они не сохраняются. Вы сможете изменить их позже.",
+          fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
+          start_continue: "Продолжить настройку",
+          start_start: "Начать игру",
+        });
+        const nonBoomerExpected = Object.freeze({
+          default: Object.freeze({
+            start_action: String((((D && D.START_SCREEN) || {}).actions || {}).start == null ? "" : D.START_SCREEN.actions.start),
+            rules_action: String((((D && D.START_SCREEN) || {}).actions || {}).rules == null ? "" : D.START_SCREEN.actions.rules),
+            birth_digits_label: "Последние 2 цифры года рождения",
+            profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+            fantasy_birth_label: "Кажется, я родился в …",
+            start_continue: "Продолжить",
+            start_start: "Старт",
+          }),
+          millennial: Object.freeze({
+            start_action: String((((D && D.START_SCREEN) || {}).actions || {}).start == null ? "" : D.START_SCREEN.actions.start),
+            rules_action: String((((D && D.START_SCREEN) || {}).actions || {}).rules == null ? "" : D.START_SCREEN.actions.rules),
+            birth_digits_label: "Последние 2 цифры года рождения",
+            profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+            fantasy_birth_label: "Кажется, я родился в …",
+            start_continue: "Продолжить",
+            start_start: "Старт",
+          }),
+          zoomer: Object.freeze({
+            start_action: "Войти",
+            rules_action: "Правила коротко",
+            birth_digits_label: "Две цифры вайба",
+            profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
+            fantasy_birth_label: "по вайбу я родился в …",
+            start_continue: "Погнали",
+            start_start: "Старт",
+          }),
+          alpha: Object.freeze({
+            start_action: "Войти",
+            rules_action: "Правила коротко",
+            birth_digits_label: "Две цифры вайба",
+            profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
+            fantasy_birth_label: "по вайбу я родился в …",
+            start_continue: "Погнали",
+            start_start: "Старт",
+          }),
+        });
+        const originalLocalStorage = (() => {
+          try {
+            return window.localStorage || null;
+          } catch (_) {
+            return null;
+          }
+        })();
+        const localStorageWriteAttempts = [];
+        const restoreLocalStorage = (() => {
+          if (!originalLocalStorage) return () => {};
+          const originalSetItem = originalLocalStorage.setItem ? originalLocalStorage.setItem.bind(originalLocalStorage) : null;
+          const originalRemoveItem = originalLocalStorage.removeItem ? originalLocalStorage.removeItem.bind(originalLocalStorage) : null;
+          const originalClear = originalLocalStorage.clear ? originalLocalStorage.clear.bind(originalLocalStorage) : null;
+          try {
+            if (originalSetItem) originalLocalStorage.setItem = function(key, value) { localStorageWriteAttempts.push({ method: "setItem", key: String(key || ""), value: String(value || "") }); };
+            if (originalRemoveItem) originalLocalStorage.removeItem = function(key) { localStorageWriteAttempts.push({ method: "removeItem", key: String(key || "") }); };
+            if (originalClear) originalLocalStorage.clear = function() { localStorageWriteAttempts.push({ method: "clear" }); };
+          } catch (_) {
+            localStorageWriteAttempts.push({ method: "patch_failed" });
+            return () => {};
+          }
+          return () => {
+            try {
+              if (originalSetItem) originalLocalStorage.setItem = originalSetItem;
+              if (originalRemoveItem) originalLocalStorage.removeItem = originalRemoveItem;
+              if (originalClear) originalLocalStorage.clear = originalClear;
+            } catch (_) {}
+          };
+        })();
+        const clone = (value) => {
+          if (value === undefined) return undefined;
+          try {
+            return JSON.parse(JSON.stringify(value));
+          } catch (_) {
+            return value;
+          }
+        };
+        const readProfile = () => {
+          if (D && typeof D.getUiProfile === "function") return String(D.getUiProfile() || "default");
+          return D && typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "default";
+        };
+        const writeProfile = (profile) => {
+          if (D && typeof D.setUiProfile === "function") D.setUiProfile(profile);
+          else if (D && typeof D === "object") D.UI_PROFILE = profile;
+        };
+        const setResumeMode = (resumeMode) => {
+          stateTargets.forEach((state) => {
+            state.progress = state.progress || {};
+            state.progress.onboardingSeen = !!resumeMode;
+          });
+        };
+        const setUiProfileFlags = (profile) => {
+          stateTargets.forEach((state) => {
+            state.flags = state.flags || {};
+            state.flags.uiProfile = profile;
+          });
+        };
+        const collectStartRoots = () => {
+          const roots = [];
+          const seen = new Set();
+          const add = (node) => {
+            if (!node || seen.has(node)) return;
+            seen.add(node);
+            roots.push(node);
+          };
+          add(document.getElementById("startScreen"));
+          add(document.getElementById("startCard"));
+          add(document.body);
+          add(document);
+          return roots;
+        };
+        const resolveStartScope = () => {
+          const roots = collectStartRoots();
+          const activeRoot = roots.find((root) => root && root.classList && root.classList.contains("active") && !root.hidden)
+            || roots.find((root) => root && !root.hidden)
+            || roots[0]
+            || null;
+          const scope = activeRoot && typeof activeRoot.querySelector === "function" ? activeRoot : document;
+          return {
+            root: activeRoot,
+            scope,
+            titleEl: scope.querySelector ? (scope.querySelector("#startTitle") || document.getElementById("startTitle")) : document.getElementById("startTitle"),
+            labelEl: scope.querySelector ? (scope.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel")) : document.getElementById("startBirthYearLabel"),
+            pickerEl: scope.querySelector ? (scope.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker")) : document.getElementById("startBirthYearPicker"),
+            hintEl: scope.querySelector ? (scope.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint")) : document.getElementById("startBirthYearHint"),
+            feelingEl: scope.querySelector ? (scope.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel")) : document.getElementById("startBirthYearFeelingLabel"),
+            startBtn: scope.querySelector ? (scope.querySelector("#btnStart") || document.getElementById("btnStart")) : document.getElementById("btnStart"),
+            rulesBtn: scope.querySelector ? (scope.querySelector("#btnRules") || document.getElementById("btnRules")) : document.getElementById("btnRules"),
+            resetBtn: scope.querySelector ? (scope.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding")) : document.getElementById("btnResetOnboarding"),
+          };
+        };
+        const domSelectors = ["#startTitle", "#startBirthYearLabel", "#startBirthYearPicker", "#startBirthYearHint", "#startBirthYearFeelingLabel", "#btnStart", "#btnRules", "#btnResetOnboarding"];
+        const domSnapshot = domSelectors.map((selector) => ({
+          selector,
+          nodes: Array.from(document.querySelectorAll(selector)).map((node) => ({
+            node,
+            textContent: node.textContent,
+            title: node.getAttribute("title"),
+            ariaLabel: node.getAttribute("aria-label"),
+          })),
+        }));
+        const stateSnapshot = {
+          uiProfile: readProfile(),
+          textMode: D && typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "",
+          states: stateTargets.map((state) => ({
+            state,
+            flags: clone(state.flags),
+            progress: clone(state.progress),
+            save: clone(state.save),
+          })),
+        };
+        const restoreDom = () => {
+          domSnapshot.forEach((entry) => {
+            entry.nodes.forEach((snap) => {
+              if (!snap.node) return;
+              snap.node.textContent = snap.textContent;
+              if (snap.title == null) snap.node.removeAttribute("title");
+              else snap.node.setAttribute("title", snap.title);
+              if (snap.ariaLabel == null) snap.node.removeAttribute("aria-label");
+              else snap.node.setAttribute("aria-label", snap.ariaLabel);
+            });
+          });
+        };
+        const verifyDomRestored = () => domSnapshot.every((entry) => entry.nodes.every((snap) => {
+          if (!snap.node) return true;
+          return snap.node.textContent === snap.textContent
+            && snap.node.getAttribute("title") === snap.title
+            && snap.node.getAttribute("aria-label") === snap.ariaLabel;
+        }));
+        const renderForProfile = (profile, resumeMode) => {
+          writeProfile(profile);
+          setUiProfileFlags(profile);
+          if (D && typeof D === "object") D.TEXT_MODE = profile === "alpha" ? "alpha" : (profile === "zoomer" ? "zoomer" : "millennial");
+          setResumeMode(resumeMode);
+          const startScope = resolveStartScope();
+          if (!startScope.root || !startScope.titleEl || !startScope.labelEl || !startScope.pickerEl || !startScope.hintEl || !startScope.feelingEl || !startScope.startBtn || !startScope.rulesBtn || !startScope.resetBtn) {
+            miss("start_screen_dom_missing", {
+              root: !!startScope.root,
+              titleEl: !!startScope.titleEl,
+              labelEl: !!startScope.labelEl,
+              pickerEl: !!startScope.pickerEl,
+              hintEl: !!startScope.hintEl,
+              feelingEl: !!startScope.feelingEl,
+              startBtn: !!startScope.startBtn,
+              rulesBtn: !!startScope.rulesBtn,
+              resetBtn: !!startScope.resetBtn,
+            });
+            return startScope;
+          }
+          collectStartRoots().forEach((root) => {
+            if (root && typeof root.querySelector === "function") {
+              syncStartScreenRootTexts(root, UI, profile);
+            }
+          });
+          return resolveStartScope();
+        };
+        try {
+          if (!D || typeof D.resolveStartScreenText !== "function") fail("missing_coverage", { code: "start_screen_resolver_missing" });
+          if (typeof syncStartScreenRootTexts !== "function") fail("missing_coverage", { code: "sync_start_screen_root_texts_missing" });
+          result.checkedProfileCount = BOOMER_SAFE10_PROFILES.length;
+
+          BOOMER_SAFE10_PROFILES.forEach((profile) => {
+            const expectedMap = profile === "boomer" ? boomerExpected : nonBoomerExpected[profile];
+            if (!expectedMap) {
+              miss("expected_profile_missing", profile);
+              return;
+            }
+            result.profileChecks[profile] = {};
+            BOOMER_SAFE10_KEYS.forEach((key) => {
+              const actual = D && typeof D.resolveStartScreenText === "function" ? String(D.resolveStartScreenText(key, profile) || "") : "";
+              const expected = expectedMap[key];
+              const ok = actual === expected;
+              const leak = profile !== "boomer" && actual === boomerExpected[key] && expected !== boomerExpected[key];
+              result.profileChecks[profile][key] = { expected, actual, ok, leakedBoomerText: leak };
+              if (profile === "boomer") {
+                result.boomerKeyChecks[key] = { expected, actual, ok };
+                if (!actual) fail("boomer_key_missing", { key, expected });
+                else if (!ok) fail("boomer_text_mismatch", { key, expected, actual });
+              } else {
+                if (!ok) fail("non_boomer_regression", { profile, key, expected, actual });
+                if (leak) fail("non_boomer_regression", { profile, key, expected, actual, reason: "boomer_text_leaked" });
+              }
+            });
+          });
+
+          BOOMER_SAFE10_ROWS.forEach((row) => {
+            if (row.aliasOf && !BOOMER_SAFE10_IDS.includes(row.aliasOf)) {
+              result.duplicateKeyConflicts.push({ id: row.id, aliasOf: row.aliasOf, reason: "missing_alias_target" });
+            }
+          });
+          if (JSON.stringify(result.duplicateAliases) !== JSON.stringify(Array.from(BOOMER_SAFE10_DUPLICATE_ALIASES))) {
+            fail("duplicate_alias_mismatch", { expected: Array.from(BOOMER_SAFE10_DUPLICATE_ALIASES), actual: result.duplicateAliases });
+          }
+          if (result.checkedIds.some((id) => BOOMER_SAFE10_IDS.indexOf(id) < 0)) {
+            fail("unexpected_manifest_id", result.checkedIds);
+          }
+
+          let startScope = renderForProfile("boomer", false);
+          if (startScope.startBtn && startScope.rulesBtn && startScope.labelEl && startScope.hintEl && startScope.feelingEl && startScope.pickerEl) {
+            result.domChecks.fresh = {
+              startButtonText: String(startScope.startBtn.textContent || "").trim(),
+              startButtonAria: String(startScope.startBtn.getAttribute("aria-label") || "").trim(),
+              rulesButtonText: String(startScope.rulesBtn.textContent || "").trim(),
+              rulesButtonTitle: String(startScope.rulesBtn.getAttribute("title") || "").trim(),
+              rulesButtonAria: String(startScope.rulesBtn.getAttribute("aria-label") || "").trim(),
+              birthDigitsLabel: String(startScope.labelEl.textContent || "").trim(),
+              profileHelper: String(startScope.hintEl.textContent || "").trim(),
+              fantasyBirthLabel: String(startScope.feelingEl.textContent || "").trim(),
+              birthDigitsAria: String(startScope.pickerEl.getAttribute("aria-label") || "").trim(),
+            };
+            if (result.domChecks.fresh.startButtonText !== boomerExpected.start_action) fail("dom_text_mismatch", { branch: "fresh", field: "#btnStart.textContent", expected: boomerExpected.start_action, actual: result.domChecks.fresh.startButtonText });
+            if (result.domChecks.fresh.startButtonAria !== boomerExpected.start_start) fail("dom_attribute_mismatch", { branch: "fresh", field: "#btnStart[aria-label]", expected: boomerExpected.start_start, actual: result.domChecks.fresh.startButtonAria });
+            if (result.domChecks.fresh.rulesButtonText !== boomerExpected.rules_action) fail("dom_text_mismatch", { branch: "fresh", field: "#btnRules.textContent", expected: boomerExpected.rules_action, actual: result.domChecks.fresh.rulesButtonText });
+            if (result.domChecks.fresh.rulesButtonTitle !== boomerExpected.rules_action) fail("dom_attribute_mismatch", { branch: "fresh", field: "#btnRules[title]", expected: boomerExpected.rules_action, actual: result.domChecks.fresh.rulesButtonTitle });
+            if (result.domChecks.fresh.rulesButtonAria !== boomerExpected.rules_action) fail("dom_attribute_mismatch", { branch: "fresh", field: "#btnRules[aria-label]", expected: boomerExpected.rules_action, actual: result.domChecks.fresh.rulesButtonAria });
+            if (result.domChecks.fresh.birthDigitsLabel !== boomerExpected.birth_digits_label) fail("dom_text_mismatch", { branch: "fresh", field: "#startBirthYearLabel.textContent", expected: boomerExpected.birth_digits_label, actual: result.domChecks.fresh.birthDigitsLabel });
+            if (result.domChecks.fresh.profileHelper !== boomerExpected.profile_helper) fail("dom_text_mismatch", { branch: "fresh", field: "#startBirthYearHint.textContent", expected: boomerExpected.profile_helper, actual: result.domChecks.fresh.profileHelper });
+            if (result.domChecks.fresh.fantasyBirthLabel !== boomerExpected.fantasy_birth_label) fail("dom_text_mismatch", { branch: "fresh", field: "#startBirthYearFeelingLabel.textContent", expected: boomerExpected.fantasy_birth_label, actual: result.domChecks.fresh.fantasyBirthLabel });
+          }
+
+          startScope = renderForProfile("boomer", true);
+          if (startScope.startBtn) {
+            result.domChecks.resume = {
+              startButtonText: String(startScope.startBtn.textContent || "").trim(),
+            };
+            if (result.domChecks.resume.startButtonText !== boomerExpected.start_continue) fail("dom_text_mismatch", { branch: "resume", field: "#btnStart.textContent", expected: boomerExpected.start_continue, actual: result.domChecks.resume.startButtonText });
+          }
+
+          if (localStorageWriteAttempts.length > 0) {
+            fail("state_restore_failed", { reason: "local_storage_write_attempt", writes: localStorageWriteAttempts });
+          }
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        } finally {
+          try {
+            stateSnapshot.states.forEach((entry) => {
+              entry.state.flags = clone(entry.flags);
+              entry.state.progress = clone(entry.progress);
+              entry.state.save = clone(entry.save);
+            });
+            writeProfile(stateSnapshot.uiProfile || "default");
+            if (D && typeof D === "object") D.TEXT_MODE = stateSnapshot.textMode || "";
+            restoreDom();
+            result.stateRestored = readProfile() === (stateSnapshot.uiProfile || "default")
+              && (D && typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "") === (stateSnapshot.textMode || "")
+              && verifyDomRestored();
+            if (!result.stateRestored) {
+              result.stateRestoreFailures.push({
+                uiProfile: readProfile(),
+                expectedUiProfile: stateSnapshot.uiProfile || "default",
+                textMode: D && typeof D.TEXT_MODE === "string" ? D.TEXT_MODE : "",
+                expectedTextMode: stateSnapshot.textMode || "",
+                domRestored: verifyDomRestored(),
+              });
+              fail("state_restore_failed", result.stateRestoreFailures[result.stateRestoreFailures.length - 1]);
+            }
+          } catch (restoreErr) {
+            result.stateRestoreFailures.push(restoreErr && restoreErr.message ? String(restoreErr.message) : String(restoreErr));
+            fail("state_restore_failed", result.stateRestoreFailures[result.stateRestoreFailures.length - 1]);
+          }
+          restoreLocalStorage();
+        }
+        result.ok = result.buildTag === BOOMER_SAFE10_BUILD_TAG
+          && result.commit === BOOMER_SAFE10_COMMIT
+          && result.smokeVersion === BOOMER_SAFE10_SMOKE_VERSION
+          && result.checkedIds.length === 10
+          && JSON.stringify(result.checkedIds) === JSON.stringify(Array.from(BOOMER_SAFE10_IDS))
+          && result.manifestRows === 10
+          && result.uniqueRuntimeKeys === 7
+          && result.requiredChanges === 6
+          && JSON.stringify(result.alreadyMatchedIds) === JSON.stringify(["TXT_0009"])
+          && JSON.stringify(result.duplicateAliases) === JSON.stringify(Array.from(BOOMER_SAFE10_DUPLICATE_ALIASES))
+          && result.checkedProfiles.length === 5
+          && result.checkedProfileCount === 5
+          && BOOMER_SAFE10_KEYS.every((key) => result.boomerKeyChecks[key] && result.boomerKeyChecks[key].ok === true)
+          && BOOMER_SAFE10_PROFILES.every((profile) => result.profileChecks[profile] && BOOMER_SAFE10_KEYS.every((key) => result.profileChecks[profile][key] && result.profileChecks[profile][key].ok === true && (profile === "boomer" || result.profileChecks[profile][key].leakedBoomerText === false)))
+          && result.domChecks.fresh.startButtonText === boomerExpected.start_action
+          && result.domChecks.fresh.startButtonAria === boomerExpected.start_start
+          && result.domChecks.fresh.rulesButtonText === boomerExpected.rules_action
+          && result.domChecks.fresh.rulesButtonTitle === boomerExpected.rules_action
+          && result.domChecks.fresh.rulesButtonAria === boomerExpected.rules_action
+          && result.domChecks.fresh.birthDigitsLabel === boomerExpected.birth_digits_label
+          && result.domChecks.fresh.profileHelper === boomerExpected.profile_helper
+          && result.domChecks.fresh.fantasyBirthLabel === boomerExpected.fantasy_birth_label
+          && result.domChecks.resume.startButtonText === boomerExpected.start_continue
+          && result.stateRestored === true
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0
+          && result.duplicateKeyConflicts.length === 0
+          && result.stateRestoreFailures.length === 0;
+        return result;
+      };
+      G.Dev.smokeBoomerStep42B1StartScreenSafe10 = G.__DEV.smokeBoomerStep42B1StartScreenSafe10;
+    }
     if (typeof G.__DEV.smokeBoomerTermsStep42Rule !== "function") {
       const BOOMER_TERMS_BUILD_TAG = "build_2026_07_02_step4_2_boomer_term_rules_ui_v1";
       const BOOMER_TERMS_COMMIT = "step4_2_boomer_term_rules_ui_v1";
