@@ -10782,7 +10782,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeBoomerTermsStep42Rule !== "function") {
       const BOOMER_TERMS_BUILD_TAG = "build_2026_07_02_step4_2_boomer_term_rules_ui_v1";
       const BOOMER_TERMS_COMMIT = "step4_2_boomer_term_rules_ui_v1";
-      const BOOMER_TERMS_SMOKE_VERSION = "boomer_term_rules_step4_2_v20260702_001";
+      const BOOMER_TERMS_SMOKE_VERSION = "boomer_term_rules_step4_2_v20260702_002";
       const PROFILE_ORDER = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
       const ROWS = Object.freeze([
         Object.freeze({ id: "TXT_0141", helper: "events", field: "voteDisabled", sourceText: "Ты уже проголосовал.", targetText: "Вы уже проголосовали.", sourceCallsite: "ui-events.js disabled-button guard", deployedCallsite: "ui-events.js disabled-button guard", branch: "vote disabled", disambiguation: "same source string as TXT_0142/TXT_0164 is disambiguated by the already-voted branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Недоступно.", alpha: "Недоступно.", boomer: "Вы уже проголосовали." }) }),
