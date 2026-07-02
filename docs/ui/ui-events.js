@@ -8,6 +8,25 @@ window.Game = window.Game || {};
     ? Game.Data.t(key, vars)
     : String(key || "");
   const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
+  const resolveUiMode = () => {
+    const Data = Game.Data || null;
+    const profile = Data && typeof Data.getUiProfile === "function"
+      ? Data.getUiProfile()
+      : ((Data && Data.UI_PROFILE) || "");
+    if (Data && typeof Data.resolveUiTextMode === "function") return Data.resolveUiTextMode(profile);
+    const normalized = String(profile || "").trim().toLowerCase();
+    return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
+  };
+  const isBoomerUiMode = () => resolveUiMode() === "boomer";
+  if (!Game.__DEV) Game.__DEV = {};
+  Game.__DEV.__smokeBoomerTermsStep42Events = function smokeBoomerTermsStep42Events(profile) {
+    const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
+    return {
+      voteDisabled: mode === "boomer" ? "Вы уже проголосовали." : systemSay("errors", "unavailable"),
+      voteNoPoints: mode === "boomer" ? "Недостаточно монет 💰." : "Мало 💰",
+      voteDuplicateNoPoints: mode === "boomer" ? "Недостаточно монет 💰." : "Мало 💰"
+    };
+  };
   const $ = UI.$;
   const escapeHtml = UI.escapeHtml;
   const isDevCrowdMode = (() => {
@@ -836,7 +855,7 @@ window.Game = window.Game || {};
 
           // Disabled button hint: do not run economic checks / toasts
           if (!votingAllowed) {
-            try { showVoteBtnToast(btn, systemSay("errors", "unavailable")); } catch (_) {}
+            try { showVoteBtnToast(btn, isBoomerUiMode() ? "Вы уже проголосовали." : systemSay("errors", "unavailable")); } catch (_) {}
             return;
           }
 
@@ -844,7 +863,7 @@ window.Game = window.Game || {};
             ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            const msg = "Мало 💰";
+            const msg = isBoomerUiMode() ? "Недостаточно монет 💰." : "Мало 💰";
             try { showVoteBtnToast(btn, msg); } catch (_) {}
             try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
@@ -894,8 +913,9 @@ window.Game = window.Game || {};
                 const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
                 if (freshEvent && String(freshEvent.note || "") === "Мало 💰") {
                   setEventNote(e, "Мало 💰");
-                  try { showVoteBtnToast(btn, "Мало 💰"); } catch (_) {}
-                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", "Мало 💰"); } catch(_) {}
+                  const msg = isBoomerUiMode() ? "Недостаточно монет 💰." : "Мало 💰";
+                  try { showVoteBtnToast(btn, msg); } catch (_) {}
+                  try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
                 }
               }
             } catch (_) {}

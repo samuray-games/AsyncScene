@@ -11776,6 +11776,162 @@ window.Game = window.Game || {};
       };
       G.Dev.smokeBoomerExpansionRuleFix1Once = G.__DEV.smokeBoomerExpansionRuleFix1Once;
     }
+    if (typeof G.__DEV.smokeBoomerTermsStep42Rule !== "function") {
+      const BOOMER_TERMS_BUILD_TAG = "build_2026_07_02_step4_2_boomer_term_rules_ui_v1";
+      const BOOMER_TERMS_COMMIT = "step4_2_boomer_term_rules_ui_v1";
+      const BOOMER_TERMS_SMOKE_VERSION = "boomer_term_rules_step4_2_v20260702_001";
+      const PROFILE_ORDER = Object.freeze(["default", "millennial", "zoomer", "alpha"]);
+      const ROWS = Object.freeze([
+        Object.freeze({ id: "TXT_0141", helper: "events", field: "voteDisabled", sourceText: "Ты уже проголосовал.", targetText: "Вы уже проголосовали.", sourceCallsite: "ui-events.js disabled-button guard", deployedCallsite: "ui-events.js disabled-button guard", branch: "vote disabled", disambiguation: "same source string as TXT_0142/TXT_0164 is disambiguated by the already-voted branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Недоступно.", alpha: "Недоступно.", boomer: "Вы уже проголосовали." }) }),
+        Object.freeze({ id: "TXT_0142", helper: "events", field: "voteNoPoints", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-events.js havePts<=0 vote toast", deployedCallsite: "ui-events.js havePts<=0 vote toast", branch: "vote insufficient points", disambiguation: "same source string as TXT_0164 but this row is the no-points vote branch", expected: Object.freeze({ default: "Мало 💰", millennial: "Мало 💰", zoomer: "Мало 💰", alpha: "Мало 💰", boomer: "Недостаточно монет 💰." }) }),
+        Object.freeze({ id: "TXT_0143", helper: "battles", field: "rematchAlreadyRequested", sourceText: "Реванш уже запрошен.", targetText: "Повторный спор уже запрошен.", sourceCallsite: "ui-battles.js rematchErrorToast('already_requested')", deployedCallsite: "ui-battles.js rematchErrorToast('already_requested')", branch: "rematch already requested", disambiguation: "rematch-only branch, distinct from not-eligible and not-found fallbacks", expected: Object.freeze({ default: "Реванш: ожидание", millennial: "Реванш: ожидание", zoomer: "Реванш: ожидание", alpha: "Реванш: ожидание", boomer: "Повторный спор уже запрошен." }) }),
+        Object.freeze({ id: "TXT_0144", helper: "battles", field: "rematchNotEligible", sourceText: "Недоступно. Баттл не завершён.", targetText: "Повторный спор недоступен: текущий спор ещё не завершён.", sourceCallsite: "ui-battles.js rematchErrorToast('not_eligible')", deployedCallsite: "ui-battles.js rematchErrorToast('not_eligible')", branch: "rematch not eligible", disambiguation: "same prefix as TXT_0145, but this branch is for unresolved battles only", expected: Object.freeze({ default: "Недоступно. Конфликт: активно", millennial: "Недоступно. Конфликт: активно", zoomer: "Недоступно. Конфликт: активно", alpha: "Недоступно. Конфликт: активно", boomer: "Повторный спор недоступен: текущий спор ещё не завершён." }) }),
+        Object.freeze({ id: "TXT_0145", helper: "battles", field: "rematchNotFound", sourceText: "Недоступно.", targetText: "Повторный спор для этого конфликта недоступен.", sourceCallsite: "ui-battles.js rematchErrorToast('not_found')", deployedCallsite: "ui-battles.js rematchErrorToast('not_found')", branch: "rematch not found", disambiguation: "same source string as TXT_0161/TXT_0162/TXT_0163, disambiguated by rematch lookup failure", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Недоступно.", alpha: "Недоступно.", boomer: "Повторный спор для этого конфликта недоступен." }) }),
+        Object.freeze({ id: "TXT_0146", helper: "battles", field: "choosePlayer", sourceText: "Выбери игрока.", targetText: "Выберите игрока.", sourceCallsite: "ui-battles.js empty-name invite guard", deployedCallsite: "ui-battles.js empty-name invite guard", branch: "battle invite missing player", disambiguation: "invite prompt branch, distinct from lookup failure", expected: Object.freeze({ default: "Выбери игрока.", millennial: "Выбери игрока.", zoomer: "Выбери игрока.", alpha: "Выбери игрока.", boomer: "Выберите игрока." }) }),
+        Object.freeze({ id: "TXT_0147", helper: "battles", field: "targetMissing", sourceText: "Такого нет.", targetText: "Игрок с таким именем не найден.", sourceCallsite: "ui-battles.js target lookup failure", deployedCallsite: "ui-battles.js target lookup failure", branch: "battle invite target missing", disambiguation: "lookup failure branch, distinct from the empty-name guard", expected: Object.freeze({ default: "Такого нет.", millennial: "Такого нет.", zoomer: "Такого нет.", alpha: "Такого нет.", boomer: "Игрок с таким именем не найден." }) }),
+        Object.freeze({ id: "TXT_0148", helper: "battles", field: "cooldownShort", sourceText: "Кулдаун активен.", targetText: "Период ожидания ещё не завершён.", sourceCallsite: "ui-battles.js battle cooldown guard", deployedCallsite: "ui-battles.js battle cooldown guard", branch: "battle invite cooldown", disambiguation: "cooldown branch routed through warnings.cooldownShort", expected: Object.freeze({ default: "Пауза: активно", millennial: "Пауза: активно", zoomer: "Пауза: активно", alpha: "Пауза: активно", boomer: "Период ожидания ещё не завершён." }) }),
+        Object.freeze({ id: "TXT_0149", helper: "battles", field: "insufficientPoints", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-battles.js battle start insufficient-points toast", deployedCallsite: "ui-battles.js battle start insufficient-points toast", branch: "battle start insufficient points", disambiguation: "same source string as TXT_0142/TXT_0150/TXT_0164 but this row is the battle-start failure branch", expected: Object.freeze({ default: "Недостаточно денег.", millennial: "Недостаточно денег.", zoomer: "Кошелёк в нуле 💀", alpha: "Кошелёк в нуле 💀", boomer: "Недостаточно монет 💰." }) }),
+        Object.freeze({ id: "TXT_0150", helper: "dm", field: "respect_no_points", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-dm.js respect-no-points fallback", deployedCallsite: "ui-dm.js respect-no-points fallback", branch: "respect no points", disambiguation: "same source string as TXT_0142/TXT_0149/TXT_0164 but routed through respect flow", expected: Object.freeze({ default: "Недостаточно денег.", millennial: "Недостаточно денег.", zoomer: "Кошелёк в нуле 💀", alpha: "Кошелёк в нуле 💀", boomer: "Недостаточно монет 💰." }) }),
+        Object.freeze({ id: "TXT_0151", helper: "dm", field: "respect_pair_daily", sourceText: "Уже было уважение сегодня этому персонажу.", targetText: "Сегодня вы уже выразили уважение этому персонажу.", sourceCallsite: "ui-dm.js daily respect duplicate guard", deployedCallsite: "ui-dm.js daily respect duplicate guard", branch: "respect pair daily", disambiguation: "duplicate respect branch, not the no-chain or quota branch", expected: Object.freeze({ default: "Уважение уже выбрано", millennial: "Уважение уже выбрано", zoomer: "Уважение уже выбрано", alpha: "Уважение уже выбрано", boomer: "Сегодня вы уже выразили уважение этому персонажу." }) }),
+        Object.freeze({ id: "TXT_0152", helper: "dm", field: "respect_no_chain", sourceText: "Цепочка A->B->A сегодня не работает.", targetText: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.", sourceCallsite: "ui-dm.js reciprocal respect-chain guard", deployedCallsite: "ui-dm.js reciprocal respect-chain guard", branch: "respect no chain", disambiguation: "reciprocal chain guard, distinct from daily duplicate and quota exhaustion", expected: Object.freeze({ default: "Действие недоступно", millennial: "Действие недоступно", zoomer: "Действие недоступно", alpha: "Действие недоступно", boomer: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ." }) }),
+        Object.freeze({ id: "TXT_0153", helper: "dm", field: "respect_emitter_empty", sourceText: "Лимит уважения на сегодня исчерпан.", targetText: "Дневной лимит выражения уважения исчерпан.", sourceCallsite: "ui-dm.js respect emitter quota guard", deployedCallsite: "ui-dm.js respect emitter quota guard", branch: "respect emitter empty", disambiguation: "quota exhaustion branch, distinct from no-points and chain guards", expected: Object.freeze({ default: "Лимит уважения", millennial: "Лимит уважения", zoomer: "Лимит уважения", alpha: "Лимит уважения", boomer: "Дневной лимит выражения уважения исчерпан." }) }),
+        Object.freeze({ id: "TXT_0154", helper: "dm", field: "respect_fallback", sourceText: "Сейчас не получилось. Попробуй позже.", targetText: "Не удалось выразить уважение. Повторите попытку позже.", sourceCallsite: "ui-dm.js respect fallback resolver", deployedCallsite: "ui-dm.js respect fallback resolver", branch: "respect fallback", disambiguation: "generic respect failure fallback, not a quota or duplicate branch", expected: Object.freeze({ default: "Ошибка. Повторить позже", millennial: "Ошибка. Повторить позже", zoomer: "Ошибка. Повторить позже", alpha: "Ошибка. Повторить позже", boomer: "Не удалось выразить уважение. Повторите попытку позже." }) }),
+        Object.freeze({ id: "TXT_0157", helper: "menu", field: "devModeDisabled", sourceText: "Dev Mode disabled.", targetText: "Режим разработчика отключён.", sourceCallsite: "ui-menu.js dev mode disable toast", deployedCallsite: "ui-menu.js dev mode disable toast", branch: "dev mode disabled", disambiguation: "dev-mode toggle off branch", expected: Object.freeze({ default: "Dev Mode выключен.", millennial: "Dev Mode выключен.", zoomer: "Dev Mode выключен.", alpha: "Dev Mode выключен.", boomer: "Режим разработчика отключён." }) }),
+        Object.freeze({ id: "TXT_0158", helper: "menu", field: "devModeUnlocked", sourceText: "Dev Mode unlocked on this device.", targetText: "Режим разработчика включён на этом устройстве.", sourceCallsite: "ui-menu.js dev mode unlock toast", deployedCallsite: "ui-menu.js dev mode unlock toast", branch: "dev mode unlocked", disambiguation: "dev-mode success branch", expected: Object.freeze({ default: "Dev Mode открыт на этом устройстве.", millennial: "Dev Mode открыт на этом устройстве.", zoomer: "Dev Mode открыт на этом устройстве.", alpha: "Dev Mode открыт на этом устройстве.", boomer: "Режим разработчика включён на этом устройстве." }) }),
+        Object.freeze({ id: "TXT_0159", helper: "menu", field: "devModePinIncorrect", sourceText: "Incorrect Dev Mode PIN.", targetText: "Введён неверный код режима разработчика.", sourceCallsite: "ui-menu.js dev mode PIN failure toast", deployedCallsite: "ui-menu.js dev mode PIN failure toast", branch: "dev mode wrong pin", disambiguation: "dev-mode wrong-PIN branch", expected: Object.freeze({ default: "Неверный PIN Dev Mode.", millennial: "Неверный PIN Dev Mode.", zoomer: "Неверный PIN Dev Mode.", alpha: "Неверный PIN Dev Mode.", boomer: "Введён неверный код режима разработчика." }) }),
+        Object.freeze({ id: "TXT_0160", helper: "menu", field: "lotteryCooldown", sourceText: "Рано. Дай паузу.", targetText: "Розыгрыш пока недоступен. Повторите попытку позже.", sourceCallsite: "ui-menu.js lottery cooldown toast", deployedCallsite: "ui-menu.js lottery cooldown toast", branch: "lottery cooldown", disambiguation: "lottery timing gate, distinct from menu-unavailable wrappers", expected: Object.freeze({ default: "Пауза", millennial: "Пауза", zoomer: "Пауза", alpha: "Пауза", boomer: "Розыгрыш пока недоступен. Повторите попытку позже." }) }),
+        Object.freeze({ id: "TXT_0161", helper: "menu", field: "menuUnavailable", sourceText: "Недоступно.", targetText: "Этот пункт меню сейчас недоступен.", sourceCallsite: "ui-menu.js applyMenuLabels / lottery dock unavailable label", deployedCallsite: "ui-menu.js applyMenuLabels / lottery dock unavailable label", branch: "menu unavailable label", disambiguation: "same source string as TXT_0145/TXT_0162/TXT_0163, disambiguated by menu label branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Пока закрыто.", alpha: "Пока закрыто.", boomer: "Этот пункт меню сейчас недоступен." }) }),
+        Object.freeze({ id: "TXT_0162", helper: "menu", field: "menuUnavailable", sourceText: "Недоступно.", targetText: "Этот пункт меню сейчас недоступен.", sourceCallsite: "ui-menu.js UI.lottery unavailable toast", deployedCallsite: "ui-menu.js UI.lottery unavailable toast", branch: "menu unavailable toast", disambiguation: "same source string as TXT_0145/TXT_0161/TXT_0163, disambiguated by lottery action branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Пока закрыто.", alpha: "Пока закрыто.", boomer: "Этот пункт меню сейчас недоступен." }) }),
+        Object.freeze({ id: "TXT_0163", helper: "menu", field: "menuUnavailable", sourceText: "Недоступно.", targetText: "Этот пункт меню сейчас недоступен.", sourceCallsite: "ui-menu.js lottery spend-failure toast", deployedCallsite: "ui-menu.js lottery spend-failure toast", branch: "menu unavailable spend failure", disambiguation: "same source string as TXT_0145/TXT_0161/TXT_0162, disambiguated by spend-failure branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Пока закрыто.", alpha: "Пока закрыто.", boomer: "Этот пункт меню сейчас недоступен." }) }),
+        Object.freeze({ id: "TXT_0164", helper: "events", field: "voteDuplicateNoPoints", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-events.js duplicate vote failure toast", deployedCallsite: "ui-events.js duplicate vote failure toast", branch: "vote duplicate insufficient points", disambiguation: "same source string as TXT_0142 but this row is the duplicate-vote failure branch", expected: Object.freeze({ default: "Мало 💰", millennial: "Мало 💰", zoomer: "Мало 💰", alpha: "Мало 💰", boomer: "Недостаточно монет 💰." }) }),
+      ]);
+      const helperNames = Object.freeze({
+        events: "__smokeBoomerTermsStep42Events",
+        battles: "__smokeBoomerTermsStep42Battles",
+        dm: "__smokeBoomerTermsStep42Dm",
+        menu: "__smokeBoomerTermsStep42Menu",
+      });
+      const getProfile = () => {
+        const Data = G.Data || null;
+        return Data && typeof Data.getUiProfile === "function" ? String(Data.getUiProfile() || "default") : "default";
+      };
+      const setProfile = (profile) => {
+        const Data = G.Data || null;
+        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
+        else if (Data && typeof Data === "object") Data.UI_PROFILE = profile;
+      };
+      const withProfile = (profile, run) => {
+        const before = getProfile();
+        setProfile(profile);
+        try {
+          return run();
+        } finally {
+          setProfile(before);
+        }
+      };
+      const smoke = function smokeBoomerTermsStep42Rule() {
+        const result = {
+          ok: false,
+          buildTag: BOOMER_TERMS_BUILD_TAG,
+          commit: BOOMER_TERMS_COMMIT,
+          smokeVersion: BOOMER_TERMS_SMOKE_VERSION,
+          checkedIds: [],
+          rowResults: [],
+          failures: [],
+          missingCoverage: [],
+          failedChecks: [],
+        };
+        const fail = (check, detail) => {
+          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
+          result.failures.push(detail === undefined ? check : { check, detail });
+        };
+        const seenIds = new Set();
+        const profileResults = PROFILE_ORDER;
+        try {
+          if (!G.Data || typeof G.Data.setUiProfile !== "function" || typeof G.Data.getUiProfile !== "function") {
+            fail("ui_profile_api_missing", "Game.Data.setUiProfile/Game.Data.getUiProfile");
+          }
+          if (!G.System || typeof G.System.say !== "function") fail("system_say_missing", "Game.System.say");
+          if (!G.__DEV || typeof G.__DEV !== "object") fail("dev_namespace_missing", "Game.__DEV");
+          ROWS.forEach((row) => {
+            if (seenIds.has(row.id)) fail("duplicate_id", row.id);
+            seenIds.add(row.id);
+            result.checkedIds.push(row.id);
+            const helperName = helperNames[row.helper];
+            const helper = helperName && G.__DEV && typeof G.__DEV[helperName] === "function" ? G.__DEV[helperName] : null;
+            if (!helper) fail("helper_missing", { id: row.id, helper: row.helper, helperName });
+            const profileChecks = {};
+            profileResults.forEach((profile) => {
+              const expectedText = row.expected[profile] || row.expected.millennial || row.targetText;
+              const actual = helper ? withProfile(profile, () => {
+                const currentProfile = getProfile();
+                return helper(currentProfile);
+              }) : null;
+              const actualText = actual && Object.prototype.hasOwnProperty.call(actual, row.field) ? String(actual[row.field] || "") : "";
+              const ok = actualText === expectedText;
+              profileChecks[profile] = { expectedText, actualText, ok };
+              if (!ok) {
+                fail("text_mismatch", { id: row.id, profile, field: row.field, expectedText, actualText });
+              }
+            });
+            result.rowResults.push({
+              id: row.id,
+              helper: row.helper,
+              field: row.field,
+              sourceText: row.sourceText,
+              targetText: row.targetText,
+              branch: row.branch,
+              sourceCallsite: row.sourceCallsite,
+              deployedCallsite: row.deployedCallsite,
+              disambiguation: row.disambiguation,
+              boomerAvailable: !!(profileChecks.boomer && profileChecks.boomer.ok),
+              expectedText: Object.freeze({
+                default: row.expected.default,
+                millennial: row.expected.millennial,
+                zoomer: row.expected.zoomer,
+                alpha: row.expected.alpha,
+                boomer: row.expected.boomer,
+              }),
+              actualText: Object.freeze({
+                default: profileChecks.default ? profileChecks.default.actualText : "",
+                millennial: profileChecks.millennial ? profileChecks.millennial.actualText : "",
+                zoomer: profileChecks.zoomer ? profileChecks.zoomer.actualText : "",
+                alpha: profileChecks.alpha ? profileChecks.alpha.actualText : "",
+                boomer: profileChecks.boomer ? profileChecks.boomer.actualText : "",
+              }),
+              profileChecks: Object.freeze(profileChecks),
+            });
+          });
+          if (seenIds.size !== ROWS.length) {
+            fail("id_count_mismatch", { expected: ROWS.length, actual: seenIds.size });
+          }
+          const duplicateGroups = {};
+          ROWS.forEach((row) => {
+            const key = row.sourceText;
+            duplicateGroups[key] = duplicateGroups[key] || [];
+            duplicateGroups[key].push(row);
+          });
+          Object.keys(duplicateGroups).forEach((sourceText) => {
+            const group = duplicateGroups[sourceText];
+            if (group.length <= 1) return;
+            const branchSet = new Set(group.map((row) => row.branch));
+            const callsiteSet = new Set(group.map((row) => row.sourceCallsite));
+            if (branchSet.size <= 1) fail("duplicate_source_not_disambiguated", { sourceText, ids: group.map((row) => row.id), branches: Array.from(branchSet) });
+            if (callsiteSet.size <= 1) fail("duplicate_source_callsite_not_unique", { sourceText, ids: group.map((row) => row.id), callsites: Array.from(callsiteSet) });
+          });
+        } catch (err) {
+          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+        }
+        result.ok = result.checkedIds.length === ROWS.length
+          && result.failures.length === 0
+          && result.missingCoverage.length === 0
+          && result.failedChecks.length === 0;
+        return result;
+      };
+      G.__DEV.smokeBoomerTermsStep42Rule = smoke;
+      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
+      G.Dev.smokeBoomerTermsStep42Rule = smoke;
+    }
     }
   }
 })();

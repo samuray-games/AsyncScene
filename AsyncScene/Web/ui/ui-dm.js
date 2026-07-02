@@ -14,14 +14,29 @@ const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say ==
 const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
   ? Game.Data.t(key, vars)
   : String(key || "");
+const resolveUiMode = () => {
+  const Data = Game.Data || null;
+  const profile = Data && typeof Data.getUiProfile === "function"
+    ? Data.getUiProfile()
+    : ((Data && Data.UI_PROFILE) || "");
+  if (Data && typeof Data.resolveUiTextMode === "function") return Data.resolveUiTextMode(profile);
+  const normalized = String(profile || "").trim().toLowerCase();
+  return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
+};
+const isBoomerUiMode = () => resolveUiMode() === "boomer";
+if (!Game.__DEV) Game.__DEV = {};
+Game.__DEV.__smokeBoomerTermsStep42Dm = function smokeBoomerTermsStep42Dm(profile) {
+  const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
+  return {
+    respect_no_points: mode === "boomer" ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints"),
+    respect_pair_daily: mode === "boomer" ? "Сегодня вы уже выразили уважение этому персонажу." : "Уважение уже выбрано",
+    respect_no_chain: mode === "boomer" ? "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ." : "Действие недоступно",
+    respect_emitter_empty: mode === "boomer" ? "Дневной лимит выражения уважения исчерпан." : "Лимит уважения",
+    respect_fallback: mode === "boomer" ? "Не удалось выразить уважение. Повторите попытку позже." : "Ошибка. Повторить позже"
+  };
+};
 Game.__DEV.__markers__ = Game.__DEV.__markers__ || {};
 Game.__DEV.__markers__.uiDmLoaded = true;
-const mapRespectReason = {
-  respect_no_points: systemSay("errors", "insufficientPoints"),
-  respect_pair_daily: "Уважение уже выбрано",
-  respect_no_chain: "Действие недоступно",
-  respect_emitter_empty: "Лимит уважения",
-};
 
 const showRespectToast = (kind, text) => {
   if (!text) return;
@@ -78,7 +93,19 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
     } catch (_) {}
     return res;
   }
-  const reasonText = mapRespectReason[res.reason] || "Ошибка. Повторить позже";
+  const reasonText = resolveUiMode() === "boomer"
+    ? ({
+        respect_no_points: "Недостаточно монет 💰.",
+        respect_pair_daily: "Сегодня вы уже выразили уважение этому персонажу.",
+        respect_no_chain: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.",
+        respect_emitter_empty: "Дневной лимит выражения уважения исчерпан.",
+      }[res.reason] || "Не удалось выразить уважение. Повторите попытку позже.")
+    : ({
+        respect_no_points: systemSay("errors", "insufficientPoints"),
+        respect_pair_daily: "Уважение уже выбрано",
+        respect_no_chain: "Действие недоступно",
+        respect_emitter_empty: "Лимит уважения",
+      }[res.reason] || "Ошибка. Повторить позже");
   showRespectToast("points", reasonText);
   callDevToastProbe(reasonText);
   return res;
