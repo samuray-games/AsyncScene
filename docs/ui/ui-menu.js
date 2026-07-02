@@ -8,6 +8,29 @@ window.Game = window.Game || {};
 
     const UI = Game.UI;
     const S = UI.S;
+    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
+    const resolveUiMode = () => {
+      const Data = Game.Data || null;
+      const profile = Data && typeof Data.getUiProfile === "function"
+        ? Data.getUiProfile()
+        : ((Data && Data.UI_PROFILE) || "");
+      if (Data && typeof Data.resolveUiTextMode === "function") return Data.resolveUiTextMode(profile);
+      const normalized = String(profile || "").trim().toLowerCase();
+      return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
+    };
+    const isBoomerUiMode = () => resolveUiMode() === "boomer";
+    const getMenuUnavailableText = () => isBoomerUiMode() ? "Этот пункт меню сейчас недоступен." : t("menu_unavailable");
+    if (!Game.__DEV) Game.__DEV = {};
+    Game.__DEV.__smokeBoomerTermsStep42Menu = function smokeBoomerTermsStep42Menu(profile) {
+      const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
+      return {
+        devModeDisabled: mode === "boomer" ? "Режим разработчика отключён." : "Dev Mode выключен.",
+        devModeUnlocked: mode === "boomer" ? "Режим разработчика включён на этом устройстве." : "Dev Mode открыт на этом устройстве.",
+        devModePinIncorrect: mode === "boomer" ? "Введён неверный код режима разработчика." : "Неверный PIN Dev Mode.",
+        lotteryCooldown: mode === "boomer" ? "Розыгрыш пока недоступен. Повторите попытку позже." : "Пауза",
+        menuUnavailable: mode === "boomer" ? "Этот пункт меню сейчас недоступен." : t("menu_unavailable")
+      };
+    };
 
   const getMenuBlock = () => document.getElementById("menuBlock");
   const TRAINING_UI_ARG_KEY = "menu_training_arg";
@@ -44,8 +67,7 @@ window.Game = window.Game || {};
   setLocalDevModeUnlocked(isLocalDevModeUnlocked());
 
   function applyMenuLabels() {
-    const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
-    const unavailableText = t("menu_unavailable");
+    const unavailableText = getMenuUnavailableText();
     const menuBtn = document.getElementById("btnMenu");
     if (menuBtn) menuBtn.textContent = t("menu_title");
     const lotTop = document.getElementById("btnLotteryTop");
@@ -211,7 +233,7 @@ window.Game = window.Game || {};
       e.stopPropagation();
       if (isDevModeActive()) {
         setLocalDevModeUnlocked(false);
-        notify("Dev Mode выключен.");
+        notify(isBoomerUiMode() ? "Режим разработчика отключён." : "Dev Mode выключен.");
         if (UI.renderMenu) UI.renderMenu();
         return;
       }
@@ -225,9 +247,9 @@ window.Game = window.Game || {};
             console.error("DEV_MODE_CONSOLE_TAPE_LOAD_ERR", err);
           });
         }
-        notify("Dev Mode открыт на этом устройстве.");
+        notify(isBoomerUiMode() ? "Режим разработчика включён на этом устройстве." : "Dev Mode открыт на этом устройстве.");
       } else if (entered !== null) {
-        notify("Неверный PIN Dev Mode.");
+        notify(isBoomerUiMode() ? "Введён неверный код режима разработчика." : "Неверный PIN Dev Mode.");
       }
       if (UI.renderMenu) UI.renderMenu();
     };
@@ -362,7 +384,7 @@ window.Game = window.Game || {};
     const wrap = existing || document.createElement("div");
     wrap.id = "lotteryControls";
     wrap.className = "lotteryRow";
-    wrap.textContent = t("menu_unavailable");
+    wrap.textContent = getMenuUnavailableText();
     if (!wrap.parentElement) dock.appendChild(wrap);
   }
 
@@ -603,8 +625,9 @@ window.Game = window.Game || {};
 
   UI.lottery = () => {
     const t = (Game.Data && typeof Game.Data.t === "function") ? Game.Data.t : (k) => String(k || "");
+    const unavailableText = getMenuUnavailableText();
     ensureLotteryControls();
-    showLotteryToast(t("menu_unavailable"));
+    showLotteryToast(unavailableText);
     return;
 
     const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5, cooldownMs: 10 * 60 * 1000 };
@@ -617,7 +640,7 @@ window.Game = window.Game || {};
     };
 
     if ((S.me.points || 0) < bet) {
-      notify(t("menu_unavailable"));
+      notify(unavailableText);
       UI.requestRenderAll?.();
       return;
     }
@@ -626,7 +649,7 @@ window.Game = window.Game || {};
     const now = Date.now();
     const lastAt = Number(lot.lastAt || 0);
     if (lastAt && (now - lastAt) < cooldownMs) {
-      notify("Пауза");
+      notify(isBoomerUiMode() ? "Розыгрыш пока недоступен. Повторите попытку позже." : "Пауза");
       UI.requestRenderAll?.();
       return;
     }
@@ -635,7 +658,7 @@ window.Game = window.Game || {};
       ? Game.__A.spendPoints
       : null;
     if (spend && !spend(bet, "lottery")) {
-      notify(t("menu_unavailable"));
+      notify(unavailableText);
       UI.requestRenderAll?.();
       return;
     }
