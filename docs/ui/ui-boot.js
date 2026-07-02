@@ -374,6 +374,12 @@ window.Game = window.Game || {};
     const startText = resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile) : resolveStartScreenText(D, "start_action", activeProfile);
     const rulesText = resolveStartScreenText(D, "rules_action", activeProfile);
     const resetText = resolveStartScreenText(D, "start_reset", activeProfile);
+    const introTexts = [
+      resolveStartScreenText(D, "introLines[0]", activeProfile),
+      resolveStartScreenText(D, "introLines[1]", activeProfile),
+      resolveStartScreenText(D, "introLines[2]", activeProfile),
+    ];
+    const economyText = resolveStartScreenText(D, "economyHonestyLine", activeProfile);
     const setText = (selector, value) => {
       const el = root.querySelector(selector);
       if (el) el.textContent = String(value || "");
@@ -402,6 +408,13 @@ window.Game = window.Game || {};
     setAttr("#btnRules", "aria-label", rulesText);
     setAttr("#btnRules", "title", rulesText);
     setText("#btnResetOnboarding", resetText);
+    const introNodes = Array.from(root.querySelectorAll("#startIntroLines .startIntroLine"));
+    if (introNodes.length === 3) {
+      introNodes.forEach((node, index) => {
+        node.textContent = String(introTexts[index] || "");
+      });
+    }
+    setText("#startEconomyHonestyLine", economyText);
   }
 
   function syncStartScreenUiProfileFromSelection(UI, rawBirthYearValue) {
@@ -575,7 +588,12 @@ window.Game = window.Game || {};
     const activeProfile = getActiveStartScreenProfile(UI);
     const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
     const title = spec && typeof spec.title === "string" ? spec.title : "";
-    const introLines = spec && Array.isArray(spec.introLines) ? spec.introLines.slice(0, 3) : [];
+    const introLines = [
+      resolveStartScreenText(D, "introLines[0]", activeProfile),
+      resolveStartScreenText(D, "introLines[1]", activeProfile),
+      resolveStartScreenText(D, "introLines[2]", activeProfile),
+    ];
+    const economyHonestyText = resolveStartScreenText(D, "economyHonestyLine", activeProfile);
     const actions = spec && spec.actions ? spec.actions : {};
 
     const titleEl = $("startTitle") || document.getElementById("startTitle");
@@ -599,7 +617,7 @@ window.Game = window.Game || {};
       linesEl.parentNode.insertBefore(economyEl, linesEl.nextSibling);
     }
     if (economyEl) {
-      economyEl.textContent = spec && typeof spec.economyHonestyLine === "string" ? spec.economyHonestyLine : "";
+      economyEl.textContent = economyHonestyText;
     }
 
     let birthYearLabel = $("startBirthYearLabel") || document.getElementById("startBirthYearLabel");
