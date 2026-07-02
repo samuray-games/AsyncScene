@@ -10783,7 +10783,7 @@ window.Game = window.Game || {};
       const BOOMER_TERMS_BUILD_TAG = "build_2026_07_02_step4_2_boomer_term_rules_ui_v1";
       const BOOMER_TERMS_COMMIT = "step4_2_boomer_term_rules_ui_v1";
       const BOOMER_TERMS_SMOKE_VERSION = "boomer_term_rules_step4_2_v20260702_001";
-      const PROFILE_ORDER = Object.freeze(["default", "millennial", "zoomer", "alpha"]);
+      const PROFILE_ORDER = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
       const ROWS = Object.freeze([
         Object.freeze({ id: "TXT_0141", helper: "events", field: "voteDisabled", sourceText: "Ты уже проголосовал.", targetText: "Вы уже проголосовали.", sourceCallsite: "ui-events.js disabled-button guard", deployedCallsite: "ui-events.js disabled-button guard", branch: "vote disabled", disambiguation: "same source string as TXT_0142/TXT_0164 is disambiguated by the already-voted branch", expected: Object.freeze({ default: "Недоступно.", millennial: "Недоступно.", zoomer: "Недоступно.", alpha: "Недоступно.", boomer: "Вы уже проголосовали." }) }),
         Object.freeze({ id: "TXT_0142", helper: "events", field: "voteNoPoints", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-events.js havePts<=0 vote toast", deployedCallsite: "ui-events.js havePts<=0 vote toast", branch: "vote insufficient points", disambiguation: "same source string as TXT_0164 but this row is the no-points vote branch", expected: Object.freeze({ default: "Мало 💰", millennial: "Мало 💰", zoomer: "Мало 💰", alpha: "Мало 💰", boomer: "Недостаточно монет 💰." }) }),
@@ -10838,8 +10838,12 @@ window.Game = window.Game || {};
           buildTag: BOOMER_TERMS_BUILD_TAG,
           commit: BOOMER_TERMS_COMMIT,
           smokeVersion: BOOMER_TERMS_SMOKE_VERSION,
+          checkedProfiles: Object.freeze(Array.from(PROFILE_ORDER)),
+          checkedProfileCount: 0,
           checkedIds: [],
           rowResults: [],
+          boomerPassedRows: 0,
+          boomerFailedRows: [],
           failures: [],
           missingCoverage: [],
           failedChecks: [],
@@ -10856,6 +10860,7 @@ window.Game = window.Game || {};
           }
           if (!G.System || typeof G.System.say !== "function") fail("system_say_missing", "Game.System.say");
           if (!G.__DEV || typeof G.__DEV !== "object") fail("dev_namespace_missing", "Game.__DEV");
+          result.checkedProfileCount = profileResults.length;
           ROWS.forEach((row) => {
             if (seenIds.has(row.id)) fail("duplicate_id", row.id);
             seenIds.add(row.id);
@@ -10871,9 +10876,19 @@ window.Game = window.Game || {};
                 return helper(currentProfile);
               }) : null;
               const actualText = actual && Object.prototype.hasOwnProperty.call(actual, row.field) ? String(actual[row.field] || "") : "";
+              const isBoomer = profile === "boomer";
               const ok = actualText === expectedText;
               profileChecks[profile] = { expectedText, actualText, ok };
-              if (!ok) {
+              if (isBoomer) {
+                if (!helper) fail("boomer_profile_missing", { id: row.id, helper: row.helper, helperName });
+                if (!actualText) fail("boomer_text_empty", { id: row.id, field: row.field, expectedText });
+                if (actualText !== expectedText) fail("boomer_text_mismatch", { id: row.id, field: row.field, expectedText, actualText });
+                if (ok) {
+                  result.boomerPassedRows += 1;
+                } else {
+                  result.boomerFailedRows.push(row.id);
+                }
+              } else if (!ok) {
                 fail("text_mismatch", { id: row.id, profile, field: row.field, expectedText, actualText });
               }
             });
@@ -10887,7 +10902,7 @@ window.Game = window.Game || {};
               sourceCallsite: row.sourceCallsite,
               deployedCallsite: row.deployedCallsite,
               disambiguation: row.disambiguation,
-              boomerAvailable: !!(profileChecks.boomer && profileChecks.boomer.ok),
+              boomerAvailable: !!(profileChecks.boomer && profileChecks.boomer.ok && profileChecks.boomer.actualText),
               expectedText: Object.freeze({
                 default: row.expected.default,
                 millennial: row.expected.millennial,
@@ -10925,7 +10940,12 @@ window.Game = window.Game || {};
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
         }
-        result.ok = result.checkedIds.length === ROWS.length
+        result.ok = result.checkedProfiles.length === 5
+          && result.checkedProfileCount === 5
+          && result.checkedIds.length === ROWS.length
+          && result.boomerPassedRows === ROWS.length
+          && result.boomerFailedRows.length === 0
+          && result.rowResults.every((row) => row.boomerAvailable === true && row.profileChecks && row.profileChecks.boomer && row.profileChecks.boomer.ok === true && String(row.actualText && row.actualText.boomer || "") === String(row.expectedText && row.expectedText.boomer || ""))
           && result.failures.length === 0
           && result.missingCoverage.length === 0
           && result.failedChecks.length === 0;
