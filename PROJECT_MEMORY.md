@@ -1,3 +1,11 @@
+## 2026-07-03 — Boomer Step 4.3 canonical millennial -> boomer terminology mapping table
+- Status: PASS for documentation/data generation and static validation only; Safari smoke is N/A because this step has no runtime surface.
+- Added `UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md` and `docs/UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md` as a root/docs mirrored table-only artifact generated from the accepted Step 4.2 exact inventory bundle and the current accepted boomer allowed lexicon.
+- The Step 4.3 contract is `mappingCount:164`, `coveragePercent:100`, `changedMappingCount:116`, `identityMappingCount:48`, `duplicateMappingsCount:0`, `semanticAmbiguityCount:0`, `conflictingBoomerTargetCount:0`, and `placeholderMismatchCount:0`.
+- Added `tools/generate-boomer-step4-3-terminology-mapping.py` to rebuild the mirrored artifact deterministically and `tools/validate-boomer-step4-3-terminology-mapping.py` to fail closed on missing mappings, duplicate ids, placeholder drift, semantic ambiguity, conflicting boomer targets, mirror mismatch, and accepted-lexicon drift.
+- Historical Step 4.2 candidate targets and the older changed-subset boomer lexical mapping were used only as reconciliation evidence; current accepted boomer targets remained authoritative wherever inherited targets differed.
+- Static validation passed with `python3 tools/generate-boomer-step4-3-terminology-mapping.py .` and `python3 tools/validate-boomer-step4-3-terminology-mapping.py .`.
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix15
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
 - Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, appended exactly one mirrored canonical production row as `TXT_0314` for `status | system_copy | respectTargetRep | Цели +1⭐.` from `AsyncScene/Web/system.js:58`, while preserving `TXT_0001` through `TXT_0313` unchanged.

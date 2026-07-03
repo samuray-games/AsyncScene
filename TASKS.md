@@ -1,3 +1,12 @@
+## 2026-07-03 — Boomer Step 4.3 canonical millennial -> boomer terminology mapping table
+- Status: PASS for documentation/data generation and static validation only; Safari smoke is N/A because this step has no runtime surface.
+- Files: `UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md`, `docs/UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md`, `tools/generate-boomer-step4-3-terminology-mapping.py`, `tools/validate-boomer-step4-3-terminology-mapping.py`
+- Goal: build a complete table-only source -> boomer terminology mapping from the accepted Step 4.2 exact inventory and current accepted boomer lexicon, without runtime JS, dev-check, copy application, gameplay, economy, state, persistence, resolver, handler, routing, or NPC behavior changes.
+- Added the mirrored Step 4.3 mapping artifact with 164 source rows, exactly one boomer target per source inventory id, `coveragePercent: 100`, `changedMappingCount: 116`, `identityMappingCount: 48`, `duplicateMappingsCount: 0`, `semanticAmbiguityCount: 0`, `conflictingBoomerTargetCount: 0`, and `placeholderMismatchCount: 0`.
+- Added standalone generator and validator tooling so static smoke fails closed on missing mappings, duplicate mapping ids, duplicate source ids, placeholder mismatch, semantic ambiguity, conflicting boomer targets, root/docs mirror mismatch, and drift from the accepted boomer allowed lexicon.
+- Historical Step 4.2 candidate inputs were treated as reconciliation evidence only; the current accepted boomer allowed lexicon remained authoritative when older targets differed.
+- Validation run: `python3 tools/generate-boomer-step4-3-terminology-mapping.py .`, `python3 tools/validate-boomer-step4-3-terminology-mapping.py .`
+
 ## 2026-06-28 — Step 4.1 Zoomer UI terms inventory Fix15
 - Status: READY_FOR_RUNTIME_SMOKE only; Safari runtime PASS is not claimed.
 - Under serialized lock `ALPHA-A4T41-FIX5-20260628T1038JST`, appended exactly one mirrored canonical production row as `TXT_0314` for `status | system_copy | respectTargetRep | Цели +1⭐.` from `AsyncScene/Web/system.js:58`, while preserving `TXT_0001` through `TXT_0313` unchanged.
