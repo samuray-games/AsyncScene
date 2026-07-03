@@ -172,6 +172,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 === "function" && typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
     G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
   }
+  if (G.__DEV && typeof G.__DEV.smokeAlphaSystemProfileTextOnce === "function" && typeof G.Dev.smokeAlphaSystemProfileTextOnce !== "function") {
+    G.Dev.smokeAlphaSystemProfileTextOnce = G.__DEV.smokeAlphaSystemProfileTextOnce;
+  }
+  if (G.Dev && typeof G.Dev.smokeAlphaSystemProfileTextOnce === "function" && typeof G.__DEV.smokeAlphaSystemProfileTextOnce !== "function") {
+    G.__DEV.smokeAlphaSystemProfileTextOnce = G.Dev.smokeAlphaSystemProfileTextOnce;
+  }
+  if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce === "function" && typeof G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce !== "function") {
+    G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce = G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce;
+  }
+  if (G.Dev && typeof G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce === "function" && typeof G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce !== "function") {
+    G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce;
+  }
   if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2 === "function" && typeof G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 !== "function") {
     G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2;
   }
@@ -28225,6 +28237,127 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     console.warn("ALPHA_SYSTEM_PROFILE_TEXT_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaSystemProfileTextOnce);
   }
 
+  function installStep65AggregateRuntimeSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeZoomerFeelStep65AggregateRuntimeOnce === "function") return;
+    const BUILD_TAG = "build_2026_07_03_step6_5_aggregate_runtime_smoke_v1";
+    const COMMIT = "step6_5_aggregate_runtime_smoke";
+    const SMOKE_VERSION = "step6_5_aggregate_runtime_smoke_v20260703_001";
+    const SMOKE_NAME = "smokeZoomerFeelStep65AggregateRuntimeOnce";
+    const REQUIRED_CHILDREN = Object.freeze([
+      Object.freeze({ step: "6.1", helper: "smokeZoomerFeelStep61RCoreSystemRealCoverage" }),
+      Object.freeze({ step: "6.2", helper: "smokeZoomerFeelStep62RConflictResultsRealCoverageFix1" }),
+      Object.freeze({ step: "6.3", helper: "smokeZoomerFeelStep63REconomyRealCoverage" }),
+      Object.freeze({ step: "6.4", helper: "smokeZoomerFeelStep64RReputationRealCoverage" }),
+      Object.freeze({ step: "6.4", helper: "smokeAlphaSystemProfileTextOnce" }),
+    ]);
+    devStore.smokeZoomerFeelStep65AggregateRuntimeOnce = async function smokeZoomerFeelStep65AggregateRuntimeOnce() {
+      const result = {
+        ok: false,
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        smokeName: SMOKE_NAME,
+        childIdentities: REQUIRED_CHILDREN.map((child) => ({ step: child.step, helper: child.helper })),
+        childResults: [],
+        failures: [],
+        failedChecks: [],
+        missingCoverage: [],
+        forbiddenRemaining: [],
+        mismatches: [],
+        errors: [],
+      };
+      const flattenField = (fieldName, rawValue, childMeta) => {
+        if (typeof rawValue === "undefined") return;
+        if (!Array.isArray(rawValue)) {
+          result.errors.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            field: fieldName,
+            reason: "malformed_non_array",
+            actualType: rawValue === null ? "null" : typeof rawValue,
+          });
+          return;
+        }
+        rawValue.forEach((entry) => {
+          result[fieldName].push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            value: entry,
+          });
+        });
+      };
+      for (const childMeta of REQUIRED_CHILDREN) {
+        const runtimeStore = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : (G && G.__DEV && typeof G.__DEV === "object" ? G.__DEV : null);
+        const childFn = runtimeStore && runtimeStore[childMeta.helper];
+        if (typeof childFn !== "function") {
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: false,
+            missing: true,
+            error: "missing_helper",
+          });
+          result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "missing_helper" });
+          result.failures.push({ step: childMeta.step, helper: childMeta.helper, value: { reason: "missing_helper" } });
+          continue;
+        }
+        try {
+          const childResult = await Promise.resolve(childFn());
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: !!(childResult && childResult.ok === true),
+            result: childResult,
+          });
+          flattenField("failures", childResult && childResult.failures, childMeta);
+          flattenField("failedChecks", childResult && childResult.failedChecks, childMeta);
+          flattenField("missingCoverage", childResult && childResult.missingCoverage, childMeta);
+          flattenField("forbiddenRemaining", childResult && childResult.forbiddenRemaining, childMeta);
+          flattenField("mismatches", childResult && childResult.failedKeys, childMeta);
+          if (!childResult || childResult.ok !== true) {
+            result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "child_ok_false" });
+          }
+        } catch (error) {
+          const message = error && error.message ? String(error.message) : String(error);
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: false,
+            thrown: true,
+            error: message,
+          });
+          result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "threw_or_rejected", message });
+          result.failures.push({ step: childMeta.step, helper: childMeta.helper, value: { reason: "threw_or_rejected", message } });
+        }
+      }
+      result.ok = result.childResults.length === REQUIRED_CHILDREN.length
+        && result.childResults.every((entry) => entry && entry.ok === true)
+        && result.failures.length === 0
+        && result.failedChecks.length === 0
+        && result.missingCoverage.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.mismatches.length === 0
+        && result.errors.length === 0;
+      console.warn("STEP65_AGGREGATE_RUNTIME_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const expose = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+    };
+    expose();
+    if (typeof setTimeout === "function") {
+      setTimeout(expose, 0);
+      setTimeout(expose, 250);
+      setTimeout(expose, 1000);
+    }
+    console.warn("STEP65_AGGREGATE_RUNTIME_SMOKE_INSTALLED_V1", typeof devStore.smokeZoomerFeelStep65AggregateRuntimeOnce);
+  }
+
   installAlphaLexiconInventorySmoke(Game.__DEV);
   installAlphaAllowedLexiconSmoke(Game.__DEV);
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
@@ -28234,6 +28367,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installAlphaLexiconDocsSmoke(Game.__DEV);
   installAlphaLexiconDocsFix1Smoke(Game.__DEV);
   installAlphaSystemProfileTextSmoke(Game.__DEV);
+  installStep65AggregateRuntimeSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();

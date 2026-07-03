@@ -172,6 +172,18 @@ console.warn("DEV_CHECKS_SERVED_PROOF_V3_URL", (typeof location !== "undefined" 
   if (G.Dev && typeof G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 === "function" && typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
     G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
   }
+  if (G.__DEV && typeof G.__DEV.smokeAlphaSystemProfileTextOnce === "function" && typeof G.Dev.smokeAlphaSystemProfileTextOnce !== "function") {
+    G.Dev.smokeAlphaSystemProfileTextOnce = G.__DEV.smokeAlphaSystemProfileTextOnce;
+  }
+  if (G.Dev && typeof G.Dev.smokeAlphaSystemProfileTextOnce === "function" && typeof G.__DEV.smokeAlphaSystemProfileTextOnce !== "function") {
+    G.__DEV.smokeAlphaSystemProfileTextOnce = G.Dev.smokeAlphaSystemProfileTextOnce;
+  }
+  if (G.__DEV && typeof G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce === "function" && typeof G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce !== "function") {
+    G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce = G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce;
+  }
+  if (G.Dev && typeof G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce === "function" && typeof G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce !== "function") {
+    G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = G.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce;
+  }
   if (G.__DEV && typeof G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2 === "function" && typeof G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 !== "function") {
     G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix2 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix2;
   }
@@ -27976,6 +27988,376 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     console.warn("ALPHA_LEXICON_DOCS_FIX1_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaLexiconDocsFix1);
   }
 
+  function installAlphaSystemProfileTextSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeAlphaSystemProfileTextOnce === "function") return;
+    const BUILD_TAG = "build_2026_07_01_step6_4_4_alpha_system_profile_text_v1";
+    const COMMIT = "step6_4_4_alpha_system_profile_text";
+    const SMOKE_VERSION = "step6_4_4_alpha_system_profile_text_v20260701_001";
+    const SOURCE_PATH = "AsyncScene/Web/system.js";
+    const REQUIRED_KEYS = Object.freeze([
+      "reputation_increased",
+      "reputation_decreased",
+      "reputation_unchanged",
+      "respect_gained",
+      "respect_lost",
+      "disrespect_event",
+      "reputation_high",
+      "reputation_low",
+      "reputation_recovered",
+      "reputation_damaged",
+    ]);
+    const EXPECTED_VALUES = Object.freeze({
+      reputation_increased: "Репа подросла.",
+      reputation_decreased: "Репа просела.",
+      reputation_unchanged: "По репе без движухи.",
+      respect_gained: "Тебя начали респектить.",
+      respect_lost: "Респект просел.",
+      disrespect_event: "На тебя косо смотрят.",
+      reputation_high: "Репа на весу.",
+      reputation_low: "Репа тонкая.",
+      reputation_recovered: "Репа отлипла.",
+      reputation_damaged: "Репу помяло.",
+    });
+    const addUnique = (array, value) => {
+      const key = JSON.stringify(value);
+      if (!array.some((entry) => JSON.stringify(entry) === key)) array.push(value);
+    };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    const buildCandidateUrls = (relativePath) => {
+      const candidates = [];
+      const seen = new Set();
+      const add = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+      if (typeof document !== "undefined" && document.baseURI) {
+        try { add(new URL(relativePath, document.baseURI).href); } catch (_) {}
+      }
+      if (typeof location !== "undefined" && location.origin) {
+        try { add(new URL(relativePath, `${location.origin}/AsyncScene/`).href); } catch (_) {}
+        try { add(new URL(relativePath, `${location.origin}/`).href); } catch (_) {}
+        add(`${location.origin}/AsyncScene/${relativePath}`);
+        add(`${location.origin}/${relativePath}`);
+      }
+      add(`/AsyncScene/${relativePath}`);
+      add(`/${relativePath}`);
+      return candidates;
+    };
+    const fetchTextSync = (url) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path: url, text: "" };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, reason: null, path: url, text: String(xhr.responseText || "") };
+        return { ok: false, reason: `http_${xhr.status || 0}`, path: url, text: "" };
+      } catch (error) {
+        return { ok: false, reason: error && error.message ? String(error.message) : String(error), path: url, text: "" };
+      }
+    };
+    const fetchFirst = (relativePath) => {
+      let last = { ok: false, reason: "unavailable", path: null, text: "" };
+      buildCandidateUrls(relativePath).forEach((candidate) => {
+        if (last.ok) return;
+        const response = fetchTextSync(candidate);
+        if (response.ok) last = response;
+        else if (!last.ok) last = response;
+      });
+      return last;
+    };
+    const findMatchingBrace = (text, openIndex) => {
+      let depth = 0;
+      let quote = null;
+      let escaped = false;
+      for (let index = openIndex; index < text.length; index += 1) {
+        const char = text[index];
+        if (quote) {
+          if (escaped) {
+            escaped = false;
+            continue;
+          }
+          if (char === "\\") {
+            escaped = true;
+            continue;
+          }
+          if (char === quote) quote = null;
+          continue;
+        }
+        if (char === "'" || char === '"' || char === "`") {
+          quote = char;
+          continue;
+        }
+        if (char === "{") depth += 1;
+        if (char === "}") {
+          depth -= 1;
+          if (depth === 0) return index;
+        }
+      }
+      return -1;
+    };
+    const extractZoomerBlock = (source) => {
+      const copyMarker = "const SYSTEM_PROFILE_TEXT_COPY = Object.freeze({";
+      const zoomerMarker = "zoomer: Object.freeze({";
+      const copyIndex = source.indexOf(copyMarker);
+      if (copyIndex < 0) return { ok: false, reason: "system_profile_text_copy_missing" };
+      const zoomerIndex = source.indexOf(zoomerMarker, copyIndex);
+      if (zoomerIndex < 0) return { ok: false, reason: "zoomer_block_missing" };
+      const openIndex = source.indexOf("{", zoomerIndex);
+      if (openIndex < 0) return { ok: false, reason: "zoomer_open_brace_missing" };
+      const closeIndex = findMatchingBrace(source, openIndex);
+      if (closeIndex < 0) return { ok: false, reason: "zoomer_close_brace_missing" };
+      return {
+        ok: true,
+        block: source.slice(openIndex + 1, closeIndex)
+      };
+    };
+    const parseZoomerAssignments = (block) => {
+      const rows = [];
+      String(block || "").split(/\r?\n/).forEach((line, lineIndex) => {
+        const trimmed = String(line || "").trim();
+        if (!trimmed || trimmed === ")," || trimmed === ")" || trimmed === "}," || trimmed === "}") return;
+        const match = trimmed.match(/^([A-Za-z_$][\w$]*)\s*:\s*(.+?)(?:,\s*)?$/);
+        if (!match) {
+          rows.push({ parseError: "unparsed_line", line: lineIndex + 1, raw: line });
+          return;
+        }
+        const key = match[1];
+        const rawValue = match[2].trim().replace(/,\s*$/, "");
+        let value = null;
+        let parseError = null;
+        try {
+          value = JSON.parse(rawValue);
+        } catch (error) {
+          parseError = error && error.message ? String(error.message) : String(error);
+        }
+        rows.push({ key, value, rawValue, line: lineIndex + 1, parseError });
+      });
+      return rows;
+    };
+    devStore.smokeAlphaSystemProfileTextOnce = function smokeAlphaSystemProfileTextOnce() {
+      const result = {
+        ok: false,
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        sourcePath: SOURCE_PATH,
+        deployedSourcePath: SOURCE_PATH,
+        profile: "zoomer",
+        sourceLoaded: false,
+        objectFound: false,
+        checkedKeys: [],
+        failedKeys: [],
+        failures: [],
+        registeredOnGameDev: false,
+        registeredOnGameDevDev: false,
+        publishRoot: "AsyncScene/Web",
+      };
+      const fail = (key, reason, detail) => {
+        addUnique(result.failedKeys, {
+          key,
+          reason,
+          expected: detail && Object.prototype.hasOwnProperty.call(detail, "expected") ? detail.expected : undefined,
+          actual: detail && Object.prototype.hasOwnProperty.call(detail, "actual") ? detail.actual : undefined,
+          occurrences: detail && Object.prototype.hasOwnProperty.call(detail, "occurrences") ? detail.occurrences : undefined,
+        });
+        addUnique(result.failures, { key, reason, detail });
+      };
+      try {
+        const sourceRes = fetchFirst("system.js");
+        result.sourceLoaded = !!sourceRes.ok;
+        if (!sourceRes.ok) fail("source_load", sourceRes.reason || "unavailable", { expected: SOURCE_PATH, actual: sourceRes.path || null });
+        const sourceText = normalize(sourceRes.ok ? sourceRes.text : "");
+        const zoomerBlock = sourceRes.ok ? extractZoomerBlock(sourceText) : { ok: false, reason: "source_unavailable" };
+        result.objectFound = !!zoomerBlock.ok;
+        if (!zoomerBlock.ok) fail("zoomer_block", zoomerBlock.reason || "unavailable", { expected: "SYSTEM_PROFILE_TEXT_COPY.zoomer", actual: null });
+        const rows = zoomerBlock.ok ? parseZoomerAssignments(zoomerBlock.block) : [];
+        rows.forEach((row) => {
+          if (row.parseError) fail("parse_error", row.parseError, { expected: "key: string literal", actual: row.rawValue, occurrences: 0 });
+        });
+        const counts = Object.create(null);
+        const actualValues = Object.create(null);
+        rows.filter((row) => !row.parseError).forEach((row) => {
+          counts[row.key] = (counts[row.key] || 0) + 1;
+          if (!actualValues[row.key]) actualValues[row.key] = [];
+          actualValues[row.key].push(row.value);
+        });
+        REQUIRED_KEYS.forEach((key) => {
+          const occurrences = counts[key] || 0;
+          const actual = actualValues[key] && actualValues[key].length ? actualValues[key][actualValues[key].length - 1] : undefined;
+          const expected = EXPECTED_VALUES[key];
+          const entry = {
+            key,
+            expected,
+            actual,
+            occurrences,
+            ok: occurrences === 1 && actual === expected,
+          };
+          result.checkedKeys.push(entry);
+          if (occurrences === 0) {
+            fail(key, "missing_key", { expected, actual: undefined, occurrences: 0 });
+          } else if (occurrences > 1) {
+            fail(key, "duplicate_key", { expected, actual, occurrences });
+          } else if (actual !== expected) {
+            fail(key, "value_mismatch", { expected, actual, occurrences });
+          }
+        });
+        result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaSystemProfileTextOnce === devStore.smokeAlphaSystemProfileTextOnce);
+        result.registeredOnGameDevDev = !!(Game.Dev && Game.Dev.smokeAlphaSystemProfileTextOnce === devStore.smokeAlphaSystemProfileTextOnce);
+        if (!result.registeredOnGameDev) fail("registration", "Game.__DEV_surface_missing", { expected: "Game.__DEV.smokeAlphaSystemProfileTextOnce", actual: typeof (Game.__DEV && Game.__DEV.smokeAlphaSystemProfileTextOnce) });
+        if (!result.registeredOnGameDevDev) fail("registration", "Game.Dev_surface_missing", { expected: "Game.Dev.smokeAlphaSystemProfileTextOnce", actual: typeof (Game.Dev && Game.Dev.smokeAlphaSystemProfileTextOnce) });
+      } catch (error) {
+        fail("smoke_exception", error && error.message ? String(error.message) : String(error), { expected: "ok:true", actual: null });
+      }
+      result.ok = result.sourceLoaded === true
+        && result.objectFound === true
+        && result.failedKeys.length === 0
+        && result.registeredOnGameDev === true
+        && result.registeredOnGameDevDev === true
+        && result.checkedKeys.length === REQUIRED_KEYS.length
+        && result.checkedKeys.every((entry) => entry.ok === true)
+        && result.publishRoot === "AsyncScene/Web";
+      console.warn("ALPHA_SYSTEM_PROFILE_TEXT_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const expose = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeAlphaSystemProfileTextOnce = devStore.smokeAlphaSystemProfileTextOnce;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeAlphaSystemProfileTextOnce = devStore.smokeAlphaSystemProfileTextOnce;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeAlphaSystemProfileTextOnce = devStore.smokeAlphaSystemProfileTextOnce;
+    };
+    expose();
+    if (typeof setTimeout === "function") {
+      setTimeout(expose, 0);
+      setTimeout(expose, 250);
+      setTimeout(expose, 1000);
+    }
+    console.warn("ALPHA_SYSTEM_PROFILE_TEXT_SMOKE_INSTALLED_V1", typeof devStore.smokeAlphaSystemProfileTextOnce);
+  }
+
+  function installStep65AggregateRuntimeSmoke(devStore) {
+    if (!devStore || typeof devStore !== "object" || typeof devStore.smokeZoomerFeelStep65AggregateRuntimeOnce === "function") return;
+    const BUILD_TAG = "build_2026_07_03_step6_5_aggregate_runtime_smoke_v1";
+    const COMMIT = "step6_5_aggregate_runtime_smoke";
+    const SMOKE_VERSION = "step6_5_aggregate_runtime_smoke_v20260703_001";
+    const SMOKE_NAME = "smokeZoomerFeelStep65AggregateRuntimeOnce";
+    const REQUIRED_CHILDREN = Object.freeze([
+      Object.freeze({ step: "6.1", helper: "smokeZoomerFeelStep61RCoreSystemRealCoverage" }),
+      Object.freeze({ step: "6.2", helper: "smokeZoomerFeelStep62RConflictResultsRealCoverageFix1" }),
+      Object.freeze({ step: "6.3", helper: "smokeZoomerFeelStep63REconomyRealCoverage" }),
+      Object.freeze({ step: "6.4", helper: "smokeZoomerFeelStep64RReputationRealCoverage" }),
+      Object.freeze({ step: "6.4", helper: "smokeAlphaSystemProfileTextOnce" }),
+    ]);
+    devStore.smokeZoomerFeelStep65AggregateRuntimeOnce = async function smokeZoomerFeelStep65AggregateRuntimeOnce() {
+      const result = {
+        ok: false,
+        buildTag: BUILD_TAG,
+        commit: COMMIT,
+        smokeVersion: SMOKE_VERSION,
+        smokeName: SMOKE_NAME,
+        childIdentities: REQUIRED_CHILDREN.map((child) => ({ step: child.step, helper: child.helper })),
+        childResults: [],
+        failures: [],
+        failedChecks: [],
+        missingCoverage: [],
+        forbiddenRemaining: [],
+        mismatches: [],
+        errors: [],
+      };
+      const flattenField = (fieldName, rawValue, childMeta) => {
+        if (typeof rawValue === "undefined") return;
+        if (!Array.isArray(rawValue)) {
+          result.errors.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            field: fieldName,
+            reason: "malformed_non_array",
+            actualType: rawValue === null ? "null" : typeof rawValue,
+          });
+          return;
+        }
+        rawValue.forEach((entry) => {
+          result[fieldName].push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            value: entry,
+          });
+        });
+      };
+      for (const childMeta of REQUIRED_CHILDREN) {
+        const runtimeStore = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : (G && G.__DEV && typeof G.__DEV === "object" ? G.__DEV : null);
+        const childFn = runtimeStore && runtimeStore[childMeta.helper];
+        if (typeof childFn !== "function") {
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: false,
+            missing: true,
+            error: "missing_helper",
+          });
+          result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "missing_helper" });
+          result.failures.push({ step: childMeta.step, helper: childMeta.helper, value: { reason: "missing_helper" } });
+          continue;
+        }
+        try {
+          const childResult = await Promise.resolve(childFn());
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: !!(childResult && childResult.ok === true),
+            result: childResult,
+          });
+          flattenField("failures", childResult && childResult.failures, childMeta);
+          flattenField("failedChecks", childResult && childResult.failedChecks, childMeta);
+          flattenField("missingCoverage", childResult && childResult.missingCoverage, childMeta);
+          flattenField("forbiddenRemaining", childResult && childResult.forbiddenRemaining, childMeta);
+          flattenField("mismatches", childResult && childResult.failedKeys, childMeta);
+          if (!childResult || childResult.ok !== true) {
+            result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "child_ok_false" });
+          }
+        } catch (error) {
+          const message = error && error.message ? String(error.message) : String(error);
+          result.childResults.push({
+            step: childMeta.step,
+            helper: childMeta.helper,
+            ok: false,
+            thrown: true,
+            error: message,
+          });
+          result.errors.push({ step: childMeta.step, helper: childMeta.helper, reason: "threw_or_rejected", message });
+          result.failures.push({ step: childMeta.step, helper: childMeta.helper, value: { reason: "threw_or_rejected", message } });
+        }
+      }
+      result.ok = result.childResults.length === REQUIRED_CHILDREN.length
+        && result.childResults.every((entry) => entry && entry.ok === true)
+        && result.failures.length === 0
+        && result.failedChecks.length === 0
+        && result.missingCoverage.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.mismatches.length === 0
+        && result.errors.length === 0;
+      console.warn("STEP65_AGGREGATE_RUNTIME_SMOKE", result.ok ? "PASS" : "FAIL", result);
+      return result;
+    };
+    const expose = () => {
+      if (!Game.Dev) Game.Dev = {};
+      Game.Dev.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+      if (!Game.__DEV) Game.__DEV = {};
+      Game.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+      if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = Game.__DEV;
+      G.__DEV.smokeZoomerFeelStep65AggregateRuntimeOnce = devStore.smokeZoomerFeelStep65AggregateRuntimeOnce;
+    };
+    expose();
+    if (typeof setTimeout === "function") {
+      setTimeout(expose, 0);
+      setTimeout(expose, 250);
+      setTimeout(expose, 1000);
+    }
+    console.warn("STEP65_AGGREGATE_RUNTIME_SMOKE_INSTALLED_V1", typeof devStore.smokeZoomerFeelStep65AggregateRuntimeOnce);
+  }
+
   installAlphaLexiconInventorySmoke(Game.__DEV);
   installAlphaAllowedLexiconSmoke(Game.__DEV);
   installBoomerLexiconDocumentationSmoke(Game.__DEV);
@@ -27984,6 +28366,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
   installAlphaNewFeaturesSmoke(Game.__DEV);
   installAlphaLexiconDocsSmoke(Game.__DEV);
   installAlphaLexiconDocsFix1Smoke(Game.__DEV);
+  installAlphaSystemProfileTextSmoke(Game.__DEV);
+  installStep65AggregateRuntimeSmoke(Game.__DEV);
   if (!DEV_FLAG) return;
 
   var devStore = ensureDevStoreSurface();
