@@ -3954,7 +3954,6 @@ window.Game = window.Game || {};
     const copId = (cop && cop.id) ? cop.id : "";
     const copName = (cop && cop.name) ? cop.name : "Коп";
     const targetId = (target && target.id) ? target.id : "";
-    const targetName = (target && target.name) ? String(target.name) : String(roleKey || "участник");
     const reporter = String(reporterId || ((State.me && State.me.id) ? State.me.id : "me"));
     const dayKey = dayKeyFromNowTs(Date.now());
     const opKey = buildReportOpKey({ dayKey, copId, reporterId: reporter, targetId, bucket });
@@ -3976,15 +3975,6 @@ window.Game = window.Game || {};
       battleId: reportId,
     });
     markReported(targetId, true, roleKey, copId);
-    try {
-      const reportOkText = (D && D.SYS && typeof D.SYS.reportOk === "function")
-        ? D.SYS.reportOk(targetName)
-        : ((Game.System && typeof Game.System.say === "function")
-          ? Game.System.say("notifications", "reportOk", { name: targetName })
-          : `Коп принял сообщение о ${targetName}: +2 💰.`);
-      pushSystem(reportOkText);
-    } catch (_) {}
-
     try {
       let repSum = 0;
       let ptsSum = 0;
