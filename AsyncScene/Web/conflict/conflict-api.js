@@ -83,9 +83,9 @@
     return { hasPools: !!pools, poolSizes, attackLen, defenseLen };
   }
 
-  function resolveConflictResultText(key, fallbackText, profile) {
+  function resolveConflictResultText(key, fallbackText) {
     if (Core && typeof Core.resolveConflictResultPresentation === "function") {
-      const resolved = Core.resolveConflictResultPresentation(key, profile ? { profile } : undefined);
+      const resolved = Core.resolveConflictResultPresentation(key);
       if (resolved && resolved.text) return resolved.text;
     }
     return fallbackText || "";
