@@ -1,3 +1,15 @@
+## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit
+- Status: `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
+- Added `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` and `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` as deterministic mirrored static-audit artifacts for the requested feature zones: Points/💰, REP/⭐, Influence, voting, majority/minority outcomes, rematch, NPC-vs-NPC conflict text, conflict results, DM, and reports/report resolution.
+- Added `tools/generate-boomer-step4-4-economy-conflict-audit.py` and `tools/validate-boomer-step4-4-economy-conflict-audit.py`. The validator intentionally fails closed on drift and on any audit result other than `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
+- Final 4.4A static snapshot: `auditedRowCount:155`, `failRowCount:118`, `passRowCount:37`, `structuralFailureCount:0`, `classificationCounts={allowed_exact:23, forbidden:6, mapped_exact:14, unmapped:111, wrong_profile:1}`.
+- The generator now parses current production UTF-8 source text and the exact Step 4.3 canonical mapping table correctly. This removed the earlier false structural misses and reduced the result to source-backed live defects only.
+- The most important live routing defect is in `AsyncScene/Web/system.js`: `activeSystemTextProfile()` still resolves Boomer system text through the Millennial branch, so at least one Boomer-visible system surface is proven `wrong_profile`.
+- The remaining failures are overwhelmingly accepted-contract gaps rather than parser gaps: current reachable Boomer copy exists in production, but many rows are not covered by the accepted Step 4.3 mapping or the Boomer allowed lexicon, and several others differ from the accepted target exactly.
+- The accepted taboo list currently contains standalone `НЕ` / `не`, so current live surfaces containing those tokens are classified `forbidden` by the fail-closed validator. No taboo-list change was made here.
+- No runtime or production-copy files were edited. This step is audit-only evidence generation. Any copy repair must route to a separate Boomer Step 4.4 Fix1 task.
+- Step 4.4B remains required for final Step 4.4, but it is blocked until 4.4A reaches `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
+
 ## 2026-07-03 — Boomer Step 4.3 canonical millennial -> boomer terminology mapping table
 - Status: PASS for documentation/data generation and static validation only; Safari smoke is N/A because this step has no runtime surface.
 - Added `UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md` and `docs/UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md` as a root/docs mirrored table-only artifact generated from the accepted Step 4.2 exact inventory bundle and the current accepted boomer allowed lexicon.
