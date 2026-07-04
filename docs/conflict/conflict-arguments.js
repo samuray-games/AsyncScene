@@ -122,10 +122,10 @@
     return Game._ConflictCore || Game.ConflictCore || null;
   }
 
-  function resolveConflictResultText(key, fallbackText, profile) {
+  function resolveConflictResultText(key, fallbackText) {
     const core = getCore();
     if (core && typeof core.resolveConflictResultPresentation === "function") {
-      const resolved = core.resolveConflictResultPresentation(key, profile ? { profile } : undefined);
+      const resolved = core.resolveConflictResultPresentation(key);
       if (resolved && resolved.text) return resolved.text;
     }
     return fallbackText || "";

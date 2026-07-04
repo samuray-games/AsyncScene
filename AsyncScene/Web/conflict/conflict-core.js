@@ -22,7 +22,7 @@
 
   // Local helpers
   function now(){ return Date.now(); }
-  function resolveConflictResultPresentation(key, options) {
+  function resolveConflictResultPresentation(key) {
     const requestedKey = typeof key === "string" ? key.trim() : "";
     if (!Object.prototype.hasOwnProperty.call(CONFLICT_RESULT_KEYS, requestedKey)) {
       return {
@@ -45,8 +45,7 @@
         error: "missing_resolver",
       };
     }
-    const forcedProfile = options && typeof options === "object" ? options.profile : null;
-    const profile = D.resolveUiTextProfileName(forcedProfile);
+    const profile = D.resolveUiTextProfileName();
     const tables = D && D.TEXTS ? D.TEXTS : {};
     const activeTable = tables[profile] || tables.millennial || {};
     const fallbackTable = tables.millennial || {};

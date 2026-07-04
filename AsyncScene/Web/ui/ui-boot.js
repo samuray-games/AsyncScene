@@ -4499,9 +4499,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62ConflictResults !== "function") {
       G.__DEV.smokeZoomerFeelStep62ConflictResults = function smokeZoomerFeelStep62ConflictResults() {
-        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix1";
-        const commit = "step6_2_conflict_result_pure_adapter_fix1";
-        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix1_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
+        const commit = "step6_2_conflict_result_pure_adapter_fix3";
+        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
         const keys = [
           "conflict_win",
           "conflict_loss",
@@ -4541,8 +4541,15 @@ window.Game = window.Game || {};
         const resolveConflictText = (key, profile) => {
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
-          const resolved = core.resolveConflictResultPresentation(key, { profile });
-          return String((resolved && resolved.text) || "");
+          const D = G.Data || {};
+          const prev = D.TEXT_MODE;
+          try {
+            D.TEXT_MODE = profile;
+            const resolved = core.resolveConflictResultPresentation(key);
+            return String((resolved && resolved.text) || "");
+          } finally {
+            D.TEXT_MODE = prev;
+          }
         };
         const before = snapshot();
         try {
@@ -4590,9 +4597,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage = function smokeZoomerFeelStep62RConflictResultsRealCoverage() {
-        const buildTag = "build_2026_07_04_step6_2r_conflict_result_pure_adapter_fix1";
-        const commit = "step6_2r_conflict_result_pure_adapter_fix1";
-        const smokeVersion = "step6_2r_conflict_result_pure_adapter_fix1_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
+        const commit = "step6_2_conflict_result_pure_adapter_fix3";
+        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
@@ -4665,8 +4672,15 @@ window.Game = window.Game || {};
         const resolveConflictText = (key, profile) => {
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
-          const resolved = core.resolveConflictResultPresentation(key, { profile });
-          return String((resolved && resolved.text) || "");
+          const D = G.Data || {};
+          const prev = D.TEXT_MODE;
+          try {
+            D.TEXT_MODE = profile;
+            const resolved = core.resolveConflictResultPresentation(key);
+            return String((resolved && resolved.text) || "");
+          } finally {
+            D.TEXT_MODE = prev;
+          }
         };
         const before = snapshot();
         try {
@@ -4724,9 +4738,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = function smokeZoomerFeelStep62RConflictResultsRealCoverageFix1() {
-        const buildTag = "build_2026_07_04_step6_2r_conflict_result_pure_adapter_fix2";
-        const commit = "step6_2r_conflict_result_pure_adapter_fix2";
-        const smokeVersion = "step6_2r_conflict_result_pure_adapter_fix2_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
+        const commit = "step6_2_conflict_result_pure_adapter_fix3";
+        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
@@ -4799,8 +4813,15 @@ window.Game = window.Game || {};
         const resolveConflictText = (key, profile) => {
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
-          const resolved = core.resolveConflictResultPresentation(key, { profile });
-          return String((resolved && resolved.text) || "");
+          const D = G.Data || {};
+          const prev = D.TEXT_MODE;
+          try {
+            D.TEXT_MODE = profile;
+            const resolved = core.resolveConflictResultPresentation(key);
+            return String((resolved && resolved.text) || "");
+          } finally {
+            D.TEXT_MODE = prev;
+          }
         };
         const before = snapshot();
         try {
