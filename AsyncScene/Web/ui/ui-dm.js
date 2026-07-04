@@ -875,7 +875,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const cdLast = cdMap[withId] || 0;
     const cdActive = cdLast && (Date.now() - cdLast) < cdMs;
 
-    const btnBattle = mkBtn("баттл", () => {
+    const btnBattle = mkBtn(resolveDmActionLabel("dm.battle"), () => {
       if ((getS().me.points || 0) <= 0) {
         const msg = t("dm_action_unavailable");
         if (UI && typeof UI.showStatToast === "function") {
@@ -945,7 +945,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const respectButton = document.createElement("button");
       respectButton.type = "button";
       respectButton.className = "btn respect-action";
-      respectButton.textContent = "Уважение";
+      respectButton.textContent = resolveDmActionLabel("dm.respect");
       respectButton.onclick = (ev) => {
         stop(ev);
         __uiRespectClick__(withId);
@@ -958,7 +958,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     }
 
     const canTeach = !isCop && !isMafia;
-    const btnTeach = mkBtn("Передать", () => {
+    const btnTeach = mkBtn(resolveDmActionLabel("dm.teach.toggle"), () => {
       getS().dm.teachOpen = !getS().dm.teachOpen;
       UI.renderDM();
     });
@@ -966,7 +966,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const btnEscape = null;
 
-    const btnInvite = mkBtn("Позвать", () => {
+    const btnInvite = mkBtn(resolveDmActionLabel("dm.invite"), () => {
       getS().dm.inviteOpen = !getS().dm.inviteOpen;
       UI.renderDM();
     });
@@ -1005,7 +1005,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     };
 
     const createP2PTransferCTA = (mode) => {
-      const label = (mode === "give") ? "Передать 💰" : "Попросить 💰";
+      const label = resolveDmActionLabel(mode === "give" ? "dm.p2p.give" : "dm.p2p.request");
       const meId = (getS().me && getS().me.id) ? String(getS().me.id) : "me";
       const enabled = (Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function")
         ? Game.Rules.isP2PTransfersEnabled()
@@ -1079,7 +1079,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
       const send = document.createElement("button");
       send.className = "miniBtn";
-      send.textContent = "Позвать";
+      send.textContent = resolveDmActionLabel("dm.invite");
 
       // Autocomplete dropdown (DM scope)
       let listEl = document.getElementById("dmInviteList");
@@ -1549,7 +1549,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           openBtn.id = "reportOpenBtn";
           openBtn.type = "button";
           openBtn.className = "btn";
-          openBtn.textContent = "Сдать";
+          openBtn.textContent = resolveDmActionLabel("dm.report.open");
           openBtn.onclick = (e) => {
             stop(e);
             state.open = true;
@@ -1635,13 +1635,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           const renderSubmitButton = () => {
             const uiState = getReportUiState();
             if (uiState.status === "pending") {
-              submitBtn.textContent = "Проверяю...";
+              submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "pending");
               submitBtn.disabled = true;
             } else if (uiState.status === "cooldown") {
-              submitBtn.textContent = "Занят";
+              submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "cooldown");
               submitBtn.disabled = true;
             } else {
-              submitBtn.textContent = "Сдать";
+              submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "idle");
               submitBtn.disabled = false;
             }
           };
