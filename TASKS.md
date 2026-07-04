@@ -1,3 +1,15 @@
+## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit
+- Status: `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
+- Added the mirrored static audit artifact `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` and `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`.
+- Added `tools/generate-boomer-step4-4-economy-conflict-audit.py` to deterministically rebuild both audit mirrors from current production emitters plus the accepted Boomer lexicon, taboo list, and Step 4.3 mapping.
+- Added `tools/validate-boomer-step4-4-economy-conflict-audit.py` to fail closed on mirror drift, duplicate/conflicting evidence rows, out-of-scope changes, and any non-`STATIC_PASS` audit result.
+- Current static audit result: `auditedRowCount:155`, `failRowCount:118`, `passRowCount:37`, `structuralFailureCount:0`.
+- Failure shape: `unmapped:111`, `mapped_exact:14`, `forbidden:6`, `wrong_profile:1`.
+- Confirmed a live wrong-profile resolver defect in `AsyncScene/Web/system.js`: Boomer system text currently resolves through the Millennial path in `activeSystemTextProfile()`.
+- Confirmed the static audit now has complete source evidence for every included live production row; the earlier parser/evidence false negatives were removed from the generator.
+- No production copy, runtime JavaScript, HTML entrypoint, smoke registry/export, lexicon artifact, taboo artifact, or Step 4.3 mapping artifact was changed in this task.
+- Corrections are deferred to a separate Boomer Step 4.4 Fix1 task. Step 4.4B runtime aggregate smoke is blocked until 4.4A reaches `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
+
 ## 2026-07-03 — Boomer Step 4.3 canonical millennial -> boomer terminology mapping table
 - Status: PASS for documentation/data generation and static validation only; Safari smoke is N/A because this step has no runtime surface.
 - Files: `UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md`, `docs/UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md`, `tools/generate-boomer-step4-3-terminology-mapping.py`, `tools/validate-boomer-step4-3-terminology-mapping.py`

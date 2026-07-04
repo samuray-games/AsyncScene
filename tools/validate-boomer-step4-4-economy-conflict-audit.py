@@ -8,6 +8,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+sys.dont_write_bytecode = True
+
 ROOT_DOC = "UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md"
 DOCS_DOC = "docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md"
 GENERATOR = "tools/generate-boomer-step4-4-economy-conflict-audit.py"
@@ -21,6 +23,7 @@ ALLOWED_SCOPE = {
     "PROJECT_MEMORY.md",
 }
 STATIC_PASS = "STATIC_PASS / READY_FOR_RUNTIME_SMOKE"
+FAIL_ROW_CLASSIFICATIONS = {"mapped_exact"}
 
 
 def load_generator(root: Path):
@@ -29,6 +32,7 @@ def load_generator(root: Path):
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to import generator from {path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -86,7 +90,7 @@ def main(argv: list[str]) -> int:
             failures.append(f"Duplicate source locator detected: {locator_key[0]} :: {locator_key[1]}")
         seen_ids.add(row_id)
         seen_locators.add(locator_key)
-        if row["verdict"] == "FAIL" and row["classification"] not in generator.FAIL_CLASSIFICATIONS:
+        if row["verdict"] == "FAIL" and row["classification"] not in (set(generator.FAIL_CLASSIFICATIONS) | FAIL_ROW_CLASSIFICATIONS):
             failures.append(f"Unexpected fail classification for {row_id}: {row['classification']}")
         if row["classification"] == "allowed_exact" and row["currentText"] != row["acceptedBoomerTarget"]:
             failures.append(f"allowed_exact row mismatch for {row_id}")

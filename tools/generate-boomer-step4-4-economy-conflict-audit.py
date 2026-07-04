@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -67,6 +68,19 @@ def markdown_escape(value: str) -> str:
     return str(value).replace("|", "\\|").replace("\n", "<br>")
 
 
+def js_unescape(raw: str) -> str:
+    try:
+        return json.loads(f'"{raw}"')
+    except json.JSONDecodeError:
+        return (
+            raw.replace("\\\\", "\\")
+            .replace('\\"', '"')
+            .replace("\\n", "\n")
+            .replace("\\r", "\r")
+            .replace("\\t", "\t")
+        )
+
+
 def find_matching_block(text: str, marker: str, open_char: str, close_char: str) -> str:
     start = text.find(marker)
     if start < 0:
@@ -105,7 +119,7 @@ def parse_js_string_object(block: str) -> dict[str, str]:
     pattern = re.compile(r'^\s*([A-Za-z0-9_"\[\].]+)\s*:\s*"((?:[^"\\]|\\.)*)"', re.MULTILINE)
     for match in pattern.finditer(block):
         key = match.group(1).strip().strip('"')
-        value = bytes(match.group(2), "utf-8").decode("unicode_escape")
+        value = js_unescape(match.group(2))
         rows[key] = normalize_text(value)
     return rows
 
@@ -149,7 +163,7 @@ def parse_override_array_object(block: str) -> dict[str, list[str]]:
         content = block[open_index + 1 : end_index]
         rows = []
         for item in re.finditer(r'\[\s*\d+\s*,\s*"((?:[^"\\]|\\.)*)"\s*\]', content):
-            rows.append(normalize_text(bytes(item.group(1), "utf-8").decode("unicode_escape")))
+            rows.append(normalize_text(js_unescape(item.group(1))))
         result[category] = rows
         search_pos = end_index + 1
     return result
@@ -194,7 +208,7 @@ def parse_array_object(block: str) -> dict[str, list[str]]:
             raise ValueError(f"Unclosed array block for {category}")
         content = block[open_index + 1 : end_index]
         values = [
-            normalize_text(bytes(item.group(1), "utf-8").decode("unicode_escape"))
+            normalize_text(js_unescape(item.group(1)))
             for item in re.finditer(r'"((?:[^"\\]|\\.)*)"', content)
         ]
         result[category] = values
@@ -220,7 +234,12 @@ def parse_allowed_lexicon(path: Path) -> tuple[dict[str, str], set[str]]:
 
 def parse_step43_mapping(path: Path) -> dict[str, str]:
     mapping: dict[str, str] = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    text = path.read_text(encoding="utf-8")
+    start = text.find("## Exact canonical mapping table")
+    if start < 0:
+        raise ValueError("Unable to isolate Step 4.3 exact canonical mapping table")
+    section = text[start:]
+    for line in section.splitlines():
         if not re.match(r"^\| MAP_\d{4} \|", line):
             continue
         parts = [part.strip() for part in line.strip()[2:-2].split(" | ")]
@@ -423,27 +442,24 @@ def build_manual_specs(
     return [
         ManualSurfaceSpec("points", "system", "Game.System.say(errors, insufficientPoints)", "resolver", "Game.System.say -> SYSTEM_PROFILE_TEXT_ROUTE_MAP -> activeSystemTextProfile=millennial", "runtime_resolved", rendered("errors", "insufficientPoints"), "Не хватает 💰.", ("errors.insufficientPoints", "not_enough_money"), True),
         ManualSurfaceSpec("points", "system", "Game.System.say(errors, pointsLowBattle)", "resolver", "Game.System.say -> SystemCopy.errors.pointsLowBattle", "runtime_resolved", rendered("errors", "pointsLowBattle"), "Мало 💰 на баттл.", ("errors.pointsLowBattle",), False),
-        ManualSurfaceSpec("reports", "system", "Game.System.say(errors, reportNo)", "resolver", "Game.System.say -> SystemCopy.errors.reportNo", "runtime_resolved", rendered("errors", "reportNo"), "Коп: донос пустой, -5💰.", ("errors.reportNo",), False),
+        ManualSurfaceSpec("reports", "data", "Data.SYS.reportNo", "resolver", "Data.SYS.reportNo -> Game.System.say(errors, reportNo)", "runtime_resolved", rendered("errors", "reportNo"), "Коп: донос пустой, -5💰.", ('reportNo: systemSay("errors", "reportNo")',), False),
         ManualSurfaceSpec("points", "system", "Game.System.say(notifications, pointsDeltaPlusOne)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaPlusOne", "runtime_resolved", rendered("notifications", "pointsDeltaPlusOne"), "+1💰", ("notifications.pointsDeltaPlusOne",), False),
         ManualSurfaceSpec("rep", "system", "Game.System.say(notifications, repDeltaPlusOne)", "system_notification", "Game.System.say -> SystemCopy.notifications.repDeltaPlusOne", "runtime_resolved", rendered("notifications", "repDeltaPlusOne"), "+1⭐", ("notifications.repDeltaPlusOne",), False),
-        ManualSurfaceSpec("points", "ui_dm", "UI.showStatToast(points, respectPaid)", "toast", "Game.System.say -> SystemCopy.notifications.respectPaid", "runtime_resolved", rendered("notifications", "respectPaid"), "Ты отдал 1💰", ("notifications.respectPaid", "respectPaidText"), False),
-        ManualSurfaceSpec("rep", "ui_dm", "UI.showStatToast(rep, respectTargetRep)", "toast", "Game.System.say -> SystemCopy.notifications.respectTargetRep", "runtime_resolved", rendered("notifications", "respectTargetRep"), "Цель получила +1 ⭐", ("notifications.respectTargetRep", "respectTargetRepText"), False),
-        ManualSurfaceSpec("reports", "ui_dm", "Game.__A.pushDm(... reportPending ...)", "dm", "Game.System.say -> SystemCopy.notifications.reportPending", "runtime_resolved", rendered("notifications", "reportPending"), "Проверяю.", ("notifications.reportPending",), False),
-        ManualSurfaceSpec("reports", "data", "Data.SYS.reportOk(name)", "system_notification", "Game.System.say -> SystemCopy.notifications.reportOk", "runtime_resolved", rendered("notifications", "reportOk"), "Коп: {name} сдан, +2💰.", ("notifications.reportOk",), False),
-        ManualSurfaceSpec("rematch", "ui_battles", "rematchRequested route", "toast", "Game.System.say -> SystemCopy.notifications.rematchRequested", "runtime_resolved", rendered("notifications", "rematchRequested"), "{name} зовёт на реванш.", ("notifications.rematchRequested",), False),
+        ManualSurfaceSpec("points", "ui_dm", "UI.showStatToast(points, respectPaid)", "toast", "Game.System.say -> SystemCopy.notifications.respectPaid", "runtime_resolved", rendered("notifications", "respectPaid"), "Ты отдал 1💰", ('systemSay("notifications", "respectPaid")',), False),
+        ManualSurfaceSpec("rep", "ui_dm", "UI.showStatToast(rep, respectTargetRep)", "toast", "Game.System.say -> SystemCopy.notifications.respectTargetRep", "runtime_resolved", rendered("notifications", "respectTargetRep"), "Цель получила +1 ⭐", ('systemSay("notifications", "respectTargetRep")',), False),
+        ManualSurfaceSpec("reports", "ui_dm", "Game.__A.pushDm(... reportPending ...)", "dm", "Game.System.say -> SystemCopy.notifications.reportPending", "runtime_resolved", rendered("notifications", "reportPending"), "Проверяю.", ('systemSay("notifications", "reportPending")',), False),
+        ManualSurfaceSpec("reports", "data", "Data.SYS.reportOk(name)", "system_notification", "Data.SYS.reportOk -> Game.System.say(notifications, reportOk)", "runtime_resolved", rendered("notifications", "reportOk"), "Коп: {name} сдан, +2💰.", ('reportOk: (name) => systemSay("notifications", "reportOk", { name })',), False),
         ManualSurfaceSpec("rematch", "system", "Game.System.say(notifications, rematchCost)", "system_notification", "Game.System.say -> SystemCopy.notifications.rematchCost", "runtime_resolved", rendered("notifications", "rematchCost"), "Реванш: -{rematchCost}💰.", ("notifications.rematchCost",), False),
-        ManualSurfaceSpec("points", "ui_battles", "escapePaid route", "toast", "Game.System.say -> SystemCopy.notifications.escapePaid", "runtime_resolved", rendered("notifications", "escapePaid"), "Свалить за 1💰.", ("notifications.escapePaid",), False),
-        ManualSurfaceSpec("voting", "events", "Game.System.say(notifications, pointsDeltaVoteCost)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaVoteCost", "runtime_resolved", rendered("notifications", "pointsDeltaVoteCost"), "-{voteCost}💰", ("notifications.pointsDeltaVoteCost",), False),
-        ManualSurfaceSpec("voting", "events", "Game.System.say(notifications, pointsDeltaRefund)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaRefund", "runtime_resolved", rendered("notifications", "pointsDeltaRefund"), "+1💰 возврат.", ("notifications.pointsDeltaRefund",), False),
-        ManualSurfaceSpec("majority_minority", "events", "Game.System.say(notifications, pointsDeltaRefundMajority)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaRefundMajority", "runtime_resolved", rendered("notifications", "pointsDeltaRefundMajority"), "+1💰 возврат большинству.", ("notifications.pointsDeltaRefundMajority",), False),
-        ManualSurfaceSpec("majority_minority", "events", "Game.System.say(notifications, pointsDeltaRemainderWin)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaRemainderWin", "runtime_resolved", rendered("notifications", "pointsDeltaRemainderWin"), "+1💰 остаток победителю.", ("notifications.pointsDeltaRemainderWin",), False),
-        ManualSurfaceSpec("voting", "events", "Game.System.say(systemEvents, crowdStart)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.crowdStart", "runtime_resolved", rendered("systemEvents", "crowdStart"), "Толпа решает.", ("systemEvents.crowdStart",), False),
-        ManualSurfaceSpec("majority_minority", "events", "Game.System.say(systemEvents, crowdResolved)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.crowdResolved", "runtime_resolved", rendered("systemEvents", "crowdResolved"), "Толпа: {name} {aVotes}:{bVotes}.", ("systemEvents.crowdResolved",), False),
-        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmReaction ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmReaction", "runtime_resolved", rendered("systemEvents", "dmReaction"), "{name} ↔ {target}: реакция.", ("systemEvents.dmReaction",), False),
-        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmInvite ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmInvite", "runtime_resolved", rendered("systemEvents", "dmInvite"), "{name}: +{guest} к {target}.", ("systemEvents.dmInvite",), False),
-        ManualSurfaceSpec("npc_vs_npc", "events", "Game.System.say(systemEvents, battleWin)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.battleWin", "runtime_resolved", rendered("systemEvents", "battleWin"), "{winner} победил. {loser} проиграл.", ("systemEvents.battleWin",), False),
-        ManualSurfaceSpec("conflict_results", "system", "Game.System.say(systemEvents, battleDraw)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.battleDraw", "runtime_resolved", rendered("systemEvents", "battleDraw"), "{a} и {b}: ничья.", ("systemEvents.battleDraw",), False),
-        ManualSurfaceSpec("conflict_results", "conflict_core", "pushSystem(... battleResult ...)", "generated_runtime_text", "battleResultText -> Game.System.say(systemEvents, battleResult)", "generated_runtime_text", rendered("systemEvents", "battleResult"), "Баттл с {oppName}: {text}.", ("systemEvents.battleResult", "pushSystem(systemSay(\"systemEvents\", \"battleResult\""), False),
+        ManualSurfaceSpec("points", "ui_battles", "leaveBtn.textContent", "toast", "Game.System.say -> SystemCopy.notifications.escapePaid", "runtime_resolved", rendered("notifications", "escapePaid"), "Свалить за 1💰.", ('systemSay("notifications", "escapePaid")',), False),
+        ManualSurfaceSpec("voting", "events", "Game.UI.pushSystem(systemSay(notifications, pointsDeltaVoteCost))", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaVoteCost", "runtime_resolved", rendered("notifications", "pointsDeltaVoteCost"), "-{voteCost}💰", ('systemSay("notifications", "pointsDeltaVoteCost", { voteCost })',), False),
+        ManualSurfaceSpec("voting", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefund", "generated_runtime_text", rendered("notifications", "pointsDeltaRefund"), "+1💰 возврат.", ("crowd_vote_refund", "pointsDeltaRefund"), False),
+        ManualSurfaceSpec("majority_minority", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund_majority", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefundMajority", "generated_runtime_text", rendered("notifications", "pointsDeltaRefundMajority"), "+1💰 возврат большинству.", ("crowd_vote_refund_majority", "pointsDeltaRefundMajority"), False),
+        ManualSurfaceSpec("majority_minority", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_remainder_*", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRemainderWin", "generated_runtime_text", rendered("notifications", "pointsDeltaRemainderWin"), "+1💰 остаток победителю.", ("crowd_vote_remainder_win", "pointsDeltaRemainderWin"), False),
+        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmReaction ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmReaction", "runtime_resolved", rendered("systemEvents", "dmReaction"), "{name} ↔ {target}: реакция.", ('systemSay("systemEvents", "dmReaction"',), False),
+        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmInvite ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmInvite", "runtime_resolved", rendered("systemEvents", "dmInvite"), "{name}: +{guest} к {target}.", ('systemSay("systemEvents", "dmInvite"',), False),
+        ManualSurfaceSpec("npc_vs_npc", "data", "Data.SYS.npcBattleEndWin", "template", "Data.SYS.npcBattleEndWin", "runtime_resolved", "{winner} победил. {loser} проиграл.", "{winner} победил. {loser} проиграл.", ('npcBattleEndWin: (winner, loser) => `${winner} победил. ${loser} проиграл.`',), False),
+        ManualSurfaceSpec("conflict_results", "data", "Data.SYS.npcBattleEndDraw", "template", "Data.SYS.npcBattleEndDraw", "runtime_resolved", "{a} и {b}: ничья.", "{a} и {b}: ничья.", ('npcBattleEndDraw: (a, b) => `${a} и ${b}: ничья.`',), False),
+        ManualSurfaceSpec("conflict_results", "conflict_core", "pushSystem(... battleResult ...)", "generated_runtime_text", "battleResultText -> Game.System.say(systemEvents, battleResult)", "generated_runtime_text", rendered("systemEvents", "battleResult"), "Баттл с {oppName}: {text}.", ('systemSay("systemEvents", "battleResult"',), False),
         ManualSurfaceSpec("voting", "ui_events", "__smokeBoomerTermsStep42Events.voteDisabled", "toast", "literal boomer branch in ui-events.js", "runtime_resolved", "Вы уже проголосовали.", "Ты уже проголосовал.", ("voteDisabled", "Вы уже проголосовали."), False),
         ManualSurfaceSpec("points", "ui_events", "__smokeBoomerTermsStep42Events.voteNoPoints", "toast", "literal boomer branch in ui-events.js", "runtime_resolved", "Недостаточно 💰.", "Не хватает 💰.", ("voteNoPoints", "Недостаточно 💰."), False),
         ManualSurfaceSpec("rematch", "ui_battles", "__smokeBoomerTermsStep42Battles.rematchAlreadyRequested", "toast", "literal boomer branch in ui-battles.js", "runtime_resolved", "Реванш уже запрошен.", "Реванш уже запрошен.", ("rematchAlreadyRequested",), False),
