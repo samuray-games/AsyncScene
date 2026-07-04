@@ -23,6 +23,57 @@ const resolveUiMode = () => {
   const normalized = String(profile || "").trim().toLowerCase();
   return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
 };
+const DM_ACTION_PROFILE_KEYS = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
+const DM_ACTION_PROFILE_SET = new Set(DM_ACTION_PROFILE_KEYS);
+const DM_REPORT_SUBMIT_LABELS = Object.freeze({
+  idle: "Сдать",
+  pending: "Проверяю...",
+  cooldown: "Занят",
+});
+const DM_ACTION_LABEL_BASE = Object.freeze({
+  "dm.battle": "баттл",
+  "dm.respect": "Уважение",
+  "dm.teach.toggle": "Передать",
+  "dm.invite": "Позвать",
+  "dm.p2p.give": "Передать 💰",
+  "dm.p2p.request": "Попросить 💰",
+  "dm.report.open": "Сдать",
+  "dm.report.submit": DM_REPORT_SUBMIT_LABELS,
+});
+const DM_ACTION_LABELS = Object.freeze({
+  default: DM_ACTION_LABEL_BASE,
+  millennial: DM_ACTION_LABEL_BASE,
+  zoomer: DM_ACTION_LABEL_BASE,
+  alpha: DM_ACTION_LABEL_BASE,
+  boomer: DM_ACTION_LABEL_BASE,
+});
+const resolveDmProfile = (profile) => {
+  const explicitProfile = String(profile == null ? "" : profile).trim().toLowerCase();
+  if (DM_ACTION_PROFILE_SET.has(explicitProfile)) return explicitProfile;
+  const Data = Game.Data || null;
+  if (Data && typeof Data.getUiProfile === "function") {
+    const getterProfile = String(Data.getUiProfile() == null ? "" : Data.getUiProfile()).trim().toLowerCase();
+    if (DM_ACTION_PROFILE_SET.has(getterProfile)) return getterProfile;
+  }
+  if (Data) {
+    const rawProfile = String(Data.UI_PROFILE == null ? "" : Data.UI_PROFILE).trim().toLowerCase();
+    if (DM_ACTION_PROFILE_SET.has(rawProfile)) return rawProfile;
+  }
+  return "default";
+};
+const resolveDmActionLabel = (actionId, profile, state) => {
+  const actionKey = String(actionId == null ? "" : actionId).trim();
+  const profileKey = resolveDmProfile(profile);
+  const labels = DM_ACTION_LABELS[profileKey] || DM_ACTION_LABELS.default;
+  if (actionKey === "dm.report.submit") {
+    const submitLabels = labels["dm.report.submit"] || DM_REPORT_SUBMIT_LABELS;
+    const stateKey = String(state == null ? "" : state).trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(submitLabels, stateKey) ? submitLabels[stateKey] : submitLabels.idle;
+  }
+  return Object.prototype.hasOwnProperty.call(labels, actionKey)
+    ? labels[actionKey]
+    : (Object.prototype.hasOwnProperty.call(DM_ACTION_LABEL_BASE, actionKey) ? DM_ACTION_LABEL_BASE[actionKey] : "");
+};
 const isBoomerUiMode = () => resolveUiMode() === "boomer";
 if (!Game.__DEV) Game.__DEV = {};
 Game.__DEV.__smokeBoomerTermsStep42Dm = function smokeBoomerTermsStep42Dm(profile) {

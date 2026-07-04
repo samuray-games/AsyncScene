@@ -83,6 +83,14 @@
     return { hasPools: !!pools, poolSizes, attackLen, defenseLen };
   }
 
+  function resolveConflictResultText(key, fallbackText, profile) {
+    if (Core && typeof Core.resolveConflictResultPresentation === "function") {
+      const resolved = Core.resolveConflictResultPresentation(key, profile ? { profile } : undefined);
+      if (resolved && resolved.text) return resolved.text;
+    }
+    return fallbackText || "";
+  }
+
   function logEmptyArgs(kind, reason, extra) {
     const key = `${kind}:${reason}`;
     if (_argWarned[key]) return;
@@ -1000,9 +1008,7 @@
              battle.finished = true;
              battle.result = "lose";
              battle.status = "finished";
-             battle.resultLine = (Game.Data && typeof Game.Data.resolveConflictResultText === "function")
-               ? (Game.Data.resolveConflictResultText("conflict_loss") || "Поражение")
-               : "Поражение";
+             battle.resultLine = resolveConflictResultText("conflict_loss", "Поражение");
            }
            if (Game.UI && typeof Game.UI.pushSystem === "function") {
              const line = roleLower === "bandit" ? "Ты напоролся на бандита." : "Ты напоролся на токсика.";
@@ -1242,17 +1248,11 @@
            battle.result = fallbackOutcome;
            battle.draw = (fallbackOutcome === "draw");
            if (!battle.resultLine) {
-             battle.resultLine = (Game.Data && typeof Game.Data.resolveConflictResultText === "function")
-               ? ((fallbackOutcome === "draw")
-                   ? (Game.Data.resolveConflictResultText("conflict_draw") || "Толпа решает")
-                   : (fallbackOutcome === "win")
-                     ? (Game.Data.resolveConflictResultText("conflict_win") || "Победа")
-                     : (Game.Data.resolveConflictResultText("conflict_loss") || "Поражение"))
-               : ((fallbackOutcome === "draw")
-                   ? "Толпа решает"
-                   : (fallbackOutcome === "win")
-                     ? "Победа"
-                     : "Поражение");
+             battle.resultLine = (fallbackOutcome === "draw")
+               ? resolveConflictResultText("conflict_draw", "Толпа решает")
+               : (fallbackOutcome === "win")
+                 ? resolveConflictResultText("conflict_win", "Победа")
+                 : resolveConflictResultText("conflict_loss", "Поражение");
            }
            resolution = { ok: true, outcome: fallbackOutcome };
          }
