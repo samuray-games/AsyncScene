@@ -426,7 +426,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       supported_majority: "Вы поддержали большинство.",
       supported_minority: "Вы оказались в меньшинстве.",
       majority_won: "Большинство победило.",
-      minority_lost: "Андер просел.",
+      minority_lost: "Меньшинство проиграло.",
       conflict_finished: "Конфликт завершён.",
       battle_not_enough_points: "Не хватает 💰.",
 

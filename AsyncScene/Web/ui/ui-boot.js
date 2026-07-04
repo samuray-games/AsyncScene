@@ -4499,9 +4499,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62ConflictResults !== "function") {
       G.__DEV.smokeZoomerFeelStep62ConflictResults = function smokeZoomerFeelStep62ConflictResults() {
-        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
-        const commit = "step6_2_conflict_result_pure_adapter_fix3";
-        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_profile_sampling_fix4";
+        const commit = "step6_2_conflict_result_profile_sampling_fix4";
+        const smokeVersion = "step6_2_conflict_result_profile_sampling_fix4_v20260704_001";
         const keys = [
           "conflict_win",
           "conflict_loss",
@@ -4542,13 +4542,16 @@ window.Game = window.Game || {};
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
           const D = G.Data || {};
-          const prev = D.TEXT_MODE;
+          const prevTextMode = D.TEXT_MODE;
+          const prevUiProfile = D.UI_PROFILE;
           try {
-            D.TEXT_MODE = profile;
+            D.TEXT_MODE = "";
+            D.UI_PROFILE = profile;
             const resolved = core.resolveConflictResultPresentation(key);
             return String((resolved && resolved.text) || "");
           } finally {
-            D.TEXT_MODE = prev;
+            D.UI_PROFILE = prevUiProfile;
+            D.TEXT_MODE = prevTextMode;
           }
         };
         const before = snapshot();
@@ -4597,9 +4600,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage = function smokeZoomerFeelStep62RConflictResultsRealCoverage() {
-        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
-        const commit = "step6_2_conflict_result_pure_adapter_fix3";
-        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_profile_sampling_fix4";
+        const commit = "step6_2_conflict_result_profile_sampling_fix4";
+        const smokeVersion = "step6_2_conflict_result_profile_sampling_fix4_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
@@ -4673,13 +4676,16 @@ window.Game = window.Game || {};
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
           const D = G.Data || {};
-          const prev = D.TEXT_MODE;
+          const prevTextMode = D.TEXT_MODE;
+          const prevUiProfile = D.UI_PROFILE;
           try {
-            D.TEXT_MODE = profile;
+            D.TEXT_MODE = "";
+            D.UI_PROFILE = profile;
             const resolved = core.resolveConflictResultPresentation(key);
             return String((resolved && resolved.text) || "");
           } finally {
-            D.TEXT_MODE = prev;
+            D.UI_PROFILE = prevUiProfile;
+            D.TEXT_MODE = prevTextMode;
           }
         };
         const before = snapshot();
@@ -4738,9 +4744,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = function smokeZoomerFeelStep62RConflictResultsRealCoverageFix1() {
-        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix3";
-        const commit = "step6_2_conflict_result_pure_adapter_fix3";
-        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix3_v20260704_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_profile_sampling_fix4";
+        const commit = "step6_2_conflict_result_profile_sampling_fix4";
+        const smokeVersion = "step6_2_conflict_result_profile_sampling_fix4_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
@@ -4814,13 +4820,16 @@ window.Game = window.Game || {};
           const core = G.ConflictCore || G._ConflictCore || null;
           if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
           const D = G.Data || {};
-          const prev = D.TEXT_MODE;
+          const prevTextMode = D.TEXT_MODE;
+          const prevUiProfile = D.UI_PROFILE;
           try {
-            D.TEXT_MODE = profile;
+            D.TEXT_MODE = "";
+            D.UI_PROFILE = profile;
             const resolved = core.resolveConflictResultPresentation(key);
             return String((resolved && resolved.text) || "");
           } finally {
-            D.TEXT_MODE = prev;
+            D.UI_PROFILE = prevUiProfile;
+            D.TEXT_MODE = prevTextMode;
           }
         };
         const before = snapshot();
