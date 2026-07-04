@@ -1,3 +1,14 @@
+## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
+- Status: implementation corrected; the current static audit verdict remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
+- The Step 4.4A generator now treats `mapped_exact` as an explicit FAIL class, so live FAIL rows and final status are derived from row verdicts instead of a partial classification subset.
+- Accepted runtime-gap authorities `UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` and `UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md` are now consumed as accepted-target inputs for already-included live rows only. They do not expand the Step 4.4A coverage set, but they eliminate prior false `unmapped` results where approved Boomer text already existed.
+- `Game.__DEV`, `Game.Dev`, `__smokeBoomerTermsStep42*`, and equivalent smoke-only fixtures are now recorded only in a separate non-live appendix as `dev_only` evidence. They no longer contribute to `auditedRowCount`, `failRowCount`, `passRowCount`, live classification totals, or final status.
+- Taboo matching now preserves the accepted artifact contract exactly: complete-token phrase boundaries only, no contextual exemptions, and no case folding beyond what the taboo artifact itself declares.
+- The corrected deterministic audit snapshot is `auditedRowCount:147`, `failRowCount:32`, `passRowCount:115`, `structuralFailureCount:0`, `nonLiveEvidenceCount:8`, with live classifications `allowed_exact:115`, `forbidden:3`, `mapped_exact:11`, `unmapped:17`, and `wrong_profile:1`.
+- Remaining live FAILs are all source-backed production surfaces. The proven wrong-profile resolver defect remains in `AsyncScene/Web/system.js`, while the remaining FAIL rows are exact-copy mismatches, taboo-token hits, or genuinely unmapped live surfaces.
+- The Step 4.4A validator now asserts row-count invariants, classification totals, live/non-live separation, deterministic root/docs mirror parity, and final-status consistency before reporting success.
+- Step 4.4B runtime smoke remains blocked until 4.4A reaches `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`. Copy correction remains a separate follow-up task.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit
 - Status: `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Added `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` and `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` as deterministic mirrored static-audit artifacts for the requested feature zones: Points/💰, REP/⭐, Influence, voting, majority/minority outcomes, rematch, NPC-vs-NPC conflict text, conflict results, DM, and reports/report resolution.

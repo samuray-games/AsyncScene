@@ -1,3 +1,15 @@
+## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
+- Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
+- Corrected `tools/generate-boomer-step4-4-economy-conflict-audit.py` so `mapped_exact` is a real FAIL classification that contributes to `FAIL_CLASSIFICATIONS`, `failRowCount`, final audit status, and row/verdict consistency checks.
+- Reconciled accepted live rows against `UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md` and `UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md` without expanding the Step 4.4A coverage set, eliminating the earlier false `unmapped` rows for already-approved runtime-gap targets.
+- Reclassified `Game.__DEV`, `Game.Dev`, and `__smokeBoomerTermsStep42*` smoke fixtures as non-live `dev_only` evidence and moved them to a separate appendix so they no longer affect live row totals, classification counts, pass/fail counts, or final audit status.
+- Tightened taboo detection to exact phrase boundaries without contextual exemptions and removed the previous case-insensitive broad match; standalone taboo tokens such as `НЕ` and `не` still fail when present as complete tokens.
+- Added generator and validator invariants for `auditedRowCount`, `failRowCount`, `passRowCount`, live classification counts, live feature counts, non-live exclusion, deterministic mirror output, and final status consistency.
+- Corrected mirrored audit result: `auditedRowCount:147`, `failRowCount:32`, `passRowCount:115`, `structuralFailureCount:0`, `nonLiveEvidenceCount:8`, `classificationCounts={allowed_exact:115, forbidden:3, mapped_exact:11, unmapped:17, wrong_profile:1}`.
+- The remaining live FAILs are now source-backed only: one wrong-profile resolver path in `AsyncScene/Web/system.js`, three taboo hits, eleven mapped-but-not-exact rows, and seventeen still-unmapped live surfaces.
+- Validation run: `python3 tools/generate-boomer-step4-4-economy-conflict-audit.py .`, `python3 tools/validate-boomer-step4-4-economy-conflict-audit.py .`
+- Copy repair remains out of scope for this Fix1 task and must route to a separate Boomer Step 4.4 Fix2 task. Step 4.4B runtime smoke remains blocked until 4.4A reaches `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit
 - Status: `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Added the mirrored static audit artifact `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md` and `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`.
