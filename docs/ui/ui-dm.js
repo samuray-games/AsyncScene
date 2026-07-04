@@ -28,7 +28,7 @@ if (!Game.__DEV) Game.__DEV = {};
 Game.__DEV.__smokeBoomerTermsStep42Dm = function smokeBoomerTermsStep42Dm(profile) {
   const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
   return {
-    respect_no_points: mode === "boomer" ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints"),
+    respect_no_points: mode === "boomer" ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints"),
     respect_pair_daily: mode === "boomer" ? "Сегодня вы уже выразили уважение этому персонажу." : "Уважение уже выбрано",
     respect_no_chain: mode === "boomer" ? "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ." : "Действие недоступно",
     respect_emitter_empty: mode === "boomer" ? "Дневной лимит выражения уважения исчерпан." : "Лимит уважения",
@@ -78,9 +78,10 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (!res) return null;
   if (res.ok) {
     const respectPaidText = systemSay("notifications", "respectPaid");
-    const respectTargetRepText = (Game.System && typeof Game.System.profileText === "function")
-      ? String(Game.System.profileText("respect_gained") || "").trim()
-      : systemSay("notifications", "respectTargetRep");
+    const respectTargetRepText = systemSay("notifications", "respectTargetRep")
+      || ((Game.System && typeof Game.System.profileText === "function")
+        ? String(Game.System.profileText("respect_gained") || "").trim()
+        : "");
     showRespectToast("points", respectPaidText);
     showRespectToast("rep", respectTargetRepText);
     callDevToastProbe(respectPaidText);
@@ -95,7 +96,7 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   }
   const reasonText = resolveUiMode() === "boomer"
     ? ({
-        respect_no_points: "Недостаточно монет 💰.",
+        respect_no_points: "Недостаточно 💰.",
         respect_pair_daily: "Сегодня вы уже выразили уважение этому персонажу.",
         respect_no_chain: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.",
         respect_emitter_empty: "Дневной лимит выражения уважения исчерпан.",
@@ -494,9 +495,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         }
 
         if (!paidOk) {
-          if (UI && typeof UI.showStatToast === "function") {
-            UI.showStatToast("points", t("dm_action_unavailable"));
-          }
+        if (UI && typeof UI.showStatToast === "function") {
+          UI.showStatToast("points", t("dm_action_unavailable"));
+        }
           UI.renderDM();
           return;
         }
@@ -532,6 +533,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       panel.appendChild(empty);
     }
   }
+  UI.openTeachPanel = openTeachPanel;
 
   UI.openDMByName = (name) => {
     if (!name || name === "Система") return;
@@ -887,6 +889,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         // Penalty (-5) must apply ONLY when player presses an attack (вброс) in conflict-core.js.
         const res = Game.Conflict.startWith(withId);
         if (!res || !res.ok) {
+          if (res && res.reason === "security_blocked") {
+            const blockerText = res.blocker || "security_flag";
+            dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+            try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
+            UI.renderDM();
+            return;
+          }
           dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай паузу." : "Не залетело.");
           UI.renderDM();
           return;
@@ -914,6 +923,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
       const res = Game.Conflict.startWith(withId);
       if (!res.ok) {
+        if (res.reason === "security_blocked") {
+          const blockerText = res.blocker || "security_flag";
+          dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+          try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
+          UI.renderDM();
+          return;
+        }
         dmPushLine(withId, "Система", (res && res.reason === "cooldown") ? "Дай паузу." : "Не залетело.");
         UI.renderDM();
         return;
@@ -957,7 +973,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const btnLike = mkBtn("Лайк", () => {
       dmPushLine(withId, getS().me.name, "❤️");
-      dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["приятно","ну норм","забавно","ладно"]) : "приятно"));
+      dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["каеф","ну норм","хех","ладно"]) : "каеф"));
       UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }), { routed: true, kind: "systemEvents", code: "dmReaction" });
       requestAll();
     });
@@ -1339,7 +1355,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (target && target.role === "mafia") {
           // Per spec: mafia immediate trap DM and start battle
           const mafiaName = "Аркадий Петрович";
-          const reply = "Пишешь мне? Тогда лично поговорим.";
+          const reply = "Ты мне пишешь? Тогда поговорим лично.";
           dmPushLine(curId, mafiaName, reply);
           dmInput.value = "";
           UI.renderDM();

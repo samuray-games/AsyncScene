@@ -30,13 +30,13 @@
   Game.__DEV.__smokeBoomerTermsStep42Battles = function smokeBoomerTermsStep42Battles(profile) {
     const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
     return {
-      rematchAlreadyRequested: mode === "boomer" ? "Повторный спор уже запрошен." : "Реванш: ожидание",
+      rematchAlreadyRequested: mode === "boomer" ? "Реванш уже запрошен." : "Реванш: ожидание",
       rematchNotEligible: mode === "boomer" ? "Повторный спор недоступен: текущий спор ещё не завершён." : "Недоступно. Конфликт: активно",
       rematchNotFound: mode === "boomer" ? "Повторный спор для этого конфликта недоступен." : "Недоступно.",
       choosePlayer: mode === "boomer" ? "Выберите игрока." : "Выбери игрока.",
-      targetMissing: mode === "boomer" ? "Игрок с таким именем не найден." : "Такого нет.",
-      cooldownShort: mode === "boomer" ? "Период ожидания ещё не завершён." : systemSay("warnings", "cooldownShort"),
-      insufficientPoints: mode === "boomer" ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints")
+      targetMissing: mode === "boomer" ? "Такой игрок не найден." : "Такого нет.",
+      cooldownShort: mode === "boomer" ? "Нужно подождать перед повторным действием." : systemSay("warnings", "cooldownShort"),
+      insufficientPoints: mode === "boomer" ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints")
     };
   };
 
@@ -1105,11 +1105,11 @@
     };
     const normalized = String(reason).toLowerCase();
     if (["no_points", "insufficient", "min_reserve", "minreserve"].includes(normalized)) {
-      statToast(isBoomerUiMode() ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints"));
+      statToast(isBoomerUiMode() ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints"));
       return;
     }
     if (normalized === "already_requested") {
-      toast(isBoomerUiMode() ? "Повторный спор уже запрошен." : "Реванш: ожидание");
+      toast(isBoomerUiMode() ? "Реванш уже запрошен." : "Реванш: ожидание");
       return;
     }
     if (normalized === "not_eligible") {
@@ -1684,7 +1684,7 @@ UI.renderBattles = () => {
 
           const target = all.find(p => p && String(p.name || "").toLowerCase() === nameRaw.toLowerCase());
           if (!target) {
-            UI.showStatToast("points", isBoomerUiMode() ? "Игрок с таким именем не найден." : "Такого нет.");
+            UI.showStatToast("points", isBoomerUiMode() ? "Такой игрок не найден." : "Такого нет.");
             return;
           }
 
@@ -1693,7 +1693,7 @@ UI.renderBattles = () => {
           const last = cdMap[cid] || 0;
           const cdMs = 3 * 60 * 1000;
           if (last && (Date.now() - last) < cdMs) {
-            UI.showStatToast("points", isBoomerUiMode() ? "Период ожидания ещё не завершён." : systemSay("warnings", "cooldownShort"));
+            UI.showStatToast("points", isBoomerUiMode() ? "Нужно подождать перед повторным действием." : systemSay("warnings", "cooldownShort"));
             return;
           }
 
@@ -1717,7 +1717,7 @@ UI.renderBattles = () => {
               return;
             }
             if (res.reason === "no_points" || res.reason === "insufficient") {
-              UI.showStatToast("points", isBoomerUiMode() ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints"));
+              UI.showStatToast("points", isBoomerUiMode() ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints"));
               return;
             }
           }
