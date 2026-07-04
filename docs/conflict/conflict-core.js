@@ -9,14 +9,62 @@
 // conflict/conflict-core.js
 (function () {
   const C = {};
+  const CONFLICT_RESULT_KEYS = Object.freeze({
+    conflict_win: true,
+    conflict_loss: true,
+    conflict_draw: true,
+    supported_majority: true,
+    supported_minority: true,
+    majority_won: true,
+    minority_lost: true,
+    conflict_finished: true,
+  });
 
   // Local helpers
   function now(){ return Date.now(); }
+  function resolveConflictResultPresentation(key, options) {
+    const requestedKey = typeof key === "string" ? key.trim() : "";
+    if (!Object.prototype.hasOwnProperty.call(CONFLICT_RESULT_KEYS, requestedKey)) {
+      return {
+        ok: false,
+        key: requestedKey,
+        semanticKey: requestedKey || null,
+        profile: null,
+        text: "",
+        error: "invalid_key",
+      };
+    }
+    const D = Game.Data || null;
+    if (!D || typeof D.resolveUiTextProfileName !== "function") {
+      return {
+        ok: false,
+        key: requestedKey,
+        semanticKey: requestedKey,
+        profile: null,
+        text: "",
+        error: "missing_resolver",
+      };
+    }
+    const forcedProfile = options && typeof options === "object" ? options.profile : null;
+    const profile = D.resolveUiTextProfileName(forcedProfile);
+    const tables = D && D.TEXTS ? D.TEXTS : {};
+    const activeTable = tables[profile] || tables.millennial || {};
+    const fallbackTable = tables.millennial || {};
+    const value = Object.prototype.hasOwnProperty.call(activeTable, requestedKey)
+      ? activeTable[requestedKey]
+      : fallbackTable[requestedKey];
+    return {
+      ok: true,
+      key: requestedKey,
+      semanticKey: requestedKey,
+      profile,
+      text: String(value == null ? "" : value),
+      error: null,
+    };
+  }
   function conflictResultText(key) {
-    const D = Game.Data || {};
-    if (D && typeof D.resolveConflictResultText === "function") return D.resolveConflictResultText(key);
-    if (D && typeof D.t === "function") return D.t(key);
-    return "";
+    const resolved = resolveConflictResultPresentation(key);
+    return resolved && resolved.text ? resolved.text : "";
   }
   function clamp0(n){ return Math.max(0, n|0); }
   const DRAW_VOTE_DURATION_MS = 10000;
@@ -4142,6 +4190,7 @@
 
   C.applyVillainPenalty = applyVillainPenalty;
   C.resolveCrowdCore = resolveCrowdCore;
+  C.resolveConflictResultPresentation = resolveConflictResultPresentation;
   C.getVoteWeight = getVoteWeight;
   C.matchCanonGroupKey = buildCanonGroupKey;
   C.buildCanonProblem = buildCanonProblem;

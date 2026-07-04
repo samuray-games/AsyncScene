@@ -122,6 +122,15 @@
     return Game._ConflictCore || Game.ConflictCore || null;
   }
 
+  function resolveConflictResultText(key, fallbackText, profile) {
+    const core = getCore();
+    if (core && typeof core.resolveConflictResultPresentation === "function") {
+      const resolved = core.resolveConflictResultPresentation(key, profile ? { profile } : undefined);
+      if (resolved && resolved.text) return resolved.text;
+    }
+    return fallbackText || "";
+  }
+
   function getProgressionUnlocks() {
     const P = (typeof Game !== "undefined" && Game && Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
     const U = (P && P.unlockInfluence) ? P.unlockInfluence : null;
@@ -1077,12 +1086,11 @@
       core.finalize(battle.id, outcome);
     } else {
       battle.result = outcome || "draw";
-      const D = Game.Data || {};
       const resolved = battle.result === "draw"
-        ? (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_draw") : (D.t ? D.t("conflict_draw") : "Толпа решает"))
+        ? resolveConflictResultText("conflict_draw", "Толпа решает")
         : (battle.result === "win"
-          ? (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_win") : (D.t ? D.t("conflict_win") : "Победа"))
-          : (D.resolveConflictResultText ? D.resolveConflictResultText("conflict_loss") : (D.t ? D.t("conflict_loss") : "Поражение")));
+          ? resolveConflictResultText("conflict_win", "Победа")
+          : resolveConflictResultText("conflict_loss", "Поражение"));
       battle.resultLine = resolved;
       if (battle.result === "draw") {
         battle.status = "draw";

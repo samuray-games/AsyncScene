@@ -4871,9 +4871,9 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62ConflictResults !== "function") {
       G.__DEV.smokeZoomerFeelStep62ConflictResults = function smokeZoomerFeelStep62ConflictResults() {
-        const buildTag = "build_2026_06_14_step6_2_zoomer_feel_conflict_results";
-        const commit = "step6_2_zoomer_feel_conflict_results";
-        const smokeVersion = "step6_2_zoomer_feel_conflict_results_v20260614_001";
+        const buildTag = "build_2026_07_04_step6_2_conflict_result_pure_adapter_fix1";
+        const commit = "step6_2_conflict_result_pure_adapter_fix1";
+        const smokeVersion = "step6_2_conflict_result_pure_adapter_fix1_v20260704_001";
         const keys = [
           "conflict_win",
           "conflict_loss",
@@ -4910,11 +4910,17 @@ window.Game = window.Game || {};
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
           result.failures.push(detail === undefined ? check : { check, detail });
         };
+        const resolveConflictText = (key, profile) => {
+          const core = G.ConflictCore || G._ConflictCore || null;
+          if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
+          const resolved = core.resolveConflictResultPresentation(key, { profile });
+          return String((resolved && resolved.text) || "");
+        };
         const before = snapshot();
         try {
           const D = G.Data || {};
           if (!D || typeof D.t !== "function") fail("resolver_missing", "Data.t");
-          if (typeof D.resolveConflictResultText !== "function") fail("conflict_resolver_missing", "Data.resolveConflictResultText");
+          if (!resolveConflictText("conflict_win", "millennial")) fail("conflict_adapter_missing", "Game.ConflictCore.resolveConflictResultPresentation");
           const tables = {
             millennial: (D.TEXTS && D.TEXTS.millennial) || {},
             zoomer: (D.TEXTS && D.TEXTS.zoomer) || {}
@@ -4930,12 +4936,8 @@ window.Game = window.Game || {};
             if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
           });
           ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority"].forEach((key) => {
-            const prevMode = D.TEXT_MODE;
-            D.TEXT_MODE = "millennial";
-            const millennialText = String(D.resolveConflictResultText(key) || "");
-            D.TEXT_MODE = "zoomer";
-            const zoomerText = String(D.resolveConflictResultText(key) || "");
-            D.TEXT_MODE = prevMode;
+            const millennialText = resolveConflictText(key, "millennial");
+            const zoomerText = resolveConflictText(key, "zoomer");
             if (!millennialText || !zoomerText || millennialText === zoomerText) {
               fail("visible_conflict_text_not_profile_aware", { key, millennialText, zoomerText });
             }
@@ -4960,38 +4962,38 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverage = function smokeZoomerFeelStep62RConflictResultsRealCoverage() {
-        const buildTag = "build_2026_06_14_step6_2R_conflict_results_real_coverage";
-        const commit = "step6_2R_conflict_results_real_coverage";
-        const smokeVersion = "step6_2R_conflict_results_real_coverage_v20260614_001";
+        const buildTag = "build_2026_07_04_step6_2r_conflict_result_pure_adapter_fix1";
+        const commit = "step6_2r_conflict_result_pure_adapter_fix1";
+        const smokeVersion = "step6_2r_conflict_result_pure_adapter_fix1_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
-            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1084 resultLine resolveConflictResultText(conflict_win)",
-            "AsyncScene/Web/conflict/conflict-api.js:1253 fallback resultLine resolveConflictResultText(conflict_win)",
-            "AsyncScene/Web/conflict/conflict-core.js:928 battleResultText fallback resolveConflictResultText(conflict_win)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_win)"
           ],
           conflict_loss: [
-            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1085 resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-api.js:1010 forced lose resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-api.js:1254 fallback resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-core.js:929 battleResultText fallback resolveConflictResultText(conflict_loss)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js forced lose resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_loss)"
           ],
           conflict_draw: [
-            "AsyncScene/Web/conflict/conflict-core.js:2377 resultLine conflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1082 resultLine resolveConflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-api.js:1251 fallback resultLine resolveConflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-core.js:930 battleResultText fallback resolveConflictResultText(conflict_draw)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_draw)"
           ],
           supported_majority: [
-            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+            "AsyncScene/Web/conflict/conflict-core.js defender branch resultLine conflictResultText(supported_majority|supported_minority)"
           ],
           supported_minority: [
-            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+            "AsyncScene/Web/conflict/conflict-core.js defender branch resultLine conflictResultText(supported_majority|supported_minority)"
           ],
           majority_won: [
-            "AsyncScene/Web/conflict/conflict-core.js:2430 crowd-majority branch resultLine conflictResultText(majority_won)"
+            "AsyncScene/Web/conflict/conflict-core.js crowd-majority branch resultLine conflictResultText(majority_won)"
           ],
           minority_lost: [],
           conflict_finished: []
@@ -5032,18 +5034,18 @@ window.Game = window.Game || {};
           textMode: G.Data && typeof G.Data.TEXT_MODE === "string" ? G.Data.TEXT_MODE : "",
           uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
         });
-        const withMode = (mode, fn) => {
-          const D = G.Data || {};
-          const prev = D.TEXT_MODE;
-          D.TEXT_MODE = mode;
-          try { return fn(); } finally { D.TEXT_MODE = prev; }
+        const resolveConflictText = (key, profile) => {
+          const core = G.ConflictCore || G._ConflictCore || null;
+          if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
+          const resolved = core.resolveConflictResultPresentation(key, { profile });
+          return String((resolved && resolved.text) || "");
         };
         const before = snapshot();
         try {
           const D = G.Data || {};
           const millennialTable = (D.TEXTS && D.TEXTS.millennial) || {};
           const zoomerTable = (D.TEXTS && D.TEXTS.zoomer) || {};
-          if (typeof D.resolveConflictResultText !== "function") fail("conflict_resolver_missing", "Data.resolveConflictResultText");
+          if (!resolveConflictText("conflict_win", "millennial")) fail("conflict_adapter_missing", "Game.ConflictCore.resolveConflictResultPresentation");
           keys.forEach((key) => {
             const millennialText = String(millennialTable[key] || "");
             const zoomerText = String(zoomerTable[key] || "");
@@ -5052,8 +5054,8 @@ window.Game = window.Game || {};
             const callsites = Array.isArray(routeMap[key]) ? routeMap[key].slice() : [];
             const routeConnected = callsites.length > 0;
             const dictionaryOnly = dictionaryExists && !routeConnected;
-            const liveMillennial = withMode("millennial", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
-            const liveZoomer = withMode("zoomer", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
+            const liveMillennial = resolveConflictText(key, "millennial");
+            const liveZoomer = resolveConflictText(key, "zoomer");
             const liveResolverOutputDiffers = !!liveMillennial && !!liveZoomer && liveMillennial !== liveZoomer;
             const pass = dictionaryExists && differs && (!routeConnected || liveResolverOutputDiffers);
             result.coverage.push({ key, millennialText, zoomerText, differs, dictionaryExists, routeConnected, dictionaryOnly, liveResolverOutputDiffers, callsites, pass });
@@ -5094,38 +5096,38 @@ window.Game = window.Game || {};
     }
     if (typeof G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 !== "function") {
       G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = function smokeZoomerFeelStep62RConflictResultsRealCoverageFix1() {
-        const buildTag = "build_2026_06_15_step6_2R_conflict_results_real_coverage_fix1";
-        const commit = "step6_2R_conflict_results_real_coverage_fix1";
-        const smokeVersion = "step6_2R_conflict_results_real_coverage_fix1_v20260615_001";
+        const buildTag = "build_2026_07_04_step6_2r_conflict_result_pure_adapter_fix2";
+        const commit = "step6_2r_conflict_result_pure_adapter_fix2";
+        const smokeVersion = "step6_2r_conflict_result_pure_adapter_fix2_v20260704_001";
         const keys = ["conflict_win", "conflict_loss", "conflict_draw", "supported_majority", "supported_minority", "majority_won", "minority_lost", "conflict_finished"];
         const routeMap = {
           conflict_win: [
-            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1084 resultLine resolveConflictResultText(conflict_win)",
-            "AsyncScene/Web/conflict/conflict-api.js:1253 fallback resultLine resolveConflictResultText(conflict_win)",
-            "AsyncScene/Web/conflict/conflict-core.js:928 battleResultText fallback resolveConflictResultText(conflict_win)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_win)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_win)"
           ],
           conflict_loss: [
-            "AsyncScene/Web/conflict/conflict-core.js:2438 resultLine conflictResultText(conflict_win|conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1085 resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-api.js:1010 forced lose resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-api.js:1254 fallback resultLine resolveConflictResultText(conflict_loss)",
-            "AsyncScene/Web/conflict/conflict-core.js:929 battleResultText fallback resolveConflictResultText(conflict_loss)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_win|conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js forced lose resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_loss)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_loss)"
           ],
           conflict_draw: [
-            "AsyncScene/Web/conflict/conflict-core.js:2377 resultLine conflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-arguments.js:1082 resultLine resolveConflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-api.js:1251 fallback resultLine resolveConflictResultText(conflict_draw)",
-            "AsyncScene/Web/conflict/conflict-core.js:930 battleResultText fallback resolveConflictResultText(conflict_draw)"
+            "AsyncScene/Web/conflict/conflict-core.js resultLine conflictResultText(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-arguments.js resultLine resolveConflictResultPresentation(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-api.js fallback resultLine resolveConflictResultPresentation(conflict_draw)",
+            "AsyncScene/Web/conflict/conflict-core.js battleResultText fallback resolveConflictResultPresentation(conflict_draw)"
           ],
           supported_majority: [
-            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+            "AsyncScene/Web/conflict/conflict-core.js defender branch resultLine conflictResultText(supported_majority|supported_minority)"
           ],
           supported_minority: [
-            "AsyncScene/Web/conflict/conflict-core.js:2444 defender branch resultLine conflictResultText(supported_majority|supported_minority)"
+            "AsyncScene/Web/conflict/conflict-core.js defender branch resultLine conflictResultText(supported_majority|supported_minority)"
           ],
           majority_won: [
-            "AsyncScene/Web/conflict/conflict-core.js:2430 crowd-majority branch resultLine conflictResultText(majority_won)"
+            "AsyncScene/Web/conflict/conflict-core.js crowd-majority branch resultLine conflictResultText(majority_won)"
           ],
           minority_lost: [],
           conflict_finished: []
@@ -5166,18 +5168,18 @@ window.Game = window.Game || {};
           textMode: G.Data && typeof G.Data.TEXT_MODE === "string" ? G.Data.TEXT_MODE : "",
           uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : ((G.Data && G.Data.UI_PROFILE) || "")
         });
-        const withMode = (mode, fn) => {
-          const D = G.Data || {};
-          const prev = D.TEXT_MODE;
-          D.TEXT_MODE = mode;
-          try { return fn(); } finally { D.TEXT_MODE = prev; }
+        const resolveConflictText = (key, profile) => {
+          const core = G.ConflictCore || G._ConflictCore || null;
+          if (!core || typeof core.resolveConflictResultPresentation !== "function") return "";
+          const resolved = core.resolveConflictResultPresentation(key, { profile });
+          return String((resolved && resolved.text) || "");
         };
         const before = snapshot();
         try {
           const D = G.Data || {};
           const millennialTable = (D.TEXTS && D.TEXTS.millennial) || {};
           const zoomerTable = (D.TEXTS && D.TEXTS.zoomer) || {};
-          if (typeof D.resolveConflictResultText !== "function") fail("conflict_resolver_missing", "Data.resolveConflictResultText");
+          if (!resolveConflictText("conflict_win", "millennial")) fail("conflict_adapter_missing", "Game.ConflictCore.resolveConflictResultPresentation");
           keys.forEach((key) => {
             const millennialText = String(millennialTable[key] || "");
             const zoomerText = String(zoomerTable[key] || "");
@@ -5186,8 +5188,8 @@ window.Game = window.Game || {};
             const callsites = Array.isArray(routeMap[key]) ? routeMap[key].slice() : [];
             const routeConnected = callsites.length > 0;
             const dictionaryOnly = dictionaryExists && !routeConnected;
-            const liveMillennial = withMode("millennial", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
-            const liveZoomer = withMode("zoomer", () => String(typeof D.resolveConflictResultText === "function" ? (D.resolveConflictResultText(key) || "") : ""));
+            const liveMillennial = resolveConflictText(key, "millennial");
+            const liveZoomer = resolveConflictText(key, "zoomer");
             const liveResolverOutputDiffers = !!liveMillennial && !!liveZoomer && liveMillennial !== liveZoomer;
             const pass = dictionaryExists && differs && (!routeConnected || liveResolverOutputDiffers);
             result.coverage.push({ key, millennialText, zoomerText, differs, dictionaryExists, routeConnected, dictionaryOnly, liveResolverOutputDiffers, callsites, pass });
