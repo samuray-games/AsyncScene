@@ -52,7 +52,8 @@ const resolveDmProfile = (profile) => {
   if (DM_ACTION_PROFILE_SET.has(explicitProfile)) return explicitProfile;
   const Data = Game.Data || null;
   if (Data && typeof Data.getUiProfile === "function") {
-    const getterProfile = String(Data.getUiProfile() == null ? "" : Data.getUiProfile()).trim().toLowerCase();
+    const rawGetterProfile = Data.getUiProfile();
+    const getterProfile = String(rawGetterProfile == null ? "" : rawGetterProfile).trim().toLowerCase();
     if (DM_ACTION_PROFILE_SET.has(getterProfile)) return getterProfile;
   }
   if (Data) {
