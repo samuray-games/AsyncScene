@@ -972,16 +972,20 @@ window.Game ||= {};
     return fallback;
   }
 
-  function sysNpcDrawResolvedLine(winnerName, loserName){
+  function sysNpcDrawResolvedLine(winnerName, loserName, aVotes, bVotes){
     const fallback = `Всё, финал. Затащил ${winnerName}. ${loserName} проигрывает.`;
     const fn = D && D.SYS && D.SYS.npcDrawResolved;
     if (typeof fn === "function") {
       try {
-        const s = fn(winnerName, loserName);
+        const s = fn(winnerName, loserName, aVotes, bVotes);
         return s ? s : fallback;
       } catch (_) {
         return fallback;
       }
+    }
+    if (D && typeof D.t === "function") {
+      const s = String(D.t("tie_chat_end_winner", { name: winnerName, aVotes, bVotes }) || "");
+      if (s) return s;
     }
     return fallback;
   }
@@ -1875,7 +1879,7 @@ window.Game ||= {};
     const loserName = (winner === "a") ? bName : ((winner === "b") ? aName : null);
     let finalLine;
     if (winner) {
-      finalLine = sysNpcDrawResolvedLine(winnerName, loserName);
+      finalLine = sysNpcDrawResolvedLine(winnerName, loserName, aVotes, bVotes);
       if (kind === "escape") {
         const lines = npcEscapeResolvedLines(e, winner);
         finalLine = lines.chatLine;
@@ -1884,7 +1888,9 @@ window.Game ||= {};
         e.resultLine = finalLine;
       }
     } else {
-      finalLine = `Толпа решает: ничья между ${aName} и ${bName}.`;
+      finalLine = (D && typeof D.t === "function")
+        ? (String(D.t("tie_chat_end_draw", { aVotes, bVotes }) || "") || `Толпа решает: ничья между ${aName} и ${bName}.`)
+        : `Толпа решает: ничья между ${aName} и ${bName}.`;
       e.resultLine = finalLine;
     }
     e.text = finalLine;

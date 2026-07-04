@@ -23,8 +23,8 @@ window.Game = window.Game || {};
     const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
     return {
       voteDisabled: mode === "boomer" ? "Вы уже проголосовали." : systemSay("errors", "unavailable"),
-      voteNoPoints: mode === "boomer" ? "Недостаточно монет 💰." : "Мало 💰",
-      voteDuplicateNoPoints: mode === "boomer" ? "Недостаточно монет 💰." : "Мало 💰"
+      voteNoPoints: mode === "boomer" ? "Недостаточно 💰." : "Мало 💰",
+      voteDuplicateNoPoints: mode === "boomer" ? "Недостаточно 💰." : "Мало 💰"
     };
   };
   const $ = UI.$;
@@ -863,7 +863,7 @@ window.Game = window.Game || {};
             ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            const msg = isBoomerUiMode() ? "Недостаточно монет 💰." : "Мало 💰";
+            const msg = isBoomerUiMode() ? "Недостаточно 💰." : "Мало 💰";
             try { showVoteBtnToast(btn, msg); } catch (_) {}
             try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
@@ -913,7 +913,7 @@ window.Game = window.Game || {};
                 const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
                 if (freshEvent && String(freshEvent.note || "") === "Мало 💰") {
                   setEventNote(e, "Мало 💰");
-                  const msg = isBoomerUiMode() ? "Недостаточно монет 💰." : "Мало 💰";
+                  const msg = isBoomerUiMode() ? "Недостаточно 💰." : "Мало 💰";
                   try { showVoteBtnToast(btn, msg); } catch (_) {}
                   try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
                 }

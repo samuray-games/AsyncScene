@@ -28,7 +28,7 @@ if (!Game.__DEV) Game.__DEV = {};
 Game.__DEV.__smokeBoomerTermsStep42Dm = function smokeBoomerTermsStep42Dm(profile) {
   const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
   return {
-    respect_no_points: mode === "boomer" ? "Недостаточно монет 💰." : systemSay("errors", "insufficientPoints"),
+    respect_no_points: mode === "boomer" ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints"),
     respect_pair_daily: mode === "boomer" ? "Сегодня вы уже выразили уважение этому персонажу." : "Уважение уже выбрано",
     respect_no_chain: mode === "boomer" ? "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ." : "Действие недоступно",
     respect_emitter_empty: mode === "boomer" ? "Дневной лимит выражения уважения исчерпан." : "Лимит уважения",
@@ -78,9 +78,10 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   if (!res) return null;
   if (res.ok) {
     const respectPaidText = systemSay("notifications", "respectPaid");
-    const respectTargetRepText = (Game.System && typeof Game.System.profileText === "function")
-      ? String(Game.System.profileText("respect_gained") || "").trim()
-      : systemSay("notifications", "respectTargetRep");
+    const respectTargetRepText = systemSay("notifications", "respectTargetRep")
+      || ((Game.System && typeof Game.System.profileText === "function")
+        ? String(Game.System.profileText("respect_gained") || "").trim()
+        : "");
     showRespectToast("points", respectPaidText);
     showRespectToast("rep", respectTargetRepText);
     callDevToastProbe(respectPaidText);
@@ -95,7 +96,7 @@ const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
   }
   const reasonText = resolveUiMode() === "boomer"
     ? ({
-        respect_no_points: "Недостаточно монет 💰.",
+        respect_no_points: "Недостаточно 💰.",
         respect_pair_daily: "Сегодня вы уже выразили уважение этому персонажу.",
         respect_no_chain: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.",
         respect_emitter_empty: "Дневной лимит выражения уважения исчерпан.",
