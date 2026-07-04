@@ -2,7 +2,6 @@
 """Generate the Step 4.4A boomer economy/conflict terminology audit."""
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import unicodedata
@@ -17,10 +16,13 @@ TABOO_LIST = "docs/UI_PROFILE_BOOMER_TABOO_LIST.md"
 STEP43_MAPPING = "docs/UI_PROFILE_BOOMER_STEP_4_3_MILLENNIAL_TO_BOOMER_MAPPING.md"
 NEW_FEATURE_COVERAGE = "docs/UI_PROFILE_BOOMER_NEW_FEATURE_COVERAGE.md"
 RUNTIME_GAPS = "docs/UI_PROFILE_BOOMER_RUNTIME_GAPS.md"
+RUNTIME_GAP_TARGETS = "docs/UI_PROFILE_BOOMER_RUNTIME_GAP_TARGETS.md"
+RUNTIME_GAP_COPY_DECISIONS = "docs/UI_PROFILE_BOOMER_RUNTIME_GAP_COPY_DECISIONS.md"
 BUILD_MARKER = "UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT"
 SMOKE_VERSION = "BOOMER-STEP4_4A-ECONOMY-CONFLICT-AUDIT-STATIC-v1"
 STATIC_PASS = "STATIC_PASS / READY_FOR_RUNTIME_SMOKE"
 STATIC_FAIL = "STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND"
+NON_LIVE_VERDICT = "EXCLUDED"
 
 SOURCE_FILES = {
     "system": "AsyncScene/Web/system.js",
@@ -35,7 +37,14 @@ SOURCE_FILES = {
     "index": "AsyncScene/Web/index.html",
 }
 
-FAIL_CLASSIFICATIONS = {"forbidden", "unmapped", "wrong_profile", "placeholder_mismatch"}
+FAIL_CLASSIFICATIONS = {
+    "forbidden",
+    "mapped_exact",
+    "unmapped",
+    "wrong_profile",
+    "placeholder_mismatch",
+}
+PASS_CLASSIFICATIONS = {"allowed_exact"}
 
 
 @dataclass(frozen=True)
@@ -50,14 +59,13 @@ class ManualSurfaceSpec:
     source_term: str
     evidence: tuple[str, ...]
     wrong_profile: bool = False
+    is_live: bool = True
+    non_live_classification: str = "dev_only"
+    non_live_reason: str = ""
 
 
 def normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", unicodedata.normalize("NFC", str(value or "")).strip())
-
-
-def comparison_key(value: str) -> str:
-    return normalize_text(value).casefold()
 
 
 def extract_placeholders(value: str) -> list[str]:
@@ -178,7 +186,6 @@ def parse_array_object(block: str) -> dict[str, list[str]]:
         if not match:
             break
         category = match.group(1)
-        marker = "Object.freeze(["
         open_index = block.find("[", match.start())
         depth = 0
         in_string = False
@@ -260,11 +267,52 @@ def parse_taboo_phrases(path: Path) -> list[str]:
     return phrases
 
 
+def parse_runtime_gap_targets(path: Path) -> dict[str, tuple[str, str]]:
+    targets: dict[str, tuple[str, str]] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not re.match(r"^\| BRT_\d{4} \|", line):
+            continue
+        parts = [part.strip() for part in line.strip()[2:-2].split(" | ")]
+        if len(parts) < 2:
+            continue
+        target_id = parts[0]
+        approved_text = normalize_text(parts[1])
+        if approved_text:
+            targets[approved_text] = (approved_text, f"runtime_gap_target:{target_id}")
+    return targets
+
+
+def parse_runtime_gap_copy_decisions(path: Path) -> tuple[dict[str, tuple[str, str]], list[str]]:
+    mapping: dict[str, tuple[str, str]] = {}
+    failures: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not re.match(r"^\| GAP_\d{4} \|", line):
+            continue
+        parts = [part.strip() for part in line.strip()[2:-2].split(" | ")]
+        if len(parts) < 11:
+            continue
+        gap_id = parts[0]
+        raw_text = normalize_text(parts[4])
+        approved_text = normalize_text(parts[7])
+        status = normalize_text(parts[10])
+        if status != "APPROVED" or not raw_text or not approved_text:
+            continue
+        existing = mapping.get(raw_text)
+        value = (approved_text, f"runtime_gap_decision:{gap_id}")
+        if existing and existing[0] != approved_text:
+            failures.append(
+                f"Conflicting approved runtime-gap targets for raw text {raw_text!r}: {existing[0]!r} vs {approved_text!r}."
+            )
+            continue
+        mapping[raw_text] = value
+    return mapping, failures
+
+
 def taboo_hit(text: str, taboo_phrases: list[str]) -> str | None:
     haystack = normalize_text(text)
     for phrase in taboo_phrases:
         pattern = rf"(?<![0-9A-Za-zА-Яа-яЁё_]){re.escape(phrase)}(?![0-9A-Za-zА-Яа-яЁё_])"
-        if re.search(pattern, haystack, flags=re.IGNORECASE):
+        if re.search(pattern, haystack):
             return phrase
     return None
 
@@ -275,17 +323,26 @@ def resolve_expected_target(
     step43_mapping: dict[str, str],
     current_to_boomer: dict[str, str],
     allowed_boomer: set[str],
+    runtime_gap_targets: dict[str, tuple[str, str]],
+    runtime_gap_copy_decisions: dict[str, tuple[str, str]],
 ) -> tuple[str, str]:
     normalized_source = normalize_text(source_term)
     normalized_current = normalize_text(current_text)
+
     if normalized_source in step43_mapping:
         return step43_mapping[normalized_source], "step4_3_mapping"
     if normalized_source in current_to_boomer:
         return current_to_boomer[normalized_source], "allowed_lexicon_current"
+    if normalized_source in runtime_gap_copy_decisions:
+        return runtime_gap_copy_decisions[normalized_source]
     if normalized_current in step43_mapping:
         return step43_mapping[normalized_current], "step4_3_mapping_current"
     if normalized_current in current_to_boomer:
         return current_to_boomer[normalized_current], "allowed_lexicon_current"
+    if normalized_current in runtime_gap_targets:
+        return runtime_gap_targets[normalized_current]
+    if normalized_current in runtime_gap_copy_decisions:
+        return runtime_gap_copy_decisions[normalized_current]
     if normalized_current in allowed_boomer:
         return normalized_current, "allowed_lexicon_exact"
     return "", ""
@@ -309,7 +366,12 @@ def build_cap_messages(data_text: str) -> tuple[dict[str, str], dict[str, str]]:
 
 def build_cop_templates(data_text: str) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     base_block = find_matching_block(data_text, "const COP_TEMPLATES_MILLENNIAL = Object.freeze({", "{", "}")
-    override_block = find_matching_block(data_text, "const COP_TEMPLATES_BOOMER = applyCopTemplateOverrides(COP_TEMPLATES_MILLENNIAL, {", "{", "}")
+    override_block = find_matching_block(
+        data_text,
+        "const COP_TEMPLATES_BOOMER = applyCopTemplateOverrides(COP_TEMPLATES_MILLENNIAL, {",
+        "{",
+        "}",
+    )
     return parse_array_object(base_block), parse_override_array_object(override_block)
 
 
@@ -392,7 +454,10 @@ def make_row(
     if not expected:
         classification = "unmapped"
         verdict = "FAIL"
-        reason = "No accepted Boomer target exists for this live surface in the Step 4.3 mapping or the Boomer allowed lexicon."
+        reason = (
+            "No accepted Boomer target exists for this live surface in the Step 4.3 mapping, "
+            "the accepted runtime-gap targets, or the Boomer allowed lexicon."
+        )
     elif current_placeholders != expected_placeholders:
         classification = "placeholder_mismatch"
         verdict = "FAIL"
@@ -433,6 +498,44 @@ def make_row(
     }
 
 
+def make_non_live_row(
+    row_id: int,
+    feature_zone: str,
+    source_file: str,
+    source_locator: str,
+    source_kind: str,
+    resolution_path: str,
+    runtime_reachability: str,
+    current_text: str,
+    source_term: str,
+    expected_target: str,
+    authority: str,
+    classification: str,
+    reason: str,
+) -> dict[str, str]:
+    current = normalize_text(current_text)
+    source = normalize_text(source_term)
+    expected = normalize_text(expected_target)
+    current_placeholders = extract_placeholders(current)
+    return {
+        "id": f"AUD_{row_id:04d}",
+        "featureZone": feature_zone,
+        "sourceFile": source_file,
+        "sourceLocator": source_locator,
+        "sourceKind": source_kind,
+        "currentText": current,
+        "sourceTerm": source,
+        "runtimeReachability": runtime_reachability,
+        "profileResolutionPath": resolution_path,
+        "placeholders": ", ".join(current_placeholders),
+        "acceptedBoomerTarget": expected,
+        "authority": authority,
+        "classification": classification,
+        "verdict": NON_LIVE_VERDICT,
+        "reason": reason,
+    }
+
+
 def build_manual_specs(
     system_copy: dict[str, dict[str, str]],
     system_profile_texts: dict[str, str],
@@ -440,47 +543,474 @@ def build_manual_specs(
 ) -> list[ManualSurfaceSpec]:
     rendered = lambda kind, code: render_system_route(system_copy, system_profile_texts, route_map, kind, code)
     return [
-        ManualSurfaceSpec("points", "system", "Game.System.say(errors, insufficientPoints)", "resolver", "Game.System.say -> SYSTEM_PROFILE_TEXT_ROUTE_MAP -> activeSystemTextProfile=millennial", "runtime_resolved", rendered("errors", "insufficientPoints"), "Не хватает 💰.", ("errors.insufficientPoints", "not_enough_money"), True),
-        ManualSurfaceSpec("points", "system", "Game.System.say(errors, pointsLowBattle)", "resolver", "Game.System.say -> SystemCopy.errors.pointsLowBattle", "runtime_resolved", rendered("errors", "pointsLowBattle"), "Мало 💰 на баттл.", ("errors.pointsLowBattle",), False),
-        ManualSurfaceSpec("reports", "data", "Data.SYS.reportNo", "resolver", "Data.SYS.reportNo -> Game.System.say(errors, reportNo)", "runtime_resolved", rendered("errors", "reportNo"), "Коп: донос пустой, -5💰.", ('reportNo: systemSay("errors", "reportNo")',), False),
-        ManualSurfaceSpec("points", "system", "Game.System.say(notifications, pointsDeltaPlusOne)", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaPlusOne", "runtime_resolved", rendered("notifications", "pointsDeltaPlusOne"), "+1💰", ("notifications.pointsDeltaPlusOne",), False),
-        ManualSurfaceSpec("rep", "system", "Game.System.say(notifications, repDeltaPlusOne)", "system_notification", "Game.System.say -> SystemCopy.notifications.repDeltaPlusOne", "runtime_resolved", rendered("notifications", "repDeltaPlusOne"), "+1⭐", ("notifications.repDeltaPlusOne",), False),
-        ManualSurfaceSpec("points", "ui_dm", "UI.showStatToast(points, respectPaid)", "toast", "Game.System.say -> SystemCopy.notifications.respectPaid", "runtime_resolved", rendered("notifications", "respectPaid"), "Ты отдал 1💰", ('systemSay("notifications", "respectPaid")',), False),
-        ManualSurfaceSpec("rep", "ui_dm", "UI.showStatToast(rep, respectTargetRep)", "toast", "Game.System.say -> SystemCopy.notifications.respectTargetRep", "runtime_resolved", rendered("notifications", "respectTargetRep"), "Цель получила +1 ⭐", ('systemSay("notifications", "respectTargetRep")',), False),
-        ManualSurfaceSpec("reports", "ui_dm", "Game.__A.pushDm(... reportPending ...)", "dm", "Game.System.say -> SystemCopy.notifications.reportPending", "runtime_resolved", rendered("notifications", "reportPending"), "Проверяю.", ('systemSay("notifications", "reportPending")',), False),
-        ManualSurfaceSpec("reports", "data", "Data.SYS.reportOk(name)", "system_notification", "Data.SYS.reportOk -> Game.System.say(notifications, reportOk)", "runtime_resolved", rendered("notifications", "reportOk"), "Коп: {name} сдан, +2💰.", ('reportOk: (name) => systemSay("notifications", "reportOk", { name })',), False),
-        ManualSurfaceSpec("rematch", "system", "Game.System.say(notifications, rematchCost)", "system_notification", "Game.System.say -> SystemCopy.notifications.rematchCost", "runtime_resolved", rendered("notifications", "rematchCost"), "Реванш: -{rematchCost}💰.", ("notifications.rematchCost",), False),
-        ManualSurfaceSpec("points", "ui_battles", "leaveBtn.textContent", "toast", "Game.System.say -> SystemCopy.notifications.escapePaid", "runtime_resolved", rendered("notifications", "escapePaid"), "Свалить за 1💰.", ('systemSay("notifications", "escapePaid")',), False),
-        ManualSurfaceSpec("voting", "events", "Game.UI.pushSystem(systemSay(notifications, pointsDeltaVoteCost))", "system_notification", "Game.System.say -> SystemCopy.notifications.pointsDeltaVoteCost", "runtime_resolved", rendered("notifications", "pointsDeltaVoteCost"), "-{voteCost}💰", ('systemSay("notifications", "pointsDeltaVoteCost", { voteCost })',), False),
-        ManualSurfaceSpec("voting", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefund", "generated_runtime_text", rendered("notifications", "pointsDeltaRefund"), "+1💰 возврат.", ("crowd_vote_refund", "pointsDeltaRefund"), False),
-        ManualSurfaceSpec("majority_minority", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund_majority", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefundMajority", "generated_runtime_text", rendered("notifications", "pointsDeltaRefundMajority"), "+1💰 возврат большинству.", ("crowd_vote_refund_majority", "pointsDeltaRefundMajority"), False),
-        ManualSurfaceSpec("majority_minority", "system", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_remainder_*", "system_notification", "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRemainderWin", "generated_runtime_text", rendered("notifications", "pointsDeltaRemainderWin"), "+1💰 остаток победителю.", ("crowd_vote_remainder_win", "pointsDeltaRemainderWin"), False),
-        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmReaction ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmReaction", "runtime_resolved", rendered("systemEvents", "dmReaction"), "{name} ↔ {target}: реакция.", ('systemSay("systemEvents", "dmReaction"',), False),
-        ManualSurfaceSpec("dm", "ui_dm", "UI.pushSystem(... dmInvite ...)", "system_notification", "Game.System.say -> SystemCopy.systemEvents.dmInvite", "runtime_resolved", rendered("systemEvents", "dmInvite"), "{name}: +{guest} к {target}.", ('systemSay("systemEvents", "dmInvite"',), False),
-        ManualSurfaceSpec("npc_vs_npc", "data", "Data.SYS.npcBattleEndWin", "template", "Data.SYS.npcBattleEndWin", "runtime_resolved", "{winner} победил. {loser} проиграл.", "{winner} победил. {loser} проиграл.", ('npcBattleEndWin: (winner, loser) => `${winner} победил. ${loser} проиграл.`',), False),
-        ManualSurfaceSpec("conflict_results", "data", "Data.SYS.npcBattleEndDraw", "template", "Data.SYS.npcBattleEndDraw", "runtime_resolved", "{a} и {b}: ничья.", "{a} и {b}: ничья.", ('npcBattleEndDraw: (a, b) => `${a} и ${b}: ничья.`',), False),
-        ManualSurfaceSpec("conflict_results", "conflict_core", "pushSystem(... battleResult ...)", "generated_runtime_text", "battleResultText -> Game.System.say(systemEvents, battleResult)", "generated_runtime_text", rendered("systemEvents", "battleResult"), "Баттл с {oppName}: {text}.", ('systemSay("systemEvents", "battleResult"',), False),
-        ManualSurfaceSpec("voting", "ui_events", "__smokeBoomerTermsStep42Events.voteDisabled", "toast", "literal boomer branch in ui-events.js", "runtime_resolved", "Вы уже проголосовали.", "Ты уже проголосовал.", ("voteDisabled", "Вы уже проголосовали."), False),
-        ManualSurfaceSpec("points", "ui_events", "__smokeBoomerTermsStep42Events.voteNoPoints", "toast", "literal boomer branch in ui-events.js", "runtime_resolved", "Недостаточно 💰.", "Не хватает 💰.", ("voteNoPoints", "Недостаточно 💰."), False),
-        ManualSurfaceSpec("rematch", "ui_battles", "__smokeBoomerTermsStep42Battles.rematchAlreadyRequested", "toast", "literal boomer branch in ui-battles.js", "runtime_resolved", "Реванш уже запрошен.", "Реванш уже запрошен.", ("rematchAlreadyRequested",), False),
-        ManualSurfaceSpec("rematch", "ui_battles", "__smokeBoomerTermsStep42Battles.rematchNotEligible", "toast", "literal boomer branch in ui-battles.js", "runtime_resolved", "Повторный спор недоступен: текущий спор ещё не завершён.", "Недоступно. Баттл не завершён.", ("rematchNotEligible",), False),
-        ManualSurfaceSpec("rematch", "ui_battles", "__smokeBoomerTermsStep42Battles.rematchNotFound", "toast", "literal boomer branch in ui-battles.js", "runtime_resolved", "Повторный спор для этого конфликта недоступен.", "Недоступно.", ("rematchNotFound",), False),
-        ManualSurfaceSpec("points", "ui_dm", "__smokeBoomerTermsStep42Dm.respect_pair_daily", "toast", "literal boomer branch in ui-dm.js", "runtime_resolved", "Сегодня вы уже выразили уважение этому персонажу.", "Уже было уважение сегодня этому персонажу.", ("respect_pair_daily",), False),
-        ManualSurfaceSpec("rep", "ui_dm", "__smokeBoomerTermsStep42Dm.respect_no_chain", "toast", "literal boomer branch in ui-dm.js", "runtime_resolved", "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.", "Цепочка A->B->A сегодня не работает.", ("respect_no_chain",), False),
-        ManualSurfaceSpec("rep", "ui_dm", "__smokeBoomerTermsStep42Dm.respect_emitter_empty", "toast", "literal boomer branch in ui-dm.js", "runtime_resolved", "Дневной лимит выражения уважения исчерпан.", "Лимит уважения на сегодня исчерпан.", ("respect_emitter_empty",), False),
-        ManualSurfaceSpec("dm", "ui_dm", "DM_ACTION_LABEL_BASE.dm.battle", "direct_literal", "shared DM_ACTION_LABEL_BASE object reused for boomer", "static_reachable", "баттл", "баттл", ("\"dm.battle\": \"баттл\"",), False),
-        ManualSurfaceSpec("reports", "ui_dm", "DM_ACTION_LABEL_BASE.dm.report.open", "direct_literal", "shared DM_ACTION_LABEL_BASE object reused for boomer", "static_reachable", "Сдать", "Сдать", ("\"dm.report.open\": \"Сдать\"",), False),
-        ManualSurfaceSpec("reports", "ui_dm", "DM_REPORT_SUBMIT_LABELS.pending", "direct_literal", "shared DM_REPORT_SUBMIT_LABELS object reused for boomer", "static_reachable", "Проверяю...", "Проверяю...", ("pending: \"Проверяю...\"",), False),
-        ManualSurfaceSpec("reports", "ui_dm", "DM_REPORT_SUBMIT_LABELS.cooldown", "direct_literal", "shared DM_REPORT_SUBMIT_LABELS object reused for boomer", "static_reachable", "Занят", "Занят", ("cooldown: \"Занят\"",), False),
-        ManualSurfaceSpec("influence", "index", "title=Влияние", "dom_label", "static HTML title attribute", "static_reachable", "Влияние", "Влияние", ("title=\"Влияние\"",), False),
-        ManualSurfaceSpec("rep", "index", "title=⭐", "dom_label", "static HTML title attribute", "static_reachable", "⭐", "⭐", ("title=\"⭐\"",), False),
-        ManualSurfaceSpec("points", "index", "title=💰", "dom_label", "static HTML title attribute", "static_reachable", "💰", "💰", ("title=\"💰\"",), False),
-        ManualSurfaceSpec("reports", "index", "reportInput.placeholder", "dom_label", "static HTML placeholder", "static_reachable", "Ник бандита или токсика.", "Ник бандита или токсика.", ("placeholder=\"Ник бандита или токсика.\"",), False),
-        ManualSurfaceSpec("reports", "index", "reportBtn.textContent", "dom_label", "static HTML button label", "static_reachable", "Сдать", "Сдать", ("<button id=\"reportBtn\" class=\"btn\">Сдать</button>",), False),
-        ManualSurfaceSpec("reports", "index", "reportHint.textContent", "dom_label", "static HTML hint", "static_reachable", "Сдай токсика, бандита или мафиози.", "Сдай токсика, бандита или мафиози.", ("<span class=\"pill\" id=\"reportHint\">Сдай токсика, бандита или мафиози.</span>",), False),
-        ManualSurfaceSpec("conflict_results", "conflict_core", "battleResultText.draw_fallback", "generated_runtime_text", "literal fallback in conflict-core.js", "generated_runtime_text", "Толпа решает", "Толпа решает", ("return conflictResultText(\"conflict_draw\") || \"Толпа решает\";",), False),
-        ManualSurfaceSpec("conflict_results", "conflict_core", "battleResultText.escaped_fallback", "generated_runtime_text", "literal fallback in conflict-core.js", "generated_runtime_text", "Свалить", "Свалить", ("if (r === \"escaped\") return \"Свалить\";",), False),
-        ManualSurfaceSpec("conflict_results", "conflict_core", "battleResultText.ignored_fallback", "generated_runtime_text", "literal fallback in conflict-core.js", "generated_runtime_text", "Отвали", "Отвали", ("if (r === \"ignored\") return \"Отвали\";",), False),
+        ManualSurfaceSpec(
+            "points",
+            "system",
+            "Game.System.say(errors, insufficientPoints)",
+            "resolver",
+            "Game.System.say -> SYSTEM_PROFILE_TEXT_ROUTE_MAP -> activeSystemTextProfile=millennial",
+            "runtime_resolved",
+            rendered("errors", "insufficientPoints"),
+            "Не хватает 💰.",
+            ("errors.insufficientPoints", "not_enough_money"),
+            True,
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "system",
+            "Game.System.say(errors, pointsLowBattle)",
+            "resolver",
+            "Game.System.say -> SystemCopy.errors.pointsLowBattle",
+            "runtime_resolved",
+            rendered("errors", "pointsLowBattle"),
+            "Мало 💰 на баттл.",
+            ("errors.pointsLowBattle",),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "data",
+            "Data.SYS.reportNo",
+            "resolver",
+            "Data.SYS.reportNo -> Game.System.say(errors, reportNo)",
+            "runtime_resolved",
+            rendered("errors", "reportNo"),
+            "Коп: донос пустой, -5💰.",
+            ('reportNo: systemSay("errors", "reportNo")',),
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "system",
+            "Game.System.say(notifications, pointsDeltaPlusOne)",
+            "system_notification",
+            "Game.System.say -> SystemCopy.notifications.pointsDeltaPlusOne",
+            "runtime_resolved",
+            rendered("notifications", "pointsDeltaPlusOne"),
+            "+1💰",
+            ("notifications.pointsDeltaPlusOne",),
+        ),
+        ManualSurfaceSpec(
+            "rep",
+            "system",
+            "Game.System.say(notifications, repDeltaPlusOne)",
+            "system_notification",
+            "Game.System.say -> SystemCopy.notifications.repDeltaPlusOne",
+            "runtime_resolved",
+            rendered("notifications", "repDeltaPlusOne"),
+            "+1⭐",
+            ("notifications.repDeltaPlusOne",),
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "ui_dm",
+            "UI.showStatToast(points, respectPaid)",
+            "toast",
+            "Game.System.say -> SystemCopy.notifications.respectPaid",
+            "runtime_resolved",
+            rendered("notifications", "respectPaid"),
+            "Ты отдал 1💰",
+            ('systemSay("notifications", "respectPaid")',),
+        ),
+        ManualSurfaceSpec(
+            "rep",
+            "ui_dm",
+            "UI.showStatToast(rep, respectTargetRep)",
+            "toast",
+            "Game.System.say -> SystemCopy.notifications.respectTargetRep",
+            "runtime_resolved",
+            rendered("notifications", "respectTargetRep"),
+            "Цель получила +1 ⭐",
+            ('systemSay("notifications", "respectTargetRep")',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "ui_dm",
+            "Game.__A.pushDm(... reportPending ...)",
+            "dm",
+            "Game.System.say -> SystemCopy.notifications.reportPending",
+            "runtime_resolved",
+            rendered("notifications", "reportPending"),
+            "Проверяю.",
+            ('systemSay("notifications", "reportPending")',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "data",
+            "Data.SYS.reportOk(name)",
+            "system_notification",
+            "Data.SYS.reportOk -> Game.System.say(notifications, reportOk)",
+            "runtime_resolved",
+            rendered("notifications", "reportOk"),
+            "Коп: {name} сдан, +2💰.",
+            ('reportOk: (name) => systemSay("notifications", "reportOk", { name })',),
+        ),
+        ManualSurfaceSpec(
+            "rematch",
+            "system",
+            "Game.System.say(notifications, rematchCost)",
+            "system_notification",
+            "Game.System.say -> SystemCopy.notifications.rematchCost",
+            "runtime_resolved",
+            rendered("notifications", "rematchCost"),
+            "Реванш: -{rematchCost}💰.",
+            ("notifications.rematchCost",),
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "ui_battles",
+            "leaveBtn.textContent",
+            "toast",
+            "Game.System.say -> SystemCopy.notifications.escapePaid",
+            "runtime_resolved",
+            rendered("notifications", "escapePaid"),
+            "Свалить за 1💰.",
+            ('systemSay("notifications", "escapePaid")',),
+        ),
+        ManualSurfaceSpec(
+            "voting",
+            "events",
+            "Game.UI.pushSystem(systemSay(notifications, pointsDeltaVoteCost))",
+            "system_notification",
+            "Game.System.say -> SystemCopy.notifications.pointsDeltaVoteCost",
+            "runtime_resolved",
+            rendered("notifications", "pointsDeltaVoteCost"),
+            "-{voteCost}💰",
+            ('systemSay("notifications", "pointsDeltaVoteCost", { voteCost })',),
+        ),
+        ManualSurfaceSpec(
+            "voting",
+            "system",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund",
+            "system_notification",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefund",
+            "generated_runtime_text",
+            rendered("notifications", "pointsDeltaRefund"),
+            "+1💰 возврат.",
+            ("crowd_vote_refund", "pointsDeltaRefund"),
+        ),
+        ManualSurfaceSpec(
+            "majority_minority",
+            "system",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_refund_majority",
+            "system_notification",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRefundMajority",
+            "generated_runtime_text",
+            rendered("notifications", "pointsDeltaRefundMajority"),
+            "+1💰 возврат большинству.",
+            ("crowd_vote_refund_majority", "pointsDeltaRefundMajority"),
+        ),
+        ManualSurfaceSpec(
+            "majority_minority",
+            "system",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT.crowd_vote_remainder_*",
+            "system_notification",
+            "SYSTEM_ECONOMY_TEXT_REASON_CONTRACT -> SystemCopy.notifications.pointsDeltaRemainderWin",
+            "generated_runtime_text",
+            rendered("notifications", "pointsDeltaRemainderWin"),
+            "+1💰 остаток победителю.",
+            ("crowd_vote_remainder_win", "pointsDeltaRemainderWin"),
+        ),
+        ManualSurfaceSpec(
+            "dm",
+            "ui_dm",
+            "UI.pushSystem(... dmReaction ...)",
+            "system_notification",
+            "Game.System.say -> SystemCopy.systemEvents.dmReaction",
+            "runtime_resolved",
+            rendered("systemEvents", "dmReaction"),
+            "{name} ↔ {target}: реакция.",
+            ('systemSay("systemEvents", "dmReaction"',),
+        ),
+        ManualSurfaceSpec(
+            "dm",
+            "ui_dm",
+            "UI.pushSystem(... dmInvite ...)",
+            "system_notification",
+            "Game.System.say -> SystemCopy.systemEvents.dmInvite",
+            "runtime_resolved",
+            rendered("systemEvents", "dmInvite"),
+            "{name}: +{guest} к {target}.",
+            ('systemSay("systemEvents", "dmInvite"',),
+        ),
+        ManualSurfaceSpec(
+            "npc_vs_npc",
+            "data",
+            "Data.SYS.npcBattleEndWin",
+            "template",
+            "Data.SYS.npcBattleEndWin",
+            "runtime_resolved",
+            "{winner} победил. {loser} проиграл.",
+            "{winner} победил. {loser} проиграл.",
+            ('npcBattleEndWin: (winner, loser) => `${winner} победил. ${loser} проиграл.`',),
+        ),
+        ManualSurfaceSpec(
+            "conflict_results",
+            "data",
+            "Data.SYS.npcBattleEndDraw",
+            "template",
+            "Data.SYS.npcBattleEndDraw",
+            "runtime_resolved",
+            "{a} и {b}: ничья.",
+            "{a} и {b}: ничья.",
+            ('npcBattleEndDraw: (a, b) => `${a} и ${b}: ничья.`',),
+        ),
+        ManualSurfaceSpec(
+            "conflict_results",
+            "conflict_core",
+            "pushSystem(... battleResult ...)",
+            "generated_runtime_text",
+            "battleResultText -> Game.System.say(systemEvents, battleResult)",
+            "generated_runtime_text",
+            rendered("systemEvents", "battleResult"),
+            "Баттл с {oppName}: {text}.",
+            ('systemSay("systemEvents", "battleResult"',),
+        ),
+        ManualSurfaceSpec(
+            "voting",
+            "ui_events",
+            "__smokeBoomerTermsStep42Events.voteDisabled",
+            "toast",
+            "literal boomer branch in ui-events.js",
+            "runtime_resolved",
+            "Вы уже проголосовали.",
+            "Ты уже проголосовал.",
+            ("voteDisabled", "Вы уже проголосовали."),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "ui_events",
+            "__smokeBoomerTermsStep42Events.voteNoPoints",
+            "toast",
+            "literal boomer branch in ui-events.js",
+            "runtime_resolved",
+            "Недостаточно 💰.",
+            "Не хватает 💰.",
+            ("voteNoPoints", "Недостаточно 💰."),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "rematch",
+            "ui_battles",
+            "__smokeBoomerTermsStep42Battles.rematchAlreadyRequested",
+            "toast",
+            "literal boomer branch in ui-battles.js",
+            "runtime_resolved",
+            "Реванш уже запрошен.",
+            "Реванш уже запрошен.",
+            ("rematchAlreadyRequested",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "rematch",
+            "ui_battles",
+            "__smokeBoomerTermsStep42Battles.rematchNotEligible",
+            "toast",
+            "literal boomer branch in ui-battles.js",
+            "runtime_resolved",
+            "Повторный спор недоступен: текущий спор ещё не завершён.",
+            "Недоступно. Баттл не завершён.",
+            ("rematchNotEligible",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "rematch",
+            "ui_battles",
+            "__smokeBoomerTermsStep42Battles.rematchNotFound",
+            "toast",
+            "literal boomer branch in ui-battles.js",
+            "runtime_resolved",
+            "Повторный спор для этого конфликта недоступен.",
+            "Недоступно.",
+            ("rematchNotFound",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "ui_dm",
+            "__smokeBoomerTermsStep42Dm.respect_pair_daily",
+            "toast",
+            "literal boomer branch in ui-dm.js",
+            "runtime_resolved",
+            "Сегодня вы уже выразили уважение этому персонажу.",
+            "Уже было уважение сегодня этому персонажу.",
+            ("respect_pair_daily",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "rep",
+            "ui_dm",
+            "__smokeBoomerTermsStep42Dm.respect_no_chain",
+            "toast",
+            "literal boomer branch in ui-dm.js",
+            "runtime_resolved",
+            "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.",
+            "Цепочка A->B->A сегодня не работает.",
+            ("respect_no_chain",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "rep",
+            "ui_dm",
+            "__smokeBoomerTermsStep42Dm.respect_emitter_empty",
+            "toast",
+            "literal boomer branch in ui-dm.js",
+            "runtime_resolved",
+            "Дневной лимит выражения уважения исчерпан.",
+            "Лимит уважения на сегодня исчерпан.",
+            ("respect_emitter_empty",),
+            is_live=False,
+            non_live_reason="Game.__DEV smoke-only fixture; excluded from live production evidence and audit status.",
+        ),
+        ManualSurfaceSpec(
+            "dm",
+            "ui_dm",
+            "DM_ACTION_LABEL_BASE.dm.battle",
+            "direct_literal",
+            "shared DM_ACTION_LABEL_BASE object reused for boomer",
+            "static_reachable",
+            "баттл",
+            "баттл",
+            ('"dm.battle": "баттл"',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "ui_dm",
+            "DM_ACTION_LABEL_BASE.dm.report.open",
+            "direct_literal",
+            "shared DM_ACTION_LABEL_BASE object reused for boomer",
+            "static_reachable",
+            "Сдать",
+            "Сдать",
+            ('"dm.report.open": "Сдать"',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "ui_dm",
+            "DM_REPORT_SUBMIT_LABELS.pending",
+            "direct_literal",
+            "shared DM_REPORT_SUBMIT_LABELS object reused for boomer",
+            "static_reachable",
+            "Проверяю...",
+            "Проверяю...",
+            ('pending: "Проверяю..."',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "ui_dm",
+            "DM_REPORT_SUBMIT_LABELS.cooldown",
+            "direct_literal",
+            "shared DM_REPORT_SUBMIT_LABELS object reused for boomer",
+            "static_reachable",
+            "Занят",
+            "Занят",
+            ('cooldown: "Занят"',),
+        ),
+        ManualSurfaceSpec(
+            "influence",
+            "index",
+            "title=Влияние",
+            "dom_label",
+            "static HTML title attribute",
+            "static_reachable",
+            "Влияние",
+            "Влияние",
+            ('title="Влияние"',),
+        ),
+        ManualSurfaceSpec(
+            "rep",
+            "index",
+            "title=⭐",
+            "dom_label",
+            "static HTML title attribute",
+            "static_reachable",
+            "⭐",
+            "⭐",
+            ('title="⭐"',),
+        ),
+        ManualSurfaceSpec(
+            "points",
+            "index",
+            "title=💰",
+            "dom_label",
+            "static HTML title attribute",
+            "static_reachable",
+            "💰",
+            "💰",
+            ('title="💰"',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "index",
+            "reportInput.placeholder",
+            "dom_label",
+            "static HTML placeholder",
+            "static_reachable",
+            "Ник бандита или токсика.",
+            "Ник бандита или токсика.",
+            ('placeholder="Ник бандита или токсика."',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "index",
+            "reportBtn.textContent",
+            "dom_label",
+            "static HTML button label",
+            "static_reachable",
+            "Сдать",
+            "Сдать",
+            ('<button id="reportBtn" class="btn">Сдать</button>',),
+        ),
+        ManualSurfaceSpec(
+            "reports",
+            "index",
+            "reportHint.textContent",
+            "dom_label",
+            "static HTML hint",
+            "static_reachable",
+            "Сдай токсика, бандита или мафиози.",
+            "Сдай токсика, бандита или мафиози.",
+            ('<span class="pill" id="reportHint">Сдай токсика, бандита или мафиози.</span>',),
+        ),
+        ManualSurfaceSpec(
+            "conflict_results",
+            "conflict_core",
+            "battleResultText.draw_fallback",
+            "generated_runtime_text",
+            "literal fallback in conflict-core.js",
+            "generated_runtime_text",
+            "Толпа решает",
+            "Толпа решает",
+            ('return conflictResultText("conflict_draw") || "Толпа решает";',),
+        ),
+        ManualSurfaceSpec(
+            "conflict_results",
+            "conflict_core",
+            "battleResultText.escaped_fallback",
+            "generated_runtime_text",
+            "literal fallback in conflict-core.js",
+            "generated_runtime_text",
+            "Свалить",
+            "Свалить",
+            ('if (r === "escaped") return "Свалить";',),
+        ),
+        ManualSurfaceSpec(
+            "conflict_results",
+            "conflict_core",
+            "battleResultText.ignored_fallback",
+            "generated_runtime_text",
+            "literal fallback in conflict-core.js",
+            "generated_runtime_text",
+            "Отвали",
+            "Отвали",
+            ('if (r === "ignored") return "Отвали";',),
+        ),
     ]
 
 
@@ -489,6 +1019,10 @@ def build_audit(root: Path) -> dict[str, object]:
     current_to_boomer, allowed_boomer = parse_allowed_lexicon(root / ALLOWED_LEXICON)
     step43_mapping = parse_step43_mapping(root / STEP43_MAPPING)
     taboo_phrases = parse_taboo_phrases(root / TABOO_LIST)
+    runtime_gap_targets = parse_runtime_gap_targets(root / RUNTIME_GAP_TARGETS)
+    runtime_gap_copy_decisions, runtime_gap_decision_failures = parse_runtime_gap_copy_decisions(
+        root / RUNTIME_GAP_COPY_DECISIONS
+    )
 
     genz_texts, boomer_texts = build_data_texts(source_texts["data"])
     cap_millennial, cap_boomer = build_cap_messages(source_texts["data"])
@@ -498,9 +1032,11 @@ def build_audit(root: Path) -> dict[str, object]:
     system_profile_texts = build_system_profile_texts(source_texts["system"])
     route_map = build_system_route_map(source_texts["system"])
 
-    rows: list[dict[str, str]] = []
-    failures: list[str] = []
-    seen_keys: set[tuple[str, str, str]] = set()
+    live_rows: list[dict[str, str]] = []
+    non_live_rows: list[dict[str, str]] = []
+    failures: list[str] = list(runtime_gap_decision_failures)
+    seen_ids: set[str] = set()
+    seen_live_locators: set[tuple[str, str]] = set()
     row_id = 1
 
     def ensure_evidence(file_key: str, evidence: tuple[str, ...], locator: str) -> None:
@@ -520,30 +1056,63 @@ def build_audit(root: Path) -> dict[str, object]:
         source_term: str,
         evidence: tuple[str, ...],
         wrong_profile: bool = False,
+        is_live: bool = True,
+        non_live_classification: str = "dev_only",
+        non_live_reason: str = "",
     ) -> None:
         nonlocal row_id
         ensure_evidence(file_key, evidence, locator)
-        expected_target, authority = resolve_expected_target(source_term, current_text, step43_mapping, current_to_boomer, allowed_boomer)
-        row = make_row(
-            row_id,
-            feature_zone,
-            SOURCE_FILES[file_key],
-            locator,
-            source_kind,
-            resolution_path,
-            runtime_reachability,
-            current_text,
+        expected_target, authority = resolve_expected_target(
             source_term,
-            expected_target,
-            authority,
-            taboo_phrases,
-            wrong_profile,
+            current_text,
+            step43_mapping,
+            current_to_boomer,
+            allowed_boomer,
+            runtime_gap_targets,
+            runtime_gap_copy_decisions,
         )
-        dedupe_key = (row["sourceFile"], row["sourceLocator"], row["currentText"])
-        if dedupe_key in seen_keys:
-            failures.append(f"Duplicate evidence row detected for {row['sourceFile']} :: {row['sourceLocator']} :: {row['currentText']}")
-        seen_keys.add(dedupe_key)
-        rows.append(row)
+        if is_live:
+            row = make_row(
+                row_id,
+                feature_zone,
+                SOURCE_FILES[file_key],
+                locator,
+                source_kind,
+                resolution_path,
+                runtime_reachability,
+                current_text,
+                source_term,
+                expected_target,
+                authority,
+                taboo_phrases,
+                wrong_profile,
+            )
+            locator_key = (row["sourceFile"], row["sourceLocator"])
+            if locator_key in seen_live_locators:
+                failures.append(f"Duplicate live source locator detected: {row['sourceFile']} :: {row['sourceLocator']}")
+            seen_live_locators.add(locator_key)
+            live_rows.append(row)
+        else:
+            row = make_non_live_row(
+                row_id,
+                feature_zone,
+                SOURCE_FILES[file_key],
+                locator,
+                source_kind,
+                resolution_path,
+                runtime_reachability,
+                current_text,
+                source_term,
+                expected_target,
+                authority,
+                non_live_classification,
+                non_live_reason
+                or "Non-live evidence is excluded from the Step 4.4A live audit totals and final status.",
+            )
+            non_live_rows.append(row)
+        if row["id"] in seen_ids:
+            failures.append(f"Duplicate row id detected: {row['id']}")
+        seen_ids.add(row["id"])
         row_id += 1
 
     relevant_data_keys = [
@@ -642,7 +1211,7 @@ def build_audit(root: Path) -> dict[str, object]:
             "runtime_resolved",
             cap_boomer[cap_key],
             cap_millennial[cap_key],
-            (f"{cap_key}: \"{cap_boomer[cap_key]}\"",),
+            (f'{cap_key}: "{cap_boomer[cap_key]}"',),
         )
 
     for category, values in cop_boomer.items():
@@ -689,18 +1258,63 @@ def build_audit(root: Path) -> dict[str, object]:
             spec.source_term,
             spec.evidence,
             wrong_profile=spec.wrong_profile,
+            is_live=spec.is_live,
+            non_live_classification=spec.non_live_classification,
+            non_live_reason=spec.non_live_reason,
         )
 
     classification_counts: dict[str, int] = {}
     feature_counts: dict[str, int] = {}
     fail_rows = 0
-    for row in rows:
+    pass_rows = 0
+    for row in live_rows:
         classification_counts[row["classification"]] = classification_counts.get(row["classification"], 0) + 1
         feature_counts[row["featureZone"]] = feature_counts.get(row["featureZone"], 0) + 1
-        if row["classification"] in FAIL_CLASSIFICATIONS:
+        if row["verdict"] == "FAIL":
             fail_rows += 1
+        elif row["verdict"] == "PASS":
+            pass_rows += 1
+        else:
+            failures.append(f"Live row has unsupported verdict {row['verdict']!r}: {row['id']}")
+
+    for row in live_rows:
+        if row["classification"] in FAIL_CLASSIFICATIONS and row["verdict"] != "FAIL":
+            failures.append(f"Fail classification without FAIL verdict: {row['id']} -> {row['classification']}")
+        if row["classification"] in PASS_CLASSIFICATIONS and row["verdict"] != "PASS":
+            failures.append(f"Pass classification without PASS verdict: {row['id']} -> {row['classification']}")
+        if row["verdict"] == "FAIL" and row["classification"] not in FAIL_CLASSIFICATIONS:
+            failures.append(f"FAIL verdict missing fail classification: {row['id']} -> {row['classification']}")
+        if row["verdict"] == "PASS" and row["classification"] not in PASS_CLASSIFICATIONS:
+            failures.append(f"PASS verdict missing pass classification: {row['id']} -> {row['classification']}")
+
+    for row in non_live_rows:
+        if row["verdict"] != NON_LIVE_VERDICT:
+            failures.append(f"Non-live row must use {NON_LIVE_VERDICT}: {row['id']}")
+        if row["classification"] not in {"dev_only", "diagnostic_only", "stale_artifact_only", "dead_or_unreachable"}:
+            failures.append(f"Non-live row has unsupported classification: {row['id']} -> {row['classification']}")
+
+    audited_row_count = len(live_rows)
+    structural_failure_count = len(failures)
+    if audited_row_count != len(live_rows):
+        failures.append("auditedRowCount does not match the live row table.")
+    if fail_rows != sum(1 for row in live_rows if row["verdict"] == "FAIL"):
+        failures.append("failRowCount does not match the count of live FAIL verdicts.")
+    if pass_rows != sum(1 for row in live_rows if row["verdict"] == "PASS"):
+        failures.append("passRowCount does not match the count of live PASS verdicts.")
+    if fail_rows + pass_rows != audited_row_count:
+        failures.append("Live PASS/FAIL totals do not add up to auditedRowCount.")
 
     status = STATIC_PASS if fail_rows == 0 and not failures else STATIC_FAIL
+    if status == STATIC_PASS and any(row["verdict"] != "PASS" for row in live_rows):
+        failures.append("STATIC_PASS is invalid while a live row still has verdict FAIL.")
+        status = STATIC_FAIL
+    if status == STATIC_PASS and structural_failure_count != 0:
+        failures.append("STATIC_PASS is invalid while structuralFailureCount is non-zero.")
+        status = STATIC_FAIL
+
+    structural_failure_count = len(failures)
+    step4_4b_requirement = "true" if status == STATIC_PASS else "blocked until STATIC_PASS"
+
     summary_lines = [
         f"# {BUILD_MARKER}",
         "",
@@ -708,6 +1322,7 @@ def build_audit(root: Path) -> dict[str, object]:
         "",
         "- Static-only Step 4.4A audit.",
         "- No runtime JavaScript, HTML entrypoint, dev-check, smoke registry, or production copy change is part of this artifact.",
+        "- `Game.__DEV`, `Game.Dev`, and smoke-only helpers are excluded from live totals and shown only in the non-live appendix.",
         "- Step 4.4B remains a separate targeted runtime aggregate smoke and is not executed here.",
         "",
         "## Contract",
@@ -715,16 +1330,17 @@ def build_audit(root: Path) -> dict[str, object]:
         f"- buildMarker: {BUILD_MARKER}",
         f"- smokeVersion: {SMOKE_VERSION}",
         f"- auditStatus: {status}",
-        f"- auditedRowCount: {len(rows)}",
+        f"- auditedRowCount: {audited_row_count}",
         f"- failRowCount: {fail_rows}",
-        f"- passRowCount: {len(rows) - fail_rows}",
-        f"- structuralFailureCount: {len(failures)}",
-        f"- requiresStep4_4B: {'true' if status == STATIC_PASS else 'false until Fix1'}",
+        f"- passRowCount: {pass_rows}",
+        f"- structuralFailureCount: {structural_failure_count}",
+        f"- nonLiveEvidenceCount: {len(non_live_rows)}",
+        f"- requiresStep4_4B: {step4_4b_requirement}",
         "",
         "## Criteria",
         "",
-        f"- STATIC_PASS condition: no live row classified as {', '.join(sorted(FAIL_CLASSIFICATIONS))} and no structural audit failure.",
-        "- STATIC_FAIL condition: one or more live rows are untranslated, unmapped, taboo, wrong-profile, or placeholder-broken, or a required production surface cannot be proven statically.",
+        f"- STATIC_PASS condition: every live row is PASS, every live classification is outside {', '.join(sorted(FAIL_CLASSIFICATIONS))}, and structuralFailureCount is zero.",
+        "- STATIC_FAIL condition: one or more live rows are untranslated, unmapped, taboo, wrong-profile, mapped-but-not-exact, or placeholder-broken, or a required production surface cannot be proven statically.",
         "",
         "## Classification Counts",
         "",
@@ -761,17 +1377,44 @@ def build_audit(root: Path) -> dict[str, object]:
             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
-    for row in rows:
+    for row in live_rows:
         summary_lines.append(
             "| {id} | {featureZone} | {currentText} | {acceptedBoomerTarget} | {sourceFile} | {sourceLocator} | {sourceKind} | {runtimeReachability} | {profileResolutionPath} | {placeholders} | {authority} | {classification} | {verdict} | {reason} |".format(
                 **{key: markdown_escape(value) for key, value in row.items()}
             )
         )
 
+    summary_lines.extend(
+        [
+            "",
+            "## Non-Live Evidence Appendix",
+            "",
+            "| id | featureZone | currentText | acceptedBoomerTarget | sourceFile | sourceLocator | sourceKind | runtimeReachability | profileResolutionPath | placeholders | authority | classification | verdict | reason |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    if non_live_rows:
+        for row in non_live_rows:
+            summary_lines.append(
+                "| {id} | {featureZone} | {currentText} | {acceptedBoomerTarget} | {sourceFile} | {sourceLocator} | {sourceKind} | {runtimeReachability} | {profileResolutionPath} | {placeholders} | {authority} | {classification} | {verdict} | {reason} |".format(
+                    **{key: markdown_escape(value) for key, value in row.items()}
+                )
+            )
+    else:
+        summary_lines.append("| none | — | — | — | — | — | — | — | — | — | — | — | — | — |")
+
     text = "\n".join(summary_lines).rstrip() + "\n"
     return {
         "status": status,
-        "rows": rows,
+        "rows": live_rows,
+        "liveRows": live_rows,
+        "nonLiveRows": non_live_rows,
+        "classificationCounts": classification_counts,
+        "featureCounts": feature_counts,
+        "auditedRowCount": audited_row_count,
+        "failRowCount": fail_rows,
+        "passRowCount": pass_rows,
+        "structuralFailureCount": structural_failure_count,
         "failures": failures,
         "text": text,
     }
@@ -787,7 +1430,9 @@ def write_outputs(root: Path) -> dict[str, object]:
 def main(argv: list[str]) -> int:
     root = Path(argv[1]).resolve() if len(argv) > 1 else Path.cwd().resolve()
     audit = write_outputs(root)
-    print(f"{audit['status']} rows={len(audit['rows'])} structuralFailures={len(audit['failures'])}")
+    print(
+        f"{audit['status']} rows={len(audit['rows'])} nonLiveRows={len(audit['nonLiveRows'])} structuralFailures={len(audit['failures'])}"
+    )
     return 0
 
 
