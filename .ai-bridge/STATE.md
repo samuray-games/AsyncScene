@@ -3,53 +3,66 @@
 BRIDGE_PROTOCOL: 1.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-05T09:13:00+09:00
+STATE_UPDATED_AT: 2026-07-05T10:37:00+09:00
 
 ## Current status
 
 - Bridge status: `SINGLE_THREAD_WAITING_CODEX`
-- Latest ChatGPT thread: `BRIDGE-20260705-008`
-- Latest ChatGPT turn: `BRIDGE-20260705-008-01-chatgpt.md`
+- Latest ChatGPT thread: `BRIDGE-20260705-009`
+- Latest ChatGPT turn: `BRIDGE-20260705-009-01-chatgpt.md`
 - Latest Codex turn: `BRIDGE-20260705-003-02-codex.md`
-- Open threads: `BRIDGE-20260705-008`
-- Superseded threads: `BRIDGE-20260705-002`, `BRIDGE-20260705-005`, `BRIDGE-20260705-006`, `BRIDGE-20260705-007`
+- Open threads: `BRIDGE-20260705-009`
+- Superseded threads: `BRIDGE-20260705-002`, `BRIDGE-20260705-005`, `BRIDGE-20260705-006`, `BRIDGE-20260705-007`, `BRIDGE-20260705-008`
 - Closed threads: `BRIDGE-20260705-001`, `BRIDGE-20260705-003`, `BRIDGE-20260705-004`
-- Next free thread id: `BRIDGE-20260705-009`
+- Next free thread id: `BRIDGE-20260705-010`
 
 ## Current primary-source note
 
-- Live Project Memory last verified by ChatGPT: `MEMORY_REV: 2026-07-05-0857-JST`.
+- Live Project Memory last verified by ChatGPT: `MEMORY_REV: 2026-07-05-0915-JST`.
 - Current primary repository head verified by ChatGPT: `main` at `e7eeb5113d25233d0314e9fa30a4eefbc2e1ca26`.
-- Root `AGENTS.md` and `BRIDGE.md` remain repository-level guidance, but they cannot repair a stale local checkout before Codex loads project instructions.
-- Official Codex behavior loads user-level instructions from `$CODEX_HOME/AGENTS.override.md` first, otherwise `$CODEX_HOME/AGENTS.md`.
-- `CODEX_BRIDGE_BOOTSTRAP.md` defines the one-time idempotent global alias installation.
-- `BRIDGE-20260705-008` is the only active task: `BRIDGE-BOOTSTRAP-V1`, status `WAITING_CODEX_MODEL_PREFLIGHT`.
+- Root `AGENTS.md` contains the exact `проверь мост` alias and root `BRIDGE.md` defines mailbox discovery.
+- The user's repeated failures were consistent with a stale local checkout that had not pulled the new root instructions.
+- Temporary global bootstrap thread `BRIDGE-20260705-008` is superseded and must not run.
+- `BRIDGE-20260705-009` is the only active task: `TASK-S6-001-R3`, status `WAITING_CODEX_MODEL_PREFLIGHT`.
 
-## Routing rule before bootstrap is installed
+## Required local synchronization before using the alias
 
-- The short command `проверь мост` is not considered reliable until `BRIDGE-BOOTSTRAP-V1` receives PASS in a new Codex thread.
-- The user must invoke the bootstrap once with the explicit bootstrap prompt provided by ChatGPT.
-- Codex must not run a mirror audit or Stage 6 audit during bootstrap.
-- All previous Stage 6 threads are superseded while bootstrap is active.
+On the Mac that contains `/Users/User/Documents/created apps/AsyncScene`, update the local checkout safely:
 
-## Expected stable flow after bootstrap PASS
+```bash
+cd "/Users/User/Documents/created apps/AsyncScene"
+if [ -n "$(git status --porcelain)" ]; then
+  echo "STOP_DIRTY_WORKTREE"
+  git status --short --branch
+  exit 1
+fi
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git fetch origin coordination/chatgpt-codex-bridge
+git rev-parse HEAD
+```
 
-1. User opens a new Codex thread in AsyncScene and writes only `проверь мост`.
-2. The global Codex instruction detects the exact command before project-level interpretation.
-3. Codex fetches current `origin/main` and the mailbox branch, then reads remote `BRIDGE.md`, this STATE file and the sole active inbox.
-4. Codex returns the phase requested by that inbox.
+Expected current main after a successful pull: `e7eeb5113d25233d0314e9fa30a4eefbc2e1ca26` or a newer verified main commit.
+
+## Stable zero-relay flow after local pull
+
+1. Open a new Codex thread in the AsyncScene project.
+2. Write only `проверь мост`.
+3. Codex reads the newly pulled local `AGENTS.md`, then remote `BRIDGE.md`, this STATE file and the sole active inbox.
+4. Codex returns `MODEL_PREFLIGHT_ONLY`.
 5. User selects the recommended model and sends same-thread `CONTINUE`.
-6. User does not relay preflight to ChatGPT.
-7. User returns to ChatGPT only after the final Codex report and writes `проверь мост`.
+6. User does not relay the preflight to ChatGPT.
+7. Codex completes the task and publishes the required outbox.
+8. User returns to ChatGPT only after the final Codex report and writes `проверь мост`.
 
 ## Current task
 
-- Task: `BRIDGE-BOOTSTRAP-V1`
-- Active thread: `BRIDGE-20260705-008`
-- Recommended model: `GPT-5.4-Mini / Medium` unless preflight proves a stronger model is necessary.
-- Runtime gate: `N/A - Codex user instruction configuration only`.
-- Expected native permission: one narrowly scoped write under Codex home, plus mailbox outbox publication.
+- Task: `TASK-S6-001-R3`
+- Active thread: `BRIDGE-20260705-009`
+- Recommended model: `GPT-5.4 / High`
+- Runtime gate: `N/A - read-only audit`
 
 ## Next action
 
-In a new Codex thread, use the one-time explicit bootstrap prompt supplied by ChatGPT. After MODEL_PREFLIGHT_ONLY, select the recommended model and send `CONTINUE` in the same thread. Do not return to ChatGPT until Codex publishes its final bootstrap report.
+Pull the local Mac checkout using the safe commands above. Then open a new Codex thread and write only `проверь мост`. After `MODEL_PREFLIGHT_ONLY`, select the recommended model and immediately send `CONTINUE`.
