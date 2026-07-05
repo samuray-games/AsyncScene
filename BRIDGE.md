@@ -72,7 +72,18 @@ After the user selects the recommended model and sends `CONTINUE` in the same Co
 - Never overwrite an existing inbox or outbox turn.
 - Never modify another thread.
 - Never force-push.
-- Before a mailbox write, fetch the mailbox branch again and fail closed if the remote head moved unexpectedly.
+- Before a mailbox write, fetch `origin/coordination/chatgpt-codex-bridge` again, record that fetched remote head as the exact `MAILBOX_PARENT_COMMIT`, and fail closed if the remote head moved unexpectedly.
+- Use a dedicated mailbox worktree or equivalently isolated checkout whose checked-out branch is exactly `coordination/chatgpt-codex-bridge`.
+- Before editing, prove both that the current branch is exactly `coordination/chatgpt-codex-bridge` and that current `HEAD` equals the recorded `MAILBOX_PARENT_COMMIT`.
+- Never create a mailbox commit while `HEAD`, the checked-out branch, or the commit parent belongs to `main`, the authorized primary baseline, a detached primary commit, or any non-mailbox branch.
+- The mailbox commit must be a direct descendant of the recorded `MAILBOX_PARENT_COMMIT`.
+- Before push, prove the commit diff contains only the exact mailbox path authorized by the active inbox.
+- Push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`, never to the current implicit upstream.
+- Refetch after push and prove the remote mailbox head equals the new mailbox commit.
+- When primary write scope is `NONE`, also prove `origin/main` still equals the authorized primary baseline.
+- Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`; no mailbox commit, no push, no fallback to `main`, and no guessed repair.
+- A claimed `mailbox outbox only` result is invalid unless the final report includes the mailbox parent SHA, mailbox commit SHA, verified remote mailbox head SHA, current `main` SHA before and after, the exact changed-path list, and an explicit statement that the mailbox commit is not based on `main`.
+- If a mailbox file is accidentally written to `main`, stop and report exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
 - The only allowed mailbox changes are the exact outbox path required by the active inbox and any state update explicitly owned by ChatGPT, not Codex.
 
 ## Failure behavior
