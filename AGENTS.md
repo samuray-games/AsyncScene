@@ -266,9 +266,12 @@ Repository-tracked plugins:
 
 - Codex Security;
 - Build Web Apps; and
-- Asynchronia source package v0.4.0.
+- Asynchronia source package v1.0.0.
 
-Installed-package acceptance currently remains recorded at `0.3.0` until a later installed-package verification step.
+Repository source manifest and marketplace metadata are both `v1.0.0`.
+Pragmatic installed-content acceptance for `v1.0.0` is recorded.
+Current-thread resolver/load availability must still be verified independently for every task.
+Exact installation-event provenance or resolver telemetry must not be claimed without evidence.
 
 Use Codex Security before persistence, before server or account systems, before public release, and after major security-sensitive or runtime changes.
 
