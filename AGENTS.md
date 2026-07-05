@@ -18,6 +18,20 @@ For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with the
 
 This alias does not bypass the runtime safety gate, native permission dialogs, exact task scope, or user-owned Safari acceptance.
 
+## 0.1 Git command aliases
+
+The exact trimmed user commands `запуль` and `запушь` are reserved repository commands and must be processed before generic interpretation.
+
+### `запуль`
+
+When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` and follow it exactly. It must not reinterpret the command as merge, rebase, stash, reset, clean, commit, push, or dirty-worktree repair.
+
+### `запушь`
+
+When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass runtime approval, or claim deployment/runtime acceptance from a Git push.
+
+These aliases do not bypass native permission prompts, runtime-safety-gate, exact task scope, Git safety checks, or user-owned Safari acceptance.
+
 ## 1. Project identity
 
 - Project name: Asynchronia.
