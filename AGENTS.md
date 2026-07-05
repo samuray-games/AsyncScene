@@ -229,7 +229,7 @@ If Codex reports its own model name without external verification, label it `SEL
 - Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
 - Runtime acceptance remains user-controlled.
 
-## 8.3 v0.4.0 workflow
+## 8.3 v1.0.0 workflow
 
 - `task-router` classifies the request.
 - `runtime-safety-gate` has precedence for runtime-sensitive scope.
@@ -244,6 +244,10 @@ If Codex reports its own model name without external verification, label it `SEL
 - Codex performs static validation.
 - The user performs required Safari runtime smoke.
 - Installed-package verification and final package acceptance remain separate from source-package integration.
+- Pragmatic installed-content acceptance for `v1.0.0` is recorded, but current-thread resolver/load availability must still be verified independently for each task.
+- No exact installation-event provenance or resolver telemetry may be claimed without evidence.
+- A response may claim Asynchronia plugin use only when it follows the complete required output contract of every invoked skill and names evidence for current-thread availability; repeating skill names, paraphrasing the inbox, or merely reading `SKILL.md` files is not proof.
+- Missing resolver/load evidence returns `BLOCKED_PLUGIN_NOT_LOADED` and no `CONTINUE` block.
 - Runtime acceptance remains pending until user confirmation.
 
 Boundaries:
@@ -309,5 +313,5 @@ A Codex `PASS` means only that the authorized implementation and static checks p
 ## 12. Documentation state
 
 - This root `AGENTS.md` is the authoritative repository policy.
-- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated v0.4.0 plugin workflow, model-selection rule, and final Codex report contract.
+- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated v1.0.0 plugin workflow, model-selection rule, and final Codex report contract.
 - Safe-task and runtime-task acceptance smokes remain pending and must be run separately.
