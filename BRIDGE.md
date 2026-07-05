@@ -45,7 +45,7 @@ When the active inbox requires `MODEL_PREFLIGHT_ONLY`:
 2. Do not run the requested audit or implementation yet.
 3. Recommend the cheapest reliable available model and reasoning level.
 4. State the planned read scope, expected write scope, gates, permissions and blockers.
-5. End with one standalone fenced block:
+5. End with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. Do not render `CONTINUE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
 
 ```text
 CONTINUE
@@ -63,7 +63,7 @@ After the user selects the recommended model and sends `CONTINUE` in the same Co
 
 - Follow `AGENTS.md` runtime-safety-gate exactly.
 - For a read-only task, do not request `APPROVE`.
-- For a proven runtime-sensitive write, stop with `RUNTIME_SAFETY_GATE_REQUIRED` and request same-thread `APPROVE` for the exact frozen file scope.
+- For a proven runtime-sensitive write, stop with `RUNTIME_SAFETY_GATE_REQUIRED` and request same-thread `APPROVE` for the exact frozen file scope. End that response with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it. Do not render `APPROVE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
 - Never reinterpret a small runtime change as documentation merely to avoid the gate.
 
 ## Mailbox write rules

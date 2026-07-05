@@ -14,7 +14,7 @@ When the user writes `проверь мост`, Codex must, before any other int
 6. ignore every closed or superseded thread; and
 7. never reinterpret this command as a generic source/deployed mirror audit or ask which bridge the user means.
 
-For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with the standalone `CONTINUE` block. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state and execute the unchanged authorized task. Do not ask the user to relay the preflight to ChatGPT.
+For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. Do not render `CONTINUE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state and execute the unchanged authorized task. Do not ask the user to relay the preflight to ChatGPT.
 
 This alias does not bypass the runtime safety gate, native permission dialogs, exact task scope, or user-owned Safari acceptance.
 
@@ -97,7 +97,7 @@ Never bypass the gate because a change appears small.
 
 ### 5.1 Approval protocol
 
-When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the final response must end with exactly one standalone code block containing:
+When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the final response must end with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it. Do not render `APPROVE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
 
 ```text
 APPROVE
