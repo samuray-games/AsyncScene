@@ -1,5 +1,23 @@
 # Asynchronia Repository Policy
 
+## 0. Bridge command alias
+
+The exact user command `проверь мост` is reserved for the ChatGPT-Codex mailbox bridge.
+
+When the user writes `проверь мост`, Codex must, before any other interpretation or action:
+
+1. read the root `BRIDGE.md` and follow it exactly;
+2. if `BRIDGE.md` is missing from the local worktree, fetch `origin/main` and read it with `git show origin/main:BRIDGE.md`;
+3. fetch `origin/coordination/chatgpt-codex-bridge` without switching the primary worktree;
+4. read `.ai-bridge/STATE.md` and the sole active inbox turn from that remote branch;
+5. execute only the current phase required by that inbox turn;
+6. ignore every closed or superseded thread; and
+7. never reinterpret this command as a generic source/deployed mirror audit or ask which bridge the user means.
+
+For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with the standalone `CONTINUE` block. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state and execute the unchanged authorized task. Do not ask the user to relay the preflight to ChatGPT.
+
+This alias does not bypass the runtime safety gate, native permission dialogs, exact task scope, or user-owned Safari acceptance.
+
 ## 1. Project identity
 
 - Project name: Asynchronia.
