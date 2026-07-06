@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Loading S6-010A4 Safari Smoke v2</title>
+</head>
+<body>
+  <pre id="status">Loading corrected smoke helper...</pre>
+  <script>
+  (async () => {
+    "use strict";
+
+    const SOURCE_URL = "https://raw.githack.com/samuray-games/AsyncScene/8aaeb524c2765bab76e6226c14f38c22ffdb7e48/s6-010a4-aggregate-smoke.html";
+    const status = document.getElementById("status");
+    const response = await fetch(`${SOURCE_URL}?wrapperV2=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`helper_v1_fetch_failed:${response.status}`);
+
+    let html = await response.text();
+    const oldOrder = "      document.body.appendChild(frame);\n      frame.srcdoc = html;";
+    const newOrder = "      frame.srcdoc = html;\n      document.body.appendChild(frame);";
+    if (html.split(oldOrder).length - 1 !== 1) throw new Error("iframe_order_anchor_mismatch");
+    html = html.replace(oldOrder, newOrder);
+
+    const oldDetail = 'report.failures.push({ check: "smoke_exception", detail: safeText(error && error.stack ? error.stack : error) });';
+    const newDetail = 'report.failures.push({ check: "smoke_exception", detail: safeText({ message: error && error.message ? error.message : String(error), stack: error && error.stack ? error.stack : null }) });';
+    if (html.split(oldDetail).length - 1 !== 1) throw new Error("error_detail_anchor_mismatch");
+    html = html.replace(oldDetail, newDetail);
+
+    html = html.replace("S6-010A4 Aggregate Safari Smoke</h1>", "S6-010A4 Aggregate Safari Smoke v2</h1>");
+    document.open();
+    document.write(html);
+    document.close();
+  })().catch((error) => {
+    const payload = {
+      task: "S6-010A4 Aggregate acceptance",
+      status: "FAIL",
+      wrapperV2: true,
+      failures: [{
+        check: "wrapper_exception",
+        detail: {
+          message: error && error.message ? error.message : String(error),
+          stack: error && error.stack ? error.stack : null
+        }
+      }]
+    };
+    document.getElementById("status").textContent = JSON.stringify(payload, null, 2);
+    document.getElementById("status").style.border = "1px solid #b42318";
+    window.__S6_010A4_RESULT__ = payload;
+  });
+  </script>
+</body>
+</html>
