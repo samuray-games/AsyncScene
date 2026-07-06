@@ -1,0 +1,349 @@
+name: S6-010A3 helper
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/s6-010a3-helper-base-20260706
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'chatgpt/s6-010a3-restore-change-later-20260706'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/s6-010a3-restore-change-later-20260706
+          fetch-depth: 0
+
+      - name: Apply exact replacements
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path('AsyncScene/Web/ui/ui-boot.js'),
+              Path('docs/ui/ui-boot.js'),
+          ]
+
+          old_sync = '''  function syncUiTextModeFromUiProfile(uiProfile) {
+            const G = window.Game || {};
+            const Data = G.Data || null;
+            if (!Data || typeof Data !== "object") return "millennial";
+            const normalized = typeof Data.normalizeUiProfile === "function"
+              ? Data.normalizeUiProfile(uiProfile)
+              : String(uiProfile || "").trim().toLowerCase();
+            const mode = typeof Data.resolveUiTextMode === "function"
+              ? Data.resolveUiTextMode(uiProfile)
+              : (normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial"));
+            Data.TEXT_MODE = mode;
+            return mode;
+          }
+
+          function readBirthYearProfileValue() {
+          '''
+
+          new_sync = '''  function syncUiTextModeFromUiProfile(uiProfile) {
+            const G = window.Game || {};
+            const Data = G.Data || null;
+            if (!Data || typeof Data !== "object") return "millennial";
+            const normalized = typeof Data.normalizeUiProfile === "function"
+              ? Data.normalizeUiProfile(uiProfile)
+              : String(uiProfile || "").trim().toLowerCase();
+            const mode = typeof Data.resolveUiTextMode === "function"
+              ? Data.resolveUiTextMode(uiProfile)
+              : (normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial"));
+            Data.TEXT_MODE = mode;
+            return mode;
+          }
+
+          let persistedUiProfileRestoreAttempted = false;
+
+          function restorePersistedUiProfileSelection(UI) {
+            if (persistedUiProfileRestoreAttempted) return null;
+            const G = window.Game || {};
+            const StateAPI = G.__A || G.StateAPI || null;
+            if (!StateAPI || typeof StateAPI.restorePersistedUiProfile !== "function") return null;
+            persistedUiProfileRestoreAttempted = true;
+            const restored = StateAPI.restorePersistedUiProfile();
+            if (restored == null) return null;
+            const Data = G.Data || null;
+            const uiProfile = typeof StateAPI.normalizePersistedUiProfile === "function"
+              ? StateAPI.normalizePersistedUiProfile(restored)
+              : String(restored || "").trim().toLowerCase();
+            if (!uiProfile) return null;
+            if (Data && typeof Data.setUiProfile === "function") {
+              Data.setUiProfile(uiProfile);
+            } else if (Data && typeof Data === "object") {
+              Data.UI_PROFILE = uiProfile;
+            }
+            syncUiTextModeFromUiProfile(uiProfile);
+            const profileTargets = [UI && UI.S, G.__S, G.State];
+            profileTargets.forEach((state) => {
+              if (!state || typeof state !== "object") return;
+              state.flags = state.flags || {};
+              state.flags.uiProfile = uiProfile;
+            });
+            return uiProfile;
+          }
+
+          function readBirthYearProfileValue() {
+          '''
+
+          old_persist = '''  function persistFirstUiProfileSelection(UI, uiProfile) {
+            if (uiProfile === "default" || getOnboardingSeen(UI)) return false;
+            const G = window.Game || {};
+            const StateAPI = G.__A || G.StateAPI || null;
+            if (!StateAPI || typeof StateAPI.writePersistedUiProfile !== "function") return false;
+            StateAPI.writePersistedUiProfile(uiProfile);
+            setOnboardingSeen(UI, true);
+            return true;
+          }
+          '''
+
+          new_persist = '''  function persistFirstUiProfileSelection(UI, uiProfile) {
+            if (uiProfile === "default") return false;
+            const G = window.Game || {};
+            const StateAPI = G.__A || G.StateAPI || null;
+            if (!StateAPI || typeof StateAPI.writePersistedUiProfile !== "function") return false;
+            const state = G.State || G.__S || (UI && UI.S) || null;
+            const currentUiProfile = state && state.save && typeof state.save.uiProfile === "string"
+              ? (typeof StateAPI.normalizePersistedUiProfile === "function"
+                ? StateAPI.normalizePersistedUiProfile(state.save.uiProfile)
+                : String(state.save.uiProfile || "").trim().toLowerCase())
+              : null;
+            const changed = currentUiProfile !== uiProfile;
+            if (changed) StateAPI.writePersistedUiProfile(uiProfile);
+            if (!getOnboardingSeen(UI)) setOnboardingSeen(UI, true);
+            return changed;
+          }
+          '''
+
+          old_apply = '''  function applyStartScreenContent(UI) {
+            const $ = UI.$;
+            markUiBootVersion();
+            const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+            const activeProfile = getActiveStartScreenProfile(UI);
+          '''
+
+          new_apply = '''  function applyStartScreenContent(UI) {
+            const $ = UI.$;
+            markUiBootVersion();
+            const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+            restorePersistedUiProfileSelection(UI);
+            const activeProfile = getActiveStartScreenProfile(UI);
+          '''
+
+          old_legacy_restore = '''    const savedUiProfile = (() => {
+              const state = (UI && UI.S) || (window.Game && (window.Game.__S || window.Game.State)) || null;
+              const profile = state && state.save && typeof state.save.uiProfile === "string" ? state.save.uiProfile : "";
+              return String(profile || "").trim();
+            })();
+            if (savedUiProfile) {
+              const currentUiProfile = getActiveStartScreenProfile(UI);
+              if (!currentUiProfile || currentUiProfile === "default") {
+                if (D && typeof D.setUiProfile === "function") {
+                  D.setUiProfile(savedUiProfile);
+                } else if (D && typeof D === "object") {
+                  D.UI_PROFILE = savedUiProfile;
+                }
+                if (UI && UI.S) {
+                  UI.S.flags = UI.S.flags || {};
+                  UI.S.flags.uiProfile = savedUiProfile;
+                }
+                if (G.__S && G.__S !== (UI && UI.S)) {
+                  G.__S.flags = G.__S.flags || {};
+                  G.__S.flags.uiProfile = savedUiProfile;
+                }
+                if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
+                  G.State.flags = G.State.flags || {};
+                  G.State.flags.uiProfile = savedUiProfile;
+                }
+              }
+            }
+          '''
+
+          replacements = [
+              (old_sync, new_sync, 'restore helper insertion'),
+              (old_persist, new_persist, 'change-later persistence'),
+              (old_apply, new_apply, 'boot restore wiring'),
+              (old_legacy_restore, '', 'remove legacy ad-hoc restore'),
+          ]
+
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              for old, new, label in replacements:
+                  count = text.count(old)
+                  if count != 1:
+                      raise SystemExit(f'{path}: {label}: expected 1 match, found {count}')
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Check syntax and A3 contract
+        shell: bash
+        run: |
+          node --check AsyncScene/Web/ui/ui-boot.js
+          node --check docs/ui/ui-boot.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path('AsyncScene/Web/ui/ui-boot.js').read_text(encoding='utf-8')
+          docs = Path('docs/ui/ui-boot.js').read_text(encoding='utf-8')
+
+          def section(text, start, end):
+              i = text.index(start)
+              j = text.index(end, i)
+              return text[i:j]
+
+          markers = [
+              ('  let persistedUiProfileRestoreAttempted = false;', '  function readBirthYearProfileValue()'),
+              ('  function persistFirstUiProfileSelection(UI, uiProfile)', '  function shouldShowFreshStartScreen(UI)'),
+              ('  function returnToStartScreen(UI)', '  function toggleAccordion(UI'),
+          ]
+          for start, end in markers:
+              if section(source, start, end) != section(docs, start, end):
+                  raise SystemExit(f'mirror mismatch in section {start}')
+
+          for text, label in ((source, 'source'), (docs, 'docs')):
+              if text.count('function restorePersistedUiProfileSelection(UI)') != 1:
+                  raise SystemExit(f'{label}: restore helper count mismatch')
+              if text.count('restorePersistedUiProfileSelection(UI);') != 1:
+                  raise SystemExit(f'{label}: restore wiring count mismatch')
+              if 'const savedUiProfile = (() => {' in text:
+                  raise SystemExit(f'{label}: legacy ad-hoc restore remains')
+              apply = section(text, '  function applyStartScreenContent(UI)', '  function ensureStartScreenHidden(UI)')
+              if apply.index('restorePersistedUiProfileSelection(UI);') > apply.index('const activeProfile = getActiveStartScreenProfile(UI);'):
+                  raise SystemExit(f'{label}: restore runs after active profile read')
+              ret = section(text, '  function returnToStartScreen(UI)', '  function toggleAccordion(UI')
+              forbidden = ['resetOnboardingSeen(', '.save =', 'S.progress =', 'S.chat =', 'S.battles =', 'S.events =']
+              hits = [item for item in forbidden if item in ret]
+              if hits:
+                  raise SystemExit(f'{label}: return flow mutates progress/save/gameplay: {hits}')
+          PY
+
+      - name: Run isolated behavior test
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          text = Path('AsyncScene/Web/ui/ui-boot.js').read_text(encoding='utf-8')
+
+          def extract_function(name):
+              start = text.index(f'  function {name}(')
+              brace = text.index('{', start)
+              depth = 0
+              quote = None
+              escape = False
+              for i in range(brace, len(text)):
+                  ch = text[i]
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif ch == '\\':
+                          escape = True
+                      elif ch == quote:
+                          quote = None
+                      continue
+                  if ch in ('"', "'", '`'):
+                      quote = ch
+                      continue
+                  if ch == '{':
+                      depth += 1
+                  elif ch == '}':
+                      depth -= 1
+                      if depth == 0:
+                          return text[start:i + 1]
+              raise RuntimeError(name)
+
+          restore_decl_start = text.index('  let persistedUiProfileRestoreAttempted = false;')
+          restore_decl_end = text.index('  function readBirthYearProfileValue()', restore_decl_start)
+          restore_code = text[restore_decl_start:restore_decl_end]
+          persist_code = extract_function('persistFirstUiProfileSelection')
+
+          script = f'''
+          const assert = require('assert');
+          let syncCalls = [];
+          let onboardingSeen = true;
+          function syncUiTextModeFromUiProfile(value) {{ syncCalls.push(value); return value; }}
+          function getOnboardingSeen() {{ return onboardingSeen; }}
+          function setOnboardingSeen(_UI, value) {{ onboardingSeen = value === true; return onboardingSeen; }}
+          {restore_code}
+          {persist_code}
+
+          const gameplay = {{ points: 77, rep: 12, chat: ['keep'], nested: {{ keep: true }} }};
+          const state = {{
+            save: {{ uiProfile: 'zoomer', campaign: 'keep' }},
+            flags: {{ started: true, keepFlag: 9 }},
+            progress: {{ chapter: 4 }},
+            gameplay,
+          }};
+          let restoreCalls = 0;
+          let writes = [];
+          global.window = {{ Game: {{
+            State: state,
+            __S: state,
+            Data: {{ setUiProfile(value) {{ this.UI_PROFILE = value; }} }},
+            StateAPI: {{
+              restorePersistedUiProfile() {{ restoreCalls += 1; return state.save.uiProfile; }},
+              normalizePersistedUiProfile(value) {{ return String(value).trim().toLowerCase(); }},
+              writePersistedUiProfile(value) {{ writes.push(value); state.save.uiProfile = value; return value; }},
+            }},
+          }} }};
+          const UI = {{ S: state }};
+          const beforeRestore = JSON.stringify({{ save: state.save, progress: state.progress, gameplay: state.gameplay }});
+          assert.strictEqual(restorePersistedUiProfileSelection(UI), 'zoomer');
+          assert.strictEqual(window.Game.Data.UI_PROFILE, 'zoomer');
+          assert.strictEqual(state.flags.uiProfile, 'zoomer');
+          assert.deepStrictEqual(syncCalls, ['zoomer']);
+          assert.strictEqual(JSON.stringify({{ save: state.save, progress: state.progress, gameplay: state.gameplay }}), beforeRestore);
+          assert.strictEqual(restorePersistedUiProfileSelection(UI), null);
+          assert.strictEqual(restoreCalls, 1);
+
+          const beforeChange = JSON.stringify({{ campaign: state.save.campaign, progress: state.progress, gameplay: state.gameplay }});
+          assert.strictEqual(persistFirstUiProfileSelection(UI, 'alpha'), true);
+          assert.deepStrictEqual(writes, ['alpha']);
+          assert.strictEqual(state.save.uiProfile, 'alpha');
+          assert.strictEqual(JSON.stringify({{ campaign: state.save.campaign, progress: state.progress, gameplay: state.gameplay }}), beforeChange);
+          assert.strictEqual(persistFirstUiProfileSelection(UI, 'alpha'), false);
+          assert.deepStrictEqual(writes, ['alpha']);
+
+          onboardingSeen = false;
+          state.save = {{ campaign: 'fresh-keep' }};
+          assert.strictEqual(persistFirstUiProfileSelection(UI, 'millennial'), true);
+          assert.strictEqual(onboardingSeen, true);
+          assert.strictEqual(state.save.campaign, 'fresh-keep');
+          assert.strictEqual(state.save.uiProfile, 'millennial');
+          assert.strictEqual(persistFirstUiProfileSelection(UI, 'default'), false);
+          assert.deepStrictEqual(writes, ['alpha', 'millennial']);
+          console.log('S6-010A3 isolated behavior PASS');
+          '''
+          Path('/tmp/s6-010a3-test.js').write_text(script, encoding='utf-8')
+          PY
+          node /tmp/s6-010a3-test.js
+
+      - name: Check exact scope
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          expected = {'AsyncScene/Web/ui/ui-boot.js', 'docs/ui/ui-boot.js'}
+          actual = set(filter(None, subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()))
+          if actual != expected:
+              raise SystemExit(f'exact scope failed: {sorted(actual)}')
+          PY
+          git diff --check
+
+      - name: Commit target files
+        shell: bash
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add AsyncScene/Web/ui/ui-boot.js docs/ui/ui-boot.js
+          git commit -m "S6-010A3: restore and replace UI profile"
+          git push origin HEAD:refs/heads/chatgpt/s6-010a3-restore-change-later-20260706
