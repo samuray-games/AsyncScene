@@ -538,6 +538,7 @@ window.Game = window.Game || {};
     } else if (Data && typeof Data === "object") {
       Data.UI_PROFILE = uiProfile;
     }
+    syncUiTextModeFromUiProfile(uiProfile);
     if (UI && UI.S) {
       UI.S.flags = UI.S.flags || {};
       UI.S.flags.uiProfile = uiProfile;
