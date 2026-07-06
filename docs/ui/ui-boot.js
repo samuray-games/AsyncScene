@@ -338,6 +338,36 @@ window.Game = window.Game || {};
     return mode;
   }
 
+  let persistedUiProfileRestoreAttempted = false;
+
+  function restorePersistedUiProfileSelection(UI) {
+    if (persistedUiProfileRestoreAttempted) return null;
+    const G = window.Game || {};
+    const StateAPI = G.__A || G.StateAPI || null;
+    if (!StateAPI || typeof StateAPI.restorePersistedUiProfile !== "function") return null;
+    persistedUiProfileRestoreAttempted = true;
+    const restored = StateAPI.restorePersistedUiProfile();
+    if (restored == null) return null;
+    const Data = G.Data || null;
+    const uiProfile = typeof StateAPI.normalizePersistedUiProfile === "function"
+      ? StateAPI.normalizePersistedUiProfile(restored)
+      : String(restored || "").trim().toLowerCase();
+    if (!uiProfile) return null;
+    if (Data && typeof Data.setUiProfile === "function") {
+      Data.setUiProfile(uiProfile);
+    } else if (Data && typeof Data === "object") {
+      Data.UI_PROFILE = uiProfile;
+    }
+    syncUiTextModeFromUiProfile(uiProfile);
+    const profileTargets = [UI && UI.S, G.__S, G.State];
+    profileTargets.forEach((state) => {
+      if (!state || typeof state !== "object") return;
+      state.flags = state.flags || {};
+      state.flags.uiProfile = uiProfile;
+    });
+    return uiProfile;
+  }
+
   function readBirthYearProfileValue() {
     const picker = document.getElementById("startBirthYearPicker");
     if (!picker || typeof picker.getAttribute !== "function") return "";
@@ -527,13 +557,20 @@ window.Game = window.Game || {};
   }
 
   function persistFirstUiProfileSelection(UI, uiProfile) {
-    if (uiProfile === "default" || getOnboardingSeen(UI)) return false;
+    if (uiProfile === "default") return false;
     const G = window.Game || {};
     const StateAPI = G.__A || G.StateAPI || null;
     if (!StateAPI || typeof StateAPI.writePersistedUiProfile !== "function") return false;
-    StateAPI.writePersistedUiProfile(uiProfile);
-    setOnboardingSeen(UI, true);
-    return true;
+    const state = G.State || G.__S || (UI && UI.S) || null;
+    const currentUiProfile = state && state.save && typeof state.save.uiProfile === "string"
+      ? (typeof StateAPI.normalizePersistedUiProfile === "function"
+        ? StateAPI.normalizePersistedUiProfile(state.save.uiProfile)
+        : String(state.save.uiProfile || "").trim().toLowerCase())
+      : null;
+    const changed = currentUiProfile !== uiProfile;
+    if (changed) StateAPI.writePersistedUiProfile(uiProfile);
+    if (!getOnboardingSeen(UI)) setOnboardingSeen(UI, true);
+    return changed;
   }
 
   function shouldShowFreshStartScreen(UI) {
@@ -584,6 +621,7 @@ window.Game = window.Game || {};
     const $ = UI.$;
     markUiBootVersion();
     const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    restorePersistedUiProfileSelection(UI);
     const activeProfile = getActiveStartScreenProfile(UI);
     const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
     const title = spec && typeof spec.title === "string" ? spec.title : "";
@@ -737,35 +775,6 @@ window.Game = window.Game || {};
         }
       });
       birthYearPicker.dataset.bound = "1";
-    }
-
-    const savedUiProfile = (() => {
-      const state = (UI && UI.S) || (window.Game && (window.Game.__S || window.Game.State)) || null;
-      const profile = state && state.save && typeof state.save.uiProfile === "string" ? state.save.uiProfile : "";
-      return String(profile || "").trim();
-    })();
-    if (savedUiProfile) {
-      const currentUiProfile = getActiveStartScreenProfile(UI);
-      if (!currentUiProfile || currentUiProfile === "default") {
-        if (D && typeof D.setUiProfile === "function") {
-          D.setUiProfile(savedUiProfile);
-        } else if (D && typeof D === "object") {
-          D.UI_PROFILE = savedUiProfile;
-        }
-        if (UI && UI.S) {
-          UI.S.flags = UI.S.flags || {};
-          UI.S.flags.uiProfile = savedUiProfile;
-        }
-        const G = window.Game || {};
-        if (G.__S && G.__S !== (UI && UI.S)) {
-          G.__S.flags = G.__S.flags || {};
-          G.__S.flags.uiProfile = savedUiProfile;
-        }
-        if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
-          G.State.flags = G.State.flags || {};
-          G.State.flags.uiProfile = savedUiProfile;
-        }
-      }
     }
 
     const resumeMode = getOnboardingSeen(UI);
