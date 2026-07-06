@@ -514,11 +514,6 @@ window.Game = window.Game || {};
       G.State.flags = G.State.flags || {};
       G.State.flags.uiProfile = uiProfile;
     }
-    const saveTargets = [UI && UI.S, G.__S, G.State];
-    saveTargets.forEach((state) => {
-      if (!state) return;
-      state.save = { uiProfile };
-    });
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = true;
     }
@@ -526,7 +521,11 @@ window.Game = window.Game || {};
   }
 
   function persistFirstUiProfileSelection(UI, uiProfile) {
-    if (uiProfile === "default") return false;
+    if (uiProfile === "default" || getOnboardingSeen(UI)) return false;
+    const G = window.Game || {};
+    const StateAPI = G.__A || G.StateAPI || null;
+    if (!StateAPI || typeof StateAPI.writePersistedUiProfile !== "function") return false;
+    StateAPI.writePersistedUiProfile(uiProfile);
     setOnboardingSeen(UI, true);
     return true;
   }
