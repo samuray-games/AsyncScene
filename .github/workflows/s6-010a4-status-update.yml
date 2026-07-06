@@ -1,0 +1,81 @@
+name: S6-010A4 status update
+
+on:
+  push:
+    branches:
+      - chatgpt/tmp-s6-010a4-status-runner-20260706
+
+permissions:
+  contents: write
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out accepted exact commit
+        uses: actions/checkout@v4
+        with:
+          ref: 15a4d952cc0a38c5260f3bf75eb040a0c72fba69
+          fetch-depth: 0
+
+      - name: Prepend final A4 status to repository journals
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          task_entry = '''## 2026-07-06 — S6-010A4 aggregate acceptance
+          - Status: `PASS`. The S6-010A1-A4 profile-persistence acceptance block is complete.
+          - Exact product commit accepted on iPhone Safari: `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+          - Static acceptance passed for A1-A3 lineage and task scope. Source/docs mirror parity passed after S6-010A3 Fix1 added the one missing deployed `syncUiTextModeFromUiProfile(uiProfile);` call to `docs/ui/ui-boot.js` without changing the source mirror or any other production file.
+          - Aggregate Safari result: `status:PASS`, `exactCommitLoaded:true`, `persistenceApiPresent:true`, `safeFallback:true`, `firstSelectionPersists:true`, `firstSelectionTextModeParity:true`, `reloadRestoresProfile:true`, `restoredTextModeParity:true`, `repeatSelectionReplacesProfile:true`, `onlyUiProfileChanged:true`, `changedProfileSurvivesReload:true`, `changedTextModeParity:true`, `noRawYearPersistence:true`, and `noConsoleErrors:true`.
+          - Runtime evidence: persisted `zoomer` restored after reload, later selection replaced it with `millennial`, and `millennial` survived the final reload. `failures`, `consoleErrors`, forbidden storage keys, and forbidden save keys were empty.
+          - Storage evidence contained only `AsyncScene_ui_profile_v1=millennial` and `AsyncScene_onboarding_seen_v1=1`; raw birth-year values were not persisted.
+          - Accepted implementation chain: A1 `ff3e2176d99471a16289483e2c2d59b7148bc55b`, A2 `b53a0b3c485b5ed94210ea225b1d8972d629a292`, A3 `3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785`, Fix1/A4 runtime target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+          - Branch: `chatgpt/s6-010a4-aggregate-acceptance-20260706`. Main remains unchanged and the acceptance chain remains unmerged.
+          - The first aggregate helper timeout was infrastructure-only and did not evaluate product behavior; corrected helper v2 produced the accepted PASS above.
+
+          '''
+
+          memory_entry = '''## 2026-07-06 — S6-010A4 aggregate acceptance PASS
+          - S6-010A4 is accepted `PASS`; the S6-010A1-A4 profile-persistence block is complete.
+          - iPhone Safari loaded exact commit `15a4d952cc0a38c5260f3bf75eb040a0c72fba69` for all three runtime loads.
+          - All aggregate checks passed: persistence API and safe fallback, first selection persistence and immediate TEXT_MODE parity, reload restoration and parity, later profile replacement, preservation of all non-profile state, final reload persistence, privacy/no raw year storage, and zero console errors.
+          - Observed profile sequence: fresh selection `zoomer` -> reload `zoomer` -> later selection `millennial` -> reload `millennial`.
+          - Source/docs mirror drift found during A4 was corrected by one deployed-only line in `docs/ui/ui-boot.js`; accepted Fix1 commit is the same exact runtime target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+          - Accepted chain: A1 `ff3e2176d99471a16289483e2c2d59b7148bc55b`, A2 `b53a0b3c485b5ed94210ea225b1d8972d629a292`, A3 `3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785`, Fix1/A4 target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+          - Aggregate branch: `chatgpt/s6-010a4-aggregate-acceptance-20260706`. Main remains `f0d2825dfc403ec40c8b93381d6858862a6ae1bd`; nothing was merged.
+          - The earlier helper timeout was an iframe test-harness race and did not constitute a product failure.
+
+          '''
+
+          for filename, entry, marker in (
+              ('TASKS.md', task_entry, '## 2026-07-06 — S6-010A4 aggregate acceptance'),
+              ('PROJECT_MEMORY.md', memory_entry, '## 2026-07-06 — S6-010A4 aggregate acceptance PASS'),
+          ):
+              path = Path(filename)
+              text = path.read_text(encoding='utf-8')
+              if marker in text:
+                  raise SystemExit(f'{filename}: status marker already exists')
+              path.write_text(entry + text, encoding='utf-8')
+          PY
+
+      - name: Validate documentation-only scope
+        shell: bash
+        run: |
+          git diff --check
+          test "$(git diff --name-only | sort | paste -sd, -)" = "PROJECT_MEMORY.md,TASKS.md"
+          grep -F 'Status: `PASS`' TASKS.md
+          grep -F 'S6-010A4 aggregate acceptance PASS' PROJECT_MEMORY.md
+          grep -F '15a4d952cc0a38c5260f3bf75eb040a0c72fba69' TASKS.md
+          grep -F '15a4d952cc0a38c5260f3bf75eb040a0c72fba69' PROJECT_MEMORY.md
+
+      - name: Commit final status to aggregate branch
+        shell: bash
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add TASKS.md PROJECT_MEMORY.md
+          git commit -m "S6-010A4: record aggregate acceptance PASS"
+          test "$(git rev-parse HEAD^)" = "15a4d952cc0a38c5260f3bf75eb040a0c72fba69"
+          git push origin HEAD:refs/heads/chatgpt/s6-010a4-aggregate-acceptance-20260706
