@@ -1,3 +1,14 @@
+## 2026-07-06 — S6-010A4 aggregate acceptance
+- Status: `PASS`. The S6-010A1-A4 profile-persistence acceptance block is complete.
+- Exact product commit accepted on iPhone Safari: `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+- Static acceptance passed for A1-A3 lineage and task scope. Source/docs mirror parity passed after S6-010A3 Fix1 added the one missing deployed `syncUiTextModeFromUiProfile(uiProfile);` call to `docs/ui/ui-boot.js` without changing the source mirror or any other production file.
+- Aggregate Safari result: `status:PASS`, `exactCommitLoaded:true`, `persistenceApiPresent:true`, `safeFallback:true`, `firstSelectionPersists:true`, `firstSelectionTextModeParity:true`, `reloadRestoresProfile:true`, `restoredTextModeParity:true`, `repeatSelectionReplacesProfile:true`, `onlyUiProfileChanged:true`, `changedProfileSurvivesReload:true`, `changedTextModeParity:true`, `noRawYearPersistence:true`, and `noConsoleErrors:true`.
+- Runtime evidence: persisted `zoomer` restored after reload, later selection replaced it with `millennial`, and `millennial` survived the final reload. `failures`, `consoleErrors`, forbidden storage keys, and forbidden save keys were empty.
+- Storage evidence contained only `AsyncScene_ui_profile_v1=millennial` and `AsyncScene_onboarding_seen_v1=1`; raw birth-year values were not persisted.
+- Accepted implementation chain: A1 `ff3e2176d99471a16289483e2c2d59b7148bc55b`, A2 `b53a0b3c485b5ed94210ea225b1d8972d629a292`, A3 `3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785`, Fix1/A4 runtime target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+- Branch: `chatgpt/s6-010a4-aggregate-acceptance-20260706`. Main remains unchanged and the acceptance chain remains unmerged.
+- The first aggregate helper timeout was infrastructure-only and did not evaluate product behavior; corrected helper v2 produced the accepted PASS above.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Corrected `tools/generate-boomer-step4-4-economy-conflict-audit.py` so `mapped_exact` is a real FAIL classification that contributes to `FAIL_CLASSIFICATIONS`, `failRowCount`, final audit status, and row/verdict consistency checks.

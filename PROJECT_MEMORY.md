@@ -1,3 +1,13 @@
+## 2026-07-06 — S6-010A4 aggregate acceptance PASS
+- S6-010A4 is accepted `PASS`; the S6-010A1-A4 profile-persistence block is complete.
+- iPhone Safari loaded exact commit `15a4d952cc0a38c5260f3bf75eb040a0c72fba69` for all three runtime loads.
+- All aggregate checks passed: persistence API and safe fallback, first selection persistence and immediate TEXT_MODE parity, reload restoration and parity, later profile replacement, preservation of all non-profile state, final reload persistence, privacy/no raw year storage, and zero console errors.
+- Observed profile sequence: fresh selection `zoomer` -> reload `zoomer` -> later selection `millennial` -> reload `millennial`.
+- Source/docs mirror drift found during A4 was corrected by one deployed-only line in `docs/ui/ui-boot.js`; accepted Fix1 commit is the same exact runtime target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+- Accepted chain: A1 `ff3e2176d99471a16289483e2c2d59b7148bc55b`, A2 `b53a0b3c485b5ed94210ea225b1d8972d629a292`, A3 `3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785`, Fix1/A4 target `15a4d952cc0a38c5260f3bf75eb040a0c72fba69`.
+- Aggregate branch: `chatgpt/s6-010a4-aggregate-acceptance-20260706`. Main remains `f0d2825dfc403ec40c8b93381d6858862a6ae1bd`; nothing was merged.
+- The earlier helper timeout was an iframe test-harness race and did not constitute a product failure.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; the current static audit verdict remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - The Step 4.4A generator now treats `mapped_exact` as an explicit FAIL class, so live FAIL rows and final status are derived from row verdicts instead of a partial classification subset.
