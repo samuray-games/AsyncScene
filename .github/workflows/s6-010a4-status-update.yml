@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt/tmp-s6-010a4-status-runner-20260706
+  pull_request:
+    branches:
+      - chatgpt/s6-010a4-aggregate-acceptance-20260706
 
 permissions:
   contents: write
