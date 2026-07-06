@@ -33,19 +33,23 @@ jobs:
           function_start = text.index(function_marker)
           next_function = text.index('  function persistFirstUiProfileSelection(UI, uiProfile) {', function_start)
           block = text[function_start:next_function]
-          old = '''    if (Data && typeof Data.setUiProfile === "function") {
-              Data.setUiProfile(uiProfile);
-            } else if (Data && typeof Data === "object") {
-              Data.UI_PROFILE = uiProfile;
-            }
-            if (UI && UI.S) {'''
-          new = '''    if (Data && typeof Data.setUiProfile === "function") {
-              Data.setUiProfile(uiProfile);
-            } else if (Data && typeof Data === "object") {
-              Data.UI_PROFILE = uiProfile;
-            }
-            syncUiTextModeFromUiProfile(uiProfile);
-            if (UI && UI.S) {'''
+          old = (
+              '    if (Data && typeof Data.setUiProfile === "function") {\n'
+              '      Data.setUiProfile(uiProfile);\n'
+              '    } else if (Data && typeof Data === "object") {\n'
+              '      Data.UI_PROFILE = uiProfile;\n'
+              '    }\n'
+              '    if (UI && UI.S) {'
+          )
+          new = (
+              '    if (Data && typeof Data.setUiProfile === "function") {\n'
+              '      Data.setUiProfile(uiProfile);\n'
+              '    } else if (Data && typeof Data === "object") {\n'
+              '      Data.UI_PROFILE = uiProfile;\n'
+              '    }\n'
+              '    syncUiTextModeFromUiProfile(uiProfile);\n'
+              '    if (UI && UI.S) {'
+          )
           if block.count(old) != 1:
               raise SystemExit(f'expected one exact target in applyUiProfileBeforeEnter, found {block.count(old)}')
           patched_block = block.replace(old, new, 1)
