@@ -1,0 +1,72 @@
+name: S6-010A3 Fix1 text mode parity
+
+on:
+  push:
+    branches:
+      - chatgpt/tmp-s6-010a3-fix1-runner-20260706
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact A3 parent
+        uses: actions/checkout@v4
+        with:
+          ref: 3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785
+          fetch-depth: 0
+
+      - name: Apply bounded deployed mirror fix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('docs/ui/ui-boot.js')
+          text = path.read_text(encoding='utf-8')
+          function_marker = '  function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {'
+          function_start = text.index(function_marker)
+          next_function = text.index('  function persistFirstUiProfileSelection(UI, uiProfile) {', function_start)
+          block = text[function_start:next_function]
+          old = '''    if (Data && typeof Data.setUiProfile === "function") {
+              Data.setUiProfile(uiProfile);
+            } else if (Data && typeof Data === "object") {
+              Data.UI_PROFILE = uiProfile;
+            }
+            if (UI && UI.S) {'''
+          new = '''    if (Data && typeof Data.setUiProfile === "function") {
+              Data.setUiProfile(uiProfile);
+            } else if (Data && typeof Data === "object") {
+              Data.UI_PROFILE = uiProfile;
+            }
+            syncUiTextModeFromUiProfile(uiProfile);
+            if (UI && UI.S) {'''
+          if block.count(old) != 1:
+              raise SystemExit(f'expected one exact target in applyUiProfileBeforeEnter, found {block.count(old)}')
+          patched_block = block.replace(old, new, 1)
+          patched = text[:function_start] + patched_block + text[next_function:]
+          if patched.count('syncUiTextModeFromUiProfile(uiProfile);') != text.count('syncUiTextModeFromUiProfile(uiProfile);') + 1:
+              raise SystemExit('unexpected syncUiTextModeFromUiProfile count')
+          path.write_text(patched, encoding='utf-8')
+          PY
+
+      - name: Validate exact scope and syntax
+        shell: bash
+        run: |
+          node --check docs/ui/ui-boot.js
+          git diff --check
+          test "$(git diff --name-only | wc -l | tr -d ' ')" = "1"
+          test "$(git diff --name-only)" = "docs/ui/ui-boot.js"
+          git diff --unified=6 -- docs/ui/ui-boot.js
+
+      - name: Create clean exact-parent commit
+        shell: bash
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add docs/ui/ui-boot.js
+          git commit -m "S6-010A3 Fix1: sync deployed UI text mode"
+          test "$(git rev-parse HEAD^)" = "3cbe0c77ee48a3c9e02e2ec55885aca8c05cb785"
+          git push origin HEAD:refs/heads/chatgpt/s6-010a3-fix1-text-mode-parity-20260706
