@@ -1,0 +1,54 @@
+name: Fix S6-010A3 resume mode v2
+on:
+  pull_request:
+    branches: [chatgpt/s6-010a3-helper-base-20260706]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.head_ref == 'chatgpt/s6-010a3-restore-change-later-20260706'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/s6-010a3-restore-change-later-20260706
+          fetch-depth: 0
+      - name: Fix and validate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('docs/ui/ui-boot.js')
+          s = p.read_text(encoding='utf-8')
+          marker = '    const startBtn = $("btnStart") || document.getElementById("btnStart");'
+          pos = s.index(marker, s.index('  function applyStartScreenContent(UI)'))
+          before = s[:pos]
+          if before.rstrip().endswith('const resumeMode = getOnboardingSeen(UI);'):
+              raise SystemExit('resumeMode already present')
+          s = s[:pos] + '    const resumeMode = getOnboardingSeen(UI);\n' + s[pos:]
+          p.write_text(s, encoding='utf-8')
+          PY
+          node --check AsyncScene/Web/ui/ui-boot.js
+          node --check docs/ui/ui-boot.js
+          git diff --check
+          python3 - <<'PY'
+          from pathlib import Path
+          for path in ('AsyncScene/Web/ui/ui-boot.js', 'docs/ui/ui-boot.js'):
+              s = Path(path).read_text(encoding='utf-8')
+              a = s.index('  function applyStartScreenContent(UI)')
+              b = s.index('  function ensureStartScreenHidden(UI)', a)
+              block = s[a:b]
+              assert block.count('const resumeMode = getOnboardingSeen(UI);') == 1, path
+              assert block.index('const resumeMode = getOnboardingSeen(UI);') < block.index('startBtn.textContent = resumeMode'), path
+              assert block.count('restorePersistedUiProfileSelection(UI);') == 1, path
+              assert block.index('restorePersistedUiProfileSelection(UI);') < block.index('const activeProfile = getActiveStartScreenProfile(UI);'), path
+              assert 'const savedUiProfile = (() => {' not in block, path
+          PY
+      - name: Commit
+        run: |
+          git config user.name ChatGPT
+          git config user.email chatgpt@users.noreply.github.com
+          git add docs/ui/ui-boot.js
+          git commit -m 'Fix S6-010A3 docs resume mode'
+          git push origin HEAD:refs/heads/chatgpt/s6-010a3-restore-change-later-20260706
