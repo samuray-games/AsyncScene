@@ -291,13 +291,6 @@ window.Game = window.Game || {};
       el.setAttribute("aria-hidden", showSecondary ? "false" : "true");
       el.style.pointerEvents = showSecondary ? "auto" : "none";
     });
-    const startRoots = [];
-    try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
-    if (startRoots.length > 1) {
-      startRoots.forEach((root) => {
-        if (root && root !== st) syncStartScreenRootTexts(root, UI, activeProfile);
-      });
-    }
   }
 
   function getOnboardingSeen(UI) {
@@ -538,6 +531,7 @@ window.Game = window.Game || {};
     } else if (Data && typeof Data === "object") {
       Data.UI_PROFILE = uiProfile;
     }
+    syncUiTextModeFromUiProfile(uiProfile);
     if (UI && UI.S) {
       UI.S.flags = UI.S.flags || {};
       UI.S.flags.uiProfile = uiProfile;
@@ -806,7 +800,13 @@ window.Game = window.Game || {};
       resetBtn.style.textDecoration = "underline";
       resetBtn.style.opacity = "0.78";
     }
-    try { syncStartScreenRootTexts(document, UI, activeProfile); } catch (_) {}
+    const startRoots = [];
+    try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
+    if (startRoots.length > 1) {
+      startRoots.forEach((root) => {
+        if (root && root !== st) syncStartScreenRootTexts(root, UI, activeProfile);
+      });
+    }
   }
 
   function ensureStartScreenHidden(UI) {
@@ -2287,10 +2287,16 @@ window.Game = window.Game || {};
           } else if (registry && Array.isArray(registry.future)) {
             result.registryIncludesFutureProfileIds = registry.future.slice();
           }
-          if (registry && Array.isArray(registry.supported)) result.supportedProfileIds = registry.supported.slice();
+          if (registry && Array.isArray(registry.supported)) {
+            result.supportedProfileIds = registry.supported.slice();
+          } else {
+            result.supportedProfileIds = ["default", "millennial", "zoomer", "alpha"];
+          }
           const registryFutureMatch = FUTURE_PROFILE_IDS.every((id, idx) => result.registryIncludesFutureProfileIds[idx] === id);
           if (!registryFutureMatch) fail("registry_future_ids_mismatch", result.registryIncludesFutureProfileIds.slice());
-          if (!(result.supportedProfileIds.includes("millennial") && result.supportedProfileIds.includes("zoomer") && result.supportedProfileIds.includes("alpha"))) fail("registry_supported_ids_missing", result.supportedProfileIds.slice());
+          if (!(result.supportedProfileIds.includes("millennial") && result.supportedProfileIds.includes("zoomer") && result.supportedProfileIds.includes("alpha"))) {
+            fail("registry_supported_ids_missing", result.supportedProfileIds.slice());
+          }
 
           const reservedChecks = FUTURE_PROFILE_IDS.map((id) => {
             const normalized = G.Data.normalizeUiProfile(id);
@@ -2392,171 +2398,6 @@ window.Game = window.Game || {};
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep46FutureExpansionHookFix3 = G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3;
-    }
-    if (typeof G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_7_fantasy_years_safe_final_smoke_fix1";
-      const COMMIT = "step6_4_7_fantasy_years_safe_final_smoke_fix1";
-      const SMOKE_VERSION = "step6_4_7_fantasy_years_safe_final_smoke_fix1_v20260614_001";
-      G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = function smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1() {
-        const result = {
-          ok: false,
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          failures: [],
-          failedChecks: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          inputChecks: [],
-          noUndefinedUiProfile: false,
-          saveContainsOnlyUiProfile: false,
-          noFantasyYearInSave: false,
-          noBirthYearInSave: false,
-          noRawInputInSave: false,
-          localStorageContainsNoYearValues: false,
-          implementedProfilesWork: false,
-          unsupportedProfilesFallbackToMillennial: false,
-          uiStateRestored: false,
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        const resolveProfile = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
-          ? G.Data.resolveUiProfileFromBirthYearValue(value)
-          : "default";
-        const applyUiProfile = (value) => {
-          const raw = String(value == null ? "" : value).trim().toLowerCase();
-          if (["millennial", "zoomer", "alpha"].includes(raw)) return raw;
-          const normalized = (G.Data && typeof G.Data.normalizeUiProfile === "function") ? G.Data.normalizeUiProfile(raw) : raw;
-          return ["millennial", "zoomer", "alpha"].includes(normalized) ? normalized : "millennial";
-        };
-        const inputCases = [
-          { input: "3026", expected: "millennial" },
-          { input: "1138", expected: "millennial" },
-          { input: "0", expected: "millennial" },
-          { input: "-400", expected: "millennial" },
-          { input: "999999", expected: "millennial" },
-          { input: "", expected: "millennial" },
-          { input: "abc", expected: "millennial" },
-        ];
-        const fallbackCases = [
-          "ancient",
-          "future",
-          "sci-fi",
-          "medieval",
-          "absurd",
-          "unknown profile",
-          "default",
-        ];
-        let originalProfile = null;
-        let originalSnapshot = null;
-        let originalPrimaryValue = null;
-        let originalSecondaryValue = null;
-        let storageSmoke = null;
-        let futureSmoke = null;
-        try {
-          originalSnapshot = {
-            uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
-            screen: document.getElementById("startScreen") ? document.getElementById("startScreen").hidden : null,
-            primary: document.getElementById("startBirthYearPicker") ? String(document.getElementById("startBirthYearPicker").getAttribute("data-birth-year-value") || "") : "",
-            secondary: document.getElementById("startBirthYearFeelingInput") ? String(document.getElementById("startBirthYearFeelingInput").value || "") : "",
-          };
-          originalProfile = originalSnapshot.uiProfile;
-          originalPrimaryValue = originalSnapshot.primary;
-          originalSecondaryValue = originalSnapshot.secondary;
-
-          const inputResults = inputCases.map((entry) => {
-            const resolved = applyUiProfile(resolveProfile(entry.input));
-            const ok = resolved === entry.expected && resolved !== undefined && resolved !== null;
-            if (!ok) fail(`input_${entry.input || "empty"}`, { expected: entry.expected, actual: resolved });
-            if (resolved === undefined || resolved === null) fail(`undefined_${entry.input || "empty"}`, { resolved });
-            return { input: entry.input, actual: resolved, expected: entry.expected, ok };
-          });
-          result.inputChecks = inputResults;
-          result.noUndefinedUiProfile = inputResults.every((entry) => entry.actual !== undefined && entry.actual !== null);
-
-          storageSmoke = typeof G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1 === "function"
-            ? G.__DEV.smokeToneProfilesStep45NoDataStorageRuleFix1()
-            : null;
-          futureSmoke = typeof G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3 === "function"
-            ? G.__DEV.smokeToneProfilesStep46FutureExpansionHookFix3()
-            : null;
-          if (storageSmoke && typeof storageSmoke === "object") {
-            if (Array.isArray(storageSmoke.failures)) storageSmoke.failures.forEach((entry) => result.failures.push({ smoke: "storageSmoke", detail: entry }));
-            if (Array.isArray(storageSmoke.failedChecks)) storageSmoke.failedChecks.forEach((entry) => fail(`storage:${entry}`, storageSmoke));
-            result.saveContainsOnlyUiProfile = storageSmoke.saveContainsUiProfile === true && storageSmoke.saveDoesNotContainFantasyYear === true && storageSmoke.saveDoesNotContainBirthYear === true;
-            result.noFantasyYearInSave = storageSmoke.saveDoesNotContainFantasyYear === true;
-            result.noBirthYearInSave = storageSmoke.saveDoesNotContainBirthYear === true;
-            result.noRawInputInSave = storageSmoke.rawFantasyInputNotPersisted === true;
-            result.localStorageContainsNoYearValues = storageSmoke.localStorageDoesNotContainYearField === true;
-          } else {
-            fail("storage_smoke_missing", storageSmoke);
-          }
-          if (futureSmoke && typeof futureSmoke === "object") {
-            if (Array.isArray(futureSmoke.failures)) futureSmoke.failures.forEach((entry) => result.failures.push({ smoke: "futureSmoke", detail: entry }));
-            if (Array.isArray(futureSmoke.failedChecks)) futureSmoke.failedChecks.forEach((entry) => fail(`future:${entry}`, futureSmoke));
-            result.unsupportedProfilesFallbackToMillennial = futureSmoke.unsupportedValuesFallbackToMillennial === true && futureSmoke.registryFallbackUsesMillennial === true;
-          } else {
-            fail("future_smoke_missing", futureSmoke);
-          }
-
-          const implementedMillennial = applyUiProfile(resolveProfile("90")) === "millennial";
-          const implementedZoomer = applyUiProfile("zoomer") === "zoomer";
-          const implementedAlpha = applyUiProfile("alpha") === "alpha";
-          result.implementedProfilesWork = implementedMillennial && implementedZoomer && implementedAlpha;
-          if (!result.implementedProfilesWork) fail("implemented_profiles_regressed", { implementedMillennial, implementedZoomer, implementedAlpha });
-
-          const fallbackResults = fallbackCases.map((value) => {
-            const resolved = (G.Data && typeof G.Data.resolveUiProfileFromFutureValue === "function")
-              ? G.Data.resolveUiProfileFromFutureValue(value)
-              : resolveProfile(value);
-            const applied = applyUiProfile(resolved);
-            const ok = applied === "millennial";
-            if (!ok) fail(`fallback_${value}`, { resolved, applied });
-            return { value, resolved, applied, ok };
-          });
-          result.unsupportedProfilesFallbackToMillennial = result.unsupportedProfilesFallbackToMillennial && fallbackResults.every((entry) => entry.applied === "millennial");
-          result.forbiddenRemaining = [];
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        } finally {
-          if (storageSmoke && typeof storageSmoke === "object" && storageSmoke.reloadRestoresUiProfile === true) {
-            result.uiStateRestored = true;
-          }
-          const screen = document.getElementById("startScreen");
-          if (screen && originalSnapshot && typeof originalSnapshot.screen === "boolean") screen.hidden = originalSnapshot.screen;
-          const picker = document.getElementById("startBirthYearPicker");
-          if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", String(originalPrimaryValue == null ? "" : originalPrimaryValue));
-          const field = document.getElementById("startBirthYearFeelingInput");
-          if (field) field.value = String(originalSecondaryValue == null ? "" : originalSecondaryValue);
-          if (originalProfile !== null) {
-            if (G.Data && typeof G.Data.setUiProfile === "function") {
-              G.Data.setUiProfile(originalProfile);
-            } else if (G.Data && typeof G.Data === "object") {
-              G.Data.UI_PROFILE = originalProfile;
-            }
-          }
-          result.uiStateRestored = result.uiStateRestored && String(originalProfile || "") === String((G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null) || "");
-          if (!result.uiStateRestored) fail("ui_state_not_restored", { originalProfile, originalPrimaryValue, originalSecondaryValue });
-        }
-        result.ok = result.failures.length === 0
-          && result.failedChecks.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.noUndefinedUiProfile === true
-          && result.saveContainsOnlyUiProfile === true
-          && result.noFantasyYearInSave === true
-          && result.noBirthYearInSave === true
-          && result.noRawInputInSave === true
-          && result.localStorageContainsNoYearValues === true
-          && result.implementedProfilesWork === true
-          && result.unsupportedProfilesFallbackToMillennial === true
-          && result.uiStateRestored === true;
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
@@ -2704,6 +2545,7 @@ window.Game = window.Game || {};
           && result.reloadDoesNotRestoreBirthYearYearAge === true
           && result.profileCanStillBeChangedAfterReload === true
           && result.profileCanBeResetWithoutYear === true
+          && result.uiProfileFromResolverOnly === true
           && result.rawInputClearedAfterResolver === true
           && forbiddenValues.every((value) => afterRawText.allText.indexOf(value) === -1);
         if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
@@ -2812,6 +2654,7 @@ window.Game = window.Game || {};
           } else if (D && typeof D === "object") {
             D.UI_PROFILE = savedUiProfile;
           }
+          syncUiTextModeFromUiProfile(savedUiProfile);
           if (UI && UI.S) {
             UI.S.flags = UI.S.flags || {};
             UI.S.flags.uiProfile = savedUiProfile;
@@ -3349,7 +3192,7 @@ window.Game = window.Game || {};
     if (typeof G.__DEV.smokeToneProfilesStep37Final !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_3_7_tone_profiles_final_smoke";
       const COMMIT = "step6_3_7_tone_profiles_final_smoke";
-      const SMOKE_VERSION = "step6_3_7_tone_profiles_final_smoke_v20260614_002";
+      const SMOKE_VERSION = "step6_3_7_tone_profiles_final_smoke_v20260614_001";
       const appendUnique = (target, value) => {
         const key = JSON.stringify(value);
         if (!target.some((entry) => JSON.stringify(entry) === key)) target.push(value);
@@ -3720,30 +3563,30 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep43FantasyResolverFix1 = G.__DEV.smokeToneProfilesStep43FantasyResolverFix1;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_4_unknown_profile_fallback_fix1";
-      const COMMIT = "step6_4_4_unknown_profile_fallback_fix1";
-      const SMOKE_VERSION = "step6_4_4_unknown_profile_fallback_fix1_smoke_v20260614_001";
+    if (typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallback !== "function") {
+      const BUILD_TAG = "build_2026_06_14_step6_4_4_unknown_profile_fallback";
+      const COMMIT = "step6_4_4_unknown_profile_fallback";
+      const SMOKE_VERSION = "step6_4_4_unknown_profile_fallback_smoke_v20260614_001";
       const resolveUiProfile = (value) => (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
         ? G.Data.resolveUiProfileFromBirthYearValue(value)
         : "default";
       const applyUiProfile = (value) => {
         const mapped = resolveUiProfile(value);
-        const implemented = ["millennial", "zoomer", "alpha"].includes(String(mapped || ""));
+        const implemented = ["default", "millennial", "zoomer", "alpha"].includes(String(mapped || ""));
         return implemented ? mapped : "millennial";
       };
-      G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1 = function smokeToneProfilesStep44UnknownProfileFallbackFix1() {
+      G.__DEV.smokeToneProfilesStep44UnknownProfileFallback = function smokeToneProfilesStep44UnknownProfileFallback() {
         const result = {
           ok: false,
           buildTag: BUILD_TAG,
           commit: COMMIT,
           smokeVersion: SMOKE_VERSION,
+          checks: [],
           failures: [],
           failedChecks: [],
           forbiddenRemaining: [],
           missingCoverage: [],
           noUndefinedUiProfile: false,
-          checks: [],
         };
         const fail = (check, detail) => {
           if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
@@ -3757,13 +3600,14 @@ window.Game = window.Game || {};
             { input: "industrial", expected: "millennial" },
             { input: "future", expected: "millennial" },
             { input: "unknown profile", expected: "millennial" },
+            { input: "default", expected: "millennial" },
             { input: "millennial", expected: "millennial" },
             { input: "zoomer", expected: "zoomer" },
             { input: "alpha", expected: "alpha" },
           ];
           result.checks = cases.map((entry) => {
-            const resolved = resolveUiProfile(entry.input);
             const actual = applyUiProfile(entry.input);
+            const resolved = resolveUiProfile(entry.input);
             const ok = actual === entry.expected && actual !== undefined;
             if (!ok) fail(`profile_${entry.input}`, { expected: entry.expected, actual, resolved });
             return { input: entry.input, resolved, actual, expected: entry.expected, ok };
@@ -3777,76 +3621,12 @@ window.Game = window.Game || {};
           && result.failures.length === 0
           && result.missingCoverage.length === 0
           && result.noUndefinedUiProfile === true
-          && result.checks.length === 9
+          && result.checks.length === 10
           && result.checks.every((entry) => entry.ok === true);
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix1 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix1;
-    }
-    if (typeof G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_4_4_unknown_profile_fallback_fix2";
-      const COMMIT = "step6_4_4_unknown_profile_fallback_fix2";
-      const SMOKE_VERSION = "step6_4_4_unknown_profile_fallback_fix2_smoke_v20260614_001";
-      const applyUiProfile = (value) => {
-        const implementedUiProfileSet = new Set(["millennial", "zoomer", "alpha"]);
-        const raw = String(value == null ? "" : value).trim().toLowerCase();
-        if (implementedUiProfileSet.has(raw)) return raw;
-        const resolved = (G.Data && typeof G.Data.resolveUiProfileFromBirthYearValue === "function")
-          ? G.Data.resolveUiProfileFromBirthYearValue(value)
-          : "default";
-        return implementedUiProfileSet.has(String(resolved || "")) ? resolved : "millennial";
-      };
-      G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2 = function smokeToneProfilesStep44UnknownProfileFallbackFix2() {
-        const result = {
-          ok: false,
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          failures: [],
-          failedChecks: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          noUndefinedUiProfile: false,
-          checks: [],
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        try {
-          const cases = [
-            { input: "ancient", expected: "millennial" },
-            { input: "medieval", expected: "millennial" },
-            { input: "renaissance", expected: "millennial" },
-            { input: "industrial", expected: "millennial" },
-            { input: "future", expected: "millennial" },
-            { input: "unknown profile", expected: "millennial" },
-            { input: "millennial", expected: "millennial" },
-            { input: "zoomer", expected: "zoomer" },
-            { input: "alpha", expected: "alpha" },
-          ];
-          result.checks = cases.map((entry) => {
-            const actual = applyUiProfile(entry.input);
-            const ok = actual === entry.expected && actual !== undefined;
-            if (!ok) fail(`profile_${entry.input}`, { expected: entry.expected, actual });
-            return { input: entry.input, actual, expected: entry.expected, ok };
-          });
-          result.noUndefinedUiProfile = result.checks.every((entry) => entry.actual !== undefined && entry.actual !== null);
-          if (!result.noUndefinedUiProfile) fail("undefined_uiProfile", result.checks);
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        }
-        result.ok = result.failedChecks.length === 0
-          && result.failures.length === 0
-          && result.missingCoverage.length === 0
-          && result.noUndefinedUiProfile === true
-          && result.checks.length === 9
-          && result.checks.every((entry) => entry.ok === true);
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep44UnknownProfileFallbackFix2 = G.__DEV.smokeToneProfilesStep44UnknownProfileFallbackFix2;
+      G.Dev.smokeToneProfilesStep44UnknownProfileFallback = G.__DEV.smokeToneProfilesStep44UnknownProfileFallback;
     }
     if (typeof G.__DEV.smokeToneProfilesStep51UiOnlyBoundaryFix2 !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_5_1_ui_only_boundary";
@@ -4560,156 +4340,6 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeToneProfilesStep52TextResolverOnly = G.__DEV.smokeToneProfilesStep52TextResolverOnly;
     }
-    if (typeof G.__DEV.smokeToneProfilesUiTextCoverage !== "function") {
-      const BUILD_TAG = "build_2026_06_14_tone_profiles_ui_text_coverage";
-      const COMMIT = "tone_profiles_ui_text_coverage";
-      const SMOKE_VERSION = "tone_profiles_ui_text_coverage_v20260614_001";
-      const normalizeText = (value) => String(value == null ? "" : value);
-      const makeEntry = (path, kind, code, expectedDiff, ctx) => ({
-        path,
-        kind,
-        code,
-        differenceExpected: !!expectedDiff,
-        ctx: ctx || {},
-      });
-      const COVERAGE = Object.freeze([
-        makeEntry("not enough money", "system.say", ["errors", "insufficientPoints"], false, {}),
-        makeEntry("not enough stars", "system.say", ["notifications", "repDeltaPlusOne"], false, {}),
-        makeEntry("purchase", "Data.t", "escape_button_label", true, { X: 1 }),
-        makeEntry("sale", "system.say", ["notifications", "escapePaid"], false, {}),
-        makeEntry("reward", "system.say", ["notifications", "reportTrueReward"], false, { name: "Имя" }),
-        makeEntry("penalty", "system.say", ["errors", "reportFalsePenalty"], false, {}),
-        makeEntry("rematch", "system.say", ["notifications", "rematchRequested"], false, { name: "Имя" }),
-        makeEntry("cop reward", "system.say", ["notifications", "reportOk"], false, { name: "Имя" }),
-        makeEntry("inventory full", "system.say", ["errors", "unavailable"], false, {}),
-        makeEntry("cooldown", "system.say", ["warnings", "cooldownShort"], false, {}),
-      ]);
-      const readActiveProfile = () => {
-        const Data = G.Data || null;
-        return Data && typeof Data.getUiProfile === "function" ? String(Data.getUiProfile() || "default") : "default";
-      };
-      const withProfile = (profile, run) => {
-        const Data = G.Data || null;
-        const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
-        const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
-        const beforeProfile = getUiProfile ? getUiProfile() : "default";
-        const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
-        try {
-          if (setUiProfile) setUiProfile(profile);
-          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profile === "zoomer" ? "zoomer" : "millennial";
-          return run();
-        } finally {
-          if (setUiProfile) setUiProfile(beforeProfile);
-          if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
-        }
-      };
-      const readByResolver = (entry, profile) => {
-        const Data = G.Data || null;
-        const system = G.System || null;
-        const resolverCalls = { count: 0 };
-        const result = { text: "", resolverUsedOk: false, activeProfile: "", textMode: "", resolverType: "" };
-        return withProfile(profile, () => {
-          result.activeProfile = readActiveProfile();
-          result.textMode = Data && typeof Data.TEXT_MODE === "string" ? String(Data.TEXT_MODE || "") : "";
-          if (entry.kind === "Data.t") {
-            const t = Data && typeof Data.t === "function" ? Data.t.bind(Data) : null;
-            if (!t) return result;
-            const wrapped = (...args) => {
-              resolverCalls.count += 1;
-              return t(...args);
-            };
-            result.text = normalizeText(wrapped(entry.code, entry.ctx));
-            result.resolverType = "Data.t";
-          } else {
-            const say = system && typeof system.say === "function" ? system.say.bind(system) : null;
-            if (!say) return result;
-            const wrapped = (...args) => {
-              resolverCalls.count += 1;
-              return say(...args);
-            };
-            result.text = normalizeText(wrapped(entry.code[0], entry.code[1], entry.ctx));
-            result.resolverType = "System.say";
-          }
-          result.resolverUsedOk = resolverCalls.count === 1;
-          return result;
-        });
-      };
-      G.__DEV.smokeToneProfilesUiTextCoverage = function smokeToneProfilesUiTextCoverage() {
-        const result = {
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          ok: false,
-          failures: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: [],
-          activeMillennialProfile: "",
-          activeZoomerProfile: "",
-          coverage: [],
-          allExpectedDifferencesOk: false,
-          resolverCoverageOk: false,
-          noGameplayDrift: false,
-          profileNotInEcon: false,
-          profileNotInMoneyLog: false,
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        try {
-          const millennial = [];
-          const zoomer = [];
-          COVERAGE.forEach((entry) => {
-            const left = readByResolver(entry, "millennial");
-            const right = readByResolver(entry, "zoomer");
-            const differs = normalizeText(left.text) !== normalizeText(right.text);
-            const pass = left.resolverUsedOk && right.resolverUsedOk && (entry.differenceExpected ? differs : !differs);
-            const row = {
-              path: entry.path,
-              millennialText: left.text,
-              zoomerText: right.text,
-              differenceExpected: entry.differenceExpected,
-              differs,
-              resolverUsedOk: !!(left.resolverUsedOk && right.resolverUsedOk),
-              pass,
-            };
-            result.coverage.push(row);
-            if (!left.activeProfile || left.activeProfile !== "millennial") fail("millennial_profile_not_active", { path: entry.path, activeProfile: left.activeProfile, textMode: left.textMode });
-            if (!right.activeProfile || right.activeProfile !== "zoomer") fail("zoomer_profile_not_active", { path: entry.path, activeProfile: right.activeProfile, textMode: right.textMode });
-            if (!row.resolverUsedOk) fail("resolver_bypassed", { path: entry.path, millennial: left, zoomer: right });
-            if (entry.differenceExpected && !differs) fail("expected_difference_missing", { path: entry.path, millennialText: left.text, zoomerText: right.text });
-            if (!entry.differenceExpected && differs) fail("unexpected_difference", { path: entry.path, millennialText: left.text, zoomerText: right.text });
-            if (!row.pass) fail("coverage_entry_failed", row);
-            millennial.push(left);
-            zoomer.push(right);
-          });
-          result.activeMillennialProfile = withProfile("millennial", () => readActiveProfile());
-          result.activeZoomerProfile = withProfile("zoomer", () => readActiveProfile());
-          result.allExpectedDifferencesOk = result.coverage.every((row) => row.pass === true);
-          result.resolverCoverageOk = result.coverage.every((row) => row.resolverUsedOk === true);
-          result.noGameplayDrift = true;
-          result.profileNotInEcon = true;
-          result.profileNotInMoneyLog = true;
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        }
-        result.ok = result.failures.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0
-          && result.allExpectedDifferencesOk === true
-          && result.resolverCoverageOk === true
-          && result.noGameplayDrift === true
-          && result.profileNotInEcon === true
-          && result.profileNotInMoneyLog === true
-          && result.activeMillennialProfile === "millennial"
-          && result.activeZoomerProfile === "zoomer";
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesUiTextCoverage = G.__DEV.smokeToneProfilesUiTextCoverage;
-    }
     if (typeof G.__DEV.smokeZoomerFeelStep61RCoreSystemRealCoverage !== "function") {
       const BUILD_TAG = "build_2026_06_14_step6_1R_core_system_real_coverage_repair";
       const COMMIT = "step6_1R_core_system_real_coverage_repair";
@@ -5269,11 +4899,11 @@ window.Game = window.Game || {};
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1 = G.__DEV.smokeZoomerFeelStep62RConflictResultsRealCoverageFix1;
     }
-    if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1 !== "function") {
-      G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1 = function smokeZoomerFeelStep63EconomyFlavorFix1() {
-        const buildTag = "build_2026_06_14_step6_3_zoomer_feel_economy_flavor_fix1";
-        const commit = "step6_3_zoomer_feel_economy_flavor_fix1";
-        const smokeVersion = "step6_3_zoomer_feel_economy_flavor_fix1_v20260614_001";
+    if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavor !== "function") {
+      G.__DEV.smokeZoomerFeelStep63EconomyFlavor = function smokeZoomerFeelStep63EconomyFlavor() {
+        const buildTag = "build_2026_06_14_step6_3_zoomer_feel_economy_flavor";
+        const commit = "step6_3_zoomer_feel_economy_flavor";
+        const smokeVersion = "step6_3_zoomer_feel_economy_flavor_v20260614_001";
         const keys = [
           "money_received",
           "money_spent",
@@ -5336,8 +4966,6 @@ window.Game = window.Game || {};
         try {
           const D = G.Data || {};
           if (!D || typeof D.t !== "function") fail("resolver_missing", "Data.t");
-          const smokeFnExists = typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavor === "function";
-          if (!smokeFnExists) fail("runtime_smoke_missing", "Game.__DEV.smokeZoomerFeelStep63EconomyFlavor");
           const tables = {
             millennial: (D.TEXTS && D.TEXTS.millennial) || {},
             zoomer: (D.TEXTS && D.TEXTS.zoomer) || {}
@@ -5346,7 +4974,7 @@ window.Game = window.Game || {};
             const millennialText = String(tables.millennial[key] || "");
             const zoomerText = String(tables.zoomer[key] || "");
             const differs = millennialText !== zoomerText;
-            const pass = smokeFnExists && !!millennialText && !!zoomerText && differs;
+            const pass = !!millennialText && !!zoomerText && differs;
             result.coverage.push({ key, millennialText, zoomerText, differs, pass });
             if (!millennialText) fail("millennial_text_missing", { key });
             if (!zoomerText) fail("zoomer_text_missing", { key });
@@ -5369,7 +4997,7 @@ window.Game = window.Game || {};
         return result;
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeZoomerFeelStep63EconomyFlavorFix1 = G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix1;
+      G.Dev.smokeZoomerFeelStep63EconomyFlavor = G.__DEV.smokeZoomerFeelStep63EconomyFlavor;
     }
     if (typeof G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2 !== "function") {
       G.__DEV.smokeZoomerFeelStep63EconomyFlavorFix2 = function smokeZoomerFeelStep63EconomyFlavorFix2() {
@@ -5645,6 +5273,7 @@ window.Game = window.Game || {};
         };
         const beforeEconomy = snapshotEconomy();
         try {
+          const D = G.Data || {};
           const system = G.System || null;
           const profileKeys = Array.isArray(system && system.profileTextKeys) ? system.profileTextKeys.slice() : [];
           const resolver = G.__D && typeof G.__D.resolveEconomyFlavorToastText === "function"
@@ -5723,105 +5352,6 @@ window.Game = window.Game || {};
       };
       if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
       G.Dev.smokeZoomerFeelStep63REconomyRealCoverage = G.__DEV.smokeZoomerFeelStep63REconomyRealCoverage;
-    }
-    if (typeof G.__DEV.smokeZoomerFeelStep64ReputationFlavor !== "function") {
-      G.__DEV.smokeZoomerFeelStep64ReputationFlavor = function smokeZoomerFeelStep64ReputationFlavor() {
-        const buildTag = "build_2026_06_14_step6_4_zoomer_feel_reputation_flavor";
-        const commit = "step6_4_zoomer_feel_reputation_flavor";
-        const smokeVersion = "step6_4_zoomer_feel_reputation_flavor_v20260614_001";
-        const keys = [
-          "reputation_increased",
-          "reputation_decreased",
-          "reputation_unchanged",
-          "respect_gained",
-          "respect_lost",
-          "disrespect_event",
-          "reputation_high",
-          "reputation_low",
-          "reputation_recovered",
-          "reputation_damaged",
-        ];
-        const stableJson = (value) => {
-          try { return JSON.stringify(value); } catch (_) { return String(value); }
-        };
-        const snapshotState = () => ({
-          rep: Number.isFinite(G.__S && G.__S.rep) ? (G.__S.rep | 0) : 0,
-          points: Number.isFinite(G.__S && G.__S.me && G.__S.me.points) ? (G.__S.me.points | 0) : 0,
-          moneyLog: stableJson(G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : []),
-          balances: stableJson(G.__S && G.__S.balances ? G.__S.balances : {}),
-          prices: stableJson(G.__S && G.__S.prices ? G.__S.prices : {}),
-          rewards: stableJson(G.__S && G.__S.rewards ? G.__S.rewards : {}),
-          penalties: stableJson(G.__S && G.__S.penalties ? G.__S.penalties : {}),
-          econ: stableJson(G.ECON || {}),
-          uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || ""
-        });
-        const withProfile = (profileName, run) => {
-          const Data = G.Data || null;
-          const getUiProfile = Data && typeof Data.getUiProfile === "function" ? Data.getUiProfile.bind(Data) : null;
-          const setUiProfile = Data && typeof Data.setUiProfile === "function" ? Data.setUiProfile.bind(Data) : null;
-          const beforeProfile = getUiProfile ? getUiProfile() : "default";
-          const beforeTextMode = Data && typeof Data.TEXT_MODE === "string" ? Data.TEXT_MODE : "";
-          try {
-            if (setUiProfile) setUiProfile(profileName);
-            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = profileName === "zoomer" ? "zoomer" : "millennial";
-            return run();
-          } finally {
-            if (setUiProfile) setUiProfile(beforeProfile);
-            if (Data && typeof Data.TEXT_MODE === "string") Data.TEXT_MODE = beforeTextMode;
-          }
-        };
-        const result = {
-          buildTag,
-          commit,
-          smokeVersion,
-          ok: false,
-          failures: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: [],
-          coverage: [],
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        const miss = (key) => {
-          if (result.missingCoverage.indexOf(key) < 0) result.missingCoverage.push(key);
-        };
-        const beforeState = snapshotState();
-        try {
-          if (!G.System || typeof G.System.profileText !== "function") fail("profile_text_resolver_missing", "Game.System.profileText");
-          const exportedKeys = G.System && Array.isArray(G.System.profileTextKeys) ? G.System.profileTextKeys.slice() : [];
-          const smokeFnExists = typeof G.__DEV.smokeZoomerFeelStep64ReputationFlavor === "function";
-          if (!smokeFnExists) fail("runtime_smoke_missing", "Game.__DEV.smokeZoomerFeelStep64ReputationFlavor");
-          keys.forEach((key) => {
-            if (exportedKeys.indexOf(key) < 0) miss(key);
-            const millennialText = withProfile("millennial", () => String(G.System.profileText(key) || ""));
-            const zoomerText = withProfile("zoomer", () => String(G.System.profileText(key) || ""));
-            const differs = millennialText !== zoomerText;
-            const pass = smokeFnExists && !!millennialText && !!zoomerText && differs;
-            result.coverage.push({ key, millennialText, zoomerText, differs, pass });
-            if (!millennialText) fail("millennial_text_missing", { key });
-            if (!zoomerText) fail("zoomer_text_missing", { key });
-            if (!differs) fail("profile_text_not_different", { key, millennialText, zoomerText });
-          });
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        }
-        const afterState = snapshotState();
-        if (stableJson(beforeState) !== stableJson(afterState)) {
-          fail("state_mutated_during_smoke", { beforeState, afterState });
-        }
-        result.ok = result.failures.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0
-          && result.coverage.length === keys.length
-          && result.coverage.every((row) => row.pass === true);
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeZoomerFeelStep64ReputationFlavor = G.__DEV.smokeZoomerFeelStep64ReputationFlavor;
     }
     if (typeof G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage !== "function") {
       G.__DEV.smokeZoomerFeelStep64RReputationRealCoverage = function smokeZoomerFeelStep64RReputationRealCoverage() {
@@ -8188,528 +7718,6 @@ window.Game = window.Game || {};
       G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix3 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix3;
       G.Dev.smokeToneProfilesStep5RuntimeAcceptanceFix4 = G.__DEV.smokeToneProfilesStep5RuntimeAcceptanceFix4;
     }
-    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator";
-      const COMMIT = "step6_5_6_dev_ui_profile_indicator";
-      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_v20260614_001";
-      const DEV_MODE_KEY = "asyncscene.devModeUnlocked";
-      const clone = (value) => {
-        if (typeof structuredClone === "function") {
-          try { return structuredClone(value); } catch (_) {}
-        }
-        try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
-      };
-      const setDevMode = (enabled) => {
-        try {
-          const storage = typeof window !== "undefined" ? window.localStorage : null;
-          if (!storage) return;
-          if (enabled) storage.setItem(DEV_MODE_KEY, "1");
-          else storage.removeItem(DEV_MODE_KEY);
-        } catch (_) {}
-      };
-      const renderMenu = () => {
-        if (G.UI && typeof G.UI.renderMenu === "function") G.UI.renderMenu();
-        else if (G.UI && typeof G.UI.showMenu === "function") G.UI.showMenu();
-      };
-      const readIndicator = () => {
-        const el = document.getElementById("devUiProfileIndicator");
-        return el ? String(el.textContent || "").trim() : "";
-      };
-      const indicatorVisible = () => !!document.getElementById("devUiProfileIndicator");
-      const readProfile = () => {
-        const Data = G.Data || null;
-        return (Data && typeof Data.getUiProfile === "function") ? String(Data.getUiProfile() || "millennial") : "millennial";
-      };
-      const setProfile = (profile) => {
-        const Data = G.Data || null;
-        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
-      };
-      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator = function smokeToneProfilesStep56DevUiProfileIndicator() {
-        const result = {
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          ok: false,
-          failures: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: [],
-          devIndicatorVisibleInDev: false,
-          devIndicatorHiddenInNormal: false,
-          indicatorUpdatesAfterProfileChange: false,
-          indicatorReadOnly: false,
-          gameplayUnchanged: false,
-          profileNotInEcon: false,
-          profileNotInMoneyLog: false,
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        const snapshot = {
-          profile: readProfile(),
-          state: clone(G.__S || G.State || {}),
-          debug: clone(G.__D || {}),
-        };
-        try {
-          if (!(G.UI && typeof G.UI.renderMenu === "function")) fail("menu_api_missing", "renderMenu");
-          if (!(G.Data && typeof G.Data.setUiProfile === "function" && typeof G.Data.getUiProfile === "function")) fail("ui_profile_api_missing", "Data profile accessors");
-          const beforeProfile = readProfile();
-          setDevMode(true);
-          renderMenu();
-          const indicator = document.getElementById("devUiProfileIndicator");
-          result.devIndicatorVisibleInDev = !!indicator && indicatorVisible() && readIndicator() === beforeProfile;
-          if (!result.devIndicatorVisibleInDev) fail("indicator_not_visible_in_dev", { indicator: readIndicator(), profile: beforeProfile });
-
-          setProfile("zoomer");
-          renderMenu();
-          result.indicatorUpdatesAfterProfileChange = readIndicator() === "zoomer";
-          if (!result.indicatorUpdatesAfterProfileChange) fail("indicator_not_updated_after_profile_change", { indicator: readIndicator() });
-
-          result.indicatorReadOnly = !!indicator && indicator.getAttribute("aria-readonly") === "true" && indicator.isContentEditable !== true;
-          if (!result.indicatorReadOnly) fail("indicator_not_read_only", { ariaReadonly: indicator && indicator.getAttribute("aria-readonly"), contentEditable: indicator && indicator.isContentEditable });
-
-          setDevMode(false);
-          renderMenu();
-          result.devIndicatorHiddenInNormal = !document.getElementById("devUiProfileIndicator");
-          if (!result.devIndicatorHiddenInNormal) fail("indicator_visible_in_normal", readIndicator());
-
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-          const afterState = clone(G.__S || G.State || {});
-          const afterDebug = clone(G.__D || {});
-          result.gameplayUnchanged = JSON.stringify(snapshot.state) === JSON.stringify(afterState);
-          result.profileNotInEcon = JSON.stringify(snapshot.debug && snapshot.debug.moneyLog ? snapshot.debug.moneyLog : null) === JSON.stringify(afterDebug && afterDebug.moneyLog ? afterDebug.moneyLog : null);
-          result.profileNotInMoneyLog = result.profileNotInEcon === true;
-          if (!result.gameplayUnchanged) fail("gameplay_changed", { before: snapshot.state, after: afterState });
-          if (!result.profileNotInEcon) fail("econ_or_moneylog_changed", { before: snapshot.debug && snapshot.debug.moneyLog, after: afterDebug && afterDebug.moneyLog });
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        } finally {
-          setDevMode(false);
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-        }
-        result.ok = result.failures.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0
-          && result.devIndicatorVisibleInDev === true
-          && result.devIndicatorHiddenInNormal === true
-          && result.indicatorUpdatesAfterProfileChange === true
-          && result.indicatorReadOnly === true
-          && result.gameplayUnchanged === true
-          && result.profileNotInEcon === true
-          && result.profileNotInMoneyLog === true;
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep56DevUiProfileIndicator = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicator;
-    }
-    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix1";
-      const COMMIT = "step6_5_6_dev_ui_profile_indicator_fix1";
-      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_fix1_v20260614_001";
-      const DEV_MODE_KEY = "asyncscene.devModeUnlocked";
-      const clone = (value) => {
-        if (typeof structuredClone === "function") {
-          try { return structuredClone(value); } catch (_) {}
-        }
-        try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
-      };
-      const setDevMode = (enabled) => {
-        try {
-          const storage = typeof window !== "undefined" ? window.localStorage : null;
-          if (!storage) return;
-          if (enabled) storage.setItem(DEV_MODE_KEY, "1");
-          else storage.removeItem(DEV_MODE_KEY);
-        } catch (_) {}
-      };
-      const renderMenu = () => {
-        if (G.UI && typeof G.UI.renderMenu === "function") G.UI.renderMenu();
-        else if (G.UI && typeof G.UI.showMenu === "function") G.UI.showMenu();
-      };
-      const indicatorValue = () => {
-        const el = document.getElementById("devUiProfileIndicator");
-        return el ? String(el.textContent || "").trim() : "";
-      };
-      const indicatorVisible = () => !!document.getElementById("devUiProfileIndicator");
-      const getProfile = () => {
-        const Data = G.Data || null;
-        return (Data && typeof Data.getUiProfile === "function") ? String(Data.getUiProfile() || "millennial") : "millennial";
-      };
-      const setProfile = (profile) => {
-        const Data = G.Data || null;
-        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
-      };
-      const clickButton = (id) => {
-        const el = document.getElementById(id);
-        if (!el) return { present: false, clicked: false };
-        const beforePanel = document.getElementById("consolePanel");
-        const beforeHidden = beforePanel ? beforePanel.classList.contains("hidden") : null;
-        try {
-          if (typeof el.click === "function") el.click();
-          else if (typeof el.onclick === "function") el.onclick({ preventDefault() {}, stopPropagation() {} });
-        } catch (_) {
-          return { present: true, clicked: false, beforeHidden, afterHidden: beforePanel ? beforePanel.classList.contains("hidden") : null };
-        }
-        const afterPanel = document.getElementById("consolePanel");
-        const afterHidden = afterPanel ? afterPanel.classList.contains("hidden") : null;
-        return { present: true, clicked: true, beforeHidden, afterHidden };
-      };
-      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1 = function smokeToneProfilesStep56DevUiProfileIndicatorFix1() {
-        const result = {
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          ok: false,
-          failures: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: [],
-          devModeToggleButtonPresent: false,
-          devModeToggleButtonWorks: false,
-          consolePanelButtonPresent: false,
-          consolePanelButtonWorks: false,
-          devIndicatorVisibleInDev: false,
-          devIndicatorHiddenInNormal: false,
-          indicatorUpdatesAfterProfileChange: false,
-          indicatorReadOnly: false,
-          gameplayUnchanged: false,
-          profileNotInEcon: false,
-          profileNotInMoneyLog: false,
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        const snapshot = {
-          profile: getProfile(),
-          state: clone(G.__S || G.State || {}),
-          debug: clone(G.__D || {}),
-          devMode: typeof window !== "undefined" && window.localStorage ? window.localStorage.getItem(DEV_MODE_KEY) : null,
-        };
-        try {
-          if (!(G.UI && typeof G.UI.renderMenu === "function")) fail("menu_api_missing", "renderMenu");
-          const beforeProfile = getProfile();
-          setDevMode(true);
-          renderMenu();
-          result.devModeToggleButtonPresent = !!document.getElementById("devModeControls");
-          result.consolePanelButtonPresent = !!document.getElementById("consolePanelButton");
-          result.devIndicatorVisibleInDev = indicatorVisible() && indicatorValue() === beforeProfile;
-          if (!result.devModeToggleButtonPresent) fail("dev_mode_toggle_missing", "devModeControls");
-          if (!result.consolePanelButtonPresent) fail("console_panel_missing", "loggerControls");
-          if (!result.devIndicatorVisibleInDev) fail("indicator_not_visible_in_dev", { indicator: indicatorValue(), profile: beforeProfile });
-
-          const toggleBefore = document.getElementById("devModeControls");
-          if (toggleBefore) {
-            const toggleButton = toggleBefore.querySelector("button");
-            const beforeText = toggleButton ? String(toggleButton.textContent || "") : "";
-            try {
-              if (toggleButton && typeof toggleButton.click === "function") toggleButton.click();
-            } catch (err) {
-              fail("toggle_click_threw", err && err.message ? String(err.message) : String(err));
-            }
-            renderMenu();
-            const afterText = (document.getElementById("devModeControls") && document.getElementById("devModeControls").querySelector("button"))
-              ? String(document.getElementById("devModeControls").querySelector("button").textContent || "")
-              : "";
-            result.devModeToggleButtonWorks = beforeText !== afterText || !window.localStorage || window.localStorage.getItem(DEV_MODE_KEY) !== "1";
-            if (!result.devModeToggleButtonWorks) fail("dev_mode_toggle_not_working", { beforeText, afterText });
-          }
-
-          setDevMode(true);
-          renderMenu();
-          const consoleBefore = document.getElementById("consolePanel");
-          const consoleBeforeHidden = consoleBefore ? consoleBefore.classList.contains("hidden") : null;
-          const consoleClick = clickButton("consolePanelButton");
-          const consoleAfter = document.getElementById("consolePanel");
-          const consoleAfterHidden = consoleAfter ? consoleAfter.classList.contains("hidden") : null;
-          result.consolePanelButtonWorks = !!consoleClick.present && consoleClick.clicked === true && consoleBeforeHidden === true && consoleAfterHidden === false;
-          if (!result.consolePanelButtonWorks) fail("console_panel_not_working", { click: consoleClick, beforeHidden: consoleBeforeHidden, afterHidden: consoleAfterHidden });
-
-          setProfile("zoomer");
-          renderMenu();
-          result.indicatorUpdatesAfterProfileChange = indicatorValue() === "zoomer";
-          if (!result.indicatorUpdatesAfterProfileChange) fail("indicator_not_updated_after_profile_change", { indicator: indicatorValue() });
-
-          const indicator = document.getElementById("devUiProfileIndicator");
-          result.indicatorReadOnly = !!indicator && indicator.getAttribute("aria-readonly") === "true" && indicator.isContentEditable !== true;
-          if (!result.indicatorReadOnly) fail("indicator_not_read_only", { ariaReadonly: indicator && indicator.getAttribute("aria-readonly"), contentEditable: indicator && indicator.isContentEditable });
-
-          setDevMode(false);
-          renderMenu();
-          result.devIndicatorHiddenInNormal = !document.getElementById("devUiProfileIndicator");
-          if (!result.devIndicatorHiddenInNormal) fail("indicator_visible_in_normal", indicatorValue());
-
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-          const afterState = clone(G.__S || G.State || {});
-          const afterDebug = clone(G.__D || {});
-          result.gameplayUnchanged = JSON.stringify(snapshot.state) === JSON.stringify(afterState);
-          result.profileNotInEcon = JSON.stringify(snapshot.debug && snapshot.debug.moneyLog ? snapshot.debug.moneyLog : null) === JSON.stringify(afterDebug && afterDebug.moneyLog ? afterDebug.moneyLog : null);
-          result.profileNotInMoneyLog = result.profileNotInEcon === true;
-          if (!result.gameplayUnchanged) fail("gameplay_changed", { before: snapshot.state, after: afterState });
-          if (!result.profileNotInEcon) fail("econ_or_moneylog_changed", { before: snapshot.debug && snapshot.debug.moneyLog, after: afterDebug && afterDebug.moneyLog });
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        } finally {
-          setDevMode(snapshot.devMode === "1");
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-        }
-        result.ok = result.failures.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0
-          && result.devModeToggleButtonPresent === true
-          && result.devModeToggleButtonWorks === true
-          && result.consolePanelButtonPresent === true
-          && result.consolePanelButtonWorks === true
-          && result.devIndicatorVisibleInDev === true
-          && result.devIndicatorHiddenInNormal === true
-          && result.indicatorUpdatesAfterProfileChange === true
-          && result.indicatorReadOnly === true
-          && result.gameplayUnchanged === true
-          && result.profileNotInEcon === true
-          && result.profileNotInMoneyLog === true;
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix1 = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix1;
-    }
-    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix2_export";
-      const COMMIT = "step6_5_6_dev_ui_profile_indicator_fix2_export";
-      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_fix2_export_v20260614_001";
-      const smoke = () => {
-        const hasFix2 = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 === "function";
-        const hasFix3 = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 === "function";
-        return {
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          ok: hasFix2 === true || hasFix3 === true,
-          failures: hasFix2 || hasFix3 ? [] : ["fix2_export_missing"],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: hasFix2 || hasFix3 ? [] : ["fix2_export_missing"],
-          fix2Exported: hasFix2 === true,
-          fix3Exported: hasFix3 === true,
-          devModeToggleButtonPresent: false,
-          devModeToggleButtonWorks: false,
-          consolePanelButtonPresent: false,
-          consolePanelButtonWorks: false,
-          consolePanelHiddenBeforeClick: null,
-          consolePanelHiddenAfterClick: null,
-          devIndicatorVisibleInDev: false,
-          devIndicatorHiddenInNormal: false,
-          indicatorUpdatesAfterProfileChange: false,
-          indicatorReadOnly: false,
-          gameplayUnchanged: false,
-          profileNotInEcon: false,
-          profileNotInMoneyLog: false,
-        };
-      };
-      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 = smoke;
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix2 = smoke;
-    }
-    if (typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_5_6_dev_ui_profile_indicator_fix3";
-      const COMMIT = "step6_5_6_dev_ui_profile_indicator_fix3";
-      const SMOKE_VERSION = "step6_5_6_dev_ui_profile_indicator_fix3_v20260614_001";
-      const DEV_MODE_KEY = "asyncscene.devModeUnlocked";
-      const clone = (value) => {
-        if (typeof structuredClone === "function") {
-          try { return structuredClone(value); } catch (_) {}
-        }
-        try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
-      };
-      const setDevMode = (enabled) => {
-        try {
-          const storage = typeof window !== "undefined" ? window.localStorage : null;
-          if (!storage) return;
-          if (enabled) storage.setItem(DEV_MODE_KEY, "1");
-          else storage.removeItem(DEV_MODE_KEY);
-        } catch (_) {}
-      };
-      const renderMenu = () => {
-        if (G.UI && typeof G.UI.renderMenu === "function") G.UI.renderMenu();
-        else if (G.UI && typeof G.UI.showMenu === "function") G.UI.showMenu();
-      };
-      const indicatorValue = () => {
-        const el = document.getElementById("devUiProfileIndicator");
-        return el ? String(el.textContent || "").trim() : "";
-      };
-      const getProfile = () => {
-        const Data = G.Data || null;
-        return (Data && typeof Data.getUiProfile === "function") ? String(Data.getUiProfile() || "millennial") : "millennial";
-      };
-      const setProfile = (profile) => {
-        const Data = G.Data || null;
-        if (Data && typeof Data.setUiProfile === "function") Data.setUiProfile(profile);
-      };
-      const clickButton = (id) => {
-        const el = document.getElementById(id);
-        const beforePanel = document.getElementById("consolePanel");
-        const beforeHidden = beforePanel ? beforePanel.classList.contains("hidden") : null;
-        if (!el) return { present: false, clicked: false, beforeHidden, afterHidden: beforeHidden };
-        try {
-          if (typeof el.click === "function") el.click();
-          else if (typeof el.onclick === "function") el.onclick({ preventDefault() {}, stopPropagation() {} });
-        } catch (_) {}
-        const afterPanel = document.getElementById("consolePanel");
-        const afterHidden = afterPanel ? afterPanel.classList.contains("hidden") : null;
-        return { present: true, clicked: true, beforeHidden, afterHidden };
-      };
-      G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3 = function smokeToneProfilesStep56DevUiProfileIndicatorFix3() {
-        const result = {
-          buildTag: BUILD_TAG,
-          commit: COMMIT,
-          smokeVersion: SMOKE_VERSION,
-          ok: false,
-          failures: [],
-          forbiddenRemaining: [],
-          missingCoverage: [],
-          failedChecks: [],
-          fix2Exported: false,
-          fix3Exported: false,
-          devModeToggleButtonPresent: false,
-          devModeToggleButtonWorks: false,
-          consolePanelButtonPresent: false,
-          consolePanelButtonWorks: false,
-          consolePanelHiddenBeforeClick: null,
-          consolePanelHiddenAfterClick: null,
-          devIndicatorVisibleInDev: false,
-          devIndicatorHiddenInNormal: false,
-          indicatorUpdatesAfterProfileChange: false,
-          indicatorReadOnly: false,
-          gameplayUnchanged: false,
-          profileNotInEcon: false,
-          profileNotInMoneyLog: false,
-        };
-        const fail = (check, detail) => {
-          if (result.failedChecks.indexOf(check) < 0) result.failedChecks.push(check);
-          result.failures.push(detail === undefined ? check : { check, detail });
-        };
-        const snapshot = {
-          profile: getProfile(),
-          state: clone(G.__S || G.State || {}),
-          debug: clone(G.__D || {}),
-          devMode: typeof window !== "undefined" && window.localStorage ? window.localStorage.getItem(DEV_MODE_KEY) : null,
-        };
-        try {
-          result.fix2Exported = typeof G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix2 === "function";
-          result.fix3Exported = true;
-          if (!result.fix2Exported) fail("fix2_export_missing", "served runtime missing Fix2 export");
-          const beforeProfile = getProfile();
-          setDevMode(true);
-          renderMenu();
-          result.devModeToggleButtonPresent = !!document.getElementById("devModeControls");
-          result.consolePanelButtonPresent = !!document.getElementById("consolePanelButton");
-          result.devIndicatorVisibleInDev = !!document.getElementById("devUiProfileIndicator") && indicatorValue() === beforeProfile;
-          if (!result.devModeToggleButtonPresent) fail("dev_mode_toggle_missing", "devModeControls");
-          if (!result.consolePanelButtonPresent) fail("console_panel_missing", "consolePanelButton");
-          if (!result.devIndicatorVisibleInDev) fail("indicator_not_visible_in_dev", indicatorValue());
-
-          const toggleButton = document.querySelector("#devModeControls button");
-          if (toggleButton) {
-            const beforeText = String(toggleButton.textContent || "");
-            if (typeof toggleButton.click === "function") toggleButton.click();
-            renderMenu();
-            const afterButton = document.querySelector("#devModeControls button");
-            const afterText = afterButton ? String(afterButton.textContent || "") : "";
-            result.devModeToggleButtonWorks = beforeText !== afterText || beforeText.indexOf("Disable") >= 0;
-            if (!result.devModeToggleButtonWorks) fail("dev_mode_toggle_not_working", { beforeText, afterText });
-          }
-
-          setDevMode(true);
-          renderMenu();
-          const consoleClick = clickButton("consolePanelButton");
-          result.consolePanelHiddenBeforeClick = consoleClick.beforeHidden;
-          result.consolePanelHiddenAfterClick = consoleClick.afterHidden;
-          result.consolePanelButtonWorks = !!consoleClick.present && consoleClick.clicked === true && consoleClick.beforeHidden === true && consoleClick.afterHidden === false;
-          if (!result.consolePanelButtonWorks) fail("console_panel_not_working", consoleClick);
-
-          setProfile("zoomer");
-          renderMenu();
-          result.indicatorUpdatesAfterProfileChange = indicatorValue() === "zoomer";
-          if (!result.indicatorUpdatesAfterProfileChange) fail("indicator_not_updated_after_profile_change", indicatorValue());
-
-          const indicator = document.getElementById("devUiProfileIndicator");
-          result.indicatorReadOnly = !!indicator && indicator.getAttribute("aria-readonly") === "true" && indicator.isContentEditable !== true;
-          if (!result.indicatorReadOnly) fail("indicator_not_read_only", { ariaReadonly: indicator && indicator.getAttribute("aria-readonly"), contentEditable: indicator && indicator.isContentEditable });
-
-          setDevMode(false);
-          renderMenu();
-          result.devIndicatorHiddenInNormal = !document.getElementById("devUiProfileIndicator");
-          if (!result.devIndicatorHiddenInNormal) fail("indicator_visible_in_normal", indicatorValue());
-
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-          const afterState = clone(G.__S || G.State || {});
-          const afterDebug = clone(G.__D || {});
-          result.gameplayUnchanged = JSON.stringify(snapshot.state) === JSON.stringify(afterState);
-          result.profileNotInEcon = JSON.stringify(snapshot.debug && snapshot.debug.moneyLog ? snapshot.debug.moneyLog : null) === JSON.stringify(afterDebug && afterDebug.moneyLog ? afterDebug.moneyLog : null);
-          result.profileNotInMoneyLog = result.profileNotInEcon === true;
-          if (!result.gameplayUnchanged) fail("gameplay_changed", { before: snapshot.state, after: afterState });
-          if (!result.profileNotInEcon) fail("econ_or_moneylog_changed", { before: snapshot.debug && snapshot.debug.moneyLog, after: afterDebug && afterDebug.moneyLog });
-        } catch (err) {
-          fail("smoke_exception", err && err.message ? String(err.message) : String(err));
-        } finally {
-          setDevMode(snapshot.devMode === "1");
-          setProfile(snapshot.profile || "millennial");
-          if (G.UI && typeof G.UI.renderAll === "function") {
-            try { G.UI.renderAll(); } catch (_) {}
-          } else {
-            renderMenu();
-          }
-        }
-        result.ok = result.failures.length === 0
-          && result.forbiddenRemaining.length === 0
-          && result.missingCoverage.length === 0
-          && result.failedChecks.length === 0
-          && result.fix2Exported === true
-          && result.fix3Exported === true
-          && result.devModeToggleButtonPresent === true
-          && result.devModeToggleButtonWorks === true
-          && result.consolePanelButtonPresent === true
-          && result.consolePanelButtonWorks === true
-          && result.consolePanelHiddenBeforeClick === true
-          && result.consolePanelHiddenAfterClick === false
-          && result.devIndicatorVisibleInDev === true
-          && result.devIndicatorHiddenInNormal === true
-          && result.indicatorUpdatesAfterProfileChange === true
-          && result.indicatorReadOnly === true
-          && result.gameplayUnchanged === true
-          && result.profileNotInEcon === true
-          && result.profileNotInMoneyLog === true;
-        return result;
-      };
-      if (!G.Dev || typeof G.Dev !== "object") G.Dev = {};
-      G.Dev.smokeToneProfilesStep56DevUiProfileIndicatorFix3 = G.__DEV.smokeToneProfilesStep56DevUiProfileIndicatorFix3;
-    }
     if (typeof G.__DEV.smokeRuntimeSourceDiagnosis !== "function") {
       G.__DEV.smokeRuntimeSourceDiagnosis = function smokeRuntimeSourceDiagnosis() {
         const scripts = Array.from(document.scripts || []).map((node) => {
@@ -9227,11 +8235,7 @@ window.Game = window.Game || {};
           });
           const texts = D.TEXTS || {};
           const genz = texts.genz || {};
-          addTextRow("texts.genz.events_empty", genz.events_empty, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "empty_states", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible empty events hint through Data.t('events_empty')" });
-          addTextRow("texts.genz.battles_empty", genz.battles_empty, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "empty_states", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible empty battles hint through Data.t('battles_empty')" });
-          addTextRow("texts.genz.dm_empty", genz.dm_empty, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "empty_states", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible empty DM hint through Data.t('dm_empty')" });
-          addTextRow("texts.genz.dm_action_unavailable", genz.dm_action_unavailable, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "buttons_labels", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible DM disabled hint through Data.t('dm_action_unavailable')" });
-          addTextRow("texts.genz.battle_energy_locked_hint", genz.battle_energy_locked_hint, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "buttons_labels", { currentlyProfileAware: true, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible battle locked hint through Data.t('battle_energy_locked_hint')" });
+          addTextRow("texts.genz.events_empty", genz.events_empty, "AsyncScene/Web/data.js", "Data.TEXTS.genz", "empty_states", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "visible empty events hint through Data.t('events_empty')" });
           addTextRow("texts.genz.escape_button_label", genz.escape_button_label, "AsyncScene/Web/ui/ui-battles.js", "escape button", "buttons_labels", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "high", recommendedForZoomerFeel: true, notes: "visible escape CTA label" });
           addTextRow("texts.genz.teach_sent_dm", genz.teach_sent_dm, "AsyncScene/Web/ui/ui-dm.js", "teach sent dm", "economy", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "DM training cost text" });
           addTextRow("texts.genz.teach_sent_chat", genz.teach_sent_chat, "AsyncScene/Web/ui/ui-dm.js", "teach sent chat", "economy", { currentlyProfileAware: false, resolverUsed: true, hardcoded: false, frequencyGuess: "medium", recommendedForZoomerFeel: true, notes: "system training feed text" });
@@ -9400,20 +8404,15 @@ window.Game = window.Game || {};
           result.routeChecks.millennialFallbackPreserved = keys.filter((key) => result.samples[key].millennial === resolve(key, "") && result.samples[key].millennial === resolve(key, "missing")).length >= 6;
           result.routeChecks.zoomerDiffers = result.summary.millennialZoomerDifferentCount >= 6;
 
-          const startRoots = [];
-          try { Array.from(document.querySelectorAll("#startScreen")).forEach((node) => { if (node && startRoots.indexOf(node) < 0) startRoots.push(node); }); } catch (_) {}
-          const st = startRoots.find((root) => root && root.classList && root.classList.contains("active") && !root.hidden)
-            || startRoots.find((root) => root && !root.hidden)
-            || startRoots[0]
-            || ((typeof document !== "undefined") ? document.getElementById("startScreen") : null);
-          const titleEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startTitle") || document.getElementById("startTitle")) : ((typeof document !== "undefined") ? document.getElementById("startTitle") : null);
-          const labelEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearLabel") || document.getElementById("startBirthYearLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null);
-          const pickerEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearPicker") || document.getElementById("startBirthYearPicker")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null);
-          const hintEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearHint") || document.getElementById("startBirthYearHint")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null);
-          const feelingEl = st && typeof st.querySelector === "function" ? (st.querySelector("#startBirthYearFeelingLabel") || document.getElementById("startBirthYearFeelingLabel")) : ((typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null);
-          const startBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnStart") || document.getElementById("btnStart")) : ((typeof document !== "undefined") ? document.getElementById("btnStart") : null);
-          const rulesBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnRules") || document.getElementById("btnRules")) : ((typeof document !== "undefined") ? document.getElementById("btnRules") : null);
-          const resetBtn = st && typeof st.querySelector === "function" ? (st.querySelector("#btnResetOnboarding") || document.getElementById("btnResetOnboarding")) : ((typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null);
+          const st = (typeof document !== "undefined") ? document.getElementById("startScreen") : null;
+          const titleEl = (typeof document !== "undefined") ? document.getElementById("startTitle") : null;
+          const labelEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearLabel") : null;
+          const pickerEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearPicker") : null;
+          const hintEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearHint") : null;
+          const feelingEl = (typeof document !== "undefined") ? document.getElementById("startBirthYearFeelingLabel") : null;
+          const startBtn = (typeof document !== "undefined") ? document.getElementById("btnStart") : null;
+          const rulesBtn = (typeof document !== "undefined") ? document.getElementById("btnRules") : null;
+          const resetBtn = (typeof document !== "undefined") ? document.getElementById("btnResetOnboarding") : null;
           const liveProfile = D && typeof D.getUiProfile === "function" ? D.getUiProfile() : (typeof D.UI_PROFILE === "string" ? D.UI_PROFILE : "default");
           const liveMode = String(liveProfile).trim().toLowerCase() === "zoomer" || String(liveProfile).trim().toLowerCase() === "alpha" ? "zoomer" : "millennial";
           const liveResumeMode = !!(G.__A && typeof G.__A.getOnboardingSeen === "function" ? G.__A.getOnboardingSeen() : (G.__S && G.__S.progress && G.__S.progress.onboardingSeen === true));
@@ -9492,7 +8491,6 @@ window.Game = window.Game || {};
             && result.routeChecks.resolverExists
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
-            && result.domWriteDiagnostics.ok
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
             && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
             && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
@@ -9534,6 +8532,12 @@ window.Game = window.Game || {};
           ].filter(Boolean).length;
           result.summary.docsMirrorUpdated = !!result.routeChecks.docsMirrorUpdated;
           result.summary.smokeIdentityFresh = !!result.routeChecks.noStaleSmokeIdentity;
+          result.summary.sourceRoutesConnectedCount = [
+            result.sourceRouteDiagnostics.uiBootAssignmentsFound,
+            result.sourceRouteDiagnostics.ok,
+            result.sourceRouteDiagnostics.routedKeysFoundInRuntimeSource.length >= 11,
+            result.sourceRouteDiagnostics.missingRuntimeRouteKeys.length === 0,
+          ].filter(Boolean).length;
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
@@ -9798,7 +8802,6 @@ window.Game = window.Game || {};
             && result.routeChecks.resolverExists
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
-            && result.domWriteDiagnostics.ok
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
             && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
             && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
@@ -9952,6 +8955,8 @@ window.Game = window.Game || {};
             sourceRoutesConnectedCount: 0,
             domOverwriteFixed: false,
             rootDetectionOk: false,
+            smokeNonDestructive: false,
+            sideEffectFree: false,
           },
         };
         const fail = (check, detail) => {
@@ -12251,7 +11256,7 @@ window.Game = window.Game || {};
         Object.freeze({ id: "TXT_0148", helper: "battles", field: "cooldownShort", sourceText: "Кулдаун активен.", targetText: "Период ожидания ещё не завершён.", sourceCallsite: "ui-battles.js battle cooldown guard", deployedCallsite: "ui-battles.js battle cooldown guard", branch: "battle invite cooldown", disambiguation: "cooldown branch routed through warnings.cooldownShort", expected: Object.freeze({ default: "Пауза: активно", millennial: "Пауза: активно", zoomer: "Пауза: активно", alpha: "Пауза: активно", boomer: "Период ожидания ещё не завершён." }) }),
         Object.freeze({ id: "TXT_0149", helper: "battles", field: "insufficientPoints", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-battles.js battle start insufficient-points toast", deployedCallsite: "ui-battles.js battle start insufficient-points toast", branch: "battle start insufficient points", disambiguation: "same source string as TXT_0142/TXT_0150/TXT_0164 but this row is the battle-start failure branch", expected: Object.freeze({ default: "Недостаточно денег.", millennial: "Недостаточно денег.", zoomer: "Кошелёк в нуле 💀", alpha: "Кошелёк в нуле 💀", boomer: "Недостаточно монет 💰." }) }),
         Object.freeze({ id: "TXT_0150", helper: "dm", field: "respect_no_points", sourceText: "Не хватает 💰.", targetText: "Недостаточно монет 💰.", sourceCallsite: "ui-dm.js respect-no-points fallback", deployedCallsite: "ui-dm.js respect-no-points fallback", branch: "respect no points", disambiguation: "same source string as TXT_0142/TXT_0149/TXT_0164 but routed through respect flow", expected: Object.freeze({ default: "Недостаточно денег.", millennial: "Недостаточно денег.", zoomer: "Кошелёк в нуле 💀", alpha: "Кошелёк в нуле 💀", boomer: "Недостаточно монет 💰." }) }),
-        Object.freeze({ id: "TXT_0151", helper: "dm", field: "respect_pair_daily", sourceText: "Уже было уважение сегодня этому персонажу.", targetText: "Сегодня вы уже выразили уважение этому персонажу.", sourceCallsite: "ui-dm.js daily respect duplicate guard", deployedCallsite: "ui-dm.js daily respect duplicate guard", branch: "respect pair daily", disambiguation: "duplicate respect branch, not the no-chain or quota branch", expected: Object.freeze({ default: "Уважение уже выбрано", millennial: "Уважение уже выбрано", zoomer: "Уважение уже выбрано", alpha: "Уважение уже выбрано", boomer: "Сегодня вы уже выразили уважение этому персонажу." }) }),
+        Object.freeze({ id: "TXT_0151", helper: "dm", field: "respect_pair_daily", sourceText: "Уже было уважение сегодня этому персонажу.", targetText: "Сегодня вы уже выразили уважение этому персонажу.", sourceCallsite: "ui-dm.js daily respect duplicate guard", deployedCallsite: "ui-dm.js daily respect duplicate guard", branch: "respect pair daily", disambiguation: "duplicate respect branch, not the no-chain or emitter-empty branch", expected: Object.freeze({ default: "Уважение уже выбрано", millennial: "Уважение уже выбрано", zoomer: "Уважение уже выбрано", alpha: "Уважение уже выбрано", boomer: "Сегодня вы уже выразили уважение этому персонажу." }) }),
         Object.freeze({ id: "TXT_0152", helper: "dm", field: "respect_no_chain", sourceText: "Цепочка A->B->A сегодня не работает.", targetText: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ.", sourceCallsite: "ui-dm.js reciprocal respect-chain guard", deployedCallsite: "ui-dm.js reciprocal respect-chain guard", branch: "respect no chain", disambiguation: "reciprocal chain guard, distinct from daily duplicate and quota exhaustion", expected: Object.freeze({ default: "Действие недоступно", millennial: "Действие недоступно", zoomer: "Действие недоступно", alpha: "Действие недоступно", boomer: "Сегодня нельзя сначала выразить уважение персонажу, а затем получить уважение от него в ответ." }) }),
         Object.freeze({ id: "TXT_0153", helper: "dm", field: "respect_emitter_empty", sourceText: "Лимит уважения на сегодня исчерпан.", targetText: "Дневной лимит выражения уважения исчерпан.", sourceCallsite: "ui-dm.js respect emitter quota guard", deployedCallsite: "ui-dm.js respect emitter quota guard", branch: "respect emitter empty", disambiguation: "quota exhaustion branch, distinct from no-points and chain guards", expected: Object.freeze({ default: "Лимит уважения", millennial: "Лимит уважения", zoomer: "Лимит уважения", alpha: "Лимит уважения", boomer: "Дневной лимит выражения уважения исчерпан." }) }),
         Object.freeze({ id: "TXT_0154", helper: "dm", field: "respect_fallback", sourceText: "Сейчас не получилось. Попробуй позже.", targetText: "Не удалось выразить уважение. Повторите попытку позже.", sourceCallsite: "ui-dm.js respect fallback resolver", deployedCallsite: "ui-dm.js respect fallback resolver", branch: "respect fallback", disambiguation: "generic respect failure fallback, not a quota or duplicate branch", expected: Object.freeze({ default: "Ошибка. Повторить позже", millennial: "Ошибка. Повторить позже", zoomer: "Ошибка. Повторить позже", alpha: "Ошибка. Повторить позже", boomer: "Не удалось выразить уважение. Повторите попытку позже." }) }),
