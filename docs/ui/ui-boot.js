@@ -777,6 +777,7 @@ window.Game = window.Game || {};
       birthYearPicker.dataset.bound = "1";
     }
 
+    const resumeMode = getOnboardingSeen(UI);
     const startBtn = $("btnStart") || document.getElementById("btnStart");
     if (startBtn) {
       startBtn.textContent = resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile) : resolveStartScreenText(D, "start_action", activeProfile);
