@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>S6-010A4 Aggregate Safari Smoke</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin: 16px; line-height: 1.35; }
+    button { font: inherit; padding: 10px 14px; margin-bottom: 12px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid #888; padding: 12px; min-height: 180px; }
+    .pass { border-color: #16803a; }
+    .fail { border-color: #b42318; }
+  </style>
+</head>
+<body>
+  <h1>S6-010A4 Aggregate Safari Smoke</h1>
+  <p>Target commit: <code>15a4d952cc0a38c5260f3bf75eb040a0c72fba69</code></p>
+  <button id="run" type="button">Run smoke</button>
+  <pre id="result">Starting...</pre>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const TARGET_COMMIT = "15a4d952cc0a38c5260f3bf75eb040a0c72fba69";
+    const TARGET_BASE = `https://raw.githack.com/samuray-games/AsyncScene/${TARGET_COMMIT}/docs/`;
+    const STORAGE_PREFIX = "AsyncScene_";
+    const resultEl = document.getElementById("result");
+    const runBtn = document.getElementById("run");
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    async function waitFor(test, label, timeoutMs = 45000) {
+      const started = Date.now();
+      let lastError = null;
+      while (Date.now() - started < timeoutMs) {
+        try {
+          const value = test();
+          if (value) return value;
+        } catch (error) {
+          lastError = error;
+        }
+        await sleep(50);
+      }
+      throw new Error(`${label}_timeout${lastError ? `:${lastError.message}` : ""}`);
+    }
+
+    function snapshotAsyncStorage() {
+      const snapshot = {};
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(STORAGE_PREFIX)) snapshot[key] = localStorage.getItem(key);
+      }
+      return snapshot;
+    }
+
+    function clearAsyncStorage() {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(STORAGE_PREFIX)) keys.push(key);
+      }
+      keys.forEach((key) => localStorage.removeItem(key));
+    }
+
+    function restoreAsyncStorage(snapshot) {
+      clearAsyncStorage();
+      Object.entries(snapshot || {}).forEach(([key, value]) => localStorage.setItem(key, value));
+    }
+
+    function safeText(value) {
+      try {
+        if (value instanceof Error) return `${value.name}:${value.message}`;
+        if (typeof value === "string") return value;
+        return JSON.stringify(value);
+      } catch (_) {
+        return String(value);
+      }
+    }
+
+    async function createExactFrame(label) {
+      const indexUrl = `${TARGET_BASE}index.html?aggregateSmoke=${encodeURIComponent(label)}-${Date.now()}`;
+      const response = await fetch(indexUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`index_fetch_failed:${response.status}`);
+      let html = await response.text();
+      const baseTag = `<base href="${TARGET_BASE}">`;
+      const replaced = html.replace(/<base\s+href=["']\/AsyncScene\/["']\s*\/?\s*>/i, baseTag);
+      if (replaced === html) throw new Error("base_tag_not_replaced");
+      html = replaced;
+
+      const earlyProbe = `<script>(function(){
+        var errors = [];
+        window.__S6_AGGREGATE_ERRORS__ = errors;
+        function text(v){ try { return typeof v === 'string' ? v : JSON.stringify(v); } catch (_) { return String(v); } }
+        var originalError = console.error;
+        console.error = function(){ errors.push({ type: 'console.error', message: Array.prototype.map.call(arguments, text).join(' ') }); return originalError.apply(console, arguments); };
+        window.addEventListener('error', function(e){ errors.push({ type: 'error', message: e.message || 'error', source: e.filename || '', line: e.lineno || 0 }); });
+        window.addEventListener('unhandledrejection', function(e){ errors.push({ type: 'unhandledrejection', message: text(e.reason) }); });
+      })();<\/script>`;
+      html = html.replace(/<head>/i, `<head>${earlyProbe}`);
+
+      const frame = document.createElement("iframe");
+      frame.setAttribute("aria-label", `S6 smoke ${label}`);
+      frame.style.position = "fixed";
+      frame.style.left = "-10000px";
+      frame.style.top = "0";
+      frame.style.width = "390px";
+      frame.style.height = "844px";
+      frame.style.border = "0";
+      const loaded = new Promise((resolve, reject) => {
+        frame.onload = () => resolve();
+        frame.onerror = () => reject(new Error(`${label}_iframe_load_failed`));
+      });
+      document.body.appendChild(frame);
+      frame.srcdoc = html;
+      await loaded;
+
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;
+      await waitFor(
+        () => win && win.Game && win.Game.UI && doc.getElementById("btnStart") && typeof doc.getElementById("btnStart").onclick === "function",
+        `${label}_game_ready`
+      );
+      await waitFor(
+        () => {
+          const state = win.Game.State || win.Game.__S || (win.Game.UI && win.Game.UI.S);
+          return state && state.save && win.Game.Data;
+        },
+        `${label}_state_ready`
+      );
+      return { label, frame, win, doc };
+    }
+
+    function destroyFrame(env) {
+      if (env && env.frame && env.frame.parentNode) env.frame.parentNode.removeChild(env.frame);
+    }
+
+    function stateOf(env) {
+      return env.win.Game.State || env.win.Game.__S || env.win.Game.UI.S;
+    }
+
+    function apiOf(env) {
+      return env.win.Game.__A || env.win.Game.StateAPI || null;
+    }
+
+    function profileOf(env) {
+      const data = env.win.Game.Data;
+      return data && typeof data.getUiProfile === "function" ? data.getUiProfile() : data.UI_PROFILE;
+    }
+
+    function setPrimarySelection(env, value) {
+      const next = String(value).padStart(2, "0").slice(-2);
+      const picker = env.doc.getElementById("startBirthYearPicker");
+      const d0 = env.doc.getElementById("startBirthYearDigit0");
+      const d1 = env.doc.getElementById("startBirthYearDigit1");
+      const secondary = env.doc.getElementById("startBirthYearFeelingInput");
+      if (!picker || !d0 || !d1) throw new Error("selection_controls_missing");
+      d0.textContent = next[0];
+      d1.textContent = next[1];
+      d0.setAttribute("data-birth-year-digit-value", next[0]);
+      d1.setAttribute("data-birth-year-digit-value", next[1]);
+      picker.setAttribute("data-birth-year-value", next);
+      if (secondary) {
+        secondary.value = "";
+        secondary.dispatchEvent(new env.win.Event("input", { bubbles: true }));
+      }
+      return next;
+    }
+
+    async function clickStartForProfile(env, expectedProfile) {
+      const button = env.doc.getElementById("btnStart");
+      if (!button) throw new Error("start_button_missing");
+      button.click();
+      await waitFor(() => {
+        const state = stateOf(env);
+        return state.save && state.save.uiProfile === expectedProfile && profileOf(env) === expectedProfile;
+      }, `profile_${expectedProfile}_apply`);
+    }
+
+    function loadedExactCommit(env) {
+      const scripts = Array.from(env.doc.querySelectorAll("script[src]")).map((node) => node.src);
+      const stateSrc = scripts.find((src) => /\/state\.js(?:\?|$)/.test(src)) || "";
+      const bootSrc = scripts.find((src) => /\/ui\/ui-boot\.js(?:\?|$)/.test(src)) || "";
+      return {
+        ok: stateSrc.includes(TARGET_COMMIT) && bootSrc.includes(TARGET_COMMIT),
+        stateSrc,
+        bootSrc,
+      };
+    }
+
+    function withoutUiProfile(save) {
+      const copy = JSON.parse(JSON.stringify(save || {}));
+      delete copy.uiProfile;
+      return copy;
+    }
+
+    function collectPrivacyEvidence(state) {
+      const entries = {};
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(STORAGE_PREFIX)) entries[key] = localStorage.getItem(key);
+      }
+      const forbiddenPattern = /(birth|year|age|birthday|generation|selectedYear|profileYear)/i;
+      const forbiddenStorageKeys = Object.keys(entries).filter((key) => forbiddenPattern.test(key));
+      const saveKeys = [];
+      const walk = (value, prefix) => {
+        if (!value || typeof value !== "object") return;
+        Object.keys(value).forEach((key) => {
+          const path = prefix ? `${prefix}.${key}` : key;
+          saveKeys.push(path);
+          walk(value[key], path);
+        });
+      };
+      walk(state.save || {}, "save");
+      const forbiddenSaveKeys = saveKeys.filter((key) => forbiddenPattern.test(key));
+      const values = Object.values(entries);
+      const rawValuesPersisted = values.includes("01") || values.includes("90") || JSON.stringify(state.save || {}).includes('"01"') || JSON.stringify(state.save || {}).includes('"90"');
+      return {
+        entries,
+        forbiddenStorageKeys,
+        forbiddenSaveKeys,
+        rawValuesPersisted,
+        ok: forbiddenStorageKeys.length === 0 && forbiddenSaveKeys.length === 0 && rawValuesPersisted === false,
+      };
+    }
+
+    async function runSmoke() {
+      runBtn.disabled = true;
+      resultEl.className = "";
+      resultEl.textContent = "Running exact-commit Safari smoke...";
+
+      const storageBackup = snapshotAsyncStorage();
+      const frames = [];
+      const report = {
+        task: "S6-010A4 Aggregate acceptance",
+        targetCommit: TARGET_COMMIT,
+        status: "FAIL",
+        exactCommitLoaded: false,
+        persistenceApiPresent: false,
+        safeFallback: false,
+        firstSelectionPersists: false,
+        firstSelectionTextModeParity: false,
+        reloadRestoresProfile: false,
+        restoredTextModeParity: false,
+        repeatSelectionReplacesProfile: false,
+        onlyUiProfileChanged: false,
+        changedProfileSurvivesReload: false,
+        changedTextModeParity: false,
+        noRawYearPersistence: false,
+        noConsoleErrors: false,
+        restoredProfile: null,
+        changedProfile: null,
+        reloadedProfile: null,
+        storageEvidence: null,
+        resourceEvidence: [],
+        consoleErrors: [],
+        failures: [],
+      };
+
+      const check = (name, condition, detail) => {
+        report[name] = condition === true;
+        if (condition !== true) report.failures.push({ check: name, detail: detail == null ? null : detail });
+      };
+
+      try {
+        clearAsyncStorage();
+
+        const targetBootResponse = await fetch(`${TARGET_BASE}ui/ui-boot.js?sourceCheck=${Date.now()}`, { cache: "no-store" });
+        if (!targetBootResponse.ok) throw new Error(`target_boot_fetch_failed:${targetBootResponse.status}`);
+        const targetBootText = await targetBootResponse.text();
+        const mirrorFixPresent = targetBootText.includes(
+          '      Data.UI_PROFILE = uiProfile;\n    }\n    syncUiTextModeFromUiProfile(uiProfile);\n    if (UI && UI.S) {'
+        );
+
+        const first = await createExactFrame("fresh");
+        frames.push(first);
+        const firstResources = loadedExactCommit(first);
+        report.resourceEvidence.push(firstResources);
+        const firstApi = apiOf(first);
+        check("persistenceApiPresent", !!firstApi && ["normalizePersistedUiProfile", "writePersistedUiProfile", "restorePersistedUiProfile"].every((name) => typeof firstApi[name] === "function"), Object.keys(firstApi || {}));
+        check("safeFallback", !!firstApi && firstApi.normalizePersistedUiProfile("unsupported-profile") === "millennial", firstApi ? firstApi.normalizePersistedUiProfile("unsupported-profile") : null);
+        const firstResolver = first.win.Game.Data.resolveUiProfileFromBirthYearValue("01");
+        if (firstResolver !== "zoomer") throw new Error(`resolver_01_expected_zoomer_actual_${firstResolver}`);
+        setPrimarySelection(first, "01");
+        await clickStartForProfile(first, "zoomer");
+        const firstState = stateOf(first);
+        check("firstSelectionPersists", firstState.save.uiProfile === "zoomer" && localStorage.getItem("AsyncScene_ui_profile_v1") === "zoomer", { save: firstState.save.uiProfile, storage: localStorage.getItem("AsyncScene_ui_profile_v1") });
+        check("firstSelectionTextModeParity", first.win.Game.Data.TEXT_MODE === "zoomer", first.win.Game.Data.TEXT_MODE);
+        report.consoleErrors.push(...(first.win.__S6_AGGREGATE_ERRORS__ || []).map((entry) => ({ load: "fresh", ...entry })));
+        destroyFrame(first);
+
+        const restored = await createExactFrame("restore-zoomer");
+        frames.push(restored);
+        const restoredResources = loadedExactCommit(restored);
+        report.resourceEvidence.push(restoredResources);
+        const restoredState = stateOf(restored);
+        report.restoredProfile = profileOf(restored);
+        check("reloadRestoresProfile", restoredState.save.uiProfile === "zoomer" && report.restoredProfile === "zoomer", { save: restoredState.save.uiProfile, active: report.restoredProfile });
+        check("restoredTextModeParity", restored.win.Game.Data.TEXT_MODE === "zoomer", restored.win.Game.Data.TEXT_MODE);
+
+        restoredState.save.aggregateSentinel = { campaign: "keep", nested: { value: "untouched" } };
+        restoredState.progress = restoredState.progress || {};
+        restoredState.progress.aggregateSentinel = "keep-progress";
+        restoredState.aggregateGameplaySentinel = { value: "keep-gameplay" };
+        const beforeOtherSave = withoutUiProfile(restoredState.save);
+        const beforeProgressSentinel = restoredState.progress.aggregateSentinel;
+        const beforeGameplaySentinel = JSON.stringify(restoredState.aggregateGameplaySentinel);
+
+        const secondResolver = restored.win.Game.Data.resolveUiProfileFromBirthYearValue("90");
+        if (secondResolver !== "millennial") throw new Error(`resolver_90_expected_millennial_actual_${secondResolver}`);
+        setPrimarySelection(restored, "90");
+        await clickStartForProfile(restored, "millennial");
+        report.changedProfile = profileOf(restored);
+        check("repeatSelectionReplacesProfile", restoredState.save.uiProfile === "millennial" && report.changedProfile === "millennial" && localStorage.getItem("AsyncScene_ui_profile_v1") === "millennial", { save: restoredState.save.uiProfile, active: report.changedProfile, storage: localStorage.getItem("AsyncScene_ui_profile_v1") });
+        check("onlyUiProfileChanged", JSON.stringify(withoutUiProfile(restoredState.save)) === JSON.stringify(beforeOtherSave) && restoredState.progress.aggregateSentinel === beforeProgressSentinel && JSON.stringify(restoredState.aggregateGameplaySentinel) === beforeGameplaySentinel, { beforeOtherSave, afterOtherSave: withoutUiProfile(restoredState.save), progress: restoredState.progress.aggregateSentinel, gameplay: restoredState.aggregateGameplaySentinel });
+        check("changedTextModeParity", restored.win.Game.Data.TEXT_MODE === "millennial", restored.win.Game.Data.TEXT_MODE);
+        report.consoleErrors.push(...(restored.win.__S6_AGGREGATE_ERRORS__ || []).map((entry) => ({ load: "change", ...entry })));
+        destroyFrame(restored);
+
+        const reloaded = await createExactFrame("restore-millennial");
+        frames.push(reloaded);
+        const reloadedResources = loadedExactCommit(reloaded);
+        report.resourceEvidence.push(reloadedResources);
+        const reloadedState = stateOf(reloaded);
+        report.reloadedProfile = profileOf(reloaded);
+        check("changedProfileSurvivesReload", reloadedState.save.uiProfile === "millennial" && report.reloadedProfile === "millennial", { save: reloadedState.save.uiProfile, active: report.reloadedProfile });
+        if (reloaded.win.Game.Data.TEXT_MODE !== "millennial") {
+          report.failures.push({ check: "reloadedTextModeParity", detail: reloaded.win.Game.Data.TEXT_MODE });
+        }
+        const privacy = collectPrivacyEvidence(reloadedState);
+        report.storageEvidence = privacy;
+        check("noRawYearPersistence", privacy.ok, privacy);
+        report.consoleErrors.push(...(reloaded.win.__S6_AGGREGATE_ERRORS__ || []).map((entry) => ({ load: "final-reload", ...entry })));
+
+        const allResourcesExact = report.resourceEvidence.length === 3 && report.resourceEvidence.every((item) => item.ok === true);
+        check("exactCommitLoaded", mirrorFixPresent && allResourcesExact, { mirrorFixPresent, resources: report.resourceEvidence });
+        check("noConsoleErrors", report.consoleErrors.length === 0, report.consoleErrors);
+
+        report.status = report.failures.length === 0 ? "PASS" : "FAIL";
+      } catch (error) {
+        report.failures.push({ check: "smoke_exception", detail: safeText(error && error.stack ? error.stack : error) });
+        report.status = "FAIL";
+      } finally {
+        frames.forEach(destroyFrame);
+        restoreAsyncStorage(storageBackup);
+        window.__S6_010A4_RESULT__ = report;
+        resultEl.textContent = JSON.stringify(report, null, 2);
+        resultEl.className = report.status === "PASS" ? "pass" : "fail";
+        runBtn.disabled = false;
+      }
+    }
+
+    runBtn.addEventListener("click", runSmoke);
+    runSmoke();
+  })();
+  </script>
+</body>
+</html>
