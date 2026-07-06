@@ -1,0 +1,78 @@
+name: S6-010A4 helper v2
+
+on:
+  pull_request:
+    branches:
+      - chatgpt/s6-010a4-safari-smoke-helper-20260706
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'chatgpt/tmp-s6-010a4-helper-v2-runner-20260706'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact helper v1
+        uses: actions/checkout@v4
+        with:
+          ref: 8aaeb524c2765bab76e6226c14f38c22ffdb7e48
+          fetch-depth: 0
+
+      - name: Fix iframe document race and error detail
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('s6-010a4-aggregate-smoke.html')
+          text = path.read_text(encoding='utf-8')
+
+          old_order = '''      document.body.appendChild(frame);
+      frame.srcdoc = html;
+      await loaded;
+
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;'''
+          new_order = '''      frame.srcdoc = html;
+      document.body.appendChild(frame);
+      await loaded;
+
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;'''
+          if text.count(old_order) != 1:
+              raise SystemExit(f'iframe order anchor count: {text.count(old_order)}')
+          text = text.replace(old_order, new_order, 1)
+
+          old_detail = 'report.failures.push({ check: "smoke_exception", detail: safeText(error && error.stack ? error.stack : error) });'
+          new_detail = 'report.failures.push({ check: "smoke_exception", detail: safeText({ message: error && error.message ? error.message : String(error), stack: error && error.stack ? error.stack : null }) });'
+          if text.count(old_detail) != 1:
+              raise SystemExit(f'error detail anchor count: {text.count(old_detail)}')
+          text = text.replace(old_detail, new_detail, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate exact helper scope
+        shell: bash
+        run: |
+          git diff --check
+          test "$(git diff --name-only | wc -l | tr -d ' ')" = "1"
+          test "$(git diff --name-only)" = "s6-010a4-aggregate-smoke.html"
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('s6-010a4-aggregate-smoke.html').read_text(encoding='utf-8')
+          assert text.index('frame.srcdoc = html;') < text.index('document.body.appendChild(frame);')
+          assert 'detail: safeText({ message:' in text
+          PY
+          git diff --unified=5 -- s6-010a4-aggregate-smoke.html
+
+      - name: Create clean helper v2 commit
+        shell: bash
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add s6-010a4-aggregate-smoke.html
+          git commit -m "Fix S6-010A4 Safari helper iframe race"
+          test "$(git rev-parse HEAD^)" = "8aaeb524c2765bab76e6226c14f38c22ffdb7e48"
+          git push origin HEAD:refs/heads/chatgpt/s6-010a4-safari-smoke-helper-v2-20260706
