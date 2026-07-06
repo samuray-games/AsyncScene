@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt/tmp-s6-010a3-fix1-runner-20260706
+  pull_request:
+    branches:
+      - chatgpt/s6-010a3-restore-change-later-final-20260706
 
 permissions:
   contents: write
