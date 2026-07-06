@@ -1,6 +1,9 @@
 name: S6-010A4 helper v2
 
 on:
+  push:
+    branches:
+      - chatgpt/tmp-s6-010a4-helper-v2-runner-20260706
   pull_request:
     branches:
       - chatgpt/s6-010a4-safari-smoke-helper-20260706
@@ -10,7 +13,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.head_ref == 'chatgpt/tmp-s6-010a4-helper-v2-runner-20260706'
+    if: github.event_name == 'push' || github.head_ref == 'chatgpt/tmp-s6-010a4-helper-v2-runner-20260706'
     runs-on: ubuntu-latest
     steps:
       - name: Check out exact helper v1
