@@ -1,8 +1,8 @@
-# Asynchronia Protocol 2.3 Override
+# Asynchronia Protocol 2.4 Override
 
-OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_3
+OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_4
 
-Read root `AGENTS.md` fully. Every rule remains binding except the bridge preflight, plugin proof, and mailbox checkout clauses explicitly replaced below.
+Read root `AGENTS.md` fully. Every rule remains binding except the bridge metadata-precedence, claim recovery, plugin proof, and mailbox checkout clauses explicitly replaced below.
 
 ## 1. Numbered bridge commands
 
@@ -18,88 +18,116 @@ For every numbered command:
 
 Bare `мост` is inactive. Dirty or stale local `AGENTS.md` and `BRIDGE.md` are not bridge sources and must be preserved byte-for-byte.
 
-## 2. Asynchronia skill source
+## 2. Authoritative slot metadata
+
+Mailbox `STATE.md` names one `Current baseline inbox` for each slot. That file is the authoritative mutable slot contract.
+
+Precedence inside a slot is:
+
+1. current `origin/main` policy;
+2. mailbox `STATE.md`;
+3. the slot's `Current baseline inbox` named by STATE;
+4. immutable claim, when present;
+5. original task inbox only for the atomic objective and evidence requirements that are not replaced by the current baseline inbox;
+6. historical inbox turns for audit only.
+
+A stale baseline, protocol version, plugin requirement, phase, or publication rule in the original task inbox is superseded when STATE and the current baseline inbox agree. Such historical drift must be reported but must not block a claim or execution.
+
+The current baseline inbox may explicitly replace all mutable fields while inheriting the original task objective. Never require two historical baselines to agree.
+
+## 3. Asynchronia skill source
 
 Bridge execution must not depend on hidden plugin-loader telemetry.
 
-Resolve the Asynchronia skill contracts in this order:
+Resolve skill contracts in this order:
 
 1. `INSTALLED_PACKAGE`: use the installed cache when its manifest names package `asynchronia`, version `1.0.0`, and the required skill files are readable.
 2. `REPOSITORY_FALLBACK`: otherwise read the corresponding skill contracts from `origin/main:plugins/asynchronia/...`.
 
-Either source is sufficient. Record:
+Either source is sufficient. Record the source, manifest version, and exact skill paths read.
 
-- `ASYNCHRONIA_SKILL_SOURCE: INSTALLED_PACKAGE` or `REPOSITORY_FALLBACK`;
-- manifest version;
-- exact skill paths read.
+`BLOCKED_PLUGIN_NOT_LOADED`, native resolver proof, functional invocation proof, and loader telemetry are retired as bridge gates.
 
-`BLOCKED_PLUGIN_NOT_LOADED`, native resolver proof, functional invocation proof, and loader telemetry are retired as bridge gates. Missing plugin telemetry must never block a numbered bridge command.
+## 4. Claims
 
-## 3. Bridge preflight
+A new bridge thread normally creates its own immutable claim after resolving current metadata.
 
-A new bridge thread must:
+ChatGPT may create a `COORDINATOR_RECOVERY_CLAIM` when:
 
-1. resolve its Asynchronia skill source;
-2. verify the requested slot is open and unclaimed;
-3. create the immutable claim;
-4. return the compact bridge preflight.
+- the slot is open and unclaimed;
+- Codex already identified the correct logical thread and lane;
+- claim publication failed only because Codex lacked Git credentials or hit a stale historical metadata blocker;
+- the current baseline and exact claim path are known.
+
+A coordinator recovery claim must contain:
+
+- `CLAIM_ISSUER: CHATGPT_COORDINATOR_RECOVERY`;
+- bridge slot, logical thread id, task id, lane id;
+- actual high-entropy claim token;
+- mailbox parent commit;
+- authorized primary baseline;
+- exact original task inbox and current baseline inbox;
+- expected outbox;
+- statement that it authorizes no primary write.
+
+The matching logical Codex thread may adopt that remote claim by reading its token from the immutable claim file. It must not create a second local or remote claim.
 
 The claim path and claim token are separate fields. A path is never a claim token.
 
-The compact preflight contains:
+## 5. Compact bridge preflight
 
-- bridge slot, thread id, lane id, task id;
+After a valid claim exists, return:
+
+- bridge slot, logical thread id, lane id, task id;
 - actual claim token and claim path;
 - Asynchronia skill source and version;
 - task classification;
 - runtime-safety verdict;
 - parallel collision verdict;
+- `evaluated pair count: 12/12`;
 - recommended model and reasoning;
-- why the next cheaper option is insufficient;
-- why the next stronger option is unnecessary;
+- why the next cheaper pair is insufficient;
+- why the next stronger pair is unnecessary;
 - exact read scope, write scope, dependencies and blockers;
-- actual active model: `USER_SELECTED_UNVERIFIED` unless externally proven.
+- actual active model as `USER_SELECTED_UNVERIFIED` unless externally proven.
 
-A full 12-row model matrix is not required in bridge preflight. The selector must evaluate all 12 pairs internally and report `evaluated pair count: 12/12` plus the relevant cost frontier only.
+The full 12-row model matrix is not required. A valid preflight ends with exactly one fenced `CONTINUE` block and nothing after it. A blocked response contains no `CONTINUE`.
 
-A valid preflight ends with exactly one fenced `CONTINUE` block and nothing after it. A blocked response contains no `CONTINUE`.
-
-## 4. Resilient mailbox write
+## 6. Resilient mailbox write
 
 An existing stale mailbox worktree must never block a claim or outbox.
 
-Use one of these isolated modes:
+Use either:
 
-### Mode A: clean existing mailbox checkout
+- a clean existing mailbox checkout already at the freshly fetched parent; or
+- a fresh temporary detached worktree at that exact parent.
 
-Use it only when its `HEAD` already equals the freshly fetched mailbox parent and it has no changes.
+Detached mode must create a direct-child commit, change exactly one authorized path, push without force to `coordination/chatgpt-codex-bridge`, refetch, verify the remote head, and remove only the temporary worktree.
 
-### Mode B: fresh detached worktree
+Never reset, clean, update, delete, or reuse a stale existing mailbox worktree. Retry the same slot up to three times after races.
 
-Preferred fallback:
+## 7. Publication-auth fallback
 
-1. fetch the mailbox branch and record `MAILBOX_PARENT_COMMIT`;
-2. create a temporary detached worktree at that exact commit;
-3. write only the authorized claim or outbox path;
-4. commit in detached HEAD;
-5. prove the new commit has exactly one parent equal to `MAILBOX_PARENT_COMMIT`;
-6. prove its diff contains exactly the authorized path;
-7. push without force using `git push origin HEAD:refs/heads/coordination/chatgpt-codex-bridge`;
-8. refetch and verify the remote head equals the new commit;
-9. remove the temporary worktree.
+If Codex can execute the lane but cannot publish a claim or outbox solely because Git credentials are unavailable:
 
-Do not update, reset, clean, delete, or reuse a stale existing mailbox worktree. If the remote head moves before push, discard only the temporary detached worktree, refetch, and retry the same slot up to three times.
+- do not alter the primary repository;
+- preserve the local detached commit only as diagnostic evidence;
+- return `BLOCKED_MAILBOX_AUTH`;
+- include the complete intended immutable mailbox payload in the response;
+- identify the exact authorized mailbox path;
+- instruct the user to return to ChatGPT with the matching numbered bridge command and the report.
 
-Branch checkout identity is not required in detached mode. Exact parent identity, exact diff scope, non-force fast-forward push, and post-push verification are required.
+ChatGPT may independently validate and publish that exact payload through its repository connector. A local-only commit is never accepted as remote publication.
 
-## 5. Retired blockers
+## 8. Retired blockers
 
-The following are not valid blockers for a numbered bridge command:
+These are not valid blockers:
 
 - unavailable native plugin telemetry;
-- inability to invoke a plugin through hidden UI machinery;
-- a missing local `.ai-bridge/STATE.md` path when remote STATE is readable;
+- inability to invoke hidden plugin UI machinery;
+- missing local `.ai-bridge/STATE.md` when remote STATE is readable;
+- stale mutable fields in an original task inbox when the current baseline inbox supersedes them;
 - a stale existing mailbox worktree;
 - unrelated dirty primary-worktree files.
 
-Real blockers remain: wrong repository, unreadable remote policy/state, closed or already-claimed slot, primary baseline mismatch, native permission refusal, repeated mailbox race after three retries, or scope collision.
+Real blockers remain: wrong repository, unreadable current remote policy/state/baseline inbox, closed slot, claim owned by another logical thread, current primary baseline mismatch, native permission refusal, repeated mailbox race after three retries, or actual scope collision.
