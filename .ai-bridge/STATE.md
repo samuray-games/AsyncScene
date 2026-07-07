@@ -3,7 +3,7 @@
 BRIDGE_PROTOCOL: 2.4
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-07T23:25:00+09:00
+STATE_UPDATED_AT: 2026-07-08T00:11:42+09:00
 USER_COMMAND_SLOT_1: мост 1
 USER_COMMAND_SLOT_2: мост 2
 USER_COMMAND_SLOT_3: мост 3
@@ -22,22 +22,24 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Current status
 
-- Bridge status: `PROTOCOL_2_4_WAVE_2_BOOTSTRAP_AND_PREFLIGHT_CORRECTED`
-- Open executable slots: `1`, `2`, `3`
-- Slot 1 phase: `MODEL_PREFLIGHT_ONLY`
+- Bridge status: `PROTOCOL_2_4_WAVE_2_SLOT_1_ACCEPTED`
+- Open executable slots: `2`, `3`
+- Slot 1 phase: `CLOSED_PASS_ACCEPTED`
 - Slot 2 phase: `MODEL_PREFLIGHT_ONLY`
 - Slot 3 phase: `MODEL_PREFLIGHT_ONLY`
-- Active claims: `3`
+- Active claims: `2`
 - Accepted progress: `53/100`
 - Working readiness: `59/100`
-- Active block: `Wave 2 decision and collision packages`
+- Active block: `Wave 2 Boomer and Alpha decision packages`
 - Product/runtime changes in this wave: `NONE`
 - Safari status in this wave: `N/A - read-only decision packages`
-- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-03-chatgpt.md`
-- Model selection status: `PENDING_CODEX_PREFLIGHT_12_OF_12`
+- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-030-04-chatgpt.md`
+- Slot 1 decision: `PASS_ACCEPTED / NONE_READ_ONLY_COORDINATION_PACKAGE`
+- Slot 1 outbox commit: `7c126060bbbd96be07f12c1e876f72cd01b5265f`
+- Model selection status for open slots: `PENDING_CODEX_PREFLIGHT_12_OF_12`
 - Coordinator model recommendations: `VOID`
 - Remote-first bootstrap status: `PUBLISHED`
-- Main-plan drift: `STAGE6_PARALLEL_EXECUTION_PLAN.md still contains 47/100 and unchecked Wave 1 Slot 2/3 or P0.9 fields; Slot 1 owns read-only reconciliation evidence only.`
+- Main-plan drift: `STAGE6_PARALLEL_EXECUTION_PLAN.md still contains 47/100 and unchecked Wave 1 Slot 2/3 or P0.9 fields; Slot 1 documented the exact stale fields without editing main.`
 
 ## Protocol 2.4 rules
 
@@ -59,25 +61,28 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - The user selects the actual model in the Codex interface after preflight.
 - Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence.
 
-## Bridge Slot 1 - current Wave 2 assignment
+## Bridge Slot 1 - closed Wave 2 assignment
 
 - User command: `мост 1`
 - Thread: `BRIDGE-20260707-030`
 - Lane: `S6-T2-WAVE2-COLLISION-PREFLIGHT`
 - Task: `TASK-S6-PAR-T2`
-- Phase: `MODEL_PREFLIGHT_ONLY`
+- Phase: `CLOSED_PASS_ACCEPTED`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-01-chatgpt.md`
 - Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260707-030-claim-codex.md`
 - Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
 - Claim token: `READ_FROM_IMMUTABLE_CLAIM_FILE`
 - Claim commit: `410c49a38a421d0f1ab3a87b34e92d7d1be3c9d9`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260707-030-02-codex.md`
+- Outbox: `.ai-bridge/outbox/BRIDGE-20260707-030-02-codex.md`
+- Outbox commit: `7c126060bbbd96be07f12c1e876f72cd01b5265f`
+- Closure decision: `.ai-bridge/inbox/BRIDGE-20260707-030-04-chatgpt.md`
+- Decision: `PASS_ACCEPTED / NONE_READ_ONLY_COORDINATION_PACKAGE`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
-- Claim status: `ACTIVE`
-- Atomic objective: current-status reconciliation, symbol-level collision matrix and future serialization plan without copy decisions or writes.
-- Model selection: `PENDING_CODEX_PREFLIGHT_12_OF_12`
+- Claim status: `CLOSED`
+- Accepted deliverable: current-status reconciliation, 13-row symbol-level collision matrix, stable-read dependencies, serialized future ordering, zero-overlap implementation split and Slot 1 shared-doc ownership recommendation.
+- Progress weight: `NONE`
 
 ## Bridge Slot 2 - current Wave 2 assignment
 
@@ -127,22 +132,22 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Parallel ownership
 
-- All three Wave 2 lanes are read-only and may run concurrently.
-- Slot 1 owns only collision and status-reconciliation evidence.
+- Slot 2 and Slot 3 remain read-only and may run concurrently.
+- Slot 1 collision package is accepted and closed.
 - Slot 2 owns only Boomer decision validation.
 - Slot 3 owns only Alpha decision construction and runtime evidence contracts.
 - No current slot owns a primary product file.
 - Resolver, mirrors, shared system copy, DM action registry, Like routing, events/report wiring, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized where they overlap.
-- Shared `TASKS.md` and `PROJECT_MEMORY.md` updates have one owner per implementation wave. Current recommendation: Slot 1.
+- Slot 1 is the accepted future owner for shared `TASKS.md` and `PROJECT_MEMORY.md` reconciliation.
 - Root `AGENTS.md` still contains historical aliases; current `AGENTS.override.md` and `GIT_PULL.md` supersede that Git transport clause until root cleanup is published.
 
 ## Next coordinator action
 
-1. Run the one-time remote-first bootstrap in the stale local checkout without discarding dirty files.
-2. User runs the three numbered bridge commands in their corresponding Codex slots.
-3. Each slot performs its own 12/12 model preflight and waits for same-thread `CONTINUE`.
-4. ChatGPT independently verifies each published outbox.
-5. User resolves Boomer PD-01, PD-02 and PD-03 after Slot 2 validation.
-6. ChatGPT freezes accepted Boomer and Alpha decision tables.
-7. Build Wave 3 validation and exact implementation collision map.
+1. User runs `мост 2` and `мост 3` in their corresponding Codex slots.
+2. Each open slot performs its own 12/12 model preflight and waits for same-thread `CONTINUE`.
+3. ChatGPT independently verifies each published outbox.
+4. User resolves Boomer PD-01, PD-02 and PD-03 after Slot 2 validation.
+5. ChatGPT freezes accepted Boomer and Alpha decision tables.
+6. Reconcile the accepted Slot 1 collision map against those frozen tables.
+7. Build serialized implementation waves.
 8. Do not request Safari acceptance until exact implementation commits are deployed and artifact identity matches.
