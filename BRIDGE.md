@@ -82,7 +82,8 @@ After the user selects the recommended model and sends `CONTINUE` in the same Co
 - Refetch after push and prove the remote mailbox head equals the new mailbox commit.
 - When primary write scope is `NONE`, also prove `origin/main` still equals the authorized primary baseline.
 - Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`; no mailbox commit, no push, no fallback to `main`, and no guessed repair.
-- A claimed `mailbox outbox only` result is invalid unless the final report includes the mailbox parent SHA, mailbox commit SHA, verified remote mailbox head SHA, current `main` SHA before and after, the exact changed-path list, and an explicit statement that the mailbox commit is not based on `main`.
+- A claimed `mailbox outbox only` result is invalid unless the final report includes the mailbox parent SHA, the mailbox commit SHA if one was created, the verified remote mailbox head SHA after push, current `main` SHA before and after, the exact changed-path list, and an explicit statement that the mailbox commit is not based on `main`.
+- A claimed mailbox outbox is only complete after the coordinator independently re-resolves the remote mailbox branch head post-push, verifies ancestry and exact-path scope, and records the exact mailbox commit/head SHA in the immutable closure decision.
 - If a mailbox file is accidentally written to `main`, stop and report exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
 - The only allowed mailbox changes are the exact outbox path required by the active inbox and any state update explicitly owned by ChatGPT, not Codex.
 
