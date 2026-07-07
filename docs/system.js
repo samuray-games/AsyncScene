@@ -145,16 +145,22 @@ window.Game = window.Game || {};
     "income_event",
     "expense_event",
     "economy_neutral",
-    "reputation_increased",
-    "reputation_decreased",
-    "reputation_unchanged",
-    "respect_gained",
-    "respect_lost",
-    "disrespect_event",
-    "reputation_high",
-    "reputation_low",
-    "reputation_recovered",
-    "reputation_damaged",
+    "boomer_points_low_battle",
+    "boomer_report_no",
+    "boomer_points_delta_plus_one",
+    "boomer_rep_delta_plus_one",
+    "boomer_points_delta_vote_cost",
+    "boomer_points_delta_refund",
+    "boomer_points_delta_refund_majority",
+    "boomer_points_delta_remainder_win",
+    "boomer_rematch_cost",
+    "boomer_dm_reaction",
+    "boomer_dm_invite",
+    "boomer_battle_result",
+    "alpha_escape_needs_points",
+    "alpha_escape_paid",
+    "alpha_escape_vote_cost",
+    "alpha_training_sent",
   ]);
   const SYSTEM_PROFILE_TEXT_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -176,16 +182,6 @@ window.Game = window.Game || {};
       income_event: "Доход получен.",
       expense_event: "Расход учтён.",
       economy_neutral: "Баланс не изменился.",
-      reputation_increased: "Репутация выросла.",
-      reputation_decreased: "Репутация снизилась.",
-      reputation_unchanged: "Репутация не изменилась.",
-      respect_gained: "Вас стали уважать больше.",
-      respect_lost: "Уважение снизилось.",
-      disrespect_event: "К вам стали относиться хуже.",
-      reputation_high: "У вас сильная репутация.",
-      reputation_low: "Репутация слабая.",
-      reputation_recovered: "Репутация восстановилась.",
-      reputation_damaged: "Репутация пострадала.",
     }),
     zoomer: Object.freeze({
       not_enough_money: "Кошелёк в нуле 💀",
@@ -206,22 +202,52 @@ window.Game = window.Game || {};
       income_event: "Плюс к кассе.",
       expense_event: "Кассу подрезало.",
       economy_neutral: "По монетам без движухи.",
-      reputation_increased: "Репа подросла.",
-      reputation_decreased: "Репа просела.",
-      reputation_unchanged: "По репе без движухи.",
-      respect_gained: "Тебя начали респектить.",
-      respect_lost: "Респект просел.",
-      disrespect_event: "На тебя косо смотрят.",
-      reputation_high: "Репа на весу.",
-      reputation_low: "Репа тонкая.",
-      reputation_recovered: "Репа отлипла.",
-      reputation_damaged: "Репу помяло.",
+    }),
+    boomer: Object.freeze({
+      not_enough_money: "Недостаточно 💰.",
+      generic_success: "Готово.",
+      boomer_points_low_battle: "Недостаточно 💰 для баттла.",
+      boomer_report_no: "Сообщение отклонено. Штраф: -5 💰.",
+      boomer_points_delta_plus_one: "+1 💰",
+      boomer_rep_delta_plus_one: "+1 ⭐",
+      boomer_points_delta_vote_cost: "Участие в голосовании: -{voteCost} 💰.",
+      boomer_points_delta_refund: "Возврат: +1 💰.",
+      boomer_points_delta_refund_majority: "Возврат большинству: +1 💰.",
+      boomer_points_delta_remainder_win: "Остаток победителю: +1 💰.",
+      boomer_rematch_cost: "Реванш: -{rematchCost} 💰.",
+      boomer_dm_reaction: "Реакция {name} на {target}.",
+      boomer_dm_invite: "Приглашение от {name}: {guest} к {target}.",
+      boomer_battle_result: "Баттл с {oppName}: {text}.",
+    }),
+    alpha: Object.freeze({
+      not_enough_money: "Кошелёк в нуле 💀",
+      generic_success: "Есть.",
+      alpha_escape_needs_points: "Мало 💰.",
+      alpha_escape_paid: "Уйти: 1💰",
+      alpha_escape_vote_cost: "Уйти: −{escapeCost}💰",
+      alpha_training_sent: "Аргумент: {teacher} → {student}.",
     }),
   });
   const SYSTEM_PROFILE_TEXT_ROUTE_MAP = Object.freeze({
     "errors.insufficientPoints": "not_enough_money",
+    "errors.pointsLowBattle": "boomer_points_low_battle",
+    "errors.reportNo": "boomer_report_no",
     "notifications.saved": "generic_success",
+    "notifications.pointsDeltaPlusOne": "boomer_points_delta_plus_one",
+    "notifications.repDeltaPlusOne": "boomer_rep_delta_plus_one",
+    "notifications.pointsDeltaVoteCost": "boomer_points_delta_vote_cost",
+    "notifications.trainingSent": "alpha_training_sent",
+    "notifications.escapePaid": "alpha_escape_paid",
+    "notifications.pointsDeltaRefund": "boomer_points_delta_refund",
+    "notifications.pointsDeltaRefundMajority": "boomer_points_delta_refund_majority",
+    "notifications.pointsDeltaRemainderWin": "boomer_points_delta_remainder_win",
+    "notifications.rematchCost": "boomer_rematch_cost",
+    "notifications.escapeVoteCost": "alpha_escape_vote_cost",
     "systemEvents.ready": "generic_success",
+    "systemEvents.dmReaction": "boomer_dm_reaction",
+    "systemEvents.dmInvite": "boomer_dm_invite",
+    "systemEvents.battleResult": "boomer_battle_result",
+    "warnings.escapeNeedsPoints": "alpha_escape_needs_points",
   });
 
   const SYSTEM_TEXT_TEMPLATES_RU = Object.freeze({
@@ -455,7 +481,8 @@ window.Game = window.Game || {};
     const profile = data && typeof data.getUiProfile === "function"
       ? String(data.getUiProfile() || "millennial").trim().toLowerCase()
       : String((data && data.UI_PROFILE) || "millennial").trim().toLowerCase();
-    return (profile === "zoomer" || profile === "alpha") ? "zoomer" : "millennial";
+    if (profile === "millennial" || profile === "zoomer" || profile === "boomer" || profile === "alpha") return profile;
+    return "millennial";
   }
 
   function resolveProfileTextEntry(key){
@@ -926,7 +953,7 @@ window.Game = window.Game || {};
     const covered = Object.freeze([
       { category: 'buttons', source: 'Data.TEXTS.genz.tie_call_to_action', before: 'Вписывайся - кликни на имя, за кого ты.', after: 'Выбери имя — выбери сторону.', meaning: 'CTA still tells the player to click a name and choose a side' },
       { category: 'buttons', source: 'Data.TEXTS.genz.events_close_extra', before: 'Закрыть лишнее', after: 'Свернуть', meaning: 'button still closes/collapses extra event UI' },
-      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Свалить за взятку {X} 💰', after: 'Свалить: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
+      { category: 'buttons', source: 'Data.TEXTS.genz.escape_button_label', before: 'Выйти за взятку {X} 💰', after: 'Выйти: {X} 💰', meaning: 'escape button still states the same escape action and unchanged X points cost' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_ok', before: 'Принято. Ты вписался.', after: 'Голос учтён.', meaning: 'vote result still confirms the vote was accepted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_already', before: 'Ты уже вписался.', after: 'Уже учтён.', meaning: 'vote result still says the vote was already counted' },
       { category: 'toasts', source: 'Data.TEXTS.genz.vote_fail', before: 'Не удалось вписаться.', after: 'Голос не учтён.', meaning: 'vote result still says the vote was not accepted' },
@@ -2369,7 +2396,7 @@ window.Game = window.Game || {};
       { source: "Data.START_SCREEN.actions.start", label: "Старт" },
       { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
       { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
-      { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
+      { source: "Data.TEXTS.genz.escape_button_label", label: "Выйти: {X} 💰" },
       { source: "UI.chat.send", label: "Заслать" },
       { source: "UI.report.submit", label: "Сдать" },
       { source: "UI.dm.battle", label: "баттл" },
@@ -3667,9 +3694,6 @@ window.Game = window.Game || {};
       && result.failedChecks.length === 0;
     return result;
   };
-  Game.__DEV.smokeFakeToneZonesOnce = function smokeFakeToneZonesOnce(){
-    return Game.__DEV.smokeFakeToneFiltersOnce();
-  };
 
   const FAKE_TONE_SAMPLE_AUDIT_BUILD_TAG = "build_2026_06_12_step8_5_sampled_fake_tone_smoke_self_alias_fix";
   const FAKE_TONE_SAMPLE_AUDIT_COMMIT = "step8_5_sampled_fake_tone_smoke_self_alias_fix";
@@ -3692,6 +3716,15 @@ window.Game = window.Game || {};
     Object.freeze({ surface: "hints", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
     Object.freeze({ surface: "new feature texts", checkedBy: "Step 8 fake-tone checks", guards: FUTURE_TEXT_ANTI_FAKE_GATE_GUARDS }),
   ]);
+
+  function fakeToneSampleAuditAddSample(samples, entry, index){
+    samples.push({
+      zone: entry.zone,
+      source: entry.source,
+      text: entry.text,
+      sampleIndex: index,
+    });
+  }
 
   function fakeToneSampleAuditPickEntries(entries){
     const byZone = new Map();
@@ -3861,6 +3894,9 @@ window.Game = window.Game || {};
       && result.forbiddenRemaining.length === 0
       && result.failedChecks.length === 0;
     return result;
+  };
+  Game.__DEV.smokeFakeToneZonesOnce = function smokeFakeToneZonesOnce(){
+    return Game.__DEV.smokeFakeToneFiltersOnce();
   };
 
   const Z_PROFILE_ACCEPTANCE_BUILD_TAG = "build_2026_06_12_step8_7_z_profile_acceptance_smoke";
@@ -4886,6 +4922,429 @@ window.Game = window.Game || {};
       && result.failedChecks.length === 0;
     return result;
   };
+
+  const BOOMER_DIFF_BUILD_TAG = "build_2026_06_16_step1_1_boomer_source_delta_only";
+  const BOOMER_DIFF_COMMIT = "step1_1_boomer_source_delta_only";
+  const BOOMER_DIFF_SMOKE_VERSION = "step1_1_boomer_source_delta_only_v20260616_001";
+  Game.__DEV.smokeBoomerDiffStep11SourceOnce = function smokeBoomerDiffStep11SourceOnce(){
+    const result = {
+      ok: false,
+      buildTag: BOOMER_DIFF_BUILD_TAG,
+      commit: BOOMER_DIFF_COMMIT,
+      smokeVersion: BOOMER_DIFF_SMOKE_VERSION,
+      baseProfile: "UI_PROFILE_MILLENNIAL",
+      documentName: "UI_PROFILE_BOOMER_DIFF",
+      docPresent: false,
+      referencesMillennialBase: false,
+      deltaOnly: false,
+      hasStandaloneBoomerProfile: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, { code, detail }); addUnique(result.failedChecks, code); };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      result.docPresent = !!docRes.ok;
+      if (!docRes.ok) fail("document_exists", { path: "UI_PROFILE_BOOMER_DIFF.md", reason: docRes.reason || "unavailable" });
+      const text = normalize(docRes.ok ? String(docRes.text || "") : "");
+      result.referencesMillennialBase = /UI_PROFILE_MILLENNIAL/.test(text) && /(base|source)/i.test(text);
+      result.deltaOnly = /delta-only/i.test(text);
+      result.hasStandaloneBoomerProfile = /standalone\s+boomer\s+profile\s+container/i.test(text) || /separate\s+boomer\s+profile/i.test(text);
+      [
+        "UI_PROFILE_BOOMER_DIFF",
+        "delta-only",
+        "UI_PROFILE_MILLENNIAL",
+        "Source delta only",
+        "Base/source profile: `UI_PROFILE_MILLENNIAL`.",
+        "Scope: boomer is delta-only.",
+        "No standalone boomer profile container is defined here.",
+        "No runtime UI logic is defined here.",
+        "No copy duplication of millennial as a separate profile is allowed here.",
+        "This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`."
+      ].forEach((phrase) => {
+        if (!text.includes(phrase)) {
+          addUnique(result.missingCoverage, phrase);
+          fail("required_phrase_missing", phrase);
+        }
+      });
+      if (!result.referencesMillennialBase) fail("references_millennial_base", "missing millennial base/source linkage");
+      if (!result.deltaOnly) fail("delta_only", "missing delta-only contract");
+      if (result.hasStandaloneBoomerProfile) fail("no_standalone_boomer_profile", "standalone boomer profile detected");
+      if (/```|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(text)) fail("text_only_contract", "contains_code_like_markup");
+      if (/Console\.txt/i.test(text)) { addUnique(result.forbiddenRemaining, "console_txt"); fail("forbidden_console_txt", "Console.txt reference detected"); }
+      if (!/delta-only\s+document\s+поверх\s+`UI_PROFILE_MILLENNIAL`/i.test(text)) fail("derived_from_millennial_source", "missing direct derivation statement");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.docPresent === true
+      && result.referencesMillennialBase === true
+      && result.deltaOnly === true
+      && result.hasStandaloneBoomerProfile === false
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.baseProfile === "UI_PROFILE_MILLENNIAL"
+      && result.documentName === "UI_PROFILE_BOOMER_DIFF";
+    return result;
+  };
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerDiffStep11SourceOnce = Game.__DEV.smokeBoomerDiffStep11SourceOnce;
+
+  const BOOMER_DIFF_FIX1_BUILD_TAG = "build_2026_06_16_step1_1_boomer_source_delta_only_fix1";
+  const BOOMER_DIFF_FIX1_COMMIT = "step1_1_boomer_source_delta_only_fix1";
+  const BOOMER_DIFF_FIX1_SMOKE_VERSION = "step1_1_boomer_source_delta_only_fix1_v20260616_002";
+  Game.__DEV.smokeBoomerDiffStep11SourceFix1Once = function smokeBoomerDiffStep11SourceFix1Once(){
+    const result = {
+      ok: false,
+      buildTag: BOOMER_DIFF_FIX1_BUILD_TAG,
+      commit: BOOMER_DIFF_FIX1_COMMIT,
+      smokeVersion: BOOMER_DIFF_FIX1_SMOKE_VERSION,
+      baseProfile: "UI_PROFILE_MILLENNIAL",
+      documentName: "UI_PROFILE_BOOMER_DIFF",
+      docPresent: false,
+      referencesMillennialBase: false,
+      deltaOnly: false,
+      hasStandaloneBoomerProfile: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, { code, detail }); addUnique(result.failedChecks, code); };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const add = (value) => { if (!value || candidates.includes(value)) return; candidates.push(value); };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText, path };
+        return { ok: false, reason: `http_${xhr.status}`, path };
+      } catch (err) {
+        return { ok: false, reason: err && err.message ? String(err.message) : String(err), path };
+      }
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      result.docPresent = !!docRes.ok;
+      if (!docRes.ok) fail("document_exists", { path: "UI_PROFILE_BOOMER_DIFF.md", reason: docRes.reason || "unavailable" });
+      const text = normalize(docRes.ok ? String(docRes.text || "") : "");
+      result.referencesMillennialBase = /UI_PROFILE_MILLENNIAL/.test(text) && /(base|source)/i.test(text);
+      result.deltaOnly = /delta-only/i.test(text);
+      result.hasStandaloneBoomerProfile = /standalone\s+boomer\s+profile\s+container/i.test(text) || /separate\s+boomer\s+profile/i.test(text);
+      [
+        "UI_PROFILE_BOOMER_DIFF",
+        "delta-only",
+        "UI_PROFILE_MILLENNIAL",
+        "Source delta only",
+        "Base/source profile: `UI_PROFILE_MILLENNIAL`.",
+        "Scope: boomer is delta-only.",
+        "No standalone boomer profile container is defined here.",
+        "No runtime UI logic is defined here.",
+        "No copy duplication of millennial as a separate profile is allowed here.",
+        "This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`."
+      ].forEach((phrase) => {
+        if (!text.includes(phrase)) {
+          addUnique(result.missingCoverage, phrase);
+          fail("required_phrase_missing", phrase);
+        }
+      });
+      if (!result.referencesMillennialBase) fail("references_millennial_base", "missing millennial base/source linkage");
+      if (!result.deltaOnly) fail("delta_only", "missing delta-only contract");
+      if (result.hasStandaloneBoomerProfile) fail("no_standalone_boomer_profile", "standalone boomer profile detected");
+      if (/```|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(text)) fail("text_only_contract", "contains_code_like_markup");
+      if (/Console\.txt/i.test(text)) { addUnique(result.forbiddenRemaining, "console_txt"); fail("forbidden_console_txt", "Console.txt reference detected"); }
+      if (!/delta-only\s+document\s+поверх\s+`UI_PROFILE_MILLENNIAL`/i.test(text)) fail("derived_from_millennial_source", "missing direct derivation statement");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.docPresent === true
+      && result.referencesMillennialBase === true
+      && result.deltaOnly === true
+      && result.hasStandaloneBoomerProfile === false
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.baseProfile === "UI_PROFILE_MILLENNIAL"
+      && result.documentName === "UI_PROFILE_BOOMER_DIFF";
+    return result;
+  };
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerDiffStep11SourceFix1Once = Game.__DEV.smokeBoomerDiffStep11SourceFix1Once;
+
+  const BOOMER_DIFF_FIX2_BUILD_TAG = "build_2026_06_16_step1_1_boomer_source_delta_only_fix2";
+  const BOOMER_DIFF_FIX2_COMMIT = "step1_1_boomer_source_delta_only_fix2";
+  const BOOMER_DIFF_FIX2_SMOKE_VERSION = "step1_1_boomer_source_delta_only_fix2_v20260616_003";
+  Game.__DEV.smokeBoomerDiffStep11SourceFix2Once = function smokeBoomerDiffStep11SourceFix2Once(){
+    const result = {
+      ok: false,
+      buildTag: BOOMER_DIFF_FIX2_BUILD_TAG,
+      commit: BOOMER_DIFF_FIX2_COMMIT,
+      smokeVersion: BOOMER_DIFF_FIX2_SMOKE_VERSION,
+      baseProfile: "UI_PROFILE_MILLENNIAL",
+      documentName: "UI_PROFILE_BOOMER_DIFF",
+      docPresent: false,
+      referencesMillennialBase: false,
+      deltaOnly: false,
+      hasStandaloneBoomerProfile: false,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, { code, detail }); addUnique(result.failedChecks, code); };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const add = (value) => { if (!value || candidates.includes(value)) return; candidates.push(value); };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText, path };
+        return { ok: false, reason: `http_${xhr.status}`, path };
+      } catch (err) {
+        return { ok: false, reason: err && err.message ? String(err.message) : String(err), path };
+      }
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      result.docPresent = !!docRes.ok;
+      if (!docRes.ok) fail("document_exists", { path: "UI_PROFILE_BOOMER_DIFF.md", reason: docRes.reason || "unavailable" });
+      const text = normalize(docRes.ok ? String(docRes.text || "") : "");
+      result.referencesMillennialBase = /Base profile = `UI_PROFILE_MILLENNIAL`/i.test(text);
+      result.deltaOnly = /Boomer is delta-only\./i.test(text);
+      result.hasStandaloneBoomerProfile = /standalone\s+boomer\s+profile/i.test(text) || /independent\s+profile/i.test(text);
+      [
+        "UI_PROFILE_BOOMER_DIFF",
+        "Base profile = `UI_PROFILE_MILLENNIAL`.",
+        "Boomer is delta-only.",
+        "Boomer is not an independent profile.",
+        "No runtime UI logic is defined here.",
+        "This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`."
+      ].forEach((phrase) => {
+        if (!text.includes(phrase)) {
+          addUnique(result.missingCoverage, phrase);
+          fail("required_phrase_missing", phrase);
+        }
+      });
+      if (!result.referencesMillennialBase) fail("references_millennial_base", "missing base profile = UI_PROFILE_MILLENNIAL");
+      if (!result.deltaOnly) fail("delta_only", "missing boomer is delta-only");
+      if (result.hasStandaloneBoomerProfile) fail("no_standalone_boomer_profile", "boomer classified as standalone or independent");
+      if (/```|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(text)) fail("text_only_contract", "contains_code_like_markup");
+      if (/Console\.txt/i.test(text)) { addUnique(result.forbiddenRemaining, "console_txt"); fail("forbidden_console_txt", "Console.txt reference detected"); }
+      if (!/This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`/i.test(text)) fail("derived_from_millennial_source", "missing direct derivation statement");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.docPresent === true
+      && result.referencesMillennialBase === true
+      && result.deltaOnly === true
+      && result.hasStandaloneBoomerProfile === false
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.baseProfile === "UI_PROFILE_MILLENNIAL"
+      && result.documentName === "UI_PROFILE_BOOMER_DIFF";
+    return result;
+  };
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerDiffStep11SourceFix2Once = Game.__DEV.smokeBoomerDiffStep11SourceFix2Once;
+
+  const BOOMER_DIFF_FIX3_BUILD_TAG = "build_2026_06_16_step1_1_boomer_source_delta_only_fix3";
+  const BOOMER_DIFF_FIX3_COMMIT = "step1_1_boomer_source_delta_only_fix3";
+  const BOOMER_DIFF_FIX3_SMOKE_VERSION = "step1_1_boomer_source_delta_only_fix3_v20260616_004";
+  Game.__DEV.smokeBoomerDiffStep11SourceFix3Once = function smokeBoomerDiffStep11SourceFix3Once(){
+    const result = {
+      ok: false,
+      buildTag: BOOMER_DIFF_FIX3_BUILD_TAG,
+      commit: BOOMER_DIFF_FIX3_COMMIT,
+      smokeVersion: BOOMER_DIFF_FIX3_SMOKE_VERSION,
+      baseProfile: "UI_PROFILE_MILLENNIAL",
+      documentName: "UI_PROFILE_BOOMER_DIFF",
+      docPresent: false,
+      referencesMillennialBase: false,
+      deltaOnly: false,
+      hasStandaloneBoomerProfile: false,
+      standaloneDetectionSources: [],
+      standaloneDetectionCount: 0,
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const addUnique = (arr, item) => { const key = JSON.stringify(item); if (!arr.some((x) => JSON.stringify(x) === key)) arr.push(item); };
+    const fail = (code, detail) => { addUnique(result.failures, { code, detail }); addUnique(result.failedChecks, code); };
+    const normalize = (text) => String(text || "").replace(/\r\n?/g, "\n");
+    const resolveDocCandidates = (fileName) => {
+      const candidates = [];
+      const add = (value) => { if (!value || candidates.includes(value)) return; candidates.push(value); };
+      const baseUris = [];
+      if (typeof document !== "undefined" && document.baseURI) baseUris.push(document.baseURI);
+      if (typeof location !== "undefined" && location.origin) {
+        baseUris.push(`${location.origin}/AsyncScene/`);
+        baseUris.push(`${location.origin}/`);
+        baseUris.push(`${location.origin}/__dev__/docs/`);
+      }
+      baseUris.forEach((baseUri) => { try { add(new URL(fileName, baseUri).href); } catch (_) {} });
+      if (typeof location !== "undefined" && location.origin) {
+        add(`${location.origin}/AsyncScene/${fileName}`);
+        add(`${location.origin}/__dev__/docs/${fileName}`);
+        add(`${location.origin}/docs/${fileName}`);
+        add(`${location.origin}/${fileName}`);
+      }
+      add(`/AsyncScene/${fileName}`);
+      add(`/__dev__/docs/${fileName}`);
+      add(`/docs/${fileName}`);
+      add(`/${fileName}`);
+      return candidates;
+    };
+    const fetchTextSync = (path) => {
+      try {
+        if (typeof XMLHttpRequest !== "function") return { ok: false, reason: "xhr_unavailable", path };
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", path, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) return { ok: true, text: xhr.responseText, path };
+        return { ok: false, reason: `http_${xhr.status}`, path };
+      } catch (err) {
+        return { ok: false, reason: err && err.message ? String(err.message) : String(err), path };
+      }
+    };
+    const fetchTextFromCandidates = (fileName) => {
+      let lastResult = null;
+      for (const url of resolveDocCandidates(fileName)) {
+        const res = fetchTextSync(url);
+        const annotated = { ...res, path: url };
+        if (res.ok) return annotated;
+        lastResult = annotated;
+      }
+      return lastResult || { ok: false, reason: "unavailable", path: null };
+    };
+    try {
+      const docRes = fetchTextFromCandidates("UI_PROFILE_BOOMER_DIFF.md");
+      result.docPresent = !!docRes.ok;
+      if (!docRes.ok) fail("document_exists", { path: "UI_PROFILE_BOOMER_DIFF.md", reason: docRes.reason || "unavailable" });
+      const text = normalize(docRes.ok ? String(docRes.text || "") : "");
+      result.referencesMillennialBase = /Base profile = `UI_PROFILE_MILLENNIAL`/i.test(text);
+      result.deltaOnly = /Boomer is delta-only\./i.test(text);
+      const detectionSources = [
+        { label: "standalone_boomer_profile_container", re: /standalone\s+boomer\s+profile\s+container/i },
+        { label: "separate_boomer_profile", re: /separate\s+boomer\s+profile/i },
+        { label: "independent_boomer_profile", re: /independent\s+boomer\s+profile/i },
+        { label: "boomer_is_an_independent_profile", re: /boomer\s+is\s+an?\s+independent\s+profile/i }
+      ];
+      detectionSources.forEach((source) => {
+        if (source.re.test(text)) addUnique(result.standaloneDetectionSources, source.label);
+      });
+      result.standaloneDetectionCount = result.standaloneDetectionSources.length;
+      result.hasStandaloneBoomerProfile = result.standaloneDetectionCount > 0;
+      [
+        "UI_PROFILE_BOOMER_DIFF",
+        "Base profile = `UI_PROFILE_MILLENNIAL`.",
+        "Boomer is delta-only.",
+        "Boomer is not an independent profile.",
+        "This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`."
+      ].forEach((phrase) => {
+        if (!text.includes(phrase)) {
+          addUnique(result.missingCoverage, phrase);
+          fail("required_phrase_missing", phrase);
+        }
+      });
+      if (!result.referencesMillennialBase) fail("references_millennial_base", "missing base profile = UI_PROFILE_MILLENNIAL");
+      if (!result.deltaOnly) fail("delta_only", "missing boomer is delta-only");
+      if (result.hasStandaloneBoomerProfile) fail("no_standalone_boomer_profile", "standalone detection sources matched");
+      if (/```|function\s*\(|=>|const\s+[A-Za-z0-9_]+\s*=/.test(text)) fail("text_only_contract", "contains_code_like_markup");
+      if (/Console\.txt/i.test(text)) { addUnique(result.forbiddenRemaining, "console_txt"); fail("forbidden_console_txt", "Console.txt reference detected"); }
+      if (!/This document exists only to describe the boomer delta derived from `UI_PROFILE_MILLENNIAL`/i.test(text)) fail("derived_from_millennial_source", "missing direct derivation statement");
+    } catch (err) {
+      fail("smoke_exception", err && err.message ? String(err.message) : String(err));
+    }
+    result.ok = result.docPresent === true
+      && result.referencesMillennialBase === true
+      && result.deltaOnly === true
+      && result.hasStandaloneBoomerProfile === false
+      && result.standaloneDetectionCount === 0
+      && result.failures.length === 0
+      && result.forbiddenRemaining.length === 0
+      && result.missingCoverage.length === 0
+      && result.failedChecks.length === 0
+      && result.baseProfile === "UI_PROFILE_MILLENNIAL"
+      && result.documentName === "UI_PROFILE_BOOMER_DIFF";
+    return result;
+  };
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerDiffStep11SourceFix3Once = Game.__DEV.smokeBoomerDiffStep11SourceFix3Once;
 
   const Z_PROFILE_FINAL_PACKAGE_BUILD_TAG = "build_2026_06_12_step7_z_profile_final_package";
   const Z_PROFILE_FINAL_PACKAGE_COMMIT = "step7_z_profile_final_package";
