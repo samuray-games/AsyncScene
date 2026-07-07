@@ -1,6 +1,6 @@
 # Asynchronia Codex Bridge Entry Point
 
-BRIDGE_PROTOCOL: 2.3
+BRIDGE_PROTOCOL: 2.4
 
 ## Commands
 
@@ -28,10 +28,23 @@ git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md
 ```
 
 4. parse slot `1`, `2`, or `3`;
-5. read only that slot's task inbox, current baseline inbox, claim path, expected outbox, and authorized primary baseline;
-6. ignore local bridge files, historical mailbox turns, and every other slot.
+5. read the slot's original task inbox, `Current baseline inbox`, claim path, expected outbox, and authorized primary baseline;
+6. ignore local bridge files and every other slot.
 
-A missing local `.ai-bridge/STATE.md`, dirty local policy files, or unrelated dirty files are not blockers when the remote sources are readable.
+A missing local `.ai-bridge/STATE.md`, dirty local policy files, or unrelated dirty files are not blockers when remote sources are readable.
+
+## Slot metadata precedence
+
+Mutable slot metadata is resolved in this order:
+
+1. current `origin/main` policy;
+2. mailbox `STATE.md`;
+3. the exact `Current baseline inbox` named by STATE;
+4. immutable claim, when present;
+5. original task inbox only for the atomic objective and evidence requirements not replaced by the current baseline inbox;
+6. older inbox turns for audit history only.
+
+When the original task inbox contains an older baseline, protocol version, plugin proof rule, phase, or publication method, the current baseline inbox supersedes it. Historical disagreement must be listed as drift, but it must not block the slot.
 
 ## Asynchronia skill contracts
 
@@ -39,90 +52,76 @@ Do not require plugin-loader telemetry.
 
 Resolve skill contracts from:
 
-1. installed package cache, when manifest package `asynchronia` version `1.0.0` and required skills are readable; or
-2. `origin/main:plugins/asynchronia/...` as the automatic repository fallback.
+1. installed package cache when manifest package `asynchronia` version `1.0.0` and required skills are readable; or
+2. `origin/main:plugins/asynchronia/...` as automatic fallback.
 
-Required bridge skills:
+Required bridge skills are `task-router`, `runtime-safety-gate`, `parallel-scope-planner`, and `model-selector`.
 
-- `task-router`;
-- `runtime-safety-gate`;
-- `parallel-scope-planner` when several slots exist;
-- `model-selector`.
-
-Report the selected source as `INSTALLED_PACKAGE` or `REPOSITORY_FALLBACK`, manifest version, and exact paths. Do not return `BLOCKED_PLUGIN_NOT_LOADED` for bridge work.
+Report `INSTALLED_PACKAGE` or `REPOSITORY_FALLBACK`, manifest version, and exact paths. `BLOCKED_PLUGIN_NOT_LOADED` is not valid for numbered bridge work.
 
 ## Existing claim
 
-When the current Codex thread already owns a valid claim token:
+When a valid immutable claim exists for the requested logical thread:
 
-1. verify the claim belongs to the requested slot;
-2. read the immutable claim and current inbox;
-3. verify slot, token, baseline, task, phase, scope, and dependencies remain unchanged;
-4. continue only that lane;
-5. return `BLOCKED_CLAIM_STALE` when they changed.
+1. read the claim and its token from the remote mailbox branch;
+2. verify slot, logical thread id, task, lane, current baseline, scope, and expected outbox;
+3. adopt the token when the claim issuer is `CODEX` or `CHATGPT_COORDINATOR_RECOVERY`;
+4. do not create a second claim;
+5. continue only that lane;
+6. return `BLOCKED_CLAIM_STALE` only when current metadata or ownership truly changed.
 
 ## New claim
 
-For a new thread:
+When no claim exists:
 
-1. verify the requested slot is open and unclaimed;
-2. return `BRIDGE_SLOT_UNAVAILABLE` when it has no active lane;
-3. return `BRIDGE_SLOT_ALREADY_CLAIMED` when its claim exists;
-4. verify `origin/main` equals the slot's authorized primary baseline;
-5. generate a high-entropy `CLAIM_TOKEN`;
-6. create exactly the predetermined immutable claim file containing:
-   - bridge slot;
-   - thread id;
-   - task id;
-   - lane id;
-   - actual claim token;
-   - mailbox parent SHA;
-   - authorized primary baseline;
-   - exact task and baseline inbox paths;
-   - statement that the claim authorizes no primary write;
-7. publish the claim with the resilient mailbox guard;
-8. refetch and verify the remote claim;
-9. return claim token and claim path as separate fields.
+1. verify the slot is open and unclaimed;
+2. verify `origin/main` equals the slot's current authorized baseline;
+3. generate a high-entropy claim token;
+4. create exactly the predetermined claim path;
+5. include slot, logical thread id, task, lane, token, mailbox parent, baseline, original task inbox, current baseline inbox, expected outbox, issuer, and no-primary-write statement;
+6. publish through the resilient mailbox guard;
+7. refetch and verify the remote claim;
+8. return claim token and claim path separately.
+
+ChatGPT may publish a `COORDINATOR_RECOVERY_CLAIM` for the already identified logical thread when Codex was blocked only by stale historical metadata or missing Git credentials.
 
 ## Resilient mailbox guard
 
-Immediately before each claim or outbox write:
+Immediately before every claim or outbox write:
 
-1. fetch `origin/coordination/chatgpt-codex-bridge`;
-2. record the remote head as `MAILBOX_PARENT_COMMIT`;
+1. fetch the mailbox branch;
+2. record its remote head as `MAILBOX_PARENT_COMMIT`;
 3. prove the authorized path does not already exist;
-4. use either a clean existing checkout already at the parent, or a fresh temporary detached worktree at the parent.
+4. use either a clean checkout already at that parent or a fresh temporary detached worktree at that exact parent.
 
-Fresh detached mode:
+Detached mode:
 
 ```bash
 git worktree add --detach <temporary-path> "$MAILBOX_PARENT_COMMIT"
 ```
 
-Inside that temporary worktree:
+Then:
 
-1. write only the authorized claim or outbox path;
+1. write only the authorized path;
 2. commit in detached HEAD;
-3. prove the commit parent equals `MAILBOX_PARENT_COMMIT`;
-4. prove the commit changes exactly one authorized path;
+3. prove the parent equals `MAILBOX_PARENT_COMMIT`;
+4. prove exactly one authorized path changed;
 5. push without force:
 
 ```bash
 git push origin HEAD:refs/heads/coordination/chatgpt-codex-bridge
 ```
 
-6. refetch and prove remote mailbox head equals the new commit;
-7. remove the temporary worktree.
+6. refetch and prove remote head equals the new commit;
+7. remove only the temporary worktree.
 
-A stale pre-existing mailbox worktree must be ignored and preserved. Never reset, clean, update, delete, or reuse it. If the push loses a race, remove only the temporary worktree, refetch, and retry the same slot up to three times. After three races return `BLOCKED_MAILBOX_RACE_RETRY_LIMIT`.
-
-Never force-push, overwrite immutable paths, or write mailbox files to `main`.
+Never reset, clean, update, delete, or reuse a stale existing mailbox worktree. Retry the same slot up to three times after races. Never force-push or write mailbox files to `main`.
 
 ## Compact model preflight
 
 When the slot phase is `MODEL_PREFLIGHT_ONLY`, return:
 
-- bridge slot, thread id, lane id, task id;
+- slot, logical thread id, lane, task;
 - actual claim token and claim path;
 - Asynchronia skill source and version;
 - task classification;
@@ -132,12 +131,10 @@ When the slot phase is `MODEL_PREFLIGHT_ONLY`, return:
 - recommended model and reasoning;
 - why the next cheaper pair is insufficient;
 - why the next stronger pair is unnecessary;
-- exact read scope, write scope, dependencies, blockers;
-- actual active model: `USER_SELECTED_UNVERIFIED` unless externally proven.
+- exact read scope, write scope, dependencies, and blockers;
+- actual active model as `USER_SELECTED_UNVERIFIED` unless externally proven.
 
-Do not print the full 12-row matrix. The relevant cost frontier is sufficient.
-
-A valid response ends with exactly one standalone fenced block and nothing after it:
+Do not print the full 12-row matrix. A valid response ends with exactly one standalone fenced block and nothing after it:
 
 ```text
 CONTINUE
@@ -147,16 +144,26 @@ A blocked response contains no `CONTINUE`.
 
 ## After CONTINUE
 
-After the user selects the recommended model and sends `CONTINUE` in the same thread:
+After the user selects the model and sends `CONTINUE` in the same thread:
 
 1. refetch main and mailbox;
-2. re-read STATE, claim, task inbox, and baseline inbox;
+2. re-read STATE, current baseline inbox, claim, and original task objective;
 3. verify token, baseline, task, phase, scope, and dependencies;
 4. execute only the authorized lane;
-5. publish only the expected immutable outbox with the resilient mailbox guard;
+5. publish only the expected immutable outbox;
 6. tell the user to return to ChatGPT and write the same numbered command.
 
-Do not ask the user to paste the report.
+## Publication-auth fallback
+
+If execution succeeds but `git push` fails solely because credentials are unavailable:
+
+1. preserve the primary repository unchanged;
+2. report `BLOCKED_MAILBOX_AUTH`;
+3. include the complete intended mailbox payload and exact authorized path;
+4. mark any local commit as diagnostic only;
+5. tell the user to return to ChatGPT with the matching numbered command and report.
+
+ChatGPT may independently validate and publish the exact payload through its connector. Local-only mailbox commits are never accepted.
 
 ## Parallel and runtime boundaries
 
@@ -169,4 +176,4 @@ Do not ask the user to paste the report.
 
 ## ChatGPT verification
 
-When ChatGPT receives `мост N`, it verifies only Slot N by reloading live memory, reading current STATE, resolving that slot's claim/inbox/outbox, independently checking repository and mailbox facts, and then closing, correcting, or advancing only that slot.
+When ChatGPT receives `мост N`, it verifies only Slot N by reloading live memory, reading current STATE, resolving that slot's current baseline, claim, inbox, and outbox, independently checking repository and mailbox facts, and then closing, correcting, or advancing only that slot.
