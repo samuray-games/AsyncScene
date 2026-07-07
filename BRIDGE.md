@@ -6,7 +6,7 @@ This file is the stable entry point for the ChatGPT-Codex mailbox bridge.
 
 When the user says:
 
-`Открой BRIDGE.md и выполни текущую задачу.`
+`мост`
 
 follow this procedure exactly.
 
@@ -57,7 +57,7 @@ After the user selects the recommended model and sends `CONTINUE` in the same Co
 2. Verify that the active thread, task, baseline and scope have not been superseded.
 3. Execute only that authorized task.
 4. Publish the required immutable outbox turn on `coordination/chatgpt-codex-bridge` if the inbox requires one.
-5. Do not ask the user to relay the preflight or final report to ChatGPT. ChatGPT reads the mailbox directly when the user later says `проверь мост` there.
+5. Do not ask the user to relay the preflight or final report to ChatGPT. ChatGPT reads the mailbox directly when the user later says `мост` there.
 
 ## Runtime safety
 
