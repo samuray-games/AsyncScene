@@ -1,42 +1,62 @@
-# Safe local pull protocol
+# Universal safe pull protocol
 
-COMMAND_ALIAS: `запуль`
+COMMAND_ALIAS: `пул`
+LEGACY_ALIASES: `запуль` - INACTIVE
 
 ## Purpose
 
-Safely synchronize the local AsyncScene checkout with current `origin/main` and refresh the mailbox remote ref. This command does not edit product files, create commits, push, stash, reset, rebase, merge, or delete anything.
+Safely refresh remote refs and, when it is unambiguous and safe, fast-forward the currently authorized local branch. The command is universal across normal task branches, `main`, numbered bridge threads, mailbox worktrees and detached evidence worktrees.
+
+`пул` never invents a target, never merges, rebases, stashes, resets, cleans, commits, pushes or discards work.
 
 ## Trigger
 
-When the user's trimmed message is exactly `запуль`, follow this file before any other interpretation.
+When the user's trimmed message is exactly `пул`, follow this file before any generic interpretation.
+
+The former command `запуль` is inactive and must not be offered as an alias.
+
+## Target resolution
+
+Resolve the repository and synchronization context in this order:
+
+1. A current numbered bridge lane or mailbox task named by remote mailbox `STATE.md`.
+2. The current branch and its configured upstream.
+3. A direct user instruction in the current thread naming an exact branch or ref.
+4. Detached HEAD or a branch without upstream - fetch-only unless an exact target was already authorized.
+
+Never guess a branch from a directory name, stale local bridge file or historical task.
 
 ## Required procedure
 
 1. Resolve the repository root with `git rev-parse --show-toplevel` and operate from that root.
-2. Verify the `origin` remote belongs to `samuray-games/AsyncScene`. If not, stop with `BLOCKED_WRONG_REPOSITORY`.
-3. Read the current root `AGENTS.md` and this file.
+2. Verify the `origin` remote belongs to `samuray-games/AsyncScene`. Otherwise return `BLOCKED_WRONG_REPOSITORY`.
+3. Read current `origin/main:AGENTS.override.md`, root `AGENTS.md`, and this file when available.
 4. Inspect:
    - `git status --short --branch`;
    - `git branch --show-current`;
+   - `git rev-parse HEAD`;
+   - configured upstream, if any;
    - `git worktree list --porcelain`.
-5. If the current worktree has tracked or untracked changes, stop with `BLOCKED_DIRTY_WORKTREE`. Show the exact changed paths. Do not stash, reset, clean, commit, discard, or move them.
-6. Run `git fetch origin`.
-7. Verify `origin/main` exists.
-8. If `main` is checked out in another worktree, stop with `BLOCKED_MAIN_OWNED_BY_OTHER_WORKTREE` and report that path. Do not edit the other worktree.
-9. Switch the current clean worktree to `main` with `git switch main`.
-10. Run `git pull --ff-only origin main`.
-11. Fetch the mailbox ref without switching to it:
+5. Run `git fetch origin` even when the worktree is dirty. Fetching refs is allowed because it does not modify tracked worktree files.
+6. In a bridge context, also fetch `coordination/chatgpt-codex-bridge` without switching to it.
+7. Determine whether a local fast-forward is authorized:
+   - current branch has an exact upstream or exact user-authorized target;
+   - the worktree is clean;
+   - the branch is not owned by another worktree;
+   - the update is fast-forward only.
+8. When all conditions pass, run `git pull --ff-only` for that exact branch/upstream.
+9. When the worktree is dirty, HEAD is detached, no upstream exists, another worktree owns the target branch, or only bridge ref refresh is needed, perform fetch-only and preserve the checkout unchanged.
+10. Verify fetched refs and report whether the local branch was fast-forwarded or intentionally left unchanged.
 
-```bash
-git fetch origin coordination/chatgpt-codex-bridge
-```
+## Universal bridge behavior
 
-12. Verify:
-   - `git rev-parse HEAD` equals `git rev-parse origin/main`;
-   - `git status --short --branch` is clean;
-   - root `AGENTS.md` contains aliases for `мост 1`, `мост 2`, `мост 3`, `запуль`, and `запушь`;
-   - bare `мост` is not an active alias;
-   - root `BRIDGE.md`, `CODEX_BRIDGE_BOOTSTRAP.md`, `GIT_PULL.md`, and `GIT_PUSH.md` exist.
+For a numbered bridge lane:
+
+- refresh `origin/main` and `origin/coordination/chatgpt-codex-bridge`;
+- never switch the primary worktree to the mailbox branch;
+- detached mailbox or evidence worktrees remain detached;
+- do not recreate, reset, clean or delete any worktree;
+- fetch-only is a valid successful result when changing the checkout is unnecessary or unsafe.
 
 ## Forbidden actions
 
@@ -45,20 +65,21 @@ git fetch origin coordination/chatgpt-codex-bridge
 - no `git clean`;
 - no merge commit;
 - no rebase;
-- no checkout or switch to the mailbox branch;
+- no force update;
+- no automatic conflict resolution;
 - no commit;
 - no push;
-- no product, runtime, documentation, lock, or mailbox edits.
+- no product, runtime, documentation, lock or mailbox edits.
 
-## Failure behavior
+## Result statuses
 
-- Dirty worktree: `BLOCKED_DIRTY_WORKTREE`.
-- Main owned by another worktree: `BLOCKED_MAIN_OWNED_BY_OTHER_WORKTREE`.
+- Branch fast-forwarded: `PASS_PULL_SYNCED`.
+- Refs fetched, checkout intentionally unchanged: `PASS_FETCHED`.
+- Dirty worktree with successful fetch: `PASS_FETCHED_PULL_SKIPPED_DIRTY`.
+- Detached HEAD with successful fetch: `PASS_FETCHED_DETACHED`.
 - Fast-forward impossible: `BLOCKED_NON_FAST_FORWARD_PULL`.
-- Missing origin or refs: `BLOCKED_REMOTE_SOURCE_UNAVAILABLE`.
-- Alias files missing after pull: `FAIL_PULL_INCOMPLETE`.
-
-Never repair these states automatically. Report the exact command that failed and the minimum evidence needed for the coordinator.
+- Wrong repository: `BLOCKED_WRONG_REPOSITORY`.
+- Remote unavailable: `BLOCKED_REMOTE_SOURCE_UNAVAILABLE`.
 
 ## Final report
 
@@ -66,13 +87,13 @@ Return only:
 
 1. status;
 2. repository root;
-3. previous branch and previous HEAD;
-4. final branch and final HEAD;
-5. `origin/main` HEAD;
-6. worktree cleanliness;
-7. mailbox ref fetch result;
-8. alias-file verification;
+3. resolved synchronization context;
+4. previous branch and HEAD;
+5. final branch and HEAD;
+6. fetched remote refs and SHAs;
+7. worktree cleanliness;
+8. local fast-forward result or exact reason for fetch-only;
 9. changed files: `None`;
-10. exact next action.
-
-A successful result is `PASS_PULL_SYNCED`. Runtime gate and Safari smoke are `N/A - Git synchronization only`.
+10. runtime gate: `N/A - Git synchronization only`;
+11. Safari status: `N/A - Git synchronization only`;
+12. exact next action.
