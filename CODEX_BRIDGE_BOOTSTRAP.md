@@ -1,99 +1,87 @@
 # One-time Codex bridge bootstrap
 
-BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V1
-PURPOSE: Install a persistent user-level Codex instruction so the exact command `проверь мост` always resolves to the Asynchronia ChatGPT-Codex mailbox workflow, even when the local repository checkout is behind remote `main`.
+BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2
+PURPOSE: Install a persistent user-level Codex instruction so the exact command `мост` always resolves to the current Asynchronia parallel mailbox workflow, even when the local checkout is behind remote `main`.
 
 ## Scope
 
-This is a one-time Codex user-configuration task. It is not a product task and must not modify game/runtime files, project status documents, locks, or implementation branches.
+This is a one-time Codex user-configuration task. It is not a product task.
 
 Allowed writes:
 - the active user-level Codex instruction file under `${CODEX_HOME:-$HOME/.codex}`;
-- one timestamped backup of that same file in the same directory if it already exists;
-- the exact bridge outbox requested by the active bootstrap mailbox task, if one exists.
+- one timestamped backup beside that file if it already exists;
+- the exact claim or outbox path authorized by an active bootstrap lane.
 
 Forbidden writes:
 - product repository files;
-- `TASKS.md`, `PROJECT_MEMORY.md`, game/runtime/UI files, deployed mirrors, locks, dependencies;
-- any global Codex configuration other than the selected instruction file;
-- broad approval or sandbox policy changes.
+- `TASKS.md`, `PROJECT_MEMORY.md`, runtime/UI files, deployed mirrors, locks or dependencies;
+- broad approval, sandbox or permission-policy changes.
 
 ## Required discovery
 
 1. Determine Codex home as `${CODEX_HOME:-$HOME/.codex}`.
-2. Inspect, without exposing secrets:
+2. Inspect without exposing secrets:
    - `$CODEX_HOME/AGENTS.override.md`;
    - `$CODEX_HOME/AGENTS.md`.
 3. Select the active global instruction file exactly as Codex does:
-   - if `AGENTS.override.md` exists as a regular file, use it;
-   - otherwise, use `AGENTS.md`, creating it only if absent.
-4. Do not create `AGENTS.override.md` merely for this bootstrap, because it would take precedence over and hide an existing global `AGENTS.md`.
-5. Preserve all existing contents byte-for-byte outside the managed block below.
+   - use `AGENTS.override.md` if it exists as a regular file;
+   - otherwise use `AGENTS.md`, creating it only if absent.
+4. Do not create `AGENTS.override.md` merely for this bootstrap.
+5. Preserve all existing contents byte-for-byte outside the managed block.
 
 ## Managed block
 
 Install or replace exactly one block delimited by these markers:
 
 ```markdown
-<!-- ASYNCHRONIA_BRIDGE_ALIAS_V1_BEGIN -->
+<!-- ASYNCHRONIA_BRIDGE_ALIAS_V2_BEGIN -->
 ## Asynchronia mailbox command
 
-When the user's trimmed message is exactly `проверь мост`, this command is reserved for the repository `samuray-games/AsyncScene` and must be processed before any other interpretation.
+When the user's trimmed message is exactly `мост`, this command is reserved for repository `samuray-games/AsyncScene` and must be processed before any other interpretation.
 
-1. Confirm the current working directory belongs to the `samuray-games/AsyncScene` Git repository by inspecting the `origin` remote. If it does not, return `BLOCKED_WRONG_REPOSITORY` and do nothing else.
-2. Read the local root `AGENTS.md` if present, but do not rely on it being current.
-3. Fetch, without switching or rewriting the primary worktree:
-   - `origin/main`;
-   - `origin/coordination/chatgpt-codex-bridge`.
-4. Read the authoritative bridge entry point with:
-   - `git show origin/main:BRIDGE.md`
-5. Read mailbox state with:
-   - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`
-6. Identify the sole thread listed under `Open threads` and the `Latest ChatGPT turn`.
-7. Read that inbox turn from the mailbox branch with `git show`.
-8. Execute only the current phase requested by that inbox.
-9. Ignore every closed or superseded thread.
-10. Never reinterpret `проверь мост` as a source/deployed mirror audit, file-pair comparison, runtime bridge check, or request for clarification about which bridge was meant.
-11. If the active inbox requests `MODEL_PREFLIGHT_ONLY`, return only that preflight and the standalone `CONTINUE` block. Do not execute the task before same-thread `CONTINUE`.
-12. After same-thread `CONTINUE`, re-fetch and re-read the same bridge state and inbox, verify they remain active and unchanged, then execute only the authorized task.
-13. Do not ask the user to relay preflight or final reports between Codex and ChatGPT. Publish the required immutable outbox when the active inbox requires it.
-14. Follow runtime-safety-gate, native permission prompts, exact write scope, and user-owned Safari acceptance. This alias bypasses none of them.
-15. If any required ref/file cannot be read, return `BLOCKED_BRIDGE_SOURCE_UNAVAILABLE` with the exact missing source. Never substitute a nearby audit or guessed task.
-<!-- ASYNCHRONIA_BRIDGE_ALIAS_V1_END -->
+1. Confirm the current working directory belongs to `samuray-games/AsyncScene` by inspecting `origin`. Otherwise return `BLOCKED_WRONG_REPOSITORY`.
+2. Fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge` without switching or rewriting the primary worktree.
+3. Read the authoritative bridge entry point with `git show origin/main:BRIDGE.md`.
+4. Read mailbox state with `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`.
+5. Follow Bridge Protocol 2.0 exactly. A new Codex thread atomically claims the first eligible unclaimed lane. A thread with an existing valid claim continues only that lane.
+6. Never ask the user which lane to choose and never reinterpret `мост` as a mirror audit, file comparison or generic bridge check.
+7. Claim, preflight, `CONTINUE`, runtime approval and outbox are separate phases. A claim authorizes no primary write.
+8. If the lane requests `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and the standalone fenced `CONTINUE` block.
+9. After same-thread `CONTINUE`, refetch and verify the same claim, task, baseline, scope and dependencies before execution.
+10. Publish only the exact immutable claim or outbox path authorized by the lane, using the fail-closed mailbox branch guard.
+11. Do not ask the user to relay preflight or final reports. ChatGPT reads all lane results when the user writes `мост` there.
+12. Follow runtime-safety-gate, parallel-scope-planner, native permission prompts, exact scope and user-owned Safari acceptance. This alias bypasses none of them.
+13. If any required source cannot be read, return `BLOCKED_BRIDGE_SOURCE_UNAVAILABLE` with the exact missing source and make no change.
+<!-- ASYNCHRONIA_BRIDGE_ALIAS_V2_END -->
 ```
 
-## Installation procedure
+## Migration from V1
 
-1. Read the selected instruction file fully if it exists.
-2. Create a timestamped backup beside it before the first modification.
-3. If both managed markers exist, replace only the text from the begin marker through the end marker.
-4. If neither marker exists, append one blank line and the managed block.
-5. If only one marker exists, return `BLOCKED_MALFORMED_EXISTING_ALIAS` and make no change.
-6. Write atomically where supported.
-7. Do not alter permissions more broadly than necessary.
+1. Read the selected instruction file fully.
+2. Create a timestamped backup before the first change.
+3. If exactly one complete V1 managed block exists, replace it with exactly one V2 block.
+4. If exactly one complete V2 block exists, replace it in place only when contents differ.
+5. If neither block exists, append one blank line and the V2 block.
+6. If markers are incomplete, duplicated or mixed ambiguously, return `BLOCKED_MALFORMED_EXISTING_ALIAS` and make no change.
+7. Do not leave the former command as an active alias.
+8. Write atomically where supported and preserve permissions.
 
 ## Validation
 
 After writing:
 
-1. Re-read the selected global instruction file.
-2. Confirm exactly one begin marker and one end marker exist.
-3. Confirm the full managed block is present.
-4. Confirm content outside the managed block matches the pre-write file.
-5. Report:
-   - Codex home path;
-   - selected instruction file;
-   - whether it was created or updated;
-   - backup path, or `N/A - newly created`;
-   - marker counts;
-   - validation result;
-   - changed paths.
-6. Do not claim that the current Codex thread has reloaded the new global instruction. It takes effect in a new Codex thread.
+1. re-read the selected instruction file;
+2. confirm exactly one V2 begin marker and one V2 end marker;
+3. confirm no active V1 managed block remains;
+4. confirm the full V2 block is present;
+5. confirm all content outside the managed block matches the pre-write file;
+6. report Codex home, selected file, created/updated status, backup path, marker counts, changed paths and validation result;
+7. do not claim the current Codex thread reloaded the instruction. It takes effect in a new Codex thread.
 
 ## Final user action
 
-After PASS, instruct the user to open one new Codex thread in the AsyncScene project and write only:
+After PASS, instruct the user to open up to three new Codex threads in the AsyncScene project and write only:
 
-`проверь мост`
+`мост`
 
-The new thread must then follow the global alias, fetch current remote refs, discover the sole active mailbox task, and return the requested phase.
+Each new thread must atomically claim a different open Stage 6 lane and return that lane's requested preflight.
