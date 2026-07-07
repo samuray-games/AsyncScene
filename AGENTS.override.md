@@ -1,77 +1,105 @@
-# Asynchronia Protocol 2.2 Override
+# Asynchronia Protocol 2.3 Override
 
-OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_2
+OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_3
 
-Read root `AGENTS.md` fully. Every rule in it remains binding except the bridge-command and plugin-load clauses explicitly replaced below.
+Read root `AGENTS.md` fully. Every rule remains binding except the bridge preflight, plugin proof, and mailbox checkout clauses explicitly replaced below.
 
 ## 1. Numbered bridge commands
 
-The exact commands `мост 1`, `мост 2`, and `мост 3` are unambiguous reserved commands. Never ask what they mean and never redirect them to the older alias.
+The exact commands `мост 1`, `мост 2`, and `мост 3` are unambiguous reserved commands.
 
 For every numbered command:
 
 1. fetch `origin/main` before trusting local bridge files;
-2. read `git show origin/main:AGENTS.override.md` and `git show origin/main:BRIDGE.md`;
+2. read `origin/main:AGENTS.override.md`, `origin/main:AGENTS.md`, and `origin/main:BRIDGE.md` with `git show`;
 3. fetch `origin/coordination/chatgpt-codex-bridge`;
 4. use only the requested fixed slot;
-5. never fall through to another slot.
+5. never ask what the command means and never fall through to another slot.
 
-The former bare `мост` is inactive. The older phrase may be used only for one-time compatibility recovery under `CODEX_BRIDGE_RECOVERY.md`, not for normal task routing.
+Bare `мост` is inactive. Dirty or stale local `AGENTS.md` and `BRIDGE.md` are not bridge sources and must be preserved byte-for-byte.
 
-## 2. Self-healing stale alias
+## 2. Asynchronia skill source
 
-A stale user-level alias or dirty local `AGENTS.md` / `BRIDGE.md` must not cause clarification.
+Bridge execution must not depend on hidden plugin-loader telemetry.
 
-When stale behavior is detected:
+Resolve the Asynchronia skill contracts in this order:
 
-- read current remote `CODEX_BRIDGE_BOOTSTRAP.md` and `CODEX_BRIDGE_RECOVERY.md` with `git show origin/main:...`;
-- preserve all local repository changes;
-- do not stash, reset, clean, overwrite, commit or push local dirty files;
-- repair only the managed user-level Codex instruction block;
-- continue the current thread using remote Protocol 2.2;
-- a dirty worktree is not a blocker because recovery owns no repository path.
+1. `INSTALLED_PACKAGE`: use the installed cache when its manifest names package `asynchronia`, version `1.0.0`, and the required skill files are readable.
+2. `REPOSITORY_FALLBACK`: otherwise read the corresponding skill contracts from `origin/main:plugins/asynchronia/...`.
 
-The numbered command authorizes only that narrow user-level configuration repair. If native permissions prevent it, return `BRIDGE_RECOVERY_PERMISSION_REQUIRED` with the exact blocked path.
+Either source is sufficient. Record:
 
-## 3. Claim ordering
+- `ASYNCHRONIA_SKILL_SOURCE: INSTALLED_PACKAGE` or `REPOSITORY_FALLBACK`;
+- manifest version;
+- exact skill paths read.
 
-For a new bridge thread:
+`BLOCKED_PLUGIN_NOT_LOADED`, native resolver proof, functional invocation proof, and loader telemetry are retired as bridge gates. Missing plugin telemetry must never block a numbered bridge command.
 
-1. recover the alias when needed;
-2. prove Asynchronia plugin availability;
-3. verify the requested slot is still unclaimed;
-4. create the exact immutable claim;
-5. return the model preflight.
+## 3. Bridge preflight
 
-The claim path and claim token are separate fields. A filesystem path is never a claim token. No claim is written when plugin proof fails.
+A new bridge thread must:
 
-## 4. Functional plugin proof
+1. resolve its Asynchronia skill source;
+2. verify the requested slot is open and unclaimed;
+3. create the immutable claim;
+4. return the compact bridge preflight.
 
-Native loader telemetry is preferred but not mandatory.
+The claim path and claim token are separate fields. A path is never a claim token.
 
-Plugin availability is proven by either:
+The compact preflight contains:
 
-- `NATIVE_RESOLVER_PROOF`: current-thread resolver/UI evidence names the Asynchronia package and invoked skills; or
-- `FUNCTIONAL_INVOCATION_PROOF`: the current thread invokes the required Asynchronia skills and returns their exact output contracts.
+- bridge slot, thread id, lane id, task id;
+- actual claim token and claim path;
+- Asynchronia skill source and version;
+- task classification;
+- runtime-safety verdict;
+- parallel collision verdict;
+- recommended model and reasoning;
+- why the next cheaper option is insufficient;
+- why the next stronger option is unnecessary;
+- exact read scope, write scope, dependencies and blockers;
+- actual active model: `USER_SELECTED_UNVERIFIED` unless externally proven.
 
-A valid functional proof for bridge preflight must include:
+A full 12-row model matrix is not required in bridge preflight. The selector must evaluate all 12 pairs internally and report `evaluated pair count: 12/12` plus the relevant cost frontier only.
 
-- `plugin package: asynchronia`;
-- manifest version from `plugins/asynchronia/.codex-plugin/plugin.json`;
-- `proof mode: FUNCTIONAL_INVOCATION_PROOF`;
-- exact invoked skills;
-- complete `task-router` output contract;
-- `runtime-safety-gate` verdict;
-- `parallel-scope-planner` contract when multiple slots exist;
-- complete `model-selector` contract with `evaluated pair count: 12/12`;
-- native telemetry recorded as `NATIVE_TELEMETRY_UNAVAILABLE` when unavailable.
+A valid preflight ends with exactly one fenced `CONTINUE` block and nothing after it. A blocked response contains no `CONTINUE`.
 
-Reading skill files, listing skill names or paraphrasing the inbox without returning those contracts is not proof. Missing native telemetry alone is not a failure.
+## 4. Resilient mailbox write
 
-Return `BLOCKED_PLUGIN_NOT_LOADED` only when neither proof mode succeeds. A blocked response must contain no claim, no outbox, no primary edit and no `CONTINUE` block.
+An existing stale mailbox worktree must never block a claim or outbox.
 
-## 5. Preflight validity
+Use one of these isolated modes:
 
-A valid `MODEL_PREFLIGHT_ONLY` response contains the actual claim token, claim path, plugin proof, required routing/gate/planner contracts and complete model-selector output. It ends with exactly one fenced `CONTINUE` block and nothing after it.
+### Mode A: clean existing mailbox checkout
 
-A response that says `BLOCKED_PLUGIN_NOT_LOADED` and still includes `CONTINUE` is invalid and must not be continued.
+Use it only when its `HEAD` already equals the freshly fetched mailbox parent and it has no changes.
+
+### Mode B: fresh detached worktree
+
+Preferred fallback:
+
+1. fetch the mailbox branch and record `MAILBOX_PARENT_COMMIT`;
+2. create a temporary detached worktree at that exact commit;
+3. write only the authorized claim or outbox path;
+4. commit in detached HEAD;
+5. prove the new commit has exactly one parent equal to `MAILBOX_PARENT_COMMIT`;
+6. prove its diff contains exactly the authorized path;
+7. push without force using `git push origin HEAD:refs/heads/coordination/chatgpt-codex-bridge`;
+8. refetch and verify the remote head equals the new commit;
+9. remove the temporary worktree.
+
+Do not update, reset, clean, delete, or reuse a stale existing mailbox worktree. If the remote head moves before push, discard only the temporary detached worktree, refetch, and retry the same slot up to three times.
+
+Branch checkout identity is not required in detached mode. Exact parent identity, exact diff scope, non-force fast-forward push, and post-push verification are required.
+
+## 5. Retired blockers
+
+The following are not valid blockers for a numbered bridge command:
+
+- unavailable native plugin telemetry;
+- inability to invoke a plugin through hidden UI machinery;
+- a missing local `.ai-bridge/STATE.md` path when remote STATE is readable;
+- a stale existing mailbox worktree;
+- unrelated dirty primary-worktree files.
+
+Real blockers remain: wrong repository, unreadable remote policy/state, closed or already-claimed slot, primary baseline mismatch, native permission refusal, repeated mailbox race after three retries, or scope collision.
