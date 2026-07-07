@@ -1,97 +1,129 @@
 # Asynchronia Codex Bridge Entry Point
 
-This file is the stable entry point for the ChatGPT-Codex mailbox bridge.
+BRIDGE_PROTOCOL: 2.0
+
+This is the stable entry point for the ChatGPT-Codex mailbox bridge.
 
 ## User command
 
-When the user says:
+When the user's trimmed message is exactly:
 
 `мост`
 
-follow this procedure exactly.
+follow this procedure before any other interpretation.
 
-## Bridge discovery
+## Discovery
 
-1. Read the root `AGENTS.md` first.
-2. Do not guess what the word "мост" means and do not run a generic mirror audit.
-3. Fetch the mailbox branch without switching the primary worktree:
+1. Read root `AGENTS.md`.
+2. Fetch current remote refs without switching or rewriting the primary worktree:
 
 ```bash
-git fetch origin coordination/chatgpt-codex-bridge
+git fetch origin main coordination/chatgpt-codex-bridge
 ```
 
-4. Read the current mailbox state from the fetched remote branch:
+3. Read the authoritative bridge state:
 
 ```bash
 git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md
 ```
 
-5. Identify the sole thread listed under `Open threads`.
-6. Read the `Latest ChatGPT turn` named in `STATE.md` from the same remote branch:
+4. Ignore every lane listed as closed, superseded, blocked or completed.
+5. Historical mailbox files are immutable audit records, not queued work.
 
-```bash
-git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/<LATEST_CHATGPT_TURN>
-```
+## Existing claim in the same Codex thread
 
-7. Execute only the current phase requested by that inbox turn.
-8. Ignore every thread listed as `Closed` or `Superseded`.
-9. Historical mailbox files are audit records, not queued work.
+If this Codex thread already created a valid claim and retained its `CLAIM_TOKEN`:
 
-## Model preflight flow
+1. locate the claimed lane in current `STATE.md`;
+2. read the immutable claim file and lane inbox from the mailbox branch;
+3. verify thread id, claim token, primary baseline, task id, phase and scope remain unchanged;
+4. continue only that lane;
+5. if the lane was closed, superseded or changed, return `BLOCKED_CLAIM_STALE` and do not select a replacement lane in the same Codex thread.
 
-When the active inbox requires `MODEL_PREFLIGHT_ONLY`:
+## New Codex thread: atomic lane claim
 
-1. Perform only the preflight described by the active inbox.
-2. Do not run the requested audit or implementation yet.
-3. Recommend the cheapest reliable available model and reasoning level.
-4. State the planned read scope, expected write scope, gates, permissions and blockers.
-5. End with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. Do not render `CONTINUE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
+A new Codex thread does not ask the user to choose a lane. It atomically claims the first eligible unclaimed lane in the exact priority order listed under `Open lanes` in `STATE.md`.
+
+For each candidate lane:
+
+1. read its inbox path, predetermined claim path and authorized primary baseline from `STATE.md`;
+2. check that the claim path does not exist on the fetched mailbox head;
+3. generate a high-entropy `CLAIM_TOKEN` and retain it in the current Codex thread;
+4. create exactly the predetermined immutable claim file containing:
+   - thread id;
+   - task id;
+   - lane id;
+   - claim token;
+   - mailbox parent SHA known before commit;
+   - authorized primary baseline;
+   - exact inbox path;
+   - statement that this claim authorizes no primary write;
+5. commit and push that single claim path using the mailbox branch guard below;
+6. refetch and verify the remote claim file equals the created claim;
+7. read the lane inbox and perform only its current phase.
+
+If the claim path appears or the mailbox remote head moves before push, do not overwrite or force-push. Refetch the mailbox branch, re-read `STATE.md`, and try the next eligible unclaimed lane. Maximum three claim attempts. If no eligible lane remains, return exactly `BRIDGE_NO_UNCLAIMED_LANES` and make no further changes.
+
+A claim reserves only one lane for one Codex thread. It is not task execution, model approval, runtime approval, PASS or coordinator acceptance.
+
+## Model preflight
+
+When the lane inbox requires `MODEL_PREFLIGHT_ONLY`:
+
+1. invoke the required Asynchronia plugin workflow and provide current-thread plugin-load evidence;
+2. perform only preflight, not the audit or implementation;
+3. recommend the cheapest reliable available model and reasoning level;
+4. state exact read scope, expected write scope, dependencies, runtime classification, permissions and blockers;
+5. include lane id and retained claim token;
+6. end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it.
 
 ```text
 CONTINUE
 ```
 
-After the user selects the recommended model and sends `CONTINUE` in the same Codex thread:
+After the user selects the model and sends `CONTINUE` in the same Codex thread:
 
-1. Re-read the current mailbox `STATE.md` and the same active inbox.
-2. Verify that the active thread, task, baseline and scope have not been superseded.
-3. Execute only that authorized task.
-4. Publish the required immutable outbox turn on `coordination/chatgpt-codex-bridge` if the inbox requires one.
-5. Do not ask the user to relay the preflight or final report to ChatGPT. ChatGPT reads the mailbox directly when the user later says `мост` there.
+1. refetch `main` and the mailbox branch;
+2. re-read current `STATE.md`, the immutable claim and the same lane inbox;
+3. verify claim token, task, baseline, scope, dependencies and phase remain unchanged;
+4. execute only the authorized lane;
+5. publish only the immutable outbox path authorized by that lane;
+6. do not ask the user to relay reports to ChatGPT. ChatGPT independently reads and verifies all lanes when the user writes `мост` there.
 
-## Runtime safety
+## Runtime safety and parallel boundaries
 
-- Follow `AGENTS.md` runtime-safety-gate exactly.
-- For a read-only task, do not request `APPROVE`.
-- For a proven runtime-sensitive write, stop with `RUNTIME_SAFETY_GATE_REQUIRED` and request same-thread `APPROVE` for the exact frozen file scope. End that response with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it. Do not render `APPROVE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
-- Never reinterpret a small runtime change as documentation merely to avoid the gate.
+- Follow `AGENTS.md` and `runtime-safety-gate` exactly.
+- Read-only lanes do not request `APPROVE`.
+- Runtime-sensitive writes require a frozen exact scope and same-thread `APPROVE`.
+- Source and deployed mirrors are one ownership lane.
+- Overlapping writes, stable-read dependencies, shared resolver paths, `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized.
+- A lane must stop with `BLOCKED_PARALLEL_SCOPE_COLLISION` if current repository evidence creates an overlap not declared in its inbox.
+- Never merge, rebase or absorb another lane unless a dedicated integration lane authorizes it.
 
-## Mailbox write rules
+## Mailbox branch guard
 
-- Never edit primary product files while operating only the mailbox.
-- Never overwrite an existing inbox or outbox turn.
-- Never modify another thread.
-- Never force-push.
-- Before a mailbox write, fetch `origin/coordination/chatgpt-codex-bridge` again, record that fetched remote head as the exact `MAILBOX_PARENT_COMMIT`, and fail closed if the remote head moved unexpectedly.
-- Use a dedicated mailbox worktree or equivalently isolated checkout whose checked-out branch is exactly `coordination/chatgpt-codex-bridge`.
-- Before editing, prove both that the current branch is exactly `coordination/chatgpt-codex-bridge` and that current `HEAD` equals the recorded `MAILBOX_PARENT_COMMIT`.
-- Never create a mailbox commit while `HEAD`, the checked-out branch, or the commit parent belongs to `main`, the authorized primary baseline, a detached primary commit, or any non-mailbox branch.
-- The mailbox commit must be a direct descendant of the recorded `MAILBOX_PARENT_COMMIT`.
-- Before push, prove the commit diff contains only the exact mailbox path authorized by the active inbox.
-- Push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`, never to the current implicit upstream.
-- Refetch after push and prove the remote mailbox head equals the new mailbox commit.
-- When primary write scope is `NONE`, also prove `origin/main` still equals the authorized primary baseline.
-- Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`; no mailbox commit, no push, no fallback to `main`, and no guessed repair.
-- A claimed `mailbox outbox only` result is invalid unless the final report includes the mailbox parent SHA and the exact changed-path list, plus an explicit statement that the mailbox commit is not based on `main`.
-- A claimed mailbox outbox is only complete after the coordinator independently re-resolves the remote mailbox branch head post-push, verifies ancestry and exact-path scope, and records the exact mailbox commit/head SHA in the immutable closure decision.
-- If a mailbox file is accidentally written to `main`, stop and report exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
-- The only allowed mailbox changes are the exact outbox path required by the active inbox and any state update explicitly owned by ChatGPT, not Codex.
+Every Codex mailbox write, including claims and outboxes, must:
+
+1. fetch `origin/coordination/chatgpt-codex-bridge` immediately before writing;
+2. record the fetched head as `MAILBOX_PARENT_COMMIT`;
+3. use a dedicated mailbox worktree or equivalent isolated checkout on exactly `coordination/chatgpt-codex-bridge`;
+4. prove current branch is exactly that mailbox branch and `HEAD` equals `MAILBOX_PARENT_COMMIT`;
+5. prove the diff contains exactly one authorized claim or outbox path;
+6. create a direct-child commit of the recorded parent;
+7. push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`;
+8. refetch and prove remote mailbox head equals the new commit.
+
+Never create a mailbox commit from `main`, a detached primary commit, an authorized primary baseline or any non-mailbox branch. Never overwrite an inbox, claim or outbox. Never modify another lane. Never force-push.
+
+When the lane has primary write scope `NONE`, also prove `origin/main` still equals its authorized baseline. Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`, with no mailbox commit, no fallback and no guessed repair. If any mailbox file reaches `main`, return exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
+
+The immutable claim/outbox may record only facts known before its own commit plus mandatory post-push verification statements. ChatGPT independently resolves final mailbox commit/head, ancestry, exact paths and post-publication main, then records those facts in immutable closure decisions.
 
 ## Failure behavior
 
-If `STATE.md`, the active inbox turn, the branch, or the required primary sources cannot be read:
+If `STATE.md`, a lane inbox, claim, branch or required primary source cannot be read:
 
-- return `BLOCKED`;
-- name the exact missing source;
-- do not substitute a mirror audit, nearby task or guessed scope;
-- do not modify files.
+- return `BLOCKED` with the exact missing source;
+- do not substitute a nearby task or guessed scope;
+- do not modify primary files;
+- do not claim or execute a different lane after an existing same-thread claim becomes stale.

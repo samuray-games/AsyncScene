@@ -2,23 +2,54 @@
 
 ## 0. Bridge command alias
 
-The exact user command `проверь мост` is reserved for the ChatGPT-Codex mailbox bridge.
+The exact trimmed user command `мост` is reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
 
-When the user writes `проверь мост`, Codex must, before any other interpretation or action:
+When the user writes `мост`, Codex must:
 
-1. read the root `BRIDGE.md` and follow it exactly;
-2. if `BRIDGE.md` is missing from the local worktree, fetch `origin/main` and read it with `git show origin/main:BRIDGE.md`;
-3. fetch `origin/coordination/chatgpt-codex-bridge` without switching the primary worktree;
-4. read `.ai-bridge/STATE.md` and the sole active inbox turn from that remote branch;
-5. execute only the current phase required by that inbox turn;
-6. ignore every closed or superseded thread; and
-7. never reinterpret this command as a generic source/deployed mirror audit or ask which bridge the user means.
+1. read root `BRIDGE.md` and follow it exactly;
+2. if local `BRIDGE.md` may be stale, fetch `origin/main` and read `git show origin/main:BRIDGE.md`;
+3. fetch `origin/coordination/chatgpt-codex-bridge` without switching or rewriting the primary worktree;
+4. read `.ai-bridge/STATE.md` from that remote branch;
+5. discover or retain exactly one lane according to the Bridge Protocol defined in `BRIDGE.md`;
+6. execute only the current phase of the claimed lane;
+7. ignore closed, superseded, blocked and claimed-by-other-thread lanes; and
+8. never reinterpret `мост` as a generic source/deployed mirror audit or ask which bridge the user means.
 
-For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. Do not render `CONTINUE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state and execute the unchanged authorized task. Do not ask the user to relay the preflight to ChatGPT.
+The former command phrase is superseded and must not be offered or treated as an active alias.
 
-Every Codex mailbox write must use a fail-closed mailbox branch guard. Immediately before preparing a mailbox write, fetch `origin/coordination/chatgpt-codex-bridge`, record the fetched remote mailbox head as the exact `MAILBOX_PARENT_COMMIT`, and use a dedicated mailbox worktree or equivalently isolated checkout whose checked-out branch is exactly `coordination/chatgpt-codex-bridge`. Before editing, prove both that the current branch is exactly `coordination/chatgpt-codex-bridge` and that current `HEAD` equals the fetched remote mailbox head. Never create a mailbox commit while `HEAD`, the checked-out branch, or the commit parent belongs to `main`, the authorized primary baseline, a detached primary commit, or any non-mailbox branch. The mailbox commit must be a direct descendant of the recorded mailbox parent. Before push, prove the commit diff contains only the exact mailbox path authorized by the active inbox. Push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`, never to an implicit upstream. Refetch after push and prove the remote mailbox head equals the new mailbox commit. When primary write scope is `NONE`, also prove `origin/main` still equals the authorized primary baseline. Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`; no mailbox commit, no push, no fallback to `main`, and no guessed repair. A claimed `mailbox outbox only` result is invalid unless the final report includes the mailbox parent SHA and the exact changed-path list, plus an explicit statement that the mailbox commit is not based on `main`. A claimed mailbox outbox is only complete after the coordinator independently re-resolves the remote mailbox branch head post-push, verifies ancestry and exact-path scope, and records the exact mailbox commit/head SHA in the immutable closure decision. If a mailbox file is accidentally written to `main`, stop and report exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
+### 0.0.1 Parallel bridge lane claims
 
-This alias does not bypass the runtime safety gate, native permission dialogs, exact task scope, or user-owned Safari acceptance.
+Bridge Protocol 2.0 may expose multiple open lanes. Bare `мост` still requires no lane name from the user.
+
+- An existing Codex thread that already owns a valid claim continues only that claimed lane.
+- A new Codex thread atomically claims the first eligible unclaimed lane in the order listed by mailbox `STATE.md`.
+- The claim path is predetermined by that lane and must be written on `coordination/chatgpt-codex-bridge` before task preflight.
+- A claim file is immutable, contains a generated claim token, and authorizes only that lane in the same Codex thread.
+- If the mailbox remote head moves or the claim path already exists, refetch, re-read state, and select the next eligible unclaimed lane. Never overwrite a claim.
+- A maximum of three claim retries is allowed. If no eligible lane remains, return `BRIDGE_NO_UNCLAIMED_LANES` and do not modify files.
+- Claiming a lane does not authorize primary repository writes, does not bypass model preflight, and does not count as task PASS.
+
+For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state, claim and inbox, verify that they remain active and unchanged, then execute only that lane. Do not ask the user to relay reports to ChatGPT.
+
+### 0.0.2 Mailbox branch guard
+
+Every Codex mailbox write, including a lane claim or task outbox, must use the fail-closed mailbox branch guard.
+
+Immediately before the write:
+
+- fetch `origin/coordination/chatgpt-codex-bridge`;
+- record the fetched remote head as `MAILBOX_PARENT_COMMIT`;
+- use a dedicated mailbox worktree or equivalent isolated checkout whose checked-out branch is exactly `coordination/chatgpt-codex-bridge`;
+- prove current branch identity and prove `HEAD` equals `MAILBOX_PARENT_COMMIT`;
+- prove the commit diff contains only the exact claim or outbox path authorized by the selected lane.
+
+The mailbox commit must be a direct child of the recorded mailbox parent. Push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`, refetch, and prove the remote mailbox head equals the new mailbox commit. Never create a mailbox commit from `main`, a detached primary commit, the authorized primary baseline, or any non-mailbox branch.
+
+When primary write scope is `NONE`, also prove `origin/main` still equals the lane's authorized primary baseline. Any mismatch returns exactly `BLOCKED_MAILBOX_BRANCH_GUARD`; no fallback, guessed repair, overwrite, force-push or mailbox write to `main` is allowed. If a mailbox file is accidentally written to `main`, return exactly `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
+
+A mailbox claim or outbox is not accepted until ChatGPT independently verifies remote head, ancestry, exact changed paths and current main, then records the exact final mailbox commit/head in an immutable closure decision.
+
+This alias does not bypass runtime safety, native permission dialogs, exact task scope, model selection, dependency gates or user-owned Safari acceptance.
 
 ## 0.1 Git command aliases
 
@@ -26,13 +57,13 @@ The exact trimmed user commands `запуль` and `запушь` are reserved r
 
 ### `запуль`
 
-When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` and follow it exactly. It must not reinterpret the command as merge, rebase, stash, reset, clean, commit, push, or dirty-worktree repair.
+When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` and follow it exactly. It must not reinterpret the command as merge, rebase, stash, reset, clean, commit, push or dirty-worktree repair.
 
 ### `запушь`
 
-When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass runtime approval, or claim deployment/runtime acceptance from a Git push.
+When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass runtime approval or claim deployment/runtime acceptance from a Git push.
 
-These aliases do not bypass native permission prompts, runtime-safety-gate, exact task scope, Git safety checks, or user-owned Safari acceptance.
+These aliases do not bypass native permission prompts, runtime-safety-gate, exact task scope, Git safety checks or user-owned Safari acceptance.
 
 ## 1. Project identity
 
@@ -45,8 +76,8 @@ These aliases do not bypass native permission prompts, runtime-safety-gate, exac
 ## 2. Working roles
 
 - The user runs Safari runtime smoke on iPhone or iMac.
-- Codex implements isolated repository changes.
-- ChatGPT coordinates tasks and acceptance.
+- Codex implements isolated repository changes and static validation.
+- ChatGPT coordinates tasks, bridge lanes and acceptance.
 - Codex must not claim user acceptance.
 - Runtime PASS exists only after the user supplies the Safari smoke result.
 - Static checks may pass without creating runtime acceptance.
@@ -55,38 +86,39 @@ These aliases do not bypass native permission prompts, runtime-safety-gate, exac
 
 Before planning or editing, Codex must:
 
-- read `AGENTS.md`, `TASKS.md`, and `PROJECT_MEMORY.md`;
-- inspect the exact target files and similar completed systems;
+- read `AGENTS.md`, `TASKS.md` and `PROJECT_MEMORY.md`;
+- inspect exact target files and similar completed systems;
 - check Git status and the current diff;
-- detect and preserve unrelated or concurrent changes; and
-- preserve existing project infrastructure unless explicitly authorized.
+- distinguish task-owned, declared-concurrent and repository-observed changes;
+- preserve unrelated or concurrent changes; and
+- preserve project infrastructure unless explicitly authorized.
 
 ## 4. Atomic execution
 
-- Execute one atomic task only.
+- Execute one atomic task per claimed bridge lane.
 - Do not mix UI and logic.
-- Do not perform unrelated refactoring, opportunistic cleanup, or renaming outside scope.
+- Do not perform unrelated refactoring, opportunistic cleanup or renaming outside scope.
 - Do not add dependencies unless explicitly approved.
 - Preserve canon and current behavior.
-- Stop when a task requires work outside the authorized scope.
+- Stop when the task requires work outside the authorized scope.
 
 ## 5. Runtime safety gate
 
 Treat these as runtime-sensitive:
 
 - game runtime JavaScript and UI runtime JavaScript;
-- economy, battle systems, and NPC systems;
-- persistence, state, and save systems;
-- routing, shared smoke registries, and every `dev-checks.js` copy;
-- `Game.__DEV`, `Game.Dev`, boot logic, exports, globals, and smoke visibility; and
+- economy, battle systems and NPC systems;
+- persistence, state and save systems;
+- routing, shared smoke registries and every `dev-checks.js` copy;
+- `Game.__DEV`, `Game.Dev`, boot logic, exports, globals and smoke visibility; and
 - mirrored runtime copies.
 
 If any runtime-sensitive file is required:
 
 - make no edits;
 - return `RUNTIME_SAFETY_GATE_REQUIRED`;
-- list every required runtime-sensitive file and explain why each is required;
-- identify mirrored copies and shared wiring; and
+- list every required runtime-sensitive file and why it is required;
+- identify mirrors and shared wiring; and
 - state: `This task needs an isolated serialized runtime slot.`
 
 If no runtime-sensitive file is required:
@@ -99,25 +131,23 @@ Never bypass the gate because a change appears small.
 
 ### 5.1 Approval protocol
 
-When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the final response must end with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it. Do not render `APPROVE` as inline code, prose, a bullet, a heading, a quote, or an unfenced line.
+When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the response must end with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it.
 
 ```text
 APPROVE
 ```
 
-Accepted confirmation tokens in the same Codex thread are case-insensitive after trimming whitespace: `approve`, `confirm`, `ok`, `okay`, `ок`, `окей`, and `подтверждаю`.
+Accepted confirmation tokens in the same Codex thread are case-insensitive after trimming whitespace: `approve`, `confirm`, `ok`, `okay`, `ок`, `окей` and `подтверждаю`.
 
-The token applies only to one exact pending runtime task in the same thread and means approval for the isolated serialized runtime slot for that exact task and file scope.
-
-Native Codex permission dialogs remain separate and are not approved by this token.
+The token applies only to one exact pending runtime task in the same thread and exact frozen file scope. Native Codex permission dialogs remain separate.
 
 ## 6. Canonical mechanics
 
 ### Arguments
 
-- Argument families are ABOUT, WHO, WHERE, and YN.
+- Argument families are ABOUT, WHO, WHERE and YN.
 - There are nine canonical argument pairs.
-- WHERE and YN use the form `там, где {PLACE}`.
+- WHERE and YN use `там, где {PLACE}`.
 - `здесь` is forbidden in YN.
 - UI profiles may shorten presentation but cannot change argument logic.
 
@@ -126,17 +156,17 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 - Participation: +1 REP and -1 point.
 - Majority winner: +2 REP and +1 point.
 - Minority: -2 REP and +0 points.
-- Points must remain conservative, and every economic change must be traceable.
+- Points must remain conservative and every economic change traceable.
 
 ### Rematch
 
 - The loser pays the rematch cost.
-- The initial rematch cost is 1 point, and the rematch price increases.
+- Initial cost is 1 point and increases.
 - Rematch does not change REP.
 
 ### Cop flow
 
-- Flow: DM to cop, acknowledgement or reward, public post, then cooldown.
+- DM to cop, acknowledgement or reward, public post, then cooldown.
 - Cop-chat frequency is three times lower than ordinary chat.
 
 ### Grey `Вброс`
@@ -149,20 +179,20 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 
 - Millennial is the base profile.
 - Zoomer is a text-only derivative.
-- Alpha is an ultra-direct derivative of zoomer.
-- UI profiles must not introduce new runtime logic, entities, handlers, economy, battle rules, or state.
-- Alpha must reduce text without infantilism or loss of meaning.
+- Alpha is an ultra-direct derivative of Zoomer.
+- Profiles must not introduce runtime logic, entities, handlers, economy, battle rules or state.
+- Alpha reduces text without infantilism or loss of meaning.
 
 ## 7. Economy invariants
 
 - No untraceable emission or silent point creation or destruction.
 - `moneyLog`, or the current equivalent ledger, remains authoritative.
-- Transfers identify source, receiver, amount, reason, and related event or battle.
+- Transfers identify source, receiver, amount, reason and related event or battle.
 - NPC and player cases use the same canonical economy unless explicitly specified.
-- Crowd refunds, remainder, winner transfers, and loser transfers remain traceable.
+- Crowd refunds, remainder and winner/loser transfers remain traceable.
 - Economy-sensitive work requires positive conservation and traceability evidence.
 - Explicit sources and sinks must be canonical and fully recorded.
-- Duplicate settlement, lost remainders, invalid refunds, and untraceable deltas are `FAIL`.
+- Duplicate settlement, lost remainders, invalid refunds and untraceable deltas are `FAIL`.
 - Ambiguous economy behavior routes to Canon Audit.
 - Deployed mirror parity routes to Mirror Audit.
 - Runtime acceptance remains user-controlled.
@@ -172,17 +202,16 @@ Native Codex permission dialogs remain separate and are not approved by this tok
 - Accepted canon outranks current implementation and stale plans.
 - Authoritative conflicts return `BLOCKED` and require user resolution.
 - Silent mechanic drift and undocumented exceptions are `FAIL`.
-- Canon Audit determines the intended rule but does not prove economy conservation or mirror parity.
-- Runtime acceptance remains user-controlled.
+- Canon Audit determines intended rules but does not prove economy conservation or mirror parity.
 
 ## 7.2 Mirror audit
 
 - Source and deployed counterparts form one serialized ownership lane.
-- Byte parity, semantic parity, and wiring parity are separate checks.
+- Byte parity, semantic parity and wiring parity are separate checks.
 - Matching contents do not prove reachability or deployment correctness.
 - Accepted transformations must be authoritative and deterministic.
 - Unresolved ownership or transformation rules return `BLOCKED`.
-- Runtime synchronization remains subject to runtime-safety-gate approval.
+- Runtime synchronization remains subject to runtime approval.
 - Deployed acceptance remains user-controlled through Safari smoke.
 
 ## 8. Model selection rule
@@ -193,73 +222,67 @@ Available Codex models are exactly:
 - GPT-5.4; and
 - GPT-5.4-Mini.
 
-Available reasoning levels are low, medium, high, and extra high.
+Available reasoning levels are exactly Light, Medium, High and Extra High.
 
 For every task, Codex must:
 
-- analyze the exact task and compare it with existing infrastructure and similar completed work;
-- choose the cheapest reliable option among all available models;
-- state the selected model and reasoning level;
-- briefly explain why weaker options are insufficient;
-- briefly explain why a stronger option is unnecessary or unavailable;
-- justify any stronger-model promotion from task characteristics such as runtime sensitivity, architectural risk, ambiguity, concurrency, validation cost, or release impact;
-- never invent model names or silently downgrade the selected model;
-- never silently claim or change the active model; and
-- treat the selection as a recommendation unless the user selected it in the Codex interface.
+- compare the exact task with existing infrastructure and similar completed work;
+- recommend the cheapest reliable option among all available model/reasoning pairs;
+- state the recommended model and reasoning level;
+- explain why weaker options are insufficient and stronger options unnecessary;
+- justify promotion from runtime sensitivity, architectural risk, ambiguity, concurrency, validation cost or release impact;
+- never invent model names or silently downgrade; and
+- treat selection as a recommendation unless the user selected it in the Codex interface.
 
-The user selects the active model in the Codex interface. Codex may recommend a model but must not falsely claim it changed or verified the active model.
-
-If the active model cannot be verified from external metadata, report it as `USER_SELECTED_UNVERIFIED`.
-
-If Codex reports its own model name without external verification, label it `SELF_REPORTED_UNVERIFIED`; self-report is not proof of the active model.
+The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
 
 ## 8.1 Parallel work policy
 
+- Use `parallel-scope-planner` whenever multiple tasks or bridge lanes exist.
+- Every lane has one atomic goal, one claim, one baseline, one branch/worktree, one allowed read set, one allowed write set, one dependency set and one outbox.
 - Evaluate task-owned writes separately from the entire dirty tree.
 - Unrelated dirty files do not automatically block work.
-- Overlapping writes, stable-read dependencies, mirror pairs, shared wiring, and unresolved scopes require serialization.
+- Read-only lanes may run concurrently when they have no stable-read dependency on mutable outputs from another lane.
+- Overlapping writes, stable-read dependencies, mirror pairs, shared wiring, runtime slots, registries and unresolved scope require serialization.
 - Source and deployed mirrors share one ownership lane.
-- Shared `TASKS.md` and `PROJECT_MEMORY.md` updates should normally be assigned to one final documentation owner.
+- `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized singleton lanes.
+- One final documentation owner updates shared `TASKS.md` and `PROJECT_MEMORY.md` per wave.
 - Runtime gate decisions take precedence over parallel planning.
+- A lane may not merge, rebase or absorb another lane's work unless a dedicated integration task authorizes it.
 
 ## 8.2 Routing policy
 
 - Runtime safety has precedence over routing convenience.
 - Multi-task or overlapping work uses the parallel planner.
-- Implementation lanes receive model recommendations.
-- Security and web-app plugins are optional supporting tools, not policy overrides.
-- Dirty-tree evidence must distinguish task-owned, scenario-declared, and repository-observed changes.
+- Implementation lanes receive independent model recommendations.
+- Security and web-app plugins are supporting tools, not policy overrides.
 - Runtime acceptance remains user-controlled.
 
 ## 8.3 v1.0.0 workflow
 
 - `task-router` classifies the request.
 - `runtime-safety-gate` has precedence for runtime-sensitive scope.
-- `model-selector` runs the two-phase model-selection workflow: `MODEL_PREFLIGHT_ONLY`, the final standalone fenced `CONTINUE` output contract, then post-`CONTINUE` implementation only for the unchanged authorized scope.
+- `model-selector` runs `MODEL_PREFLIGHT_ONLY`, then post-`CONTINUE` execution only for unchanged scope.
 - `canon-audit` resolves intended accepted rules.
 - `economy-invariant-audit` verifies conservation and traces.
 - `mirror-audit` verifies source/deployed and deployment parity.
-- `parallel-scope-planner` controls ownership and serialization when multiple tasks, mirrors, shared ownership, or concurrency exist.
-- `smoke-orchestrator` plans the smallest sufficient smoke workflow and evaluates the enclosing smoke verdict without conflating nested component failures.
-- `deployment-verifier` verifies deployment lineage, entrypoint freshness, served artifact identity, and release-marker coherence when deployed evidence matters.
-- `acceptance-evidence-gate` decides whether the supplied evidence authorizes status promotion.
-- Codex performs static validation.
-- The user performs required Safari runtime smoke.
-- Installed-package verification and final package acceptance remain separate from source-package integration.
-- Pragmatic installed-content acceptance for `v1.0.0` is recorded, but current-thread resolver/load availability must still be verified independently for each task.
-- No exact installation-event provenance or resolver telemetry may be claimed without evidence.
-- A response may claim Asynchronia plugin use only when it follows the complete required output contract of every invoked skill and names evidence for current-thread availability; repeating skill names, paraphrasing the inbox, or merely reading `SKILL.md` files is not proof.
+- `parallel-scope-planner` controls ownership and serialization.
+- `smoke-orchestrator` plans the smallest sufficient smoke workflow.
+- `deployment-verifier` verifies lineage, entrypoint freshness and served artifact identity.
+- `acceptance-evidence-gate` decides whether evidence authorizes status promotion.
+- Codex performs static validation; the user performs required Safari smoke.
+- Current-thread plugin resolver/load availability must be verified independently for every task.
+- Repeating skill names, paraphrasing the inbox or reading skill files is not proof of plugin load.
 - Missing resolver/load evidence returns `BLOCKED_PLUGIN_NOT_LOADED` and no `CONTINUE` block.
-- Runtime acceptance remains pending until user confirmation.
 
 Boundaries:
 
-- Canon Audit does not prove economy conservation, mirror correctness, deployment freshness, or acceptance authorization.
+- Canon Audit does not prove economy conservation, mirror correctness, deployment freshness or acceptance authorization.
 - Economy Invariant Audit does not define canon or deployment parity.
-- Mirror Audit does not define canon, deployment freshness, or acceptance authorization.
+- Mirror Audit does not define canon, deployment freshness or acceptance authorization.
 - Smoke Orchestrator does not replace deployment verification or acceptance gating.
 - Deployment Verifier does not claim runtime behavior or user acceptance.
-- Acceptance Evidence Gate does not manufacture evidence or bypass audits, deployment verification, or user Safari acceptance.
+- Acceptance Evidence Gate does not manufacture evidence or bypass audits, deployment verification or Safari acceptance.
 - Audits and acceptance skills do not approve runtime writes.
 
 ## 9. Plugin usage
@@ -270,34 +293,31 @@ Repository-tracked plugins:
 - Build Web Apps; and
 - Asynchronia source package v1.0.0.
 
-Repository source manifest and marketplace metadata are both `v1.0.0`.
-Pragmatic installed-content acceptance for `v1.0.0` is recorded.
-Current-thread resolver/load availability must still be verified independently for every task.
-Exact installation-event provenance or resolver telemetry must not be claimed without evidence.
+Repository source manifest and marketplace metadata are `v1.0.0`. Pragmatic installed-content acceptance is recorded, but current-thread resolver/load availability must still be independently verified.
 
-Use Codex Security before persistence, before server or account systems, before public release, and after major security-sensitive or runtime changes.
+Use Codex Security before persistence, server/account systems and public release, and after major security-sensitive or runtime changes.
 
-Use Build Web Apps for isolated UI screens, responsive layout, visual prototypes, and visual smoke support. Build Web Apps must not bypass the runtime safety gate or modify game logic through a UI task.
+Use Build Web Apps for isolated UI screens, responsive layout, visual prototypes and visual smoke support. It must not bypass runtime safety or modify game logic through a UI task.
 
-Use the Asynchronia source package workflow for repository safety, routing, model preflight, smoke orchestration, deployment verification, and acceptance-evidence gating on repository-scoped work.
+Use the Asynchronia source package workflow for safety, routing, model preflight, parallel planning, smoke orchestration, deployment verification and acceptance gating.
 
 ## 10. Validation and acceptance
 
 - Validate every changed file appropriately.
 - Run `git diff --check`.
-- Check changed files against the authorized scope and fail on forbidden files.
+- Check changed files against authorized scope and fail on forbidden files.
 - Do not install external packages unless approved.
-- Do not claim runtime PASS without a user-run Safari smoke.
+- Do not claim runtime PASS without user-run Safari smoke.
 - Safari smoke status is `PENDING_USER` until supplied.
-- If `buildTag` or `smokeVersion` differs from the deployed build, return `DEPLOYMENT_NOT_REACHED`.
-- If a documentation-only change has no runtime surface, Safari smoke may be `N/A - documentation only`.
+- If buildTag or smokeVersion differs from deployed build, return `DEPLOYMENT_NOT_REACHED`.
+- Documentation-only changes may use `N/A - documentation only`.
 
 ## 11. Required Codex final report
 
 Every implementation response must contain, in this order:
 
 - status;
-- selected model and reasoning level;
+- selected or recommended model and reasoning level;
 - inspected files;
 - changed files;
 - tests run;
@@ -311,12 +331,12 @@ Every implementation response must contain, in this order:
 
 Use `N/A` with a reason when a field does not apply.
 
-Allowed primary statuses are `PASS`, `FAIL`, `BLOCKED`, `SAFE_TO_PROCEED`, `RUNTIME_SAFETY_GATE_REQUIRED`, `DEPLOYMENT_NOT_REACHED`, and `PENDING_USER`.
+Allowed primary statuses are `PASS`, `FAIL`, `BLOCKED`, `SAFE_TO_PROCEED`, `RUNTIME_SAFETY_GATE_REQUIRED`, `DEPLOYMENT_NOT_REACHED` and `PENDING_USER`.
 
-A Codex `PASS` means only that the authorized implementation and static checks passed. It does not replace user acceptance or Safari runtime smoke.
+A Codex `PASS` means only that authorized implementation and static checks passed. It does not replace coordinator verification, user acceptance or Safari runtime smoke.
 
 ## 12. Documentation state
 
-- This root `AGENTS.md` is the authoritative repository policy.
-- `TASKS.md` and `PROJECT_MEMORY.md` record its creation, canonical mechanics and economy invariants, runtime safety gate, integrated v1.0.0 plugin workflow, model-selection rule, and final Codex report contract.
-- Safe-task and runtime-task acceptance smokes remain pending and must be run separately.
+- Root `AGENTS.md` is the authoritative repository policy.
+- `STAGE6_PARALLEL_EXECUTION_PLAN.md` is the repository-tracked operational plan for parallel Stage 6 lanes.
+- Mailbox `STATE.md` is the authoritative current bridge queue and claim state.
