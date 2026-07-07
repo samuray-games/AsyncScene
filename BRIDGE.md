@@ -12,6 +12,17 @@ The only normal bridge commands are:
 
 Each number selects one fixed slot. Never substitute another slot. Bare `мост` is inactive.
 
+## Universal Git transport commands
+
+Inside any bridge thread, the exact trimmed commands are:
+
+- `пул` - read current `origin/main:GIT_PULL.md` and safely refresh refs or fast-forward only the exact authorized branch;
+- `пуш` - read current `origin/main:GIT_PUSH.md` and publish only the exact authorized target.
+
+The former commands `запуль` and `запушь` are inactive.
+
+`пуш` supports both a normal authorized branch and a detached mailbox commit when the destination ref is exact, the commit is a direct child of the freshly fetched remote head, only the authorized mailbox path changed, and the push is fast-forward without force. Detached HEAD alone is not a blocker.
+
 ## Remote-first discovery
 
 For every numbered command:
@@ -83,7 +94,7 @@ When no claim exists:
 7. refetch and verify the remote claim;
 8. return claim token and claim path separately.
 
-ChatGPT may publish a `COORDINATOR_RECOVERY_CLAIM` for the already identified logical thread when Codex was blocked only by stale historical metadata or missing Git credentials.
+ChatGPT may publish a `COORDINATOR_RECOVERY_CLAIM` for the already identified logical thread when Codex was blocked only by stale historical metadata or missing Git authentication.
 
 ## Resilient mailbox guard
 
@@ -155,7 +166,7 @@ After the user selects the model and sends `CONTINUE` in the same thread:
 
 ## Publication-auth fallback
 
-If execution succeeds but `git push` fails solely because credentials are unavailable:
+If execution succeeds but publication fails solely because authentication is unavailable:
 
 1. preserve the primary repository unchanged;
 2. report `BLOCKED_MAILBOX_AUTH`;
