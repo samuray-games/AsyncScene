@@ -34,7 +34,7 @@ git fetch origin coordination/chatgpt-codex-bridge
 12. Verify:
    - `git rev-parse HEAD` equals `git rev-parse origin/main`;
    - `git status --short --branch` is clean;
-   - root `AGENTS.md` contains aliases for `проверь мост`, `запуль`, and `запушь`;
+   - root `AGENTS.md` contains aliases for `мост`, `запуль`, and `запушь`;
    - root `BRIDGE.md`, `GIT_PULL.md`, and `GIT_PUSH.md` exist.
 
 ## Forbidden actions
