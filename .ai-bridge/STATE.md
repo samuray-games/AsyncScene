@@ -3,7 +3,7 @@
 BRIDGE_PROTOCOL: 2.4
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-07T21:04:00+09:00
+STATE_UPDATED_AT: 2026-07-07T21:27:00+09:00
 USER_COMMAND_SLOT_1: мост 1
 USER_COMMAND_SLOT_2: мост 2
 USER_COMMAND_SLOT_3: мост 3
@@ -13,7 +13,7 @@ GIT_PUSH_COMMAND: пуш
 LEGACY_GIT_COMMANDS: запуль, запушь - INACTIVE
 MAX_CONCURRENT_CODEX_LANES: 3
 AUTHORIZED_EVIDENCE_BASELINE: a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d
-CURRENT_POLICY_HEAD: c2d23b4de1182850d0d1af1b702564c24f7c830f
+CURRENT_POLICY_HEAD: 72aaf0459dea2f5d1d90f8e1eae5423dc45b4385
 PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 PARALLEL_PLAN_VERSION: S6-PARALLEL-2026-07-07-03-TRACEABILITY-CLOSED
 TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
@@ -45,6 +45,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - If outbox push fails only for credentials, Codex returns the full intended payload for ChatGPT publication.
 - Claim token and claim path are separate fields.
 - Current Git transport commands are `пул` and `пуш`; old aliases are inactive.
+- `пул` fetches remote refs before dirty-worktree evaluation. Dirty local files produce successful fetch-only status `PASS_FETCHED_PULL_SKIPPED_DIRTY`, not a blocker.
 - Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence. Product and runtime files remain audited at AUTHORIZED_EVIDENCE_BASELINE.
 
 ## Bridge Slot 1
@@ -108,7 +109,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Claim commit: `e898bd3629405b4069ca13698eca880deb3aae90`
 - Expected outbox: `.ai-bridge/outbox/BRIDGE-20260705-029-02-codex.md`
 - Evidence baseline: `a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d`
-- Current policy head: `c2d23b4de1182850d0d1af1b702564c24f7c830f`
+- Current policy head: `72aaf0459dea2f5d1d90f8e1eae5423dc45b4385`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
 - Claim status: `ACTIVE_CORRECTION_REQUIRED`
@@ -130,7 +131,8 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Next user action
 
-1. In the existing Slot 3 Codex thread, write `мост 3`.
-2. It must read `.ai-bridge/inbox/BRIDGE-20260705-029-09-chatgpt.md` and keep the existing claim.
-3. After it produces the exact outbox payload, use `пуш` for publication.
-4. Do not provide GitHub credentials and do not reuse the stale local detached commit.
+1. In the existing Slot 3 Codex thread, write `пул`.
+2. Dirty local files must be preserved and remote refs fetched successfully.
+3. Then write `мост 3` and keep the existing claim.
+4. After it produces the exact outbox payload, use `пуш` for publication.
+5. Do not provide GitHub credentials and do not reuse the stale local detached commit.
