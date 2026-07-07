@@ -13,14 +13,16 @@ GIT_PUSH_COMMAND: пуш
 LEGACY_GIT_COMMANDS: запуль, запушь - INACTIVE
 MAX_CONCURRENT_CODEX_LANES: 3
 AUTHORIZED_EVIDENCE_BASELINE: a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d
-CURRENT_POLICY_HEAD: 72aaf0459dea2f5d1d90f8e1eae5423dc45b4385
+CURRENT_POLICY_HEAD: 873e67387e7c4db88c1b07772ef928ee17187210
+REMOTE_FIRST_BOOTSTRAP: CODEX_REMOTE_FIRST_BOOTSTRAP.md
+GIT_PULL_PROTOCOL: GIT_PULL_2_6_REMOTE_FIRST_BOOTSTRAP
 PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 PARALLEL_PLAN_VERSION: S6-PARALLEL-2026-07-07-03-TRACEABILITY-CLOSED
 TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Current status
 
-- Bridge status: `PROTOCOL_2_4_WAVE_2_MODEL_PREFLIGHT_CORRECTED`
+- Bridge status: `PROTOCOL_2_4_WAVE_2_BOOTSTRAP_AND_PREFLIGHT_CORRECTED`
 - Open executable slots: `1`, `2`, `3`
 - Slot 1 phase: `MODEL_PREFLIGHT_ONLY`
 - Slot 2 phase: `MODEL_PREFLIGHT_ONLY`
@@ -31,9 +33,10 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Active block: `Wave 2 decision and collision packages`
 - Product/runtime changes in this wave: `NONE`
 - Safari status in this wave: `N/A - read-only decision packages`
-- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-02-chatgpt.md`
+- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-03-chatgpt.md`
 - Model selection status: `PENDING_CODEX_PREFLIGHT_12_OF_12`
 - Coordinator model recommendations: `VOID`
+- Remote-first bootstrap status: `PUBLISHED`
 - Main-plan drift: `STAGE6_PARALLEL_EXECUTION_PLAN.md still contains 47/100 and unchecked Wave 1 Slot 2/3 or P0.9 fields; Slot 1 owns read-only reconciliation evidence only.`
 
 ## Protocol 2.4 rules
@@ -49,12 +52,12 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Local-only mailbox commits are not accepted.
 - If publication fails only for credentials, Codex must return the complete intended payload and exact authorized path.
 - ChatGPT may independently validate and publish through the repository connector.
-- Claim token and claim path are separate fields.
 - Current Git transport commands are `пул` and `пуш`; old aliases are inactive.
 - `пул` must fetch remote refs before dirty-worktree evaluation. Dirty local files produce successful fetch-only status `PASS_FETCHED_PULL_SKIPPED_DIRTY`, not a blocker.
+- `BLOCKED_DIRTY_WORKTREE` is forbidden for `пул`.
 - No model or reasoning level may be preselected in a task inbox or STATE before Codex performs the 12/12 model preflight.
 - The user selects the actual model in the Codex interface after preflight.
-- Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence. Product and runtime files remain audited at AUTHORIZED_EVIDENCE_BASELINE unless a source-backed delta is proven.
+- Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence.
 
 ## Bridge Slot 1 - current Wave 2 assignment
 
@@ -64,7 +67,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Task: `TASK-S6-PAR-T2`
 - Phase: `MODEL_PREFLIGHT_ONLY`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-01-chatgpt.md`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-02-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260707-030-claim-codex.md`
 - Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
 - Claim token: `READ_FROM_IMMUTABLE_CLAIM_FILE`
@@ -84,7 +87,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Task: `TASK-S6-PAR-B2`
 - Phase: `MODEL_PREFLIGHT_ONLY`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-031-01-chatgpt.md`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-031-02-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-031-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260707-031-claim-codex.md`
 - Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
 - Claim token: `READ_FROM_IMMUTABLE_CLAIM_FILE`
@@ -104,7 +107,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Task: `TASK-S6-PAR-A2`
 - Phase: `MODEL_PREFLIGHT_ONLY`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-01-chatgpt.md`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-02-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260707-032-claim-codex.md`
 - Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
 - Claim token: `READ_FROM_IMMUTABLE_CLAIM_FILE`
@@ -131,11 +134,11 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - No current slot owns a primary product file.
 - Resolver, mirrors, shared system copy, DM action registry, Like routing, events/report wiring, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized where they overlap.
 - Shared `TASKS.md` and `PROJECT_MEMORY.md` updates have one owner per implementation wave. Current recommendation: Slot 1.
-- Root `AGENTS.md` still contains historical aliases; current `AGENTS.override.md` supersedes that Git transport clause until root cleanup is published.
+- Root `AGENTS.md` still contains historical aliases; current `AGENTS.override.md` and `GIT_PULL.md` supersede that Git transport clause until root cleanup is published.
 
 ## Next coordinator action
 
-1. Repair the local remote-first bootstrap without discarding the user's dirty `AGENTS.md` or `BRIDGE.md` changes.
+1. Run the one-time remote-first bootstrap in the stale local checkout without discarding dirty files.
 2. User runs the three numbered bridge commands in their corresponding Codex slots.
 3. Each slot performs its own 12/12 model preflight and waits for same-thread `CONTINUE`.
 4. ChatGPT independently verifies each published outbox.
