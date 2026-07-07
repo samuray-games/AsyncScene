@@ -1,148 +1,185 @@
 # Asynchronia Codex Bridge Entry Point
 
-BRIDGE_PROTOCOL: 2.1
+BRIDGE_PROTOCOL: 2.2
 
 This is the stable entry point for the ChatGPT-Codex mailbox bridge.
 
 ## User commands
 
-The only active bridge commands are:
+The only normal bridge commands are:
 
 - `мост 1`
 - `мост 2`
 - `мост 3`
 
-The former bare `мост` command and older phrase are superseded.
+The number is a fixed bridge slot. Never substitute another slot. Bare `мост` is inactive. The older phrase is accepted only as a one-time recovery trigger defined by `CODEX_BRIDGE_RECOVERY.md`.
 
-The number is a fixed bridge slot selected by the user. Never substitute another slot.
+## Stale-alias recovery
+
+A numbered command remains valid when user-level instructions or local repository files are stale.
+
+Before interpreting the command:
+
+1. verify the repository origin belongs to `samuray-games/AsyncScene`;
+2. fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge`;
+3. read current policy with:
+
+```bash
+git show origin/main:AGENTS.override.md
+git show origin/main:AGENTS.md
+git show origin/main:BRIDGE.md
+```
+
+4. if the active user-level managed bridge block is older than current `CODEX_BRIDGE_BOOTSTRAP.md`, repair only that managed block;
+5. preserve dirty local repository files exactly as found;
+6. never ask what `мост 1`, `мост 2`, or `мост 3` means.
+
+Dirty local `AGENTS.md` or `BRIDGE.md` files do not block recovery. Do not stash, reset, clean, overwrite, commit or push them. Continue the current thread from fetched remote Protocol 2.2 after recovery.
 
 ## Discovery
 
-1. Read root `AGENTS.md`.
-2. Parse the exact slot number `1`, `2`, or `3` from the trimmed command.
-3. Fetch current remote refs without switching or rewriting the primary worktree:
-
-```bash
-git fetch origin main coordination/chatgpt-codex-bridge
-```
-
-4. Read the authoritative bridge state:
+1. Parse slot `1`, `2`, or `3` from the exact command.
+2. Read authoritative mailbox state:
 
 ```bash
 git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md
 ```
 
-5. Locate only `Bridge Slot N`, where N is the requested command number.
-6. Ignore all historical mailbox files and every lane assigned to another slot.
+3. Locate only `Bridge Slot N`.
+4. Ignore historical files and every other slot.
+5. Read the slot inbox, current baseline update, claim path, expected outbox and authorized primary baseline.
+
+## Plugin proof before claim
+
+A new thread must prove the Asynchronia plugin before writing a claim.
+
+Accepted proof modes:
+
+### Native resolver proof
+
+Use `NATIVE_RESOLVER_PROOF` when the current Codex resolver or UI exposes the active Asynchronia package and invoked skills.
+
+### Functional invocation proof
+
+Use `FUNCTIONAL_INVOCATION_PROOF` when native telemetry is unavailable but the current thread successfully invokes required Asynchronia skills and returns their complete contracts.
+
+For bridge preflight, functional proof requires:
+
+- `plugin package: asynchronia`;
+- manifest version from `plugins/asynchronia/.codex-plugin/plugin.json`;
+- exact invoked skill names;
+- complete `task-router` output contract;
+- `runtime-safety-gate` verdict;
+- complete `parallel-scope-planner` contract because three slots exist;
+- complete `model-selector` output including `evaluated pair count: 12/12`;
+- `NATIVE_TELEMETRY_UNAVAILABLE` when native telemetry is absent.
+
+Reading skill files or naming skills without returning their contracts is not proof. Missing native telemetry alone is not a blocker.
+
+If neither proof succeeds, return `BLOCKED_PLUGIN_NOT_LOADED`. Do not create a claim, do not include `CONTINUE`, and do not modify primary files.
 
 ## Existing claim in the same Codex thread
 
-If this Codex thread already created a valid claim and retained its `CLAIM_TOKEN`:
+When the current thread already owns a valid claim token:
 
-1. verify the claim belongs to the requested bridge slot;
-2. read the immutable claim file and current lane inbox;
-3. verify slot, thread id, claim token, primary baseline, task id, phase and scope remain unchanged;
+1. verify it belongs to the requested slot;
+2. read the immutable claim and current inbox;
+3. verify slot, thread id, token, baseline, task, phase and scope remain unchanged;
 4. continue only that lane;
-5. if the lane was closed, superseded, reassigned or changed, return `BLOCKED_CLAIM_STALE` and do not select a replacement lane.
+5. return `BLOCKED_CLAIM_STALE` if it changed.
 
-## New Codex thread: fixed-slot claim
+## New thread claim
 
-A new Codex thread claims only the lane assigned to the requested slot in `STATE.md`.
+After plugin proof succeeds:
 
-1. Read the slot's thread id, inbox path, predetermined claim path, expected outbox and authorized primary baseline.
-2. If the slot has no open lane, return `BRIDGE_SLOT_UNAVAILABLE` with the slot number.
-3. If the claim path already exists, return `BRIDGE_SLOT_ALREADY_CLAIMED` and do not inspect or claim another slot.
-4. Generate a high-entropy `CLAIM_TOKEN` and retain it in the current Codex thread.
-5. Create exactly the predetermined immutable claim file containing:
-   - bridge slot number;
+1. verify the requested slot is open and unclaimed;
+2. return `BRIDGE_SLOT_UNAVAILABLE` when it has no active lane;
+3. return `BRIDGE_SLOT_ALREADY_CLAIMED` when its claim path already exists;
+4. generate a high-entropy `CLAIM_TOKEN`;
+5. create exactly the predetermined immutable claim file containing:
+   - bridge slot;
    - thread id;
    - task id;
    - lane id;
-   - claim token;
+   - actual claim token;
    - mailbox parent SHA known before commit;
    - authorized primary baseline;
    - exact inbox path;
-   - statement that this claim authorizes no primary write.
-6. Commit and push that single claim path using the mailbox branch guard below.
-7. Refetch and verify the remote claim file equals the created claim.
-8. Read the slot inbox and perform only its current phase.
+   - statement that the claim authorizes no primary write;
+6. commit and push only that claim path with the mailbox branch guard;
+7. refetch and verify the remote claim;
+8. return the claim token and claim path as separate fields.
 
-If the mailbox remote head moves before push, refetch and retry the same slot only. Never fall through to another slot. A claim is not model approval, runtime approval, task PASS or coordinator acceptance.
+If the mailbox head moves, refetch and retry the same slot only.
 
 ## Model preflight
 
-When the slot inbox requires `MODEL_PREFLIGHT_ONLY`:
+When the slot phase is `MODEL_PREFLIGHT_ONLY`, return:
 
-1. invoke the required Asynchronia plugin workflow and provide current-thread plugin-load evidence;
-2. perform only preflight, not the audit or implementation;
-3. recommend the cheapest reliable available model and reasoning level;
-4. state exact read scope, expected write scope, dependencies, runtime classification, permissions and blockers;
-5. include bridge slot, lane id and retained claim token;
-6. end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it.
+- plugin proof mode and evidence;
+- actual bridge slot, lane id, claim token and claim path;
+- complete task-router contract;
+- runtime-safety-gate verdict;
+- complete parallel-scope-planner contract;
+- complete model-selector contract, including the 12/12 pair matrix;
+- exact read scope, write scope, dependencies, collisions and blockers;
+- actual active model as `USER_SELECTED_UNVERIFIED` unless externally proven.
+
+A valid response ends with exactly one standalone fenced block and nothing after it:
 
 ```text
 CONTINUE
 ```
 
-After the user selects the model and sends `CONTINUE` in the same Codex thread:
+A blocked response must never include that block.
 
-1. refetch `main` and the mailbox branch;
-2. re-read current `STATE.md`, the immutable claim and the same slot inbox;
-3. verify slot, claim token, task, baseline, scope, dependencies and phase remain unchanged;
+After same-thread `CONTINUE`:
+
+1. refetch main and mailbox;
+2. re-read STATE, claim and the same slot inbox;
+3. verify token, baseline, task, scope, dependencies and phase;
 4. execute only the authorized lane;
-5. publish only the immutable outbox path authorized by that lane;
-6. set exact next user action to: return to ChatGPT and write the same command, `мост 1`, `мост 2`, or `мост 3`.
+5. publish only the expected immutable outbox;
+6. tell the user to return to ChatGPT and write the same numbered command.
 
-Do not ask the user to paste the report. ChatGPT reads and verifies the expected outbox directly when the user writes that numbered command.
+Do not ask the user to paste the report.
 
 ## ChatGPT verification contract
 
-When ChatGPT receives `мост N`, it verifies only Bridge Slot N:
+When ChatGPT receives `мост N`, it verifies only Slot N:
 
 1. reload live project memory;
-2. read current mailbox `STATE.md`;
-3. resolve the exact slot, claim, inbox and expected outbox;
+2. read mailbox STATE;
+3. resolve the slot claim, inbox and outbox;
 4. independently verify repository and mailbox facts;
 5. write an immutable closure or corrective turn;
-6. update the slot state, project memory and operational board;
-7. either enqueue the next compatible task into the same slot or mark it idle.
+6. update slot state, project memory and board;
+7. enqueue the next compatible task or mark the slot idle.
 
-Results from other slots are not implicitly accepted.
+## Runtime and parallel boundaries
 
-## Runtime safety and parallel boundaries
-
-- Follow `AGENTS.md` and `runtime-safety-gate` exactly.
 - Read-only lanes do not request `APPROVE`.
-- Runtime-sensitive writes require frozen exact scope and same-thread `APPROVE`.
-- Source and deployed mirrors are one ownership lane.
-- Overlapping writes, stable-read dependencies, shared resolver paths, `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized.
-- A lane stops with `BLOCKED_PARALLEL_SCOPE_COLLISION` when current evidence creates an undeclared overlap.
-- Never merge, rebase or absorb another lane unless a dedicated integration lane authorizes it.
+- Runtime-sensitive writes require frozen scope and same-thread `APPROVE`.
+- Source and deployed mirrors are one lane.
+- Shared resolvers, `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized.
+- Undeclared overlap returns `BLOCKED_PARALLEL_SCOPE_COLLISION`.
+- Never merge, rebase or absorb another lane without an integration task.
 
 ## Mailbox branch guard
 
-Every Codex mailbox write, including claims and outboxes, must:
+Every claim and outbox write must:
 
-1. fetch `origin/coordination/chatgpt-codex-bridge` immediately before writing;
-2. record the fetched head as `MAILBOX_PARENT_COMMIT`;
-3. use a dedicated mailbox worktree or equivalent isolated checkout on exactly `coordination/chatgpt-codex-bridge`;
-4. prove current branch is exactly that mailbox branch and `HEAD` equals `MAILBOX_PARENT_COMMIT`;
-5. prove the diff contains exactly one authorized claim or outbox path;
-6. create a direct-child commit of the recorded parent;
-7. push explicitly to `refs/heads/coordination/chatgpt-codex-bridge`;
-8. refetch and prove remote mailbox head equals the new commit.
+1. fetch the mailbox branch immediately before writing;
+2. record `MAILBOX_PARENT_COMMIT`;
+3. use an isolated checkout on exactly `coordination/chatgpt-codex-bridge`;
+4. prove branch identity and `HEAD == MAILBOX_PARENT_COMMIT`;
+5. prove the diff contains one authorized claim or outbox path;
+6. create a direct-child commit;
+7. push explicitly to the mailbox branch;
+8. refetch and prove the remote head equals the new commit.
 
-Never create a mailbox commit from `main`, a detached primary commit, an authorized primary baseline or any non-mailbox branch. Never overwrite an inbox, claim or outbox. Never modify another slot. Never force-push.
-
-When primary write scope is `NONE`, also prove `origin/main` still equals the slot's authorized baseline. Any mismatch returns `BLOCKED_MAILBOX_BRANCH_GUARD`, with no mailbox commit, fallback or guessed repair. If any mailbox file reaches `main`, return `FAIL_MAILBOX_WRITTEN_TO_MAIN`.
-
-The immutable claim or outbox records only facts known before its own commit plus mandatory post-push verification statements. ChatGPT independently resolves final mailbox commit/head, ancestry, exact paths and post-publication main, then records them in the immutable closure.
+Never write mailbox files to main, overwrite immutable files or force-push. When primary scope is `NONE`, also prove `origin/main` equals the slot baseline. Mismatch returns `BLOCKED_MAILBOX_BRANCH_GUARD`.
 
 ## Failure behavior
 
-If `STATE.md`, the requested slot, lane inbox, claim, branch or required source cannot be read:
-
-- return `BLOCKED` with the exact missing source;
-- do not substitute another slot or nearby task;
-- do not modify primary files;
-- do not claim a replacement lane after an existing same-thread claim becomes stale.
+When a required source cannot be read, return `BLOCKED` with the exact missing source. Do not substitute another slot, modify primary files or claim replacement work.
