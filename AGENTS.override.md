@@ -1,8 +1,28 @@
 # Asynchronia Protocol 2.4 Override
 
-OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_4
+OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_4_GIT_TRANSPORT_2_5
 
-Read root `AGENTS.md` fully. Every rule remains binding except the bridge metadata-precedence, claim recovery, plugin proof, and mailbox checkout clauses explicitly replaced below.
+Read root `AGENTS.md` fully. Every rule remains binding except the Git transport aliases, bridge metadata-precedence, claim recovery, plugin proof, and mailbox checkout clauses explicitly replaced below.
+
+## 0. Universal Git transport commands
+
+The exact trimmed commands `пул` and `пуш` are reserved repository commands and must be processed before any generic interpretation.
+
+The former commands `запуль` and `запушь` are inactive and must never be offered, requested, or treated as aliases.
+
+For `пул`:
+
+1. verify the repository root and `origin` identity;
+2. run `git fetch origin` before any dirty-worktree blocker or trust in local policy files;
+3. in bridge context also fetch `origin/coordination/chatgpt-codex-bridge` without switching branches;
+4. read and follow `git show origin/main:GIT_PULL.md`;
+5. preserve every local modification byte-for-byte;
+6. fast-forward only when the exact target is authorized, the worktree is clean, and the update is fast-forward only;
+7. when the worktree is dirty, complete fetch-only and report `PASS_FETCHED_PULL_SKIPPED_DIRTY` rather than blocking.
+
+Dirty or stale local `AGENTS.md`, `AGENTS.override.md`, `BRIDGE.md`, `GIT_PULL.md`, or unrelated files never block read-only remote fetch. Do not stash, reset, clean, commit, merge, rebase, switch branches, or discard changes.
+
+For `пуш`, read and follow `git show origin/main:GIT_PUSH.md` after refreshing refs. Publish only the exact authorized target. Never force-push or absorb unrelated changes.
 
 ## 1. Numbered bridge commands
 
@@ -128,6 +148,7 @@ These are not valid blockers:
 - missing local `.ai-bridge/STATE.md` when remote STATE is readable;
 - stale mutable fields in an original task inbox when the current baseline inbox supersedes them;
 - a stale existing mailbox worktree;
-- unrelated dirty primary-worktree files.
+- unrelated dirty primary-worktree files;
+- dirty local policy or bridge files during read-only remote fetch.
 
 Real blockers remain: wrong repository, unreadable current remote policy/state/baseline inbox, closed slot, claim owned by another logical thread, current primary baseline mismatch, native permission refusal, repeated mailbox race after three retries, or actual scope collision.
