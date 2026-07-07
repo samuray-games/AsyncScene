@@ -35,17 +35,38 @@ const DM_ACTION_LABEL_BASE = Object.freeze({
   "dm.respect": "Уважение",
   "dm.teach.toggle": "Передать",
   "dm.invite": "Позвать",
+  "dm.like": "Лайк",
   "dm.p2p.give": "Передать 💰",
   "dm.p2p.request": "Попросить 💰",
   "dm.report.open": "Сдать",
   "dm.report.submit": DM_REPORT_SUBMIT_LABELS,
 });
+const DM_ACTION_LABEL_ALPHA = Object.freeze({
+  ...DM_ACTION_LABEL_BASE,
+  "dm.respect": "Уважение",
+  "dm.teach.toggle": "Передать аргумент",
+  "dm.invite": "Указать имя",
+  "dm.like": "Поддержать ❤️",
+  "dm.p2p.give": "Передать 💰",
+  "dm.p2p.request": "Попросить 💰",
+});
+const DM_ACTION_LABEL_BOOMER = Object.freeze({
+  ...DM_ACTION_LABEL_BASE,
+  "dm.battle": "Конфликт",
+  "dm.report.open": "Сообщить",
+  "dm.report.submit": Object.freeze({
+    ...DM_REPORT_SUBMIT_LABELS,
+    idle: "Сообщить",
+    pending: "Проверка...",
+    cooldown: "Повторите позже",
+  }),
+});
 const DM_ACTION_LABELS = Object.freeze({
   default: DM_ACTION_LABEL_BASE,
   millennial: DM_ACTION_LABEL_BASE,
   zoomer: DM_ACTION_LABEL_BASE,
-  alpha: DM_ACTION_LABEL_BASE,
-  boomer: DM_ACTION_LABEL_BASE,
+  alpha: DM_ACTION_LABEL_ALPHA,
+  boomer: DM_ACTION_LABEL_BOOMER,
 });
 const resolveDmProfile = (profile) => {
   const explicitProfile = String(profile == null ? "" : profile).trim().toLowerCase();
@@ -1023,7 +1044,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       UI.renderDM();
     });
 
-    const btnLike = mkBtn("Лайк", () => {
+    const btnLike = mkBtn(resolveDmActionLabel("dm.like"), () => {
       dmPushLine(withId, getS().me.name, "❤️");
       dmPushLine(withId, target.name, isCop ? "Засчитано." : (Game.Data && Game.Data.pick ? Game.Data.pick(["каеф","ну норм","хех","ладно"]) : "каеф"));
       UI.pushSystem(systemSay("systemEvents", "dmReaction", { name: getS().me.name, target: target.name }), { routed: true, kind: "systemEvents", code: "dmReaction" });
