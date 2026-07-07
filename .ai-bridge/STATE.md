@@ -3,11 +3,11 @@
 BRIDGE_PROTOCOL: 2.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-07T14:24:00+09:00
+STATE_UPDATED_AT: 2026-07-07T14:31:00+09:00
 USER_COMMAND_ALIAS: мост
 OLD_USER_COMMAND_ALIAS: SUPERSEDED
 MAX_CONCURRENT_CODEX_LANES: 3
-AUTHORIZED_PRIMARY_BASELINE: ad17ddddb734210725a69caf6a23c9fda52d25e6
+AUTHORIZED_PRIMARY_BASELINE: 166166d99e812f3d64a0652126416dca38de8cd5
 PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 
 ## Current status
@@ -18,7 +18,7 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 - Active claims: `NONE`
 - Completed lanes in current wave: `NONE`
 - Next free thread id: `BRIDGE-20260705-030`
-- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260705-029-01-chatgpt.md`
+- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260705-029-03-chatgpt.md`
 - Latest accepted Codex turn: `NONE_AFTER_PROTOCOL_2_0_ACTIVATION`
 
 ## Open lane queue
@@ -29,10 +29,11 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 - Lane: `S6-T1-TRACEABILITY`
 - Task: `TASK-S6-PAR-T1`
 - Phase: `MODEL_PREFLIGHT_ONLY`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-01-chatgpt.md`
+- Task inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260705-027-claim-codex.md`
 - Outbox: `.ai-bridge/outbox/BRIDGE-20260705-027-02-codex.md`
-- Primary baseline: `ad17ddddb734210725a69caf6a23c9fda52d25e6`
+- Primary baseline: `166166d99e812f3d64a0652126416dca38de8cd5`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
 - Claim status: `UNCLAIMED`
@@ -43,10 +44,11 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 - Lane: `S6-B1-BOOMER-EVIDENCE`
 - Task: `TASK-S6-PAR-B1`
 - Phase: `MODEL_PREFLIGHT_ONLY`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-01-chatgpt.md`
+- Task inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260705-028-claim-codex.md`
 - Outbox: `.ai-bridge/outbox/BRIDGE-20260705-028-02-codex.md`
-- Primary baseline: `ad17ddddb734210725a69caf6a23c9fda52d25e6`
+- Primary baseline: `166166d99e812f3d64a0652126416dca38de8cd5`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
 - Claim status: `UNCLAIMED`
@@ -57,10 +59,11 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 - Lane: `S6-A1-ALPHA-EVIDENCE`
 - Task: `TASK-S6-PAR-A1`
 - Phase: `MODEL_PREFLIGHT_ONLY`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-01-chatgpt.md`
+- Task inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-03-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260705-029-claim-codex.md`
 - Outbox: `.ai-bridge/outbox/BRIDGE-20260705-029-02-codex.md`
-- Primary baseline: `ad17ddddb734210725a69caf6a23c9fda52d25e6`
+- Primary baseline: `166166d99e812f3d64a0652126416dca38de8cd5`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
 - Claim status: `UNCLAIMED`
@@ -84,9 +87,9 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 
 ## Alias migration state
 
-- Root `AGENTS.md`, root `BRIDGE.md` and `CODEX_BRIDGE_BOOTSTRAP.md` are updated on main commit `ad17ddddb734210725a69caf6a23c9fda52d25e6`.
+- Root `AGENTS.md`, root `BRIDGE.md`, `CODEX_BRIDGE_BOOTSTRAP.md` and `GIT_PULL.md` are current on main commit `166166d99e812f3d64a0652126416dca38de8cd5`.
 - The local user-level Codex instruction on the user's Mac still requires V1-to-V2 migration.
-- A current local checkout that pulls main can route `мост` through root `AGENTS.md` immediately.
+- A clean local checkout that pulls main can route `мост` through root `AGENTS.md` immediately.
 - Do not publish the stale local thread 024 diff.
 
 ## Historical status
@@ -98,7 +101,7 @@ PARALLEL_PLAN: STAGE6_PARALLEL_EXECUTION_PLAN.md
 
 ## Next user action
 
-1. Sync the local AsyncScene checkout to current main without publishing stale thread 024 edits.
+1. Run the one-time local V2 bootstrap from current `origin/main` without publishing stale thread 024 edits.
 2. Open up to three new Codex chats in the project.
 3. Write only `мост` in each chat.
 4. Each chat must claim a different lane and return `MODEL_PREFLIGHT_ONLY`.
