@@ -1,35 +1,42 @@
 # Asynchronia Repository Policy
 
-## 0. Bridge command alias
+## 0. Bridge command aliases
 
-The exact trimmed user command `мост` is reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
+The exact trimmed user commands `мост 1`, `мост 2`, and `мост 3` are reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
 
-When the user writes `мост`, Codex must:
+When the user writes one of these commands, Codex must:
 
-1. read root `BRIDGE.md` and follow it exactly;
-2. if local `BRIDGE.md` may be stale, fetch `origin/main` and read `git show origin/main:BRIDGE.md`;
-3. fetch `origin/coordination/chatgpt-codex-bridge` without switching or rewriting the primary worktree;
-4. read `.ai-bridge/STATE.md` from that remote branch;
-5. discover or retain exactly one lane according to the Bridge Protocol defined in `BRIDGE.md`;
-6. execute only the current phase of the claimed lane;
-7. ignore closed, superseded, blocked and claimed-by-other-thread lanes; and
-8. never reinterpret `мост` as a generic source/deployed mirror audit or ask which bridge the user means.
+1. parse the bridge slot number as exactly `1`, `2`, or `3`;
+2. read root `BRIDGE.md` and follow it exactly;
+3. if local `BRIDGE.md` may be stale, fetch `origin/main` and read `git show origin/main:BRIDGE.md`;
+4. fetch `origin/coordination/chatgpt-codex-bridge` without switching or rewriting the primary worktree;
+5. read `.ai-bridge/STATE.md` from that remote branch;
+6. select or retain only the lane currently assigned to that exact bridge slot;
+7. execute only the current phase of that slot's claimed lane;
+8. ignore closed, superseded, blocked, completed, other-slot, and claimed-by-other-thread lanes; and
+9. never reinterpret a numbered bridge command as a generic source/deployed mirror audit or ask which bridge the user means.
 
-The former command phrase is superseded and must not be offered or treated as an active alias.
+The former bare command `мост` and the older command phrase are superseded and must not be offered or treated as active aliases.
 
-### 0.0.1 Parallel bridge lane claims
+### 0.0.1 Parallel bridge slot claims
 
-Bridge Protocol 2.0 may expose multiple open lanes. Bare `мост` still requires no lane name from the user.
+Bridge Protocol 2.1 exposes three fixed user-facing slots. The user chooses the slot by writing `мост 1`, `мост 2`, or `мост 3` in a dedicated Codex thread.
 
-- An existing Codex thread that already owns a valid claim continues only that claimed lane.
-- A new Codex thread atomically claims the first eligible unclaimed lane in the order listed by mailbox `STATE.md`.
+- `мост 1` may claim or continue only Bridge Slot 1.
+- `мост 2` may claim or continue only Bridge Slot 2.
+- `мост 3` may claim or continue only Bridge Slot 3.
+- An existing Codex thread that already owns a valid claim continues only that same slot and lane.
+- A new Codex thread may claim only the unclaimed lane assigned to the requested slot in mailbox `STATE.md`.
 - The claim path is predetermined by that lane and must be written on `coordination/chatgpt-codex-bridge` before task preflight.
 - A claim file is immutable, contains a generated claim token, and authorizes only that lane in the same Codex thread.
-- If the mailbox remote head moves or the claim path already exists, refetch, re-read state, and select the next eligible unclaimed lane. Never overwrite a claim.
-- A maximum of three claim retries is allowed. If no eligible lane remains, return `BRIDGE_NO_UNCLAIMED_LANES` and do not modify files.
+- If the requested slot is empty, closed, blocked, completed, or unavailable, return `BRIDGE_SLOT_UNAVAILABLE` with the slot number and do not select another slot.
+- If the requested slot is already claimed by another Codex thread, return `BRIDGE_SLOT_ALREADY_CLAIMED` and do not select another slot.
+- If the mailbox remote head moves before a claim push, refetch and retry the same slot only. Never overwrite a claim or fall through to a different slot.
 - Claiming a lane does not authorize primary repository writes, does not bypass model preflight, and does not count as task PASS.
 
-For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state, claim and inbox, verify that they remain active and unchanged, then execute only that lane. Do not ask the user to relay reports to ChatGPT.
+For `MODEL_PREFLIGHT_ONLY`, return only the requested preflight and end with exactly one standalone fenced text code block containing only `CONTINUE`, with no text after it. After the user selects the recommended model and sends `CONTINUE` in the same Codex thread, re-read the bridge state, claim and inbox, verify that they remain active and unchanged, then execute only that slot's lane.
+
+Every completed bridge-lane report must set its exact next user action to: return to ChatGPT and write the same numbered command, `мост 1`, `мост 2`, or `мост 3`, so ChatGPT verifies only that bridge slot. Do not ask the user to paste or relay the report contents.
 
 ### 0.0.2 Mailbox branch guard
 
@@ -49,7 +56,7 @@ When primary write scope is `NONE`, also prove `origin/main` still equals the la
 
 A mailbox claim or outbox is not accepted until ChatGPT independently verifies remote head, ancestry, exact changed paths and current main, then records the exact final mailbox commit/head in an immutable closure decision.
 
-This alias does not bypass runtime safety, native permission dialogs, exact task scope, model selection, dependency gates or user-owned Safari acceptance.
+These aliases do not bypass runtime safety, native permission dialogs, exact task scope, model selection, dependency gates or user-owned Safari acceptance.
 
 ## 0.1 Git command aliases
 
