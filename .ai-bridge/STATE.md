@@ -3,7 +3,7 @@
 BRIDGE_PROTOCOL: 2.4
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T00:35:00+09:00
+STATE_UPDATED_AT: 2026-07-08T00:43:00+09:00
 USER_COMMAND_SLOT_1: мост 1
 USER_COMMAND_SLOT_2: мост 2
 USER_COMMAND_SLOT_3: мост 3
@@ -22,24 +22,25 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Current status
 
-- Bridge status: `PROTOCOL_2_4_WAVE_2_SLOT_3_AWAITING_CONTINUE`
+- Bridge status: `PROTOCOL_2_4_WAVE_2_SLOT_3_EXECUTE_NOW`
 - Open executable slots: `2`, `3`
 - Slot 1 phase: `CLOSED_PASS_ACCEPTED`
 - Slot 2 phase: `MODEL_PREFLIGHT_ONLY`
-- Slot 3 phase: `AWAITING_USER_MODEL_SELECTION_AND_CONTINUE`
+- Slot 3 phase: `EXECUTE_NOW`
 - Active claims: `2`
 - Accepted progress: `53/100`
 - Working readiness: `59/100`
-- Active block: `Wave 2 Boomer decision package and Alpha post-preflight execution`
+- Active block: `Wave 2 Boomer decision package and Alpha execution`
 - Product/runtime changes in this wave: `NONE`
 - Safari status in this wave: `N/A - read-only decision packages`
-- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-05-chatgpt.md`
+- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-06-chatgpt.md`
 - Slot 1 decision: `PASS_ACCEPTED / NONE_READ_ONLY_COORDINATION_PACKAGE`
 - Slot 1 outbox commit: `7c126060bbbd96be07f12c1e876f72cd01b5265f`
 - Slot 2 model selection status: `PENDING_CODEX_PREFLIGHT_12_OF_12`
 - Slot 3 model preflight status: `COMPLETE_12_OF_12`
-- Slot 3 recommended candidate: `GPT-5.4-Mini / Medium`
-- Slot 3 final decision package status: `NOT_YET_EXECUTED`
+- Slot 3 selected candidate: `GPT-5.4-Mini / Medium`
+- Slot 3 user CONTINUE status: `ALREADY_SENT`
+- Slot 3 final decision package status: `EXECUTION_REQUIRED_NOW`
 - Coordinator model recommendations: `VOID`
 - Remote-first bootstrap status: `PUBLISHED`
 - Main-plan drift: `STAGE6_PARALLEL_EXECUTION_PLAN.md still contains 47/100 and unchecked Wave 1 Slot 2/3 or P0.9 fields; Slot 1 documented the exact stale fields without editing main.`
@@ -106,16 +107,16 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Atomic objective: validate the exact 32-row Boomer decision contract, confirm 29 prepared rows and isolate PD-01, PD-02 and PD-03.
 - Model selection: `PENDING_CODEX_PREFLIGHT_12_OF_12`
 
-## Bridge Slot 3 - awaiting same-thread CONTINUE
+## Bridge Slot 3 - execute now
 
 - User command: `мост 3`
 - Thread: `BRIDGE-20260707-032`
 - Lane: `S6-A2-ALPHA-DECISION`
 - Task: `TASK-S6-PAR-A2`
-- Phase: `AWAITING_USER_MODEL_SELECTION_AND_CONTINUE`
+- Phase: `EXECUTE_NOW`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-01-chatgpt.md`
-- Prior baseline inboxes: `.ai-bridge/inbox/BRIDGE-20260707-032-03-chatgpt.md`, `.ai-bridge/inbox/BRIDGE-20260707-032-04-chatgpt.md`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-05-chatgpt.md`
+- Prior baseline inboxes: `.ai-bridge/inbox/BRIDGE-20260707-032-03-chatgpt.md`, `.ai-bridge/inbox/BRIDGE-20260707-032-04-chatgpt.md`, `.ai-bridge/inbox/BRIDGE-20260707-032-05-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-06-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260707-032-claim-codex.md`
 - Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
 - Claim token: `READ_FROM_IMMUTABLE_CLAIM_FILE`
@@ -125,10 +126,11 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Runtime: `READ_ONLY`
 - Claim status: `ACTIVE`
 - Model preflight: `COMPLETE_12_OF_12`
-- Recommended candidate: `GPT-5.4-Mini / Medium`
-- Actual active model: `USER_SELECTED_UNVERIFIED`
-- Final task status: `NOT_YET_EXECUTED`
-- Exact next action: user selects `GPT-5.4-Mini / Medium` in Codex and sends `CONTINUE` in the same thread.
+- Selected candidate: `GPT-5.4-Mini / Medium`
+- User model selection: `CONFIRMED`
+- User CONTINUE: `ALREADY_SENT_IN_SAME_THREAD`
+- Final task status: `EXECUTE_NOW`
+- Exact next action: user sends `мост 3` once in the same Codex thread; Codex executes immediately without another preflight or CONTINUE.
 
 ## Wave 1 accepted archive
 
@@ -139,7 +141,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 ## Parallel ownership
 
 - Slot 2 may continue independently.
-- Slot 3 may continue only after same-thread model selection and `CONTINUE`.
+- Slot 3 must execute immediately on the next `мост 3` command without repeating model preflight or requesting CONTINUE.
 - Slot 1 collision package is accepted and closed.
 - No current slot owns a primary product file.
 - Resolver, mirrors, shared system copy, DM action registry, Like routing, events/report wiring, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized where they overlap.
@@ -148,10 +150,10 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Next coordinator action
 
-1. User selects `GPT-5.4-Mini / Medium` in the Slot 3 Codex interface.
-2. User sends exactly `CONTINUE` in that same Slot 3 thread.
-3. Codex executes the full read-only Alpha decision package and publishes the final expected outbox or returns its complete auth-fallback payload.
-4. User returns to ChatGPT with `мост 3` only after that final package exists.
+1. User sends `мост 3` once in the same Slot 3 Codex thread.
+2. Codex executes the full read-only Alpha decision package immediately.
+3. Codex publishes the final expected outbox or returns its complete auth-fallback payload.
+4. User returns to ChatGPT with `мост 3` only after the final package exists.
 5. User may run `мост 2` independently.
 6. After Slot 2 and Slot 3 are accepted, ChatGPT freezes both decision tables and reconciles the Slot 1 collision map.
 7. Build serialized implementation waves.
