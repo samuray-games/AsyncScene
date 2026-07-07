@@ -1,19 +1,38 @@
 # Asynchronia Stage 6 Parallel Execution Plan
 
-PLAN_VERSION: S6-PARALLEL-2026-07-07-01
+PLAN_VERSION: S6-PARALLEL-2026-07-07-02-NUMBERED
 STAGE: Stage 6 - Интерактивный язык / Tone Profiles
 COORDINATOR: ChatGPT
-BRIDGE_PROTOCOL: 2.0
+BRIDGE_PROTOCOL: 2.1
 MAX_CONCURRENT_CODEX_LANES: 3
 BASE_PROGRESS: accepted 40/100, working readiness 52/100
 
 ## 1. Objective
 
-Finish Stage 6 safely while running independent evidence and preparation work concurrently. Parallelism reduces waiting but never weakens runtime safety, mirror ownership, dependency order, mailbox verification or user Safari acceptance.
+Finish Stage 6 with three persistent user-facing bridge slots. Independent evidence and preparation work run concurrently. Shared runtime, mirror ownership, integration, mailbox publication and Safari acceptance remain serialized where required.
 
-## 2. Fixed progress scale
+## 2. Fixed bridge commands
 
-Weights do not change during execution.
+- `мост 1` - Bridge Slot 1.
+- `мост 2` - Bridge Slot 2.
+- `мост 3` - Bridge Slot 3.
+
+The former bare `мост` command is superseded.
+
+ChatGPT assigns one atomic task to each slot by writing the exact inbox, expected claim, expected outbox, baseline, dependencies and scope into mailbox `STATE.md`.
+
+For each assigned task ChatGPT tells the user:
+
+- create a new Codex thread;
+- write the exact numbered command for that slot;
+- choose the model/reasoning recommended by that thread;
+- send `CONTINUE` in the same thread.
+
+When Codex completes a slot, its exact next user action is to return to ChatGPT and write the same numbered command. ChatGPT then independently verifies only that slot and either closes it, corrects it, or assigns the next compatible task to that slot.
+
+## 3. Fixed progress scale
+
+Weights never change during execution.
 
 - A - Accepted foundation: 20/20 accepted.
 - B - Bridge and traceability: 0/10 accepted.
@@ -25,113 +44,108 @@ Weights do not change during execution.
 Current accepted total: 40/100.
 Current working readiness: 52/100.
 
-## 3. Parallelism rules
+## 4. Parallel safety rules
 
-1. Maximum three active Codex implementation/evidence lanes.
-2. Every lane has one immutable claim, one atomic goal, one baseline, one exact read set, one exact write set and one outbox.
-3. Bare command `мост` atomically claims the first eligible unclaimed lane.
-4. Read-only lanes may run concurrently when they do not depend on mutable output from another lane.
+1. Maximum three active Codex lanes, one per numbered slot.
+2. Every slot has one atomic task, one immutable claim, one baseline, one exact read scope, one exact write scope and one expected outbox.
+3. A numbered command selects only its fixed slot. It never falls through to another slot.
+4. Read-only lanes may run concurrently when they do not depend on mutable outputs from another lane.
 5. Source and deployed mirrors are one ownership group.
 6. Any overlap in write files serializes the affected lanes.
-7. `dev-checks.js`, smoke registries, exports, globals, boot/cache-bust and aggregate smoke are singleton serialized lanes.
-8. Runtime-sensitive writes require model preflight, frozen scope, same-thread `APPROVE`, exact deployment evidence and user Safari smoke.
-9. Shared `TASKS.md` and `PROJECT_MEMORY.md` are updated by one documentation owner after each accepted wave.
-10. Mailbox claim/outbox commits remain sequential direct children on the mailbox branch even while task work runs concurrently.
+7. `dev-checks.js`, smoke registries, exports, globals, shared resolvers, boot/cache-bust and aggregate smoke are singleton serialized lanes.
+8. Runtime-sensitive writes require MODEL_PREFLIGHT_ONLY, same-thread `CONTINUE`, frozen scope, same-thread `APPROVE`, deployment evidence and user Safari smoke.
+9. Shared `TASKS.md` and `PROJECT_MEMORY.md` have one documentation owner per wave.
+10. Mailbox claims and outboxes remain sequential direct-child commits even while task work runs concurrently.
+11. ChatGPT accepts each slot independently. One slot's PASS never promotes another slot.
 
-## 4. Lane classes
+## 5. Slot roles
 
-### P - Policy and bridge infrastructure
+The slot numbers are stable, but their tasks may advance after acceptance.
 
-Serialized. Owns `AGENTS.md`, `BRIDGE.md`, `CODEX_BRIDGE_BOOTSTRAP.md`, mailbox protocol and claim behavior.
+### Bridge Slot 1 - Traceability and integration preparation
 
-### T - Traceability and read-only evidence
+Initial task: Stage 6 current-state traceability.
+Later tasks: contradiction closure, write-collision matrix, final PDF traceability and final integration preparation.
 
-May run concurrently with profile evidence lanes. No primary writes unless a later documentation task explicitly authorizes a generated report.
+### Bridge Slot 2 - Boomer lane
 
-### B - Boomer
+Initial task: exact evidence for all 32 current Boomer failures.
+Later tasks: frozen-table validation, isolated implementation, repeated static audit and Boomer runtime preparation.
 
-Read-only evidence and creative decision preparation may run concurrently with Alpha. Runtime implementation serializes by exact mirror/file ownership.
+### Bridge Slot 3 - Alpha lane
 
-### A - Alpha
+Initial task: exact evidence for Alpha FAIL and RUNTIME_REQUIRED surfaces.
+Later tasks: frozen-table validation, isolated implementation and Alpha runtime preparation.
 
-Read-only evidence and creative decision preparation may run concurrently with Boomer. Runtime implementation serializes by exact mirror/file ownership.
+A slot may be temporarily idle or receive a different compatible read-only/integration task after its previous task is independently accepted.
 
-### R - Runtime singleton
+## 6. Parallel roadmap and user checklist
 
-Owns shared resolver, `dev-checks.js`, registries, exports, globals, boot/cache-bust or aggregate smoke. Exactly one active runtime singleton lane.
+### Wave P0 - Numbered bridge infrastructure
 
-### D - Documentation and integration
+- [x] P0.1 Publish initial Parallel Bridge Protocol 2.0.
+- [x] P0.2 Open three read-only Stage 6 lanes.
+- [x] P0.3 Preserve fail-closed serialized mailbox writes.
+- [x] P0.4 Create repository-tracked parallel plan.
+- [ ] P0.5 Publish Protocol 2.1 with commands `мост 1`, `мост 2`, `мост 3`.
+- [ ] P0.6 Update root AGENTS, BRIDGE, bootstrap and pull verification.
+- [ ] P0.7 Update mailbox STATE and all three baseline inbox turns.
+- [ ] P0.8 Install/migrate the local user-level Codex managed block to V2.1.
+- [ ] P0.9 Run three real fixed-slot claim smokes and independently verify unique claims.
 
-One owner per wave. Updates shared status documents and integrates accepted lane results.
+Acceptance effect: infrastructure only. B0 is accepted only after numbered command routing and real claim/outbox verification pass.
 
-## 5. Wave roadmap and checklist
+### Wave 1 - Three concurrent read-only tasks
 
-### Wave P0 - Parallel bridge bootstrap
-
-- [x] P0.1 Change root alias to `мост`.
-- [x] P0.2 Define Bridge Protocol 2.0.
-- [x] P0.3 Add atomic first-free lane claims.
-- [x] P0.4 Preserve fail-closed mailbox branch guard.
-- [x] P0.5 Update user-level bootstrap specification to V2.
-- [x] P0.6 Create repository-tracked parallel Stage 6 plan.
-- [ ] P0.7 Install/migrate the local user-level Codex alias on the user's Mac.
-- [ ] P0.8 Run a real three-chat claim smoke and independently verify three unique claims.
-
-Acceptance effect: infrastructure only. No Stage 6 accepted percentage until B0 bridge acceptance criteria are fully met.
-
-### Wave 1 - Three concurrent read-only lanes
-
-These three lanes are opened together after P0 policy publication.
-
-#### Lane T1 - B1 current-state traceability
+#### `мост 1` - B1 current-state traceability
 
 - [ ] T1.1 Inventory every Stage 6 PDF/substep and repository artifact.
-- [ ] T1.2 Record source path and deployed mirror path.
-- [ ] T1.3 Record exact implementation/status commit.
-- [ ] T1.4 Record helper/generator/validator identity.
-- [ ] T1.5 Record static verdict.
-- [ ] T1.6 Record Safari verdict and exact artifact identity.
+- [ ] T1.2 Record source and deployed mirror paths.
+- [ ] T1.3 Record exact implementation and status commits.
+- [ ] T1.4 Record generators, validators and runtime helpers.
+- [ ] T1.5 Record static status.
+- [ ] T1.6 Record Safari status and exact artifact identity.
 - [ ] T1.7 Classify every item PASS, FAIL, PENDING, RUNTIME_REQUIRED or proven N/A.
-- [ ] T1.8 Produce contradiction list for stale `TASKS.md`, `PROJECT_MEMORY.md`, plan or memory entries.
+- [ ] T1.8 List contradictions among repository status, plans, board and memory.
 
 Expected accepted weight after independent closure: B1 = 7 points.
 
-#### Lane B1 - C1 Boomer exact evidence
+#### `мост 2` - C1 Boomer exact evidence
 
 - [ ] B1.1 Reproduce current 4.4A audit from main.
 - [ ] B1.2 Confirm audited 147, fail 32, pass 115, structural 0.
-- [ ] B1.3 Resolve exact identity of 3 forbidden rows.
-- [ ] B1.4 Resolve exact identity of 11 mapped-exact rows.
-- [ ] B1.5 Resolve exact identity of 17 unmapped rows.
-- [ ] B1.6 Resolve exact wrong-profile resolver row.
-- [ ] B1.7 Record placeholders, protected tokens, source emitter and mirror for each row.
-- [ ] B1.8 Cross-check the Boomer decision workbook evidence without inventing copy.
+- [ ] B1.3 Identify the 3 forbidden rows.
+- [ ] B1.4 Identify the 11 mapped-exact rows.
+- [ ] B1.5 Identify the 17 unmapped rows.
+- [ ] B1.6 Identify the wrong-profile resolver row.
+- [ ] B1.7 Record placeholders, protected tokens, source emitter and mirror for every row.
+- [ ] B1.8 Cross-check the Boomer decision workbook without inventing copy.
 
 Expected accepted weight after independent closure: C1 = 3 points.
 
-#### Lane A1 - D1 Alpha exact evidence
+#### `мост 3` - D1 Alpha exact evidence
 
-- [ ] A1.1 Confirm PASS surfaces: attack, rematch, P2P give, P2P request, cop flow.
-- [ ] A1.2 Resolve exact FAIL surfaces for escape.
-- [ ] A1.3 Resolve exact FAIL surfaces for teach.
-- [ ] A1.4 Resolve exact FAIL surfaces for social actions.
-- [ ] A1.5 Resolve exact runtime-required surfaces for vote.
-- [ ] A1.6 Resolve exact runtime-required surfaces for report.
-- [ ] A1.7 Record placeholders, action IDs, handlers, source emitters and mirrors.
-- [ ] A1.8 Produce a no-copy evidence package for ChatGPT decision work.
+- [ ] A1.1 Confirm PASS surfaces: attack, rematch, P2P give, P2P request and cop flow.
+- [ ] A1.2 Identify exact escape FAIL surfaces.
+- [ ] A1.3 Identify exact teach FAIL surfaces.
+- [ ] A1.4 Identify exact social-action FAIL surfaces.
+- [ ] A1.5 Identify exact vote RUNTIME_REQUIRED surfaces.
+- [ ] A1.6 Identify exact report RUNTIME_REQUIRED surfaces.
+- [ ] A1.7 Record placeholders, action IDs, handlers, emitters and mirrors.
+- [ ] A1.8 Produce a no-copy evidence package for ChatGPT decisions.
 
 Expected accepted weight after independent closure: D1 = 3 points.
 
-### Wave 2 - Parallel decision packages, ChatGPT-owned
+### Wave 2 - Parallel ChatGPT decision packages
 
-No Codex creative copy generation.
+Boomer and Alpha decisions may proceed concurrently after their evidence slots pass.
 
 #### Boomer decisions
 
-- [ ] B2.1 Reconcile workbook with lane B1 evidence.
+- [ ] B2.1 Reconcile workbook with verified evidence.
 - [ ] B2.2 Confirm prepared decisions.
-- [ ] B2.3 Resolve every genuinely ambiguous product decision with the user.
-- [ ] B2.4 Freeze `TEXT_ID -> exact Boomer target` table.
+- [ ] B2.3 Resolve every genuine product ambiguity with the user.
+- [ ] B2.4 Freeze `TEXT_ID -> exact Boomer target`.
 - [ ] B2.5 Verify placeholders, tokens, numbers and emoji contracts.
 
 Expected accepted weight: C2 = 4 points.
@@ -139,45 +153,36 @@ Expected accepted weight: C2 = 4 points.
 #### Alpha decisions
 
 - [ ] A2.1 Create exact replacements for FAIL surfaces.
-- [ ] A2.2 Define exact runtime evidence requirements for vote/report.
-- [ ] A2.3 Freeze `TEXT_ID/action surface -> exact Alpha target` table.
+- [ ] A2.2 Define exact runtime evidence for vote/report.
+- [ ] A2.3 Freeze `TEXT_ID/action surface -> exact Alpha target`.
 - [ ] A2.4 Verify ultra-direct wording without infantilism or semantic loss.
 - [ ] A2.5 Verify placeholders, tokens, numbers and action IDs.
 
 Expected accepted weight: D2 = 3 points.
 
-Boomer and Alpha decision work may proceed concurrently.
+### Wave 3 - Parallel validation and collision map
 
-### Wave 3 - Parallel static validation and collision map
-
-- [ ] B3.1 Codex validates frozen Boomer table against current main.
-- [ ] A3.1 Codex validates frozen Alpha table against current main.
-- [ ] X3.1 Coordinator produces exact write-file intersection matrix.
-- [ ] X3.2 Split non-overlapping implementation units into parallel lanes.
-- [ ] X3.3 Route overlapping resolver/shared/runtime files to serialized singleton lanes.
-- [ ] X3.4 Freeze branch/worktree and mirror ownership for every write lane.
+- [ ] V3.1 Slot 2 validates frozen Boomer table against current main.
+- [ ] V3.2 Slot 3 validates frozen Alpha table against current main.
+- [ ] V3.3 Slot 1 builds the exact write-file intersection matrix.
+- [ ] V3.4 Split non-overlapping implementation units into parallel tasks.
+- [ ] V3.5 Route overlapping/shared files to serialized singleton tasks.
+- [ ] V3.6 Freeze branch/worktree and mirror ownership.
 
 Expected accepted weights: C3 = 2 points, D3 = 2 points.
 
-### Wave 4 - Implementation lanes
+### Wave 4 - Implementation
 
-#### Non-overlapping profile writes
+Non-overlapping Boomer and Alpha writes may execute in parallel only after the intersection matrix proves independence.
 
-- [ ] B4.1 Apply approved Boomer copy only in Boomer-owned files/mirrors.
-- [ ] A4.1 Apply approved Alpha presentation only in Alpha-owned files/mirrors.
-- [ ] B4.2 Run scoped syntax, generator and validator checks.
-- [ ] A4.2 Run scoped syntax, semantic and handler checks.
+- [ ] I4.1 Apply approved Boomer copy in Boomer-owned files and mirrors.
+- [ ] I4.2 Apply approved Alpha presentation in Alpha-owned files and mirrors.
+- [ ] I4.3 Run scoped static checks for both lanes.
+- [ ] I4.4 Serialize shared resolver corrections.
+- [ ] I4.5 Serialize `dev-checks.js`, registries, exports, globals and boot/cache-bust changes.
+- [ ] I4.6 Verify source/deployed parity and served artifact identity.
 
-These may run concurrently only when the intersection matrix proves no overlap.
-
-#### Serialized runtime singleton work
-
-- [ ] R4.1 Correct shared profile resolver paths.
-- [ ] R4.2 Update shared smoke or dev-check wiring only if required.
-- [ ] R4.3 Update exports/globals and boot/cache-bust only if required.
-- [ ] R4.4 Verify source/deployed mirror and served entrypoint identity.
-
-Expected accepted weights after independent static closure: C4 = 5 points, D4 = 5 points.
+Expected accepted weights after independent closure: C4 = 5 points, D4 = 5 points.
 
 ### Wave 5 - Profile acceptance
 
@@ -186,7 +191,7 @@ Expected accepted weights after independent static closure: C4 = 5 points, D4 = 
 - [ ] B5.1 Repeat 4.4A audit.
 - [ ] B5.2 Require failRowCount 0 and structuralFailureCount 0.
 - [ ] B5.3 Reach `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
-- [ ] B5.4 Run Boomer 4.4B aggregate on exact deployed artifact.
+- [ ] B5.4 Run Boomer 4.4B on the exact deployed artifact.
 - [ ] B5.5 User iPhone Safari PASS.
 
 Expected weights: C5 = 3 points, C6 = 5 points.
@@ -194,51 +199,54 @@ Expected weights: C5 = 3 points, C6 = 5 points.
 #### Alpha
 
 - [ ] A5.1 Run Alpha static aggregate.
-- [ ] A5.2 Run required vote/report runtime evidence.
-- [ ] A5.3 Run Alpha aggregate on exact deployed artifact.
+- [ ] A5.2 Run vote/report runtime evidence.
+- [ ] A5.3 Run Alpha aggregate on the exact deployed artifact.
 - [ ] A5.4 User iPhone Safari PASS.
 
 Expected weight: D5 = 5 points.
 
-Boomer and Alpha Safari preparations may overlap, but shared deployed artifact publication and shared smoke wiring serialize.
+Safari preparation may overlap, but shared publication and shared smoke wiring remain serialized.
 
 ### Wave 6 - Final integration
 
 - [ ] F1.1 Final PDF traceability audit.
 - [ ] F1.2 Close every contradiction and missing artifact identity.
 - [ ] F2.1 Deploy one exact cross-profile artifact.
-- [ ] F2.2 Run Millennial regression.
-- [ ] F2.3 Run Zoomer regression without rewriting accepted Zoomer docs.
-- [ ] F2.4 Run Boomer aggregate.
-- [ ] F2.5 Run Alpha aggregate.
-- [ ] F2.6 Run Profile Selection persistence/replacement regression.
+- [ ] F2.2 Millennial regression.
+- [ ] F2.3 Zoomer regression without rewriting accepted Zoomer docs.
+- [ ] F2.4 Boomer aggregate.
+- [ ] F2.5 Alpha aggregate.
+- [ ] F2.6 Profile Selection persistence/replacement regression.
 - [ ] F2.7 User iPhone Safari cross-profile PASS.
-- [ ] F3.1 Update `TASKS.md` and `PROJECT_MEMORY.md` through one documentation owner.
+- [ ] F3.1 One documentation owner updates `TASKS.md` and `PROJECT_MEMORY.md`.
 - [ ] F3.2 Update live memory and Control Board.
-- [ ] F3.3 Close all bridge lanes, claims, locks and temporary branches.
+- [ ] F3.3 Close bridge slots, claims, locks and temporary branches.
 - [ ] F3.4 Confirm PR/branch state and mark Stage 6 COMPLETE.
 
 Expected weights: F1 = 3 points, F2 = 5 points, F3 = 2 points.
 
-## 6. User operating procedure
+## 7. User operating procedure
 
-After local alias V2 is installed and the parallel lanes are open:
+When three tasks are assigned:
 
-1. open three separate Codex chats in the AsyncScene project;
-2. write only `мост` in each chat;
-3. each chat must claim a different lane and return its own preflight;
-4. select the model/reasoning recommended in each chat;
-5. send `CONTINUE` in each same chat;
-6. later write `мост` to ChatGPT once to verify all lane claims and outboxes together.
+1. create three separate Codex threads in the AsyncScene project;
+2. in thread 1 write only `мост 1`;
+3. in thread 2 write only `мост 2`;
+4. in thread 3 write only `мост 3`;
+5. choose the independently recommended model/reasoning in each thread;
+6. send `CONTINUE` in each same thread;
+7. when Codex 1 finishes, return to ChatGPT and write `мост 1`;
+8. when Codex 2 finishes, return to ChatGPT and write `мост 2`;
+9. when Codex 3 finishes, return to ChatGPT and write `мост 3`.
 
-Do not manually assign lane IDs. Do not copy Codex reports between systems unless the mailbox failed and ChatGPT explicitly asks for the final response.
+Do not paste reports unless mailbox publication failed and ChatGPT explicitly requests the final response.
 
-## 7. Stop conditions
+## 8. Stop conditions
 
-Stop a lane immediately when:
+Stop a slot immediately when:
 
 - claim or mailbox ancestry cannot be verified;
-- baseline changed and the inbox does not authorize rebasing;
+- the assigned baseline changed without an authorized baseline update;
 - a read-only lane discovers required writes;
 - an undeclared file overlap appears;
 - a runtime-sensitive file lacks frozen approval;
@@ -246,12 +254,10 @@ Stop a lane immediately when:
 - plugin-load evidence is missing;
 - primary or mailbox write scope is exceeded.
 
-## 8. Current launch set
+## 9. Current launch set
 
-The first launch set after Protocol 2.0 publication is:
+- Bridge Slot 1 / `мост 1`: `S6-T1-TRACEABILITY`, read-only.
+- Bridge Slot 2 / `мост 2`: `S6-B1-BOOMER-EVIDENCE`, read-only.
+- Bridge Slot 3 / `мост 3`: `S6-A1-ALPHA-EVIDENCE`, read-only.
 
-1. `S6-T1-TRACEABILITY` - read-only.
-2. `S6-B1-BOOMER-EVIDENCE` - read-only.
-3. `S6-A1-ALPHA-EVIDENCE` - read-only.
-
-All three use the same exact primary baseline and no primary write scope. Their claims and outboxes are independent immutable mailbox files.
+All three use one exact primary baseline, have primary write scope `NONE`, and may execute concurrently. Their mailbox claims and outboxes are separate immutable files, while mailbox commits remain serialized.
