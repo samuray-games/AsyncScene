@@ -145,6 +145,22 @@ window.Game = window.Game || {};
     "income_event",
     "expense_event",
     "economy_neutral",
+    "boomer_points_low_battle",
+    "boomer_report_no",
+    "boomer_points_delta_plus_one",
+    "boomer_rep_delta_plus_one",
+    "boomer_points_delta_vote_cost",
+    "boomer_points_delta_refund",
+    "boomer_points_delta_refund_majority",
+    "boomer_points_delta_remainder_win",
+    "boomer_rematch_cost",
+    "boomer_dm_reaction",
+    "boomer_dm_invite",
+    "boomer_battle_result",
+    "alpha_escape_needs_points",
+    "alpha_escape_paid",
+    "alpha_escape_vote_cost",
+    "alpha_training_sent",
   ]);
   const SYSTEM_PROFILE_TEXT_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -187,11 +203,51 @@ window.Game = window.Game || {};
       expense_event: "Кассу подрезало.",
       economy_neutral: "По монетам без движухи.",
     }),
+    boomer: Object.freeze({
+      not_enough_money: "Недостаточно 💰.",
+      generic_success: "Готово.",
+      boomer_points_low_battle: "Недостаточно 💰 для баттла.",
+      boomer_report_no: "Сообщение отклонено. Штраф: -5 💰.",
+      boomer_points_delta_plus_one: "+1 💰",
+      boomer_rep_delta_plus_one: "+1 ⭐",
+      boomer_points_delta_vote_cost: "Участие в голосовании: -{voteCost} 💰.",
+      boomer_points_delta_refund: "Возврат: +1 💰.",
+      boomer_points_delta_refund_majority: "Возврат большинству: +1 💰.",
+      boomer_points_delta_remainder_win: "Остаток победителю: +1 💰.",
+      boomer_rematch_cost: "Реванш: -{rematchCost} 💰.",
+      boomer_dm_reaction: "Реакция {name} на {target}.",
+      boomer_dm_invite: "Приглашение от {name}: {guest} к {target}.",
+      boomer_battle_result: "Баттл с {oppName}: {text}.",
+    }),
+    alpha: Object.freeze({
+      not_enough_money: "Кошелёк в нуле 💀",
+      generic_success: "Есть.",
+      alpha_escape_needs_points: "Мало 💰.",
+      alpha_escape_paid: "Уйти: 1💰",
+      alpha_escape_vote_cost: "Уйти: −{escapeCost}💰",
+      alpha_training_sent: "Аргумент: {teacher} → {student}.",
+    }),
   });
   const SYSTEM_PROFILE_TEXT_ROUTE_MAP = Object.freeze({
     "errors.insufficientPoints": "not_enough_money",
+    "errors.pointsLowBattle": "boomer_points_low_battle",
+    "errors.reportNo": "boomer_report_no",
     "notifications.saved": "generic_success",
+    "notifications.pointsDeltaPlusOne": "boomer_points_delta_plus_one",
+    "notifications.repDeltaPlusOne": "boomer_rep_delta_plus_one",
+    "notifications.pointsDeltaVoteCost": "boomer_points_delta_vote_cost",
+    "notifications.trainingSent": "alpha_training_sent",
+    "notifications.escapePaid": "alpha_escape_paid",
+    "notifications.pointsDeltaRefund": "boomer_points_delta_refund",
+    "notifications.pointsDeltaRefundMajority": "boomer_points_delta_refund_majority",
+    "notifications.pointsDeltaRemainderWin": "boomer_points_delta_remainder_win",
+    "notifications.rematchCost": "boomer_rematch_cost",
+    "notifications.escapeVoteCost": "alpha_escape_vote_cost",
     "systemEvents.ready": "generic_success",
+    "systemEvents.dmReaction": "boomer_dm_reaction",
+    "systemEvents.dmInvite": "boomer_dm_invite",
+    "systemEvents.battleResult": "boomer_battle_result",
+    "warnings.escapeNeedsPoints": "alpha_escape_needs_points",
   });
 
   const SYSTEM_TEXT_TEMPLATES_RU = Object.freeze({
@@ -425,7 +481,8 @@ window.Game = window.Game || {};
     const profile = data && typeof data.getUiProfile === "function"
       ? String(data.getUiProfile() || "millennial").trim().toLowerCase()
       : String((data && data.UI_PROFILE) || "millennial").trim().toLowerCase();
-    return (profile === "zoomer" || profile === "alpha") ? "zoomer" : "millennial";
+    if (profile === "millennial" || profile === "zoomer" || profile === "boomer" || profile === "alpha") return profile;
+    return "millennial";
   }
 
   function resolveProfileTextEntry(key){
