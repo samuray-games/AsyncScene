@@ -3,7 +3,7 @@
 BRIDGE_PROTOCOL: 2.4
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-07T19:20:00+09:00
+STATE_UPDATED_AT: 2026-07-07T20:05:00+09:00
 USER_COMMAND_SLOT_1: мост 1
 USER_COMMAND_SLOT_2: мост 2
 USER_COMMAND_SLOT_3: мост 3
@@ -16,15 +16,16 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Current status
 
-- Bridge status: `PROTOCOL_2_4_SLOTS_2_3_CLAIMED`
-- Open executable slots: `2`, `3`
+- Bridge status: `PROTOCOL_2_4_SLOT_3_CLAIMED_SLOT_2_ACCEPTED`
+- Open executable slots: `3`
 - Slot 1 initial task: `PASS_ACCEPTED`
-- Active claims: `2`, `3`
-- Completed initial slots: `1`
-- Accepted progress: `47/100`
+- Slot 2 initial task: `PASS_ACCEPTED`
+- Active claims: `3`
+- Completed initial slots: `1`, `2`
+- Accepted progress: `50/100`
 - Working readiness: `59/100`
 - Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260705-029-07-chatgpt.md`
-- Latest accepted Codex turn: `.ai-bridge/outbox/BRIDGE-20260705-027-02-codex.md`
+- Latest accepted Codex turn: `.ai-bridge/outbox/BRIDGE-20260705-028-02-codex.md`
 
 ## Protocol 2.4 rules
 
@@ -65,7 +66,7 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Thread: `BRIDGE-20260705-028`
 - Lane: `S6-B1-BOOMER-EVIDENCE`
 - Task: `TASK-S6-PAR-B1`
-- Phase: `MODEL_PREFLIGHT_ONLY`
+- Phase: `CLOSED_ACCEPTED`
 - Original task inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-01-chatgpt.md`
 - Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-07-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260705-028-claim-codex.md`
@@ -73,12 +74,15 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Claim token: `s6b1-recovery-20260707-028-a`
 - Claim commit: `8d5c1ed8b5831d71c334ad1100ed5ea73df560e4`
 - Outbox: `.ai-bridge/outbox/BRIDGE-20260705-028-02-codex.md`
+- Outbox commit: `9036ba22fc39b98a1c1d83683ea1eb73ee3b8651`
 - Primary baseline: `a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d`
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
-- Claim status: `CLAIMED_READY_FOR_PREFLIGHT`
-- Parallel compatibility: Slot 3
-- Next action: in the existing logical thread, write `мост 2`; adopt the remote claim and return a valid compact preflight.
+- Claim status: `CLOSED`
+- Decision: `PASS_ACCEPTED / C1_PLUS_3`
+- Evidence: `147 audited / 32 fail / 115 pass / 0 structural`; `3 forbidden / 11 mapped_exact / 17 unmapped / 1 wrong_profile`; all 32 workbook IDs reconciled.
+- Safari status: `N/A - read-only evidence lane`
+- Next assignment: Wave 2 Boomer decision package after Slot 3 evidence acceptance.
 
 ## Bridge Slot 3
 
@@ -98,13 +102,13 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Primary write scope: `NONE`
 - Runtime: `READ_ONLY`
 - Claim status: `CLAIMED_READY_FOR_PREFLIGHT`
-- Parallel compatibility: Slot 2
+- Parallel compatibility: no active parallel initial evidence lane remains.
 - Invalid local claim: `4e1c16f7b05147e9ad3572678ebf48bf5ed7b62b`, never published, do not reuse.
-- Next action: in the existing logical thread, write `мост 3`; adopt the remote claim and return a valid compact preflight.
+- Next action: in the existing logical thread, continue Slot 3 under the adopted remote claim and publish the expected outbox.
 
 ## Parallel ownership
 
-- Slots 2 and 3 are read-only and may execute concurrently.
+- Slot 3 is the only open initial evidence lane.
 - No active slot owns a primary product file.
 - Required writes stop the lane and return scope for a later task.
 - Mirrors, shared resolvers, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized.
@@ -112,8 +116,6 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Next user action
 
-1. In the existing Bridge 2 Codex thread, write `мост 2`.
-2. In the existing Bridge 3 Codex thread, write `мост 3`.
-3. Both threads must adopt the already-published remote recovery claims.
-4. Send `CONTINUE` only after a valid non-blocked compact preflight.
-5. When either lane finishes, return to ChatGPT with the matching numbered command.
+1. Return the Slot 3 Codex result with `мост 3` when available.
+2. Slot 3 must use the already-published recovery claim and expected immutable outbox.
+3. After Slot 3 acceptance, start Wave 2 decision packages. Do not begin runtime implementation before frozen decisions and collision mapping.
