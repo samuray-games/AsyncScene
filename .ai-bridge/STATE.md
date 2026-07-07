@@ -3,7 +3,7 @@
 BRIDGE_PROTOCOL: 2.4
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-07T22:34:00+09:00
+STATE_UPDATED_AT: 2026-07-07T22:59:53+09:00
 USER_COMMAND_SLOT_1: мост 1
 USER_COMMAND_SLOT_2: мост 2
 USER_COMMAND_SLOT_3: мост 3
@@ -20,21 +20,23 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 
 ## Current status
 
-- Bridge status: `PROTOCOL_2_4_INITIAL_EVIDENCE_WAVE_CLOSED`
-- Open executable slots: `NONE - WAVE_2_ASSIGNMENT_PENDING`
-- Slot 1 initial task: `PASS_ACCEPTED`
-- Slot 2 initial task: `PASS_ACCEPTED`
-- Slot 3 initial task: `PASS_ACCEPTED`
-- Active claims: `0`
-- Completed initial slots: `1`, `2`, `3`
+- Bridge status: `PROTOCOL_2_4_WAVE_2_DECISION_PACKAGES_ACTIVE`
+- Open executable slots: `1`, `2`, `3`
+- Slot 1 phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Slot 2 phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Slot 3 phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Active claims: `3`
 - Accepted progress: `53/100`
 - Working readiness: `59/100`
-- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260705-029-10-chatgpt.md`
-- Latest accepted evidence turn: `.ai-bridge/outbox/BRIDGE-20260705-029-02-codex.md`
+- Active block: `Wave 2 decision and collision packages`
+- Product/runtime changes in this wave: `NONE`
+- Safari status in this wave: `N/A - read-only decision packages`
+- Latest ChatGPT turn: `.ai-bridge/inbox/BRIDGE-20260707-032-01-chatgpt.md`
+- Main-plan drift: `STAGE6_PARALLEL_EXECUTION_PLAN.md still contains 47/100 and unchecked Wave 1 Slot 2/3 or P0.9 fields; Slot 1 owns read-only reconciliation evidence only.`
 
 ## Protocol 2.4 rules
 
-- STATE and the named current inbox are authoritative for mutable slot metadata.
+- STATE and the named current baseline inbox are authoritative for mutable slot metadata.
 - Historical task inbox baselines and plugin rules are audit history and do not block current execution.
 - Original task inboxes still define atomic objectives and evidence requirements not replaced by a later current inbox.
 - Installed Asynchronia skill contracts or repository fallback are sufficient.
@@ -47,94 +49,121 @@ TRACEABILITY_CORRECTIONS: STAGE6_TRACEABILITY_CORRECTIONS.md
 - Claim token and claim path are separate fields.
 - Current Git transport commands are `пул` and `пуш`; old aliases are inactive.
 - `пул` fetches remote refs before dirty-worktree evaluation. Dirty local files produce successful fetch-only status `PASS_FETCHED_PULL_SKIPPED_DIRTY`, not a blocker.
-- Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence. Product and runtime files remain audited at AUTHORIZED_EVIDENCE_BASELINE.
+- Policy-only movement from the evidence baseline to CURRENT_POLICY_HEAD does not alter product evidence. Product and runtime files remain audited at AUTHORIZED_EVIDENCE_BASELINE unless a source-backed delta is proven.
 
-## Bridge Slot 1
+## Bridge Slot 1 - current Wave 2 assignment
 
 - User command: `мост 1`
+- Thread: `BRIDGE-20260707-030`
+- Lane: `S6-T2-WAVE2-COLLISION-PREFLIGHT`
+- Task: `TASK-S6-PAR-T2`
+- Phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-030-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260707-030-claim-codex.md`
+- Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
+- Claim token: `FzXP2_Hm5R9kWwUrGmDjKnwQGbQFysnp`
+- Claim commit: `410c49a38a421d0f1ab3a87b34e92d7d1be3c9d9`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260707-030-02-codex.md`
+- Primary write scope: `NONE`
+- Runtime: `READ_ONLY`
+- Claim status: `ACTIVE`
+- Atomic objective: current-status reconciliation, symbol-level collision matrix and future serialization plan without copy decisions or writes.
+- Recommended model: `GPT-5.4 / Medium`
+
+## Bridge Slot 2 - current Wave 2 assignment
+
+- User command: `мост 2`
+- Thread: `BRIDGE-20260707-031`
+- Lane: `S6-B2-BOOMER-DECISION`
+- Task: `TASK-S6-PAR-B2`
+- Phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-031-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-031-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260707-031-claim-codex.md`
+- Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
+- Claim token: `cH5HCfthnraxlkefb0Jkg1eO6ZkZPiMQ`
+- Claim commit: `aa9e64e90e70c97b3960012736dedf88d992c6f5`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260707-031-02-codex.md`
+- Primary write scope: `NONE`
+- Runtime: `READ_ONLY`
+- Claim status: `ACTIVE`
+- Atomic objective: validate the exact 32-row Boomer decision contract, confirm 29 prepared rows and isolate PD-01, PD-02 and PD-03.
+- Recommended model: `GPT-5.4 / Medium`
+
+## Bridge Slot 3 - current Wave 2 assignment
+
+- User command: `мост 3`
+- Thread: `BRIDGE-20260707-032`
+- Lane: `S6-A2-ALPHA-DECISION`
+- Task: `TASK-S6-PAR-A2`
+- Phase: `CLAIMED_READY_FOR_MODEL_PREFLIGHT`
+- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-01-chatgpt.md`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260707-032-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260707-032-claim-codex.md`
+- Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
+- Claim token: `cow-GvFLUj2sh-BGJCyN34bmTYln1r5T`
+- Claim commit: `d4ad7867094ff29b6496efaaf99dcdde725c04ee`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260707-032-02-codex.md`
+- Primary write scope: `NONE`
+- Runtime: `READ_ONLY`
+- Claim status: `ACTIVE`
+- Atomic objective: source-backed Alpha decisions for escape, teach and social actions plus exact Vote/Report runtime evidence contracts, without invention or writes.
+- Recommended model: `GPT-5.5 / High`
+
+## Wave 1 accepted archive
+
+### Slot 1
+
 - Thread: `BRIDGE-20260705-027`
 - Lane: `S6-T1-TRACEABILITY`
 - Task: `TASK-S6-PAR-T1`
-- Phase: `CLOSED_ACCEPTED`
-- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-01-chatgpt.md`
-- Final baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-06-chatgpt.md`
-- Closure inbox: `.ai-bridge/inbox/BRIDGE-20260705-027-07-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260705-027-claim-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260705-027-02-codex.md`
+- Decision: `PASS_ACCEPTED / B1_PLUS_7`
 - Claim commit: `71f9b4d466ad6f6707c34f73568786d5f7e6f1bf`
 - Outbox commit: `8f34086d6abce2c0ea48458c1ec3329edbf560d7`
-- Primary write scope: `NONE`
-- Runtime: `READ_ONLY`
 - Claim status: `CLOSED`
-- Decision: `PASS_ACCEPTED / B1_PLUS_7`
-- Next assignment: Wave 2 traceability decision/collision package.
 
-## Bridge Slot 2
+### Slot 2
 
-- User command: `мост 2`
 - Thread: `BRIDGE-20260705-028`
 - Lane: `S6-B1-BOOMER-EVIDENCE`
 - Task: `TASK-S6-PAR-B1`
-- Phase: `CLOSED_ACCEPTED`
-- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-01-chatgpt.md`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-028-07-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260705-028-claim-codex.md`
-- Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
-- Claim token: `s6b1-recovery-20260707-028-a`
-- Claim commit: `8d5c1ed8b5831d71c334ad1100ed5ea73df560e4`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260705-028-02-codex.md`
-- Outbox commit: `9036ba22fc39b98a1c1d83683ea1eb73ee3b8651`
-- Evidence baseline: `a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d`
-- Primary write scope: `NONE`
-- Runtime: `READ_ONLY`
-- Claim status: `CLOSED`
 - Decision: `PASS_ACCEPTED / C1_PLUS_3`
-- Evidence: `147 audited / 32 fail / 115 pass / 0 structural`; `3 forbidden / 11 mapped_exact / 17 unmapped / 1 wrong_profile`; all 32 workbook IDs reconciled.
-- Safari status: `N/A - read-only evidence lane`
-- Next assignment: Wave 2 Boomer decision package.
+- Claim commit: `8d5c1ed8b5831d71c334ad1100ed5ea73df560e4`
+- Outbox commit: `9036ba22fc39b98a1c1d83683ea1eb73ee3b8651`
+- Evidence: `147 audited / 32 fail / 115 pass / 0 structural`; `3 forbidden / 11 mapped_exact / 17 unmapped / 1 wrong_profile`.
+- Claim status: `CLOSED`
 
-## Bridge Slot 3
+### Slot 3
 
-- User command: `мост 3`
 - Thread: `BRIDGE-20260705-029`
 - Lane: `S6-A1-ALPHA-EVIDENCE`
 - Task: `TASK-S6-PAR-A1`
-- Phase: `CLOSED_ACCEPTED`
-- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-01-chatgpt.md`
-- Previous baseline inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-07-chatgpt.md`
-- Auth fallback inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-08-chatgpt.md`
-- Matrix correction inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-09-chatgpt.md`
-- Closure inbox: `.ai-bridge/inbox/BRIDGE-20260705-029-10-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260705-029-claim-codex.md`
-- Claim issuer: `CHATGPT_COORDINATOR_RECOVERY`
-- Claim token: `s6a1-recovery-20260707-029-a`
+- Decision: `PASS_ACCEPTED / D1_PLUS_3`
 - Claim commit: `e898bd3629405b4069ca13698eca880deb3aae90`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260705-029-02-codex.md`
 - Outbox commit: `aa787cc5ed52f1ac9f2f43120a76d3b991a3c2b7`
 - Closure commit: `139cf1ec1980cb6b630cd1941169a7a111806dcb`
-- Evidence baseline: `a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d`
-- Current policy head: `72aaf0459dea2f5d1d90f8e1eae5423dc45b4385`
-- Primary write scope: `NONE`
-- Runtime: `READ_ONLY`
+- Matrix: PASS attack/rematch/P2P give/P2P request/cop flow; FAIL escape/teach/social actions; RUNTIME_REQUIRED vote/report.
+- Wrong-profile: Alpha system copy resolves through Zoomer bucket.
 - Claim status: `CLOSED`
-- Publication owner: `CHATGPT_COORDINATOR_AUTH_FALLBACK`
-- Decision: `PASS_ACCEPTED / D1_PLUS_3`
-- Evidence matrix: PASS attack/rematch/P2P give/P2P request/cop flow; FAIL escape/teach/social actions; RUNTIME_REQUIRED vote/report.
-- Wrong-profile result: Alpha system copy resolves through the Zoomer bucket.
-- Safari status: `N/A - read-only evidence lane`
-- Next assignment: Wave 2 Alpha decision package.
 
 ## Parallel ownership
 
-- The initial three-slot evidence wave is closed.
-- No active slot owns a primary product file.
-- Wave 2 must be assigned through new immutable inboxes and fresh claims.
-- Resolver, mirrors, shared system copy, DM action registry, events/report wiring, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized where they overlap.
-- Shared `TASKS.md` and `PROJECT_MEMORY.md` updates have one owner per wave.
+- All three Wave 2 lanes are read-only and may run concurrently.
+- Slot 1 owns only collision and status-reconciliation evidence.
+- Slot 2 owns only Boomer decision validation.
+- Slot 3 owns only Alpha decision construction and runtime evidence contracts.
+- No current slot owns a primary product file.
+- Resolver, mirrors, shared system copy, DM action registry, Like routing, events/report wiring, dev-checks, registries, exports, globals, boot and aggregate smoke remain serialized where they overlap.
+- Shared `TASKS.md` and `PROJECT_MEMORY.md` updates have one owner per implementation wave. Current recommendation: Slot 1.
+- Root `AGENTS.md` still contains historical aliases; current `AGENTS.override.md` supersedes that Git transport clause. Do not claim root cleanup.
 
 ## Next coordinator action
 
-1. Build the Wave 2 decision and collision packages from accepted Slots 1, 2, and 3.
-2. Allocate non-overlapping tasks to the three numbered slots.
-3. Keep resolver/shared runtime work serialized.
-4. Require user Safari acceptance only after exact implementation commits are deployed and verified.
+1. User runs the three numbered bridge commands in their corresponding Codex slots.
+2. Each slot returns model preflight and waits for same-thread `CONTINUE`.
+3. ChatGPT independently verifies each published outbox.
+4. User resolves Boomer PD-01, PD-02 and PD-03 after Slot 2 validation.
+5. ChatGPT freezes accepted Boomer and Alpha decision tables.
+6. Build Wave 3 validation and exact implementation collision map.
+7. Do not request Safari acceptance until exact implementation commits are deployed and artifact identity matches.
