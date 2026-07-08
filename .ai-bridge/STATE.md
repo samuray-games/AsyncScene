@@ -4,46 +4,42 @@ BRIDGE_PROTOCOL: 3.0
 ORCHESTRATION_VERSION: 3.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T15:04:00+09:00
-CURRENT_MAIN_BASELINE: 41ce4aa7ca6b9d287d47aee7d5a6384673054a36
+STATE_UPDATED_AT: 2026-07-08T15:34:00+09:00
+CURRENT_MAIN_BASELINE: d15fe4dd34e8c431b02fb5a690982e38e6210fc5
 PROCESS_AUTHORITY: ORCHESTRATION.md
 
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_VA_MODEL_PREFLIGHT`
-- Slot 1: `MODEL_PREFLIGHT_ONLY`
+- Bridge status: `STAGE6_WAVE_VA_FINAL_CORRECTION_EXECUTE_NOW`
+- Slot 1: `EXECUTE_NOW_CORRECTION`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Active claims: `1`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
-- Active block: `Wave V-A Boomer 4.4A static gate repair`
+- Active block: `Wave V-A final Boomer audit authority correction`
 - Safari: `PENDING_USER`
 
-## Closed Wave V preparation
-
-- Thread: `BRIDGE-20260708-037`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260708-037-02-codex.md`
-- Outbox commit: `7393e4919259bbc36c893ef0b002e9907d4c034e`
-- Closure: `.ai-bridge/inbox/BRIDGE-20260708-037-03-chatgpt.md`
-- Decision: `FAIL_RUNTIME_GAP_ACCEPTED`
-- Corrected classification: production conflict-core is accepted; the Boomer Step 4.4A generator evidence is stale
-- Confirmed later runtime gaps: exact Boomer 4.4B and exact Alpha vote/report aggregate are absent
-
-## Active Slot 1
+## Wave V-A first publication
 
 - Thread: `BRIDGE-20260708-038`
-- Lane: `S6-V5A-BOOMER-STATIC-GATE`
-- Task: `TASK-S6-PAR-V5A`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-038-01-chatgpt.md`
-- Inbox commit: `9a309c920bce7077cd6792d65bf9029a963c27ba`
-- Claim: `.ai-bridge/claims/BRIDGE-20260708-038-claim-codex.md`
-- Claim commit: `00dd6e98aa4d4be9695ee4a499cbcf18a85689ea`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-038-02-codex.md`
-- Primary baseline: `41ce4aa7ca6b9d287d47aee7d5a6384673054a36`
+- First outbox: `.ai-bridge/outbox/BRIDGE-20260708-038-02-codex.md`
+- First outbox commit: `189261478d1889b1f1946374380f10194250e1ce`
+- First primary commit: `d15fe4dd34e8c431b02fb5a690982e38e6210fc5`
+- Verdict: `FAIL_STATIC_REMAINDER_ACCEPTED`
+- Valid result: fallback structural drift fixed; 28 audit rows remain
+- Coordinator classification: all 28 are stale audit authority/profile-resolution rows, not new production defects
+
+## Active Slot 1 correction
+
+- Thread: `BRIDGE-20260708-038`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-038-03-chatgpt.md`
+- Inbox commit: `53a2274736c757d23ccc24f1a4b3ee0317196229`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-038-04-codex.md`
+- Primary baseline: `d15fe4dd34e8c431b02fb5a690982e38e6210fc5`
 - Runtime classification: `NON_RUNTIME_STATIC_AUDIT_REPAIR`
-- Model selection: `PENDING_CODEX_PREFLIGHT_12_OF_12`
-- Confirmation: `PENDING_SAME_THREAD_CONTINUE`
+- Model preflight: `ALREADY_COMPLETE`
+- Confirmation: `ALREADY_SATISFIED`
 
 ## Exact write scope
 
@@ -51,14 +47,22 @@ PROCESS_AUTHORITY: ORCHESTRATION.md
 - `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
 - `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
 
-Both conflict-core mirrors, both dev-checks mirrors, both index files and all production/runtime files are protected.
+All production/runtime files remain protected.
+
+## Required correction
+
+- render current copy through real Boomer profile paths rather than Millennial/shared base literals;
+- apply the frozen accepted Stage 6 target overlay for the 28 remaining rows;
+- keep observed current text separate from accepted target authority;
+- do not hardcode PASS or counts;
+- expected derived gate: 147 PASS, 0 FAIL, 0 structural failures.
 
 ## Serialized Wave V order
 
-1. Wave V-A static gate repair and independent STATIC_PASS acceptance.
-2. Wave V-B singleton runtime-smoke implementation for exact Boomer 4.4B and Alpha vote/report aggregate.
+1. Accept Wave V-A `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
+2. Open Wave V-B singleton runtime-smoke implementation for exact Boomer 4.4B and Alpha vote/report aggregate.
 3. User iPhone Safari smoke.
 
 ## Next user action
 
-Send `мост 1` in the Codex Slot 1 thread. After the compact 12/12 preflight, select the recommended cheapest reliable model/reasoning pair and send `CONTINUE` in the same thread. No second approval is required. After Codex publishes the outbox, return to ChatGPT and write `мост 1`.
+Send `мост 1` in the same Codex Slot 1 thread. Codex must execute inbox `038-03` immediately with no new preflight or `CONTINUE`, then publish outbox `038-04`. Return to ChatGPT and write `мост 1`.
