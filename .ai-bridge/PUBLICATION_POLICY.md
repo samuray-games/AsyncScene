@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_08_EXECUTION_EPOCH
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_08_ROOT_CI_GATE
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -29,6 +29,14 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`, the previous Codex conversatio
 - outbox contains machine-derived fetched SHA and parent.
 
 A return-to-ChatGPT line without this evidence is `FAIL_NO_EXECUTION_EVIDENCE`.
+
+## Root policy CI gate
+
+- Root process changes must pass `tools/validate-orchestration-policy.py` before a lane is reissued.
+- `.github/workflows/orchestration-policy.yml` must cover every root file read by that validator for both push and pull_request events.
+- A failing current `orchestration-policy` run blocks lane execution and requires root correction before a new baseline and execution epoch are issued.
+- Historical failed runs remain audit evidence only and do not override a newer successful run on current main.
+- Root corrections should be grouped and prevalidated to avoid noisy sequences of preventable CI failures.
 
 ## Publication
 
