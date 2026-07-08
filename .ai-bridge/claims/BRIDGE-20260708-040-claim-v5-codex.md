@@ -1,0 +1,23 @@
+# Wave V-A3 Claim v5 - Root CI Hold
+
+BRIDGE_PROTOCOL: 3.1
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
+BRIDGE_SLOT: 1
+THREAD_ID: BRIDGE-20260708-040
+LANE_ID: S6-V5A3-BOOMER-STATIC-AUDIT
+TASK_ID: TASK-S6-PAR-V5A3
+EXECUTION_EPOCH: S6V5A3-E5-20260708-2343JST
+CLAIM_TOKEN: S6V5A3-20260708-040-V5
+CLAIM_STATUS: RESERVED_BLOCKED_ROOT_CI
+CLAIM_ADOPTION: AFTER_CURRENT_ROOT_CI_GREEN_ONLY
+THREAD_ROTATION_REQUIRED: true
+AUTHORIZED_PRIMARY_BASELINE: ea72e2eccb78c1de791155556980b883e1fc0bbd
+CURRENT_BASELINE_INBOX: .ai-bridge/inbox/BRIDGE-20260708-040-13-chatgpt.md
+EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260708-040-14-codex.md
+PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+RUNTIME_CLASSIFICATION: STATIC_AUDIT_ONLY
+WRITE_SCOPE_AFTER_RELEASE: generator plus root/docs Step 4.4A audit only
+SUPERSEDES_CLAIM: .ai-bridge/claims/BRIDGE-20260708-040-claim-v4-codex.md
+
+The previous Codex conversation and claim v4 are superseded because root policy hardening moved main. This claim is reserved but must not be adopted until ChatGPT confirms the current `orchestration-policy` run on ea72e2eccb78c1de791155556980b883e1fc0bbd is green and publishes a release inbox.
