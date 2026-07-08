@@ -2943,10 +2943,9 @@
     };
     b.status = "escape_vote";
     b.result = "escape_vote";
-    b.note = (modeNorm === "off")
-      ? battleFallbackSentence("battle.ignored_fallback", "?")
-      : battleFallbackSentence("battle.escaped_fallback", "?");
-    b.resultLine = (modeNorm === "off") ? "Отвали?" : "Свалить?";
+    const pendingKey = (modeNorm === "off") ? "battle.ignored_fallback" : "battle.escaped_fallback";
+    b.note = battleFallbackSentence(pendingKey, "?");
+    b.resultLine = `${battleFallbackText(pendingKey) || (modeNorm === "off" ? "Отвали" : "Свалить")}?`;
     b.updatedAt = now();
     startEscapeVoteTimer(b);
     return { ok: true, pending: true };
