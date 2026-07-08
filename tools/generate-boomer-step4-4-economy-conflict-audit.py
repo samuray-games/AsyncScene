@@ -322,6 +322,7 @@ def resolve_expected_target(
     current_text: str,
     step43_mapping: dict[str, str],
     current_to_boomer: dict[str, str],
+    battle_fallback_targets: dict[str, tuple[str, str]],
     allowed_boomer: set[str],
     runtime_gap_targets: dict[str, tuple[str, str]],
     runtime_gap_copy_decisions: dict[str, tuple[str, str]],
@@ -331,12 +332,16 @@ def resolve_expected_target(
 
     if normalized_source in step43_mapping:
         return step43_mapping[normalized_source], "step4_3_mapping"
+    if normalized_source in battle_fallback_targets:
+        return battle_fallback_targets[normalized_source]
     if normalized_source in current_to_boomer:
         return current_to_boomer[normalized_source], "allowed_lexicon_current"
     if normalized_source in runtime_gap_copy_decisions:
         return runtime_gap_copy_decisions[normalized_source]
     if normalized_current in step43_mapping:
         return step43_mapping[normalized_current], "step4_3_mapping_current"
+    if normalized_current in battle_fallback_targets:
+        return battle_fallback_targets[normalized_current]
     if normalized_current in current_to_boomer:
         return current_to_boomer[normalized_current], "allowed_lexicon_current"
     if normalized_current in runtime_gap_targets:
@@ -412,6 +417,31 @@ def build_system_route_map(system_text: str) -> dict[str, str]:
     section = system_text[start:end]
     route_block = find_matching_block(section, "const SYSTEM_PROFILE_TEXT_ROUTE_MAP = Object.freeze({", "{", "}")
     return parse_js_string_object(route_block)
+
+
+def build_battle_fallback_targets(conflict_text: str) -> dict[str, tuple[str, str]]:
+    start = conflict_text.find("const BATTLE_FALLBACK_TEXTS = Object.freeze({")
+    end = conflict_text.find("function now(){ return Date.now(); }")
+    if start < 0 or end < 0 or end <= start:
+        raise ValueError("Unable to isolate BATTLE_FALLBACK_TEXTS section")
+    section = conflict_text[start:end]
+    default_block = find_matching_block(section, "default: Object.freeze({", "{", "}")
+    millennial_block = find_matching_block(section, "millennial: Object.freeze({", "{", "}")
+    boomer_block = find_matching_block(section, "boomer: Object.freeze({", "{", "}")
+    default_texts = parse_js_string_object(default_block)
+    millennial_texts = parse_js_string_object(millennial_block)
+    boomer_texts = parse_js_string_object(boomer_block)
+    targets: dict[str, tuple[str, str]] = {}
+    for semantic_key, boomer_text in boomer_texts.items():
+        canonical_boomer = normalize_text(boomer_text)
+        for source_text in (
+            default_texts.get(semantic_key, ""),
+            millennial_texts.get(semantic_key, ""),
+        ):
+            normalized_source = normalize_text(source_text)
+            if normalized_source and normalized_source not in targets:
+                targets[normalized_source] = (canonical_boomer, f"battle_fallback_registry:{semantic_key}")
+    return targets
 
 
 def render_system_route(
@@ -983,33 +1013,42 @@ def build_manual_specs(
             "conflict_core",
             "battleResultText.draw_fallback",
             "generated_runtime_text",
-            "literal fallback in conflict-core.js",
+            "BATTLE_FALLBACK_TEXTS -> battleFallbackText(\"battle.draw_fallback\") -> resolveUiTextProfileName()",
             "generated_runtime_text",
+            "Решает голосование",
             "Толпа решает",
-            "Толпа решает",
-            ('return conflictResultText("conflict_draw") || "Толпа решает";',),
+            (
+                '"battle.draw_fallback": "Решает голосование",',
+                'if (r === "draw") return battleFallbackText("battle.draw_fallback") || "Толпа решает";',
+            ),
         ),
         ManualSurfaceSpec(
             "conflict_results",
             "conflict_core",
             "battleResultText.escaped_fallback",
             "generated_runtime_text",
-            "literal fallback in conflict-core.js",
+            "BATTLE_FALLBACK_TEXTS -> battleFallbackText(\"battle.escaped_fallback\") -> resolveUiTextProfileName()",
             "generated_runtime_text",
+            "Выйти",
             "Свалить",
-            "Свалить",
-            ('if (r === "escaped") return "Свалить";',),
+            (
+                '"battle.escaped_fallback": "Выйти",',
+                'if (r === "escaped") return battleFallbackText("battle.escaped_fallback") || "Свалить";',
+            ),
         ),
         ManualSurfaceSpec(
             "conflict_results",
             "conflict_core",
             "battleResultText.ignored_fallback",
             "generated_runtime_text",
-            "literal fallback in conflict-core.js",
+            "BATTLE_FALLBACK_TEXTS -> battleFallbackText(\"battle.ignored_fallback\") -> resolveUiTextProfileName()",
             "generated_runtime_text",
+            "Вызов отклонён",
             "Отвали",
-            "Отвали",
-            ('if (r === "ignored") return "Отвали";',),
+            (
+                '"battle.ignored_fallback": "Вызов отклонён"',
+                'if (r === "ignored") return battleFallbackText("battle.ignored_fallback") || "Отвали";',
+            ),
         ),
     ]
 
@@ -1028,6 +1067,7 @@ def build_audit(root: Path) -> dict[str, object]:
     cap_millennial, cap_boomer = build_cap_messages(source_texts["data"])
     cop_millennial, cop_boomer = build_cop_templates(source_texts["data"])
     npc_zoomer, npc_boomer = build_npc_event_templates(source_texts["data"])
+    battle_fallback_targets = build_battle_fallback_targets(source_texts["conflict_core"])
     system_copy = build_system_copy(source_texts["system"])
     system_profile_texts = build_system_profile_texts(source_texts["system"])
     route_map = build_system_route_map(source_texts["system"])
@@ -1067,6 +1107,7 @@ def build_audit(root: Path) -> dict[str, object]:
             current_text,
             step43_mapping,
             current_to_boomer,
+            battle_fallback_targets,
             allowed_boomer,
             runtime_gap_targets,
             runtime_gap_copy_decisions,
