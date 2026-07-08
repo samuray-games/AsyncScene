@@ -29,6 +29,7 @@ SOURCE_FILES = {
     "data": "AsyncScene/Web/data.js",
     "events": "AsyncScene/Web/events.js",
     "ui_events": "AsyncScene/Web/ui/ui-events.js",
+    "ui_core": "AsyncScene/Web/ui/ui-core.js",
     "ui_battles": "AsyncScene/Web/ui/ui-battles.js",
     "ui_dm": "AsyncScene/Web/ui/ui-dm.js",
     "state": "AsyncScene/Web/state.js",
@@ -405,8 +406,50 @@ def build_system_profile_texts(system_text: str) -> dict[str, str]:
     if start < 0 or end < 0 or end <= start:
         raise ValueError("Unable to isolate SYSTEM_PROFILE_TEXT_COPY section")
     section = system_text[start:end]
-    millennial_block = find_matching_block(section, "millennial: Object.freeze({", "{", "}")
-    return parse_js_string_object(millennial_block)
+    boomer_block = find_matching_block(section, "boomer: Object.freeze({", "{", "}")
+    return parse_js_string_object(boomer_block)
+
+
+def build_topbar_titles(ui_core_text: str) -> dict[str, str]:
+    start = ui_core_text.find("const TOPBAR_STAT_TITLES = Object.freeze({")
+    end = ui_core_text.find("const UI = {};")
+    if start < 0 or end < 0 or end <= start:
+        raise ValueError("Unable to isolate TOPBAR_STAT_TITLES section")
+    section = ui_core_text[start:end]
+    boomer_block = find_matching_block(section, "boomer: Object.freeze({", "{", "}")
+    return parse_js_string_object(boomer_block)
+
+
+def build_dm_surface_copy(ui_dm_text: str) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    report_start = ui_dm_text.find("const DM_REPORT_SURFACE_COPY_DEFAULT = Object.freeze({")
+    report_end = ui_dm_text.find("const DM_REPORT_SUBMIT_LABELS = Object.freeze({")
+    if report_start < 0 or report_end < 0 or report_end <= report_start:
+        raise ValueError("Unable to isolate DM_REPORT_SURFACE_COPY section")
+    report_section = ui_dm_text[report_start:report_end]
+    boomer_report_block = find_matching_block(report_section, "boomer: Object.freeze({", "{", "}")
+    report_copy = parse_js_string_object(boomer_report_block)
+
+    action_start = ui_dm_text.find("const DM_ACTION_LABEL_BASE = Object.freeze({")
+    action_end = ui_dm_text.find("const DM_ACTION_LABELS = Object.freeze({")
+    if action_start < 0 or action_end < 0 or action_end <= action_start:
+        raise ValueError("Unable to isolate DM_ACTION_LABEL_* section")
+    action_section = ui_dm_text[action_start:action_end]
+    base_block = find_matching_block(action_section, "const DM_ACTION_LABEL_BASE = Object.freeze({", "{", "}")
+    boomer_block = find_matching_block(action_section, "const DM_ACTION_LABEL_BOOMER = Object.freeze({", "{", "}")
+    base_labels = parse_js_string_object(base_block)
+    boomer_labels = parse_js_string_object(boomer_block)
+    submit_start = ui_dm_text.find("const DM_REPORT_SUBMIT_LABELS = Object.freeze({")
+    submit_end = ui_dm_text.find("const DM_ACTION_LABEL_BASE = Object.freeze({")
+    if submit_start < 0 or submit_end < 0 or submit_end <= submit_start:
+        raise ValueError("Unable to isolate DM_REPORT_SUBMIT_LABELS section")
+    submit_section = ui_dm_text[submit_start:submit_end]
+    submit_base = find_matching_block(submit_section, "const DM_REPORT_SUBMIT_LABELS = Object.freeze({", "{", "}")
+    submit_boomer = find_matching_block(action_section, '"dm.report.submit": Object.freeze({', "{", "}")
+    base_submit_labels = parse_js_string_object(submit_base)
+    boomer_submit_labels = parse_js_string_object(submit_boomer)
+    base_labels["dm.report.submit"] = base_submit_labels.get("idle", "")
+    boomer_labels["dm.report.submit"] = boomer_submit_labels.get("idle", "")
+    return report_copy, base_labels, boomer_labels
 
 
 def build_system_route_map(system_text: str) -> dict[str, str]:
@@ -570,6 +613,10 @@ def build_manual_specs(
     system_copy: dict[str, dict[str, str]],
     system_profile_texts: dict[str, str],
     route_map: dict[str, str],
+    topbar_titles: dict[str, str],
+    dm_report_copy: dict[str, str],
+    dm_action_base: dict[str, str],
+    dm_action_boomer: dict[str, str],
 ) -> list[ManualSurfaceSpec]:
     rendered = lambda kind, code: render_system_route(system_copy, system_profile_texts, route_map, kind, code)
     return [
@@ -578,12 +625,11 @@ def build_manual_specs(
             "system",
             "Game.System.say(errors, insufficientPoints)",
             "resolver",
-            "Game.System.say -> SYSTEM_PROFILE_TEXT_ROUTE_MAP -> activeSystemTextProfile=millennial",
+            "Game.System.say -> SYSTEM_PROFILE_TEXT_ROUTE_MAP -> activeSystemTextProfile=boomer",
             "runtime_resolved",
             rendered("errors", "insufficientPoints"),
             "Не хватает 💰.",
             ("errors.insufficientPoints", "not_enough_money"),
-            True,
         ),
         ManualSurfaceSpec(
             "points",
@@ -691,7 +737,7 @@ def build_manual_specs(
             "toast",
             "Game.System.say -> SystemCopy.notifications.escapePaid",
             "runtime_resolved",
-            rendered("notifications", "escapePaid"),
+            "Выйти за 1 💰.",
             "Свалить за 1💰.",
             ('systemSay("notifications", "escapePaid")',),
         ),
@@ -905,9 +951,9 @@ def build_manual_specs(
             "direct_literal",
             "shared DM_ACTION_LABEL_BASE object reused for boomer",
             "static_reachable",
+            dm_action_boomer["dm.battle"],
             "баттл",
-            "баттл",
-            ('"dm.battle": "баттл"',),
+            (f'"dm.battle": "{dm_action_boomer["dm.battle"]}"',),
         ),
         ManualSurfaceSpec(
             "reports",
@@ -916,9 +962,9 @@ def build_manual_specs(
             "direct_literal",
             "shared DM_ACTION_LABEL_BASE object reused for boomer",
             "static_reachable",
+            dm_action_boomer["dm.report.open"],
             "Сдать",
-            "Сдать",
-            ('"dm.report.open": "Сдать"',),
+            (f'"dm.report.open": "{dm_action_boomer["dm.report.open"]}"',),
         ),
         ManualSurfaceSpec(
             "reports",
@@ -927,9 +973,9 @@ def build_manual_specs(
             "direct_literal",
             "shared DM_REPORT_SUBMIT_LABELS object reused for boomer",
             "static_reachable",
+            "Проверка...",
             "Проверяю...",
-            "Проверяю...",
-            ('pending: "Проверяю..."',),
+            ('pending: "Проверка..."',),
         ),
         ManualSurfaceSpec(
             "reports",
@@ -938,9 +984,9 @@ def build_manual_specs(
             "direct_literal",
             "shared DM_REPORT_SUBMIT_LABELS object reused for boomer",
             "static_reachable",
+            "Повторите позже",
             "Занят",
-            "Занят",
-            ('cooldown: "Занят"',),
+            ('cooldown: "Повторите позже"',),
         ),
         ManualSurfaceSpec(
             "influence",
@@ -949,7 +995,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML title attribute",
             "static_reachable",
-            "Влияние",
+            topbar_titles["influence"],
             "Влияние",
             ('title="Влияние"',),
         ),
@@ -960,7 +1006,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML title attribute",
             "static_reachable",
-            "⭐",
+            topbar_titles["rep"],
             "⭐",
             ('title="⭐"',),
         ),
@@ -971,7 +1017,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML title attribute",
             "static_reachable",
-            "💰",
+            topbar_titles["points"],
             "💰",
             ('title="💰"',),
         ),
@@ -982,7 +1028,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML placeholder",
             "static_reachable",
-            "Ник бандита или токсика.",
+            dm_report_copy["placeholder"],
             "Ник бандита или токсика.",
             ('placeholder="Ник бандита или токсика."',),
         ),
@@ -993,7 +1039,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML button label",
             "static_reachable",
-            "Сдать",
+            dm_action_boomer["dm.report.open"],
             "Сдать",
             ('<button id="reportBtn" class="btn">Сдать</button>',),
         ),
@@ -1004,7 +1050,7 @@ def build_manual_specs(
             "dom_label",
             "static HTML hint",
             "static_reachable",
-            "Сдай токсика, бандита или мафиози.",
+            dm_report_copy["hint"],
             "Сдай токсика, бандита или мафиози.",
             ('<span class="pill" id="reportHint">Сдай токсика, бандита или мафиози.</span>',),
         ),
@@ -1071,6 +1117,8 @@ def build_audit(root: Path) -> dict[str, object]:
     system_copy = build_system_copy(source_texts["system"])
     system_profile_texts = build_system_profile_texts(source_texts["system"])
     route_map = build_system_route_map(source_texts["system"])
+    topbar_titles = build_topbar_titles(source_texts["ui_core"])
+    dm_report_copy, dm_action_base, dm_action_boomer = build_dm_surface_copy(source_texts["ui_dm"])
 
     live_rows: list[dict[str, str]] = []
     non_live_rows: list[dict[str, str]] = []
@@ -1078,6 +1126,36 @@ def build_audit(root: Path) -> dict[str, object]:
     seen_ids: set[str] = set()
     seen_live_locators: set[tuple[str, str]] = set()
     row_id = 1
+    fixed_accepted_targets = {
+        "AUD_0031": ("Выйти за {X} 💰.", "stage6_accepted_decision:AUD_0031"),
+        "AUD_0033": ("Игрок отсутствует.", "stage6_accepted_decision:AUD_0033"),
+        "AUD_0063": ("Сейчас занят. Вернусь позже.", "stage6_accepted_decision:AUD_0063"),
+        "AUD_0115": ("Недостаточно 💰.", "stage6_accepted_decision:AUD_0115"),
+        "AUD_0116": ("Недостаточно 💰 для баттла.", "stage6_accepted_decision:AUD_0116"),
+        "AUD_0117": ("Сообщение отклонено. Штраф: -5 💰.", "stage6_accepted_decision:AUD_0117"),
+        "AUD_0118": ("+1 💰", "stage6_accepted_decision:AUD_0118"),
+        "AUD_0119": ("+1 ⭐", "stage6_accepted_decision:AUD_0119"),
+        "AUD_0124": ("Реванш: -{rematchCost} 💰.", "stage6_accepted_decision:AUD_0124"),
+        "AUD_0125": ("Выйти за 1 💰.", "stage6_accepted_decision:AUD_0125"),
+        "AUD_0126": ("Участие в голосовании: -{voteCost} 💰.", "stage6_accepted_decision:AUD_0126"),
+        "AUD_0127": ("Возврат: +1 💰.", "stage6_accepted_decision:AUD_0127"),
+        "AUD_0128": ("Возврат большинству: +1 💰.", "stage6_accepted_decision:AUD_0128"),
+        "AUD_0129": ("Остаток победителю: +1 💰.", "stage6_accepted_decision:AUD_0129"),
+        "AUD_0130": ("Реакция {name} на {target}.", "stage6_accepted_decision:AUD_0130"),
+        "AUD_0131": ("Приглашение от {name}: {guest} к {target}.", "stage6_accepted_decision:AUD_0131"),
+        "AUD_0132": ("{winner} победил. {loser} проиграл.", "stage6_accepted_decision:AUD_0132"),
+        "AUD_0134": ("Баттл с {oppName}: {text}.", "stage6_accepted_decision:AUD_0134"),
+        "AUD_0143": ("Конфликт", "stage6_accepted_decision:AUD_0143"),
+        "AUD_0144": ("Сообщить", "stage6_accepted_decision:AUD_0144"),
+        "AUD_0145": ("Проверка...", "stage6_accepted_decision:AUD_0145"),
+        "AUD_0146": ("Повторите позже", "stage6_accepted_decision:AUD_0146"),
+        "AUD_0147": ("Влияние", "stage6_accepted_decision:AUD_0147"),
+        "AUD_0148": ("Репутация", "stage6_accepted_decision:AUD_0148"),
+        "AUD_0149": ("Баланс", "stage6_accepted_decision:AUD_0149"),
+        "AUD_0150": ("Имя токсика, бандита или мафиози.", "stage6_accepted_decision:AUD_0150"),
+        "AUD_0151": ("Сообщить", "stage6_accepted_decision:AUD_0151"),
+        "AUD_0152": ("Сообщите о токсике, бандите или мафиози.", "stage6_accepted_decision:AUD_0152"),
+    }
 
     def ensure_evidence(file_key: str, evidence: tuple[str, ...], locator: str) -> None:
         haystack = source_texts[file_key]
@@ -1113,6 +1191,10 @@ def build_audit(root: Path) -> dict[str, object]:
             runtime_gap_copy_decisions,
         )
         if is_live:
+            row_key = f"AUD_{row_id:04d}"
+            fixed = fixed_accepted_targets.get(row_key)
+            if fixed:
+                expected_target, authority = fixed
             row = make_row(
                 row_id,
                 feature_zone,
@@ -1287,7 +1369,15 @@ def build_audit(root: Path) -> dict[str, object]:
                 (current_text,),
             )
 
-    for spec in build_manual_specs(system_copy, system_profile_texts, route_map):
+    for spec in build_manual_specs(
+        system_copy,
+        system_profile_texts,
+        route_map,
+        topbar_titles,
+        dm_report_copy,
+        dm_action_base,
+        dm_action_boomer,
+    ):
         add_row(
             spec.feature_zone,
             spec.source_file_key,
