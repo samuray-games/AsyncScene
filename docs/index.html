@@ -8,7 +8,53 @@
   <meta http-equiv="Expires" content="0" />
   <title>AsyncScene</title>
   <base href="/AsyncScene/" />
+  <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="style.css?v=step6_1_birth_year_wheels_ui_20260613b" />
+  <script>
+    (function () {
+      if (typeof window === "undefined" || window.__CONSOLE_TAPE_BOOTSTRAPPED__) return;
+      const cap = 5000;
+      const buf = [];
+      const tape = {
+        buf,
+        cap,
+        push(level, args) {
+          const entry = { ts: Date.now(), level, args: Array.from(args) };
+          buf.push(entry);
+          if (buf.length > cap) {
+            buf.splice(0, buf.length - cap);
+          }
+          return entry;
+        }
+      };
+      const orig = {};
+      const wrap = (method) => {
+        const original = console[method];
+        if (typeof original !== "function") return;
+        orig[method] = original;
+        console[method] = function (...args) {
+          tape.push(method, args);
+          return original.apply(this, args);
+        };
+      };
+      ["log", "info", "warn", "error", "debug", "group", "groupCollapsed", "groupEnd"].forEach(wrap);
+      window.addEventListener("error", (event) => {
+        tape.push("onerror", [
+          event.message,
+          event.filename,
+          event.lineno,
+          event.colno,
+          event.error
+        ]);
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        tape.push("unhandledrejection", [event.reason]);
+      });
+      window.__CONSOLE_TAPE__ = tape;
+      window.__CONSOLE_TAPE_ORIG__ = orig;
+      window.__CONSOLE_TAPE_BOOTSTRAPPED__ = true;
+    })();
+  </script>
   <script>
     window.__BUILD_TAG__ = "build_2026_06_14_step6_3_7_tone_profiles_final_smoke";
     window.__COMMIT__ = "step6_3_7_tone_profiles_final_smoke";
@@ -18,6 +64,7 @@
       href: location.href
     });
     console.warn("DEV_INDEX_HTML_PROOF_V1", window.__BUILD_TAG__, window.__COMMIT__, location.href, Date.now());
+    console.warn("DEV_SW_DISABLED", true);
   </script>
 </head>
 <body>
@@ -151,7 +198,6 @@
   <script defer src="system.js?v=step8-12c-z-profile-runtime-acceptance-moneylog-restore-fix-20260612a"></script>
   <script defer src="state.js?v=alpha_a4t44a1_state_cleanup_fix3_20260705a"></script>
   <script defer src="data.js?v=step6_2_conflict_result_profile_sampling_fix4_20260704a"></script>
-  <script defer src="data/style-lex.js?v=2"></script>
   <script defer src="npcs.js?v=step6-9-final-z-npc-template-set-20260606a"></script>
   <script defer src="conflict/conflict-core.js?v=step6_2_conflict_result_pure_adapter_fix3_20260704a"></script>
   <script defer src="conflict/conflict-economy.js?v=step7-3-systemcopy-routing-fix-20260606b"></script>
@@ -159,9 +205,9 @@
   <script defer src="conflict/conflict-api.js?v=step6_2_conflict_result_pure_adapter_fix3_20260704a"></script>
   <script defer src="events.js?v=step3-terminology-events-crowd-layer-v1"></script>
 
-  <script defer src="ui/ui-core.js?v=step7-4-systemcopy-bypass-fix-20260606b"></script>
+  <script defer src="ui/ui-core.js?v=step6_v5a2_boomer_runtime_surfaces_20260708a"></script>
   <script defer src="ui/ui-chat.js?v=2"></script>
-  <script defer src="ui/ui-dm.js?v=step7-7-ui-runtime-expectation-fix-20260611c"></script>
+  <script defer src="ui/ui-dm.js?v=step6_v5a2_boomer_runtime_surfaces_20260708a"></script>
   <script defer src="ui/logger.js?v=1"></script>
   <script defer src="ui/ui-battles.js?v=step7-7-ui-runtime-expectation-fix-20260611c"></script>
   <script defer src="ui/ui-events.js?v=step7-7-ui-runtime-expectation-fix-20260611c"></script>
