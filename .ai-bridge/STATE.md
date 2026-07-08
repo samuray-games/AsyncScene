@@ -4,22 +4,22 @@ BRIDGE_PROTOCOL: 3.0
 ORCHESTRATION_VERSION: 3.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T08:29:00+09:00
-CURRENT_MAIN_BASELINE: 23fd4ab42d62c999d426ea07c79c84837a71a48b
+STATE_UPDATED_AT: 2026-07-08T08:47:00+09:00
+CURRENT_MAIN_BASELINE: 791e2a4d57c94026a152f7158453e602ca418655
 PROCESS_AUTHORITY: ORCHESTRATION.md
 DECISION_FREEZE: .ai-bridge/decisions/STAGE6_WAVE2_COPY_FREEZE.md
 
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_III_MODEL_PREFLIGHT`
+- Bridge status: `STAGE6_WAVE_III_CORRECTION_EXECUTE_NOW`
 - Open executable slots: `1`
-- Slot 1: `MODEL_PREFLIGHT_ONLY`
+- Slot 1: `EXECUTE_NOW_CORRECTION`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Active claims: `1`
 - Accepted progress: `53/100`
 - Working readiness: `59/100`
-- Active block: `Wave III event vote presentation routing`
+- Active block: `Wave III explicit unknown fallback correction`
 - Safari: `N/A - deferred`
 
 ## Active Slot 1
@@ -27,36 +27,32 @@ DECISION_FREEZE: .ai-bridge/decisions/STAGE6_WAVE2_COPY_FREEZE.md
 - Thread: `BRIDGE-20260708-035`
 - Lane: `S6-I3-EVENT-VOTE-PRESENTATION`
 - Task: `TASK-S6-PAR-I3`
-- Task inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-01-chatgpt.md`
-- Task inbox commit: `2d22f06784c6969ad25cbb018ccbcd94d9cf36ae`
-- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260708-035-claim-codex.md`
-- Claim commit: `f6be705aaf8008cda5edc3d1b99ffe65c1a00529`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-035-02-codex.md`
-- Write scope: `AsyncScene/Web/events.js`, `docs/events.js`, `AsyncScene/Web/ui/ui-events.js`, `docs/ui/ui-events.js`
+- Original task inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-01-chatgpt.md`
+- First outbox: `.ai-bridge/outbox/BRIDGE-20260708-035-02-codex.md`
+- Correction inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-03-chatgpt.md`
+- Correction inbox commit: `3f561b53148b79d44632949778ca782186a118b3`
+- Expected correction outbox: `.ai-bridge/outbox/BRIDGE-20260708-035-04-codex.md`
+- Current unaccepted main commit: `791e2a4d57c94026a152f7158453e602ca418655`
+- Correction write scope: `AsyncScene/Web/ui/ui-events.js`, `docs/ui/ui-events.js`
 - Runtime classification: `RUNTIME_SENSITIVE`
-- Model selection: `PENDING_12_OF_12`
-- Confirmation: `PENDING_SAME_THREAD_CONTINUE`
-- Report state machine: `OUT_OF_SCOPE_PRESERVED_IN_UI_DM`
+- Model preflight: `ALREADY_COMPLETE`
+- Confirmation: `ALREADY_SATISFIED`
+- Next phase: `EXECUTE_NOW_NO_NEW_PREFLIGHT`
 
-## Frozen copy matrix
+## Correction reason
 
-- `vote.disabled`: default/millennial/zoomer/unknown preserve system unavailable; boomer `Вы уже проголосовали.`; alpha `Голос: уже принято`.
-- `vote.no_points`: default/millennial/zoomer/alpha/unknown `Мало 💰`; boomer `Недостаточно 💰.`.
-
-## Mirror baseline
-
-- source events: `447bdc2d362785dc9655c208a20cecb4cdd66aad`
-- deployed events: `d81dd9c69c742ece4e7cbcc1b0c41876146d7cb1`
-- source/deployed ui-events: `b53aa817ffbeec7df8bf99575372bbebb0db4d58`
-- Required result: both mirror pairs byte-identical; source events is canonical.
+- Explicit unknown profile currently falls through to active `Game.Data` profile.
+- Frozen contract requires explicit unknown -> `default`.
+- Omitted profile must continue to resolve the current runtime profile.
+- Both `events.js` files are already accepted for this correction scope and must remain unchanged at blob `447bdc2d362785dc9655c208a20cecb4cdd66aad`.
 
 ## Rules
 
-- Same-thread `CONTINUE` confirms model and exact runtime scope.
-- No second `APPROVE`.
-- Repeated preflight after `CONTINUE` is invalid.
-- Same-scope correction needs no new preflight.
+- No new model preflight.
+- No new `CONTINUE`.
+- No second approval round.
+- Correction commit must be a direct child of `791e2a4d57c94026a152f7158453e602ca418655`.
+- Only the two `ui-events.js` mirrors may change.
 - Auth failure uses `BLOCKED_PUSH_AUTH` with complete recovery bundle.
 - Slots 2 and 3 remain closed.
 
@@ -64,11 +60,11 @@ DECISION_FREEZE: .ai-bridge/decisions/STAGE6_WAVE2_COPY_FREEZE.md
 
 1. Wave I: `PASS_ACCEPTED`
 2. Wave II: `PASS_ACCEPTED`
-3. Wave III: `MODEL_PREFLIGHT_ONLY`
+3. Wave III: `CORRECTION_EXECUTE_NOW`
 4. Wave IV: `BLOCKED_BY_WAVE_III`
 5. Wave V: `BLOCKED_BY_WAVE_IV`
 6. Wave VI: `BLOCKED`
 
 ## Next user action
 
-Send `мост 1` in Codex Slot 1, select the recommended model after preflight, then send `CONTINUE` in the same Codex thread. Return to ChatGPT with `мост 1` after publication.
+Send `мост 1` in the same Codex Slot 1 thread. Codex must execute the correction immediately without repeating preflight or requesting `CONTINUE`. Return to ChatGPT with `мост 1` after publication.
