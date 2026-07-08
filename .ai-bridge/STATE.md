@@ -4,8 +4,8 @@ BRIDGE_PROTOCOL: 3.1
 ORCHESTRATION_VERSION: 3.1
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T18:12:00+09:00
-CURRENT_MAIN_BASELINE: e68131642f182cb50a20fcf440153d41225e8484
+STATE_UPDATED_AT: 2026-07-08T22:25:00+09:00
+CURRENT_MAIN_BASELINE: 57dae3f7942ba60996604c39115dad0cb4fa2238
 PROCESS_AUTHORITY: ORCHESTRATION.md
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
@@ -16,14 +16,14 @@ ChatGPT publishes inbox, claim and STATE. One numbered bridge command in Codex f
 
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_VA3_EXECUTE_AND_PUBLISH`
-- Slot 1: `EXECUTE_AND_PUBLISH`
+- Bridge status: `STAGE6_WAVE_VA3_CORRECTION_REQUIRED`
+- Slot 1: `CORRECTION_REQUIRED`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Active claims: `1`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
-- Active block: `Wave V-A3 truthful Boomer Step 4.4A static audit`
+- Active block: `Wave V-A3 truthful currentText derivation correction`
 - Safari: `PENDING_USER`
 
 ## Accepted Wave V-A2
@@ -36,19 +36,28 @@ ChatGPT publishes inbox, claim and STATE. One numbered bridge command in Codex f
 - Closure commit: `a21de1b192a29b60b9fdf711e3aed9b5e4654886`
 - Safari: `PENDING_USER`
 
-The outbox used the superseded v1 claim token. The closure accepts it because thread, lane, task, baseline, exact scope and publication evidence match the active v2 contract.
+## Wave V-A3 rejected result
 
-## Active Slot 1
+- Thread: `BRIDGE-20260708-040`
+- Rejected outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-02-codex.md`
+- Rejected outbox commit: `c8e80d947fc458e227c2022bc1bb68e9696aea70`
+- Actual remote main: `57dae3f7942ba60996604c39115dad0cb4fa2238`
+- Outbox-reported nonexistent primary SHA: `57dae3fad0f7b1be8ef14e0aa66e90d6d0bb3e8b`
+- Main ancestry: one direct child of `e68131642f182cb50a20fcf440153d41225e8484`
+- Main changed paths: exact authorized three paths
+- Additional defect: live `currentText` remains hardcoded for fallback, report-submit, escape-payment and Data.SYS result rows instead of being independently derived from current production sources.
+
+## Active Slot 1 correction
 
 - Thread: `BRIDGE-20260708-040`
 - Lane: `S6-V5A3-BOOMER-STATIC-AUDIT`
 - Task: `TASK-S6-PAR-V5A3`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-040-01-chatgpt.md`
-- Inbox commit: `3d450763a17e8bd95d5c94709fb187a5c7aafbb4`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260708-040-03-chatgpt.md`
+- Inbox commit: `2005c58a1e191bd97e42b87681fcd5c35a598da0`
 - Claim: `.ai-bridge/claims/BRIDGE-20260708-040-claim-codex.md`
-- Claim commit: `a9141de30aa8e61faed60483a5f6fb4a6072b730`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-02-codex.md`
-- Primary baseline: `e68131642f182cb50a20fcf440153d41225e8484`
+- Claim token: `S6V5A3-20260708-040`
+- Expected correction outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-04-codex.md`
+- Primary baseline: `57dae3f7942ba60996604c39115dad0cb4fa2238`
 - Publication mode: `CODEX_AUTO_PULL_PUSH`
 - Runtime classification: `STATIC_AUDIT_ONLY`
 - Recommended model: `GPT-5.4-Mini / Medium`
@@ -61,15 +70,18 @@ The outbox used the superseded v1 claim token. The closure accepts it because th
 
 All production/runtime files are protected.
 
-## Expected derived result
+## Required correction result
 
-- 147 PASS
-- 0 FAIL
-- 0 structural failures
+- every live current value independently derived or structurally failed
+- no accepted target used as observed current text
+- 147 PASS only if actual derivation supports it
+- 0 FAIL only if actual derivation supports it
+- 0 structural failures only if all required production surfaces are proven
 - 8 non-live rows
 - root/docs mirrors identical
 - validator PASS
+- negative-control mutation proofs PASS
 
 ## Next user action
 
-Send `мост 1` once in a new Codex Slot 1 thread for `BRIDGE-20260708-040`. After Codex returns `PASS_PUSHED`, return to ChatGPT and send `мост 1`.
+Send `мост 1` once in the same Codex Slot 1 thread for `BRIDGE-20260708-040`. Codex must apply the correction, publish the direct-child primary commit and publish `.ai-bridge/outbox/BRIDGE-20260708-040-04-codex.md`. Then return to ChatGPT and send `мост 1`.
