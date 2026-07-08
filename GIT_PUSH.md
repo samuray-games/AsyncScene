@@ -1,57 +1,72 @@
 # Automatic Safe Bridge Publication Protocol
 
 PROTOCOL_VERSION: GIT_PUSH_3_1
+ROOT_CAUSE_SYNC: REQUIRED
 ORCHESTRATION: `ORCHESTRATION.md`
+ROOT_SYNC: `PROCESS_ROOT_SYNC.md`
 
 ## Numbered bridge lanes
 
 For `мост 1`, `мост 2` or `мост 3`, publication is automatic. The user does not send a separate `пуш`.
 
-After successful validation, Codex must publish both parts of the current slot when authorized:
+After validation Codex publishes:
 
-1. the exact primary implementation commit;
+1. the exact authorized primary commit;
 2. the exact immutable mailbox outbox.
 
 ## Primary publication
 
 Codex must:
 
-- work from a clean task-owned worktree at the exact authorized remote main baseline;
+- use a clean worktree at the exact authorized baseline;
 - stage only authorized paths;
 - inspect the staged diff;
 - run all required checks;
 - create one task-specific direct-child commit;
-- prove there are no unrelated paths or outgoing commits;
-- push fast-forward without force to the exact authorized primary ref;
-- refetch and prove the remote ref equals the published commit.
+- prove exact paths and ancestry;
+- push fast-forward without force;
+- refetch and prove `origin/main` equals the commit;
+- derive the reported SHA and parent from the fetched remote commit.
 
-If remote main moved before publication, return `BLOCKED_MAIN_BASELINE_MOVED`. Do not merge, rebase or rewrite history.
+If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`. Do not rebuild, merge, rebase or rewrite history under the old contract.
 
-## Mailbox outbox publication
+## Outbox publication
 
 Codex must:
 
 - fetch the latest mailbox head;
 - use a separate clean mailbox worktree;
-- create exactly the expected immutable outbox path;
-- commit it as a direct child of the fetched mailbox head;
-- prove the diff contains only the outbox path;
-- push fast-forward without force;
-- refetch and prove the remote mailbox head equals the outbox commit.
+- create exactly the expected immutable outbox;
+- write the machine-derived fetched primary SHA and actual parent;
+- commit only the outbox path;
+- push fast-forward;
+- refetch and verify the remote mailbox head and outbox path.
 
-After a mailbox race, rebuild the same immutable payload from the new head and retry up to three times.
+Manual SHA transcription is forbidden.
+
+A primary SHA mismatch is automatic rejection even when the implementation diff is correct.
+
+## Mailbox race
+
+After a mailbox race, rebuild the same payload from the new head and retry up to three times.
 
 ## Authentication
 
-Codex may attempt the repository's configured non-interactive authentication repair once.
+Codex may attempt one configured non-interactive authentication repair.
 
-If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle required by `ORCHESTRATION.md`. Never ask the user to reveal credentials.
+If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle required by `ORCHESTRATION.md`. Never ask the user for credentials.
 
 The bundle must include complete file bodies, not only SHA values.
 
+## Root-cause propagation
+
+A publication or evidence defect that can recur triggers `PROCESS_ROOT_SYNC.md`.
+
+The task correction, root authority, validator, mailbox policy, STATE and live memory must be synchronized before the next project action.
+
 ## Standalone `пуш`
 
-The explicit `пуш` command remains available only for standalone non-bridge Git maintenance with exact publication authority.
+Standalone `пуш` remains only for explicit non-bridge maintenance with exact publication authority.
 
 ## Forbidden actions
 
@@ -64,10 +79,10 @@ The explicit `пуш` command remains available only for standalone non-bridge G
 - no broad staging;
 - no unrelated merge;
 - no automatic conflict resolution;
-- no treating a local-only commit as publication.
+- no local-only publication claims.
 
 ## Result
 
-A successful numbered bridge report contains verified remote primary and mailbox SHAs and exactly one next action: return to ChatGPT and write the same `мост N`.
+A successful numbered bridge report contains fetched remote primary and mailbox SHAs, the actual primary parent, exact paths, validations and exactly one next action.
 
 Git publication proves publication only. It does not prove deployment or Safari acceptance.
