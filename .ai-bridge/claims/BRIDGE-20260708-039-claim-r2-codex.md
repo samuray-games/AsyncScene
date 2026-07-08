@@ -1,0 +1,20 @@
+# Wave V-A2 Claim R2
+
+BRIDGE_PROTOCOL: 3.1
+BRIDGE_SLOT: 1
+THREAD_ID: BRIDGE-20260708-039
+LANE_ID: S6-V5A2-BOOMER-RUNTIME-SURFACES
+TASK_ID: TASK-S6-PAR-V5A2
+CLAIM_TOKEN: S6V5A2-20260708-039-R2
+AUTHORIZED_PRIMARY_BASELINE: acad1224e4b1ac01501f5c0b1dacd0620c4194e0
+CURRENT_BASELINE_INBOX: .ai-bridge/inbox/BRIDGE-20260708-039-04-chatgpt.md
+EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260708-039-02-codex.md
+PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+PHASE: EXECUTE_AND_PUBLISH
+WRITE_SCOPE: AsyncScene/Web/ui/ui-core.js; docs/ui/ui-core.js; AsyncScene/Web/ui/ui-dm.js; docs/ui/ui-dm.js; AsyncScene/Web/index.html; docs/index.html
+RUNTIME_CLASSIFICATION: RUNTIME_SENSITIVE_PRESENTATION_ONLY
+AUTHORIZATION: MATCHING_NUMBERED_BRIDGE_COMMAND
+CLAIM_STATUS: ACTIVE
+SUPERSEDES_CLAIM: .ai-bridge/claims/BRIDGE-20260708-039-claim-codex.md
+
+Only the exact six listed files are authorized. No audit, dev-check, mechanics, economy, state or handler changes are authorized.
