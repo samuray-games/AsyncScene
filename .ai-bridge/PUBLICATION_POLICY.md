@@ -1,98 +1,106 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_08
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_08_ROOT_SYNC
 STATUS: ACTIVE
 DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+ROOT_CAUSE_SYNC: REQUIRED
 
-## Canonical numbered-bridge loop
+## Canonical numbered bridge loop
 
-For every numbered bridge lane, the normal workflow is exactly:
+1. ChatGPT writes the task inbox, claim and STATE.
+2. The user sends the matching numbered bridge command.
+3. Codex fetches remote refs, reads current authority, executes, validates, pushes the primary commit, writes and pushes the immutable outbox, and verifies both refs.
+4. The user sends the same numbered command to ChatGPT.
+5. ChatGPT independently verifies and accepts or corrects.
+6. A reusable process defect triggers `PROCESS_ROOT_SYNC.md` before the next project action.
+7. Repeat.
 
-1. ChatGPT writes the task inbox, claim and current mailbox STATE.
-2. The user sends `мост 1`, `мост 2` or `мост 3` to the matching Codex slot.
-3. Codex automatically synchronizes remote refs, reads current STATE/inbox/claim, executes the task, validates it, commits it, pushes the primary commit, writes and pushes the immutable outbox.
-4. The user sends the same numbered bridge command to ChatGPT.
-5. ChatGPT independently verifies remote commits, scope, evidence and acceptance, then publishes the next inbox.
-6. Repeat.
+The user does not send separate `пул`, `пуш`, payload-copy, file-body export or authentication-retry commands in the normal loop.
 
-The user must not need separate `пул`, `пуш`, payload-copy, file-body export or authentication-retry commands during the normal loop.
+## Required startup
 
-## Required Codex startup sequence
+On every numbered command Codex must:
 
-On every numbered bridge command Codex must:
+1. fetch main and mailbox;
+2. read current STATE;
+3. read the current inbox and claim named by STATE;
+4. verify repository, slot, thread, task, claim, phase and baseline;
+5. use a clean worktree from the exact authorized main baseline.
 
-1. run `git fetch --prune origin main coordination/chatgpt-codex-bridge`;
-2. read `origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`;
-3. read the current inbox and claim named by STATE directly from the remote mailbox ref;
-4. verify repository, slot, thread, task, claim, phase and current remote baseline;
-5. use a clean dedicated worktree created from the exact current `origin/main` commit.
+Local main state is irrelevant. Never merge, rebase, reset, stash, clean or repair it.
 
-Codex must never rely on a dirty, ahead, behind or diverged local `main`. It must not merge, rebase, reset or repair the user's ordinary working branch. Local branch state is irrelevant to bridge execution.
+## Primary publication
 
-## Execution and primary publication
+Codex must:
 
-After confirmation requirements are satisfied, Codex must:
+1. implement only authorized paths;
+2. run all checks;
+3. create one atomic direct-child primary commit;
+4. fetch `origin/main` immediately before push;
+5. return `BLOCKED_MAIN_BASELINE_MOVED` if the baseline changed;
+6. push fast-forward without force;
+7. fetch again and prove `origin/main` equals the commit;
+8. derive the exact primary SHA and actual parent from the fetched remote commit.
 
-1. implement only the authorized scope in the clean task worktree;
-2. run all required tests and exact changed-path checks;
-3. create one atomic primary commit;
-4. fetch `origin/main` again immediately before publication;
-5. push only when the primary commit is a fast-forward descendant of the current remote baseline;
-6. use `git push origin HEAD:refs/heads/main`;
-7. fetch and verify that `origin/main` equals the pushed primary commit.
-
-If `origin/main` moved without overlapping the authorized paths, Codex may automatically rebuild the same exact patch once on a fresh worktree at the new baseline, rerun validation and push the rebuilt direct child.
-
-If the moved baseline overlaps the authorized paths or changes task assumptions, return `BLOCKED_BASELINE_COLLISION` with exact conflicting paths. Never force-push.
+Automatic patch rebuilding on a moved baseline is forbidden under the old contract.
 
 ## Outbox publication
 
-Only after the primary commit is remotely verified, Codex must:
+Only after remote primary verification Codex must:
 
-1. fetch `origin/coordination/chatgpt-codex-bridge` again;
-2. create a clean mailbox worktree from that remote ref;
-3. write exactly the expected immutable outbox path named by STATE/inbox;
-4. include the verified primary commit SHA, parent, exact changed paths, validations, runtime/Safari status and one next action;
-5. commit only the outbox path;
-6. push `HEAD:refs/heads/coordination/chatgpt-codex-bridge` as a fast-forward;
-7. fetch and verify the remote outbox commit and path.
+1. fetch mailbox again;
+2. use a clean mailbox worktree;
+3. write exactly the expected immutable outbox;
+4. include the machine-derived fetched primary SHA and actual parent;
+5. include exact paths, validations, runtime and Safari status;
+6. commit only the outbox path;
+7. push fast-forward;
+8. fetch and verify the remote outbox commit and path.
 
-Codex must not edit mailbox STATE. ChatGPT owns STATE and closure records.
+Manual SHA transcription is forbidden.
+
+A SHA mismatch is not `PASS_PUSHED`.
+
+Codex never edits STATE.
 
 ## Final Codex response
 
-A successful numbered bridge run returns:
-
-`PASS_PUSHED`
-
-with:
+A successful run returns `PASS_PUSHED` with:
 
 - thread, lane and task IDs;
-- selected model/reasoning;
-- verified remote primary SHA and parent;
-- verified remote mailbox outbox SHA;
+- selected model status;
+- fetched remote primary SHA and actual parent;
+- fetched remote mailbox outbox SHA;
 - exact changed paths;
-- validation results and failure arrays;
-- runtime/Safari status;
-- exactly one next action: return to ChatGPT and send the same numbered bridge command.
+- validation results and failures;
+- runtime and Safari status;
+- one next action.
 
-A local-only commit, SHA-only package, connector payload or unpushed outbox is not a successful bridge result.
+A local-only commit, SHA-only package, connector payload or unpushed outbox is not success.
 
 ## Authentication
 
-Codex is expected to use the repository's already configured authenticated Git transport automatically.
+Codex may run one configured non-interactive authentication repair.
 
-It may inspect `git remote -v`, `gh auth status` and configured credential transport without prompting the user during a normal successful run.
+If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle from `ORCHESTRATION.md`.
 
-It must not repeatedly retry authentication or offer multiple recovery paths.
+Never ask the user for credentials.
 
-If no authenticated GitHub write transport exists, return exactly one hard blocker:
+Connector publication is emergency recovery only.
 
-`BLOCKED_GIT_AUTH_ONE_TIME_SETUP`
+## Root-cause synchronization
 
-with the failing command and transport. This is an environment blocker, not a task failure. After credentials are repaired once, the canonical automatic loop resumes.
+When publication, evidence, validator, STATE or baseline behavior exposes a reusable process defect, ChatGPT must:
 
-ChatGPT connector publication is emergency recovery only when the user explicitly chooses it after an authentication blocker. It is not the default numbered-bridge route.
+1. publish the task correction;
+2. update all affected root process authorities and validator;
+3. update this mailbox policy;
+4. update STATE and the current inbox;
+5. create a replacement claim when main moved;
+6. update Google Drive memory;
+7. verify all remote refs.
+
+Project execution resumes only after synchronization is complete.
 
 ## Safety prohibitions
 
@@ -100,9 +108,10 @@ Never:
 
 - force-push;
 - amend published commits;
-- merge or rebase unrelated local work;
-- stage broad or unrelated paths;
-- absorb another slot's work;
+- merge or rebase unrelated work;
+- stage broad paths;
+- absorb another slot;
 - modify STATE from Codex;
-- claim publication before fetching and verifying both remote refs;
-- ask the user for separate `пул` or `пуш` commands in the normal loop.
+- claim publication before fetching both refs;
+- ask for separate `пул` or `пуш`;
+- manually transcribe reported commit SHAs.
