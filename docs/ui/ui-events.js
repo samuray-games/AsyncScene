@@ -42,16 +42,14 @@ window.Game = window.Game || {};
       return EVENT_VOTE_PROFILE_SET.has(explicitProfile) ? explicitProfile : "default";
     }
     const Data = Game.Data || null;
+    let runtimeRaw = "";
     if (Data && typeof Data.getUiProfile === "function") {
-      const rawGetterProfile = Data.getUiProfile();
-      const getterProfile = String(rawGetterProfile == null ? "" : rawGetterProfile).trim().toLowerCase();
-      if (EVENT_VOTE_PROFILE_SET.has(getterProfile)) return getterProfile;
+      runtimeRaw = Data.getUiProfile();
+    } else if (Data) {
+      runtimeRaw = Data.UI_PROFILE;
     }
-    if (Data) {
-      const rawProfile = String(Data.UI_PROFILE == null ? "" : Data.UI_PROFILE).trim().toLowerCase();
-      if (EVENT_VOTE_PROFILE_SET.has(rawProfile)) return rawProfile;
-    }
-    return "default";
+    const runtimeProfile = String(runtimeRaw == null ? "" : runtimeRaw).trim().toLowerCase();
+    return EVENT_VOTE_PROFILE_SET.has(runtimeProfile) ? runtimeProfile : "default";
   };
   const resolveEventVotePresentation = (key, profile) => {
     const keyId = String(key == null ? "" : key).trim();
