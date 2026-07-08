@@ -1,0 +1,36 @@
+name: orchestration-policy
+
+on:
+  push:
+    paths:
+      - AGENTS.override.md
+      - ORCHESTRATION.md
+      - BRIDGE.md
+      - GIT_PULL.md
+      - GIT_PUSH.md
+      - tools/validate-orchestration-policy.py
+      - .github/workflows/orchestration-policy.yml
+  pull_request:
+    paths:
+      - AGENTS.override.md
+      - ORCHESTRATION.md
+      - BRIDGE.md
+      - GIT_PULL.md
+      - GIT_PUSH.md
+      - tools/validate-orchestration-policy.py
+      - .github/workflows/orchestration-policy.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate orchestration policy
+        run: python3 tools/validate-orchestration-policy.py
