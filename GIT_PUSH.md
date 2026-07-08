@@ -1,92 +1,95 @@
-# Universal safe push protocol
+# Universal Safe Push Protocol
 
+PROTOCOL_VERSION: GIT_PUSH_3_0
 COMMAND_ALIAS: `пуш`
 LEGACY_ALIASES: `запушь` - INACTIVE
+ORCHESTRATION: `ORCHESTRATION.md`
 
-## Purpose
+## 1. Purpose
 
-Safely publish only the current task's already authorized changes, commits or mailbox payload. The command is universal across normal branches, `main`, numbered bridge lanes, dedicated mailbox worktrees and detached direct-child commits.
+Publish only the exact authorized task result or immutable mailbox payload.
 
-`пуш` never invents scope, absorbs unrelated work, rewrites history, bypasses runtime approval or claims deployment, runtime PASS or Safari acceptance.
+`пуш` never invents scope, absorbs unrelated work, rewrites history, bypasses confirmation or claims deployment, runtime PASS or Safari acceptance.
 
-## Trigger
+## 2. Trigger
 
-When the user's trimmed message is exactly `пуш`, follow this file before any generic interpretation.
+When the user's trimmed message is exactly `пуш`, follow this file before generic interpretation.
 
-The former command `запушь` is inactive and must not be offered as an alias.
+## 3. Required authority
 
-## Required authority
+Resolve one exact publication authority:
 
-Before staging, committing or pushing, resolve one exact publication authority:
-
-1. the current Codex thread's unchanged authorized task after required `CONTINUE` and `APPROVE`;
-2. the exact active bridge lane, claim and expected outbox named by remote mailbox `STATE.md`;
-3. a direct user instruction in the current thread naming exact files, an exact commit or an exact target ref.
+1. the current Codex thread's unchanged authorized task after required `CONTINUE`;
+2. the exact active bridge lane, claim and expected outbox named by remote mailbox STATE;
+3. a direct user instruction naming exact paths, commit and destination ref.
 
 The authority must identify:
 
-- authorized changed paths or immutable payload;
-- source commit or worktree;
+- source baseline and commit or full payload;
+- exact changed paths;
 - destination ref;
-- required validation;
-- whether runtime approval applies.
+- required checks;
+- runtime confirmation status.
 
 If any field is ambiguous, return `BLOCKED_NO_AUTHORIZED_PUSH_SCOPE`.
 
-## Target resolution
+## 4. Remote-first bootstrap
 
-Resolve the publication target in this order:
+1. Verify repository root and `origin` identity.
+2. Fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge`.
+3. Read:
 
-1. Bridge mailbox target from the active slot contract.
-2. Exact target ref named by the task or user.
-3. Current branch's upstream when the task authorizes that branch.
-4. Direct-main delivery only when explicitly authorized.
+```bash
+git show origin/main:AGENTS.override.md
+git show origin/main:ORCHESTRATION.md
+git show origin/main:AGENTS.md
+git show origin/main:GIT_PUSH.md
+```
 
-Never infer a target merely from the current directory, current branch name or a stale local file.
+In bridge context also read:
 
-## Required procedure
+```bash
+git show origin/main:BRIDGE.md
+git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md
+```
 
-1. Resolve the repository root and verify `origin` belongs to `samuray-games/AsyncScene`.
-2. Read current `origin/main:AGENTS.override.md`, root `AGENTS.md`, this file and the exact task authority.
-3. Inspect all relevant contexts separately:
-   - `git status --short --branch`;
-   - `git branch --show-current`;
-   - `git rev-parse HEAD`;
-   - current upstream, if any;
-   - `git worktree list --porcelain`;
-   - task-owned diff;
-   - unrelated concurrent changes.
-4. Run `git fetch origin` before publication.
-5. Preserve every unrelated change. Never stage, commit, revert, stash, clean or include it.
-6. Validate the exact authorized paths and required checks.
-7. Select either normal-branch mode or detached-target mode below.
-8. Push without force.
-9. Re-fetch the destination ref and prove its remote SHA equals the published commit.
-10. Report Git publication separately from CI, deployment, runtime and Safari status.
+4. Inspect branch, HEAD, upstream, worktrees, exact task diff and unrelated changes.
+5. Preserve unrelated work byte-for-byte.
 
-## Normal branch mode
+## 5. Target resolution
 
-Use when HEAD is on the exact authorized branch.
+Resolve target in this order:
 
-1. If task-owned files are uncommitted, stage only explicit authorized paths with `git add -- <exact paths>`.
-2. Inspect `git diff --cached --name-status`, `git diff --cached`, and run `git diff --cached --check`.
-3. Create one task-specific commit only when needed.
-4. Prove the destination remote ref is an ancestor of local HEAD and no unrelated outgoing commit exists.
-5. Push with `git push` for an existing authorized upstream, or `git push -u origin HEAD:<authorized-branch>` when the exact branch is authorized.
-6. Pushing `main` requires explicit direct-main authority.
+1. exact mailbox ref from the active bridge lane;
+2. exact ref named by the task or user;
+3. authorized current branch upstream;
+4. direct `main` only when explicitly authorized.
 
-## Detached target mode
+Never infer a target from directory, current branch name or stale local files.
 
-Detached HEAD is allowed when the authority names an exact destination ref. It is not a blocker by itself.
+## 6. Normal branch mode
 
-Before pushing, prove all of the following:
+Use only when HEAD is on the exact authorized branch.
 
-- the detached commit is the exact task-owned commit;
-- its first parent equals the freshly fetched destination remote head;
-- its diff contains only the authorized paths;
+1. Stage only exact authorized paths.
+2. Inspect cached name-status and full cached diff.
+3. Run `git diff --cached --check` and required task checks.
+4. Create one task-specific commit when needed.
+5. Prove no unrelated outgoing commit exists.
+6. Push without force.
+7. Refetch and prove the destination remote SHA equals the published commit.
+
+## 7. Detached target mode
+
+Detached HEAD is allowed when the exact destination ref is authorized.
+
+Prove:
+
+- the commit is task-owned;
+- its first parent equals the freshly fetched destination head;
+- exactly authorized paths changed;
 - required checks passed;
-- the destination ref is exact;
-- the push is a fast-forward.
+- push is fast-forward.
 
 Then push without force:
 
@@ -94,81 +97,128 @@ Then push without force:
 git push origin HEAD:refs/heads/<authorized-target-branch>
 ```
 
-For bridge mailbox publication, the authorized target is normally:
+For mailbox publication, the usual destination is:
 
 ```bash
 refs/heads/coordination/chatgpt-codex-bridge
 ```
 
-A detached mailbox commit must be a direct child of the freshly fetched mailbox head and change only the expected claim or outbox path.
+## 8. Mailbox race
 
-## Stale detached mailbox commit
-
-If the mailbox remote advanced after the detached commit was created:
+If the mailbox remote advanced:
 
 - do not force-push;
-- do not reuse, amend, rebase or cherry-pick the stale local commit;
-- rebuild the exact authorized payload as a new direct child of the current mailbox head in a fresh isolated worktree;
-- preserve the stale worktree for audit unless the task explicitly authorizes removing only a newly created temporary worktree.
+- do not amend, rebase, cherry-pick or reuse the stale commit;
+- rebuild the exact payload as a new direct child of the latest mailbox head;
+- retry up to three times;
+- preserve stale audit evidence unless the task authorizes removing only a newly created temporary worktree.
 
-## Authentication fallback
+After three failed races, return `BLOCKED_MAILBOX_RACE` with the complete recovery bundle.
 
-If publication fails only because Git credentials are unavailable:
+## 9. Main baseline movement
 
-- preserve primary files unchanged;
-- return `BLOCKED_PUSH_AUTH`;
-- do not ask the user to expose or paste credentials;
-- for a mailbox file, include the complete publication-ready UTF-8 payload and exact authorized path;
-- for an existing commit, include its SHA, parent, exact changed paths and destination ref;
-- instruct the user to return to ChatGPT with `пуш`, where connector publication may be performed independently.
+If `origin/main` no longer equals the authorized baseline before implementation publication, return `BLOCKED_MAIN_BASELINE_MOVED`.
 
-A local-only commit is never remote publication.
+Do not rebase, merge or force-push. ChatGPT must review the new main delta and publish a new baseline contract or cancel the stale task.
 
-## Forbidden actions
+## 10. Authentication fallback
 
-- no `--force` or `--force-with-lease`;
+If publication fails solely because Git credentials are unavailable, return `BLOCKED_PUSH_AUTH`.
+
+Never ask the user to reveal credentials.
+
+Return a complete `RECOVERY_BUNDLE` containing:
+
+- repository;
+- destination ref;
+- pre-push remote SHA;
+- local commit SHA and first parent, if present;
+- exact changed paths;
+- intended commit message;
+- full validation results;
+- runtime and Safari status;
+- full UTF-8 content and blob SHA for every changed text file;
+- base64 payload and blob SHA for every changed binary file;
+- for mailbox work, exact mailbox path and complete immutable payload;
+- exact next action: return to ChatGPT with the matching numbered bridge command.
+
+A SHA-only report is invalid. A local-only commit is never publication.
+
+ChatGPT recovery order is:
+
+1. fetch the reported commit object;
+2. verify direct-child ancestry and exact diff;
+3. fast-forward the exact ref when safe;
+4. otherwise reconstruct the exact commit from the full recovery bundle;
+5. refetch and independently verify.
+
+If the bundle is incomplete, Codex later returns only the missing payload. It must not rerun preflight, implementation or tests.
+
+## 11. Main published but mailbox failed
+
+When primary publication succeeds and only mailbox publication fails:
+
+- preserve main unchanged;
+- report `MAIN_PUBLISHED_AWAITING_OUTBOX` plus `BLOCKED_PUSH_AUTH` recovery details;
+- include the complete immutable outbox payload;
+- do not rebuild or republish the implementation;
+- do not request another preflight or `CONTINUE`.
+
+## 12. Forbidden actions
+
+- no force or force-with-lease;
 - no amend;
 - no rebase;
 - no reset;
 - no stash;
 - no clean;
-- no broad staging such as `git add .` or `git add -A`;
+- no broad staging;
 - no automatic conflict resolution;
 - no unrelated merge;
 - no pushing closed or superseded mailbox work;
-- no scope expansion merely to make publication succeed.
+- no scope expansion to make publication succeed;
+- no treating a local-only commit as remote publication.
 
-## Runtime-sensitive work
+## 13. Runtime-sensitive work
 
-`пуш` grants no runtime approval. Runtime-sensitive files may be published only when the exact frozen task already received required same-thread `APPROVE`. Git publication never equals deployment or runtime acceptance.
+`пуш` grants no approval by itself.
 
-## Result statuses
+For numbered bridge tasks, same-thread `CONTINUE` must already authorize the exact frozen runtime scope under `ORCHESTRATION.md`.
 
-- Successful publication: `PASS_PUSHED`.
-- No exact authority: `BLOCKED_NO_AUTHORIZED_PUSH_SCOPE`.
-- Credentials unavailable: `BLOCKED_PUSH_AUTH`.
-- Remote advanced or diverged: `BLOCKED_NON_FAST_FORWARD_PUSH`.
-- Unauthorized main target: `BLOCKED_MAIN_PUSH_NOT_AUTHORIZED`.
-- Runtime approval absent: `BLOCKED_RUNTIME_APPROVAL_MISSING`.
-- Forbidden path or outgoing commit: `BLOCKED_FORBIDDEN_PUSH_CONTENT`.
+For non-bridge runtime-sensitive work, the separate `APPROVE` rule must already be satisfied.
 
-## Final report
+Git publication never equals runtime or Safari acceptance.
+
+## 14. Result statuses
+
+- `PASS_PUSHED`
+- `BLOCKED_NO_AUTHORIZED_PUSH_SCOPE`
+- `BLOCKED_PUSH_AUTH`
+- `BLOCKED_NON_FAST_FORWARD_PUSH`
+- `BLOCKED_MAIN_PUSH_NOT_AUTHORIZED`
+- `BLOCKED_MAIN_BASELINE_MOVED`
+- `BLOCKED_MAILBOX_RACE`
+- `BLOCKED_RUNTIME_APPROVAL_MISSING`
+- `BLOCKED_FORBIDDEN_PUSH_CONTENT`
+
+## 15. Final report
 
 Return only:
 
 1. status;
 2. repository root;
-3. resolved publication authority;
+3. resolved authority;
 4. source branch/worktree and HEAD;
 5. destination ref and pre-push remote SHA;
 6. authorized changed paths;
 7. unrelated changes preserved;
-8. checks run and results;
+8. checks and results;
 9. commit created or reused;
 10. push result and verified remote SHA;
-11. CI/Pages status, or `UNKNOWN_NOT_CHECKED`;
+11. CI or Pages status, or `UNKNOWN_NOT_CHECKED`;
 12. runtime gate status;
 13. Safari status;
-14. exact next action.
+14. complete recovery bundle when required;
+15. one exact next action.
 
 `PASS_PUSHED` means Git publication only.
