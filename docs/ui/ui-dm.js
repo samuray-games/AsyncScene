@@ -25,6 +25,20 @@ const resolveUiMode = () => {
 };
 const DM_ACTION_PROFILE_KEYS = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
 const DM_ACTION_PROFILE_SET = new Set(DM_ACTION_PROFILE_KEYS);
+const DM_REPORT_SURFACE_COPY_DEFAULT = Object.freeze({
+  placeholder: "Ник бандита или токсика.",
+  hint: "Сдай токсика, бандита или мафиози.",
+});
+const DM_REPORT_SURFACE_COPY = Object.freeze({
+  default: DM_REPORT_SURFACE_COPY_DEFAULT,
+  millennial: DM_REPORT_SURFACE_COPY_DEFAULT,
+  zoomer: DM_REPORT_SURFACE_COPY_DEFAULT,
+  alpha: DM_REPORT_SURFACE_COPY_DEFAULT,
+  boomer: Object.freeze({
+    placeholder: "Имя токсика, бандита или мафиози.",
+    hint: "Сообщите о токсике, бандите или мафиози.",
+  }),
+});
 const DM_REPORT_SUBMIT_LABELS = Object.freeze({
   idle: "Сдать",
   pending: "Проверяю...",
@@ -82,6 +96,10 @@ const resolveDmProfile = (profile) => {
     if (DM_ACTION_PROFILE_SET.has(rawProfile)) return rawProfile;
   }
   return "default";
+};
+const resolveDmReportSurfaceCopy = (profile) => {
+  const profileKey = resolveDmProfile(profile);
+  return DM_REPORT_SURFACE_COPY[profileKey] || DM_REPORT_SURFACE_COPY.default;
 };
 const resolveDmActionLabel = (actionId, profile, state) => {
   const actionKey = String(actionId == null ? "" : actionId).trim();
@@ -1479,13 +1497,14 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const extra = $("dmExtraRow");
     const hint = $("reportHint");
+    const reportSurfaceCopy = resolveDmReportSurfaceCopy();
 
     if (isCop) {
       // Cop report flow: button → input with dropdown → submit → collapse and scroll to cop message.
       UI._copReport = UI._copReport || { open:false, q:"", sel:0, list:[], dropdownOpen:false };
 
       if (extra) extra.classList.remove("hidden");
-      if (hint) hint.textContent = "Сдай токсика, бандита или мафиози.";
+      if (hint) hint.textContent = reportSurfaceCopy.hint;
 
       if (extra) {
         extra.innerHTML = "";
@@ -1654,7 +1673,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           input.id = "reportInput";
           input.type = "text";
           input.className = "input";
-          input.placeholder = "Ник бандита или токсика.";
+          input.placeholder = reportSurfaceCopy.placeholder;
           input.autocomplete = "off";
           input.value = String(state.q || "");
           // Prevent global auto-clear wrapper (we provide an in-field clear)

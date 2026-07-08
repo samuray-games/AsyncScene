@@ -13,6 +13,24 @@ window.Game = window.Game || {};
   const Game = window.Game;
   const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx || {}) : "";
   const $ = (id) => document.getElementById(id);
+  const TOPBAR_STAT_TITLES_DEFAULT = Object.freeze({
+    influence: "Влияние",
+    rep: "⭐",
+    points: "💰",
+    wins: "Победы",
+  });
+  const TOPBAR_STAT_TITLES = Object.freeze({
+    default: TOPBAR_STAT_TITLES_DEFAULT,
+    millennial: TOPBAR_STAT_TITLES_DEFAULT,
+    zoomer: TOPBAR_STAT_TITLES_DEFAULT,
+    alpha: TOPBAR_STAT_TITLES_DEFAULT,
+    boomer: Object.freeze({
+      influence: "Влияние",
+      rep: "Репутация",
+      points: "Баланс",
+      wins: "Победы",
+    }),
+  });
 
   const UI = {};
   Game.UI = UI;
@@ -877,13 +895,41 @@ window.Game = window.Game || {};
   UI.nowHHMM = nowHHMM;
   UI.escapeHtml = escapeHtml;
 
+  function resolveTopbarProfileKey(){
+    const Data = Game.Data || null;
+    const rawProfile = Data && typeof Data.getUiProfile === "function"
+      ? Data.getUiProfile()
+      : (Data && typeof Data.UI_PROFILE === "string" ? Data.UI_PROFILE : "default");
+    const normalized = Data && typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(rawProfile)
+      : String(rawProfile || "").trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(TOPBAR_STAT_TITLES, normalized) ? normalized : "default";
+  }
+
+  function resolveTopbarStatTitles(){
+    return TOPBAR_STAT_TITLES[resolveTopbarProfileKey()] || TOPBAR_STAT_TITLES.default;
+  }
+
+  function syncTopbarStatTitles(){
+    const bal = $("balance");
+    if (!bal) return;
+    const titles = resolveTopbarStatTitles();
+    ["influence", "rep", "points", "wins"].forEach((kind) => {
+      const chip = bal.querySelector(`[data-profile-stat="${kind}"]`);
+      const icon = chip ? chip.querySelector(".statIcon") : null;
+      const title = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
+      if (icon) icon.setAttribute("title", title);
+    });
+  }
+  UI.syncTopbarStatTitles = syncTopbarStatTitles;
+
   function statAnchor(kind){
     const bal = $("balance");
     if (!bal) return null;
-    if (kind === "points") return bal.querySelector('span[title="💰"]');
-    if (kind === "rep") return bal.querySelector('span[title="⭐"]');
-    if (kind === "wins") return bal.querySelector('span[title="Победы"]');
-    return bal.querySelector('span[title="Влияние"]');
+    const key = (kind === "points" || kind === "rep" || kind === "wins") ? kind : "influence";
+    const chip = bal.querySelector(`[data-profile-stat="${key}"]`);
+    if (!chip) return null;
+    return chip.querySelector(".statIcon") || chip;
   }
 
   function maybeQueueStatDeltaFromState(next){
@@ -1709,6 +1755,8 @@ window.Game = window.Game || {};
       const capLine = $("weeklyCapLine");
       const mpOverflow = $("mePointsOverflow");
       const pointsNote = $("pointsCapNote");
+
+      syncTopbarStatTitles();
 
       if (mi) mi.textContent = String(S.me.influence || 0);
       if (mp) {
