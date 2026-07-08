@@ -16,6 +16,18 @@ FILES = {
     "pull": ROOT / "GIT_PULL.md",
     "push": ROOT / "GIT_PUSH.md",
 }
+WORKFLOW = ROOT / ".github/workflows/orchestration-policy.yml"
+WORKFLOW_POLICY_PATHS = (
+    "AGENTS.md",
+    "AGENTS.override.md",
+    "PROCESS_ROOT_SYNC.md",
+    "ORCHESTRATION.md",
+    "BRIDGE.md",
+    "GIT_PULL.md",
+    "GIT_PUSH.md",
+    "tools/validate-orchestration-policy.py",
+    ".github/workflows/orchestration-policy.yml",
+)
 PHASES = (
     "CLOSED",
     "SCOPE_FREEZE",
@@ -42,12 +54,14 @@ def forbid(text: str, needle: str, label: str, failures: list[str]) -> None:
 
 def main() -> int:
     failures: list[str] = []
-    missing = [str(path.relative_to(ROOT)) for path in FILES.values() if not path.is_file()]
+    required_files = (*FILES.values(), WORKFLOW)
+    missing = [str(path.relative_to(ROOT)) for path in required_files if not path.is_file()]
     if missing:
         print(json.dumps({"ok": False, "failures": [f"missing: {missing}"]}, ensure_ascii=False, indent=2))
         return 1
 
     docs = {name: path.read_text(encoding="utf-8") for name, path in FILES.items()}
+    workflow = WORKFLOW.read_text(encoding="utf-8")
 
     require(docs["agents"], "BRIDGE_PROTOCOL: 3.1", "AGENTS.md", failures)
     require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_1", "AGENTS.override.md", failures)
@@ -77,13 +91,22 @@ def main() -> int:
     require(docs["push"], "BLOCKED_MAIN_BASELINE_MOVED", "GIT_PUSH.md", failures)
     require(docs["override"], "BLOCKED_PUSH_AUTH", "AGENTS.override.md", failures)
 
+    for policy_path in WORKFLOW_POLICY_PATHS:
+        occurrence_count = workflow.count(f"- {policy_path}")
+        if occurrence_count != 2:
+            failures.append(
+                f"{WORKFLOW.relative_to(ROOT)}: expected push and pull_request coverage for "
+                f"{policy_path!r}, found {occurrence_count}"
+            )
+
     result = {
         "ok": not failures,
         "orchestrationVersion": "3.1",
         "rootCauseSync": "REQUIRED",
         "noOpCompletion": "FORBIDDEN",
-        "checkedFiles": [str(path.relative_to(ROOT)) for path in FILES.values()],
+        "checkedFiles": [str(path.relative_to(ROOT)) for path in required_files],
         "canonicalPhaseCount": len(PHASES),
+        "workflowPolicyPathCount": len(WORKFLOW_POLICY_PATHS),
         "failures": failures,
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
