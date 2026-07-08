@@ -10,26 +10,17 @@ STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: c0e2f891076f3e8e280941edbe0e241d9931dd0f
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
+ROOT_PROCESS_SYNC_STATUS: RUNTIME_APPROVAL_CONFLICT_IDENTIFIED
 
 ## Current status
 
-- Bridge status: `OPEN_EXECUTION`
-- Slot 1: `OPEN_RESERVED_EXECUTION`
+- Bridge status: `RUNTIME_APPROVAL_PENDING`
+- Slot 1: `OPEN_SERIALIZED_RUNTIME_AWAITING_APPROVAL`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
 - Safari: `PENDING_USER`
-
-## Root protocol correction
-
-- Verified no-delta root commit: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
-- Completion mode: `VERIFIED_NO_DELTA`
-- Empty primary commits: `FORBIDDEN`
-- Current root-policy Actions gate: `GREEN_CONFIRMED_BY_USER`
-- User confirmation recorded: `2026-07-09 01:32 JST`
-- Historical failed workflow runs: `AUDIT_ONLY`
 
 ## Closed Wave V-A3
 
@@ -49,19 +40,19 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
 - Lane: `S6-V5B-BOOMER-RUNTIME-AGGREGATE`
 - Task: `TASK-S6-PAR-V5B`
 - Execution epoch: `S6V5B-E2-20260709-0235JST`
-- Phase: `CORRECTION_REQUIRED`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-04-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-041-claim-v2-codex.md`
+- Phase: `RUNTIME_APPROVAL_PENDING`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-06-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260709-041-claim-v3-codex.md`
 - Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-041-05-codex.md`
 - Baseline: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
 - Primary write required: `true`
 - Allow verified no delta: `false`
-- Thread rotation required: `true`
-- Fresh Codex conversation required: `true`
-- Superseded inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-01-chatgpt.md`
-- Superseded claim: `.ai-bridge/claims/BRIDGE-20260709-041-02-codex.md`
-- Superseded expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-041-03-codex.md`
-- Prior Codex runtime-smoke prose: `UNPUBLISHED_NOT_ACCEPTANCE_EVIDENCE`
+- Thread rotation required: `false`
+- Fresh Codex conversation required: `false`
+- Runtime gate result: `RUNTIME_SAFETY_GATE_REQUIRED`
+- Runtime gate edits: `none`
+- Serialized runtime slot: `OPEN_AND_RESERVED`
+- Prior instruction to open another slot: `SUPERSEDED`
 
 ## Frozen write scope
 
@@ -74,4 +65,4 @@ All product copy, resolver, economy, battle, NPC, state, persistence, profile-ro
 
 ## Next action
 
-Open a fresh Codex conversation and send exactly `мост 1`. Protocol 3.1 requires the complete current remote cycle: fetch, execute, validate, push main, publish `.ai-bridge/outbox/BRIDGE-20260709-041-05-codex.md`, refetch and return `PASS_PUSHED`. No separate model preflight, `CONTINUE` or `APPROVE` step belongs to this corrected epoch. A response containing only runtime-smoke prose is `FAIL_NO_EXECUTION_EVIDENCE`.
+In the same Codex conversation that returned the runtime gate, send exactly `APPROVE`. Do not open a new Codex conversation and do not send `мост 1` again. After confirmation Codex must continue this execution epoch, publish the primary commit and `.ai-bridge/outbox/BRIDGE-20260709-041-05-codex.md`, then return `PASS_PUSHED`. Safari remains `PENDING_USER`.
