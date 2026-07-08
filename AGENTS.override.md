@@ -4,6 +4,7 @@ OVERRIDE_VERSION: ORCHESTRATION_3_1_FRESH_EXECUTION
 BRIDGE_PROTOCOL: 3.1
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 
 Read root `AGENTS.md` fully. Every rule remains binding except the process clauses explicitly replaced below.
 
@@ -46,21 +47,50 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 
 The logical bridge thread id remains unchanged for audit history even when the Codex conversation rotates.
 
-## 4. No-op guard
+## 4. Completion modes
 
-Codex may tell the user to return to ChatGPT only after freshly proving:
+This section replaces the unconditional primary-advance requirement in lower-precedence no-op clauses.
 
-- the exact current expected outbox exists remotely;
-- mailbox head contains it;
-- remote main advanced from baseline for a primary-write task;
-- remote main equals the reported primary SHA;
-- parent and exact paths are verified;
-- required checks passed;
-- outbox contains the machine-derived fetched SHA and parent.
+### 4.1 Primary delta
 
-Without this evidence, the only valid outcomes are real execution or one explicit blocker.
+When authorized files change, Codex must create one direct-child primary commit, push it fast-forward, refetch main, publish the exact current outbox and return `PASS_PUSHED`.
 
-A one-line `Return to ChatGPT and send мост N` without evidence is `FAIL_NO_EXECUTION_EVIDENCE`.
+### 4.2 Verified no delta
+
+`VERIFIED_NO_DELTA` is not a no-op. Empty primary commits are forbidden.
+
+It is allowed only when the current inbox or claim explicitly contains `ALLOW_VERIFIED_NO_DELTA: true` and a fresh execution proves all of the following:
+
+- the authorized baseline is still current remote main;
+- the required generator and validators pass on that baseline;
+- deterministic regeneration produces zero diff in the exact authorized scope;
+- exact changed paths are empty;
+- protected file blobs remain unchanged;
+- the result already satisfies the frozen objective;
+- the exact current outbox is published and refetched.
+
+The outbox must contain:
+
+- `completionMode: VERIFIED_NO_DELTA`;
+- `primaryChanged:false`;
+- the fetched baseline SHA as the verified primary SHA;
+- `primaryParent:N/A`;
+- `changedPaths:[]`;
+- exact authorized paths and their fetched blob SHAs;
+- every required validation result;
+- the reason no source delta exists.
+
+After remote mailbox verification Codex returns `PASS_VERIFIED_NO_DELTA` and one next action.
+
+ChatGPT must independently verify the baseline, artifact state, mirror parity, validation evidence and current outbox before acceptance.
+
+If verified-no-delta is not explicitly authorized, Codex returns `BLOCKED_NO_SOURCE_DELTA` without creating an empty commit.
+
+### 4.3 Invalid completion
+
+A one-line `Return to ChatGPT and send мост N` without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+
+Historical outboxes cannot satisfy a new execution epoch.
 
 ## 5. Remote-first execution
 
@@ -78,17 +108,12 @@ Local divergence is not a blocker.
 
 ## 6. Publication
 
-After validation Codex must:
+After validation Codex must choose exactly one legal completion mode:
 
-1. create one direct-child primary commit when authorized;
-2. stage only authorized paths;
-3. push fast-forward;
-4. refetch and prove remote main equals the commit;
-5. machine-derive SHA and parent from the fetched commit;
-6. create the exact current immutable outbox;
-7. push it fast-forward;
-8. refetch and prove remote mailbox equals the outbox commit;
-9. return exactly one next action.
+- primary delta: publish one direct-child primary commit and the exact outbox;
+- verified no delta: publish only the exact evidence outbox, never an empty primary commit.
+
+Every mailbox publication must use the latest fetched mailbox parent, change only the authorized outbox path, push fast-forward and be refetched.
 
 Manual SHA transcription is forbidden.
 
@@ -102,7 +127,7 @@ If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recove
 
 Every reusable process defect triggers `PROCESS_ROOT_SYNC.md`.
 
-If root hardening moves main while a lane is open, ChatGPT must publish a new inbox, replacement claim, new execution epoch and STATE using the new exact baseline.
+If root hardening moves main while a lane is open, ChatGPT must synchronize STATE and the current contract to the new exact baseline.
 
 ## 9. Runtime and acceptance
 
@@ -113,6 +138,9 @@ If root hardening moves main while a lane is open, ChatGPT must publish a new in
 
 ## 10. Final action
 
-Every successful Codex result includes `PASS_PUSHED`, fetched remote SHAs, actual parent, exact paths, checks and one next action.
+A successful Codex result is exactly one of:
+
+- `PASS_PUSHED` with fetched remote SHAs, actual parent, exact changed paths, checks and one next action;
+- `PASS_VERIFIED_NO_DELTA` with the current evidence outbox, unchanged baseline SHA, empty changed paths, checks and one next action.
 
 Do not offer competing paths or repeat information already present in current remote authority.

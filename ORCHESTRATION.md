@@ -4,6 +4,7 @@ ORCHESTRATION_VERSION: 3.1
 BRIDGE_PROTOCOL: 3.1
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 STATUS: ACTIVE
 
 ## Authority
@@ -12,7 +13,7 @@ Use current remote `AGENTS.override.md`, `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `O
 
 ## Canonical loop
 
-`ChatGPT contract -> мост N in Codex -> fresh fetch -> execute -> validate -> push main -> push outbox -> мост N in ChatGPT -> verify/root-sync`
+`ChatGPT contract -> мост N in Codex -> fresh fetch -> execute -> validate -> [primary commit or verified no delta] -> outbox -> мост N in ChatGPT -> verify/root-sync`
 
 Previous conversational completion never satisfies a new numbered command.
 
@@ -41,19 +42,35 @@ On `мост N`, Codex must before any terminal response:
 3. verify epoch, slot, task, phase, baseline, scope and expected outbox;
 4. use clean implementation and mailbox worktrees;
 5. execute and validate;
-6. publish a direct-child primary commit when authorized;
-7. refetch main and machine-derive SHA and parent;
+6. choose one legal completion mode;
+7. refetch main and machine-derive evidence;
 8. publish the exact current outbox;
 9. refetch mailbox;
-10. return `PASS_PUSHED` with evidence and one next action.
+10. return `PASS_PUSHED` or `PASS_VERIFIED_NO_DELTA` with evidence and one next action.
+
+## Completion modes
+
+### Primary delta
+
+When authorized paths change, publish one direct-child primary commit, exact-scope fast-forward push and the exact current outbox.
+
+### Verified no delta
+
+`VERIFIED_NO_DELTA` requires `ALLOW_VERIFIED_NO_DELTA: true` in the current inbox or claim.
+
+Codex must prove the current baseline already satisfies the frozen objective, required checks pass, deterministic generation produces zero diff, exact changed paths are empty and protected blobs are unchanged.
+
+The outbox must contain `completionMode: VERIFIED_NO_DELTA`, `primaryChanged:false`, the fetched baseline SHA, `primaryParent:N/A`, `changedPaths:[]`, exact scope blob SHAs and all validations.
+
+Empty primary commits are forbidden.
+
+ChatGPT may independently accept and record a pre-policy `BLOCKED_NO_SOURCE_DELTA` result when it verifies the same evidence on the same baseline.
 
 ## No-op guard
 
-Codex may return the user to ChatGPT only when the exact current expected outbox exists remotely and, for primary-write work, remote main advanced from baseline and equals the reported SHA. Actual parent, exact paths and validations must also be proven.
+A bare return without the exact current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
 
-A one-line return without this evidence is `FAIL_NO_EXECUTION_EVIDENCE`.
-
-If work cannot proceed, return one explicit blocker instead.
+A historical outbox cannot satisfy a current epoch.
 
 ## Phases
 
@@ -62,25 +79,28 @@ If work cannot proceed, return one explicit blocker instead.
 - `READY_FOR_CODEX`
 - `EXECUTE_AND_PUBLISH`
 - `OUTBOX_PUBLISHED_AWAITING_CHATGPT`
+- `VERIFIED_NO_DELTA_AWAITING_CHATGPT`
 - `CORRECTION_REQUIRED`
 - `READY_FOR_SAFARI`
 - `AWAITING_SAFARI`
 - `PASS_ACCEPTED`
 - `BLOCKED_EXTERNAL`
 
-`CORRECTION_REQUIRED` executes on the next matching numbered command.
+`CORRECTION_REQUIRED` executes on the next matching numbered command unless ChatGPT independently closes a verified pre-policy no-delta result.
 
 ## Publication
 
-Primary publication is direct-child, exact-scope, fast-forward and remotely verified. If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`.
+Primary delta publication is direct-child, exact-scope, fast-forward and remotely verified. If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`.
 
-Mailbox publication uses the exact expected outbox path, latest mailbox parent, fast-forward push and fresh verification. Outbox SHA and parent are machine-derived from fetched main. Manual SHA transcription is forbidden.
+Verified no delta never creates a primary commit. It publishes only the exact current evidence outbox.
+
+Mailbox publication uses the exact expected outbox path, latest mailbox parent, fast-forward push and fresh verification. Manual SHA transcription is forbidden.
 
 ## Safety
 
 Never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push user work. Local divergence is not a blocker.
 
-After one non-interactive auth repair, failure returns `BLOCKED_PUSH_AUTH` with complete recovery evidence. Never request credentials.
+After one non-interactive auth repair, failure returns `BLOCKED_PUSH_AUTH` with complete evidence. Never request credentials.
 
 ## Root synchronization
 
@@ -88,4 +108,4 @@ A reusable process defect must be fixed in every affected authority, validator, 
 
 ## Acceptance
 
-Remote publication, static acceptance, deployment readiness and user Safari acceptance are separate tiers. Git publication is not Safari PASS.
+Remote publication, verified-no-delta evidence, static acceptance, deployment readiness and user Safari acceptance are separate tiers. Git publication is not Safari PASS.
