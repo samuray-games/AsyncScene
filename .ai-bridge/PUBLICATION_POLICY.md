@@ -1,23 +1,23 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_RUNTIME_APPROVAL
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_SCOPE_ISOLATION
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
-VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+RUNTIME_GATE: RETIRED
 
 ## Fresh execution
 
 Every numbered command freshly fetches main and mailbox and reads current STATE, inbox, claim and execution epoch. Old artifacts are historical only.
 
-## Runtime approval
+## Scope safety
 
-When the frozen scope is runtime-sensitive, `RUNTIME_SAFETY_GATE_REQUIRED` is a valid intermediate state. It creates no primary commit and no outbox.
+Safety is enforced through exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and serialization of actual overlaps.
 
-The exact serialized slot remains reserved. The user continues in the same Codex conversation with the repository-defined runtime confirmation token. After confirmation, Codex completes implementation, validation, primary publication and the expected outbox publication in the same execution epoch.
+A frozen collision-free lane executes immediately. No runtime approval token or approval-only stop is part of the active workflow.
 
-A runtime gate response must not tell the user to open another serialized slot when STATE already records that slot as open and reserved.
+Unresolved overlap returns `BLOCKED_SCOPE_COLLISION` with exact paths, owners and dependencies.
 
 ## Completion modes
 
@@ -41,9 +41,7 @@ Required evidence:
 
 Empty primary commits are forbidden.
 
-A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`. A valid `RUNTIME_SAFETY_GATE_REQUIRED` response is not a bare return and remains pending rather than complete.
-
-ChatGPT may independently close a pre-policy `BLOCKED_NO_SOURCE_DELTA` result after verifying the same baseline evidence and recording closure in STATE and live memory.
+A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
 
 ## Root policy CI gate
 
