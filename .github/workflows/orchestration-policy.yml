@@ -3,7 +3,9 @@ name: orchestration-policy
 on:
   push:
     paths:
+      - AGENTS.md
       - AGENTS.override.md
+      - PROCESS_ROOT_SYNC.md
       - ORCHESTRATION.md
       - BRIDGE.md
       - GIT_PULL.md
@@ -12,7 +14,9 @@ on:
       - .github/workflows/orchestration-policy.yml
   pull_request:
     paths:
+      - AGENTS.md
       - AGENTS.override.md
+      - PROCESS_ROOT_SYNC.md
       - ORCHESTRATION.md
       - BRIDGE.md
       - GIT_PULL.md
