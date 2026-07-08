@@ -9,11 +9,11 @@ STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: c0e2f891076f3e8e280941edbe0e241d9931dd0f
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_OPEN
+ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_CORRECTION_OPEN
 
 ## Current status
 
-- Bridge status: `OPEN_EXECUTION`
+- Bridge status: `CORRECTION_REQUIRED`
 - Slot 1: `OPEN_RESERVED_EXECUTION`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
@@ -26,17 +26,25 @@ ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_OPEN
 - Thread: `BRIDGE-20260709-042`
 - Lane: `PROCESS-RUNTIME-GATE-REMOVAL`
 - Task: `TASK-PROCESS-RUNTIME-GATE-REMOVAL`
-- Execution epoch: `PRGR-E1-20260709-0305JST`
-- Phase: `EXECUTE_AND_PUBLISH`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-042-01-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-042-02-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-03-codex.md`
+- Execution epoch: `PRGR-E2-20260709-0346JST`
+- Phase: `CORRECTION_REQUIRED`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-042-04-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260709-042-claim-v2-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-05-codex.md`
 - Baseline: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
 - Primary write required: `true`
 - Allow verified no delta: `false`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
+
+## Rejected previous execution
+
+- Previous epoch: `PRGR-E1-20260709-0305JST`
+- Rejected local commit: `86632a4cc22d8552c4a30b72df52817db99a4de9`
+- Rejected parent: `33ca1fb7ef716385acce2ecd73e7b591571149dc`
+- Reason: `INVALID_PRIMARY_ANCESTRY_AND_NO_OUTBOX`
+- Previous inbox, claim and expected outbox: `SUPERSEDED`
 
 ## Suspended product task
 
@@ -52,4 +60,4 @@ The blocking runtime safety gate is obsolete and must be removed from every acti
 
 ## Next action
 
-Open a fresh Codex conversation and send exactly `мост 1`. This process-only task must execute, validate, push main and publish `.ai-bridge/outbox/BRIDGE-20260709-042-03-codex.md` in one cycle. No runtime approval or continuation token applies.
+Open a fresh Codex conversation and send exactly `мост 1`. Codex must ignore the rejected local commit ancestry, recreate the task in a new clean worktree based exactly on current `origin/main`, push one direct-child primary commit and publish `.ai-bridge/outbox/BRIDGE-20260709-042-05-codex.md` in the same cycle. No runtime approval, continuation token or separate pull/push command applies.
