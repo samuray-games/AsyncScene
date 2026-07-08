@@ -6,7 +6,7 @@ ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-CURRENT_MAIN_BASELINE: 875f09b6579ab4de3453cb4ba2c9892ec4018222
+CURRENT_MAIN_BASELINE: 15a1fc70f32cfcfc3d0b099f581e2b50d6282b73
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
 ROOT_PROCESS_SYNC_STATUS: COMPLETE
@@ -26,11 +26,11 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE
 - Thread: `BRIDGE-20260708-040`
 - Lane: `S6-V5A3-BOOMER-STATIC-AUDIT`
 - Task: `TASK-S6-PAR-V5A3`
-- Execution epoch: `S6V5A3-E3-20260708-2310JST`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260708-040-07-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260708-040-claim-v3-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-08-codex.md`
-- Primary baseline: `875f09b6579ab4de3453cb4ba2c9892ec4018222`
+- Execution epoch: `S6V5A3-E4-20260708-2312JST`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260708-040-11-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260708-040-claim-v4-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-12-codex.md`
+- Primary baseline: `15a1fc70f32cfcfc3d0b099f581e2b50d6282b73`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
 - Previous Codex conversation: `SUPERSEDED_NO_EXECUTION_EVIDENCE`
