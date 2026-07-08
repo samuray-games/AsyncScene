@@ -1316,8 +1316,19 @@ window.Game ||= {};
     const me = (Game.__S && Game.__S.me) ? Game.__S.me : null;
     const meId = (me && me.id) ? me.id : "me";
     if (Game.SecurityPolicy && Game.SecurityPolicy.isActionBlocked(meId, "vote")) {
-      e.note = "Толпа решает: Недоступно.";
+      const flag = (Game.SecurityPolicy && typeof Game.SecurityPolicy.getFlag === "function")
+        ? Game.SecurityPolicy.getFlag(meId)
+        : null;
+      const blockerText = flag ? (flag.reason || flag.type || "security_flag") : "security_flag";
+      const hint = `Толпа решает: Недоступно.${blockerText ? ` Причина: ${blockerText}` : ""}`;
+      e.note = hint;
       requestRender();
+      try {
+        console.log(`[FLOW_AUDIT] startup-blocker action=vote blocker=${blockerText}`);
+      } catch (_) {}
+      try {
+        console.log(`[UX_AUDIT] action-disabled-hint action=vote reason=${blockerText}`);
+      } catch (_) {}
       return false;
     }
 
