@@ -58,8 +58,9 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
 - Allow verified no delta: `false`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
-- Recommended model: `GPT-5.5`
-- Recommended reasoning: `High`
+- Recommended model: `PENDING_CODEX_PREFLIGHT`
+- Recommended reasoning: `PENDING_CODEX_PREFLIGHT`
+- Model preselected by ChatGPT: `false`
 - Runtime approval: `NOT_YET_REQUESTED`
 
 ## Frozen post-approval write scope
@@ -73,4 +74,4 @@ All product copy, resolver, economy, battle, NPC, state, persistence, profile-ro
 
 ## Next action
 
-Open a fresh Codex conversation with `GPT-5.5` and `High` reasoning, then send exactly `мост 1`. The first result must be read-only 12-of-12 model preflight and must stop with `CONTINUE`. No runtime edit is authorized yet.
+Open a fresh Codex conversation and send exactly `мост 1` without a ChatGPT-preselected model or reasoning recommendation. The first result must be a read-only 12-of-12 preflight that independently recommends one available model and one reasoning level, then stops with `CONTINUE`. The user selects that recommendation before continuing. No runtime edit is authorized yet.
