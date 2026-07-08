@@ -14,8 +14,8 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
 
 ## Current status
 
-- Bridge status: `OPEN_MODEL_PREFLIGHT`
-- Slot 1: `OPEN_RESERVED_MODEL_PREFLIGHT`
+- Bridge status: `OPEN_EXECUTION`
+- Slot 1: `OPEN_RESERVED_EXECUTION`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Accepted progress: `77/100`
@@ -48,22 +48,22 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
 - Thread: `BRIDGE-20260709-041`
 - Lane: `S6-V5B-BOOMER-RUNTIME-AGGREGATE`
 - Task: `TASK-S6-PAR-V5B`
-- Execution epoch: `S6V5B-E1-20260709-0141JST`
-- Phase: `MODEL_PREFLIGHT_ONLY`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-01-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-041-02-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-041-03-codex.md`
+- Execution epoch: `S6V5B-E2-20260709-0235JST`
+- Phase: `CORRECTION_REQUIRED`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-04-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260709-041-claim-v2-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-041-05-codex.md`
 - Baseline: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
 - Primary write required: `true`
 - Allow verified no delta: `false`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
-- Recommended model: `PENDING_CODEX_PREFLIGHT`
-- Recommended reasoning: `PENDING_CODEX_PREFLIGHT`
-- Model preselected by ChatGPT: `false`
-- Runtime approval: `NOT_YET_REQUESTED`
+- Superseded inbox: `.ai-bridge/inbox/BRIDGE-20260709-041-01-chatgpt.md`
+- Superseded claim: `.ai-bridge/claims/BRIDGE-20260709-041-02-codex.md`
+- Superseded expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-041-03-codex.md`
+- Prior Codex runtime-smoke prose: `UNPUBLISHED_NOT_ACCEPTANCE_EVIDENCE`
 
-## Frozen post-approval write scope
+## Frozen write scope
 
 - `AsyncScene/Web/dev/dev-checks.js`
 - `docs/dev/dev-checks.js`
@@ -74,4 +74,4 @@ All product copy, resolver, economy, battle, NPC, state, persistence, profile-ro
 
 ## Next action
 
-Open a fresh Codex conversation and send exactly `мост 1` without a ChatGPT-preselected model or reasoning recommendation. The first result must be a read-only 12-of-12 preflight that independently recommends one available model and one reasoning level, then stops with `CONTINUE`. The user selects that recommendation before continuing. No runtime edit is authorized yet.
+Open a fresh Codex conversation and send exactly `мост 1`. Protocol 3.1 requires the complete current remote cycle: fetch, execute, validate, push main, publish `.ai-bridge/outbox/BRIDGE-20260709-041-05-codex.md`, refetch and return `PASS_PUSHED`. No separate model preflight, `CONTINUE` or `APPROVE` step belongs to this corrected epoch. A response containing only runtime-smoke prose is `FAIL_NO_EXECUTION_EVIDENCE`.
