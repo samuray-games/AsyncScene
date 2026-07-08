@@ -1,13 +1,13 @@
-# Asynchronia Protocol 3.0 Override
+# Asynchronia Protocol 3.1 Override
 
-OVERRIDE_VERSION: ORCHESTRATION_3_0
-BRIDGE_PROTOCOL: 3.0
+OVERRIDE_VERSION: ORCHESTRATION_3_1_ONE_COMMAND_LOOP
+BRIDGE_PROTOCOL: 3.1
 
 Read root `AGENTS.md` fully. Every rule remains binding except the process clauses explicitly replaced below.
 
 ## 1. Canonical process source
 
-For task orchestration, bridge phases, confirmation, publication recovery, acceptance tiers and automatic progression, read and follow `origin/main:ORCHESTRATION.md`.
+For task orchestration, bridge phases, confirmation, Git transport, publication recovery, acceptance tiers and automatic progression, read and follow current `origin/main:ORCHESTRATION.md`.
 
 Process precedence is:
 
@@ -22,131 +22,103 @@ Process precedence is:
 9. historical bridge artifacts for audit only;
 10. `AGENTS.md` for all rules not replaced here.
 
-Protocol 2.4 artifacts remain valid historical evidence. New tasks use Protocol 3.0.
+## 2. Exact user loop
 
-## 2. Commands
+The numbered bridge workflow is exactly:
 
-The active repository commands are:
+1. ChatGPT writes the task inbox, claim and STATE.
+2. The user sends `мост 1`, `мост 2` or `мост 3` to the matching Codex thread.
+3. Codex automatically fetches remote main and mailbox, reads the current slot contract, prepares clean task worktrees, executes the task, validates it, pushes the primary commit when authorized, writes and pushes the immutable outbox, then tells the user to return to ChatGPT with the same numbered command.
+4. The user sends the same `мост N` to ChatGPT.
+5. ChatGPT independently verifies the remote commits, accepts or writes a correction inbox, and opens the next safe task.
+6. Repeat.
 
-- `мост 1`
-- `мост 2`
-- `мост 3`
-- `пул`
-- `пуш`
-- `CONTINUE` in a numbered Codex bridge thread after model selection
+No separate `пул`, `пуш`, `CONTINUE`, `APPROVE` or generic continuation command is required for a numbered bridge lane.
 
-Bare `мост`, `запуль` and `запушь` are inactive and must not be offered or interpreted as aliases.
+Bare `мост`, `запуль` and `запушь` remain inactive.
 
-For every numbered bridge command, fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge` before trusting local files.
+## 3. Numbered bridge authorization
 
-## 3. Numbered bridge confirmation
+A numbered `мост N` sent in the matching Codex thread is all of the following for the exact current frozen slot contract:
 
-For a numbered bridge task, the valid same-thread `CONTINUE` after the compact 12-of-12 model preflight is both:
+- remote synchronization instruction;
+- task-entry instruction;
+- model-use acknowledgement;
+- runtime-safety approval for the exact frozen write scope;
+- execution instruction;
+- publication instruction for the authorized primary commit and immutable outbox.
 
-- model-selection confirmation; and
-- explicit runtime-safety approval for the exact frozen task and file scope.
+The command never authorizes scope expansion. A changed objective or expanded write scope requires a new inbox from ChatGPT.
 
-No additional `APPROVE` round is required for that numbered bridge task.
+Codex must not stop for model preflight. It uses the current active model and reports it as `USER_SELECTED_UNVERIFIED` when external verification is unavailable. The inbox may include a recommended model, but model reporting never blocks execution.
 
-This replaces `AGENTS.md` Section 5.1 only for numbered bridge lanes. Non-bridge runtime-sensitive work still uses the separate `APPROVE` protocol.
+## 4. Remote-first clean-worktree execution
 
-A scope or objective change invalidates the prior confirmation and requires a new task.
+For every numbered bridge command, Codex must:
 
-## 4. Automatic progression
+1. verify `origin` is `samuray-games/AsyncScene`;
+2. run `git fetch origin main coordination/chatgpt-codex-bridge`;
+3. read current policy from `origin/main` and current STATE from the mailbox branch;
+4. resolve only the requested slot;
+5. ignore stale local mailbox files and historical tasks;
+6. never execute or publish from a dirty, ahead, behind or diverged primary checkout;
+7. create or reuse a task-owned clean temporary worktree from the exact authorized `origin/main` baseline;
+8. create a separate clean mailbox worktree from the freshly fetched mailbox head;
+9. execute, validate, commit and push only from those task-owned clean worktrees;
+10. remove only task-owned temporary worktrees after remote verification when safe.
 
-The user is not required to send a generic continuation command between completed serialized waves.
+Local `main` divergence is irrelevant. Codex must not merge, rebase, reset, stash, clean, amend, cherry-pick or force-push it.
 
-After independent acceptance, ChatGPT automatically closes the current claim, updates STATE and memory, freezes the next safe task and publishes its inbox and claim.
+## 5. Automatic publication
 
-Progress pauses only for a genuine user decision, external blocker, unresolved collision, missing primary evidence or required Safari smoke.
+After successful validation Codex automatically:
 
-## 5. Authoritative slot metadata
+1. creates one direct-child primary commit from the authorized main baseline when primary writes are authorized;
+2. pushes it fast-forward to the exact authorized primary ref;
+3. refetches and proves the remote primary ref equals the published commit;
+4. creates one immutable outbox as a direct child of the latest mailbox head;
+5. pushes it fast-forward to `coordination/chatgpt-codex-bridge`;
+6. refetches and proves the remote mailbox head equals the outbox commit;
+7. returns exactly one next action: go to ChatGPT and write the same `мост N`.
 
-Mailbox `STATE.md` names the current phase and current baseline inbox for each slot.
+The user must never be asked to send a separate `пуш` or `пул` for a numbered bridge task.
 
-The current baseline inbox supersedes stale mutable fields in older inboxes, including baseline, phase, protocol version, scope details, publication method and plugin proof requirements.
+## 6. Authentication
 
-An immutable claim authorizes only the exact logical thread, lane, task, baseline and scope recorded in current metadata. A matching thread adopts an existing valid claim and never creates a second one.
+Codex GitHub credentials are an environment prerequisite for the exact automatic loop.
 
-## 6. Compact model preflight
+Codex must never ask the user to reveal a token. If credentials are invalid, it may perform the repository's non-interactive configured authentication repair once. If remote write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle defined in `ORCHESTRATION.md`.
 
-A valid bridge preflight contains the fields defined in `ORCHESTRATION.md`, reports `evaluated pair count: 12/12`, and ends with exactly one standalone fenced block containing `CONTINUE`, with nothing after it.
+Authentication failure is an external environment blocker, not a reason to merge, rebase, rewrite history or alter task scope.
 
-The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. This is not a blocker.
+## 7. Automatic progression
 
-A repeated preflight after `CONTINUE` is invalid. The lane is `EXECUTE_NOW` and must execute without another preflight or confirmation.
+After independent acceptance, ChatGPT automatically closes the current claim, updates STATE and live memory, freezes the next safe task and publishes its inbox and claim.
 
-## 7. Runtime and parallel boundaries
+Progress pauses only for a genuine product decision, external blocker, unresolved collision, missing primary evidence or required Safari smoke.
+
+## 8. Runtime and parallel boundaries
 
 - Source and deployed mirrors are one ownership group.
 - Runtime JavaScript, UI runtime JavaScript, economy, battle, NPC, state, persistence, routing and shared smoke wiring remain runtime-sensitive.
 - `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized singleton ownership groups.
 - Read-only work may run in parallel only when there is no stable-read dependency on a mutable lane.
 - Undeclared overlap returns `BLOCKED_PARALLEL_SCOPE_COLLISION`.
-- No task may merge, rebase or absorb another lane without an explicit integration task.
+- No task may absorb another lane.
 
-## 8. Git transport
+## 9. Acceptance
 
-For `пул`, follow current `origin/main:GIT_PULL.md`.
+Use four separate tiers:
 
-For `пуш`, follow current `origin/main:GIT_PUSH.md`.
-
-Never force-push, amend, rebase, reset, stash, clean, broadly stage, silently resolve conflicts or absorb unrelated work.
-
-A successful Git push proves publication only. It does not prove deployment, runtime behavior or Safari acceptance.
-
-## 9. Authentication recovery
-
-The universal credentials-failure status is `BLOCKED_PUSH_AUTH`.
-
-On that status, Codex must return the complete recovery bundle defined in `ORCHESTRATION.md`, including full file payloads and the complete mailbox payload when applicable. A SHA-only report is insufficient.
-
-ChatGPT may:
-
-1. verify and fast-forward a remotely readable direct-child commit object; or
-2. reconstruct the exact commit from the recovery bundle through GitHub connector APIs.
-
-A local-only commit is never accepted as publication.
-
-If the bundle is incomplete, the same Codex thread returns only the missing payload. It does not rerun preflight, implementation or tests.
-
-## 10. Acceptance
-
-Use the four acceptance tiers from `ORCHESTRATION.md`:
-
-- publication verification;
+- remote publication verification;
 - static implementation acceptance;
 - deployment readiness;
 - user-owned Safari runtime acceptance.
 
-Codex cannot claim user acceptance. ChatGPT cannot promote a lower tier into a higher tier without evidence.
+Codex cannot claim user acceptance. ChatGPT cannot promote a lower tier without evidence.
 
-## 11. Real blockers
+## 10. Final next action
 
-Valid blockers include:
+Every Codex bridge result and ChatGPT verification provides exactly one next user action.
 
-- wrong repository;
-- unreadable current remote policy, STATE or baseline inbox;
-- closed or unavailable slot;
-- claim owned by another logical thread;
-- current main baseline moved;
-- native permission refusal;
-- repeated mailbox race after three rebuild attempts;
-- actual scope collision;
-- unresolved user decision;
-- missing required primary evidence.
-
-The following are not blockers when remote sources remain readable:
-
-- stale local policy files;
-- missing local mailbox files;
-- stale existing mailbox worktrees;
-- unrelated dirty files;
-- unavailable hidden plugin telemetry;
-- inability to verify the user-selected model externally.
-
-## 12. Final next action
-
-Every task, preflight, execution report, recovery report and coordinator verification must provide exactly one next user action.
-
-Do not offer competing paths. Do not ask the user to repeat information already available in memory, STATE, inbox, claim, outbox or repository evidence.
+Do not offer competing paths. Do not ask the user to repeat information already present in memory, STATE, inbox, claim, outbox or repository evidence.
