@@ -4,96 +4,71 @@ BRIDGE_PROTOCOL: 3.0
 ORCHESTRATION_VERSION: 3.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T08:12:00+09:00
-USER_COMMAND_SLOT_1: мост 1
-USER_COMMAND_SLOT_2: мост 2
-USER_COMMAND_SLOT_3: мост 3
-GIT_PULL_COMMAND: пул
-GIT_PUSH_COMMAND: пуш
-LEGACY_COMMANDS: bare мост, запуль, запушь - INACTIVE
-MAX_CONCURRENT_CODEX_LANES: 3
+STATE_UPDATED_AT: 2026-07-08T08:29:00+09:00
 CURRENT_MAIN_BASELINE: 23fd4ab42d62c999d426ea07c79c84837a71a48b
 PROCESS_AUTHORITY: ORCHESTRATION.md
-PROCESS_ROLLOUT_DECISION: .ai-bridge/decisions/ORCHESTRATION-3.0-ROLLOUT.md
 DECISION_FREEZE: .ai-bridge/decisions/STAGE6_WAVE2_COPY_FREEZE.md
 
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_III_SCOPE_FREEZE`
-- Open executable slots: `0`
-- Slot 1: `CLOSED`
+- Bridge status: `STAGE6_WAVE_III_MODEL_PREFLIGHT`
+- Open executable slots: `1`
+- Slot 1: `MODEL_PREFLIGHT_ONLY`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
-- Active claims: `0`
+- Active claims: `1`
 - Accepted progress: `53/100`
 - Working readiness: `59/100`
-- Active block: `Wave III exact events vote/report presentation scope freeze`
-- Product/runtime: `Wave I and Wave II accepted static implementation`
-- Process policy: `ORCHESTRATION_3_0_ACTIVE`
-- Safari: `N/A - deferred to deployed acceptance wave`
+- Active block: `Wave III event vote presentation routing`
+- Safari: `N/A - deferred`
 
-## Process 3.0 invariants
+## Active Slot 1
 
-- New tasks use Protocol 3.0; historical Protocol 2.4 artifacts remain valid evidence.
-- One canonical phase machine is defined in `ORCHESTRATION.md`.
-- In a numbered bridge task, same-thread `CONTINUE` confirms both model selection and the exact frozen runtime scope.
-- No additional `APPROVE` round is required for a numbered bridge task.
-- Mechanical progression requires no generic `продолжаем` command.
-- ChatGPT automatically freezes and opens the next safe task after acceptance or when a user invokes the relevant bridge slot in ChatGPT during `SCOPE_FREEZE`.
-- Universal credentials failure status is `BLOCKED_PUSH_AUTH`.
-- Every auth failure requires the complete recovery bundle defined in `ORCHESTRATION.md`.
-- ChatGPT may fast-forward a verified remote direct-child commit object or reconstruct an exact commit from full payloads.
-- A local-only commit is never publication.
-- Repeated model preflight after `CONTINUE` is invalid and routes to `EXECUTE_NOW`.
-- Main-published/outbox-missing work resumes at outbox publication only.
-- Source and deployed mirrors are one ownership group.
-- Runtime singleton files remain serialized.
-- Publication, static acceptance, deployment readiness and Safari acceptance are separate tiers.
-- Every response has one exact next action.
+- Thread: `BRIDGE-20260708-035`
+- Lane: `S6-I3-EVENT-VOTE-PRESENTATION`
+- Task: `TASK-S6-PAR-I3`
+- Task inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-01-chatgpt.md`
+- Task inbox commit: `2d22f06784c6969ad25cbb018ccbcd94d9cf36ae`
+- Current baseline inbox: `.ai-bridge/inbox/BRIDGE-20260708-035-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260708-035-claim-codex.md`
+- Claim commit: `f6be705aaf8008cda5edc3d1b99ffe65c1a00529`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-035-02-codex.md`
+- Write scope: `AsyncScene/Web/events.js`, `docs/events.js`, `AsyncScene/Web/ui/ui-events.js`, `docs/ui/ui-events.js`
+- Runtime classification: `RUNTIME_SENSITIVE`
+- Model selection: `PENDING_12_OF_12`
+- Confirmation: `PENDING_SAME_THREAD_CONTINUE`
+- Report state machine: `OUT_OF_SCOPE_PRESERVED_IN_UI_DM`
 
-## Accepted closures
+## Frozen copy matrix
 
-### Wave I
+- `vote.disabled`: default/millennial/zoomer/unknown preserve system unavailable; boomer `Вы уже проголосовали.`; alpha `Голос: уже принято`.
+- `vote.no_points`: default/millennial/zoomer/alpha/unknown `Мало 💰`; boomer `Недостаточно 💰.`.
 
-- Thread: `BRIDGE-20260708-033`
-- Decision: `PASS_ACCEPTED`
-- Main commit: `0775b8d10ad8f2311ac9d3aa953706d73174bc15`
-- Source/mirror blob: `4a50973971ee8c32bcee1f2dc05a39d1ff9dfba3`
+## Mirror baseline
 
-### Wave II
+- source events: `447bdc2d362785dc9655c208a20cecb4cdd66aad`
+- deployed events: `d81dd9c69c742ece4e7cbcc1b0c41876146d7cb1`
+- source/deployed ui-events: `b53aa817ffbeec7df8bf99575372bbebb0db4d58`
+- Required result: both mirror pairs byte-identical; source events is canonical.
 
-- Thread: `BRIDGE-20260708-034`
-- Decision: `PASS_ACCEPTED`
-- Main commit: `fdeddba5697df8c966eb327e95cdf0aff76791ca`
-- Outbox commit: `b0787cb705b55631b123e7e4adeb5af5f8c13e74`
-- Source/mirror blob: `bd1085c5c3e3afe5d4cd2bde9069fed154cc8cfd`
+## Rules
 
-## Process rollout
-
-- Main policy head: `23fd4ab42d62c999d426ea07c79c84837a71a48b`
-- Runtime files changed: `NONE`
-- Added canonical orchestration authority, policy validator and CI workflow.
-- Updated override, bridge, pull and push contracts.
-- Rollout decision: `.ai-bridge/decisions/ORCHESTRATION-3.0-ROLLOUT.md`
-
-## Wave III scope-freeze rules
-
-- No Codex product task is open yet.
-- Candidate ownership group: `AsyncScene/Web/events.js`, `docs/events.js`, `AsyncScene/Web/ui/ui-events.js`, `docs/ui/ui-events.js`.
-- Presentation routing must be separated from vote economy, crowd caps, one-vote lock, NPC voting, REP, points, timers, battle synchronization and event state.
-- Report state transitions already remain in accepted DM implementation and must not be duplicated.
-- A fresh Protocol 3.0 task requires exact scope, new claim, 12-of-12 preflight and same-thread `CONTINUE`.
-- Slots 2 and 3 remain closed unless a future read-only task is proven independent.
+- Same-thread `CONTINUE` confirms model and exact runtime scope.
+- No second `APPROVE`.
+- Repeated preflight after `CONTINUE` is invalid.
+- Same-scope correction needs no new preflight.
+- Auth failure uses `BLOCKED_PUSH_AUTH` with complete recovery bundle.
+- Slots 2 and 3 remain closed.
 
 ## Serialized order
 
-1. Wave I system resolver: `PASS_ACCEPTED`
-2. Wave II DM registry: `PASS_ACCEPTED`
-3. Wave III events vote/report presentation: `SCOPE_FREEZE`
-4. Wave IV data/battle/conflict mirrors: `BLOCKED_BY_WAVE_III`
-5. Wave V static labels/dev-checks/boot: `BLOCKED_BY_WAVE_IV`
-6. Wave VI shared docs reconciliation: `BLOCKED_UNTIL_ACCEPTANCE_FACTS_SETTLE`
+1. Wave I: `PASS_ACCEPTED`
+2. Wave II: `PASS_ACCEPTED`
+3. Wave III: `MODEL_PREFLIGHT_ONLY`
+4. Wave IV: `BLOCKED_BY_WAVE_III`
+5. Wave V: `BLOCKED_BY_WAVE_IV`
+6. Wave VI: `BLOCKED`
 
 ## Next user action
 
-When ready to continue Stage 6, write `мост 1` in ChatGPT. ChatGPT will finish Wave III scope-freeze, publish the exact Slot 1 task and then tell the user when to send `мост 1` in Codex.
+Send `мост 1` in Codex Slot 1, select the recommended model after preflight, then send `CONTINUE` in the same Codex thread. Return to ChatGPT with `мост 1` after publication.
