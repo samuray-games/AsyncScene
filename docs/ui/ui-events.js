@@ -17,14 +17,86 @@ window.Game = window.Game || {};
     const normalized = String(profile || "").trim().toLowerCase();
     return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
   };
-  const isBoomerUiMode = () => resolveUiMode() === "boomer";
+  const EVENT_VOTE_PROFILE_KEYS = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
+  const EVENT_VOTE_PROFILE_SET = new Set(EVENT_VOTE_PROFILE_KEYS);
+  const EVENT_VOTE_PRESENTATION_BASE = Object.freeze({
+    "vote.disabled": () => systemSay("errors", "unavailable"),
+    "vote.no_points": "Мало 💰",
+  });
+  const EVENT_VOTE_PRESENTATION_OVERRIDES = Object.freeze({
+    default: Object.freeze({}),
+    millennial: Object.freeze({}),
+    zoomer: Object.freeze({}),
+    alpha: Object.freeze({
+      "vote.disabled": "Голос: уже принято",
+    }),
+    boomer: Object.freeze({
+      "vote.disabled": "Вы уже проголосовали.",
+      "vote.no_points": "Недостаточно 💰.",
+    }),
+  });
+  const resolveEventVoteProfile = (profile) => {
+    const explicitProfile = String(profile == null ? "" : profile).trim().toLowerCase();
+    if (EVENT_VOTE_PROFILE_SET.has(explicitProfile)) return explicitProfile;
+    const Data = Game.Data || null;
+    if (Data && typeof Data.getUiProfile === "function") {
+      const getterProfile = String(Data.getUiProfile() == null ? "" : Data.getUiProfile()).trim().toLowerCase();
+      if (EVENT_VOTE_PROFILE_SET.has(getterProfile)) return getterProfile;
+    }
+    if (Data) {
+      const rawProfile = String(Data.UI_PROFILE == null ? "" : Data.UI_PROFILE).trim().toLowerCase();
+      if (EVENT_VOTE_PROFILE_SET.has(rawProfile)) return rawProfile;
+    }
+    return "default";
+  };
+  const resolveEventVotePresentation = (key, profile) => {
+    const keyId = String(key == null ? "" : key).trim();
+    const profileKey = resolveEventVoteProfile(profile);
+    const overrides = EVENT_VOTE_PRESENTATION_OVERRIDES[profileKey] || EVENT_VOTE_PRESENTATION_OVERRIDES.default;
+    const overrideValue = Object.prototype.hasOwnProperty.call(overrides, keyId)
+      ? overrides[keyId]
+      : EVENT_VOTE_PRESENTATION_BASE[keyId];
+    return typeof overrideValue === "function" ? String(overrideValue() || "") : String(overrideValue || "");
+  };
+  const isVoteNoPointsNote = (note) => {
+    const text = String(note || "").trim();
+    return text === "Мало 💰" || text === "Не хватает 💰.";
+  };
   if (!Game.__DEV) Game.__DEV = {};
   Game.__DEV.__smokeBoomerTermsStep42Events = function smokeBoomerTermsStep42Events(profile) {
-    const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
+    const mode = resolveEventVoteProfile(profile) === "boomer" ? "boomer" : "default";
     return {
-      voteDisabled: mode === "boomer" ? "Вы уже проголосовали." : systemSay("errors", "unavailable"),
-      voteNoPoints: mode === "boomer" ? "Недостаточно 💰." : "Мало 💰",
-      voteDuplicateNoPoints: mode === "boomer" ? "Недостаточно 💰." : "Мало 💰"
+      voteDisabled: resolveEventVotePresentation("vote.disabled", mode),
+      voteNoPoints: resolveEventVotePresentation("vote.no_points", mode),
+      voteDuplicateNoPoints: resolveEventVotePresentation("vote.no_points", mode)
+    };
+  };
+  Game.__DEV.__smokeEventVotePresentationMatrix = function smokeEventVotePresentationMatrix() {
+    return {
+      default: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "default"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "default"),
+      },
+      millennial: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "millennial"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "millennial"),
+      },
+      zoomer: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "zoomer"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "zoomer"),
+      },
+      alpha: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "alpha"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "alpha"),
+      },
+      boomer: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "boomer"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "boomer"),
+      },
+      unknown: {
+        voteDisabled: resolveEventVotePresentation("vote.disabled", "unknown"),
+        voteNoPoints: resolveEventVotePresentation("vote.no_points", "unknown"),
+      },
     };
   };
   const $ = UI.$;
@@ -855,7 +927,7 @@ window.Game = window.Game || {};
 
           // Disabled button hint: do not run economic checks / toasts
           if (!votingAllowed) {
-            try { showVoteBtnToast(btn, isBoomerUiMode() ? "Вы уже проголосовали." : systemSay("errors", "unavailable")); } catch (_) {}
+            try { showVoteBtnToast(btn, resolveEventVotePresentation("vote.disabled")); } catch (_) {}
             return;
           }
 
@@ -863,7 +935,7 @@ window.Game = window.Game || {};
             ? (Game.__S.me.points | 0)
             : ((S && S.me && Number.isFinite(S.me.points)) ? (S.me.points | 0) : 0);
           if (havePts <= 0) {
-            const msg = isBoomerUiMode() ? "Недостаточно 💰." : "Мало 💰";
+            const msg = resolveEventVotePresentation("vote.no_points");
             try { showVoteBtnToast(btn, msg); } catch (_) {}
             try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
             return;
@@ -911,9 +983,9 @@ window.Game = window.Game || {};
             try {
               if (Game && Game.__S && Array.isArray(Game.__S.events)) {
                 const freshEvent = Game.__S.events.find(x => x && x.id === eventId);
-                if (freshEvent && String(freshEvent.note || "") === "Мало 💰") {
-                  setEventNote(e, "Мало 💰");
-                  const msg = isBoomerUiMode() ? "Недостаточно 💰." : "Мало 💰";
+                if (freshEvent && isVoteNoPointsNote(freshEvent.note)) {
+                  const msg = resolveEventVotePresentation("vote.no_points");
+                  setEventNote(e, msg);
                   try { showVoteBtnToast(btn, msg); } catch (_) {}
                   try { if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg); } catch(_) {}
                 }
