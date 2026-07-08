@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_VERIFIED_NO_DELTA
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_RUNTIME_APPROVAL
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -10,6 +10,14 @@ DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 ## Fresh execution
 
 Every numbered command freshly fetches main and mailbox and reads current STATE, inbox, claim and execution epoch. Old artifacts are historical only.
+
+## Runtime approval
+
+When the frozen scope is runtime-sensitive, `RUNTIME_SAFETY_GATE_REQUIRED` is a valid intermediate state. It creates no primary commit and no outbox.
+
+The exact serialized slot remains reserved. The user continues in the same Codex conversation with the repository-defined runtime confirmation token. After confirmation, Codex completes implementation, validation, primary publication and the expected outbox publication in the same execution epoch.
+
+A runtime gate response must not tell the user to open another serialized slot when STATE already records that slot as open and reserved.
 
 ## Completion modes
 
@@ -33,7 +41,7 @@ Required evidence:
 
 Empty primary commits are forbidden.
 
-A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`. A valid `RUNTIME_SAFETY_GATE_REQUIRED` response is not a bare return and remains pending rather than complete.
 
 ChatGPT may independently close a pre-policy `BLOCKED_NO_SOURCE_DELTA` result after verifying the same baseline evidence and recording closure in STATE and live memory.
 
