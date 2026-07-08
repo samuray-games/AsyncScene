@@ -4,60 +4,72 @@ BRIDGE_PROTOCOL: 3.1
 ORCHESTRATION_VERSION: 3.1
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T17:52:00+09:00
-CURRENT_MAIN_BASELINE: acad1224e4b1ac01501f5c0b1dacd0620c4194e0
+STATE_UPDATED_AT: 2026-07-08T18:12:00+09:00
+CURRENT_MAIN_BASELINE: e68131642f182cb50a20fcf440153d41225e8484
 PROCESS_AUTHORITY: ORCHESTRATION.md
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
 
-## Canonical numbered-bridge loop
+## Loop
 
-1. ChatGPT writes and pushes inbox, claim and STATE.
-2. User sends `мост 1`, `мост 2` or `мост 3` to the matching Codex slot.
-3. Codex automatically fetches remote refs, reads the current contract, uses clean task-owned worktrees, executes, validates, commits and pushes the primary result, then writes and pushes the immutable outbox.
-4. User sends the same numbered bridge command to ChatGPT.
-5. ChatGPT independently verifies, accepts or publishes one exact correction inbox, then opens the next safe task.
-6. Repeat.
-
-No separate `пул`, `пуш`, payload export, file-body copy, model preflight, `CONTINUE` or `APPROVE` is part of the normal numbered-bridge loop.
+ChatGPT publishes inbox, claim and STATE. One numbered bridge command in Codex fetches, executes, validates, pushes main and pushes the outbox. The same command in ChatGPT triggers independent verification and the next task. No separate pull, push, preflight, CONTINUE or payload-copy step is part of the normal loop.
 
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_VA2_EXECUTE_AND_PUBLISH`
+- Bridge status: `STAGE6_WAVE_VA3_EXECUTE_AND_PUBLISH`
 - Slot 1: `EXECUTE_AND_PUBLISH`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Active claims: `1`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
-- Active block: `Wave V-A2 automatic primary and outbox publication`
+- Active block: `Wave V-A3 truthful Boomer Step 4.4A static audit`
 - Safari: `PENDING_USER`
 
-## Wave V-A2 execution result
+## Accepted Wave V-A2
 
 - Thread: `BRIDGE-20260708-039`
-- Selected model: `GPT-5.4 / High (USER_SELECTED_UNVERIFIED)`
-- Implementation: `COMPLETE`
-- Static validation: `PASS`
-- Exact changed paths: six authorized source/deployed files
-- Primary publication: `PENDING_CODEX_AUTO_PUSH`
-- Outbox publication: `PENDING_CODEX_AUTO_PUSH`
+- Decision: `PASS_ACCEPTED_STATIC_IMPLEMENTATION`
+- Primary commit: `e68131642f182cb50a20fcf440153d41225e8484`
+- Outbox commit: `eaffd1e39ad76c442ee05abd8c92048bb95395bd`
+- Closure: `.ai-bridge/inbox/BRIDGE-20260708-039-06-chatgpt.md`
+- Closure commit: `a21de1b192a29b60b9fdf711e3aed9b5e4654886`
+- Safari: `PENDING_USER`
+
+The outbox used the superseded v1 claim token. The closure accepts it because thread, lane, task, baseline, exact scope and publication evidence match the active v2 contract.
 
 ## Active Slot 1
 
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-039-05-chatgpt.md`
-- Inbox commit: `04e9e5c4795f20768f6f53ad3917307cebd31d10`
-- Claim: `.ai-bridge/claims/BRIDGE-20260708-039-claim-v2-codex.md`
-- Claim commit: `40c4fb1ab42e975c953592e41dbfc6ca362c6e3d`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-039-02-codex.md`
-- Primary baseline: `acad1224e4b1ac01501f5c0b1dacd0620c4194e0`
+- Thread: `BRIDGE-20260708-040`
+- Lane: `S6-V5A3-BOOMER-STATIC-AUDIT`
+- Task: `TASK-S6-PAR-V5A3`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-040-01-chatgpt.md`
+- Inbox commit: `3d450763a17e8bd95d5c94709fb187a5c7aafbb4`
+- Claim: `.ai-bridge/claims/BRIDGE-20260708-040-claim-codex.md`
+- Claim commit: `a9141de30aa8e61faed60483a5f6fb4a6072b730`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-040-02-codex.md`
+- Primary baseline: `e68131642f182cb50a20fcf440153d41225e8484`
 - Publication mode: `CODEX_AUTO_PULL_PUSH`
-- Confirmation: `MATCHING_NUMBERED_BRIDGE_COMMAND`
+- Runtime classification: `STATIC_AUDIT_ONLY`
+- Recommended model: `GPT-5.4-Mini / Medium`
 
-## Required automatic completion
+## Write scope
 
-Codex must use a clean worktree from exact `origin/main`, transfer only the completed six-file implementation, rerun validations, commit, push `main`, then write and push the expected outbox. Codex must not alter the user's diverged ordinary local `main`, include rejected audit history, stop for preflight, request `CONTINUE`, or ask for separate pull/push commands.
+- `tools/generate-boomer-step4-4-economy-conflict-audit.py`
+- `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
+- `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
+
+All production/runtime files are protected.
+
+## Expected derived result
+
+- 147 PASS
+- 0 FAIL
+- 0 structural failures
+- 8 non-live rows
+- root/docs mirrors identical
+- validator PASS
 
 ## Next user action
 
-Send `мост 1` once in the same Codex Slot 1 thread. On success Codex returns `PASS_PUSHED`. Then return to ChatGPT and send `мост 1`.
+Send `мост 1` once in a new Codex Slot 1 thread for `BRIDGE-20260708-040`. After Codex returns `PASS_PUSHED`, return to ChatGPT and send `мост 1`.
