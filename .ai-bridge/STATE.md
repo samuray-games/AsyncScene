@@ -10,7 +10,7 @@ STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: c0e2f891076f3e8e280941edbe0e241d9931dd0f
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-ROOT_PROCESS_SYNC_STATUS: COMPLETE_PENDING_CURRENT_CI_OBSERVATION
+ROOT_PROCESS_SYNC_STATUS: COMPLETE_GREEN_CONFIRMED_BY_USER
 
 ## Current status
 
@@ -27,7 +27,8 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_PENDING_CURRENT_CI_OBSERVATION
 - Verified no-delta root commit: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
 - Completion mode: `VERIFIED_NO_DELTA`
 - Empty primary commits: `FORBIDDEN`
-- Current root-policy Actions gate: `PENDING_CURRENT_CI_OBSERVATION`
+- Current root-policy Actions gate: `GREEN_CONFIRMED_BY_USER`
+- User confirmation recorded: `2026-07-09 01:32 JST`
 - Historical failed workflow runs: `AUDIT_ONLY`
 
 ## Wave V-A3 closure
@@ -49,4 +50,4 @@ ROOT_PROCESS_SYNC_STATUS: COMPLETE_PENDING_CURRENT_CI_OBSERVATION
 
 ## Next action
 
-Do not send `мост 1` again for Wave V-A3. The lane is closed. The next project action is the separate Step 4.4B runtime aggregate smoke under the runtime safety gate after the current root-policy CI run is confirmed green.
+Do not send `мост 1` again for Wave V-A3. The lane is closed. Prepare the separate Step 4.4B runtime aggregate smoke scope freeze against current remote main. Before opening any runtime lane: identify the exact runtime files, source/deployed mirrors, shared smoke registry/export/boot wiring, model and reasoning recommendation, and runtime-safety-gate authorization contract. Do not edit runtime files or create a claim/execution epoch until that scope freeze is complete and explicitly authorized.
