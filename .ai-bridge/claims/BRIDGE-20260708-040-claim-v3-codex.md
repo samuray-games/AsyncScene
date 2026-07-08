@@ -1,0 +1,23 @@
+# Wave V-A3 Claim v3 - Fresh Execution
+
+BRIDGE_PROTOCOL: 3.1
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
+BRIDGE_SLOT: 1
+THREAD_ID: BRIDGE-20260708-040
+LANE_ID: S6-V5A3-BOOMER-STATIC-AUDIT
+TASK_ID: TASK-S6-PAR-V5A3
+EXECUTION_EPOCH: S6V5A3-E3-20260708-2310JST
+CLAIM_TOKEN: S6V5A3-20260708-040-V3
+CLAIM_STATUS: ACTIVE
+CLAIM_ADOPTION: FIRST_FRESH_CODEX_CONVERSATION
+THREAD_ROTATION_REQUIRED: true
+AUTHORIZED_PRIMARY_BASELINE: 875f09b6579ab4de3453cb4ba2c9892ec4018222
+CURRENT_BASELINE_INBOX: .ai-bridge/inbox/BRIDGE-20260708-040-07-chatgpt.md
+EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260708-040-08-codex.md
+PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+RUNTIME_CLASSIFICATION: STATIC_AUDIT_ONLY
+WRITE_SCOPE: generator plus root/docs Step 4.4A audit only
+SUPERSEDES_CLAIM: .ai-bridge/claims/BRIDGE-20260708-040-claim-v2-codex.md
+
+The previous Codex conversation returned no execution evidence and is superseded. A fresh Codex conversation may adopt this claim on the first exact `мост 1` command. Historical claims, inboxes and outboxes do not satisfy this epoch.
