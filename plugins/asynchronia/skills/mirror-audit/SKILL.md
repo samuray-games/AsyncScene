@@ -298,7 +298,7 @@ Mirror Audit cannot approve runtime writes.
 When synchronization would modify runtime-sensitive source or deployed files:
 
 - report `RUNTIME_GATE_REQUIRED`
-- require runtime-safety-gate approval before writes
+- require scope-isolation-check approval before writes
 - keep user Safari smoke as `PENDING_USER`
 
 ## 11. Parallel planner interaction
@@ -363,7 +363,7 @@ Never claim:
 - deployment freshness from timestamps alone
 - Canon Audit passed
 - Economy Invariant Audit passed
-- runtime approval exists
+- scope isolation exists
 - active model is verified
 - Safari smoke passed without user evidence
 - unrelated dirty files belong to the task

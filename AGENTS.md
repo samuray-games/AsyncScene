@@ -1,6 +1,6 @@
 # Asynchronia Repository Policy
 
-BRIDGE_PROTOCOL: 3.1
+BRIDGE_PROTOCOL: 3.2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 
@@ -90,7 +90,7 @@ When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` 
 
 When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass runtime approval or claim deployment/runtime acceptance from a Git push.
 
-These aliases do not bypass native permission prompts, runtime-safety-gate, exact task scope, Git safety checks or user-owned Safari acceptance.
+These aliases do not bypass native permission prompts, scope-isolation-check, exact task scope, Git safety checks or user-owned Safari acceptance.
 
 ## 1. Project identity
 
@@ -129,9 +129,9 @@ Before planning or editing, Codex must:
 - Preserve canon and current behavior.
 - Stop when the task requires work outside the authorized scope.
 
-## 5. Runtime safety gate
+## 5. Scope isolation check
 
-Treat these as runtime-sensitive:
+Treat exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and collision-free parallel lanes as the active safety mechanism.
 
 - game runtime JavaScript and UI runtime JavaScript;
 - economy, battle systems and NPC systems;
@@ -140,33 +140,20 @@ Treat these as runtime-sensitive:
 - `Game.__DEV`, `Game.Dev`, boot logic, exports, globals and smoke visibility; and
 - mirrored runtime copies.
 
-If any runtime-sensitive file is required:
+If a task requires overlapping or dependent scope:
 
-- make no edits;
-- return `RUNTIME_SAFETY_GATE_REQUIRED`;
-- list every required runtime-sensitive file and why it is required;
+- return `BLOCKED_SCOPE_COLLISION`;
+- list every colliding path, owner and dependency;
 - identify mirrors and shared wiring; and
-- state: `This task needs an isolated serialized runtime slot.`
+- state the exact overlap that prevents execution.
 
-If no runtime-sensitive file is required:
+If the lane is exact and isolated:
 
 - return `SAFE_TO_PROCEED`;
 - state the exact allowed file scope; and
 - continue only inside that scope.
 
-Never bypass the gate because a change appears small.
-
-### 5.1 Approval protocol
-
-When the gate returns `RUNTIME_SAFETY_GATE_REQUIRED`, the response must end with exactly one standalone fenced text code block containing only `APPROVE`, with no text after it.
-
-```text
-APPROVE
-```
-
-Accepted confirmation tokens in the same Codex thread are case-insensitive after trimming whitespace: `approve`, `confirm`, `ok`, `okay`, `ок`, `окей` and `подтверждаю`.
-
-The token applies only to one exact pending runtime task in the same thread and exact frozen file scope. Native Codex permission dialogs remain separate.
+Never classify a collision-free lane as blocked merely because a file is mechanically sensitive.
 
 ## 6. Canonical mechanics
 

@@ -193,7 +193,7 @@ This skill cannot approve runtime work.
 For runtime-sensitive scope:
 
 - report `RUNTIME_GATE_REQUIRED`
-- require runtime-safety-gate approval before writes
+- require scope-isolation-check approval before writes
 - keep user Safari smoke as `PENDING_USER`
 
 ## 10. Fail conditions
@@ -266,7 +266,7 @@ Never claim:
 - current code automatically defines canon
 - economy conservation passed
 - mirror parity passed
-- runtime approval exists
+- scope isolation exists
 - active model is verified
 - Safari smoke passed without user evidence
 - unrelated dirty files belong to the task

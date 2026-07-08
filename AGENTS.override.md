@@ -1,7 +1,7 @@
-# Asynchronia Protocol 3.1 Override
+# Asynchronia Protocol 3.2 Override
 
-OVERRIDE_VERSION: ORCHESTRATION_3_1_FRESH_EXECUTION
-BRIDGE_PROTOCOL: 3.1
+OVERRIDE_VERSION: ORCHESTRATION_3_2
+BRIDGE_PROTOCOL: 3.2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
@@ -131,7 +131,7 @@ If root hardening moves main while a lane is open, ChatGPT must synchronize STAT
 
 ## 9. Runtime and acceptance
 
-- Runtime-sensitive files remain serialized and require exact scope authorization.
+- Exact scope ownership is enforced through `scope-isolation-check`.
 - Source and deployed mirrors are one ownership group.
 - Git publication is not Safari PASS.
 - Codex cannot claim user acceptance.

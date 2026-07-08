@@ -114,11 +114,11 @@ The Parallel Scope Planner cannot approve runtime work.
 If any planned task requires runtime-sensitive files:
 
 - mark that task `RUNTIME_GATE_REQUIRED`
-- require the runtime-safety-gate decision
+- require the scope-isolation-check decision
 - require an isolated serialized runtime slot before implementation
 - keep all dependent tasks behind that runtime task
 
-A valid `APPROVE` token applies only through the runtime-safety-gate protocol in the same thread.
+A valid `APPROVE` token applies only through the scope-isolation-check protocol in the same thread.
 
 ## 7. Planning modes
 

@@ -1,6 +1,6 @@
 # Asynchronia Codex Bridge Entry Point
 
-BRIDGE_PROTOCOL: 3.1
+BRIDGE_PROTOCOL: 3.2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
@@ -36,6 +36,10 @@ Before any terminal response Codex must:
 7. validate, publish and refetch both destinations.
 
 Codex must ignore any prior conversational statement that the lane is completed.
+
+Scope overlap decisions belong to `scope-isolation-check`.
+
+Scope collisions return `BLOCKED_SCOPE_COLLISION`.
 
 ## 3. Thread rotation
 

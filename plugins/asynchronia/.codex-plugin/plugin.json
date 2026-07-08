@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Project-specific safety gates and evidence workflows for Codex work in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
@@ -18,10 +18,11 @@
       "Smoke orchestration",
       "Deployment verification",
       "Acceptance evidence gating",
-      "Change validation"
+      "Change validation",
+      "Scope isolation"
     ],
     "defaultPrompt": [
-      "Gate this Asynchronia task for runtime safety.",
+      "Gate this Asynchronia task for scope isolation.",
       "Review this task scope before making edits.",
       "Validate this non-runtime Asynchronia change.",
       "Plan the smallest sufficient smoke workflow for this Asynchronia task.",

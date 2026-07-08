@@ -231,7 +231,7 @@ This skill does not approve runtime work.
 When the audited task changes runtime-sensitive economy files:
 
 - report `RUNTIME_GATE_REQUIRED`
-- require runtime-safety-gate approval before writes
+- require scope-isolation-check approval before writes
 - keep Safari smoke as `PENDING_USER`
 - do not claim implementation acceptance
 
@@ -335,7 +335,7 @@ Return `BLOCKED` when:
 
 Never claim:
 
-- runtime approval exists when it does not
+- scope isolation exists when it does not
 - the active Codex model is verified
 - mirror parity was audited by this skill
 - Safari smoke passed without user evidence
