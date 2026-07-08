@@ -4,85 +4,74 @@ BRIDGE_PROTOCOL: 3.0
 ORCHESTRATION_VERSION: 3.0
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-STATE_UPDATED_AT: 2026-07-08T16:24:00+09:00
+STATE_UPDATED_AT: 2026-07-08T17:05:00+09:00
 CURRENT_MAIN_BASELINE: d15fe4dd34e8c431b02fb5a690982e38e6210fc5
 PROCESS_AUTHORITY: ORCHESTRATION.md
 PUBLICATION_MODE: CHATGPT_CONNECTOR_ONLY
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
 
-## Global publication rule
-
-- All numbered bridge lanes use ChatGPT connector publication.
-- Codex does not run `git push` or GitHub authentication commands.
-- Codex does not ask the user to repair credentials.
-- Codex does not pull, merge, rebase, reset or rewrite history for publication.
-- Local branch divergence is not a blocker.
-- After validation, Codex exports the complete connector publication bundle.
-- This rule applies to the current lane and every future numbered bridge lane unless ChatGPT explicitly replaces it in both STATE and the current baseline inbox.
-
 ## Current status
 
-- Bridge status: `STAGE6_WAVE_VA_CONNECTOR_PUBLICATION_EXPORT_NOW`
-- Slot 1: `CONNECTOR_PUBLICATION_EXPORT_NOW`
+- Bridge status: `STAGE6_WAVE_VA2_MODEL_PREFLIGHT`
+- Slot 1: `MODEL_PREFLIGHT_ONLY`
 - Slot 2: `CLOSED`
 - Slot 3: `CLOSED`
 - Active claims: `1`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
-- Active block: `Wave V-A connector publication export`
+- Active block: `Wave V-A2 Boomer runtime surface correction`
 - Safari: `PENDING_USER`
 
-## Wave V-A local result
+## Publication rule
+
+- Numbered bridge work is published by ChatGPT through the GitHub connector.
+- Codex returns complete file payloads and does not perform Git write or authentication operations.
+- Local branch divergence is not a blocker.
+
+## Rejected Wave V-A payload
 
 - Thread: `BRIDGE-20260708-038`
-- Remote baseline: `d15fe4dd34e8c431b02fb5a690982e38e6210fc5`
-- Local validated commit reported by Codex: `124b7daa7679c6b75dc9734e6fdc5cd1c511257f`
-- Remote `main`: unchanged at baseline
-- Expected final outbox: `.ai-bridge/outbox/BRIDGE-20260708-038-04-codex.md`
-- Remote final outbox: absent
-- Direct Codex publication: `DISABLED_BY_POLICY`
+- Reported local commit: `124b7daa7679c6b75dc9734e6fdc5cd1c511257f`
+- Coordinator decision: `REJECTED_FALSE_STATIC_PASS`
+- Rejection record: `.ai-bridge/inbox/BRIDGE-20260708-038-07-chatgpt.md`
+- Primary publication: `NOT_PERFORMED`
+- Outbox publication: `NOT_PERFORMED`
+- False PASS rows: `AUD_0148`, `AUD_0149`, `AUD_0150`, `AUD_0152`
 
-## Active Slot 1 export
+## Active Slot 1
 
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-038-06-chatgpt.md`
-- Inbox commit: `cdb9f9eefaae96e4ee9599217db96697e598ce12`
-- Policy: `.ai-bridge/PUBLICATION_POLICY.md`
-- Policy commit: `da0565f7884c761bdafd6e2464c15729bc2e86ff`
-- Phase: `CONNECTOR_PUBLICATION_EXPORT_NOW`
-- Model: `GPT-5.4-Mini / Medium`
-- Model preflight: `ALREADY_COMPLETE`
-- Confirmation: `ALREADY_SATISFIED`
-- No new preflight or `CONTINUE`
-- No Git network write commands
+- Thread: `BRIDGE-20260708-039`
+- Lane: `S6-V5A2-BOOMER-RUNTIME-SURFACES`
+- Task: `TASK-S6-PAR-V5A2`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260708-039-01-chatgpt.md`
+- Inbox commit: `d2fa8b2bb11b2e0bbf7a9ff3f17c12900abd77cc`
+- Claim: `.ai-bridge/claims/BRIDGE-20260708-039-claim-codex.md`
+- Claim commit: `a8feeb5448fe0a8056ccfb56a9887128bf543339`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260708-039-02-codex.md`
+- Primary baseline: `d15fe4dd34e8c431b02fb5a690982e38e6210fc5`
+- Runtime classification: `RUNTIME_SENSITIVE_PRESENTATION_ONLY`
+- Publication mode: `CHATGPT_CONNECTOR_ONLY`
+- Model selection: `PENDING_CODEX_PREFLIGHT_12_OF_12`
+- Confirmation: `PENDING_SAME_THREAD_CONTINUE`
 
-## Required connector bundle
+## Exact authorized scope
 
-Codex must return one complete payload containing:
+- `AsyncScene/Web/ui/ui-core.js`
+- `docs/ui/ui-core.js`
+- `AsyncScene/Web/ui/ui-dm.js`
+- `docs/ui/ui-dm.js`
+- `AsyncScene/Web/index.html`
+- `docs/index.html`
 
-- identity and validation evidence for local commit `124b7daa7679c6b75dc9734e6fdc5cd1c511257f`;
-- full exact generator file content;
-- full exact root audit content;
-- declaration that docs audit is byte-identical to root audit;
-- full exact intended outbox content;
-- current and intended blob manifest.
+## Required correction
 
-ChatGPT will publish the three authorized primary files and final mailbox outbox through the GitHub connector after independently validating the payload.
-
-## Exact authorized primary scope
-
-- `tools/generate-boomer-step4-4-economy-conflict-audit.py`
-- `UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
-- `docs/UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md`
-
-All production/runtime files remain protected.
-
-## Serialized Wave V order
-
-1. Receive and connector-publish the Wave V-A bundle.
-2. Independently accept `STATIC_PASS / READY_FOR_RUNTIME_SMOKE`.
-3. Open Wave V-B singleton runtime-smoke implementation for exact Boomer 4.4B and Alpha vote/report aggregate.
-4. User iPhone Safari smoke.
+- Boomer reputation title: `Репутация`
+- Boomer points title: `Баланс`
+- Boomer report placeholder: `Имя токсика, бандита или мафиози.`
+- Boomer report hint: `Сообщите о токсике, бандите или мафиози.`
+- Other profiles remain unchanged.
+- Stat anchors must not depend on mutable title values.
 
 ## Next user action
 
-Send `мост 1` in the same Codex Slot 1 thread. Codex must return the complete `AUTH_FALLBACK_PAYLOAD_BEGIN ... AUTH_FALLBACK_PAYLOAD_END` response without any push, pull, authentication or history operation. Paste that entire response into ChatGPT and write `мост 1`.
+Send `мост 1` in a new Codex Slot 1 thread for `BRIDGE-20260708-039`. After the 12/12 preflight, select the recommended model/reasoning pair and send `CONTINUE` in the same thread.
