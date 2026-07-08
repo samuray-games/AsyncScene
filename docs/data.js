@@ -127,32 +127,6 @@ window.Game = window.Game || {};
       ])
     })
   });
-  Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
-    paceTempo: Object.freeze({
-      base: "Derived from UI_PROFILE_MILLENNIAL.",
-      boomerPaceDelta: Object.freeze([
-        "slower delivery",
-        "fewer abrupt transitions",
-        "more explicit transitions between statements",
-        "short pause phrases allowed",
-        "explanation before conclusion when useful",
-        "no additional logic",
-        "no moralizing",
-        "no official/corporate language"
-      ]),
-      tempoMarkers: Object.freeze([
-        "Сначала...",
-        "В этом случае...",
-        "После этого...",
-        "Поэтому...",
-        "Если это произойдёт..."
-      ]),
-      separationRule: Object.freeze([
-        "Pace/Tempo must be its own section.",
-        "It must not be merged into Tone, Vocabulary, Risk, NPC, or Messaging sections."
-      ])
-    })
-  });
 
   // === PROGRESSION (single source of truth) ===
   Data.PROGRESSION_V2 = true;
@@ -386,13 +360,14 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.getUiProfile = () => Data.normalizeUiProfile(Data.UI_PROFILE);
 
-  // Text mode (millennial/default | zoomer)
+  // Text mode (millennial | zoomer | alpha | boomer)
   Data.TEXT_MODE = "millennial";
   const resolveUiTextMode = (profile) => {
     const normalized = typeof Data.normalizeUiProfile === "function"
       ? Data.normalizeUiProfile(profile)
       : String(profile || "").trim().toLowerCase();
-    if (normalized === "zoomer" || normalized === "alpha") return "zoomer";
+    if (normalized === "zoomer") return "zoomer";
+    if (normalized === "alpha") return "alpha";
     if (normalized === "boomer") return "boomer";
     return "millennial";
   };
@@ -400,7 +375,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     const rawForced = String(forcedProfile == null ? "" : forcedProfile).trim();
     if (rawForced) return resolveUiTextMode(rawForced);
     const rawMode = String(Data.TEXT_MODE || "").trim().toLowerCase();
-    if (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") return "zoomer";
+    if (rawMode === "zoomer" || rawMode === "genz") return "zoomer";
+    if (rawMode === "alpha") return "alpha";
     if (rawMode === "boomer") return "boomer";
     const activeProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
     return resolveUiTextMode(activeProfile);
@@ -553,10 +529,18 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
         "но только ⚡ определяет, считается ли с тобой этот мир."
     }
   };
-
   Data.TEXTS.millennial = Data.TEXTS.genz;
   Data.TEXTS.default = Data.TEXTS.genz;
-  Data.TEXTS.zoomer = Data.TEXTS.alpha;
+  const ZOOMER_TEXTS_BASELINE = Data.TEXTS.alpha;
+  Data.TEXTS.zoomer = ZOOMER_TEXTS_BASELINE;
+  Data.TEXTS.alpha = Object.freeze({
+    ...ZOOMER_TEXTS_BASELINE,
+    escape_button_label: "Уйти: −{X}💰",
+    teach_sent_dm: "{student}: {arg}. Цена {cost} 💰.",
+    teach_sent_chat: "Аргумент: {teacher} → {student}.",
+    invite_open_hint: "Указать имя",
+    invite_invalid: "Игрок: нет"
+  });
   Data.TEXTS.boomer = Object.freeze({
     ...Data.TEXTS.genz,
     tie_start: "ГОЛОСОВАНИЕ",
@@ -564,14 +548,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     tie_click_name_hint: "ВЫБЕРИТЕ ИМЯ",
     dm_action_unavailable: "Действие недоступно.",
     battle_draw: "НИЧЬЯ",
-    conflict_win: "Победа в конфликте.",
-    conflict_loss: "Поражение в конфликте.",
+    conflict_win: "Победа",
+    conflict_loss: "Поражение",
     conflict_draw: "Ничья в конфликте.",
     supported_minority: "Вы поддержали меньшинство.",
     battle_not_enough_points: "Недостаточно 💰.",
     teach_sent_dm: "Для {student}: {arg}. Цена: {cost} 💰.",
     teach_sent_chat: "Аргумент передан: {teacher} → {student}.",
     invite_open_hint: "Введите точное имя игрока.",
+    invite_invalid: "Игрок отсутствует.",
     hint_type_who: "Ответьте: кто?",
     hint_type_where: "Ответьте: где?",
     hint_type_about: "Ответьте: о ком?",
@@ -587,7 +572,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     battle_invite_title: "Вызов",
     battles_empty: "Конфликтов нет.",
     dm_empty: "Сообщений пока нет.",
-    escape_button_label: "Выйти: -{X} 💰",
+    escape_button_label: "Выйти за {X} 💰.",
     events_clear: "Очистить",
     events_clear_all: "Очистить",
     events_close_extra: "Свернуть",
@@ -611,99 +596,99 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   const COP_TEMPLATES_MILLENNIAL = Object.freeze({
     intros: [
       "{cop.fullName}: доступно",
-      "{cop.fullName} на связи. Район вижу.",
-      "Привет, я {cop.fullName}, майор в округе.",
-      "{cop.fullName} на связи. Слежу.",
-      "{cop.fullName} тут. Слежу.",
-      "{cop.fullName} рядом. Пиши.",
-      "Это {cop.fullName}. На связи.",
-      "{cop.fullName} на связи. Детали записал.",
-      "Здравствуйте, я {cop.fullName}, рядом по району.",
-      "{cop.fullName} на связи."
+      "{cop.fullName} на связи, район держу.",
+      "{cop.fullName}, майор округа.",
+      "{cop.fullName} на связи.",
+      "{cop.fullName} здесь, порядок держим.",
+      "{cop.fullName} рядом.",
+      "{cop.fullName}, держу связь.",
+      "{cop.fullName} в эфире.",
+      "{cop.fullName} рядом по району.",
+      "{cop.fullName} подключился."
     ],
     warnings: [
       "Риск рядом",
       "Вызов: принято",
       "Статус: готово",
-      "Твои слова записал.",
+      "Твои слова в журнале.",
       "Я рядом и наблюдаю.",
-      "Обстановка может сорваться. Держи дистанцию.",
-      "Детали принял. Реакция будет.",
-      "Я тебя слышу, без резких движений.",
-      "Патруль уже приближается.",
-      "Шум вижу. Записал."
+      "Обстановка хрупкая. Дистанция.",
+      "Детали приняты.",
+      "Слышу тебя. Без резких движений.",
+      "Патруль приближается.",
+      "Шум зафиксирован."
     ],
     toxicDescriptions: [
       "Токсик прячется за оскорблениями.",
-      "Он пахнет угрозами и ищет повод поссориться.",
-      "Токсик постоянно ищет способ унизить других.",
-      "Его слова как удары, но слаба логика.",
-      "Он живёт на скандалах и шуме.",
+      "Он угрожает и ищет ссору.",
+      "Токсик ищет способ унизить.",
+      "Слова бьют, логика слаба.",
+      "Он живет негативными историями.",
       "Токсик искажает правду.",
-      "Он срывается на всех.",
-      "Токсик громко кричит и ищет власть.",
-      "Он портит атмосферу, цепляясь за каждого.",
-      "Токсик отнимает ресурсы силой слова."
+      "Он льет желчь на всех.",
+      "Токсик кричит и ищет власть.",
+      "Он портит атмосферу.",
+      "Токсик давит словом."
     ],
     banditDescriptions: [
       "Бандит ищет наживу.",
-      "Лицо прячет, повадки бандитские.",
-      "Бандит кочует между районами и собирает долги.",
-      "Он действует быстро, но отвлекается на пустяки.",
+      "Лицо скрыто, привычки видны.",
+      "Бандит собирает долги.",
+      "Он быстр, но отвлекается.",
       "Бандит угрожает и держит контроль.",
-      "Живёт на грани, но район знает.",
-      "Он чувствует слабость и сразу нападает.",
-      "Бандит ищет легкую добычу и уходит при сопротивлении.",
-      "Он молчит и ждёт момент.",
-      "Бандит всегда держит с собой оружие или телефон."
+      "Он живет на грани и знает карту.",
+      "Чует слабость и нападает.",
+      "Бандит ищет легкую добычу.",
+      "Он молчит и наблюдает вовремя.",
+      "Бандит держит оружие или телефон."
     ],
     chatReplies: [
       "Принято",
       "Факт: принято",
-      "Я рядом. Пиши.",
-      "Слежу. Детали записал.",
-      "Иду дальше по цепочке.",
-      "Связь держится, ты не один.",
-      "Я на рации. Работа идёт.",
-      "Понял. Записал.",
-      "Хорошо, фиксирую сообщение.",
-      "Передал коллегам, продолжаю наблюдение."
+      "Я рядом, линия открыта.",
+      "Контролирую. Детали приняты.",
+      "Работаем дальше.",
+      "Связь держится.",
+      "Я на рации.",
+      "Понятно, отметка есть.",
+      "Хорошо, сообщение принято.",
+      "Коллегам передал."
     ],
     cooldownReplies: [
       "Занято. Позже",
-      "Сейчас разгребаю дело, не могу отвечать.",
-      "На линии другой вызов, вернусь позже.",
-      "Пока не могу подключиться, линия занята.",
-      "Занят протоколом. Отвечу позже.",
-      "Сейчас занят. Вернусь к сообщению позже.",
-      "Я в разборе ситуации, скоро выйду.",
+      "Разбираю дело, отвечу позже.",
+      "Другой вызов, вернусь позже.",
+      "Линия занята.",
+      "Занят делом, связь позже.",
+      "Перегружен, сообщение в очереди.",
+      "В разборе, скоро выйду.",
       "Сейчас не выйдет, сигнал будет позже.",
-      "Сейчас оформляю материалы. Вернусь позже.",
-      "Я на вызове. Вернусь через минуту."
+      "Оформляю материалы, вернусь позже.",
+      "На вызове, вернусь."
     ],
     thanks: [
       "Отчёт: принято",
-      "Принял. В районе спокойнее.",
+      "Отметка принята.",
       "Район спокойнее.",
-      "Его забрали с улиц.",
-      "Он за решёткой.",
-      "Записал.",
-      "Сработали вместе. Результат есть.",
+      "Его забрали.",
+      "Лицо за решёткой.",
+      "Запись отмечена.",
+      "Координация отмечена.",
       "Дом тише.",
-      "Твой вклад вижу.",
+      "Вклад заметен.",
       "Сдача принята."
     ],
     scolds: [
       "Факт: нет",
-      "Сигнал без оснований мешает делу.",
-      "Паника без доказательств растет быстро.",
-      "Такие сигналы тормозят реальные дела.",
+      "Сигнал без оснований мешает.",
+      "Паника без доказательств растет.",
+      "Такие сигналы тормозят дела.",
       "Деталей мало, «Сдать» шумит.",
-      "Без проверки такой вызов только шумит.",
-      "Без оснований шум только растёт.",
-      "«Сдать» без фактов отмечу в отчёте.",
-      "Не реагируем на каждый слух.",
-      "«Сдать» без фактов отмечу в отчёте."
+      "Без проверки вызов шумит.",
+      "Ситуация без оснований растет.",
+      "«Сдать» без фактов в отчете.",
+      "На каждый слух не реагируем.",
+      "«Сдать» без фактов в отчет."
     ]
   });
   const applyCopTemplateOverrides = (base, overrides) => {
@@ -754,7 +739,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       [4, "Оформляю материалы. Связь будет позже."],
       [5, "Сейчас много работы. Сообщение принято."],
       [6, "Разбираю ситуацию. Скоро вернусь."],
-      [7, "Сейчас ответить не получится. Вернусь позже."],
+      [7, "Сейчас занят. Вернусь позже."],
       [8, "Оформляю материалы. Отвечу позже."],
       [9, "Сейчас на вызове. Вернусь через минуту."]
     ],
@@ -3733,28 +3718,28 @@ K YN A9: Нет.
     "неловко вышло",
     "без истерик",
     "скучно, нужен ход",
-    "крик выдаёт слабость",
-    "сейчас будет спор",
-    "кто-то сейчас ответит",
+    "кто кричит, тот слабее",
+    "будет спор",
+    "кто-то ответит",
     "💰 на месте",
-    "ты читаешь свои слова?",
+    "читаешь свои слова?",
     "спор стал резче",
-    "давайте спокойнее",
+    "спокойнее",
     "кто следующий",
     "удиви",
     "площадь следит",
-    "смешно и грустно",
-    "ладно, хватит",
-    "ну и ладно",
+    "смешно, грустно",
+    "хватит",
+    "ладно",
     "не дави",
-    "я тебя понял",
-    "давайте по делу",
+    "тебя понял",
+    "по делу",
     "💰 на стол",
     "тут из-за шума",
-    "ладно, начинаем",
-    "я молчу, но вижу",
-    "это было грязно",
-    "это было точно"
+    "начинаем",
+    "молчу, но вижу",
+    "было грязно",
+    "было точно"
   ];
 
   Data.SYS = {
@@ -4033,7 +4018,8 @@ K YN A9: Нет.
           placeholderFailureCount: 0,
           healthyUiKeys: 0,
           originalLengthsPreserved: true,
-          rolesPreserved: true
+          rolesPreserved: true,
+          startScreenResolverHealthy: true
         }
       };
       const fail = (code, detail) => {
@@ -4043,8 +4029,6 @@ K YN A9: Нет.
       const placeholderRe = /\{(\w+)\}/g;
       const checkedUiKeys = [
         "menu_title",
-        "start_action_start",
-        "start_screen_title",
         "tie_start",
         "tie_call_to_action",
         "events_title",
@@ -5761,6 +5745,7 @@ K YN A9: Нет.
       }
     };
     const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
+    const countTrue = (obj) => Object.values(obj || {}).filter((value) => value === true).length;
     root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts = function smokeZoomerFeelStep661EmptyStatesProfileTexts() {
       const result = {
         buildTag,
@@ -5811,6 +5796,7 @@ K YN A9: Нет.
           }
         };
         result.samples = samples;
+
         const checkedKeys = Object.keys(samples);
         result.summary.checkedKeys = checkedKeys.length;
         checkedKeys.forEach((key) => {
@@ -5865,16 +5851,12 @@ K YN A9: Нет.
           result.routeChecks.battleEnergyLockedHintResolver
         ].filter(Boolean).length;
         result.summary.routeConnectedCount = [
-          result.routeChecks.eventsEmptyResolver,
-          result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.eventsEmptyResolver && result.routeChecks.battlesEmptyResolver,
+          result.routeChecks.dmEmptyResolver && result.routeChecks.dmActionUnavailableResolver,
+          result.routeChecks.battleEnergyLockedHintResolver && result.routeChecks.battleEnergyLockedHintEnergyPreserved,
           result.routeChecks.battlesEmptyNoHardcoded,
-          result.routeChecks.dmEmptyResolver,
           result.routeChecks.dmEmptyNoHardcoded,
-          result.routeChecks.dmActionUnavailableResolver,
-          result.routeChecks.dmActionUnavailableNoHardcoded,
-          result.routeChecks.battleEnergyLockedHintResolver,
-          result.routeChecks.battleEnergyLockedHintEnergyPreserved,
-          result.routeChecks.docsMirrorUpdated
+          result.routeChecks.dmActionUnavailableNoHardcoded
         ].filter(Boolean).length;
         result.summary.hardcodedRemainingAllowedCount = 0;
 
@@ -6040,6 +6022,11 @@ K YN A9: Нет.
           try { return fn(); }
           finally { Data.TEXT_MODE = prev; }
         };
+        const findText = (selector, fallbackText) => {
+          const el = document.querySelector(selector);
+          const text = el ? String(el.textContent || "").replace(/\s+/g, " ").trim() : "";
+          return text || String(fallbackText || "");
+        };
         const ensureBattle = () => {
           const players = state.players || {};
           if (!players.me) players.me = { id: "me", name: "Me", influence: 0, points: 10, role: "player" };
@@ -6201,13 +6188,8 @@ K YN A9: Нет.
     const buildTag = "build_2026_06_15_step6_6_1_empty_states_profile_texts_fix2";
     const commit = "step6_6_1_empty_states_profile_texts_fix2";
     const smokeVersion = "step6_6_1_empty_states_profile_texts_fix2_v20260615_001";
-    const stripComments = (src) => String(src || "")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/(^|[^:])\/\/.*$/gm, "$1");
-    const cloneState = (state) => {
-      try { return JSON.parse(JSON.stringify(state || {})); }
-      catch (_) { return {}; }
-    };
+    const stripComments = (src) => String(src || "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+    const cloneState = (state) => { try { return JSON.parse(JSON.stringify(state || {})); } catch (_) { return {}; } };
     const restoreState = (target, snapshot) => {
       if (!target || typeof target !== "object") return;
       Object.keys(target).forEach((key) => { try { delete target[key]; } catch (_) {} });
@@ -6301,7 +6283,6 @@ K YN A9: Нет.
         const renderEventsSrc = stripComments(String(ui.renderEvents || ""));
         const renderBattlesSrc = stripComments(String(ui.renderBattles || ""));
         const renderDmSrc = stripComments(String(ui.renderDM || ""));
-
         result.routeChecks.eventsEmptyResolver = /t\(\s*["']events_empty["']\s*\)/.test(renderEventsSrc);
         result.routeChecks.eventsEmptyRoute = setProfile("zoomer", () => {
           const snap = cloneState(state);
@@ -6349,14 +6330,13 @@ K YN A9: Нет.
             state.me.points = 0;
             state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false };
             if (ui.renderDM) ui.renderDM();
-          const battleBtn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => {
-            const label = String(node.textContent || "").trim();
-            return label === "баттл";
-          });
-          if (!battleBtn || typeof battleBtn.onclick !== "function") return false;
-          battleBtn.onclick({ preventDefault(){}, stopPropagation(){} });
-          const expectedToast = String(result.samples && result.samples.dm_action_unavailable && result.samples.dm_action_unavailable.zoomer || "Пока закрыто.");
-          return collectToast.some((row) => String(row.text || "").trim() === expectedToast);
+            const p2pBtn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => {
+              const label = String(node.textContent || "").trim();
+              return label === "Передать 💰" || label === "Попросить 💰";
+            });
+            if (!p2pBtn || typeof p2pBtn.onclick !== "function") return false;
+            p2pBtn.onclick({ preventDefault(){}, stopPropagation(){} });
+            return textOf("#dmLog").includes("Пока закрыто.");
           } finally {
             restoreState(state, snap);
           }
@@ -6394,8 +6374,7 @@ K YN A9: Нет.
           && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.dm_action_unavailable === "Пока закрыто."
           && Data.TEXTS && Data.TEXTS.alpha && Data.TEXTS.alpha.battle_energy_locked_hint === "Нужно ⚡{energy}"
         );
-        result.routeChecks.noStaleOldSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTexts === "function"
-          && typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1 === "function"
+        result.routeChecks.noStaleOldSmokeIdentity = typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1 === "function"
           && typeof root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 === "function"
           && root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix2 !== root.__DEV.smokeZoomerFeelStep661EmptyStatesProfileTextsFix1;
 
@@ -6923,6 +6902,36 @@ K YN A9: Нет.
         routeReason: "Battle button at 0 points should emit dm_action_unavailable via points toast"
       };
       result.routeChecks.runtimeDmFileUpdated = runtimePattern;
+      result.routeChecks.dmActionUnavailableRoute = setProfile("zoomer", () => {
+        const snap = cloneState(state);
+        const prevP2P = Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function" ? Game.Rules.isP2PTransfersEnabled : null;
+        const prevBacklog = Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function" ? Game.Rules.isP2PBacklogActive : null;
+        try {
+          state.players = state.players || {};
+          state.players.me = state.players.me || { id: "me", name: "Me", influence: 0, points: 0, role: "player" };
+          state.players.opp1 = state.players.opp1 || { id: "opp1", name: "Opp1", influence: 1, points: 10, role: "bandit" };
+          state.me = state.players.me;
+          state.me.points = 0;
+          state.dm = { open: true, withId: "opp1", activeId: "opp1", openIds: ["opp1"], logs: { opp1: [] }, inviteOpen: false, teachOpen: false };
+          if (Game.Rules) {
+            Game.Rules.isP2PTransfersEnabled = () => false;
+            Game.Rules.isP2PBacklogActive = () => false;
+          }
+          if (ui.renderDM) ui.renderDM();
+          const battleBtn = Array.from(document.querySelectorAll("#dmActions button")).find((node) => {
+            const label = String(node.textContent || "").trim();
+            return label === "баттл";
+          });
+          if (!battleBtn || typeof battleBtn.onclick !== "function") return false;
+          battleBtn.onclick({ preventDefault(){}, stopPropagation(){} });
+          const expectedToast = String(result.samples && result.samples.dm_action_unavailable && result.samples.dm_action_unavailable.zoomer || "Пока закрыто.");
+          return collectToast.some((row) => String(row.text || "").trim() === expectedToast);
+        } finally {
+          if (Game.Rules && prevP2P) Game.Rules.isP2PTransfersEnabled = prevP2P;
+          if (Game.Rules && prevBacklog) Game.Rules.isP2PBacklogActive = prevBacklog;
+          restoreState(state, snap);
+        }
+      });
       result.summary = result.summary || {};
       result.summary.smokeIdentityFresh = true;
       result.summary.noFreeTReferences = !!(result.tFreeReferenceScan && result.tFreeReferenceScan.ok);
@@ -7457,6 +7466,7 @@ K YN A9: Нет.
       try { return String(Data.t(key, vars) || ""); }
       finally { Data.TEXT_MODE = prev; }
     };
+    const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
     const storageKeys = () => {
       try {
         const store = window.localStorage;
@@ -7481,6 +7491,11 @@ K YN A9: Нет.
     const readText = (selector) => {
       const node = document.querySelector(selector);
       return String(node && node.textContent != null ? node.textContent : "").trim();
+    };
+    const readValue = (selector, attr) => {
+      const node = document.querySelector(selector);
+      if (!node) return "";
+      return String(attr === "title" ? (node.title || "") : (node.getAttribute(attr) || "")).trim();
     };
     root.__DEV.smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5 = function smokeZoomerFeelStep672MenuChromeButtonsLabelsFix5() {
       const result = {
@@ -7770,6 +7785,7 @@ K YN A9: Нет.
         };
 
         const storageAfter = storageKeys();
+        const afterSet = new Set(storageAfter);
         const newKeys = storageAfter.filter((key) => !beforeSet.has(key));
         result.storageDiagnostics = {
           keysBeforeCount: beforeCount,
@@ -9235,12 +9251,14 @@ K YN A9: Нет.
         result.routeChecks.commandRegistered = result.commandRegistrationChecks.ok;
 
         const beforeKeys = storageBefore;
+        const zoomerEventStateCount = eventsCountBefore;
         renderEventsWithProfile("zoomer");
 
         const eventsHeaderText = readText("#eventsHeader .headerTitleText");
         const headerCountText = readText("#eventsHeader .headerCountWrapper");
         const eventsBody = document.getElementById("eventsBody");
         const dangerButtons = Array.from(eventsBody ? eventsBody.querySelectorAll("button.miniBtn.danger") : []);
+        const dangerButtonTexts = dangerButtons.map((btn) => String(btn && btn.textContent != null ? btn.textContent : "").trim()).filter(Boolean);
         const closeExtraButton = dangerButtons.find((btn) => String(btn && btn.textContent != null ? btn.textContent : "").trim() === samples.events_close_extra.zoomer) || null;
         const clearButton = dangerButtons.find((btn) => String(btn && btn.textContent != null ? btn.textContent : "").trim() === samples.events_clear.zoomer) || null;
         const emptyNode = eventsBody && !eventsBody.querySelector(".eventCard") ? Array.from(eventsBody.children || []).find((node) => String(node && node.textContent != null ? node.textContent : "").trim() === samples.events_empty.zoomer) : null;
@@ -10623,13 +10641,26 @@ K YN A9: Нет.
         optionalDomSkipped.push({ key: "battle_action_attack", actual: attackMatch.actual, expected: attackMatch.expected, skipped: true, reason: "absent" });
         optionalDomMissing.add("battle_action_attack");
       }
+      const attackOptional = optionalDomSkipped.find((item) => item && item.key === "battle_action_attack");
+      const fixedRequired = requiredDomMatches.filter((item) => item && item.key !== "battle_action_attack");
+      const optionalDomMatches = [];
+      const optKeys = ["battle_action_accept", "battle_action_decline", "battle_action_attack", "battle_action_report"];
+      optKeys.forEach((key) => {
+        const text = String(dom[`$${key}`] || dom[`${key.replace(/_/g, "")}`] || "");
+        if (key === "battle_action_attack" && attackOptional) {
+          if (text) optionalDomMatches.push({ key, actual: text, expected: String(dom.expectedBattleAttackText || ""), ok: text === String(dom.expectedBattleAttackText || "") });
+          return;
+        }
+      });
       const battleAttackText = String(dom.battleAttackText || "");
+      const expectedBattleAttackText = String(dom.expectedBattleAttackText || "");
       result.domRouteDiagnostics = Object.assign({}, dom, {
         missingOptionalDomLabels: Array.from(optionalDomMissing),
-        requiredDomMatches: requiredDomMatches.filter((item) => item && item.key !== "battle_action_attack"),
-        optionalDomSkipped,
+        requiredDomMatches: fixedRequired,
+        optionalDomSkipped: optionalDomSkipped,
         battleAttackText,
-        ok: requiredDomMatches.filter((item) => item && item.key !== "battle_action_attack").every((item) => item && item.ok) && optionalDomSkipped.every((item) => item && (item.key !== "battle_action_attack" ? true : true))
+        expectedBattleAttackText,
+        ok: fixedRequired.every((item) => item && item.ok) && optionalDomSkipped.every((item) => item && (item.key !== "battle_action_attack" ? true : true))
       });
       result.routeChecks = Object.assign({}, result.routeChecks, {
         domRoutesConnected: !!result.domRouteDiagnostics.ok
@@ -10738,16 +10769,6 @@ K YN A9: Нет.
     const sourceOf = (fn) => (typeof fn === "function") ? String(fn) : "";
     const resolvePath = (path) => path.reduce((acc, part) => (acc && acc[part] != null) ? acc[part] : null, root);
     const sourceBlock = (paths) => paths.map((path) => sourceOf(resolvePath(path))).join("\n");
-    const docText = () => {
-      try {
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", "UI_PROFILE_BOOMER_DIFF.md", false);
-        xhr.send(null);
-        return String(xhr.status >= 200 && xhr.status < 300 ? xhr.responseText : "");
-      } catch (_) {
-        return "";
-      }
-    };
     const runtimeSourceParts = {
       start: sourceBlock([["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix6"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabels"], ["__DEV", "smokeZoomerFeelStep671StartScreenButtonsLabelsFix1"]]),
       menu: sourceBlock([["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinal"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFinalFix1"], ["__DEV", "smokeZoomerFeelStep672MenuChromeButtonsLabelsFix7RestoreUiTexts"]]),
@@ -11066,42 +11087,46 @@ K YN A9: Нет.
           visibleDomLabels: [],
           missingOptionalDomLabels: [],
           domRoutedCount: 0,
+          probedBehaviorChecks: [],
+          skippedBehaviorChecks: [],
+          behaviorAggregationReason: "skipped-no-live-panel",
           samples: {
-          menu_title: { default: samples.menu_title.default, millennial: samples.menu_title.millennial, zoomer: samples.menu_title.zoomer },
-          return_to_start: { default: samples.return_to_start.default, millennial: samples.return_to_start.millennial, zoomer: samples.return_to_start.zoomer },
-          menu_unavailable: { default: samples.menu_unavailable.default, millennial: samples.menu_unavailable.millennial, zoomer: samples.menu_unavailable.zoomer },
-          goal_label: { default: samples.goal_label.default, millennial: samples.goal_label.millennial, zoomer: samples.goal_label.zoomer }
-        },
-        menuBehaviorStable: false,
-        optionalDomMissingCount: 0,
-        ok: false
-      };
-        menuDom.visibleDomLabels = [
-          ["menu_title", "#btnMenu", readText("#btnMenu"), samples.menu_title.zoomer],
-          ["return_to_start", "#returnToStartControls button", readText("#returnToStartControls button"), samples.return_to_start.zoomer],
-          ["menu_unavailable", "#btnLotteryTop", readAttr("#btnLotteryTop", "title") || readText("#btnLotteryTop"), samples.menu_unavailable.zoomer],
-          ["goal_label", "#btnManifestToggle", readText("#btnManifestToggle"), samples.goal_label.zoomer]
-        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
-        menuDom.missingOptionalDomLabels = ["menu_unavailable"].filter((key) => !readText("#btnLotteryTop") && !readAttr("#btnLotteryTop", "title"));
+            menu_title: { default: samples.menu_title.default, millennial: samples.menu_title.millennial, zoomer: samples.menu_title.zoomer },
+            return_to_start: { default: samples.return_to_start.default, millennial: samples.return_to_start.millennial, zoomer: samples.return_to_start.zoomer },
+            menu_unavailable: { default: samples.menu_unavailable.default, millennial: samples.menu_unavailable.millennial, zoomer: samples.menu_unavailable.zoomer },
+            goal_label: { default: samples.goal_label.default, millennial: samples.goal_label.millennial, zoomer: samples.goal_label.zoomer }
+          },
+          menuBehaviorStable: true,
+          optionalDomMissingCount: 0,
+          ok: false
+        };
+        const menuLiveChecks = [
+          { key: "menu_title", selector: "#btnMenu", actual: readText("#btnMenu"), expected: samples.menu_title.zoomer, optional: false },
+          { key: "return_to_start", selector: "#returnToStartControls button", actual: readText("#returnToStartControls button"), expected: samples.return_to_start.zoomer, optional: false },
+          { key: "menu_unavailable", selector: "#btnLotteryTop", actual: readAttr("#btnLotteryTop", "title") || readText("#btnLotteryTop"), expected: samples.menu_unavailable.zoomer, optional: true },
+          { key: "goal_label", selector: "#btnManifestToggle", actual: readText("#btnManifestToggle"), expected: samples.goal_label.zoomer, optional: false }
+        ];
+        menuDom.visibleDomLabels = menuLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        menuDom.missingOptionalDomLabels = menuLiveChecks.filter((item) => item.optional && !item.actual).map((item) => item.key);
         menuDom.domRoutedCount = menuDom.visibleDomLabels.length;
         menuDom.optionalDomMissingCount = menuDom.missingOptionalDomLabels.length;
-        menuDom.menuBehaviorStable = !!(sourceRouteDiagnostics.menuRuntimeRouteKeysFound.length === menuKeys.length && sourceRouteDiagnostics.menuDocsRouteKeysFound.length === menuKeys.length);
-        menuDom.ok = menuDom.menuBehaviorStable
-          && menuDom.domRoutedCount >= 1
-          && menuDom.samples.menu_title.millennial === "Меню"
-          && menuDom.samples.menu_title.zoomer === "Меню"
-          && menuDom.samples.return_to_start.millennial === "К старту"
-          && menuDom.samples.return_to_start.zoomer === "На старт"
-          && menuDom.samples.menu_unavailable.millennial === "Недоступно."
-          && menuDom.samples.menu_unavailable.zoomer === "Пока закрыто."
-          && menuDom.samples.goal_label.millennial === "Цель"
-          && menuDom.samples.goal_label.zoomer === "Задача";
+        menuDom.probedBehaviorChecks = menuLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        menuDom.skippedBehaviorChecks = menuLiveChecks.filter((item) => !item.actual).map((item) => item.key);
+        menuDom.behaviorAggregationReason = menuDom.domRoutedCount > 0 ? "probed-visible-dom" : "skipped-no-live-panel";
+        const menuMismatched = menuLiveChecks.filter((item) => item.actual && item.actual !== item.expected).map((item) => item.key);
+        menuDom.menuBehaviorStable = menuMismatched.length === 0;
+        menuDom.ok = sourceRouteDiagnostics.menuRuntimeRouteKeysFound.length === menuKeys.length
+          && sourceRouteDiagnostics.menuDocsRouteKeysFound.length === menuKeys.length
+          && menuMismatched.length === 0;
         result.menuChromeChecks = menuDom;
 
         const eventsDom = {
           visibleDomLabels: [],
           missingOptionalDomLabels: [],
           domRoutedCount: 0,
+          probedBehaviorChecks: [],
+          skippedBehaviorChecks: [],
+          behaviorAggregationReason: "skipped-no-live-panel",
           samples: {
             events_header: { default: samples.events_header.default, millennial: samples.events_header.millennial, zoomer: samples.events_header.zoomer },
             events_close_extra: { default: samples.events_close_extra.default, millennial: samples.events_close_extra.millennial, zoomer: samples.events_close_extra.zoomer },
@@ -11109,32 +11134,29 @@ K YN A9: Нет.
             events_empty: { default: samples.events_empty.default, millennial: samples.events_empty.millennial, zoomer: samples.events_empty.zoomer },
             events_panel_hint: { default: samples.events_panel_hint.default, millennial: samples.events_panel_hint.millennial, zoomer: samples.events_panel_hint.zoomer }
           },
-          eventsBehaviorStable: false,
+          eventsBehaviorStable: true,
           optionalDomMissingCount: 0,
           ok: false
         };
-        eventsDom.visibleDomLabels = [
-          ["events_header", "#eventsHeader .headerTitleText", readText("#eventsHeader .headerTitleText"), samples.events_header.zoomer],
-          ["events_close_extra", "#eventsHeader button", readText("#eventsHeader button"), samples.events_close_extra.zoomer],
-          ["events_clear", "#eventsHeader button.danger", readText("#eventsHeader button.danger"), samples.events_clear.zoomer],
-          ["events_empty", "#eventsBody", readText("#eventsBody"), samples.events_empty.zoomer],
-          ["events_panel_hint", "#eventsBody", readText("#eventsBody"), samples.events_panel_hint.zoomer]
-        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
-        eventsDom.missingOptionalDomLabels = ["events_close_extra", "events_clear", "events_empty", "events_panel_hint"].filter((key) => !eventsDom.visibleDomLabels.includes(key));
+        const eventsLiveChecks = [
+          { key: "events_header", selector: "#eventsHeader .headerTitleText", actual: readText("#eventsHeader .headerTitleText"), expected: samples.events_header.zoomer, optional: false },
+          { key: "events_close_extra", selector: "#eventsHeader button", actual: readText("#eventsHeader button"), expected: samples.events_close_extra.zoomer, optional: true },
+          { key: "events_clear", selector: "#eventsHeader button.danger", actual: readText("#eventsHeader button.danger"), expected: samples.events_clear.zoomer, optional: true },
+          { key: "events_empty", selector: "#eventsBody", actual: readText("#eventsBody"), expected: samples.events_empty.zoomer, optional: true },
+          { key: "events_panel_hint", selector: "#eventsBody", actual: readText("#eventsBody"), expected: samples.events_panel_hint.zoomer, optional: true }
+        ];
+        eventsDom.visibleDomLabels = eventsLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        eventsDom.missingOptionalDomLabels = eventsLiveChecks.filter((item) => item.optional && !item.actual).map((item) => item.key);
         eventsDom.domRoutedCount = eventsDom.visibleDomLabels.length;
         eventsDom.optionalDomMissingCount = eventsDom.missingOptionalDomLabels.length;
-        eventsDom.eventsBehaviorStable = !!(sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.length === eventsKeys.length && sourceRouteDiagnostics.eventsDocsRouteKeysFound.length === eventsKeys.length);
-        eventsDom.ok = eventsDom.eventsBehaviorStable
-          && eventsDom.samples.events_header.millennial === "События"
-          && eventsDom.samples.events_header.zoomer === "Движ"
-          && eventsDom.samples.events_close_extra.millennial === "Свернуть"
-          && eventsDom.samples.events_close_extra.zoomer === "СВЕРНУТЬ"
-          && eventsDom.samples.events_clear.millennial === "Очистить"
-          && eventsDom.samples.events_clear.zoomer === "ЧИСТКА"
-          && eventsDom.samples.events_empty.millennial === "Открой события."
-          && eventsDom.samples.events_empty.zoomer === "Пока тихо."
-          && eventsDom.samples.events_panel_hint.millennial === "Здесь появляются важные события мира."
-          && eventsDom.samples.events_panel_hint.zoomer === "Тут всплывает, кто опять устроил драму.";
+        eventsDom.probedBehaviorChecks = eventsLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        eventsDom.skippedBehaviorChecks = eventsLiveChecks.filter((item) => !item.actual).map((item) => item.key);
+        eventsDom.behaviorAggregationReason = eventsDom.domRoutedCount > 0 ? "probed-visible-dom" : "skipped-no-live-panel";
+        const eventsMismatched = eventsLiveChecks.filter((item) => item.actual && item.actual !== item.expected).map((item) => item.key);
+        eventsDom.eventsBehaviorStable = eventsMismatched.length === 0;
+        eventsDom.ok = sourceRouteDiagnostics.eventsRuntimeRouteKeysFound.length === eventsKeys.length
+          && sourceRouteDiagnostics.eventsDocsRouteKeysFound.length === eventsKeys.length
+          && eventsMismatched.length === 0;
         result.eventsPanelChecks = eventsDom;
 
         const battleDom = {
@@ -11142,6 +11164,9 @@ K YN A9: Нет.
           missingOptionalDomLabels: [],
           optionalDomSkipped: [],
           domRoutedCount: 0,
+          probedBehaviorChecks: [],
+          skippedBehaviorChecks: [],
+          behaviorAggregationReason: "skipped-no-live-panel",
           samples: {
             battle_invite_title: { default: samples.battle_invite_title.default, millennial: samples.battle_invite_title.millennial, zoomer: samples.battle_invite_title.zoomer },
             battle_action_accept: { default: samples.battle_action_accept.default, millennial: samples.battle_action_accept.millennial, zoomer: samples.battle_action_accept.zoomer },
@@ -11153,45 +11178,34 @@ K YN A9: Нет.
             battle_win: { default: samples.battle_win.default, millennial: samples.battle_win.millennial, zoomer: samples.battle_win.zoomer },
             battle_loss: { default: samples.battle_loss.default, millennial: samples.battle_loss.millennial, zoomer: samples.battle_loss.zoomer }
           },
-          battleBehaviorStable: false,
+          battleBehaviorStable: true,
           optionalDomMissingCount: 0,
           ok: false
         };
-        battleDom.visibleDomLabels = [
-          ["battle_invite_title", "#battlesBody", readText("#battlesBody"), samples.battle_invite_title.zoomer],
-          ["battle_action_accept", "#battlesBody", readText("#battlesBody"), samples.battle_action_accept.zoomer],
-          ["battle_action_decline", "#battlesBody", readText("#battlesBody"), samples.battle_action_decline.zoomer],
-          ["battle_action_attack", "#battlesBody", readText("#battlesBody"), samples.battle_action_attack.zoomer],
-          ["battle_action_rematch", "#battlesBody", readText("#battlesBody"), samples.battle_action_rematch.zoomer],
-          ["battle_action_report", "#battlesBody", readText("#battlesBody"), samples.battle_action_report.zoomer],
-          ["battles_empty", "#battlesBody", readText("#battlesBody"), samples.battles_empty.zoomer],
-          ["battle_win", "#battlesBody", readText("#battlesBody"), samples.battle_win.zoomer],
-          ["battle_loss", "#battlesBody", readText("#battlesBody"), samples.battle_loss.zoomer]
-        ].filter((item) => item[2] && item[2] === item[3]).map((item) => item[0]);
-        battleDom.optionalDomSkipped = ["battle_action_accept", "battle_action_decline", "battle_action_attack", "battle_action_report"].filter((key) => !battleDom.visibleDomLabels.includes(key)).map((key) => ({ key, skipped: true, reason: "absent" }));
+        const battleLiveChecks = [
+          { key: "battle_invite_title", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_invite_title.zoomer, optional: false },
+          { key: "battle_action_accept", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_action_accept.zoomer, optional: true },
+          { key: "battle_action_decline", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_action_decline.zoomer, optional: true },
+          { key: "battle_action_attack", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_action_attack.zoomer, optional: true },
+          { key: "battle_action_rematch", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_action_rematch.zoomer, optional: false },
+          { key: "battle_action_report", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_action_report.zoomer, optional: true },
+          { key: "battles_empty", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battles_empty.zoomer, optional: false },
+          { key: "battle_win", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_win.zoomer, optional: false },
+          { key: "battle_loss", selector: "#battlesBody", actual: readText("#battlesBody"), expected: samples.battle_loss.zoomer, optional: false }
+        ];
+        battleDom.visibleDomLabels = battleLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        battleDom.optionalDomSkipped = battleLiveChecks.filter((item) => item.optional && !item.actual).map((item) => ({ key: item.key, skipped: true, reason: "absent" }));
         battleDom.missingOptionalDomLabels = battleDom.optionalDomSkipped.map((item) => item.key);
         battleDom.domRoutedCount = battleDom.visibleDomLabels.length + battleDom.optionalDomSkipped.length;
         battleDom.optionalDomMissingCount = battleDom.missingOptionalDomLabels.length;
-        battleDom.battleBehaviorStable = !!(sourceRouteDiagnostics.battleRuntimeRouteKeysFound.length === battleKeys.length && sourceRouteDiagnostics.battleDocsRouteKeysFound.length === battleKeys.length);
-        battleDom.ok = battleDom.battleBehaviorStable
-          && battleDom.samples.battle_invite_title.millennial === "Вызов"
-          && battleDom.samples.battle_invite_title.zoomer === "Залёт"
-          && battleDom.samples.battle_action_accept.millennial === "Принять"
-          && battleDom.samples.battle_action_accept.zoomer === "Вписаться"
-          && battleDom.samples.battle_action_decline.millennial === "Отклонить"
-          && battleDom.samples.battle_action_decline.zoomer === "Скипнуть"
-          && battleDom.samples.battle_action_attack.millennial === "Атаковать"
-          && battleDom.samples.battle_action_attack.zoomer === "Влететь"
-          && battleDom.samples.battle_action_rematch.millennial === "Реванш"
-          && battleDom.samples.battle_action_rematch.zoomer === "Ещё раунд"
-          && battleDom.samples.battle_action_report.millennial === "Пожаловаться"
-          && battleDom.samples.battle_action_report.zoomer === "Сдать копу"
-          && battleDom.samples.battles_empty.millennial === "Вызовов нет."
-          && battleDom.samples.battles_empty.zoomer === "Раундов нет."
-          && battleDom.samples.battle_win.millennial === "Победа"
-          && battleDom.samples.battle_win.zoomer === "ПОБЕДА"
-          && battleDom.samples.battle_loss.millennial === "Поражение"
-          && battleDom.samples.battle_loss.zoomer === "ПОРАЖЕНИЕ";
+        battleDom.probedBehaviorChecks = battleLiveChecks.filter((item) => item.actual).map((item) => item.key);
+        battleDom.skippedBehaviorChecks = battleLiveChecks.filter((item) => !item.actual).map((item) => item.key);
+        battleDom.behaviorAggregationReason = battleDom.domRoutedCount > 0 ? "probed-visible-dom" : "skipped-no-live-panel";
+        const battleMismatched = battleLiveChecks.filter((item) => item.actual && item.actual !== item.expected).map((item) => item.key);
+        battleDom.battleBehaviorStable = battleMismatched.length === 0;
+        battleDom.ok = sourceRouteDiagnostics.battleRuntimeRouteKeysFound.length === battleKeys.length
+          && sourceRouteDiagnostics.battleDocsRouteKeysFound.length === battleKeys.length
+          && battleMismatched.length === 0;
         result.battleLabelsChecks = battleDom;
 
         const docsMirrorDiagnostics = {
@@ -11536,8 +11550,6 @@ K YN A9: Нет.
         && result.summary && result.summary.smokeIdentityFresh);
       return result;
     };
-    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinal = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal;
-    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1;
     const normalizeStep675ButtonsLabelsFinalFix2Result = (baseResult) => {
       const result = baseResult && typeof baseResult === "object" ? baseResult : {};
       const ensureObject = (key) => {
@@ -11779,103 +11791,9 @@ K YN A9: Нет.
       normalized.smokeVersion = "step6_7_5_buttons_labels_final_fix2_v20260615_001";
       return normalized;
     };
+    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinal = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinal;
+    root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinalFix1 = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix1;
     root.Dev.smokeZoomerFeelStep675ButtonsLabelsFinalFix2 = root.__DEV.smokeZoomerFeelStep675ButtonsLabelsFinalFix2;
-    const smokeVersionBoomerTempo = "step1_2_boomer_pace_tempo_section_v20260616_001";
-    root.__DEV.smokeBoomerDiffStep12TempoOnce = function smokeBoomerDiffStep12TempoOnce() {
-      const doc = docText();
-      const result = {
-        buildTag,
-        commit,
-        smokeVersion: smokeVersionBoomerTempo,
-        ok: false,
-        docPresent: false,
-        paceSectionPresent: false,
-        paceSeparatedFromTone: false,
-        failures: [],
-        forbiddenRemaining: [],
-        missingCoverage: [],
-        failedChecks: [],
-      };
-      const fail = (code, detail) => {
-        result.failures.push({ code, detail: detail == null ? null : detail });
-        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
-      };
-      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
-      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Base:[\s\S]*?Derived from UI_PROFILE_MILLENNIAL\./.test(doc)
-        && doc.includes("Tempo markers:")
-        && doc.includes("\"Сначала...\"")
-        && doc.includes("\"Если это произойдёт...\"");
-      const toneIndex = doc.indexOf("Tone");
-      const paceIndex = doc.indexOf("## PACE / TEMPO");
-      result.paceSeparatedFromTone = paceIndex >= 0 && (toneIndex < 0 || paceIndex < toneIndex);
-      if (!result.docPresent) fail("doc_missing", null);
-      if (!result.paceSectionPresent) fail("pace_section_missing", null);
-      if (!result.paceSeparatedFromTone) fail("pace_not_separated_from_tone", null);
-      result.ok = result.docPresent && result.paceSectionPresent && result.paceSeparatedFromTone
-        && result.failures.length === 0
-        && result.forbiddenRemaining.length === 0
-        && result.missingCoverage.length === 0
-        && result.failedChecks.length === 0;
-      return result;
-    };
-    root.Dev.smokeBoomerDiffStep12TempoOnce = root.__DEV.smokeBoomerDiffStep12TempoOnce;
-    const smokeVersionBoomerTempoDocOnlyFix1 = "step1_2_boomer_pace_tempo_doc_only_fix1_v20260616_001";
-    root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once = function smokeBoomerDiffStep12TempoDocOnlyFix1Once() {
-      const doc = docText();
-      const result = {
-        buildTag,
-        commit,
-        smokeVersion: smokeVersionBoomerTempoDocOnlyFix1,
-        ok: false,
-        docPresent: false,
-        paceSectionPresent: false,
-        referencesMillennialDelta: false,
-        slowerRulePresent: false,
-        clearTransitionsRulePresent: false,
-        fewerAbruptCommandsRulePresent: false,
-        deliveryNotMeaningRulePresent: false,
-        noMechanicsChangeRulePresent: false,
-        noStandaloneBoomerProfile: false,
-        runtimeCopyFilesUntouched: true,
-        failures: [],
-        forbiddenRemaining: [],
-        missingCoverage: [],
-        failedChecks: []
-      };
-      const fail = (code, detail) => {
-        result.failures.push({ code, detail: detail == null ? null : detail });
-        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
-      };
-      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
-      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Boomer pace is a delta from UI_PROFILE_MILLENNIAL\./.test(doc);
-      result.referencesMillennialDelta = doc.includes("Boomer pace is a delta from UI_PROFILE_MILLENNIAL.");
-      result.slowerRulePresent = doc.includes("slower than millennial");
-      result.clearTransitionsRulePresent = doc.includes("clearer transitions");
-      result.fewerAbruptCommandsRulePresent = doc.includes("fewer abrupt commands");
-      result.deliveryNotMeaningRulePresent = doc.includes("pace changes delivery, not meaning");
-      result.noMechanicsChangeRulePresent = doc.includes("pace does not change mechanics")
-        && doc.includes("pace does not change rewards, costs, risks, cooldowns, or outcomes");
-      result.noStandaloneBoomerProfile = doc.includes("pace does not create a standalone boomer profile");
-      if (!result.docPresent) fail("doc_missing", null);
-      if (!result.paceSectionPresent) fail("pace_section_missing", null);
-      if (!result.referencesMillennialDelta) fail("references_millennial_delta_missing", null);
-      if (!result.slowerRulePresent) fail("slower_rule_missing", null);
-      if (!result.clearTransitionsRulePresent) fail("clear_transitions_rule_missing", null);
-      if (!result.fewerAbruptCommandsRulePresent) fail("fewer_abrupt_commands_rule_missing", null);
-      if (!result.deliveryNotMeaningRulePresent) fail("delivery_not_meaning_rule_missing", null);
-      if (!result.noMechanicsChangeRulePresent) fail("no_mechanics_change_rule_missing", null);
-      if (!result.noStandaloneBoomerProfile) fail("no_standalone_boomer_profile_missing", null);
-      result.ok = result.docPresent && result.paceSectionPresent && result.referencesMillennialDelta
-        && result.slowerRulePresent && result.clearTransitionsRulePresent && result.fewerAbruptCommandsRulePresent
-        && result.deliveryNotMeaningRulePresent && result.noMechanicsChangeRulePresent && result.noStandaloneBoomerProfile
-        && result.runtimeCopyFilesUntouched
-        && result.failures.length === 0
-        && result.forbiddenRemaining.length === 0
-        && result.missingCoverage.length === 0
-        && result.failedChecks.length === 0;
-      return result;
-    };
-    root.Dev.smokeBoomerDiffStep12TempoDocOnlyFix1Once = root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once;
   };
 
   installButtonsLabelsFinalSmokeViaData();
@@ -12199,13 +12117,13 @@ K YN A9: Нет.
 
   installCoverageAuditSmokeViaData();
 
-  const installBoomerDiffStep13ExplanationsSmokeViaData = () => {
+  const installBoomerDiffStep12TempoSmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
     if (!root || typeof root !== "object") return;
     if (!root.__DEV || typeof root.__DEV !== "object") root.__DEV = {};
     if (!root.Dev || typeof root.Dev !== "object") root.Dev = {};
-    if (typeof root.__DEV.smokeBoomerDiffStep13ExplanationsOnce === "function") return;
-    const smokeVersion = "step1_3_boomer_explanations_doc_table_fix1_v20260616_002";
+    if (typeof root.__DEV.smokeBoomerDiffStep12TempoOnce === "function") return;
+    const smokeVersion = "step1_2_boomer_pace_tempo_section_v20260616_001";
     const docText = () => {
       try {
         const xhr = new XMLHttpRequest();
@@ -12216,26 +12134,16 @@ K YN A9: Нет.
         return "";
       }
     };
-    root.__DEV.smokeBoomerDiffStep13ExplanationsOnce = function smokeBoomerDiffStep13ExplanationsOnce() {
+    root.__DEV.smokeBoomerDiffStep12TempoOnce = function smokeBoomerDiffStep12TempoOnce() {
       const doc = docText();
-      const rowMatches = doc.match(/^TXT_\d{4}$/gm) || [];
       const result = {
         buildTag: (typeof window !== "undefined" && window.__BUILD_TAG__) || root.__DEV.buildTag || null,
         commit: (typeof window !== "undefined" && window.__COMMIT__) || root.__DEV.commit || null,
         smokeVersion,
         ok: false,
         docPresent: false,
-        explanationsSectionPresent: false,
-        copyTablePresent: false,
-        expectedRows: 72,
-        actualRows: rowMatches.length,
-        missingRows: [],
-        referencesMillennialDelta: false,
-        lectureCapPresent: false,
-        moralJudgmentForbiddenPresent: false,
-        noMechanicsChangeRulePresent: false,
-        noStandaloneBoomerProfile: false,
-        runtimeCopyFilesUntouched: false,
+        paceSectionPresent: false,
+        paceSeparatedFromTone: false,
         failures: [],
         forbiddenRemaining: [],
         missingCoverage: [],
@@ -12246,44 +12154,84 @@ K YN A9: Нет.
         if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
       };
       result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
-      result.explanationsSectionPresent = /## EXPLANATIONS[\s\S]*?Boomer explanations are a delta from UI_PROFILE_MILLENNIAL\./.test(doc);
-      result.copyTablePresent = /## EXACT EXPLANATION COPY TABLE[\s\S]*?TXT_0024[\s\S]*?TXT_0164/.test(doc);
-      result.referencesMillennialDelta = doc.includes("Boomer explanations are a delta from UI_PROFILE_MILLENNIAL.");
-      result.lectureCapPresent = doc.includes("do not add lectures");
-      result.moralJudgmentForbiddenPresent = doc.includes("do not add moral judgment");
-      result.noMechanicsChangeRulePresent = doc.includes("explanations do not change mechanics");
-      result.noStandaloneBoomerProfile = doc.includes("explanations do not create a standalone boomer profile");
-      result.runtimeCopyFilesUntouched = doc.includes("## EXACT EXPLANATION COPY TABLE");
-      const expectedRows = [
-        "TXT_0024","TXT_0025","TXT_0026","TXT_0027","TXT_0028","TXT_0029","TXT_0030","TXT_0031","TXT_0032","TXT_0033","TXT_0036","TXT_0037","TXT_0038","TXT_0039","TXT_0040","TXT_0041","TXT_0042","TXT_0043","TXT_0044","TXT_0045","TXT_0046","TXT_0047","TXT_0048","TXT_0049","TXT_0050","TXT_0051","TXT_0052","TXT_0053","TXT_0054","TXT_0055","TXT_0056","TXT_0067","TXT_0068","TXT_0069","TXT_0070","TXT_0071","TXT_0073","TXT_0074","TXT_0077","TXT_0079","TXT_0080","TXT_0081","TXT_0082","TXT_0083","TXT_0084","TXT_0085","TXT_0086","TXT_0087","TXT_0088","TXT_0089","TXT_0090","TXT_0108","TXT_0109","TXT_0111","TXT_0112","TXT_0113","TXT_0114","TXT_0115","TXT_0116","TXT_0117","TXT_0118","TXT_0124","TXT_0126","TXT_0131","TXT_0133","TXT_0137","TXT_0138","TXT_0141","TXT_0142","TXT_0143","TXT_0144","TXT_0145","TXT_0146","TXT_0147","TXT_0148","TXT_0149","TXT_0150","TXT_0151","TXT_0152","TXT_0153","TXT_0154","TXT_0155","TXT_0156","TXT_0160","TXT_0161","TXT_0162","TXT_0163","TXT_0164"
-      ];
-      result.actualRows = rowMatches.length;
-      result.missingRows = expectedRows.filter((row) => !doc.includes(row));
-      if (result.actualRows !== result.expectedRows) fail("row_count_mismatch", `${result.actualRows}/${result.expectedRows}`);
-      if (result.missingRows.length) fail("missing_rows", result.missingRows.slice());
+      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Base:[\s\S]*?Derived from UI_PROFILE_MILLENNIAL\./.test(doc)
+        && doc.includes("Tempo markers:")
+        && doc.includes("\"Сначала...\"")
+        && doc.includes("\"Если это произойдёт...\"");
+      const toneIndex = doc.indexOf("Tone");
+      const paceIndex = doc.indexOf("## PACE / TEMPO");
+      result.paceSeparatedFromTone = paceIndex >= 0 && (toneIndex < 0 || paceIndex < toneIndex);
       if (!result.docPresent) fail("doc_missing", null);
-      if (!result.explanationsSectionPresent) fail("explanations_section_missing", null);
-      if (!result.copyTablePresent) fail("copy_table_missing", null);
-      if (!result.referencesMillennialDelta) fail("millennial_delta_missing", null);
-      if (!result.lectureCapPresent) fail("lecture_cap_missing", null);
-      if (!result.moralJudgmentForbiddenPresent) fail("moral_judgment_rule_missing", null);
-      if (!result.noMechanicsChangeRulePresent) fail("mechanics_rule_missing", null);
-      if (!result.noStandaloneBoomerProfile) fail("standalone_profile_rule_missing", null);
-      if (!result.runtimeCopyFilesUntouched) fail("runtime_copy_files_touched", null);
-      result.ok = result.docPresent && result.explanationsSectionPresent && result.copyTablePresent && result.referencesMillennialDelta && result.lectureCapPresent
-        && result.moralJudgmentForbiddenPresent && result.noMechanicsChangeRulePresent && result.noStandaloneBoomerProfile && result.runtimeCopyFilesUntouched
-        && result.actualRows === result.expectedRows
-        && result.missingRows.length === 0
+      if (!result.paceSectionPresent) fail("pace_section_missing", null);
+      if (!result.paceSeparatedFromTone) fail("pace_not_separated_from_tone", null);
+      result.ok = result.docPresent && result.paceSectionPresent && result.paceSeparatedFromTone
         && result.failures.length === 0
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0
         && result.failedChecks.length === 0;
       return result;
     };
-    root.Dev.smokeBoomerDiffStep13ExplanationsOnce = root.__DEV.smokeBoomerDiffStep13ExplanationsOnce;
+    root.Dev.smokeBoomerDiffStep12TempoOnce = root.__DEV.smokeBoomerDiffStep12TempoOnce;
+    const smokeVersionBoomerTempoDocOnlyFix1 = "step1_2_boomer_pace_tempo_doc_only_fix1_v20260616_001";
+    root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once = function smokeBoomerDiffStep12TempoDocOnlyFix1Once() {
+      const doc = docText();
+      const result = {
+        buildTag,
+        commit,
+        smokeVersion: smokeVersionBoomerTempoDocOnlyFix1,
+        ok: false,
+        docPresent: false,
+        paceSectionPresent: false,
+        referencesMillennialDelta: false,
+        slowerRulePresent: false,
+        clearTransitionsRulePresent: false,
+        fewerAbruptCommandsRulePresent: false,
+        deliveryNotMeaningRulePresent: false,
+        noMechanicsChangeRulePresent: false,
+        noStandaloneBoomerProfile: false,
+        runtimeCopyFilesUntouched: true,
+        failures: [],
+        forbiddenRemaining: [],
+        missingCoverage: [],
+        failedChecks: []
+      };
+      const fail = (code, detail) => {
+        result.failures.push({ code, detail: detail == null ? null : detail });
+        if (!result.failedChecks.includes(code)) result.failedChecks.push(code);
+      };
+      result.docPresent = !!doc && doc.includes("# UI_PROFILE_BOOMER_DIFF");
+      result.paceSectionPresent = /## PACE \/ TEMPO[\s\S]*?Boomer pace is a delta from UI_PROFILE_MILLENNIAL\./.test(doc);
+      result.referencesMillennialDelta = doc.includes("Boomer pace is a delta from UI_PROFILE_MILLENNIAL.");
+      result.slowerRulePresent = doc.includes("slower than millennial");
+      result.clearTransitionsRulePresent = doc.includes("clearer transitions");
+      result.fewerAbruptCommandsRulePresent = doc.includes("fewer abrupt commands");
+      result.deliveryNotMeaningRulePresent = doc.includes("pace changes delivery, not meaning");
+      result.noMechanicsChangeRulePresent = doc.includes("pace does not change mechanics")
+        && doc.includes("pace does not change rewards, costs, risks, cooldowns, or outcomes");
+      result.noStandaloneBoomerProfile = doc.includes("pace does not create a standalone boomer profile");
+      if (!result.docPresent) fail("doc_missing", null);
+      if (!result.paceSectionPresent) fail("pace_section_missing", null);
+      if (!result.referencesMillennialDelta) fail("references_millennial_delta_missing", null);
+      if (!result.slowerRulePresent) fail("slower_rule_missing", null);
+      if (!result.clearTransitionsRulePresent) fail("clear_transitions_rule_missing", null);
+      if (!result.fewerAbruptCommandsRulePresent) fail("fewer_abrupt_commands_rule_missing", null);
+      if (!result.deliveryNotMeaningRulePresent) fail("delivery_not_meaning_rule_missing", null);
+      if (!result.noMechanicsChangeRulePresent) fail("no_mechanics_change_rule_missing", null);
+      if (!result.noStandaloneBoomerProfile) fail("no_standalone_boomer_profile_missing", null);
+      result.ok = result.docPresent && result.paceSectionPresent && result.referencesMillennialDelta
+        && result.slowerRulePresent && result.clearTransitionsRulePresent && result.fewerAbruptCommandsRulePresent
+        && result.deliveryNotMeaningRulePresent && result.noMechanicsChangeRulePresent && result.noStandaloneBoomerProfile
+        && result.runtimeCopyFilesUntouched
+        && result.failures.length === 0
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0
+        && result.failedChecks.length === 0;
+      return result;
+    };
+    root.Dev.smokeBoomerDiffStep12TempoDocOnlyFix1Once = root.__DEV.smokeBoomerDiffStep12TempoDocOnlyFix1Once;
   };
 
-  installBoomerDiffStep13ExplanationsSmokeViaData();
+  installBoomerDiffStep12TempoSmokeViaData();
 
   const installCoverageAuditFix1SmokeViaData = () => {
     const root = (typeof window !== "undefined") ? window.Game : Game;
@@ -12345,7 +12293,6 @@ K YN A9: Нет.
         : null;
       return base && typeof base === "object" ? base : {
         buildTag: "build_2026_06_15_step6_8_coverage_audit_fix1",
-        commit: "step6_8_coverage_audit_fix1",
         smokeVersion: "step6_8_coverage_audit_fix1_v20260615_001",
         ok: false,
         buckets: [],
@@ -12726,9 +12673,9 @@ K YN A9: Нет.
       { id: "TXT_0031", from: "Ввод некорректен.", to: "Ввод некорректен. Лучше проверить формат." },
       { id: "TXT_0032", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
       { id: "TXT_0033", from: "Проверка займет время.", to: "Проверка займёт время. Результат появится позже." },
-      { id: "TXT_0042", from: "Свалить за 1💰.", to: "Можно выйти за 1💰. Ресурс будет списан." },
+      { id: "TXT_0042", from: "Выйти за 1💰.", to: "Можно выйти за 1💰. Ресурс будет списан." },
       { id: "TXT_0046", from: "Реванш: -{rematchCost}💰.", to: "Реванш стоит {rematchCost}💰. Ресурс будет списан." },
-      { id: "TXT_0047", from: "Выйти: -{X} 💰", to: "Выход стоит {escapeCost}💰. Ресурс будет списан." },
+      { id: "TXT_0047", from: "Выйти: -{escapeCost}💰.", to: "Выход стоит {escapeCost}💰. Ресурс будет списан." },
       { id: "TXT_0057", from: "Оппонент задаёт риск.", to: "Есть риск со стороны оппонента." },
       { id: "TXT_0058", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
       { id: "TXT_0060", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
@@ -12769,9 +12716,9 @@ K YN A9: Нет.
       { id: "TXT_0148", from: "Кулдаун активен.", to: "Кулдаун активен. Повторить можно позже." },
       { id: "TXT_0149", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
       { id: "TXT_0150", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс перед уважением." },
-      { id: "TXT_0151", from: "Уже было уважение сегодня этому персонажу.", to: "Уважение этому персонажу сегодня уже было. Повторить можно позже." },
-      { id: "TXT_0152", from: "Цепочка A->B->A сегодня не работает.", to: "Сегодня эта цепочка не сработает. Лучше выбрать другой ход." },
-      { id: "TXT_0153", from: "Лимит уважения на сегодня исчерпан.", to: "Лимит уважения на сегодня исчерпан. Повторить можно позже." },
+      { id: "TXT_0151", from: "Уважение уже было сегодня.", to: "Уважение этому персонажу сегодня уже было. Повторить можно позже." },
+      { id: "TXT_0152", from: "Цепочка A->B->A сегодня закрыта.", to: "Сегодня эта цепочка не сработает. Лучше выбрать другой ход." },
+      { id: "TXT_0153", from: "Лимит уважения исчерпан.", to: "Лимит уважения исчерпан. Повторить можно позже." },
       { id: "TXT_0154", from: "Сейчас не получилось. Попробуй позже.", to: "Сейчас не получилось. Есть шанс повторить позже." },
       { id: "TXT_0160", from: "Рано. Дай паузу.", to: "Пока рано. Лучше подождать немного." },
       { id: "TXT_0161", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },

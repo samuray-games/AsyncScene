@@ -19,6 +19,33 @@
     minority_lost: true,
     conflict_finished: true,
   });
+  const BATTLE_FALLBACK_TEXTS = Object.freeze({
+    default: Object.freeze({
+      draw_fallback: "Толпа решает",
+      escaped_fallback: "Свалить",
+      ignored_fallback: "Отвали"
+    }),
+    millennial: Object.freeze({
+      draw_fallback: "Толпа решает",
+      escaped_fallback: "Свалить",
+      ignored_fallback: "Отвали"
+    }),
+    zoomer: Object.freeze({
+      draw_fallback: "Толпа решает",
+      escaped_fallback: "Свалить",
+      ignored_fallback: "Отвали"
+    }),
+    alpha: Object.freeze({
+      draw_fallback: "Толпа решает",
+      escaped_fallback: "Уйти",
+      ignored_fallback: "Отвали"
+    }),
+    boomer: Object.freeze({
+      draw_fallback: "Решает голосование",
+      escaped_fallback: "Выйти",
+      ignored_fallback: "Вызов отклонён"
+    })
+  });
 
   // Local helpers
   function now(){ return Date.now(); }
@@ -64,6 +91,16 @@
   function conflictResultText(key) {
     const resolved = resolveConflictResultPresentation(key);
     return resolved && resolved.text ? resolved.text : "";
+  }
+  function battleFallbackText(key) {
+    const requestedKey = typeof key === "string" ? key.trim() : "";
+    const D = Game.Data || null;
+    const profile = D && typeof D.resolveUiTextProfileName === "function"
+      ? D.resolveUiTextProfileName()
+      : "default";
+    const table = BATTLE_FALLBACK_TEXTS[profile] || BATTLE_FALLBACK_TEXTS.default;
+    const fallbackTable = BATTLE_FALLBACK_TEXTS.default;
+    return String((table && table[requestedKey]) || fallbackTable[requestedKey] || "");
   }
   function clamp0(n){ return Math.max(0, n|0); }
   const DRAW_VOTE_DURATION_MS = 10000;
@@ -974,9 +1011,9 @@
     const r = String(b.result || "").toLowerCase();
     if (r === "win") return conflictResultText("conflict_win") || "Победа";
     if (r === "lose") return conflictResultText("conflict_loss") || "Поражение";
-    if (r === "draw") return conflictResultText("conflict_draw") || "Толпа решает";
-    if (r === "escaped") return "Свалить";
-    if (r === "ignored") return "Отвали";
+    if (r === "draw") return battleFallbackText("draw_fallback") || "Толпа решает";
+    if (r === "escaped") return battleFallbackText("escaped_fallback") || "Свалить";
+    if (r === "ignored") return battleFallbackText("ignored_fallback") || "Отвали";
     if (r === "stay" || r === "blocked") return "Остался";
     return "Итог";
   }
@@ -1689,18 +1726,6 @@
     } catch (_) {}
   }
 
-  function withRepSourceOverride(fn){
-    try {
-      // Do not swap Game.__A.transferRep here: StateAPI methods are protected by
-      // state.js security guards, and crowd_pool is already an emitter source in
-      // transferRep. A temporary method replacement is valid-looking gameplay work
-      // but trips tamper detection and can make later normal actions appear blocked.
-      return fn();
-    } catch (_) {
-      return fn();
-    }
-  }
-
   function logCrowdCapDebugRaw(meta){
     if (!meta) return;
     const dbg = Game.__D || (Game.__D = {});
@@ -1800,6 +1825,15 @@
       else if (side === "b" || side === "defender") b += w;
     }
     return { a, b };
+  }
+
+  function conflictAuditLog(message){
+    if (!message) return;
+    try { console.warn(message); } catch (_) {}
+  }
+
+  function logBattleVoteAllowedFlow(flow){
+    conflictAuditLog(`[SEC_AUDIT] battle-vote-allowed-api-only flow=${String(flow || "unknown")}`);
   }
 
   function resolveCrowdCore(crowd, ctx, participants){
@@ -2384,6 +2418,7 @@
     }
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const relate = { kind: "battle", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    logBattleVoteAllowedFlow("battle");
     const res = resolveCrowdCore(v, relate, participants);
     const totalVotes = getCrowdTotalVotes(v);
     const customEndedBy = (opts && typeof opts.endedBy === "string") ? opts.endedBy : null;
@@ -2461,9 +2496,9 @@
         const hadToxic = !!b.toxicHitApplied;
         const hadBandit = !!b.banditRobbed;
         if (role === "bandit") {
-          b.resultLine = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
-            ? Game.Data.SYS.banditRobbed
-            : (systemSay("systemEvents", "banditRobbed") || "Бандит забрал 💰.");
+        b.resultLine = (Game.Data && Game.Data.SYS && Game.Data.SYS.banditRobbed)
+          ? Game.Data.SYS.banditRobbed
+          : (systemSay("systemEvents", "banditRobbed") || "Бандит забрал 💰.");
         } else {
           b.resultLine = (Game.Data && Game.Data.SYS && typeof Game.Data.SYS.toxicStealLine === "function")
             ? Game.Data.SYS.toxicStealLine(5)
@@ -2477,18 +2512,18 @@
         }
       } else {
         b.resultLine = conflictResultText("majority_won") || "Победа";
-        withRepSourceOverride(() => applyEconomyForOutcome(b.result, b));
+        applyEconomyForOutcome(b.result, b);
       }
     } else if (attackerWins) {
       b.result = iAmAttacker ? "win" : (iAmDefender ? "lose" : "win");
-      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
-      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      if (iAmAttacker) applyEconomyForOutcome("win", b);
+      if (iAmDefender) applyEconomyForOutcome("lose", b);
       b.note = "Толпа решила: атакующий затащил.";
       b.resultLine = conflictResultText(b.result === "win" ? "conflict_win" : "conflict_loss") || (b.result === "win" ? "Победа" : "Поражение");
     } else {
       b.result = iAmDefender ? "win" : (iAmAttacker ? "lose" : "lose");
-      if (iAmDefender) withRepSourceOverride(() => applyEconomyForOutcome("win", b));
-      if (iAmAttacker) withRepSourceOverride(() => applyEconomyForOutcome("lose", b));
+      if (iAmDefender) applyEconomyForOutcome("win", b);
+      if (iAmAttacker) applyEconomyForOutcome("lose", b);
       b.note = "Толпа решила: защитник отбился.";
       b.resultLine = conflictResultText(b.result === "win" ? "supported_majority" : "supported_minority") || (b.result === "win" ? "Победа" : "Поражение");
     }
@@ -2528,6 +2563,7 @@
     if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
     const relate = { kind: "escape", battleId: b.id || b.battleId || null, aId: v.attackerId, bId: v.defenderId };
+    logBattleVoteAllowedFlow("escape");
     const res = resolveCrowdCore(v, relate, participants);
     const votesA = (res && res.sideStats && res.sideStats.a) ? (res.sideStats.a.count | 0) : (v.votesA | 0);
     const votesB = (res && res.sideStats && res.sideStats.b) ? (res.sideStats.b.count | 0) : (v.votesB | 0);
@@ -2588,8 +2624,12 @@
     if (allow) {
       const mode = (v.mode || "smyt");
       b.result = (mode === "off") ? "ignored" : "escaped";
-      b.note = (mode === "off") ? "Толпа решает: Отвали." : "Толпа решает: Свалить.";
-      b.resultLine = (mode === "off") ? "Отвали" : "Свалить";
+      b.note = (mode === "off")
+        ? `Толпа решает: ${battleFallbackText("ignored_fallback") || "Отвали"}.`
+        : `Толпа решает: ${battleFallbackText("escaped_fallback") || "Свалить"}.`;
+      b.resultLine = (mode === "off")
+        ? (battleFallbackText("ignored_fallback") || "Отвали")
+        : (battleFallbackText("escaped_fallback") || "Свалить");
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
       // Refund +1 ⭐ on success (once)
       try {
@@ -3183,8 +3223,8 @@
         b.finished = true;
         b.result = "ignored";
         b.status = "finished";
-        b.note = "Отвали.";
-        b.resultLine = "Отвали";
+        b.note = `${battleFallbackText("ignored_fallback") || "Отвали"}.`;
+        b.resultLine = battleFallbackText("ignored_fallback") || "Отвали";
         b.attackHidden = false;
         b.draw = false;
         b.crowd = null;
@@ -3652,7 +3692,7 @@
             b.draw = false;
             b.wasDraw = true;
             b.result = null;
-            b.resultLine = "Толпа решает";
+            b.resultLine = battleFallbackText("draw_fallback") || "Толпа решает";
             b.status = "crowd";
             b.finished = false;
             b.resolved = false;
@@ -3834,8 +3874,9 @@
               b.mafiaShameAnnounced = true;
             }
           } else {
-            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? "Свалить." : "Поражение.");
-            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? "Свалить" : "Поражение");
+            const escapedText = battleFallbackText("escaped_fallback") || "Свалить";
+            b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? `${escapedText}.` : "Поражение.");
+            b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? escapedText : "Поражение");
           }
 
           if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
@@ -4229,7 +4270,12 @@
   }
 
   function wrapConflictCore(core){
-    if (!core || core.__intrusionWrapped) return core;
+    if (!core) return core;
+    if (conflictMode !== "dev") {
+      conflictAuditLog("[SEC_AUDIT] prod-debug-hook-disabled hook=conflict-core.computeOutcome");
+      return core;
+    }
+    if (core.__intrusionWrapped) return core;
     const handler = {
       get(target, prop, receiver){
         if (prop === "computeOutcome") {
