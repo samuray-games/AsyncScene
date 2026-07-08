@@ -36,11 +36,15 @@ window.Game = window.Game || {};
     }),
   });
   const resolveEventVoteProfile = (profile) => {
-    const explicitProfile = String(profile == null ? "" : profile).trim().toLowerCase();
-    if (EVENT_VOTE_PROFILE_SET.has(explicitProfile)) return explicitProfile;
+    const explicitRaw = String(profile == null ? "" : profile).trim();
+    if (explicitRaw) {
+      const explicitProfile = explicitRaw.toLowerCase();
+      return EVENT_VOTE_PROFILE_SET.has(explicitProfile) ? explicitProfile : "default";
+    }
     const Data = Game.Data || null;
     if (Data && typeof Data.getUiProfile === "function") {
-      const getterProfile = String(Data.getUiProfile() == null ? "" : Data.getUiProfile()).trim().toLowerCase();
+      const rawGetterProfile = Data.getUiProfile();
+      const getterProfile = String(rawGetterProfile == null ? "" : rawGetterProfile).trim().toLowerCase();
       if (EVENT_VOTE_PROFILE_SET.has(getterProfile)) return getterProfile;
     }
     if (Data) {
