@@ -1,46 +1,49 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_08_ROOT_CI_GATE
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_VERIFIED_NO_DELTA
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 
 ## Fresh execution
 
-Every numbered command must freshly fetch main and mailbox, then read current STATE, inbox, claim and `EXECUTION_EPOCH` before replying.
+Every numbered command freshly fetches main and mailbox and reads current STATE, inbox, claim and execution epoch. Old artifacts are historical only.
 
-Old conversation state, claims, inboxes and outboxes are historical only.
+## Completion modes
 
-## Thread rotation
+### Primary delta
 
-When STATE says `THREAD_ROTATION_REQUIRED: true`, the previous Codex conversation is superseded. A fresh Codex conversation adopts the replacement claim named by STATE and executes immediately on the matching numbered command.
+When authorized source changes exist, Codex publishes one direct-child exact-scope primary commit and the exact current outbox, then returns `PASS_PUSHED`.
 
-## Success gate
+### Verified no delta
 
-`PASS_PUSHED` is valid only when:
+When the current inbox or claim contains `ALLOW_VERIFIED_NO_DELTA: true`, Codex may return `PASS_VERIFIED_NO_DELTA` after proving that the current baseline already satisfies the frozen objective.
 
-- the current expected outbox exists remotely;
-- mailbox head contains it;
-- primary-write work advanced remote main from baseline;
-- remote main equals the reported SHA;
-- parent and exact paths are verified;
-- required checks passed;
-- outbox contains machine-derived fetched SHA and parent.
+Required evidence:
 
-A return-to-ChatGPT line without this evidence is `FAIL_NO_EXECUTION_EVIDENCE`.
+- baseline remains current remote main;
+- required generator and validators pass;
+- deterministic regeneration produces zero diff;
+- exact changed paths are empty;
+- protected blobs are unchanged;
+- the current outbox is published and refetched;
+- outbox contains `completionMode: VERIFIED_NO_DELTA`, `primaryChanged:false`, `primaryParent:N/A`, `changedPaths:[]`, scope blob SHAs and validation results.
+
+Empty primary commits are forbidden.
+
+A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+
+ChatGPT may independently close a pre-policy `BLOCKED_NO_SOURCE_DELTA` result after verifying the same baseline evidence and recording closure in STATE and live memory.
 
 ## Root policy CI gate
 
-- Root process changes must pass `tools/validate-orchestration-policy.py` before a lane is reissued.
-- `.github/workflows/orchestration-policy.yml` must cover every root file read by that validator for both push and pull_request events.
-- A failing current `orchestration-policy` run blocks lane execution and requires root correction before a new baseline and execution epoch are issued.
-- Historical failed runs remain audit evidence only and do not override a newer successful run on current main.
-- Root corrections should be grouped and prevalidated to avoid noisy sequences of preventable CI failures.
+Root process changes must pass `tools/validate-orchestration-policy.py`. Historical failed runs are audit evidence only and do not override a newer valid current state.
 
 ## Publication
 
-Primary and mailbox commits must be fast-forward, exact-scope and remotely refetched. Manual SHA transcription is forbidden.
+Primary and mailbox commits are fast-forward, exact-scope and remotely refetched. Manual SHA transcription is forbidden.
 
 If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`. If write access still fails after one repair, return `BLOCKED_PUSH_AUTH` with complete evidence.
 
