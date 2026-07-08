@@ -64,12 +64,12 @@ def main() -> int:
     docs = {name: path.read_text(encoding="utf-8") for name, path in FILES.items()}
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    require(docs["agents"], "BRIDGE_PROTOCOL: 3.1", "AGENTS.md", failures)
-    require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_1", "AGENTS.override.md", failures)
-    require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.1", "ORCHESTRATION.md", failures)
-    require(docs["bridge"], "BRIDGE_PROTOCOL: 3.1", "BRIDGE.md", failures)
-    require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_1", "GIT_PULL.md", failures)
-    require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_1", "GIT_PUSH.md", failures)
+    require(docs["agents"], "BRIDGE_PROTOCOL: 3.2", "AGENTS.md", failures)
+    require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_2", "AGENTS.override.md", failures)
+    require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.2", "ORCHESTRATION.md", failures)
+    require(docs["bridge"], "BRIDGE_PROTOCOL: 3.2", "BRIDGE.md", failures)
+    require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_2", "GIT_PULL.md", failures)
+    require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
     require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
 
     for label, text in docs.items():
@@ -78,6 +78,7 @@ def main() -> int:
         forbid(text, "BRIDGE_PROTOCOL: 3.0", FILES[label].name, failures)
         forbid(text, "ORCHESTRATION_VERSION: 3.0", FILES[label].name, failures)
         forbid(text, "MODEL_PREFLIGHT_ONLY", FILES[label].name, failures)
+        forbid(text, "runtime-" + "safety-gate", FILES[label].name, failures)
 
     for text_name in ("agents", "override", "orchestration", "bridge"):
         require(docs[text_name], "FAIL_NO_EXECUTION_EVIDENCE", FILES[text_name].name, failures)
@@ -111,9 +112,18 @@ def main() -> int:
                 f"{policy_path!r}, found {occurrence_count}"
             )
 
+    for required in ("scope-isolation-check", "BLOCKED_SCOPE_COLLISION"):
+        require(docs["agents"], required, "AGENTS.md", failures)
+        require(docs["orchestration"], required, "ORCHESTRATION.md", failures)
+        require(docs["bridge"], required, "BRIDGE.md", failures)
+
+    for text_name in ("override", "orchestration", "bridge", "push"):
+        require(docs[text_name], "PASS_PUSHED", FILES[text_name].name, failures)
+        require(docs[text_name], "PASS_VERIFIED_NO_DELTA", FILES[text_name].name, failures)
+
     result = {
         "ok": not failures,
-        "orchestrationVersion": "3.1",
+        "orchestrationVersion": "3.2",
         "rootCauseSync": "REQUIRED",
         "noOpCompletion": "FORBIDDEN",
         "verifiedNoDelta": "ALLOWED_WITH_EVIDENCE",

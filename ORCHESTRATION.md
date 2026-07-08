@@ -1,7 +1,7 @@
 # Asynchronia Orchestration Protocol
 
-ORCHESTRATION_VERSION: 3.1
-BRIDGE_PROTOCOL: 3.1
+ORCHESTRATION_VERSION: 3.2
+BRIDGE_PROTOCOL: 3.2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
@@ -10,6 +10,10 @@ STATUS: ACTIVE
 ## Authority
 
 Use current remote `AGENTS.override.md`, `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, Git policies, mailbox publication policy, STATE, current inbox and current claim. Historical artifacts are audit-only.
+
+Exact scope ownership and collision checks are handled by `scope-isolation-check`.
+
+Scope collisions return `BLOCKED_SCOPE_COLLISION`.
 
 ## Canonical loop
 

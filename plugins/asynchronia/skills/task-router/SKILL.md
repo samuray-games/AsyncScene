@@ -39,10 +39,10 @@ Apply these rules in order:
 
 ### 2. Runtime safety
 
-- Runtime-sensitive work must pass `runtime-safety-gate`.
-- A runtime gate result overrides any parallel or implementation recommendation.
-- `RUNTIME_SAFETY_GATE_REQUIRED` blocks writes until valid same-thread approval.
-- The router cannot accept or manufacture runtime approval.
+- Runtime-sensitive work must pass `scope-isolation-check`.
+- A scope collision result overrides any parallel or implementation recommendation.
+- `BLOCKED_SCOPE_COLLISION` blocks writes until overlapping scope.
+- The router cannot accept or manufacture scope isolation.
 
 ### 3. Scope integrity
 
@@ -123,21 +123,21 @@ Secondary flags may include:
 
 ### `READ_ONLY_ANALYSIS`
 
-- runtime-safety-gate classification only
+- scope-isolation-check classification only
 - model-selector when substantial reasoning is required
 - no implementation
 - no Safari smoke unless explicitly analyzing a runtime smoke result
 
 ### `DOCUMENTATION_ONLY`
 
-- runtime-safety-gate
+- scope-isolation-check
 - model-selector
-- no runtime approval
+- no scope isolation
 - no Safari smoke
 
 ### `PLUGIN_POLICY`
 
-- runtime-safety-gate
+- scope-isolation-check
 - model-selector
 - mandatory `MODEL_PREFLIGHT_ONLY` before implementation
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
@@ -150,7 +150,7 @@ Secondary flags may include:
 
 ### `UI_ONLY`
 
-- runtime-safety-gate
+- scope-isolation-check
 - model-selector
 - Build Web Apps recommendation when useful
 - preserve UI/logic separation
@@ -158,7 +158,7 @@ Secondary flags may include:
 
 ### `RUNTIME_LOGIC`
 
-- runtime-safety-gate
+- scope-isolation-check
 - model-selector
 - isolated serialized runtime slot
 - mirror synchronization when applicable
@@ -192,7 +192,7 @@ Secondary flags may include:
 
 ### `SECURITY_SENSITIVE`
 
-- runtime-safety-gate
+- scope-isolation-check
 - model-selector
 - Codex Security recommendation when available
 - explicit threat and permission scope
@@ -202,12 +202,12 @@ Secondary flags may include:
 
 - parallel-scope-planner
 - model-selector per implementation lane
-- runtime-safety-gate per runtime lane
+- scope-isolation-check per runtime lane
 - one final shared documentation owner
 
 ### `RELEASE_ACCEPTANCE`
 
-- runtime-safety-gate
+- scope-isolation-check
 - parallel-scope-planner when multiple lanes remain
 - model-selector
 - `canon-audit` when the intended accepted behavior is part of the release evidence
@@ -345,7 +345,7 @@ Acceptance Evidence Gate decides whether supplied evidence authorizes status pro
 
 When multiple audits or acceptance skills apply, use this dependency order:
 
-1. `runtime-safety-gate`
+1. `scope-isolation-check`
 2. `canon-audit`
 3. `economy-invariant-audit`
 4. `mirror-audit`
@@ -419,7 +419,7 @@ Return `BLOCKED` when:
 - a requested model or plugin does not exist
 - required repository context is unavailable
 - the user replies `CONTINUE` before a valid model preflight recommendation exists
-- the user asks to bypass runtime approval or Safari acceptance
+- the user asks to bypass scope isolation or Safari acceptance
 - canon or economy requirements conflict and no authoritative rule resolves them
 
 ## 11. Truthfulness
@@ -427,7 +427,7 @@ Return `BLOCKED` when:
 Never claim:
 
 - the active model was verified
-- runtime approval exists when it does not
+- scope isolation exists when it does not
 - routing to `canon-audit`, `economy-invariant-audit`, or `mirror-audit` means that audit passed
 - an external plugin was invoked without evidence
 - runtime acceptance passed without user smoke

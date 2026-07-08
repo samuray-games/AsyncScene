@@ -67,9 +67,9 @@ This contract is subordinate to the acceptance controller and must not replace i
 
 ### Runtime safety gate
 
-- `runtime-safety-gate` owns runtime approval requirements.
+- `scope-isolation-check` owns scope isolation requirements.
 - `5.4` may route to approval-required or approval-invalidated states.
-- `5.4` must not bypass or redefine runtime approval.
+- `5.4` must not bypass or redefine scope isolation.
 
 ### Parallel scope planner
 
@@ -106,7 +106,7 @@ Each failure must be classified into exactly one primary class:
 - `lock_expired`: a previously valid lock exists, but its expiry time has passed.
 - `lock_revalidation_required`: lock identity, owner, scope, revision, or status is stale, ambiguous, malformed, or mismatched.
 - `active_lock_conflict`: another current ACTIVE lock overlaps the intended write scope or serialized ownership group.
-- `runtime_approval_required`: the failure cannot proceed until runtime approval exists for the exact sensitive scope.
+- `runtime_approval_required`: the failure cannot proceed until scope isolation exists for the exact sensitive scope.
 - `user_action_required`: the next action depends on user-owned evidence, user acceptance, or another user-only step.
 - `external_dependency_block`: the workflow is blocked by an unavailable external dependency, service, or environment prerequisite.
 - `terminal_failure`: the condition is authoritative, non-recoverable for the current attempt, and must stop.
@@ -242,7 +242,7 @@ Retry and correction are distinct.
 ### Correction rules
 
 - If the correction changes artifact identity, downstream evidence tied to the old identity becomes stale until revalidated.
-- If the correction changes runtime-sensitive scope, runtime approval must be revalidated.
+- If the correction changes runtime-sensitive scope, scope isolation must be revalidated.
 - If the correction changes ownership or scope boundaries, scope revalidation is required before further progress.
 
 ## 8. Restart versus resume
@@ -360,7 +360,7 @@ Unknown, malformed, contradictory, stale, or ambiguous failure states must fail 
 - If the artifact identity is unresolved, route to `scope_revalidation_required` or `block` depending on whether identity can be recovered safely.
 - If evidence ownership is unclear, route to `block`.
 - If the lock state cannot be trusted, route to `LOCK_REVALIDATION_REQUIRED` or `block`.
-- If runtime approval is required but absent, route to `wait_for_runtime_approval`.
+- If scope isolation is required but absent, route to `wait_for_runtime_approval`.
 - If the state is superseded, route to `restart`.
 - If the failure state is terminal, do not retry.
 
@@ -383,7 +383,7 @@ This contract must route at least the following cases:
 - prior lock expired -> `lock_expired`
 - lock evidence is stale, unverifiable, or mismatched -> `lock_revalidation_required`
 - another ACTIVE lock overlaps the scope -> `active_lock_conflict`
-- runtime approval missing or invalidated -> `runtime_approval_required`
+- scope isolation missing or invalidated -> `runtime_approval_required`
 - scope expansion -> `scope_revalidation_required`
 - dependency unavailable -> `external_dependency_block`
 - user acceptance missing -> `user_action_required`
@@ -423,7 +423,7 @@ Return all of these fields:
 - `[5.2]` boundary
 - `[5.3]` boundary
 - `acceptance-evidence-gate` relationship
-- `runtime-safety-gate` relationship
+- `scope-isolation-check` relationship
 - `parallel-scope-planner` relationship
 - supported failure cases
 - deterministic next-action mapping

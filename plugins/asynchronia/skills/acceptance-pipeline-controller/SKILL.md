@@ -48,7 +48,7 @@ Before coordinating the pipeline:
 
 This controller composes only these accepted skills:
 
-- `runtime-safety-gate`
+- `scope-isolation-check`
 - `task-router`
 - `model-selector`
 - `parallel-scope-planner`
@@ -81,8 +81,8 @@ Run the pipeline in this order.
 
 ### 1. Runtime safety classification
 
-- Apply `runtime-safety-gate` first.
-- If runtime-sensitive files are required and valid same-thread runtime approval is absent, stop immediately with `RUNTIME_SAFETY_GATE_REQUIRED`.
+- Apply `scope-isolation-check` first.
+- If runtime-sensitive files are required and valid same-thread scope isolation is absent, stop immediately with `BLOCKED_SCOPE_COLLISION`.
 - Never treat a small, mechanical, or documentation-adjacent runtime touch as exempt.
 
 ### 2. Task classification and scope determination
@@ -215,7 +215,7 @@ Rules:
 
 - `CONTINUE` resumes work only after a valid model preflight for the unchanged scope
 - `CONTINUE` does not authorize runtime-sensitive writes
-- `APPROVE` applies only through the `runtime-safety-gate` same-thread protocol for one exact pending runtime task
+- `APPROVE` applies only through the `scope-isolation-check` same-thread protocol for one exact pending runtime task
 - model selection and runtime authorization are separate gates and must never be merged
 
 ## 10. Mandatory stopping states
@@ -224,7 +224,7 @@ Stop immediately rather than continuing when the current pipeline state is any a
 
 - `WAITING_FOR_MODEL_SELECTION`
 - `WAITING_ON_LOCK`
-- `RUNTIME_SAFETY_GATE_REQUIRED`
+- `BLOCKED_SCOPE_COLLISION`
 - `BLOCKED`
 - `FAIL`
 - `READY_FOR_RUNTIME_SMOKE`
