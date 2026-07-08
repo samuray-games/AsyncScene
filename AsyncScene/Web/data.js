@@ -360,13 +360,14 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.getUiProfile = () => Data.normalizeUiProfile(Data.UI_PROFILE);
 
-  // Text mode (genz | alpha)
+  // Text mode (millennial | zoomer | alpha | boomer)
   Data.TEXT_MODE = "millennial";
   const resolveUiTextMode = (profile) => {
     const normalized = typeof Data.normalizeUiProfile === "function"
       ? Data.normalizeUiProfile(profile)
       : String(profile || "").trim().toLowerCase();
-    if (normalized === "zoomer" || normalized === "alpha") return "zoomer";
+    if (normalized === "zoomer") return "zoomer";
+    if (normalized === "alpha") return "alpha";
     if (normalized === "boomer") return "boomer";
     return "millennial";
   };
@@ -374,7 +375,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     const rawForced = String(forcedProfile == null ? "" : forcedProfile).trim();
     if (rawForced) return resolveUiTextMode(rawForced);
     const rawMode = String(Data.TEXT_MODE || "").trim().toLowerCase();
-    if (rawMode === "zoomer" || rawMode === "alpha" || rawMode === "genz") return "zoomer";
+    if (rawMode === "zoomer" || rawMode === "genz") return "zoomer";
+    if (rawMode === "alpha") return "alpha";
     if (rawMode === "boomer") return "boomer";
     const activeProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
     return resolveUiTextMode(activeProfile);
@@ -529,7 +531,16 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   };
   Data.TEXTS.millennial = Data.TEXTS.genz;
   Data.TEXTS.default = Data.TEXTS.genz;
-  Data.TEXTS.zoomer = Data.TEXTS.alpha;
+  const ZOOMER_TEXTS_BASELINE = Data.TEXTS.alpha;
+  Data.TEXTS.zoomer = ZOOMER_TEXTS_BASELINE;
+  Data.TEXTS.alpha = Object.freeze({
+    ...ZOOMER_TEXTS_BASELINE,
+    escape_button_label: "Уйти: −{X}💰",
+    teach_sent_dm: "{student}: {arg}. Цена {cost} 💰.",
+    teach_sent_chat: "Аргумент: {teacher} → {student}.",
+    invite_open_hint: "Указать имя",
+    invite_invalid: "Игрок: нет"
+  });
   Data.TEXTS.boomer = Object.freeze({
     ...Data.TEXTS.genz,
     tie_start: "ГОЛОСОВАНИЕ",
@@ -537,14 +548,15 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     tie_click_name_hint: "ВЫБЕРИТЕ ИМЯ",
     dm_action_unavailable: "Действие недоступно.",
     battle_draw: "НИЧЬЯ",
-    conflict_win: "Победа в конфликте.",
-    conflict_loss: "Поражение в конфликте.",
+    conflict_win: "Победа",
+    conflict_loss: "Поражение",
     conflict_draw: "Ничья в конфликте.",
     supported_minority: "Вы поддержали меньшинство.",
     battle_not_enough_points: "Недостаточно 💰.",
     teach_sent_dm: "Для {student}: {arg}. Цена: {cost} 💰.",
     teach_sent_chat: "Аргумент передан: {teacher} → {student}.",
     invite_open_hint: "Введите точное имя игрока.",
+    invite_invalid: "Игрок отсутствует.",
     hint_type_who: "Ответьте: кто?",
     hint_type_where: "Ответьте: где?",
     hint_type_about: "Ответьте: о ком?",
@@ -560,7 +572,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     battle_invite_title: "Вызов",
     battles_empty: "Конфликтов нет.",
     dm_empty: "Сообщений пока нет.",
-    escape_button_label: "Выйти: -{X} 💰",
+    escape_button_label: "Выйти за {X} 💰.",
     events_clear: "Очистить",
     events_clear_all: "Очистить",
     events_close_extra: "Свернуть",
@@ -727,7 +739,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       [4, "Оформляю материалы. Связь будет позже."],
       [5, "Сейчас много работы. Сообщение принято."],
       [6, "Разбираю ситуацию. Скоро вернусь."],
-      [7, "Сейчас ответить не получится. Вернусь позже."],
+      [7, "Сейчас занят. Вернусь позже."],
       [8, "Оформляю материалы. Отвечу позже."],
       [9, "Сейчас на вызове. Вернусь через минуту."]
     ],
