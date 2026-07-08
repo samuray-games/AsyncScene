@@ -21,29 +21,29 @@
   });
   const BATTLE_FALLBACK_TEXTS = Object.freeze({
     default: Object.freeze({
-      draw_fallback: "Толпа решает",
-      escaped_fallback: "Свалить",
-      ignored_fallback: "Отвали"
+      "battle.draw_fallback": "Толпа решает",
+      "battle.escaped_fallback": "Свалить",
+      "battle.ignored_fallback": "Отвали"
     }),
     millennial: Object.freeze({
-      draw_fallback: "Толпа решает",
-      escaped_fallback: "Свалить",
-      ignored_fallback: "Отвали"
+      "battle.draw_fallback": "Толпа решает",
+      "battle.escaped_fallback": "Свалить",
+      "battle.ignored_fallback": "Отвали"
     }),
     zoomer: Object.freeze({
-      draw_fallback: "Толпа решает",
-      escaped_fallback: "Свалить",
-      ignored_fallback: "Отвали"
+      "battle.draw_fallback": "Толпа решает",
+      "battle.escaped_fallback": "Свалить",
+      "battle.ignored_fallback": "Отвали"
     }),
     alpha: Object.freeze({
-      draw_fallback: "Толпа решает",
-      escaped_fallback: "Уйти",
-      ignored_fallback: "Отвали"
+      "battle.draw_fallback": "Толпа решает",
+      "battle.escaped_fallback": "Уйти",
+      "battle.ignored_fallback": "Отвали"
     }),
     boomer: Object.freeze({
-      draw_fallback: "Решает голосование",
-      escaped_fallback: "Выйти",
-      ignored_fallback: "Вызов отклонён"
+      "battle.draw_fallback": "Решает голосование",
+      "battle.escaped_fallback": "Выйти",
+      "battle.ignored_fallback": "Вызов отклонён"
     })
   });
 
@@ -101,6 +101,12 @@
     const table = BATTLE_FALLBACK_TEXTS[profile] || BATTLE_FALLBACK_TEXTS.default;
     const fallbackTable = BATTLE_FALLBACK_TEXTS.default;
     return String((table && table[requestedKey]) || fallbackTable[requestedKey] || "");
+  }
+  function battleFallbackSentence(resultKey, punctuation) {
+    const prefix = battleFallbackText("battle.draw_fallback") || "Толпа решает";
+    const fallback = resultKey === "battle.ignored_fallback" ? "Отвали" : "Свалить";
+    const result = battleFallbackText(resultKey) || fallback;
+    return `${prefix}: ${result}${punctuation || "."}`;
   }
   function clamp0(n){ return Math.max(0, n|0); }
   const DRAW_VOTE_DURATION_MS = 10000;
@@ -1011,9 +1017,9 @@
     const r = String(b.result || "").toLowerCase();
     if (r === "win") return conflictResultText("conflict_win") || "Победа";
     if (r === "lose") return conflictResultText("conflict_loss") || "Поражение";
-    if (r === "draw") return battleFallbackText("draw_fallback") || "Толпа решает";
-    if (r === "escaped") return battleFallbackText("escaped_fallback") || "Свалить";
-    if (r === "ignored") return battleFallbackText("ignored_fallback") || "Отвали";
+    if (r === "draw") return battleFallbackText("battle.draw_fallback") || "Толпа решает";
+    if (r === "escaped") return battleFallbackText("battle.escaped_fallback") || "Свалить";
+    if (r === "ignored") return battleFallbackText("battle.ignored_fallback") || "Отвали";
     if (r === "stay" || r === "blocked") return "Остался";
     return "Итог";
   }
@@ -2625,11 +2631,11 @@
       const mode = (v.mode || "smyt");
       b.result = (mode === "off") ? "ignored" : "escaped";
       b.note = (mode === "off")
-        ? `Толпа решает: ${battleFallbackText("ignored_fallback") || "Отвали"}.`
-        : `Толпа решает: ${battleFallbackText("escaped_fallback") || "Свалить"}.`;
+        ? battleFallbackSentence("battle.ignored_fallback", ".")
+        : battleFallbackSentence("battle.escaped_fallback", ".");
       b.resultLine = (mode === "off")
-        ? (battleFallbackText("ignored_fallback") || "Отвали")
-        : (battleFallbackText("escaped_fallback") || "Свалить");
+        ? (battleFallbackText("battle.ignored_fallback") || "Отвали")
+        : (battleFallbackText("battle.escaped_fallback") || "Свалить");
       applyEscapeEconomyPenalties(REP_ESCAPE_PENALTY_OK, "rep_escape_ok_penalty", INF_ESCAPE_PENALTY_OK);
       // Refund +1 ⭐ on success (once)
       try {
@@ -2937,7 +2943,9 @@
     };
     b.status = "escape_vote";
     b.result = "escape_vote";
-    b.note = (modeNorm === "off") ? "Толпа решает: Отвали?" : "Толпа решает: Свалить?";
+    b.note = (modeNorm === "off")
+      ? battleFallbackSentence("battle.ignored_fallback", "?")
+      : battleFallbackSentence("battle.escaped_fallback", "?");
     b.resultLine = (modeNorm === "off") ? "Отвали?" : "Свалить?";
     b.updatedAt = now();
     startEscapeVoteTimer(b);
@@ -3223,8 +3231,8 @@
         b.finished = true;
         b.result = "ignored";
         b.status = "finished";
-        b.note = `${battleFallbackText("ignored_fallback") || "Отвали"}.`;
-        b.resultLine = battleFallbackText("ignored_fallback") || "Отвали";
+        b.note = `${battleFallbackText("battle.ignored_fallback") || "Отвали"}.`;
+        b.resultLine = battleFallbackText("battle.ignored_fallback") || "Отвали";
         b.attackHidden = false;
         b.draw = false;
         b.crowd = null;
@@ -3692,7 +3700,7 @@
             b.draw = false;
             b.wasDraw = true;
             b.result = null;
-            b.resultLine = battleFallbackText("draw_fallback") || "Толпа решает";
+            b.resultLine = battleFallbackText("battle.draw_fallback") || "Толпа решает";
             b.status = "crowd";
             b.finished = false;
             b.resolved = false;
@@ -3874,7 +3882,7 @@
               b.mafiaShameAnnounced = true;
             }
           } else {
-            const escapedText = battleFallbackText("escaped_fallback") || "Свалить";
+            const escapedText = battleFallbackText("battle.escaped_fallback") || "Свалить";
             b.note = (outcome === "win") ? "Победа." : (outcome === "escaped" ? `${escapedText}.` : "Поражение.");
             b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? escapedText : "Поражение");
           }
