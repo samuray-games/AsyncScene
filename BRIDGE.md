@@ -1,7 +1,9 @@
 # Asynchronia Codex Bridge Entry Point
 
 BRIDGE_PROTOCOL: 3.1
+ROOT_CAUSE_SYNC: REQUIRED
 ORCHESTRATION: `ORCHESTRATION.md`
+ROOT_SYNC: `PROCESS_ROOT_SYNC.md`
 
 ## 1. Commands
 
@@ -11,66 +13,63 @@ The only numbered bridge commands are:
 - `мост 2`
 - `мост 3`
 
-Each command selects one fixed slot and runs that slot's complete current cycle.
+Each command selects one fixed slot and runs the complete current cycle.
 
 Bare `мост`, `запуль` and `запушь` are inactive.
 
-Separate `пул`, `пуш`, `CONTINUE` and `APPROVE` are not required for numbered bridge lanes.
+Separate `пул`, `пуш`, `CONTINUE` and `APPROVE` are not required.
 
 ## 2. One-command behavior
 
-For every numbered bridge command, Codex automatically:
+For every numbered command Codex automatically:
 
-1. verifies `origin` belongs to `samuray-games/AsyncScene`;
-2. fetches `origin/main` and `origin/coordination/chatgpt-codex-bridge`;
-3. reads current remote authority, STATE, current inbox and claim;
+1. verifies `origin` is `samuray-games/AsyncScene`;
+2. fetches main and mailbox;
+3. reads current remote authority, policy, STATE, inbox and claim;
 4. resolves only the requested slot;
-5. ignores stale local bridge files and historical superseded tasks;
-6. prepares clean task-owned worktrees from the exact remote refs;
+5. ignores stale local files;
+6. prepares clean task-owned worktrees;
 7. executes the current phase;
-8. runs all required checks;
-9. commits and pushes the exact authorized primary result when needed;
-10. commits and pushes the immutable outbox;
-11. refetches and verifies both remote destinations;
-12. tells the user to return to ChatGPT and write the same numbered command.
+8. runs all checks;
+9. commits and pushes the authorized primary result when needed;
+10. refetches and verifies remote main;
+11. derives exact SHA and parent from the fetched remote commit;
+12. commits and pushes the immutable outbox;
+13. refetches and verifies remote mailbox;
+14. tells the user to return to ChatGPT with the same command.
 
-## 3. Clean worktree rule
-
-Codex must not execute from or repair a dirty, ahead, behind or diverged primary checkout.
+## 3. Clean worktrees
 
 Use:
 
-- one clean temporary worktree at the exact authorized `origin/main` baseline for implementation;
-- one separate clean temporary worktree at the latest mailbox head for claim/outbox publication.
+- one clean worktree at the exact authorized main baseline;
+- one separate clean worktree at the latest mailbox head.
 
 Never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push the user's primary checkout.
 
+Local divergence is not a blocker.
+
 ## 4. Metadata precedence
 
-Use the precedence defined in `AGENTS.override.md` and `ORCHESTRATION.md`.
+Use `AGENTS.override.md`, `PROCESS_ROOT_SYNC.md` and `ORCHESTRATION.md`.
 
-For mutable fields, current remote `STATE.md` and its named current baseline inbox supersede older inboxes. The original task inbox remains authoritative only for the unchanged objective and evidence requirements not replaced later.
+Current remote STATE and its named inbox and claim supersede older mutable metadata.
+
+Historical artifacts remain immutable audit evidence.
 
 ## 5. Claims
 
-When a valid claim exists for the same slot and logical thread:
+When a valid current claim exists:
 
 - adopt it;
 - verify slot, thread, lane, task, baseline, scope and expected outbox;
 - do not create a second claim.
 
-When no claim exists and STATE authorizes creation:
-
-1. fetch the latest mailbox head;
-2. prepare a clean mailbox worktree;
-3. create exactly the predetermined claim path;
-4. commit it as a direct child of the fetched head;
-5. push fast-forward;
-6. refetch and verify.
+When root-process hardening moves main during an open lane, ChatGPT creates a replacement immutable claim and a new current inbox. Codex uses only the pair named by STATE.
 
 ## 6. Phases
 
-Use Protocol 3.1 phases from `ORCHESTRATION.md`:
+Canonical Protocol 3.1 phases:
 
 - `CLOSED`
 - `SCOPE_FREEZE`
@@ -83,63 +82,71 @@ Use Protocol 3.1 phases from `ORCHESTRATION.md`:
 - `PASS_ACCEPTED`
 - `BLOCKED_EXTERNAL`
 
-Historical Protocol 3.0 phase names remain readable but must not be created in new tasks.
-
 ## 7. Authorization
 
-The matching numbered command itself authorizes execution and publication for the exact frozen current slot contract.
+The matching numbered command authorizes execution and publication for the exact frozen contract.
 
-It does not authorize scope expansion. A changed objective or expanded path set requires a new inbox from ChatGPT.
+It never authorizes scope expansion.
 
-Codex uses the active client model and reports `USER_SELECTED_UNVERIFIED` when external verification is unavailable. Model preflight does not interrupt the loop.
+Codex uses the active client model and reports `USER_SELECTED_UNVERIFIED` when needed.
 
 ## 8. Primary publication
 
 After validation:
 
 - stage only authorized paths;
-- create one direct-child commit from the exact main baseline;
-- prove the diff contains only authorized paths;
-- push fast-forward without force;
-- refetch and prove `origin/main` equals the commit.
+- create one direct-child commit;
+- prove exact paths;
+- push fast-forward;
+- refetch and prove `origin/main` equals the commit;
+- derive SHA and parent from the fetched remote commit.
 
-If main moved, return `BLOCKED_MAIN_BASELINE_MOVED` without merging or rebasing.
+If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`.
 
 ## 9. Outbox publication
 
-After primary publication or for read-only tasks:
+The outbox must:
 
-1. fetch the latest mailbox head;
-2. prepare a clean mailbox worktree;
-3. create exactly the expected immutable outbox path;
-4. commit it as a direct child of the mailbox head;
-5. prove the diff contains only the outbox path;
-6. push fast-forward;
-7. refetch and verify the remote mailbox head.
+- use the expected immutable path;
+- be a direct child of the fetched mailbox head;
+- change only the authorized outbox path;
+- contain the machine-derived fetched primary SHA and actual parent;
+- contain exact paths and validation evidence;
+- be remotely refetched and verified.
 
-Retry a mailbox race up to three times by rebuilding the exact payload from the latest head.
+Manual SHA transcription is forbidden.
 
-## 10. Authentication failure
+A reported primary SHA that differs from fetched `origin/main` is not `PASS_PUSHED`.
 
-Codex may attempt the repository's configured non-interactive authentication repair once.
+## 10. Authentication
 
-If remote write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle required by `ORCHESTRATION.md`. Never ask the user to reveal credentials.
+Codex may run one non-interactive authentication repair.
 
-## 11. Correction loop
+If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle from `ORCHESTRATION.md`.
 
-A same-scope correction remains in the same logical thread. The next matching numbered command automatically fetches, applies the correction, validates, pushes and publishes the new outbox.
+Never ask for credentials.
 
-No repeated model preflight or confirmation.
+## 11. Correction and root synchronization
+
+A same-scope task correction remains in the same logical thread.
+
+A reusable process defect also triggers `PROCESS_ROOT_SYNC.md`.
+
+ChatGPT must update every affected root authority, validator, mailbox policy, STATE and live memory before the next project action.
+
+If root hardening moves main, ChatGPT re-freezes the active lane to the new exact baseline with a new inbox and replacement claim. No extra user command is added.
 
 ## 12. ChatGPT verification
 
 When ChatGPT receives `мост N`, it:
 
 1. reloads live memory and reports exact `MEMORY_REV`;
-2. reads current main and mailbox STATE;
+2. reads current main, mailbox policy and STATE;
 3. verifies only Slot N;
-4. independently checks ancestry, paths, mirrors, behavior and tests;
-5. accepts or writes one exact correction inbox;
-6. automatically opens the next safe task.
+4. independently checks ancestry, paths, mirrors, behavior, tests and remote evidence;
+5. rejects any SHA mismatch;
+6. accepts or writes one exact correction;
+7. performs mandatory root synchronization for systemic defects;
+8. automatically opens the next safe task.
 
 Codex prose alone is never acceptance evidence.
