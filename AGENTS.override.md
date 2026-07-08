@@ -1,154 +1,152 @@
-# Asynchronia Protocol 2.4 Override
+# Asynchronia Protocol 3.0 Override
 
-OVERRIDE_VERSION: BRIDGE_PROTOCOL_2_4_GIT_TRANSPORT_2_5
+OVERRIDE_VERSION: ORCHESTRATION_3_0
+BRIDGE_PROTOCOL: 3.0
 
-Read root `AGENTS.md` fully. Every rule remains binding except the Git transport aliases, bridge metadata-precedence, claim recovery, plugin proof, and mailbox checkout clauses explicitly replaced below.
+Read root `AGENTS.md` fully. Every rule remains binding except the process clauses explicitly replaced below.
 
-## 0. Universal Git transport commands
+## 1. Canonical process source
 
-The exact trimmed commands `пул` and `пуш` are reserved repository commands and must be processed before any generic interpretation.
+For task orchestration, bridge phases, confirmation, publication recovery, acceptance tiers and automatic progression, read and follow `origin/main:ORCHESTRATION.md`.
 
-The former commands `запуль` and `запушь` are inactive and must never be offered, requested, or treated as aliases.
+Process precedence is:
 
-For `пул`:
+1. `AGENTS.override.md`;
+2. `ORCHESTRATION.md`;
+3. `BRIDGE.md`;
+4. `GIT_PULL.md` and `GIT_PUSH.md`;
+5. mailbox `STATE.md`;
+6. current baseline inbox named by STATE;
+7. immutable claim;
+8. original task inbox for unchanged objective and evidence requirements;
+9. historical bridge artifacts for audit only;
+10. `AGENTS.md` for all rules not replaced here.
 
-1. verify the repository root and `origin` identity;
-2. run `git fetch origin` before any dirty-worktree blocker or trust in local policy files;
-3. in bridge context also fetch `origin/coordination/chatgpt-codex-bridge` without switching branches;
-4. read and follow `git show origin/main:GIT_PULL.md`;
-5. preserve every local modification byte-for-byte;
-6. fast-forward only when the exact target is authorized, the worktree is clean, and the update is fast-forward only;
-7. when the worktree is dirty, complete fetch-only and report `PASS_FETCHED_PULL_SKIPPED_DIRTY` rather than blocking.
+Protocol 2.4 artifacts remain valid historical evidence. New tasks use Protocol 3.0.
 
-Dirty or stale local `AGENTS.md`, `AGENTS.override.md`, `BRIDGE.md`, `GIT_PULL.md`, or unrelated files never block read-only remote fetch. Do not stash, reset, clean, commit, merge, rebase, switch branches, or discard changes.
+## 2. Commands
 
-For `пуш`, read and follow `git show origin/main:GIT_PUSH.md` after refreshing refs. Publish only the exact authorized target. Never force-push or absorb unrelated changes.
+The active repository commands are:
 
-## 1. Numbered bridge commands
+- `мост 1`
+- `мост 2`
+- `мост 3`
+- `пул`
+- `пуш`
+- `CONTINUE` in a numbered Codex bridge thread after model selection
 
-The exact commands `мост 1`, `мост 2`, and `мост 3` are unambiguous reserved commands.
+Bare `мост`, `запуль` and `запушь` are inactive and must not be offered or interpreted as aliases.
 
-For every numbered command:
+For every numbered bridge command, fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge` before trusting local files.
 
-1. fetch `origin/main` before trusting local bridge files;
-2. read `origin/main:AGENTS.override.md`, `origin/main:AGENTS.md`, and `origin/main:BRIDGE.md` with `git show`;
-3. fetch `origin/coordination/chatgpt-codex-bridge`;
-4. use only the requested fixed slot;
-5. never ask what the command means and never fall through to another slot.
+## 3. Numbered bridge confirmation
 
-Bare `мост` is inactive. Dirty or stale local `AGENTS.md` and `BRIDGE.md` are not bridge sources and must be preserved byte-for-byte.
+For a numbered bridge task, the valid same-thread `CONTINUE` after the compact 12-of-12 model preflight is both:
 
-## 2. Authoritative slot metadata
+- model-selection confirmation; and
+- explicit runtime-safety approval for the exact frozen task and file scope.
 
-Mailbox `STATE.md` names one `Current baseline inbox` for each slot. That file is the authoritative mutable slot contract.
+No additional `APPROVE` round is required for that numbered bridge task.
 
-Precedence inside a slot is:
+This replaces `AGENTS.md` Section 5.1 only for numbered bridge lanes. Non-bridge runtime-sensitive work still uses the separate `APPROVE` protocol.
 
-1. current `origin/main` policy;
-2. mailbox `STATE.md`;
-3. the slot's `Current baseline inbox` named by STATE;
-4. immutable claim, when present;
-5. original task inbox only for the atomic objective and evidence requirements that are not replaced by the current baseline inbox;
-6. historical inbox turns for audit only.
+A scope or objective change invalidates the prior confirmation and requires a new task.
 
-A stale baseline, protocol version, plugin requirement, phase, or publication rule in the original task inbox is superseded when STATE and the current baseline inbox agree. Such historical drift must be reported but must not block a claim or execution.
+## 4. Automatic progression
 
-The current baseline inbox may explicitly replace all mutable fields while inheriting the original task objective. Never require two historical baselines to agree.
+The user is not required to send a generic continuation command between completed serialized waves.
 
-## 3. Asynchronia skill source
+After independent acceptance, ChatGPT automatically closes the current claim, updates STATE and memory, freezes the next safe task and publishes its inbox and claim.
 
-Bridge execution must not depend on hidden plugin-loader telemetry.
+Progress pauses only for a genuine user decision, external blocker, unresolved collision, missing primary evidence or required Safari smoke.
 
-Resolve skill contracts in this order:
+## 5. Authoritative slot metadata
 
-1. `INSTALLED_PACKAGE`: use the installed cache when its manifest names package `asynchronia`, version `1.0.0`, and the required skill files are readable.
-2. `REPOSITORY_FALLBACK`: otherwise read the corresponding skill contracts from `origin/main:plugins/asynchronia/...`.
+Mailbox `STATE.md` names the current phase and current baseline inbox for each slot.
 
-Either source is sufficient. Record the source, manifest version, and exact skill paths read.
+The current baseline inbox supersedes stale mutable fields in older inboxes, including baseline, phase, protocol version, scope details, publication method and plugin proof requirements.
 
-`BLOCKED_PLUGIN_NOT_LOADED`, native resolver proof, functional invocation proof, and loader telemetry are retired as bridge gates.
+An immutable claim authorizes only the exact logical thread, lane, task, baseline and scope recorded in current metadata. A matching thread adopts an existing valid claim and never creates a second one.
 
-## 4. Claims
+## 6. Compact model preflight
 
-A new bridge thread normally creates its own immutable claim after resolving current metadata.
+A valid bridge preflight contains the fields defined in `ORCHESTRATION.md`, reports `evaluated pair count: 12/12`, and ends with exactly one standalone fenced block containing `CONTINUE`, with nothing after it.
 
-ChatGPT may create a `COORDINATOR_RECOVERY_CLAIM` when:
+The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. This is not a blocker.
 
-- the slot is open and unclaimed;
-- Codex already identified the correct logical thread and lane;
-- claim publication failed only because Codex lacked Git credentials or hit a stale historical metadata blocker;
-- the current baseline and exact claim path are known.
+A repeated preflight after `CONTINUE` is invalid. The lane is `EXECUTE_NOW` and must execute without another preflight or confirmation.
 
-A coordinator recovery claim must contain:
+## 7. Runtime and parallel boundaries
 
-- `CLAIM_ISSUER: CHATGPT_COORDINATOR_RECOVERY`;
-- bridge slot, logical thread id, task id, lane id;
-- actual high-entropy claim token;
-- mailbox parent commit;
-- authorized primary baseline;
-- exact original task inbox and current baseline inbox;
-- expected outbox;
-- statement that it authorizes no primary write.
+- Source and deployed mirrors are one ownership group.
+- Runtime JavaScript, UI runtime JavaScript, economy, battle, NPC, state, persistence, routing and shared smoke wiring remain runtime-sensitive.
+- `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized singleton ownership groups.
+- Read-only work may run in parallel only when there is no stable-read dependency on a mutable lane.
+- Undeclared overlap returns `BLOCKED_PARALLEL_SCOPE_COLLISION`.
+- No task may merge, rebase or absorb another lane without an explicit integration task.
 
-The matching logical Codex thread may adopt that remote claim by reading its token from the immutable claim file. It must not create a second local or remote claim.
+## 8. Git transport
 
-The claim path and claim token are separate fields. A path is never a claim token.
+For `пул`, follow current `origin/main:GIT_PULL.md`.
 
-## 5. Compact bridge preflight
+For `пуш`, follow current `origin/main:GIT_PUSH.md`.
 
-After a valid claim exists, return:
+Never force-push, amend, rebase, reset, stash, clean, broadly stage, silently resolve conflicts or absorb unrelated work.
 
-- bridge slot, logical thread id, lane id, task id;
-- actual claim token and claim path;
-- Asynchronia skill source and version;
-- task classification;
-- runtime-safety verdict;
-- parallel collision verdict;
-- `evaluated pair count: 12/12`;
-- recommended model and reasoning;
-- why the next cheaper pair is insufficient;
-- why the next stronger pair is unnecessary;
-- exact read scope, write scope, dependencies and blockers;
-- actual active model as `USER_SELECTED_UNVERIFIED` unless externally proven.
+A successful Git push proves publication only. It does not prove deployment, runtime behavior or Safari acceptance.
 
-The full 12-row model matrix is not required. A valid preflight ends with exactly one fenced `CONTINUE` block and nothing after it. A blocked response contains no `CONTINUE`.
+## 9. Authentication recovery
 
-## 6. Resilient mailbox write
+The universal credentials-failure status is `BLOCKED_PUSH_AUTH`.
 
-An existing stale mailbox worktree must never block a claim or outbox.
+On that status, Codex must return the complete recovery bundle defined in `ORCHESTRATION.md`, including full file payloads and the complete mailbox payload when applicable. A SHA-only report is insufficient.
 
-Use either:
+ChatGPT may:
 
-- a clean existing mailbox checkout already at the freshly fetched parent; or
-- a fresh temporary detached worktree at that exact parent.
+1. verify and fast-forward a remotely readable direct-child commit object; or
+2. reconstruct the exact commit from the recovery bundle through GitHub connector APIs.
 
-Detached mode must create a direct-child commit, change exactly one authorized path, push without force to `coordination/chatgpt-codex-bridge`, refetch, verify the remote head, and remove only the temporary worktree.
+A local-only commit is never accepted as publication.
 
-Never reset, clean, update, delete, or reuse a stale existing mailbox worktree. Retry the same slot up to three times after races.
+If the bundle is incomplete, the same Codex thread returns only the missing payload. It does not rerun preflight, implementation or tests.
 
-## 7. Publication-auth fallback
+## 10. Acceptance
 
-If Codex can execute the lane but cannot publish a claim or outbox solely because Git credentials are unavailable:
+Use the four acceptance tiers from `ORCHESTRATION.md`:
 
-- do not alter the primary repository;
-- preserve the local detached commit only as diagnostic evidence;
-- return `BLOCKED_MAILBOX_AUTH`;
-- include the complete intended immutable mailbox payload in the response;
-- identify the exact authorized mailbox path;
-- instruct the user to return to ChatGPT with the matching numbered bridge command and the report.
+- publication verification;
+- static implementation acceptance;
+- deployment readiness;
+- user-owned Safari runtime acceptance.
 
-ChatGPT may independently validate and publish that exact payload through its repository connector. A local-only commit is never accepted as remote publication.
+Codex cannot claim user acceptance. ChatGPT cannot promote a lower tier into a higher tier without evidence.
 
-## 8. Retired blockers
+## 11. Real blockers
 
-These are not valid blockers:
+Valid blockers include:
 
-- unavailable native plugin telemetry;
-- inability to invoke hidden plugin UI machinery;
-- missing local `.ai-bridge/STATE.md` when remote STATE is readable;
-- stale mutable fields in an original task inbox when the current baseline inbox supersedes them;
-- a stale existing mailbox worktree;
-- unrelated dirty primary-worktree files;
-- dirty local policy or bridge files during read-only remote fetch.
+- wrong repository;
+- unreadable current remote policy, STATE or baseline inbox;
+- closed or unavailable slot;
+- claim owned by another logical thread;
+- current main baseline moved;
+- native permission refusal;
+- repeated mailbox race after three rebuild attempts;
+- actual scope collision;
+- unresolved user decision;
+- missing required primary evidence.
 
-Real blockers remain: wrong repository, unreadable current remote policy/state/baseline inbox, closed slot, claim owned by another logical thread, current primary baseline mismatch, native permission refusal, repeated mailbox race after three retries, or actual scope collision.
+The following are not blockers when remote sources remain readable:
+
+- stale local policy files;
+- missing local mailbox files;
+- stale existing mailbox worktrees;
+- unrelated dirty files;
+- unavailable hidden plugin telemetry;
+- inability to verify the user-selected model externally.
+
+## 12. Final next action
+
+Every task, preflight, execution report, recovery report and coordinator verification must provide exactly one next user action.
+
+Do not offer competing paths. Do not ask the user to repeat information already available in memory, STATE, inbox, claim, outbox or repository evidence.
