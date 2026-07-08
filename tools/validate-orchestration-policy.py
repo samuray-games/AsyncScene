@@ -67,7 +67,8 @@ def main() -> int:
     for text_name in ("agents", "override", "orchestration", "bridge"):
         require(docs[text_name], "FAIL_NO_EXECUTION_EVIDENCE", FILES[text_name].name, failures)
         require(docs[text_name], "THREAD_ROTATION_REQUIRED", FILES[text_name].name, failures)
-        require(docs[text_name], "EXECUTION_EPOCH", FILES[text_name].name, failures)
+        if "execution epoch" not in docs[text_name].lower():
+            failures.append(f"{FILES[text_name].name}: missing execution epoch rule")
 
     for phase in PHASES:
         require(docs["orchestration"], f"`{phase}`", "ORCHESTRATION.md", failures)
