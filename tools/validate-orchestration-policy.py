@@ -34,6 +34,7 @@ PHASES = (
     "READY_FOR_CODEX",
     "EXECUTE_AND_PUBLISH",
     "OUTBOX_PUBLISHED_AWAITING_CHATGPT",
+    "VERIFIED_NO_DELTA_AWAITING_CHATGPT",
     "CORRECTION_REQUIRED",
     "READY_FOR_SAFARI",
     "AWAITING_SAFARI",
@@ -84,6 +85,17 @@ def main() -> int:
         if "execution epoch" not in docs[text_name].lower():
             failures.append(f"{FILES[text_name].name}: missing execution epoch rule")
 
+    for text_name in ("override", "root_sync", "orchestration", "bridge", "push"):
+        require(docs[text_name], "VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE", FILES[text_name].name, failures)
+
+    for text_name in ("override", "orchestration", "bridge", "push"):
+        require(docs[text_name], "ALLOW_VERIFIED_NO_DELTA: true", FILES[text_name].name, failures)
+        require(docs[text_name], "PASS_VERIFIED_NO_DELTA", FILES[text_name].name, failures)
+        require(docs[text_name], "primaryChanged:false", FILES[text_name].name, failures)
+
+    for text_name in ("override", "root_sync", "orchestration", "bridge", "push"):
+        require(docs[text_name], "Empty primary commits are forbidden.", FILES[text_name].name, failures)
+
     for phase in PHASES:
         require(docs["orchestration"], f"`{phase}`", "ORCHESTRATION.md", failures)
 
@@ -104,6 +116,7 @@ def main() -> int:
         "orchestrationVersion": "3.1",
         "rootCauseSync": "REQUIRED",
         "noOpCompletion": "FORBIDDEN",
+        "verifiedNoDelta": "ALLOWED_WITH_EVIDENCE",
         "checkedFiles": [str(path.relative_to(ROOT)) for path in required_files],
         "canonicalPhaseCount": len(PHASES),
         "workflowPolicyPathCount": len(WORKFLOW_POLICY_PATHS),

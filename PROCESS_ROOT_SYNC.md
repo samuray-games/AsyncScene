@@ -3,6 +3,7 @@
 PROCESS_ROOT_SYNC_VERSION: 2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 STATUS: ACTIVE
 
 ## Trigger
@@ -18,6 +19,7 @@ Root synchronization is mandatory for reusable defects in:
 - validator drift;
 - STATE, inbox, claim or memory synchronization;
 - acceptance tiers;
+- false requirements for a source delta when the authorized baseline already satisfies the task;
 - repeated failures the process should prevent.
 
 ## Required propagation
@@ -29,50 +31,54 @@ Before the next project action ChatGPT must:
 3. update every affected root authority;
 4. update the validator so recurrence fails closed;
 5. update mailbox publication policy;
-6. update STATE, current inbox and current claim;
-7. create a new execution epoch;
-8. require a fresh Codex conversation when the old one returned no execution evidence;
-9. update Google Drive memory;
-10. verify all remote refs.
+6. update STATE and the current contract;
+7. update Google Drive memory;
+8. verify all remote refs.
+
+A new execution epoch and fresh Codex conversation are required only when more Codex execution is actually needed. They are not required to close a lane that ChatGPT independently verifies as already satisfied on the current baseline.
 
 Affected surfaces include:
 
-- `AGENTS.md`;
-- `AGENTS.override.md`;
+- `AGENTS.md` or the higher-precedence `AGENTS.override.md`;
 - `PROCESS_ROOT_SYNC.md`;
 - `ORCHESTRATION.md`;
 - `BRIDGE.md`;
-- `GIT_PULL.md`;
-- `GIT_PUSH.md`;
+- Git publication policy;
 - `tools/validate-orchestration-policy.py`;
 - mailbox publication policy;
-- STATE;
-- current inbox and claim;
+- STATE and current contract;
 - live Google Drive memory.
 
-## No-op recovery
+## Invalid no-op recovery
 
-A Codex response that only sends the user back to ChatGPT without a current remote outbox is a systemic failure.
+A Codex response that only sends the user back to ChatGPT without a current evidence outbox is a systemic failure.
 
-Recovery requires:
+When further execution is required, recovery uses a replacement claim, inbox, execution epoch and expected outbox.
 
-- mark the old Codex conversation superseded;
-- set `THREAD_ROTATION_REQUIRED: true`;
-- issue a replacement claim;
-- issue a new inbox;
-- assign a new `EXECUTION_EPOCH`;
-- use a new expected outbox path;
-- re-freeze the current main baseline;
-- forbid reuse of the old thread and old outbox.
+## Verified no-delta recovery
+
+`VERIFIED_NO_DELTA` is a valid completion state, not a no-op, when:
+
+- the baseline is still current;
+- the frozen objective is already satisfied;
+- required generation and validation pass;
+- deterministic regeneration yields zero diff;
+- exact changed paths are empty;
+- protected blobs remain unchanged;
+- a current evidence outbox is published, unless ChatGPT independently reconstructs and records closure after a pre-policy `BLOCKED_NO_SOURCE_DELTA` report.
+
+Empty primary commits are forbidden.
+
+ChatGPT may close a pre-policy blocked lane without reissuing Codex when it independently verifies the same baseline evidence and records the closure in mailbox STATE and live memory.
 
 ## Completion evidence
 
 Root synchronization is complete only when:
 
-- all authority files agree;
-- validator checks the current protocol and no-op guard;
+- affected authority files agree;
+- validator checks both invalid no-op and verified-no-delta rules;
 - mailbox policy agrees;
-- STATE, inbox and claim share one baseline and epoch;
+- STATE and current contract reflect the actual completion mode;
 - live memory is updated;
 - remote refs are independently verified.
 
