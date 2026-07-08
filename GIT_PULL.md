@@ -1,37 +1,45 @@
 # Automatic Remote-First Bridge Sync Protocol
 
 PROTOCOL_VERSION: GIT_PULL_3_1
+ROOT_CAUSE_SYNC: REQUIRED
 ORCHESTRATION: `ORCHESTRATION.md`
+ROOT_SYNC: `PROCESS_ROOT_SYNC.md`
 
 ## Numbered bridge lanes
 
 For `мост 1`, `мост 2` or `мост 3`, synchronization is automatic. The user does not send a separate `пул`.
 
-Codex must fetch remote main and the mailbox branch, record both remote SHAs, read current policy and STATE from remote refs, resolve only the requested slot, and prepare clean task-owned worktrees from the exact authorized refs.
+Codex fetches remote main and mailbox, records both SHAs, reads current authority and STATE, resolves only the requested slot, and prepares clean task-owned worktrees.
 
 ## Primary checkout
 
-The user's local `main` is never a prerequisite for bridge execution.
+The user's local `main` is never a prerequisite.
 
-If it is dirty, ahead, behind, detached or diverged, preserve it byte-for-byte. Do not merge, rebase, reset, stash, clean, amend or switch it. Execute from a fresh temporary worktree created from the exact authorized remote baseline.
+If it is dirty, ahead, behind, detached or diverged, preserve it byte-for-byte. Do not merge, rebase, reset, stash, clean, amend or switch it.
 
 Local divergence is not a blocker.
 
 ## Worktree split
 
-Use two separate task-owned worktrees:
+Use:
 
-- implementation worktree from the exact authorized remote main baseline;
-- mailbox worktree from the freshly fetched mailbox head.
+- an implementation worktree from the exact authorized remote main baseline;
+- a mailbox worktree from the freshly fetched mailbox head.
 
-Remove only task-owned temporary worktrees after remote verification when safe.
+## Process baseline refreeze
+
+When ChatGPT publishes root-process hardening while a lane is open, it must immediately publish a new current inbox, replacement immutable claim and STATE using the new exact main SHA.
+
+Codex must use the new pair named by STATE and must not continue from the superseded baseline.
+
+This refreeze adds no extra user command.
 
 ## Standalone `пул`
 
-The explicit `пул` command remains available only for standalone non-bridge Git maintenance.
+Standalone `пул` remains only for explicit non-bridge maintenance.
 
 It fetches first, fast-forwards only a clean exact-upstream branch, otherwise completes as fetch-only, and never merges or rebases.
 
 ## Reporting
 
-Automatic synchronization is included in the final numbered bridge report together with execution and publication evidence. It is not a separate user step.
+Automatic synchronization is part of the final numbered bridge report.
