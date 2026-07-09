@@ -37,18 +37,22 @@ Apply these rules in order:
 - `AGENTS.md`, `TASKS.md`, and `PROJECT_MEMORY.md` govern all routing.
 - Explicit user scope and repository policy override router convenience.
 
-### 2. Runtime safety
+### 2. Scope isolation
 
-- Runtime-sensitive work must pass `scope-isolation-check`.
+- `scope-isolation-check` is required before any implementation recommendation.
 - A scope collision result overrides any parallel or implementation recommendation.
 - `BLOCKED_SCOPE_COLLISION` blocks writes until overlapping scope.
 - The router cannot accept or manufacture scope isolation.
 
-### 3. Scope integrity
+### 3. Model selection
 
-- Missing, mixed, ambiguous, or conflicting scope returns `BLOCKED`.
-- Do not merge unrelated objectives into one task.
-- UI and logic must remain separate atomic tasks unless repository policy explicitly permits otherwise.
+- `model-selector` is required for every implementation recommendation.
+- The recommendation should cover the exact scope, complexity, and validation burden.
+- Model selection informs execution cost and reliability; it is not a required approval stop.
+- If task scope changes materially, recompute the recommendation before relying on it.
+- The router may repeat the selector recommendation but cannot verify or change the active interface model.
+- Active model remains `USER_SELECTED_UNVERIFIED`.
+- The router must carry only the selector's exact output forward. It must not originate, alter, or turn the recommendation into an execution prerequisite, pause, or resume token.
 
 ### 4. Parallel planning
 
@@ -56,15 +60,11 @@ Apply these rules in order:
 - Source and deployed counterparts in one mirror group remain one serialized ownership lane.
 - One narrow task with exact disjoint ownership does not require parallel planning.
 
-### 5. Model selection
+### 5. Scope integrity
 
-- Every implementation recommendation must include `model-selector`.
-- The recommendation should cover the exact scope, complexity, and validation burden.
-- Model selection informs execution cost and reliability; it is not a required approval stop.
-- If task scope changes materially, recompute the recommendation before relying on it.
-- The router may repeat the selector recommendation but cannot verify or change the active interface model.
-- Active model remains `USER_SELECTED_UNVERIFIED`.
-- The router must carry only the selector's exact output forward. It must not originate, alter, or turn the recommendation into an execution prerequisite, pause, or resume token.
+- Missing, mixed, ambiguous, or conflicting scope returns `BLOCKED`.
+- Do not merge unrelated objectives into one task.
+- UI and logic must remain separate atomic tasks unless repository policy explicitly permits otherwise.
 
 ### 6. Specialized support
 
@@ -118,7 +118,7 @@ Secondary flags may include:
 
 ### `READ_ONLY_ANALYSIS`
 
-- scope-isolation-check classification only
+- scope-isolation-check
 - model-selector when substantial reasoning is required
 - no implementation
 - no Safari smoke unless explicitly analyzing a runtime smoke result
@@ -134,7 +134,7 @@ Secondary flags may include:
 
 - scope-isolation-check
 - model-selector
-- model recommendation before implementation when file changes are proposed
+- task-router before implementation when file changes are proposed
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
 - `smoke-orchestrator` when the plugin task changes smoke workflow, enclosing smoke verdict rules, or contract-smoke requirements
 - `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules

@@ -5,6 +5,14 @@
 - Updated `tools/validate-orchestration-policy.py`, `plugins/asynchronia/skills/task-router/SKILL.md`, `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, `CLOSED_LOOP_PROTOCOL.md`, and `.github/workflows/orchestration-policy.yml` to describe and validate the same closed-loop contract.
 - The source phase remains mid-flight until the contract validator and unit suite pass.
 
+## 2026-07-09 — Slot 3 closed-loop bridge correction completion
+- Status: source validation passed locally.
+- Tightened `tools/closed_loop_contract.py` so report schema validation rejects missing keys, extra keys, wrong types, empty values, and placeholder values while preserving the 12-state transition table and exact identity fields.
+- Extended `tools/test_closed_loop_contract.py` to cover schema rejection for extra keys, wrong types, empty values, and a full typed report payload.
+- Updated `tools/validate-orchestration-policy.py` and `.github/workflows/orchestration-policy.yml` so the policy validator and CI path both exercise `py_compile`, unit tests, and orchestration validation.
+- Recorded the source contract/controller wording changes in `CLOSED_LOOP_PROTOCOL.md`, `plugins/asynchronia/skills/task-router/SKILL.md`, and `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`.
+- Validation run: `python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py`, `python3 -m unittest tools.test_closed_loop_contract`, `python3 tools/validate-orchestration-policy.py`.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Corrected `tools/generate-boomer-step4-4-economy-conflict-audit.py` so `mapped_exact` is a real FAIL classification that contributes to `FAIL_CLASSIFICATIONS`, `failRowCount`, final audit status, and row/verdict consistency checks.

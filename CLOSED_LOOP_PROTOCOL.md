@@ -31,6 +31,7 @@ The current bridge state must preserve:
 - completion mode
 - result status
 - next action
+- current state
 
 ## Legal machine
 
@@ -56,5 +57,6 @@ The controller must enforce the exact transition table encoded in `tools/closed_
 - fresh remote state is required before publication
 - the outbox path must end in `-02-codex.md`
 - the controller must fail closed on stale or contradictory state
+- the report schema must reject missing keys, extra keys, wrong types, empty values, and placeholder values
 - success requires exact outbox identity and byte equality
 - the canary gate is separate from product acceptance

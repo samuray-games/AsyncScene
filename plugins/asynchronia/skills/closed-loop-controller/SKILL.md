@@ -37,8 +37,8 @@ The controller contract must expose:
 
 - the exact 12 legal states
 - the explicit legal transition table
-- the required bridgeSlot, threadId, laneId, taskId, executionEpoch, baselineSha, and expectedOutbox fields
-- the required outbox report fields
+- the required `bridgeSlot`, `threadId`, `laneId`, `taskId`, `executionEpoch`, `baselineSha`, and `expectedOutbox` fields
+- the required outbox report fields, including exact key coverage and type checking
 - the phase-aware outbox rules
 - the forbidden outcomes `BLOCKED_NO_REMOTE_OUTBOX` and `BLOCKED_NO_SOURCE_DELTA`
 - recovery classification for correction, report recovery, publication recovery, and blocked external
@@ -49,6 +49,7 @@ The controller contract must expose:
 
 - remote state must be freshly fetched
 - the expected outbox must match the active state
+- the report schema must reject missing keys, extra keys, wrong types, empty values, and placeholder values
 - the controller must not claim success without the exact outbox
 - the controller must not claim product acceptance before the canary gate passes
 - a publication mismatch is terminal for the current attempt

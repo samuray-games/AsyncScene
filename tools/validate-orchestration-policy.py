@@ -72,7 +72,35 @@ def main() -> int:
     for current, targets in CONTRACT.LEGAL_TRANSITIONS.items():
         for target in targets:
             CONTRACT.validate_transition(current, target)
-    CONTRACT.validate_report_schema({field: "x" for field in CONTRACT.REPORT_SCHEMA_KEYS})
+    CONTRACT.validate_report_schema(
+        {
+            "status": "PASS_PUSHED",
+            "completionMode": "PRIMARY_DELTA",
+            "primaryChanged": True,
+            "verifiedPrimarySha": "cafebabecafebabecafebabecafebabecafebabe",
+            "primaryParent": "9b170097e1ff0889ae0cb1e127516c51440c4c3d",
+            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md"],
+            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md"],
+            "validationResults": ["py_compile: PASS", "unittest: PASS"],
+            "negativeControls": list(CONTRACT.NEGATIVE_CONTROLS),
+            "positiveControls": list(CONTRACT.POSITIVE_CONTROLS),
+            "recoveryClassification": "CORRECTION_REQUIRED",
+            "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
+            "remoteMailboxCommit": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            "remoteStateSha": "feedfacefeedfacefeedfacefeedfacefeedface",
+            "byteEquality": "MATCH",
+            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md",
+            "baselineSha": "8134d3660eccf999a12e594d8642d90215a75a76",
+            "bridgeSlot": 3,
+            "threadId": "BRIDGE-20260709-053",
+            "laneId": "PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "taskId": "TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "executionEpoch": "CLOSED-LOOP-SOURCE-R2-20260709-2154JST",
+            "taskNonce": "CLV1-053-SOURCE-8134-2154",
+            "coordinatorMemoryRev": "2026-07-09-2154-JST",
+            "policyVersion": CONTRACT.POLICY_VERSION,
+        }
+    )
     CONTRACT.validate_identity(CONTRACT.ClosedLoopState(
         bridge_slot=3,
         thread_id="BRIDGE-20260709-052",
@@ -124,23 +152,29 @@ def main() -> int:
     ):
         if required not in skill_names:
             failures.append(f"missing skill: {required}")
+    if "runtime-safety-gate" in skill_names:
+        failures.append("forbidden skill present: runtime-safety-gate")
 
     task_router = (SKILLS_DIR / "task-router" / "SKILL.md").read_text(encoding="utf-8")
-    require(task_router, "closed-loop-controller", "task-router/SKILL.md", failures)
-    require(task_router, "failure-routing-and-corrective-loop", "task-router/SKILL.md", failures)
     require(task_router, "scope-isolation-check", "task-router/SKILL.md", failures)
     require(task_router, "model-selector", "task-router/SKILL.md", failures)
     require(task_router, "parallel-scope-planner", "task-router/SKILL.md", failures)
+    require(task_router, "closed-loop-controller", "task-router/SKILL.md", failures)
+    require(task_router, "failure-routing-and-corrective-loop", "task-router/SKILL.md", failures)
+    require(task_router, "task-router before implementation", "task-router/SKILL.md", failures)
 
     closed_loop = (SKILLS_DIR / "closed-loop-controller" / "SKILL.md").read_text(encoding="utf-8")
     require(closed_loop, "bridgeSlot", "closed-loop-controller/SKILL.md", failures)
     require(closed_loop, "expectedOutbox", "closed-loop-controller/SKILL.md", failures)
     require(closed_loop, "fresh remote state", "closed-loop-controller/SKILL.md", failures)
+    require(closed_loop, "missing keys, extra keys, wrong types, empty values, and placeholder values", "closed-loop-controller/SKILL.md", failures)
 
     workflow = WORKFLOW.read_text(encoding="utf-8")
     require(workflow, "tools/closed_loop_contract.py", ".github/workflows/orchestration-policy.yml", failures)
     require(workflow, "tools/test_closed_loop_contract.py", ".github/workflows/orchestration-policy.yml", failures)
     require(workflow, "tools/validate-orchestration-policy.py", ".github/workflows/orchestration-policy.yml", failures)
+    require(workflow, "python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py", ".github/workflows/orchestration-policy.yml", failures)
+    require(workflow, "python3 -m unittest tools.test_closed_loop_contract", ".github/workflows/orchestration-policy.yml", failures)
 
     print(
         json.dumps(

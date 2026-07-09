@@ -3,6 +3,11 @@
 - The frozen scope is `CLOSED_LOOP_PROTOCOL.md`, `tools/closed_loop_contract.py`, `tools/test_closed_loop_contract.py`, `tools/validate-orchestration-policy.py`, `.github/workflows/orchestration-policy.yml`, `plugins/asynchronia/skills/task-router/SKILL.md`, `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, `PROJECT_MEMORY.md`, and `TASKS.md`.
 - The task requires a source delta and a publishable outbox, with verified-no-delta forbidden in this epoch.
 
+## 2026-07-09 — Closed-loop source contract correction completion
+- The source contract now rejects incomplete or malformed report payloads with exact-key, exact-type, and exact-value schema checks.
+- The policy validator now exercises a fully typed sample payload and checks for the retired runtime gate, the updated task-router sequence, the closed-loop controller wording, and the orchestration workflow's `py_compile` and unittest steps.
+- Local validation passed for `py_compile`, `unittest`, and `tools/validate-orchestration-policy.py`.
+
 ## 2026-07-09 — Slot 3 closed-loop bridge correction
 - Recorded the bridge-policy update to protocol 3.3, the new `CLOSED_LOOP_PROTOCOL.md` surface, and the `closed-loop-controller` skill.
 - Recorded the shared contract/test pair at `tools/closed_loop_contract.py` and `tools/test_closed_loop_contract.py`.

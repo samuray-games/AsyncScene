@@ -85,6 +85,34 @@ REQUIRED_OUTBOX_FIELDS: Final[tuple[str, ...]] = (
     "policyVersion",
 )
 
+REQUIRED_OUTBOX_FIELD_TYPES: Final[dict[str, tuple[type, ...]]] = {
+    "status": (str,),
+    "completionMode": (str,),
+    "primaryChanged": (bool,),
+    "verifiedPrimarySha": (str,),
+    "primaryParent": (str,),
+    "changedPaths": (list,),
+    "authorizedPaths": (list,),
+    "validationResults": (list,),
+    "negativeControls": (list,),
+    "positiveControls": (list,),
+    "recoveryClassification": (str,),
+    "nextAction": (str,),
+    "remoteMailboxCommit": (str,),
+    "remoteStateSha": (str,),
+    "byteEquality": (str,),
+    "outboxPath": (str,),
+    "baselineSha": (str,),
+    "bridgeSlot": (int,),
+    "threadId": (str,),
+    "laneId": (str,),
+    "taskId": (str,),
+    "executionEpoch": (str,),
+    "taskNonce": (str,),
+    "coordinatorMemoryRev": (str,),
+    "policyVersion": (str,),
+}
+
 POSITIVE_CONTROLS: Final[tuple[str, ...]] = (
     "fresh_state_identity",
     "legal_transition_closed_to_preparing",
@@ -234,15 +262,22 @@ def validate_outbox_path(path: str) -> None:
         raise ValueError("expected outbox path must end with -02-codex.md")
 
 
+def _require_non_empty_text(value: str, label: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"missing or invalid {label}")
+
+
 def validate_identity(state: ClosedLoopState) -> None:
     if state.bridge_slot not in {1, 2, 3}:
         raise ValueError("invalid bridge slot")
+    _require_non_empty_text(state.thread_id, "thread id")
     if not state.thread_id.startswith("BRIDGE-"):
         raise ValueError("invalid thread id")
-    if not state.task_nonce:
-        raise ValueError("missing task nonce")
-    if not state.coordinator_memory_rev:
-        raise ValueError("missing coordinator memory revision")
+    _require_non_empty_text(state.lane_id, "lane id")
+    _require_non_empty_text(state.task_id, "task id")
+    _require_non_empty_text(state.execution_epoch, "execution epoch")
+    _require_non_empty_text(state.task_nonce, "task nonce")
+    _require_non_empty_text(state.coordinator_memory_rev, "coordinator memory revision")
     validate_outbox_path(state.expected_outbox_path)
     for label, value in (
         ("baseline_sha", state.baseline_sha),
@@ -250,8 +285,7 @@ def validate_identity(state: ClosedLoopState) -> None:
         ("claim_path", state.claim_path),
         ("remote_state_sha", state.remote_state_sha),
     ):
-        if not value:
-            raise ValueError(f"missing {label}")
+        _require_non_empty_text(value, label)
 
 
 def validate_transition(current_state: str, next_state: str) -> None:
@@ -267,6 +301,23 @@ def validate_report_schema(report: dict) -> None:
     missing = [field for field in REPORT_SCHEMA_KEYS if field not in report]
     if missing:
         raise ValueError(f"missing report fields: {missing}")
+    extra = sorted(set(report) - set(REPORT_SCHEMA_KEYS))
+    if extra:
+        raise ValueError(f"unexpected report fields: {extra}")
+    for field in REPORT_SCHEMA_KEYS:
+        value = report[field]
+        allowed_types = REQUIRED_OUTBOX_FIELD_TYPES[field]
+        if not isinstance(value, allowed_types):
+            raise ValueError(f"invalid type for {field}")
+        if isinstance(value, str) and not value.strip():
+            raise ValueError(f"empty report field: {field}")
+        if field in {"changedPaths", "authorizedPaths", "validationResults", "negativeControls", "positiveControls"}:
+            if any(not isinstance(item, str) or not item.strip() for item in value):
+                raise ValueError(f"invalid list contents for {field}")
+    if report["primaryParent"] != "N/A":
+        _require_non_empty_text(report["primaryParent"], "primaryParent")
+    if report["byteEquality"] not in {"MATCH", "MISMATCH", "N/A"}:
+        raise ValueError("invalid byte equality")
 
 
 def classify_recovery(report: dict) -> str:
@@ -306,7 +357,35 @@ def self_check() -> dict:
     validate_identity(sample)
     validate_transition("CLOSED", "PREPARING")
     validate_transition("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING")
-    validate_report_schema({field: "x" for field in REPORT_SCHEMA_KEYS})
+    validate_report_schema(
+        {
+            "status": "PASS_PUSHED",
+            "completionMode": "PRIMARY_DELTA",
+            "primaryChanged": True,
+            "verifiedPrimarySha": "cafebabecafebabecafebabecafebabecafebabe",
+            "primaryParent": "9b170097e1ff0889ae0cb1e127516c51440c4c3d",
+            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md"],
+            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md"],
+            "validationResults": ["py_compile: PASS", "unittest: PASS"],
+            "negativeControls": list(NEGATIVE_CONTROLS),
+            "positiveControls": list(POSITIVE_CONTROLS),
+            "recoveryClassification": "CORRECTION_REQUIRED",
+            "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
+            "remoteMailboxCommit": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            "remoteStateSha": "feedfacefeedfacefeedfacefeedfacefeedface",
+            "byteEquality": "MATCH",
+            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md",
+            "baselineSha": "8134d3660eccf999a12e594d8642d90215a75a76",
+            "bridgeSlot": 3,
+            "threadId": "BRIDGE-20260709-053",
+            "laneId": "PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "taskId": "TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "executionEpoch": "CLOSED-LOOP-SOURCE-R2-20260709-2154JST",
+            "taskNonce": "CLV1-053-SOURCE-8134-2154",
+            "coordinatorMemoryRev": "2026-07-09-2154-JST",
+            "policyVersion": POLICY_VERSION,
+        }
+    )
     return {
         "contractVersion": CONTRACT_VERSION,
         "policyVersion": POLICY_VERSION,
