@@ -9,7 +9,7 @@ STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: c3c1b1c79d8be18d1f3f5f034745ce47bb33bcf4
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_CORRECTION_E3_OPEN
+ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_CORRECTION_E4_OPEN
 
 ## Current status
 
@@ -26,25 +26,31 @@ ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_CORRECTION_E3_OPEN
 - Thread: `BRIDGE-20260709-042`
 - Lane: `PROCESS-RUNTIME-GATE-REMOVAL`
 - Task: `TASK-PROCESS-RUNTIME-GATE-REMOVAL`
-- Execution epoch: `PRGR-E3-20260709-0428JST`
+- Execution epoch: `PRGR-E4-20260709-1120JST`
 - Phase: `CORRECTION_REQUIRED`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-042-06-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-042-claim-v3-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-07-codex.md`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-042-08-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260709-042-claim-v4-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-09-codex.md`
 - Baseline: `c3c1b1c79d8be18d1f3f5f034745ce47bb33bcf4`
 - Primary write required: `true`
 - Allow verified no delta: `false`
-- Thread rotation required: `false`
-- Fresh Codex conversation required: `false`
+- Thread rotation required: `true`
+- Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
 
-## Rejected E2 result
+## Rejected results
 
-- Primary commit: `c3c1b1c79d8be18d1f3f5f034745ce47bb33bcf4`
-- Parent: `c0e2f891076f3e8e280941edbe0e241d9931dd0f`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-05-codex.md`
-- Verdict: `REJECTED_FALSE_VALIDATION_AND_INCOMPLETE_ACTIVE_CLEANUP`
-- Defects: previous scope violation, active `RUNTIME_GATE_REQUIRED`, remaining runtime approval/slot language, incomplete validator coverage, false cleanup PASS
+- E2 primary commit: `c3c1b1c79d8be18d1f3f5f034745ce47bb33bcf4`
+- E2 outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-05-codex.md`
+- E2 verdict: `REJECTED_FALSE_VALIDATION_AND_INCOMPLETE_ACTIVE_CLEANUP`
+- E3 expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-042-07-codex.md`
+- E3 result: `NO_CURRENT_OUTBOX_AND_STALE_E2_REPLAY`
+- Stale mailbox commit returned by Codex: `95bb52ed551ed973ee6a8981eab91d02993d3e96`
+- Reason for rotation: `STALE_BRIDGE_IDENTITY_AND_CONTAMINATED_CONVERSATION`
+
+## Learning rule now active
+
+Before evaluating any Codex PASS, compare epoch, current inbox, current claim, baseline and expected outbox against remote STATE. Any mismatch is `BLOCKED_STALE_BRIDGE_IDENTITY`. A Codex conversation that replays a superseded identity or remains in merge/conflict state must be rotated and never reused.
 
 ## Suspended product task
 
@@ -56,4 +62,4 @@ ROOT_PROCESS_SYNC_STATUS: RUNTIME_GATE_REMOVAL_CORRECTION_E3_OPEN
 
 ## Next action
 
-Send exactly `мост 1` in the current Codex conversation. Codex must execute inbox `BRIDGE-20260709-042-06-chatgpt.md`, push one direct-child correction commit, publish `.ai-bridge/outbox/BRIDGE-20260709-042-07-codex.md`, and refetch both refs. No model preflight, `CONTINUE`, `APPROVE`, runtime confirmation or separate pull/push command applies.
+Open a fresh Codex conversation and send exactly `мост 1`. Codex must execute inbox `BRIDGE-20260709-042-08-chatgpt.md`, pass the five-field identity gate, push one direct-child correction commit, publish `.ai-bridge/outbox/BRIDGE-20260709-042-09-codex.md`, and refetch both refs. No model preflight, `CONTINUE`, `APPROVE`, runtime confirmation, merge continuation or separate pull/push command applies.
