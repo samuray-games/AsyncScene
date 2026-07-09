@@ -1,54 +1,44 @@
 # Codex Remote-First Bootstrap
 
-BOOTSTRAP_VERSION: 2026-07-07-01
+BOOTSTRAP_VERSION: 2026-07-09-02
+BRIDGE_PROTOCOL: 3.3
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
 
 ## Purpose
 
-Break the stale-local-policy loop when a checkout is behind `origin/main` and local policy files are dirty.
-
-This bootstrap preserves every local byte. It does not stash, reset, clean, commit, merge, rebase, switch branches, discard changes or push.
+Break stale-local-policy and stale-remote-tracking loops without changing the user's primary worktree.
 
 ## Exact procedure
-
-Run from the current repository without trusting local `AGENTS.md`, `BRIDGE.md`, `GIT_PULL.md` or `GIT_PUSH.md`:
 
 ```bash
 ROOT="$(git rev-parse --show-toplevel)" || exit 1
 cd "$ROOT" || exit 1
 git remote get-url origin
-git fetch origin main coordination/chatgpt-codex-bridge
-git rev-parse origin/main
-git rev-parse origin/coordination/chatgpt-codex-bridge
-git show origin/main:AGENTS.override.md
-git show origin/main:GIT_PULL.md
-git show origin/main:BRIDGE.md
-git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md
+git ls-remote --heads origin refs/heads/main refs/heads/coordination/chatgpt-codex-bridge
+git fetch --no-tags --prune origin \
+  +refs/heads/main:refs/remotes/origin/main \
+  +refs/heads/coordination/chatgpt-codex-bridge:refs/remotes/origin/coordination/chatgpt-codex-bridge
+git rev-parse refs/remotes/origin/main
+git rev-parse refs/remotes/origin/coordination/chatgpt-codex-bridge
+TMP="$(mktemp)"
+git show origin/main:tools/bridge-slot-envelope.py > "$TMP"
+python3 "$TMP" --repo "$ROOT" --slot 1 --mode resolve
+rm -f "$TMP"
 git status --short --branch
 ```
 
+Use the requested slot instead of `1`.
+
+## Prohibited fetch form
+
+Do not use a source-only fetch form. It does not prove that the remote-tracking refs later read by the bridge were updated.
+
 ## Required result
 
-- Fetch runs before dirty-worktree evaluation.
-- Dirty local files remain untouched.
-- The local branch and HEAD remain unchanged.
-- Fresh remote policy and mailbox STATE become readable.
-- Result status is `PASS_REMOTE_FIRST_BOOTSTRAPPED`.
+- the working tree remains byte-for-byte untouched;
+- local branch and HEAD remain unchanged;
+- remote-tracking refs equal `ls-remote`;
+- resolver returns `BRIDGE_CONTRACT_RESOLVED` for the requested slot.
 
-## Invalid results
-
-- `BLOCKED_DIRTY_WORKTREE`;
-- instruction to rerun `запуль`;
-- stash, reset, clean, commit, branch switch, merge or rebase;
-- any modification of local files.
-
-## After bootstrap
-
-Use only current commands from freshly fetched policy:
-
-- `пул`
-- `пуш`
-- `мост 1`
-- `мост 2`
-- `мост 3`
-
-Legacy `запуль` and `запушь` are inactive.
+Successful status: `PASS_REMOTE_FIRST_BOOTSTRAPPED`.
