@@ -1,72 +1,35 @@
-# Codex bridge bootstrap
+# Codex Bridge Bootstrap
 
-BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_3
-PURPOSE: Keep `мост 1`, `мост 2`, and `мост 3` permanently routed to the current remote bridge protocol.
+BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V3_3
+BRIDGE_PROTOCOL: 3.3
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
+PURPOSE: Permanently route `мост 1`, `мост 2`, and `мост 3` through current remote machine state.
 
-## Forward compatibility
+## Installation
 
-An already installed V2.2 managed block is forward-compatible because it fetches `origin/main:AGENTS.override.md` and `origin/main:BRIDGE.md` before execution. It does not need reinstalling solely for Protocol 2.3.
+Use `tools/install-codex-bridge-alias.py`. It preserves unrelated user-level instructions, writes one timestamped backup, replaces one older managed block, and fails on malformed or duplicate markers.
 
-When a V2.2 block says “Protocol 2.2”, the version declared by current remote `BRIDGE.md` wins. Current remote policy also retires plugin-loader proof as a bridge gate and permits fresh detached mailbox worktrees.
+The installer targets `${CODEX_HOME:-$HOME/.codex}/AGENTS.override.md` when present, otherwise `AGENTS.md`.
 
-Install or migrate only when the user-level bridge block is absent, malformed, or does not fetch current remote policy.
+## Required managed behavior
 
-## Scope
+The installed block must:
 
-This is user-level configuration only.
-
-Allowed writes:
-- the active user-level Codex instruction file under `${CODEX_HOME:-$HOME/.codex}`;
-- one timestamped backup beside it.
-
-Forbidden writes:
-- every repository file;
-- mailbox claims or outboxes;
-- runtime, product, task, memory, lock, or dependency files.
-
-Preserve dirty repository files exactly. Do not stash, reset, clean, discard, commit, push, or overwrite them.
-
-## Required discovery
-
-1. Verify `origin` is `samuray-games/AsyncScene`.
-2. Fetch `origin/main` without changing the worktree.
-3. Read current `AGENTS.override.md`, `AGENTS.md`, `BRIDGE.md`, and this file with `git show origin/main:...`.
-4. Determine Codex home as `${CODEX_HOME:-$HOME/.codex}`.
-5. Use existing user-level `AGENTS.override.md` when present; otherwise use `AGENTS.md`.
-6. Preserve all unrelated content byte-for-byte.
-
-## Managed block
-
-```markdown
-<!-- ASYNCHRONIA_BRIDGE_ALIAS_V2_3_BEGIN -->
-## Asynchronia numbered mailbox commands
-
-The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` are reserved for repository `samuray-games/AsyncScene`.
-
-1. Parse the number as exactly 1, 2, or 3. Never ask what it means.
-2. Verify repository origin.
-3. Fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge` without changing or cleaning the primary worktree.
-4. Read current remote `AGENTS.override.md`, `AGENTS.md`, `BRIDGE.md`, and mailbox `STATE.md`.
-5. Current remote policy always overrides hardcoded protocol text in older managed blocks.
-6. Local dirty or stale bridge files are not sources and do not block the command.
-7. Use only the requested slot.
-8. Resolve Asynchronia skills from installed cache or repository fallback. Plugin-loader telemetry is never required.
-9. Use the resilient detached-worktree mailbox guard when an existing mailbox worktree is stale.
-10. Return actual claim token and claim path separately.
-11. A blocked response contains no `CONTINUE`.
-12. After valid same-thread `CONTINUE`, execute only the claimed lane and publish only its outbox.
-13. At completion, tell the user to return to ChatGPT and write the same numbered command.
-<!-- ASYNCHRONIA_BRIDGE_ALIAS_V2_3_END -->
-```
+- recognize only the three numbered commands;
+- ignore prior conversation completion and local mailbox copies;
+- use exact destination refspec fetches;
+- run the current remote `tools/bridge-slot-envelope.py`;
+- require `BRIDGE_CONTRACT_RESOLVED` before execution;
+- preserve `contractDigest` and authority blob SHAs;
+- re-resolve immediately before publication;
+- stop on digest or generation movement;
+- publish one exact outbox path;
+- require `OUTBOX_VERIFIED` before success;
+- prohibit historical outbox reuse, manual SHA transcription, model-selection stops and continuation tokens.
 
 ## Migration
 
-1. Back up the selected user-level file once.
-2. Replace exactly one complete older Asynchronia bridge block with the V2.3 block.
-3. If no block exists, append the V2.3 block.
-4. If markers are incomplete or duplicated, return `BLOCKED_MALFORMED_EXISTING_ALIAS`.
-5. Preserve all unrelated instructions and file permissions.
+Any V2.x or V3.0-V3.2 managed block is stale because it lacks the Protocol 3.3 machine-state and remote-ref proof. Run the installer once, then open a fresh Codex conversation.
 
-Successful installation status: `PASS_BRIDGE_ALIAS_V2_3_INSTALLED`.
-
-Again: a valid installed V2.2 remote-first block does not require migration before using Protocol 2.3.
+Successful status: `PASS_BRIDGE_ALIAS_V3_3_INSTALLED`.
