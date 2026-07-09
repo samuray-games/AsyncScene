@@ -14,7 +14,7 @@ This skill is read-only. It does not:
 - manufacture evidence
 - reinterpret missing evidence as present evidence
 - claim user runtime acceptance
-- bypass the Runtime Safety Gate
+- bypass exact scope isolation
 
 ## 1. Core purpose
 
@@ -30,7 +30,7 @@ It must:
 - identify evidence freshness requirements
 - distinguish static, local runtime, deployed runtime, and user acceptance evidence
 - route required specialized audits without replacing them
-- preserve Runtime Safety Gate precedence
+- preserve scope-isolation precedence
 - distinguish nested component verdicts from the enclosing smoke verdict
 - detect missing, stale, mismatched, or unverifiable evidence
 - report the exact next action without implementing a fix
@@ -63,7 +63,7 @@ Use this workflow in order:
 
 1. Classify the smoke.
 2. Confirm the atomic subject and authorized scope.
-3. Apply Runtime Safety Gate classification.
+3. Apply scope-isolation classification.
 4. Identify prerequisites.
 5. Define the expected result.
 6. Define evidence sources and owners.
@@ -75,9 +75,9 @@ Use this workflow in order:
 
 Do not skip steps just because a nested component already failed or passed.
 
-## 4. Runtime Safety Gate precedence
+## 4. Scope isolation precedence
 
-Runtime Safety Gate has priority over every smoke decision.
+Scope isolation has priority over every smoke decision.
 
 If the subject under test requires any runtime-sensitive file, runtime approval must be resolved before writes. Runtime-sensitive includes:
 
@@ -97,7 +97,7 @@ If the subject under test requires any runtime-sensitive file, runtime approval 
 - globals
 - smoke visibility
 
-If runtime approval is absent, the smoke is not free to proceed as if the approval existed.
+If exact scope isolation is absent, the smoke is not free to proceed as if it existed.
 
 ## 5. Evidence ownership
 

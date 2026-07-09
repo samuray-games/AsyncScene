@@ -15,6 +15,20 @@ FILES = {
     "bridge": ROOT / "BRIDGE.md",
     "pull": ROOT / "GIT_PULL.md",
     "push": ROOT / "GIT_PUSH.md",
+    "plugin": ROOT / "plugins/asynchronia/.codex-plugin/plugin.json",
+    "scope_skill": ROOT / "plugins/asynchronia/skills/scope-isolation-check/SKILL.md",
+    "router_skill": ROOT / "plugins/asynchronia/skills/task-router/SKILL.md",
+    "planner_skill": ROOT / "plugins/asynchronia/skills/parallel-scope-planner/SKILL.md",
+    "canon_skill": ROOT / "plugins/asynchronia/skills/canon-audit/SKILL.md",
+    "mirror_skill": ROOT / "plugins/asynchronia/skills/mirror-audit/SKILL.md",
+    "economy_skill": ROOT / "plugins/asynchronia/skills/economy-invariant-audit/SKILL.md",
+    "pipeline_skill": ROOT / "plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md",
+    "failure_skill": ROOT / "plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md",
+    "smoke_skill": ROOT / "plugins/asynchronia/skills/smoke-orchestrator/SKILL.md",
+    "deploy_skill": ROOT / "plugins/asynchronia/skills/deployment-verifier/SKILL.md",
+    "accept_skill": ROOT / "plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md",
+    "state_skill": ROOT / "plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md",
+    "evidence_skill": ROOT / "plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md",
 }
 WORKFLOW = ROOT / ".github/workflows/orchestration-policy.yml"
 WORKFLOW_POLICY_PATHS = (
@@ -27,6 +41,49 @@ WORKFLOW_POLICY_PATHS = (
     "GIT_PUSH.md",
     "tools/validate-orchestration-policy.py",
     ".github/workflows/orchestration-policy.yml",
+    "plugins/asynchronia/.codex-plugin/plugin.json",
+    "plugins/asynchronia/skills/scope-isolation-check/SKILL.md",
+    "plugins/asynchronia/skills/task-router/SKILL.md",
+    "plugins/asynchronia/skills/parallel-scope-planner/SKILL.md",
+    "plugins/asynchronia/skills/canon-audit/SKILL.md",
+    "plugins/asynchronia/skills/mirror-audit/SKILL.md",
+    "plugins/asynchronia/skills/economy-invariant-audit/SKILL.md",
+    "plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md",
+    "plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md",
+    "plugins/asynchronia/skills/smoke-orchestrator/SKILL.md",
+    "plugins/asynchronia/skills/deployment-verifier/SKILL.md",
+    "plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md",
+    "plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md",
+    "plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md",
+)
+FORBIDDEN_MARKERS = (
+    "RUNTIME_SAFETY_GATE_REQUIRED",
+    "RUNTIME_GATE_REQUIRED",
+    "runtime-safety-gate",
+    "Runtime Safety Gate",
+    "runtime_approval_required",
+    "wait_for_runtime_approval",
+    "mandatory runtime approval",
+    "scope-isolation approval",
+    "approval-only",
+    "isolated runtime slots",
+)
+ROOT_POLICY_KEYS = ("agents", "override", "root_sync", "orchestration", "bridge", "pull", "push")
+PLUGIN_KEYS = (
+    "plugin",
+    "scope_skill",
+    "router_skill",
+    "planner_skill",
+    "canon_skill",
+    "mirror_skill",
+    "economy_skill",
+    "pipeline_skill",
+    "failure_skill",
+    "smoke_skill",
+    "deploy_skill",
+    "accept_skill",
+    "state_skill",
+    "evidence_skill",
 )
 PHASES = (
     "CLOSED",
@@ -53,6 +110,11 @@ def forbid(text: str, needle: str, label: str, failures: list[str]) -> None:
         failures.append(f"{label}: forbidden {needle!r}")
 
 
+def require_exact(text: str, expected: str, label: str, failures: list[str]) -> None:
+    if text != expected:
+        failures.append(f"{label}: expected exact text {expected!r}")
+
+
 def main() -> int:
     failures: list[str] = []
     required_files = (*FILES.values(), WORKFLOW)
@@ -63,6 +125,7 @@ def main() -> int:
 
     docs = {name: path.read_text(encoding="utf-8") for name, path in FILES.items()}
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    scanned_paths = [str(path.relative_to(ROOT)) for path in required_files]
 
     require(docs["agents"], "BRIDGE_PROTOCOL: 3.2", "AGENTS.md", failures)
     require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_2", "AGENTS.override.md", failures)
@@ -72,13 +135,16 @@ def main() -> int:
     require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
     require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
 
-    for label, text in docs.items():
-        require(text, "ROOT_CAUSE_SYNC: REQUIRED", FILES[label].name, failures)
-        require(text, "NO_OP_COMPLETION: FORBIDDEN", FILES[label].name, failures)
-        forbid(text, "BRIDGE_PROTOCOL: 3.0", FILES[label].name, failures)
-        forbid(text, "ORCHESTRATION_VERSION: 3.0", FILES[label].name, failures)
-        forbid(text, "MODEL_PREFLIGHT_ONLY", FILES[label].name, failures)
-        forbid(text, "runtime-" + "safety-gate", FILES[label].name, failures)
+    for text_name in ROOT_POLICY_KEYS:
+        text = docs[text_name]
+        require(text, "ROOT_CAUSE_SYNC: REQUIRED", FILES[text_name].name, failures)
+        require(text, "NO_OP_COMPLETION: FORBIDDEN", FILES[text_name].name, failures)
+        forbid(text, "BRIDGE_PROTOCOL: 3.0", FILES[text_name].name, failures)
+        forbid(text, "ORCHESTRATION_VERSION: 3.0", FILES[text_name].name, failures)
+        forbid(text, "MODEL_PREFLIGHT_ONLY", FILES[text_name].name, failures)
+        forbid(text, "runtime-" + "safety-gate", FILES[text_name].name, failures)
+        for marker in FORBIDDEN_MARKERS:
+            forbid(text, marker, FILES[text_name].name, failures)
 
     for text_name in ("agents", "override", "orchestration", "bridge"):
         require(docs[text_name], "FAIL_NO_EXECUTION_EVIDENCE", FILES[text_name].name, failures)
@@ -121,13 +187,46 @@ def main() -> int:
         require(docs[text_name], "PASS_PUSHED", FILES[text_name].name, failures)
         require(docs[text_name], "PASS_VERIFIED_NO_DELTA", FILES[text_name].name, failures)
 
+    plugin = json.loads(docs["plugin"])
+    require_exact(plugin.get("version"), "1.0.2", "plugin.json version", failures)
+    require_exact(plugin.get("name"), "asynchronia", "plugin.json name", failures)
+    interface = plugin.get("interface", {})
+    require_exact(interface.get("shortDescription"), "Apply Asynchronia repository scope checks.", "plugin.json shortDescription", failures)
+    require_exact(plugin.get("description"), "Project-specific scope checks and evidence workflows for Codex work in the Asynchronia repository.", "plugin.json description", failures)
+    require_exact(interface.get("category"), "Developer Tools", "plugin.json category", failures)
+    require_exact(plugin.get("skills"), "./skills/", "plugin.json skills path", failures)
+
+    for skill_name, path_key in (
+        ("scope-isolation-check", "scope_skill"),
+        ("task-router", "router_skill"),
+        ("parallel-scope-planner", "planner_skill"),
+        ("canon-audit", "canon_skill"),
+        ("mirror-audit", "mirror_skill"),
+        ("economy-invariant-audit", "economy_skill"),
+        ("acceptance-pipeline-controller", "pipeline_skill"),
+        ("failure-routing-and-corrective-loop", "failure_skill"),
+        ("smoke-orchestrator", "smoke_skill"),
+        ("deployment-verifier", "deploy_skill"),
+        ("acceptance-evidence-gate", "accept_skill"),
+        ("pipeline-state-and-resume-contract", "state_skill"),
+        ("evidence-bundle-and-artifact-identity", "evidence_skill"),
+    ):
+        require(docs[path_key], f"name: {skill_name}", FILES[path_key].name, failures)
+
+    for text_name in PLUGIN_KEYS:
+        text = docs[text_name]
+        for marker in FORBIDDEN_MARKERS:
+            forbid(text, marker, FILES[text_name].name, failures)
+
+    print(json.dumps({"scannedPaths": scanned_paths}, ensure_ascii=False))
+
     result = {
         "ok": not failures,
         "orchestrationVersion": "3.2",
         "rootCauseSync": "REQUIRED",
         "noOpCompletion": "FORBIDDEN",
         "verifiedNoDelta": "ALLOWED_WITH_EVIDENCE",
-        "checkedFiles": [str(path.relative_to(ROOT)) for path in required_files],
+        "checkedFiles": scanned_paths,
         "canonicalPhaseCount": len(PHASES),
         "workflowPolicyPathCount": len(WORKFLOW_POLICY_PATHS),
         "failures": failures,

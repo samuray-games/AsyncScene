@@ -12,6 +12,20 @@ on:
       - GIT_PUSH.md
       - tools/validate-orchestration-policy.py
       - .github/workflows/orchestration-policy.yml
+      - plugins/asynchronia/.codex-plugin/plugin.json
+      - plugins/asynchronia/skills/scope-isolation-check/SKILL.md
+      - plugins/asynchronia/skills/task-router/SKILL.md
+      - plugins/asynchronia/skills/parallel-scope-planner/SKILL.md
+      - plugins/asynchronia/skills/canon-audit/SKILL.md
+      - plugins/asynchronia/skills/mirror-audit/SKILL.md
+      - plugins/asynchronia/skills/economy-invariant-audit/SKILL.md
+      - plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md
+      - plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md
+      - plugins/asynchronia/skills/smoke-orchestrator/SKILL.md
+      - plugins/asynchronia/skills/deployment-verifier/SKILL.md
+      - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
+      - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
+      - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
   pull_request:
     paths:
       - AGENTS.md
@@ -23,6 +37,20 @@ on:
       - GIT_PUSH.md
       - tools/validate-orchestration-policy.py
       - .github/workflows/orchestration-policy.yml
+      - plugins/asynchronia/.codex-plugin/plugin.json
+      - plugins/asynchronia/skills/scope-isolation-check/SKILL.md
+      - plugins/asynchronia/skills/task-router/SKILL.md
+      - plugins/asynchronia/skills/parallel-scope-planner/SKILL.md
+      - plugins/asynchronia/skills/canon-audit/SKILL.md
+      - plugins/asynchronia/skills/mirror-audit/SKILL.md
+      - plugins/asynchronia/skills/economy-invariant-audit/SKILL.md
+      - plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md
+      - plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md
+      - plugins/asynchronia/skills/smoke-orchestrator/SKILL.md
+      - plugins/asynchronia/skills/deployment-verifier/SKILL.md
+      - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
+      - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
+      - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
   workflow_dispatch:
 
 permissions:

@@ -35,7 +35,7 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 - a fresh Codex conversation adopts the replacement claim named by STATE;
 - logical bridge thread id remains unchanged for audit history;
 - execution starts on the first matching numbered command;
-- no preflight, `CONTINUE`, `APPROVE`, `пул` or `пуш` is required.
+- no preflight or separate bridge token is required.
 
 ## Codex execution
 

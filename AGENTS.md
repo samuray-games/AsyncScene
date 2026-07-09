@@ -37,7 +37,7 @@ Protocol 3.1 exposes three fixed slots.
 - A replacement claim created by ChatGPT after baseline movement or no-op recovery may be adopted by a fresh Codex thread when STATE says `THREAD_ROTATION_REQUIRED: true`.
 - When thread rotation is required, the previous Codex thread is explicitly superseded and must not be treated as claim owner.
 - The fresh thread adopts only the current replacement claim named by STATE.
-- No extra model preflight, `CONTINUE`, `APPROVE`, `пул` or `пуш` is required for a numbered lane unless the current inbox explicitly defines a genuine external blocker.
+- No extra model preflight or separate bridge token is required for a numbered lane unless the current inbox explicitly defines a genuine external blocker.
 - `CORRECTION_REQUIRED` must execute on the next matching numbered command.
 - If the slot is closed or unavailable, return `BRIDGE_SLOT_UNAVAILABLE`.
 - If a non-superseded current claim is genuinely owned by another active thread, return `BRIDGE_SLOT_ALREADY_CLAIMED`.
@@ -88,7 +88,7 @@ When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` 
 
 ### `запушь`
 
-When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass runtime approval or claim deployment/runtime acceptance from a Git push.
+When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass scope isolation or claim deployment/runtime acceptance from a Git push.
 
 These aliases do not bypass native permission prompts, scope-isolation-check, exact task scope, Git safety checks or user-owned Safari acceptance.
 

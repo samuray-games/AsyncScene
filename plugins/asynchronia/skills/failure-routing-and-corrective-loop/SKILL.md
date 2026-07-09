@@ -65,7 +65,7 @@ This contract is subordinate to the acceptance controller and must not replace i
 - `5.4` consumes its deterministic failure reasons.
 - `5.4` must not override acceptance decisions or invent acceptance evidence.
 
-### Runtime safety gate
+### Scope isolation gate
 
 - `scope-isolation-check` owns scope isolation requirements.
 - `5.4` may route to approval-required or approval-invalidated states.
@@ -90,7 +90,6 @@ Each failure must be classified into exactly one primary class:
 - `lock_expired`
 - `lock_revalidation_required`
 - `active_lock_conflict`
-- `runtime_approval_required`
 - `user_action_required`
 - `external_dependency_block`
 - `terminal_failure`
@@ -106,7 +105,6 @@ Each failure must be classified into exactly one primary class:
 - `lock_expired`: a previously valid lock exists, but its expiry time has passed.
 - `lock_revalidation_required`: lock identity, owner, scope, revision, or status is stale, ambiguous, malformed, or mismatched.
 - `active_lock_conflict`: another current ACTIVE lock overlaps the intended write scope or serialized ownership group.
-- `runtime_approval_required`: the failure cannot proceed until scope isolation exists for the exact sensitive scope.
 - `user_action_required`: the next action depends on user-owned evidence, user acceptance, or another user-only step.
 - `external_dependency_block`: the workflow is blocked by an unavailable external dependency, service, or environment prerequisite.
 - `terminal_failure`: the condition is authoritative, non-recoverable for the current attempt, and must stop.
@@ -126,7 +124,6 @@ The next action must be one of:
 - `LOCK_REVALIDATION_REQUIRED`
 - `WAITING_ON_LOCK`
 - `SCOPE_REVALIDATION_REQUIRED`
-- `wait_for_runtime_approval`
 - `wait_for_user`
 - `wait_for_dependency`
 - `resume`
@@ -144,7 +141,6 @@ The next action must be one of:
 - `lock_expired` -> `REACQUIRE_LOCK_REQUIRED`
 - `lock_revalidation_required` -> `LOCK_REVALIDATION_REQUIRED`
 - `active_lock_conflict` -> `WAITING_ON_LOCK`
-- `runtime_approval_required` -> `wait_for_runtime_approval`
 - `user_action_required` -> `wait_for_user`
 - `external_dependency_block` -> `wait_for_dependency`
 - `terminal_failure` -> `terminate`
@@ -360,7 +356,7 @@ Unknown, malformed, contradictory, stale, or ambiguous failure states must fail 
 - If the artifact identity is unresolved, route to `scope_revalidation_required` or `block` depending on whether identity can be recovered safely.
 - If evidence ownership is unclear, route to `block`.
 - If the lock state cannot be trusted, route to `LOCK_REVALIDATION_REQUIRED` or `block`.
-- If scope isolation is required but absent, route to `wait_for_runtime_approval`.
+- If scope isolation is required but absent, route to `block`.
 - If the state is superseded, route to `restart`.
 - If the failure state is terminal, do not retry.
 
@@ -383,13 +379,13 @@ This contract must route at least the following cases:
 - prior lock expired -> `lock_expired`
 - lock evidence is stale, unverifiable, or mismatched -> `lock_revalidation_required`
 - another ACTIVE lock overlaps the scope -> `active_lock_conflict`
-- scope isolation missing or invalidated -> `runtime_approval_required`
+- scope isolation missing or invalidated -> `scope_revalidation_required`
 - scope expansion -> `scope_revalidation_required`
 - dependency unavailable -> `external_dependency_block`
 - user acceptance missing -> `user_action_required`
 - repeated identical failure -> `terminal_failure` or `block` after the loop limit is exceeded
 - correction that changes artifact identity -> `scope_revalidation_required`
-- correction that changes runtime-sensitive scope -> `runtime_approval_required` if approval is missing, otherwise `scope_revalidation_required`
+- correction that changes runtime-sensitive scope -> `scope_revalidation_required`
 - no-progress corrective loop -> `terminal_failure`
 - oscillating failure sequence -> `terminal_failure`
 - terminal unsupported condition -> `terminal_failure`

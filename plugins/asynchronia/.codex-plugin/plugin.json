@@ -1,19 +1,19 @@
 {
   "name": "asynchronia",
-  "version": "1.0.1",
-  "description": "Project-specific safety gates and evidence workflows for Codex work in the Asynchronia repository.",
+  "version": "1.0.2",
+  "description": "Project-specific scope checks and evidence workflows for Codex work in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Apply Asynchronia repository safety gates.",
-    "longDescription": "Provides project-specific repository context, runtime isolation, routing, smoke orchestration, deployment verification, acceptance gating, and validation rules for safe Asynchronia changes.",
+    "shortDescription": "Apply Asynchronia repository scope checks.",
+    "longDescription": "Provides project-specific repository context, scope isolation, routing, smoke orchestration, deployment verification, acceptance gating, and validation rules for safe Asynchronia changes.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
-      "Repository safety",
+      "Repository scope checks",
       "Workflow routing",
       "Smoke orchestration",
       "Deployment verification",
