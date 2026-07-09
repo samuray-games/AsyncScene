@@ -13,6 +13,7 @@ from tools.closed_loop_contract import (
     ClosedLoopState,
     accept_product_work,
     classify_recovery,
+    evaluate_control,
     load_state,
     self_check,
     serialize,
@@ -80,6 +81,14 @@ class ClosedLoopContractTest(unittest.TestCase):
         for current, target in (("CLOSED", "EXECUTING"), ("PRIMARY_PUBLISHED", "READY_FOR_CODEX"), ("SUPERSEDED", "CLOSED")):
             with self.assertRaises(ValueError):
                 validate_transition(current, target)
+
+    def test_full_illegal_transition_matrix(self) -> None:
+        for current in LEGAL_STATES:
+            for target in LEGAL_STATES:
+                if target in LEGAL_TRANSITIONS[current]:
+                    continue
+                with self.assertRaises(ValueError):
+                    validate_transition(current, target)
 
     def test_identity_mismatch_raises(self) -> None:
         with self.assertRaises(ValueError):
@@ -161,9 +170,13 @@ class ClosedLoopContractTest(unittest.TestCase):
 
     def test_recovery_selection(self) -> None:
         self.assertEqual(classify_recovery({"status": "BLOCKED_EXTERNAL"}), "BLOCKED_EXTERNAL")
-        self.assertEqual(classify_recovery({"publicationRecovery": True}), "PUBLICATION_RECOVERY_REQUIRED")
-        self.assertEqual(classify_recovery({"reportRecovery": True}), "REPORT_RECOVERY_REQUIRED")
+        self.assertEqual(classify_recovery({"status": "BLOCKED_OUTBOX_PUBLICATION"}), "PUBLICATION_RECOVERY_REQUIRED")
+        self.assertEqual(classify_recovery({"completionMode": "REPORT_RECOVERY_REQUIRED"}), "REPORT_RECOVERY_REQUIRED")
         self.assertEqual(classify_recovery({}), "CORRECTION_REQUIRED")
+
+    def test_unknown_control_rejects(self) -> None:
+        with self.assertRaises(ValueError):
+            evaluate_control("not_a_control")
 
     def test_canary_gate(self) -> None:
         self.assertFalse(accept_product_work({"canaryAccepted": False, "currentState": "ACCEPTED"}))

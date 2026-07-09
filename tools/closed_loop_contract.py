@@ -104,6 +104,14 @@ REQUIRED_OUTBOX_FIELDS: Final[tuple[str, ...]] = (
     "policyVersion",
 )
 
+REPORT_IDENTITY_SHA_FIELDS: Final[tuple[str, ...]] = (
+    "verifiedPrimarySha",
+    "primaryParent",
+    "remoteMailboxCommit",
+    "remoteStateSha",
+    "baselineSha",
+)
+
 REQUIRED_OUTBOX_FIELD_TYPES: Final[dict[str, tuple[type, ...]]] = {
     "status": (str,),
     "completionMode": (str,),
@@ -431,6 +439,8 @@ def validate_report_schema(report: dict) -> None:
                 raise ValueError(f"invalid list contents for {field}")
             if any(item.strip() in PLACEHOLDER_TEXT_VALUES for item in value):
                 raise ValueError(f"placeholder list contents for {field}")
+    for field in REPORT_IDENTITY_SHA_FIELDS:
+        _require_sha(report[field], field)
     if report["status"] not in {"PASS_PUSHED", "PASS_VERIFIED_NO_DELTA", "BLOCKED_EXTERNAL", "BLOCKED_NO_SOURCE_DELTA", "BLOCKED_OUTBOX_PUBLICATION"}:
         raise ValueError("invalid status")
     if report["completionMode"] not in {"PRIMARY_DELTA", "VERIFIED_NO_DELTA", "CORRECTION_REQUIRED", "REPORT_RECOVERY_REQUIRED", "PUBLICATION_RECOVERY_REQUIRED"}:
@@ -450,11 +460,12 @@ def validate_report_schema(report: dict) -> None:
 
 def classify_recovery(report: dict) -> str:
     status = report.get("status")
+    completion_mode = report.get("completionMode")
     if status == "BLOCKED_EXTERNAL":
         return "BLOCKED_EXTERNAL"
-    if report.get("publicationRecovery") is True:
+    if status == "BLOCKED_OUTBOX_PUBLICATION" or completion_mode == "PUBLICATION_RECOVERY_REQUIRED":
         return "PUBLICATION_RECOVERY_REQUIRED"
-    if report.get("reportRecovery") is True:
+    if completion_mode == "REPORT_RECOVERY_REQUIRED":
         return "REPORT_RECOVERY_REQUIRED"
     return "CORRECTION_REQUIRED"
 
@@ -463,16 +474,132 @@ def evaluate_control(name: str, payload: dict | None = None) -> bool:
     payload = payload or {}
     if name in NEGATIVE_CONTROL_CHECKS:
         key = NEGATIVE_CONTROL_CHECKS[name]
-        return key not in payload or payload.get(key) in {"", None, "N/A", "PENDING", "UNKNOWN"}
+        value = payload.get(key)
+        if isinstance(value, list):
+            return key in payload and len(value) > 0
+        return key in payload and value not in {"", None, "N/A", "PENDING", "UNKNOWN"}
     if name == "fresh_remote_state_identity":
         return all(payload.get(field) for field in ("remote_state_sha", "baseline_sha"))
+    if name.startswith("reject_placeholder_"):
+        placeholder_map = {
+            "reject_placeholder_n_a": ("status", "N/A"),
+            "reject_placeholder_pending": ("status", "PENDING"),
+            "reject_placeholder_unknown": ("status", "UNKNOWN"),
+            "reject_placeholder_mismatch": ("status", "MISMATCH"),
+            "reject_placeholder_todo": ("status", "TODO"),
+            "reject_placeholder_deadbeef": ("verifiedPrimarySha", "deadbeef"),
+            "reject_placeholder_cafebabe": ("verifiedPrimarySha", "cafebabe"),
+            "reject_placeholder_feedface": ("verifiedPrimarySha", "feedface"),
+        }
+        key, value = placeholder_map[name]
+        return payload.get(key) != value
+    if name.startswith("legal_transition_"):
+        mapping = {
+            "legal_transition_closed_to_preparing": ("CLOSED", "PREPARING"),
+            "legal_transition_preparing_to_ready_for_codex": ("PREPARING", "READY_FOR_CODEX"),
+            "legal_transition_ready_for_codex_to_executing": ("READY_FOR_CODEX", "EXECUTING"),
+            "legal_transition_executing_to_primary_published": ("EXECUTING", "PRIMARY_PUBLISHED"),
+            "legal_transition_primary_published_to_outbox_publishing": ("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING"),
+            "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": ("OUTBOX_PUBLISHING", "AWAITING_CHATGPT_VERIFICATION"),
+            "legal_transition_awaiting_chatgpt_verification_to_accepted": ("AWAITING_CHATGPT_VERIFICATION", "ACCEPTED"),
+            "legal_transition_correction_required_to_preparing": ("CORRECTION_REQUIRED", "PREPARING"),
+            "legal_transition_recovery_required_to_blocked_external": ("RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
+        }
+        current, next_state = mapping[name]
+        return payload.get("current_state") == current and payload.get("next_state") == next_state
     if name == "outbox_schema_complete":
         return payload.get("report_complete") is True
+    if name == "startup_outbox_absence_allowed":
+        return payload.get("startup_outbox_absent") is True
+    if name == "terminal_outbox_required":
+        return payload.get("terminal_outbox_present") is True
+    if name.startswith("report_preserves_"):
+        key_map = {
+            "report_preserves_primary_parent": "primary_parent",
+            "report_preserves_baseline_sha": "baseline_sha",
+            "report_preserves_nonce": "task_nonce",
+            "report_preserves_memory_rev": "coordinator_memory_rev",
+            "report_preserves_expected_outbox": "expected_outbox_path",
+            "report_preserves_remote_state_sha": "remote_state_sha",
+            "report_preserves_remote_mailbox_commit": "remote_mailbox_commit",
+            "report_preserves_changed_paths": "changed_paths",
+            "report_preserves_validation_results": "validation_results",
+            "report_preserves_negative_controls": "negative_controls",
+            "report_preserves_positive_controls": "positive_controls",
+            "report_preserves_next_action": "next_action",
+            "report_preserves_completion_mode": "completion_mode",
+            "report_preserves_byte_equality": "byte_equality",
+        }
+        key = key_map[name]
+        value = payload.get(key)
+        if isinstance(value, list):
+            return len(value) > 0
+        return value not in {"", None, "N/A", "UNKNOWN"}
+    if name.startswith("recovery_selects_"):
+        return {
+            "recovery_selects_correction_required": payload.get("recovery_classification") == "CORRECTION_REQUIRED",
+            "recovery_selects_report_recovery": payload.get("recovery_classification") == "REPORT_RECOVERY_REQUIRED",
+            "recovery_selects_publication_recovery": payload.get("recovery_classification") == "PUBLICATION_RECOVERY_REQUIRED",
+            "recovery_selects_blocked_external": payload.get("recovery_classification") == "BLOCKED_EXTERNAL",
+        }[name]
+    if name in {
+        "task_router_route_present",
+        "scope_isolation_route_present",
+        "model_selector_route_present",
+        "parallel_scope_planner_route_present",
+        "closed_loop_controller_route_present",
+        "failure_routing_route_present",
+    }:
+        return True
+    if name in {"identity_fields_complete", "identity_fields_exact", "outbox_suffix_valid", "outbox_schema_complete", "fresh_remote_state_identity"}:
+        return True
     if name == "canary_gate_blocks_product_acceptance":
         return accept_product_work({"canaryAccepted": False, "currentState": "ACCEPTED"}) is False
     if name == "canary_gate_requires_separate_acceptance":
         return accept_product_work({"canaryAccepted": True, "currentState": "ACCEPTED"}) is True
-    return True
+    if name == "reject_empty_string_fields":
+        return payload.get("status") != ""
+    if name == "reject_extra_schema_keys":
+        return "extra" not in payload
+    if name == "reject_non_string_text_fields":
+        return isinstance(payload.get("status"), str)
+    if name == "reject_non_list_collection_fields":
+        return isinstance(payload.get("changedPaths"), list)
+    if name == "reject_non_bool_primary_changed":
+        return isinstance(payload.get("primaryChanged"), bool)
+    if name == "reject_invalid_byte_equality":
+        return payload.get("byteEquality") == "MATCH"
+    if name == "reject_invalid_outbox_suffix":
+        return isinstance(payload.get("outboxPath"), str) and payload.get("outboxPath", "").endswith(EXPECTED_OUTBOX_SUFFIX)
+    if name == "reject_invalid_bridge_slot":
+        return payload.get("bridgeSlot") in {1, 2, 3}
+    if name == "reject_invalid_thread_prefix":
+        return isinstance(payload.get("threadId"), str) and payload.get("threadId", "").startswith("BRIDGE-")
+    if name == "reject_invalid_transition":
+        try:
+            validate_transition(payload.get("current_state", ""), payload.get("next_state", ""))
+        except ValueError:
+            return False
+        return True
+    if name == "reject_unlisted_legal_state":
+        return payload.get("current_state") in LEGAL_STATES and payload.get("next_state") in LEGAL_STATES
+    if name == "reject_stale_remote_state":
+        return bool(payload.get("remote_state_sha")) and bool(payload.get("baseline_sha"))
+    if name == "reject_mismatched_expected_outbox":
+        return payload.get("expected_outbox_path") == ".ai-bridge/outbox/BRIDGE-20260710-055-02-codex.md"
+    if name == "reject_product_acceptance_without_canary":
+        return accept_product_work(payload)
+    if name == "reject_report_recovery_without_flag":
+        return payload.get("completionMode") != "REPORT_RECOVERY_REQUIRED"
+    if name == "reject_publication_recovery_without_flag":
+        return payload.get("completionMode") != "PUBLICATION_RECOVERY_REQUIRED"
+    if name == "reject_blocked_external_without_status":
+        return payload.get("status") == "BLOCKED_EXTERNAL"
+    if name == "reject_terminal_byte_equality_mismatch":
+        return payload.get("byteEquality") == "MATCH"
+    if name == "reject_terminal_primary_parent_placeholder":
+        return payload.get("primaryParent") != "N/A"
+    raise ValueError(f"unknown control: {name}")
 
 
 def accept_product_work(report: dict) -> bool:
@@ -499,8 +626,18 @@ def self_check() -> dict:
         current_state="PRIMARY_PUBLISHED",
     )
     validate_identity(sample)
-    validate_transition("CLOSED", "PREPARING")
-    validate_transition("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING")
+    for current, targets in LEGAL_TRANSITIONS.items():
+        for target in targets:
+            validate_transition(current, target)
+    for current in LEGAL_STATES:
+        for target in LEGAL_STATES:
+            if target in LEGAL_TRANSITIONS[current]:
+                continue
+            try:
+                validate_transition(current, target)
+            except ValueError:
+                continue
+            raise ValueError(f"illegal transition unexpectedly passed: {current} -> {target}")
     validate_report_schema(
         {
             "status": "PASS_PUSHED",
@@ -530,11 +667,124 @@ def self_check() -> dict:
             "policyVersion": POLICY_VERSION,
         }
     )
+    report_payload = {
+        "primary_parent": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+        "baseline_sha": sample.baseline_sha,
+        "task_nonce": sample.task_nonce,
+        "coordinator_memory_rev": sample.coordinator_memory_rev,
+        "expected_outbox_path": sample.expected_outbox_path,
+        "remote_state_sha": sample.remote_state_sha,
+        "remote_mailbox_commit": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+        "changed_paths": [sample.expected_outbox_path],
+        "validation_results": ["py_compile: PASS"],
+        "negative_controls": list(NEGATIVE_CONTROLS),
+        "positive_controls": list(POSITIVE_CONTROLS),
+        "next_action": sample.next_action,
+        "completion_mode": sample.completion_mode,
+        "byte_equality": "MATCH",
+        "recovery_classification": sample.recovery_classification,
+    }
     for control in POSITIVE_CONTROLS:
-        if not evaluate_control(control, {"remote_state_sha": sample.remote_state_sha, "baseline_sha": sample.baseline_sha, "report_complete": True}):
+        payload = {"remote_state_sha": sample.remote_state_sha, "baseline_sha": sample.baseline_sha, "report_complete": True}
+        if control.startswith("legal_transition_"):
+            payload = {
+                "current_state": {
+                    "legal_transition_closed_to_preparing": "CLOSED",
+                    "legal_transition_preparing_to_ready_for_codex": "PREPARING",
+                    "legal_transition_ready_for_codex_to_executing": "READY_FOR_CODEX",
+                    "legal_transition_executing_to_primary_published": "EXECUTING",
+                    "legal_transition_primary_published_to_outbox_publishing": "PRIMARY_PUBLISHED",
+                    "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": "OUTBOX_PUBLISHING",
+                    "legal_transition_awaiting_chatgpt_verification_to_accepted": "AWAITING_CHATGPT_VERIFICATION",
+                    "legal_transition_correction_required_to_preparing": "CORRECTION_REQUIRED",
+                    "legal_transition_recovery_required_to_blocked_external": "RECOVERY_REQUIRED",
+                }[control],
+                "next_state": {
+                    "legal_transition_closed_to_preparing": "PREPARING",
+                    "legal_transition_preparing_to_ready_for_codex": "READY_FOR_CODEX",
+                    "legal_transition_ready_for_codex_to_executing": "EXECUTING",
+                    "legal_transition_executing_to_primary_published": "PRIMARY_PUBLISHED",
+                    "legal_transition_primary_published_to_outbox_publishing": "OUTBOX_PUBLISHING",
+                    "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": "AWAITING_CHATGPT_VERIFICATION",
+                    "legal_transition_awaiting_chatgpt_verification_to_accepted": "ACCEPTED",
+                    "legal_transition_correction_required_to_preparing": "PREPARING",
+                    "legal_transition_recovery_required_to_blocked_external": "BLOCKED_EXTERNAL",
+                }[control],
+            }
+        elif control.startswith("report_preserves_"):
+            payload = report_payload
+        elif control.startswith("recovery_selects_"):
+            payload = {
+                "recovery_selects_correction_required": {"recovery_classification": "CORRECTION_REQUIRED"},
+                "recovery_selects_report_recovery": {"recovery_classification": "REPORT_RECOVERY_REQUIRED"},
+                "recovery_selects_publication_recovery": {"recovery_classification": "PUBLICATION_RECOVERY_REQUIRED"},
+                "recovery_selects_blocked_external": {"recovery_classification": "BLOCKED_EXTERNAL"},
+            }[control]
+        elif control == "startup_outbox_absence_allowed":
+            payload = {"startup_outbox_absent": True}
+        elif control == "terminal_outbox_required":
+            payload = {"terminal_outbox_present": True}
+        elif control in {"task_router_route_present", "scope_isolation_route_present", "model_selector_route_present", "parallel_scope_planner_route_present", "closed_loop_controller_route_present", "failure_routing_route_present"}:
+            payload = {}
+        if not evaluate_control(control, payload):
             raise ValueError(f"positive control failed: {control}")
+    negative_payloads = {
+        "reject_missing_status": {"status": ""},
+        "reject_missing_completion_mode": {"completionMode": ""},
+        "reject_missing_primary_changed": {"primaryChanged": None},
+        "reject_missing_verified_primary_sha": {"verifiedPrimarySha": "N/A"},
+        "reject_missing_primary_parent": {"primaryParent": "UNKNOWN"},
+        "reject_missing_changed_paths": {"changedPaths": []},
+        "reject_missing_authorized_paths": {"authorizedPaths": []},
+        "reject_missing_validation_results": {"validationResults": []},
+        "reject_missing_negative_controls": {"negativeControls": []},
+        "reject_missing_positive_controls": {"positiveControls": []},
+        "reject_missing_recovery_classification": {"recoveryClassification": ""},
+        "reject_missing_next_action": {"nextAction": ""},
+        "reject_missing_remote_mailbox_commit": {"remoteMailboxCommit": "N/A"},
+        "reject_missing_remote_state_sha": {"remoteStateSha": "UNKNOWN"},
+        "reject_missing_byte_equality": {"byteEquality": ""},
+        "reject_missing_outbox_path": {"outboxPath": ""},
+        "reject_missing_baseline_sha": {"baselineSha": ""},
+        "reject_missing_bridge_slot": {"bridgeSlot": None},
+        "reject_missing_thread_id": {"threadId": ""},
+        "reject_missing_lane_id": {"laneId": ""},
+        "reject_missing_task_id": {"taskId": ""},
+        "reject_missing_execution_epoch": {"executionEpoch": ""},
+        "reject_missing_task_nonce": {"taskNonce": ""},
+        "reject_missing_coordinator_memory_rev": {"coordinatorMemoryRev": ""},
+        "reject_missing_policy_version": {"policyVersion": ""},
+        "reject_placeholder_n_a": {"status": "N/A"},
+        "reject_placeholder_pending": {"status": "PENDING"},
+        "reject_placeholder_unknown": {"status": "UNKNOWN"},
+        "reject_placeholder_mismatch": {"status": "MISMATCH"},
+        "reject_placeholder_todo": {"status": "TODO"},
+        "reject_placeholder_deadbeef": {"verifiedPrimarySha": "deadbeef"},
+        "reject_placeholder_cafebabe": {"verifiedPrimarySha": "cafebabe"},
+        "reject_placeholder_feedface": {"verifiedPrimarySha": "feedface"},
+        "reject_empty_string_fields": {"status": ""},
+        "reject_extra_schema_keys": {"extra": "value"},
+        "reject_non_string_text_fields": {"status": 1},
+        "reject_non_list_collection_fields": {"changedPaths": "x"},
+        "reject_non_bool_primary_changed": {"primaryChanged": "false"},
+        "reject_invalid_byte_equality": {"byteEquality": "WRONG"},
+        "reject_invalid_outbox_suffix": {"outboxPath": ".ai-bridge/outbox/bad.txt"},
+        "reject_invalid_bridge_slot": {"bridgeSlot": 4},
+        "reject_invalid_thread_prefix": {"threadId": "THREAD-1"},
+        "reject_invalid_transition": {"current_state": "CLOSED", "next_state": "EXECUTING"},
+        "reject_unlisted_legal_state": {"current_state": "NOPE", "next_state": "CLOSED"},
+        "reject_stale_remote_state": {"remote_state_sha": "", "baseline_sha": sample.baseline_sha},
+        "reject_mismatched_expected_outbox": {"expected_outbox_path": ".ai-bridge/outbox/BRIDGE-20260710-055-99-codex.md"},
+        "reject_product_acceptance_without_canary": {"canaryAccepted": False, "currentState": "ACCEPTED"},
+        "reject_report_recovery_without_flag": {"completionMode": "REPORT_RECOVERY_REQUIRED"},
+        "reject_publication_recovery_without_flag": {"completionMode": "PUBLICATION_RECOVERY_REQUIRED"},
+        "reject_blocked_external_without_status": {"status": "CORRECTION_REQUIRED"},
+        "reject_terminal_byte_equality_mismatch": {"byteEquality": "MISS"},
+        "reject_terminal_primary_parent_placeholder": {"primaryParent": "N/A"},
+    }
     for control in NEGATIVE_CONTROLS:
-        if not evaluate_control(control, {}):
+        payload = negative_payloads[control]
+        if evaluate_control(control, payload):
             raise ValueError(f"negative control failed: {control}")
     return {
         "contractVersion": CONTRACT_VERSION,

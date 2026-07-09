@@ -72,6 +72,15 @@ def main() -> int:
     for current, targets in CONTRACT.LEGAL_TRANSITIONS.items():
         for target in targets:
             CONTRACT.validate_transition(current, target)
+    for current in CONTRACT.LEGAL_STATES:
+        for target in CONTRACT.LEGAL_STATES:
+            if target in CONTRACT.LEGAL_TRANSITIONS[current]:
+                continue
+            try:
+                CONTRACT.validate_transition(current, target)
+            except ValueError:
+                continue
+            failures.append(f"contract: illegal transition unexpectedly allowed {current} -> {target}")
     CONTRACT.validate_report_schema(
         {
             "status": "PASS_PUSHED",
@@ -101,6 +110,12 @@ def main() -> int:
             "policyVersion": CONTRACT.POLICY_VERSION,
         }
     )
+    try:
+        CONTRACT.evaluate_control("not_a_control")
+    except ValueError:
+        pass
+    else:
+        failures.append("contract: unknown control unexpectedly accepted")
     CONTRACT.validate_identity(CONTRACT.ClosedLoopState(
         bridge_slot=3,
         thread_id="BRIDGE-20260709-054",

@@ -45,6 +45,8 @@ The controller contract must expose:
 - a separate canary gate for product acceptance
 - a deterministic self-check callable by the policy validator
 - the report schema must reject missing keys, extra keys, wrong types, empty values, and placeholder values
+- all legal transitions and all illegal transition pairs must be validated
+- terminal publication proof is an immutable outbox plus separate receipt, not a self-referential commit field
 
 ## Validation rules
 
