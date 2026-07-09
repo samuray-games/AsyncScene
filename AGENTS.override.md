@@ -1,146 +1,114 @@
-# Asynchronia Protocol 3.2 Override
+# Asynchronia Protocol 3.3 Override
 
-OVERRIDE_VERSION: ORCHESTRATION_3_2
-BRIDGE_PROTOCOL: 3.2
+OVERRIDE_VERSION: ORCHESTRATION_3_3
+BRIDGE_PROTOCOL: 3.3
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
+REMOTE_REF_FRESHNESS: FAIL_CLOSED
+MACHINE_STATE: .ai-bridge/STATE.json
 
-Read root `AGENTS.md` fully. Every rule remains binding except the process clauses explicitly replaced below.
+Read root `AGENTS.md` fully. Its project, canon, safety and ownership rules remain binding. This override replaces the bridge-command, model-selection and process-resume clauses in lower-precedence documents whenever they conflict.
 
-## 1. Process authority
+## 1. Authority order
 
-Use this precedence:
-
-1. `AGENTS.override.md`;
-2. `AGENTS.md` bridge section;
-3. `PROCESS_ROOT_SYNC.md`;
-4. `ORCHESTRATION.md`;
-5. `BRIDGE.md`;
-6. `GIT_PULL.md` and `GIT_PUSH.md`;
-7. mailbox `.ai-bridge/PUBLICATION_POLICY.md`;
-8. mailbox `.ai-bridge/STATE.md`;
-9. current inbox named by STATE;
-10. current claim named by STATE;
-11. original task inbox for unchanged objective and evidence;
-12. historical artifacts for audit only.
+1. `AGENTS.override.md`
+2. `PROCESS_ROOT_SYNC.md`
+3. `ORCHESTRATION.md`
+4. `BRIDGE.md`
+5. current `tools/bridge-slot-envelope.py`
+6. mailbox `.ai-bridge/PUBLICATION_POLICY.md`
+7. mailbox `.ai-bridge/STATE.json`
+8. the exact inbox and claim named by STATE.json
+9. historical artifacts for audit only
 
 Repository files are authoritative for implementation state. Google Drive memory is authoritative for cross-chat context but never overrides newer repository facts.
 
-## 2. Fresh execution rule
+## 2. Numbered bridge commands
 
-Every exact `мост N` is a new execution attempt for the execution epoch currently named by STATE.
+The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` select one fixed slot.
 
-Before any final response Codex must freshly fetch main and mailbox, read current authority, STATE, inbox and claim, then execute the current phase.
+Before any terminal response Codex must:
 
-A previous conversational completion, previous outbox or old claim cannot satisfy a new execution epoch.
+1. refresh `origin/main` and `origin/coordination/chatgpt-codex-bridge` with explicit destination refspecs;
+2. prove both local remote-tracking SHAs equal `git ls-remote --heads`;
+3. run `tools/bridge-slot-envelope.py --slot N --mode resolve` from current remote main;
+4. use only the returned current thread, task, epoch, baseline, inbox, claim, expected outbox and `contractDigest`;
+5. execute from clean task-owned and mailbox worktrees;
+6. rerun resolver mode `resolve` immediately before publication;
+7. publish only when the digest is unchanged;
+8. run resolver mode `verify-outbox` after the push;
+9. return success only after `OUTBOX_VERIFIED`.
 
-## 3. Thread rotation
+A conversation, local mailbox copy, `FETCH_HEAD`, old claim, old inbox, historical outbox or previously printed SHA is never authority.
 
-When STATE says `THREAD_ROTATION_REQUIRED: true`:
+## 3. Exact remote refresh
 
-- the previous Codex conversation is superseded;
-- a fresh Codex conversation may adopt the replacement claim named by STATE;
-- old thread ownership is void;
-- execution starts immediately on the matching numbered command;
-- no preflight or separate bridge token is required.
+The required fetch form is:
 
-The logical bridge thread id remains unchanged for audit history even when the Codex conversation rotates.
+`git fetch --no-tags --prune origin +refs/heads/main:refs/remotes/origin/main +refs/heads/coordination/chatgpt-codex-bridge:refs/remotes/origin/coordination/chatgpt-codex-bridge`
 
-## 4. Completion modes
+Source-only fetch arguments are forbidden because they may leave the remote-tracking refs used by later commands stale.
 
-This section replaces the unconditional primary-advance requirement in lower-precedence no-op clauses.
+If the resolver cannot prove ref freshness, return `BLOCKED_STALE_REMOTE_REF`. Do not continue from `FETCH_HEAD` or guessed SHAs.
 
-### 4.1 Primary delta
+## 4. Machine contract
 
-When authorized files change, Codex must create one direct-child primary commit, push it fast-forward, refetch main, publish the exact current outbox and return `PASS_PUSHED`.
+`.ai-bridge/STATE.json` is the canonical machine state. `STATE.md` is a human mirror and cannot override JSON.
 
-### 4.2 Verified no delta
+The resolver verifies:
 
-`VERIFIED_NO_DELTA` is not a no-op. Empty primary commits are forbidden.
+- Protocol 3.3;
+- requested slot;
+- mailbox generation and state revision;
+- thread, lane, task and execution epoch;
+- current baseline;
+- exact inbox, claim and expected outbox;
+- matching metadata across JSON, inbox and claim;
+- state, inbox and claim blob SHAs;
+- deterministic contract digest.
 
-It is allowed only when the current inbox or claim explicitly contains `ALLOW_VERIFIED_NO_DELTA: true` and a fresh execution proves all of the following:
+A mismatch returns `BLOCKED_CONTRACT_MISMATCH`.
 
-- the authorized baseline is still current remote main;
-- the required generator and validators pass on that baseline;
-- deterministic regeneration produces zero diff in the exact authorized scope;
-- exact changed paths are empty;
-- protected file blobs remain unchanged;
-- the result already satisfies the frozen objective;
-- the exact current outbox is published and refetched.
+## 5. Publication
 
-The outbox must contain:
+Primary publication must be one exact-scope direct child of the resolved baseline and a fast-forward push to `refs/heads/main`.
 
-- `completionMode: VERIFIED_NO_DELTA`;
-- `primaryChanged:false`;
-- the fetched baseline SHA as the verified primary SHA;
-- `primaryParent:N/A`;
-- `changedPaths:[]`;
-- exact authorized paths and their fetched blob SHAs;
-- every required validation result;
-- the reason no source delta exists.
+Mailbox publication must:
 
-After remote mailbox verification Codex returns `PASS_VERIFIED_NO_DELTA` and one next action.
+- use the latest freshly resolved mailbox head as parent;
+- change only the exact expected outbox path;
+- include `CONTRACT_DIGEST`, `STATE_BLOB_SHA`, `INBOX_BLOB_SHA`, `CLAIM_BLOB_SHA`, `MAILBOX_PARENT`, fetched primary identity and validations;
+- push only to `refs/heads/coordination/chatgpt-codex-bridge`;
+- pass resolver mode `verify-outbox`.
 
-ChatGPT must independently verify the baseline, artifact state, mirror parity, validation evidence and current outbox before acceptance.
+Historical outboxes cannot satisfy a current epoch. Manual SHA transcription is forbidden.
 
-If verified-no-delta is not explicitly authorized, Codex returns `BLOCKED_NO_SOURCE_DELTA` without creating an empty commit.
+Legal success states are:
 
-### 4.3 Invalid completion
+- `PASS_PUSHED` for an actual primary delta;
+- `PASS_VERIFIED_NO_DELTA` only when the current contract explicitly allows it.
 
-A one-line `Return to ChatGPT and send мост N` without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+A prose-only return is `FAIL_NO_EXECUTION_EVIDENCE`.
 
-Historical outboxes cannot satisfy a new execution epoch.
+## 6. Model recommendation boundary
 
-## 5. Remote-first execution
+Only `plugins/asynchronia/skills/model-selector/SKILL.md` may originate, rank or name a Codex model and reasoning recommendation.
 
-Codex must:
+The recommendation is informational. It must not pause, block, authorize or resume a numbered lane. The user alone selects the actual interface model. Unless externally verified, report `USER_SELECTED_UNVERIFIED`.
 
-1. verify repository identity;
-2. fetch main and mailbox;
-3. read remote authority;
-4. resolve only the requested slot and current epoch;
-5. use clean task-owned worktrees;
-6. preserve unrelated work;
-7. never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push.
+A material scope change causes recommendation recomputation in the same execution response. No continuation token or model-selection round trip is part of the bridge.
 
-Local divergence is not a blocker.
+## 7. Thread rotation and stale work
 
-## 6. Publication
+When STATE.json requires thread rotation, prior Codex conversation ownership is void. A fresh conversation adopts only the current claim named by STATE.json.
 
-After validation Codex must choose exactly one legal completion mode:
+If STATE.json, mailbox generation or contract digest changes during execution, stop with `BLOCKED_MAILBOX_EPOCH_MOVED`. Do not publish stale work.
 
-- primary delta: publish one direct-child primary commit and the exact outbox;
-- verified no delta: publish only the exact evidence outbox, never an empty primary commit.
+## 8. Runtime and acceptance
 
-Every mailbox publication must use the latest fetched mailbox parent, change only the authorized outbox path, push fast-forward and be refetched.
+Scope isolation, exact ownership, stable-read dependencies, mirror ownership and shared wiring remain real safety gates. Git publication is not Safari PASS. User Safari evidence remains user-owned.
 
-Manual SHA transcription is forbidden.
+## 9. Root synchronization
 
-## 7. Authentication
-
-Codex may run one configured non-interactive authentication repair.
-
-If write access still fails, return `BLOCKED_PUSH_AUTH` with the complete recovery bundle. Never request credentials.
-
-## 8. Root synchronization
-
-Every reusable process defect triggers `PROCESS_ROOT_SYNC.md`.
-
-If root hardening moves main while a lane is open, ChatGPT must synchronize STATE and the current contract to the new exact baseline.
-
-## 9. Runtime and acceptance
-
-- Exact scope ownership is enforced through `scope-isolation-check`.
-- Source and deployed mirrors are one ownership group.
-- Git publication is not Safari PASS.
-- Codex cannot claim user acceptance.
-
-## 10. Final action
-
-A successful Codex result is exactly one of:
-
-- `PASS_PUSHED` with fetched remote SHAs, actual parent, exact changed paths, checks and one next action;
-- `PASS_VERIFIED_NO_DELTA` with the current evidence outbox, unchanged baseline SHA, empty changed paths, checks and one next action.
-
-Do not offer competing paths or repeat information already present in current remote authority.
+Every reusable process defect triggers `PROCESS_ROOT_SYNC.md`. Root synchronization is incomplete until affected authority, validator, workflow, mailbox policy, STATE.json, current contract and live Google Drive memory agree and both remote refs are independently verified.
