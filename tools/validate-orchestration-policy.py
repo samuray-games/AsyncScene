@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import json
+import importlib.util
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CONTRACT_PATH = ROOT / "tools/closed_loop_contract.py"
 ROOT_FILES = {
     "agents": ROOT / "AGENTS.md",
     "override": ROOT / "AGENTS.override.md",
@@ -19,6 +22,7 @@ ROOT_FILES = {
     "push": ROOT / "GIT_PUSH.md",
     "stage6_plan": ROOT / "STAGE6_PARALLEL_EXECUTION_PLAN.md",
     "plugin": ROOT / "plugins/asynchronia/.codex-plugin/plugin.json",
+    "closed_loop_contract": ROOT / "CLOSED_LOOP_PROTOCOL.md",
 }
 WORKFLOW = ROOT / ".github/workflows/orchestration-policy.yml"
 SKILLS_DIR = ROOT / "plugins/asynchronia/skills"
@@ -51,6 +55,13 @@ PHASES = (
     "PASS_ACCEPTED",
     "BLOCKED_EXTERNAL",
 )
+
+SPEC = importlib.util.spec_from_file_location("closed_loop_contract", CONTRACT_PATH)
+if SPEC is None or SPEC.loader is None:
+    raise RuntimeError("unable to load closed loop contract")
+CONTRACT = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = CONTRACT
+SPEC.loader.exec_module(CONTRACT)
 
 
 def require(text: str, needle: str, label: str, failures: list[str]) -> None:
@@ -85,16 +96,16 @@ def main() -> int:
     workflow = WORKFLOW.read_text(encoding="utf-8")
     scanned_paths = [str(path.relative_to(ROOT)) for path in required_files]
 
-    require(docs["agents"], "BRIDGE_PROTOCOL: 3.2", "AGENTS.md", failures)
-    require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_2", "AGENTS.override.md", failures)
+    require(docs["agents"], "BRIDGE_PROTOCOL: 3.3", "AGENTS.md", failures)
+    require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_3", "AGENTS.override.md", failures)
     require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
-    require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.2", "ORCHESTRATION.md", failures)
-    require(docs["bridge"], "BRIDGE_PROTOCOL: 3.2", "BRIDGE.md", failures)
+    require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.3", "ORCHESTRATION.md", failures)
+    require(docs["bridge"], "BRIDGE_PROTOCOL: 3.3", "BRIDGE.md", failures)
     require(docs["bootstrap"], "BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_3", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
     require(docs["recovery"], "RECOVERY_ID: ASYNCHRONIA_BRIDGE_RECOVERY_V2_3", "CODEX_BRIDGE_RECOVERY.md", failures)
     require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_2", "GIT_PULL.md", failures)
     require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
-    require(docs["stage6_plan"], "BRIDGE_PROTOCOL: 3.2", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
+    require(docs["stage6_plan"], "BRIDGE_PROTOCOL: 3.3", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
     require(docs["bootstrap"], "SOURCE_PLUGIN_FALLBACK_BOOTSTRAP", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
     require(docs["recovery"], "optional alias repair only", "CODEX_BRIDGE_RECOVERY.md", failures)
 
@@ -123,10 +134,11 @@ def main() -> int:
     require(docs["push"], "PASS_PUSHED", "GIT_PUSH.md", failures)
     require(docs["push"], "BLOCKED_MAIN_BASELINE_MOVED", "GIT_PUSH.md", failures)
     require(docs["override"], "BLOCKED_PUSH_AUTH", "AGENTS.override.md", failures)
+    require(docs["closed_loop_contract"], "CLOSED LOOP", "CLOSED_LOOP_PROTOCOL.md", failures)
 
     plugin = json.loads(docs["plugin"])
     exact(str(plugin.get("name")), "asynchronia", "plugin.json name", failures)
-    exact(str(plugin.get("version")), "1.0.4", "plugin.json version", failures)
+    exact(str(plugin.get("version")), "1.0.5", "plugin.json version", failures)
     exact(
         str(plugin.get("description")),
         "Project-specific scope checks and evidence workflows for Codex work in the Asynchronia repository.",
@@ -141,6 +153,7 @@ def main() -> int:
     required_skill_names = {
         "acceptance-evidence-gate",
         "acceptance-pipeline-controller",
+        "closed-loop-controller",
         "canon-audit",
         "deployment-verifier",
         "economy-invariant-audit",
@@ -172,6 +185,9 @@ def main() -> int:
                 failures.append(f"{label}: forbidden semantic phrase {phrase!r}")
         if label.endswith(("acceptance-pipeline-controller/SKILL.md", "pipeline-state-and-resume-contract/SKILL.md", "task-router/SKILL.md", "model-selector/SKILL.md")):
             require(text, "model-selector", label, failures)
+        if label.endswith("closed-loop-controller/SKILL.md"):
+            require(text, "bridgeSlot", label, failures)
+            require(text, "expectedOutbox", label, failures)
 
     for rel in (
         "AGENTS.md",
@@ -185,6 +201,7 @@ def main() -> int:
         "GIT_PUSH.md",
         "STAGE6_PARALLEL_EXECUTION_PLAN.md",
         "plugins/asynchronia/.codex-plugin/plugin.json",
+        "CLOSED_LOOP_PROTOCOL.md",
     ):
         count = workflow.count(rel)
         if count != 2:
