@@ -97,12 +97,11 @@ Run the pipeline in this order.
 - If a single exact non-overlapping lane exists, omit this stage and explain why.
 - If lock or ownership readiness remains unresolved, stop with `WAITING_ON_LOCK`.
 
-### 4. Mandatory model preflight for file-changing work
+### 4. Model recommendation discipline
 
-- For any file-changing lane, require an unchanged-scope `model-selector` preflight before implementation.
-- `CONTINUE` may resume only after a valid preflight exists for the same scope.
-- `CONTINUE` is not runtime authorization.
-- If model preflight is missing, stale, or scope-expanded, stop with `WAITING_FOR_MODEL_SELECTION`.
+- For any file-changing lane, include a `model-selector` recommendation for the exact scope.
+- A model recommendation informs execution cost and reliability; it is not a separate approval gate.
+- If an earlier recommendation is stale or scope-expanded, recompute it before relying on it.
 
 ### 5. Workspace lock readiness
 
@@ -208,15 +207,14 @@ Preserve evidence ownership exactly.
 
 The controller must distinguish:
 
-- `CONTINUE`
+- model recommendation
 - `scope-isolation-check`
 
 Rules:
 
-- `CONTINUE` resumes work only after a valid model preflight for the unchanged scope
-- `CONTINUE` does not authorize runtime-sensitive writes
-- `scope-isolation-check` applies only through the same-thread protocol for one exact pending sensitive task
-- model selection and runtime authorization are separate gates and must never be merged
+- model recommendation informs cost and reliability only
+- `scope-isolation-check` determines whether the exact scope is isolated or colliding
+- user-owned Safari evidence remains a later acceptance boundary when the task truly has a runtime surface
 
 ## 10. Mandatory stopping states
 
@@ -277,7 +275,7 @@ Return all of these fields:
 - subject under review
 - proposed promotion
 - authorized scope
-- runtime gate result
+- scope-isolation result
 - task classification result
 - parallel planning result
 - model preflight result
@@ -345,7 +343,7 @@ If the subject is one isolated plugin `SKILL.md`, runtime-sensitive files are no
 
 ### Example B: runtime task with current static and deployment evidence but no current Safari evidence
 
-If runtime-sensitive scope was approved, implementation and static validation passed, deployment identity for the current artifact is verified, required current-artifact Safari evidence is still absent, and `acceptance-evidence-gate` returns `PENDING_USER`, then:
+If `scope-isolation-check` returned `SAFE_TO_PROCEED`, implementation and static validation passed, deployment identity for the current artifact is verified, required current-artifact Safari evidence is still absent, and `acceptance-evidence-gate` returns `PENDING_USER`, then:
 
 - final pipeline verdict: `PENDING_USER`
 - status promotion authorized: `NO`

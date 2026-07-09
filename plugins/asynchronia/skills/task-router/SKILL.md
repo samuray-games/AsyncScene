@@ -59,15 +59,9 @@ Apply these rules in order:
 ### 5. Model selection
 
 - Every implementation recommendation must include `model-selector`.
-- Before any implementation, routing must enter `MODEL_PREFLIGHT_ONLY`.
-- `MODEL_PREFLIGHT_ONLY` is read-only, creates no repository or workspace lock, and ends with `WAITING_FOR_MODEL_SELECTION`.
-- The router must not begin implementation in the same response as the preflight recommendation.
-- A valid `MODEL_PREFLIGHT_ONLY` response must end the entire response with exactly one standalone fenced code block containing only `CONTINUE`.
-- No content may appear after that fenced `CONTINUE` block.
-- The fenced `CONTINUE` block is an output-format requirement only and does not authorize implementation automatically.
-- Implementation may begin only after the user replies `CONTINUE` in the same thread after a valid recommendation exists.
-- If task scope changes after the recommendation, the router must require a fresh `MODEL_PREFLIGHT_ONLY` pass before implementation.
-- After `CONTINUE`, re-read workspace locks before creating any implementation lock or beginning edits.
+- The recommendation should cover the exact scope, complexity, and validation burden.
+- Model selection informs execution cost and reliability; it is not a required approval stop.
+- If task scope changes materially, recompute the recommendation before relying on it.
 - The router may repeat the selector recommendation but cannot verify or change the active interface model.
 - Active model remains `USER_SELECTED_UNVERIFIED`.
 
@@ -139,7 +133,7 @@ Secondary flags may include:
 
 - scope-isolation-check
 - model-selector
-- mandatory `MODEL_PREFLIGHT_ONLY` before implementation
+- model recommendation before implementation when file changes are proposed
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
 - `smoke-orchestrator` when the plugin task changes smoke workflow, enclosing smoke verdict rules, or contract-smoke requirements
 - `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules
@@ -160,7 +154,7 @@ Secondary flags may include:
 
 - scope-isolation-check
 - model-selector
-- isolated serialized runtime slot
+- collision-free execution after `scope-isolation-check`; serialize only when exact overlaps or dependencies exist
 - mirror synchronization when applicable
 - static checks
 - user Safari smoke
@@ -380,7 +374,7 @@ Return:
 - required skills in execution order
 - optional supporting plugins
 - execution mode
-- runtime gate requirement
+- scope-isolation result
 - serialization requirement
 - parallel planning requirement
 - model recommendation status
@@ -397,9 +391,10 @@ Return:
 Allowed execution modes:
 
 - `READ_ONLY`
-- `MODEL_PREFLIGHT_ONLY`
 - `DIRECT_NON_RUNTIME`
 - `SERIAL_NON_RUNTIME`
+- `DIRECT_RUNTIME`
+- `SERIAL_RUNTIME`
 - `BLOCKED_SCOPE_COLLISION`
 - `PARALLEL_PLAN_REQUIRED`
 - `BLOCKED`
@@ -418,7 +413,6 @@ Return `BLOCKED` when:
 - destructive Git operations are requested against unrelated work
 - a requested model or plugin does not exist
 - required repository context is unavailable
-- the user replies `CONTINUE` before a valid model preflight recommendation exists
 - the user asks to bypass scope isolation or Safari acceptance
 - canon or economy requirements conflict and no authoritative rule resolves them
 

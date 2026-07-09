@@ -227,7 +227,7 @@ Never promote or reject acceptance by copying one inner verdict without checking
 
 ## 11. Boundary with other skills
 
-- Scope isolation controls authorization for sensitive writes.
+- Scope isolation determines whether the exact scope is isolated or colliding.
 - Task Router selects the workflow.
 - specialized audits provide domain evidence.
 - Smoke Orchestrator evaluates smoke workflow outcomes.
@@ -266,7 +266,7 @@ Return all of these fields:
 - acceptance scope
 - subject under acceptance
 - authorized scope
-- runtime gate requirement
+- scope-isolation result
 - authoritative acceptance criteria
 - required evidence
 - supplied evidence
@@ -321,7 +321,7 @@ Return `BLOCKED` when:
 - implementation and acceptance evaluation are mixed
 - the request asks the skill to manufacture evidence
 - the request asks Codex to claim user acceptance
-- required runtime approval is absent for a proposed sensitive write
+- required scope-isolation evidence is absent for a proposed sensitive write
 
 ## 16. Contract smoke examples
 

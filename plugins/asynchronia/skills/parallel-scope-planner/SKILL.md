@@ -115,8 +115,8 @@ If any planned task requires runtime-sensitive files:
 
 - mark that task `BLOCKED_SCOPE_COLLISION` until exact ownership is confirmed
 - require the scope-isolation-check decision
-- require an isolated serialized runtime slot before implementation
-- keep all dependent tasks behind that runtime task.
+- serialize only when mirrors, shared wiring, mutable stable-read dependencies, registries, or exact write overlaps require it
+- keep all dependent tasks behind the blocking dependency rather than inventing an approval slot.
 
 ## 7. Planning modes
 
@@ -164,7 +164,7 @@ Return:
 - preserved pre-existing changes
 - execution waves
 - merge or integration order
-- runtime gate requirements
+- scope-isolation requirements
 - shared documentation owner
 - unresolved scope
 - assumptions
@@ -188,5 +188,5 @@ Never:
 - stash user changes
 - stage or commit files
 - reassign pre-existing changes to the current task
-- claim a runtime slot is approved
+- claim a collision-free lane is blocked solely because the files are runtime-sensitive
 - combine unrelated objectives merely to avoid a conflict

@@ -15,6 +15,8 @@ FILES = {
     "bridge": ROOT / "BRIDGE.md",
     "pull": ROOT / "GIT_PULL.md",
     "push": ROOT / "GIT_PUSH.md",
+    "stage6_plan": ROOT / "STAGE6_PARALLEL_EXECUTION_PLAN.md",
+    "validator": ROOT / "tools/validate-orchestration-policy.py",
     "plugin": ROOT / "plugins/asynchronia/.codex-plugin/plugin.json",
     "scope_skill": ROOT / "plugins/asynchronia/skills/scope-isolation-check/SKILL.md",
     "router_skill": ROOT / "plugins/asynchronia/skills/task-router/SKILL.md",
@@ -39,6 +41,7 @@ WORKFLOW_POLICY_PATHS = (
     "BRIDGE.md",
     "GIT_PULL.md",
     "GIT_PUSH.md",
+    "STAGE6_PARALLEL_EXECUTION_PLAN.md",
     "tools/validate-orchestration-policy.py",
     ".github/workflows/orchestration-policy.yml",
     "plugins/asynchronia/.codex-plugin/plugin.json",
@@ -67,7 +70,18 @@ FORBIDDEN_MARKERS = (
     "scope-isolation approval",
     "approval-only",
     "isolated runtime slots",
+    "runtime gate requirement",
+    "required runtime approval",
+    "approval-required",
+    "approval-invalidated",
+    "MODEL_PREFLIGHT_ONLY",
 )
+FORBIDDEN_PHRASES = (
+    "runtime approval",
+    "runtime slot",
+    "runtime authorization",
+)
+REQUIRED_SCOPE_TERMS = ("SAFE_TO_PROCEED", "BLOCKED_SCOPE_COLLISION", "exact paths", "owners", "dependencies")
 ROOT_POLICY_KEYS = ("agents", "override", "root_sync", "orchestration", "bridge", "pull", "push")
 PLUGIN_KEYS = (
     "plugin",
@@ -84,6 +98,24 @@ PLUGIN_KEYS = (
     "accept_skill",
     "state_skill",
     "evidence_skill",
+)
+CORRECTION_SCOPE = (
+    "AGENTS.md",
+    "STAGE6_PARALLEL_EXECUTION_PLAN.md",
+    ".github/workflows/orchestration-policy.yml",
+    "tools/validate-orchestration-policy.py",
+    "plugins/asynchronia/.codex-plugin/plugin.json",
+    "plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md",
+    "plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md",
+    "plugins/asynchronia/skills/canon-audit/SKILL.md",
+    "plugins/asynchronia/skills/deployment-verifier/SKILL.md",
+    "plugins/asynchronia/skills/economy-invariant-audit/SKILL.md",
+    "plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md",
+    "plugins/asynchronia/skills/mirror-audit/SKILL.md",
+    "plugins/asynchronia/skills/parallel-scope-planner/SKILL.md",
+    "plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md",
+    "plugins/asynchronia/skills/smoke-orchestrator/SKILL.md",
+    "plugins/asynchronia/skills/task-router/SKILL.md",
 )
 PHASES = (
     "CLOSED",
@@ -134,17 +166,20 @@ def main() -> int:
     require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_2", "GIT_PULL.md", failures)
     require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
     require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
+    require(docs["stage6_plan"], "BRIDGE_PROTOCOL: 3.2", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
 
-    for text_name in ROOT_POLICY_KEYS:
+    for text_name in (*ROOT_POLICY_KEYS, "stage6_plan"):
         text = docs[text_name]
         require(text, "ROOT_CAUSE_SYNC: REQUIRED", FILES[text_name].name, failures)
         require(text, "NO_OP_COMPLETION: FORBIDDEN", FILES[text_name].name, failures)
         forbid(text, "BRIDGE_PROTOCOL: 3.0", FILES[text_name].name, failures)
         forbid(text, "ORCHESTRATION_VERSION: 3.0", FILES[text_name].name, failures)
-        forbid(text, "MODEL_PREFLIGHT_ONLY", FILES[text_name].name, failures)
-        forbid(text, "runtime-" + "safety-gate", FILES[text_name].name, failures)
         for marker in FORBIDDEN_MARKERS:
             forbid(text, marker, FILES[text_name].name, failures)
+        lowered = text.lower()
+        for phrase in FORBIDDEN_PHRASES:
+            if phrase in lowered:
+                failures.append(f"{FILES[text_name].name}: forbidden semantic phrase {phrase!r}")
 
     for text_name in ("agents", "override", "orchestration", "bridge"):
         require(docs[text_name], "FAIL_NO_EXECUTION_EVIDENCE", FILES[text_name].name, failures)
@@ -182,13 +217,17 @@ def main() -> int:
         require(docs["agents"], required, "AGENTS.md", failures)
         require(docs["orchestration"], required, "ORCHESTRATION.md", failures)
         require(docs["bridge"], required, "BRIDGE.md", failures)
+    require(docs["agents"], "SAFE_TO_PROCEED", "AGENTS.md", failures)
+    for term in REQUIRED_SCOPE_TERMS:
+        require(docs["agents"], term, "AGENTS.md", failures)
+    require(docs["stage6_plan"], "collision-free runtime lane executes immediately", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
 
     for text_name in ("override", "orchestration", "bridge", "push"):
         require(docs[text_name], "PASS_PUSHED", FILES[text_name].name, failures)
         require(docs[text_name], "PASS_VERIFIED_NO_DELTA", FILES[text_name].name, failures)
 
     plugin = json.loads(docs["plugin"])
-    require_exact(plugin.get("version"), "1.0.2", "plugin.json version", failures)
+    require_exact(plugin.get("version"), "1.0.3", "plugin.json version", failures)
     require_exact(plugin.get("name"), "asynchronia", "plugin.json name", failures)
     interface = plugin.get("interface", {})
     require_exact(interface.get("shortDescription"), "Apply Asynchronia repository scope checks.", "plugin.json shortDescription", failures)
@@ -217,6 +256,32 @@ def main() -> int:
         text = docs[text_name]
         for marker in FORBIDDEN_MARKERS:
             forbid(text, marker, FILES[text_name].name, failures)
+        lowered = text.lower()
+        for phrase in FORBIDDEN_PHRASES:
+            if phrase in lowered:
+                failures.append(f"{FILES[text_name].name}: forbidden semantic phrase {phrase!r}")
+
+    expected_scanned = set(CORRECTION_SCOPE) | {
+        "AGENTS.override.md",
+        "PROCESS_ROOT_SYNC.md",
+        "ORCHESTRATION.md",
+        "BRIDGE.md",
+        "GIT_PULL.md",
+        "GIT_PUSH.md",
+        "plugins/asynchronia/skills/scope-isolation-check/SKILL.md",
+        "plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md",
+    }
+    actual_scanned = set(scanned_paths)
+    if actual_scanned != expected_scanned:
+        failures.append(
+            "scanned path mismatch: expected "
+            f"{sorted(expected_scanned)} got {sorted(actual_scanned)}"
+        )
+    for correction_path in CORRECTION_SCOPE:
+        if correction_path not in scanned_paths:
+            failures.append(f"missing correction-scope path in scanned list: {correction_path}")
+        if correction_path not in WORKFLOW_POLICY_PATHS and correction_path != "tools/validate-orchestration-policy.py":
+            failures.append(f"missing correction-scope path in workflow coverage: {correction_path}")
 
     print(json.dumps({"scannedPaths": scanned_paths}, ensure_ascii=False))
 

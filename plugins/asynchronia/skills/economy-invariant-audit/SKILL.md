@@ -291,7 +291,7 @@ Return:
 - long-run stability result
 - identified sources and sinks
 - unexplained deltas
-- runtime gate requirement
+- scope-isolation result
 - canon audit requirement
 - mirror audit requirement
 - validation still required

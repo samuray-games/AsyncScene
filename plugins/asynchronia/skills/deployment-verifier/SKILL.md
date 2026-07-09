@@ -134,7 +134,7 @@ Do not skip entrypoint checks when the contract requires the deployed applicatio
 
 Scope isolation has priority over every deployment decision.
 
-If the subject under test requires any runtime-sensitive file, runtime approval must be resolved before writes. Runtime-sensitive includes:
+If the subject under test requires any runtime-sensitive file, exact scope isolation must be resolved before writes. Runtime-sensitive includes:
 
 - game or UI runtime JavaScript
 - economy
@@ -152,7 +152,7 @@ If the subject under test requires any runtime-sensitive file, runtime approval 
 - globals
 - smoke visibility
 
-If runtime approval is absent, the deployment verifier may report the block but must not proceed as if approval exists.
+If exact scope isolation is absent, the deployment verifier may report the block but must not proceed as if isolation exists.
 
 ## 7. Deployment identity
 
@@ -338,7 +338,7 @@ Return `BLOCKED` when any of these apply:
 - contradictory release identities cannot be resolved
 - implementation and verification objectives are mixed
 - the request asks the skill to deploy, repair, or manufacture evidence
-- required runtime approval is absent for a proposed runtime write
+- required scope-isolation evidence is absent for a proposed runtime write
 - the request asks Codex to claim user runtime acceptance
 
 ## 19. Contract smoke examples

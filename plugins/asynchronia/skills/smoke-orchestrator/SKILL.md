@@ -79,7 +79,7 @@ Do not skip steps just because a nested component already failed or passed.
 
 Scope isolation has priority over every smoke decision.
 
-If the subject under test requires any runtime-sensitive file, runtime approval must be resolved before writes. Runtime-sensitive includes:
+If the subject under test requires any runtime-sensitive file, exact scope isolation must be resolved before writes. Runtime-sensitive includes:
 
 - game or UI runtime JavaScript
 - economy
@@ -187,7 +187,7 @@ Use a clear finite set of orchestrator verdicts:
 
 - `PASS`: all authoritative enclosing pass conditions are satisfied.
 - `FAIL`: required evidence is present, but the evidence contradicts the authoritative pass conditions, or the pass conditions explicitly define the missing condition as failure.
-- `BLOCKED`: the smoke cannot be defined or evaluated safely because the subject is ambiguous, pass conditions conflict, required runtime approval is absent, ownership is unresolved, an authoritative canon conflict prevents defining the expected result, the request asks for fabricated evidence, or the request asks Codex to claim user acceptance.
+- `BLOCKED`: the smoke cannot be defined or evaluated safely because the subject is ambiguous, pass conditions conflict, required scope isolation is absent, ownership is unresolved, an authoritative canon conflict prevents defining the expected result, the request asks for fabricated evidence, or the request asks Codex to claim user acceptance.
 - `PENDING_USER`: required user-owned evidence remains outstanding.
 - `INSUFFICIENT_EVIDENCE`: the evidence set is incomplete or unverifiable, but the situation is not yet a user-owned acceptance gap and not yet a defined failure.
 
@@ -202,7 +202,7 @@ Return `BLOCKED` when any of these apply:
 - the smoke subject is ambiguous
 - pass conditions are contradictory
 - implementation and smoke objectives are mixed
-- required runtime approval is absent
+- required scope-isolation evidence is absent
 - source or deployed ownership is unresolved
 - an authoritative canon conflict prevents defining the expected result
 - the request asks the skill to manufacture evidence
@@ -230,7 +230,7 @@ Return all of these fields:
 - subject under test
 - task objective
 - authorized scope
-- runtime gate requirement
+- scope-isolation result
 - prerequisites
 - authoritative pass conditions
 - expected component result

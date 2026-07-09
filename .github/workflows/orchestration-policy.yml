@@ -10,6 +10,7 @@ on:
       - BRIDGE.md
       - GIT_PULL.md
       - GIT_PUSH.md
+      - STAGE6_PARALLEL_EXECUTION_PLAN.md
       - tools/validate-orchestration-policy.py
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
@@ -35,6 +36,7 @@ on:
       - BRIDGE.md
       - GIT_PULL.md
       - GIT_PUSH.md
+      - STAGE6_PARALLEL_EXECUTION_PLAN.md
       - tools/validate-orchestration-policy.py
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
