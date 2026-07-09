@@ -4,39 +4,74 @@ BRIDGE_PROTOCOL: 3.2
 ORCHESTRATION_VERSION: 3.2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+EMPTY_OUTBOX: FORBIDDEN
+FINAL_RESPONSE_OUTBOX_IDENTITY: REQUIRED
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 5505f19b379cdf9a4559c1e6d5dd8292160e599b
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-ROOT_PROCESS_SYNC_STATUS: MODEL_SELECTION_SEMANTICS_CORRECTION_OPEN
+PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_FULL_OUTBOX_REPLAY
+ROOT_PROCESS_SYNC_STATUS: THREE_SLOT_FULL_OUTBOX_CORRECTION_OPEN
 
 ## Current status
 
 - Bridge status: `CORRECTION_REQUIRED`
 - Slot 1: `OPEN_RESERVED_EXECUTION`
-- Slot 2: `CLOSED`
-- Slot 3: `CLOSED`
+- Slot 2: `CLOSED_SERIALIZED_PROCESS_SCOPE`
+- Slot 3: `CLOSED_SERIALIZED_PROCESS_SCOPE`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
 - Safari: `N/A_PROCESS_ONLY`
 
 ## Active Slot 1
 
-- Thread: `BRIDGE-20260709-043`
-- Lane: `PROCESS-MODEL-SELECTION-SEMANTICS-FIX`
-- Task: `TASK-PROCESS-MODEL-SELECTION-SEMANTICS-FIX`
-- Execution epoch: `MSF-E1-20260709-1627JST`
+- Thread: `BRIDGE-20260709-044`
+- Lane: `PROCESS-BRIDGE-OUTBOX-AND-PARALLEL-CONTRACT`
+- Task: `TASK-PROCESS-THREE-SLOT-FULL-OUTBOX-HARDENING`
+- Execution epoch: `OBX-E1-20260709-1720JST`
 - Phase: `CORRECTION_REQUIRED`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-043-01-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-043-claim-v1-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-043-02-codex.md`
+- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-044-01-chatgpt.md`
+- Current claim: `.ai-bridge/claims/BRIDGE-20260709-044-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-044-02-codex.md`
 - Baseline: `5505f19b379cdf9a4559c1e6d5dd8292160e599b`
 - Primary write required: `true`
 - Allow verified no delta: `false`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
+
+## Three-slot contract
+
+The bridge permanently exposes `мост 1`, `мост 2` and `мост 3`. Each command addresses only its matching slot and every open slot has independent thread, task, epoch, inbox, claim, baseline, scope, worktree and outbox.
+
+`parallel-scope-planner` is mandatory whenever multiple tasks or lanes exist. Slots may run concurrently only with proven disjoint writes, stable-read dependencies, mirrors, shared wiring, registries, generated outputs and documentation ownership.
+
+Slots 2 and 3 are currently closed because Slot 1 owns shared root process, workflow, validator and plugin-contract files. This is intentional serialization, not removal of bridge commands.
+
+## Mandatory Asynchronia plugin routing
+
+Every numbered bridge task must use the installed Asynchronia plugin. The minimum route is `task-router` for every task, `scope-isolation-check` and `model-selector` for every implementation lane, `parallel-scope-planner` whenever multiple tasks or lanes exist, plus all specialized skills required by routing.
+
+The obsolete mandatory prefix `Use @asynchronia runtime-safety-gate.` conflicts with current Protocol 3.2 and is superseded. Active runtime safety uses `scope-isolation-check`, exact ownership and collision evidence.
+
+## Full outbox contract
+
+The expected outbox must contain the complete final response Codex shows to the user. The outbox and visible response must be byte-for-byte identical.
+
+Empty, whitespace-only, partial, summary-only, pointer-only and one-line handoff outboxes are forbidden. Codex must assemble and validate the full response, publish it, refetch the remote outbox, prove exact byte equality and only then show the same response to the user.
+
+Every recoverable mailbox publication failure must be retried automatically. No success and no instruction to return to ChatGPT is allowed before verified outbox publication. A non-recoverable external auth, permission or service outage returns `BLOCKED_OUTBOX_PUBLICATION` in Codex and forbids a ChatGPT handoff.
+
+## Superseded process task
+
+- Thread: `BRIDGE-20260709-043`
+- Task: `TASK-PROCESS-MODEL-SELECTION-SEMANTICS-FIX`
+- Epoch: `MSF-E1-20260709-1627JST`
+- Status: `SUPERSEDED_BY_BRIDGE_044`
+- Reason: user-required three-slot, mandatory-plugin and full-outbox guarantees expand the same shared process/plugin ownership scope. Running thread 043 separately would collide with the new authoritative correction.
+
+The unresolved non-blocking model-selection correction from thread 043 is incorporated into thread 044. Only `model-selector` may originate a recommendation, actual model remains `USER_SELECTED_UNVERIFIED`, and recommendation cannot pause, block, authorize or resume implementation.
 
 ## Rejected Step 4.4B attempt
 
@@ -49,27 +84,17 @@ ROOT_PROCESS_SYNC_STATUS: MODEL_SELECTION_SEMANTICS_CORRECTION_OPEN
 - Verdict: `REJECTED_INCOMPLETE_AGGREGATE_AND_PROCESS_CONFLICT`
 - Safari: `NOT_AUTHORIZED`
 
-The aggregate did not derive coverage, forbidden phrases, or missing coverage from runtime evidence; omitted required fallback, placeholder, leakage, taboo, and full-state preservation checks; changed an unrelated Alpha block to force whole-file parity; and omitted required Step 4.4A generator and validator evidence.
-
-## Open systemic conflict
-
-The repository says model recommendation is informational and non-blocking, but active plugin contracts still contain `MODEL_PREFLIGHT_ONLY`, `WAITING_FOR_MODEL_SELECTION`, `CONTINUE`, model-preflight stopping, and valid-preflight resume semantics. The validator omits `model-selector` and does not dynamically scan every plugin skill.
-
-The active correction preserves Protocol 3.2 one-command execution. Only `model-selector` may originate a recommendation. The recommendation is informational and cannot pause, block, authorize, or resume execution. The actual interface selection remains user-owned and `USER_SELECTED_UNVERIFIED` unless externally verified.
-
 ## Suspended product task
 
 - Thread: `BRIDGE-20260709-041`
 - Lane: `S6-V5B-BOOMER-RUNTIME-AGGREGATE`
 - Reason: `SUSPENDED_FOR_SYSTEMIC_PROCESS_CORRECTION`
-- Resume rule: issue a replacement Step 4.4B epoch only after thread 043 is independently accepted and live memory is synchronized.
-
-## Previous process history
-
-- E4 verdict: `REJECTED_HIDDEN_RUNTIME_GATE_AND_INCOMPLETE_VALIDATOR_COVERAGE`
-- E5 primary commit: `cf2558d782d614d97bc66deec3a69017f5085d73`
-- E5 prior verdict: `PASS_ACCEPTED`, now superseded for model-selection-policy closure by the newly verified primary-source contradiction.
+- Resume rule: issue a replacement Step 4.4B epoch only after thread 044 is independently accepted and live memory is synchronized.
 
 ## Next action
 
-Open a fresh Codex conversation and send exactly `мост 1`. Codex must execute `.ai-bridge/inbox/BRIDGE-20260709-043-01-chatgpt.md`, fix only the frozen eight-file process/plugin scope, dynamically validate every plugin skill, bump the plugin to `1.0.4`, publish `.ai-bridge/outbox/BRIDGE-20260709-043-02-codex.md`, and refetch both refs. No model-selection stop, `CONTINUE`, runtime approval, `APPROVE`, Step 4.4B repair, or Safari action applies to this process-only lane.
+Open a fresh Codex conversation and send exactly `мост 1`.
+
+Codex must execute `.ai-bridge/inbox/BRIDGE-20260709-044-01-chatgpt.md`, use the Asynchronia plugin route, implement only the frozen nineteen-file process/plugin scope, publish the complete final response to `.ai-bridge/outbox/BRIDGE-20260709-044-02-codex.md`, refetch it, prove byte-for-byte identity and only then tell the user to return to ChatGPT and send `мост 1`.
+
+Do not run `мост 2` or `мост 3` for this serialized correction. Do not run Safari.
