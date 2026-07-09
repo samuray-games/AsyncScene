@@ -33,6 +33,7 @@ Define one resumable pipeline contract that:
 - rejects stale, foreign, incompatible, ambiguous, or corrupted state
 - prevents skipped stages and duplicate side effects
 - preserves scope-isolation results, model recommendations, lock, Safari smoke, and user-acceptance states
+- model recommendation evidence is serialized as evidence only and must not be represented as a blocking preflight gate
 - emits a bounded final state report suitable for downstream evidence collection
 
 ## 2. Boundary rules
@@ -260,7 +261,7 @@ This contract must preserve the state of the following gates as first-class seri
 
 ### Model selection preservation
 
-- if model selection was required for the exact scope, the resumed state must still reference the valid preflight selection
+- if model selection was required for the exact scope, the resumed state must still reference the recorded recommendation evidence and `USER_SELECTED_UNVERIFIED`
 - if the selection is stale or scope-expanded, the resumed state must require a fresh preflight rather than proceed
 
 ### Lock preservation

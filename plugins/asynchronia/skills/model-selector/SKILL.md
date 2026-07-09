@@ -8,8 +8,7 @@ description: Recommend the cheapest reliable Codex model and reasoning level for
 Use this skill for Asynchronia tasks that need a model recommendation before implementation, review, or validation work.
 
 The skill recommends a model and reasoning level only. It cannot inspect, verify, or change the actual model selected in the Codex interface.
-
-For implementation work that requires a model pause before edits, this skill may be used in `MODEL_PREFLIGHT_ONLY` mode. In that mode, the skill is strictly read-only, creates no repository or workspace lock, returns the recommendation, and stops with `WAITING_FOR_MODEL_SELECTION` until the user replies `CONTINUE`.
+It is informational only and must never create a pause, stop, continuation token, or execution prerequisite.
 
 ## 1. Allowed model set
 
@@ -210,26 +209,9 @@ Return all of the following:
 
 The recommendation must stay within the allowed model names and allowed reasoning levels exactly.
 
-## 8. `MODEL_PREFLIGHT_ONLY` mode
+## 8. Output discipline
 
-When the caller requires a mandatory model-selection pause before implementation:
-
-- perform read-only analysis only
-- create no repository lock
-- create no workspace lock
-- do not begin implementation in the same response
-- include estimated retry risk
-- include recommendation confidence
-- end with `WAITING_FOR_MODEL_SELECTION`
-- require the user to change or confirm the model in the Codex interface
-- end the entire response with exactly one standalone fenced code block containing only `CONTINUE`
-- permit no content after that fenced `CONTINUE` block
-- treat the fenced `CONTINUE` block as an output-format requirement only, not as implementation authorization
-- after `CONTINUE`, require the caller to re-read workspace locks before any implementation lock or edit
-
-### Required preflight analysis in `MODEL_PREFLIGHT_ONLY`
-
-The preflight report must explicitly compare the relevant frontier of adjacent plausible candidates and stop at the first candidate that meets the reliability threshold.
+The report must explicitly compare the relevant frontier of adjacent plausible candidates and stop at the first candidate that meets the reliability threshold.
 
 It must name:
 

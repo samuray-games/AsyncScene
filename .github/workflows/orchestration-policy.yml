@@ -27,6 +27,7 @@ on:
       - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
       - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
       - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
+      - plugins/asynchronia/skills/**/*.md
   pull_request:
     paths:
       - AGENTS.md
@@ -53,6 +54,7 @@ on:
       - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
       - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
       - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
+      - plugins/asynchronia/skills/**/*.md
   workflow_dispatch:
 
 permissions:

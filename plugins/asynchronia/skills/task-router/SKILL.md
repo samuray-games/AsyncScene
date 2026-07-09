@@ -64,6 +64,7 @@ Apply these rules in order:
 - If task scope changes materially, recompute the recommendation before relying on it.
 - The router may repeat the selector recommendation but cannot verify or change the active interface model.
 - Active model remains `USER_SELECTED_UNVERIFIED`.
+- The router must carry only the selector's exact output forward. It must not originate, alter, or turn the recommendation into an execution prerequisite, pause, or resume token.
 
 ### 6. Specialized support
 

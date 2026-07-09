@@ -102,6 +102,7 @@ Run the pipeline in this order.
 - For any file-changing lane, include a `model-selector` recommendation for the exact scope.
 - A model recommendation informs execution cost and reliability; it is not a separate approval gate.
 - If an earlier recommendation is stale or scope-expanded, recompute it before relying on it.
+- Do not emit `WAITING_FOR_MODEL_SELECTION`, `CONTINUE`, or any equivalent pause for model selection.
 
 ### 5. Workspace lock readiness
 
@@ -214,13 +215,13 @@ Rules:
 
 - model recommendation informs cost and reliability only
 - `scope-isolation-check` determines whether the exact scope is isolated or colliding
+- model-selector output is informational only and cannot authorize, pause, or resume the pipeline
 - user-owned Safari evidence remains a later acceptance boundary when the task truly has a runtime surface
 
 ## 10. Mandatory stopping states
 
 Stop immediately rather than continuing when the current pipeline state is any applicable form of:
 
-- `WAITING_FOR_MODEL_SELECTION`
 - `WAITING_ON_LOCK`
 - `BLOCKED_SCOPE_COLLISION`
 - `BLOCKED`
@@ -278,7 +279,6 @@ Return all of these fields:
 - scope-isolation result
 - task classification result
 - parallel planning result
-- model preflight result
 - workspace lock result
 - implementation and static validation result
 - applicable stages invoked
@@ -335,7 +335,7 @@ Return `BLOCKED` when any of these apply:
 
 ### Example A: contract-only non-runtime plugin task
 
-If the subject is one isolated plugin `SKILL.md`, runtime-sensitive files are not required, task routing resolves one plugin-policy lane, model preflight is complete, exact lock readiness is satisfied, static validation passes, no deployment or Safari surface exists, `smoke-orchestrator` is omitted with reason `no smoke contract required for contract-only acceptance`, `deployment-verifier` is omitted with reason `no deployment evidence required`, and `acceptance-evidence-gate` returns `ACCEPT`, then:
+If the subject is one isolated plugin `SKILL.md`, runtime-sensitive files are not required, task routing resolves one plugin-policy lane, exact lock readiness is satisfied, static validation passes, no deployment or Safari surface exists, `smoke-orchestrator` is omitted with reason `no smoke contract required for contract-only acceptance`, `deployment-verifier` is omitted with reason `no deployment evidence required`, and `acceptance-evidence-gate` returns `ACCEPT`, then:
 
 - final pipeline verdict: `PASS`
 - status promotion authorized: `YES`

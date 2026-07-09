@@ -249,6 +249,7 @@ For every task, Codex must:
 - treat selection as a recommendation unless the user selected it in the Codex interface.
 
 The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
+Only the Asynchronia plugin `model-selector` may originate, rank, or name a model recommendation. That recommendation is informational and non-blocking, and it must not become an execution prerequisite, pause, or resume token.
 
 ## 8.1 Parallel work policy
 
