@@ -1,7 +1,15 @@
 # Bridge State
 
-BRIDGE_PROTOCOL: 3.2
-ORCHESTRATION_VERSION: 3.2
+BRIDGE_PROTOCOL: 3.3
+ORCHESTRATION_VERSION: 3.3
+CLOSED_LOOP_PROTOCOL: .ai-bridge/CLOSED_LOOP_PROTOCOL.md
+CLOSED_LOOP_STATUS: IMPLEMENTATION_REQUIRED
+PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
+ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
+ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
+MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
+MEMORY_SYNC_STATUS: PENDING
+TARGET_MEMORY_REV: 2026-07-09-1945-JST
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
@@ -15,120 +23,64 @@ MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 83ff4668bd2a7401a933794668c16b7ea62c08e2
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
-PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY.md
-PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_PLUGIN_BOOTSTRAP_FALLBACK
-ROOT_PROCESS_SYNC_STATUS: SLOT2_E5_CORRECTION_REQUIRED
+PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
+PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
+ROOT_PROCESS_SYNC_STATUS: CLOSED_LOOP_PREPARING_MEMORY_SYNC
 
 ## Current status
 
-- Bridge status: `CORRECTION_REQUIRED`
-- Slot 1: `CLOSED_SUPERSEDED_BY_SLOT_2`
-- Slot 2: `OPEN_RESERVED_EXECUTION`
+- Bridge status: `PREPARING_MEMORY_SYNC`
+- Slot 1: `CLOSED_SERIALIZED_PROCESS_SCOPE`
+- Slot 2: `PREPARING`
 - Slot 3: `CLOSED_SERIALIZED_PROCESS_SCOPE`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
 - Safari: `N/A_PROCESS_ONLY`
+- Codex handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
 
-## Active Slot 2 replacement epoch
+## Pending Slot 2 task
 
-- Thread: `BRIDGE-20260709-045`
-- Lane: `PROCESS-MANDATORY-PLUGIN-NO-RUNTIME-GATE`
-- Task: `TASK-PROCESS-MANDATORY-PLUGIN-NO-RUNTIME-GATE`
-- Execution epoch: `PLUGIN-E5-20260709-1918JST`
-- Phase: `CORRECTION_REQUIRED`
-- Current inbox: `.ai-bridge/inbox/BRIDGE-20260709-045-09-chatgpt.md`
-- Current claim: `.ai-bridge/claims/BRIDGE-20260709-045-claim-v5-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-045-10-codex.md`
+- Cycle: `CYCLE-20260709-001`
+- Generation: `1`
+- Thread: `BRIDGE-20260709-046`
+- Lane: `PROCESS-CLOSED-LOOP-ORCHESTRATION`
+- Task: `TASK-PROCESS-CLOSED-LOOP-IMPLEMENTATION`
+- Epoch: `CLOSED-LOOP-E1-20260709-1930JST`
+- Nonce: `CLV1-046-E1-83FF-7C9A`
+- Phase: `IMPLEMENTATION_REQUIRED`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-046-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260709-046-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-046-02-codex.md`
 - Baseline: `83ff4668bd2a7401a933794668c16b7ea62c08e2`
+- Coordinator source memory: `2026-07-09-1918-JST`
+- Target synchronized memory: `2026-07-09-1945-JST`
 - Primary write required: `true`
 - Allow verified no delta: `false`
-- Objective-gap proof: `required`
 - Plugin bootstrap fallback: `authorized`
-- Remote-state freshness: `required`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
 
-## Rejected Slot 2 E4 attempt
+This task is not executable while MEMORY_SYNC_STATUS is PENDING.
 
-- Intended epoch: `PLUGIN-E4-20260709-1908JST`
-- Reported stale epoch: `PLUGIN-E3-20260709-1804JST`
-- Terminal response: `BLOCKED_PLUGIN_UNAVAILABLE`
-- Expected E4 outbox: `.ai-bridge/outbox/BRIDGE-20260709-045-08-codex.md`
-- Remote outbox status: `ABSENT`
-- Rejection closure: `.ai-bridge/inbox/BRIDGE-20260709-045-09-chatgpt.md`
-- Verdict: `REJECTED_STALE_REMOTE_STATE_AND_PLUGIN_BOOTSTRAP_DEADLOCK`
-- Safari: `NOT_AUTHORIZED`
+## Superseded process thread
 
-The response is invalid because it used a superseded E3 identity after E4 was already current and because it returned a direct blocker without the mandatory outbox.
+- Thread: `BRIDGE-20260709-045`
+- Last epoch: `PLUGIN-E5-20260709-1918JST`
+- Status: `SUPERSEDED_BY_CLOSED_LOOP_THREAD_046`
+- Reason: the user made completed fresh-thread orchestration the absolute priority. Every unfinished plugin, validator, installed-package, runtime-gate, outbox and recovery requirement is incorporated into task 046.
 
-It also exposed a real process contradiction: installed Asynchronia `1.0.1` was required to invoke plugin-first behavior that was itself supposed to install or verify `1.0.4`.
+Thread 045 must not execute and its old conversations must never be resumed.
 
-## E5 remote-state rule
+## Closed-loop acceptance gate
 
-Every `мост 2` attempt must fetch main and mailbox, then read this STATE directly from the fetched remote mailbox ref before routing.
+The process is not complete after task 046 source publication alone.
 
-Any E3 or E4 identity is stale and must be discarded. A stale-epoch response is `FAIL_STALE_REMOTE_STATE`.
+1. Task 046 must execute in one fresh Codex conversation and be accepted in one fresh ChatGPT conversation.
+2. ChatGPT must then automatically create a separate `CLOSED_LOOP_CANARY` task with a new thread, epoch, nonce, inbox, claim and outbox.
+3. The canary must execute in another fresh Codex conversation and be accepted in another fresh ChatGPT conversation.
+4. Product work remains suspended until both are accepted.
 
-The final report must include the fetched mailbox commit and STATE blob SHA.
+## Current next action
 
-## E5 source-plugin bootstrap
-
-This lane repairs the Asynchronia plugin itself. If installed package `1.0.4` is absent, stale, malformed, or unloadable, Codex must use governed `SOURCE_PLUGIN_FALLBACK_BOOTSTRAP` from the exact source package at the pinned baseline.
-
-Required source route:
-
-- verify source manifest version `1.0.4`;
-- enumerate source skills;
-- invoke `task-router`, `scope-isolation-check`, `model-selector`, `parallel-scope-planner`, and every additional routed skill from source;
-- never use installed `1.0.1` as authority;
-- never use an ungoverned generic fallback.
-
-Repository bootstrap and recovery authority already permits installed-cache or repository fallback and states that hidden plugin-loader telemetry is not required.
-
-## E5 installed-package repair
-
-Discover `${CODEX_HOME:-$HOME/.codex}` and the parent of the reported `personal/asynchronia/1.0.1` package.
-
-Install validated `1.0.4` as a sibling version directory, preserving `1.0.1`, unrelated cache entries, user files, and permissions.
-
-Use a temporary sibling and atomic rename when supported. Verify manifest, exact inventory, checksums, skill inventory, runtime-gate absence, positive smoke, and plugin-unavailable negative smoke.
-
-Hidden UI loader telemetry is not required. Repository source identity, source-backed routing, installed filesystem identity, manifest, inventory, checksums, and smokes are the proof contract.
-
-A genuine user-level write denial must publish complete `BLOCKED_PLUGIN_INSTALL_PERMISSION` evidence to the expected outbox. `BLOCKED_PLUGIN_UNAVAILABLE` is not valid merely because installed `1.0.1` is stale.
-
-## Mandatory source delta
-
-`tools/validate-orchestration-policy.py` must change from blob `0145f14e622f6bc74a22ac3816357de706f326ef`.
-
-The correction must encode remote-state freshness, stale-epoch rejection, normal plugin-first routing, the narrow bootstrap exception, repository fallback governance, installed-package evidence, objective-gap proof, complete outbox validation, retry, remote refetch, byte equality, and deterministic negative controls.
-
-The final validator must scan `CODEX_BRIDGE_BOOTSTRAP.md` and `CODEX_BRIDGE_RECOVERY.md`.
-
-## Historical partial progress
-
-- E2 primary commit `83ff4668bd2a7401a933794668c16b7ea62c08e2` remains partial progress only.
-- Source plugin manifest is `1.0.4`.
-- The task is not complete.
-
-## Full outbox contract
-
-The E5 outbox must contain the complete final response shown to the user and match it byte-for-byte.
-
-No success or blocked handoff is allowed before schema validation, remote outbox refetch, retry resolution, and exact equality proof.
-
-## Suspended product task
-
-- Thread: `BRIDGE-20260709-041`
-- Lane: `S6-V5B-BOOMER-RUNTIME-AGGREGATE`
-- Status: `SUSPENDED_FOR_SYSTEMIC_PROCESS_CORRECTION`
-- Resume rule: issue a replacement Step 4.4B epoch only after Slot 2 E5 is independently accepted and live memory is synchronized.
-
-## Next action
-
-Open a fresh Codex conversation and send exactly `мост 2`.
-
-Codex must execute `.ai-bridge/inbox/BRIDGE-20260709-045-09-chatgpt.md`, complete E5 from baseline `83ff4668bd2a7401a933794668c16b7ea62c08e2`, publish only `.ai-bridge/outbox/BRIDGE-20260709-045-10-codex.md`, and must not run Safari.
-
-Do not run `мост 1`, `мост 3`, or Safari.
+No Codex action is authorized while memory synchronization is pending.
