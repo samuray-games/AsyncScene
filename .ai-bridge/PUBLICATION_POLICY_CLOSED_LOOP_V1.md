@@ -1,6 +1,6 @@
 # Closed-Loop Bridge Publication Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1
 STATUS: ACTIVE_WHEN_REFERENCED_BY_STATE
 PROTOCOL: .ai-bridge/CLOSED_LOOP_PROTOCOL.md
 CLOSED_LOOP_STATUS: IMPLEMENTATION_REQUIRED
@@ -22,7 +22,11 @@ If memory sync fails, no Codex handoff is allowed. STATE must remain or become `
 
 ## Codex startup
 
-For `мост 1`, `мост 2` or `мост 3`, Codex freshly fetches main and mailbox, reads remote STATE and only its named inbox and claim, verifies cycle, generation, thread, task, epoch, nonce, slot, baseline and outbox, and discards stale local or conversational identity.
+For `мост 1`, `мост 2` or `мост 3`, Codex freshly fetches main and mailbox, reads remote STATE and only its named inbox and claim, verifies cycle, generation, thread, task, epoch, nonce, slot, baseline and expected outbox path, and discards stale local or conversational identity.
+
+The expected outbox path is a reserved destination, not a required startup artifact. For a fresh active epoch in `READY_FOR_CODEX`, absence of the expected outbox is normal and must not block execution. `BLOCKED_NO_REMOTE_OUTBOX` is invalid at startup.
+
+If the expected outbox already exists before execution, Codex must treat it as a possible stale, duplicate or foreign artifact and verify identity. It must never reuse historical bytes as the current result.
 
 Every task begins with `Use @asynchronia.`. Required route is `task-router` first, then `scope-isolation-check`, `model-selector`, conditional `parallel-scope-planner`, `closed-loop-controller`, `failure-routing-and-corrective-loop`, and every routed skill.
 
@@ -38,7 +42,7 @@ Codex repairs recoverable failures before terminal output:
 - plugin repair: validate pinned source, install via temporary sibling and atomic rename when supported, preserve older versions and user files;
 - validation failure inside scope: diagnose, repair and rerun, up to three distinct passes per root cause;
 - transient fetch, push or connector failure: up to three retries with remote identity revalidation;
-- outbox push, absence or byte mismatch: preserve immutable response bytes, refetch latest mailbox and retry up to three clean attempts.
+- outbox publication absence or byte mismatch after the immutable terminal report has been assembled: preserve response bytes, refetch latest mailbox and retry up to three clean attempts.
 
 Outside-scope, collision, permission, contract or external failures publish complete blocker evidence whenever mailbox publication works.
 
@@ -52,11 +56,11 @@ When main moved, Codex may rebuild on the new head only after proving no write o
 
 ## Outbox transaction
 
-Codex prepares one immutable complete final response, validates its schema, publishes those exact bytes to the expected outbox, pushes fast-forward, refetches remote mailbox and outbox, and proves byte equality before showing the same bytes to the user.
+Outbox existence becomes mandatory only after execution reaches terminal publication. Codex prepares one immutable complete final response, validates its schema, publishes those exact bytes to the expected outbox, pushes fast-forward, refetches remote mailbox and outbox, and proves byte equality before showing the same bytes to the user.
 
 Empty, partial, summary-only, pointer-only, placeholder-only and handoff-only outboxes are forbidden. No success or blocker handoff is allowed before remote verification.
 
-If mailbox publication remains impossible, Codex returns `BLOCKED_OUTBOX_PUBLICATION`, preserves the complete report locally and does not instruct a ChatGPT handoff.
+`BLOCKED_NO_REMOTE_OUTBOX` is not a legal terminal class. If mailbox publication remains impossible after bounded publication attempts, Codex returns `BLOCKED_OUTBOX_PUBLICATION`, preserves the complete report locally and does not instruct a ChatGPT handoff.
 
 ## Required report identity
 
@@ -68,7 +72,7 @@ A fresh verifier reloads memory and remote sources, fetches the exact current ta
 
 It classifies ACCEPTED, CORRECTION_REQUIRED, RECOVERY_REQUIRED or BLOCKED_EXTERNAL. It never returns to the old Codex chat. It publishes closure or a new task package, updates STATE last, updates and refetches memory, then prepares the next work.
 
-Missing outbox creates a new correction, report-recovery or publication-recovery task after remote primary inspection. A duplicate bridge command for a closed epoch never re-executes history.
+Missing outbox after a Codex final response creates a new correction, report-recovery or publication-recovery task after remote primary inspection. A duplicate bridge command for a closed epoch never re-executes history.
 
 ## Completion gate
 
