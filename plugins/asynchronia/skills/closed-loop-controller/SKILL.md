@@ -44,6 +44,7 @@ The controller contract must expose:
 - recovery classification for correction, report recovery, publication recovery, and blocked external
 - a separate canary gate for product acceptance
 - a deterministic self-check callable by the policy validator
+- the report schema must reject missing keys, extra keys, wrong types, empty values, and placeholder values
 
 ## Validation rules
 

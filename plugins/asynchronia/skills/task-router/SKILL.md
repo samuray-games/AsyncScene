@@ -43,6 +43,7 @@ Apply these rules in order:
 - A scope collision result overrides any parallel or implementation recommendation.
 - `BLOCKED_SCOPE_COLLISION` blocks writes until overlapping scope.
 - The router cannot accept or manufacture scope isolation.
+- For numbered bridge tasks, the exact ordered route is `task-router`, `scope-isolation-check`, `model-selector`, then the routed specialized skills before edits.
 
 ### 3. Model selection
 
@@ -135,6 +136,7 @@ Secondary flags may include:
 - scope-isolation-check
 - model-selector
 - task-router before implementation when file changes are proposed
+- the exact ordered route is `task-router`, `scope-isolation-check`, `model-selector`
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
 - `smoke-orchestrator` when the plugin task changes smoke workflow, enclosing smoke verdict rules, or contract-smoke requirements
 - `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules
@@ -159,6 +161,7 @@ Secondary flags may include:
 - model-selector
 - closed-loop-controller
 - failure-routing-and-corrective-loop
+- `task-router` before implementation
 - collision-free execution after `scope-isolation-check`; serialize only when exact overlaps or dependencies exist
 - mirror synchronization when applicable
 - static checks
