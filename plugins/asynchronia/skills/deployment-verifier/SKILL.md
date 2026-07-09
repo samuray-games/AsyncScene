@@ -15,7 +15,7 @@ This skill is read-only. It does not:
 - manufacture evidence
 - execute game runtime
 - claim Safari acceptance
-- bypass the Runtime Safety Gate
+- bypass exact scope isolation
 
 ## 1. Core purpose
 
@@ -115,7 +115,7 @@ Use a workflow equivalent to:
 
 1. Identify verification mode.
 2. Confirm atomic target and authorized scope.
-3. Apply Runtime Safety Gate classification.
+3. Apply scope-isolation classification.
 4. Determine expected deployment identity.
 5. Determine the real deployment entrypoint.
 6. Collect source, artifact, entrypoint, and served-asset evidence.
@@ -130,9 +130,9 @@ Use a workflow equivalent to:
 
 Do not skip entrypoint checks when the contract requires the deployed application surface.
 
-## 6. Runtime Safety Gate precedence
+## 6. Scope isolation precedence
 
-Runtime Safety Gate has priority over every deployment decision.
+Scope isolation has priority over every deployment decision.
 
 If the subject under test requires any runtime-sensitive file, runtime approval must be resolved before writes. Runtime-sensitive includes:
 
@@ -366,4 +366,3 @@ If the verification mode is `DEPLOYED_ENTRYPOINT`, the expected source and direc
 - do not propose a code fix
 - exact next action: correct or republish entrypoint wiring, then collect fresh deployment evidence
 - user Safari status: `N/A`
-

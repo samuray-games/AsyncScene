@@ -291,14 +291,14 @@ When economy behavior differs across mirrors:
 - list the differing economy paths and rules
 - require Canon Audit first if the intended rule is ambiguous
 
-## 10. Runtime precedence
+## 10. Scope collision precedence
 
 Mirror Audit cannot approve runtime writes.
 
 When synchronization would modify runtime-sensitive source or deployed files:
 
-- report `RUNTIME_GATE_REQUIRED`
-- require scope-isolation-check approval before writes
+- report `BLOCKED_SCOPE_COLLISION` when exact ownership is unresolved
+- require scope-isolation-check classification before writes
 - keep user Safari smoke as `PENDING_USER`
 
 ## 11. Parallel planner interaction
@@ -373,7 +373,7 @@ Use:
 - `USER_SELECTED_UNVERIFIED`
 - `CANON_AUDIT_REQUIRED`
 - `ECONOMY_AUDIT_REQUIRED`
-- `RUNTIME_GATE_REQUIRED`
+- `BLOCKED_SCOPE_COLLISION`
 - `SERIAL_REQUIRED`
 - `PENDING_USER`
 - `NOT_REQUIRED`

@@ -101,7 +101,7 @@ Run the pipeline in this order.
 
 - For any file-changing lane, require an unchanged-scope `model-selector` preflight before implementation.
 - `CONTINUE` may resume only after a valid preflight exists for the same scope.
-- `CONTINUE` is not runtime authorization and is not interchangeable with `APPROVE`.
+- `CONTINUE` is not runtime authorization.
 - If model preflight is missing, stale, or scope-expanded, stop with `WAITING_FOR_MODEL_SELECTION`.
 
 ### 5. Workspace lock readiness
@@ -209,13 +209,13 @@ Preserve evidence ownership exactly.
 The controller must distinguish:
 
 - `CONTINUE`
-- `APPROVE`
+- `scope-isolation-check`
 
 Rules:
 
 - `CONTINUE` resumes work only after a valid model preflight for the unchanged scope
 - `CONTINUE` does not authorize runtime-sensitive writes
-- `APPROVE` applies only through the `scope-isolation-check` same-thread protocol for one exact pending runtime task
+- `scope-isolation-check` applies only through the same-thread protocol for one exact pending sensitive task
 - model selection and runtime authorization are separate gates and must never be merged
 
 ## 10. Mandatory stopping states

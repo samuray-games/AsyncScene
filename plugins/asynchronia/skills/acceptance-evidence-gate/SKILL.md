@@ -13,7 +13,7 @@ This skill is read-only. It does not:
 - reinterpret missing evidence as supplied evidence
 - claim user Safari acceptance
 - repair code, deployment, or packaging defects
-- bypass the Runtime Safety Gate
+- bypass exact scope isolation
 
 ## 1. Core rule
 
@@ -227,7 +227,7 @@ Never promote or reject acceptance by copying one inner verdict without checking
 
 ## 11. Boundary with other skills
 
-- Runtime Safety Gate controls authorization for sensitive writes.
+- Scope isolation controls authorization for sensitive writes.
 - Task Router selects the workflow.
 - specialized audits provide domain evidence.
 - Smoke Orchestrator evaluates smoke workflow outcomes.
@@ -242,7 +242,7 @@ Use a workflow equivalent to:
 
 1. Identify proposed status promotion.
 2. Identify acceptance scope and exact subject.
-3. Apply Runtime Safety Gate classification.
+3. Apply scope-isolation classification.
 4. Identify authoritative acceptance criteria.
 5. List required evidence.
 6. Classify supplied evidence and owners.
@@ -349,4 +349,3 @@ If the acceptance scope is `RUNTIME_ACCEPTANCE`, source and deployed artifact B 
 - do not return `ACCEPT`
 - do not classify this as a new code failure
 - exact next action: run the required Safari smoke against verified artifact B and return its complete output
-

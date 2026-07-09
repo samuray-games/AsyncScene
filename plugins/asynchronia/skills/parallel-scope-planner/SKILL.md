@@ -113,12 +113,10 @@ The Parallel Scope Planner cannot approve runtime work.
 
 If any planned task requires runtime-sensitive files:
 
-- mark that task `RUNTIME_GATE_REQUIRED`
+- mark that task `BLOCKED_SCOPE_COLLISION` until exact ownership is confirmed
 - require the scope-isolation-check decision
 - require an isolated serialized runtime slot before implementation
-- keep all dependent tasks behind that runtime task
-
-A valid `APPROVE` token applies only through the scope-isolation-check protocol in the same thread.
+- keep all dependent tasks behind that runtime task.
 
 ## 7. Planning modes
 
@@ -126,7 +124,7 @@ For each task assign exactly one:
 
 - `PARALLEL_SAFE`
 - `SERIAL_REQUIRED`
-- `RUNTIME_GATE_REQUIRED`
+- `BLOCKED_SCOPE_COLLISION`
 - `BLOCKED`
 
 ## 8. Execution waves

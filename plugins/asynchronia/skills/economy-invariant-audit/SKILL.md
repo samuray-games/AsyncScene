@@ -224,14 +224,14 @@ When long-run or N-tick evidence is available, audit:
 - lost remainders
 - trace gaps
 
-## 5. Runtime precedence
+## 5. Scope collision precedence
 
 This skill does not approve runtime work.
 
 When the audited task changes runtime-sensitive economy files:
 
-- report `RUNTIME_GATE_REQUIRED`
-- require scope-isolation-check approval before writes
+- report `BLOCKED_SCOPE_COLLISION` when exact ownership is unresolved
+- require scope-isolation-check classification before writes
 - keep Safari smoke as `PENDING_USER`
 - do not claim implementation acceptance
 
@@ -347,6 +347,6 @@ Use:
 - `USER_SELECTED_UNVERIFIED`
 - `PENDING_USER`
 - `NOT_REQUIRED`
-- `RUNTIME_GATE_REQUIRED`
+- `BLOCKED_SCOPE_COLLISION`
 - `CANON_AUDIT_REQUIRED`
 - `MIRROR_AUDIT_REQUIRED`

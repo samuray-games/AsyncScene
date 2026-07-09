@@ -21,7 +21,7 @@ Previous conversation state is never authority for a new command.
 
 Bare `мост`, `запуль` and `запушь` are inactive.
 
-Separate `пул`, `пуш`, `CONTINUE` and `APPROVE` are not required.
+Separate bridge tokens are not required.
 
 ## 2. Mandatory first actions
 

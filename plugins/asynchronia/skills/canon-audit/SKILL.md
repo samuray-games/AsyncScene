@@ -186,14 +186,14 @@ When source or deployed copies are involved:
 - report `MIRROR_AUDIT_REQUIRED`
 - list probable mirror ownership groups
 
-## 9. Runtime precedence
+## 9. Scope collision precedence
 
 This skill cannot approve runtime work.
 
 For runtime-sensitive scope:
 
-- report `RUNTIME_GATE_REQUIRED`
-- require scope-isolation-check approval before writes
+- report `BLOCKED_SCOPE_COLLISION` when exact ownership is unresolved
+- require scope-isolation-check classification before writes
 - keep user Safari smoke as `PENDING_USER`
 
 ## 10. Fail conditions
@@ -274,7 +274,7 @@ Never claim:
 Use:
 
 - `USER_SELECTED_UNVERIFIED`
-- `RUNTIME_GATE_REQUIRED`
+- `BLOCKED_SCOPE_COLLISION`
 - `ECONOMY_AUDIT_REQUIRED`
 - `MIRROR_AUDIT_REQUIRED`
 - `PENDING_USER`
