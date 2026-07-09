@@ -13,6 +13,11 @@
 - Recorded the source contract/controller wording changes in `CLOSED_LOOP_PROTOCOL.md`, `plugins/asynchronia/skills/task-router/SKILL.md`, and `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`.
 - Validation run: `python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py`, `python3 -m unittest tools.test_closed_loop_contract`, `python3 tools/validate-orchestration-policy.py`.
 
+## 2026-07-10 — Slot 3 closed-loop contract hardening
+- Status: in progress.
+- Hardened the closed-loop contract so unknown control names fail closed, recovery classification derives from declared status/completion mode, report identity SHA fields are validated as real 40-hex hashes, and both the unit suite and policy validator exercise the full legal and illegal transition matrix.
+- Updated the bridge skill docs and closed-loop protocol wording to require exhaustive transition coverage and separate immutable outbox plus receipt publication proof.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Corrected `tools/generate-boomer-step4-4-economy-conflict-audit.py` so `mapped_exact` is a real FAIL classification that contributes to `FAIL_CLASSIFICATIONS`, `failRowCount`, final audit status, and row/verdict consistency checks.

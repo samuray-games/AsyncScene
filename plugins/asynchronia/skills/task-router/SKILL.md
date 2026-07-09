@@ -166,6 +166,7 @@ Secondary flags may include:
 - mirror synchronization when applicable
 - static checks
 - user Safari smoke
+- for closed-loop bridge recovery, the ordered route is `task-router`, `scope-isolation-check`, `model-selector`, `parallel-scope-planner` when shared ownership exists, then `closed-loop-controller` and `failure-routing-and-corrective-loop`
 
 ### `ECONOMY_CRITICAL`
 

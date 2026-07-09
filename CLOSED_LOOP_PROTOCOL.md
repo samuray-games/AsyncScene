@@ -60,3 +60,6 @@ The controller must enforce the exact transition table encoded in `tools/closed_
 - the report schema must reject missing keys, extra keys, wrong types, empty values, and placeholder values
 - success requires exact outbox identity and byte equality
 - the canary gate is separate from product acceptance
+- all legal transitions and all illegal transition pairs must be exercised by validation
+- unknown control names must fail closed
+- terminal publication proof uses an immutable outbox plus separate receipt, not a self-referential commit field

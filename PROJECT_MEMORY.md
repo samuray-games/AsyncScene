@@ -13,6 +13,10 @@
 - Recorded the shared contract/test pair at `tools/closed_loop_contract.py` and `tools/test_closed_loop_contract.py`.
 - Recorded the Asynchronia plugin manifest bump to `1.0.5` and the orchestration-policy workflow coverage update.
 
+## 2026-07-10 — Slot 3 closed-loop contract hardening
+- The closed-loop contract now fails closed on unknown control names, validates report identity SHA fields as real hashes, and checks the full legal and illegal transition matrix in both unit tests and the orchestration policy validator.
+- The protocol and skill docs now state that terminal publication proof uses an immutable outbox plus a separate receipt rather than a self-referential mailbox commit field.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; the current static audit verdict remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - The Step 4.4A generator now treats `mapped_exact` as an explicit FAIL class, so live FAIL rows and final status are derived from row verdicts instead of a partial classification subset.
