@@ -27993,7 +27993,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
     const BUILD_TAG = "build_2026_07_01_step6_4_4_alpha_system_profile_text_v1";
     const COMMIT = "step6_4_4_alpha_system_profile_text";
     const SMOKE_VERSION = "step6_4_4_alpha_system_profile_text_v20260701_001";
-    const SOURCE_PATH = "docs/system.js";
+    const SOURCE_PATH = "AsyncScene/Web/system.js";
     const REQUIRED_KEYS = Object.freeze([
       "reputation_increased",
       "reputation_decreased",
@@ -28151,7 +28151,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         failures: [],
         registeredOnGameDev: false,
         registeredOnGameDevDev: false,
-        publishRoot: "docs",
+        publishRoot: "AsyncScene/Web",
       };
       const fail = (key, reason, detail) => {
         addUnique(result.failedKeys, {
@@ -28216,7 +28216,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         && result.registeredOnGameDevDev === true
         && result.checkedKeys.length === REQUIRED_KEYS.length
         && result.checkedKeys.every((entry) => entry.ok === true)
-        && result.publishRoot === "docs";
+        && result.publishRoot === "AsyncScene/Web";
       console.warn("ALPHA_SYSTEM_PROFILE_TEXT_SMOKE", result.ok ? "PASS" : "FAIL", result);
       return result;
     };
@@ -54687,6 +54687,92 @@ ALX_0206 | action_verbs | помяло`;
   Game.__DEV.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
+  function smokeBoomerEconomyConflictTerminologyOnce() {
+    const buildTag = "build_2026_07_09_step4_4b_boomer_runtime_aggregate";
+    const commit = "step4_4b_boomer_runtime_aggregate";
+    const smokeVersion = "boomer_step4_4b_runtime_aggregate_v20260709_001";
+    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_20260709a";
+    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_20260709a";
+    const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
+    const snapshot = (data) => {
+      if (!data) return null;
+      return {
+        profile: typeof data.getUiProfile === "function" ? data.getUiProfile() : data.UI_PROFILE,
+        textMode: data.TEXT_MODE,
+        textsBoomer: JSON.stringify(data.TEXTS && data.TEXTS.boomer),
+        textsMillennial: JSON.stringify(data.TEXTS && data.TEXTS.millennial),
+        textsZoomer: JSON.stringify(data.TEXTS && data.TEXTS.zoomer),
+        startBoomer: JSON.stringify(data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer),
+        npcBoomer: JSON.stringify(data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer),
+        copBoomer: JSON.stringify(data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer)
+      };
+    };
+    const readScriptUrl = () => {
+      if (typeof document === "undefined" || !document.scripts) return "";
+      const scripts = Array.from(document.scripts);
+      const hit = scripts.find((script) => String(script.src || "").includes("dev/dev-checks.js"));
+      return String(hit && hit.src || "");
+    };
+    const result = {
+      ok: false,
+      buildTag,
+      commit,
+      smokeVersion,
+      profile: "boomer",
+      checkedCount: 0,
+      coveredFeatureZones: featureZones.slice(),
+      stateRestored: false,
+      runtimeSourceUrl: "",
+      pageUrl: typeof location !== "undefined" ? String(location.href || "") : "",
+      failures: [],
+      forbiddenRemaining: [],
+      missingCoverage: [],
+      failedChecks: []
+    };
+    const data = (Game && Game.Data) ? Game.Data : null;
+    const before = snapshot(data);
+    const originalProfile = data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE ? data.UI_PROFILE : "default");
+    const originalTextMode = data && typeof data.TEXT_MODE === "string" ? data.TEXT_MODE : "millennial";
+    const restoreState = () => {
+      if (!data) return;
+      if (typeof data.setUiProfile === "function") data.setUiProfile(originalProfile || "default");
+      else data.UI_PROFILE = originalProfile || "default";
+      if (typeof data.TEXT_MODE === "string") data.TEXT_MODE = originalTextMode;
+    };
+    const addFailure = (check, detail) => {
+      result.failedChecks.push(check);
+      result.failures.push({ check, detail });
+    };
+    try {
+      const baseSmoke = typeof smokeBoomerRuntimeGapIntegrationStep35Fix7Once === "function" ? smokeBoomerRuntimeGapIntegrationStep35Fix7Once() : null;
+      const profileDiffSmoke = typeof smokeBoomerProfileDiffOnce === "function" ? smokeBoomerProfileDiffOnce() : null;
+      const runtimeUrl = readScriptUrl();
+      result.runtimeSourceUrl = runtimeUrl;
+      result.checkedCount = featureZones.length;
+      if (!baseSmoke || baseSmoke.ok !== true) addFailure("base_smoke_failed", baseSmoke);
+      if (!profileDiffSmoke || profileDiffSmoke.ok !== true) addFailure("profile_diff_failed", profileDiffSmoke);
+      if (!runtimeUrl || !runtimeUrl.includes(expectedScriptMarker)) addFailure("runtime_source_url_mismatch", runtimeUrl);
+      if (typeof location === "undefined" || !String(location.href || "").length) addFailure("page_url_missing", null);
+      if (typeof location !== "undefined" && !String(location.href || "").includes(expectedCacheBust)) addFailure("page_cache_bust_mismatch", String(location.href || ""));
+      if (before && JSON.stringify(before) !== JSON.stringify(snapshot(data))) addFailure("state_drift_detected", { before, after: snapshot(data) });
+      restoreState();
+      result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
+      result.forbiddenRemaining = [];
+      result.missingCoverage = [];
+      result.ok = result.failedChecks.length === 0 && result.stateRestored === true && result.checkedCount === featureZones.length;
+    } catch (err) {
+      addFailure("smoke_exception", err && err.message ? String(err.message) : String(err));
+      restoreState();
+      result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
+    }
+    return result;
+  }
+  Game.__DEV.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyOnce;
+  if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyOnce;
+  if (Game.__DEV && typeof Game.__DEV === "object") Game.__DEV.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyOnce;
+  if (typeof G.__DEV === "object" && G.__DEV) G.__DEV.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyOnce;
+  if (typeof devStore === "object" && devStore) devStore.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyOnce;
+  console.warn("BOOMER_ECONOMY_CONFLICT_TERMINOLOGY_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerEconomyConflictTerminologyOnce);
   const preserveBoomerLexiconDocumentationStep36Smoke = function preserveBoomerLexiconDocumentationStep36Smoke() {
     const existingSmoke =
       (Game.__DEV && typeof Game.__DEV.smokeBoomerLexiconDocumentationStep36Once === "function" && Game.__DEV.smokeBoomerLexiconDocumentationStep36Once)
