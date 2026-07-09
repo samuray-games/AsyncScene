@@ -1,10 +1,8 @@
-# Closed Loop Protocol
-
 CLOSED LOOP
 
 BRIDGE_PROTOCOL: 3.3
-CONTRACT_VERSION: 1.0.0
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
+CONTRACT_VERSION: 1.0.1
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
@@ -23,12 +21,35 @@ The current bridge state must preserve:
 - lane id
 - task id
 - execution epoch
+- task nonce
+- coordinator memory revision
 - baseline sha
-- expected outbox
+- inbox path
+- claim path
+- expected outbox path
 - remote state sha
 - completion mode
 - result status
 - next action
+
+## Legal machine
+
+The legal states are:
+
+- CLOSED
+- PREPARING
+- READY_FOR_CODEX
+- EXECUTING
+- PRIMARY_PUBLISHED
+- OUTBOX_PUBLISHING
+- AWAITING_CHATGPT_VERIFICATION
+- ACCEPTED
+- CORRECTION_REQUIRED
+- RECOVERY_REQUIRED
+- BLOCKED_EXTERNAL
+- SUPERSEDED
+
+The controller must enforce the exact transition table encoded in `tools/closed_loop_contract.py`.
 
 ## Validation
 
@@ -36,3 +57,4 @@ The current bridge state must preserve:
 - the outbox path must end in `-02-codex.md`
 - the controller must fail closed on stale or contradictory state
 - success requires exact outbox identity and byte equality
+- the canary gate is separate from product acceptance

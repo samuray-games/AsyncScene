@@ -14,6 +14,8 @@ on:
       - GIT_PUSH.md
       - STAGE6_PARALLEL_EXECUTION_PLAN.md
       - tools/validate-orchestration-policy.py
+      - tools/closed_loop_contract.py
+      - tools/test_closed_loop_contract.py
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md
@@ -45,6 +47,8 @@ on:
       - GIT_PUSH.md
       - STAGE6_PARALLEL_EXECUTION_PLAN.md
       - tools/validate-orchestration-policy.py
+      - tools/closed_loop_contract.py
+      - tools/test_closed_loop_contract.py
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md

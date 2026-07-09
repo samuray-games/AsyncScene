@@ -31,38 +31,24 @@ Define a deterministic controller contract that:
 - preserves exact response bytes across publication and reply
 - routes correction, recovery, and acceptance as distinct states
 
-## Boundaries
+## Required contract surface
 
-This skill is subordinate to:
+The controller contract must expose:
 
-- `acceptance-pipeline-controller`
-- `pipeline-state-and-resume-contract`
-- `evidence-bundle-and-artifact-identity`
-- `failure-routing-and-corrective-loop`
-
-It must not redefine their schemas or verdicts.
-
-## Required fields
-
-Any closed-loop controller report must preserve:
-
-- `bridgeSlot`
-- `threadId`
-- `laneId`
-- `taskId`
-- `executionEpoch`
-- `baselineSha`
-- `expectedOutbox`
-- `remoteStateSha`
-- `policyVersion`
-- `completionMode`
-- `resultStatus`
-- `nextAction`
+- the exact 12 legal states
+- the explicit legal transition table
+- the required bridgeSlot, threadId, laneId, taskId, executionEpoch, baselineSha, and expectedOutbox fields
+- the required outbox report fields
+- the phase-aware outbox rules
+- the forbidden outcomes `BLOCKED_NO_REMOTE_OUTBOX` and `BLOCKED_NO_SOURCE_DELTA`
+- recovery classification for correction, report recovery, publication recovery, and blocked external
+- a separate canary gate for product acceptance
+- a deterministic self-check callable by the policy validator
 
 ## Validation rules
 
 - remote state must be freshly fetched
 - the expected outbox must match the active state
 - the controller must not claim success without the exact outbox
+- the controller must not claim product acceptance before the canary gate passes
 - a publication mismatch is terminal for the current attempt
-
