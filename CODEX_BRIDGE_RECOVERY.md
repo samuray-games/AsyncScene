@@ -2,8 +2,11 @@
 
 RECOVERY_ID: ASYNCHRONIA_BRIDGE_RECOVERY_V2_3
 STATUS: OPTIONAL_ALIAS_REPAIR_ONLY
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
 
 Protocol 2.3 does not require recovery when the installed user-level block already recognizes `мост 1`, `мост 2`, and `мост 3` and fetches current remote policy.
+optional alias repair only
 
 Do not run recovery merely because:
 

@@ -8,6 +8,8 @@ on:
       - PROCESS_ROOT_SYNC.md
       - ORCHESTRATION.md
       - BRIDGE.md
+      - CODEX_BRIDGE_BOOTSTRAP.md
+      - CODEX_BRIDGE_RECOVERY.md
       - GIT_PULL.md
       - GIT_PUSH.md
       - STAGE6_PARALLEL_EXECUTION_PLAN.md
@@ -35,6 +37,8 @@ on:
       - PROCESS_ROOT_SYNC.md
       - ORCHESTRATION.md
       - BRIDGE.md
+      - CODEX_BRIDGE_BOOTSTRAP.md
+      - CODEX_BRIDGE_RECOVERY.md
       - GIT_PULL.md
       - GIT_PUSH.md
       - STAGE6_PARALLEL_EXECUTION_PLAN.md

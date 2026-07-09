@@ -2,12 +2,15 @@
 
 BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_3
 PURPOSE: Keep `мост 1`, `мост 2`, and `мост 3` permanently routed to the current remote bridge protocol.
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
 
 ## Forward compatibility
 
 An already installed V2.2 managed block is forward-compatible because it fetches `origin/main:AGENTS.override.md` and `origin/main:BRIDGE.md` before execution. It does not need reinstalling solely for Protocol 2.3.
 
 When a V2.2 block says “Protocol 2.2”, the version declared by current remote `BRIDGE.md` wins. Current remote policy also retires plugin-loader proof as a bridge gate and permits fresh detached mailbox worktrees.
+SOURCE_PLUGIN_FALLBACK_BOOTSTRAP
 
 Install or migrate only when the user-level bridge block is absent, malformed, or does not fetch current remote policy.
 

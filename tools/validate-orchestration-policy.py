@@ -13,6 +13,8 @@ ROOT_FILES = {
     "root_sync": ROOT / "PROCESS_ROOT_SYNC.md",
     "orchestration": ROOT / "ORCHESTRATION.md",
     "bridge": ROOT / "BRIDGE.md",
+    "bootstrap": ROOT / "CODEX_BRIDGE_BOOTSTRAP.md",
+    "recovery": ROOT / "CODEX_BRIDGE_RECOVERY.md",
     "pull": ROOT / "GIT_PULL.md",
     "push": ROOT / "GIT_PUSH.md",
     "stage6_plan": ROOT / "STAGE6_PARALLEL_EXECUTION_PLAN.md",
@@ -88,11 +90,15 @@ def main() -> int:
     require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
     require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.2", "ORCHESTRATION.md", failures)
     require(docs["bridge"], "BRIDGE_PROTOCOL: 3.2", "BRIDGE.md", failures)
+    require(docs["bootstrap"], "BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_3", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
+    require(docs["recovery"], "RECOVERY_ID: ASYNCHRONIA_BRIDGE_RECOVERY_V2_3", "CODEX_BRIDGE_RECOVERY.md", failures)
     require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_2", "GIT_PULL.md", failures)
     require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
     require(docs["stage6_plan"], "BRIDGE_PROTOCOL: 3.2", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
+    require(docs["bootstrap"], "SOURCE_PLUGIN_FALLBACK_BOOTSTRAP", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
+    require(docs["recovery"], "optional alias repair only", "CODEX_BRIDGE_RECOVERY.md", failures)
 
-    for name in ("agents", "override", "root_sync", "orchestration", "bridge", "pull", "push", "stage6_plan"):
+    for name in ("agents", "override", "root_sync", "orchestration", "bridge", "bootstrap", "recovery", "pull", "push", "stage6_plan"):
         text = docs[name]
         label = ROOT_FILES[name].name
         for marker in REQUIRED_ROOT_POLICY_TEXT:
@@ -173,6 +179,8 @@ def main() -> int:
         "PROCESS_ROOT_SYNC.md",
         "ORCHESTRATION.md",
         "BRIDGE.md",
+        "CODEX_BRIDGE_BOOTSTRAP.md",
+        "CODEX_BRIDGE_RECOVERY.md",
         "GIT_PULL.md",
         "GIT_PUSH.md",
         "STAGE6_PARALLEL_EXECUTION_PLAN.md",
