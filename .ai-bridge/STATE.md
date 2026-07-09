@@ -8,9 +8,8 @@ PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
 ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: PENDING
-COORDINATOR_MEMORY_REV: 2026-07-09-1945-JST
-TARGET_MEMORY_REV: 2026-07-09-1955-JST
+MEMORY_SYNC_STATUS: READY
+COORDINATOR_MEMORY_REV: 2026-07-09-1955-JST
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
@@ -26,20 +25,20 @@ CURRENT_MAIN_BASELINE: ca2a3f88ac00a7e4fae47459758e7b09099a3f41
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
 PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
-ROOT_PROCESS_SYNC_STATUS: SLOT3_CORRECTION_PREPARING_MEMORY_SYNC
+ROOT_PROCESS_SYNC_STATUS: SLOT3_CLOSED_LOOP_CORRECTION_READY
 
 ## Current status
 
-- Bridge status: `PREPARING_MEMORY_SYNC`
+- Bridge status: `READY_FOR_CODEX`
 - Slot 1: `CLOSED_SERIALIZED_PROCESS_SCOPE`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `PREPARING`
+- Slot 3: `READY_FOR_CODEX`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
 - Safari: `N/A_PROCESS_ONLY`
-- Codex handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
+- Memory sync: `VERIFIED_2026-07-09-1955-JST`
 
-## Pending Slot 3 correction
+## Active Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
 - Generation: `3`
@@ -53,16 +52,13 @@ ROOT_PROCESS_SYNC_STATUS: SLOT3_CORRECTION_PREPARING_MEMORY_SYNC
 - Claim: `.ai-bridge/claims/BRIDGE-20260709-048-claim-v1-codex.md`
 - Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-048-02-codex.md`
 - Baseline: `ca2a3f88ac00a7e4fae47459758e7b09099a3f41`
-- Coordinator source memory: `2026-07-09-1945-JST`
-- Target synchronized memory: `2026-07-09-1955-JST`
+- Coordinator memory: `2026-07-09-1955-JST`
 - Primary write required: `true`
 - Allow verified no delta: `false`
 - Plugin bootstrap fallback: `authorized`
 - Thread rotation required: `true`
 - Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
-
-Task 048 is not executable while memory synchronization is pending.
 
 ## Superseded work
 
@@ -85,4 +81,8 @@ Task 048 must be independently accepted in a fresh ChatGPT conversation. ChatGPT
 
 ## Next action
 
-No Codex action is authorized while memory synchronization is pending.
+Open a fresh Codex conversation and send exactly `мост 3`.
+
+Codex must execute `.ai-bridge/inbox/BRIDGE-20260709-048-01-chatgpt.md`, publish only `.ai-bridge/outbox/BRIDGE-20260709-048-02-codex.md`, and must not run Safari.
+
+Do not run `мост 1`, `мост 2`, or Safari for this task.
