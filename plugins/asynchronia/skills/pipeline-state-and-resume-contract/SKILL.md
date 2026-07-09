@@ -262,7 +262,7 @@ This contract must preserve the state of the following gates as first-class seri
 ### Model selection preservation
 
 - if model selection was required for the exact scope, the resumed state must still reference the recorded recommendation evidence and `USER_SELECTED_UNVERIFIED`
-- if the selection is stale or scope-expanded, the resumed state must require a fresh preflight rather than proceed
+- if the selection is stale or scope-expanded, the resumed state must require a fresh recorded recommendation rather than proceed
 
 ### Lock preservation
 
