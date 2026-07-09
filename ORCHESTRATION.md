@@ -1,7 +1,7 @@
 # Asynchronia Orchestration Protocol
 
-ORCHESTRATION_VERSION: 3.2
-BRIDGE_PROTOCOL: 3.2
+ORCHESTRATION_VERSION: 3.3
+BRIDGE_PROTOCOL: 3.3
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
@@ -9,72 +9,66 @@ STATUS: ACTIVE
 
 ## Authority
 
-Use current remote `AGENTS.override.md`, `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, Git policies, mailbox publication policy, STATE, current inbox and current claim. Historical artifacts are audit-only.
-
-Exact scope ownership and collision checks are handled by `scope-isolation-check`.
-
-Scope collisions return `BLOCKED_SCOPE_COLLISION`.
+Use current remote `AGENTS.override.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, the canonical resolver, mailbox publication policy, `.ai-bridge/STATE.json`, and the exact inbox and claim named by JSON. Historical artifacts are audit-only.
 
 ## Canonical loop
 
-`ChatGPT contract -> мост N in Codex -> fresh fetch -> execute -> validate -> [primary commit or verified no delta] -> outbox -> мост N in ChatGPT -> verify/root-sync`
+`ChatGPT contract -> current STATE.json -> мост N in Codex -> exact remote refresh -> contract resolver -> execute -> validate -> publish -> verify-outbox -> мост N in ChatGPT -> independent acceptance/root-sync`
 
-Previous conversational completion never satisfies a new numbered command.
+## Machine state
 
-## Execution epoch
+Every open slot has one current execution epoch in `.ai-bridge/STATE.json`. JSON is canonical. Human Markdown mirrors may explain state but may not route work.
 
-Every open slot has one current `EXECUTION_EPOCH` recorded identically in STATE, inbox and claim.
+The state contains a monotonically increasing `mailboxGeneration` and `stateRevision`. A slot contains exact thread, lane, task, epoch, phase, baseline, inbox, claim, expected outbox and completion permissions.
 
-A numbered command executes only that epoch. Old claims, inboxes and outboxes cannot satisfy it.
+## Remote freshness
 
-## Thread rotation
+The resolver must prove remote-tracking refs equal `ls-remote` after exact destination-refspec fetch. A source-only fetch is not sufficient evidence.
 
-When STATE says `THREAD_ROTATION_REQUIRED: true`:
+Failure returns `BLOCKED_STALE_REMOTE_REF`.
 
-- the prior Codex conversation is superseded;
-- a fresh Codex conversation adopts the replacement claim named by STATE;
-- logical bridge thread id remains unchanged for audit history;
-- execution starts on the first matching numbered command;
-- no preflight or separate bridge token is required.
+## Contract identity
 
-## Codex execution
+The current contract identity is the resolver-produced `contractDigest`, a SHA-256 digest over state revision, mailbox generation, slot identity, task identity, baseline, paths and state/inbox/claim blob SHAs.
 
-On `мост N`, Codex must before any terminal response:
+Execution and publication must use the same digest. If it changes, return `BLOCKED_MAILBOX_EPOCH_MOVED`.
 
-1. fetch main and mailbox;
-2. read current remote authority, STATE, inbox and claim;
-3. verify epoch, slot, task, phase, baseline, scope and expected outbox;
-4. use clean implementation and mailbox worktrees;
-5. execute and validate;
-6. choose one legal completion mode;
-7. refetch main and machine-derive evidence;
-8. publish the exact current outbox;
-9. refetch mailbox;
-10. return `PASS_PUSHED` or `PASS_VERIFIED_NO_DELTA` with evidence and one next action.
+## Execution
+
+A numbered command:
+
+1. resolves the current contract;
+2. verifies exact scope and dependencies;
+3. records the selector recommendation without stopping;
+4. executes only the resolved objective;
+5. validates exact changed paths;
+6. refreshes and re-resolves before publication;
+7. publishes primary and mailbox changes as applicable;
+8. verifies the current outbox remotely.
 
 ## Completion modes
 
 ### Primary delta
 
-When authorized paths change, publish one direct-child primary commit, exact-scope fast-forward push and the exact current outbox.
+Publish one direct-child exact-scope commit and the exact outbox.
 
 ### Verified no delta
 
-`VERIFIED_NO_DELTA` requires `ALLOW_VERIFIED_NO_DELTA: true` in the current inbox or claim.
-
-Codex must prove the current baseline already satisfies the frozen objective, required checks pass, deterministic generation produces zero diff, exact changed paths are empty and protected blobs are unchanged.
-
-The outbox must contain `completionMode: VERIFIED_NO_DELTA`, `primaryChanged:false`, the fetched baseline SHA, `primaryParent:N/A`, `changedPaths:[]`, exact scope blob SHAs and all validations.
+Allowed only when the resolved contract says `allowVerifiedNoDelta:true`. It publishes no primary commit and must prove the baseline already satisfies the objective.
 
 Empty primary commits are forbidden.
 
-ChatGPT may independently accept and record a pre-policy `BLOCKED_NO_SOURCE_DELTA` result when it verifies the same evidence on the same baseline.
+## Publication
 
-## No-op guard
+Primary pushes target `refs/heads/main` explicitly. Mailbox pushes target `refs/heads/coordination/chatgpt-codex-bridge` explicitly. Both are fast-forward only.
 
-A bare return without the exact current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+The mailbox outbox commit changes exactly one path and records the contract digest, authority blob SHAs, actual parent, primary identity, changed paths and validations.
 
-A historical outbox cannot satisfy a current epoch.
+Resolver mode `verify-outbox` is mandatory after publication.
+
+## Model boundary
+
+Only `model-selector` may originate, rank or name a recommendation. The recommendation is informational and cannot become a pause, authorization or resume gate. Scope changes cause same-response recomputation. The truthful active status remains `USER_SELECTED_UNVERIFIED` unless externally verified.
 
 ## Phases
 
@@ -90,26 +84,10 @@ A historical outbox cannot satisfy a current epoch.
 - `PASS_ACCEPTED`
 - `BLOCKED_EXTERNAL`
 
-`CORRECTION_REQUIRED` executes on the next matching numbered command unless ChatGPT independently closes a verified pre-policy no-delta result.
+## Acceptance
 
-## Publication
-
-Primary delta publication is direct-child, exact-scope, fast-forward and remotely verified. If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`.
-
-Verified no delta never creates a primary commit. It publishes only the exact current evidence outbox.
-
-Mailbox publication uses the exact expected outbox path, latest mailbox parent, fast-forward push and fresh verification. Manual SHA transcription is forbidden.
-
-## Safety
-
-Never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push user work. Local divergence is not a blocker.
-
-After one non-interactive auth repair, failure returns `BLOCKED_PUSH_AUTH` with complete evidence. Never request credentials.
+Remote publication, static acceptance, deployment readiness and user Safari acceptance are separate tiers. Git publication is not Safari PASS.
 
 ## Root synchronization
 
-A reusable process defect must be fixed in every affected authority, validator, mailbox policy, STATE, current contract and live memory before the next action.
-
-## Acceptance
-
-Remote publication, verified-no-delta evidence, static acceptance, deployment readiness and user Safari acceptance are separate tiers. Git publication is not Safari PASS.
+Reusable defects are repaired across authority, resolver, validator, workflow, mailbox policy, STATE.json, active contract and live memory before product work resumes.
