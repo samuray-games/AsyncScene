@@ -76,7 +76,7 @@ Never create mailbox commits from `main` or from a detached primary commit.
 
 A mailbox claim or outbox is not accepted until ChatGPT independently verifies remote head, ancestry, paths and current main.
 
-These aliases do not bypass runtime safety, exact task scope, dependency gates or user-owned Safari acceptance.
+These aliases do not bypass scope-isolation checks, exact task scope, dependency gates or user-owned Safari acceptance.
 
 ## 0.1 Git command aliases
 
@@ -143,7 +143,7 @@ Treat exact write ownership, mirror ownership, stable-read dependencies, shared 
 If a task requires overlapping or dependent scope:
 
 - return `BLOCKED_SCOPE_COLLISION`;
-- list every colliding path, owner and dependency;
+- list every colliding file with exact paths, owners and dependencies;
 - identify mirrors and shared wiring; and
 - state the exact overlap that prevents execution.
 
@@ -225,7 +225,7 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 - Matching contents do not prove reachability or deployment correctness.
 - Accepted transformations must be authoritative and deterministic.
 - Unresolved ownership or transformation rules return `BLOCKED`.
-- Runtime synchronization remains subject to runtime approval.
+- Runtime synchronization remains subject to scope isolation, mirror ownership, and user-owned Safari acceptance when runtime evidence is actually required.
 - Deployed acceptance remains user-controlled through Safari smoke.
 
 ## 8. Model selection rule
@@ -257,11 +257,11 @@ The user selects the active model. If it cannot be externally verified, report `
 - Evaluate task-owned writes separately from the entire dirty tree.
 - Unrelated dirty files do not automatically block work.
 - Read-only lanes may run concurrently when they have no stable-read dependency on mutable outputs from another lane.
-- Overlapping writes, stable-read dependencies, mirror pairs, shared wiring, runtime slots, registries and unresolved scope require serialization.
+- Overlapping writes, stable-read dependencies, mirror pairs, shared wiring, registries and unresolved scope require serialization.
 - Source and deployed mirrors share one ownership lane.
 - `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized singleton lanes.
 - One final documentation owner updates shared `TASKS.md` and `PROJECT_MEMORY.md` per wave.
-- Runtime gate decisions take precedence over parallel planning.
+- Scope-isolation and collision decisions take precedence over parallel planning.
 - A lane may not merge, rebase or absorb another lane's work unless a dedicated integration task authorizes it.
 
 ## 8.2 Routing policy

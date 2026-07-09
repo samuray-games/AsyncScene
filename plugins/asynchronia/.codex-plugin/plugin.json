@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Project-specific scope checks and evidence workflows for Codex work in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"

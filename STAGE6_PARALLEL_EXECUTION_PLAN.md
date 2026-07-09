@@ -3,7 +3,9 @@
 PLAN_VERSION: S6-PARALLEL-2026-07-07-03-TRACEABILITY-CLOSED
 STAGE: Stage 6 - Интерактивный язык / Tone Profiles
 COORDINATOR: ChatGPT
-BRIDGE_PROTOCOL: 2.4
+BRIDGE_PROTOCOL: 3.2
+ROOT_CAUSE_SYNC: REQUIRED
+NO_OP_COMPLETION: FORBIDDEN
 MAX_CONCURRENT_CODEX_LANES: 3
 BASE_PROGRESS: accepted 47/100, working readiness 59/100
 CURRENT_PRIMARY_BASELINE: pending publication of this plan update
@@ -48,7 +50,7 @@ Current working readiness: 59/100.
 4. Source and deployed mirrors are one ownership group.
 5. Any overlapping write files serialize the affected lanes.
 6. `dev-checks.js`, smoke registries, exports, globals, shared resolvers, boot/cache-bust and aggregate smoke are singleton lanes.
-7. Runtime writes require MODEL_PREFLIGHT_ONLY, same-thread `CONTINUE`, frozen scope, same-thread `APPROVE`, deployment evidence and user Safari smoke.
+7. A frozen collision-free runtime lane executes immediately after current STATE, inbox, claim, baseline, scope, and dependency verification. Scope isolation determines collisions; it is not an approval protocol.
 8. Shared `TASKS.md` and `PROJECT_MEMORY.md` have one documentation owner per wave.
 9. Mailbox claims and outboxes remain sequential direct-child commits.
 10. ChatGPT accepts each slot independently.

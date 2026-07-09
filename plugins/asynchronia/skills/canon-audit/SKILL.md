@@ -248,7 +248,7 @@ Return:
 - regression surface
 - economy audit requirement
 - mirror audit requirement
-- runtime gate requirement
+- scope-isolation result
 - validation still required
 - user smoke status
 - preserved pre-existing changes

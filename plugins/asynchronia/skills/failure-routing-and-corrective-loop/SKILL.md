@@ -68,7 +68,7 @@ This contract is subordinate to the acceptance controller and must not replace i
 ### Scope isolation gate
 
 - `scope-isolation-check` owns scope isolation requirements.
-- `5.4` may route to approval-required or approval-invalidated states.
+- `5.4` may route to scope-revalidation or lock-revalidation states when the exact scope changes.
 - `5.4` must not bypass or redefine scope isolation.
 
 ### Parallel scope planner
@@ -266,10 +266,10 @@ The routing boundary between restart and resume is explicit.
 - Artifact identity becomes invalid when a correction changes the artifact, package, deployment, or runtime surface.
 - Downstream evidence tied to the prior artifact identity becomes stale until revalidated.
 
-### Runtime approval
+### Scope isolation result
 
-- Runtime approval must be preserved when the corrected scope remains the same runtime-sensitive scope.
-- Runtime approval becomes invalid when the correction changes the runtime-sensitive scope, runtime entrypoint, or runtime ownership.
+- Scope-isolation results must be preserved when the corrected scope remains the same exact runtime-sensitive scope.
+- Scope-isolation must be recomputed when the correction changes the runtime-sensitive scope, runtime entrypoint, runtime ownership, or mirror ownership.
 
 ### Workspace lock
 
@@ -407,7 +407,7 @@ Return all of these fields:
 - restart versus resume routing boundary
 - evidence preservation and invalidation
 - artifact-identity preservation and invalidation
-- runtime-approval preservation and invalidation
+- scope-isolation preservation and revalidation
 - workspace-lock preservation and revalidation
 - model-selection preservation
 - user-acceptance invalidation

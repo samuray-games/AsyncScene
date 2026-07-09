@@ -342,7 +342,7 @@ Return:
 - unexplained differences
 - canon audit requirement
 - economy audit requirement
-- runtime gate requirement
+- scope-isolation result
 - serialization requirement
 - validation still required
 - user smoke status

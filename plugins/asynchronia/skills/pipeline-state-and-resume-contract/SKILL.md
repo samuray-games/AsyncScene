@@ -32,7 +32,7 @@ Define one resumable pipeline contract that:
 - resumes idempotently after interruption or a new Codex session
 - rejects stale, foreign, incompatible, ambiguous, or corrupted state
 - prevents skipped stages and duplicate side effects
-- preserves runtime approval, model-selection, lock, Safari smoke, and user-acceptance gates
+- preserves scope-isolation results, model recommendations, lock, Safari smoke, and user-acceptance states
 - emits a bounded final state report suitable for downstream evidence collection
 
 ## 2. Boundary rules
@@ -239,7 +239,7 @@ Before resuming, the state must be validated against the stored contract data.
 
 This contract must preserve the state of the following gates as first-class serialized data:
 
-- runtime approval
+- scope-isolation result
 - model selection
 - workspace lock
 - Safari smoke
@@ -253,10 +253,10 @@ This contract must preserve the state of the following gates as first-class seri
 - a resume operation must not convert user-owned evidence into Codex-owned evidence
 - a resume operation must not convert pending user evidence into acceptance
 
-### Runtime approval preservation
+### Scope-isolation preservation
 
-- if runtime approval was required, the resumed state must still record whether approval exists for the exact scope
-- if runtime approval is absent, the resumed state must remain blocked rather than silently continuing
+- if scope isolation was required, the resumed state must still record the exact scope-isolation result for the exact scope
+- if scope isolation is absent or stale, the resumed state must remain blocked rather than silently continuing
 
 ### Model selection preservation
 
@@ -367,4 +367,3 @@ It does not define:
 - corrective-loop policy
 - deployment handling
 - runtime execution
-
