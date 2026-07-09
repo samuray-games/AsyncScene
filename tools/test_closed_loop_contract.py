@@ -26,26 +26,26 @@ from tools.closed_loop_contract import (
 def sample_state(**overrides: object) -> ClosedLoopState:
     data = dict(
         bridge_slot=3,
-        thread_id="BRIDGE-20260709-052",
-        lane_id="PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
-        task_id="TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
-        execution_epoch="CLOSED-LOOP-SOURCE-R1-20260709-2138JST",
-        task_nonce="CLV1-052-SOURCE-9B17-2138",
-        coordinator_memory_rev="2026-07-09-2138-JST",
-        baseline_sha="9b170097e1ff0889ae0cb1e127516c51440c4c3d",
-        inbox_path=".ai-bridge/inbox/BRIDGE-20260709-052-01-chatgpt.md",
-        claim_path=".ai-bridge/claims/BRIDGE-20260709-052-claim-v1-codex.md",
-        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md",
-        remote_state_sha="feedfacefeedfacefeedfacefeedfacefeedface",
+        thread_id="BRIDGE-20260709-054",
+        lane_id="PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
+        task_id="TASK-PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
+        execution_epoch="CLOSED-LOOP-SOURCE-R3-20260709-2213JST",
+        task_nonce="CLV1-054-SOURCE-708B-2213",
+        coordinator_memory_rev="2026-07-09-2213-JST",
+        baseline_sha="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+        inbox_path=".ai-bridge/inbox/BRIDGE-20260709-054-01-chatgpt.md",
+        claim_path=".ai-bridge/claims/BRIDGE-20260709-054-claim-v1-codex.md",
+        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md",
+        remote_state_sha="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
         completion_mode="PRIMARY_DELTA",
         result_status="PASS_PUSHED",
         next_action="Open a fresh ChatGPT conversation and send мост 3.",
         current_state="PRIMARY_PUBLISHED",
-        remote_mailbox_commit="deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+        remote_mailbox_commit="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
         primary_commit_sha="cafebabecafebabecafebabecafebabecafebabe",
-        primary_parent_sha="9b170097e1ff0889ae0cb1e127516c51440c4c3d",
-        changed_paths=(".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md",),
-        authorized_paths=(".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md",),
+        primary_parent_sha="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+        changed_paths=(".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md",),
+        authorized_paths=(".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md",),
         validation_results=("py_compile: PASS",),
         negative_controls=NEGATIVE_CONTROLS,
         positive_controls=POSITIVE_CONTROLS,
@@ -101,7 +101,7 @@ class ClosedLoopContractTest(unittest.TestCase):
 
     def test_startup_outbox_absence_allowed(self) -> None:
         state = sample_state(current_state="CLOSED", completion_mode="STARTUP", primary_changed=False)
-        self.assertEqual(state.expected_outbox_path, ".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md")
+        self.assertEqual(state.expected_outbox_path, ".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md")
 
     def test_foreign_preexisting_outbox_detected(self) -> None:
         with self.assertRaises(ValueError):
@@ -174,6 +174,7 @@ class ClosedLoopContractTest(unittest.TestCase):
         self.assertEqual(len(NEGATIVE_CONTROLS), 52)
         self.assertEqual(len(set(POSITIVE_CONTROLS)), len(POSITIVE_CONTROLS))
         self.assertEqual(len(set(NEGATIVE_CONTROLS)), len(NEGATIVE_CONTROLS))
+        self.assertFalse(any(control.startswith("negative_control_") for control in NEGATIVE_CONTROLS))
 
     def test_self_check(self) -> None:
         result = self_check()
@@ -181,6 +182,7 @@ class ClosedLoopContractTest(unittest.TestCase):
         self.assertEqual(len(result["states"]), 12)
         self.assertEqual(len(result["negativeControls"]), 52)
         self.assertEqual(len(result["positiveControls"]), len(POSITIVE_CONTROLS))
+        self.assertIn("reject_placeholder_deadbeef", result["negativeControls"])
 
 
 if __name__ == "__main__":
