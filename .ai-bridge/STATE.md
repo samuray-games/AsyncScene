@@ -9,63 +9,61 @@ PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
 ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: READY
+MEMORY_SYNC_STATUS: PENDING
 COORDINATOR_MEMORY_REV: 2026-07-09-2138-JST
-TARGET_MEMORY_REV: 2026-07-09-2138-JST
+TARGET_MEMORY_REV: 2026-07-09-2154-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 OUTBOX_REQUIRED_PHASE: OUTBOX_PUBLISHING_OR_LATER
 BLOCKED_NO_REMOTE_OUTBOX: FORBIDDEN
 NO_SOURCE_DELTA_POLICY: .ai-bridge/NO_SOURCE_DELTA_POLICY_V1.md
+BRANCH_SEPARATION_POLICY: .ai-bridge/PRIMARY_MAILBOX_SEPARATION_POLICY_V1.md
 MANDATORY_PLUGIN_FIRST: REQUIRED
 RUNTIME_SAFETY_GATE: RETIRED_AND_REMOVE
 PLUGIN_BOOTSTRAP_FALLBACK: AUTHORIZED_FOR_PLUGIN_REPAIR
 REMOTE_STATE_FRESHNESS: REQUIRED
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-CURRENT_MAIN_BASELINE: 9b170097e1ff0889ae0cb1e127516c51440c4c3d
+CURRENT_MAIN_BASELINE: 8134d3660eccf999a12e594d8642d90215a75a76
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
-PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1
-ROOT_PROCESS_SYNC_STATUS: SOURCE_CONTRACT_CORRECTION_READY
+ROOT_PROCESS_SYNC_STATUS: SOURCE_AND_PUBLICATION_CORRECTION_PREPARING_MEMORY_SYNC
 
 ## Status
 
-- Bridge: `READY_FOR_CODEX`
+- Bridge: `PREPARING_MEMORY_SYNC`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `READY_FOR_CODEX_SOURCE_CORRECTION`
+- Slot 3: `PREPARING_SOURCE_AND_PUBLICATION_CORRECTION`
 - Safari: `N/A_PROCESS_ONLY`
-- Handoff: `AUTHORIZED_AFTER_MEMORY_SYNC`
+- Handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
 
 ## Pending Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `7`
-- Thread: `BRIDGE-20260709-052`
-- Lane: `PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION`
-- Task: `TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION`
-- Epoch: `CLOSED-LOOP-SOURCE-R1-20260709-2138JST`
-- Nonce: `CLV1-052-SOURCE-9B17-2138`
+- Generation: `8`
+- Thread: `BRIDGE-20260709-053`
+- Lane: `PROCESS-CLOSED-LOOP-SOURCE-AND-PUBLICATION-CORRECTION`
+- Task: `TASK-PROCESS-CLOSED-LOOP-SOURCE-AND-PUBLICATION-CORRECTION`
+- Epoch: `CLOSED-LOOP-SOURCE-R2-20260709-2154JST`
+- Nonce: `CLV1-053-SOURCE-8134-2154`
 - Phase: `CORRECTION_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-052-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260709-052-claim-v1-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md`
-- Expected initial outbox state: `ABSENT_ALLOWED_AND_EXPECTED`
-- Baseline: `9b170097e1ff0889ae0cb1e127516c51440c4c3d`
-- Target memory: `2026-07-09-2138-JST`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-053-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260709-053-claim-v1-codex.md`
+- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md`
+- Baseline: `8134d3660eccf999a12e594d8642d90215a75a76`
 - Primary write: `true`
 - Verified no delta: `false`
-- Plugin bootstrap: `authorized`
 - Fresh Codex chat: `required`
 
-## Thread 051 verdict
+## Thread 052 verdict
 
-- Verdict: `CORRECTION_REQUIRED_FALSE_NO_DELTA`.
-- Main unchanged; no primary delta.
-- Claim required a source write and forbade verified no-delta.
-- Outbox returned illegal `BLOCKED_NO_SOURCE_DELTA`.
-- Thread 051 must not continue.
+- Verdict: `CORRECTION_REQUIRED_SOURCE_AND_PUBLICATION`.
+- Source commit is partial progress.
+- Outbox was leaked into `main` and is absent from coordination branch.
+- Terminal report contains placeholders and pending publication evidence.
+- Contract, tests, validator, workflow, router and protocol remain incomplete.
+- Thread 052 must not continue.
 
 ## Gate
 
-Task 052 is authorized after verified memory revision 2026-07-09-2138-JST. Product work and Safari remain blocked.
+Task 053 is not executable until memory revision 2026-07-09-2154-JST is written and verified. Product work and Safari remain blocked.
