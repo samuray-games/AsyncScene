@@ -33,6 +33,7 @@ Define one resumable pipeline contract that:
 - rejects stale, foreign, incompatible, ambiguous, or corrupted state
 - prevents skipped stages and duplicate side effects
 - preserves scope-isolation results, model recommendations, lock, Safari smoke, and user-acceptance states
+- references `model-selector` for the model recommendation evidence that this contract serializes
 - model recommendation evidence is serialized as evidence only and must not be represented as a blocking preflight gate
 - emits a bounded final state report suitable for downstream evidence collection
 
