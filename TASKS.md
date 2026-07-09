@@ -1,3 +1,9 @@
+## 2026-07-09 — Slot 3 closed-loop bridge correction
+- Status: in progress.
+- Added the closed-loop controller surface at `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, the shared contract at `tools/closed_loop_contract.py`, the deterministic tests at `tools/test_closed_loop_contract.py`, and the root protocol file `CLOSED_LOOP_PROTOCOL.md`.
+- Updated bridge authority markers to `BRIDGE_PROTOCOL: 3.3` across `AGENTS.md`, `AGENTS.override.md`, `BRIDGE.md`, `ORCHESTRATION.md`, and `STAGE6_PARALLEL_EXECUTION_PLAN.md`.
+- Extended orchestration policy validation and workflow coverage to include the closed-loop protocol and controller skill, and bumped the Asynchronia plugin manifest to `1.0.5`.
+
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.
 - Corrected `tools/generate-boomer-step4-4-economy-conflict-audit.py` so `mapped_exact` is a real FAIL classification that contributes to `FAIL_CLASSIFICATIONS`, `failRowCount`, final audit status, and row/verdict consistency checks.
