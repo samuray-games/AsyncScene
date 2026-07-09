@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_PLUGIN_FIRST_FULL_OUTBOX
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_OBJECTIVE_GAP_NO_DELTA_GUARD
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -8,6 +8,7 @@ EMPTY_OUTBOX: FORBIDDEN
 FINAL_RESPONSE_OUTBOX_IDENTITY: REQUIRED
 MANDATORY_PLUGIN_FIRST: REQUIRED
 RUNTIME_SAFETY_GATE: RETIRED_AND_REMOVE
+OBJECTIVE_GAP_PROOF: REQUIRED
 DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 MODEL_PREFLIGHT_GATE: RETIRED
 
@@ -105,6 +106,27 @@ Empty primary commits are forbidden.
 
 A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
 
+## Objective-gap proof and no-source-delta guard
+
+A passing current validator proves only the checks that validator currently implements. It does not prove that a correction objective requiring validator expansion, new negative controls, new report validation, installed-package evidence, or additional policy coverage is already satisfied.
+
+When the current inbox identifies concrete baseline omissions, Codex must build an objective-gap matrix before deciding whether source work exists. For every required invariant, the matrix must provide one of:
+
+- exact current path, line or function and behavior proving the invariant is already enforced; or
+- exact target path and implementation delta required to enforce it.
+
+The objective-gap matrix must be based on current source inspection, not on the current validator exit code.
+
+If `PRIMARY_WRITE_REQUIRED: true` and `ALLOW_VERIFIED_NO_DELTA: false`:
+
+- `BLOCKED_NO_SOURCE_DELTA` is not a valid terminal status;
+- an empty primary commit remains forbidden;
+- Codex must implement every concrete missing invariant named by the current inbox within the frozen scope;
+- if Codex believes the contract is contradictory, it must publish a complete outbox with `BLOCKED_CONTRACT_CONTRADICTION`, the full objective-gap matrix, exact source citations, and the contradiction;
+- a direct conversational blocker without the expected outbox is `FAIL_NO_EXECUTION_EVIDENCE`.
+
+A correction inbox that names an exact current blob and exact missing checks is authoritative evidence that source inspection is required. Codex may disprove a named gap only with exact source-backed evidence. It may not substitute `validator PASS`, clean Git status, or unchanged HEAD for that proof.
+
 ## Full final response outbox contract
 
 For every success, verified-no-delta, correction, rejection or blocked completion that can reach the mailbox branch, the expected outbox must contain the complete final response that Codex will show to the user.
@@ -118,6 +140,7 @@ Before publication, the response must contain all applicable fields:
 - active plugin version and source;
 - invoked Asynchronia skills and their material results;
 - selector-originated model recommendation and actual model status;
+- objective-gap matrix;
 - inspected files and exact changed paths;
 - tests and validators run with results;
 - failures and attempted recovery;
@@ -128,7 +151,7 @@ Before publication, the response must contain all applicable fields:
 - expected outbox path;
 - exact next user action.
 
-The report validator must fail closed when the trimmed outbox is empty, when required sections are missing, when placeholders remain, when plugin evidence is absent, or when the response merely tells the user to return to ChatGPT.
+The report validator must fail closed when the trimmed outbox is empty, when required sections are missing, when placeholders remain, when plugin evidence is absent, when the objective-gap matrix is absent for a correction lane, or when the response merely tells the user to return to ChatGPT.
 
 ## Publish-before-reply transaction
 
@@ -157,7 +180,9 @@ If publication remains impossible because of a non-recoverable external authenti
 
 Root process changes must pass `tools/validate-orchestration-policy.py`. Historical failed runs are audit evidence only and do not override a newer valid current state.
 
-The root validator must enforce the three-slot contract, exact `Use @asynchronia.` first line, mandatory plugin routing, runtime-gate absence, active installed-package inventory, non-blocking model recommendation semantics, complete final-response outbox schema, empty-outbox prohibition, publish-before-reply ordering, retry behavior and workflow coverage of every plugin skill.
+The root validator must enforce the three-slot contract, exact `Use @asynchronia.` first line, mandatory plugin routing, runtime-gate absence, active installed-package evidence contract, non-blocking model recommendation semantics, objective-gap proof, complete final-response outbox schema, empty-outbox prohibition, publish-before-reply ordering, retry behavior and workflow coverage of every plugin skill.
+
+The validator's own PASS cannot be used as evidence that no validator delta is required when the current correction explicitly identifies checks absent from the validator source.
 
 ## Publication
 
