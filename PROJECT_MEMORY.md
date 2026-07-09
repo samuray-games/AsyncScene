@@ -1,3 +1,8 @@
+## 2026-07-09 — Closed-loop source contract correction
+- Slot 3 is correcting the repository source contract only; installed-package proof is deferred to a later task.
+- The frozen scope is `CLOSED_LOOP_PROTOCOL.md`, `tools/closed_loop_contract.py`, `tools/test_closed_loop_contract.py`, `tools/validate-orchestration-policy.py`, `.github/workflows/orchestration-policy.yml`, `plugins/asynchronia/skills/task-router/SKILL.md`, `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, `PROJECT_MEMORY.md`, and `TASKS.md`.
+- The task requires a source delta and a publishable outbox, with verified-no-delta forbidden in this epoch.
+
 ## 2026-07-09 — Slot 3 closed-loop bridge correction
 - Recorded the bridge-policy update to protocol 3.3, the new `CLOSED_LOOP_PROTOCOL.md` surface, and the `closed-loop-controller` skill.
 - Recorded the shared contract/test pair at `tools/closed_loop_contract.py` and `tools/test_closed_loop_contract.py`.

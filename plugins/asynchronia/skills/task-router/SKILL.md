@@ -140,6 +140,8 @@ Secondary flags may include:
 - `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules
 - `acceptance-evidence-gate` when the plugin task changes status-promotion, acceptance, evidence-ownership, or package-acceptance rules
 - `canon-audit`, `economy-invariant-audit`, or `mirror-audit` when the plugin task changes routing policy for accepted canon, economy invariants, or deployed/source parity workflows
+- `closed-loop-controller` when the plugin task changes the closed-loop bridge contract, identity, publication, or recovery rules
+- `failure-routing-and-corrective-loop` when the plugin task changes correction, recovery, or blocked-external routing
 - plugin validation
 - no Safari smoke unless the plugin protocol explicitly requires a user interaction smoke
 
@@ -155,6 +157,8 @@ Secondary flags may include:
 
 - scope-isolation-check
 - model-selector
+- closed-loop-controller
+- failure-routing-and-corrective-loop
 - collision-free execution after `scope-isolation-check`; serialize only when exact overlaps or dependencies exist
 - mirror synchronization when applicable
 - static checks

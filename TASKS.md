@@ -1,8 +1,9 @@
 ## 2026-07-09 — Slot 3 closed-loop bridge correction
 - Status: in progress.
-- Added the closed-loop controller surface at `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, the shared contract at `tools/closed_loop_contract.py`, the deterministic tests at `tools/test_closed_loop_contract.py`, and the root protocol file `CLOSED_LOOP_PROTOCOL.md`.
-- Updated bridge authority markers to `BRIDGE_PROTOCOL: 3.3` across `AGENTS.md`, `AGENTS.override.md`, `BRIDGE.md`, `ORCHESTRATION.md`, and `STAGE6_PARALLEL_EXECUTION_PLAN.md`.
-- Extended orchestration policy validation and workflow coverage to include the closed-loop protocol and controller skill, and bumped the Asynchronia plugin manifest to `1.0.5`.
+- Replaced the placeholder bridge contract with an executable state machine in `tools/closed_loop_contract.py`, including legal states, transitions, identity validation, outbox schema checks, recovery classification, positive/negative control inventories, and a deterministic self-check.
+- Replaced the trivial `tools/test_closed_loop_contract.py` coverage with deterministic tests for legal and illegal transitions, identity and inbox/claim validation, startup outbox absence, recovery selection, canary gating, and control inventories.
+- Updated `tools/validate-orchestration-policy.py`, `plugins/asynchronia/skills/task-router/SKILL.md`, `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, `CLOSED_LOOP_PROTOCOL.md`, and `.github/workflows/orchestration-policy.yml` to describe and validate the same closed-loop contract.
+- The source phase remains mid-flight until the contract validator and unit suite pass.
 
 ## 2026-07-05 — Boomer Step 4.4A static economy and conflict terminology audit Fix1
 - Status: implementation corrected; static audit result remains `STATIC_FAIL / UNTRANSLATED_OR_UNMAPPED_ENTITIES_FOUND`.

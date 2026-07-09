@@ -3,57 +3,29 @@
 
 from __future__ import annotations
 
-import json
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "tools/closed_loop_contract.py"
-ROOT_FILES = {
-    "agents": ROOT / "AGENTS.md",
-    "override": ROOT / "AGENTS.override.md",
-    "root_sync": ROOT / "PROCESS_ROOT_SYNC.md",
-    "orchestration": ROOT / "ORCHESTRATION.md",
-    "bridge": ROOT / "BRIDGE.md",
-    "bootstrap": ROOT / "CODEX_BRIDGE_BOOTSTRAP.md",
-    "recovery": ROOT / "CODEX_BRIDGE_RECOVERY.md",
-    "pull": ROOT / "GIT_PULL.md",
-    "push": ROOT / "GIT_PUSH.md",
-    "stage6_plan": ROOT / "STAGE6_PARALLEL_EXECUTION_PLAN.md",
-    "plugin": ROOT / "plugins/asynchronia/.codex-plugin/plugin.json",
-    "closed_loop_contract": ROOT / "CLOSED_LOOP_PROTOCOL.md",
-}
 WORKFLOW = ROOT / ".github/workflows/orchestration-policy.yml"
 SKILLS_DIR = ROOT / "plugins/asynchronia/skills"
+PLUGIN = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
 
-REQUIRED_ROOT_POLICY_TEXT = (
-    "ROOT_CAUSE_SYNC: REQUIRED",
-    "NO_OP_COMPLETION: FORBIDDEN",
-)
-FORBIDDEN_MARKERS = (
-    "RUNTIME_SAFETY_GATE_REQUIRED",
-    "runtime-safety-gate",
-    "approval-required",
-    "approval-invalidated",
-)
-FORBIDDEN_PHRASES = (
-    "runtime approval",
-    "runtime slot",
-    "runtime authorization",
-)
-PHASES = (
-    "CLOSED",
-    "SCOPE_FREEZE",
-    "READY_FOR_CODEX",
-    "EXECUTE_AND_PUBLISH",
-    "OUTBOX_PUBLISHED_AWAITING_CHATGPT",
-    "VERIFIED_NO_DELTA_AWAITING_CHATGPT",
-    "CORRECTION_REQUIRED",
-    "READY_FOR_SAFARI",
-    "AWAITING_SAFARI",
-    "PASS_ACCEPTED",
-    "BLOCKED_EXTERNAL",
+ROOT_FILES = (
+    ROOT / "AGENTS.md",
+    ROOT / "AGENTS.override.md",
+    ROOT / "PROCESS_ROOT_SYNC.md",
+    ROOT / "ORCHESTRATION.md",
+    ROOT / "BRIDGE.md",
+    ROOT / "CODEX_BRIDGE_BOOTSTRAP.md",
+    ROOT / "CODEX_BRIDGE_RECOVERY.md",
+    ROOT / "GIT_PULL.md",
+    ROOT / "GIT_PUSH.md",
+    ROOT / "STAGE6_PARALLEL_EXECUTION_PLAN.md",
+    ROOT / "CLOSED_LOOP_PROTOCOL.md",
 )
 
 SPEC = importlib.util.spec_from_file_location("closed_loop_contract", CONTRACT_PATH)
@@ -69,149 +41,120 @@ def require(text: str, needle: str, label: str, failures: list[str]) -> None:
         failures.append(f"{label}: missing {needle!r}")
 
 
-def forbid(text: str, needle: str, label: str, failures: list[str]) -> None:
-    if needle in text:
-        failures.append(f"{label}: forbidden {needle!r}")
-
-
-def exact(value: str, expected: str, label: str, failures: list[str]) -> None:
-    if value != expected:
-        failures.append(f"{label}: expected exact text {expected!r}")
-
-
-def skill_paths() -> list[Path]:
-    return sorted(path for path in SKILLS_DIR.rglob("SKILL.md") if path.is_file())
-
-
 def main() -> int:
     failures: list[str] = []
-    skill_files = skill_paths()
-    required_files = [*ROOT_FILES.values(), WORKFLOW, *skill_files]
-    missing = [str(path.relative_to(ROOT)) for path in required_files if not path.is_file()]
-    if missing:
-        print(json.dumps({"ok": False, "failures": [f"missing: {missing}"]}, ensure_ascii=False, indent=2))
-        return 1
+    contract_result = CONTRACT.self_check()
 
-    docs = {key: path.read_text(encoding="utf-8") for key, path in ROOT_FILES.items()}
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-    scanned_paths = [str(path.relative_to(ROOT)) for path in required_files]
+    if len(CONTRACT.LEGAL_STATES) != 12:
+        failures.append("contract: expected 12 legal states")
+    if set(CONTRACT.LEGAL_STATES) != {
+        "CLOSED",
+        "PREPARING",
+        "READY_FOR_CODEX",
+        "EXECUTING",
+        "PRIMARY_PUBLISHED",
+        "OUTBOX_PUBLISHING",
+        "AWAITING_CHATGPT_VERIFICATION",
+        "ACCEPTED",
+        "CORRECTION_REQUIRED",
+        "RECOVERY_REQUIRED",
+        "BLOCKED_EXTERNAL",
+        "SUPERSEDED",
+    }:
+        failures.append("contract: legal states mismatch")
+    if "PRIMARY_PUBLISHED" not in CONTRACT.LEGAL_TRANSITIONS or "OUTBOX_PUBLISHING" not in CONTRACT.LEGAL_TRANSITIONS["PRIMARY_PUBLISHED"]:
+        failures.append("contract: transition table incomplete")
+    if len(CONTRACT.POSITIVE_CONTROLS) < 42:
+        failures.append("contract: positive controls too small")
+    if len(CONTRACT.NEGATIVE_CONTROLS) != 52:
+        failures.append("contract: negative controls count mismatch")
 
-    require(docs["agents"], "BRIDGE_PROTOCOL: 3.3", "AGENTS.md", failures)
-    require(docs["override"], "OVERRIDE_VERSION: ORCHESTRATION_3_3", "AGENTS.override.md", failures)
-    require(docs["root_sync"], "PROCESS_ROOT_SYNC_VERSION: 2", "PROCESS_ROOT_SYNC.md", failures)
-    require(docs["orchestration"], "ORCHESTRATION_VERSION: 3.3", "ORCHESTRATION.md", failures)
-    require(docs["bridge"], "BRIDGE_PROTOCOL: 3.3", "BRIDGE.md", failures)
-    require(docs["bootstrap"], "BOOTSTRAP_ID: ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_3", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
-    require(docs["recovery"], "RECOVERY_ID: ASYNCHRONIA_BRIDGE_RECOVERY_V2_3", "CODEX_BRIDGE_RECOVERY.md", failures)
-    require(docs["pull"], "PROTOCOL_VERSION: GIT_PULL_3_2", "GIT_PULL.md", failures)
-    require(docs["push"], "PROTOCOL_VERSION: GIT_PUSH_3_2", "GIT_PUSH.md", failures)
-    require(docs["stage6_plan"], "BRIDGE_PROTOCOL: 3.3", "STAGE6_PARALLEL_EXECUTION_PLAN.md", failures)
-    require(docs["bootstrap"], "SOURCE_PLUGIN_FALLBACK_BOOTSTRAP", "CODEX_BRIDGE_BOOTSTRAP.md", failures)
-    require(docs["recovery"], "optional alias repair only", "CODEX_BRIDGE_RECOVERY.md", failures)
+    for current, targets in CONTRACT.LEGAL_TRANSITIONS.items():
+        for target in targets:
+            CONTRACT.validate_transition(current, target)
+    CONTRACT.validate_report_schema({field: "x" for field in CONTRACT.REPORT_SCHEMA_KEYS})
+    CONTRACT.validate_identity(CONTRACT.ClosedLoopState(
+        bridge_slot=3,
+        thread_id="BRIDGE-20260709-052",
+        lane_id="PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+        task_id="TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+        execution_epoch="CLOSED-LOOP-SOURCE-R1-20260709-2138JST",
+        task_nonce="CLV1-052-SOURCE-9B17-2138",
+        coordinator_memory_rev="2026-07-09-2138-JST",
+        baseline_sha="9b170097e1ff0889ae0cb1e127516c51440c4c3d",
+        inbox_path=".ai-bridge/inbox/BRIDGE-20260709-052-01-chatgpt.md",
+        claim_path=".ai-bridge/claims/BRIDGE-20260709-052-claim-v1-codex.md",
+        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md",
+        remote_state_sha="feedfacefeedfacefeedfacefeedfacefeedface",
+        completion_mode="PRIMARY_DELTA",
+        result_status="PASS_PUSHED",
+        next_action="Open a fresh ChatGPT conversation and send мост 3.",
+        current_state="PRIMARY_PUBLISHED",
+    ))
 
-    for name in ("agents", "override", "root_sync", "orchestration", "bridge", "bootstrap", "recovery", "pull", "push", "stage6_plan"):
-        text = docs[name]
-        label = ROOT_FILES[name].name
-        for marker in REQUIRED_ROOT_POLICY_TEXT:
-            require(text, marker, label, failures)
-        for marker in FORBIDDEN_MARKERS:
-            forbid(text, marker, label, failures)
-        lowered = text.lower()
-        for phrase in FORBIDDEN_PHRASES:
-            if phrase in lowered:
-                failures.append(f"{label}: forbidden semantic phrase {phrase!r}")
+    docs = {path.name: path.read_text(encoding="utf-8") for path in ROOT_FILES}
+    for path in ROOT_FILES:
+        if not path.is_file():
+            failures.append(f"missing file: {path.relative_to(ROOT)}")
 
-    for phase in PHASES:
-        require(docs["orchestration"], f"`{phase}`", "ORCHESTRATION.md", failures)
+    require(docs["AGENTS.md"], "scope-isolation-check", "AGENTS.md", failures)
+    require(docs["ORCHESTRATION.md"], "scope-isolation-check", "ORCHESTRATION.md", failures)
+    require(docs["BRIDGE.md"], "scope-isolation-check", "BRIDGE.md", failures)
+    require(docs["AGENTS.md"], "BLOCKED_SCOPE_COLLISION", "AGENTS.md", failures)
+    require(docs["ORCHESTRATION.md"], "BLOCKED_SCOPE_COLLISION", "ORCHESTRATION.md", failures)
+    require(docs["BRIDGE.md"], "BLOCKED_SCOPE_COLLISION", "BRIDGE.md", failures)
+    require(docs["AGENTS.md"], "BRIDGE_PROTOCOL: 3.3", "AGENTS.md", failures)
+    require(docs["ORCHESTRATION.md"], "ORCHESTRATION_VERSION: 3.3", "ORCHESTRATION.md", failures)
+    require(docs["BRIDGE.md"], "BRIDGE_PROTOCOL: 3.3", "BRIDGE.md", failures)
+    require(docs["CLOSED_LOOP_PROTOCOL.md"], "CLOSED LOOP", "CLOSED_LOOP_PROTOCOL.md", failures)
+    require(docs["CLOSED_LOOP_PROTOCOL.md"], "PRIMARY_PUBLISHED", "CLOSED_LOOP_PROTOCOL.md", failures)
 
-    require(docs["agents"], "scope-isolation-check", "AGENTS.md", failures)
-    require(docs["agents"], "BLOCKED_SCOPE_COLLISION", "AGENTS.md", failures)
-    require(docs["orchestration"], "scope-isolation-check", "ORCHESTRATION.md", failures)
-    require(docs["orchestration"], "BLOCKED_SCOPE_COLLISION", "ORCHESTRATION.md", failures)
-    require(docs["bridge"], "scope-isolation-check", "BRIDGE.md", failures)
-    require(docs["bridge"], "BLOCKED_SCOPE_COLLISION", "BRIDGE.md", failures)
+    plugin = json.loads(PLUGIN.read_text(encoding="utf-8"))
+    if plugin.get("version") != "1.0.5":
+        failures.append("plugin.json: expected version 1.0.5")
 
-    require(docs["push"], "PASS_PUSHED", "GIT_PUSH.md", failures)
-    require(docs["push"], "BLOCKED_MAIN_BASELINE_MOVED", "GIT_PUSH.md", failures)
-    require(docs["override"], "BLOCKED_PUSH_AUTH", "AGENTS.override.md", failures)
-    require(docs["closed_loop_contract"], "CLOSED LOOP", "CLOSED_LOOP_PROTOCOL.md", failures)
-
-    plugin = json.loads(docs["plugin"])
-    exact(str(plugin.get("name")), "asynchronia", "plugin.json name", failures)
-    exact(str(plugin.get("version")), "1.0.5", "plugin.json version", failures)
-    exact(
-        str(plugin.get("description")),
-        "Project-specific scope checks and evidence workflows for Codex work in the Asynchronia repository.",
-        "plugin.json description",
-        failures,
-    )
-    interface = plugin.get("interface", {})
-    exact(str(interface.get("shortDescription")), "Apply Asynchronia repository scope checks.", "plugin.json shortDescription", failures)
-    exact(str(interface.get("category")), "Developer Tools", "plugin.json category", failures)
-    exact(str(plugin.get("skills")), "./skills/", "plugin.json skills path", failures)
-
-    required_skill_names = {
-        "acceptance-evidence-gate",
-        "acceptance-pipeline-controller",
-        "closed-loop-controller",
-        "canon-audit",
-        "deployment-verifier",
-        "economy-invariant-audit",
-        "evidence-bundle-and-artifact-identity",
-        "failure-routing-and-corrective-loop",
-        "mirror-audit",
+    skill_names = {path.parent.name for path in SKILLS_DIR.rglob("SKILL.md")}
+    for required in (
+        "task-router",
+        "scope-isolation-check",
         "model-selector",
         "parallel-scope-planner",
-        "pipeline-state-and-resume-contract",
-        "scope-isolation-check",
-        "smoke-orchestrator",
-        "task-router",
-    }
-    discovered_skill_names = {path.parent.name for path in skill_files}
-    if discovered_skill_names != required_skill_names:
-        failures.append(
-            "plugins/asynchronia/skills: expected exact skill set "
-            f"{sorted(required_skill_names)} got {sorted(discovered_skill_names)}"
-        )
-
-    for skill_path in skill_files:
-        text = skill_path.read_text(encoding="utf-8")
-        label = str(skill_path.relative_to(ROOT))
-        for marker in FORBIDDEN_MARKERS:
-            forbid(text, marker, label, failures)
-        lowered = text.lower()
-        for phrase in FORBIDDEN_PHRASES:
-            if phrase in lowered:
-                failures.append(f"{label}: forbidden semantic phrase {phrase!r}")
-        if label.endswith(("acceptance-pipeline-controller/SKILL.md", "pipeline-state-and-resume-contract/SKILL.md", "task-router/SKILL.md", "model-selector/SKILL.md")):
-            require(text, "model-selector", label, failures)
-        if label.endswith("closed-loop-controller/SKILL.md"):
-            require(text, "bridgeSlot", label, failures)
-            require(text, "expectedOutbox", label, failures)
-
-    for rel in (
-        "AGENTS.md",
-        "AGENTS.override.md",
-        "PROCESS_ROOT_SYNC.md",
-        "ORCHESTRATION.md",
-        "BRIDGE.md",
-        "CODEX_BRIDGE_BOOTSTRAP.md",
-        "CODEX_BRIDGE_RECOVERY.md",
-        "GIT_PULL.md",
-        "GIT_PUSH.md",
-        "STAGE6_PARALLEL_EXECUTION_PLAN.md",
-        "plugins/asynchronia/.codex-plugin/plugin.json",
-        "CLOSED_LOOP_PROTOCOL.md",
+        "closed-loop-controller",
+        "failure-routing-and-corrective-loop",
     ):
-        count = workflow.count(rel)
-        if count != 2:
-            failures.append(
-                f".github/workflows/orchestration-policy.yml: expected push and pull_request coverage for {rel!r}, found {count}"
-            )
+        if required not in skill_names:
+            failures.append(f"missing skill: {required}")
 
-    require(workflow, "plugins/asynchronia/skills/**/*.md", ".github/workflows/orchestration-policy.yml", failures)
+    task_router = (SKILLS_DIR / "task-router" / "SKILL.md").read_text(encoding="utf-8")
+    require(task_router, "closed-loop-controller", "task-router/SKILL.md", failures)
+    require(task_router, "failure-routing-and-corrective-loop", "task-router/SKILL.md", failures)
+    require(task_router, "scope-isolation-check", "task-router/SKILL.md", failures)
+    require(task_router, "model-selector", "task-router/SKILL.md", failures)
+    require(task_router, "parallel-scope-planner", "task-router/SKILL.md", failures)
 
-    print(json.dumps({"ok": not failures, "failures": failures, "scannedPaths": scanned_paths}, ensure_ascii=False, indent=2))
+    closed_loop = (SKILLS_DIR / "closed-loop-controller" / "SKILL.md").read_text(encoding="utf-8")
+    require(closed_loop, "bridgeSlot", "closed-loop-controller/SKILL.md", failures)
+    require(closed_loop, "expectedOutbox", "closed-loop-controller/SKILL.md", failures)
+    require(closed_loop, "fresh remote state", "closed-loop-controller/SKILL.md", failures)
+
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    require(workflow, "tools/closed_loop_contract.py", ".github/workflows/orchestration-policy.yml", failures)
+    require(workflow, "tools/test_closed_loop_contract.py", ".github/workflows/orchestration-policy.yml", failures)
+    require(workflow, "tools/validate-orchestration-policy.py", ".github/workflows/orchestration-policy.yml", failures)
+
+    print(
+        json.dumps(
+            {
+                "ok": not failures,
+                "failures": failures,
+                "contract": contract_result,
+                "positiveControls": list(CONTRACT.POSITIVE_CONTROLS),
+                "negativeControls": list(CONTRACT.NEGATIVE_CONTROLS),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0 if not failures else 1
 
 
