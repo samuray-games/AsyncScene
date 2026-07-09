@@ -1,13 +1,14 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_FULL_OUTBOX_REPLAY
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_PLUGIN_FIRST_FULL_OUTBOX
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
 FINAL_RESPONSE_OUTBOX_IDENTITY: REQUIRED
+MANDATORY_PLUGIN_FIRST: REQUIRED
+RUNTIME_SAFETY_GATE: RETIRED_AND_REMOVE
 DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
-RUNTIME_GATE: RETIRED
 MODEL_PREFLIGHT_GATE: RETIRED
 
 ## Fresh execution
@@ -26,23 +27,45 @@ Every open slot has its own thread, lane, task, execution epoch, inbox, claim, b
 
 Whenever two or more tasks or slots are proposed or open, Codex must invoke the Asynchronia `parallel-scope-planner`. Slots may remain open concurrently only when write ownership, stable-read dependencies, mirror ownership, shared wiring, registries, generated outputs and shared documentation ownership are proven disjoint. Shared process files, shared documentation, mirror pairs, aggregate smoke, registries, exports, globals, boot wiring and dependent lanes are serialized.
 
-A closed Slot 2 or Slot 3 is intentional when fewer than three collision-free lanes exist. It is not an omitted bridge command.
+A closed slot is intentional when fewer collision-free lanes exist. It is not an omitted bridge command.
 
-## Mandatory Asynchronia plugin routing
+## Mandatory Asynchronia plugin-first routing
 
-Every numbered Asynchronia bridge task must use the installed Asynchronia plugin before implementation.
+Every Asynchronia Codex task, whether bridge-based or directly supplied, must start with the exact first line:
 
-Required routing:
+`Use @asynchronia.`
 
-1. invoke `task-router` for every task;
-2. invoke `scope-isolation-check` for every implementation lane;
-3. invoke `model-selector` for every implementation lane;
-4. invoke `parallel-scope-planner` whenever multiple tasks or bridge lanes exist;
+The plugin route is mandatory before implementation:
+
+1. invoke `task-router` first for every task;
+2. invoke `scope-isolation-check` for every implementation or repository-write lane;
+3. invoke `model-selector` for every implementation or repository-write lane;
+4. invoke `parallel-scope-planner` whenever multiple tasks, lanes, slots, concurrent writers, shared dependencies, mirrors, registries, generated outputs or documentation owners exist;
 5. invoke every additional specialized Asynchronia skill required by the routed task.
 
-The retired `runtime-safety-gate` name is not the active contract and must not be used as a mandatory task prefix. Runtime and mechanically sensitive work is governed by `scope-isolation-check`, exact ownership and collision evidence.
+If the plugin cannot be resolved, loaded or invoked, Codex must stop before implementation with `BLOCKED_PLUGIN_UNAVAILABLE` and exact diagnostics. Silent generic fallback is forbidden.
 
-The final report and outbox must list the Asynchronia skills actually invoked and their material results. A generic claim that the plugin was used is insufficient.
+The final report and outbox must list:
+
+- active plugin version and source;
+- exact skills invoked in order;
+- material result from each skill;
+- proof that `task-router` selected the final route;
+- proof that no required skill was skipped.
+
+A generic claim that the plugin was used is insufficient.
+
+## Runtime gate removal
+
+The obsolete `runtime-safety-gate` name, skill, alias and route are not part of the active architecture and must be removed from source and active installed package behavior.
+
+The old prompt `Use @asynchronia runtime-safety-gate.` is forbidden in active process surfaces.
+
+Runtime and mechanically sensitive work is governed by `scope-isolation-check`, exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and serialization of real collisions.
+
+Runtime approval, runtime authorization, approval-only stops and equivalent hidden gates are forbidden. User-owned Safari acceptance remains separate and does not become a pre-implementation approval gate.
+
+The active installed Asynchronia package must be verified to contain no `runtime-safety-gate` skill, alias, generated index entry or callable route.
 
 ## Model recommendation boundary
 
@@ -92,6 +115,7 @@ Before publication, the response must contain all applicable fields:
 
 - status and completion mode;
 - bridge slot, thread, lane, task and execution epoch;
+- active plugin version and source;
 - invoked Asynchronia skills and their material results;
 - selector-originated model recommendation and actual model status;
 - inspected files and exact changed paths;
@@ -104,7 +128,7 @@ Before publication, the response must contain all applicable fields:
 - expected outbox path;
 - exact next user action.
 
-The report validator must fail closed when the trimmed outbox is empty, when required sections are missing, when placeholders remain, or when the response merely tells the user to return to ChatGPT.
+The report validator must fail closed when the trimmed outbox is empty, when required sections are missing, when placeholders remain, when plugin evidence is absent, or when the response merely tells the user to return to ChatGPT.
 
 ## Publish-before-reply transaction
 
@@ -127,13 +151,13 @@ Every recoverable outbox publication failure must be retried automatically witho
 
 There is no successful terminal state before verified outbox publication. A failed first push, stale mailbox parent, stale worktree, non-fast-forward mailbox update or remote verification mismatch must not produce a handoff response.
 
-If publication remains impossible because of a non-recoverable external authentication, permission or service outage after the allowed non-interactive repair, Codex must return `BLOCKED_OUTBOX_PUBLICATION` in the Codex conversation, must preserve the complete prepared response locally, and must not instruct the user to send `мост N` to ChatGPT. This is the only honest boundary: no process can manufacture repository access during an external outage.
+If publication remains impossible because of a non-recoverable external authentication, permission or service outage after the allowed non-interactive repair, Codex must return `BLOCKED_OUTBOX_PUBLICATION` in the Codex conversation, preserve the complete prepared response locally, and must not instruct the user to send `мост N` to ChatGPT.
 
 ## Root policy CI gate
 
 Root process changes must pass `tools/validate-orchestration-policy.py`. Historical failed runs are audit evidence only and do not override a newer valid current state.
 
-The root validator must enforce the three-slot contract, mandatory plugin routing, non-blocking model recommendation semantics, complete final-response outbox schema, empty-outbox prohibition, publish-before-reply ordering, retry behavior and workflow coverage of every plugin skill.
+The root validator must enforce the three-slot contract, exact `Use @asynchronia.` first line, mandatory plugin routing, runtime-gate absence, active installed-package inventory, non-blocking model recommendation semantics, complete final-response outbox schema, empty-outbox prohibition, publish-before-reply ordering, retry behavior and workflow coverage of every plugin skill.
 
 ## Publication
 
