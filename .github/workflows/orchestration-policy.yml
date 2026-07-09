@@ -80,5 +80,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Compile closed-loop policy scripts
+        run: python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py
+      - name: Run closed-loop contract unit tests
+        run: python3 -m unittest tools.test_closed_loop_contract
       - name: Validate orchestration policy
         run: python3 tools/validate-orchestration-policy.py

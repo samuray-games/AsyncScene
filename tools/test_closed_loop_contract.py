@@ -9,6 +9,7 @@ from tools.closed_loop_contract import (
     LEGAL_TRANSITIONS,
     NEGATIVE_CONTROLS,
     POSITIVE_CONTROLS,
+    REPORT_SCHEMA_KEYS,
     ClosedLoopState,
     accept_product_work,
     classify_recovery,
@@ -110,6 +111,54 @@ class ClosedLoopContractTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_report_schema({"status": "OK"})
 
+    def test_report_schema_rejects_extra_keys(self) -> None:
+        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
+        payload["extra"] = "nope"
+        with self.assertRaises(ValueError):
+            validate_report_schema(payload)
+
+    def test_report_schema_rejects_wrong_types(self) -> None:
+        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
+        payload["primaryChanged"] = "false"
+        with self.assertRaises(ValueError):
+            validate_report_schema(payload)
+
+    def test_report_schema_rejects_empty_values(self) -> None:
+        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
+        payload["status"] = " "
+        with self.assertRaises(ValueError):
+            validate_report_schema(payload)
+
+    def test_report_schema_accepts_complete_payload(self) -> None:
+        payload = {
+            "status": "PASS_PUSHED",
+            "completionMode": "PRIMARY_DELTA",
+            "primaryChanged": True,
+            "verifiedPrimarySha": "cafebabecafebabecafebabecafebabecafebabe",
+            "primaryParent": "9b170097e1ff0889ae0cb1e127516c51440c4c3d",
+            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md"],
+            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260709-052-02-codex.md"],
+            "validationResults": ["py_compile: PASS", "unittest: PASS"],
+            "negativeControls": list(NEGATIVE_CONTROLS),
+            "positiveControls": list(POSITIVE_CONTROLS),
+            "recoveryClassification": "CORRECTION_REQUIRED",
+            "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
+            "remoteMailboxCommit": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            "remoteStateSha": "feedfacefeedfacefeedfacefeedfacefeedface",
+            "byteEquality": "MATCH",
+            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md",
+            "baselineSha": "8134d3660eccf999a12e594d8642d90215a75a76",
+            "bridgeSlot": 3,
+            "threadId": "BRIDGE-20260709-053",
+            "laneId": "PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "taskId": "TASK-PROCESS-CLOSED-LOOP-SOURCE-CONTRACT-CORRECTION",
+            "executionEpoch": "CLOSED-LOOP-SOURCE-R2-20260709-2154JST",
+            "taskNonce": "CLV1-053-SOURCE-8134-2154",
+            "coordinatorMemoryRev": "2026-07-09-2154-JST",
+            "policyVersion": "CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1",
+        }
+        validate_report_schema(payload)
+
     def test_recovery_selection(self) -> None:
         self.assertEqual(classify_recovery({"status": "BLOCKED_EXTERNAL"}), "BLOCKED_EXTERNAL")
         self.assertEqual(classify_recovery({"publicationRecovery": True}), "PUBLICATION_RECOVERY_REQUIRED")
@@ -131,6 +180,7 @@ class ClosedLoopContractTest(unittest.TestCase):
         self.assertEqual(result["contractVersion"], "1.0.1")
         self.assertEqual(len(result["states"]), 12)
         self.assertEqual(len(result["negativeControls"]), 52)
+        self.assertEqual(len(result["positiveControls"]), len(POSITIVE_CONTROLS))
 
 
 if __name__ == "__main__":
