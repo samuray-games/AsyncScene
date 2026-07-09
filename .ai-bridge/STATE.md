@@ -3,13 +3,18 @@
 BRIDGE_PROTOCOL: 3.3
 ORCHESTRATION_VERSION: 3.3
 CLOSED_LOOP_PROTOCOL: .ai-bridge/CLOSED_LOOP_PROTOCOL.md
+CLOSED_LOOP_PROTOCOL_ID: ASYNCHRONIA_CLOSED_LOOP_V1_1
 CLOSED_LOOP_STATUS: IMPLEMENTATION_REQUIRED
 PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
 ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: READY
+MEMORY_SYNC_STATUS: PENDING
 COORDINATOR_MEMORY_REV: 2026-07-09-2118-JST
+TARGET_MEMORY_REV: 2026-07-09-2125-JST
+EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
+OUTBOX_REQUIRED_PHASE: OUTBOX_PUBLISHING_OR_LATER
+BLOCKED_NO_REMOTE_OUTBOX: FORBIDDEN
 MANDATORY_PLUGIN_FIRST: REQUIRED
 RUNTIME_SAFETY_GATE: RETIRED_AND_REMOVE
 PLUGIN_BOOTSTRAP_FALLBACK: AUTHORIZED_FOR_PLUGIN_REPAIR
@@ -19,57 +24,48 @@ STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 9b170097e1ff0889ae0cb1e127516c51440c4c3d
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
-PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
-ROOT_PROCESS_SYNC_STATUS: COMPLETENESS_CORRECTION_READY
+PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1
+ROOT_PROCESS_SYNC_STATUS: STARTUP_DEADLOCK_RECOVERY_PREPARING_MEMORY_SYNC
 
 ## Status
 
-- Bridge: `READY_FOR_CODEX`
+- Bridge: `PREPARING_MEMORY_SYNC`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `READY_FOR_CODEX_CORRECTION`
+- Slot 3: `PREPARING_RECOVERY`
 - Safari: `N/A_PROCESS_ONLY`
-- Memory sync: `VERIFIED_2026-07-09-2118-JST`
+- Handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
 
-## Active Slot 3 correction
+## Pending Slot 3 recovery
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `5`
-- Thread: `BRIDGE-20260709-050`
-- Lane: `PROCESS-CLOSED-LOOP-COMPLETENESS-CORRECTION`
-- Task: `TASK-PROCESS-CLOSED-LOOP-COMPLETENESS-CORRECTION`
-- Epoch: `CLOSED-LOOP-COMPLETE-R1-20260709-2118JST`
-- Nonce: `CLV1-050-COMPLETE-9B17-2118`
-- Phase: `CORRECTION_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-050-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260709-050-claim-v1-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-050-02-codex.md`
+- Generation: `6`
+- Thread: `BRIDGE-20260709-051`
+- Lane: `PROCESS-CLOSED-LOOP-STARTUP-DEADLOCK-RECOVERY`
+- Task: `TASK-PROCESS-CLOSED-LOOP-STARTUP-DEADLOCK-RECOVERY`
+- Epoch: `CLOSED-LOOP-STARTUP-R1-20260709-2125JST`
+- Nonce: `CLV1-051-STARTUP-9B17-2125`
+- Phase: `RECOVERY_REQUIRED`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-051-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260709-051-claim-v1-codex.md`
+- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-051-02-codex.md`
+- Expected initial outbox state: `ABSENT_ALLOWED_AND_EXPECTED`
 - Baseline: `9b170097e1ff0889ae0cb1e127516c51440c4c3d`
+- Target memory: `2026-07-09-2125-JST`
 - Primary write: `true`
 - Verified no delta: `false`
 - Plugin bootstrap: `authorized`
 - Fresh Codex chat: `required`
 
-## Verifier verdict for thread 049
+## Failure verdict for thread 050
 
-- Primary commit publication and direct-child ancestry: accepted as partial progress.
-- Implementation completeness: rejected.
-- Outbox policy schema: rejected.
-- Legal state machine, deterministic controls, task-router route and complete validator: missing.
-- Installed plugin identity, runtime-gate removal and plugin smokes: missing.
-- Workflow does not run compile plus closed-loop unit tests.
-- Thread 049 must not continue.
-
-## Required correction
-
-Task 050 must preserve commit `9b170097e1ff0889ae0cb1e127516c51440c4c3d` and complete the real state machine, full report schema, fifty negative controls, root/routing consistency, workflow commands, installed plugin proof and complete remote-verified outbox.
+- Verdict: `RECOVERY_REQUIRED_STARTUP_DEADLOCK`.
+- Main unchanged; no primary delta.
+- Outbox 050 absent.
+- Codex incorrectly required the reserved future outbox before execution.
+- `BLOCKED_NO_REMOTE_OUTBOX` is illegal.
+- Thread 050 must not continue.
 
 ## Gate
 
-Task 050 requires independent fresh ChatGPT acceptance, followed by a separate fresh-thread canary. Product work and Safari remain blocked until both pass.
-
-## Next action
-
-Open a fresh Codex conversation and send exactly `мост 3`.
-
-Execute thread 050 and publish only `.ai-bridge/outbox/BRIDGE-20260709-050-02-codex.md`. Do not continue thread 049 or run Safari.
+Task 051 is not executable until memory revision 2026-07-09-2125-JST is written and verified. Product work and Safari remain blocked.
