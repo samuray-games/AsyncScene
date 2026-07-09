@@ -9,9 +9,9 @@ PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
 ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: READY
+MEMORY_SYNC_STATUS: PENDING
 COORDINATOR_MEMORY_REV: 2026-07-09-2154-JST
-TARGET_MEMORY_REV: 2026-07-09-2154-JST
+TARGET_MEMORY_REV: 2026-07-09-2213-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 OUTBOX_REQUIRED_PHASE: OUTBOX_PUBLISHING_OR_LATER
 BLOCKED_NO_REMOTE_OUTBOX: FORBIDDEN
@@ -23,47 +23,47 @@ PLUGIN_BOOTSTRAP_FALLBACK: AUTHORIZED_FOR_PLUGIN_REPAIR
 REMOTE_STATE_FRESHNESS: REQUIRED
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
-CURRENT_MAIN_BASELINE: 8134d3660eccf999a12e594d8642d90215a75a76
+CURRENT_MAIN_BASELINE: 708bc8f1380f2fb4ba687ecfa2706494b3c969d9
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
-ROOT_PROCESS_SYNC_STATUS: SOURCE_AND_PUBLICATION_CORRECTION_READY
+ROOT_PROCESS_SYNC_STATUS: STRICT_SOURCE_CORRECTION_PREPARING_MEMORY_SYNC
 
 ## Status
 
-- Bridge: `READY_FOR_CODEX`
+- Bridge: `PREPARING_MEMORY_SYNC`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `READY_FOR_CODEX_SOURCE_AND_PUBLICATION_CORRECTION`
+- Slot 3: `PREPARING_STRICT_SOURCE_CORRECTION`
 - Safari: `N/A_PROCESS_ONLY`
-- Handoff: `AUTHORIZED_AFTER_MEMORY_SYNC`
+- Handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
 
-## Active Slot 3 correction
+## Pending Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `8`
-- Thread: `BRIDGE-20260709-053`
-- Lane: `PROCESS-CLOSED-LOOP-SOURCE-AND-PUBLICATION-CORRECTION`
-- Task: `TASK-PROCESS-CLOSED-LOOP-SOURCE-AND-PUBLICATION-CORRECTION`
-- Epoch: `CLOSED-LOOP-SOURCE-R2-20260709-2154JST`
-- Nonce: `CLV1-053-SOURCE-8134-2154`
+- Generation: `9`
+- Thread: `BRIDGE-20260709-054`
+- Lane: `PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION`
+- Task: `TASK-PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION`
+- Epoch: `CLOSED-LOOP-SOURCE-R3-20260709-2213JST`
+- Nonce: `CLV1-054-SOURCE-708B-2213`
 - Phase: `CORRECTION_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-053-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260709-053-claim-v1-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-053-02-codex.md`
-- Baseline: `8134d3660eccf999a12e594d8642d90215a75a76`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-054-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260709-054-claim-v1-codex.md`
+- Outbox: `.ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md`
+- Baseline: `708bc8f1380f2fb4ba687ecfa2706494b3c969d9`
 - Primary write: `true`
 - Verified no delta: `false`
 - Fresh Codex chat: `required`
 
-## Thread 052 verdict
+## Thread 053 verdict
 
-- Verdict: `CORRECTION_REQUIRED_SOURCE_AND_PUBLICATION`.
-- Source commit is partial progress.
-- Outbox was leaked into `main` and is absent from coordination branch.
-- Terminal report contains placeholders and pending publication evidence.
-- Contract, tests, validator, workflow, router and protocol remain incomplete.
-- Thread 052 must not continue.
+- Verdict: `CORRECTION_REQUIRED_INCOMPLETE_SOURCE_AND_NO_OUTBOX`.
+- Main commit 708bc8f exists and is valid partial progress.
+- Outbox 053 is absent from coordination branch.
+- Leaked outbox 052 remains on main.
+- Generic controls, stale fixtures, shallow self-check/tests and incomplete terminal schema remain.
+- Thread 053 must not continue.
 
 ## Gate
 
-Task 053 is authorized after verified memory revision 2026-07-09-2154-JST. Product work and Safari remain blocked.
+Task 054 is not executable until memory revision 2026-07-09-2213-JST is written and verified. Product work and Safari remain blocked.
