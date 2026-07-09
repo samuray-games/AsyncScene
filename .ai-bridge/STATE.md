@@ -8,8 +8,9 @@ PRIMARY_GOAL: COMPLETED_RESUMABLE_CYCLE
 ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-09-1932-JST
+MEMORY_SYNC_STATUS: PENDING
+COORDINATOR_MEMORY_REV: 2026-07-09-1945-JST
+TARGET_MEMORY_REV: 2026-07-09-1955-JST
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
@@ -25,34 +26,35 @@ CURRENT_MAIN_BASELINE: ca2a3f88ac00a7e4fae47459758e7b09099a3f41
 PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
 PUBLICATION_POLICY: .ai-bridge/PUBLICATION_POLICY_CLOSED_LOOP_V1.md
 PUBLICATION_POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1
-ROOT_PROCESS_SYNC_STATUS: CLOSED_LOOP_CORRECTION_READY
+ROOT_PROCESS_SYNC_STATUS: SLOT3_CORRECTION_PREPARING_MEMORY_SYNC
 
 ## Current status
 
-- Bridge status: `READY_FOR_CODEX`
+- Bridge status: `PREPARING_MEMORY_SYNC`
 - Slot 1: `CLOSED_SERIALIZED_PROCESS_SCOPE`
-- Slot 2: `READY_FOR_CODEX`
-- Slot 3: `CLOSED_SERIALIZED_PROCESS_SCOPE`
+- Slot 2: `CLOSED_USER_REPORTED_BUSY`
+- Slot 3: `PREPARING`
 - Accepted progress: `77/100`
 - Working readiness: `77/100`
 - Safari: `N/A_PROCESS_ONLY`
-- Memory sync: `VERIFIED_2026-07-09-1932-JST`
+- Codex handoff: `FORBIDDEN_UNTIL_MEMORY_SYNC_READY`
 
-## Active Slot 2 task
+## Pending Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `2`
-- Thread: `BRIDGE-20260709-047`
+- Generation: `3`
+- Thread: `BRIDGE-20260709-048`
 - Lane: `PROCESS-CLOSED-LOOP-ORCHESTRATION`
-- Task: `TASK-PROCESS-CLOSED-LOOP-IMPLEMENTATION-CORRECTION-R1`
-- Epoch: `CLOSED-LOOP-R1-E1-20260709-1932JST`
-- Nonce: `CLV1-047-R1-CA2A-362B77`
+- Task: `TASK-PROCESS-CLOSED-LOOP-IMPLEMENTATION-R2-SLOT3`
+- Epoch: `CLOSED-LOOP-R2-E1-20260709-1955JST`
+- Nonce: `CLV1-048-R2-CA2A-9F31`
 - Phase: `CORRECTION_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-047-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260709-047-claim-v1-codex.md`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-047-02-codex.md`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260709-048-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260709-048-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-048-02-codex.md`
 - Baseline: `ca2a3f88ac00a7e4fae47459758e7b09099a3f41`
-- Coordinator memory: `2026-07-09-1932-JST`
+- Coordinator source memory: `2026-07-09-1945-JST`
+- Target synchronized memory: `2026-07-09-1955-JST`
 - Primary write required: `true`
 - Allow verified no delta: `false`
 - Plugin bootstrap fallback: `authorized`
@@ -60,46 +62,27 @@ ROOT_PROCESS_SYNC_STATUS: CLOSED_LOOP_CORRECTION_READY
 - Fresh Codex conversation required: `true`
 - Safari status: `N/A_PROCESS_ONLY`
 
-## Rejected epoch 046
+Task 048 is not executable while memory synchronization is pending.
 
-- Thread: `BRIDGE-20260709-046`
-- Epoch: `CLOSED-LOOP-E1-20260709-1930JST`
-- Status: `REJECTED_INCOMPLETE_PRIMARY_MISSING_OUTBOX_AND_MEMORY_IDENTITY_MISMATCH`
-- Original baseline: `83ff4668bd2a7401a933794668c16b7ea62c08e2`
-- Observed primary commit: `ca2a3f88ac00a7e4fae47459758e7b09099a3f41`
-- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260709-046-02-codex.md`
-- Outbox status: `ABSENT_REMOTE`
-- Identity defect: STATE used memory revision `2026-07-09-1945-JST`, while the activated inbox and claim used `2026-07-09-1918-JST`.
-- Implementation defect: the observed primary commit changed only four policy files, while required root protocol, plugin `1.0.5`, controller skill and machine-readable contract remain absent.
+## Superseded work
 
-Thread 046 must not execute or resume. Commit `ca2a3f88ac00a7e4fae47459758e7b09099a3f41` is preserved as the immutable baseline for correction thread 047.
+- Thread `BRIDGE-20260709-046`: rejected incomplete, outbox absent.
+- Thread `BRIDGE-20260709-047`: superseded for Slot 3 reallocation, outbox absent.
+- Neither thread may execute or resume.
+- Main `ca2a3f88ac00a7e4fae47459758e7b09099a3f41` remains the immutable partial-progress baseline.
 
 ## Fresh-thread invariant
 
-This task must run in one new Codex conversation that has never executed another Asynchronia task. The conversation expires after its final response.
-
-Any rejection, blocker, correction, missing-outbox recovery, report recovery, publication recovery or canary uses a new thread, epoch, nonce, inbox, claim and outbox. Old Codex conversations are never resumed and never receive `CONTINUE`.
+Task 048 runs in one new Slot 3 Codex conversation. Every rejection, blocker, correction, report recovery, publication recovery or canary requires a new thread, epoch, nonce, inbox, claim and outbox.
 
 ## Required outcome
 
-Task 047 must complete the closed-loop root protocol, plugin version `1.0.5`, `closed-loop-controller`, deterministic state-machine contract, positive and negative tests, CI enforcement, installed-package proof, complete outbox transaction and every unfinished requirement inherited from rejected epoch 046.
+Task 048 completes the closed-loop root protocol, plugin 1.0.5, closed-loop controller, deterministic state contract and tests, CI, installed-package proof, runtime-gate removal and complete outbox transaction.
 
-The task is not complete until a fresh ChatGPT conversation independently accepts its outbox and remote evidence.
+## Acceptance gate
 
-## Closed-loop acceptance gate
-
-1. Task 047 executes in one fresh Codex conversation.
-2. A fresh ChatGPT conversation independently verifies and accepts it.
-3. ChatGPT automatically creates a separate `CLOSED_LOOP_CANARY` task with a new thread, epoch, nonce, inbox, claim and outbox.
-4. The canary executes in another fresh Codex conversation and is accepted in another fresh ChatGPT conversation.
-5. Only then may STATE declare `CLOSED_LOOP_STATUS: COMPLETE` and release product work.
-
-Product work and Safari remain suspended until both stages pass.
+Task 048 must be independently accepted in a fresh ChatGPT conversation. ChatGPT then creates a separate fresh-thread canary. Product work and Safari remain blocked until both implementation and canary are accepted.
 
 ## Next action
 
-Open a fresh Codex conversation and send exactly `мост 2`.
-
-Codex must execute `.ai-bridge/inbox/BRIDGE-20260709-047-01-chatgpt.md`, publish only `.ai-bridge/outbox/BRIDGE-20260709-047-02-codex.md`, and must not run Safari.
-
-Do not run `мост 1`, `мост 3`, or Safari.
+No Codex action is authorized while memory synchronization is pending.
