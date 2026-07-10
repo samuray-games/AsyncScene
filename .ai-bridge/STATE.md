@@ -10,8 +10,8 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-1402-JST
-TARGET_MEMORY_REV: 2026-07-10-1402-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-1410-JST
+TARGET_MEMORY_REV: 2026-07-10-1410-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 EXPECTED_RECEIPT_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 OUTBOX_REQUIRED_PHASE: AFTER_CHATGPT_VERIFIED_PR_MERGE
@@ -37,7 +37,10 @@ ROOT_PROCESS_SYNC_STATUS: AWAITING_CLOUD_TASK_PR_PUBLICATION
 THREAD_ROTATION_REQUIRED: false
 GITHUB_ISSUE: 195
 GITHUB_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/195
-CLOUD_TASK_URL: https://chatgpt.com/s/cd_6a507a2ac698819197f9998973cc4fdd
+CLOUD_TASK_CANONICAL_ID: task_e_6a507a26ae788324a6b95b20503cdf56
+CLOUD_TASK_CANONICAL_URL: https://chatgpt.com/codex/cloud/tasks/task_e_6a507a26ae788324a6b95b20503cdf56
+CLOUD_TASK_SHARE_ID: cd_6a507a2ac698819197f9998973cc4fdd
+CLOUD_TASK_SHARE_URL: https://chatgpt.com/s/cd_6a507a2ac698819197f9998973cc4fdd
 CLAIMED_CLOUD_COMMIT: 4967a162fb494b15947dd8c91195c977b875765f
 CLAIMED_CLOUD_COMMIT_REMOTE_STATUS: NOT_FOUND
 REMOTE_PR_STATUS: ABSENT
@@ -69,7 +72,8 @@ REMOTE_BRANCH_STATUS: ABSENT
 - Expected receipt: `.ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md`
 - Baseline: `32513f02daf5943c41f24328e1ae251d6bc85ccc`
 - GitHub issue: `195`
-- Cloud task: `cd_6a507a2ac698819197f9998973cc4fdd`
+- Canonical Cloud task: `task_e_6a507a26ae788324a6b95b20503cdf56`
+- Shared task alias: `cd_6a507a2ac698819197f9998973cc4fdd`
 - Claimed local Cloud commit: `4967a162fb494b15947dd8c91195c977b875765f`
 - Target branch: `main`
 - Primary write: `true via independently verified PR merge`
@@ -78,7 +82,7 @@ REMOTE_BRANCH_STATUS: ABSENT
 - Remote commit: `absent`
 - Remote branch: `absent`
 - Remote PR: `absent`
-- Exact next user action: `open View task and tap Create PR or Open pull request targeting main`
+- Exact next user action: `in the canonical Cloud task, tap Create PR or Open pull request targeting main`
 - New task: `forbidden until current Cloud task publication is attempted`
 - Merge: `forbidden before independent ChatGPT verification`
 - Plugin invocation: `not required and non-gating`
@@ -108,4 +112,4 @@ Therefore the bot summary is accepted only as evidence that the Cloud workspace 
 
 ## Gate
 
-Thread 062 remains the only active Slot 3 authority. The user must open the `View task` link in issue 195 and use the Cloud task UI to create or open the pull request against `main`. Once a remote PR exists, a fresh ChatGPT verification must inspect its exact base, head, changed paths, source semantics, tests, mutation proof, and report before any merge. After an accepted merge, ChatGPT publishes immutable outbox and separate receipt. The separate canary remains mandatory before cycle completion.
+Thread 062 remains the only active Slot 3 authority. The user must open the canonical Cloud task and use the task UI to create or open the pull request against `main`. Once a remote PR exists, a fresh ChatGPT verification must inspect its exact base, head, changed paths, source semantics, tests, mutation proof, and report before any merge. After an accepted merge, ChatGPT publishes immutable outbox and separate receipt. The separate canary remains mandatory before cycle completion.
