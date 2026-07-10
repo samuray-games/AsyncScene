@@ -10,12 +10,12 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-1339-JST
-TARGET_MEMORY_REV: 2026-07-10-1339-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-1348-JST
+TARGET_MEMORY_REV: 2026-07-10-1348-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 EXPECTED_RECEIPT_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
-OUTBOX_REQUIRED_PHASE: OUTBOX_PUBLISHING_OR_LATER
-RECEIPT_REQUIRED_PHASE: RECEIPT_PUBLISHING_OR_LATER
+OUTBOX_REQUIRED_PHASE: AFTER_CHATGPT_VERIFIED_PR_MERGE
+RECEIPT_REQUIRED_PHASE: AFTER_OUTBOX_PUBLICATION
 BLOCKED_NO_REMOTE_OUTBOX: FORBIDDEN
 BLOCKED_NO_SOURCE_DELTA: FORBIDDEN_WHEN_PRIMARY_REQUIRED
 BLOCKED_PLUGIN_UNAVAILABLE: FORBIDDEN_LOOP_ONLY
@@ -32,19 +32,19 @@ REMOTE_STATE_FRESHNESS: REQUIRED
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 32513f02daf5943c41f24328e1ae251d6bc85ccc
-PUBLICATION_MODE: CODEX_OUTBOX_PLUS_RECEIPT
-ROOT_PROCESS_SYNC_STATUS: CLOUD_REMOTE_RECOVERY_READY
+PUBLICATION_MODE: CODEX_CLOUD_PULL_REQUEST_THEN_CHATGPT_VERIFIED_MERGE
+ROOT_PROCESS_SYNC_STATUS: CLOUD_PR_HANDOFF_READY
 THREAD_ROTATION_REQUIRED: true
-CLOUD_REPOSITORY: samuray-games/AsyncScene
-ORIGIN_URL: https://github.com/samuray-games/AsyncScene.git
-ORIGIN_REPAIR_ALLOWED: true
+GITHUB_ISSUE: 195
+GITHUB_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/195
+CLOUD_SOURCE_BRANCH_HINT: bridge/cloud-pr-062
 
 ## Status
 
 - Bridge: `READY_FOR_CODEX`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `READY_FOR_CODEX_CLOUD_REMOTE_RECOVERY`
+- Slot 3: `READY_FOR_GITHUB_TRIGGERED_CODEX_CLOUD_PR`
 - Safari: `N/A_PROCESS_ONLY`
 - Plugin lane: `OUT_OF_SCOPE_SEPARATE_NON_GATING`
 - Handoff: `AUTHORIZED_AFTER_MEMORY_SYNC`
@@ -52,38 +52,45 @@ ORIGIN_REPAIR_ALLOWED: true
 ## Active Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `16`
-- Thread: `BRIDGE-20260710-061`
-- Lane: `PROCESS-CLOSED-LOOP-CLOUD-REMOTE-RECOVERY`
+- Generation: `17`
+- Thread: `BRIDGE-20260710-062`
+- Lane: `PROCESS-CLOSED-LOOP-CLOUD-PR-HANDOFF`
 - Task: `TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION`
-- Epoch: `CLOSED-LOOP-CLOUD-REMOTE-R1-20260710-1339JST`
-- Nonce: `CLV1-061-CLOUD-3251-1339`
+- Epoch: `CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST`
+- Nonce: `CLV1-062-PR-3251-1348`
 - Phase: `RECOVERY_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260710-061-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260710-061-claim-v1-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260710-061-02-codex.md`
-- Receipt: `.ai-bridge/receipts/BRIDGE-20260710-061-03-codex.md`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260710-062-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md`
+- Expected receipt: `.ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md`
 - Baseline: `32513f02daf5943c41f24328e1ae251d6bc85ccc`
-- Primary write: `true`
+- GitHub issue: `195`
+- Target branch: `main`
+- Primary write: `true via verified PR merge`
 - Verified no delta: `false`
-- Cloud repository: `samuray-games/AsyncScene`
-- Missing origin: `repairable by adding exact ORIGIN_URL`
+- Direct Cloud push: `not required and not supported by observed runtime`
+- Codex responsibility: `source changes, validations, open PR`
+- ChatGPT responsibility: `independent PR verification, merge, outbox, receipt`
 - Plugin invocation: `not required and non-gating`
 - Plugin paths: `protected`
-- Fresh Codex Cloud task: `required`
-- Fresh ChatGPT verifier after publication: `required`
+- Fresh ChatGPT verifier after receipt: `required`
 - Separate canary after implementation acceptance: `required`
 
-## Thread 060 verdict
+## Thread 061 verdict
 
-- Verdict: `BLOCKED_EXTERNAL_CLOUD_CHECKOUT_WITHOUT_ORIGIN`.
-- The cloud checkout had no configured `origin`; remote-first fetch could not start.
-- No authorized source delta, primary commit, outbox, or receipt was produced.
-- Fresh independent verification proved remote main stayed `32513f02daf5943c41f24328e1ae251d6bc85ccc` and mailbox stayed `11eddd74a5692bc3eaa53074d347f5cb65a5ef16` before thread-061 preparation.
-- Thread 060 is superseded and must not continue.
+- Verdict: `BLOCKED_REMOTE_UNAVAILABLE_CLOUD_SNAPSHOT_NO_ORIGIN`.
+- The correct repository snapshot and base commit were present, but the Cloud runtime exposed no `origin` remote.
+- The task again made no source changes, commit, PR, outbox, or receipt.
+- Requiring direct remote fetch and push inside this Cloud snapshot is incompatible with the observed runtime.
+- Thread 061 is superseded and must not continue.
+
+## Supported recovery transport
+
+Official Codex Cloud workflow produces a reviewable diff and pull request. Thread 062 therefore uses GitHub issue 195 as complete source authority. Codex must open a PR. ChatGPT must independently inspect and accept or reject that PR before merge. Only after a verified merge may ChatGPT publish immutable outbox and separate receipt. This recovery transport does not grant implementation acceptance to Codex and does not waive the separate canary.
 
 ## Earlier verdicts
 
+- Thread 060: `BLOCKED_EXTERNAL_CLOUD_CHECKOUT_WITHOUT_ORIGIN`.
 - Thread 059: `CORRECTION_REQUIRED_FALSE_SEMANTIC_CONTROLS_STALE_IDENTITY_AND_INCONSISTENT_SUCCESS_RECEIPT`.
 - Thread 058: `RECOVERY_REQUIRED_LOCAL_ONLY_COMMITS_AND_NO_REMOTE_PUBLICATION`.
 - Thread 056: `RECOVERY_REQUIRED_WRONG_CROSS_LANE_PLUGIN_GATE`.
@@ -92,4 +99,4 @@ ORIGIN_REPAIR_ALLOWED: true
 
 ## Gate
 
-Task 061 is the only active Slot 3 authority after live memory revision `2026-07-10-1339-JST` is written and reread. It must run in the Codex Cloud environment connected to `samuray-games/AsyncScene`, verify or repair `origin`, fetch both remote branches, use clean task-owned worktrees, implement exact semantic controls, publish primary plus immutable outbox plus separate receipt, and return receipt-identical bytes. Plugin delivery is outside this lane and cannot block execution. Product and runtime work remain blocked until source implementation and separate canary acceptance are independently recorded and the cycle is COMPLETE.
+Task 062 is the only active Slot 3 authority after live memory revision `2026-07-10-1348-JST` is written and reread. Codex must execute GitHub issue 195 and open a PR targeting `main`. ChatGPT must independently verify the complete PR semantics and validations before merging. After accepted merge, ChatGPT publishes outbox and receipt. Product and runtime work remain blocked until source implementation and separate canary acceptance are independently recorded and the cycle is COMPLETE.
