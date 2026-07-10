@@ -1,0 +1,10 @@
+# BRIDGE-20260711-077
+
+ISSUE: 212
+PR: 199
+BRANCH: bridge/repo-memory-064
+MODEL: GPT-5.4
+EFFORT: MEDIUM
+STATUS: READY
+
+Codex owns only `.ai-memory/CURRENT.md` and `MEMORY_MIGRATION_REPORT.md` for issue 212.
