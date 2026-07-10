@@ -52,7 +52,3 @@ Current constraints:
 - Keep future updates append-only in the archive and compact in this file.
 - Keep root and child revision fields aligned with `REPO_MEMORY_REV`.
 - The active lane is slot 3 on branch `bridge/repo-memory-064`.
-
-Next action:
-
-- Keep the external bootstrap text in the migration report synchronized with the repository index and archive.

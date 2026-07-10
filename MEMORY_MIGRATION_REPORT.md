@@ -36,11 +36,79 @@ Convert the project from a monolithic root memory document into a repository-fir
 
 ## Proposed Google Drive bootstrap text
 
+Repository identity: `samuray-games/AsyncScene`
+
+Accepted-main pending: `false`
+
+Repository memory revision: `2026-07-10-2315-JST`
+
+Child revisions:
+
+- `.ai-memory/CURRENT.md`: `2026-07-10-2352-JST`
+- `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
+- `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
+- `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
+- `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
+
+Drive sync status: `PUBLISHED_AWAITING_CHATGPT_VERIFICATION`
+
+Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
+
+Branch selector rule: select `bridge/repo-memory-064` for Slot 3 only.
+
+Authority order:
+
+1. Explicit user instruction
+2. Current repository primary evidence
+3. Active `.ai-bridge/STATE.md`
+4. `PROJECT_MEMORY.md`
+5. `.ai-memory/CURRENT.md`
+6. `.ai-memory/DECISIONS.md`
+7. `.ai-memory/CANON.md`
+8. `.ai-memory/WORKFLOWS.md`
+9. `TASKS.md`
+10. Google Drive bootstrap
+11. `.ai-memory/archive/`
+
 Use the repository index as the only bootstrap pointer:
 
 > Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; and immutable history is in `.ai-memory/archive/`.
 
 ## Full bootstrap text
+
+Repository identity: `samuray-games/AsyncScene`
+
+Accepted-main pending: `false`
+
+Repository memory revision: `2026-07-10-2315-JST`
+
+Child revisions:
+
+- `.ai-memory/CURRENT.md`: `2026-07-10-2352-JST`
+- `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
+- `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
+- `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
+- `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
+
+Drive sync status: `PUBLISHED_AWAITING_CHATGPT_VERIFICATION`
+
+Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
+
+Branch selector rule: select `bridge/repo-memory-064` for Slot 3 only.
+
+Authority order:
+
+1. Explicit user instruction
+2. Current repository primary evidence
+3. Active `.ai-bridge/STATE.md`
+4. `PROJECT_MEMORY.md`
+5. `.ai-memory/CURRENT.md`
+6. `.ai-memory/DECISIONS.md`
+7. `.ai-memory/CANON.md`
+8. `.ai-memory/WORKFLOWS.md`
+9. `TASKS.md`
+10. Google Drive bootstrap
+11. `.ai-memory/archive/`
 
 > Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; immutable history is in `.ai-memory/archive/`; and the preserved pre-split root payload is `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`.
 
@@ -62,21 +130,22 @@ Use the repository index as the only bootstrap pointer:
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`: PASS
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-071-01-chatgpt.md`: PASS
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-071-claim-v1-codex.md`: PASS
-- `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS
+- `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS, branch `3adec40f72217712cc3ba60d2f5cd524e3b55d63`, PR head `3adec40f72217712cc3ba60d2f5cd524e3b55d63`, merge `0e9e55136c4227e00f508f71b375643553d2b07c`
 - `git diff --check`: PASS
 - `wc -c .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `952990`
 - `sha256sum .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - `git show origin/main:PROJECT_MEMORY.md | wc -c`: PASS, `952990`
 - `git show origin/main:PROJECT_MEMORY.md | sha256sum`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
-- `git rev-parse HEAD`: PASS before new commit, `099baa249d38b88bf04b66eea5ecf1100f25c99f`
+- `git rev-parse HEAD`: PASS before new commit, `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
 
 ## Evidence
 
-- Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
+- PR paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`, `MEMORY_MIGRATION_REPORT.md`, `TASKS.md`
+- Correction paths: `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
 - Current thread: `BRIDGE-20260710-071`
 - Current PR: `199`
-- Current correction paths: `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current remote head: `24f00b8566d3252b62ddf5c618812103607484b3`
+- Current correction head: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
+- Current remote head: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
 - Revision consistency: `.ai-memory/CURRENT.md` now matches the active memory revision `2026-07-10-2352-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
@@ -86,11 +155,11 @@ Use the repository index as the only bootstrap pointer:
 
 ## Required check results
 
-- `git rev-parse HEAD` after commit: `24f00b8566d3252b62ddf5c618812103607484b3`
-- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `24f00b8566d3252b62ddf5c618812103607484b3`
-- `git ls-remote origin refs/pull/199/head`: `24f00b8566d3252b62ddf5c618812103607484b3`
-- `git ls-remote origin refs/pull/199/merge`: `d143f2c069adb617e629218cd29985e26b7886f2`
-- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `24f00b8566d3252b62ddf5c618812103607484b3`, base `main`, state `OPEN`
+- `git rev-parse HEAD` after commit: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
+- `git ls-remote origin refs/pull/199/head`: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
+- `git ls-remote origin refs/pull/199/merge`: `0e9e55136c4227e00f508f71b375643553d2b07c`
+- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `3adec40f72217712cc3ba60d2f5cd524e3b55d63`, base `main`, state `OPEN`
 
 ## Evidence requirements
 
