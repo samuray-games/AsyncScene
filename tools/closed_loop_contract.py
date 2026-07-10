@@ -5,8 +5,9 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from types import MappingProxyType
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 import re
+import subprocess
 from typing import Any, Final
 
 CONTRACT_VERSION: Final[str] = "2.0.0"
@@ -212,20 +213,25 @@ CLOUD_EXECUTION_REPORT_SCHEMA: Final[tuple[str, ...]] = (
     "validationResults", "mutationFamiliesTested", "protectedPathsChanged", "mailboxPathsChanged", "nextActionCode",
 )
 
-def validate_cloud_execution_report(report: dict[str, Any], *, expected_head: str | None = None) -> None:
+REQUIRED_VALIDATION_RESULTS: Final[tuple[str, ...]] = ("py_compile", "unittest", "policy", "diff_check")
+
+def validate_cloud_execution_report(report: dict[str, Any], *, expected_head: str) -> None:
     _require_exact_keys(report, CLOUD_EXECUTION_REPORT_SCHEMA, "cloudExecutionReport")
     if report["threadId"] != ACTIVE_IDENTITY["threadId"] or report["executionEpoch"] != ACTIVE_IDENTITY["executionEpoch"] or report["taskNonce"] != ACTIVE_IDENTITY["taskNonce"]:
         raise ValueError("report identity fields do not match active bridge identity")
     if report["baseCommit"] != BASE_COMMIT:
         raise ValueError("report baseCommit does not match frozen baseline")
     require_sha(report["headCommit"], "headCommit")
-    if expected_head is not None:
-        require_sha(expected_head, "expectedHead")
-        if report["headCommit"] != expected_head:
-            raise ValueError("report headCommit does not match actual PR head evidence")
+    require_sha(expected_head, "expectedHead")
+    if report["headCommit"] != expected_head:
+        raise ValueError("report headCommit does not match actual PR head evidence")
     validate_changed_paths(report["changedPaths"], list(AUTHORIZED_PATHS))
-    if not isinstance(report["validationResults"], dict) or not report["validationResults"] or any(v != "PASS" for v in report["validationResults"].values()):
-        raise ValueError("report validationResults must be a non-empty PASS map")
+    if (
+        not isinstance(report["validationResults"], dict)
+        or tuple(sorted(report["validationResults"])) != tuple(sorted(REQUIRED_VALIDATION_RESULTS))
+        or any(report["validationResults"].get(key) != "PASS" for key in REQUIRED_VALIDATION_RESULTS)
+    ):
+        raise ValueError("report validationResults must contain exactly py_compile, unittest, policy, and diff_check as PASS")
     expected_families = set(mutation_proof_matrix())
     if set(report["mutationFamiliesTested"]) != expected_families:
         raise ValueError("report mutationFamiliesTested do not cover every evaluator family")
@@ -254,8 +260,7 @@ def validate_outbox(payload: dict[str, Any], *, post_publication: bool = False) 
     if status not in OUTBOX_SCHEMAS_BY_STATUS:
         raise ValueError(f"unknown outbox status: {status}")
     _require_exact_keys(payload, OUTBOX_SCHEMAS_BY_STATUS[status], f"outbox:{status}")
-    if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
-        raise ValueError("outbox must not contain publication evidence")
+    validate_receipt_separation(payload)
     validate_identity(payload["activeIdentity"])
     validate_terminal_tuple(payload)
     for field in ("stateBlobSha", "mailboxParentCommit", "primaryCommitSha"):
@@ -328,7 +333,7 @@ def mutation_proof_matrix() -> dict[str, str]:
     must_reject("transition", validate_transition, "CLOSED", "EXECUTING")
     must_reject("outbox", validate_outbox, dict(_valid_outbox_payload(), nextActionText="wrong"))
     receipt_like = dict(_valid_outbox_payload(), outboxPublicationCommit="02468ace13579bdf02468ace13579bdf02468ace", outboxBlobSha="89abcdef0123456789abcdef0123456789abcdef")
-    must_reject("receipt_separation", validate_outbox, receipt_like)
+    must_reject("receipt_separation", validate_receipt_separation, receipt_like)
     must_reject("receipt", validate_receipt, dict(receipt_like, outboxPublicationCommit="a" * 40))
     bad_paths = list(AUTHORIZED_PATHS); bad_paths[0] = "node_modules/fsevents/package.json"
     must_reject("path", validate_changed_paths, bad_paths, list(AUTHORIZED_PATHS))
@@ -356,6 +361,17 @@ def accept_closed_loop_source(report: dict[str, Any]) -> bool:
     return report.get("sourceImplementationAccepted") is True and report.get("canaryAccepted") is True
 
 
+def validate_receipt_separation(payload: dict[str, Any]) -> None:
+    if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
+        raise ValueError("publication evidence belongs only in receipt")
+
+def _git_tree_paths(commit: str) -> list[str]:
+    require_sha(commit, "mainCommit")
+    if commit != BASE_COMMIT:
+        raise ValueError("main absence proof must bind to frozen base commit")
+    root = Path(__file__).resolve().parents[1]
+    return subprocess.check_output(["git", "ls-tree", "-r", "--name-only", commit], cwd=root, text=True).splitlines()
+
 def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
     controls = {
         "identity": lambda: validate_identity(payload["identity"]) is None,
@@ -363,10 +379,11 @@ def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
         "receipt": lambda: validate_receipt(payload["receipt"]) is None,
         "transition": lambda: validate_transition(payload["current"], payload["next"]) is None,
         "changed_paths": lambda: validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"]) is None,
-        "main_absence": lambda: validate_main_absence([], main_tree_paths=payload["mainTreePaths"], main_commit=payload["mainCommit"]) is None,
+        "main_absence": lambda: validate_main_absence([], main_tree_paths=_git_tree_paths(payload["mainCommit"]), main_commit=payload["mainCommit"]) is None,
         "terminal_tuple": lambda: validate_terminal_tuple(payload["terminal"]) is None,
         "sha": lambda: require_sha(payload["sha"], "sha") is None,
         "acceptance": lambda: accept_closed_loop_source(payload["report"]),
+        "cloud_report": lambda: validate_cloud_execution_report(payload["report"], expected_head=payload["expectedHead"]) is None,
     }
     if name not in controls:
         raise ValueError(f"unknown control: {name}")

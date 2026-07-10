@@ -134,6 +134,7 @@ class ClosedLoopContractTest(unittest.TestCase):
             "sha": ("require_sha", lambda *args, **kwargs: None),
             "transition": ("validate_transition", lambda *args, **kwargs: None),
             "outbox": ("validate_outbox", lambda *args, **kwargs: None),
+            "receipt_separation": ("validate_receipt_separation", lambda *args, **kwargs: None),
             "receipt": ("validate_receipt", lambda *args, **kwargs: None),
             "path": ("validate_changed_paths", lambda *args, **kwargs: None),
             "main_absence": ("validate_main_absence", lambda *args, **kwargs: None),
@@ -196,13 +197,15 @@ class ClosedLoopContractTest(unittest.TestCase):
             "nextActionCode": c.PR_NEXT_ACTION_CODE,
         }
         c.validate_cloud_execution_report(report, expected_head=GOOD_SHA4)
+        self.assert_rejects(c.validate_cloud_execution_report, dict(report, validationResults={"py_compile": "PASS"}), expected_head=GOOD_SHA4)
         self.assert_rejects(c.validate_cloud_execution_report, dict(report, headCommit=GOOD_SHA3), expected_head=GOOD_SHA4)
         legacy = dict(report)
         legacy["base"] = legacy.pop("baseCommit")
         self.assert_rejects(c.validate_cloud_execution_report, legacy, expected_head=GOOD_SHA4)
 
     def test_evaluate_control_main_absence_requires_tree_evidence(self):
-        self.assert_rejects(c.evaluate_control, "main_absence", {"mainTreePaths": [".ai-bridge/STATE.md"], "mainCommit": c.BASE_COMMIT})
+        self.assertTrue(c.evaluate_control("main_absence", {"mainCommit": c.BASE_COMMIT}))
+        self.assert_rejects(c.evaluate_control, "main_absence", {"mainTreePaths": [], "mainCommit": GOOD_SHA4})
         self.assert_rejects(c.evaluate_control, "main_absence", {"pathsOnMain": []})
 
     def test_self_check(self):
