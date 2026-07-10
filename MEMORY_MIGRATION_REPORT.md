@@ -82,10 +82,11 @@ Use the repository index as the only bootstrap pointer:
 
 ## Required check results
 
-- `git rev-parse HEAD` after commit: pending
-- `git ls-remote origin refs/heads/bridge/repo-memory-064`: pending
-- `git ls-remote origin refs/pull/199/head`: pending
-- `git ls-remote origin refs/pull/199/merge`: pending
+- `git rev-parse HEAD` after commit: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
+- `git ls-remote origin refs/pull/199/head`: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
+- `git ls-remote origin refs/pull/199/merge`: `d143f2c069adb617e629218cd29985e26b7886f2`
+- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `abbf4179dfcdee5da666f4be3527cc667f6dccc8`, base `main`, state `OPEN`
 
 ## Evidence requirements
 
