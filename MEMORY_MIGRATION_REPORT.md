@@ -2,11 +2,11 @@
 
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260710-070
-Epoch: REPO-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION-R1-20260710-2343JST
+Thread: BRIDGE-20260710-071
+Epoch: REPO-MEMORY-MIGRATION-FINAL-TWO-FILE-CORRECTION-R1-20260710-2352JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
-State memory revision: 2026-07-10-2343-JST
+State memory revision: 2026-07-10-2352-JST
 Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
 
 ## Objective
@@ -28,7 +28,7 @@ Convert the project from a monolithic root memory document into a repository-fir
 | File | Expected revision | Status |
 | --- | --- | --- |
 | `PROJECT_MEMORY.md` | `2026-07-10-2315-JST` | fail-closed on mismatch |
-| `.ai-memory/CURRENT.md` | `2026-07-10-2315-JST` | aligned |
+| `.ai-memory/CURRENT.md` | `2026-07-10-2352-JST` | aligned |
 | `.ai-memory/DECISIONS.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/CANON.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/WORKFLOWS.md` | `2026-07-10-2315-JST` | aligned |
@@ -60,25 +60,25 @@ Use the repository index as the only bootstrap pointer:
 
 - `git fetch origin main coordination/chatgpt-codex-bridge`: PASS
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-070-01-chatgpt.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-070-claim-v1-codex.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-071-01-chatgpt.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-071-claim-v1-codex.md`: PASS
 - `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS
 - `git diff --check`: PASS
 - `wc -c .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `952990`
 - `sha256sum .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - `git show origin/main:PROJECT_MEMORY.md | wc -c`: PASS, `952990`
 - `git show origin/main:PROJECT_MEMORY.md | sha256sum`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
-- `git rev-parse HEAD`: PASS before new commit, `cb33d225c4069dc4d8b45066a1dcafe4bf4cabd4`
+- `git rev-parse HEAD`: PASS before new commit, `099baa249d38b88bf04b66eea5ecf1100f25c99f`
 
 ## Evidence
 
 - Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current thread: `BRIDGE-20260710-070`
+- Current thread: `BRIDGE-20260710-071`
 - Current PR: `199`
-- Current correction paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current remote head: `35cb10270afc7a6344d1cea6b78ed11882863a50`
+- Current correction paths: `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
+- Current remote head: `24f00b8566d3252b62ddf5c618812103607484b3`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
-- Revision consistency: `PROJECT_MEMORY.md` root children and `.ai-memory/CURRENT.md` now share `2026-07-10-2315-JST`
+- Revision consistency: `.ai-memory/CURRENT.md` now matches the active memory revision `2026-07-10-2352-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Pre-split source proof: `origin/main:PROJECT_MEMORY.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Compact-root proof: `PROJECT_MEMORY.md` remains an index file rather than a copied timeline
@@ -86,11 +86,11 @@ Use the repository index as the only bootstrap pointer:
 
 ## Required check results
 
-- `git rev-parse HEAD` after commit: `35cb10270afc7a6344d1cea6b78ed11882863a50`
-- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `35cb10270afc7a6344d1cea6b78ed11882863a50`
-- `git ls-remote origin refs/pull/199/head`: `35cb10270afc7a6344d1cea6b78ed11882863a50`
+- `git rev-parse HEAD` after commit: `24f00b8566d3252b62ddf5c618812103607484b3`
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `24f00b8566d3252b62ddf5c618812103607484b3`
+- `git ls-remote origin refs/pull/199/head`: `24f00b8566d3252b62ddf5c618812103607484b3`
 - `git ls-remote origin refs/pull/199/merge`: `d143f2c069adb617e629218cd29985e26b7886f2`
-- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `35cb10270afc7a6344d1cea6b78ed11882863a50`, base `main`, state `OPEN`
+- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `24f00b8566d3252b62ddf5c618812103607484b3`, base `main`, state `OPEN`
 
 ## Evidence requirements
 

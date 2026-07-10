@@ -1,15 +1,15 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-10-2315-JST
-EXPECTED_REV: 2026-07-10-2315-JST
-FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
+MEMORY_REV: 2026-07-10-2352-JST
+EXPECTED_REV: 2026-07-10-2352-JST
+FAIL_CLOSED_STATUS: ALIGNMENT_RESTORED
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-070
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION
+ACTIVE_THREAD: BRIDGE-20260710-071
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-TWO-FILE-CORRECTION
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACCEPTED_MAIN_PENDING: true
-DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance marks it ready, merges it, publishes the source outbox and receipt, synchronizes repository memory and Google Drive bootstrap, and prepares the separate canary.
+ACCEPTED_MAIN_PENDING: false
+DRIVE_SYNC_STATUS: PUBLISHED_AWAITING_CHATGPT_VERIFICATION
+NEXT_ACTION: ChatGPT verifies the final two-file correction in PR 199, then records the synchronized repository memory and updated migration report.
 
 Repo identity:
 
@@ -43,7 +43,7 @@ Active state:
 - Root `PROJECT_MEMORY.md` is now the index and pointer file.
 - `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` hold the stable details.
 - `.ai-memory/archive/` holds immutable cycle history.
-- The corrected bridge cycle expects the compact root to stay in review until ChatGPT verifies the repaired PR head.
+- The corrected bridge cycle now points at the final two-file correction for the live memory index and migration report.
 
 Current constraints:
 
@@ -51,6 +51,7 @@ Current constraints:
 - Preserve immutable bridge artifacts 062/063.
 - Keep future updates append-only in the archive and compact in this file.
 - Keep root and child revision fields aligned with `REPO_MEMORY_REV`.
+- The active lane is slot 3 on branch `bridge/repo-memory-064`.
 
 Next action:
 
