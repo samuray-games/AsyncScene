@@ -2,203 +2,216 @@ from __future__ import annotations
 
 import unittest
 
-from tools.closed_loop_contract import (
-    BRIDGE_PROTOCOL,
-    CONTRACT_VERSION,
-    LEGAL_STATES,
-    LEGAL_TRANSITIONS,
-    NEGATIVE_CONTROLS,
-    POSITIVE_CONTROLS,
-    REPORT_SCHEMA_KEYS,
-    ClosedLoopState,
-    accept_product_work,
-    classify_recovery,
-    evaluate_control,
-    load_state,
-    self_check,
-    serialize,
-    validate_identity,
-    validate_outbox_path,
-    validate_report_schema,
-    validate_transition,
-)
+import tools.closed_loop_contract as c
+
+GOOD_SHA = "0123456789abcdef0123456789abcdef01234567"
+GOOD_SHA2 = "89abcdef0123456789abcdef0123456789abcdef"
+GOOD_SHA3 = "13579bdf2468ace013579bdf2468ace013579bdf"
+GOOD_SHA4 = "02468ace13579bdf02468ace13579bdf02468ace"
 
 
-def sample_state(**overrides: object) -> ClosedLoopState:
-    data = dict(
-        bridge_slot=3,
-        thread_id="BRIDGE-20260710-058",
-        lane_id="PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-        task_id="TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-        execution_epoch="CLOSED-LOOP-CORE-R2-20260710-1146JST",
-        task_nonce="CLV1-058-CORE-E599-1146",
-        coordinator_memory_rev="2026-07-10-1146-JST",
-        baseline_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        inbox_path=".ai-bridge/inbox/BRIDGE-20260710-058-01-chatgpt.md",
-        claim_path=".ai-bridge/claims/BRIDGE-20260710-058-claim-v1-codex.md",
-        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
-        remote_state_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        completion_mode="PRIMARY_DELTA",
-        result_status="PASS_PUSHED",
-        next_action="Open a fresh ChatGPT conversation and send мост 3.",
-        current_state="PRIMARY_PUBLISHED",
-        remote_mailbox_commit="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        outbox_publication_commit="a1111111111111111111111111111111111111111",
-        outbox_blob_sha="b2222222222222222222222222222222222222222",
-        primary_commit_sha="cafebabecafebabecafebabecafebabecafebabe",
-        primary_parent_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        changed_paths=(".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",),
-        authorized_paths=(".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",),
-        validation_results=("py_compile: PASS",),
-        negative_controls=NEGATIVE_CONTROLS,
-        positive_controls=POSITIVE_CONTROLS,
-        recovery_classification="CORRECTION_REQUIRED",
-        byte_equality="MATCH",
-        primary_changed=True,
-        receipt_path=".ai-bridge/receipts/BRIDGE-20260710-058-03-codex.md",
-    )
-    data.update(overrides)
-    return ClosedLoopState(**data)
+def outbox(**overrides):
+    payload = {
+        "status": "PASS_PUSHED",
+        "completionMode": "PRIMARY_DELTA",
+        "phase": "AWAITING_CHATGPT_VERIFICATION",
+        "verifierClassification": "SOURCE_IMPLEMENTATION_PENDING_CHATGPT",
+        "recoveryClassification": "NONE",
+        "nextActionCode": c.SUCCESS_ACTION_CODE,
+        "nextActionText": c.SUCCESS_ACTION_TEXT,
+        "activeIdentity": dict(c.ACTIVE_IDENTITY),
+        "stateBlobSha": GOOD_SHA,
+        "mailboxParentCommit": GOOD_SHA2,
+        "primaryCommitSha": GOOD_SHA3,
+        "primaryParent": c.BASE_COMMIT,
+        "changedPaths": list(c.AUTHORIZED_PATHS),
+        "authorizedPaths": list(c.AUTHORIZED_PATHS),
+        "validationResults": ["py_compile: PASS", "unittest: PASS", "policy: PASS", "diff_check: PASS"],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def receipt(**overrides):
+    payload = outbox()
+    payload["outboxPublicationCommit"] = GOOD_SHA4
+    payload["outboxBlobSha"] = GOOD_SHA2
+    payload.update(overrides)
+    return payload
 
 
 class ClosedLoopContractTest(unittest.TestCase):
-    def test_contract_identity(self) -> None:
-        self.assertEqual(CONTRACT_VERSION, "1.0.2")
-        self.assertEqual(BRIDGE_PROTOCOL, "3.3")
-        self.assertEqual(len(LEGAL_STATES), 12)
-
-    def test_round_trip(self) -> None:
-        state = sample_state()
-        payload = serialize(state)
-        self.assertEqual(payload["bridge_slot"], 3)
-        self.assertEqual(load_state(payload), state)
-        validate_identity(state)
-        validate_outbox_path(payload["expected_outbox_path"])
-
-    def test_all_legal_transitions(self) -> None:
-        for current, targets in LEGAL_TRANSITIONS.items():
-            for target in targets:
-                validate_transition(current, target)
-
-    def test_illegal_transitions_raise(self) -> None:
-        for current, target in (("CLOSED", "EXECUTING"), ("PRIMARY_PUBLISHED", "READY_FOR_CODEX"), ("SUPERSEDED", "CLOSED")):
-            with self.assertRaises(ValueError):
-                validate_transition(current, target)
-
-    def test_full_illegal_transition_matrix(self) -> None:
-        for current in LEGAL_STATES:
-            for target in LEGAL_STATES:
-                if target in LEGAL_TRANSITIONS[current]:
-                    continue
-                with self.assertRaises(ValueError):
-                    validate_transition(current, target)
-
-    def test_identity_mismatch_raises(self) -> None:
+    def assert_rejects(self, func, *args, **kwargs):
         with self.assertRaises(ValueError):
-            validate_identity(sample_state(bridge_slot=4))
+            func(*args, **kwargs)
 
-    def test_memory_pending_requires_identity(self) -> None:
-        with self.assertRaises(ValueError):
-            validate_identity(sample_state(coordinator_memory_rev=""))
+    def test_active_identity_exact_062(self):
+        state = c.active_state()
+        self.assertEqual(state.threadId, "BRIDGE-20260710-062")
+        self.assertEqual(state.generation, 17)
+        self.assertEqual(state.baseline, c.BASE_COMMIT)
+        c.validate_identity(state)
+        with self.assertRaises(TypeError):
+            c.ACTIVE_IDENTITY["threadId"] = "BRIDGE-20260710-061"  # type: ignore[index]
 
-    def test_orphan_artifacts_are_rejected(self) -> None:
-        with self.assertRaises(ValueError):
-            validate_identity(sample_state(expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260709-052-01-chatgpt.md"))
+    def test_stale_identities_052_through_061_rejected(self):
+        for n in range(52, 62):
+            candidate = dict(c.ACTIVE_IDENTITY, threadId=f"BRIDGE-20260710-{n:03d}")
+            self.assert_rejects(c.validate_identity, candidate)
 
-    def test_missing_inbox_or_claim_rejected(self) -> None:
-        with self.assertRaises(ValueError):
-            validate_identity(sample_state(inbox_path=""))
-        with self.assertRaises(ValueError):
-            validate_identity(sample_state(claim_path=""))
+    def test_generic_identity_comparison_accepts_supplied_active_only(self):
+        active = dict(c.ACTIVE_IDENTITY, threadId="BRIDGE-CUSTOM", expectedOutboxPath=".ai-bridge/outbox/BRIDGE-CUSTOM-02-chatgpt.md")
+        c.validate_identity(active, active)
+        self.assert_rejects(c.validate_identity, c.ACTIVE_IDENTITY, active)
 
-    def test_startup_outbox_absence_allowed(self) -> None:
-        state = sample_state(current_state="CLOSED", completion_mode="STARTUP", primary_changed=False)
-        self.assertEqual(state.expected_outbox_path, ".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md")
+    def test_strict_sha_validation(self):
+        c.require_sha(c.BASE_COMMIT, "base")
+        for bad in (c.BASE_COMMIT.upper(), "cafebabe" * 5, "deadbeef" * 5, "feedface" * 5, "a" * 40, "b" * 40, "g" * 40):
+            self.assert_rejects(c.require_sha, bad, "bad")
 
-    def test_foreign_preexisting_outbox_detected(self) -> None:
-        with self.assertRaises(ValueError):
-            validate_outbox_path(".ai-bridge/outbox/BRIDGE-20260709-052-01-chatgpt.md")
+    def test_all_legal_and_illegal_transitions_against_oracle(self):
+        for current in c.LEGAL_STATES:
+            for target in c.LEGAL_STATES:
+                if (current, target) in c.TRANSITION_ORACLE:
+                    c.validate_transition(current, target)
+                else:
+                    self.assert_rejects(c.validate_transition, current, target)
 
-    def test_premature_schema_checks(self) -> None:
-        with self.assertRaises(ValueError):
-            validate_report_schema({"status": "OK"})
+    def test_outbox_pre_publication_schema_and_receipt_schema_are_separate(self):
+        c.validate_outbox(outbox())
+        self.assert_rejects(c.validate_outbox, receipt())
+        c.validate_receipt(receipt())
+        self.assert_rejects(c.validate_receipt, outbox())
 
-    def test_report_schema_rejects_extra_keys(self) -> None:
-        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
-        payload["extra"] = "nope"
-        with self.assertRaises(ValueError):
-            validate_report_schema(payload)
+    def test_no_delta_schema_is_distinct(self):
+        payload = outbox(
+            status="PASS_VERIFIED_NO_DELTA",
+            completionMode="VERIFIED_NO_DELTA",
+            primaryCommitSha=c.BASE_COMMIT,
+            primaryParent="N/A",
+            changedPaths=[],
+            authorizedPaths=list(c.AUTHORIZED_PATHS),
+            reasonNoSourceDelta="deterministic regeneration produced zero diff",
+        )
+        c.validate_outbox(payload)
+        payload["changedPaths"] = list(c.AUTHORIZED_PATHS)
+        self.assert_rejects(c.validate_outbox, payload)
 
-    def test_report_schema_rejects_wrong_types(self) -> None:
-        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
-        payload["primaryChanged"] = "false"
-        with self.assertRaises(ValueError):
-            validate_report_schema(payload)
+    def test_terminal_tuples_are_exact(self):
+        c.validate_terminal_tuple(outbox())
+        self.assert_rejects(c.validate_terminal_tuple, outbox(nextActionCode="RETURN_TO_CHATGPT"))
+        for illegal in c.ILLEGAL_PRIMARY_REQUIRED_STATUSES:
+            self.assert_rejects(c.validate_terminal_tuple, {"status": illegal})
 
-    def test_report_schema_rejects_empty_values(self) -> None:
-        payload = {field: "x" for field in REPORT_SCHEMA_KEYS}
-        payload["status"] = " "
-        with self.assertRaises(ValueError):
-            validate_report_schema(payload)
+    def test_changed_paths_exact_scope_and_mailbox_absence(self):
+        c.validate_changed_paths(list(c.AUTHORIZED_PATHS), list(c.AUTHORIZED_PATHS))
+        self.assert_rejects(c.validate_changed_paths, ["AGENTS.md"], list(c.AUTHORIZED_PATHS))
+        bad = list(c.AUTHORIZED_PATHS) + [".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md"]
+        self.assert_rejects(c.validate_changed_paths, bad, list(c.AUTHORIZED_PATHS))
+        self.assert_rejects(c.validate_main_absence, [".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md"])
+        self.assert_rejects(c.validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=c.BASE_COMMIT)
 
-    def test_report_schema_accepts_complete_payload(self) -> None:
-        payload = {
-            "status": "PASS_PUSHED",
-            "completionMode": "PRIMARY_DELTA",
-            "primaryChanged": True,
-            "verifiedPrimarySha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "primaryParent": "9b170097e1ff0889ae0cb1e127516c51440c4c3d",
-            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
-            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
-            "validationResults": ["py_compile: PASS", "unittest: PASS"],
-            "negativeControls": list(NEGATIVE_CONTROLS),
-            "positiveControls": list(POSITIVE_CONTROLS),
-            "recoveryClassification": "CORRECTION_REQUIRED",
-            "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
-            "remoteMailboxCommit": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-            "remoteStateSha": "feedfacefeedfacefeedfacefeedfacefeedface",
-            "byteEquality": "MATCH",
-            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
-            "baselineSha": "8134d3660eccf999a12e594d8642d90215a75a76",
-            "bridgeSlot": 3,
-            "threadId": "BRIDGE-20260710-058",
-            "laneId": "PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-            "taskId": "TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-            "executionEpoch": "CLOSED-LOOP-CORE-R2-20260710-1146JST",
-            "taskNonce": "CLV1-058-CORE-E599-1146",
-            "coordinatorMemoryRev": "2026-07-10-1146-JST",
-            "policyVersion": "CODEX_AUTOPILOT_2026_07_10_CLOSED_LOOP_V1_2",
+    def test_acceptance_requires_source_and_canary_not_plugin(self):
+        self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": False}))
+        self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": False, "canaryAccepted": True}))
+        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}))
+        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": False}))
+
+    def test_unknown_controls_fail_closed(self):
+        self.assert_rejects(c.evaluate_control, "unknown", {})
+
+    def test_real_mutation_proofs_cover_evaluator_families(self):
+        original = c.LEGAL_TRANSITIONS["CLOSED"]
+        try:
+            c.LEGAL_TRANSITIONS["CLOSED"] = ("PREPARING", "EXECUTING")
+            self.assert_rejects(c.self_check)
+        finally:
+            c.LEGAL_TRANSITIONS["CLOSED"] = original
+        expected = {"identity", "sha", "transition", "outbox", "receipt_separation", "receipt", "path", "main_absence", "terminal_tuple", "acceptance", "cloud_report", "evaluate_control"}
+        self.assertEqual(set(c.mutation_proof_matrix()), expected)
+        patches = {
+            "identity": ("validate_identity", lambda *args, **kwargs: None),
+            "sha": ("require_sha", lambda *args, **kwargs: None),
+            "transition": ("validate_transition", lambda *args, **kwargs: None),
+            "outbox": ("validate_outbox", lambda *args, **kwargs: None),
+            "receipt_separation": ("validate_receipt_separation", lambda *args, **kwargs: None),
+            "receipt": ("validate_receipt", lambda *args, **kwargs: None),
+            "path": ("validate_changed_paths", lambda *args, **kwargs: None),
+            "main_absence": ("validate_main_absence", lambda *args, **kwargs: None),
+            "terminal_tuple": ("validate_terminal_tuple", lambda *args, **kwargs: None),
+            "acceptance": ("accept_closed_loop_source", lambda report: True),
+            "cloud_report": ("validate_cloud_execution_report", lambda *args, **kwargs: None),
+            "evaluate_control": ("evaluate_control", lambda *args, **kwargs: True),
         }
-        validate_report_schema(payload)
+        for family, (name, replacement) in patches.items():
+            original_func = getattr(c, name)
+            try:
+                setattr(c, name, replacement)
+                with self.assertRaises(ValueError):
+                    c.mutation_proof_matrix()
+            finally:
+                setattr(c, name, original_func)
 
-    def test_recovery_selection(self) -> None:
-        self.assertEqual(classify_recovery({"status": "BLOCKED_EXTERNAL"}), "BLOCKED_EXTERNAL")
-        self.assertEqual(classify_recovery({"status": "BLOCKED_OUTBOX_PUBLICATION"}), "PUBLICATION_RECOVERY_REQUIRED")
-        self.assertEqual(classify_recovery({"completionMode": "REPORT_RECOVERY_REQUIRED"}), "REPORT_RECOVERY_REQUIRED")
-        self.assertEqual(classify_recovery({}), "CORRECTION_REQUIRED")
 
-    def test_unknown_control_rejects(self) -> None:
-        with self.assertRaises(ValueError):
-            evaluate_control("not_a_control")
+    def test_all_status_specific_outbox_schemas_execute(self):
+        status_payloads = {
+            "BLOCKED_EXTERNAL": outbox(
+                status="BLOCKED_EXTERNAL", completionMode="BLOCKED", phase="BLOCKED_EXTERNAL",
+                verifierClassification="BLOCKED", recoveryClassification="EXTERNAL",
+                nextActionCode="RESOLVE_EXTERNAL_BLOCKER",
+                nextActionText="Resolve the external blocker and rerun the same bridge command.",
+                externalBlocker="remote write access unavailable",
+            ),
+            "BLOCKED_OUTBOX_PUBLICATION": outbox(
+                status="BLOCKED_OUTBOX_PUBLICATION", completionMode="PUBLICATION_RECOVERY_REQUIRED", phase="RECOVERY_REQUIRED",
+                verifierClassification="FAILED", recoveryClassification="PUBLICATION",
+                nextActionCode="REPAIR_OUTBOX_PUBLICATION",
+                nextActionText="Repair outbox publication and rerun the same bridge command.",
+                publicationFailure="mailbox fast-forward push rejected",
+            ),
+            "CORRECTION_REQUIRED": outbox(
+                status="CORRECTION_REQUIRED", completionMode="CORRECTION_REQUIRED", phase="CORRECTION_REQUIRED",
+                verifierClassification="FAILED", recoveryClassification="SOURCE",
+                nextActionCode="IMPLEMENT_CORRECTION_AND_RERUN",
+                nextActionText="Implement the correction and rerun the same bridge command.",
+                correctionRequired="independent review found remaining defects",
+            ),
+        }
+        for status, payload in status_payloads.items():
+            c.validate_outbox(payload)
+            extra_key_payload = dict(payload, reasonNoSourceDelta="not valid for this status")
+            self.assert_rejects(c.validate_outbox, extra_key_payload)
 
-    def test_canary_gate(self) -> None:
-        self.assertFalse(accept_product_work({"canaryAccepted": False, "currentState": "ACCEPTED"}))
-        self.assertTrue(accept_product_work({"canaryAccepted": True, "currentState": "ACCEPTED"}))
+    def test_cloud_execution_report_issue_195_schema_and_head_binding(self):
+        report = {
+            "threadId": c.ACTIVE_IDENTITY["threadId"],
+            "executionEpoch": c.ACTIVE_IDENTITY["executionEpoch"],
+            "taskNonce": c.ACTIVE_IDENTITY["taskNonce"],
+            "baseCommit": c.BASE_COMMIT,
+            "headCommit": GOOD_SHA4,
+            "changedPaths": list(c.AUTHORIZED_PATHS),
+            "validationResults": {"py_compile": "PASS", "unittest": "PASS", "policy": "PASS", "diff_check": "PASS"},
+            "mutationFamiliesTested": sorted(c.mutation_proof_matrix()),
+            "protectedPathsChanged": False,
+            "mailboxPathsChanged": False,
+            "nextActionCode": c.PR_NEXT_ACTION_CODE,
+        }
+        c.validate_cloud_execution_report(report, expected_head=GOOD_SHA4)
+        self.assert_rejects(c.validate_cloud_execution_report, dict(report, validationResults={"py_compile": "PASS"}), expected_head=GOOD_SHA4)
+        self.assert_rejects(c.validate_cloud_execution_report, dict(report, headCommit=GOOD_SHA3), expected_head=GOOD_SHA4)
+        legacy = dict(report)
+        legacy["base"] = legacy.pop("baseCommit")
+        self.assert_rejects(c.validate_cloud_execution_report, legacy, expected_head=GOOD_SHA4)
 
-    def test_controls_inventory(self) -> None:
-        self.assertGreaterEqual(len(POSITIVE_CONTROLS), 42)
-        self.assertEqual(len(NEGATIVE_CONTROLS), 52)
-        self.assertEqual(len(set(POSITIVE_CONTROLS)), len(POSITIVE_CONTROLS))
-        self.assertEqual(len(set(NEGATIVE_CONTROLS)), len(NEGATIVE_CONTROLS))
-        self.assertFalse(any(control.startswith("negative_control_") for control in NEGATIVE_CONTROLS))
+    def test_evaluate_control_main_absence_requires_tree_evidence(self):
+        self.assertTrue(c.evaluate_control("main_absence", {"mainCommit": c.BASE_COMMIT}))
+        self.assert_rejects(c.evaluate_control, "main_absence", {"mainTreePaths": [], "mainCommit": GOOD_SHA4})
+        self.assert_rejects(c.evaluate_control, "main_absence", {"pathsOnMain": []})
 
-    def test_self_check(self) -> None:
-        result = self_check()
-        self.assertEqual(result["contractVersion"], "1.0.2")
-        self.assertEqual(len(result["states"]), 12)
-        self.assertEqual(len(result["negativeControls"]), 52)
-        self.assertEqual(len(result["positiveControls"]), len(POSITIVE_CONTROLS))
-        self.assertIn("reject_placeholder_deadbeef", result["negativeControls"])
+    def test_self_check(self):
+        report = c.self_check()
+        self.assertEqual(report["contractVersion"], "2.0.0")
+        self.assertEqual(report["activeIdentity"]["threadId"], "BRIDGE-20260710-062")
 
 
 if __name__ == "__main__":

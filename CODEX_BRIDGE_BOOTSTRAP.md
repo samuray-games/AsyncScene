@@ -73,3 +73,10 @@ The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` are rese
 Successful installation status: `PASS_BRIDGE_ALIAS_V2_3_INSTALLED`.
 
 Again: a valid installed V2.2 remote-first block does not require migration before using Protocol 2.3.
+
+## Bridge 062 plugin-independent closed-loop correction
+
+BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
+The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
+This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
