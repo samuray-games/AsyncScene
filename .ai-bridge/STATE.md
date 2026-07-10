@@ -10,8 +10,8 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-2109-JST
-TARGET_MEMORY_REV: 2026-07-10-2109-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-2130-JST
+TARGET_MEMORY_REV: 2026-07-10-2130-JST
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
@@ -27,33 +27,33 @@ PREVIOUS_SOURCE_MERGE_COMMIT: ad0490f310c0b56f9ebceb90b13519ba53513c10
 PREVIOUS_CANARY_THREAD: BRIDGE-20260710-063
 
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-065
-ACTIVE_GENERATION: 20
+ACTIVE_THREAD: BRIDGE-20260710-066
+ACTIVE_GENERATION: 21
 ACTIVE_SLOT: 3
-ACTIVE_LANE: PROCESS-REPO-MEMORY-MIGRATION-PR-CORRECTION
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-CORRECTION
-ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R1-20260710-2109JST
-ACTIVE_NONCE: MEM-065-CORR-D8B4-2109
+ACTIVE_LANE: PROCESS-REPO-MEMORY-MIGRATION-FINAL-CORRECTION
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-CORRECTION
+ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R2-20260710-2130JST
+ACTIVE_NONCE: MEM-066-CORR-CFDD-2130
 ACTIVE_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACTIVE_ISSUE: 200
-ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/200
-SUPERSEDED_ISSUE: 198
+ACTIVE_ISSUE: 201
+ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/201
+SUPERSEDED_ISSUE: 200
 ACTIVE_PR: 199
 ACTIVE_PR_URL: https://github.com/samuray-games/AsyncScene/pull/199
 ACTIVE_PR_BRANCH: bridge/repo-memory-064
 ACTIVE_PR_STATUS: DRAFT_CORRECTION_REQUIRED
-REJECTED_HEAD: df7f7cc8b7dc3e030884b6b63a6f686d2619aed4
-REJECTION_REVIEW_ID: 4671248767
-ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-065-01-chatgpt.md
-ACTIVE_INBOX_COMMIT: 5dca54a81f10a08c445fcd9ff2a7b833cff636bf
-ACTIVE_INBOX_BLOB: 656380c7a5688edb5fafd429ca6f070492edd4d0
-ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-065-claim-v1-codex.md
-ACTIVE_CLAIM_COMMIT: c755a557b54e9fa807b0e39810c79915a5531c25
-ACTIVE_CLAIM_BLOB: 5314694a0bb5ca0855e59d186168b9afe94607c9
+REJECTED_HEAD: cfddd218d85fd6a6638b7c7c14173794f785aa7a
+REJECTION_REVIEW_ID: 4671369077
+ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-066-01-chatgpt.md
+ACTIVE_INBOX_COMMIT: 2426cd0f7c96fab7b581b48e8be2469f7ab4b651
+ACTIVE_INBOX_BLOB: 26a3cf35877c60a29021b28d374b12a046b81d9d
+ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-066-claim-v1-codex.md
+ACTIVE_CLAIM_COMMIT: b03b1f3b7471bed71237d4e2af076763d91081a2
+ACTIVE_CLAIM_BLOB: 305d64f42584b26eb7abafe374cddcc54ff20167
 EXPECTED_SOURCE_BRANCH: bridge/repo-memory-064
 EXPECTED_TARGET_BRANCH: main
-EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260710-065-02-chatgpt.md
-EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260710-065-03-chatgpt.md
+EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260710-066-02-chatgpt.md
+EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260710-066-03-chatgpt.md
 PRIMARY_WRITE_REQUIRED: true
 ALLOW_VERIFIED_NO_DELTA: false
 SAFARI_STATUS: N/A_DOCUMENTATION_ONLY
@@ -63,18 +63,27 @@ CANARY_REQUIRED: true
 CANARY_STATUS: PENDING_SOURCE_ACCEPTANCE
 CYCLE_COMPLETE: false
 
-## Rejection summary
+## Independent verification of rejected head
 
-- PR 199 base and one-commit ancestry: `PASS`
+- PR base and exact nine-path scope: `PASS`
+- main unchanged at active baseline: `PASS`
 - runtime/game path isolation: `PASS`
-- required memory files present: `FAIL`
-- root index links resolve: `FAIL`
-- revision scheme and fail-closed checks: `FAIL`
-- complete legacy memory preservation: `FAIL`
-- report truthfulness and changed-path accuracy: `FAIL`
-- task status correctness: `FAIL`
-- Google Drive synchronization claim: `FAIL`
-- full validation contract: `FAIL`
+- owned memory files present: `PASS`
+- exact legacy byte preservation: `FAIL`
+- exact authority order: `FAIL`
+- individual child revision enforcement: `FAIL`
+- required root active-state fields: `FAIL`
+- substantive cycle archive: `FAIL`
+- truthful complete migration evidence: `FAIL`
+- complete Drive bootstrap text: `FAIL`
+
+Baseline root blob:
+- `PROJECT_MEMORY.md` at baseline: `7f3548f1c58198fedfa857828d3b741e4442d92c`
+
+Rejected archive blob:
+- `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: `01b3d018bda115234450217a8e04aaef8d652a59`
+
+Different Git blob identities prove different file bytes. Whitespace normalization is not accepted for immutable evidence.
 
 ## Frozen primary scope
 
@@ -88,22 +97,13 @@ CYCLE_COMPLETE: false
 - `.ai-memory/archive/CYCLE-20260709-001.md`
 - `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
 
-## Coordinator setup audit
-
-During correction-authority setup, two unintended temporary mailbox files were created and immediately deleted:
-
-- `.ai-bridge/TEMP.md`: add commit `720b9e3204c5f0dec40d511d003a062c45bd121e`, delete commit `d8a27b8210cef8cf7776541bed44ee5052176f74`
-- `.ai-bridge/TEMP2.md`: add commit `4145ba0a43e2b6e03c8f293aabd6629beea08107`, delete commit `5d08153407fa4b672662bdbcb2ded1d8cd2d0dea`
-
-Current mailbox tree contains neither temporary path. These commits are retained as transparent non-terminal history and must not be treated as accepted task artifacts.
-
 ## Status
 
 - Bridge: `CORRECTION_READY`
 - Source implementation: `REJECTED_AWAITING_FRESH_CODEX_CORRECTION`
 - Main: `UNCHANGED_AT_ACTIVE_BASELINE`
 - PR 199: `DRAFT`
-- Previous Bridge 064 execution: `SUPERSEDED`
+- Bridge 065 execution: `SUPERSEDED`
 - ChatGPT verification: `REQUIRED_AFTER_CORRECTED_REMOTE_HEAD`
 - Google Drive compact bootstrap: `FORBIDDEN_UNTIL_REPOSITORY_ACCEPTANCE`
 - Canary: `REQUIRED_AFTER_SOURCE_ACCEPTANCE`
@@ -111,4 +111,4 @@ Current mailbox tree contains neither temporary path. These commits are retained
 ## Next action
 
 Open one fresh Codex conversation and send exactly `мост 3`.
-Codex must execute issue 200, correct draft PR 199, and return the corrected remote head for independent ChatGPT verification.
+Codex must execute issue 201, correct draft PR 199, and return the corrected remote head for independent ChatGPT verification.
