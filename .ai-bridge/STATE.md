@@ -10,8 +10,8 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-1510-JST
-TARGET_MEMORY_REV: 2026-07-10-1510-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-1516-JST
+TARGET_MEMORY_REV: 2026-07-10-1516-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 EXPECTED_RECEIPT_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 OUTBOX_REQUIRED_PHASE: AFTER_CHATGPT_VERIFIED_PR_MERGE
@@ -33,25 +33,28 @@ MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 32513f02daf5943c41f24328e1ae251d6bc85ccc
 PUBLICATION_MODE: CODEX_CLOUD_PULL_REQUEST_THEN_CHATGPT_VERIFIED_MERGE
-ROOT_PROCESS_SYNC_STATUS: PR_CORRECTION_REQUIRED
+ROOT_PROCESS_SYNC_STATUS: AWAITING_CORRECTED_PR_HEAD_PUBLICATION
 THREAD_ROTATION_REQUIRED: false
 GITHUB_ISSUE: 195
 GITHUB_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/195
 ACTIVE_PR: 196
 ACTIVE_PR_URL: https://github.com/samuray-games/AsyncScene/pull/196
 ACTIVE_PR_BASE: 32513f02daf5943c41f24328e1ae251d6bc85ccc
+REMOTE_PR_HEAD: 2dd6811b97e44274f2e7a0cbaa1a656ce2bee158
 REJECTED_PR_HEAD: 2dd6811b97e44274f2e7a0cbaa1a656ce2bee158
+CLAIMED_CORRECTION_COMMIT: 2afd25c9268477ed28836bc107730e339d9a5821
+CLAIMED_CORRECTION_COMMIT_REMOTE_STATUS: NOT_FOUND
 ACTIVE_PR_DRAFT: true
-ACTIVE_PR_VERDICT: CORRECTION_REQUIRED
-CLOUD_TASK_CANONICAL_ID: task_e_6a507a26ae788324a6b95b20503cdf56
-CLOUD_TASK_CANONICAL_URL: https://chatgpt.com/codex/cloud/tasks/task_e_6a507a26ae788324a6b95b20503cdf56
+ACTIVE_PR_VERDICT: CORRECTION_REQUIRED_UNTIL_NEW_REMOTE_HEAD
+LATEST_CLOUD_TASK_SHARE_ID: cd_6a508caaed008191810dfdbc17e544dd
+LATEST_CLOUD_TASK_SHARE_URL: https://chatgpt.com/s/cd_6a508caaed008191810dfdbc17e544dd
 
 ## Status
 
-- Bridge: `ACTIVE_CORRECTION`
+- Bridge: `AWAITING_CORRECTED_HEAD_PUBLICATION`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `PR_196_CORRECTION_REQUIRED`
+- Slot 3: `PR_196_CORRECTION_COMMIT_LOCAL_ONLY`
 - Safari: `N/A_PROCESS_ONLY`
 - Plugin lane: `OUT_OF_SCOPE_SEPARATE_NON_GATING`
 - Handoff: `AUTHORIZED_AFTER_MEMORY_SYNC`
@@ -65,46 +68,40 @@ CLOUD_TASK_CANONICAL_URL: https://chatgpt.com/codex/cloud/tasks/task_e_6a507a26a
 - Task: `TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION`
 - Epoch: `CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST`
 - Nonce: `CLV1-062-PR-3251-1348`
-- Phase: `PR_CORRECTION`
+- Phase: `CORRECTED_HEAD_PUBLICATION_REQUIRED`
 - Inbox: `.ai-bridge/inbox/BRIDGE-20260710-062-01-chatgpt.md`
 - Claim: `.ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md`
 - Expected outbox: `.ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md`
 - Expected receipt: `.ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md`
 - Baseline: `32513f02daf5943c41f24328e1ae251d6bc85ccc`
 - PR: `196`
-- Rejected head: `2dd6811b97e44274f2e7a0cbaa1a656ce2bee158`
-- PR state: `open draft`
-- Changed path scope: `PASS exact frozen 13-file set`
-- Commit count: `PASS one commit`
+- Remote head: `2dd6811b97e44274f2e7a0cbaa1a656ce2bee158`
+- Claimed corrected commit: `2afd25c9268477ed28836bc107730e339d9a5821`
+- Claimed corrected commit remote status: `NOT_FOUND`
+- PR body remote status: `ChatGPT publication-blocker body; no CLOUD_EXECUTION_REPORT`
+- Changed path scope: `unchanged rejected 13-file set`
+- Commit count: `one rejected commit`
 - Base: `PASS exact baseline`
-- CI status checks: `none published`
-- Independent verdict: `CORRECTION_REQUIRED`
+- Independent semantic review of corrected code: `NOT_STARTED because corrected code is not remote`
 - Merge: `forbidden`
 - Outbox/receipt publication: `forbidden before accepted merge`
-- New task or new PR: `forbidden while same PR correction remains available`
-- Next action: `Codex updates the same draft PR and returns it for fresh verification`
+- New task or new PR: `forbidden`
+- Next user action: `open latest Codex task and use its publication action to update existing PR 196; return same PR only after head SHA changes`
 
-## Independent rejection findings
+## Publication verification
 
-1. Active identity uses the wrong expected outbox path ending in `-02-codex.md`; the authoritative ChatGPT-owned path ends in `-02-chatgpt.md`.
-2. `TRANSITION_ORACLE` is generated directly from `LEGAL_TRANSITIONS`, so it is not an independent immutable oracle.
-3. `OUTBOX_POST_PUBLICATION_SCHEMA` and `validate_outbox(post_publication=True)` allow publication evidence in outbox, contrary to receipt-only publication evidence.
-4. Claimed mutation tests only submit invalid inputs; they do not patch, remove, invert, or bypass evaluator implementations.
-5. Verified-no-delta handling rejects empty changed paths and then passes by claiming the full 13-file delta, producing false no-delta evidence.
-6. Plugin package state remains a negative gate: `pluginPackageAccepted=true` rejects otherwise accepted source plus canary evidence.
-7. Main-artifact absence checks only caller-supplied path strings and does not inspect remote main or exact commit evidence.
-8. The validator is marker-presence based and does not verify actual commit paths, main-tree absence, report schema, oracle independence, or mutation detection.
-9. Separate exact status-specific outbox schemas are incomplete.
-10. The required fenced machine-readable `CLOUD_EXECUTION_REPORT` was absent from the original PR body.
+The latest Codex bot summary claims that all ten defects were corrected, commit `2afd25c9268477ed28836bc107730e339d9a5821` was created, and the same PR body was updated with a fenced `CLOUD_EXECUTION_REPORT`.
 
-## Actions taken
+Fresh independent GitHub verification found:
 
-- Independent review comment recorded on PR 196 at rejected head.
-- GitHub could not use `REQUEST_CHANGES` because the reviewer and PR owner are the same account; the same verdict was posted as a review comment.
-- PR 196 was converted to draft and retitled `[Draft] Bridge 062 correction required`.
-- PR body now records `CORRECTION_REQUIRED` and the exact next action.
-- `@codex` was instructed to update the same draft PR, not create or merge another PR.
+- claimed correction commit `2afd25c9268477ed28836bc107730e339d9a5821` is not resolvable in `samuray-games/AsyncScene`;
+- PR 196 remote head remains rejected commit `2dd6811b97e44274f2e7a0cbaa1a656ce2bee158`;
+- PR still has one commit and the old diff statistics;
+- the remote PR body did not contain the claimed report and was replaced with an explicit publication-blocker notice;
+- the bot's source links point to the rejected remote head rather than the claimed corrected commit.
+
+Therefore the bot summary is evidence only of a completed local Cloud workspace correction attempt. It is not remote publication evidence. No corrected semantic review, acceptance, merge, outbox, receipt, canary, or cycle completion is permitted.
 
 ## Gate
 
-Thread 062 remains the only active Slot 3 authority. PR 196 must be corrected in place while preserving the exact baseline and frozen 13-file scope. Fresh ChatGPT verification must inspect the new head independently. No merge, outbox, receipt, implementation acceptance, canary, or cycle completion is permitted from rejected head `2dd6811b97e44274f2e7a0cbaa1a656ce2bee158`.
+Thread 062 remains the only active Slot 3 authority. The latest Cloud task must publish its corrected commit into the existing draft PR 196. The same PR must retain the exact baseline and frozen 13-file scope. Fresh independent verification begins only after PR 196 reports a head SHA different from `2dd6811b97e44274f2e7a0cbaa1a656ce2bee158` and the claimed commit is remotely resolvable.
