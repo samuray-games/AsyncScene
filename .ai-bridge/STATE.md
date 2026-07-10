@@ -1,97 +1,60 @@
 # Bridge State
 
 BRIDGE_PROTOCOL: 3.3
-ORCHESTRATION_VERSION: 3.3
-CLOSED_LOOP_PROTOCOL: .ai-bridge/CLOSED_LOOP_PROTOCOL_V1_3.md
-CLOSED_LOOP_PROTOCOL_ID: ASYNCHRONIA_CLOSED_LOOP_V1_3
 CLOSED_LOOP_STATUS: CORRECTION_REQUIRED
 PRIMARY_GOAL: REPO_FIRST_MEMORY_MIGRATION
-ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
-ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
-MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
-MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-2301-JST
-TARGET_MEMORY_REV: 2026-07-10-2301-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-2315-JST
+TARGET_MEMORY_REV: 2026-07-10-2315-JST
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-PUBLICATION_MODE: CODEX_UPDATE_EXISTING_DRAFT_PR_THEN_CHATGPT_VERIFIED_MERGE
-PLUGIN_DELIVERY_LANE: SEPARATE_EXTERNAL_NON_GATING
-PLUGIN_INVOCATION_REQUIRED: false
+PUBLICATION_MODE: UPDATE_EXISTING_DRAFT_PR
 UI_BRANCH_SELECTOR_GUIDANCE_REQUIRED: true
 CURRENT_REQUIRED_BRANCH_SELECTION: bridge/repo-memory-064
 
-PREVIOUS_CYCLE: CYCLE-20260709-001
-PREVIOUS_CYCLE_STATUS: COMPLETE
-PREVIOUS_FINAL_STATE_COMMIT: 497f7cac481f73d35a6d72b19dfa8c70228c4cb5
-PREVIOUS_FINAL_STATE_BLOB: 90d1262c8d953b16f4fac747978efcb297ac880a
-PREVIOUS_SOURCE_MERGE_COMMIT: ad0490f310c0b56f9ebceb90b13519ba53513c10
-PREVIOUS_CANARY_THREAD: BRIDGE-20260710-063
-
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-067
-ACTIVE_GENERATION: 22
+ACTIVE_THREAD: BRIDGE-20260710-068
+ACTIVE_GENERATION: 23
 ACTIVE_SLOT: 3
-ACTIVE_LANE: PROCESS-REPO-MEMORY-MIGRATION-FINAL-CONTRACT-CORRECTION
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-CONTRACT-CORRECTION
-ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R3-20260710-2301JST
-ACTIVE_NONCE: MEM-067-CORR-2169-2301
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-CONTENT-CORRECTION
+ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R4-20260710-2315JST
+ACTIVE_NONCE: MEM-068-CORR-CB33-2315
 ACTIVE_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACTIVE_ISSUE: 202
-ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/202
-SUPERSEDED_ISSUE: 201
+ACTIVE_ISSUE: 203
+ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/203
 ACTIVE_PR: 199
 ACTIVE_PR_URL: https://github.com/samuray-games/AsyncScene/pull/199
 ACTIVE_PR_BRANCH: bridge/repo-memory-064
 ACTIVE_PR_STATUS: DRAFT_CORRECTION_REQUIRED
-REJECTED_HEAD: 21699946806f6c22124619df44cdb12c9f22afb6
-ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-067-01-chatgpt.md
-ACTIVE_INBOX_COMMIT: bba200e56ed6530f627bf3de238e0e4bdd63d4e1
-ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-067-claim-v1-codex.md
-ACTIVE_CLAIM_COMMIT: 57c52e7f5175faae53cf610b02d1a72f2d62ee90
+REJECTED_HEAD: cb33d225c4069dc4d8b45066a1dcafe4bf4cabd4
+ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-068-01-chatgpt.md
+ACTIVE_INBOX_COMMIT: 7c9d610cafa7a5b0536a6890bce7b49351d67d2b
+ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-068-claim-v1-codex.md
+ACTIVE_CLAIM_COMMIT: 5d35367c6d5985a527a3ea8087db37ca399188d2
 EXPECTED_SOURCE_BRANCH: bridge/repo-memory-064
 EXPECTED_TARGET_BRANCH: main
-EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260710-067-02-chatgpt.md
-EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260710-067-03-chatgpt.md
-PRIMARY_WRITE_REQUIRED: true
-ALLOW_VERIFIED_NO_DELTA: false
-SAFARI_STATUS: N/A_DOCUMENTATION_ONLY
 TRIGGER_COMMAND: мост 3
-SOURCE_IMPLEMENTATION_STATUS: PARTIAL_CORRECTION_REJECTED
+SOURCE_IMPLEMENTATION_STATUS: METADATA_ONLY_CORRECTION_REJECTED
 CANARY_REQUIRED: true
 CANARY_STATUS: PENDING_SOURCE_ACCEPTANCE
 CYCLE_COMPLETE: false
 
-## Verification of rejected head
+## Verification
 
-- remote head publication: `PASS`
-- exact nine-path scope: `PASS`
-- runtime/game isolation: `PASS`
-- owned files present: `PASS`
-- exact legacy byte preservation: `PASS`
-- exact authority order: `FAIL`
-- individual child revision enforcement: `FAIL`
-- required root active-state fields: `FAIL`
-- substantive cycle archive: `FAIL`
-- truthful complete migration evidence: `FAIL`
-- complete Drive bootstrap text: `FAIL`
+- remote head publication: PASS
+- archive byte preservation: PASS
+- metadata alignment: PASS
+- exact authority order: FAIL
+- individual child revisions: FAIL
+- required root active fields: FAIL
+- workflow authority sequence: FAIL
+- substantive cycle archive: FAIL
+- complete migration report: FAIL
+- complete Drive bootstrap text: FAIL
 
-The head commit repairs archive bytes only. It does not complete the other issue 201 requirements.
-
-## Frozen primary scope
-
-- `PROJECT_MEMORY.md`
-- `TASKS.md`
-- `MEMORY_MIGRATION_REPORT.md`
-- `.ai-memory/CURRENT.md`
-- `.ai-memory/DECISIONS.md`
-- `.ai-memory/CANON.md`
-- `.ai-memory/WORKFLOWS.md`
-- `.ai-memory/archive/CYCLE-20260709-001.md`
-- `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
+Bridge 067 changed only two metadata lines in MEMORY_MIGRATION_REPORT.md. Issue 203 requires the remaining content corrections.
 
 ## Next action
 
-In the Codex branch selector choose `bridge/repo-memory-064`.
-Open one fresh Codex conversation and send exactly `мост 3`.
-Codex must execute issue 202, update draft PR 199, and return a new remote head for independent verification.
+Select branch `bridge/repo-memory-064` in the Codex branch selector.
+Open a fresh Codex chat and send exactly `мост 3`.
