@@ -1,5 +1,5 @@
 ## 2026-07-10 — Repo-first memory migration
-- Status: complete.
+- Status: in review.
 - Goal: move the project from one monolithic Google Drive-style memory document to a repository-first memory system that is readable through GitHub outside the local machine.
 - Current structure:
   - `PROJECT_MEMORY.md` is the compact index and authority map.
@@ -18,10 +18,11 @@
 - Validation to run:
   - documentation structure and link checks only;
   - no runtime smoke for this migration.
-- Validation completed:
+- Validation completed locally:
   - root memory index compacted;
   - legacy timeline archived;
   - runtime/game code untouched.
+- Final acceptance remains pending independent ChatGPT verification of the corrected PR head.
 
 ## 2026-07-10 — Slot 3 closed-loop core completion recovery
 - Status: in progress.
