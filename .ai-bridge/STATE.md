@@ -2,7 +2,7 @@
 
 BRIDGE_PROTOCOL: 3.3
 CLOSED_LOOP_STATUS: CANARY_ACTIVE
-COORDINATOR_MEMORY_REV: 2026-07-11-0143-JST
+COORDINATOR_MEMORY_REV: 2026-07-11-0154-JST
 CURRENT_MAIN_BASELINE: 7700be547972181f6a4a47379fcf4494f0c4aca3
 CURRENT_REQUIRED_BRANCH_SELECTION: coordination/chatgpt-codex-bridge
 ACTIVE_CYCLE: CYCLE-20260710-002
@@ -11,15 +11,15 @@ ACTIVE_GENERATION: 33
 ACTIVE_ISSUE: 213
 ACTIVE_PR: NONE
 ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260711-078-01-chatgpt.md
-ACTIVE_INBOX_COMMIT: ceda95946abba769e88704c6d06059a89942fe9e
+ACTIVE_INBOX_COMMIT: 5ba256f7a5e1b81d5d9189b474a69ccd5a3db108
 ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260711-078-claim-v1-codex.md
 EXPECTED_CANARY_OUTBOX: .ai-bridge/outbox/BRIDGE-20260711-078-02-codex.md
 EXPECTED_CANARY_RECEIPT: .ai-bridge/receipts/BRIDGE-20260711-078-03-codex.md
 REQUIRED_MODEL: GPT-5.4 Mini
-REQUIRED_EFFORT: MEDIUM
+REQUIRED_EFFORT: LIGHT
 WORKTREE_MODE: USE_EXISTING_CHECKOUT
 ALLOW_VERIFIED_NO_DELTA: true
 TRIGGER_COMMAND: мост 3
 CANARY_STATUS: ACTIVE
 CYCLE_COMPLETE: false
-NEXT_ACTION: Open the existing worktree that already has the coordination branch checked out. Do not switch branches. Start a fresh Codex chat with GPT-5.4 Mini Medium and send мост 3.
+NEXT_ACTION: Open the existing worktree that already has the coordination branch checked out. Do not switch branches. Start a fresh Codex chat with GPT-5.4 Mini Light and send мост 3.
