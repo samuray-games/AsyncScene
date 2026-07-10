@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import unittest
 
 import tools.closed_loop_contract as c
@@ -20,7 +19,7 @@ def outbox(**overrides):
         "recoveryClassification": "NONE",
         "nextActionCode": c.SUCCESS_ACTION_CODE,
         "nextActionText": c.SUCCESS_ACTION_TEXT,
-        "activeIdentity": c.ACTIVE_IDENTITY,
+        "activeIdentity": dict(c.ACTIVE_IDENTITY),
         "stateBlobSha": GOOD_SHA,
         "mailboxParentCommit": GOOD_SHA2,
         "primaryCommitSha": GOOD_SHA3,
@@ -52,6 +51,8 @@ class ClosedLoopContractTest(unittest.TestCase):
         self.assertEqual(state.generation, 17)
         self.assertEqual(state.baseline, c.BASE_COMMIT)
         c.validate_identity(state)
+        with self.assertRaises(TypeError):
+            c.ACTIVE_IDENTITY["threadId"] = "BRIDGE-20260710-061"  # type: ignore[index]
 
     def test_stale_identities_052_through_061_rejected(self):
         for n in range(52, 62):
@@ -108,6 +109,7 @@ class ClosedLoopContractTest(unittest.TestCase):
         bad = list(c.AUTHORIZED_PATHS) + [".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md"]
         self.assert_rejects(c.validate_changed_paths, bad, list(c.AUTHORIZED_PATHS))
         self.assert_rejects(c.validate_main_absence, [".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md"])
+        self.assert_rejects(c.validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=c.BASE_COMMIT)
 
     def test_acceptance_requires_source_and_canary_not_plugin(self):
         self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": False}))
@@ -125,17 +127,27 @@ class ClosedLoopContractTest(unittest.TestCase):
             self.assert_rejects(c.self_check)
         finally:
             c.LEGAL_TRANSITIONS["CLOSED"] = original
-        bad_identity = copy.deepcopy(c.ACTIVE_IDENTITY); bad_identity["threadId"] = "BRIDGE-20260710-061"
-        self.assert_rejects(c.validate_identity, bad_identity)
-        self.assert_rejects(c.require_sha, "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "sha")
-        self.assert_rejects(c.validate_transition, "CLOSED", "EXECUTING")
-        self.assert_rejects(c.validate_outbox, outbox(nextActionText="wrong"))
-        self.assert_rejects(c.validate_outbox, receipt())
-        self.assert_rejects(c.validate_outbox, outbox(), post_publication=True)
-        self.assert_rejects(c.validate_receipt, receipt(outboxPublicationCommit="a" * 40))
-        bad_paths = list(c.AUTHORIZED_PATHS); bad_paths[0] = "node_modules/fsevents/package.json"
-        self.assert_rejects(c.validate_changed_paths, bad_paths, list(c.AUTHORIZED_PATHS))
-        self.assert_rejects(c.validate_main_absence, [], main_tree_paths=[c.ACTIVE_IDENTITY["expectedOutboxPath"]], main_commit=c.BASE_COMMIT)
+        expected = {"identity", "sha", "transition", "outbox", "receipt_separation", "receipt", "path", "main_absence", "terminal_tuple", "acceptance"}
+        self.assertEqual(set(c.mutation_proof_matrix()), expected)
+        patches = {
+            "identity": ("validate_identity", lambda *args, **kwargs: None),
+            "sha": ("require_sha", lambda *args, **kwargs: None),
+            "transition": ("validate_transition", lambda *args, **kwargs: None),
+            "outbox": ("validate_outbox", lambda *args, **kwargs: None),
+            "receipt": ("validate_receipt", lambda *args, **kwargs: None),
+            "path": ("validate_changed_paths", lambda *args, **kwargs: None),
+            "main_absence": ("validate_main_absence", lambda *args, **kwargs: None),
+            "terminal_tuple": ("validate_terminal_tuple", lambda *args, **kwargs: None),
+            "acceptance": ("accept_closed_loop_source", lambda report: True),
+        }
+        for family, (name, replacement) in patches.items():
+            original_func = getattr(c, name)
+            try:
+                setattr(c, name, replacement)
+                with self.assertRaises(ValueError):
+                    c.mutation_proof_matrix()
+            finally:
+                setattr(c, name, original_func)
 
     def test_self_check(self):
         report = c.self_check()

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -45,7 +46,7 @@ def _sample_outbox(status: str = "PASS_PUSHED") -> dict[str, object]:
         "recoveryClassification": "NONE",
         "nextActionCode": CONTRACT.SUCCESS_ACTION_CODE,
         "nextActionText": CONTRACT.SUCCESS_ACTION_TEXT,
-        "activeIdentity": CONTRACT.ACTIVE_IDENTITY,
+        "activeIdentity": dict(CONTRACT.ACTIVE_IDENTITY),
         "stateBlobSha": "0123456789abcdef0123456789abcdef01234567",
         "mailboxParentCommit": "89abcdef0123456789abcdef0123456789abcdef",
         "primaryCommitSha": "13579bdf2468ace013579bdf2468ace013579bdf",
@@ -94,13 +95,34 @@ def main() -> int:
     if not CONTRACT.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}):
         failures.append("plugin package state still gates source+canary acceptance")
     try:
-        main_paths = _git_lines("ls-tree", "-r", "--name-only", "HEAD")
-        CONTRACT.validate_main_absence([], main_tree_paths=main_paths, main_commit=_git_lines("rev-parse", "HEAD")[0])
+        main_paths = _git_lines("ls-tree", "-r", "--name-only", CONTRACT.BASE_COMMIT)
+        CONTRACT.validate_main_absence([], main_tree_paths=main_paths, main_commit=CONTRACT.BASE_COMMIT)
     except Exception as exc:
         failures.append(f"main artifact absence check failed: {exc}")
     changed = _git_lines("diff", "--name-only", f"{CONTRACT.BASE_COMMIT}..HEAD")
     if sorted(changed) != sorted(CONTRACT.AUTHORIZED_PATHS):
         failures.append(f"changed paths do not match frozen scope: {changed}")
+    report_json = os.environ.get("CLOUD_EXECUTION_REPORT_JSON")
+    if report_json:
+        try:
+            CONTRACT.validate_cloud_execution_report(json.loads(report_json))
+        except Exception as exc:
+            failures.append(f"cloud execution report invalid: {exc}")
+    else:
+        sample_report = {
+            "base": CONTRACT.BASE_COMMIT,
+            "head": _git_lines("rev-parse", "HEAD")[0],
+            "changedPaths": changed,
+            "validationResults": {"py_compile": "PASS", "unittest": "PASS", "policy": "PASS", "diff_check": "PASS"},
+            "mutationFamilies": sorted(CONTRACT.mutation_proof_matrix()),
+            "protectedPathResults": {"mailboxArtifactsChanged": False, "outsideAuthorizedScopeChanged": False},
+            "mainArtifactAbsence": {"commit": CONTRACT.BASE_COMMIT, "activeStateAbsent": True, "activeMailboxArtifactsAbsent": True},
+            "nextActionCode": CONTRACT.PR_NEXT_ACTION_CODE,
+        }
+        try:
+            CONTRACT.validate_cloud_execution_report(sample_report)
+        except Exception as exc:
+            failures.append(f"generated cloud execution report invalid: {exc}")
     for path in REQUIRED_DOCS:
         full = ROOT / path
         if not full.is_file():

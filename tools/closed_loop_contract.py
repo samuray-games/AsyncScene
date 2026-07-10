@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from types import MappingProxyType
 from pathlib import PurePosixPath
 import re
 from typing import Any, Final
@@ -19,7 +20,7 @@ SHA_RE: Final[re.Pattern[str]] = re.compile(r"[0-9a-f]{40}")
 REPEATED_SHA_RE: Final[re.Pattern[str]] = re.compile(r"([0-9a-f])\1{39}")
 SYNTHETIC_SHA_VALUES: Final[frozenset[str]] = frozenset({chunk * 5 for chunk in ("cafebabe", "deadbeef", "feedface")}) | frozenset({char * 40 for char in "0123456789abcdef"})
 
-ACTIVE_IDENTITY: Final[dict[str, Any]] = {
+_ACTIVE_IDENTITY_DATA: Final[dict[str, Any]] = {
     "cycle": "CYCLE-20260709-001",
     "generation": 17,
     "slot": 3,
@@ -35,6 +36,7 @@ ACTIVE_IDENTITY: Final[dict[str, Any]] = {
     "expectedOutboxPath": ".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md",
     "expectedReceiptPath": ".ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md",
 }
+ACTIVE_IDENTITY: Final[MappingProxyType[str, Any]] = MappingProxyType(_ACTIVE_IDENTITY_DATA.copy())
 
 AUTHORIZED_PATHS: Final[tuple[str, ...]] = (
     "AGENTS.md", "AGENTS.override.md", "PROCESS_ROOT_SYNC.md", "ORCHESTRATION.md", "BRIDGE.md",
@@ -42,6 +44,7 @@ AUTHORIZED_PATHS: Final[tuple[str, ...]] = (
     "tools/closed_loop_contract.py", "tools/test_closed_loop_contract.py", "tools/validate-orchestration-policy.py",
     "TASKS.md", "PROJECT_MEMORY.md",
 )
+ABSENT_ON_MAIN_PATHS: Final[tuple[str, ...]] = (".ai-bridge/STATE.md",)
 ABSENT_ON_MAIN_PREFIXES: Final[tuple[str, ...]] = (".ai-bridge/inbox/", ".ai-bridge/claims/", ".ai-bridge/outbox/", ".ai-bridge/receipts/")
 ILLEGAL_PRIMARY_REQUIRED_STATUSES: Final[frozenset[str]] = frozenset({"BLOCKED_NO_REMOTE_OUTBOX", "BLOCKED_NO_SOURCE_DELTA", "BLOCKED_PLUGIN_UNAVAILABLE"})
 LEGAL_STATES: Final[tuple[str, ...]] = (
@@ -114,7 +117,8 @@ def require_sha(value: str, label: str) -> None:
 
 
 def validate_identity(candidate: ClosedLoopState | dict[str, Any], active: ClosedLoopState | dict[str, Any] | None = None) -> None:
-    expected = asdict(active or active_state()) if isinstance(active or active_state(), ClosedLoopState) else dict(active)  # type: ignore[arg-type]
+    expected_source = active if active is not None else active_state()
+    expected = asdict(expected_source) if isinstance(expected_source, ClosedLoopState) else dict(expected_source)
     actual = asdict(candidate) if isinstance(candidate, ClosedLoopState) else dict(candidate)
     if set(actual) != set(expected):
         raise ValueError(f"identity fields mismatch: missing={sorted(set(expected)-set(actual))} extra={sorted(set(actual)-set(expected))}")
@@ -166,12 +170,12 @@ def validate_main_absence(paths: list[str], *, main_tree_paths: list[str] | None
     candidates = list(paths)
     if main_tree_paths is not None:
         candidates.extend(main_tree_paths)
-    forbidden = [p for p in candidates if p.startswith(ABSENT_ON_MAIN_PREFIXES)]
+    forbidden = [p for p in candidates if p in ABSENT_ON_MAIN_PATHS or p.startswith(ABSENT_ON_MAIN_PREFIXES)]
     if forbidden:
         raise ValueError(f"active bridge artifacts must remain absent from main: {forbidden}")
 
 
-OUTBOX_PRE_PUBLICATION_SCHEMA: Final[tuple[str, ...]] = (
+PRIMARY_DELTA_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
     "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
     "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults",
 )
@@ -179,10 +183,53 @@ VERIFIED_NO_DELTA_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
     "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
     "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "reasonNoSourceDelta",
 )
+BLOCKED_EXTERNAL_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "externalBlocker",
+)
+BLOCKED_OUTBOX_PUBLICATION_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "publicationFailure",
+)
+CORRECTION_REQUIRED_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "correctionRequired",
+)
+OUTBOX_SCHEMAS_BY_STATUS: Final[dict[str, tuple[str, ...]]] = {
+    "PASS_PUSHED": PRIMARY_DELTA_OUTBOX_SCHEMA,
+    "PASS_VERIFIED_NO_DELTA": VERIFIED_NO_DELTA_OUTBOX_SCHEMA,
+    "BLOCKED_EXTERNAL": BLOCKED_EXTERNAL_OUTBOX_SCHEMA,
+    "BLOCKED_OUTBOX_PUBLICATION": BLOCKED_OUTBOX_PUBLICATION_SCHEMA,
+    "CORRECTION_REQUIRED": CORRECTION_REQUIRED_OUTBOX_SCHEMA,
+}
 RECEIPT_SCHEMA: Final[tuple[str, ...]] = (
     "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
     "activeIdentity", "stateBlobSha", "mailboxParentCommit", "outboxPublicationCommit", "outboxBlobSha", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults",
 )
+
+CLOUD_EXECUTION_REPORT_SCHEMA: Final[tuple[str, ...]] = (
+    "base", "head", "changedPaths", "validationResults", "mutationFamilies", "protectedPathResults", "mainArtifactAbsence", "nextActionCode",
+)
+
+def validate_cloud_execution_report(report: dict[str, Any]) -> None:
+    _require_exact_keys(report, CLOUD_EXECUTION_REPORT_SCHEMA, "cloudExecutionReport")
+    if report["base"] != BASE_COMMIT:
+        raise ValueError("report base does not match frozen baseline")
+    require_sha(report["head"], "head")
+    validate_changed_paths(report["changedPaths"], list(AUTHORIZED_PATHS))
+    if not isinstance(report["validationResults"], dict) or not report["validationResults"] or any(v != "PASS" for v in report["validationResults"].values()):
+        raise ValueError("report validationResults must be a non-empty PASS map")
+    expected_families = set(mutation_proof_matrix())
+    if set(report["mutationFamilies"]) != expected_families:
+        raise ValueError("report mutationFamilies do not cover every evaluator family")
+    protected = report["protectedPathResults"]
+    if not isinstance(protected, dict) or protected.get("mailboxArtifactsChanged") is not False or protected.get("outsideAuthorizedScopeChanged") is not False:
+        raise ValueError("report protectedPathResults must prove no mailbox or out-of-scope paths changed")
+    absence = report["mainArtifactAbsence"]
+    if not isinstance(absence, dict) or absence.get("commit") != BASE_COMMIT or absence.get("activeStateAbsent") is not True or absence.get("activeMailboxArtifactsAbsent") is not True:
+        raise ValueError("report mainArtifactAbsence must bind absence to frozen base commit")
+    if report["nextActionCode"] != PR_NEXT_ACTION_CODE:
+        raise ValueError("report nextActionCode must return this PR for independent verification")
 
 def validate_terminal_tuple(payload: dict[str, Any]) -> None:
     status = payload.get("status")
@@ -199,8 +246,9 @@ def validate_outbox(payload: dict[str, Any], *, post_publication: bool = False) 
     if post_publication:
         raise ValueError("outbox is always pre-publication; publication evidence belongs only in receipt")
     status = payload.get("status")
-    schema = VERIFIED_NO_DELTA_OUTBOX_SCHEMA if status == "PASS_VERIFIED_NO_DELTA" else OUTBOX_PRE_PUBLICATION_SCHEMA
-    _require_exact_keys(payload, schema, "outbox")
+    if status not in OUTBOX_SCHEMAS_BY_STATUS:
+        raise ValueError(f"unknown outbox status: {status}")
+    _require_exact_keys(payload, OUTBOX_SCHEMAS_BY_STATUS[status], f"outbox:{status}")
     if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
         raise ValueError("outbox must not contain publication evidence")
     validate_identity(payload["activeIdentity"])
@@ -224,6 +272,65 @@ def validate_receipt(payload: dict[str, Any]) -> None:
     validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"], allow_no_delta=payload.get("status") == "PASS_VERIFIED_NO_DELTA")
     validate_main_absence(payload["changedPaths"])
 
+
+
+def _valid_outbox_payload(status: str = "PASS_PUSHED") -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "status": status,
+        "completionMode": "PRIMARY_DELTA",
+        "phase": "AWAITING_CHATGPT_VERIFICATION",
+        "verifierClassification": "SOURCE_IMPLEMENTATION_PENDING_CHATGPT",
+        "recoveryClassification": "NONE",
+        "nextActionCode": SUCCESS_ACTION_CODE,
+        "nextActionText": SUCCESS_ACTION_TEXT,
+        "activeIdentity": dict(ACTIVE_IDENTITY),
+        "stateBlobSha": "0123456789abcdef0123456789abcdef01234567",
+        "mailboxParentCommit": "89abcdef0123456789abcdef0123456789abcdef",
+        "primaryCommitSha": "13579bdf2468ace013579bdf2468ace013579bdf",
+        "primaryParent": BASE_COMMIT,
+        "changedPaths": list(AUTHORIZED_PATHS),
+        "authorizedPaths": list(AUTHORIZED_PATHS),
+        "validationResults": ["py_compile: PASS", "unittest: PASS", "policy: PASS", "diff_check: PASS"],
+    }
+    if status == "PASS_VERIFIED_NO_DELTA":
+        payload.update({
+            "completionMode": "VERIFIED_NO_DELTA",
+            "primaryCommitSha": BASE_COMMIT,
+            "primaryParent": "N/A",
+            "changedPaths": [],
+            "reasonNoSourceDelta": "deterministic regeneration produced zero diff",
+        })
+    return payload
+
+
+def mutation_proof_matrix() -> dict[str, str]:
+    families: dict[str, str] = {}
+
+    def must_reject(name: str, func: Any, *args: Any, **kwargs: Any) -> None:
+        try:
+            result = func(*args, **kwargs)
+        except ValueError:
+            families[name] = "detected"
+            return
+        if result is False:
+            families[name] = "detected"
+            return
+        raise ValueError(f"mutation family was not detected: {name}")
+
+    bad_identity = dict(ACTIVE_IDENTITY, threadId="BRIDGE-20260710-061")
+    must_reject("identity", validate_identity, bad_identity)
+    must_reject("sha", require_sha, "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "sha")
+    must_reject("transition", validate_transition, "CLOSED", "EXECUTING")
+    must_reject("outbox", validate_outbox, dict(_valid_outbox_payload(), nextActionText="wrong"))
+    receipt_like = dict(_valid_outbox_payload(), outboxPublicationCommit="02468ace13579bdf02468ace13579bdf02468ace", outboxBlobSha="89abcdef0123456789abcdef0123456789abcdef")
+    must_reject("receipt_separation", validate_outbox, receipt_like)
+    must_reject("receipt", validate_receipt, dict(receipt_like, outboxPublicationCommit="a" * 40))
+    bad_paths = list(AUTHORIZED_PATHS); bad_paths[0] = "node_modules/fsevents/package.json"
+    must_reject("path", validate_changed_paths, bad_paths, list(AUTHORIZED_PATHS))
+    must_reject("main_absence", validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=BASE_COMMIT)
+    must_reject("terminal_tuple", validate_terminal_tuple, {"status": "PASS_PUSHED", "nextActionCode": SUCCESS_ACTION_CODE})
+    must_reject("acceptance", accept_closed_loop_source, {"sourceImplementationAccepted": True, "canaryAccepted": False})
+    return families
 
 def accept_closed_loop_source(report: dict[str, Any]) -> bool:
     return report.get("sourceImplementationAccepted") is True and report.get("canaryAccepted") is True
@@ -272,4 +379,5 @@ def self_check() -> dict[str, Any]:
             else:
                 if not legal:
                     raise ValueError(f"oracle mismatch: {current}->{target}")
-    return {"contractVersion": CONTRACT_VERSION, "activeIdentity": ACTIVE_IDENTITY, "states": LEGAL_STATES, "authorizedPaths": AUTHORIZED_PATHS}
+    mutation_families = mutation_proof_matrix()
+    return {"contractVersion": CONTRACT_VERSION, "activeIdentity": dict(ACTIVE_IDENTITY), "states": LEGAL_STATES, "authorizedPaths": AUTHORIZED_PATHS, "mutationFamilies": mutation_families}
