@@ -7,14 +7,17 @@ EXPECTED_REVISION: 2026-07-10-2315-JST
 
 Authoritative order for memory and workflow facts:
 
-1. `AGENTS.override.md`
-2. `AGENTS.md`
-3. `PROJECT_MEMORY.md`
-4. `.ai-memory/CURRENT.md`
-5. `.ai-memory/DECISIONS.md`
-6. `.ai-memory/CANON.md`
-7. `.ai-memory/WORKFLOWS.md`
-8. `.ai-memory/archive/`
+1. Explicit user instruction
+2. Current repository primary evidence
+3. Active `.ai-bridge/STATE.md`
+4. `PROJECT_MEMORY.md`
+5. `.ai-memory/CURRENT.md`
+6. `.ai-memory/DECISIONS.md`
+7. `.ai-memory/CANON.md`
+8. `.ai-memory/WORKFLOWS.md`
+9. `TASKS.md`
+10. Google Drive bootstrap
+11. `.ai-memory/archive/`
 
 ## Bootstrap workflow
 

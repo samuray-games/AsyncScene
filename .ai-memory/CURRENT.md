@@ -9,7 +9,7 @@ ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-CONTENT-CORRECTION
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
 ACCEPTED_MAIN_PENDING: true
 DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
-NEXT_ACTION: Keep the bootstrap text aligned with the compact root index and immutable archive.
+NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance performs readiness, merge, publication, memory synchronization, and separate canary preparation.
 
 Repo identity:
 
@@ -22,6 +22,20 @@ Current memory contract:
 - Keep live state here, not in the historical archive.
 - Do not duplicate full legacy timelines.
 - Prefer short factual entries with explicit dates and SHAs.
+
+Authoritative order for memory and process facts:
+
+1. Explicit user instruction
+2. Current repository primary evidence
+3. Active `.ai-bridge/STATE.md`
+4. `PROJECT_MEMORY.md`
+5. `.ai-memory/CURRENT.md`
+6. `.ai-memory/DECISIONS.md`
+7. `.ai-memory/CANON.md`
+8. `.ai-memory/WORKFLOWS.md`
+9. `TASKS.md`
+10. Google Drive bootstrap
+11. `.ai-memory/archive/`
 
 Active state:
 
