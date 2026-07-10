@@ -3,10 +3,10 @@
 MEMORY_REV: 2026-07-10-2315-JST
 EXPECTED_REV: 2026-07-10-2315-JST
 FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
-CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACCEPTED_MAIN_PENDING: true
-DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance marks it ready, merges it, publishes the source outbox and receipt, synchronizes repository memory and Google Drive bootstrap, and prepares the separate canary.
+CURRENT_MAIN_BASELINE: 7700be547972181f6a4a47379fcf4494f0c4aca3
+ACCEPTED_MAIN_PENDING: false
+DRIVE_SYNC_STATUS: SYNCHRONIZED
+NEXT_ACTION: Resume normal project work.
 
 Repo identity:
 
@@ -40,7 +40,7 @@ Active state:
 - Root `PROJECT_MEMORY.md` is now the index and pointer file.
 - `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` hold the stable details.
 - `.ai-memory/archive/` holds immutable cycle history.
-- The corrected bridge cycle expects the compact root to stay in review until ChatGPT verifies the repaired PR head.
+- The corrected bridge cycle is completed and the compact root now reflects accepted state.
 
 Current constraints:
 
