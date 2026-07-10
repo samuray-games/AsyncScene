@@ -10,14 +10,16 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-2130-JST
-TARGET_MEMORY_REV: 2026-07-10-2130-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-2301-JST
+TARGET_MEMORY_REV: 2026-07-10-2301-JST
 MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
 PUBLICATION_MODE: CODEX_UPDATE_EXISTING_DRAFT_PR_THEN_CHATGPT_VERIFIED_MERGE
 PLUGIN_DELIVERY_LANE: SEPARATE_EXTERNAL_NON_GATING
 PLUGIN_INVOCATION_REQUIRED: false
+UI_BRANCH_SELECTOR_GUIDANCE_REQUIRED: true
+CURRENT_REQUIRED_BRANCH_SELECTION: bridge/repo-memory-064
 
 PREVIOUS_CYCLE: CYCLE-20260709-001
 PREVIOUS_CYCLE_STATUS: COMPLETE
@@ -27,49 +29,46 @@ PREVIOUS_SOURCE_MERGE_COMMIT: ad0490f310c0b56f9ebceb90b13519ba53513c10
 PREVIOUS_CANARY_THREAD: BRIDGE-20260710-063
 
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-066
-ACTIVE_GENERATION: 21
+ACTIVE_THREAD: BRIDGE-20260710-067
+ACTIVE_GENERATION: 22
 ACTIVE_SLOT: 3
-ACTIVE_LANE: PROCESS-REPO-MEMORY-MIGRATION-FINAL-CORRECTION
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-CORRECTION
-ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R2-20260710-2130JST
-ACTIVE_NONCE: MEM-066-CORR-CFDD-2130
+ACTIVE_LANE: PROCESS-REPO-MEMORY-MIGRATION-FINAL-CONTRACT-CORRECTION
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-CONTRACT-CORRECTION
+ACTIVE_EPOCH: REPO-MEMORY-MIGRATION-CORRECTION-R3-20260710-2301JST
+ACTIVE_NONCE: MEM-067-CORR-2169-2301
 ACTIVE_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACTIVE_ISSUE: 201
-ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/201
-SUPERSEDED_ISSUE: 200
+ACTIVE_ISSUE: 202
+ACTIVE_ISSUE_URL: https://github.com/samuray-games/AsyncScene/issues/202
+SUPERSEDED_ISSUE: 201
 ACTIVE_PR: 199
 ACTIVE_PR_URL: https://github.com/samuray-games/AsyncScene/pull/199
 ACTIVE_PR_BRANCH: bridge/repo-memory-064
 ACTIVE_PR_STATUS: DRAFT_CORRECTION_REQUIRED
-REJECTED_HEAD: cfddd218d85fd6a6638b7c7c14173794f785aa7a
-REJECTION_REVIEW_ID: 4671369077
-ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-066-01-chatgpt.md
-ACTIVE_INBOX_COMMIT: 2426cd0f7c96fab7b581b48e8be2469f7ab4b651
-ACTIVE_INBOX_BLOB: 26a3cf35877c60a29021b28d374b12a046b81d9d
-ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-066-claim-v1-codex.md
-ACTIVE_CLAIM_COMMIT: b03b1f3b7471bed71237d4e2af076763d91081a2
-ACTIVE_CLAIM_BLOB: 305d64f42584b26eb7abafe374cddcc54ff20167
+REJECTED_HEAD: 21699946806f6c22124619df44cdb12c9f22afb6
+ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260710-067-01-chatgpt.md
+ACTIVE_INBOX_COMMIT: bba200e56ed6530f627bf3de238e0e4bdd63d4e1
+ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260710-067-claim-v1-codex.md
+ACTIVE_CLAIM_COMMIT: 57c52e7f5175faae53cf610b02d1a72f2d62ee90
 EXPECTED_SOURCE_BRANCH: bridge/repo-memory-064
 EXPECTED_TARGET_BRANCH: main
-EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260710-066-02-chatgpt.md
-EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260710-066-03-chatgpt.md
+EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260710-067-02-chatgpt.md
+EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260710-067-03-chatgpt.md
 PRIMARY_WRITE_REQUIRED: true
 ALLOW_VERIFIED_NO_DELTA: false
 SAFARI_STATUS: N/A_DOCUMENTATION_ONLY
 TRIGGER_COMMAND: мост 3
-SOURCE_IMPLEMENTATION_STATUS: REJECTED_CORRECTION_READY
+SOURCE_IMPLEMENTATION_STATUS: PARTIAL_CORRECTION_REJECTED
 CANARY_REQUIRED: true
 CANARY_STATUS: PENDING_SOURCE_ACCEPTANCE
 CYCLE_COMPLETE: false
 
-## Independent verification of rejected head
+## Verification of rejected head
 
-- PR base and exact nine-path scope: `PASS`
-- main unchanged at active baseline: `PASS`
-- runtime/game path isolation: `PASS`
-- owned memory files present: `PASS`
-- exact legacy byte preservation: `FAIL`
+- remote head publication: `PASS`
+- exact nine-path scope: `PASS`
+- runtime/game isolation: `PASS`
+- owned files present: `PASS`
+- exact legacy byte preservation: `PASS`
 - exact authority order: `FAIL`
 - individual child revision enforcement: `FAIL`
 - required root active-state fields: `FAIL`
@@ -77,13 +76,7 @@ CYCLE_COMPLETE: false
 - truthful complete migration evidence: `FAIL`
 - complete Drive bootstrap text: `FAIL`
 
-Baseline root blob:
-- `PROJECT_MEMORY.md` at baseline: `7f3548f1c58198fedfa857828d3b741e4442d92c`
-
-Rejected archive blob:
-- `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: `01b3d018bda115234450217a8e04aaef8d652a59`
-
-Different Git blob identities prove different file bytes. Whitespace normalization is not accepted for immutable evidence.
+The head commit repairs archive bytes only. It does not complete the other issue 201 requirements.
 
 ## Frozen primary scope
 
@@ -97,18 +90,8 @@ Different Git blob identities prove different file bytes. Whitespace normalizati
 - `.ai-memory/archive/CYCLE-20260709-001.md`
 - `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
 
-## Status
-
-- Bridge: `CORRECTION_READY`
-- Source implementation: `REJECTED_AWAITING_FRESH_CODEX_CORRECTION`
-- Main: `UNCHANGED_AT_ACTIVE_BASELINE`
-- PR 199: `DRAFT`
-- Bridge 065 execution: `SUPERSEDED`
-- ChatGPT verification: `REQUIRED_AFTER_CORRECTED_REMOTE_HEAD`
-- Google Drive compact bootstrap: `FORBIDDEN_UNTIL_REPOSITORY_ACCEPTANCE`
-- Canary: `REQUIRED_AFTER_SOURCE_ACCEPTANCE`
-
 ## Next action
 
+In the Codex branch selector choose `bridge/repo-memory-064`.
 Open one fresh Codex conversation and send exactly `мост 3`.
-Codex must execute issue 201, correct draft PR 199, and return the corrected remote head for independent ChatGPT verification.
+Codex must execute issue 202, update draft PR 199, and return a new remote head for independent verification.
