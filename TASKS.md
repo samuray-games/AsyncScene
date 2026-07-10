@@ -1,3 +1,29 @@
+## 2026-07-10 — Repo-first memory migration
+- Status: in review.
+- Goal: move the project from one monolithic Google Drive-style memory document to a repository-first memory system that is readable through GitHub outside the local machine.
+- Current structure:
+  - `PROJECT_MEMORY.md` is the compact index and authority map.
+  - `.ai-memory/CURRENT.md` holds live state.
+  - `.ai-memory/DECISIONS.md` holds stable process decisions.
+  - `.ai-memory/CANON.md` holds product canon.
+  - `.ai-memory/WORKFLOWS.md` holds update and validation workflows.
+  - `.ai-memory/archive/CYCLE-20260709-001.md` holds immutable cycle history.
+- Requirements:
+  - repo files are authoritative for current state;
+  - the memory must remain readable on GitHub away from the local workspace;
+  - `CURRENT.md` stays compact and does not copy the full legacy timeline;
+  - archive entries remain append-only;
+  - immutable bridge artifacts 062/063 are preserved;
+  - runtime/game code stays untouched.
+- Validation to run:
+  - documentation structure and link checks only;
+  - no runtime smoke for this migration.
+- Validation completed locally:
+  - root memory index compacted;
+  - legacy timeline archived;
+  - runtime/game code untouched.
+- Final acceptance remains pending independent ChatGPT verification of the corrected PR head.
+
 ## 2026-07-10 — Slot 3 closed-loop core completion recovery
 - Status: in progress.
 - Updated the closed-loop contract/test/validator surfaces from the stale 20260709 slot-3 epoch to the current 20260710 thread 058 epoch, including receipt-aware identity fields and the active baseline / inbox / claim / outbox paths.
