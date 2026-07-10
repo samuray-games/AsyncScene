@@ -41,6 +41,20 @@ def _run_validation_command(command: list[str]) -> tuple[bool, str]:
     return completed.returncode == 0, completed.stdout.strip()
 
 
+def _record_command_result(
+    key: str,
+    command: list[str],
+    validation_results: dict[str, str],
+    validation_outputs: dict[str, str],
+    failures: list[str],
+) -> None:
+    passed, output = _run_validation_command(command)
+    validation_outputs[key] = output
+    validation_results[key] = "PASS" if passed else "FAIL"
+    if not passed:
+        failures.append(f"{key} command failed: {output}")
+
+
 def _sample_outbox(status: str = "PASS_PUSHED") -> dict[str, object]:
     base = {
         "status": status,
@@ -126,35 +140,33 @@ def main() -> int:
         failures.append(f"changed paths do not match frozen scope: {changed}")
     validation_outputs: dict[str, str] = {}
     validation_results: dict[str, str] = {}
-    validation_commands = {
-        "py_compile": [sys.executable, "-m", "py_compile", "tools/closed_loop_contract.py", "tools/test_closed_loop_contract.py", "tools/validate-orchestration-policy.py"],
-        "unittest": [sys.executable, "-m", "unittest", "tools.test_closed_loop_contract"],
-    }
-    for key, command in validation_commands.items():
-        passed, output = _run_validation_command(command)
-        validation_outputs[key] = output
-        if passed:
-            validation_results[key] = "PASS"
-        else:
-            failures.append(f"{key} command failed: {output}")
-            validation_results[key] = "FAIL"
+    _record_command_result(
+        "py_compile",
+        [sys.executable, "-m", "py_compile", "tools/closed_loop_contract.py", "tools/test_closed_loop_contract.py", "tools/validate-orchestration-policy.py"],
+        validation_results,
+        validation_outputs,
+        failures,
+    )
+    _record_command_result(
+        "unittest",
+        [sys.executable, "-m", "unittest", "tools.test_closed_loop_contract"],
+        validation_results,
+        validation_outputs,
+        failures,
+    )
+    _record_command_result(
+        "diff_check",
+        ["git", "diff", "--check", f"{CONTRACT.BASE_COMMIT}...HEAD"],
+        validation_results,
+        validation_outputs,
+        failures,
+    )
     protected_paths_changed = any(path not in CONTRACT.AUTHORIZED_PATHS for path in changed)
     mailbox_paths_changed = any(path.startswith(".ai-bridge/") for path in changed)
     if protected_paths_changed:
         failures.append(f"protected paths changed: {[path for path in changed if path not in CONTRACT.AUTHORIZED_PATHS]}")
     if mailbox_paths_changed:
         failures.append(f"mailbox paths changed: {[path for path in changed if path.startswith('.ai-bridge/')]}")
-    if sorted(changed) == sorted(CONTRACT.AUTHORIZED_PATHS) and not protected_paths_changed and not mailbox_paths_changed:
-        validation_results["diff_check"] = "PASS"
-    else:
-        validation_results["diff_check"] = "FAIL"
-    validation_results["policy"] = "PASS" if not failures else "FAIL"
-    head = _git_lines("rev-parse", "HEAD")[0]
-    report = _cloud_execution_report(head, changed, validation_results)
-    try:
-        CONTRACT.validate_cloud_execution_report(report, expected_head=head)
-    except Exception as exc:
-        failures.append(f"cloud execution report invalid: {exc}")
     for path in REQUIRED_DOCS:
         full = ROOT / path
         if not full.is_file():
@@ -169,7 +181,20 @@ def main() -> int:
             # Validator proves the policy excludes these from the contract scope; it does not traverse generated deps.
             if any(str(p).startswith(str(protected)) for p in (ROOT / q for q in CONTRACT.AUTHORIZED_PATHS)):
                 failures.append(f"protected path authorized: {protected.name}")
-    print(json.dumps({"ok": not failures, "failures": failures, "cloudExecutionReport": report, "validationOutputs": validation_outputs, "contract": result}, ensure_ascii=False, indent=2))
+    validation_results["policy"] = "PASS" if not failures else "FAIL"
+    head = _git_lines("rev-parse", "HEAD")[0]
+    report = _cloud_execution_report(head, changed, validation_results)
+    if not failures:
+        try:
+            CONTRACT.validate_cloud_execution_report(report, expected_head=head)
+        except Exception as exc:
+            failures.append(f"cloud execution report invalid: {exc}")
+            validation_results["policy"] = "FAIL"
+            report = _cloud_execution_report(head, changed, validation_results)
+    output = {"ok": not failures, "failures": failures, "validationOutputs": validation_outputs, "contract": result}
+    if not failures:
+        output["cloudExecutionReport"] = report
+    print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0 if not failures else 1
 
 
