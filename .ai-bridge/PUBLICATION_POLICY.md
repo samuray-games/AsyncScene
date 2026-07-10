@@ -1,200 +1,172 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_09_PLUGIN_BOOTSTRAP_FALLBACK
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_10_LOOP_ONLY_EXCEPTION_AND_RECEIPT
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 EMPTY_OUTBOX: FORBIDDEN
-FINAL_RESPONSE_OUTBOX_IDENTITY: REQUIRED
-MANDATORY_PLUGIN_FIRST: REQUIRED
+FINAL_RESPONSE_RECEIPT_IDENTITY: REQUIRED
 RUNTIME_SAFETY_GATE: RETIRED_AND_REMOVE
 OBJECTIVE_GAP_PROOF: REQUIRED
-PLUGIN_BOOTSTRAP_FALLBACK: ALLOWED_FOR_PLUGIN_REPAIR_ONLY
 REMOTE_STATE_FRESHNESS: REQUIRED
-DEFAULT_PUBLICATION_MODE: CODEX_AUTO_PULL_PUSH
+DEFAULT_PUBLICATION_MODE: CODEX_OUTBOX_PLUS_RECEIPT
 MODEL_PREFLIGHT_GATE: RETIRED
 
-## Fresh execution and remote-state freshness
+## 1. Fresh execution and remote-state freshness
 
-Every numbered command must freshly fetch both `origin/main` and `origin/coordination/chatgpt-codex-bridge`, then read `STATE.md`, the inbox, and the claim directly from the fetched remote refs.
+Every numbered command must freshly fetch both `origin/main` and `origin/coordination/chatgpt-codex-bridge`, then read current root authority, this policy, `.ai-bridge/STATE.md`, and the exact inbox and claim named by STATE.
 
-A local file, previous conversation, previous fetch result, old claim, old inbox, or historical outbox is never authority.
+A local file, previous conversation, previous fetch result, old claim, old inbox, historical outbox, or historical receipt is never authority.
 
-Before any routing or blocker decision, Codex must report the exact remote mailbox commit, STATE blob SHA, execution epoch, inbox path, claim path, expected outbox, and baseline it just read.
+Before any routing or blocker decision, Codex must resolve the exact remote mailbox head, STATE blob SHA, execution epoch, inbox, claim, expected outbox, expected receipt, baseline, write mode, and frozen scope.
 
-If the reported epoch differs from the current remote STATE epoch, Codex must discard the stale read, refetch once, and restart resolution from the remote STATE. A response based on a superseded epoch is `FAIL_STALE_REMOTE_STATE`.
+If two fresh refetches genuinely return incompatible current identities, Codex must fail closed using the exact current task schema. It must not continue using an older epoch.
 
-If two fresh refetches genuinely return incompatible remote STATE identities, Codex must publish a complete `BLOCKED_REMOTE_STATE_INCONSISTENT` report to the expected outbox named by the newest fetched STATE. It must not continue using the older epoch.
-
-## Numbered slots and parallel execution
+## 2. Numbered slots
 
 The bridge exposes exactly three fixed execution slots:
 
-- `мост 1` addresses only Slot 1;
-- `мост 2` addresses only Slot 2;
+- `мост 1` addresses only Slot 1.
+- `мост 2` addresses only Slot 2.
 - `мост 3` addresses only Slot 3.
+- STATE is the only activation pointer.
+- Superseded and inert task packages are historical only.
 
-Every open slot has its own thread, lane, task, execution epoch, inbox, claim, baseline, exact write scope, worktree and expected outbox.
+## 3. Plugin boundary
 
-Whenever two or more tasks or slots are proposed or open, Codex must invoke the Asynchronia `parallel-scope-planner`. Slots may remain open concurrently only when write ownership, stable-read dependencies, mirror ownership, shared wiring, registries, generated outputs and shared documentation ownership are proven disjoint. Shared process files, shared documentation, mirror pairs, aggregate smoke, registries, exports, globals, boot wiring and dependent lanes are serialized.
+### 3.1 Default ordinary task route
 
-A closed slot is intentional when fewer collision-free lanes exist. It is not an omitted bridge command.
+For an ordinary plugin-assisted Asynchronia implementation lane, plugin routing may be required by the active task and current repository authority.
 
-## Mandatory Asynchronia plugin-first routing
+Repository text never proves plugin activation. A task that explicitly requires actual plugin invocation may return an exact plugin blocker only when that requirement is part of the current non-superseded task identity.
 
-Every ordinary Asynchronia Codex task must start with the exact first line:
+### 3.2 Explicit loop-only exception
 
-`Use @asynchronia.`
+The plugin-first requirement does not apply when current STATE, inbox, and claim all identify a process-only closed-loop or bridge-controller lane with these exact semantics:
 
-The normal route is mandatory before implementation:
+- `PLUGIN_DELIVERY_LANE: SEPARATE_EXTERNAL_NON_GATING`;
+- `PLUGIN_INVOCATION_REQUIRED: false`;
+- plugin source, manifest, marketplace, installation, cache, loader, and package paths are protected;
+- Safari is `N/A_PROCESS_ONLY`.
 
-1. invoke `task-router` first;
-2. invoke `scope-isolation-check` for every implementation or repository-write lane;
-3. invoke `model-selector` for every implementation or repository-write lane;
-4. invoke `parallel-scope-planner` whenever multiple tasks, lanes, slots, concurrent writers, shared dependencies, mirrors, registries, generated outputs or documentation owners exist;
-5. invoke every additional specialized Asynchronia skill required by routing.
+For such a lane:
 
-If a correct current plugin is available, generic fallback is forbidden.
+- plugin availability is not bridge transport and cannot block execution;
+- `BLOCKED_PLUGIN_UNAVAILABLE` is illegal;
+- no plugin activation claim may be made;
+- no plugin tool invocation evidence is required;
+- no model recommendation is required when no model-selector tool is available;
+- model selection is never an execution gate;
+- the STATE-selected closed-loop protocol and publication policy govern the transaction;
+- Codex reads repository authority directly and executes the frozen loop-only task.
 
-## Narrow plugin-bootstrap fallback
+This exception is narrow. It does not authorize product, runtime, plugin-source, plugin-installation, marketplace, manifest, cache, or loader work.
 
-The plugin-first requirement must not make repair or installation of the plugin logically impossible.
+### 3.3 Plugin repair bootstrap
 
-The fallback in this section is allowed only when all of the following are true:
+A source-plugin bootstrap is allowed only when the current active task explicitly repairs or installs the plugin and explicitly authorizes that bootstrap. It is not available to a loop-only bridge lane.
 
-- the current inbox explicitly repairs, installs, upgrades, or verifies the Asynchronia plugin itself;
-- the currently installed package is absent, stale, malformed, unloadable, or older than the source version required by the current claim;
-- current `origin/main` contains a source Asynchronia package at `plugins/asynchronia` with the exact required manifest version;
-- the current claim explicitly authorizes `PLUGIN_BOOTSTRAP_FALLBACK`.
+## 4. Scope safety
 
-When those conditions hold, Codex must not return `BLOCKED_PLUGIN_UNAVAILABLE` merely because the installed package is stale or hidden plugin-loader telemetry is unavailable.
+Safety is enforced through exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership, and serialization of real collisions.
 
-Instead Codex must execute this bounded bootstrap before repository implementation:
+A frozen collision-free lane executes immediately. Unresolved overlap returns `BLOCKED_SCOPE_COLLISION` with exact paths, owners, and dependencies.
 
-1. verify the exact remote baseline and source plugin manifest from `origin/main`;
-2. read the required source skills directly from `origin/main:plugins/asynchronia/skills/**/SKILL.md`;
-3. label the route `SOURCE_PLUGIN_FALLBACK_BOOTSTRAP`, never generic fallback;
-4. invoke `task-router`, `scope-isolation-check`, `model-selector`, `parallel-scope-planner`, and routed specialized skills from that exact source package;
-5. discover Codex home as `${CODEX_HOME:-$HOME/.codex}`;
-6. if an older package such as `personal/asynchronia/1.0.1` is present, use its parent directory as the discovered versioned package root;
-7. install the required version as a sibling version directory, for example `personal/asynchronia/1.0.4`, by copying only the validated source package from a clean worktree;
-8. never overwrite or delete the older version, unrelated cache entries, user files, or repository files during installation;
-9. use a temporary sibling directory and atomic rename when supported;
-10. verify installed manifest version, complete file inventory, source-to-installed checksums, exact skill inventory, and absence of `runtime-safety-gate` skill, alias, index entry, or callable route;
-11. run source-backed and installed-package positive smokes plus the plugin-unavailable negative smoke;
-12. continue the repository task in the same command using the exact source-routed results.
+Codex must never merge, rebase, reset, stash, clean, amend, cherry-pick, force-push, rewrite history, or absorb unrelated work.
 
-Hidden UI plugin-loader telemetry is not required. Repository `CODEX_BRIDGE_BOOTSTRAP.md` and `CODEX_BRIDGE_RECOVERY.md` already define repository fallback and explicitly state that hidden loader machinery is not a bridge gate. Installed-path, manifest, inventory, checksum, and smoke evidence are the required proof.
+## 5. Objective-gap and primary publication
 
-If user-level writes are genuinely denied after one non-interactive permission-preserving attempt, Codex must still publish a complete `BLOCKED_PLUGIN_INSTALL_PERMISSION` outbox with the source route evidence, discovered paths, attempted operation, exact OS error, and preserved-state proof. A direct conversational blocker is forbidden.
+A passing current validator proves only the checks it currently implements. It does not prove that a correction objective requiring validator expansion, adversarial fixtures, mutation tests, exact schemas, or stronger path and identity checks is already satisfied.
 
-## Runtime gate removal
+When `PRIMARY_WRITE_REQUIRED: true` and `ALLOW_VERIFIED_NO_DELTA: false`:
 
-The obsolete `runtime-safety-gate` name, skill, alias and route are not part of the active architecture and must be removed from source and installed package behavior.
+- `BLOCKED_NO_SOURCE_DELTA` is illegal;
+- empty primary commits are forbidden;
+- Codex must implement the concrete missing invariants inside frozen scope;
+- a genuine contradiction must use the exact active blocked schema and publication transaction.
 
-The old prompt `Use @asynchronia runtime-safety-gate.` is forbidden in active process surfaces.
+A primary delta requires exactly one direct-child exact-scope commit from the active baseline, a fast-forward push, a remote refetch, exact first-parent proof, exact changed paths, protected-path proof, and validations from the committed tree.
 
-Runtime and mechanically sensitive work is governed by `scope-isolation-check`, exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and serialization of real collisions.
+## 6. Outbox and receipt transaction
 
-Runtime approval, runtime authorization, approval-only stops and equivalent hidden gates are forbidden. User-owned Safari acceptance remains separate and does not become a pre-implementation approval gate.
+Every active closed-loop task uses two immutable mailbox artifacts.
 
-## Model recommendation boundary
+### 6.1 Outbox
 
-Only `model-selector` may originate, rank or name a model and reasoning recommendation. The user alone selects the actual active interface model, and unverified selection remains `USER_SELECTED_UNVERIFIED`.
+The outbox contains only evidence knowable before its own publication, including:
 
-A recommendation is informational evidence. It must not pause, block, authorize or resume execution.
+- exact active identity;
+- STATE blob SHA;
+- mailbox parent commit fetched immediately before outbox publication;
+- primary commit and primary parent;
+- exact changed and authorized paths;
+- protected-path evidence;
+- validation and executable-control evidence;
+- exact expected outbox and receipt paths;
+- exact status-specific schema fields;
+- exact next-action code.
 
-## Scope safety
+The outbox must not claim the commit SHA or blob SHA created by publishing itself.
 
-Safety is enforced through exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and serialization of actual overlaps.
+Codex publishes only the exact expected outbox path as a fast-forward child of the fetched mailbox parent, then refetches the remote outbox commit and blob.
 
-A frozen collision-free lane executes immediately. Unresolved overlap returns `BLOCKED_SCOPE_COLLISION` with exact paths, owners and dependencies.
+### 6.2 Receipt
 
-## Completion modes
+After refetching the published outbox, Codex builds a separate receipt containing:
 
-### Primary delta
+- exact active identity;
+- `stateBlobSha`;
+- `mailboxParentCommit`;
+- `outboxPublicationCommit`;
+- `outboxBlobSha`;
+- `primaryCommitSha`;
+- `primaryParent`;
+- exact outbox and receipt paths;
+- exact changed paths and validation summary;
+- byte equality between prepared and remote receipt content.
 
-When authorized source changes exist, Codex publishes one direct-child exact-scope primary commit and the exact current outbox, then returns `PASS_PUSHED`.
+The receipt does not require its own publication commit SHA.
 
-### Verified no delta
+Codex publishes only the exact expected receipt path as a fast-forward child of the outbox publication commit, refetches the receipt and mailbox head, and returns user-visible bytes identical to the remote receipt.
 
-When the current inbox or claim contains `ALLOW_VERIFIED_NO_DELTA: true`, Codex may return `PASS_VERIFIED_NO_DELTA` only after proving that the current baseline already satisfies the complete frozen objective.
+Commit SHAs, blob SHAs, STATE blob identity, mailbox parent, outbox publication commit, and outbox blob are distinct fields and must never be overloaded.
 
-Required evidence includes unchanged baseline, deterministic zero diff, protected blobs unchanged, complete validation, the current outbox published and refetched, and explicit no-delta identity fields.
+## 7. Exact schemas and controls
 
-Empty primary commits are forbidden.
+- Outbox and receipt use separate exact status-specific schemas.
+- Extra keys, missing keys, wrong types, empty values, placeholders, identity mismatches, path mismatches, SHA-kind confusion, status inconsistency, and arbitrary next-action prose fail closed.
+- Every SHA matches exact lowercase `[0-9a-f]{40}`.
+- Uppercase and known repeated synthetic placeholders are rejected.
+- Every declared control calls real validation behavior with valid and adversarial fixtures.
+- Unknown or unmapped controls fail closed.
+- No route, identity, schema, path, publication, or acceptance control may return unconditional success.
+- The canonical state set and transition table are independent from the implementation table.
+- Mutation tests must prove that bypassing each evaluator family causes validation failure.
+- Exact primary changed paths equal actual commit evidence and remain inside frozen scope.
+- Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main.
 
-A bare return without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+## 8. Terminal consistency and handoff
 
-## Objective-gap proof and no-source-delta guard
+For a primary-required loop-only task, `BLOCKED_NO_REMOTE_OUTBOX`, `BLOCKED_NO_SOURCE_DELTA`, and `BLOCKED_PLUGIN_UNAVAILABLE` are illegal.
 
-A passing current validator proves only the checks that validator currently implements. It does not prove that a correction objective requiring validator expansion, new negative controls, report validation, installed-package evidence, bootstrap repair or additional policy coverage is already satisfied.
+Status, completion mode, phase, verifier classification, and next action must use exact allowed combinations.
 
-When the current inbox identifies concrete baseline omissions, Codex must build an objective-gap matrix before deciding whether source work exists. Each invariant must provide exact current source proof or an exact implementation delta.
+A successful receipt uses action code `OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND` and explicitly requests independent verification of the remote outbox and receipt.
 
-If `PRIMARY_WRITE_REQUIRED: true` and `ALLOW_VERIFIED_NO_DELTA: false`:
+A bare conversational return without the exact current publication evidence is `FAIL_NO_EXECUTION_EVIDENCE`.
 
-- `BLOCKED_NO_SOURCE_DELTA` is not a valid terminal status;
-- an empty primary commit remains forbidden;
-- Codex must implement every concrete missing invariant inside the frozen scope;
-- a genuine contradiction must be published as complete `BLOCKED_CONTRACT_CONTRADICTION` evidence;
-- a direct conversational blocker without the expected outbox is `FAIL_NO_EXECUTION_EVIDENCE`.
+## 9. Closed-loop completion
 
-## Full final-response outbox contract
+The closed-loop cycle becomes COMPLETE only after:
 
-Every success, verified-no-delta, correction, rejection or blocked completion that can reach the mailbox branch must publish the complete final response to the exact expected outbox.
+- source implementation is independently accepted;
+- a separate closed-loop canary is independently accepted;
+- exact accepted state is recorded in STATE and synchronized live memory.
 
-The outbox bytes and user-visible response bytes must be identical. Empty, summary-only, pointer-only, placeholder-only and handoff-only outboxes are forbidden.
+Plugin installation and installed-package acceptance belong to a separate lane and do not gate this loop-only cycle.
 
-The report must contain all applicable fields:
+## 10. Ownership
 
-- status and completion mode;
-- bridge slot, thread, lane, task and execution epoch;
-- fetched remote mailbox commit and STATE blob SHA;
-- active plugin source or `SOURCE_PLUGIN_FALLBACK_BOOTSTRAP` source identity;
-- invoked skills and material results;
-- model recommendation and actual model status;
-- objective-gap matrix;
-- inspected files and exact changed paths;
-- installed-package path, manifest, inventory, checksum and smoke evidence when applicable;
-- tests and validators with results;
-- failures and recovery attempts;
-- missing coverage;
-- baseline, primary commit and parent or explicit N/A reasons;
-- buildTag, commit label and smokeVersion or explicit N/A reasons;
-- Safari status;
-- expected outbox path;
-- remote outbox refetch identity;
-- byte-equality result;
-- exact next user action.
+Codex never edits `.ai-bridge/STATE.md`.
 
-## Publish-before-reply transaction
-
-Codex must:
-
-1. assemble the complete response;
-2. validate its schema;
-3. fetch the latest mailbox head;
-4. publish the exact bytes from a clean mailbox worktree;
-5. push fast-forward without force;
-6. refetch the remote mailbox and outbox;
-7. compare remote bytes with prepared bytes;
-8. only then show those same bytes to the user.
-
-Every recoverable publication failure must be retried automatically. A non-recoverable mailbox failure returns `BLOCKED_OUTBOX_PUBLICATION` without a ChatGPT handoff.
-
-## Root policy CI gate
-
-Root process changes must pass `tools/validate-orchestration-policy.py`.
-
-The final validator must enforce the three-slot contract, remote-state freshness, exact plugin-first routing, the narrow bootstrap fallback, runtime-gate absence, objective-gap proof, complete report schema, empty-outbox prohibition, publish-before-reply ordering, retry behavior, installed-package evidence contract and dynamic workflow coverage.
-
-The validator's own PASS cannot prove that no validator delta is required when the validator is itself the correction target.
-
-## Publication
-
-Primary and mailbox commits are fast-forward, exact-scope and remotely refetched. Manual SHA transcription is forbidden.
-
-If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`. If primary write access fails after one repair, return `BLOCKED_PUSH_AUTH` with complete evidence.
-
-Codex never edits STATE.
+ChatGPT activates a task by publishing inbox and claim first, updating STATE last, synchronizing live memory, and then issuing one exact numbered bridge command.
