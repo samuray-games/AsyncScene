@@ -59,7 +59,7 @@ class ClosedLoopContractTest(unittest.TestCase):
             self.assert_rejects(c.validate_identity, candidate)
 
     def test_generic_identity_comparison_accepts_supplied_active_only(self):
-        active = dict(c.ACTIVE_IDENTITY, threadId="BRIDGE-CUSTOM", expectedOutboxPath=".ai-bridge/outbox/BRIDGE-CUSTOM-02-codex.md")
+        active = dict(c.ACTIVE_IDENTITY, threadId="BRIDGE-CUSTOM", expectedOutboxPath=".ai-bridge/outbox/BRIDGE-CUSTOM-02-chatgpt.md")
         c.validate_identity(active, active)
         self.assert_rejects(c.validate_identity, c.ACTIVE_IDENTITY, active)
 
@@ -89,14 +89,12 @@ class ClosedLoopContractTest(unittest.TestCase):
             primaryCommitSha=c.BASE_COMMIT,
             primaryParent="N/A",
             changedPaths=[],
-            authorizedPaths=[],
+            authorizedPaths=list(c.AUTHORIZED_PATHS),
             reasonNoSourceDelta="deterministic regeneration produced zero diff",
         )
-        # verified-no-delta is schema-distinct but primary-required bridge 062 uses path equality; empty path is rejected.
-        self.assert_rejects(c.validate_outbox, payload)
-        payload["changedPaths"] = list(c.AUTHORIZED_PATHS)
-        payload["authorizedPaths"] = list(c.AUTHORIZED_PATHS)
         c.validate_outbox(payload)
+        payload["changedPaths"] = list(c.AUTHORIZED_PATHS)
+        self.assert_rejects(c.validate_outbox, payload)
 
     def test_terminal_tuples_are_exact(self):
         c.validate_terminal_tuple(outbox())
@@ -107,34 +105,37 @@ class ClosedLoopContractTest(unittest.TestCase):
     def test_changed_paths_exact_scope_and_mailbox_absence(self):
         c.validate_changed_paths(list(c.AUTHORIZED_PATHS), list(c.AUTHORIZED_PATHS))
         self.assert_rejects(c.validate_changed_paths, ["AGENTS.md"], list(c.AUTHORIZED_PATHS))
-        bad = list(c.AUTHORIZED_PATHS) + [".ai-bridge/outbox/BRIDGE-20260710-062-02-codex.md"]
+        bad = list(c.AUTHORIZED_PATHS) + [".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md"]
         self.assert_rejects(c.validate_changed_paths, bad, list(c.AUTHORIZED_PATHS))
         self.assert_rejects(c.validate_main_absence, [".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md"])
 
     def test_acceptance_requires_source_and_canary_not_plugin(self):
         self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": False}))
         self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": False, "canaryAccepted": True}))
-        self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}))
+        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}))
         self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": False}))
 
     def test_unknown_controls_fail_closed(self):
         self.assert_rejects(c.evaluate_control, "unknown", {})
 
     def test_real_mutation_proofs_cover_evaluator_families(self):
-        mutations = []
+        original = c.LEGAL_TRANSITIONS["CLOSED"]
+        try:
+            c.LEGAL_TRANSITIONS["CLOSED"] = ("PREPARING", "EXECUTING")
+            self.assert_rejects(c.self_check)
+        finally:
+            c.LEGAL_TRANSITIONS["CLOSED"] = original
         bad_identity = copy.deepcopy(c.ACTIVE_IDENTITY); bad_identity["threadId"] = "BRIDGE-20260710-061"
-        mutations.append((c.validate_identity, (bad_identity,)))
-        mutations.append((c.require_sha, ("ABCDEF0123456789ABCDEF0123456789ABCDEF01", "sha")))
-        mutations.append((c.validate_transition, ("CLOSED", "EXECUTING")))
-        bad_outbox = outbox(nextActionText="wrong")
-        mutations.append((c.validate_outbox, (bad_outbox,)))
-        bad_receipt = receipt(outboxPublicationCommit="a" * 40)
-        mutations.append((c.validate_receipt, (bad_receipt,)))
+        self.assert_rejects(c.validate_identity, bad_identity)
+        self.assert_rejects(c.require_sha, "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "sha")
+        self.assert_rejects(c.validate_transition, "CLOSED", "EXECUTING")
+        self.assert_rejects(c.validate_outbox, outbox(nextActionText="wrong"))
+        self.assert_rejects(c.validate_outbox, receipt())
+        self.assert_rejects(c.validate_outbox, outbox(), post_publication=True)
+        self.assert_rejects(c.validate_receipt, receipt(outboxPublicationCommit="a" * 40))
         bad_paths = list(c.AUTHORIZED_PATHS); bad_paths[0] = "node_modules/fsevents/package.json"
-        mutations.append((c.validate_changed_paths, (bad_paths, list(c.AUTHORIZED_PATHS))))
-        mutations.append((c.validate_main_absence, ([c.ACTIVE_IDENTITY["expectedOutboxPath"]],)))
-        for func, args in mutations:
-            self.assert_rejects(func, *args)
+        self.assert_rejects(c.validate_changed_paths, bad_paths, list(c.AUTHORIZED_PATHS))
+        self.assert_rejects(c.validate_main_absence, [], main_tree_paths=[c.ACTIVE_IDENTITY["expectedOutboxPath"]], main_commit=c.BASE_COMMIT)
 
     def test_self_check(self):
         report = c.self_check()

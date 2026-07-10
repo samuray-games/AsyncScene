@@ -32,7 +32,7 @@ ACTIVE_IDENTITY: Final[dict[str, Any]] = {
     "baseline": BASE_COMMIT,
     "inboxPath": ".ai-bridge/inbox/BRIDGE-20260710-062-01-chatgpt.md",
     "claimPath": ".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md",
-    "expectedOutboxPath": ".ai-bridge/outbox/BRIDGE-20260710-062-02-codex.md",
+    "expectedOutboxPath": ".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md",
     "expectedReceiptPath": ".ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md",
 }
 
@@ -62,7 +62,19 @@ LEGAL_TRANSITIONS: Final[dict[str, tuple[str, ...]]] = {
     "BLOCKED_EXTERNAL": ("SUPERSEDED", "RECOVERY_REQUIRED"),
     "SUPERSEDED": (),
 }
-TRANSITION_ORACLE: Final[frozenset[tuple[str, str]]] = frozenset((s, t) for s, targets in LEGAL_TRANSITIONS.items() for t in targets)
+TRANSITION_ORACLE: Final[frozenset[tuple[str, str]]] = frozenset({
+    ("CLOSED", "PREPARING"),
+    ("PREPARING", "READY_FOR_CODEX"), ("PREPARING", "BLOCKED_EXTERNAL"),
+    ("READY_FOR_CODEX", "EXECUTING"), ("READY_FOR_CODEX", "CORRECTION_REQUIRED"), ("READY_FOR_CODEX", "BLOCKED_EXTERNAL"),
+    ("EXECUTING", "PRIMARY_PUBLISHED"), ("EXECUTING", "RECOVERY_REQUIRED"), ("EXECUTING", "CORRECTION_REQUIRED"), ("EXECUTING", "BLOCKED_EXTERNAL"),
+    ("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING"),
+    ("OUTBOX_PUBLISHING", "AWAITING_CHATGPT_VERIFICATION"), ("OUTBOX_PUBLISHING", "RECOVERY_REQUIRED"), ("OUTBOX_PUBLISHING", "BLOCKED_EXTERNAL"),
+    ("AWAITING_CHATGPT_VERIFICATION", "ACCEPTED"), ("AWAITING_CHATGPT_VERIFICATION", "CORRECTION_REQUIRED"), ("AWAITING_CHATGPT_VERIFICATION", "RECOVERY_REQUIRED"), ("AWAITING_CHATGPT_VERIFICATION", "BLOCKED_EXTERNAL"),
+    ("ACCEPTED", "SUPERSEDED"),
+    ("CORRECTION_REQUIRED", "PREPARING"), ("CORRECTION_REQUIRED", "READY_FOR_CODEX"), ("CORRECTION_REQUIRED", "EXECUTING"), ("CORRECTION_REQUIRED", "RECOVERY_REQUIRED"),
+    ("RECOVERY_REQUIRED", "PREPARING"), ("RECOVERY_REQUIRED", "READY_FOR_CODEX"), ("RECOVERY_REQUIRED", "EXECUTING"), ("RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
+    ("BLOCKED_EXTERNAL", "SUPERSEDED"), ("BLOCKED_EXTERNAL", "RECOVERY_REQUIRED"),
+})
 
 TERMINAL_TUPLES: Final[dict[str, tuple[str, str, str, str, str, str]]] = {
     "PASS_PUSHED": ("PRIMARY_DELTA", "AWAITING_CHATGPT_VERIFICATION", "SOURCE_IMPLEMENTATION_PENDING_CHATGPT", "NONE", SUCCESS_ACTION_CODE, SUCCESS_ACTION_TEXT),
@@ -126,8 +138,8 @@ def _require_exact_keys(payload: dict[str, Any], keys: tuple[str, ...], schema_n
         raise ValueError(f"{schema_name} keys mismatch: missing={missing} extra={extra}")
 
 
-def _validate_path_list(paths: list[str], label: str, *, exact_scope: bool) -> None:
-    if not paths or any(not isinstance(p, str) or not p for p in paths):
+def _validate_path_list(paths: list[str], label: str, *, exact_scope: bool, allow_empty: bool = False) -> None:
+    if (not allow_empty and not paths) or any(not isinstance(p, str) or not p for p in paths):
         raise ValueError(f"{label} must be a non-empty list of paths")
     if any(PurePosixPath(p).is_absolute() or ".." in PurePosixPath(p).parts for p in paths):
         raise ValueError(f"{label} contains unsafe path")
@@ -140,15 +152,21 @@ def _validate_path_list(paths: list[str], label: str, *, exact_scope: bool) -> N
         raise ValueError(f"{label} must not include mailbox artifacts")
 
 
-def validate_changed_paths(actual: list[str], authorized: list[str]) -> None:
-    _validate_path_list(actual, "changedPaths", exact_scope=False)
+def validate_changed_paths(actual: list[str], authorized: list[str], *, allow_no_delta: bool = False) -> None:
+    _validate_path_list(actual, "changedPaths", exact_scope=False, allow_empty=allow_no_delta)
     _validate_path_list(authorized, "authorizedPaths", exact_scope=True)
-    if tuple(sorted(actual)) != tuple(sorted(authorized)):
-        raise ValueError("changedPaths must exactly equal authorizedPaths")
+    expected = () if allow_no_delta else tuple(sorted(authorized))
+    if tuple(sorted(actual)) != expected:
+        raise ValueError("changedPaths must be empty for verified no-delta or exactly equal authorizedPaths for primary delta")
 
 
-def validate_main_absence(paths: list[str]) -> None:
-    forbidden = [p for p in paths if p.startswith(ABSENT_ON_MAIN_PREFIXES)]
+def validate_main_absence(paths: list[str], *, main_tree_paths: list[str] | None = None, main_commit: str | None = None) -> None:
+    if main_commit is not None:
+        require_sha(main_commit, "mainCommit")
+    candidates = list(paths)
+    if main_tree_paths is not None:
+        candidates.extend(main_tree_paths)
+    forbidden = [p for p in candidates if p.startswith(ABSENT_ON_MAIN_PREFIXES)]
     if forbidden:
         raise ValueError(f"active bridge artifacts must remain absent from main: {forbidden}")
 
@@ -157,7 +175,6 @@ OUTBOX_PRE_PUBLICATION_SCHEMA: Final[tuple[str, ...]] = (
     "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
     "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults",
 )
-OUTBOX_POST_PUBLICATION_SCHEMA: Final[tuple[str, ...]] = OUTBOX_PRE_PUBLICATION_SCHEMA + ("outboxPublicationCommit", "outboxBlobSha")
 VERIFIED_NO_DELTA_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
     "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
     "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "reasonNoSourceDelta",
@@ -179,18 +196,20 @@ def validate_terminal_tuple(payload: dict[str, Any]) -> None:
 
 
 def validate_outbox(payload: dict[str, Any], *, post_publication: bool = False) -> None:
+    if post_publication:
+        raise ValueError("outbox is always pre-publication; publication evidence belongs only in receipt")
     status = payload.get("status")
-    schema = VERIFIED_NO_DELTA_OUTBOX_SCHEMA if status == "PASS_VERIFIED_NO_DELTA" else (OUTBOX_POST_PUBLICATION_SCHEMA if post_publication else OUTBOX_PRE_PUBLICATION_SCHEMA)
+    schema = VERIFIED_NO_DELTA_OUTBOX_SCHEMA if status == "PASS_VERIFIED_NO_DELTA" else OUTBOX_PRE_PUBLICATION_SCHEMA
     _require_exact_keys(payload, schema, "outbox")
-    if not post_publication and ("outboxPublicationCommit" in payload or "outboxBlobSha" in payload):
-        raise ValueError("pre-publication outbox must not contain publication evidence")
+    if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
+        raise ValueError("outbox must not contain publication evidence")
     validate_identity(payload["activeIdentity"])
     validate_terminal_tuple(payload)
     for field in ("stateBlobSha", "mailboxParentCommit", "primaryCommitSha"):
         require_sha(payload[field], field)
     if payload["primaryParent"] != "N/A":
         require_sha(payload["primaryParent"], "primaryParent")
-    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"])
+    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"], allow_no_delta=status == "PASS_VERIFIED_NO_DELTA")
     validate_main_absence(payload["changedPaths"])
 
 
@@ -202,12 +221,12 @@ def validate_receipt(payload: dict[str, Any]) -> None:
         require_sha(payload[field], field)
     if payload["primaryParent"] != "N/A":
         require_sha(payload["primaryParent"], "primaryParent")
-    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"])
+    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"], allow_no_delta=payload.get("status") == "PASS_VERIFIED_NO_DELTA")
     validate_main_absence(payload["changedPaths"])
 
 
 def accept_closed_loop_source(report: dict[str, Any]) -> bool:
-    return report.get("sourceImplementationAccepted") is True and report.get("canaryAccepted") is True and report.get("pluginPackageAccepted") is not True
+    return report.get("sourceImplementationAccepted") is True and report.get("canaryAccepted") is True
 
 
 def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
@@ -239,6 +258,9 @@ def load_state(data: dict[str, Any]) -> ClosedLoopState:
 
 def self_check() -> dict[str, Any]:
     validate_identity(active_state())
+    implementation_edges = frozenset((s, t) for s, targets in LEGAL_TRANSITIONS.items() for t in targets)
+    if implementation_edges != TRANSITION_ORACLE:
+        raise ValueError("implementation transition table diverges from immutable oracle")
     for current in LEGAL_STATES:
         for target in LEGAL_STATES:
             legal = (current, target) in TRANSITION_ORACLE

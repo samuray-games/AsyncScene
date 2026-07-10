@@ -31,11 +31,50 @@ REQUIRED_MARKERS = (
 )
 
 
+def _git_lines(*args: str) -> list[str]:
+    import subprocess
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).splitlines()
+
+
+def _sample_outbox(status: str = "PASS_PUSHED") -> dict[str, object]:
+    base = {
+        "status": status,
+        "completionMode": "PRIMARY_DELTA",
+        "phase": "AWAITING_CHATGPT_VERIFICATION",
+        "verifierClassification": "SOURCE_IMPLEMENTATION_PENDING_CHATGPT",
+        "recoveryClassification": "NONE",
+        "nextActionCode": CONTRACT.SUCCESS_ACTION_CODE,
+        "nextActionText": CONTRACT.SUCCESS_ACTION_TEXT,
+        "activeIdentity": CONTRACT.ACTIVE_IDENTITY,
+        "stateBlobSha": "0123456789abcdef0123456789abcdef01234567",
+        "mailboxParentCommit": "89abcdef0123456789abcdef0123456789abcdef",
+        "primaryCommitSha": "13579bdf2468ace013579bdf2468ace013579bdf",
+        "primaryParent": CONTRACT.BASE_COMMIT,
+        "changedPaths": list(CONTRACT.AUTHORIZED_PATHS),
+        "authorizedPaths": list(CONTRACT.AUTHORIZED_PATHS),
+        "validationResults": ["py_compile: PASS", "unittest: PASS", "policy: PASS", "diff_check: PASS"],
+    }
+    if status == "PASS_VERIFIED_NO_DELTA":
+        base.update({
+            "completionMode": "VERIFIED_NO_DELTA",
+            "primaryCommitSha": CONTRACT.BASE_COMMIT,
+            "primaryParent": "N/A",
+            "changedPaths": [],
+            "reasonNoSourceDelta": "deterministic regeneration produced zero diff",
+        })
+    return base
+
+
 def main() -> int:
     failures: list[str] = []
     result = CONTRACT.self_check()
     if result["activeIdentity"]["baseline"] != CONTRACT.BASE_COMMIT:
         failures.append("contract baseline mismatch")
+    implementation_edges = frozenset((s, t) for s, targets in CONTRACT.LEGAL_TRANSITIONS.items() for t in targets)
+    if implementation_edges != CONTRACT.TRANSITION_ORACLE:
+        failures.append("transition oracle is not equal to implementation table")
+    if "062-02-chatgpt.md" not in CONTRACT.ACTIVE_IDENTITY["expectedOutboxPath"]:
+        failures.append("active identity expected outbox is not ChatGPT-owned")
     for status in CONTRACT.ILLEGAL_PRIMARY_REQUIRED_STATUSES:
         try:
             CONTRACT.validate_terminal_tuple({"status": status})
@@ -43,6 +82,25 @@ def main() -> int:
             pass
         else:
             failures.append(f"illegal status accepted: {status}")
+    try:
+        CONTRACT.validate_outbox(dict(_sample_outbox(), outboxPublicationCommit="02468ace13579bdf02468ace13579bdf02468ace", outboxBlobSha="89abcdef0123456789abcdef0123456789abcdef"))
+        failures.append("outbox accepted receipt-only publication evidence")
+    except ValueError:
+        pass
+    try:
+        CONTRACT.validate_outbox(_sample_outbox("PASS_VERIFIED_NO_DELTA"))
+    except ValueError as exc:
+        failures.append(f"verified-no-delta empty changed paths rejected: {exc}")
+    if not CONTRACT.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}):
+        failures.append("plugin package state still gates source+canary acceptance")
+    try:
+        main_paths = _git_lines("ls-tree", "-r", "--name-only", "HEAD")
+        CONTRACT.validate_main_absence([], main_tree_paths=main_paths, main_commit=_git_lines("rev-parse", "HEAD")[0])
+    except Exception as exc:
+        failures.append(f"main artifact absence check failed: {exc}")
+    changed = _git_lines("diff", "--name-only", f"{CONTRACT.BASE_COMMIT}..HEAD")
+    if sorted(changed) != sorted(CONTRACT.AUTHORIZED_PATHS):
+        failures.append(f"changed paths do not match frozen scope: {changed}")
     for path in REQUIRED_DOCS:
         full = ROOT / path
         if not full.is_file():
