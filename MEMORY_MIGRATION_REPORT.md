@@ -2,11 +2,11 @@
 
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260710-069
-Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R5-20260710-2331JST
+Thread: BRIDGE-20260710-070
+Epoch: REPO-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION-R1-20260710-2343JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
-State memory revision: 2026-07-10-2331-JST
+State memory revision: 2026-07-10-2343-JST
 Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
 
 ## Objective
@@ -60,8 +60,8 @@ Use the repository index as the only bootstrap pointer:
 
 - `git fetch origin main coordination/chatgpt-codex-bridge`: PASS
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-068-01-chatgpt.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-068-claim-v1-codex.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-070-01-chatgpt.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-070-claim-v1-codex.md`: PASS
 - `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS
 - `git diff --check`: PASS
 - `wc -c .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `952990`
@@ -73,10 +73,10 @@ Use the repository index as the only bootstrap pointer:
 ## Evidence
 
 - Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current thread: `BRIDGE-20260710-069`
+- Current thread: `BRIDGE-20260710-070`
 - Current PR: `199`
 - Current correction paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current remote head: `dc2e35467a978196e209242f62ee869d058eb41c`
+- Current remote head: `35cb10270afc7a6344d1cea6b78ed11882863a50`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
 - Revision consistency: `PROJECT_MEMORY.md` root children and `.ai-memory/CURRENT.md` now share `2026-07-10-2315-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
@@ -86,11 +86,11 @@ Use the repository index as the only bootstrap pointer:
 
 ## Required check results
 
-- `git rev-parse HEAD` after commit: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
-- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
-- `git ls-remote origin refs/pull/199/head`: `abbf4179dfcdee5da666f4be3527cc667f6dccc8`
+- `git rev-parse HEAD` after commit: `35cb10270afc7a6344d1cea6b78ed11882863a50`
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `35cb10270afc7a6344d1cea6b78ed11882863a50`
+- `git ls-remote origin refs/pull/199/head`: `35cb10270afc7a6344d1cea6b78ed11882863a50`
 - `git ls-remote origin refs/pull/199/merge`: `d143f2c069adb617e629218cd29985e26b7886f2`
-- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `abbf4179dfcdee5da666f4be3527cc667f6dccc8`, base `main`, state `OPEN`
+- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `35cb10270afc7a6344d1cea6b78ed11882863a50`, base `main`, state `OPEN`
 
 ## Evidence requirements
 
