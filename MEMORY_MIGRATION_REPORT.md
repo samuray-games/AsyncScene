@@ -2,11 +2,11 @@
 
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260710-071
-Epoch: REPO-MEMORY-MIGRATION-FINAL-TWO-FILE-CORRECTION-R1-20260710-2352JST
+Thread: BRIDGE-20260710-072
+Epoch: REPO-MEMORY-MIGRATION-FINAL-NONSELFREF-CORRECTION-R1-20260710-2358JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
-State memory revision: 2026-07-10-2352-JST
+State memory revision: 2026-07-10-2358-JST
 Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
 
 ## Objective
@@ -28,7 +28,7 @@ Convert the project from a monolithic root memory document into a repository-fir
 | File | Expected revision | Status |
 | --- | --- | --- |
 | `PROJECT_MEMORY.md` | `2026-07-10-2315-JST` | fail-closed on mismatch |
-| `.ai-memory/CURRENT.md` | `2026-07-10-2352-JST` | aligned |
+| `.ai-memory/CURRENT.md` | `2026-07-10-2358-JST` | aligned |
 | `.ai-memory/DECISIONS.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/CANON.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/WORKFLOWS.md` | `2026-07-10-2315-JST` | aligned |
@@ -40,11 +40,11 @@ Repository identity: `samuray-games/AsyncScene`
 
 Accepted-main pending: `false`
 
-Repository memory revision: `2026-07-10-2315-JST`
+Repository memory revision: `2026-07-10-2358-JST`
 
 Child revisions:
 
-- `.ai-memory/CURRENT.md`: `2026-07-10-2352-JST`
+- `.ai-memory/CURRENT.md`: `2026-07-10-2358-JST`
 - `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
@@ -80,11 +80,11 @@ Repository identity: `samuray-games/AsyncScene`
 
 Accepted-main pending: `false`
 
-Repository memory revision: `2026-07-10-2315-JST`
+Repository memory revision: `2026-07-10-2358-JST`
 
 Child revisions:
 
-- `.ai-memory/CURRENT.md`: `2026-07-10-2352-JST`
+- `.ai-memory/CURRENT.md`: `2026-07-10-2358-JST`
 - `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
@@ -142,12 +142,12 @@ Authority order:
 
 - PR paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`, `MEMORY_MIGRATION_REPORT.md`, `TASKS.md`
 - Correction paths: `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current thread: `BRIDGE-20260710-071`
+- Current thread: `BRIDGE-20260710-072`
 - Current PR: `199`
 - Current correction head: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
 - Current remote head: `3adec40f72217712cc3ba60d2f5cd524e3b55d63`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
-- Revision consistency: `.ai-memory/CURRENT.md` now matches the active memory revision `2026-07-10-2352-JST`
+- Revision consistency: `.ai-memory/CURRENT.md` now matches the active memory revision `2026-07-10-2358-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Pre-split source proof: `origin/main:PROJECT_MEMORY.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Compact-root proof: `PROJECT_MEMORY.md` remains an index file rather than a copied timeline
