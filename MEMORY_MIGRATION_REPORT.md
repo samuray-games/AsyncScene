@@ -2,8 +2,8 @@
 
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260710-065
-Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R1-20260710-2109JST
+Thread: BRIDGE-20260710-066
+Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R2-20260710-2130JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
 
@@ -33,6 +33,7 @@ Use the repository index as the only bootstrap pointer:
 - `TASKS.md` now keeps the migration in review until independent acceptance.
 - Root revision fields are present and aligned with the current migration revision.
 - Legacy archive content is preserved as the pre-split root payload, not reauthored prose.
+- The archived legacy payload is byte-identical to `origin/main:PROJECT_MEMORY.md`.
 - `git diff --check` passes on the docs-only migration set.
 
 ## Evidence requirements
