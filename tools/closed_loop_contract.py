@@ -208,26 +208,31 @@ RECEIPT_SCHEMA: Final[tuple[str, ...]] = (
 )
 
 CLOUD_EXECUTION_REPORT_SCHEMA: Final[tuple[str, ...]] = (
-    "base", "head", "changedPaths", "validationResults", "mutationFamilies", "protectedPathResults", "mainArtifactAbsence", "nextActionCode",
+    "threadId", "executionEpoch", "taskNonce", "baseCommit", "headCommit", "changedPaths",
+    "validationResults", "mutationFamiliesTested", "protectedPathsChanged", "mailboxPathsChanged", "nextActionCode",
 )
 
-def validate_cloud_execution_report(report: dict[str, Any]) -> None:
+def validate_cloud_execution_report(report: dict[str, Any], *, expected_head: str | None = None) -> None:
     _require_exact_keys(report, CLOUD_EXECUTION_REPORT_SCHEMA, "cloudExecutionReport")
-    if report["base"] != BASE_COMMIT:
-        raise ValueError("report base does not match frozen baseline")
-    require_sha(report["head"], "head")
+    if report["threadId"] != ACTIVE_IDENTITY["threadId"] or report["executionEpoch"] != ACTIVE_IDENTITY["executionEpoch"] or report["taskNonce"] != ACTIVE_IDENTITY["taskNonce"]:
+        raise ValueError("report identity fields do not match active bridge identity")
+    if report["baseCommit"] != BASE_COMMIT:
+        raise ValueError("report baseCommit does not match frozen baseline")
+    require_sha(report["headCommit"], "headCommit")
+    if expected_head is not None:
+        require_sha(expected_head, "expectedHead")
+        if report["headCommit"] != expected_head:
+            raise ValueError("report headCommit does not match actual PR head evidence")
     validate_changed_paths(report["changedPaths"], list(AUTHORIZED_PATHS))
     if not isinstance(report["validationResults"], dict) or not report["validationResults"] or any(v != "PASS" for v in report["validationResults"].values()):
         raise ValueError("report validationResults must be a non-empty PASS map")
     expected_families = set(mutation_proof_matrix())
-    if set(report["mutationFamilies"]) != expected_families:
-        raise ValueError("report mutationFamilies do not cover every evaluator family")
-    protected = report["protectedPathResults"]
-    if not isinstance(protected, dict) or protected.get("mailboxArtifactsChanged") is not False or protected.get("outsideAuthorizedScopeChanged") is not False:
-        raise ValueError("report protectedPathResults must prove no mailbox or out-of-scope paths changed")
-    absence = report["mainArtifactAbsence"]
-    if not isinstance(absence, dict) or absence.get("commit") != BASE_COMMIT or absence.get("activeStateAbsent") is not True or absence.get("activeMailboxArtifactsAbsent") is not True:
-        raise ValueError("report mainArtifactAbsence must bind absence to frozen base commit")
+    if set(report["mutationFamiliesTested"]) != expected_families:
+        raise ValueError("report mutationFamiliesTested do not cover every evaluator family")
+    if report["protectedPathsChanged"] is not False:
+        raise ValueError("report protectedPathsChanged must be false")
+    if report["mailboxPathsChanged"] is not False:
+        raise ValueError("report mailboxPathsChanged must be false")
     if report["nextActionCode"] != PR_NEXT_ACTION_CODE:
         raise ValueError("report nextActionCode must return this PR for independent verification")
 
@@ -330,6 +335,21 @@ def mutation_proof_matrix() -> dict[str, str]:
     must_reject("main_absence", validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=BASE_COMMIT)
     must_reject("terminal_tuple", validate_terminal_tuple, {"status": "PASS_PUSHED", "nextActionCode": SUCCESS_ACTION_CODE})
     must_reject("acceptance", accept_closed_loop_source, {"sourceImplementationAccepted": True, "canaryAccepted": False})
+    bad_report = {
+        "threadId": ACTIVE_IDENTITY["threadId"],
+        "executionEpoch": ACTIVE_IDENTITY["executionEpoch"],
+        "taskNonce": ACTIVE_IDENTITY["taskNonce"],
+        "baseCommit": BASE_COMMIT,
+        "headCommit": "02468ace13579bdf02468ace13579bdf02468ace",
+        "changedPaths": list(AUTHORIZED_PATHS),
+        "validationResults": {"py_compile": "PASS"},
+        "mutationFamiliesTested": ["identity"],
+        "protectedPathsChanged": False,
+        "mailboxPathsChanged": False,
+        "nextActionCode": PR_NEXT_ACTION_CODE,
+    }
+    must_reject("cloud_report", validate_cloud_execution_report, bad_report, expected_head="13579bdf2468ace013579bdf2468ace013579bdf")
+    must_reject("evaluate_control", evaluate_control, "unknown", {})
     return families
 
 def accept_closed_loop_source(report: dict[str, Any]) -> bool:
@@ -343,14 +363,17 @@ def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
         "receipt": lambda: validate_receipt(payload["receipt"]) is None,
         "transition": lambda: validate_transition(payload["current"], payload["next"]) is None,
         "changed_paths": lambda: validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"]) is None,
-        "main_absence": lambda: validate_main_absence(payload["pathsOnMain"]) is None,
+        "main_absence": lambda: validate_main_absence([], main_tree_paths=payload["mainTreePaths"], main_commit=payload["mainCommit"]) is None,
         "terminal_tuple": lambda: validate_terminal_tuple(payload["terminal"]) is None,
         "sha": lambda: require_sha(payload["sha"], "sha") is None,
         "acceptance": lambda: accept_closed_loop_source(payload["report"]),
     }
     if name not in controls:
         raise ValueError(f"unknown control: {name}")
-    return bool(controls[name]())
+    try:
+        return bool(controls[name]())
+    except KeyError as exc:
+        raise ValueError(f"control payload missing required evidence: {exc.args[0]}") from exc
 
 
 def serialize(state: ClosedLoopState) -> dict[str, Any]:

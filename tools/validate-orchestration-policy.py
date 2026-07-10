@@ -103,26 +103,14 @@ def main() -> int:
     if sorted(changed) != sorted(CONTRACT.AUTHORIZED_PATHS):
         failures.append(f"changed paths do not match frozen scope: {changed}")
     report_json = os.environ.get("CLOUD_EXECUTION_REPORT_JSON")
-    if report_json:
+    head = _git_lines("rev-parse", "HEAD")[0]
+    if not report_json:
+        failures.append("CLOUD_EXECUTION_REPORT_JSON is required; validator must not manufacture PR evidence")
+    else:
         try:
-            CONTRACT.validate_cloud_execution_report(json.loads(report_json))
+            CONTRACT.validate_cloud_execution_report(json.loads(report_json), expected_head=head)
         except Exception as exc:
             failures.append(f"cloud execution report invalid: {exc}")
-    else:
-        sample_report = {
-            "base": CONTRACT.BASE_COMMIT,
-            "head": _git_lines("rev-parse", "HEAD")[0],
-            "changedPaths": changed,
-            "validationResults": {"py_compile": "PASS", "unittest": "PASS", "policy": "PASS", "diff_check": "PASS"},
-            "mutationFamilies": sorted(CONTRACT.mutation_proof_matrix()),
-            "protectedPathResults": {"mailboxArtifactsChanged": False, "outsideAuthorizedScopeChanged": False},
-            "mainArtifactAbsence": {"commit": CONTRACT.BASE_COMMIT, "activeStateAbsent": True, "activeMailboxArtifactsAbsent": True},
-            "nextActionCode": CONTRACT.PR_NEXT_ACTION_CODE,
-        }
-        try:
-            CONTRACT.validate_cloud_execution_report(sample_report)
-        except Exception as exc:
-            failures.append(f"generated cloud execution report invalid: {exc}")
     for path in REQUIRED_DOCS:
         full = ROOT / path
         if not full.is_file():

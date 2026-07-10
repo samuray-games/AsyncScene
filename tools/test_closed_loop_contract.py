@@ -127,7 +127,7 @@ class ClosedLoopContractTest(unittest.TestCase):
             self.assert_rejects(c.self_check)
         finally:
             c.LEGAL_TRANSITIONS["CLOSED"] = original
-        expected = {"identity", "sha", "transition", "outbox", "receipt_separation", "receipt", "path", "main_absence", "terminal_tuple", "acceptance"}
+        expected = {"identity", "sha", "transition", "outbox", "receipt_separation", "receipt", "path", "main_absence", "terminal_tuple", "acceptance", "cloud_report", "evaluate_control"}
         self.assertEqual(set(c.mutation_proof_matrix()), expected)
         patches = {
             "identity": ("validate_identity", lambda *args, **kwargs: None),
@@ -139,6 +139,8 @@ class ClosedLoopContractTest(unittest.TestCase):
             "main_absence": ("validate_main_absence", lambda *args, **kwargs: None),
             "terminal_tuple": ("validate_terminal_tuple", lambda *args, **kwargs: None),
             "acceptance": ("accept_closed_loop_source", lambda report: True),
+            "cloud_report": ("validate_cloud_execution_report", lambda *args, **kwargs: None),
+            "evaluate_control": ("evaluate_control", lambda *args, **kwargs: True),
         }
         for family, (name, replacement) in patches.items():
             original_func = getattr(c, name)
@@ -148,6 +150,60 @@ class ClosedLoopContractTest(unittest.TestCase):
                     c.mutation_proof_matrix()
             finally:
                 setattr(c, name, original_func)
+
+
+    def test_all_status_specific_outbox_schemas_execute(self):
+        status_payloads = {
+            "BLOCKED_EXTERNAL": outbox(
+                status="BLOCKED_EXTERNAL", completionMode="BLOCKED", phase="BLOCKED_EXTERNAL",
+                verifierClassification="BLOCKED", recoveryClassification="EXTERNAL",
+                nextActionCode="RESOLVE_EXTERNAL_BLOCKER",
+                nextActionText="Resolve the external blocker and rerun the same bridge command.",
+                externalBlocker="remote write access unavailable",
+            ),
+            "BLOCKED_OUTBOX_PUBLICATION": outbox(
+                status="BLOCKED_OUTBOX_PUBLICATION", completionMode="PUBLICATION_RECOVERY_REQUIRED", phase="RECOVERY_REQUIRED",
+                verifierClassification="FAILED", recoveryClassification="PUBLICATION",
+                nextActionCode="REPAIR_OUTBOX_PUBLICATION",
+                nextActionText="Repair outbox publication and rerun the same bridge command.",
+                publicationFailure="mailbox fast-forward push rejected",
+            ),
+            "CORRECTION_REQUIRED": outbox(
+                status="CORRECTION_REQUIRED", completionMode="CORRECTION_REQUIRED", phase="CORRECTION_REQUIRED",
+                verifierClassification="FAILED", recoveryClassification="SOURCE",
+                nextActionCode="IMPLEMENT_CORRECTION_AND_RERUN",
+                nextActionText="Implement the correction and rerun the same bridge command.",
+                correctionRequired="independent review found remaining defects",
+            ),
+        }
+        for status, payload in status_payloads.items():
+            c.validate_outbox(payload)
+            extra_key_payload = dict(payload, reasonNoSourceDelta="not valid for this status")
+            self.assert_rejects(c.validate_outbox, extra_key_payload)
+
+    def test_cloud_execution_report_issue_195_schema_and_head_binding(self):
+        report = {
+            "threadId": c.ACTIVE_IDENTITY["threadId"],
+            "executionEpoch": c.ACTIVE_IDENTITY["executionEpoch"],
+            "taskNonce": c.ACTIVE_IDENTITY["taskNonce"],
+            "baseCommit": c.BASE_COMMIT,
+            "headCommit": GOOD_SHA4,
+            "changedPaths": list(c.AUTHORIZED_PATHS),
+            "validationResults": {"py_compile": "PASS", "unittest": "PASS", "policy": "PASS", "diff_check": "PASS"},
+            "mutationFamiliesTested": sorted(c.mutation_proof_matrix()),
+            "protectedPathsChanged": False,
+            "mailboxPathsChanged": False,
+            "nextActionCode": c.PR_NEXT_ACTION_CODE,
+        }
+        c.validate_cloud_execution_report(report, expected_head=GOOD_SHA4)
+        self.assert_rejects(c.validate_cloud_execution_report, dict(report, headCommit=GOOD_SHA3), expected_head=GOOD_SHA4)
+        legacy = dict(report)
+        legacy["base"] = legacy.pop("baseCommit")
+        self.assert_rejects(c.validate_cloud_execution_report, legacy, expected_head=GOOD_SHA4)
+
+    def test_evaluate_control_main_absence_requires_tree_evidence(self):
+        self.assert_rejects(c.evaluate_control, "main_absence", {"mainTreePaths": [".ai-bridge/STATE.md"], "mainCommit": c.BASE_COMMIT})
+        self.assert_rejects(c.evaluate_control, "main_absence", {"pathsOnMain": []})
 
     def test_self_check(self):
         report = c.self_check()
