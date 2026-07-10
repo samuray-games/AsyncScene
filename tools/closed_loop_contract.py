@@ -8,6 +8,7 @@ from types import MappingProxyType
 from pathlib import Path, PurePosixPath
 import re
 import subprocess
+import os
 from typing import Any, Final
 
 CONTRACT_VERSION: Final[str] = "2.0.0"
@@ -365,12 +366,50 @@ def validate_receipt_separation(payload: dict[str, Any]) -> None:
     if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
         raise ValueError("publication evidence belongs only in receipt")
 
+def _git(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    root = Path(__file__).resolve().parents[1]
+    return subprocess.run(["git", *args], cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
+
+
+def _git_object_exists(rev: str) -> bool:
+    return _git("cat-file", "-e", rev, check=False).returncode == 0
+
+
+def ensure_frozen_base_evidence_available() -> None:
+    """Ensure the exact frozen base commit/tree is present in shallow CI checkouts.
+
+    GitHub pull_request jobs commonly use a depth-1 synthetic merge checkout. The
+    bridge contract still binds evidence to BASE_COMMIT exactly, so this helper
+    fetches only missing git evidence needed to inspect that exact commit/tree and
+    compute the required three-dot diff. It never substitutes another base.
+    """
+    require_sha(BASE_COMMIT, "baseCommit")
+    head = _git("rev-parse", "HEAD").stdout.strip()
+    needs_fetch = not _git_object_exists(f"{BASE_COMMIT}^{{commit}}") or _git("merge-base", BASE_COMMIT, head, check=False).returncode != 0
+    if not needs_fetch:
+        return
+    remote = os.environ.get("BRIDGE_BASE_REMOTE", "origin")
+    fetch_attempts = (
+        ("fetch", "--no-tags", "--prune", "--unshallow", remote),
+        ("fetch", "--no-tags", "--prune", remote, BASE_COMMIT),
+        ("fetch", "--no-tags", "--prune", "--depth=2147483647", remote),
+    )
+    errors: list[str] = []
+    for args in fetch_attempts:
+        result = _git(*args, check=False)
+        if result.returncode != 0:
+            errors.append(f"git {' '.join(args)}: {result.stderr.strip() or result.stdout.strip()}")
+        if _git_object_exists(f"{BASE_COMMIT}^{{commit}}") and _git("merge-base", BASE_COMMIT, head, check=False).returncode == 0:
+            return
+    raise RuntimeError("unable to fetch exact frozen base evidence: " + " | ".join(errors))
+
+
 def _git_tree_paths(commit: str) -> list[str]:
     require_sha(commit, "mainCommit")
     if commit != BASE_COMMIT:
         raise ValueError("main absence proof must bind to frozen base commit")
-    root = Path(__file__).resolve().parents[1]
-    return subprocess.check_output(["git", "ls-tree", "-r", "--name-only", commit], cwd=root, text=True).splitlines()
+    ensure_frozen_base_evidence_available()
+    return _git("ls-tree", "-r", "--name-only", commit).stdout.splitlines()
 
 def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
     controls = {

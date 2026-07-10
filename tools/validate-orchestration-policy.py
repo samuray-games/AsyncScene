@@ -131,10 +131,12 @@ def main() -> int:
     if not CONTRACT.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}):
         failures.append("plugin package state still gates source+canary acceptance")
     try:
+        CONTRACT.ensure_frozen_base_evidence_available()
         main_paths = _git_lines("ls-tree", "-r", "--name-only", CONTRACT.BASE_COMMIT)
         CONTRACT.validate_main_absence([], main_tree_paths=main_paths, main_commit=CONTRACT.BASE_COMMIT)
     except Exception as exc:
         failures.append(f"main artifact absence check failed: {exc}")
+    CONTRACT.ensure_frozen_base_evidence_available()
     changed = _git_lines("diff", "--name-only", f"{CONTRACT.BASE_COMMIT}..HEAD")
     if sorted(changed) != sorted(CONTRACT.AUTHORIZED_PATHS):
         failures.append(f"changed paths do not match frozen scope: {changed}")
