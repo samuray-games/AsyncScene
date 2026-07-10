@@ -63,3 +63,10 @@ The controller must enforce the exact transition table encoded in `tools/closed_
 - all legal transitions and all illegal transition pairs must be exercised by validation
 - unknown control names must fail closed
 - terminal publication proof uses an immutable outbox plus separate receipt, not a self-referential commit field
+
+## Bridge 062 plugin-independent closed-loop correction
+
+BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
+The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
+This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
