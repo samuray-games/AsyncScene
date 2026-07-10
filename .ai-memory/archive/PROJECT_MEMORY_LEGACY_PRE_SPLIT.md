@@ -3403,22 +3403,22 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - TEAM_LOG теперь архив: не обновляем его, используем только `PROJECT_MEMORY.md`/`PROGRESS_SCALE.md` как живой источник. `Память обновлена`.
 
 ### Полный цикл разработки (по `PROGRESS_SCALE.md`)
-- Этап 0 — нулевая точка, DONE (есть репо, цикл описан).
-- Этап 1 — каркас цикла, DONE (чат → конфликт → бой → исход → прогресс, структуры в `conflict-core.js`, `state.js`).
-- Этап 2 — self-check (сценарии и инварианты), DOING: критерии — повторяемый чек-лист, runtime-подтверждения, документированное PASS/FAIL. Требуется собрать чек-лист и прогнать вручную.
-- Этап 3 — UX честность, DONE (UI honesty phase подтверждена, нет "ложных обещаний").
-- Этапы 4–12 ещё не стартовали; следующее крупное направление — Stage 4 “Интерактивный язык” (tone profiles и data-driven тексты), и далее контент/ИИ/хаос/тесты.
+- Этап 0 — нулевая точка, DONE (есть репо, цикл описан).  
+- Этап 1 — каркас цикла, DONE (чат → конфликт → бой → исход → прогресс, структуры в `conflict-core.js`, `state.js`).  
+- Этап 2 — self-check (сценарии и инварианты), DOING: критерии — повторяемый чек-лист, runtime-подтверждения, документированное PASS/FAIL. Требуется собрать чек-лист и прогнать вручную.  
+- Этап 3 — UX честность, DONE (UI honesty phase подтверждена, нет "ложных обещаний").  
+- Этапы 4–12 ещё не стартовали; следующее крупное направление — Stage 4 “Интерактивный язык” (tone profiles и data-driven тексты), и далее контент/ИИ/хаос/тесты.  
 
 ### Напоминание по использованию TEAM_LOG
 - `TEAM_LOG.md` остаётся справочным, но не источником “живой” памяти: последние snapshot/обновления по этапам уже перенесены сюда. Правило: при ответах о прогрессе надеемся на `PROJECT_MEMORY.md` и `PROGRESS_SCALE.md`, TEAM_LOG используют только при явном запросе исторического контекста. `Память обновлена`.
 
 ### Дополнительные стадии (roadmap после этапа 3)
-[•] Stage X — Мобильная версия: адаптация UI/touch до первых тестов (core стабильность, пилот).
-[•] Stage X+1 — Английская локализация: переводы UI/системы/NPC после tone profiles, отдельный QA.
-[•] Stage X+2 — Японская локализация: tone profiles + UI адаптированы под JP.
-[•] Stage X+3 — Испанская локализация: особенности LAC (idiom, UX).
-[•] Stage X+4 — Китайская локализация: шрифты и CJK support.
-[•] Stage X+5 — Mafia mechanics: отдельная stage для социальной игры “мафия” с ролями, ночными действиями, голосованиями и сообщениями копов/мафии; включает проверки ночных/дневных циклов.
+[•] Stage X — Мобильная версия: адаптация UI/touch до первых тестов (core стабильность, пилот).  
+[•] Stage X+1 — Английская локализация: переводы UI/системы/NPC после tone profiles, отдельный QA.  
+[•] Stage X+2 — Японская локализация: tone profiles + UI адаптированы под JP.  
+[•] Stage X+3 — Испанская локализация: особенности LAC (idiom, UX).  
+[•] Stage X+4 — Китайская локализация: шрифты и CJK support.  
+[•] Stage X+5 — Mafia mechanics: отдельная stage для социальной игры “мафия” с ролями, ночными действиями, голосованиями и сообщениями копов/мафии; включает проверки ночных/дневных циклов.  
 Перечисленные стадии фиксируют будущие milestones, чтобы не забыть международные/мобильные/социальные инициативы после current stages.
 
 ### Stage 5 — Интерактивный язык (tone profiles)
@@ -3887,7 +3887,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Next: run V5 smoke and mark ECON-01 PASS if criteria are satisfied.
 - Next Prompt: |
     ```text
-
+    
     ECON-01 V5 smoke: tick+finalize until `crowd.decided && outcomeCount>0`, then assert outcome count stays steady after extra ticks/repeat finalizes (`delta=0`). Provide META + NO-DUP objects and then mark PASS.
     ```
 
@@ -3915,7 +3915,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Next: update QA assert with per-voter outcome checks and no-dup-on-extra-ticks validation before marking PASS; continue monitoring no-dup behavior and point invariants.
 - Next Prompt: |
     ```text
-
+    
     ECON-01 runtime now emits majority/minority outcomes for each voter. Adjust assertions: verify for each participation entry (by targetId/battleId) there is exactly one outcome (`majority` or `minority`), extra ticks do not add outcomes, and moneyLog shows no point/pool changes. After these checks pass, mark ECON-01 PASS.
     ```
 
@@ -3928,7 +3928,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Next: QA smoke V2 becomes canonical for ECON-01; once tie-aware checks pass, mark ECON-01 PASS.
 - Next Prompt: |
     ```text
-
+    
     ECON-01 smoke V2: tick until crowd decided/resolved (max 200 steps); if `endedBy` indicates tie/fifty, allow outcome=0 but confirm no entry growth on extra ticks; otherwise require exactly one `rep_crowd_vote_majority/minority` per participant keyed by battleId. After confirming behavior, update TASKS.md/PROJECT_MEMORY.md with PASS.
     ```
 
@@ -4083,12 +4083,12 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
 Память обновлена
 ### 2026-01-23 — Crowd Economy Reforge P0 LOGIC 2.3 PASS
-- Facts: P0 LOGIC 2.3 закрыт. `Game.Dev.drawAuditTrigger({ allowParallel:true })` теперь гарантирует, что `Game.State.battles` содержит реально активную draw с `b.crowd` до вызова `Game.ConflictCore.applyCrowdVoteTick`; `crowdCapDebug` читается из `tickResult.pendingMeta`/`crowdCapMeta`, `forceCap:true` добавляет голоса и сразу показывает `endedBy:"cap"` со `totalVotes >= cap`. Сниппеты: 1) без `forceCap` (`crowdCapDebug.totalVotes` может быть 0, `crowdCapDebugWhy:null`), 2) с `forceCap:true` (`crowdCapDebug.endedBy === "cap"` и `totalVotes >= cap`).
+- Facts: P0 LOGIC 2.3 закрыт. `Game.Dev.drawAuditTrigger({ allowParallel:true })` теперь гарантирует, что `Game.State.battles` содержит реально активную draw с `b.crowd` до вызова `Game.ConflictCore.applyCrowdVoteTick`; `crowdCapDebug` читается из `tickResult.pendingMeta`/`crowdCapMeta`, `forceCap:true` добавляет голоса и сразу показывает `endedBy:"cap"` со `totalVotes >= cap`. Сниппеты: 1) без `forceCap` (`crowdCapDebug.totalVotes` может быть 0, `crowdCapDebugWhy:null`), 2) с `forceCap:true` (`crowdCapDebug.endedBy === "cap"` и `totalVotes >= cap`).  
 - Changed: `AsyncScene/Web/dev/dev-checks.js`
-- Next: Ассистент — оформить чек‑лист и план P0 LOGIC 3 (лимиты/веса) и обозначить следующее усилие в Crowd Economy Reforge (если нужно — обновить прогресс в `PROGRESS_SCALE.md`).
+- Next: Ассистент — оформить чек‑лист и план P0 LOGIC 3 (лимиты/веса) и обозначить следующее усилие в Crowd Economy Reforge (если нужно — обновить прогресс в `PROGRESS_SCALE.md`).  
 - Next Prompt: |
     ```text
-
+    
     1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
     2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
     3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
@@ -4099,10 +4099,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke attempt (partial)
-- Facts: Получен smoke по event‑crowd с cap=2: событие `ed_npc_1768824460459_5057` завершилось сразу после голосов с логами `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund` (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L827-L830). Battle‑crowd cap не проверен (нет активных draw), fallback‑таймер не завершил раунд (`ev2` остаётся open).
-- Status: FAIL (недостаточно фактов для SMOKE шагов 2‑3).
+- Facts: Получен smoke по event‑crowd с cap=2: событие `ed_npc_1768824460459_5057` завершилось сразу после голосов с логами `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund` (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L827-L830). Battle‑crowd cap не проверен (нет активных draw), fallback‑таймер не завершил раунд (`ev2` остаётся open).  
+- Status: FAIL (недостаточно фактов для SMOKE шагов 2‑3).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: собрать выводы по battle‑crowd cap и по событию с истёкшим `endAt`, прислать логи/снимки; после повторного смоука поставить PASS.
+- Next: собрать выводы по battle‑crowd cap и по событию с истёкшим `endAt`, прислать логи/снимки; после повторного смоука поставить PASS.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4112,10 +4112,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke attempt (battle missing)
-- Facts: Повторный запуск cap‑смоука: `Game.State.battles.find(...draw...)` возвращает `undefined` (нет активного draw с crowd). При повторной команде console выдала `SyntaxError: Can't create duplicate variable: 'b'`. Событие `ev2` с `endAt` в прошлом остаётся `state: "open"`.
-- Status: FAIL (battle cap не проверен, fallback‑таймер по `ev2` не сработал).
+- Facts: Повторный запуск cap‑смоука: `Game.State.battles.find(...draw...)` возвращает `undefined` (нет активного draw с crowd). При повторной команде console выдала `SyntaxError: Can't create duplicate variable: 'b'`. Событие `ev2` с `endAt` в прошлом остаётся `state: "open"`.  
+- Status: FAIL (battle cap не проверен, fallback‑таймер по `ev2` не сработал).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: получить активный draw (или создать mock), выполнить trigger `Game.ConflictCore.applyCrowdVoteTick` без дублей переменных, собрать логи/снимки и повторить smоуk.
+- Next: получить активный draw (или создать mock), выполнить trigger `Game.ConflictCore.applyCrowdVoteTick` без дублей переменных, собрать логи/снимки и повторить smоуk.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4125,10 +4125,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke attempt (new event + fallback check)
-- Facts: Event cap снова подтвердился: `ed_npc_1768825011498_5301` resolved сразу (логи `last.jsonl` L853-L856 зафиксировали `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund`). Тест fallback (`ed_npc_1768825033595_1857`) с `cap=999` и истёкшим `endAt` остался `state: "open"` после `Game.Events.tick()`, `resolveAt` не изменился. Battle draw по-прежнему отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).
-- Status: FAIL (battle cap и fallback остаются без доказательств).
+- Facts: Event cap снова подтвердился: `ed_npc_1768825011498_5301` resolved сразу (логи `last.jsonl` L853-L856 зафиксировали `crowd_vote_cost`/`rep_crowd_vote_participation`/`crowd_vote_refund`). Тест fallback (`ed_npc_1768825033595_1857`) с `cap=999` и истёкшим `endAt` остался `state: "open"` после `Game.Events.tick()`, `resolveAt` не изменился. Battle draw по-прежнему отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).  
+- Status: FAIL (battle cap и fallback остаются без доказательств).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: дождаться/создать draw, запустить `Game.ConflictCore.applyCrowdVoteTick` с новой переменной, повторить таймерный trigger и собрать логи/состояния для PASS/FAIL.
+- Next: дождаться/создать draw, запустить `Game.ConflictCore.applyCrowdVoteTick` с новой переменной, повторить таймерный trigger и собрать логи/состояния для PASS/FAIL.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4138,10 +4138,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke attempt (fallback resolved, battle missing)
-- Facts: Новый fallback `ev2 = ed_npc_1768825240740_5929` завершился (`state: "resolved"`, `votesA=2`, `votesB=4`, `resolveAt=1768825250975`, `winnerSide="b"`), поэтому таймер теперь подтвердила финал; event cap по-прежнему подтверждён (`ed_npc_1768825212173_5735` resolved, логи `last.jsonl` L853-L856). Но battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).
-- Status: PROGRESS (fallback работает, battle cap остаётся в проверке).
+- Facts: Новый fallback `ev2 = ed_npc_1768825240740_5929` завершился (`state: "resolved"`, `votesA=2`, `votesB=4`, `resolveAt=1768825250975`, `winnerSide="b"`), поэтому таймер теперь подтвердила финал; event cap по-прежнему подтверждён (`ed_npc_1768825212173_5735` resolved, логи `last.jsonl` L853-L856). Но battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`).  
+- Status: PROGRESS (fallback работает, battle cap остаётся в проверке).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: получить активный draw или создать mock, инициировать `Game.ConflictCore.applyCrowdVoteTick` с отдельной переменной и зафиксировать `crowd.decided`; после этого вернуть PASS/FAIL.
+- Next: получить активный draw или создать mock, инициировать `Game.ConflictCore.applyCrowdVoteTick` с отдельной переменной и зафиксировать `crowd.decided`; после этого вернуть PASS/FAIL.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4151,10 +4151,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke attempt (latest event, fallback resolved)
-- Facts: Event cap снова подтверждён: `ed_npc_1768825468010_187` завершилось сразу, лог `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L864-L878 содержит `crowd_vote_cost`, `rep_crowd_vote_participation`, второй `crowd_vote_cost` и `crowd_vote_refund`. Аналогичный `ev2` с `cap=999` теперь resolved (`id: ed_npc_1768825495431_4347`, `votesA=1`, `votesB=4`, `resolveAt=1768825505469`, `winnerSide="b"`), следовательно fallback в порядке. Однако battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`), повторные команды вызывают либо `undefined`, либо `SyntaxError` при реиспользовании `const b`.
-- Status: PROGRESS (event caps и fallback работают, battle cap требуется).
+- Facts: Event cap снова подтверждён: `ed_npc_1768825468010_187` завершилось сразу, лог `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L864-L878 содержит `crowd_vote_cost`, `rep_crowd_vote_participation`, второй `crowd_vote_cost` и `crowd_vote_refund`. Аналогичный `ev2` с `cap=999` теперь resolved (`id: ed_npc_1768825495431_4347`, `votesA=1`, `votesB=4`, `resolveAt=1768825505469`, `winnerSide="b"`), следовательно fallback в порядке. Однако battle draw всё ещё отсутствует (`Game.State.battles.find(...draw...)` возвращает `undefined`), повторные команды вызывают либо `undefined`, либо `SyntaxError` при реиспользовании `const b`.  
+- Status: PROGRESS (event caps и fallback работают, battle cap требуется).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: найти или инициировать draw, вызвать `Game.ConflictCore.applyCrowdVoteTick(battleId)` с новым идентификатором (например `const drawBattle = ...`), получить `crowd.decided` и лог; тогда подтвердим PASS/FAIL.
+- Next: найти или инициировать draw, вызвать `Game.ConflictCore.applyCrowdVoteTick(battleId)` с новым идентификатором (например `const drawBattle = ...`), получить `crowd.decided` и лог; тогда подтвердим PASS/FAIL.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4165,9 +4165,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
 ### 2026-01-22 — Crowd vote cap smoke helper (draw creation trigger)
 - Facts: Чтобы избежать ожидания draw, можно вызвать `Game.Dev.drawAuditTrigger({ allowParallel: true })` из `dev-checks.js`: функция создаёт draw и сразу приводит его к статусу `draw`, возвращая `battleId`. После этого вызываем `Game.ConflictCore.applyCrowdVoteTick(battleId)` и следим за `crowd.decided`.
-- Status: NOTE (инструмент наготове, battle cap остаётся последним шагом).
+- Status: NOTE (инструмент наготове, battle cap остаётся последним шагом).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: запусти команду, сохрани `battleId` из ответа, затем вызови `Game.ConflictCore.applyCrowdVoteTick(battleId)` и покажи лог `finalizeCrowdVote` с `crowd.decided`. После этого можно отмечать PASS/FAIL.
+- Next: запусти команду, сохрани `battleId` из ответа, затем вызови `Game.ConflictCore.applyCrowdVoteTick(battleId)` и покажи лог `finalizeCrowdVote` с `crowd.decided`. После этого можно отмечать PASS/FAIL.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4177,9 +4177,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap: immediate check after event votes
-- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.
+- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.  
 - Changed: `AsyncScene/Web/events.js`
-- Next: Прогнать смоук на cap‑финализацию и fallback таймер; зафиксировать PASS/FAIL по шагам.
+- Next: Прогнать смоук на cap‑финализацию и fallback таймер; зафиксировать PASS/FAIL по шагам.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4189,10 +4189,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap smoke helper success (draw created)
-- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` вернул `{ ok: true, battleId: "dev_draw_1768826717150_3065" }`, а в логе `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L991-L994 зафиксированы `battle_draw_deposit`, `rep_battle_draw`, `crowd_draw_payout_me` по этому `battleId`. `Game.ConflictCore.applyCrowdVoteTick` сразу вернул `undefined`, потому что draw оказалась закрытым на момент вызова.
-- Status: NOTE (helper работает, но battle cap надо видеть в `crowd.decided`).
+- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` вернул `{ ok: true, battleId: "dev_draw_1768826717150_3065" }`, а в логе `AsyncScene/Web/AsyncSceneLogs/last.jsonl` L991-L994 зафиксированы `battle_draw_deposit`, `rep_battle_draw`, `crowd_draw_payout_me` по этому `battleId`. `Game.ConflictCore.applyCrowdVoteTick` сразу вернул `undefined`, потому что draw оказалась закрытым на момент вызова.  
+- Status: NOTE (helper работает, но battle cap надо видеть в `crowd.decided`).  
 - Changed: `PROJECT_MEMORY.md`
-- Next: проверь `Game.State.battles.find(x => x && x.id === "dev_draw_1768826717150_3065")` — если `crowd.decided` false, повтори `Game.ConflictCore.applyCrowdVoteTick` и пришли лог с финализацией; тогда можно закрывать PASS/FAIL.
+- Next: проверь `Game.State.battles.find(x => x && x.id === "dev_draw_1768826717150_3065")` — если `crowd.decided` false, повтори `Game.ConflictCore.applyCrowdVoteTick` и пришли лог с финализацией; тогда можно закрывать PASS/FAIL.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4202,9 +4202,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-22 — Crowd vote cap by total players
-- Facts: Введён cap голосов как `max(10, round(0.4 * TOTAL_PLAYERS))` для crowd‑ивентов и battle‑draw, cap хранится в `crowd.cap` с `crowd.totalPlayers`. Финализация происходит сразу по достижении cap (через `resolveCrowdCore`), таймер остаётся fallback. Рестарт при TIE пересчитывает cap. UI не трогался.
+- Facts: Введён cap голосов как `max(10, round(0.4 * TOTAL_PLAYERS))` для crowd‑ивентов и battle‑draw, cap хранится в `crowd.cap` с `crowd.totalPlayers`. Финализация происходит сразу по достижении cap (через `resolveCrowdCore`), таймер остаётся fallback. Рестарт при TIE пересчитывает cap. UI не трогался.  
 - Changed: `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js`
-- Next: Подготовить смоук‑скрипты на cap‑финализацию и fallback‑таймер; после валидации перейти к P0 LOGIC 3.
+- Next: Подготовить смоук‑скрипты на cap‑финализацию и fallback‑таймер; после валидации перейти к P0 LOGIC 3.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4213,9 +4213,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 
 Память обновлена
 ### 2026-01-21 — Crowd Economy Reforge P0 LOGIC 2.2 PASS + постоянное разрешение на запись
-- Facts: Получено постоянное разрешение на запись в `PROJECT_MEMORY.md` для фиксации результатов и прогресса. P0 LOGIC 2.2 подтверждён PASS: `rep_crowd_vote_participation` пишется при голосе (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L680-L681`), `crowd_vote_cost` фиксируется рядом, а `crowd_pool` не участвует в REP логах.
+- Facts: Получено постоянное разрешение на запись в `PROJECT_MEMORY.md` для фиксации результатов и прогресса. P0 LOGIC 2.2 подтверждён PASS: `rep_crowd_vote_participation` пишется при голосе (см. `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L680-L681`), `crowd_vote_cost` фиксируется рядом, а `crowd_pool` не участвует в REP логах.  
 - Changed: `PROJECT_MEMORY.md`
-- Next: подготовить P0 LOGIC 3 (лимиты/веса) и чек‑листы, обновить прогресс Crowd Economy Reforge (33%).
+- Next: подготовить P0 LOGIC 3 (лимиты/веса) и чек‑листы, обновить прогресс Crowd Economy Reforge (33%).  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4225,9 +4225,9 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 Память обновлена
 
 ### 2026-01-19 — Crowd Economy Reforge plan entered
-- Facts: Получен пошаговый план приведения экономики толпы к новой фазе “Crowd Economy Reforge” в рамках wave 1: P0 AUDIT (карта crowd_pool и смежных веток), P0 LOGIC (новое core-голосование), P0 LOGIC (интеграция с батл/сбежать/отвали), P0 UI (итоговая карточка с дельтами), P0 NPC (реальные NPC-голоса с тратаем 1 point), P1 UI (логирование прозрачности). План учёл модели GPT-5.1/5.2 Codex, сложности, ей смоуки и обязательное read-only для аудита. Прогресс по стадии Economy (wave 1) пока 0% — ни один шаг не выполнен.
+- Facts: Получен пошаговый план приведения экономики толпы к новой фазе “Crowd Economy Reforge” в рамках wave 1: P0 AUDIT (карта crowd_pool и смежных веток), P0 LOGIC (новое core-голосование), P0 LOGIC (интеграция с батл/сбежать/отвали), P0 UI (итоговая карточка с дельтами), P0 NPC (реальные NPC-голоса с тратаем 1 point), P1 UI (логирование прозрачности). План учёл модели GPT-5.1/5.2 Codex, сложности, ей смоуки и обязательное read-only для аудита. Прогресс по стадии Economy (wave 1) пока 0% — ни один шаг не выполнен.  
 - Changed: `PROJECT_MEMORY.md`
-- Next: ждать команды на запуск P0 AUDIT карты экономики crowd_pool; затем двигаться по очереди очереди шагов.
+- Next: ждать команды на запуск P0 AUDIT карты экономики crowd_pool; затем двигаться по очереди очереди шагов.  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -4329,7 +4329,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
 - Changed: `PROJECT_MEMORY.md`
 
 ### 2026-01-22 — Crowd vote cap: immediate check after event votes
-- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.
+- Facts: Для battle-backed draw из событий добавлен немедленный вызов `ConflictCore.applyCrowdVoteTick(battleId)` после голосов игрока/NPC и extra‑vote, чтобы cap‑финализация запускалась сразу после каждого голоса.  
 - Changed: `PROJECT_MEMORY.md`
 
 ### 2026-01-11 — Обновление правил Димы и итоги аудитов wave 3 UI / wave 4
@@ -5188,7 +5188,7 @@ DevTools verification snippet:
   - Gate owner (Валера) signs off.
 
 - Reminder: schedule Gate review within 5 business days. Attach `Game.Debug.moneyLog.slice(-100)` and `Game.Debug.toastLog.slice(-100)` to the gate ticket for final audit.
-
+ 
 ### 2026-01-17 — Assistant: insert startup memory & new-chat prompt
 - Purpose: сохранить компактный рабочий контекст и предоставить стартовый промт для нового чата (копировать в начало нового чата или хранить здесь).
 - Краткая память (ключевые факты):
@@ -5258,7 +5258,7 @@ DevTools verification snippet:
 Память обновлена
 
 ### 2026-01-20 — Unified crowd resolver core
-- Facts: Добавлен общий `resolveCrowdCore` в `conflict-core.js` и вызовы из `events.js`, теперь все плотные решения (A/B/TIE) выполняет единый core-решатель, таймер только инициирует резолв, а рестарт crowd вызывается только при TIE. Экономика (points/REP) осталась прежней и привязана к результату resolver, UI не трогался. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L625-L644` подтверждают, что сценарии с draw/резолв остались доступными.
+- Facts: Добавлен общий `resolveCrowdCore` в `conflict-core.js` и вызовы из `events.js`, теперь все плотные решения (A/B/TIE) выполняет единый core-решатель, таймер только инициирует резолв, а рестарт crowd вызывается только при TIE. Экономика (points/REP) осталась прежней и привязана к результату resolver, UI не трогался. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl#L625-L644` подтверждают, что сценарии с draw/резолв остались доступными.  
 - Changed: `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/events.js`
 - Next: Ассистент — документировать следующий шаг по Stage Economy wave 1 (P0 LOGIC 2.2) после проверки resolver; при подтверждении планировать лимиты/веса.
 - Next Prompt: |
@@ -5270,9 +5270,9 @@ DevTools verification snippet:
 Память обновлена
 
 ### 2026-01-21 — Crowd REP emission refactor
-- Facts: Убрано использование `crowd_pool` для REP в голосующих ветках: `events.js` начисляет +1⭐ сразу при голосе через `awardCrowdVoteRep`, `payoutCrowdPool` теперь отвечает только за возврат пойнтов, а `conflict-core.js` перестал пополнять REP при escape click/refund. Вместо пулов добавлен `rep_emitter` в `state.js`, и `transferRep` обслуживает его без списания. Логи показывают, что REP больше не зависит от crowd_pool и NPC получает +1⭐ при каждом голосе, а UI не тронут.
+- Facts: Убрано использование `crowd_pool` для REP в голосующих ветках: `events.js` начисляет +1⭐ сразу при голосе через `awardCrowdVoteRep`, `payoutCrowdPool` теперь отвечает только за возврат пойнтов, а `conflict-core.js` перестал пополнять REP при escape click/refund. Вместо пулов добавлен `rep_emitter` в `state.js`, и `transferRep` обслуживает его без списания. Логи показывают, что REP больше не зависит от crowd_pool и NPC получает +1⭐ при каждом голосе, а UI не тронут.  
 - Changed: `AsyncScene/Web/events.js` `AsyncScene/Web/conflict/conflict-core.js` `AsyncScene/Web/state.js`
-- Next: Ассистент — документировать DevTools-смоуки по 1⭐ за голос, отсутствие crowd_pool в `Game.Debug.moneyLog` для REP, и подготовить план P0 LOGIC 3 (лимиты/веса).
+- Next: Ассистент — документировать DevTools-смоуки по 1⭐ за голос, отсутствие crowd_pool в `Game.Debug.moneyLog` для REP, и подготовить план P0 LOGIC 3 (лимиты/веса).  
 - Next Prompt: |
     ```text
     Ответ Ассистента:
@@ -5281,8 +5281,8 @@ DevTools verification snippet:
 
 Память обновлена
 ### 2026-01-22 — Crowd vote cap battle validation still FAIL
-- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` возвращает `battleId`, но `Game.State.battles` в тот же тик содержит только один битл без `crowd`, поиск по `dev_draw_*` возвращает `null`, и `crowd.decided` не фиксируется. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl` показывают лишь `battle_draw_deposit/rep_battle_draw/crowd_draw_*`, без явного cap в battle.
-- Status: FAIL (battle cap остаётся непроверенным).
+- Facts: `Game.Dev.drawAuditTrigger({ allowParallel: true })` возвращает `battleId`, но `Game.State.battles` в тот же тик содержит только один битл без `crowd`, поиск по `dev_draw_*` возвращает `null`, и `crowd.decided` не фиксируется. Логи `AsyncScene/Web/AsyncSceneLogs/last.jsonl` показывают лишь `battle_draw_deposit/rep_battle_draw/crowd_draw_*`, без явного cap в battle. 
+- Status: FAIL (battle cap остаётся непроверенным). 
 - Changed: `PROJECT_MEMORY.md`
 - Next: сразу после helper’а надо получить `battleId`, посмотреть `crowd`, вызвать `Game.ConflictCore.applyCrowdVoteTick(battleId)` до финала, собрать before/after и лог. Пока PASS не поставить.
 - Next Prompt: |
@@ -5386,7 +5386,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогреть Stage 3 Step 5 smоуки (prod + `?dev=1`) и Stage 2 canonical checklist, затем зафиксировать PASS/FAIL.
 - Next Prompt: |
     ```text
-
+    
     1) Prod: после чистой загрузки попытайся прочитать `Game.State`, `Game.StateAPI`, `Game._ConflictCore.computeOutcome` и убедись, что в `Game.Debug.securityEvents` появляются только `forbidden_api_access`, а `tamper_detected` остаётся отсутствующим (boot/init phase молчит).
     2) После завершения boot вручную подменяй protected surface (например `Object.defineProperty(Game, "X", ...)` или `Game.StateAPI.addPoints = () => {}`) и проверь, что `tamper_detected` появляется в `Game.Debug.securityEvents` — защита без whitelist’ов срабатывает сразу.
     3) Dev (`?dev=1`): вызови `Game.__DEV.smokeStage3Step5Once()` и подтверди `tamper_detected` + `invalid_state_mutation` в `Game.Debug.securityEvents`.
@@ -5445,7 +5445,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — замерить длину `Game.__D.securityEvents` до/после 5 секунд простоя и подтвердить, что ручное чтение `Game.State` по-прежнему создаёт событие.
 - Next Prompt: |
     ```text
-
+    
     (1) В проде (без `?dev=1`) зафиксируй `const before = (Game?.__D?.securityEvents || []).length`, подожди 5+ секунд, затем `const after = (Game?.__D?.securityEvents || []).length` — должно быть `after === before`.
     (2) Выполни `console.log(Game.State)` один раз и убедись, что `Game.__D.securityEvents` увеличился на один `forbidden_api_access`.
     (3) Зафиксируй длины и последний event, обнови `PROJECT_MEMORY.md`/`TASKS.md`, отметь PASS/FAIL.
@@ -5472,7 +5472,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать Dev snippet, 5с growth probe и Prod snippet из SMOKE 8, задокументировать `evLen`/`rxLen`/`lastEv`/`lastRx`, убедиться, что `RangeError` не возникает, и только после этого обновить `PROJECT_MEMORY.md`/`TASKS.md` → PASS.
 - Next Prompt: |
     ```text
-
+    
     1) Dev (`?dev=1`): выполните сниппет из SMOKE 8 и сравните с `Game.__DEV.securityProbeOnce()` — `RangeError` не должно быть, длины/lastEv/lastRx должны совпадать или быть близкими.
     2) Growth probe: запустите 5с скрипт, убедитесь, что логи выводят `snap1`, `snap2`, `grew` без ошибок.
     3) Prod (без `?dev=1`): повторите первый сниппет, зафиксируйте `evLen`/`rxLen`/`lastEv`/`lastRx`, убедитесь, что `Game.__D` читается стабильно и нет `RangeError`.
@@ -5520,7 +5520,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать смоуки по ECON-01: event + participation, затем повторный tick не добавляет реп-записи.
 - Next Prompt: |
     ```text
-
+    
     1) Сделай `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a");` и дай событию разрешиться (`Game.Events.tick()`), потом проверь `Game.Debug.moneyLog.filter(t => t.reason.startsWith("rep_crowd_vote"))` — должны появиться `rep_crowd_vote_participation` и либо `rep_crowd_vote_majority` либо `rep_crowd_vote_minority` с `eventId === ev.id`.
     2) Сразу после этого снова вызови `Game.Events.tick()` по тому же `ev` и убедись, что новых записей `rep_crowd_vote_majority`/`rep_crowd_vote_minority` не добавилось.
     После смоуков обнови `PROJECT_MEMORY.md`/`TASKS.md` и отметь PASS/FAIL по ECON-01.
@@ -5536,7 +5536,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA — прогнать ECON-01 смоуки, подтвердить resolved + outcome + diag, и обновить TASKS/PROJECT_MEMORY.
 - Next Prompt: |
     ```text
-
+    
     1) `const ev = Game.Events.makeNpcEvent(); Game.Events.addEvent(ev); Game.Events.helpEvent(ev.id, "a"); Game.Events.tick(20); console.log({ decided: ev.crowd.decided, winner: ev.crowd.winner, endedBy: ev.crowd.endedBy }); console.table(Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && entry.reason.startsWith("rep_crowd_vote")));`
     2) `Game.Events.tick(); const filtered = Game.Debug.moneyLog.filter(entry => entry.battleId === ev.id && entry.reason && (entry.reason.startsWith("rep_crowd_vote_majority") || entry.reason.startsWith("rep_crowd_vote_minority"))); console.assert(filtered.filter(entry => entry.reason === "rep_crowd_vote_majority" || entry.reason === "rep_crowd_vote_minority").length === 2, "duplicate outcome?");`
     3) `const empty = Game.Events.makeNpcEvent(); Game.Events.addEvent(empty); Game.Events.finalizeOpenEventNow(empty); console.log({ resolved: empty.resolved, decided: empty.crowd.decided, winner: empty.crowd.winner, endedBy: empty.crowd.endedBy });`
@@ -5553,7 +5553,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
 - Next: QA to run V4 smoke (inspect signature, try both invocations), mark PASS when call fires marker, resolves event (decided true, winner/endedBy set, resolved ≠ "open"), outcome REP present.
 - Next Prompt: |
     ```text
-
+    
     ECON-01 V4 smoke: inspect `Game.Events.finalizeOpenEventNow` signature/source, then try `finalizeOpenEventNow(ev,{debugFinalize:true})` and `finalizeOpenEventNow(ev.id,{debugFinalize:true})`. PASS once one call fires `EVENT_FINALIZE_API_CALLED`, resolves event (decided/winner/endedBy non-null), and outcome REP entries appear.
     ```
 
@@ -6552,7 +6552,7 @@ Stage 3 Step 4 smoke helper готов — запусти `Game.__DEV.smokeStage
   - Added dev helper `Game.__DEV.smokeRespectLedgerOnce()` that runs the four scenario calls, exposes asserts for reasons, reports the dayKey, and includes a snapshot of the ledger entry for `me->npc`.
   (5) WARN CONSOLE_PANEL_RUN_OK id=panel_1771335789296_564b5b86aa0a Object{asserts: Object{chain: true, pairDaily: true, self: true}, dayKey: 2026-02-17, ledgerSnapshot: Object{lastByPairDay: Object{me: Object{npc_weak: 2026-02-17}}, lastInboundDay: Object{me: Object{}, npc_weak: Object{me: 2026-02-17}}}, npcId: npc_weak, ok: true, results: Object{r1: Object{delta: Object{points: 0, rep: 0}, meta: Object{dayKey: 2026-02-17, fromId: me, nowTs: 1771335789298, op: respect, stub: true, toId: npc_weak}, ok: true, reason: rep_respect_given}, r2: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335790298, op: respect, stub: true, toId: npc_weak}, ok: false, reason: respect_pair_daily}, r3: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: npc_weak, nowTs: 1771335791298, op: respect, stub: true, toId: me}, ok: false, reason: respect_no_chain}, r4: Object{delta: Object{points: 0, rep: 0}, meta: Object{blocked: true, dayKey: 2026-02-17, fromId: me, nowTs: 1771335792298, op: respect, stub: true, toId: me}, ok: false, reason: respect_self}}}
   (6) Still stub: no points cost, no rep_emitter, no moneyLog yet.
-- Next: QA (run the helper in dev console, confirm the expected ok/reasons and ledger day key, then report PASS/FAIL with the console object).
+- Next: QA (run the helper in dev console, confirm the expected ok/reasons and ledger day key, then report PASS/FAIL with the console object). 
 
 ### 2026-02-17 — ECON-08 Step 3C respect rep_emitter daily cap (smoke pending)
 - Status: PASS
