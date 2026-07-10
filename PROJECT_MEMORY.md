@@ -10,56 +10,34 @@ WORKFLOWS_CHILD_EXPECTED_REV: 2026-07-10-2315-JST
 ROOT_STATUS: FAIL_CLOSED_ON_REVISION_MISMATCH
 ACTIVE_CYCLE: CYCLE-20260710-002
 ACTIVE_THREAD: BRIDGE-20260710-070
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACCEPTED_MAIN_PENDING: true
-DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance marks it ready, merges it, publishes the source outbox and receipt, synchronizes repository memory and Google Drive bootstrap, and prepares the separate canary.
+SOURCE_HEAD: 3b301f9d6fbc1e1c7a35701421f6ec14efe14087
+ACCEPTED_MAIN_COMMIT: ee221ec1200928b3e7ee85d245e0349e4b1ce976
+ACCEPTED_MAIN_PENDING: false
+DRIVE_SYNC_STATUS: SYNCHRONIZED
+SOURCE_OUTBOX_COMMIT: 6db97c7e49090418955f3f818260799ba874cd81
+SOURCE_RECEIPT_COMMIT: 2c059cb8cb0b723720bb673c74354854075b0f13
+CANARY_STATUS: PENDING_ACTIVATION
+NEXT_ACTION: ChatGPT activates a separate transport canary for fresh Codex execution and independent ChatGPT verification.
 
-This file is the compact entrypoint for project memory.
-
-Authoritative order for memory and process facts:
-
+Authority order:
 1. Explicit user instruction
 2. Current repository primary evidence
 3. Active `.ai-bridge/STATE.md`
-4. `PROJECT_MEMORY.md`
-5. `.ai-memory/CURRENT.md`
-6. `.ai-memory/DECISIONS.md`
-7. `.ai-memory/CANON.md`
-8. `.ai-memory/WORKFLOWS.md`
-9. `TASKS.md`
-10. Google Drive bootstrap
-11. `.ai-memory/archive/`
+4. Repository memory index and children
+5. Google Drive bootstrap
+6. Immutable archive
 
-Source precedence and conflict behavior:
+Owned memory:
+- `.ai-memory/CURRENT.md`
+- `.ai-memory/DECISIONS.md`
+- `.ai-memory/CANON.md`
+- `.ai-memory/WORKFLOWS.md`
+- `.ai-memory/archive/`
 
-- Repository files are authoritative for current state.
-- GitHub is the fallback for reading memory away from the local workspace.
-- If repo memory and a remote bootstrap disagree, the repo wins and the mismatch must be logged in the next update.
-- If any compact-index child revision disagrees with `REPO_MEMORY_REV`, treat the index as stale and reject the claim.
-- Bridge artifacts 062/063 remain immutable history and are not rewritten.
-- ChatGPT verifies PR 199, then after acceptance performs readiness, merge, publication, memory synchronization, and separate canary preparation.
-
-Memory ownership:
-
-- `CURRENT.md`: live project state, active risks, current baselines, and next actions.
-- `DECISIONS.md`: stable process and architecture decisions.
-- `CANON.md`: product canon, UI rules, and accepted behavior boundaries.
-- `WORKFLOWS.md`: step-by-step workflows, validation recipes, and bootstrap procedures.
-- `archive/`: completed cycles and legacy history, append-only.
-
-Current migration status:
-
-- Repo-first memory split implemented.
-- The root index points to the owned repository memory files.
-- No runtime or game code was changed.
-- The legacy root timeline is preserved in `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`.
-- The root file is intentionally compact and fails closed when the revision fields diverge.
-
-Validation expectations:
-
-- Root and child revision checks must be consistent.
-- Relative links to owned memory files must resolve.
-- Legacy archive bytes must match the pre-split root payload.
-- `git diff --check` must pass before handoff.
+Status:
+- Repo-first memory source accepted and merged.
+- Runtime and game code untouched.
+- Legacy pre-split root preserved exactly.
+- Source outbox and receipt published separately.
+- Separate canary required before cycle completion.
