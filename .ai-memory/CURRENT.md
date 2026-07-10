@@ -6,6 +6,8 @@ FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
 CURRENT_MAIN_BASELINE: 7700be547972181f6a4a47379fcf4494f0c4aca3
 ACCEPTED_MAIN_PENDING: false
 DRIVE_SYNC_STATUS: SYNCHRONIZED
+CANARY_STATUS: ACCEPTED
+CYCLE_COMPLETE: true
 NEXT_ACTION: Resume normal project work.
 
 Repo identity:
@@ -40,7 +42,7 @@ Active state:
 - Root `PROJECT_MEMORY.md` is now the index and pointer file.
 - `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` hold the stable details.
 - `.ai-memory/archive/` holds immutable cycle history.
-- The corrected bridge cycle is completed and the compact root now reflects accepted state.
+- The corrected bridge cycle and separate canary are accepted and complete.
 
 Current constraints:
 
