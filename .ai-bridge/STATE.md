@@ -2,7 +2,7 @@
 
 BRIDGE_PROTOCOL: 3.3
 CLOSED_LOOP_STATUS: CANARY_ACTIVE
-COORDINATOR_MEMORY_REV: 2026-07-11-0132-JST
+COORDINATOR_MEMORY_REV: 2026-07-11-0137-JST
 CURRENT_MAIN_BASELINE: 7700be547972181f6a4a47379fcf4494f0c4aca3
 CURRENT_REQUIRED_BRANCH_SELECTION: coordination/chatgpt-codex-bridge
 
@@ -21,13 +21,13 @@ SOURCE_RECEIPT: .ai-bridge/receipts/BRIDGE-20260711-077-03-chatgpt.md
 SOURCE_RECEIPT_COMMIT: 2c059cb8cb0b723720bb673c74354854075b0f13
 SOURCE_RECEIPT_BLOB: a3f8f23de0be59d55163bda0bb9e13823fe927d2
 ACTIVE_INBOX: .ai-bridge/inbox/BRIDGE-20260711-078-01-chatgpt.md
-ACTIVE_INBOX_COMMIT: 7ec2b5b7108ae010bb50ae4e1d9334297b16918d
+ACTIVE_INBOX_COMMIT: 92a1242b5658bc6e405bdbffc569435c8525dfea
 ACTIVE_CLAIM: .ai-bridge/claims/BRIDGE-20260711-078-claim-v1-codex.md
 ACTIVE_CLAIM_COMMIT: fe58be627dc1a9e307a7edb4a37ab1f10757c383
 EXPECTED_CANARY_OUTBOX: .ai-bridge/outbox/BRIDGE-20260711-078-02-codex.md
 EXPECTED_CANARY_RECEIPT: .ai-bridge/receipts/BRIDGE-20260711-078-03-codex.md
-REQUIRED_MODEL: GPT-5.4
-REQUIRED_EFFORT: MEDIUM
+REQUIRED_MODEL: GPT-5.4 Mini
+REQUIRED_EFFORT: LOW
 ALLOW_VERIFIED_NO_DELTA: true
 TRIGGER_COMMAND: мост 3
 SOURCE_IMPLEMENTATION_STATUS: ACCEPTED_MERGED
@@ -36,6 +36,4 @@ GOOGLE_DRIVE_SYNC_STATUS: SYNCHRONIZED
 CANARY_STATUS: ACTIVE
 CYCLE_COMPLETE: false
 
-NOTE: `.ai-memory/CURRENT.md` remains the accepted source snapshot because direct post-merge connector writes were blocked. `PROJECT_MEMORY.md`, STATE, Drive bootstrap and the new cycle archive contain the newer post-merge status and have higher authority. Revision values still match.
-
-NEXT_ACTION: Select `coordination/chatgpt-codex-bridge`, open a fresh Codex chat with GPT-5.4 Medium, send `мост 3`, and execute issue 213.
+NEXT_ACTION: Select `coordination/chatgpt-codex-bridge`, open a fresh Codex chat with GPT-5.4 Mini Low, send `мост 3`, and execute issue 213.
