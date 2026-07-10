@@ -6,9 +6,6 @@ FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
 ACTIVE_CYCLE: CYCLE-20260710-002
 ACTIVE_THREAD: BRIDGE-20260710-070
 ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION
-ACTIVE_ISSUE: 211
-ACTIVE_PR: 199
-ACTIVE_PR_BRANCH: bridge/repo-memory-064
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
 ACCEPTED_MAIN_PENDING: true
 DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
@@ -54,7 +51,3 @@ Current constraints:
 - Preserve immutable bridge artifacts 062/063.
 - Keep future updates append-only in the archive and compact in this file.
 - Keep root and child revision fields aligned with `REPO_MEMORY_REV`.
-
-Next action:
-
-- Keep the external bootstrap text in the migration report synchronized with the repository index and archive.

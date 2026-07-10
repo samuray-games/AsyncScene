@@ -38,7 +38,7 @@ Keep the repository-first memory layout aligned with the source lane while keepi
 
 Repository identity: `samuray-games/AsyncScene`
 
-Accepted-main pending: `true`
+Accepted main commit: `PENDING_CHATGPT_ACCEPTANCE`
 
 Repository memory revision: `2026-07-10-2315-JST`
 
@@ -50,11 +50,15 @@ Child revisions:
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
 
-Drive sync status: `PENDING_CHATGPT_VERIFICATION`
+Drive sync status: `PENDING_CHATGPT_ACCEPTANCE`
+
+Fail-closed status: `BLOCKED_MEMORY_REVISION_MISMATCH`
 
 Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
 
-Branch selector rule: select `bridge/repo-memory-064` for Slot 3 only.
+Branch selector rule: ChatGPT explicitly names the required branch next to every Codex command.
+
+Next action: ChatGPT independently verifies PR 199, marks it ready after acceptance, merges it, publishes the source outbox, publishes the separate receipt, synchronizes repository memory and Google Drive bootstrap, and activates the separate canary.
 
 Authority order:
 
@@ -78,7 +82,7 @@ Use the repository index as the only bootstrap pointer:
 
 Repository identity: `samuray-games/AsyncScene`
 
-Accepted-main pending: `true`
+Accepted main commit: `PENDING_CHATGPT_ACCEPTANCE`
 
 Repository memory revision: `2026-07-10-2315-JST`
 
@@ -90,11 +94,15 @@ Child revisions:
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
 
-Drive sync status: `PENDING_CHATGPT_VERIFICATION`
+Drive sync status: `PENDING_CHATGPT_ACCEPTANCE`
+
+Fail-closed status: `BLOCKED_MEMORY_REVISION_MISMATCH`
 
 Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
 
-Branch selector rule: select `bridge/repo-memory-064` for Slot 3 only.
+Branch selector rule: ChatGPT explicitly names the required branch next to every Codex command.
+
+Next action: ChatGPT independently verifies PR 199, marks it ready after acceptance, merges it, publishes the source outbox, publishes the separate receipt, synchronizes repository memory and Google Drive bootstrap, and activates the separate canary.
 
 Authority order:
 
