@@ -3,9 +3,11 @@
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
 Thread: BRIDGE-20260710-067
-Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R3-20260710-2301JST
+Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R4-20260710-2315JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
+State memory revision: 2026-07-10-2315-JST
+Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
 
 ## Objective
 
@@ -21,11 +23,28 @@ Convert the project from a monolithic root memory document into a repository-fir
 - `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` -> exact preserved pre-split root memory bytes.
 - `.ai-memory/archive/CYCLE-20260709-001.md` -> immutable cycle history note.
 
+## Revision table
+
+| File | Expected revision | Status |
+| --- | --- | --- |
+| `PROJECT_MEMORY.md` | `2026-07-10-2315-JST` | fail-closed on mismatch |
+| `.ai-memory/CURRENT.md` | `2026-07-10-2315-JST` | aligned |
+| `.ai-memory/DECISIONS.md` | `2026-07-10-2315-JST` | aligned |
+| `.ai-memory/CANON.md` | `2026-07-10-2315-JST` | aligned |
+| `.ai-memory/WORKFLOWS.md` | `2026-07-10-2315-JST` | aligned |
+| `.ai-memory/archive/CYCLE-20260709-001.md` | `2026-07-10-2315-JST` | aligned |
+
 ## Proposed Google Drive bootstrap text
 
 Use the repository index as the only bootstrap pointer:
 
 > Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; and immutable history is in `.ai-memory/archive/`.
+
+## Full bootstrap text
+
+> Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; immutable history is in `.ai-memory/archive/`; and the preserved pre-split root payload is `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`.
+
+> Follow the ordered repository facts before any bridge or memory action: `AGENTS.override.md`, `AGENTS.md`, `PROJECT_MEMORY.md`, `TASKS.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, and `.ai-memory/archive/`.
 
 ## Validation summary
 
@@ -37,6 +56,37 @@ Use the repository index as the only bootstrap pointer:
 - `git diff --check` passes on the docs-only migration set.
 - Evidence is aligned to the current slot 3 correction lane and the current draft PR head.
 
+## Commands and results
+
+- `git fetch origin main coordination/chatgpt-codex-bridge`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-068-01-chatgpt.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-068-claim-v1-codex.md`: PASS
+- `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS
+- `git diff --check`: PASS
+- `wc -c .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `952990`
+- `sha256sum .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
+- `git show origin/main:PROJECT_MEMORY.md | wc -c`: PASS, `952990`
+- `git show origin/main:PROJECT_MEMORY.md | sha256sum`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
+- `git rev-parse HEAD`: PASS before new commit, `cb33d225c4069dc4d8b45066a1dcafe4bf4cabd4`
+
+## Evidence
+
+- Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
+- Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
+- Revision consistency: `PROJECT_MEMORY.md` root children and `.ai-memory/CURRENT.md` now share `2026-07-10-2315-JST`
+- Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
+- Pre-split source proof: `origin/main:PROJECT_MEMORY.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
+- Compact-root proof: `PROJECT_MEMORY.md` remains an index file rather than a copied timeline
+- Validation command: `git diff --check`
+
+## Required check results
+
+- `git rev-parse HEAD` after commit: pending
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: pending
+- `git ls-remote origin refs/pull/199/head`: pending
+- `git ls-remote origin refs/pull/199/merge`: pending
+
 ## Evidence requirements
 
 - Exact changed paths only in the authorized documentation scope.
@@ -44,6 +94,9 @@ Use the repository index as the only bootstrap pointer:
 - Revision consistency proof between root and child memory revisions.
 - Legacy preservation proof using byte count and SHA-256 for the archived pre-split root payload.
 - Compact-root proof showing the root file remains index-sized rather than a copied timeline.
+- Revision table showing every child file expectation.
+- Model rationale for the chosen documentation-level repair model.
+- Full bootstrap text including the ordered repository facts.
 
 ## Notes
 
