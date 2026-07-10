@@ -54688,11 +54688,11 @@ ALX_0206 | action_verbs | помяло`;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
   function smokeBoomerEconomyConflictTerminologyOnce() {
-    const buildTag = "build_2026_07_09_step4_4b_boomer_runtime_aggregate";
+    const buildTag = "build_2026_07_11_step4_4b_boomer_runtime_aggregate_fix3";
     const commit = "step4_4b_boomer_runtime_aggregate";
-    const smokeVersion = "boomer_step4_4b_runtime_aggregate_v20260709_001";
-    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_20260709a";
-    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_20260709a";
+    const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix3_v20260711_001";
+    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_fix3_20260711a";
+    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_fix3_20260711a";
     const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
     const snapshot = (data) => {
       if (!data) return null;
