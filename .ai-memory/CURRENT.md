@@ -4,12 +4,12 @@ MEMORY_REV: 2026-07-10-2315-JST
 EXPECTED_REV: 2026-07-10-2315-JST
 FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-068
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-CONTENT-CORRECTION
+ACTIVE_THREAD: BRIDGE-20260710-070
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
 ACCEPTED_MAIN_PENDING: true
 DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance performs readiness, merge, publication, memory synchronization, and separate canary preparation.
+NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance marks it ready, merges it, publishes the source outbox and receipt, synchronizes repository memory and Google Drive bootstrap, and prepares the separate canary.
 
 Repo identity:
 

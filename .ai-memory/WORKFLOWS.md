@@ -21,12 +21,14 @@ Authoritative order for memory and workflow facts:
 
 ## Bootstrap workflow
 
-1. Read `AGENTS.override.md` if present.
-2. Read `AGENTS.md`.
-3. Read `PROJECT_MEMORY.md`.
-4. Read `TASKS.md`.
-5. Read `.ai-memory/CURRENT.md`.
-6. Read the more specific memory files only if the task needs them.
+1. Fetch the live Google Drive bootstrap in the current response.
+2. Read the active `.ai-bridge/STATE.md`.
+3. Verify the current repository primary sources and exact runtime/code evidence.
+4. Read `PROJECT_MEMORY.md`.
+5. Read `.ai-memory/CURRENT.md` and validate every child revision.
+6. Read `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, and `TASKS.md` as relevant.
+7. Use archive history last.
+8. Fail closed on missing or mismatched revision.
 
 ## Update workflow
 
