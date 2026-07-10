@@ -1,15 +1,18 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-10-2358-JST
-EXPECTED_REV: 2026-07-10-2358-JST
+MEMORY_REV: 2026-07-11-0030-JST
+EXPECTED_REV: 2026-07-11-0030-JST
 FAIL_CLOSED_STATUS: ALIGNMENT_RESTORED
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260710-072
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-NONSELFREF-CORRECTION
+ACTIVE_THREAD: BRIDGE-20260711-075
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-AUTHORITY-DELTA
+ACTIVE_ISSUE: 210
+ACTIVE_PR: 199
+ACTIVE_PR_BRANCH: bridge/repo-memory-064
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
 ACCEPTED_MAIN_PENDING: false
 DRIVE_SYNC_STATUS: PUBLISHED_AWAITING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies the non-self-referential correction in PR 199, then records the synchronized repository memory and updated migration report.
+NEXT_ACTION: ChatGPT verifies the authority delta in PR 199, then records the synchronized repository memory and updated migration report.
 
 Repo identity:
 
@@ -43,7 +46,7 @@ Active state:
 - Root `PROJECT_MEMORY.md` is now the index and pointer file.
 - `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` hold the stable details.
 - `.ai-memory/archive/` holds immutable cycle history.
-- The corrected bridge cycle now points at the non-self-referential correction for the live memory index and migration report.
+- The corrected bridge cycle now points at the authority delta for the live memory index and migration report.
 
 Current constraints:
 
