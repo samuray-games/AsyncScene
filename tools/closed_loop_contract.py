@@ -1,58 +1,64 @@
 #!/usr/bin/env python3
-"""Shared closed-loop bridge contract for Asynchronia."""
+"""Executable closed-loop bridge contract for PR-mode bridge 062."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from pathlib import Path
-from typing import Final
+from dataclasses import asdict, dataclass
+from types import MappingProxyType
+from pathlib import Path, PurePosixPath
+import re
+import subprocess
+import os
+from typing import Any, Final
 
-CONTRACT_VERSION: Final[str] = "1.0.2"
-POLICY_VERSION: Final[str] = "CODEX_AUTOPILOT_2026_07_10_CLOSED_LOOP_V1_2"
+CONTRACT_VERSION: Final[str] = "2.0.0"
+POLICY_VERSION: Final[str] = "CLOUD_PR_CLOSED_LOOP_20260710_BRIDGE_062"
 BRIDGE_PROTOCOL: Final[str] = "3.3"
-EXPECTED_OUTBOX_SUFFIX: Final[str] = "-02-codex.md"
-FORBIDDEN_RUNTIME_GATE: Final[str] = "runtime-safety-gate"
+BASE_COMMIT: Final[str] = "32513f02daf5943c41f24328e1ae251d6bc85ccc"
+SUCCESS_ACTION_CODE: Final[str] = "OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND"
+SUCCESS_ACTION_TEXT: Final[str] = "Open a fresh ChatGPT verifier and send the same bridge command."
+PR_NEXT_ACTION_CODE: Final[str] = "RETURN_TO_CHATGPT_FOR_INDEPENDENT_PR_VERIFICATION"
+SHA_RE: Final[re.Pattern[str]] = re.compile(r"[0-9a-f]{40}")
+REPEATED_SHA_RE: Final[re.Pattern[str]] = re.compile(r"([0-9a-f])\1{39}")
+SYNTHETIC_SHA_VALUES: Final[frozenset[str]] = frozenset({chunk * 5 for chunk in ("cafebabe", "deadbeef", "feedface")}) | frozenset({char * 40 for char in "0123456789abcdef"})
 
+_ACTIVE_IDENTITY_DATA: Final[dict[str, Any]] = {
+    "cycle": "CYCLE-20260709-001",
+    "generation": 17,
+    "slot": 3,
+    "threadId": "BRIDGE-20260710-062",
+    "laneId": "PROCESS-CLOSED-LOOP-CLOUD-PR-HANDOFF",
+    "taskId": "TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
+    "executionEpoch": "CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST",
+    "taskNonce": "CLV1-062-PR-3251-1348",
+    "coordinatorMemoryRevision": "2026-07-10-1348-JST",
+    "baseline": BASE_COMMIT,
+    "inboxPath": ".ai-bridge/inbox/BRIDGE-20260710-062-01-chatgpt.md",
+    "claimPath": ".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md",
+    "expectedOutboxPath": ".ai-bridge/outbox/BRIDGE-20260710-062-02-chatgpt.md",
+    "expectedReceiptPath": ".ai-bridge/receipts/BRIDGE-20260710-062-03-chatgpt.md",
+}
+ACTIVE_IDENTITY: Final[MappingProxyType[str, Any]] = MappingProxyType(_ACTIVE_IDENTITY_DATA.copy())
+
+AUTHORIZED_PATHS: Final[tuple[str, ...]] = (
+    "AGENTS.md", "AGENTS.override.md", "PROCESS_ROOT_SYNC.md", "ORCHESTRATION.md", "BRIDGE.md",
+    "CODEX_BRIDGE_BOOTSTRAP.md", "CODEX_BRIDGE_RECOVERY.md", "CLOSED_LOOP_PROTOCOL.md",
+    "tools/closed_loop_contract.py", "tools/test_closed_loop_contract.py", "tools/validate-orchestration-policy.py",
+    "TASKS.md", "PROJECT_MEMORY.md",
+)
+ABSENT_ON_MAIN_PATHS: Final[tuple[str, ...]] = (".ai-bridge/STATE.md",)
+ABSENT_ON_MAIN_PREFIXES: Final[tuple[str, ...]] = (".ai-bridge/inbox/", ".ai-bridge/claims/", ".ai-bridge/outbox/", ".ai-bridge/receipts/")
+ILLEGAL_PRIMARY_REQUIRED_STATUSES: Final[frozenset[str]] = frozenset({"BLOCKED_NO_REMOTE_OUTBOX", "BLOCKED_NO_SOURCE_DELTA", "BLOCKED_PLUGIN_UNAVAILABLE"})
 LEGAL_STATES: Final[tuple[str, ...]] = (
-    "CLOSED",
-    "PREPARING",
-    "READY_FOR_CODEX",
-    "EXECUTING",
-    "PRIMARY_PUBLISHED",
-    "OUTBOX_PUBLISHING",
-    "AWAITING_CHATGPT_VERIFICATION",
-    "ACCEPTED",
-    "CORRECTION_REQUIRED",
-    "RECOVERY_REQUIRED",
-    "BLOCKED_EXTERNAL",
-    "SUPERSEDED",
+    "CLOSED", "PREPARING", "READY_FOR_CODEX", "EXECUTING", "PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING",
+    "AWAITING_CHATGPT_VERIFICATION", "ACCEPTED", "CORRECTION_REQUIRED", "RECOVERY_REQUIRED", "BLOCKED_EXTERNAL", "SUPERSEDED",
 )
-
-PLACEHOLDER_TEXT_VALUES: Final[frozenset[str]] = frozenset(
-    {
-        "N/A",
-        "NA",
-        "TBD",
-        "TODO",
-        "PENDING",
-        "PENDING_USER",
-        "UNKNOWN",
-        "MISSING",
-        "MISMATCH",
-        "placeholder",
-        "placeholder_sha",
-        "deadbeef",
-        "cafebabe",
-        "feedface",
-    }
-)
-
 LEGAL_TRANSITIONS: Final[dict[str, tuple[str, ...]]] = {
     "CLOSED": ("PREPARING",),
     "PREPARING": ("READY_FOR_CODEX", "BLOCKED_EXTERNAL"),
     "READY_FOR_CODEX": ("EXECUTING", "CORRECTION_REQUIRED", "BLOCKED_EXTERNAL"),
-    "EXECUTING": ("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING", "RECOVERY_REQUIRED", "CORRECTION_REQUIRED", "BLOCKED_EXTERNAL"),
-    "PRIMARY_PUBLISHED": ("OUTBOX_PUBLISHING", "AWAITING_CHATGPT_VERIFICATION"),
+    "EXECUTING": ("PRIMARY_PUBLISHED", "RECOVERY_REQUIRED", "CORRECTION_REQUIRED", "BLOCKED_EXTERNAL"),
+    "PRIMARY_PUBLISHED": ("OUTBOX_PUBLISHING",),
     "OUTBOX_PUBLISHING": ("AWAITING_CHATGPT_VERIFICATION", "RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
     "AWAITING_CHATGPT_VERIFICATION": ("ACCEPTED", "CORRECTION_REQUIRED", "RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
     "ACCEPTED": ("SUPERSEDED",),
@@ -61,793 +67,396 @@ LEGAL_TRANSITIONS: Final[dict[str, tuple[str, ...]]] = {
     "BLOCKED_EXTERNAL": ("SUPERSEDED", "RECOVERY_REQUIRED"),
     "SUPERSEDED": (),
 }
+TRANSITION_ORACLE: Final[frozenset[tuple[str, str]]] = frozenset({
+    ("CLOSED", "PREPARING"),
+    ("PREPARING", "READY_FOR_CODEX"), ("PREPARING", "BLOCKED_EXTERNAL"),
+    ("READY_FOR_CODEX", "EXECUTING"), ("READY_FOR_CODEX", "CORRECTION_REQUIRED"), ("READY_FOR_CODEX", "BLOCKED_EXTERNAL"),
+    ("EXECUTING", "PRIMARY_PUBLISHED"), ("EXECUTING", "RECOVERY_REQUIRED"), ("EXECUTING", "CORRECTION_REQUIRED"), ("EXECUTING", "BLOCKED_EXTERNAL"),
+    ("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING"),
+    ("OUTBOX_PUBLISHING", "AWAITING_CHATGPT_VERIFICATION"), ("OUTBOX_PUBLISHING", "RECOVERY_REQUIRED"), ("OUTBOX_PUBLISHING", "BLOCKED_EXTERNAL"),
+    ("AWAITING_CHATGPT_VERIFICATION", "ACCEPTED"), ("AWAITING_CHATGPT_VERIFICATION", "CORRECTION_REQUIRED"), ("AWAITING_CHATGPT_VERIFICATION", "RECOVERY_REQUIRED"), ("AWAITING_CHATGPT_VERIFICATION", "BLOCKED_EXTERNAL"),
+    ("ACCEPTED", "SUPERSEDED"),
+    ("CORRECTION_REQUIRED", "PREPARING"), ("CORRECTION_REQUIRED", "READY_FOR_CODEX"), ("CORRECTION_REQUIRED", "EXECUTING"), ("CORRECTION_REQUIRED", "RECOVERY_REQUIRED"),
+    ("RECOVERY_REQUIRED", "PREPARING"), ("RECOVERY_REQUIRED", "READY_FOR_CODEX"), ("RECOVERY_REQUIRED", "EXECUTING"), ("RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
+    ("BLOCKED_EXTERNAL", "SUPERSEDED"), ("BLOCKED_EXTERNAL", "RECOVERY_REQUIRED"),
+})
 
-REQUIRED_IDENTITY_FIELDS: Final[tuple[str, ...]] = (
-    "bridge_slot",
-    "thread_id",
-    "lane_id",
-    "task_id",
-    "execution_epoch",
-    "task_nonce",
-    "coordinator_memory_rev",
-    "baseline_sha",
-    "inbox_path",
-    "claim_path",
-    "expected_outbox_path",
-)
-
-REQUIRED_OUTBOX_FIELDS: Final[tuple[str, ...]] = (
-    "status",
-    "completionMode",
-    "primaryChanged",
-    "verifiedPrimarySha",
-    "primaryParent",
-    "changedPaths",
-    "authorizedPaths",
-    "validationResults",
-    "negativeControls",
-    "positiveControls",
-    "recoveryClassification",
-    "nextAction",
-    "remoteMailboxCommit",
-    "remoteStateSha",
-    "byteEquality",
-    "outboxPath",
-    "baselineSha",
-    "bridgeSlot",
-    "threadId",
-    "laneId",
-    "taskId",
-    "executionEpoch",
-    "taskNonce",
-    "coordinatorMemoryRev",
-    "policyVersion",
-)
-
-REPORT_IDENTITY_SHA_FIELDS: Final[tuple[str, ...]] = (
-    "verifiedPrimarySha",
-    "primaryParent",
-    "remoteMailboxCommit",
-    "remoteStateSha",
-    "baselineSha",
-)
-
-REQUIRED_OUTBOX_FIELD_TYPES: Final[dict[str, tuple[type, ...]]] = {
-    "status": (str,),
-    "completionMode": (str,),
-    "primaryChanged": (bool,),
-    "verifiedPrimarySha": (str,),
-    "primaryParent": (str,),
-    "changedPaths": (list,),
-    "authorizedPaths": (list,),
-    "validationResults": (list,),
-    "negativeControls": (list,),
-    "positiveControls": (list,),
-    "recoveryClassification": (str,),
-    "nextAction": (str,),
-    "remoteMailboxCommit": (str,),
-    "remoteStateSha": (str,),
-    "byteEquality": (str,),
-    "outboxPath": (str,),
-    "baselineSha": (str,),
-    "bridgeSlot": (int,),
-    "threadId": (str,),
-    "laneId": (str,),
-    "taskId": (str,),
-    "executionEpoch": (str,),
-    "taskNonce": (str,),
-    "coordinatorMemoryRev": (str,),
-    "policyVersion": (str,),
+TERMINAL_TUPLES: Final[dict[str, tuple[str, str, str, str, str, str]]] = {
+    "PASS_PUSHED": ("PRIMARY_DELTA", "AWAITING_CHATGPT_VERIFICATION", "SOURCE_IMPLEMENTATION_PENDING_CHATGPT", "NONE", SUCCESS_ACTION_CODE, SUCCESS_ACTION_TEXT),
+    "PASS_VERIFIED_NO_DELTA": ("VERIFIED_NO_DELTA", "AWAITING_CHATGPT_VERIFICATION", "SOURCE_IMPLEMENTATION_PENDING_CHATGPT", "NONE", SUCCESS_ACTION_CODE, SUCCESS_ACTION_TEXT),
+    "BLOCKED_EXTERNAL": ("BLOCKED", "BLOCKED_EXTERNAL", "BLOCKED", "EXTERNAL", "RESOLVE_EXTERNAL_BLOCKER", "Resolve the external blocker and rerun the same bridge command."),
+    "BLOCKED_OUTBOX_PUBLICATION": ("PUBLICATION_RECOVERY_REQUIRED", "RECOVERY_REQUIRED", "FAILED", "PUBLICATION", "REPAIR_OUTBOX_PUBLICATION", "Repair outbox publication and rerun the same bridge command."),
+    "CORRECTION_REQUIRED": ("CORRECTION_REQUIRED", "CORRECTION_REQUIRED", "FAILED", "SOURCE", "IMPLEMENT_CORRECTION_AND_RERUN", "Implement the correction and rerun the same bridge command."),
 }
-
-POSITIVE_CONTROLS: Final[tuple[str, ...]] = (
-    "fresh_remote_state_identity",
-    "legal_transition_closed_to_preparing",
-    "legal_transition_preparing_to_ready_for_codex",
-    "legal_transition_ready_for_codex_to_executing",
-    "legal_transition_executing_to_primary_published",
-    "legal_transition_primary_published_to_outbox_publishing",
-    "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification",
-    "legal_transition_awaiting_chatgpt_verification_to_accepted",
-    "legal_transition_correction_required_to_preparing",
-    "legal_transition_recovery_required_to_blocked_external",
-    "startup_outbox_absence_allowed",
-    "terminal_outbox_required",
-    "identity_fields_complete",
-    "identity_fields_exact",
-    "outbox_suffix_valid",
-    "outbox_schema_complete",
-    "report_preserves_primary_parent",
-    "report_preserves_baseline_sha",
-    "report_preserves_nonce",
-    "report_preserves_memory_rev",
-    "report_preserves_expected_outbox",
-    "report_preserves_remote_state_sha",
-    "report_preserves_remote_mailbox_commit",
-    "report_preserves_changed_paths",
-    "report_preserves_validation_results",
-    "report_preserves_negative_controls",
-    "report_preserves_positive_controls",
-    "report_preserves_next_action",
-    "report_preserves_completion_mode",
-    "report_preserves_byte_equality",
-    "recovery_selects_correction_required",
-    "recovery_selects_report_recovery",
-    "recovery_selects_publication_recovery",
-    "recovery_selects_blocked_external",
-    "canary_gate_blocks_product_acceptance",
-    "canary_gate_requires_separate_acceptance",
-    "task_router_route_present",
-    "scope_isolation_route_present",
-    "model_selector_route_present",
-    "parallel_scope_planner_route_present",
-    "closed_loop_controller_route_present",
-    "failure_routing_route_present",
-)
-
-NEGATIVE_CONTROLS: Final[tuple[str, ...]] = (
-    "reject_missing_status",
-    "reject_missing_completion_mode",
-    "reject_missing_primary_changed",
-    "reject_missing_verified_primary_sha",
-    "reject_missing_primary_parent",
-    "reject_missing_changed_paths",
-    "reject_missing_authorized_paths",
-    "reject_missing_validation_results",
-    "reject_missing_negative_controls",
-    "reject_missing_positive_controls",
-    "reject_missing_recovery_classification",
-    "reject_missing_next_action",
-    "reject_missing_remote_mailbox_commit",
-    "reject_missing_remote_state_sha",
-    "reject_missing_byte_equality",
-    "reject_missing_outbox_path",
-    "reject_missing_baseline_sha",
-    "reject_missing_bridge_slot",
-    "reject_missing_thread_id",
-    "reject_missing_lane_id",
-    "reject_missing_task_id",
-    "reject_missing_execution_epoch",
-    "reject_missing_task_nonce",
-    "reject_missing_coordinator_memory_rev",
-    "reject_missing_policy_version",
-    "reject_placeholder_n_a",
-    "reject_placeholder_pending",
-    "reject_placeholder_unknown",
-    "reject_placeholder_mismatch",
-    "reject_placeholder_todo",
-    "reject_placeholder_deadbeef",
-    "reject_placeholder_cafebabe",
-    "reject_placeholder_feedface",
-    "reject_empty_string_fields",
-    "reject_extra_schema_keys",
-    "reject_non_string_text_fields",
-    "reject_non_list_collection_fields",
-    "reject_non_bool_primary_changed",
-    "reject_invalid_byte_equality",
-    "reject_invalid_outbox_suffix",
-    "reject_invalid_bridge_slot",
-    "reject_invalid_thread_prefix",
-    "reject_invalid_transition",
-    "reject_unlisted_legal_state",
-    "reject_stale_remote_state",
-    "reject_mismatched_expected_outbox",
-    "reject_product_acceptance_without_canary",
-    "reject_report_recovery_without_flag",
-    "reject_publication_recovery_without_flag",
-    "reject_blocked_external_without_status",
-    "reject_terminal_byte_equality_mismatch",
-    "reject_terminal_primary_parent_placeholder",
-)
-
-NEGATIVE_CONTROL_CHECKS: Final[dict[str, str]] = {
-    "reject_missing_status": "status",
-    "reject_missing_completion_mode": "completionMode",
-    "reject_missing_primary_changed": "primaryChanged",
-    "reject_missing_verified_primary_sha": "verifiedPrimarySha",
-    "reject_missing_primary_parent": "primaryParent",
-    "reject_missing_changed_paths": "changedPaths",
-    "reject_missing_authorized_paths": "authorizedPaths",
-    "reject_missing_validation_results": "validationResults",
-    "reject_missing_negative_controls": "negativeControls",
-    "reject_missing_positive_controls": "positiveControls",
-    "reject_missing_recovery_classification": "recoveryClassification",
-    "reject_missing_next_action": "nextAction",
-    "reject_missing_remote_mailbox_commit": "remoteMailboxCommit",
-    "reject_missing_remote_state_sha": "remoteStateSha",
-    "reject_missing_byte_equality": "byteEquality",
-    "reject_missing_outbox_path": "outboxPath",
-    "reject_missing_baseline_sha": "baselineSha",
-    "reject_missing_bridge_slot": "bridgeSlot",
-    "reject_missing_thread_id": "threadId",
-    "reject_missing_lane_id": "laneId",
-    "reject_missing_task_id": "taskId",
-    "reject_missing_execution_epoch": "executionEpoch",
-    "reject_missing_task_nonce": "taskNonce",
-    "reject_missing_coordinator_memory_rev": "coordinatorMemoryRev",
-    "reject_missing_policy_version": "policyVersion",
-}
-
-RECOVERY_CLASSIFICATIONS: Final[tuple[str, ...]] = (
-    "CORRECTION_REQUIRED",
-    "REPORT_RECOVERY_REQUIRED",
-    "PUBLICATION_RECOVERY_REQUIRED",
-    "BLOCKED_EXTERNAL",
-)
-
-REQUIRED_RECEIPT_FIELDS: Final[tuple[str, ...]] = (
-    "status",
-    "completionMode",
-    "primaryChanged",
-    "verifiedPrimarySha",
-    "primaryParent",
-    "changedPaths",
-    "authorizedPaths",
-    "validationResults",
-    "negativeControls",
-    "positiveControls",
-    "recoveryClassification",
-    "nextAction",
-    "remoteMailboxCommit",
-    "remoteStateSha",
-    "byteEquality",
-    "outboxPath",
-    "receiptPath",
-    "baselineSha",
-    "bridgeSlot",
-    "threadId",
-    "laneId",
-    "taskId",
-    "executionEpoch",
-    "taskNonce",
-    "coordinatorMemoryRev",
-    "policyVersion",
-    "outboxPublicationCommit",
-    "outboxBlobSha",
-)
-
-REPORT_SCHEMA_KEYS: Final[tuple[str, ...]] = REQUIRED_OUTBOX_FIELDS
-
 
 @dataclass(frozen=True)
 class ClosedLoopState:
-    bridge_slot: int
-    thread_id: str
-    lane_id: str
-    task_id: str
-    execution_epoch: str
-    task_nonce: str
-    coordinator_memory_rev: str
-    baseline_sha: str
-    inbox_path: str
-    claim_path: str
-    expected_outbox_path: str
-    remote_state_sha: str
-    completion_mode: str
-    result_status: str
-    next_action: str
-    current_state: str
-    remote_mailbox_commit: str = ""
-    outbox_publication_commit: str = ""
-    outbox_blob_sha: str = ""
-    primary_commit_sha: str = ""
-    primary_parent_sha: str = "N/A"
-    changed_paths: tuple[str, ...] = ()
-    authorized_paths: tuple[str, ...] = ()
-    validation_results: tuple[str, ...] = ()
-    negative_controls: tuple[str, ...] = NEGATIVE_CONTROLS
-    positive_controls: tuple[str, ...] = POSITIVE_CONTROLS
-    recovery_classification: str = "CORRECTION_REQUIRED"
-    byte_equality: str = "UNKNOWN"
-    primary_changed: bool = False
-    receipt_path: str = ""
+    cycle: str
+    generation: int
+    slot: int
+    threadId: str
+    laneId: str
+    taskId: str
+    executionEpoch: str
+    taskNonce: str
+    coordinatorMemoryRevision: str
+    baseline: str
+    inboxPath: str
+    claimPath: str
+    expectedOutboxPath: str
+    expectedReceiptPath: str
 
 
-def load_state(data: dict) -> ClosedLoopState:
-    required = {
-        "bridge_slot",
-        "thread_id",
-        "lane_id",
-        "task_id",
-        "execution_epoch",
-        "task_nonce",
-        "coordinator_memory_rev",
-        "baseline_sha",
-        "inbox_path",
-        "claim_path",
-        "expected_outbox_path",
-        "remote_state_sha",
-        "completion_mode",
-        "result_status",
-        "next_action",
-        "current_state",
-    }
-    missing = sorted(required - data.keys())
-    if missing:
-        raise ValueError(f"missing fields: {missing}")
-    values = {
-        "bridge_slot": data["bridge_slot"],
-        "thread_id": data["thread_id"],
-        "lane_id": data["lane_id"],
-        "task_id": data["task_id"],
-        "execution_epoch": data["execution_epoch"],
-        "task_nonce": data["task_nonce"],
-        "coordinator_memory_rev": data["coordinator_memory_rev"],
-        "baseline_sha": data["baseline_sha"],
-        "inbox_path": data["inbox_path"],
-        "claim_path": data["claim_path"],
-        "expected_outbox_path": data["expected_outbox_path"],
-        "remote_state_sha": data["remote_state_sha"],
-        "completion_mode": data["completion_mode"],
-        "result_status": data["result_status"],
-        "next_action": data["next_action"],
-        "current_state": data["current_state"],
-        "remote_mailbox_commit": data.get("remote_mailbox_commit", ""),
-        "outbox_publication_commit": data.get("outbox_publication_commit", ""),
-        "outbox_blob_sha": data.get("outbox_blob_sha", ""),
-        "primary_commit_sha": data.get("primary_commit_sha", ""),
-        "primary_parent_sha": data.get("primary_parent_sha", "N/A"),
-        "changed_paths": tuple(data.get("changed_paths", ())),
-        "authorized_paths": tuple(data.get("authorized_paths", ())),
-        "validation_results": tuple(data.get("validation_results", ())),
-        "negative_controls": tuple(data.get("negative_controls", NEGATIVE_CONTROLS)),
-        "positive_controls": tuple(data.get("positive_controls", POSITIVE_CONTROLS)),
-        "recovery_classification": data.get("recovery_classification", "CORRECTION_REQUIRED"),
-        "byte_equality": data.get("byte_equality", "UNKNOWN"),
-        "primary_changed": data.get("primary_changed", False),
-        "receipt_path": data.get("receipt_path", ""),
-    }
-    return ClosedLoopState(**values)
+def active_state() -> ClosedLoopState:
+    return ClosedLoopState(**ACTIVE_IDENTITY)
 
 
-def validate_outbox_path(path: str) -> None:
-    if not path.endswith(EXPECTED_OUTBOX_SUFFIX):
-        raise ValueError("expected outbox path must end with -02-codex.md")
+def require_sha(value: str, label: str) -> None:
+    if not isinstance(value, str) or not SHA_RE.fullmatch(value):
+        raise ValueError(f"{label} must be a strict lowercase 40-hex sha")
+    if REPEATED_SHA_RE.fullmatch(value) or value in SYNTHETIC_SHA_VALUES:
+        raise ValueError(f"{label} must not be a repeated synthetic sha")
 
 
-def _require_non_empty_text(value: str, label: str) -> None:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"missing or invalid {label}")
-    if value.strip() in PLACEHOLDER_TEXT_VALUES:
-        raise ValueError(f"placeholder {label}")
-
-
-def _require_sha(value: str, label: str) -> None:
-    _require_non_empty_text(value, label)
-    normalized = value.strip().lower()
-    if len(normalized) != 40 or any(ch not in "0123456789abcdef" for ch in normalized):
-        raise ValueError(f"invalid sha for {label}")
-
-
-def validate_identity(state: ClosedLoopState) -> None:
-    if state.bridge_slot not in {1, 2, 3}:
-        raise ValueError("invalid bridge slot")
-    _require_non_empty_text(state.thread_id, "thread id")
-    if not state.thread_id.startswith("BRIDGE-"):
-        raise ValueError("invalid thread id")
-    _require_non_empty_text(state.lane_id, "lane id")
-    _require_non_empty_text(state.task_id, "task id")
-    _require_non_empty_text(state.execution_epoch, "execution epoch")
-    _require_non_empty_text(state.task_nonce, "task nonce")
-    _require_non_empty_text(state.coordinator_memory_rev, "coordinator memory revision")
-    validate_outbox_path(state.expected_outbox_path)
-    for label, value in (
-        ("baseline_sha", state.baseline_sha),
-        ("inbox_path", state.inbox_path),
-        ("claim_path", state.claim_path),
-        ("remote_state_sha", state.remote_state_sha),
-    ):
-        _require_non_empty_text(value, label)
-    _require_sha(state.baseline_sha, "baseline_sha")
-    _require_sha(state.remote_state_sha, "remote_state_sha")
-    if not state.inbox_path.startswith(".ai-bridge/inbox/"):
-        raise ValueError("invalid inbox path")
-    if not state.claim_path.startswith(".ai-bridge/claims/"):
-        raise ValueError("invalid claim path")
-    if state.receipt_path and not state.receipt_path.startswith(".ai-bridge/receipts/"):
-        raise ValueError("invalid receipt path")
+def validate_identity(candidate: ClosedLoopState | dict[str, Any], active: ClosedLoopState | dict[str, Any] | None = None) -> None:
+    expected_source = active if active is not None else active_state()
+    expected = asdict(expected_source) if isinstance(expected_source, ClosedLoopState) else dict(expected_source)
+    actual = asdict(candidate) if isinstance(candidate, ClosedLoopState) else dict(candidate)
+    if set(actual) != set(expected):
+        raise ValueError(f"identity fields mismatch: missing={sorted(set(expected)-set(actual))} extra={sorted(set(actual)-set(expected))}")
+    for key, expected_value in expected.items():
+        if actual[key] != expected_value:
+            raise ValueError(f"identity mismatch for {key}")
+    require_sha(actual["baseline"], "baseline")
 
 
 def validate_transition(current_state: str, next_state: str) -> None:
-    if current_state not in LEGAL_STATES:
-        raise ValueError(f"illegal current state: {current_state}")
-    if next_state not in LEGAL_STATES:
-        raise ValueError(f"illegal next state: {next_state}")
-    if next_state not in LEGAL_TRANSITIONS[current_state]:
+    if current_state not in LEGAL_STATES or next_state not in LEGAL_STATES:
+        raise ValueError("transition state is outside canonical 12-state set")
+    if (current_state, next_state) not in TRANSITION_ORACLE:
         raise ValueError(f"illegal transition: {current_state} -> {next_state}")
 
 
-def validate_report_schema(report: dict) -> None:
-    missing = [field for field in REPORT_SCHEMA_KEYS if field not in report]
-    if missing:
-        raise ValueError(f"missing report fields: {missing}")
-    extra = sorted(set(report) - set(REPORT_SCHEMA_KEYS))
-    if extra:
-        raise ValueError(f"unexpected report fields: {extra}")
-    for field in REPORT_SCHEMA_KEYS:
-        value = report[field]
-        allowed_types = REQUIRED_OUTBOX_FIELD_TYPES[field]
-        if not isinstance(value, allowed_types):
-            raise ValueError(f"invalid type for {field}")
-        if isinstance(value, str) and not value.strip():
-            raise ValueError(f"empty report field: {field}")
-        if isinstance(value, str) and value.strip() in PLACEHOLDER_TEXT_VALUES:
-            raise ValueError(f"placeholder report field: {field}")
-        if field in {"changedPaths", "authorizedPaths", "validationResults", "negativeControls", "positiveControls"}:
-            if any(not isinstance(item, str) or not item.strip() for item in value):
-                raise ValueError(f"invalid list contents for {field}")
-            if any(item.strip() in PLACEHOLDER_TEXT_VALUES for item in value):
-                raise ValueError(f"placeholder list contents for {field}")
-    for field in REPORT_IDENTITY_SHA_FIELDS:
-        _require_sha(report[field], field)
-    if report["status"] not in {"PASS_PUSHED", "PASS_VERIFIED_NO_DELTA", "BLOCKED_EXTERNAL", "BLOCKED_NO_SOURCE_DELTA", "BLOCKED_OUTBOX_PUBLICATION"}:
-        raise ValueError("invalid status")
-    if report["completionMode"] not in {"PRIMARY_DELTA", "VERIFIED_NO_DELTA", "CORRECTION_REQUIRED", "REPORT_RECOVERY_REQUIRED", "PUBLICATION_RECOVERY_REQUIRED"}:
-        raise ValueError("invalid completion mode")
-    if report["byteEquality"] != "MATCH":
-        raise ValueError("invalid byte equality")
-    if report["primaryChanged"] is False and report["primaryParent"] != "N/A":
-        raise ValueError("non-primary reports must use N/A parent")
-    if report["primaryParent"] != "N/A":
-        _require_non_empty_text(report["primaryParent"], "primaryParent")
-        _require_sha(report["primaryParent"], "primaryParent")
-    if not isinstance(report["changedPaths"], list):
-        raise ValueError("changedPaths must be a list")
-    if not isinstance(report["authorizedPaths"], list):
-        raise ValueError("authorizedPaths must be a list")
-    if "receiptPath" in report:
-        _require_non_empty_text(report["receiptPath"], "receiptPath")
-        if not isinstance(report["outboxPublicationCommit"], str):
-            raise ValueError("invalid type for outboxPublicationCommit")
-        _require_sha(report["outboxPublicationCommit"], "outboxPublicationCommit")
-        _require_sha(report["outboxBlobSha"], "outboxBlobSha")
-        if report["status"] not in {"PASS_PUSHED", "PASS_VERIFIED_NO_DELTA"}:
-            raise ValueError("receipt status mismatch")
+def _require_exact_keys(payload: dict[str, Any], keys: tuple[str, ...], schema_name: str) -> None:
+    missing = sorted(set(keys) - set(payload))
+    extra = sorted(set(payload) - set(keys))
+    if missing or extra:
+        raise ValueError(f"{schema_name} keys mismatch: missing={missing} extra={extra}")
 
 
-def classify_recovery(report: dict) -> str:
-    status = report.get("status")
-    completion_mode = report.get("completionMode")
-    if status == "BLOCKED_EXTERNAL":
-        return "BLOCKED_EXTERNAL"
-    if status == "BLOCKED_OUTBOX_PUBLICATION" or completion_mode == "PUBLICATION_RECOVERY_REQUIRED":
-        return "PUBLICATION_RECOVERY_REQUIRED"
-    if completion_mode == "REPORT_RECOVERY_REQUIRED":
-        return "REPORT_RECOVERY_REQUIRED"
-    return "CORRECTION_REQUIRED"
+def _validate_path_list(paths: list[str], label: str, *, exact_scope: bool, allow_empty: bool = False) -> None:
+    if (not allow_empty and not paths) or any(not isinstance(p, str) or not p for p in paths):
+        raise ValueError(f"{label} must be a non-empty list of paths")
+    if any(PurePosixPath(p).is_absolute() or ".." in PurePosixPath(p).parts for p in paths):
+        raise ValueError(f"{label} contains unsafe path")
+    if exact_scope and tuple(sorted(paths)) != tuple(sorted(AUTHORIZED_PATHS)):
+        raise ValueError(f"{label} must equal frozen authorized scope")
+    protected = sorted(set(paths) - set(AUTHORIZED_PATHS))
+    if protected:
+        raise ValueError(f"{label} contains protected paths: {protected}")
+    if any(p.startswith(".ai-bridge/") for p in paths):
+        raise ValueError(f"{label} must not include mailbox artifacts")
 
 
-def evaluate_control(name: str, payload: dict | None = None) -> bool:
-    payload = payload or {}
-    if name in NEGATIVE_CONTROL_CHECKS:
-        key = NEGATIVE_CONTROL_CHECKS[name]
-        value = payload.get(key)
-        if isinstance(value, list):
-            return key in payload and len(value) > 0
-        return key in payload and value not in {"", None, "N/A", "PENDING", "UNKNOWN"}
-    if name == "fresh_remote_state_identity":
-        return all(payload.get(field) for field in ("remote_state_sha", "baseline_sha"))
-    if name.startswith("reject_placeholder_"):
-        placeholder_map = {
-            "reject_placeholder_n_a": ("status", "N/A"),
-            "reject_placeholder_pending": ("status", "PENDING"),
-            "reject_placeholder_unknown": ("status", "UNKNOWN"),
-            "reject_placeholder_mismatch": ("status", "MISMATCH"),
-            "reject_placeholder_todo": ("status", "TODO"),
-            "reject_placeholder_deadbeef": ("verifiedPrimarySha", "deadbeef"),
-            "reject_placeholder_cafebabe": ("verifiedPrimarySha", "cafebabe"),
-            "reject_placeholder_feedface": ("verifiedPrimarySha", "feedface"),
-        }
-        key, value = placeholder_map[name]
-        return payload.get(key) != value
-    if name.startswith("legal_transition_"):
-        mapping = {
-            "legal_transition_closed_to_preparing": ("CLOSED", "PREPARING"),
-            "legal_transition_preparing_to_ready_for_codex": ("PREPARING", "READY_FOR_CODEX"),
-            "legal_transition_ready_for_codex_to_executing": ("READY_FOR_CODEX", "EXECUTING"),
-            "legal_transition_executing_to_primary_published": ("EXECUTING", "PRIMARY_PUBLISHED"),
-            "legal_transition_primary_published_to_outbox_publishing": ("PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING"),
-            "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": ("OUTBOX_PUBLISHING", "AWAITING_CHATGPT_VERIFICATION"),
-            "legal_transition_awaiting_chatgpt_verification_to_accepted": ("AWAITING_CHATGPT_VERIFICATION", "ACCEPTED"),
-            "legal_transition_correction_required_to_preparing": ("CORRECTION_REQUIRED", "PREPARING"),
-            "legal_transition_recovery_required_to_blocked_external": ("RECOVERY_REQUIRED", "BLOCKED_EXTERNAL"),
-        }
-        current, next_state = mapping[name]
-        return payload.get("current_state") == current and payload.get("next_state") == next_state
-    if name == "outbox_schema_complete":
-        return payload.get("report_complete") is True
-    if name == "startup_outbox_absence_allowed":
-        return payload.get("startup_outbox_absent") is True
-    if name == "terminal_outbox_required":
-        return payload.get("terminal_outbox_present") is True
-    if name.startswith("report_preserves_"):
-        key_map = {
-            "report_preserves_primary_parent": "primary_parent",
-            "report_preserves_baseline_sha": "baseline_sha",
-            "report_preserves_nonce": "task_nonce",
-            "report_preserves_memory_rev": "coordinator_memory_rev",
-            "report_preserves_expected_outbox": "expected_outbox_path",
-            "report_preserves_remote_state_sha": "remote_state_sha",
-            "report_preserves_remote_mailbox_commit": "remote_mailbox_commit",
-            "report_preserves_changed_paths": "changed_paths",
-            "report_preserves_validation_results": "validation_results",
-            "report_preserves_negative_controls": "negative_controls",
-            "report_preserves_positive_controls": "positive_controls",
-            "report_preserves_next_action": "next_action",
-            "report_preserves_completion_mode": "completion_mode",
-            "report_preserves_byte_equality": "byte_equality",
-        }
-        key = key_map[name]
-        value = payload.get(key)
-        if isinstance(value, list):
-            return len(value) > 0
-        return value not in {"", None, "N/A", "UNKNOWN"}
-    if name.startswith("recovery_selects_"):
-        return {
-            "recovery_selects_correction_required": payload.get("recovery_classification") == "CORRECTION_REQUIRED",
-            "recovery_selects_report_recovery": payload.get("recovery_classification") == "REPORT_RECOVERY_REQUIRED",
-            "recovery_selects_publication_recovery": payload.get("recovery_classification") == "PUBLICATION_RECOVERY_REQUIRED",
-            "recovery_selects_blocked_external": payload.get("recovery_classification") == "BLOCKED_EXTERNAL",
-        }[name]
-    if name in {
-        "task_router_route_present",
-        "scope_isolation_route_present",
-        "model_selector_route_present",
-        "parallel_scope_planner_route_present",
-        "closed_loop_controller_route_present",
-        "failure_routing_route_present",
-    }:
-        return True
-    if name in {"identity_fields_complete", "identity_fields_exact", "outbox_suffix_valid", "outbox_schema_complete", "fresh_remote_state_identity"}:
-        return True
-    if name == "canary_gate_blocks_product_acceptance":
-        return accept_product_work({"canaryAccepted": False, "currentState": "ACCEPTED"}) is False
-    if name == "canary_gate_requires_separate_acceptance":
-        return accept_product_work({"canaryAccepted": True, "currentState": "ACCEPTED"}) is True
-    if name == "reject_empty_string_fields":
-        return payload.get("status") != ""
-    if name == "reject_extra_schema_keys":
-        return "extra" not in payload
-    if name == "reject_non_string_text_fields":
-        return isinstance(payload.get("status"), str)
-    if name == "reject_non_list_collection_fields":
-        return isinstance(payload.get("changedPaths"), list)
-    if name == "reject_non_bool_primary_changed":
-        return isinstance(payload.get("primaryChanged"), bool)
-    if name == "reject_invalid_byte_equality":
-        return payload.get("byteEquality") == "MATCH"
-    if name == "reject_invalid_outbox_suffix":
-        return isinstance(payload.get("outboxPath"), str) and payload.get("outboxPath", "").endswith(EXPECTED_OUTBOX_SUFFIX)
-    if name == "reject_invalid_bridge_slot":
-        return payload.get("bridgeSlot") in {1, 2, 3}
-    if name == "reject_invalid_thread_prefix":
-        return isinstance(payload.get("threadId"), str) and payload.get("threadId", "").startswith("BRIDGE-")
-    if name == "reject_invalid_transition":
+def validate_changed_paths(actual: list[str], authorized: list[str], *, allow_no_delta: bool = False) -> None:
+    _validate_path_list(actual, "changedPaths", exact_scope=False, allow_empty=allow_no_delta)
+    _validate_path_list(authorized, "authorizedPaths", exact_scope=True)
+    expected = () if allow_no_delta else tuple(sorted(authorized))
+    if tuple(sorted(actual)) != expected:
+        raise ValueError("changedPaths must be empty for verified no-delta or exactly equal authorizedPaths for primary delta")
+
+
+def validate_main_absence(paths: list[str], *, main_tree_paths: list[str] | None = None, main_commit: str | None = None) -> None:
+    if main_commit is not None:
+        require_sha(main_commit, "mainCommit")
+    candidates = list(paths)
+    if main_tree_paths is not None:
+        candidates.extend(main_tree_paths)
+    forbidden = [p for p in candidates if p in ABSENT_ON_MAIN_PATHS or p.startswith(ABSENT_ON_MAIN_PREFIXES)]
+    if forbidden:
+        raise ValueError(f"active bridge artifacts must remain absent from main: {forbidden}")
+
+
+PRIMARY_DELTA_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults",
+)
+VERIFIED_NO_DELTA_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "reasonNoSourceDelta",
+)
+BLOCKED_EXTERNAL_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "externalBlocker",
+)
+BLOCKED_OUTBOX_PUBLICATION_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "publicationFailure",
+)
+CORRECTION_REQUIRED_OUTBOX_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults", "correctionRequired",
+)
+OUTBOX_SCHEMAS_BY_STATUS: Final[dict[str, tuple[str, ...]]] = {
+    "PASS_PUSHED": PRIMARY_DELTA_OUTBOX_SCHEMA,
+    "PASS_VERIFIED_NO_DELTA": VERIFIED_NO_DELTA_OUTBOX_SCHEMA,
+    "BLOCKED_EXTERNAL": BLOCKED_EXTERNAL_OUTBOX_SCHEMA,
+    "BLOCKED_OUTBOX_PUBLICATION": BLOCKED_OUTBOX_PUBLICATION_SCHEMA,
+    "CORRECTION_REQUIRED": CORRECTION_REQUIRED_OUTBOX_SCHEMA,
+}
+RECEIPT_SCHEMA: Final[tuple[str, ...]] = (
+    "status", "completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText",
+    "activeIdentity", "stateBlobSha", "mailboxParentCommit", "outboxPublicationCommit", "outboxBlobSha", "primaryCommitSha", "primaryParent", "changedPaths", "authorizedPaths", "validationResults",
+)
+
+CLOUD_EXECUTION_REPORT_SCHEMA: Final[tuple[str, ...]] = (
+    "threadId", "executionEpoch", "taskNonce", "baseCommit", "headCommit", "changedPaths",
+    "validationResults", "mutationFamiliesTested", "protectedPathsChanged", "mailboxPathsChanged", "nextActionCode",
+)
+
+REQUIRED_VALIDATION_RESULTS: Final[tuple[str, ...]] = ("py_compile", "unittest", "policy", "diff_check")
+
+def validate_cloud_execution_report(report: dict[str, Any], *, expected_head: str) -> None:
+    _require_exact_keys(report, CLOUD_EXECUTION_REPORT_SCHEMA, "cloudExecutionReport")
+    if report["threadId"] != ACTIVE_IDENTITY["threadId"] or report["executionEpoch"] != ACTIVE_IDENTITY["executionEpoch"] or report["taskNonce"] != ACTIVE_IDENTITY["taskNonce"]:
+        raise ValueError("report identity fields do not match active bridge identity")
+    if report["baseCommit"] != BASE_COMMIT:
+        raise ValueError("report baseCommit does not match frozen baseline")
+    require_sha(report["headCommit"], "headCommit")
+    require_sha(expected_head, "expectedHead")
+    if report["headCommit"] != expected_head:
+        raise ValueError("report headCommit does not match actual PR head evidence")
+    validate_changed_paths(report["changedPaths"], list(AUTHORIZED_PATHS))
+    if (
+        not isinstance(report["validationResults"], dict)
+        or tuple(sorted(report["validationResults"])) != tuple(sorted(REQUIRED_VALIDATION_RESULTS))
+        or any(report["validationResults"].get(key) != "PASS" for key in REQUIRED_VALIDATION_RESULTS)
+    ):
+        raise ValueError("report validationResults must contain exactly py_compile, unittest, policy, and diff_check as PASS")
+    expected_families = set(mutation_proof_matrix())
+    if set(report["mutationFamiliesTested"]) != expected_families:
+        raise ValueError("report mutationFamiliesTested do not cover every evaluator family")
+    if report["protectedPathsChanged"] is not False:
+        raise ValueError("report protectedPathsChanged must be false")
+    if report["mailboxPathsChanged"] is not False:
+        raise ValueError("report mailboxPathsChanged must be false")
+    if report["nextActionCode"] != PR_NEXT_ACTION_CODE:
+        raise ValueError("report nextActionCode must return this PR for independent verification")
+
+def validate_terminal_tuple(payload: dict[str, Any]) -> None:
+    status = payload.get("status")
+    if status in ILLEGAL_PRIMARY_REQUIRED_STATUSES:
+        raise ValueError(f"illegal primary-required status: {status}")
+    if status not in TERMINAL_TUPLES:
+        raise ValueError(f"unknown status: {status}")
+    keys = ("completionMode", "phase", "verifierClassification", "recoveryClassification", "nextActionCode", "nextActionText")
+    if tuple(payload.get(k) for k in keys) != TERMINAL_TUPLES[status]:
+        raise ValueError(f"terminal tuple mismatch for {status}")
+
+
+def validate_outbox(payload: dict[str, Any], *, post_publication: bool = False) -> None:
+    if post_publication:
+        raise ValueError("outbox is always pre-publication; publication evidence belongs only in receipt")
+    status = payload.get("status")
+    if status not in OUTBOX_SCHEMAS_BY_STATUS:
+        raise ValueError(f"unknown outbox status: {status}")
+    _require_exact_keys(payload, OUTBOX_SCHEMAS_BY_STATUS[status], f"outbox:{status}")
+    validate_receipt_separation(payload)
+    validate_identity(payload["activeIdentity"])
+    validate_terminal_tuple(payload)
+    for field in ("stateBlobSha", "mailboxParentCommit", "primaryCommitSha"):
+        require_sha(payload[field], field)
+    if payload["primaryParent"] != "N/A":
+        require_sha(payload["primaryParent"], "primaryParent")
+    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"], allow_no_delta=status == "PASS_VERIFIED_NO_DELTA")
+    validate_main_absence(payload["changedPaths"])
+
+
+def validate_receipt(payload: dict[str, Any]) -> None:
+    _require_exact_keys(payload, RECEIPT_SCHEMA, "receipt")
+    validate_identity(payload["activeIdentity"])
+    validate_terminal_tuple(payload)
+    for field in ("stateBlobSha", "mailboxParentCommit", "outboxPublicationCommit", "outboxBlobSha", "primaryCommitSha"):
+        require_sha(payload[field], field)
+    if payload["primaryParent"] != "N/A":
+        require_sha(payload["primaryParent"], "primaryParent")
+    validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"], allow_no_delta=payload.get("status") == "PASS_VERIFIED_NO_DELTA")
+    validate_main_absence(payload["changedPaths"])
+
+
+
+def _valid_outbox_payload(status: str = "PASS_PUSHED") -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "status": status,
+        "completionMode": "PRIMARY_DELTA",
+        "phase": "AWAITING_CHATGPT_VERIFICATION",
+        "verifierClassification": "SOURCE_IMPLEMENTATION_PENDING_CHATGPT",
+        "recoveryClassification": "NONE",
+        "nextActionCode": SUCCESS_ACTION_CODE,
+        "nextActionText": SUCCESS_ACTION_TEXT,
+        "activeIdentity": dict(ACTIVE_IDENTITY),
+        "stateBlobSha": "0123456789abcdef0123456789abcdef01234567",
+        "mailboxParentCommit": "89abcdef0123456789abcdef0123456789abcdef",
+        "primaryCommitSha": "13579bdf2468ace013579bdf2468ace013579bdf",
+        "primaryParent": BASE_COMMIT,
+        "changedPaths": list(AUTHORIZED_PATHS),
+        "authorizedPaths": list(AUTHORIZED_PATHS),
+        "validationResults": ["py_compile: PASS", "unittest: PASS", "policy: PASS", "diff_check: PASS"],
+    }
+    if status == "PASS_VERIFIED_NO_DELTA":
+        payload.update({
+            "completionMode": "VERIFIED_NO_DELTA",
+            "primaryCommitSha": BASE_COMMIT,
+            "primaryParent": "N/A",
+            "changedPaths": [],
+            "reasonNoSourceDelta": "deterministic regeneration produced zero diff",
+        })
+    return payload
+
+
+def mutation_proof_matrix() -> dict[str, str]:
+    families: dict[str, str] = {}
+
+    def must_reject(name: str, func: Any, *args: Any, **kwargs: Any) -> None:
         try:
-            validate_transition(payload.get("current_state", ""), payload.get("next_state", ""))
+            result = func(*args, **kwargs)
         except ValueError:
-            return False
-        return True
-    if name == "reject_unlisted_legal_state":
-        return payload.get("current_state") in LEGAL_STATES and payload.get("next_state") in LEGAL_STATES
-    if name == "reject_stale_remote_state":
-        return bool(payload.get("remote_state_sha")) and bool(payload.get("baseline_sha"))
-    if name == "reject_mismatched_expected_outbox":
-        return payload.get("expected_outbox_path") == ".ai-bridge/outbox/BRIDGE-20260710-055-02-codex.md"
-    if name == "reject_product_acceptance_without_canary":
-        return accept_product_work(payload)
-    if name == "reject_report_recovery_without_flag":
-        return payload.get("completionMode") != "REPORT_RECOVERY_REQUIRED"
-    if name == "reject_publication_recovery_without_flag":
-        return payload.get("completionMode") != "PUBLICATION_RECOVERY_REQUIRED"
-    if name == "reject_blocked_external_without_status":
-        return payload.get("status") == "BLOCKED_EXTERNAL"
-    if name == "reject_terminal_byte_equality_mismatch":
-        return payload.get("byteEquality") == "MATCH"
-    if name == "reject_terminal_primary_parent_placeholder":
-        return payload.get("primaryParent") != "N/A"
-    raise ValueError(f"unknown control: {name}")
+            families[name] = "detected"
+            return
+        if result is False:
+            families[name] = "detected"
+            return
+        raise ValueError(f"mutation family was not detected: {name}")
+
+    bad_identity = dict(ACTIVE_IDENTITY, threadId="BRIDGE-20260710-061")
+    must_reject("identity", validate_identity, bad_identity)
+    must_reject("sha", require_sha, "ABCDEF0123456789ABCDEF0123456789ABCDEF01", "sha")
+    must_reject("transition", validate_transition, "CLOSED", "EXECUTING")
+    must_reject("outbox", validate_outbox, dict(_valid_outbox_payload(), nextActionText="wrong"))
+    receipt_like = dict(_valid_outbox_payload(), outboxPublicationCommit="02468ace13579bdf02468ace13579bdf02468ace", outboxBlobSha="89abcdef0123456789abcdef0123456789abcdef")
+    must_reject("receipt_separation", validate_receipt_separation, receipt_like)
+    must_reject("receipt", validate_receipt, dict(receipt_like, outboxPublicationCommit="a" * 40))
+    bad_paths = list(AUTHORIZED_PATHS); bad_paths[0] = "node_modules/fsevents/package.json"
+    must_reject("path", validate_changed_paths, bad_paths, list(AUTHORIZED_PATHS))
+    must_reject("main_absence", validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=BASE_COMMIT)
+    must_reject("terminal_tuple", validate_terminal_tuple, {"status": "PASS_PUSHED", "nextActionCode": SUCCESS_ACTION_CODE})
+    must_reject("acceptance", accept_closed_loop_source, {"sourceImplementationAccepted": True, "canaryAccepted": False})
+    bad_report = {
+        "threadId": ACTIVE_IDENTITY["threadId"],
+        "executionEpoch": ACTIVE_IDENTITY["executionEpoch"],
+        "taskNonce": ACTIVE_IDENTITY["taskNonce"],
+        "baseCommit": BASE_COMMIT,
+        "headCommit": "02468ace13579bdf02468ace13579bdf02468ace",
+        "changedPaths": list(AUTHORIZED_PATHS),
+        "validationResults": {"py_compile": "PASS"},
+        "mutationFamiliesTested": ["identity"],
+        "protectedPathsChanged": False,
+        "mailboxPathsChanged": False,
+        "nextActionCode": PR_NEXT_ACTION_CODE,
+    }
+    must_reject("cloud_report", validate_cloud_execution_report, bad_report, expected_head="13579bdf2468ace013579bdf2468ace013579bdf")
+    must_reject("evaluate_control", evaluate_control, "unknown", {})
+    return families
+
+def accept_closed_loop_source(report: dict[str, Any]) -> bool:
+    return report.get("sourceImplementationAccepted") is True and report.get("canaryAccepted") is True
 
 
-def accept_product_work(report: dict) -> bool:
-    return bool(report.get("canaryAccepted")) and report.get("currentState") == "ACCEPTED"
+def validate_receipt_separation(payload: dict[str, Any]) -> None:
+    if "outboxPublicationCommit" in payload or "outboxBlobSha" in payload:
+        raise ValueError("publication evidence belongs only in receipt")
+
+def _git(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    root = Path(__file__).resolve().parents[1]
+    return subprocess.run(["git", *args], cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
 
 
-def self_check() -> dict:
-    sample = ClosedLoopState(
-        bridge_slot=3,
-        thread_id="BRIDGE-20260710-058",
-        lane_id="PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-        task_id="TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-        execution_epoch="CLOSED-LOOP-CORE-R2-20260710-1146JST",
-        task_nonce="CLV1-058-CORE-E599-1146",
-        coordinator_memory_rev="2026-07-10-1146-JST",
-        baseline_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        inbox_path=".ai-bridge/inbox/BRIDGE-20260710-058-01-chatgpt.md",
-        claim_path=".ai-bridge/claims/BRIDGE-20260710-058-claim-v1-codex.md",
-        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
-        remote_state_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
-        completion_mode="PRIMARY_DELTA",
-        result_status="PASS_PUSHED",
-        next_action="Open a fresh ChatGPT conversation and send мост 3.",
-        current_state="PRIMARY_PUBLISHED",
-        receipt_path=".ai-bridge/receipts/BRIDGE-20260710-058-03-codex.md",
+def _git_object_exists(rev: str) -> bool:
+    return _git("cat-file", "-e", rev, check=False).returncode == 0
+
+
+def ensure_frozen_base_evidence_available() -> None:
+    """Ensure the exact frozen base commit/tree is present in shallow CI checkouts.
+
+    GitHub pull_request jobs commonly use a depth-1 synthetic merge checkout. The
+    bridge contract still binds evidence to BASE_COMMIT exactly, so this helper
+    fetches only missing git evidence needed to inspect that exact commit/tree and
+    compute the required three-dot diff. It never substitutes another base.
+    """
+    require_sha(BASE_COMMIT, "baseCommit")
+    head = _git("rev-parse", "HEAD").stdout.strip()
+    needs_fetch = not _git_object_exists(f"{BASE_COMMIT}^{{commit}}") or _git("merge-base", BASE_COMMIT, head, check=False).returncode != 0
+    if not needs_fetch:
+        return
+    remote = os.environ.get("BRIDGE_BASE_REMOTE", "origin")
+    fetch_attempts = (
+        ("fetch", "--no-tags", "--prune", "--unshallow", remote),
+        ("fetch", "--no-tags", "--prune", remote, BASE_COMMIT),
+        ("fetch", "--no-tags", "--prune", "--depth=2147483647", remote),
     )
-    validate_identity(sample)
-    for current, targets in LEGAL_TRANSITIONS.items():
-        for target in targets:
-            validate_transition(current, target)
+    errors: list[str] = []
+    for args in fetch_attempts:
+        result = _git(*args, check=False)
+        if result.returncode != 0:
+            errors.append(f"git {' '.join(args)}: {result.stderr.strip() or result.stdout.strip()}")
+        if _git_object_exists(f"{BASE_COMMIT}^{{commit}}") and _git("merge-base", BASE_COMMIT, head, check=False).returncode == 0:
+            return
+    raise RuntimeError("unable to fetch exact frozen base evidence: " + " | ".join(errors))
+
+
+def _git_tree_paths(commit: str) -> list[str]:
+    require_sha(commit, "mainCommit")
+    if commit != BASE_COMMIT:
+        raise ValueError("main absence proof must bind to frozen base commit")
+    ensure_frozen_base_evidence_available()
+    return _git("ls-tree", "-r", "--name-only", commit).stdout.splitlines()
+
+def evaluate_control(name: str, payload: dict[str, Any]) -> bool:
+    controls = {
+        "identity": lambda: validate_identity(payload["identity"]) is None,
+        "outbox": lambda: validate_outbox(payload["outbox"]) is None,
+        "receipt": lambda: validate_receipt(payload["receipt"]) is None,
+        "transition": lambda: validate_transition(payload["current"], payload["next"]) is None,
+        "changed_paths": lambda: validate_changed_paths(payload["changedPaths"], payload["authorizedPaths"]) is None,
+        "main_absence": lambda: validate_main_absence([], main_tree_paths=_git_tree_paths(payload["mainCommit"]), main_commit=payload["mainCommit"]) is None,
+        "terminal_tuple": lambda: validate_terminal_tuple(payload["terminal"]) is None,
+        "sha": lambda: require_sha(payload["sha"], "sha") is None,
+        "acceptance": lambda: accept_closed_loop_source(payload["report"]),
+        "cloud_report": lambda: validate_cloud_execution_report(payload["report"], expected_head=payload["expectedHead"]) is None,
+    }
+    if name not in controls:
+        raise ValueError(f"unknown control: {name}")
+    try:
+        return bool(controls[name]())
+    except KeyError as exc:
+        raise ValueError(f"control payload missing required evidence: {exc.args[0]}") from exc
+
+
+def serialize(state: ClosedLoopState) -> dict[str, Any]:
+    return asdict(state)
+
+
+def load_state(data: dict[str, Any]) -> ClosedLoopState:
+    state = ClosedLoopState(**data)
+    validate_identity(state)
+    return state
+
+
+def self_check() -> dict[str, Any]:
+    validate_identity(active_state())
+    implementation_edges = frozenset((s, t) for s, targets in LEGAL_TRANSITIONS.items() for t in targets)
+    if implementation_edges != TRANSITION_ORACLE:
+        raise ValueError("implementation transition table diverges from immutable oracle")
     for current in LEGAL_STATES:
         for target in LEGAL_STATES:
-            if target in LEGAL_TRANSITIONS[current]:
-                continue
+            legal = (current, target) in TRANSITION_ORACLE
             try:
                 validate_transition(current, target)
             except ValueError:
-                continue
-            raise ValueError(f"illegal transition unexpectedly passed: {current} -> {target}")
-    validate_report_schema(
-        {
-            "status": "PASS_PUSHED",
-            "completionMode": "PRIMARY_DELTA",
-            "primaryChanged": True,
-            "verifiedPrimarySha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "primaryParent": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
-            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
-            "validationResults": ["py_compile: PASS", "unittest: PASS"],
-            "negativeControls": list(NEGATIVE_CONTROLS),
-            "positiveControls": list(POSITIVE_CONTROLS),
-            "recoveryClassification": "CORRECTION_REQUIRED",
-            "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
-            "remoteMailboxCommit": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "remoteStateSha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "byteEquality": "MATCH",
-            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
-            "baselineSha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
-            "bridgeSlot": 3,
-            "threadId": "BRIDGE-20260710-058",
-            "laneId": "PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-            "taskId": "TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
-            "executionEpoch": "CLOSED-LOOP-CORE-R2-20260710-1146JST",
-            "taskNonce": "CLV1-058-CORE-E599-1146",
-            "coordinatorMemoryRev": "2026-07-10-1146-JST",
-            "policyVersion": POLICY_VERSION,
-        }
-    )
-    report_payload = {
-        "primary_parent": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
-        "baseline_sha": sample.baseline_sha,
-        "task_nonce": sample.task_nonce,
-        "coordinator_memory_rev": sample.coordinator_memory_rev,
-        "expected_outbox_path": sample.expected_outbox_path,
-        "remote_state_sha": sample.remote_state_sha,
-        "remote_mailbox_commit": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
-        "changed_paths": [sample.expected_outbox_path],
-        "validation_results": ["py_compile: PASS"],
-        "negative_controls": list(NEGATIVE_CONTROLS),
-        "positive_controls": list(POSITIVE_CONTROLS),
-        "next_action": sample.next_action,
-        "completion_mode": sample.completion_mode,
-        "byte_equality": "MATCH",
-        "recovery_classification": sample.recovery_classification,
-    }
-    for control in POSITIVE_CONTROLS:
-        payload = {"remote_state_sha": sample.remote_state_sha, "baseline_sha": sample.baseline_sha, "report_complete": True}
-        if control.startswith("legal_transition_"):
-            payload = {
-                "current_state": {
-                    "legal_transition_closed_to_preparing": "CLOSED",
-                    "legal_transition_preparing_to_ready_for_codex": "PREPARING",
-                    "legal_transition_ready_for_codex_to_executing": "READY_FOR_CODEX",
-                    "legal_transition_executing_to_primary_published": "EXECUTING",
-                    "legal_transition_primary_published_to_outbox_publishing": "PRIMARY_PUBLISHED",
-                    "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": "OUTBOX_PUBLISHING",
-                    "legal_transition_awaiting_chatgpt_verification_to_accepted": "AWAITING_CHATGPT_VERIFICATION",
-                    "legal_transition_correction_required_to_preparing": "CORRECTION_REQUIRED",
-                    "legal_transition_recovery_required_to_blocked_external": "RECOVERY_REQUIRED",
-                }[control],
-                "next_state": {
-                    "legal_transition_closed_to_preparing": "PREPARING",
-                    "legal_transition_preparing_to_ready_for_codex": "READY_FOR_CODEX",
-                    "legal_transition_ready_for_codex_to_executing": "EXECUTING",
-                    "legal_transition_executing_to_primary_published": "PRIMARY_PUBLISHED",
-                    "legal_transition_primary_published_to_outbox_publishing": "OUTBOX_PUBLISHING",
-                    "legal_transition_outbox_publishing_to_awaiting_chatgpt_verification": "AWAITING_CHATGPT_VERIFICATION",
-                    "legal_transition_awaiting_chatgpt_verification_to_accepted": "ACCEPTED",
-                    "legal_transition_correction_required_to_preparing": "PREPARING",
-                    "legal_transition_recovery_required_to_blocked_external": "BLOCKED_EXTERNAL",
-                }[control],
-            }
-        elif control.startswith("report_preserves_"):
-            payload = report_payload
-        elif control.startswith("recovery_selects_"):
-            payload = {
-                "recovery_selects_correction_required": {"recovery_classification": "CORRECTION_REQUIRED"},
-                "recovery_selects_report_recovery": {"recovery_classification": "REPORT_RECOVERY_REQUIRED"},
-                "recovery_selects_publication_recovery": {"recovery_classification": "PUBLICATION_RECOVERY_REQUIRED"},
-                "recovery_selects_blocked_external": {"recovery_classification": "BLOCKED_EXTERNAL"},
-            }[control]
-        elif control == "startup_outbox_absence_allowed":
-            payload = {"startup_outbox_absent": True}
-        elif control == "terminal_outbox_required":
-            payload = {"terminal_outbox_present": True}
-        elif control in {"task_router_route_present", "scope_isolation_route_present", "model_selector_route_present", "parallel_scope_planner_route_present", "closed_loop_controller_route_present", "failure_routing_route_present"}:
-            payload = {}
-        if not evaluate_control(control, payload):
-            raise ValueError(f"positive control failed: {control}")
-    negative_payloads = {
-        "reject_missing_status": {"status": ""},
-        "reject_missing_completion_mode": {"completionMode": ""},
-        "reject_missing_primary_changed": {"primaryChanged": None},
-        "reject_missing_verified_primary_sha": {"verifiedPrimarySha": "N/A"},
-        "reject_missing_primary_parent": {"primaryParent": "UNKNOWN"},
-        "reject_missing_changed_paths": {"changedPaths": []},
-        "reject_missing_authorized_paths": {"authorizedPaths": []},
-        "reject_missing_validation_results": {"validationResults": []},
-        "reject_missing_negative_controls": {"negativeControls": []},
-        "reject_missing_positive_controls": {"positiveControls": []},
-        "reject_missing_recovery_classification": {"recoveryClassification": ""},
-        "reject_missing_next_action": {"nextAction": ""},
-        "reject_missing_remote_mailbox_commit": {"remoteMailboxCommit": "N/A"},
-        "reject_missing_remote_state_sha": {"remoteStateSha": "UNKNOWN"},
-        "reject_missing_byte_equality": {"byteEquality": ""},
-        "reject_missing_outbox_path": {"outboxPath": ""},
-        "reject_missing_baseline_sha": {"baselineSha": ""},
-        "reject_missing_bridge_slot": {"bridgeSlot": None},
-        "reject_missing_thread_id": {"threadId": ""},
-        "reject_missing_lane_id": {"laneId": ""},
-        "reject_missing_task_id": {"taskId": ""},
-        "reject_missing_execution_epoch": {"executionEpoch": ""},
-        "reject_missing_task_nonce": {"taskNonce": ""},
-        "reject_missing_coordinator_memory_rev": {"coordinatorMemoryRev": ""},
-        "reject_missing_policy_version": {"policyVersion": ""},
-        "reject_placeholder_n_a": {"status": "N/A"},
-        "reject_placeholder_pending": {"status": "PENDING"},
-        "reject_placeholder_unknown": {"status": "UNKNOWN"},
-        "reject_placeholder_mismatch": {"status": "MISMATCH"},
-        "reject_placeholder_todo": {"status": "TODO"},
-        "reject_placeholder_deadbeef": {"verifiedPrimarySha": "deadbeef"},
-        "reject_placeholder_cafebabe": {"verifiedPrimarySha": "cafebabe"},
-        "reject_placeholder_feedface": {"verifiedPrimarySha": "feedface"},
-        "reject_empty_string_fields": {"status": ""},
-        "reject_extra_schema_keys": {"extra": "value"},
-        "reject_non_string_text_fields": {"status": 1},
-        "reject_non_list_collection_fields": {"changedPaths": "x"},
-        "reject_non_bool_primary_changed": {"primaryChanged": "false"},
-        "reject_invalid_byte_equality": {"byteEquality": "WRONG"},
-        "reject_invalid_outbox_suffix": {"outboxPath": ".ai-bridge/outbox/bad.txt"},
-        "reject_invalid_bridge_slot": {"bridgeSlot": 4},
-        "reject_invalid_thread_prefix": {"threadId": "THREAD-1"},
-        "reject_invalid_transition": {"current_state": "CLOSED", "next_state": "EXECUTING"},
-        "reject_unlisted_legal_state": {"current_state": "NOPE", "next_state": "CLOSED"},
-        "reject_stale_remote_state": {"remote_state_sha": "", "baseline_sha": sample.baseline_sha},
-        "reject_mismatched_expected_outbox": {"expected_outbox_path": ".ai-bridge/outbox/BRIDGE-20260710-055-99-codex.md"},
-        "reject_product_acceptance_without_canary": {"canaryAccepted": False, "currentState": "ACCEPTED"},
-        "reject_report_recovery_without_flag": {"completionMode": "REPORT_RECOVERY_REQUIRED"},
-        "reject_publication_recovery_without_flag": {"completionMode": "PUBLICATION_RECOVERY_REQUIRED"},
-        "reject_blocked_external_without_status": {"status": "CORRECTION_REQUIRED"},
-        "reject_terminal_byte_equality_mismatch": {"byteEquality": "MISS"},
-        "reject_terminal_primary_parent_placeholder": {"primaryParent": "N/A"},
-    }
-    for control in NEGATIVE_CONTROLS:
-        payload = negative_payloads[control]
-        if evaluate_control(control, payload):
-            raise ValueError(f"negative control failed: {control}")
-    return {
-        "contractVersion": CONTRACT_VERSION,
-        "policyVersion": POLICY_VERSION,
-        "states": LEGAL_STATES,
-        "positiveControls": POSITIVE_CONTROLS,
-        "negativeControls": NEGATIVE_CONTROLS,
-    }
-
-
-def serialize(state: ClosedLoopState) -> dict:
-    payload = asdict(state)
-    payload["changed_paths"] = list(payload["changed_paths"])
-    payload["authorized_paths"] = list(payload["authorized_paths"])
-    payload["validation_results"] = list(payload["validation_results"])
-    payload["negative_controls"] = list(payload["negative_controls"])
-    payload["positive_controls"] = list(payload["positive_controls"])
-    return payload
+                if legal:
+                    raise
+            else:
+                if not legal:
+                    raise ValueError(f"oracle mismatch: {current}->{target}")
+    mutation_families = mutation_proof_matrix()
+    return {"contractVersion": CONTRACT_VERSION, "activeIdentity": dict(ACTIVE_IDENTITY), "states": LEGAL_STATES, "authorizedPaths": AUTHORIZED_PATHS, "mutationFamilies": mutation_families}
