@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_10_LOOP_ONLY_EXCEPTION_AND_RECEIPT
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_11_PLUGIN_EVIDENCE_FAIL_CLOSED
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -65,6 +65,36 @@ This exception is narrow. It does not authorize product, runtime, plugin-source,
 ### 3.3 Plugin repair bootstrap
 
 A source-plugin bootstrap is allowed only when the current active task explicitly repairs or installs the plugin and explicitly authorizes that bootstrap. It is not available to a loop-only bridge lane.
+
+### 3.4 Mandatory plugin invocation evidence gate
+
+When current STATE, inbox, or claim says `PLUGIN_INVOCATION_REQUIRED: true`, a successful outbox and receipt must include a top-level `pluginInvocationEvidence` object.
+
+That object must contain:
+
+- `pluginIdentifier` matching the exact active task requirement;
+- `invocationPrefix` matching the exact required invocation text;
+- `actualModelStatus`, which remains `USER_SELECTED_UNVERIFIED` unless independently proven by an external authority;
+- `skillResults`, an array containing every mandatory skill exactly once and in the exact order declared by the active inbox.
+
+Each `skillResults` entry must contain:
+
+- `skill`;
+- `status`;
+- a non-empty `materialResult` describing the result actually used by execution;
+- non-empty `evidenceRefs` pointing to concrete command output, file evidence, validation evidence, or published artifact fields.
+
+A plugin name in prose, repository text, an installed package, or the prefix line alone does not prove invocation.
+
+A successful status is forbidden when:
+
+- `pluginInvocationEvidence` is absent;
+- any mandatory skill is absent, duplicated, reordered, renamed, or substituted;
+- any skill status is `FAIL`, `BLOCKED`, `SKIPPED`, `NOT_RUN`, or equivalent;
+- any material result or evidence reference is empty;
+- the active model is represented as externally verified without independent evidence.
+
+When plugin evidence cannot be produced, Codex must not use `PASS_PUSHED` and must publish the exact non-success status and blocker schema permitted by the active task.
 
 ## 4. Scope safety
 
@@ -131,6 +161,16 @@ Codex publishes only the exact expected receipt path as a fast-forward child of 
 
 Commit SHAs, blob SHAs, STATE blob identity, mailbox parent, outbox publication commit, and outbox blob are distinct fields and must never be overloaded.
 
+### 6.3 Validation preservation and fail-closed status
+
+The receipt must preserve the outbox `validationResults` array exactly, in the same order and with no omissions or rewrites. Receipt-only publication checks belong in a separate `publicationValidationResults` array.
+
+`PASS_PUSHED` is forbidden when any required validation result contains `FAIL`, `BLOCKED`, `ERROR`, `SKIPPED`, `NOT_RUN`, or an equivalent non-pass state.
+
+A successful status requires every required validation entry to end in an explicit `PASS`, exact changed paths to equal the frozen write scope, and all required plugin evidence gates to pass.
+
+No receipt may convert, omit, summarize away, or hide a source validation failure.
+
 ## 7. Exact schemas and controls
 
 - Outbox and receipt use separate exact status-specific schemas.
@@ -142,7 +182,7 @@ Commit SHAs, blob SHAs, STATE blob identity, mailbox parent, outbox publication 
 - No route, identity, schema, path, publication, or acceptance control may return unconditional success.
 - The canonical state set and transition table are independent from the implementation table.
 - Mutation tests must prove that bypassing each evaluator family causes validation failure.
-- Exact primary changed paths equal actual commit evidence and remain inside frozen scope.
+- Exact primary changed paths equal actual commit evidence and equal the complete frozen scope when the active inbox requires exact-scope publication.
 - Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main.
 
 ## 8. Terminal consistency and handoff
