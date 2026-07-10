@@ -18,6 +18,7 @@ DRIVE_SYNC_STATUS: SYNCHRONIZED
 SOURCE_OUTBOX_COMMIT: 6db97c7e49090418955f3f818260799ba874cd81
 SOURCE_RECEIPT_COMMIT: 2c059cb8cb0b723720bb673c74354854075b0f13
 CANARY_STATUS: ACCEPTED
+CYCLE_COMPLETE: true
 NEXT_ACTION: Resume normal project work from current repository authority.
 
 Authority order:
@@ -40,4 +41,5 @@ Status:
 - Runtime and game code untouched.
 - Legacy pre-split root preserved exactly.
 - Source outbox and receipt published separately.
-- Separate canary accepted before cycle completion.
+- Separate canary accepted.
+- Cycle complete.
