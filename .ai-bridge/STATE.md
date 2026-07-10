@@ -10,8 +10,8 @@ ONE_EPOCH_ONE_CODEX_CHAT: REQUIRED
 ONE_VERIFICATION_ONE_CHATGPT_CHAT: REQUIRED
 MEMORY_SYNC_BEFORE_HANDOFF: REQUIRED
 MEMORY_SYNC_STATUS: READY
-COORDINATOR_MEMORY_REV: 2026-07-10-1322-JST
-TARGET_MEMORY_REV: 2026-07-10-1322-JST
+COORDINATOR_MEMORY_REV: 2026-07-10-1339-JST
+TARGET_MEMORY_REV: 2026-07-10-1339-JST
 EXPECTED_OUTBOX_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 EXPECTED_RECEIPT_STARTUP_ABSENCE: ALLOWED_AND_EXPECTED
 OUTBOX_REQUIRED_PHASE: OUTBOX_PUBLISHING_OR_LATER
@@ -33,15 +33,18 @@ MAILBOX_BRANCH: coordination/chatgpt-codex-bridge
 STATE_OWNER: CHATGPT
 CURRENT_MAIN_BASELINE: 32513f02daf5943c41f24328e1ae251d6bc85ccc
 PUBLICATION_MODE: CODEX_OUTBOX_PLUS_RECEIPT
-ROOT_PROCESS_SYNC_STATUS: EXACT_SEMANTIC_CORRECTION_READY
+ROOT_PROCESS_SYNC_STATUS: CLOUD_REMOTE_RECOVERY_READY
 THREAD_ROTATION_REQUIRED: true
+CLOUD_REPOSITORY: samuray-games/AsyncScene
+ORIGIN_URL: https://github.com/samuray-games/AsyncScene.git
+ORIGIN_REPAIR_ALLOWED: true
 
 ## Status
 
 - Bridge: `READY_FOR_CODEX`
 - Slot 1: `CLOSED`
 - Slot 2: `CLOSED_USER_REPORTED_BUSY`
-- Slot 3: `READY_FOR_CODEX_EXACT_SEMANTIC_CORRECTION`
+- Slot 3: `READY_FOR_CODEX_CLOUD_REMOTE_RECOVERY`
 - Safari: `N/A_PROCESS_ONLY`
 - Plugin lane: `OUT_OF_SCOPE_SEPARATE_NON_GATING`
 - Handoff: `AUTHORIZED_AFTER_MEMORY_SYNC`
@@ -49,37 +52,39 @@ THREAD_ROTATION_REQUIRED: true
 ## Active Slot 3 correction
 
 - Cycle: `CYCLE-20260709-001`
-- Generation: `15`
-- Thread: `BRIDGE-20260710-060`
-- Lane: `PROCESS-CLOSED-LOOP-EXACT-SEMANTIC-CORRECTION`
+- Generation: `16`
+- Thread: `BRIDGE-20260710-061`
+- Lane: `PROCESS-CLOSED-LOOP-CLOUD-REMOTE-RECOVERY`
 - Task: `TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION`
-- Epoch: `CLOSED-LOOP-SEMANTIC-R1-20260710-1322JST`
-- Nonce: `CLV1-060-SEMANTIC-3251-1322`
-- Phase: `CORRECTION_REQUIRED`
-- Inbox: `.ai-bridge/inbox/BRIDGE-20260710-060-01-chatgpt.md`
-- Claim: `.ai-bridge/claims/BRIDGE-20260710-060-claim-v1-codex.md`
-- Outbox: `.ai-bridge/outbox/BRIDGE-20260710-060-02-codex.md`
-- Receipt: `.ai-bridge/receipts/BRIDGE-20260710-060-03-codex.md`
+- Epoch: `CLOSED-LOOP-CLOUD-REMOTE-R1-20260710-1339JST`
+- Nonce: `CLV1-061-CLOUD-3251-1339`
+- Phase: `RECOVERY_REQUIRED`
+- Inbox: `.ai-bridge/inbox/BRIDGE-20260710-061-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-20260710-061-claim-v1-codex.md`
+- Outbox: `.ai-bridge/outbox/BRIDGE-20260710-061-02-codex.md`
+- Receipt: `.ai-bridge/receipts/BRIDGE-20260710-061-03-codex.md`
 - Baseline: `32513f02daf5943c41f24328e1ae251d6bc85ccc`
 - Primary write: `true`
 - Verified no delta: `false`
+- Cloud repository: `samuray-games/AsyncScene`
+- Missing origin: `repairable by adding exact ORIGIN_URL`
 - Plugin invocation: `not required and non-gating`
 - Plugin paths: `protected`
-- Fresh Codex chat: `required`
+- Fresh Codex Cloud task: `required`
 - Fresh ChatGPT verifier after publication: `required`
 - Separate canary after implementation acceptance: `required`
 
-## Thread 059 verdict
+## Thread 060 verdict
 
-- Verdict: `CORRECTION_REQUIRED_FALSE_SEMANTIC_CONTROLS_STALE_IDENTITY_AND_INCONSISTENT_SUCCESS_RECEIPT`.
-- Remote publication transport is accepted as progress: main commit `32513f02daf5943c41f24328e1ae251d6bc85ccc`, outbox commit `98681bbfa1a5d624f67444dbcc9f940539b9975d`, outbox blob `b935a3f21c4d5df0189b66bed3c7d3bedfb506f6`, receipt commit `a110e802ed7e6ee4c69eb3672e209d17c7e50cbf`, and receipt blob `606a3f443d447adb500b0c5f936f6353e1f53403` are remotely present.
-- The user-supplied JSON matches the remote receipt content.
-- Source implementation is rejected because it remains pinned to thread 058, retains unconditional-success controls, stale and synthetic passing fixtures, permissive forbidden statuses, non-independent transition validation, no real mutation suite, ambiguous old schema keys, and incomplete acceptance gating.
-- Receipt 059 is rejected because `PASS_PUSHED` is paired with `recoveryClassification: CORRECTION_REQUIRED` and no exact success action code.
-- Thread 059 is superseded and must not continue.
+- Verdict: `BLOCKED_EXTERNAL_CLOUD_CHECKOUT_WITHOUT_ORIGIN`.
+- The cloud checkout had no configured `origin`; remote-first fetch could not start.
+- No authorized source delta, primary commit, outbox, or receipt was produced.
+- Fresh independent verification proved remote main stayed `32513f02daf5943c41f24328e1ae251d6bc85ccc` and mailbox stayed `11eddd74a5692bc3eaa53074d347f5cb65a5ef16` before thread-061 preparation.
+- Thread 060 is superseded and must not continue.
 
 ## Earlier verdicts
 
+- Thread 059: `CORRECTION_REQUIRED_FALSE_SEMANTIC_CONTROLS_STALE_IDENTITY_AND_INCONSISTENT_SUCCESS_RECEIPT`.
 - Thread 058: `RECOVERY_REQUIRED_LOCAL_ONLY_COMMITS_AND_NO_REMOTE_PUBLICATION`.
 - Thread 056: `RECOVERY_REQUIRED_WRONG_CROSS_LANE_PLUGIN_GATE`.
 - Thread 057: `INERT_SUPERSEDED_PACKAGE`.
@@ -87,4 +92,4 @@ THREAD_ROTATION_REQUIRED: true
 
 ## Gate
 
-Task 060 is the only active Slot 3 authority after live memory revision `2026-07-10-1322-JST` is written and reread. It must implement exact active identity, executable separate schemas, exact terminal tuples, real semantic controls, independent canonical transition validation, strict SHA and path proof, real mutation tests, and independent implementation-plus-canary completion gating. Plugin delivery is outside this lane and cannot block execution. Product and runtime work remain blocked until source implementation and separate canary acceptance are independently recorded and the cycle is COMPLETE.
+Task 061 is the only active Slot 3 authority after live memory revision `2026-07-10-1339-JST` is written and reread. It must run in the Codex Cloud environment connected to `samuray-games/AsyncScene`, verify or repair `origin`, fetch both remote branches, use clean task-owned worktrees, implement exact semantic controls, publish primary plus immutable outbox plus separate receipt, and return receipt-identical bytes. Plugin delivery is outside this lane and cannot block execution. Product and runtime work remain blocked until source implementation and separate canary acceptance are independently recorded and the cycle is COMPLETE.
