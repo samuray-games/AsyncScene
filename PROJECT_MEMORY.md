@@ -20,15 +20,17 @@ This file is the compact entrypoint for project memory.
 
 Authoritative order for memory and process facts:
 
-1. `AGENTS.override.md`
-2. `AGENTS.md`
-3. `PROJECT_MEMORY.md`
-4. `TASKS.md`
+1. Explicit user instruction
+2. Current repository primary evidence
+3. Active `.ai-bridge/STATE.md`
+4. `PROJECT_MEMORY.md`
 5. `.ai-memory/CURRENT.md`
 6. `.ai-memory/DECISIONS.md`
 7. `.ai-memory/CANON.md`
 8. `.ai-memory/WORKFLOWS.md`
-9. `.ai-memory/archive/`
+9. `TASKS.md`
+10. Google Drive bootstrap
+11. `.ai-memory/archive/`
 
 Source precedence and conflict behavior:
 
@@ -37,6 +39,7 @@ Source precedence and conflict behavior:
 - If repo memory and a remote bootstrap disagree, the repo wins and the mismatch must be logged in the next update.
 - If any compact-index child revision disagrees with `REPO_MEMORY_REV`, treat the index as stale and reject the claim.
 - Bridge artifacts 062/063 remain immutable history and are not rewritten.
+- ChatGPT verifies PR 199, then after acceptance performs readiness, merge, publication, memory synchronization, and separate canary preparation.
 
 Memory ownership:
 

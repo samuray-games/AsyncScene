@@ -2,11 +2,11 @@
 
 Date: 2026-07-10
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260710-067
-Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R4-20260710-2315JST
+Thread: BRIDGE-20260710-069
+Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R5-20260710-2331JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
 Model identifier: GPT-5.4-Mini
-State memory revision: 2026-07-10-2315-JST
+State memory revision: 2026-07-10-2331-JST
 Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
 
 ## Objective
@@ -44,7 +44,7 @@ Use the repository index as the only bootstrap pointer:
 
 > Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; immutable history is in `.ai-memory/archive/`; and the preserved pre-split root payload is `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`.
 
-> Follow the ordered repository facts before any bridge or memory action: `AGENTS.override.md`, `AGENTS.md`, `PROJECT_MEMORY.md`, `TASKS.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, and `.ai-memory/archive/`.
+> Follow the ordered repository facts before any bridge or memory action: explicit user instruction, current repository primary evidence, active `.ai-bridge/STATE.md`, `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `TASKS.md`, Google Drive bootstrap, and `.ai-memory/archive/`.
 
 ## Validation summary
 
@@ -72,7 +72,11 @@ Use the repository index as the only bootstrap pointer:
 
 ## Evidence
 
-- Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
+- Changed paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
+- Current thread: `BRIDGE-20260710-069`
+- Current PR: `199`
+- Current correction paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `MEMORY_MIGRATION_REPORT.md`
+- Current remote head: `dc2e35467a978196e209242f62ee869d058eb41c`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
 - Revision consistency: `PROJECT_MEMORY.md` root children and `.ai-memory/CURRENT.md` now share `2026-07-10-2315-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
