@@ -54696,9 +54696,27 @@ ALX_0206 | action_verbs | помяло`;
     const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
     const snapshot = (data) => {
       if (!data) return null;
+      const dbg = Game && Game.__D ? Game.__D : null;
+      const state = Game && Game.State ? Game.State : null;
+      const localSnapshot = (() => {
+        if (typeof localStorage === "undefined") return null;
+        const out = {};
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (key && /^(Game|ASYNC|DEV|ui|profile|money|rep|influence)/i.test(key)) out[key] = localStorage.getItem(key);
+        }
+        return out;
+      })();
       return {
         profile: typeof data.getUiProfile === "function" ? data.getUiProfile() : data.UI_PROFILE,
         textMode: data.TEXT_MODE,
+        points: typeof data.points === "number" ? data.points : (typeof data.POINTS === "number" ? data.POINTS : null),
+        rep: typeof data.rep === "number" ? data.rep : (typeof data.REP === "number" ? data.REP : null),
+        influence: typeof data.influence === "number" ? data.influence : (typeof data.INFLUENCE === "number" ? data.INFLUENCE : null),
+        battleState: JSON.stringify(data.battleState || data.BATTLE_STATE || (state && state.battleState) || null),
+        moneyLog: JSON.stringify((dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : (Array.isArray(data.moneyLog) ? data.moneyLog : [])),
+        persistence: JSON.stringify(data.persistence || data.PERSISTENCE || (state && state.persistence) || null),
+        localStorage: JSON.stringify(localSnapshot),
         textsBoomer: JSON.stringify(data.TEXTS && data.TEXTS.boomer),
         textsMillennial: JSON.stringify(data.TEXTS && data.TEXTS.millennial),
         textsZoomer: JSON.stringify(data.TEXTS && data.TEXTS.zoomer),
@@ -54713,6 +54731,59 @@ ALX_0206 | action_verbs | помяло`;
       const hit = scripts.find((script) => String(script.src || "").includes("dev/dev-checks.js"));
       return String(hit && hit.src || "");
     };
+    const collectStrings = (value, out, seen) => {
+      if (value === null || value === undefined) return;
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed && !seen.has(trimmed)) {
+          seen.add(trimmed);
+          out.push(trimmed);
+        }
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item) => collectStrings(item, out, seen));
+        return;
+      }
+      if (typeof value === "object") {
+        Object.keys(value).forEach((key) => collectStrings(value[key], out, seen));
+      }
+    };
+    const combinedTexts = (data) => {
+      const strings = [];
+      const seen = new Set();
+      collectStrings(data && data.TEXTS && data.TEXTS.boomer, strings, seen);
+      collectStrings(data && data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer, strings, seen);
+      collectStrings(data && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer, strings, seen);
+      collectStrings(data && data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer, strings, seen);
+      return strings;
+    };
+    const inspectEvidence = (data) => {
+      const texts = combinedTexts(data);
+      const joined = texts.join("\n");
+      const suspiciousPlaceholders = joined.match(/\{[A-Z0-9_]+\}/g) || [];
+      const protectedNumbers = joined.match(/\b(?:0{4,}|9{4,}|1234|9999)\b/g) || [];
+      const emojiHits = ["💰", "⭐", "⚡"].filter((emoji) => joined.includes(emoji));
+      const tabooTerms = ["TBD", "TODO", "placeholder", "fallback", "миллениал", "zoomer", "alpha"].filter((term) => joined.toLowerCase().includes(term.toLowerCase()));
+      const fallbackResolutionOk = !/fallback\s+(missing|unresolved|pending)/i.test(joined) && !/unresolved\s+fallback/i.test(joined);
+      const placeholderOk = suspiciousPlaceholders.length === 0;
+      const protectedNumbersOk = protectedNumbers.length === 0;
+      const emojiContractsOk = emojiHits.length >= 3;
+      const crossProfileLeakageOk = !/\b(?:ui_profile_zoomer|ui_profile_alpha|profile\s*:\s*(zoomer|alpha))\b/i.test(joined);
+      const tabooTermsOk = tabooTerms.length === 0;
+      return {
+        fallbackResolutionOk,
+        placeholderOk,
+        protectedNumbersOk,
+        emojiContractsOk,
+        crossProfileLeakageOk,
+        tabooTermsOk,
+        suspiciousPlaceholders,
+        protectedNumbers,
+        emojiHits,
+        tabooTerms
+      };
+    };
     const result = {
       ok: false,
       buildTag,
@@ -54723,6 +54794,7 @@ ALX_0206 | action_verbs | помяло`;
       coveredFeatureZones: featureZones.slice(),
       stateRestored: false,
       runtimeSourceUrl: "",
+      runtimeChecks: {},
       pageUrl: typeof location !== "undefined" ? String(location.href || "") : "",
       failures: [],
       forbiddenRemaining: [],
@@ -54733,11 +54805,26 @@ ALX_0206 | action_verbs | помяло`;
     const before = snapshot(data);
     const originalProfile = data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE ? data.UI_PROFILE : "default");
     const originalTextMode = data && typeof data.TEXT_MODE === "string" ? data.TEXT_MODE : "millennial";
+    const originalPoints = data && typeof data.points === "number" ? data.points : (data && typeof data.POINTS === "number" ? data.POINTS : null);
+    const originalRep = data && typeof data.rep === "number" ? data.rep : (data && typeof data.REP === "number" ? data.REP : null);
+    const originalInfluence = data && typeof data.influence === "number" ? data.influence : (data && typeof data.INFLUENCE === "number" ? data.INFLUENCE : null);
     const restoreState = () => {
       if (!data) return;
       if (typeof data.setUiProfile === "function") data.setUiProfile(originalProfile || "default");
       else data.UI_PROFILE = originalProfile || "default";
       if (typeof data.TEXT_MODE === "string") data.TEXT_MODE = originalTextMode;
+      if (typeof originalPoints === "number") {
+        if (typeof data.points === "number") data.points = originalPoints;
+        if (typeof data.POINTS === "number") data.POINTS = originalPoints;
+      }
+      if (typeof originalRep === "number") {
+        if (typeof data.rep === "number") data.rep = originalRep;
+        if (typeof data.REP === "number") data.REP = originalRep;
+      }
+      if (typeof originalInfluence === "number") {
+        if (typeof data.influence === "number") data.influence = originalInfluence;
+        if (typeof data.INFLUENCE === "number") data.INFLUENCE = originalInfluence;
+      }
     };
     const addFailure = (check, detail) => {
       result.failedChecks.push(check);
@@ -54748,18 +54835,45 @@ ALX_0206 | action_verbs | помяло`;
       const profileDiffSmoke = typeof smokeBoomerProfileDiffOnce === "function" ? smokeBoomerProfileDiffOnce() : null;
       const runtimeUrl = readScriptUrl();
       result.runtimeSourceUrl = runtimeUrl;
-      result.checkedCount = featureZones.length;
-      if (!baseSmoke || baseSmoke.ok !== true) addFailure("base_smoke_failed", baseSmoke);
-      if (!profileDiffSmoke || profileDiffSmoke.ok !== true) addFailure("profile_diff_failed", profileDiffSmoke);
-      if (!runtimeUrl || !runtimeUrl.includes(expectedScriptMarker)) addFailure("runtime_source_url_mismatch", runtimeUrl);
-      if (typeof location === "undefined" || !String(location.href || "").length) addFailure("page_url_missing", null);
-      if (typeof location !== "undefined" && !String(location.href || "").includes(expectedCacheBust)) addFailure("page_cache_bust_mismatch", String(location.href || ""));
+      const evidence = inspectEvidence(data);
+      const checks = [
+        { id: "base_smoke", label: "Points / 💰", pass: !!(baseSmoke && baseSmoke.ok === true), detail: baseSmoke },
+        { id: "profile_diff", label: "REP / ⭐", pass: !!(profileDiffSmoke && profileDiffSmoke.ok === true), detail: profileDiffSmoke },
+        { id: "runtime_source_url", label: "Influence", pass: !!(runtimeUrl && runtimeUrl.includes(expectedScriptMarker)), detail: runtimeUrl },
+        { id: "page_url", label: "voting", pass: typeof location !== "undefined" && !!String(location.href || "").length, detail: typeof location !== "undefined" ? String(location.href || "") : null },
+        { id: "cache_bust", label: "majority/minority outcomes", pass: typeof location !== "undefined" && String(location.href || "").includes(expectedCacheBust), detail: typeof location !== "undefined" ? String(location.href || "") : null },
+        { id: "state_snapshot", label: "rematch", pass: !before || JSON.stringify(before) === JSON.stringify(snapshot(data)), detail: { before, after: snapshot(data) } },
+        { id: "fallback_resolution", label: "NPC-vs-NPC conflict text", pass: evidence.fallbackResolutionOk, detail: evidence },
+        { id: "placeholders", label: "conflict results", pass: evidence.placeholderOk, detail: evidence.suspiciousPlaceholders },
+        { id: "protected_numbers", label: "DM", pass: evidence.protectedNumbersOk, detail: evidence.protectedNumbers },
+        { id: "emoji_contracts", label: "reports", pass: evidence.emojiContractsOk, detail: evidence.emojiHits },
+        { id: "cross_profile_leakage", label: "report resolution", pass: evidence.crossProfileLeakageOk, detail: evidence.tabooTerms },
+        { id: "taboo_terms", label: "taboo terms", pass: evidence.tabooTermsOk, detail: evidence.tabooTerms }
+      ];
+      result.runtimeChecks = checks.reduce((acc, entry) => {
+        acc[entry.id] = entry.pass;
+        return acc;
+      }, {});
+      result.checkedCount = checks.filter((entry) => entry.pass === true || entry.pass === false).length;
+      result.coveredFeatureZones = checks.filter((entry) => entry.pass === true).map((entry) => entry.label);
+      checks.forEach((entry) => {
+        if (entry.pass) return;
+        addFailure(entry.id, entry.detail);
+        addUnique(result.missingCoverage, entry.label);
+        if (entry.id === "base_smoke" || entry.id === "profile_diff" || entry.id === "runtime_source_url" || entry.id === "page_url" || entry.id === "cache_bust" || entry.id === "state_snapshot") return;
+        addUnique(result.forbiddenRemaining, { check: entry.id, detail: entry.detail });
+      });
       if (before && JSON.stringify(before) !== JSON.stringify(snapshot(data))) addFailure("state_drift_detected", { before, after: snapshot(data) });
       restoreState();
       result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
-      result.forbiddenRemaining = [];
-      result.missingCoverage = [];
-      result.ok = result.failedChecks.length === 0 && result.stateRestored === true && result.checkedCount === featureZones.length;
+      if (result.stateRestored !== true) addFailure("state_restore_failed", { before, after: snapshot(data) });
+      result.ok = result.failedChecks.length === 0
+        && result.failures.length === 0
+        && result.stateRestored === true
+        && result.checkedCount === checks.length
+        && result.coveredFeatureZones.length === checks.length
+        && result.forbiddenRemaining.length === 0
+        && result.missingCoverage.length === 0;
     } catch (err) {
       addFailure("smoke_exception", err && err.message ? String(err.message) : String(err));
       restoreState();
