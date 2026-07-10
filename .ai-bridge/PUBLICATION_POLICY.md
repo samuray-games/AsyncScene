@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_11_PLUGIN_EVIDENCE_FAIL_CLOSED
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_11_PLUGIN_EVIDENCE_VALIDATOR_APPLICABILITY
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -11,6 +11,7 @@ OBJECTIVE_GAP_PROOF: REQUIRED
 REMOTE_STATE_FRESHNESS: REQUIRED
 DEFAULT_PUBLICATION_MODE: CODEX_OUTBOX_PLUS_RECEIPT
 MODEL_PREFLIGHT_GATE: RETIRED
+VALIDATOR_APPLICABILITY_GATE: REQUIRED
 
 ## 1. Fresh execution and remote-state freshness
 
@@ -117,6 +118,32 @@ When `PRIMARY_WRITE_REQUIRED: true` and `ALLOW_VERIFIED_NO_DELTA: false`:
 
 A primary delta requires exactly one direct-child exact-scope commit from the active baseline, a fast-forward push, a remote refetch, exact first-parent proof, exact changed paths, protected-path proof, and validations from the committed tree.
 
+### 5.1 Validator applicability gate
+
+A validator may be a required success gate only when it is task-applicable.
+
+A validator is task-applicable when one of the following is true:
+
+- it is explicitly task-agnostic and evaluates only the current working tree or the paths supplied by the active command; or
+- its embedded thread, execution epoch, baseline, frozen scope, and ownership model match the current active task exactly.
+
+A validator is not task-applicable when it is pinned to a different historical bridge identity, baseline, frozen scope, lane, or publication model, or when it computes repository-wide changed paths from an unrelated historical base.
+
+An inapplicable validator must not be treated as a required PASS gate and must not be represented as passing evidence. The active inbox must explicitly declare the exclusion and its replacement controls.
+
+A successful outbox for a task with an excluded validator must contain `excludedValidationEvidence`, with one entry per exclusion containing:
+
+- `validator`;
+- `status: NOT_APPLICABLE`;
+- `pinnedIdentity`;
+- `activeIdentityMismatch`;
+- `reason`;
+- `replacementControls`.
+
+Every replacement control must itself appear as a required explicit PASS in `validationResults`.
+
+This rule cannot be used to hide a failure from an applicable validator, to weaken a task-specific invariant, or to omit a validator whose identity matches the current task.
+
 ## 6. Outbox and receipt transaction
 
 Every active closed-loop task uses two immutable mailbox artifacts.
@@ -165,9 +192,11 @@ Commit SHAs, blob SHAs, STATE blob identity, mailbox parent, outbox publication 
 
 The receipt must preserve the outbox `validationResults` array exactly, in the same order and with no omissions or rewrites. Receipt-only publication checks belong in a separate `publicationValidationResults` array.
 
+When present, the receipt must also preserve `excludedValidationEvidence` and `pluginInvocationEvidence` exactly, without omissions or rewrites.
+
 `PASS_PUSHED` is forbidden when any required validation result contains `FAIL`, `BLOCKED`, `ERROR`, `SKIPPED`, `NOT_RUN`, or an equivalent non-pass state.
 
-A successful status requires every required validation entry to end in an explicit `PASS`, exact changed paths to equal the frozen write scope, and all required plugin evidence gates to pass.
+A successful status requires every required validation entry to end in an explicit `PASS`, exact changed paths to equal the frozen write scope, every excluded validator to satisfy the applicability schema with passing replacement controls, and all required plugin evidence gates to pass.
 
 No receipt may convert, omit, summarize away, or hide a source validation failure.
 
