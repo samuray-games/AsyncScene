@@ -1,55 +1,50 @@
 # Memory Migration Report
 
 Date: 2026-07-10
+Cycle: CYCLE-20260710-002
+Thread: BRIDGE-20260710-065
+Epoch: REPO-MEMORY-MIGRATION-CORRECTION-R1-20260710-2109JST
+Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
+Model identifier: GPT-5.4-Mini
 
-## Outcome
+## Objective
 
-- Replaced the monolithic project-memory approach with a repository-first memory layout.
-- Kept runtime and game code untouched.
-- Preserved immutable bridge artifacts 062/063.
-- Moved the historical legacy block out of `PROJECT_MEMORY.md` so the root file is now a compact index.
+Convert the project from a monolithic root memory document into a repository-first memory layout that is readable through GitHub and keeps the live state compact.
 
-## New structure
+## Exact migration mapping
 
-- `PROJECT_MEMORY.md` is the compact index and authority map.
-- `.ai-memory/CURRENT.md` holds live memory state.
-- `.ai-memory/DECISIONS.md` holds stable process decisions.
-- `.ai-memory/CANON.md` holds product canon.
-- `.ai-memory/WORKFLOWS.md` holds memory update and validation workflows.
-- `.ai-memory/archive/CYCLE-20260709-001.md` holds immutable cycle history.
+- `PROJECT_MEMORY.md` -> compact index and authority map.
+- `.ai-memory/CURRENT.md` -> live state summary.
+- `.ai-memory/DECISIONS.md` -> stable process decisions.
+- `.ai-memory/CANON.md` -> product canon and acceptance boundaries.
+- `.ai-memory/WORKFLOWS.md` -> update and validation workflow.
+- `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` -> exact preserved pre-split root memory bytes.
+- `.ai-memory/archive/CYCLE-20260709-001.md` -> immutable cycle history note.
 
-## Source-of-truth order
+## Proposed Google Drive bootstrap text
 
-1. `AGENTS.override.md`
-2. `AGENTS.md`
-3. `CLOSED_LOOP_PROTOCOL.md`
-4. `TASKS.md`
-5. `.ai-memory/CURRENT.md`
-6. `.ai-memory/DECISIONS.md`
-7. `.ai-memory/CANON.md`
-8. `.ai-memory/WORKFLOWS.md`
-9. `.ai-memory/archive/`
+Use the repository index as the only bootstrap pointer:
 
-## Validation
+> Read `PROJECT_MEMORY.md` in the repository root. It is the compact authority map for current memory state. The live state is in `.ai-memory/CURRENT.md`; stable decisions are in `.ai-memory/DECISIONS.md`; canon is in `.ai-memory/CANON.md`; workflows are in `.ai-memory/WORKFLOWS.md`; and immutable history is in `.ai-memory/archive/`.
 
-- Verified the new files exist in the repository.
-- Verified no runtime/game code was modified.
-- Verified the memory migration only touched documentation and memory layout files.
-- Verified the root memory file is compact and points at the archive for historical detail.
-- No runtime smoke was run, by design.
+## Validation summary
 
-## Model choice
+- Relative links from `PROJECT_MEMORY.md` resolve to owned files.
+- `TASKS.md` now keeps the migration in review until independent acceptance.
+- Root revision fields are present and aligned with the current migration revision.
+- Legacy archive content is preserved as the pre-split root payload, not reauthored prose.
+- `git diff --check` passes on the docs-only migration set.
 
-- Best available Codex model for this task: the strongest reasoning-capable Codex option available in the current environment.
-- Reason: this was a documentation architecture migration with cross-file consistency constraints, where correctness and traceability mattered more than speed.
+## Evidence requirements
 
-## Changed files
+- Exact changed paths only in the authorized documentation scope.
+- File existence proof for each owned memory file.
+- Revision consistency proof between root and child memory revisions.
+- Legacy preservation proof using byte count and SHA-256 for the archived pre-split root payload.
+- Compact-root proof showing the root file remains index-sized rather than a copied timeline.
 
-- `PROJECT_MEMORY.md`
-- `TASKS.md`
-- `.ai-memory/CURRENT.md`
-- `.ai-memory/DECISIONS.md`
-- `.ai-memory/CANON.md`
-- `.ai-memory/WORKFLOWS.md`
-- `.ai-memory/archive/CYCLE-20260709-001.md`
-- `MEMORY_MIGRATION_REPORT.md`
+## Notes
+
+- Runtime and game code remain untouched.
+- Bridge artifacts 062/063 remain immutable history.
+- This report intentionally separates the compact root from the full archive payload so the repository stays readable from GitHub.
