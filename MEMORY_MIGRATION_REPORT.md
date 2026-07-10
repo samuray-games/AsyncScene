@@ -2,16 +2,16 @@
 
 Date: 2026-07-11
 Cycle: CYCLE-20260710-002
-Thread: BRIDGE-20260711-075
-Epoch: REPO-MEMORY-MIGRATION-AUTHORITY-DELTA-R1-20260711-0030JST
+Thread: BRIDGE-20260710-070
+Epoch: REPO-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION-R1-20260710-2343JST
 Baseline: d8b4508b97374fcdfe62fad9137b64b7295a792f
-Model identifier: GPT-5.4-Mini
-State memory revision: 2026-07-11-0030-JST
-Model rationale: GPT-5.4-Mini was sufficient because the task is deterministic documentation repair with fixed repo evidence, not exploratory code design.
+Model identifier: GPT-5.4
+State memory revision: 2026-07-10-2315-JST
+Model rationale: GPT-5.4 is the better cost-capability balance for this deterministic two-file documentation correction with fixed repository evidence. GPT-5.4-Mini already failed repeated authority-following checks, while GPT-5.5 is unnecessary.
 
 ## Objective
 
-Keep the repository-first memory layout aligned with the current slot-3 authority delta while keeping the live state compact.
+Keep the repository-first memory layout aligned with the source lane while keeping the live state compact and sourced from `PROJECT_MEMORY.md`.
 
 ## Exact migration mapping
 
@@ -28,7 +28,7 @@ Keep the repository-first memory layout aligned with the current slot-3 authorit
 | File | Expected revision | Status |
 | --- | --- | --- |
 | `PROJECT_MEMORY.md` | `2026-07-10-2315-JST` | fail-closed on mismatch |
-| `.ai-memory/CURRENT.md` | `2026-07-11-0030-JST` | aligned |
+| `.ai-memory/CURRENT.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/DECISIONS.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/CANON.md` | `2026-07-10-2315-JST` | aligned |
 | `.ai-memory/WORKFLOWS.md` | `2026-07-10-2315-JST` | aligned |
@@ -38,19 +38,19 @@ Keep the repository-first memory layout aligned with the current slot-3 authorit
 
 Repository identity: `samuray-games/AsyncScene`
 
-Accepted-main pending: `false`
+Accepted-main pending: `true`
 
-Repository memory revision: `2026-07-11-0030-JST`
+Repository memory revision: `2026-07-10-2315-JST`
 
 Child revisions:
 
-- `.ai-memory/CURRENT.md`: `2026-07-11-0030-JST`
+- `.ai-memory/CURRENT.md`: `2026-07-10-2315-JST`
 - `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
 
-Drive sync status: `PUBLISHED_AWAITING_CHATGPT_VERIFICATION`
+Drive sync status: `PENDING_CHATGPT_VERIFICATION`
 
 Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
 
@@ -78,19 +78,19 @@ Use the repository index as the only bootstrap pointer:
 
 Repository identity: `samuray-games/AsyncScene`
 
-Accepted-main pending: `false`
+Accepted-main pending: `true`
 
-Repository memory revision: `2026-07-11-0030-JST`
+Repository memory revision: `2026-07-10-2315-JST`
 
 Child revisions:
 
-- `.ai-memory/CURRENT.md`: `2026-07-11-0030-JST`
+- `.ai-memory/CURRENT.md`: `2026-07-10-2315-JST`
 - `.ai-memory/DECISIONS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/CANON.md`: `2026-07-10-2315-JST`
 - `.ai-memory/WORKFLOWS.md`: `2026-07-10-2315-JST`
 - `.ai-memory/archive/CYCLE-20260709-001.md`: `2026-07-10-2315-JST`
 
-Drive sync status: `PUBLISHED_AWAITING_CHATGPT_VERIFICATION`
+Drive sync status: `PENDING_CHATGPT_VERIFICATION`
 
 Fail-closed rule: if any child revision mismatches `REPO_MEMORY_REV`, reject the claim and treat the index as stale.
 
@@ -122,32 +122,32 @@ Authority order:
 - Legacy archive content is preserved as the pre-split root payload, not reauthored prose.
 - The archived legacy payload is byte-identical to `origin/main:PROJECT_MEMORY.md`.
 - `git diff --check` passes on the docs-only migration set.
-- Evidence is aligned to the current slot 3 correction lane and the current draft PR head.
+- Evidence is aligned to the source lane and preserves external verification of the final remote head.
 
 ## Commands and results
 
 - `git fetch origin main coordination/chatgpt-codex-bridge`: PASS
 - `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/STATE.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-071-01-chatgpt.md`: PASS
-- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-071-claim-v1-codex.md`: PASS
-- `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS, branch `f578f11a7e30fd8838b97602adae757e4a42966d`, PR head `f578f11a7e30fd8838b97602adae757e4a42966d`, merge `unknown`
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/inbox/BRIDGE-20260710-070-01-chatgpt.md`: PASS
+- `git show origin/coordination/chatgpt-codex-bridge:.ai-bridge/claims/BRIDGE-20260710-070-claim-v1-codex.md`: PASS
+- `git ls-remote origin refs/heads/bridge/repo-memory-064 refs/pull/199/head refs/pull/199/merge`: PASS, predecessor branch head `2d0eb26ba73d6fed52f36f977fde3e0dba451ccc`, predecessor PR head `2d0eb26ba73d6fed52f36f977fde3e0dba451ccc`, merge `unknown`
 - `git diff --check`: PASS
 - `wc -c .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `952990`
 - `sha256sum .ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - `git show origin/main:PROJECT_MEMORY.md | wc -c`: PASS, `952990`
 - `git show origin/main:PROJECT_MEMORY.md | sha256sum`: PASS, `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
-- `git rev-parse HEAD`: PASS before new commit, `f578f11a7e30fd8838b97602adae757e4a42966d`
+- `git rev-parse HEAD`: PASS before new commit, `2d0eb26ba73d6fed52f36f977fde3e0dba451ccc`
 
 ## Evidence
 
 - PR paths: `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`, `MEMORY_MIGRATION_REPORT.md`, `TASKS.md`
 - Correction paths: `.ai-memory/CURRENT.md`, `MEMORY_MIGRATION_REPORT.md`
-- Current thread: `BRIDGE-20260711-075`
+- Current thread: `BRIDGE-20260710-070`
 - Current PR: `199`
-- Current correction head: `f8a08c1d61eda6f973593a9eecdf68a5cb2f1c2b`
-- Current remote head: `f578f11a7e30fd8838b97602adae757e4a42966d`
+- Predecessor PR head: `2d0eb26ba73d6fed52f36f977fde3e0dba451ccc`
+- Final remote head: `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`
 - Owned memory files present: `.ai-memory/CURRENT.md`, `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, `.ai-memory/archive/CYCLE-20260709-001.md`, `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md`
-- Revision consistency: `.ai-memory/CURRENT.md` now matches the active memory revision `2026-07-11-0030-JST`
+- Revision consistency: `.ai-memory/CURRENT.md` now matches the source memory revision `2026-07-10-2315-JST`
 - Legacy archive proof: `.ai-memory/archive/PROJECT_MEMORY_LEGACY_PRE_SPLIT.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Pre-split source proof: `origin/main:PROJECT_MEMORY.md` byte count `952990`, SHA-256 `2fe5185baec8ee12418e25d5f5e32012f6237870997dfc7c58edb3cd44e7a655`
 - Compact-root proof: `PROJECT_MEMORY.md` remains an index file rather than a copied timeline
@@ -155,11 +155,11 @@ Authority order:
 
 ## Required check results
 
-- `git rev-parse HEAD` after commit: `f8a08c1d61eda6f973593a9eecdf68a5cb2f1c2b`
-- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `f578f11a7e30fd8838b97602adae757e4a42966d`
-- `git ls-remote origin refs/pull/199/head`: `f578f11a7e30fd8838b97602adae757e4a42966d`
-- `git ls-remote origin refs/pull/199/merge`: `unknown`
-- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `f578f11a7e30fd8838b97602adae757e4a42966d`, base `main`, state `OPEN`
+- `git rev-parse HEAD` after commit: `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`
+- `git ls-remote origin refs/heads/bridge/repo-memory-064`: `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`
+- `git ls-remote origin refs/pull/199/head`: `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`
+- `git ls-remote origin refs/pull/199/merge`: `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`
+- `gh pr view 199 --repo samuray-games/AsyncScene --json headRefName,headRefOid,baseRefName,state,title`: PASS, head `bridge/repo-memory-064`, head OID `EXTERNAL_CHATGPT_VERIFICATION_REQUIRED`, base `main`, state `OPEN`
 
 ## Evidence requirements
 

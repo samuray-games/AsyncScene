@@ -1,18 +1,18 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-11-0030-JST
-EXPECTED_REV: 2026-07-11-0030-JST
-FAIL_CLOSED_STATUS: ALIGNMENT_RESTORED
+MEMORY_REV: 2026-07-10-2315-JST
+EXPECTED_REV: 2026-07-10-2315-JST
+FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
 ACTIVE_CYCLE: CYCLE-20260710-002
-ACTIVE_THREAD: BRIDGE-20260711-075
-ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-AUTHORITY-DELTA
-ACTIVE_ISSUE: 210
+ACTIVE_THREAD: BRIDGE-20260710-070
+ACTIVE_TASK: TASK-REPO-FIRST-MEMORY-MIGRATION-FINAL-INCONSISTENCY-CORRECTION
+ACTIVE_ISSUE: 211
 ACTIVE_PR: 199
 ACTIVE_PR_BRANCH: bridge/repo-memory-064
 CURRENT_MAIN_BASELINE: d8b4508b97374fcdfe62fad9137b64b7295a792f
-ACCEPTED_MAIN_PENDING: false
-DRIVE_SYNC_STATUS: PUBLISHED_AWAITING_CHATGPT_VERIFICATION
-NEXT_ACTION: ChatGPT verifies the authority delta in PR 199, then records the synchronized repository memory and updated migration report.
+ACCEPTED_MAIN_PENDING: true
+DRIVE_SYNC_STATUS: PENDING_CHATGPT_VERIFICATION
+NEXT_ACTION: ChatGPT verifies PR 199, then after acceptance marks it ready, merges it, publishes the source outbox and receipt, synchronizes repository memory and Google Drive bootstrap, and prepares the separate canary.
 
 Repo identity:
 
@@ -46,7 +46,7 @@ Active state:
 - Root `PROJECT_MEMORY.md` is now the index and pointer file.
 - `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` hold the stable details.
 - `.ai-memory/archive/` holds immutable cycle history.
-- The corrected bridge cycle now points at the authority delta for the live memory index and migration report.
+- The corrected bridge cycle expects the compact root to stay in review until ChatGPT verifies the repaired PR head.
 
 Current constraints:
 
@@ -54,4 +54,7 @@ Current constraints:
 - Preserve immutable bridge artifacts 062/063.
 - Keep future updates append-only in the archive and compact in this file.
 - Keep root and child revision fields aligned with `REPO_MEMORY_REV`.
-- The active lane is slot 3 on branch `bridge/repo-memory-064`.
+
+Next action:
+
+- Keep the external bootstrap text in the migration report synchronized with the repository index and archive.
