@@ -1,3 +1,7 @@
+## 2026-07-10 — Slot 3 closed-loop core completion recovery
+- Facts: The slot-3 bridge contract was still pinned to the older 20260709 epoch. Updated the source contract, tests, validator, and protocol docs to the active 20260710 thread 058 identity and receipt-aware publication shape.
+- Validation pending after the source edit.
+
 ## 2026-07-09 — Closed-loop source contract correction
 - Slot 3 is correcting the repository source contract only; installed-package proof is deferred to a later task.
 - The frozen scope is `CLOSED_LOOP_PROTOCOL.md`, `tools/closed_loop_contract.py`, `tools/test_closed_loop_contract.py`, `tools/validate-orchestration-policy.py`, `.github/workflows/orchestration-policy.yml`, `plugins/asynchronia/skills/task-router/SKILL.md`, `plugins/asynchronia/skills/closed-loop-controller/SKILL.md`, `PROJECT_MEMORY.md`, and `TASKS.md`.

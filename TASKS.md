@@ -1,3 +1,8 @@
+## 2026-07-10 — Slot 3 closed-loop core completion recovery
+- Status: in progress.
+- Updated the closed-loop contract/test/validator surfaces from the stale 20260709 slot-3 epoch to the current 20260710 thread 058 epoch, including receipt-aware identity fields and the active baseline / inbox / claim / outbox paths.
+- Validation has not been rerun yet.
+
 ## 2026-07-09 — Slot 3 closed-loop bridge correction
 - Status: in progress.
 - Replaced the placeholder bridge contract with an executable state machine in `tools/closed_loop_contract.py`, including legal states, transitions, identity validation, outbox schema checks, recovery classification, positive/negative control inventories, and a deterministic self-check.

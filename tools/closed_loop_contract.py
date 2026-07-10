@@ -7,8 +7,8 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Final
 
-CONTRACT_VERSION: Final[str] = "1.0.1"
-POLICY_VERSION: Final[str] = "CODEX_AUTOPILOT_2026_07_09_CLOSED_LOOP_V1_1"
+CONTRACT_VERSION: Final[str] = "1.0.2"
+POLICY_VERSION: Final[str] = "CODEX_AUTOPILOT_2026_07_10_CLOSED_LOOP_V1_2"
 BRIDGE_PROTOCOL: Final[str] = "3.3"
 EXPECTED_OUTBOX_SUFFIX: Final[str] = "-02-codex.md"
 FORBIDDEN_RUNTIME_GATE: Final[str] = "runtime-safety-gate"
@@ -275,6 +275,37 @@ RECOVERY_CLASSIFICATIONS: Final[tuple[str, ...]] = (
     "BLOCKED_EXTERNAL",
 )
 
+REQUIRED_RECEIPT_FIELDS: Final[tuple[str, ...]] = (
+    "status",
+    "completionMode",
+    "primaryChanged",
+    "verifiedPrimarySha",
+    "primaryParent",
+    "changedPaths",
+    "authorizedPaths",
+    "validationResults",
+    "negativeControls",
+    "positiveControls",
+    "recoveryClassification",
+    "nextAction",
+    "remoteMailboxCommit",
+    "remoteStateSha",
+    "byteEquality",
+    "outboxPath",
+    "receiptPath",
+    "baselineSha",
+    "bridgeSlot",
+    "threadId",
+    "laneId",
+    "taskId",
+    "executionEpoch",
+    "taskNonce",
+    "coordinatorMemoryRev",
+    "policyVersion",
+    "outboxPublicationCommit",
+    "outboxBlobSha",
+)
+
 REPORT_SCHEMA_KEYS: Final[tuple[str, ...]] = REQUIRED_OUTBOX_FIELDS
 
 
@@ -297,6 +328,8 @@ class ClosedLoopState:
     next_action: str
     current_state: str
     remote_mailbox_commit: str = ""
+    outbox_publication_commit: str = ""
+    outbox_blob_sha: str = ""
     primary_commit_sha: str = ""
     primary_parent_sha: str = "N/A"
     changed_paths: tuple[str, ...] = ()
@@ -307,6 +340,7 @@ class ClosedLoopState:
     recovery_classification: str = "CORRECTION_REQUIRED"
     byte_equality: str = "UNKNOWN"
     primary_changed: bool = False
+    receipt_path: str = ""
 
 
 def load_state(data: dict) -> ClosedLoopState:
@@ -349,6 +383,8 @@ def load_state(data: dict) -> ClosedLoopState:
         "next_action": data["next_action"],
         "current_state": data["current_state"],
         "remote_mailbox_commit": data.get("remote_mailbox_commit", ""),
+        "outbox_publication_commit": data.get("outbox_publication_commit", ""),
+        "outbox_blob_sha": data.get("outbox_blob_sha", ""),
         "primary_commit_sha": data.get("primary_commit_sha", ""),
         "primary_parent_sha": data.get("primary_parent_sha", "N/A"),
         "changed_paths": tuple(data.get("changed_paths", ())),
@@ -359,6 +395,7 @@ def load_state(data: dict) -> ClosedLoopState:
         "recovery_classification": data.get("recovery_classification", "CORRECTION_REQUIRED"),
         "byte_equality": data.get("byte_equality", "UNKNOWN"),
         "primary_changed": data.get("primary_changed", False),
+        "receipt_path": data.get("receipt_path", ""),
     }
     return ClosedLoopState(**values)
 
@@ -407,6 +444,8 @@ def validate_identity(state: ClosedLoopState) -> None:
         raise ValueError("invalid inbox path")
     if not state.claim_path.startswith(".ai-bridge/claims/"):
         raise ValueError("invalid claim path")
+    if state.receipt_path and not state.receipt_path.startswith(".ai-bridge/receipts/"):
+        raise ValueError("invalid receipt path")
 
 
 def validate_transition(current_state: str, next_state: str) -> None:
@@ -456,6 +495,14 @@ def validate_report_schema(report: dict) -> None:
         raise ValueError("changedPaths must be a list")
     if not isinstance(report["authorizedPaths"], list):
         raise ValueError("authorizedPaths must be a list")
+    if "receiptPath" in report:
+        _require_non_empty_text(report["receiptPath"], "receiptPath")
+        if not isinstance(report["outboxPublicationCommit"], str):
+            raise ValueError("invalid type for outboxPublicationCommit")
+        _require_sha(report["outboxPublicationCommit"], "outboxPublicationCommit")
+        _require_sha(report["outboxBlobSha"], "outboxBlobSha")
+        if report["status"] not in {"PASS_PUSHED", "PASS_VERIFIED_NO_DELTA"}:
+            raise ValueError("receipt status mismatch")
 
 
 def classify_recovery(report: dict) -> str:
@@ -609,21 +656,22 @@ def accept_product_work(report: dict) -> bool:
 def self_check() -> dict:
     sample = ClosedLoopState(
         bridge_slot=3,
-        thread_id="BRIDGE-20260709-054",
-        lane_id="PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
-        task_id="TASK-PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
-        execution_epoch="CLOSED-LOOP-SOURCE-R3-20260709-2213JST",
-        task_nonce="CLV1-054-SOURCE-708B-2213",
-        coordinator_memory_rev="2026-07-09-2213-JST",
-        baseline_sha="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
-        inbox_path=".ai-bridge/inbox/BRIDGE-20260709-054-01-chatgpt.md",
-        claim_path=".ai-bridge/claims/BRIDGE-20260709-054-claim-v1-codex.md",
-        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md",
-        remote_state_sha="708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+        thread_id="BRIDGE-20260710-058",
+        lane_id="PROCESS-CLOSED-LOOP-CORE-COMPLETION",
+        task_id="TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
+        execution_epoch="CLOSED-LOOP-CORE-R2-20260710-1146JST",
+        task_nonce="CLV1-058-CORE-E599-1146",
+        coordinator_memory_rev="2026-07-10-1146-JST",
+        baseline_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
+        inbox_path=".ai-bridge/inbox/BRIDGE-20260710-058-01-chatgpt.md",
+        claim_path=".ai-bridge/claims/BRIDGE-20260710-058-claim-v1-codex.md",
+        expected_outbox_path=".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
+        remote_state_sha="e599beddbbd03c8585f9c44f0f7c190338e123e7",
         completion_mode="PRIMARY_DELTA",
         result_status="PASS_PUSHED",
         next_action="Open a fresh ChatGPT conversation and send мост 3.",
         current_state="PRIMARY_PUBLISHED",
+        receipt_path=".ai-bridge/receipts/BRIDGE-20260710-058-03-codex.md",
     )
     validate_identity(sample)
     for current, targets in LEGAL_TRANSITIONS.items():
@@ -643,27 +691,27 @@ def self_check() -> dict:
             "status": "PASS_PUSHED",
             "completionMode": "PRIMARY_DELTA",
             "primaryChanged": True,
-            "verifiedPrimarySha": "cafebabecafebabecafebabecafebabecafebabe",
-            "primaryParent": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
-            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md"],
-            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md"],
+            "verifiedPrimarySha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
+            "primaryParent": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
+            "changedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
+            "authorizedPaths": [".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md"],
             "validationResults": ["py_compile: PASS", "unittest: PASS"],
             "negativeControls": list(NEGATIVE_CONTROLS),
             "positiveControls": list(POSITIVE_CONTROLS),
             "recoveryClassification": "CORRECTION_REQUIRED",
             "nextAction": "Open a fresh ChatGPT conversation and send мост 3.",
-            "remoteMailboxCommit": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
-            "remoteStateSha": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+            "remoteMailboxCommit": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
+            "remoteStateSha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
             "byteEquality": "MATCH",
-            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260709-054-02-codex.md",
-            "baselineSha": "708bc8f1380f2fb4ba687ecfa2706494b3c969d9",
+            "outboxPath": ".ai-bridge/outbox/BRIDGE-20260710-058-02-codex.md",
+            "baselineSha": "e599beddbbd03c8585f9c44f0f7c190338e123e7",
             "bridgeSlot": 3,
-            "threadId": "BRIDGE-20260709-054",
-            "laneId": "PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
-            "taskId": "TASK-PROCESS-CLOSED-LOOP-STRICT-SOURCE-AND-PUBLICATION-CORRECTION",
-            "executionEpoch": "CLOSED-LOOP-SOURCE-R3-20260709-2213JST",
-            "taskNonce": "CLV1-054-SOURCE-708B-2213",
-            "coordinatorMemoryRev": "2026-07-09-2213-JST",
+            "threadId": "BRIDGE-20260710-058",
+            "laneId": "PROCESS-CLOSED-LOOP-CORE-COMPLETION",
+            "taskId": "TASK-PROCESS-CLOSED-LOOP-CORE-COMPLETION",
+            "executionEpoch": "CLOSED-LOOP-CORE-R2-20260710-1146JST",
+            "taskNonce": "CLV1-058-CORE-E599-1146",
+            "coordinatorMemoryRev": "2026-07-10-1146-JST",
             "policyVersion": POLICY_VERSION,
         }
     )
