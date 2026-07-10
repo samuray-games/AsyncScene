@@ -2,6 +2,20 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
+MEMORY_REVISION: 2026-07-10-2315-JST
+EXPECTED_REVISION: 2026-07-10-2315-JST
+
+Authoritative order for memory and workflow facts:
+
+1. `AGENTS.override.md`
+2. `AGENTS.md`
+3. `PROJECT_MEMORY.md`
+4. `.ai-memory/CURRENT.md`
+5. `.ai-memory/DECISIONS.md`
+6. `.ai-memory/CANON.md`
+7. `.ai-memory/WORKFLOWS.md`
+8. `.ai-memory/archive/`
+
 ## Bootstrap workflow
 
 1. Read `AGENTS.override.md` if present.
@@ -31,3 +45,4 @@ This file documents the minimum workflows for the repo-first memory system.
 - Do not use runtime or gameplay smoke for memory-only changes.
 - Keep the evidence surface limited to the files actually changed.
 - Include revision consistency, legacy archive byte proof, and `git diff --check` in the migration validation set.
+- Treat any revision mismatch as fail-closed until the root index is updated.

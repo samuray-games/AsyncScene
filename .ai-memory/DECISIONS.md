@@ -2,6 +2,9 @@
 
 This file holds durable process decisions that should rarely change.
 
+MEMORY_REVISION: 2026-07-10-2315-JST
+EXPECTED_REVISION: 2026-07-10-2315-JST
+
 ## Source of truth
 
 - Repository files are authoritative for current implementation state.

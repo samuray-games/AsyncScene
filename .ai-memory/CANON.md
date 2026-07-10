@@ -2,6 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
+MEMORY_REVISION: 2026-07-10-2315-JST
+EXPECTED_REVISION: 2026-07-10-2315-JST
+
 ## Canon principles
 
 - Git-tracked repo content is authoritative for implementation state.
