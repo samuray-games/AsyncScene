@@ -54688,41 +54688,179 @@ ALX_0206 | action_verbs | помяло`;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
   function smokeBoomerEconomyConflictTerminologyOnce() {
-    const buildTag = "build_2026_07_09_step4_4b_boomer_runtime_aggregate";
+    const buildTag = "build_2026_07_11_step4_4b_boomer_runtime_aggregate_fix4";
     const commit = "step4_4b_boomer_runtime_aggregate";
-    const smokeVersion = "boomer_step4_4b_runtime_aggregate_v20260709_001";
-    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_20260709a";
-    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_20260709a";
+    const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix4_v20260711_001";
+    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_fix4_20260711a";
+    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_fix4_20260711a";
     const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
-    const snapshot = (data) => {
-      if (!data) return null;
+    const runtimeStorageKeyRe = /^(Game|ASYNC|DEV|ui|profile|money|rep|influence|battle|conflict|save|persist)/i;
+    const stableStringify = (value) => {
+      const seen = new WeakSet();
+      const normalize = (item) => {
+        if (item === null || typeof item !== "object") return item;
+        if (seen.has(item)) return "[Circular]";
+        seen.add(item);
+        if (Array.isArray(item)) return item.map(normalize);
+        return Object.keys(item).sort().reduce((acc, key) => {
+          acc[key] = normalize(item[key]);
+          return acc;
+        }, {});
+      };
+      return JSON.stringify(normalize(value));
+    };
+    const cloneRuntimeValue = (value, seen) => {
+      if (value === null || typeof value !== "object") return value;
+      const refs = seen || new WeakMap();
+      if (refs.has(value)) return refs.get(value);
+      const copy = Array.isArray(value) ? [] : {};
+      refs.set(value, copy);
+      Object.keys(value).forEach((key) => {
+        const item = value[key];
+        if (typeof item !== "function") copy[key] = cloneRuntimeValue(item, refs);
+      });
+      return copy;
+    };
+    const restoreObjectInPlace = (target, saved) => {
+      if (!target || typeof target !== "object") return cloneRuntimeValue(saved);
+      if (Array.isArray(target)) {
+        target.length = 0;
+        if (Array.isArray(saved)) saved.forEach((item) => target.push(cloneRuntimeValue(item)));
+        return target;
+      }
+      Object.keys(target).forEach((key) => {
+        delete target[key];
+      });
+      if (saved && typeof saved === "object") {
+        Object.keys(saved).forEach((key) => {
+          target[key] = cloneRuntimeValue(saved[key]);
+        });
+      }
+      return target;
+    };
+    const captureLocalStorage = () => {
+      if (typeof localStorage === "undefined") return null;
+      const out = {};
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key && runtimeStorageKeyRe.test(key)) out[key] = { present: true, value: localStorage.getItem(key) };
+      }
+      return out;
+    };
+    const makeRuntimeStateTracker = (data) => {
       const dbg = Game && Game.__D ? Game.__D : null;
       const state = Game && Game.State ? Game.State : null;
-      const localSnapshot = (() => {
-        if (typeof localStorage === "undefined") return null;
-        const out = {};
-        for (let index = 0; index < localStorage.length; index += 1) {
-          const key = localStorage.key(index);
-          if (key && /^(Game|ASYNC|DEV|ui|profile|money|rep|influence)/i.test(key)) out[key] = localStorage.getItem(key);
+      const legacyState = Game && Game.__S ? Game.__S : null;
+      const surfaces = [];
+      const addProperty = (category, ownerName, owner, key) => {
+        if (!owner || typeof owner !== "object") return;
+        const present = Object.prototype.hasOwnProperty.call(owner, key);
+        surfaces.push({ kind: "property", category, ownerName, owner, key, present, value: present ? cloneRuntimeValue(owner[key]) : undefined });
+      };
+      const addReference = (category, ownerName, owner, key) => {
+        if (!owner || typeof owner !== "object") return;
+        const present = Object.prototype.hasOwnProperty.call(owner, key);
+        const value = present ? owner[key] : undefined;
+        surfaces.push({ kind: "reference", category, ownerName, owner, key, present, target: value && typeof value === "object" ? value : null, value: present ? cloneRuntimeValue(value) : undefined });
+      };
+      const addSurface = (category, ownerName, owner, key) => {
+        if (!owner || typeof owner !== "object") return;
+        const value = owner[key];
+        if (value && typeof value === "object") addReference(category, ownerName, owner, key);
+        else addProperty(category, ownerName, owner, key);
+      };
+      const addMatching = (category, ownerName, owner, re) => {
+        if (!owner || typeof owner !== "object") return;
+        Object.keys(owner).forEach((key) => {
+          if (re.test(key)) addSurface(category, ownerName, owner, key);
+        });
+      };
+      addProperty("profile", "Game.Data", data, "UI_PROFILE");
+      addProperty("profile", "Game.Data", data, "TEXT_MODE");
+      addProperty("economy", "Game.Data", data, "points");
+      addProperty("economy", "Game.Data", data, "POINTS");
+      addProperty("economy", "Game.Data", data, "rep");
+      addProperty("economy", "Game.Data", data, "REP");
+      addProperty("economy", "Game.Data", data, "influence");
+      addProperty("economy", "Game.Data", data, "INFLUENCE");
+      [data, state, legacyState, dbg].forEach((owner, index) => {
+        const ownerName = ["Game.Data", "Game.State", "Game.__S", "Game.__D"][index];
+        addMatching("battleState", ownerName, owner, /battle|conflict|vote|rematch|crowd/i);
+        addMatching("moneyLog", ownerName, owner, /moneyLog|money_log|ledger|transactions/i);
+        addMatching("persistence", ownerName, owner, /persist|save|storage|checkpoint|counter|profileMode|selectedProfile|uiProfile/i);
+      });
+      const selectedProfile = data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE);
+      const beforeLocalStorage = captureLocalStorage();
+      const digest = () => {
+        const byCategory = {
+          profile: { selectedProfile: data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE), textMode: data && data.TEXT_MODE },
+          economy: {},
+          battleState: {},
+          moneyLog: {},
+          persistence: {},
+          localStorage: captureLocalStorage()
+        };
+        surfaces.forEach((surface) => {
+          const present = surface.owner && typeof surface.owner === "object" && Object.prototype.hasOwnProperty.call(surface.owner, surface.key);
+          byCategory[surface.category][`${surface.ownerName}.${surface.key}`] = {
+            present,
+            value: present ? cloneRuntimeValue(surface.owner[surface.key]) : undefined
+          };
+        });
+        return {
+          categories: byCategory,
+          digest: stableStringify(byCategory)
+        };
+      };
+      const restore = () => {
+        surfaces.forEach((surface) => {
+          if (!surface.owner || typeof surface.owner !== "object") return;
+          if (!surface.present) {
+            delete surface.owner[surface.key];
+            return;
+          }
+          if (surface.kind === "reference" && surface.target && typeof surface.target === "object") {
+            surface.owner[surface.key] = surface.target;
+            restoreObjectInPlace(surface.target, surface.value);
+            return;
+          }
+          surface.owner[surface.key] = cloneRuntimeValue(surface.value);
+        });
+        if (data && typeof data.setUiProfile === "function") data.setUiProfile(selectedProfile || "default");
+        if (typeof localStorage !== "undefined" && beforeLocalStorage) {
+          const seen = {};
+          Object.keys(beforeLocalStorage).forEach((key) => {
+            seen[key] = true;
+            localStorage.setItem(key, beforeLocalStorage[key].value);
+          });
+          const afterKeys = [];
+          for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key && runtimeStorageKeyRe.test(key) && !seen[key]) afterKeys.push(key);
+          }
+          afterKeys.forEach((key) => localStorage.removeItem(key));
         }
-        return out;
-      })();
+      };
+      const compare = (left, right, category) => {
+        const leftValue = category ? left.categories[category] : left.categories;
+        const rightValue = category ? right.categories[category] : right.categories;
+        return stableStringify(leftValue) === stableStringify(rightValue);
+      };
+      return { digest, restore, compare };
+    };
+    const runAdversarialRestorationFixtures = (baselineDigest) => {
+      const mutate = (category, fn) => {
+        const changed = cloneRuntimeValue(baselineDigest);
+        fn(changed.categories[category]);
+        return stableStringify(changed.categories[category]) !== stableStringify(baselineDigest.categories[category]);
+      };
       return {
-        profile: typeof data.getUiProfile === "function" ? data.getUiProfile() : data.UI_PROFILE,
-        textMode: data.TEXT_MODE,
-        points: typeof data.points === "number" ? data.points : (typeof data.POINTS === "number" ? data.POINTS : null),
-        rep: typeof data.rep === "number" ? data.rep : (typeof data.REP === "number" ? data.REP : null),
-        influence: typeof data.influence === "number" ? data.influence : (typeof data.INFLUENCE === "number" ? data.INFLUENCE : null),
-        battleState: JSON.stringify(data.battleState || data.BATTLE_STATE || (state && state.battleState) || null),
-        moneyLog: JSON.stringify((dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : (Array.isArray(data.moneyLog) ? data.moneyLog : [])),
-        persistence: JSON.stringify(data.persistence || data.PERSISTENCE || (state && state.persistence) || null),
-        localStorage: JSON.stringify(localSnapshot),
-        textsBoomer: JSON.stringify(data.TEXTS && data.TEXTS.boomer),
-        textsMillennial: JSON.stringify(data.TEXTS && data.TEXTS.millennial),
-        textsZoomer: JSON.stringify(data.TEXTS && data.TEXTS.zoomer),
-        startBoomer: JSON.stringify(data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer),
-        npcBoomer: JSON.stringify(data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer),
-        copBoomer: JSON.stringify(data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer)
+        profileRejectsMutation: mutate("profile", (value) => { value.selectedProfile = "__mutated_profile__"; }),
+        economyRejectsMutation: mutate("economy", (value) => { value.__mutated_points = 999999; }),
+        battleStateRejectsMutation: mutate("battleState", (value) => { value.__mutated_battle = { id: "__mutated__" }; }),
+        moneyLogRejectsMutation: mutate("moneyLog", (value) => { value.__mutated_money_log = [{ amount: 999999 }]; }),
+        persistenceRejectsMutation: mutate("persistence", (value) => { value.__mutated_save = { counter: 999999 }; }),
+        localStorageRejectsMutation: mutate("localStorage", (value) => { value.__mutated_storage = { present: true, value: "__mutated__" }; })
       };
     };
     const readScriptUrl = () => {
@@ -54795,6 +54933,15 @@ ALX_0206 | action_verbs | помяло`;
       stateRestored: false,
       runtimeSourceUrl: "",
       runtimeChecks: {},
+      beforeDigest: "",
+      afterDigest: "",
+      profileRestored: false,
+      economyRestored: false,
+      battleStateRestored: false,
+      moneyLogRestored: false,
+      persistenceRestored: false,
+      localStorageRestored: false,
+      adversarialRestorationFixtures: {},
       pageUrl: typeof location !== "undefined" ? String(location.href || "") : "",
       failures: [],
       forbiddenRemaining: [],
@@ -54802,30 +54949,10 @@ ALX_0206 | action_verbs | помяло`;
       failedChecks: []
     };
     const data = (Game && Game.Data) ? Game.Data : null;
-    const before = snapshot(data);
-    const originalProfile = data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE ? data.UI_PROFILE : "default");
-    const originalTextMode = data && typeof data.TEXT_MODE === "string" ? data.TEXT_MODE : "millennial";
-    const originalPoints = data && typeof data.points === "number" ? data.points : (data && typeof data.POINTS === "number" ? data.POINTS : null);
-    const originalRep = data && typeof data.rep === "number" ? data.rep : (data && typeof data.REP === "number" ? data.REP : null);
-    const originalInfluence = data && typeof data.influence === "number" ? data.influence : (data && typeof data.INFLUENCE === "number" ? data.INFLUENCE : null);
-    const restoreState = () => {
-      if (!data) return;
-      if (typeof data.setUiProfile === "function") data.setUiProfile(originalProfile || "default");
-      else data.UI_PROFILE = originalProfile || "default";
-      if (typeof data.TEXT_MODE === "string") data.TEXT_MODE = originalTextMode;
-      if (typeof originalPoints === "number") {
-        if (typeof data.points === "number") data.points = originalPoints;
-        if (typeof data.POINTS === "number") data.POINTS = originalPoints;
-      }
-      if (typeof originalRep === "number") {
-        if (typeof data.rep === "number") data.rep = originalRep;
-        if (typeof data.REP === "number") data.REP = originalRep;
-      }
-      if (typeof originalInfluence === "number") {
-        if (typeof data.influence === "number") data.influence = originalInfluence;
-        if (typeof data.INFLUENCE === "number") data.INFLUENCE = originalInfluence;
-      }
-    };
+    const tracker = makeRuntimeStateTracker(data);
+    const before = tracker.digest();
+    result.beforeDigest = before.digest;
+    result.adversarialRestorationFixtures = runAdversarialRestorationFixtures(before);
     const addFailure = (check, detail) => {
       result.failedChecks.push(check);
       result.failures.push({ check, detail });
@@ -54842,13 +54969,18 @@ ALX_0206 | action_verbs | помяло`;
         { id: "runtime_source_url", label: "Influence", pass: !!(runtimeUrl && runtimeUrl.includes(expectedScriptMarker)), detail: runtimeUrl },
         { id: "page_url", label: "voting", pass: typeof location !== "undefined" && !!String(location.href || "").length, detail: typeof location !== "undefined" ? String(location.href || "") : null },
         { id: "cache_bust", label: "majority/minority outcomes", pass: typeof location !== "undefined" && String(location.href || "").includes(expectedCacheBust), detail: typeof location !== "undefined" ? String(location.href || "") : null },
-        { id: "state_snapshot", label: "rematch", pass: !before || JSON.stringify(before) === JSON.stringify(snapshot(data)), detail: { before, after: snapshot(data) } },
         { id: "fallback_resolution", label: "NPC-vs-NPC conflict text", pass: evidence.fallbackResolutionOk, detail: evidence },
         { id: "placeholders", label: "conflict results", pass: evidence.placeholderOk, detail: evidence.suspiciousPlaceholders },
         { id: "protected_numbers", label: "DM", pass: evidence.protectedNumbersOk, detail: evidence.protectedNumbers },
         { id: "emoji_contracts", label: "reports", pass: evidence.emojiContractsOk, detail: evidence.emojiHits },
         { id: "cross_profile_leakage", label: "report resolution", pass: evidence.crossProfileLeakageOk, detail: evidence.tabooTerms },
-        { id: "taboo_terms", label: "taboo terms", pass: evidence.tabooTermsOk, detail: evidence.tabooTerms }
+        { id: "taboo_terms", label: "taboo terms", pass: evidence.tabooTermsOk, detail: evidence.tabooTerms },
+        { id: "adversarial_profile", label: "profile restore fixture", pass: result.adversarialRestorationFixtures.profileRejectsMutation === true, detail: result.adversarialRestorationFixtures },
+        { id: "adversarial_economy", label: "economy restore fixture", pass: result.adversarialRestorationFixtures.economyRejectsMutation === true, detail: result.adversarialRestorationFixtures },
+        { id: "adversarial_battle_state", label: "battle restore fixture", pass: result.adversarialRestorationFixtures.battleStateRejectsMutation === true, detail: result.adversarialRestorationFixtures },
+        { id: "adversarial_money_log", label: "moneyLog restore fixture", pass: result.adversarialRestorationFixtures.moneyLogRejectsMutation === true, detail: result.adversarialRestorationFixtures },
+        { id: "adversarial_persistence", label: "persistence restore fixture", pass: result.adversarialRestorationFixtures.persistenceRejectsMutation === true, detail: result.adversarialRestorationFixtures },
+        { id: "adversarial_local_storage", label: "localStorage restore fixture", pass: result.adversarialRestorationFixtures.localStorageRejectsMutation === true, detail: result.adversarialRestorationFixtures }
       ];
       result.runtimeChecks = checks.reduce((acc, entry) => {
         acc[entry.id] = entry.pass;
@@ -54863,21 +54995,41 @@ ALX_0206 | action_verbs | помяло`;
         if (entry.id === "base_smoke" || entry.id === "profile_diff" || entry.id === "runtime_source_url" || entry.id === "page_url" || entry.id === "cache_bust" || entry.id === "state_snapshot") return;
         addUnique(result.forbiddenRemaining, { check: entry.id, detail: entry.detail });
       });
-      if (before && JSON.stringify(before) !== JSON.stringify(snapshot(data))) addFailure("state_drift_detected", { before, after: snapshot(data) });
-      restoreState();
-      result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
-      if (result.stateRestored !== true) addFailure("state_restore_failed", { before, after: snapshot(data) });
+    } catch (err) {
+      addFailure("smoke_exception", err && err.message ? String(err.message) : String(err));
+    } finally {
+      tracker.restore();
+      const after = tracker.digest();
+      result.afterDigest = after.digest;
+      result.profileRestored = tracker.compare(before, after, "profile");
+      result.economyRestored = tracker.compare(before, after, "economy");
+      result.battleStateRestored = tracker.compare(before, after, "battleState");
+      result.moneyLogRestored = tracker.compare(before, after, "moneyLog");
+      result.persistenceRestored = tracker.compare(before, after, "persistence");
+      result.localStorageRestored = tracker.compare(before, after, "localStorage");
+      result.stateRestored = result.profileRestored === true
+        && result.economyRestored === true
+        && result.battleStateRestored === true
+        && result.moneyLogRestored === true
+        && result.persistenceRestored === true
+        && result.localStorageRestored === true
+        && result.beforeDigest === result.afterDigest;
+      [
+        ["profile_restore_failed", result.profileRestored],
+        ["economy_restore_failed", result.economyRestored],
+        ["battle_state_restore_failed", result.battleStateRestored],
+        ["money_log_restore_failed", result.moneyLogRestored],
+        ["persistence_restore_failed", result.persistenceRestored],
+        ["local_storage_restore_failed", result.localStorageRestored],
+        ["state_restore_failed", result.stateRestored]
+      ].forEach((entry) => {
+        if (entry[1] !== true) addFailure(entry[0], { beforeDigest: result.beforeDigest, afterDigest: result.afterDigest });
+      });
       result.ok = result.failedChecks.length === 0
         && result.failures.length === 0
         && result.stateRestored === true
-        && result.checkedCount === checks.length
-        && result.coveredFeatureZones.length === checks.length
         && result.forbiddenRemaining.length === 0
         && result.missingCoverage.length === 0;
-    } catch (err) {
-      addFailure("smoke_exception", err && err.message ? String(err.message) : String(err));
-      restoreState();
-      result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
     }
     return result;
   }
