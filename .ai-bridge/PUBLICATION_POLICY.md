@@ -1,6 +1,6 @@
 # Bridge Autopilot Policy
 
-POLICY_VERSION: CODEX_AUTOPILOT_2026_07_11_PLUGIN_EVIDENCE_VALIDATOR_APPLICABILITY
+POLICY_VERSION: CODEX_AUTOPILOT_2026_07_11_SKILL_APPLICATION_NO_PLUGIN_TELEMETRY
 STATUS: ACTIVE
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -12,6 +12,7 @@ REMOTE_STATE_FRESHNESS: REQUIRED
 DEFAULT_PUBLICATION_MODE: CODEX_OUTBOX_PLUS_RECEIPT
 MODEL_PREFLIGHT_GATE: RETIRED
 VALIDATOR_APPLICABILITY_GATE: REQUIRED
+PLUGIN_TOOL_TELEMETRY_REQUIRED: false
 
 ## 1. Fresh execution and remote-state freshness
 
@@ -33,69 +34,67 @@ The bridge exposes exactly three fixed execution slots:
 - STATE is the only activation pointer.
 - Superseded and inert task packages are historical only.
 
-## 3. Plugin boundary
+## 3. Plugin and skill boundary
 
-### 3.1 Default ordinary task route
+### 3.1 Skills-only plugin model
 
-For an ordinary plugin-assisted Asynchronia implementation lane, plugin routing may be required by the active task and current repository authority.
+The Asynchronia package is a Codex skills plugin. Its manifest exposes a `skills` directory and does not declare callable tools or a tool server.
 
-Repository text never proves plugin activation. A task that explicitly requires actual plugin invocation may return an exact plugin blocker only when that requirement is part of the current non-superseded task identity.
+For numbered bridge work, Codex resolves the required skill instructions from either:
 
-### 3.2 Explicit loop-only exception
+- the Asynchronia plugin attached by the user in the Codex interface; or
+- the repository fallback under `plugins/asynchronia/skills/**`.
 
-The plugin-first requirement does not apply when current STATE, inbox, and claim all identify a process-only closed-loop or bridge-controller lane with these exact semantics:
+This matches root `CODEX_BRIDGE_BOOTSTRAP.md`, which says installed-cache or repository fallback is valid and plugin-loader telemetry is never required.
 
-- `PLUGIN_DELIVERY_LANE: SEPARATE_EXTERNAL_NON_GATING`;
-- `PLUGIN_INVOCATION_REQUIRED: false`;
-- plugin source, manifest, marketplace, installation, cache, loader, and package paths are protected;
-- Safari is `N/A_PROCESS_ONLY`.
+The absence of a separately callable `asynchronia` tool is not a plugin failure and must never produce `BLOCKED_PLUGIN_UNAVAILABLE` while the repository skill fallback is readable.
 
-For such a lane:
+### 3.2 No invocation-telemetry gate
 
-- plugin availability is not bridge transport and cannot block execution;
-- `BLOCKED_PLUGIN_UNAVAILABLE` is illegal;
-- no plugin activation claim may be made;
-- no plugin tool invocation evidence is required;
-- no model recommendation is required when no model-selector tool is available;
-- model selection is never an execution gate;
-- the STATE-selected closed-loop protocol and publication policy govern the transaction;
-- Codex reads repository authority directly and executes the frozen loop-only task.
+Codex must not claim that a plugin tool was invoked when no such tool surface exists.
 
-This exception is narrow. It does not authorize product, runtime, plugin-source, plugin-installation, marketplace, manifest, cache, or loader work.
+The following are never required acceptance evidence:
 
-### 3.3 Plugin repair bootstrap
+- plugin-loader telemetry;
+- a callable plugin tool entry;
+- an invocation event ID;
+- a tool-call transcript;
+- a claim that the plugin was externally activated.
 
-A source-plugin bootstrap is allowed only when the current active task explicitly repairs or installs the plugin and explicitly authorizes that bootstrap. It is not available to a loop-only bridge lane.
+`BLOCKED_PLUGIN_UNAVAILABLE` is illegal when the required skill files can be resolved from the attached plugin context or repository fallback.
 
-### 3.4 Mandatory plugin invocation evidence gate
+A genuine skill-source blocker is permitted only when both the attached context and repository fallback are unavailable or unreadable. The blocker must identify every missing skill path and the exact read failure.
 
-When current STATE, inbox, or claim says `PLUGIN_INVOCATION_REQUIRED: true`, a successful outbox and receipt must include a top-level `pluginInvocationEvidence` object.
+### 3.3 Skill application evidence
+
+When the active task requires Asynchronia skills, a successful outbox and receipt must include a top-level `skillApplicationEvidence` object, not `pluginInvocationEvidence`.
 
 That object must contain:
 
-- `pluginIdentifier` matching the exact active task requirement;
-- `invocationPrefix` matching the exact required invocation text;
-- `actualModelStatus`, which remains `USER_SELECTED_UNVERIFIED` unless independently proven by an external authority;
-- `skillResults`, an array containing every mandatory skill exactly once and in the exact order declared by the active inbox.
+- `pluginIdentifier`;
+- `resolutionMode`, one of `USER_ATTACHED_PLUGIN`, `REPOSITORY_FALLBACK`, or `ATTACHED_PLUS_FALLBACK`;
+- `pluginManifestPath`;
+- `pluginManifestVersion`;
+- `actualModelStatus`;
+- `skillResults`, containing every skill required by the active inbox exactly once and in the declared dependency order.
 
 Each `skillResults` entry must contain:
 
 - `skill`;
-- `status`;
-- a non-empty `materialResult` describing the result actually used by execution;
-- non-empty `evidenceRefs` pointing to concrete command output, file evidence, validation evidence, or published artifact fields.
+- `sourcePath`;
+- `status: APPLIED`;
+- a non-empty `materialResult` describing the decision or constraint actually used;
+- non-empty `evidenceRefs` pointing to concrete repository, command, validation, diff, or publication evidence.
 
-A plugin name in prose, repository text, an installed package, or the prefix line alone does not prove invocation.
+Skill application evidence proves that the instructions materially shaped execution. It does not claim tool invocation telemetry.
 
-A successful status is forbidden when:
+A successful status is forbidden when a required skill is absent, duplicated, reordered, unreadable, marked non-applied, or has empty material results or evidence references.
 
-- `pluginInvocationEvidence` is absent;
-- any mandatory skill is absent, duplicated, reordered, renamed, or substituted;
-- any skill status is `FAIL`, `BLOCKED`, `SKIPPED`, `NOT_RUN`, or equivalent;
-- any material result or evidence reference is empty;
-- the active model is represented as externally verified without independent evidence.
+### 3.4 Plugin package maintenance is separate
 
-When plugin evidence cannot be produced, Codex must not use `PASS_PUSHED` and must publish the exact non-success status and blocker schema permitted by the active task.
+Plugin manifest, marketplace, installation, cache, authentication, loader, and package-version repair belong to a separate plugin-maintenance lane unless the active inbox explicitly authorizes those files.
+
+A version mismatch may be recorded as a non-gating maintenance finding. It must not block an unrelated source-publication lane when required skill sources are readable.
 
 ## 4. Scope safety
 
@@ -142,7 +141,7 @@ A successful outbox for a task with an excluded validator must contain `excluded
 
 Every replacement control must itself appear as a required explicit PASS in `validationResults`.
 
-This rule cannot be used to hide a failure from an applicable validator, to weaken a task-specific invariant, or to omit a validator whose identity matches the current task.
+This rule cannot be used to hide a failure from an applicable validator, weaken a task-specific invariant, or omit a validator whose identity matches the current task.
 
 ## 6. Outbox and receipt transaction
 
@@ -188,15 +187,15 @@ Codex publishes only the exact expected receipt path as a fast-forward child of 
 
 Commit SHAs, blob SHAs, STATE blob identity, mailbox parent, outbox publication commit, and outbox blob are distinct fields and must never be overloaded.
 
-### 6.3 Validation preservation and fail-closed status
+### 6.3 Validation and evidence preservation
 
 The receipt must preserve the outbox `validationResults` array exactly, in the same order and with no omissions or rewrites. Receipt-only publication checks belong in a separate `publicationValidationResults` array.
 
-When present, the receipt must also preserve `excludedValidationEvidence` and `pluginInvocationEvidence` exactly, without omissions or rewrites.
+When present, the receipt must also preserve `excludedValidationEvidence` and `skillApplicationEvidence` exactly, without omissions or rewrites.
 
 `PASS_PUSHED` is forbidden when any required validation result contains `FAIL`, `BLOCKED`, `ERROR`, `SKIPPED`, `NOT_RUN`, or an equivalent non-pass state.
 
-A successful status requires every required validation entry to end in an explicit `PASS`, exact changed paths to equal the frozen write scope, every excluded validator to satisfy the applicability schema with passing replacement controls, and all required plugin evidence gates to pass.
+A successful status requires every required validation entry to end in explicit PASS, exact changed paths to equal the frozen write scope, every excluded validator to satisfy the applicability schema with passing replacement controls, and every required skill application entry to be complete.
 
 No receipt may convert, omit, summarize away, or hide a source validation failure.
 
@@ -216,7 +215,7 @@ No receipt may convert, omit, summarize away, or hide a source validation failur
 
 ## 8. Terminal consistency and handoff
 
-For a primary-required loop-only task, `BLOCKED_NO_REMOTE_OUTBOX`, `BLOCKED_NO_SOURCE_DELTA`, and `BLOCKED_PLUGIN_UNAVAILABLE` are illegal.
+For a primary-required task, `BLOCKED_NO_REMOTE_OUTBOX`, `BLOCKED_NO_SOURCE_DELTA`, and `BLOCKED_PLUGIN_UNAVAILABLE` are illegal when their stated condition is contradicted by readable current evidence.
 
 Status, completion mode, phase, verifier classification, and next action must use exact allowed combinations.
 
@@ -229,10 +228,10 @@ A bare conversational return without the exact current publication evidence is `
 The closed-loop cycle becomes COMPLETE only after:
 
 - source implementation is independently accepted;
-- a separate closed-loop canary is independently accepted;
+- a separate closed-loop canary is independently accepted when required by the active cycle;
 - exact accepted state is recorded in STATE and synchronized live memory.
 
-Plugin installation and installed-package acceptance belong to a separate lane and do not gate this loop-only cycle.
+Plugin package installation and package acceptance belong to a separate lane unless explicitly included in the active task.
 
 ## 10. Ownership
 
