@@ -32,9 +32,9 @@ Define one resumable pipeline contract that:
 - resumes idempotently after interruption or a new Codex session
 - rejects stale, foreign, incompatible, ambiguous, or corrupted state
 - prevents skipped stages and duplicate side effects
-- preserves scope-isolation results, model recommendations, lock, Safari smoke, and user-acceptance states
-- references `model-selector` for the model recommendation evidence that this contract serializes
-- model recommendation evidence is serialized as evidence only and must not be represented as a blocking preflight gate
+- preserves scope-isolation results, model recommendations, same-thread `CONTINUE` resume state, lock, Safari smoke, and user-acceptance states
+- references `model-selector` for the model recommendation evidence and pre-implementation gate that this contract serializes
+- when current repository policy requires mandatory preflight, model recommendation evidence is serialized as a blocking same-thread preflight gate and must reject stale or foreign resume attempts
 - emits a bounded final state report suitable for downstream evidence collection
 
 ## 2. Boundary rules

@@ -100,9 +100,9 @@ Run the pipeline in this order.
 ### 4. Model recommendation discipline
 
 - For any file-changing lane, include a `model-selector` recommendation for the exact scope.
-- A model recommendation informs execution cost and reliability; it is not a separate approval gate.
+- When the current repository preflight contract applies, model recommendation is a blocking pre-implementation gate.
 - If an earlier recommendation is stale or scope-expanded, recompute it before relying on it.
-- Do not emit `WAITING_FOR_MODEL_SELECTION`, `CONTINUE`, or any equivalent pause for model selection.
+- Preserve `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and no-mutation-before-resume when the current subject is a pre-implementation lane.
 
 ### 5. Workspace lock readiness
 
@@ -213,9 +213,9 @@ The controller must distinguish:
 
 Rules:
 
-- model recommendation informs cost and reliability only
+- model recommendation governs cost, reliability, and the mandatory pre-implementation pause when the current repository preflight contract applies
 - `scope-isolation-check` determines whether the exact scope is isolated or colliding
-- model-selector output is informational only and cannot authorize, pause, or resume the pipeline
+- model-selector output is the only allowed source of `WAITING_FOR_MODEL_SELECTION` and the exact same-thread `CONTINUE` resume contract for implementation lanes
 - user-owned Safari evidence remains a later acceptance boundary when the task truly has a runtime surface
 
 ## 10. Mandatory stopping states
