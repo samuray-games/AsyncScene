@@ -1,5 +1,5 @@
 ## 2026-07-10 — Repo-first memory migration
-- Status: in review.
+- Status: complete.
 - Goal: move the project from one monolithic Google Drive-style memory document to a repository-first memory system that is readable through GitHub outside the local machine.
 - Current structure:
   - `PROJECT_MEMORY.md` is the compact index and authority map.
@@ -22,7 +22,7 @@
   - root memory index compacted;
   - legacy timeline archived;
   - runtime/game code untouched.
-- Final acceptance remains pending independent ChatGPT verification of the corrected PR head.
+- Final acceptance summary: merged source was accepted in the separate source outbox and receipt, Bridge 078 canary was accepted, and no runtime changes were made.
 
 ## 2026-07-10 — Slot 3 closed-loop core completion recovery
 - Status: in progress.

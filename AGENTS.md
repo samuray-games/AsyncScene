@@ -1,82 +1,106 @@
 # Asynchronia Repository Policy
 
-BRIDGE_PROTOCOL: 3.3
+BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
+CROSS_SLOT_BLINDNESS: REQUIRED
+DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
+BRIDGE_AUTHORITY_CHECK: `python3 tools/bridge_v4_authority_check.py`
 
 ## 0. Bridge command aliases
 
 The exact trimmed user commands `мост 1`, `мост 2`, and `мост 3` are reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
 
+The commands map one-to-one:
+
+- `мост 1` -> `origin/coordination/chatgpt-codex-bridge-1`
+- `мост 2` -> `origin/coordination/chatgpt-codex-bridge-2`
+- `мост 3` -> `origin/coordination/chatgpt-codex-bridge-3`
+
 A previous conversational conclusion, previous final response, local mailbox copy, old claim, old inbox or historical outbox is never authority for a new numbered command.
 
-When the user writes one of these commands, Codex must, before any terminal response:
+For `мост N`, Codex must, before any terminal response:
 
-1. parse the bridge slot number as exactly `1`, `2`, or `3`;
-2. fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge`;
-3. read current remote `AGENTS.override.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, mailbox `.ai-bridge/PUBLICATION_POLICY.md` and `.ai-bridge/STATE.md`;
-4. read the exact current inbox and current claim named by STATE;
-5. verify slot, thread id, lane id, task id, execution epoch, phase, baseline, write scope and expected outbox;
-6. execute the current phase from a clean task-owned worktree;
-7. validate and publish exactly as authorized;
-8. refetch both remote refs and prove the result.
+1. parse the slot number as exactly `1`, `2`, or `3`;
+2. fetch `origin/main` and only `origin/coordination/chatgpt-codex-bridge-N`;
+3. read current remote `AGENTS.override.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, the selected mailbox `.ai-bridge/PUBLICATION_POLICY.md` and its `.ai-bridge/STATE.md`;
+4. read only the current Slot N inbox and claim named by that STATE;
+5. validate slot, mailbox ref, task branch, thread id, task id, execution epoch, phase and write scope;
+6. perform mandatory model preflight and pause for same-thread `CONTINUE`;
+7. execute from a clean task-owned worktree on `bridge/N/<thread-id>`;
+8. validate and publish implementation only to that task branch and bridge artifacts only to mailbox ref N;
+9. refetch and prove both destinations;
+10. prove the other two numbered mailbox refs did not move.
 
-Codex must not reuse a prior `completed` conversational state to skip these steps.
+Normal execution must not fetch, inspect, adopt, close, rotate or rewrite another numbered mailbox ref. Cross-slot inspection is allowed only for an explicit integration or audit task that names every inspected slot.
 
-The former bare command `мост` and the older command phrase are inactive.
+The former bare command `мост` and older command phrases are inactive.
 
-### 0.0.1 Current claim and thread rotation
+### 0.0.1 Slot-local state and thread rotation
 
-Protocol 3.1 exposes three fixed slots.
+- Each numbered mailbox ref owns exactly one slot-local `.ai-bridge/STATE.md`.
+- Shared activation pointers such as `OPEN_SLOT_COUNT` and `PRIMARY_ACTIVE_SLOT` are forbidden.
+- STATE N may name only Slot N identity, task branch, thread, generation, task, epoch, inbox, claim, expected outbox, expected receipt, preflight state, continuation state, acceptance state and next action.
+- Superseded Slot N claims and inboxes are historical only for Slot N.
+- Rotating Slot N must preserve byte-identical state and memory snapshots for Slots M.
+- Another slot moving must not invalidate Slot N model preflight or same-thread `CONTINUE` authorization.
+- If the selected slot is closed or unavailable, return `BRIDGE_SLOT_UNAVAILABLE`.
+- If a non-superseded current claim is genuinely owned by another active thread in the same slot, return `BRIDGE_SLOT_ALREADY_CLAIMED`.
 
-- `мост 1` may execute only Slot 1.
-- `мост 2` may execute only Slot 2.
-- `мост 3` may execute only Slot 3.
-- STATE names the only current inbox and only current claim for each open slot.
-- Superseded claims and inboxes are historical only.
-- A replacement claim created by ChatGPT after baseline movement or no-op recovery may be adopted by a fresh Codex thread when STATE says `THREAD_ROTATION_REQUIRED: true`.
-- When thread rotation is required, the previous Codex thread is explicitly superseded and must not be treated as claim owner.
-- The fresh thread adopts only the current replacement claim named by STATE.
-- No extra model preflight or separate bridge token is required for a numbered lane unless the current inbox explicitly defines a genuine external blocker.
-- `CORRECTION_REQUIRED` must execute on the next matching numbered command.
-- If the slot is closed or unavailable, return `BRIDGE_SLOT_UNAVAILABLE`.
-- If a non-superseded current claim is genuinely owned by another active thread, return `BRIDGE_SLOT_ALREADY_CLAIMED`.
+### 0.0.2 Task publication and no-op guard
 
-### 0.0.2 No-op completion guard
+Task implementation is committed and pushed only to `bridge/N/<thread-id>`. Direct task-lane publication to `main` is forbidden.
 
-The response `Return to ChatGPT and send мост N`, or any equivalent, is forbidden unless all current remote evidence exists for the exact current execution epoch.
+Before returning task success Codex must prove:
 
-Before returning success Codex must prove:
-
-- it freshly fetched both remote refs during this command;
-- the expected current outbox path named by STATE exists remotely;
-- the mailbox head contains that outbox as the current publication;
-- for a primary-write task, `origin/main` differs from the authorized baseline and equals the reported primary SHA;
-- the reported primary parent is the actual first parent;
+- it freshly fetched `main` and the selected numbered mailbox ref during this command;
+- the expected current outbox exists remotely on that numbered mailbox ref;
+- the reported task-branch SHA and actual parent are fetched facts;
 - exact changed paths equal the frozen scope;
 - required validations passed;
-- the outbox contains the exact fetched SHA and parent.
+- the outbox contains the exact fetched evidence;
+- the other numbered mailbox refs did not move.
 
-A historical outbox cannot satisfy a new execution epoch.
+A historical outbox cannot satisfy a new execution epoch. A one-line return without current evidence is exactly `FAIL_NO_EXECUTION_EVIDENCE`.
 
-If these conditions are absent, Codex must not send the user back to ChatGPT. It must either execute the task or return one explicit blocker. A one-line return without evidence is exactly `FAIL_NO_EXECUTION_EVIDENCE`.
+`VERIFIED_NO_DELTA` is allowed only when current slot authority explicitly permits it and complete evidence proves an empty authorized diff. Empty commits are forbidden.
 
 ### 0.0.3 Mailbox branch guard
 
-Every Codex mailbox write must:
+Every mailbox write must:
 
-- fetch the mailbox branch immediately before writing;
+- target only `coordination/chatgpt-codex-bridge-N` for Slot N;
+- fetch that ref immediately before writing;
 - record the fetched head as parent;
 - use a dedicated clean mailbox worktree;
-- commit only the exact authorized receipt or outbox path;
+- commit only the exact authorized Slot N receipt or outbox path;
 - push fast-forward without force;
-- refetch and prove the remote mailbox head equals the new commit.
+- refetch and prove the remote mailbox head equals the new commit;
+- prove refs for the other two slots did not move.
 
-Never create mailbox commits from `main` or from a detached primary commit.
+Publishing Slot N artifacts on mailbox ref M is `FAIL_CROSS_SLOT_PUBLICATION`.
 
-A mailbox claim or outbox is not accepted until ChatGPT independently verifies remote head, ancestry, paths and current main.
+### 0.0.4 Serialized integration
 
-These aliases do not bypass scope-isolation checks, exact task scope, dependency gates or user-owned Safari acceptance.
+Collision-free task branches may execute concurrently. Integration into `main` is a separate serialized phase.
+
+The integration owner must refetch current `main`, verify accepted slot-local evidence, compare exact changed paths and stable-read dependencies, reject true overlap or stale semantic dependencies, and merge or replay one accepted lane at a time.
+
+Movement of `main` may require integration replay but must not reset, rotate or corrupt another bridge lane.
+
+### 0.0.5 Independent memory
+
+Current bridge snapshots are stored separately:
+
+- `.ai-memory/bridges/1.md`
+- `.ai-memory/bridges/2.md`
+- `.ai-memory/bridges/3.md`
+
+Changing one snapshot must preserve byte-identical contents of the other two.
+
+### 0.0.6 Legacy shared ref
+
+`coordination/chatgpt-codex-bridge` is legacy read-only. It must not activate, rotate, publish or continue new work.
 
 ## 0.1 Git command aliases
 
@@ -132,6 +156,8 @@ Before planning or editing, Codex must:
 ## 5. Scope isolation check
 
 Treat exact write ownership, mirror ownership, stable-read dependencies, shared wiring ownership and collision-free parallel lanes as the active safety mechanism.
+
+Sensitive ownership groups include:
 
 - game runtime JavaScript and UI runtime JavaScript;
 - economy, battle systems and NPC systems;
@@ -225,7 +251,7 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 - Matching contents do not prove reachability or deployment correctness.
 - Accepted transformations must be authoritative and deterministic.
 - Unresolved ownership or transformation rules return `BLOCKED`.
-- Runtime synchronization remains subject to scope isolation, mirror ownership, and user-owned Safari acceptance when runtime evidence is actually required.
+- Runtime synchronization remains subject to scope isolation, mirror ownership and user-owned Safari acceptance when runtime evidence is required.
 - Deployed acceptance remains user-controlled through Safari smoke.
 
 ## 8. Model selection rule
@@ -249,7 +275,8 @@ For every task, Codex must:
 - treat selection as a recommendation unless the user selected it in the Codex interface.
 
 The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
-Only the Asynchronia plugin `model-selector` may originate, rank, or name a model recommendation. That recommendation is informational and non-blocking, and it must not become an execution prerequisite, pause, or resume token.
+
+Only the Asynchronia plugin `model-selector` may originate, rank or name a model recommendation. The current repository preflight contract makes that recommendation a blocking pre-implementation gate. Codex must stop with `WAITING_FOR_MODEL_SELECTION`, emit exactly one standalone fenced `CONTINUE` block, and perform no implementation or mutable command before exact same-thread `CONTINUE`.
 
 ## 8.1 Parallel work policy
 
@@ -274,4 +301,4 @@ Only the Asynchronia plugin `model-selector` may originate, rank, or name a mode
 BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
 The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
 This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
-Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
+Active STATE, inbox, claim, outbox and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
