@@ -1,10 +1,12 @@
-# Asynchronia Protocol 3.2 Override
+# Asynchronia Protocol 3.4 Override
 
-OVERRIDE_VERSION: ORCHESTRATION_3_3
-BRIDGE_PROTOCOL: 3.3
+OVERRIDE_VERSION: ORCHESTRATION_3_4
+BRIDGE_PROTOCOL: 3.4
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
+PLUGIN_AUTO_ROUTING: REQUIRED
+MODEL_PREFLIGHT_PAUSE: REQUIRED
 
 Read root `AGENTS.md` fully. Every rule remains binding except the process clauses explicitly replaced below.
 
@@ -12,18 +14,19 @@ Read root `AGENTS.md` fully. Every rule remains binding except the process claus
 
 Use this precedence:
 
-1. `AGENTS.override.md`;
-2. `AGENTS.md` bridge section;
-3. `PROCESS_ROOT_SYNC.md`;
-4. `ORCHESTRATION.md`;
-5. `BRIDGE.md`;
-6. `GIT_PULL.md` and `GIT_PUSH.md`;
-7. mailbox `.ai-bridge/PUBLICATION_POLICY.md`;
-8. mailbox `.ai-bridge/STATE.md`;
-9. current inbox named by STATE;
-10. current claim named by STATE;
-11. original task inbox for unchanged objective and evidence;
-12. historical artifacts for audit only.
+1. explicit current user instruction;
+2. `AGENTS.override.md`;
+3. `AGENTS.md` bridge section;
+4. `PROCESS_ROOT_SYNC.md`;
+5. `ORCHESTRATION.md`;
+6. `BRIDGE.md`;
+7. `GIT_PULL.md` and `GIT_PUSH.md`;
+8. mailbox `.ai-bridge/PUBLICATION_POLICY.md`;
+9. mailbox `.ai-bridge/STATE.md`;
+10. current inbox named by STATE;
+11. current claim named by STATE;
+12. original task inbox for unchanged objective and evidence;
+13. historical artifacts for audit only.
 
 Repository files are authoritative for implementation state. Google Drive memory is authoritative for cross-chat context but never overrides newer repository facts.
 
@@ -42,8 +45,8 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 - the previous Codex conversation is superseded;
 - a fresh Codex conversation may adopt the replacement claim named by STATE;
 - old thread ownership is void;
-- execution starts immediately on the matching numbered command;
-- no preflight or separate bridge token is required.
+- the mandatory automatic plugin preflight runs in the fresh conversation before implementation;
+- execution begins only after the valid model recommendation and the user's exact `CONTINUE` in that same conversation.
 
 The logical bridge thread id remains unchanged for audit history even when the Codex conversation rotates.
 
@@ -100,9 +103,11 @@ Codex must:
 2. fetch main and mailbox;
 3. read remote authority;
 4. resolve only the requested slot and current epoch;
-5. use clean task-owned worktrees;
-6. preserve unrelated work;
-7. never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push.
+5. run the automatic plugin preflight;
+6. wait for `CONTINUE` in the same conversation;
+7. use clean task-owned worktrees;
+8. preserve unrelated work;
+9. never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push.
 
 Local divergence is not a blocker.
 
@@ -145,9 +150,44 @@ A successful Codex result is exactly one of:
 
 Do not offer competing paths or repeat information already present in current remote authority.
 
+## 11. Mandatory automatic Asynchronia plugin preflight
+
+This section replaces every lower-precedence clause that describes plugin invocation as optional, model selection as non-blocking, or `CONTINUE` as unnecessary.
+
+For every Asynchronia task in Codex, including read-only analysis, documentation, plugin policy, bridge commands, implementation, validation, fixes, publication, and acceptance work:
+
+1. resolve the Asynchronia plugin automatically from the active installed package;
+2. when loader attachment is unavailable, use the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback;
+3. invoke `task-router` before any substantive task work;
+4. invoke `scope-isolation-check` before any implementation plan;
+5. invoke `model-selector` for the exact current scope;
+6. perform no edits, lock creation, implementation, state-changing command, commit, push, or publication during preflight;
+7. return the complete model recommendation;
+8. pause with status `WAITING_FOR_MODEL_SELECTION`;
+9. end with exactly one standalone fenced code block whose only content is `CONTINUE`;
+10. perform no implementation until the user sends exact trimmed `CONTINUE` in the same Codex conversation;
+11. after `CONTINUE`, revalidate that task identity and scope are unchanged before implementation;
+12. rerun the preflight when scope, task identity, branch authority, or required systems changed.
+
+A model recommendation without the pause and terminal `CONTINUE` block is `FAIL_MODEL_PREFLIGHT_NOT_PAUSED`.
+
+Implementation before a valid same-thread `CONTINUE` is `FAIL_IMPLEMENTED_BEFORE_CONTINUE`.
+
+Manual plugin attachment may provide UI context, but it is never a prerequisite for mandatory routing and never excuses skipped plugin skills.
+
+Final reports must include:
+
+- plugin source used: installed package or repository fallback;
+- ordered skills invoked;
+- material result from each skill;
+- recommended model and reasoning;
+- preflight status;
+- same-thread `CONTINUE` evidence;
+- implementation start evidence after continuation.
+
 ## Bridge 062 plugin-independent closed-loop correction
 
 BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
 The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
-This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+This historical lane remains plugin-independent for its immutable accepted evidence only. It does not waive the Protocol 3.4 automatic preflight for any new task or execution epoch.
 Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.

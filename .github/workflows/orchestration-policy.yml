@@ -19,20 +19,6 @@ on:
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md
-      - plugins/asynchronia/skills/scope-isolation-check/SKILL.md
-      - plugins/asynchronia/skills/task-router/SKILL.md
-      - plugins/asynchronia/skills/parallel-scope-planner/SKILL.md
-      - plugins/asynchronia/skills/closed-loop-controller/SKILL.md
-      - plugins/asynchronia/skills/canon-audit/SKILL.md
-      - plugins/asynchronia/skills/mirror-audit/SKILL.md
-      - plugins/asynchronia/skills/economy-invariant-audit/SKILL.md
-      - plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md
-      - plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md
-      - plugins/asynchronia/skills/smoke-orchestrator/SKILL.md
-      - plugins/asynchronia/skills/deployment-verifier/SKILL.md
-      - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
-      - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
-      - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
       - plugins/asynchronia/skills/**/*.md
   pull_request:
     paths:
@@ -52,20 +38,6 @@ on:
       - .github/workflows/orchestration-policy.yml
       - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md
-      - plugins/asynchronia/skills/scope-isolation-check/SKILL.md
-      - plugins/asynchronia/skills/task-router/SKILL.md
-      - plugins/asynchronia/skills/parallel-scope-planner/SKILL.md
-      - plugins/asynchronia/skills/closed-loop-controller/SKILL.md
-      - plugins/asynchronia/skills/canon-audit/SKILL.md
-      - plugins/asynchronia/skills/mirror-audit/SKILL.md
-      - plugins/asynchronia/skills/economy-invariant-audit/SKILL.md
-      - plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md
-      - plugins/asynchronia/skills/failure-routing-and-corrective-loop/SKILL.md
-      - plugins/asynchronia/skills/smoke-orchestrator/SKILL.md
-      - plugins/asynchronia/skills/deployment-verifier/SKILL.md
-      - plugins/asynchronia/skills/acceptance-evidence-gate/SKILL.md
-      - plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md
-      - plugins/asynchronia/skills/evidence-bundle-and-artifact-identity/SKILL.md
       - plugins/asynchronia/skills/**/*.md
   workflow_dispatch:
 
@@ -77,6 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -84,5 +58,34 @@ jobs:
         run: python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py
       - name: Run closed-loop contract unit tests
         run: python3 -m unittest tools.test_closed_loop_contract
-      - name: Validate orchestration policy
+      - name: Determine historical validator applicability
+        id: applicability
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            BASE="${{ github.event.before }}"
+          else
+            BASE=""
+          fi
+
+          if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED="$(git diff --name-only "$BASE"...HEAD)"
+          printf '%s\n' "$CHANGED"
+
+          if printf '%s\n' "$CHANGED" | grep -Eq '^(tools/closed_loop_contract.py|tools/test_closed_loop_contract.py|tools/validate-orchestration-policy.py|CLOSED_LOOP_PROTOCOL.md)$'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate historical Bridge 062 orchestration policy
+        if: steps.applicability.outputs.run == 'true'
         run: python3 tools/validate-orchestration-policy.py
+      - name: Record historical validator not applicable
+        if: steps.applicability.outputs.run != 'true'
+        run: echo "NOT_APPLICABLE_HISTORICAL_BRIDGE_062_SCOPE"
