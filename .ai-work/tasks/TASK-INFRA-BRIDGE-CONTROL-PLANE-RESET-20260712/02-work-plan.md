@@ -4,13 +4,13 @@ PHASE: WORK_PLAN
 STATUS: READY_FOR_CODEX
 CREATED_AT: 2026-07-12T00:10:00+09:00
 AUTHOR_ROLE: WORK
-SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
+SOURCE_REVISION: MEMORY_REV 2026-07-12-0015-JST
 
 ### Repository evidence inspected
 
-- `ASYNCHRONIA - PROJECT MEMORY` at `MEMORY_REV: 2026-07-12-0012-JST`
+- `ASYNCHRONIA - PROJECT MEMORY` at `MEMORY_REV: 2026-07-12-0015-JST`
 - `origin/main` at `50d77eb5b5273fffc491a9f111ecdc5d526c7cea`
-- `origin/work/bridge-control-plane-reset-20260712` at `609a7fd59e6083c9d2ee03e29be2aba881eb801d`
+- `origin/work/bridge-control-plane-reset-20260712` at `7b6b8b9c449bab98f5fd19a15c8ac5306010c1c0`
 - `origin/coordination/chatgpt-codex-bridge-1` at `6727450e193053c8da8162f427404b1473f85d70`
 - `origin/coordination/chatgpt-codex-bridge-2` at `7421761f12126e88047fb2e6cd1c89490129a9c9`
 - `origin/coordination/chatgpt-codex-bridge-3` at `f9ebb33c7319b498307669c0d240f9eb05db8494`
@@ -52,28 +52,26 @@ SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
 ### Current implementation state
 
 - The reset package exists on the work branch and must be repaired in the worktree, not on `main`.
-- `01-chat-brief.md` has been restored byte-for-byte from commit `0fa99d6532b955bd0c4e4b2b87610626c851e1ae`.
-- The future implementation branch is `infra/bridge-control-plane-reset-20260712`.
-- The downstream Codex task must be executable from a fresh Codex chat without this Work context.
+- `01-chat-brief.md` uses the original blob as its complete substantive base and contains only add-only schema-compliance sections required by pipeline version 1.0.0.
+- The implementation branch is `infra/bridge-control-plane-reset-20260712`.
+- The package must be executable from a fresh Codex chat without this Work context.
 - Previous Stage 6 work remains paused and is not resumed here.
 - The live repo baseline for the package is `50d77eb5b5273fffc491a9f111ecdc5d526c7cea`.
-- The legacy shared ref still exists and is executable unless the Codex task removes that dependency and deletes the ref after retirement recording.
+- The legacy shared ref still exists and is executable unless the implementation task removes that dependency and deletes the ref after retirement recording.
 
 ### Conflict check
 
-- No `.ai-bridge/**` files are to be edited by Work.
-- No `main` changes are required for the Work package.
 - No Stage 6 runtime files are part of this Work package.
 - No legacy shared-ref repair is performed in Work.
 - The only allowed task-package writes are the three files in this task directory.
-- The Codex task must not depend on the old shared legacy ref as executable authority.
-- The repair scope must stay split between the Work package and the future Codex implementation branch.
+- The implementation task must not depend on the old shared legacy ref as executable authority.
+- The repair scope must stay split between the Work package and the implementation branch.
 
 ### Dependency map
 
 - Project memory provides the current routing decision and the exact memory revision.
 - The durable Work pipeline provides the package shape and promotion rules.
-- The downstream Codex task must stay isolated from Stage 6 implementation work.
+- The implementation task must stay isolated from Stage 6 implementation work.
 - The implementation branch name is fixed now so downstream work can be unambiguous.
 - Repository search must cover active authority, generated copies, installed-plugin copies, validator surfaces, and legacy ref fallback logic.
 - The bridge reset depends on proving that three numbered refs replace the shared legacy ref entirely for executable routing.
@@ -85,7 +83,7 @@ SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
 2. Capture the real routing and mailbox evidence from `origin/main` and the four relevant remote refs.
 3. Document exact authority, policy, validator, plugin, and mailbox paths with their current heads.
 4. Define a real control-plane repair task for `infra/bridge-control-plane-reset-20260712`.
-5. Specify the exact repository and remote ref changes the downstream Codex task may make.
+5. Specify the exact repository and remote ref changes the implementation task may make.
 6. Require suspension of current Stage 6 pointers and retirement of the shared legacy ref.
 7. Require three independent canary flows for slots 1, 2, and 3.
 8. Promote `STATE.md` only after semantic validation passes.
@@ -114,14 +112,13 @@ SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
 - `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/02-work-plan.md`
 - `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/03-codex-task.md`
 - `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/STATE.md`
-- `.ai-memory/archive/BRIDGE-CONTROL-PLANE-RESET-20260712-RETIREMENT.md`
 
 ### Risk controls
 
 - Do not continue or repair Stage 6 work.
 - Do not edit bridge mailbox artifacts.
 - Do not broaden the package into runtime changes.
-- Keep the branch split explicit so the downstream Codex task cannot be confused with the preparation branch.
+- Keep the branch split explicit so the implementation task cannot be confused with the preparation branch.
 - Fail closed if repository evidence does not support deleting the shared legacy ref safely after retirement recording.
 - Treat generated copies and installed-plugin surfaces as potentially authoritative and require explicit parity checks.
 - Keep the repository change set limited to exact evidence-backed control-plane paths.
@@ -133,12 +130,12 @@ SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
 - Confirm `STATE.md` points to `03-codex-task.md`.
 - Confirm the work plan contains a real repair scope, not a placeholder.
 - Confirm the Codex task names the exact implementation branch and canary flow requirements.
-- Confirm the restored brief blob matches the source commit blob exactly.
+- Confirm that the original brief blob is the substantive base and that the diff contains additions only, with no original substantive line removed.
 - Confirm the semantic checks for exact whitelist, exact `.ai-bridge/**` write paths, legacy deletion requirement, Stage 6 suspension, and three canary branches.
 
 ### Codex prompt strategy
 
-- Make the downstream Codex task self-contained.
+- Make the task self-contained.
 - Include the exact implementation branch.
 - Include the no-Stage-6-continuation rule.
 - Make the prompt describe actual repair execution, validation, remote deletion, and canaries.

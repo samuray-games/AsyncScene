@@ -4,5 +4,5 @@ CURRENT_STATUS: READY_FOR_CODEX
 CURRENT_PHASE: CODEX_TASK
 CURRENT_ARTIFACT: .ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/03-codex-task.md
 NEXT_ROLE: CODEX
-NEXT_ACTION: Run the Codex reset task from work/bridge-control-plane-reset-20260712, using implementation branch infra/bridge-control-plane-reset-20260712 and the exact MEMORY_REV 2026-07-12-0012-JST.
+NEXT_ACTION: Open a fresh Codex chat, select remote branch infra/bridge-control-plane-reset-20260712, and send the exact ChatGPT-authored reset execution prompt for MEMORY_REV 2026-07-12-0015-JST.
 UPDATED_AT: 2026-07-12T00:10:00+09:00

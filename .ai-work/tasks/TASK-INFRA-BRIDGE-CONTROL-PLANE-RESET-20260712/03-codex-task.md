@@ -4,9 +4,11 @@ PHASE: CODEX_TASK
 STATUS: READY_FOR_CODEX
 CREATED_AT: 2026-07-12T00:10:00+09:00
 AUTHOR_ROLE: WORK
-SOURCE_REVISION: MEMORY_REV 2026-07-12-0012-JST
+SOURCE_REVISION: MEMORY_REV 2026-07-12-0015-JST
 
 Use @asynchronia runtime-safety-gate.
+
+This file is the executable Codex implementation task. Codex must perform the control-plane reset described here on `infra/bridge-control-plane-reset-20260712`.
 
 ### Atomic goal
 
@@ -14,11 +16,51 @@ Repair the bridge control plane so exact numbered commands route through isolate
 
 ### Exact baseline
 
-- Memory baseline: `MEMORY_REV: 2026-07-12-0012-JST`
+- Memory baseline: `MEMORY_REV: 2026-07-12-0015-JST`
 - Live repo baseline: `50d77eb5b5273fffc491a9f111ecdc5d526c7cea`
 - Work branch: `work/bridge-control-plane-reset-20260712`
-- Future implementation branch: `infra/bridge-control-plane-reset-20260712`
-- Remote work head rejected: `bf2bd48764bd86dfe354062b0fa6eb29d4245417`
+- Implementation branch: `infra/bridge-control-plane-reset-20260712`
+- Remote work head rejected: `7b6b8b9c449bab98f5fd19a15c8ac5306010c1c0`
+
+### Exact canary identities
+
+Slot 1:
+- Task branch: `canary/bridge-control-plane-reset-slot-1-20260712`
+- Thread: `BRIDGE-CONTROL-PLANE-CANARY-1-20260712`
+- Task: `TASK-INFRA-BRIDGE-CONTROL-PLANE-CANARY-SLOT-1-20260712`
+- Execution epoch: `BRIDGE-CONTROL-PLANE-CANARY-SLOT-1-20260712-R1`
+- Generation: `2`
+- Inbox: `.ai-bridge/inbox/BRIDGE-CONTROL-PLANE-CANARY-1-20260712-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-CONTROL-PLANE-CANARY-1-20260712-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-CONTROL-PLANE-CANARY-1-20260712-02-codex.md`
+- Expected receipt: `.ai-bridge/receipts/BRIDGE-CONTROL-PLANE-CANARY-1-20260712-03-receipt.md`
+
+Slot 2:
+- Task branch: `canary/bridge-control-plane-reset-slot-2-20260712`
+- Thread: `BRIDGE-CONTROL-PLANE-CANARY-2-20260712`
+- Task: `TASK-INFRA-BRIDGE-CONTROL-PLANE-CANARY-SLOT-2-20260712`
+- Execution epoch: `BRIDGE-CONTROL-PLANE-CANARY-SLOT-2-20260712-R1`
+- Generation: `15`
+- Inbox: `.ai-bridge/inbox/BRIDGE-CONTROL-PLANE-CANARY-2-20260712-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-CONTROL-PLANE-CANARY-2-20260712-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-CONTROL-PLANE-CANARY-2-20260712-02-codex.md`
+- Expected receipt: `.ai-bridge/receipts/BRIDGE-CONTROL-PLANE-CANARY-2-20260712-03-receipt.md`
+
+Slot 3:
+- Task branch: `canary/bridge-control-plane-reset-slot-3-20260712`
+- Thread: `BRIDGE-CONTROL-PLANE-CANARY-3-20260712`
+- Task: `TASK-INFRA-BRIDGE-CONTROL-PLANE-CANARY-SLOT-3-20260712`
+- Execution epoch: `BRIDGE-CONTROL-PLANE-CANARY-SLOT-3-20260712-R1`
+- Generation: `1`
+- Inbox: `.ai-bridge/inbox/BRIDGE-CONTROL-PLANE-CANARY-3-20260712-01-chatgpt.md`
+- Claim: `.ai-bridge/claims/BRIDGE-CONTROL-PLANE-CANARY-3-20260712-claim-v1-codex.md`
+- Expected outbox: `.ai-bridge/outbox/BRIDGE-CONTROL-PLANE-CANARY-3-20260712-02-codex.md`
+- Expected receipt: `.ai-bridge/receipts/BRIDGE-CONTROL-PLANE-CANARY-3-20260712-03-receipt.md`
+
+For every slot:
+- `STATUS: READY_FOR_MODEL_PREFLIGHT`
+- `MODEL_PREFLIGHT_STATUS: REQUIRED`
+- `CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED`
 
 ### Allowed reads
 
@@ -43,9 +85,6 @@ Repair the bridge control plane so exact numbered commands route through isolate
 
 ### Allowed writes
 
-- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/02-work-plan.md`
-- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/03-codex-task.md`
-- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/STATE.md`
 - `AGENTS.md`
 - `AGENTS.override.md`
 - `PROCESS_ROOT_SYNC.md`
@@ -76,21 +115,14 @@ Repair the bridge control plane so exact numbered commands route through isolate
 - `.ai-memory/archive/BRIDGE-CONTROL-PLANE-RESET-20260712-RETIREMENT.md`
 - remote refs `coordination/chatgpt-codex-bridge`, `coordination/chatgpt-codex-bridge-1`, `coordination/chatgpt-codex-bridge-2`, `coordination/chatgpt-codex-bridge-3`
 
-### Forbidden changes
+### Allowed task-package writes
 
-This task may not change any file outside the explicit control-plane whitelist.
-
-### Required `.ai-bridge/**` ref-local changes
-
-- On `coordination/chatgpt-codex-bridge-1`, update only `.ai-bridge/STATE.md` and the current slot 1 inbox, claim, outbox, and receipt paths named by that STATE.
-- On `coordination/chatgpt-codex-bridge-2`, update only `.ai-bridge/STATE.md` and the current slot 2 inbox, claim, outbox, and receipt paths named by that STATE.
-- On `coordination/chatgpt-codex-bridge-3`, update only `.ai-bridge/STATE.md` and the current slot 3 inbox, claim, outbox, and receipt paths named by that STATE.
-- On `coordination/chatgpt-codex-bridge`, commit only the immutable retirement record and only after the deletion gate is satisfied.
-
+- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/02-work-plan.md`
+- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/03-codex-task.md`
+- `.ai-work/tasks/TASK-INFRA-BRIDGE-CONTROL-PLANE-RESET-20260712/STATE.md`
 
 ### Forbidden changes
 
-- No `.ai-bridge/**` edits.
 - No `main` edits.
 - No runtime/game Stage 6 feature changes.
 - No silent fallback to the shared legacy ref.
@@ -98,11 +130,46 @@ This task may not change any file outside the explicit control-plane whitelist.
 - No repair that deletes the legacy ref before its retirement record is committed.
 - No edits to unrelated repository files outside the exact control-plane whitelist above.
 
+### Required `.ai-bridge/**` ref-local changes
+
+On `coordination/chatgpt-codex-bridge-1`:
+- Update `.ai-bridge/STATE.md`.
+- Create only the four exact Slot 1 canary paths defined under `Exact canary identities`.
+- Preserve these Stage 6 artifacts unchanged as suspended history:
+  - `.ai-bridge/inbox/BRIDGE-20260711-101-01-chatgpt.md`
+  - `.ai-bridge/claims/BRIDGE-20260711-101-claim-v1-codex.md`
+  - `.ai-bridge/outbox/BRIDGE-20260711-101-01-codex.md`
+  - `.ai-bridge/receipts/BRIDGE-20260711-101-01-receipt.md`
+
+On `coordination/chatgpt-codex-bridge-2`:
+- Update `.ai-bridge/STATE.md`.
+- Create only the four exact Slot 2 canary paths defined under `Exact canary identities`.
+- Preserve these Stage 6 artifacts unchanged as suspended history:
+  - `.ai-bridge/inbox/BRIDGE-20260711-091-07-chatgpt.md`
+  - `.ai-bridge/claims/BRIDGE-20260711-091-claim-v3-codex.md`
+  - `.ai-bridge/outbox/BRIDGE-20260711-091-08-codex.md`
+  - `.ai-bridge/receipts/BRIDGE-20260711-091-09-codex.md`
+  - `.ai-bridge/outbox/BRIDGE-20260711-091-05-codex.md`
+  - `.ai-bridge/receipts/BRIDGE-20260711-091-06-codex.md`
+
+On `coordination/chatgpt-codex-bridge-3`:
+- Update `.ai-bridge/STATE.md`.
+- Create only the four exact Slot 3 canary paths defined under `Exact canary identities`.
+- No previous inbox, claim, outbox, or receipt exists for Slot 3.
+
+On the implementation branch:
+- Create `.ai-memory/archive/BRIDGE-CONTROL-PLANE-RESET-20260712-RETIREMENT.md`.
+- Record the final SHA of `coordination/chatgpt-codex-bridge`, currently observed as `68075febce27979b3ceba55e019c4895c091ecfb`, and refetch it immediately before deletion.
+- Do not commit anything new to the legacy ref.
+- Delete remote ref `coordination/chatgpt-codex-bridge` only after the retirement record is pushed and every executable dependency search passes.
+
+This file is the executable Codex implementation task. Codex must perform the control-plane reset described here on `infra/bridge-control-plane-reset-20260712`.
+
 ### Dependencies
 
 - Project memory supplies the current routing and branch split.
-- The Work package must remain self-contained and isolated from previous Stage 6 work.
-- The downstream Codex task is the first place where repair implementation may be described.
+- The task package must remain self-contained and isolated from previous Stage 6 work.
+- This file is the executable Codex implementation task. Codex must perform the control-plane reset described here on `infra/bridge-control-plane-reset-20260712`.
 - The implementation must include remote deletion of the shared legacy ref after all active dependencies are removed.
 - The implementation must include three independent canary flows, one per numbered slot.
 - The implementation must include explicit source/generated/installed plugin parity checks for every invoked skill.
@@ -111,15 +178,13 @@ This task may not change any file outside the explicit control-plane whitelist.
 
 - Keep the reset task separated from earlier Stage 6 history.
 - State the exact implementation branch.
-- Make the task package ready for downstream Codex execution.
-- Do not use this Work pass to repair the control plane.
 - Repair executable routing, fail-closed validation, and slot-local publication so they never rely on shared legacy fallback.
 - Suspend active Stage 6 pointers, preserve them as non-executable history, and prove they are not part of the active startup path.
 - Create a compact retirement record for the shared legacy ref with final SHA, reason, and deletion readiness before deletion.
-- Require the Codex implementation to touch only the exact routing/control-plane files needed for the repair and no Stage 6 runtime/game files.
+- Require the implementation to touch only the exact routing/control-plane files needed for the repair and no Stage 6 runtime/game files.
 - Require source, generated copies, and installed-plugin surfaces to be reconciled explicitly.
-- Require the downstream task to state exact canary task branches for Slots 1, 2, and 3.
-- Require the downstream task to fail closed on wrong branch selection, stale state, cross-slot reads, missing numbered refs, and missing legacy retirement record.
+- Require the task to state exact canary task branches for Slots 1, 2, and 3.
+- Require the task to fail closed on wrong branch selection, stale state, cross-slot reads, missing numbered refs, and missing legacy retirement record.
 
 ### Validation commands
 
@@ -133,7 +198,7 @@ This task may not change any file outside the explicit control-plane whitelist.
 
 ### Required final report
 
-- `MEMORY_REV: 2026-07-12-0012-JST`
+- `MEMORY_REV: 2026-07-12-0015-JST`
 - Live repo baseline: `50d77eb5b5273fffc491a9f111ecdc5d526c7cea`
 - Work branch: `work/bridge-control-plane-reset-20260712`
 - Implementation branch: `infra/bridge-control-plane-reset-20260712`
@@ -148,9 +213,8 @@ This task may not change any file outside the explicit control-plane whitelist.
 
 ### Stop conditions
 
-- Stop if the task would require editing `.ai-bridge/**`.
 - Stop if the task would continue Stage 6 implementation.
-- Stop if the task would change the future implementation branch name.
+- Stop if the task would change the implementation branch name.
 - Stop if the repair would need to preserve the shared legacy ref as executable fallback.
 - Stop if repository evidence cannot support the retirement/delete sequence safely.
 - Stop if the exact scope cannot be enumerated as concrete paths and refs.
