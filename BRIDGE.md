@@ -1,172 +1,98 @@
 # Asynchronia Codex Bridge Entry Point
 
-BRIDGE_PROTOCOL: 3.3
-ROOT_CAUSE_SYNC: REQUIRED
-NO_OP_COMPLETION: FORBIDDEN
-VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
-ORCHESTRATION: `ORCHESTRATION.md`
-ROOT_SYNC: `PROCESS_ROOT_SYNC.md`
+BRIDGE_PROTOCOL: 4.0
+CROSS_SLOT_BLINDNESS: REQUIRED
+DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
+VALIDATOR: `tools/bridge_v4_contract.py`
 
-## 1. Commands
+## 1. Fixed commands and refs
 
-The only numbered bridge commands are:
+- `мост 1` -> `origin/coordination/chatgpt-codex-bridge-1`
+- `мост 2` -> `origin/coordination/chatgpt-codex-bridge-2`
+- `мост 3` -> `origin/coordination/chatgpt-codex-bridge-3`
 
-- `мост 1`
-- `мост 2`
-- `мост 3`
-
-Each command selects one fixed slot and runs the complete current remote cycle.
-
-Previous conversation state is never authority for a new command.
-
-Bare `мост`, `запуль` and `запушь` are inactive.
-
-Separate bridge tokens are not required.
+Each command selects exactly one control plane. Previous conversation state and other numbered mailbox refs are never authority.
 
 ## 2. Mandatory first actions
 
-Before any terminal response Codex must:
+For `мост N`, before any terminal response Codex must:
 
-1. fetch `origin/main` and `origin/coordination/chatgpt-codex-bridge`;
-2. read current remote root authority and mailbox publication policy;
-3. read current STATE;
-4. read the exact current inbox and claim named by STATE;
-5. verify slot, thread, lane, task, execution epoch, phase, baseline, write scope and expected outbox;
-6. execute the current phase from clean worktrees;
-7. validate, publish and refetch both destinations.
+1. read current root authority;
+2. fetch `origin/main` and only `origin/coordination/chatgpt-codex-bridge-N`;
+3. read that ref's `.ai-bridge/PUBLICATION_POLICY.md` and `.ai-bridge/STATE.md`;
+4. read only the current Slot N inbox and claim named by that STATE;
+5. validate the route and task branch with `tools/bridge_v4_contract.py`;
+6. perform mandatory plugin preflight and pause for same-thread `CONTINUE`;
+7. execute from a clean worktree on `bridge/N/<thread-id>`;
+8. validate and publish only to the task branch and mailbox ref N;
+9. refetch and prove both destinations;
+10. prove mailbox refs for the other two slots did not move.
 
-Codex must ignore any prior conversational statement that the lane is completed.
+Normal execution must not fetch or inspect another numbered mailbox ref.
 
-Scope overlap decisions belong to `scope-isolation-check`.
+## 3. Slot-local STATE
 
-Scope collisions return `BLOCKED_SCOPE_COLLISION`.
+Each numbered mailbox ref owns its own `.ai-bridge/STATE.md`.
 
-## 3. Thread rotation
+STATE must contain only its own slot identity and may not contain shared activation pointers such as `OPEN_SLOT_COUNT` or `PRIMARY_ACTIVE_SLOT`.
 
-When STATE says `THREAD_ROTATION_REQUIRED: true`:
+STATE N names only Slot N thread, generation, task, epoch, nonce, task branch, inbox, claim, expected outbox, expected receipt, preflight state, continuation state, acceptance state and next action.
 
-- the previous Codex thread is superseded;
-- a fresh Codex thread may adopt the replacement claim named by STATE;
-- the old thread and earlier claims are historical only;
-- execution begins on the first matching numbered command;
-- no preflight or continuation token is allowed.
+## 4. Task publication
 
-## 4. Completion modes
+Task implementation is committed and pushed only to `bridge/N/<thread-id>`.
 
-### 4.1 Primary delta
+A task lane must never push directly to `main`. Successful implementation returns `PASS_TASK_BRANCH_PUSHED` with fetched task-branch SHA, actual parent, exact changed paths, checks and slot-local outbox evidence.
 
-When authorized files change:
+`VERIFIED_NO_DELTA` remains legal only when explicitly authorized and fully evidenced. Empty commits are forbidden.
 
-- create one direct-child commit;
-- prove exact paths;
-- push fast-forward;
-- refetch main;
-- publish the exact current outbox;
-- return `PASS_PUSHED`.
+## 5. Mailbox publication
 
-### 4.2 Verified no delta
+Inbox, claim, outbox and receipt for Slot N are published only on mailbox ref N.
 
-This mode is legal only when the current inbox or claim contains `ALLOW_VERIFIED_NO_DELTA: true`.
+Every mailbox write uses the latest fetched ref N head, changes only the authorized `.ai-bridge/` path, pushes fast-forward without force, and is refetched. Publishing Slot N data on ref M fails closed.
 
-Codex must prove:
+## 6. Integration
 
-- current remote main equals the authorized baseline;
-- required generation and validation pass;
-- deterministic regeneration produces zero diff;
-- exact changed paths are empty;
-- protected blobs are unchanged;
-- the baseline already satisfies the frozen objective.
+Independent task branches may execute concurrently when scope isolation passes.
 
-Empty primary commits are forbidden.
+Integration into `main` is separate and serialized. The integration owner refetches current `main`, verifies accepted slot-local evidence, checks exact paths and stable-read dependencies, then merges or replays one lane at a time.
 
-The current outbox must contain:
+Movement of `main` can require integration replay but does not invalidate another lane's STATE, preflight, continuation or evidence.
 
-- `completionMode: VERIFIED_NO_DELTA`;
-- `primaryChanged:false`;
-- verified baseline SHA;
-- `primaryParent:N/A`;
-- `changedPaths:[]`;
-- exact scope blob SHAs;
-- validation and negative-control evidence;
-- the no-delta reason.
+## 7. Independent memory
 
-After refetching mailbox, return `PASS_VERIFIED_NO_DELTA`.
+Current snapshots are separate:
 
-### 4.3 Invalid no-op
+- `.ai-memory/bridges/1.md`
+- `.ai-memory/bridges/2.md`
+- `.ai-memory/bridges/3.md`
 
-A bare return-to-ChatGPT line without the current evidence package is `FAIL_NO_EXECUTION_EVIDENCE`.
+Changing one snapshot must preserve byte-identical contents of the other two.
 
-Historical outboxes do not satisfy a new execution epoch.
+## 8. Validation
 
-## 5. Clean worktrees
+Valid route example:
 
-Use one clean task-owned worktree at the authorized baseline and one separate mailbox worktree at the latest mailbox head.
+```sh
+python3 tools/bridge_v4_contract.py validate-command \
+  --slot 2 \
+  --mailbox-ref coordination/chatgpt-codex-bridge-2 \
+  --task-branch bridge/2/BRIDGE-20260711-091
+```
 
-Never merge, rebase, reset, stash, clean, amend, cherry-pick or force-push the user's primary checkout.
+Protocol tests:
 
-Local divergence is not a blocker.
+```sh
+python3 -m unittest tools.test_bridge_v4_contract
+```
 
-## 6. Current metadata
+Cross-slot reads, wrong refs, shared activation pointers, wrong branch prefixes and direct publication to main fail closed.
 
-Current remote STATE and its named inbox and claim supersede all older metadata.
+## 9. Legacy shared ref
 
-The original task inbox remains authority only for unchanged objective and evidence not replaced later.
+`coordination/chatgpt-codex-bridge` is legacy read-only after all three numbered refs pass migration readback. It must not be used to activate new work.
 
-## 7. Primary publication
+## 10. Runtime status
 
-Primary publication is conditional on an actual authorized delta.
-
-If there is no authorized delta, use verified-no-delta mode when allowed. Never manufacture an empty commit.
-
-If main moved, return `BLOCKED_MAIN_BASELINE_MOVED`.
-
-## 8. Outbox publication
-
-Every successful mode requires the exact current outbox, unless ChatGPT is independently closing a pre-policy `BLOCKED_NO_SOURCE_DELTA` result.
-
-The outbox must:
-
-- use the exact current expected path;
-- be a direct child of the fetched mailbox head;
-- change only that path;
-- contain machine-derived fetched evidence;
-- contain exact paths and validations;
-- be refetched and verified remotely.
-
-Manual SHA transcription is forbidden.
-
-## 9. Authentication
-
-Codex may run one non-interactive authentication repair.
-
-If write access still fails, return `BLOCKED_PUSH_AUTH` with complete evidence. Never ask for credentials.
-
-## 10. Correction and root synchronization
-
-A reusable process defect triggers `PROCESS_ROOT_SYNC.md`.
-
-ChatGPT synchronizes affected authority, validator, mailbox policy, STATE, current contract and live memory before the next action.
-
-## 11. ChatGPT verification
-
-When ChatGPT receives `мост N`, it:
-
-1. reloads live memory and reports exact `MEMORY_REV`;
-2. reads current main, mailbox policy and STATE;
-3. verifies only Slot N;
-4. checks the applicable completion mode;
-5. for primary delta, checks ancestry, exact paths, tests and outbox;
-6. for verified no delta, checks unchanged baseline, empty scope diff, artifact result, mirror parity, validation evidence and outbox;
-7. may reconstruct and record closure for a pre-policy `BLOCKED_NO_SOURCE_DELTA` report after independent verification;
-8. rejects unsupported prose;
-9. accepts, corrects or closes the lane;
-10. performs root synchronization for systemic defects.
-
-Codex prose alone is never acceptance evidence.
-
-## Bridge 062 plugin-independent closed-loop correction
-
-BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
-The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
-This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
-Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
+Bridge infrastructure changes have `SAFARI_STATUS: N/A` unless game/runtime files change.

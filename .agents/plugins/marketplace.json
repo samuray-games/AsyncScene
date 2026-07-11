@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "asynchronia",
-      "version": "1.0.0",
+      "version": "1.0.7",
       "source": {
         "source": "local",
         "path": "./plugins/asynchronia"

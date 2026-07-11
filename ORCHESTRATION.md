@@ -34,8 +34,8 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 - the prior Codex conversation is superseded;
 - a fresh Codex conversation adopts the replacement claim named by STATE;
 - logical bridge thread id remains unchanged for audit history;
-- execution starts on the first matching numbered command;
-- no preflight or separate bridge token is required.
+- execution starts on the first matching numbered command with read-only discovery and mandatory automatic model preflight;
+- implementation begins only after exact same-thread `CONTINUE` when current authority requires the preflight pause.
 
 ## Codex execution
 
@@ -44,13 +44,16 @@ On `мост N`, Codex must before any terminal response:
 1. fetch main and mailbox;
 2. read current remote authority, STATE, inbox and claim;
 3. verify epoch, slot, task, phase, baseline, scope and expected outbox;
-4. use clean implementation and mailbox worktrees;
-5. execute and validate;
-6. choose one legal completion mode;
-7. refetch main and machine-derive evidence;
-8. publish the exact current outbox;
-9. refetch mailbox;
-10. return `PASS_PUSHED` or `PASS_VERIFIED_NO_DELTA` with evidence and one next action.
+4. run the ordered read-only preflight `task-router -> scope-isolation-check -> model-selector`;
+5. when current authority requires model preflight, return `WAITING_FOR_MODEL_SELECTION` and end with exactly one standalone fenced `CONTINUE` block;
+6. after exact same-thread `CONTINUE`, refetch authority and verify unchanged thread, task, claim, baseline and scope before any mutation;
+7. use clean implementation and mailbox worktrees;
+8. execute and validate;
+9. choose one legal completion mode;
+10. refetch main and machine-derive evidence;
+11. publish the exact current outbox;
+12. refetch mailbox;
+13. return `PASS_PUSHED` or `PASS_VERIFIED_NO_DELTA` with evidence and one next action.
 
 ## Completion modes
 
