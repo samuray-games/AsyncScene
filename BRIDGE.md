@@ -21,7 +21,7 @@ Previous conversation state is never authority for a new command.
 
 Bare `мост`, `запуль` and `запушь` are inactive.
 
-Separate bridge tokens are not required.
+Separate claim tokens are not required. When current authority requires automatic model preflight, the exact same-thread fenced `CONTINUE` token is mandatory before implementation.
 
 ## 2. Mandatory first actions
 
@@ -48,8 +48,8 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 - the previous Codex thread is superseded;
 - a fresh Codex thread may adopt the replacement claim named by STATE;
 - the old thread and earlier claims are historical only;
-- execution begins on the first matching numbered command;
-- no preflight or continuation token is allowed.
+- execution begins on the first matching numbered command with read-only automatic model preflight;
+- implementation resumes only after exact same-thread `CONTINUE` when current authority requires the pause.
 
 ## 4. Completion modes
 
