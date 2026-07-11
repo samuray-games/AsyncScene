@@ -303,6 +303,15 @@ def validate_transition_contract(failures: list[str]) -> None:
             claim=PreflightContract.VALID_CLAIM,
             authority_verified=True,
         ),
+        "changed_task": ResumeAttempt(
+            thread=PreflightContract.VALID_THREAD,
+            token="CONTINUE",
+            task="TASK-ASYNCHRONIA-PREFLIGHT-CHANGED-TASK-FIXTURE",
+            scope=PreflightContract.VALID_SCOPE,
+            baseline=PreflightContract.VALID_BASELINE,
+            claim=PreflightContract.VALID_CLAIM,
+            authority_verified=True,
+        ),
         "wrong_token": ResumeAttempt(
             thread=PreflightContract.VALID_THREAD,
             token="GO",
@@ -379,6 +388,7 @@ def validate_transition_contract(failures: list[str]) -> None:
     }
     expected_status = {
         "wrong_thread": "STALE_RECOMMENDATION",
+        "changed_task": "STALE_RECOMMENDATION",
         "wrong_token": "REJECTED_WRONG_TOKEN",
         "embedded_token": "REJECTED_EMBEDDED_TOKEN",
         "quoted_token": "REJECTED_QUOTED_TOKEN",
@@ -396,6 +406,23 @@ def validate_transition_contract(failures: list[str]) -> None:
         assert_true(
             result.status == expected_status[name],
             f"{name} must yield {expected_status[name]}",
+            failures,
+        )
+        assert_true(
+            not result.implementation_allowed,
+            f"{name} must never allow implementation",
+            failures,
+        )
+
+    stale_identity_cases = {"wrong_thread", "changed_task", "changed_scope", "changed_baseline", "changed_claim"}
+    for name in stale_identity_cases:
+        case_contract = PreflightContract()
+        case_contract.start_discovery()
+        case_contract.pause_for_model_selection()
+        result = case_contract.resume(cases[name])
+        assert_true(
+            result.repeated_preflight,
+            f"{name} must repeat preflight",
             failures,
         )
 
@@ -552,14 +579,17 @@ def main() -> int:
                 "manifestVersion": json_state["manifest"]["version"],
                 "marketplaceVersion": json_state["marketplace"]["plugins"][0]["version"],
                 "transitionContract": {
-                    "newTaskToDiscovery": "PASS",
-                    "discoveryToWaiting": "PASS",
-                    "sameThreadContinue": "PASS",
-                    "adversarialFixtures": "PASS",
-                    "noMutationBeforeResume": "PASS",
-                    "freshAuthorityBeforeMutation": "PASS",
-                    "secondResumeNoDuplicate": "PASS",
-                },
+                "newTaskToDiscovery": "PASS",
+                "discoveryToWaiting": "PASS",
+                "sameThreadContinue": "PASS",
+                "adversarialFixtures": "PASS",
+                "changedTaskStale": "PASS",
+                "staleIdentityRepeatsPreflight": "PASS",
+                "adversarialImplementationDenied": "PASS",
+                "noMutationBeforeResume": "PASS",
+                "freshAuthorityBeforeMutation": "PASS",
+                "secondResumeNoDuplicate": "PASS",
+            },
                 "terminalContinueFence": "PASS",
             },
             indent=2,
