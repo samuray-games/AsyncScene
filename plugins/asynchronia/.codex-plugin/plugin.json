@@ -9,13 +9,14 @@
   "interface": {
     "displayName": "Asynchronia",
     "shortDescription": "Automatically route every task through model and scope preflight.",
-    "longDescription": "Provides mandatory automatic task routing, blocking model selection with same-thread CONTINUE, repository scope isolation, smoke orchestration, deployment verification, acceptance gating, and validation rules for Asynchronia changes.",
+    "longDescription": "Provides PLUGIN_AUTO_ROUTING: REQUIRED, MODEL_PREFLIGHT_PAUSE: REQUIRED, blocking model selection with same-thread CONTINUE, repository skill fallback under plugins/asynchronia/skills/, scope isolation, smoke orchestration, deployment verification, acceptance gating, and validation rules for Asynchronia changes.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
       "Automatic repository task routing",
       "Mandatory blocking model preflight",
       "Same-thread CONTINUE resume contract",
+      "Repository skill source fallback",
       "Repository scope checks",
       "Workflow routing",
       "Smoke orchestration",
@@ -25,7 +26,13 @@
       "Scope isolation"
     ],
     "defaultPrompt": [
-      "Automatically route this Asynchronia task and run the mandatory model preflight before any edits.",
+      "PLUGIN_AUTO_ROUTING: REQUIRED",
+      "MODEL_PREFLIGHT_PAUSE: REQUIRED",
+      "WAITING_FOR_MODEL_SELECTION",
+      "exact same-thread CONTINUE",
+      "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
+      "Automatically route this Asynchronia task and run the mandatory plugin preflight before any edits.",
+      "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
       "Recommend the cheapest reliable model and reasoning level, pause, and wait for same-thread CONTINUE.",
       "Run task-router, scope-isolation-check, and model-selector before implementation.",
       "Validate that no implementation starts before the mandatory CONTINUE resume token."
