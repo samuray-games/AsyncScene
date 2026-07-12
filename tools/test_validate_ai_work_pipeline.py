@@ -28,6 +28,38 @@ class PipelineValidatorTests(unittest.TestCase):
             validator.OBSOLETE_CODEX_DIRECTIVES,
         )
 
+    def test_obsolete_directive_is_rejected_only_for_active_codex_artifact(self) -> None:
+        sections = "\n".join(
+            f"### {section}\nvalue"
+            for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
+        )
+        text = (
+            "TASK_ID: TASK-1\n"
+            "PIPELINE_VERSION: 1.0.0\n"
+            "PHASE: CODEX_TASK\n"
+            "STATUS: READY_FOR_CODEX\n"
+            "CREATED_AT: 2026-07-12T00:00:00Z\n"
+            "AUTHOR_ROLE: WORK\n"
+            "SOURCE_REVISION: test\n"
+            "Use @asynchronia runtime-safety-gate.\n"
+            f"{sections}\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "03-codex-task.md"
+            path.write_text(text, encoding="utf-8")
+            historical_errors = validator.validate_file(
+                path,
+                "TASK-1",
+                enforce_active_codex_rules=False,
+            )
+            active_errors = validator.validate_file(
+                path,
+                "TASK-1",
+                enforce_active_codex_rules=True,
+            )
+        self.assertEqual(historical_errors, [])
+        self.assertTrue(any("obsolete removed directive" in error for error in active_errors))
+
     def test_missing_state_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             task_dir = Path(directory) / "TASK-1"
