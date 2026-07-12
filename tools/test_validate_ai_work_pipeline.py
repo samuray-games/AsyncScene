@@ -22,6 +22,12 @@ class PipelineValidatorTests(unittest.TestCase):
         self.assertIn(".ai-bridge/STATE.md", validator.BRIDGE_FORBIDDEN_PATHS)
         self.assertIn(".ai-bridge/outbox/", validator.BRIDGE_FORBIDDEN_PATHS)
 
+    def test_obsolete_runtime_safety_gate_is_forbidden(self) -> None:
+        self.assertIn(
+            "Use @asynchronia runtime-safety-gate.",
+            validator.OBSOLETE_CODEX_DIRECTIVES,
+        )
+
     def test_missing_state_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             task_dir = Path(directory) / "TASK-1"
