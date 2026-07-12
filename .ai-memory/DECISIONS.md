@@ -2,8 +2,8 @@
 
 This file holds durable process decisions that should rarely change.
 
-MEMORY_REVISION: 2026-07-12-0024-JST
-EXPECTED_REVISION: 2026-07-12-0024-JST
+MEMORY_REVISION: 2026-07-12-0026-JST
+EXPECTED_REVISION: 2026-07-12-0026-JST
 
 ## Source of truth
 
@@ -36,9 +36,12 @@ EXPECTED_REVISION: 2026-07-12-0024-JST
 ## Work and Codex role boundary
 
 - Codex model preflight and same-thread `CONTINUE` apply only to a Codex implementation lane or numbered bridge command whose current authority explicitly requires them.
-- ChatGPT Work maintenance, review, installation, branch preparation, and serialized integration tasks do not run Codex model preflight unless the task package explicitly says otherwise.
-- Work must not request, accept, or wait for `CONTINUE` during a task whose active STATE sets `NEXT_ROLE: CHATGPT_WORK` and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`.
+- ChatGPT Work maintenance, review, branch preparation, and serialized integration tasks do not run Codex model preflight unless the task package explicitly says otherwise.
+- Work must not request, accept, or wait for `CONTINUE` during a task whose active STATE sets `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`.
 - Work must not reinterpret a Work maintenance or integration task as a Codex implementation lane merely because the repository contains a model-selector contract.
+- Local plugin installation belongs to the executor that can access the authenticated user's writable local Codex home. When ChatGPT Work exposes only read-only `/root/.codex` paths, Codex desktop on the user's machine is the correct local installer and parity verifier.
+- A Codex desktop local-install phase is maintenance, not a repository implementation lane. Unless the active STATE says otherwise, it uses no model preflight, no model switching, no `CONTINUE`, and no repository writes.
+- After local installed-package parity passes, ChatGPT Work remains the serialized integration owner for merging accepted branches into current `main`, pushing, refetching, and synchronizing memory.
 - When Work encounters conflicting generic repository wording, the task-local STATE and explicit ChatGPT-authored task instruction control the current Work phase.
 
 ## Reporting contract
