@@ -2,8 +2,8 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-12-0024-JST
-EXPECTED_REVISION: 2026-07-12-0024-JST
+MEMORY_REVISION: 2026-07-12-0026-JST
+EXPECTED_REVISION: 2026-07-12-0026-JST
 
 ## Canon principles
 
@@ -23,6 +23,9 @@ EXPECTED_REVISION: 2026-07-12-0024-JST
 - A pending implementation branch is evidence of current work, not an accepted main state.
 - Direct task writes to `main` remain forbidden unless explicit current authority grants them.
 - Work and Codex are separate execution roles. Codex continuation gates are not automatically inherited by Work maintenance or integration tasks.
+- A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
+- Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
+- Serialized integration into `main` remains a separate phase after installed-package parity passes.
 
 ## Reading priority
 
