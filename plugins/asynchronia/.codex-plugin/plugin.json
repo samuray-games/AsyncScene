@@ -1,19 +1,23 @@
 {
   "name": "asynchronia",
-  "version": "1.0.7",
-  "description": "Project-specific automatic routing, mandatory model preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
+  "version": "1.0.8",
+  "description": "Project-specific automatic routing, live Codex model inventory preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Automatically route every task through model and scope preflight.",
-    "longDescription": "Provides PLUGIN_AUTO_ROUTING: REQUIRED, MODEL_PREFLIGHT_PAUSE: REQUIRED, blocking model selection with same-thread CONTINUE, repository skill fallback under plugins/asynchronia/skills/, scope isolation, smoke orchestration, deployment verification, acceptance gating, and validation rules for Asynchronia changes.",
+    "shortDescription": "Route tasks through live model inventory and scope preflight.",
+    "longDescription": "Provides mandatory routing, picker-visible model and effort discovery through codex app-server model/list, exhaustive evaluation of every available model-effort pair, adjacent-effort comparison, retry-adjusted cost selection, same-thread CONTINUE gating, scope isolation, deployment verification, and acceptance evidence rules.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
       "Automatic repository task routing",
+      "Live picker-visible model inventory discovery",
+      "Complete model-effort pair evaluation",
+      "Adjacent effort comparison",
+      "Retry-adjusted cost recommendation",
       "Mandatory blocking model preflight",
       "Same-thread CONTINUE resume contract",
       "Repository skill source fallback",
@@ -28,14 +32,14 @@
     "defaultPrompt": [
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-      "WAITING_FOR_MODEL_SELECTION",
-      "exact same-thread CONTINUE",
-      "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
-      "Automatically route this Asynchronia task and run the mandatory plugin preflight before any edits.",
+      "Run codex app-server and call model/list with includeHidden false before recommending a model.",
+      "Use each model's returned supportedReasoningEfforts and evaluate every available model-effort pair.",
+      "Compare each effort with its adjacent efforts for the same model and identify the lowest reliable effort per model.",
+      "Recommend the option that minimizes expected total credits after retry and escalation risk.",
+      "Explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary.",
+      "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
       "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
-      "Recommend the cheapest reliable model and reasoning level, pause, and wait for same-thread CONTINUE.",
-      "Run task-router, scope-isolation-check, and model-selector before implementation.",
-      "Validate that no implementation starts before the mandatory CONTINUE resume token."
+      "Run task-router, scope-isolation-check, and model-selector before implementation."
     ]
   }
 }
