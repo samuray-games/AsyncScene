@@ -2,52 +2,103 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-10-2315-JST
-EXPECTED_REVISION: 2026-07-10-2315-JST
+MEMORY_REVISION: 2026-07-12-0026-JST
+EXPECTED_REVISION: 2026-07-12-0026-JST
 
 Authoritative order for memory and workflow facts:
 
 1. Explicit user instruction
 2. Current repository primary evidence
-3. Active `.ai-bridge/STATE.md`
+3. Active task or bridge `STATE.md`
 4. `PROJECT_MEMORY.md`
 5. `.ai-memory/CURRENT.md`
 6. `.ai-memory/DECISIONS.md`
 7. `.ai-memory/CANON.md`
 8. `.ai-memory/WORKFLOWS.md`
 9. `TASKS.md`
-10. Google Drive bootstrap
+10. Live Google Drive document `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
 ## Bootstrap workflow
 
-1. Fetch the live Google Drive bootstrap in the current response.
-2. Read the active `.ai-bridge/STATE.md`.
-3. Verify the current repository primary sources and exact runtime/code evidence.
-4. Read `PROJECT_MEMORY.md`.
-5. Read `.ai-memory/CURRENT.md` and validate every child revision.
+1. Fetch the live Google Drive project memory in the current response.
+2. Report its exact `MEMORY_REV`.
+3. Read the active task or bridge `STATE.md`.
+4. Verify current repository primary sources, exact remote branches, SHAs, code, and runtime evidence.
+5. Read `PROJECT_MEMORY.md` and `.ai-memory/CURRENT.md`.
 6. Read `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, and `TASKS.md` as relevant.
 7. Use archive history last.
-8. Fail closed on missing or mismatched revision.
+8. Fail closed on missing mandatory Google Drive memory or unresolved revision conflict.
 
-## Update workflow
+## Same-execution update workflow
 
-1. Record the new state in `CURRENT.md`.
-2. Update `TASKS.md` if the active work state changed.
-3. Update `PROJECT_MEMORY.md` only as the index and pointer file.
-4. Append completed cycle history to `.ai-memory/archive/`.
-5. Keep archived entries immutable after publication.
+After every accepted remote state change:
+
+1. Update the task-local `STATE.md` with exact branches, SHAs, validations, blocker, phase, and `NEXT_ACTION`.
+2. Update the live Google Drive project memory to the same memory revision.
+3. Update `CURRENT.md` with the compact live state.
+4. Update `PROJECT_MEMORY.md` as the compact index and pointer file.
+5. Update `DECISIONS.md`, `CANON.md`, or `WORKFLOWS.md` only when a durable rule changed.
+6. Update `TASKS.md` when the active work state changes and the exact task scope permits it.
+7. Append completed cycle history to `.ai-memory/archive/` only after acceptance and integration.
+8. Re-read every written target and verify revision, branches, SHAs, status, and next action.
+
+## Work versus Codex routing workflow
+
+1. Read the active task-local `STATE.md` before invoking any plugin skill.
+2. If the active phase is ChatGPT Work maintenance or serialized integration and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`, do not invoke model-selector, do not pause for model selection, and do not request or accept same-thread `CONTINUE`.
+3. Apply Codex model preflight only to an actual Codex implementation lane or numbered bridge command whose current authority explicitly requires it.
+4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local Work phase.
+5. If Work reports a remote branch head or absence, it must first fresh-fetch the remote. A stale local branch or stale remote-tracking ref is not evidence.
+6. A Work response that asks the user for `CONTINUE` during a no-preflight Work phase is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
+
+## Local plugin installation and parity workflow
+
+1. Determine which executor can access the authenticated user's writable local Codex plugin home.
+2. Do not treat ChatGPT Work's `/root/.codex` as the user's local installation.
+3. If Work plugin targets are read-only or unrelated to the user's machine, route only the local installation and parity phase to Codex desktop.
+4. The ChatGPT-authored Codex task must name the exact accepted repository branch, commit, plugin source directory, expected version, expected source hash, allowed local write surface, and forbidden repository actions.
+5. This Codex phase is local maintenance only. Unless the active STATE explicitly says otherwise, do not invoke model-selector, do not switch models, do not request `CONTINUE`, and do not modify repository files.
+6. Codex must inspect the existing local plugin installation mechanism and active Asynchronia path from actual configuration or filesystem evidence. It must not guess based on Work's `/root` paths.
+7. Install or refresh the exact accepted repository package as the required version.
+8. Report the exact installed package path, plugin version, source and installed model-selector SHA-256 values, equality result, commands, exit codes, and any installer or registry evidence used.
+9. If parity fails or the active install mechanism cannot be proven, stop without repository writes and return the exact blocker.
+10. After parity PASS, hand the task back to ChatGPT Work for serialized integration into current `main`, remote readback, and memory synchronization.
+
+## Protected-scope workflow
+
+1. Never widen an active implementation scope merely to update shared memory.
+2. Never write directly to `main` when repository policy forbids it.
+3. When current task scope prevents a shared-memory write, create or update a dedicated memory-sync branch from current `main`.
+4. Record `MAIN_SHARED_MEMORY_DEFERRED_UNTIL_IMPLEMENTATION_ACCEPTANCE_AND_INTEGRATION` in active state and Google Drive.
+5. Name integration of the memory-sync branch in the exact `NEXT_ACTION`.
+6. Do not claim all repository memory is synchronized on `main` until the memory-sync branch is integrated and re-read.
 
 ## Conflict workflow
 
-1. If repo memory conflicts with a bootstrap document, treat the repo as authoritative.
-2. Log the mismatch in the next memory update.
-3. Do not overwrite accepted bridge history or runtime facts.
+1. If repository primary evidence conflicts with Google Drive, use the repository fact.
+2. Report the exact conflict with paths, branches, and SHAs.
+3. Update Google Drive in the same execution when authorized.
+4. If repository-memory integration is blocked by scope or branch policy, publish a dedicated memory-sync branch and record the deferral.
+5. Do not overwrite accepted bridge history or runtime facts.
+
+## Reporting workflow
+
+Every project status report must end with an exact `NEXT_ACTION` that:
+
+- names what the user or next executor must do;
+- identifies the exact branch, task, command, review, or decision target;
+- states prerequisites and blockers;
+- does not offer a menu when one authoritative next step exists.
+
+A report without a concrete `NEXT_ACTION` is incomplete, regardless of how many checks and hashes it contains. Apparently computers also need to be told that information without direction is just decorative paperwork.
 
 ## Validation workflow
 
-- Run documentation-only checks for link integrity and file presence.
+- Run documentation-only checks for link integrity and file presence for memory-only changes.
 - Do not use runtime or gameplay smoke for memory-only changes.
-- Keep the evidence surface limited to the files actually changed.
-- Include revision consistency, legacy archive byte proof, and `git diff --check` in the migration validation set.
-- Treat any revision mismatch as fail-closed until the root index is updated.
+- Keep evidence limited to files actually changed.
+- Verify revision consistency across the root index and current child files.
+- Verify exact Google Drive `MEMORY_REV` and current remote branch heads after writes.
+- Run `git diff --check` or equivalent repository formatting validation before integration.
+- Treat any unresolved revision mismatch as fail-closed until the root index is updated.
