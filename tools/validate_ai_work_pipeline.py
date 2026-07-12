@@ -108,6 +108,10 @@ BRIDGE_FORBIDDEN_PATHS = (
     ".ai-bridge/receipts/",
 )
 
+OBSOLETE_CODEX_DIRECTIVES = (
+    "Use @asynchronia runtime-safety-gate.",
+)
+
 
 def parse_header(text: str) -> dict[str, str]:
     result: dict[str, str] = {}
@@ -131,8 +135,9 @@ def validate_file(path: Path, task_id: str) -> list[str]:
         if f"### {section}" not in text:
             errors.append(f"{path}: missing section {section!r}")
     if path.name == "03-codex-task.md":
-        if "Use @asynchronia runtime-safety-gate." not in text:
-            errors.append(f"{path}: missing mandatory runtime safety gate line")
+        for directive in OBSOLETE_CODEX_DIRECTIVES:
+            if directive in text:
+                errors.append(f"{path}: obsolete removed directive is forbidden: {directive}")
         for forbidden in BRIDGE_FORBIDDEN_PATHS:
             write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
             if forbidden in write_section:
