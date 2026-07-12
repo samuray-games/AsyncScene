@@ -1,6 +1,6 @@
 # AI Work Artifact Schema
 
-SCHEMA_VERSION: 1.0.0
+SCHEMA_VERSION: 1.0.1
 
 ## Common header
 
@@ -55,9 +55,9 @@ Work must not claim implementation or user acceptance.
 
 ## 03 Codex task
 
-The first line after metadata must be:
+A Codex task must use the current repository authority and must not invoke removed or nonexistent skills.
 
-`Use @asynchronia runtime-safety-gate.`
+The obsolete directive `Use @asynchronia runtime-safety-gate.` is forbidden. Current routing, scope isolation, model preflight, branch safety, and acceptance rules come from the current `AGENTS.md`, `AGENTS.override.md`, task-local `STATE.md`, and the exact task artifact.
 
 Required sections:
 
