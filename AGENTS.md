@@ -256,27 +256,33 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 
 ## 8. Model selection rule
 
-Available Codex models are exactly:
+Static repository model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.
 
-- GPT-5.5;
-- GPT-5.4; and
-- GPT-5.4-Mini.
+For every Asynchronia Codex task, the `model-selector` preflight must:
 
-Available reasoning levels are exactly Light, Medium, High and Extra High.
+- enter `MODEL_INVENTORY_DISCOVERY` before any mutation;
+- start the local `codex app-server` over stdio;
+- complete the `initialize` and `initialized` handshake;
+- call `model/list` with `includeHidden: false` and follow every `nextCursor` page;
+- use only picker-visible models returned by that live client;
+- use only each model's own returned `supportedReasoningEfforts`;
+- preserve model and effort identifiers exactly without adding, renaming, normalizing, translating, or inferring options;
+- build and analyze the complete matrix of every returned model-effort pair;
+- compare every effort with its immediately lower and higher returned neighbor for the same model;
+- determine the lowest reliable effort for every model;
+- compare all per-model winners across the non-dominated cost-reliability frontier;
+- recommend the first pair that meets the reliability threshold while minimizing expected total credits after retry and escalation risk;
+- explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary;
+- report `evaluated model-effort pair count: N/N` using the discovered matrix rather than a fixed denominator; and
+- fail closed when inventory discovery, effort coverage, pagination, or task scope is incomplete.
 
-For every task, Codex must:
+The optimization objective is `MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`.
 
-- compare the exact task with existing infrastructure and similar completed work;
-- recommend the cheapest reliable option among all available model/reasoning pairs;
-- state the recommended model and reasoning level;
-- explain why weaker options are insufficient and stronger options unnecessary;
-- justify promotion from runtime sensitivity, architectural risk, ambiguity, concurrency, validation cost or release impact;
-- never invent model names or silently downgrade; and
-- treat selection as a recommendation unless the user selected it in the Codex interface.
+The complete evaluation must cover every discovered pair, even when a pair appears obviously weak, expensive, redundant, old, new, default, or unfamiliar.
 
-The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
+The user selects the active model and effort. If the active selection cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
 
-Only the Asynchronia plugin `model-selector` may originate, rank or name a model recommendation. The current repository preflight contract makes that recommendation a blocking pre-implementation gate. Codex must stop with `WAITING_FOR_MODEL_SELECTION`, emit exactly one standalone fenced `CONTINUE` block, and perform no implementation or mutable command before exact same-thread `CONTINUE`.
+Only the Asynchronia plugin `model-selector` may originate, rank, or name the recommendation. The repository preflight contract requires `PLUGIN_AUTO_ROUTING: REQUIRED`, `MODEL_PREFLIGHT_PAUSE: REQUIRED`, `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback. Codex must perform no implementation or mutable command before exact same-thread `CONTINUE`.
 
 ## 8.1 Parallel work policy
 
