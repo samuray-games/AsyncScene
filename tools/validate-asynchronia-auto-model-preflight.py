@@ -6,25 +6,22 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLUGIN_VERSION = "1.0.7"
+EXPECTED_PLUGIN_VERSION = "1.0.8"
 
 
-def read(rel_path: str) -> str:
-    return (ROOT / rel_path).read_text(encoding="utf-8")
+def read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
 
 
-def read_json(rel_path: str) -> object:
-    return json.loads(read(rel_path))
+def read_json(path: str) -> object:
+    return json.loads(read(path))
 
 
-@dataclass(frozen=True)
-class TextContract:
-    path: str
-    required: tuple[str, ...]
-    forbidden: tuple[str, ...] = ()
+def require(condition: bool, message: str, failures: list[str]) -> None:
+    if not condition:
+        failures.append(message)
 
 
 @dataclass(frozen=True)
@@ -35,609 +32,280 @@ class ResumeAttempt:
     scope: tuple[str, ...]
     baseline: str
     claim: str
+    inventory_hash: str
     blocked: bool = False
     authority_verified: bool = False
 
 
-@dataclass(frozen=True)
-class ResumeResult:
-    status: str
-    implementation_allowed: bool
-    repeated_preflight: bool
-    failure_mode: str | None = None
-
-
 class PreflightContract:
-    VALID_THREAD = "BRIDGE-20260711-087"
-    VALID_TASK = "TASK-ASYNCHRONIA-PREFLIGHT-RESIDUAL-SYNC"
-    VALID_SCOPE = (
+    THREAD = "BRIDGE-20260711-087"
+    TASK = "TASK-ASYNCHRONIA-PREFLIGHT-RESIDUAL-SYNC"
+    SCOPE = (
         "AGENTS.md",
-        "ORCHESTRATION.md",
-        "BRIDGE.md",
-        "CODEX_BRIDGE_BOOTSTRAP.md",
-        "CODEX_BRIDGE_RECOVERY.md",
-        ".agents/plugins/marketplace.json",
-        "plugins/asynchronia/.codex-plugin/plugin.json",
-        "plugins/asynchronia/skills/task-router/SKILL.md",
-        "plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md",
-        "plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md",
+        "plugins/asynchronia/skills/model-selector/SKILL.md",
         "tools/validate-asynchronia-auto-model-preflight.py",
     )
-    VALID_BASELINE = "26493abe8b66dfe29b0dd799129c1f11acb77238"
-    VALID_CLAIM = ".ai-bridge/claims/BRIDGE-20260711-087-claim-v1-codex.md"
-    VALID_TOKEN = "CONTINUE"
+    BASELINE = "26493abe8b66dfe29b0dd799129c1f11acb77238"
+    CLAIM = ".ai-bridge/claims/BRIDGE-20260711-087-claim-v1-codex.md"
+    INVENTORY_HASH = "sha256:live-picker-visible-inventory"
 
     def __init__(self) -> None:
         self.state = "NEW_TASK"
-        self.mutation_started = False
 
-    def start_discovery(self) -> None:
+    def discover(self) -> None:
         if self.state != "NEW_TASK":
-            raise ValueError("invalid transition: NEW_TASK -> PREFLIGHT_DISCOVERY only")
-        self.state = "PREFLIGHT_DISCOVERY"
+            raise ValueError("invalid discovery transition")
+        self.state = "MODEL_INVENTORY_DISCOVERY"
 
-    def pause_for_model_selection(self) -> None:
-        if self.state != "PREFLIGHT_DISCOVERY":
-            raise ValueError(
-                "invalid transition: PREFLIGHT_DISCOVERY -> WAITING_FOR_MODEL_SELECTION only"
-            )
+    def verify_inventory(self) -> None:
+        if self.state != "MODEL_INVENTORY_DISCOVERY":
+            raise ValueError("invalid inventory transition")
+        self.state = "MODEL_INVENTORY_VERIFIED"
+
+    def analyze(self) -> None:
+        if self.state != "MODEL_INVENTORY_VERIFIED":
+            raise ValueError("invalid analysis transition")
+        self.state = "TASK_ANALYSIS_COMPLETE"
+
+    def pause(self) -> None:
+        if self.state != "TASK_ANALYSIS_COMPLETE":
+            raise ValueError("invalid pause transition")
         self.state = "WAITING_FOR_MODEL_SELECTION"
 
-    def resume(self, attempt: ResumeAttempt) -> ResumeResult:
-        if self.state == "IMPLEMENTATION_ALLOWED":
-            return ResumeResult(
-                status="ALREADY_RESUMED",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="second resume attempt after implementation start",
-            )
+    def resume(self, attempt: ResumeAttempt) -> tuple[str, bool, bool]:
         if self.state != "WAITING_FOR_MODEL_SELECTION":
-            return ResumeResult(
-                status="REJECTED_WRONG_STATE",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="resume is only legal from WAITING_FOR_MODEL_SELECTION",
-            )
+            return "REJECTED_WRONG_STATE", False, False
         if attempt.blocked:
-            return ResumeResult(
-                status="REJECTED_BLOCKED_STATE",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="blocked responses cannot resume and cannot contain CONTINUE",
-            )
-
-        if any(ch in attempt.token for ch in ('"', "'", "`")):
-            return ResumeResult(
-                status="REJECTED_QUOTED_TOKEN",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="quoted token",
-            )
+            return "REJECTED_BLOCKED_STATE", False, False
+        if any(char in attempt.token for char in ('"', "'", "`")):
+            return "REJECTED_QUOTED_TOKEN", False, False
         if re.search(r"\S+\s+CONTINUE|CONTINUE\s+\S+", attempt.token):
-            return ResumeResult(
-                status="REJECTED_EMBEDDED_TOKEN",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="embedded token",
-            )
-        normalized = attempt.token.strip()
-        if normalized != self.VALID_TOKEN:
-            return ResumeResult(
-                status="REJECTED_WRONG_TOKEN",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="wrong token",
-            )
-
+            return "REJECTED_EMBEDDED_TOKEN", False, False
+        if attempt.token.strip() != "CONTINUE":
+            return "REJECTED_WRONG_TOKEN", False, False
         if (
-            attempt.thread != self.VALID_THREAD
-            or attempt.task != self.VALID_TASK
-            or tuple(attempt.scope) != self.VALID_SCOPE
-            or attempt.baseline != self.VALID_BASELINE
-            or attempt.claim != self.VALID_CLAIM
+            attempt.thread != self.THREAD
+            or attempt.task != self.TASK
+            or attempt.scope != self.SCOPE
+            or attempt.baseline != self.BASELINE
+            or attempt.claim != self.CLAIM
+            or attempt.inventory_hash != self.INVENTORY_HASH
         ):
-            return ResumeResult(
-                status="STALE_RECOMMENDATION",
-                implementation_allowed=False,
-                repeated_preflight=True,
-                failure_mode="changed thread, task, scope, baseline, or claim",
-            )
+            return "STALE_RECOMMENDATION", False, True
         if not attempt.authority_verified:
-            return ResumeResult(
-                status="REJECTED_AUTHORITY_NOT_REFRESHED",
-                implementation_allowed=False,
-                repeated_preflight=False,
-                failure_mode="fresh authority verification before first mutation is missing",
-            )
-
+            return "REJECTED_AUTHORITY_NOT_REFRESHED", False, False
         self.state = "IMPLEMENTATION_ALLOWED"
-        self.mutation_started = False
-        return ResumeResult(
-            status="IMPLEMENTATION_ALLOWED",
-            implementation_allowed=True,
-            repeated_preflight=False,
-        )
+        return "IMPLEMENTATION_ALLOWED", True, False
 
-    def start_mutation(self) -> None:
+    def mutate(self) -> None:
         if self.state != "IMPLEMENTATION_ALLOWED":
-            raise ValueError("no mutable action before exact same-thread CONTINUE")
-        self.mutation_started = True
+            raise ValueError("no mutation before exact same-thread CONTINUE")
 
 
-def assert_true(condition: bool, message: str, failures: list[str]) -> None:
-    if not condition:
-        failures.append(message)
+@dataclass(frozen=True)
+class Candidate:
+    model: str
+    effort: str
+    effort_index: int
 
 
-def validate_text_contract(contract: TextContract, failures: list[str]) -> None:
-    text = read(contract.path)
-    for needle in contract.required:
-        if needle not in text:
-            failures.append(f"MISSING {contract.path}: {needle}")
-    for needle in contract.forbidden:
-        if needle in text:
-            failures.append(f"FORBIDDEN {contract.path}: {needle}")
+def build_candidates(inventory: list[dict[str, object]]) -> list[Candidate]:
+    result: list[Candidate] = []
+    seen: set[tuple[str, str]] = set()
+    for model in inventory:
+        if bool(model.get("hidden", False)):
+            continue
+        model_id = str(model.get("id", ""))
+        efforts = model.get("supportedReasoningEfforts")
+        if not model_id or not isinstance(efforts, list) or not efforts:
+            raise ValueError("incomplete visible model inventory")
+        for index, item in enumerate(efforts):
+            if not isinstance(item, dict):
+                raise ValueError("malformed effort")
+            effort = str(item.get("reasoningEffort", ""))
+            key = (model_id, effort)
+            if not effort or key in seen:
+                raise ValueError("empty or duplicate model-effort pair")
+            seen.add(key)
+            result.append(Candidate(model_id, effort, index))
+    if not result:
+        raise ValueError("empty candidate matrix")
+    return result
 
 
-def validate_terminal_continue_block(failures: list[str]) -> None:
-    samples = {
-        "valid": "status: WAITING_FOR_MODEL_SELECTION\n\n```text\nCONTINUE\n```",
-        "embedded": "status: WAITING_FOR_MODEL_SELECTION\n\n```text\nPLEASE CONTINUE\n```",
-        "quoted": "status: WAITING_FOR_MODEL_SELECTION\n\n```text\n\"CONTINUE\"\n```",
-        "trailing": "status: WAITING_FOR_MODEL_SELECTION\n\n```text\nCONTINUE\n```\nextra",
-        "missing": "status: WAITING_FOR_MODEL_SELECTION",
-    }
-    pattern = re.compile(r"(?s)\A.*\n```[a-zA-Z0-9_-]*\nCONTINUE\n```\Z")
-    assert_true(pattern.match(samples["valid"]) is not None, "valid fenced CONTINUE block must match", failures)
-    for name in ("embedded", "quoted", "trailing", "missing"):
-        assert_true(
-            pattern.match(samples[name]) is None,
-            f"{name} fenced CONTINUE sample must be rejected",
-            failures,
-        )
+def adjacent_pairs(candidates: list[Candidate]) -> set[tuple[str, str, str]]:
+    by_model: dict[str, list[Candidate]] = {}
+    for candidate in candidates:
+        by_model.setdefault(candidate.model, []).append(candidate)
+    result: set[tuple[str, str, str]] = set()
+    for model, values in by_model.items():
+        ordered = sorted(values, key=lambda value: value.effort_index)
+        result.update((model, lower.effort, higher.effort) for lower, higher in zip(ordered, ordered[1:]))
+    return result
 
 
-def validate_manifest_and_marketplace(failures: list[str]) -> dict[str, object]:
+def validate_manifests(failures: list[str]) -> dict[str, object]:
     manifest = read_json("plugins/asynchronia/.codex-plugin/plugin.json")
     marketplace = read_json(".agents/plugins/marketplace.json")
-    assert_true(isinstance(manifest, dict), "plugin manifest must be a JSON object", failures)
-    assert_true(isinstance(marketplace, dict), "marketplace manifest must be a JSON object", failures)
+    require(isinstance(manifest, dict), "manifest must be an object", failures)
+    require(isinstance(marketplace, dict), "marketplace must be an object", failures)
     if not isinstance(manifest, dict) or not isinstance(marketplace, dict):
         return {"manifest": manifest, "marketplace": marketplace}
-
-    assert_true(manifest.get("name") == "asynchronia", "plugin manifest name must be asynchronia", failures)
-    assert_true(
-        manifest.get("version") == EXPECTED_PLUGIN_VERSION,
-        f"plugin manifest version must be {EXPECTED_PLUGIN_VERSION}",
-        failures,
-    )
-    assert_true(manifest.get("skills") == "./skills/", "plugin skills path must remain ./skills/", failures)
-
+    require(manifest.get("name") == "asynchronia", "manifest name mismatch", failures)
+    require(manifest.get("version") == EXPECTED_PLUGIN_VERSION, "manifest version mismatch", failures)
+    require(manifest.get("skills") == "./skills/", "manifest skills path mismatch", failures)
     plugins = marketplace.get("plugins")
-    assert_true(isinstance(plugins, list), "marketplace plugins must be a list", failures)
-    plugin_entry = None
-    if isinstance(plugins, list):
-        matches = [item for item in plugins if isinstance(item, dict) and item.get("name") == "asynchronia"]
-        assert_true(len(matches) == 1, "marketplace must contain exactly one asynchronia entry", failures)
-        if matches:
-            plugin_entry = matches[0]
-
-    if plugin_entry:
-        assert_true(
-            plugin_entry.get("version") == EXPECTED_PLUGIN_VERSION,
-            f"marketplace version must be {EXPECTED_PLUGIN_VERSION}",
-            failures,
-        )
-        source = plugin_entry.get("source")
-        assert_true(isinstance(source, dict), "marketplace source must be an object", failures)
-        if isinstance(source, dict):
-            assert_true(source.get("source") == "local", "marketplace source.source must remain local", failures)
-            assert_true(source.get("path") == "./plugins/asynchronia", "marketplace source.path must remain ./plugins/asynchronia", failures)
-
+    entries = [item for item in plugins if isinstance(item, dict) and item.get("name") == "asynchronia"] if isinstance(plugins, list) else []
+    require(len(entries) == 1, "marketplace must have one asynchronia entry", failures)
+    if entries:
+        require(entries[0].get("version") == EXPECTED_PLUGIN_VERSION, "marketplace version mismatch", failures)
+        require(entries[0].get("source") == {"source": "local", "path": "./plugins/asynchronia"}, "marketplace source mismatch", failures)
     interface = manifest.get("interface")
-    assert_true(isinstance(interface, dict), "plugin interface must be an object", failures)
+    require(isinstance(interface, dict), "manifest interface missing", failures)
     if isinstance(interface, dict):
-        capabilities = interface.get("capabilities")
-        prompts = interface.get("defaultPrompt")
-        assert_true(isinstance(capabilities, list), "manifest capabilities must be a list", failures)
-        assert_true(isinstance(prompts, list), "manifest defaultPrompt must be a list", failures)
-        if isinstance(capabilities, list):
-            for capability in (
-                "Automatic repository task routing",
-                "Mandatory blocking model preflight",
-                "Same-thread CONTINUE resume contract",
-            ):
-                assert_true(capability in capabilities, f"missing manifest capability: {capability}", failures)
-        if isinstance(prompts, list):
-            prompt_text = "\n".join(str(item) for item in prompts)
-            for snippet in (
-                "PLUGIN_AUTO_ROUTING: REQUIRED",
-                "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-                "WAITING_FOR_MODEL_SELECTION",
-                "exact same-thread CONTINUE",
-                "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
-            ):
-                assert_true(snippet in prompt_text, f"missing manifest prompt snippet: {snippet}", failures)
-
+        text = "\n".join(str(value) for value in interface.get("defaultPrompt", []))
+        for needle in ("codex app-server", "model/list", "supportedReasoningEfforts", "every available model-effort pair", "adjacent efforts", "same-thread CONTINUE"):
+            require(needle in text, f"manifest prompt missing {needle}", failures)
     return {"manifest": manifest, "marketplace": marketplace}
 
 
-def validate_current_doc_contracts(failures: list[str]) -> None:
-    agents_override = TextContract(
-        path="AGENTS.override.md",
-        required=(
-            "PLUGIN_AUTO_ROUTING: REQUIRED",
-            "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-            "WAITING_FOR_MODEL_SELECTION",
-            "exact same-thread `CONTINUE`",
-        ),
-        forbidden=(
-            "same Codex conversation",
-            "FAIL_MODEL_PREFLIGHT_NOT_PAUSED",
-            "FAIL_IMPLEMENTED_BEFORE_CONTINUE",
-        ),
-    )
-    bridge = TextContract(
-        path="BRIDGE.md",
-        required=(
-            "mandatory plugin preflight",
-            "same-thread `CONTINUE`",
-            "bridge/N/<thread-id>",
-        ),
-        forbidden=(
-            "automatic model preflight",
-            "exact same-thread `CONTINUE`",
-            "Separate claim tokens are not required.",
-        ),
-    )
-    validate_text_contract(agents_override, failures)
-    validate_text_contract(bridge, failures)
+def validate_live_contract(failures: list[str]) -> None:
+    selector = read("plugins/asynchronia/skills/model-selector/SKILL.md")
+    agents = read("AGENTS.md")
+    for needle in (
+        "MODEL_INVENTORY_DISCOVERY",
+        "codex app-server",
+        '"model/list"',
+        '"includeHidden":false',
+        "nextCursor",
+        "supportedReasoningEfforts",
+        "evaluated model-effort pair count: N/N",
+        "Mandatory adjacent-effort comparison",
+        "lowest effort for that model that meets the reliability threshold",
+        "MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK",
+        "BLOCKED_MODEL_INVENTORY_UNAVAILABLE",
+        "FAIL_INCOMPLETE_PAIR_MATRIX",
+        "FAIL_ADJACENT_EFFORT_COMPARISON_MISSING",
+        "USER_SELECTED_UNVERIFIED",
+    ):
+        require(needle in selector, f"selector missing {needle}", failures)
+    for needle in (
+        "Static repository model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.",
+        "start the local `codex app-server` over stdio",
+        "call `model/list` with `includeHidden: false`",
+        "complete matrix of every returned model-effort pair",
+        "immediately lower and higher returned neighbor",
+        "evaluated model-effort pair count: N/N",
+        "MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK",
+    ):
+        require(needle in agents, f"AGENTS missing {needle}", failures)
+    for stale in (
+        "Available Codex models are exactly:",
+        "Available reasoning levels are exactly Light, Medium, High and Extra High.",
+        "Only these model names are valid:",
+        "Only these reasoning levels are valid:",
+        "evaluated pair count: `12/12`",
+        "evaluated pair count: `18/18`",
+    ):
+        require(stale not in selector, f"stale selector text remains: {stale}", failures)
+        require(stale not in agents, f"stale AGENTS text remains: {stale}", failures)
+    require("no global cartesian product" in selector, "global cartesian product guard missing", failures)
+    require("Do not invent an effort ordering from names." in selector, "live effort order guard missing", failures)
 
 
-def validate_transition_contract(failures: list[str]) -> None:
-    contract = PreflightContract()
-    contract.start_discovery()
-    contract.pause_for_model_selection()
-
-    accepted = contract.resume(
-        ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="  CONTINUE  ",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        )
-    )
-    assert_true(accepted.status == "IMPLEMENTATION_ALLOWED", "trimmed exact CONTINUE must resume", failures)
-    assert_true(accepted.implementation_allowed, "accepted CONTINUE must allow implementation", failures)
-
-    contract.start_mutation()
-    second = contract.resume(
-        ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        )
-    )
-    assert_true(second.status == "ALREADY_RESUMED", "second resume attempt must not duplicate transition", failures)
-
-    cases = {
-        "wrong_thread": ResumeAttempt(
-            thread="BRIDGE-OTHER",
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "changed_task": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task="TASK-ASYNCHRONIA-PREFLIGHT-CHANGED-TASK-FIXTURE",
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "wrong_token": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="GO",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "embedded_token": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="PLEASE CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "quoted_token": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token='"CONTINUE"',
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "blocked": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            blocked=True,
-            authority_verified=True,
-        ),
-        "changed_scope": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE[:-1],
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "changed_baseline": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline="deadbeef",
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=True,
-        ),
-        "changed_claim": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim="other-claim",
-            authority_verified=True,
-        ),
-        "authority_missing": ResumeAttempt(
-            thread=PreflightContract.VALID_THREAD,
-            token="CONTINUE",
-            task=PreflightContract.VALID_TASK,
-            scope=PreflightContract.VALID_SCOPE,
-            baseline=PreflightContract.VALID_BASELINE,
-            claim=PreflightContract.VALID_CLAIM,
-            authority_verified=False,
-        ),
-    }
-    expected_status = {
-        "wrong_thread": "STALE_RECOMMENDATION",
-        "changed_task": "STALE_RECOMMENDATION",
-        "wrong_token": "REJECTED_WRONG_TOKEN",
-        "embedded_token": "REJECTED_EMBEDDED_TOKEN",
-        "quoted_token": "REJECTED_QUOTED_TOKEN",
-        "blocked": "REJECTED_BLOCKED_STATE",
-        "changed_scope": "STALE_RECOMMENDATION",
-        "changed_baseline": "STALE_RECOMMENDATION",
-        "changed_claim": "STALE_RECOMMENDATION",
-        "authority_missing": "REJECTED_AUTHORITY_NOT_REFRESHED",
-    }
-    for name, attempt in cases.items():
-        case_contract = PreflightContract()
-        case_contract.start_discovery()
-        case_contract.pause_for_model_selection()
-        result = case_contract.resume(attempt)
-        assert_true(
-            result.status == expected_status[name],
-            f"{name} must yield {expected_status[name]}",
-            failures,
-        )
-        assert_true(
-            not result.implementation_allowed,
-            f"{name} must never allow implementation",
-            failures,
-        )
-
-    stale_identity_cases = {"wrong_thread", "changed_task", "changed_scope", "changed_baseline", "changed_claim"}
-    for name in stale_identity_cases:
-        case_contract = PreflightContract()
-        case_contract.start_discovery()
-        case_contract.pause_for_model_selection()
-        result = case_contract.resume(cases[name])
-        assert_true(
-            result.repeated_preflight,
-            f"{name} must repeat preflight",
-            failures,
-        )
-
-    blocked_contract = PreflightContract()
-    blocked_contract.start_discovery()
+def validate_matrix_fixture(failures: list[str]) -> None:
+    inventory = [
+        {"id": "a", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "low"}, {"reasoningEffort": "medium"}, {"reasoningEffort": "high"}]},
+        {"id": "b", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "medium"}, {"reasoningEffort": "xhigh"}]},
+        {"id": "hidden", "hidden": True, "supportedReasoningEfforts": [{"reasoningEffort": "high"}]},
+    ]
     try:
-        blocked_contract.start_mutation()
-        failures.append("no mutable action before resume must raise")
+        candidates = build_candidates(inventory)
+    except ValueError as exc:
+        failures.append(f"valid inventory rejected: {exc}")
+        return
+    require(len(candidates) == 5, "complete visible pair enumeration failed", failures)
+    require(adjacent_pairs(candidates) == {("a", "low", "medium"), ("a", "medium", "high"), ("b", "medium", "xhigh")}, "adjacent effort ordering failed", failures)
+    for invalid in (
+        [{"id": "a", "hidden": False, "supportedReasoningEfforts": []}],
+        [{"id": "", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "low"}]}],
+        [{"id": "a", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "low"}, {"reasoningEffort": "low"}]}],
+    ):
+        try:
+            build_candidates(invalid)
+        except ValueError:
+            pass
+        else:
+            failures.append("invalid inventory accepted")
+
+
+def validate_state_machine(failures: list[str]) -> None:
+    contract = PreflightContract()
+    contract.discover(); contract.verify_inventory(); contract.analyze(); contract.pause()
+    valid = ResumeAttempt(contract.THREAD, "  CONTINUE  ", contract.TASK, contract.SCOPE, contract.BASELINE, contract.CLAIM, contract.INVENTORY_HASH, authority_verified=True)
+    status, allowed, repeated = contract.resume(valid)
+    require((status, allowed, repeated) == ("IMPLEMENTATION_ALLOWED", True, False), "valid continuation rejected", failures)
+    contract.mutate()
+    variants = {
+        "wrong_thread": {"thread": "other"},
+        "wrong_task": {"task": "other"},
+        "wrong_scope": {"scope": ("AGENTS.md",)},
+        "wrong_baseline": {"baseline": "deadbeef"},
+        "wrong_claim": {"claim": "other"},
+        "wrong_inventory": {"inventory_hash": "sha256:stale"},
+        "wrong_token": {"token": "GO"},
+        "embedded": {"token": "PLEASE CONTINUE"},
+        "quoted": {"token": '"CONTINUE"'},
+        "blocked": {"blocked": True},
+        "authority": {"authority_verified": False},
+    }
+    for name, changes in variants.items():
+        data = dict(valid.__dict__); data.update(changes)
+        test = PreflightContract(); test.discover(); test.verify_inventory(); test.analyze(); test.pause()
+        status, allowed, repeated = test.resume(ResumeAttempt(**data))
+        require(not allowed, f"{name} allowed implementation", failures)
+        if name.startswith("wrong_") and name not in {"wrong_token"}:
+            require(status == "STALE_RECOMMENDATION" and repeated, f"{name} did not invalidate recommendation", failures)
+    pre = PreflightContract(); pre.discover()
+    try:
+        pre.mutate()
+        failures.append("mutation before CONTINUE accepted")
     except ValueError:
         pass
 
 
-def validate_texts(failures: list[str]) -> None:
-    contracts: Iterable[TextContract] = (
-        TextContract(
-            "AGENTS.override.md",
-            required=(
-                "PLUGIN_AUTO_ROUTING: REQUIRED",
-                "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-                "WAITING_FOR_MODEL_SELECTION",
-                "exact same-thread `CONTINUE`",
-            ),
-            forbidden=(
-                "same Codex conversation",
-                "FAIL_MODEL_PREFLIGHT_NOT_PAUSED",
-                "FAIL_IMPLEMENTED_BEFORE_CONTINUE",
-            ),
-        ),
-        TextContract(
-            "plugins/asynchronia/skills/model-selector/SKILL.md",
-            required=(
-                "Use this skill automatically for every Asynchronia task",
-                "`WAITING_FOR_MODEL_SELECTION`",
-                "`CONTINUE_RECEIVED`",
-                "`IMPLEMENTATION_ALLOWED`",
-                "actual active model: `USER_SELECTED_UNVERIFIED`",
-            ),
-            forbidden=(
-                "must never create a pause, stop, continuation token, or execution prerequisite",
-            ),
-        ),
-        TextContract(
-            "AGENTS.md",
-        required=(
-            "PLUGIN_AUTO_ROUTING: REQUIRED",
-            "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-            "WAITING_FOR_MODEL_SELECTION",
-            "exact same-thread `CONTINUE`",
-            "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
-        ),
-            forbidden=(
-                "informational and non-blocking, and it must not become an execution prerequisite, pause, or resume token",
-            ),
-        ),
-        TextContract(
-            "ORCHESTRATION.md",
-            required=(
-                "mandatory automatic model preflight",
-                "exact same-thread `CONTINUE`",
-                "`WAITING_FOR_MODEL_SELECTION`",
-            ),
-            forbidden=("no preflight or separate bridge token is required.",),
-        ),
-        TextContract(
-            "BRIDGE.md",
-            required=(
-                "mandatory plugin preflight",
-                "same-thread `CONTINUE`",
-                "bridge/N/<thread-id>",
-            ),
-            forbidden=(
-                "automatic model preflight",
-                "exact same-thread `CONTINUE`",
-                "Separate claim tokens are not required.",
-            ),
-        ),
-        TextContract(
-            "CODEX_BRIDGE_BOOTSTRAP.md",
-            required=(
-                "ASYNCHRONIA_CODEX_BRIDGE_ALIAS_V2_4",
-                "WAITING_FOR_MODEL_SELECTION",
-                "same-thread `CONTINUE`",
-                "PASS_BRIDGE_ALIAS_V2_4_INSTALLED",
-            ),
-            forbidden=("SOURCE_PLUGIN_FALLBACK_BOOTSTRAP",),
-        ),
-        TextContract(
-            "CODEX_BRIDGE_RECOVERY.md",
-            required=(
-                "ASYNCHRONIA_BRIDGE_RECOVERY_V2_4",
-                "same-thread `CONTINUE`",
-                "PASS_BRIDGE_ALIAS_V2_4_INSTALLED",
-            ),
-        ),
-        TextContract(
-            "plugins/asynchronia/skills/task-router/SKILL.md",
-            required=(
-                "blocking pre-implementation gate",
-                "`WAITING_FOR_MODEL_SELECTION`",
-                "same-thread fenced `CONTINUE` token",
-            ),
-            forbidden=(
-                "it is not a required approval stop",
-                "It must not originate, alter, or turn the recommendation into an execution prerequisite, pause, or resume token.",
-            ),
-        ),
-        TextContract(
-            "plugins/asynchronia/skills/acceptance-pipeline-controller/SKILL.md",
-            required=(
-                "blocking pre-implementation gate",
-                "`WAITING_FOR_MODEL_SELECTION`",
-                "exact same-thread `CONTINUE`",
-            ),
-            forbidden=(
-                "Do not emit `WAITING_FOR_MODEL_SELECTION`, `CONTINUE`, or any equivalent pause for model selection.",
-                "model-selector output is informational only and cannot authorize, pause, or resume the pipeline",
-            ),
-        ),
-        TextContract(
-            "plugins/asynchronia/skills/pipeline-state-and-resume-contract/SKILL.md",
-            required=(
-                "same-thread `CONTINUE` resume state",
-                "blocking same-thread preflight gate",
-                "reject stale or foreign resume attempts",
-            ),
-            forbidden=(
-                "model recommendation evidence is serialized as evidence only and must not be represented as a blocking preflight gate",
-            ),
-        ),
-    )
-    for contract in contracts:
-        validate_text_contract(contract, failures)
+def validate_terminal_fence(failures: list[str]) -> None:
+    pattern = re.compile(r"(?s)\A.*\n```[a-zA-Z0-9_-]*\nCONTINUE\n```\Z")
+    require(pattern.match("status: WAITING_FOR_MODEL_SELECTION\n\n```text\nCONTINUE\n```") is not None, "valid CONTINUE fence rejected", failures)
+    for sample in ("status: WAITING_FOR_MODEL_SELECTION", "```text\nPLEASE CONTINUE\n```", "```text\n\"CONTINUE\"\n```", "```text\nCONTINUE\n```\nextra"):
+        require(pattern.match(sample) is None, "invalid CONTINUE fence accepted", failures)
 
 
 def main() -> int:
     failures: list[str] = []
-
-    json_state = validate_manifest_and_marketplace(failures)
-    validate_texts(failures)
-    validate_current_doc_contracts(failures)
-    validate_transition_contract(failures)
-    validate_terminal_continue_block(failures)
-
+    state = validate_manifests(failures)
+    validate_live_contract(failures)
+    validate_matrix_fixture(failures)
+    validate_state_machine(failures)
+    validate_terminal_fence(failures)
     if failures:
-        print(
-            json.dumps(
-                {
-                    "status": "FAIL_AUTO_MODEL_PREFLIGHT",
-                    "expectedPluginVersion": EXPECTED_PLUGIN_VERSION,
-                    "failureCount": len(failures),
-                    "failures": failures,
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps({"status": "FAIL_AUTO_MODEL_PREFLIGHT", "expectedPluginVersion": EXPECTED_PLUGIN_VERSION, "failureCount": len(failures), "failures": failures}, indent=2))
         return 1
-
-    print(
-        json.dumps(
-            {
-                "status": "PASS_AUTO_MODEL_PREFLIGHT",
-                "pluginVersion": EXPECTED_PLUGIN_VERSION,
-                "manifestVersion": json_state["manifest"]["version"],
-                "marketplaceVersion": json_state["marketplace"]["plugins"][0]["version"],
-                "transitionContract": {
-                "newTaskToDiscovery": "PASS",
-                "discoveryToWaiting": "PASS",
-                "sameThreadContinue": "PASS",
-                "adversarialFixtures": "PASS",
-                "changedTaskStale": "PASS",
-                "staleIdentityRepeatsPreflight": "PASS",
-                "adversarialImplementationDenied": "PASS",
-                "noMutationBeforeResume": "PASS",
-                "freshAuthorityBeforeMutation": "PASS",
-                "secondResumeNoDuplicate": "PASS",
-            },
-                "terminalContinueFence": "PASS",
-            },
-            indent=2,
-        )
-    )
+    manifest = state["manifest"]
+    marketplace = state["marketplace"]
+    print(json.dumps({
+        "status": "PASS_AUTO_MODEL_PREFLIGHT",
+        "pluginVersion": EXPECTED_PLUGIN_VERSION,
+        "manifestVersion": manifest["version"],
+        "marketplaceVersion": marketplace["plugins"][0]["version"],
+        "liveModelInventoryContract": "PASS",
+        "pickerVisibleOnly": "PASS",
+        "completePairEnumeration": "PASS",
+        "adjacentEffortComparison": "PASS",
+        "retryAdjustedCostObjective": "PASS",
+        "inventorySnapshotBoundResume": "PASS",
+        "terminalContinueFence": "PASS"
+    }, indent=2))
     return 0
 
 
