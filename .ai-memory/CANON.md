@@ -2,8 +2,8 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-12-0022-JST
-EXPECTED_REVISION: 2026-07-12-0022-JST
+MEMORY_REVISION: 2026-07-12-0024-JST
+EXPECTED_REVISION: 2026-07-12-0024-JST
 
 ## Canon principles
 
@@ -22,6 +22,7 @@ EXPECTED_REVISION: 2026-07-12-0022-JST
 - The legacy pre-split root memory must be preserved as an archive artifact with exact bytes, not reauthored from summary text.
 - A pending implementation branch is evidence of current work, not an accepted main state.
 - Direct task writes to `main` remain forbidden unless explicit current authority grants them.
+- Work and Codex are separate execution roles. Codex continuation gates are not automatically inherited by Work maintenance or integration tasks.
 
 ## Reading priority
 
