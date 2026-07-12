@@ -29,8 +29,13 @@ VALIDATOR_FIX_STATUS: IMPLEMENTED_AND_REGRESSION_TESTED_9_OF_9
 RECOVERY_HEAD: 7c4d0f9ec47b4c1f8a1e98553ffc876e0d4cd6bb
 RECOVERY_WORKTREE: /private/tmp/AsyncScene_forensics_recovery2.uHUoQ3
 RECOVERY_PATCH: /private/tmp/ai_forensics_recovery_delta_full.patch
+IMPLEMENTATION_COMMIT: 5bb7984d1b37d997c418a97247d6340a3a68511f
+FORENSICS_SMOKE_PACKAGE_PATH: runs/2026/07/12/CODEX/CODEX-20260712T140816Z-synthetic-smoke-b559fb32
+FORENSICS_SMOKE_PACKAGE_COMMIT: 39ab7746d8dbbe7e865a09567e60ad91a61fd1e2
+FORENSICS_SMOKE_INDEX_COMMENT_ID: 4951477256
+FORENSICS_SMOKE_INDEX_COMMENT_URL: https://github.com/samuray-games/AsyncScene/issues/224#issuecomment-4951477256
 EXPECTED_RECOVERY_HEAD_RULE: ChatGPT supplies the exact fetched remote implementation head after this recovery state and validator fix are published. Starting local HEAD may differ.
 WRITE_SCOPE_AUTHORITY: 03-codex-task-r2.md plus RECOVERY.md
 NEXT_ROLE: CHATGPT
-NEXT_ACTION: Complete post-validation publication by pushing the implementation branch, verifying the remote head, running the controlled synthetic forensic publication smoke, verifying `forensics/ai-runs` readback and Issue `#224` index comment, then hand off `/hooks` trust review and independent review. Do not mark the task `ACCEPTED`.
-UPDATED_AT: 2026-07-12T23:55:00+09:00
+NEXT_ACTION: Use Codex `/hooks` to trust-review and enable `.codex/hooks.json`, then perform independent review of implementation commit `5bb7984d1b37d997c418a97247d6340a3a68511f` and synthetic smoke evidence without marking the task `ACCEPTED`.
+UPDATED_AT: 2026-07-12T23:12:00+09:00
