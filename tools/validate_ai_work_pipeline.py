@@ -26,6 +26,13 @@ ALLOWED_STATUSES = {
     "CANCELLED",
 }
 
+# These records were finalized under an earlier task schema and are immutable.
+# Revalidating their phase artifacts against a newer schema would turn harmless
+# validator evolution into repository-wide historical breakage.
+HISTORICAL_TERMINAL_STATUSES = {
+    "FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE",
+}
+
 REQUIRED_STATE_KEYS = {
     "TASK_ID",
     "PIPELINE_VERSION",
@@ -168,8 +175,18 @@ def validate_task(task_dir: Path) -> list[str]:
         errors.append(f"{state_path}: missing keys {sorted(missing)}")
     if state.get("TASK_ID") != task_id:
         errors.append(f"{state_path}: TASK_ID does not match directory")
-    if state.get("CURRENT_STATUS") not in ALLOWED_STATUSES:
+
+    current_status = state.get("CURRENT_STATUS")
+    if current_status not in ALLOWED_STATUSES and current_status not in HISTORICAL_TERMINAL_STATUSES:
         errors.append(f"{state_path}: invalid CURRENT_STATUS")
+
+    if current_status in HISTORICAL_TERMINAL_STATUSES:
+        if state.get("NEXT_ROLE") != "NONE_FOR_THIS_TASK":
+            errors.append(f"{state_path}: terminal historical task must have NEXT_ROLE NONE_FOR_THIS_TASK")
+        # The CURRENT_ARTIFACT may intentionally be an immutable remote commit
+        # identity rather than a path in the present checkout. Do not reinterpret
+        # or rewrite accepted historical phase artifacts under the current schema.
+        return errors
 
     current_artifact = state.get("CURRENT_ARTIFACT")
     resolved_current: Path | None = None
