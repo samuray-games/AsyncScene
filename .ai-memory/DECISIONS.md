@@ -2,8 +2,8 @@
 
 This file holds durable process decisions that should rarely change.
 
-MEMORY_REVISION: 2026-07-12-0023-JST
-EXPECTED_REVISION: 2026-07-12-0023-JST
+MEMORY_REVISION: 2026-07-12-0024-JST
+EXPECTED_REVISION: 2026-07-12-0024-JST
 
 ## Source of truth
 
@@ -11,6 +11,7 @@ EXPECTED_REVISION: 2026-07-12-0023-JST
 - GitHub is the accessibility fallback so memory can be read away from the local machine.
 - The live Google Drive document `ASYNCHRONIA - PROJECT MEMORY` is the mandatory cross-chat bootstrap and must be read directly in every project response.
 - When Google Drive conflicts with newer repository primary evidence, use the repository fact, report the conflict, and update Google Drive in the same execution when authorized.
+- A local branch or local remote-tracking ref is not proof of current remote state. Work must fresh-fetch and verify the actual remote ref before reporting its head or absence.
 
 ## Memory layout
 
@@ -31,6 +32,14 @@ EXPECTED_REVISION: 2026-07-12-0023-JST
 - `PROJECT_MEMORY.md` must stay compact, carry the current revision fields, and fail closed on revision mismatches.
 - After every accepted remote state change, synchronize task STATE, Google Drive project memory, and the authorized repository memory snapshot in the same execution.
 - When frozen scope or direct-main protection prevents repository-memory publication, create or update a dedicated memory-sync branch, record the deferral explicitly, and assign integration as the next action.
+
+## Work and Codex role boundary
+
+- Codex model preflight and same-thread `CONTINUE` apply only to a Codex implementation lane or numbered bridge command whose current authority explicitly requires them.
+- ChatGPT Work maintenance, review, installation, branch preparation, and serialized integration tasks do not run Codex model preflight unless the task package explicitly says otherwise.
+- Work must not request, accept, or wait for `CONTINUE` during a task whose active STATE sets `NEXT_ROLE: CHATGPT_WORK` and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`.
+- Work must not reinterpret a Work maintenance or integration task as a Codex implementation lane merely because the repository contains a model-selector contract.
+- When Work encounters conflicting generic repository wording, the task-local STATE and explicit ChatGPT-authored task instruction control the current Work phase.
 
 ## Reporting contract
 
