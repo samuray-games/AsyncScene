@@ -1,12 +1,12 @@
 TASK_ID: TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712
 PIPELINE_VERSION: 1.0.2
 SOURCE_MEMORY_REV: 2026-07-12-0032-JST
-CURRENT_STATUS: READY_FOR_CODEX
-CURRENT_PHASE: SAME_THREAD_RECOVERY_AFTER_UNRELATED_VALIDATOR_FIX
-CURRENT_ARTIFACT: .ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/03-codex-task-r2.md
+CURRENT_STATUS: READY_FOR_REVIEW
+CURRENT_PHASE: SAME_THREAD_RECOVERY_VALIDATED_AND_READY_FOR_REVIEW
+CURRENT_ARTIFACT: .ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/04-review-report.md
 RECOVERY_INSTRUCTIONS: .ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/RECOVERY.md
 DECISION_STATUS: USER_APPROVED_AUTOMATIC_CODEX_AND_WORK_FORENSICS
-PACKAGE_STATUS: READY_FOR_CODEX_RECOVERY
+PACKAGE_STATUS: CODEX_VALIDATED_RECOVERY_READY_FOR_REVIEW
 REPOSITORY: samuray-games/AsyncScene
 WORK_BRANCH: work/ai-forensics-autolog-20260712
 IMPLEMENTATION_BRANCH: infra/ai-forensics-autolog-20260712
@@ -26,8 +26,11 @@ PREVIOUS_LOCAL_WORKTREE: /private/tmp/AsyncScene_forensics_r2.Jr5kdB
 PREVIOUS_REMOTE_MUTATION: NONE
 VALIDATOR_ROOT_CAUSE: CLOSED_IMMUTABLE_TASK_WAS_REVALIDATED_AGAINST_NEWER_ACTIVE_TASK_SCHEMA
 VALIDATOR_FIX_STATUS: IMPLEMENTED_AND_REGRESSION_TESTED_9_OF_9
+RECOVERY_HEAD: 7c4d0f9ec47b4c1f8a1e98553ffc876e0d4cd6bb
+RECOVERY_WORKTREE: /private/tmp/AsyncScene_forensics_recovery2.uHUoQ3
+RECOVERY_PATCH: /private/tmp/ai_forensics_recovery_delta_full.patch
 EXPECTED_RECOVERY_HEAD_RULE: ChatGPT supplies the exact fetched remote implementation head after this recovery state and validator fix are published. Starting local HEAD may differ.
 WRITE_SCOPE_AUTHORITY: 03-codex-task-r2.md plus RECOVERY.md
-NEXT_ROLE: CODEX
-NEXT_ACTION: In the same Codex thread, fetch the exact ChatGPT-supplied recovery head, read RECOVERY.md and r2 with git show, preserve the existing local AI forensics delta, recreate it on a new clean worktree at the recovery head, rerun all validations, then commit, push, perform controlled publication smoke, index Issue #224, and return READY_FOR_REVIEW. Do not rerun model preflight or request another CONTINUE.
-UPDATED_AT: 2026-07-12T22:36:00+09:00
+NEXT_ROLE: CHATGPT
+NEXT_ACTION: Complete post-validation publication by pushing the implementation branch, verifying the remote head, running the controlled synthetic forensic publication smoke, verifying `forensics/ai-runs` readback and Issue `#224` index comment, then hand off `/hooks` trust review and independent review. Do not mark the task `ACCEPTED`.
+UPDATED_AT: 2026-07-12T23:55:00+09:00
