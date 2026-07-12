@@ -6,7 +6,8 @@
   "plugins": [
     {
       "name": "asynchronia",
-      "version": "1.0.7",
+      "version": "1.0.8",
+      "category": "Developer Tools",
       "source": {
         "source": "local",
         "path": "./plugins/asynchronia"
@@ -14,8 +15,7 @@
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
+      }
     }
   ]
 }
