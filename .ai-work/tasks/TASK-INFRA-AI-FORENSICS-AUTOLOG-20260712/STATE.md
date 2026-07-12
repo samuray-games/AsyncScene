@@ -1,11 +1,12 @@
 TASK_ID: TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712
-PIPELINE_VERSION: 1.0.1
-SOURCE_MEMORY_REV: 2026-07-12-0030-JST
+PIPELINE_VERSION: 1.0.2
+SOURCE_MEMORY_REV: 2026-07-12-0032-JST
 CURRENT_STATUS: READY_FOR_CODEX
-CURRENT_PHASE: CODEX_IMPLEMENTATION_LANE_PREPARED_R2
+CURRENT_PHASE: SAME_THREAD_RECOVERY_AFTER_UNRELATED_VALIDATOR_FIX
 CURRENT_ARTIFACT: .ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/03-codex-task-r2.md
+RECOVERY_INSTRUCTIONS: .ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/RECOVERY.md
 DECISION_STATUS: USER_APPROVED_AUTOMATIC_CODEX_AND_WORK_FORENSICS
-PACKAGE_STATUS: READY_FOR_CODEX_R2
+PACKAGE_STATUS: READY_FOR_CODEX_RECOVERY
 REPOSITORY: samuray-games/AsyncScene
 WORK_BRANCH: work/ai-forensics-autolog-20260712
 IMPLEMENTATION_BRANCH: infra/ai-forensics-autolog-20260712
@@ -17,12 +18,16 @@ BRIDGE_RESET_STATUS: POSTPONED_BY_USER
 RUNTIME_SURFACE: NONE
 SAFARI_SMOKE_STATUS: N/A_INFRASTRUCTURE_NO_RUNTIME_SURFACE
 OBSOLETE_RUNTIME_SAFETY_GATE: REMOVED_AND_FORBIDDEN
-PREVIOUS_LAUNCH_RESULT: BLOCKED_BY_INCORRECT_STARTING_HEAD_REQUIREMENT_NO_MUTATION
-CODEX_MODEL_PREFLIGHT: REQUIRED_BY_CURRENT_REPOSITORY_AUTHORITY
-MODEL_INVENTORY_DISCOVERY: REQUIRED
-SAME_THREAD_CONTINUE: REQUIRED
-EXPECTED_LAUNCH_SHA_RULE: ChatGPT supplies the exact fetched remote `origin/infra/ai-forensics-autolog-20260712` head. The starting local checkout may differ. Codex must read the r2 package with `git show` before preflight and create an isolated clean worktree at the launch SHA only after same-thread `CONTINUE`.
-WRITE_SCOPE_AUTHORITY: 03-codex-task-r2.md
+MODEL_PREFLIGHT_RESULT: PASS_EVALUATED_29_OF_29
+SELECTED_MODEL_EFFORT: gpt-5.4 high USER_SELECTED_UNVERIFIED
+SAME_THREAD_CONTINUE: SATISFIED
+PREVIOUS_CODEX_RESULT: LOCAL_IMPLEMENTATION_COMPLETE_BLOCKED_BEFORE_COMMIT_BY_UNRELATED_HISTORICAL_VALIDATOR_FAILURE
+PREVIOUS_LOCAL_WORKTREE: /private/tmp/AsyncScene_forensics_r2.Jr5kdB
+PREVIOUS_REMOTE_MUTATION: NONE
+VALIDATOR_ROOT_CAUSE: CLOSED_IMMUTABLE_TASK_WAS_REVALIDATED_AGAINST_NEWER_ACTIVE_TASK_SCHEMA
+VALIDATOR_FIX_STATUS: IMPLEMENTED_AND_REGRESSION_TESTED_9_OF_9
+EXPECTED_RECOVERY_HEAD_RULE: ChatGPT supplies the exact fetched remote implementation head after this recovery state and validator fix are published. Starting local HEAD may differ.
+WRITE_SCOPE_AUTHORITY: 03-codex-task-r2.md plus RECOVERY.md
 NEXT_ROLE: CODEX
-NEXT_ACTION: Fetch the corrected remote implementation branch, prove its exact launch SHA and r2 package through read-only Git operations from any starting checkout, run current model inventory preflight, and wait for same-thread CONTINUE. After CONTINUE create a clean isolated worktree at the launch SHA and execute r2. Do not continue Stage 6 or bridge reset.
-UPDATED_AT: 2026-07-12T22:02:00+09:00
+NEXT_ACTION: In the same Codex thread, fetch the exact ChatGPT-supplied recovery head, read RECOVERY.md and r2 with git show, preserve the existing local AI forensics delta, recreate it on a new clean worktree at the recovery head, rerun all validations, then commit, push, perform controlled publication smoke, index Issue #224, and return READY_FOR_REVIEW. Do not rerun model preflight or request another CONTINUE.
+UPDATED_AT: 2026-07-12T22:36:00+09:00
