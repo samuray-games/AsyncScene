@@ -2,8 +2,8 @@
 
 This file holds durable process decisions that should rarely change.
 
-MEMORY_REVISION: 2026-07-12-0022-JST
-EXPECTED_REVISION: 2026-07-12-0022-JST
+MEMORY_REVISION: 2026-07-12-0023-JST
+EXPECTED_REVISION: 2026-07-12-0023-JST
 
 ## Source of truth
 
