@@ -2,8 +2,8 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-12-0024-JST
-EXPECTED_REVISION: 2026-07-12-0024-JST
+MEMORY_REVISION: 2026-07-12-0026-JST
+EXPECTED_REVISION: 2026-07-12-0026-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -46,12 +46,24 @@ After every accepted remote state change:
 ## Work versus Codex routing workflow
 
 1. Read the active task-local `STATE.md` before invoking any plugin skill.
-2. If `NEXT_ROLE: CHATGPT_WORK` and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`, execute as Work maintenance, review, installation, or serialized integration.
-3. In that Work phase, do not invoke model-selector, do not pause for a model recommendation, and do not request or accept same-thread `CONTINUE`.
-4. Apply Codex model preflight only to an actual Codex implementation lane or numbered bridge command whose current authority explicitly requires it.
-5. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local Work phase.
-6. If Work reports a remote branch head or absence, it must first fresh-fetch the remote. A stale local branch or stale remote-tracking ref is not evidence.
-7. A Work response that asks the user for `CONTINUE` during a no-preflight Work phase is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
+2. If the active phase is ChatGPT Work maintenance or serialized integration and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`, do not invoke model-selector, do not pause for model selection, and do not request or accept same-thread `CONTINUE`.
+3. Apply Codex model preflight only to an actual Codex implementation lane or numbered bridge command whose current authority explicitly requires it.
+4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local Work phase.
+5. If Work reports a remote branch head or absence, it must first fresh-fetch the remote. A stale local branch or stale remote-tracking ref is not evidence.
+6. A Work response that asks the user for `CONTINUE` during a no-preflight Work phase is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
+
+## Local plugin installation and parity workflow
+
+1. Determine which executor can access the authenticated user's writable local Codex plugin home.
+2. Do not treat ChatGPT Work's `/root/.codex` as the user's local installation.
+3. If Work plugin targets are read-only or unrelated to the user's machine, route only the local installation and parity phase to Codex desktop.
+4. The ChatGPT-authored Codex task must name the exact accepted repository branch, commit, plugin source directory, expected version, expected source hash, allowed local write surface, and forbidden repository actions.
+5. This Codex phase is local maintenance only. Unless the active STATE explicitly says otherwise, do not invoke model-selector, do not switch models, do not request `CONTINUE`, and do not modify repository files.
+6. Codex must inspect the existing local plugin installation mechanism and active Asynchronia path from actual configuration or filesystem evidence. It must not guess based on Work's `/root` paths.
+7. Install or refresh the exact accepted repository package as the required version.
+8. Report the exact installed package path, plugin version, source and installed model-selector SHA-256 values, equality result, commands, exit codes, and any installer or registry evidence used.
+9. If parity fails or the active install mechanism cannot be proven, stop without repository writes and return the exact blocker.
+10. After parity PASS, hand the task back to ChatGPT Work for serialized integration into current `main`, remote readback, and memory synchronization.
 
 ## Protected-scope workflow
 
