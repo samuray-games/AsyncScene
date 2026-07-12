@@ -1,27 +1,30 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-12-0023-JST
-EXPECTED_REV: 2026-07-12-0023-JST
+MEMORY_REV: 2026-07-12-0024-JST
+EXPECTED_REV: 2026-07-12-0024-JST
 FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
-CURRENT_MAIN_BASELINE: 50d77eb5b5273fffc491a9f111ecdc5d526c7cea
+CURRENT_MAIN_BASELINE: 9f58b473160e45c645d0baf23dc44240941db17a
 ACTIVE_TASK: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
 WORK_BRANCH: work/model-selector-live-catalog-20260712
-WORK_HEAD: 01827ce8cf2ff2793d79472e935164ec43cad7a4
+WORK_HEAD: 72d77ba1feb8e2a58593cf4cbf8e3168bc208bb7
 IMPLEMENTATION_BRANCH: infra/model-selector-live-catalog-20260712
 IMPLEMENTATION_BASE: be3330b1a90527f4ab1a98275949ec3cbaeeb3f6
 IMPLEMENTATION_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
 MEMORY_SYNC_BRANCH: work/project-memory-sync-20260712-0022
 ACCEPTED_MAIN_PENDING: true
-DRIVE_MEMORY_REV: 2026-07-12-0023-JST
-DRIVE_SYNC_STATUS: SYNCHRONIZED
-IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_READY_FOR_INSTALL_AND_INTEGRATION
+DRIVE_MEMORY_REV: 2026-07-12-0024-JST
+DRIVE_SYNC_STATUS: SYNCHRONIZATION_IN_PROGRESS
+IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_READY_FOR_WORK_INSTALL_AND_SERIALIZED_INTEGRATION
+WORK_EXECUTION_CLASS: MAINTENANCE_AND_SERIALIZED_INTEGRATION
+CODEX_MODEL_PREFLIGHT_FOR_WORK: NOT_APPLICABLE
+SAME_THREAD_CONTINUE_FOR_WORK: NOT_REQUIRED_AND_MUST_NOT_BE_REQUESTED
 INSTALLED_PLUGIN_PARITY: UNVERIFIED_NOT_ACCESSIBLE
-LAST_WORK_BLOCKER: WORK_SESSION_REMOTE_ACCESS_UNAVAILABLE
+LAST_WORK_BLOCKER: WORK_MISROUTED_AS_CODEX_PREFLIGHT_AND_USED_STALE_LOCAL_REMOTE_TRACKING_REF
 REMOTE_MEMORY_BRANCH_STATUS: VERIFIED_PRESENT
 STAGE_6_STATUS: PAUSED_BY_USER
 BRIDGE_RESET_STATUS: BLOCKED_UNTIL_PLUGIN_PARITY_AND_MAIN_INTEGRATION_PASS
 CYCLE_COMPLETE: false
-NEXT_ACTION: In a fresh ChatGPT Work session with working remote access, fetch the accepted implementation branch, the memory-sync branch, and the work-state branch; verify their recorded heads; refresh or install Asynchronia plugin 1.0.8; prove installed model-selector SHA-256 parity; integrate the implementation and memory-sync branches into main; push and refetch main; then update task STATE and Google Drive memory. Do not repeat source review.
+NEXT_ACTION: In a fresh ChatGPT Work session with working GitHub remote access, execute plugin installation and serialized integration as Work, not Codex. Do not invoke model-selector and do not request or accept CONTINUE. Fresh-fetch origin/main, origin/infra/model-selector-live-catalog-20260712, origin/work/project-memory-sync-20260712-0022, and origin/work/model-selector-live-catalog-20260712; verify remote heads; refresh or install Asynchronia plugin 1.0.8; prove installed model-selector SHA-256 parity; safely integrate onto current main; push and refetch main; then update task STATE and Google Drive memory.
 
 Repo identity:
 
@@ -54,11 +57,11 @@ Authoritative order for memory and process facts:
 Active state:
 
 - Model-selector source version 1.0.8 is accepted after source validation and direct remote review.
-- Preflight inventory comes from local `codex app-server` `model/list` with hidden models excluded and complete cursor pagination.
-- Candidate construction uses every picker-visible model with only its own returned `supportedReasoningEfforts`.
-- Selection compares every pair, adjacent efforts for each model, retry risk, escalation risk, and the nearest cheaper and more expensive plausible options.
-- The remote memory-sync branch exists; the previous Work blocker was only unavailable remote access in that session.
-- Task STATE, Google Drive, and this repository-memory branch are synchronized at revision 2026-07-12-0023-JST.
+- The remote implementation branch equals `0024f9315ba83583b6e89e1b007c97645af30da2`.
+- Current `main` is `9f58b473160e45c645d0baf23dc44240941db17a`, so integration must use fresh remote evidence and account for main movement.
+- The last Work run incorrectly applied the Codex same-thread `CONTINUE` gate and reported an obsolete local branch pointer as if it were the remote head.
+- Work maintenance and serialized integration do not use Codex model preflight or `CONTINUE`.
+- Preflight inventory for later Codex execution comes from local `codex app-server` `model/list`, but that contract is irrelevant to this Work integration phase.
 
 Current constraints:
 
