@@ -1,36 +1,36 @@
 TASK_ID: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
 PIPELINE_VERSION: 1.0.0
-SOURCE_MEMORY_REV: 2026-07-12-0026-JST
-CURRENT_STATUS: READY_FOR_CODEX_LOCAL_PLUGIN_INSTALL_AND_PARITY
-CURRENT_PHASE: LOCAL_PLUGIN_INSTALL_AND_PARITY
+SOURCE_MEMORY_REV: 2026-07-12-0027-JST
+CURRENT_STATUS: READY_FOR_WORK_FINAL_MAIN_INTEGRATION
+CURRENT_PHASE: SERIALIZED_MAIN_INTEGRATION_AND_FINAL_MEMORY_SYNC
 CURRENT_ARTIFACT: infra/model-selector-live-catalog-20260712@0024f9315ba83583b6e89e1b007c97645af30da2
-NEXT_ROLE: CODEX_DESKTOP
-CODEX_EXECUTION_CLASS: LOCAL_PLUGIN_INSTALL_AND_PARITY_ONLY
+NEXT_ROLE: CHATGPT_WORK
+WORK_EXECUTION_CLASS: FINAL_SERIALIZED_INTEGRATION_ONLY
 CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE
 SAME_THREAD_CONTINUE: NOT_REQUIRED_AND_MUST_NOT_BE_REQUESTED
-CODEX_RULE: This is local maintenance, not an implementation lane. Do not invoke model-selector, recommend or switch models, request CONTINUE, edit repository files, publish commits, integrate branches, begin bridge reset, or continue Stage 6.
-REPOSITORY_WRITES: FORBIDDEN_DURING_LOCAL_PARITY_PHASE
-MAIN_INTEGRATION_OWNER_AFTER_PARITY: CHATGPT_WORK
+WORK_RULE: Do not invoke model-selector, recommend or switch models, request CONTINUE, reinstall the local plugin, or require access to the user's Mac. Local plugin parity has already passed in Codex desktop and is authoritative for this gate.
 IMPLEMENTATION_BASE: be3330b1a90527f4ab1a98275949ec3cbaeeb3f6
 IMPLEMENTATION_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
 REMOTE_IMPLEMENTATION_STATUS: VERIFIED_AT_0024f9315ba83583b6e89e1b007c97645af30da2
-CURRENT_MAIN_HEAD: 9f58b473160e45c645d0baf23dc44240941db17a
-MAIN_MOVEMENT_STATUS: MAIN_ADVANCED_AFTER_IMPLEMENTATION_BASE; INTEGRATION_DEFERRED_UNTIL_LOCAL_PLUGIN_PARITY_PASS
+CURRENT_MAIN_HEAD_AT_HANDOFF: 9f58b473160e45c645d0baf23dc44240941db17a
+MAIN_MOVEMENT_STATUS: IMPLEMENTATION_AND_MEMORY_BRANCHES_DIVERGED_FROM_CURRENT_MAIN; WORK_MUST_FRESH_FETCH_AND_INTEGRATE_SAFELY
 PLUGIN_SOURCE_PATH: plugins/asynchronia/
 PLUGIN_SOURCE_VERSION: 1.0.8
 SOURCE_MODEL_SELECTOR_PATH: plugins/asynchronia/skills/model-selector/SKILL.md
 SOURCE_MODEL_SELECTOR_SHA256: 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722
-LOCAL_INSTALL_TARGET_RULE: Codex desktop must inspect the authenticated user's active local Codex plugin installation and existing Asynchronia layout under the user's writable home directory. It must not use /root paths from ChatGPT Work and must not guess an installation path without evidence.
-INSTALLED_PLUGIN_PARITY: PENDING_CODEX_DESKTOP_LOCAL_INSTALL
-REQUIRED_PARITY_EVIDENCE: exact installed package path; installed plugin version 1.0.8; source and installed model-selector SHA-256 values; equality result; commands and exit codes; any installer or registry evidence used to determine the active installed package.
-LAST_WORK_BLOCKER: WORK_ENVIRONMENT_PLUGIN_INSTALL_TARGET_READ_ONLY
-BLOCKER_CLASSIFICATION: WORK_ENVIRONMENT_CANNOT_WRITE_USER_LOCAL_CODEX_PLUGIN_PATH
+INSTALLED_PLUGIN_PATH: /Users/User/.codex/plugins/cache/asynchronia-local/asynchronia/1.0.8
+INSTALLED_PLUGIN_VERSION: 1.0.8
+INSTALLED_MODEL_SELECTOR_SHA256: 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722
+INSTALLED_PLUGIN_PARITY: PASS_EXACT_VERSION_AND_SHA256_MATCH
+PARITY_EVIDENCE_SOURCE: CODEX_DESKTOP_LOCAL_REPORT_ACCEPTED_BY_CHATGPT
+LOCAL_CONFIG_CHANGES: /Users/User/.codex/config.toml added marketplace asynchronia-local and enabled plugins.asynchronia@asynchronia-local; local cache installed under the recorded path.
 REMOTE_MEMORY_BRANCH: work/project-memory-sync-20260712-0022
 REMOTE_MEMORY_BRANCH_STATUS: VERIFIED_PRESENT
-GOOGLE_DRIVE_MEMORY_REV: 2026-07-12-0026-JST
-MEMORY_SYNC_STATUS: TASK_STATE_REPOSITORY_MEMORY_AND_GOOGLE_DRIVE_SYNCHRONIZED_AT_0026
+MAIN_INTEGRATION_STATUS: READY
+GOOGLE_DRIVE_MEMORY_REV: 2026-07-12-0027-JST
+MEMORY_SYNC_STATUS: TASK_STATE_REPOSITORY_MEMORY_BRANCH_AND_GOOGLE_DRIVE_SYNC_IN_PROGRESS_AT_0027
 STAGE_6_STATUS: PAUSED_BY_USER
-BRIDGE_RESET_STATUS: BLOCKED_UNTIL_PLUGIN_PARITY_AND_MAIN_INTEGRATION_PASS
+BRIDGE_RESET_STATUS: BLOCKED_UNTIL_MAIN_INTEGRATION_AND_REMOTE_READBACK_PASS
 REPORTING_RULE: Every status report must end with an exact NEXT_ACTION. A report without an actionable next step is incomplete.
-NEXT_ACTION: In Codex desktop on the user's Mac, fresh-fetch infra/model-selector-live-catalog-20260712 at 0024f9315ba83583b6e89e1b007c97645af30da2, inspect the actual active local Asynchronia installation mechanism and path, install or refresh the exact repository package as version 1.0.8 without modifying repository files, compute the installed skills/model-selector/SKILL.md SHA-256, and prove it equals 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722. Then return the evidence to ChatGPT. After PASS, ChatGPT Work performs serialized main integration and memory synchronization.
-UPDATED_AT: 2026-07-12T19:40:00+09:00
+NEXT_ACTION: In a fresh ChatGPT Work session with GitHub remote access, fresh-fetch origin/main, origin/infra/model-selector-live-catalog-20260712, origin/work/project-memory-sync-20260712-0022, and origin/work/model-selector-live-catalog-20260712. Accept the recorded local parity PASS without attempting local installation. Safely integrate the accepted implementation branch and memory-sync branch onto the then-current main, resolving only integration conflicts without inventing project content; run the accepted validators on the integrated result; push main; refetch and prove the five implementation files and five repository-memory files are present on remote main; update this STATE and live Google Drive memory to final integrated status. Do not begin bridge reset or continue Stage 6 in this task.
+UPDATED_AT: 2026-07-12T19:58:00+09:00
