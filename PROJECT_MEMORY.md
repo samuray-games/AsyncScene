@@ -7,17 +7,17 @@ CURRENT_CHILD_EXPECTED_REV: 2026-07-12-0027-JST
 DECISIONS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
 CANON_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
 WORKFLOWS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
-ROOT_STATUS: FAIL_CLOSED_ON_REVISION_MISMATCH
+ROOT_STATUS: FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE
 ACTIVE_CYCLE: MODEL-SELECTOR-LIVE-INVENTORY-20260712
 ACTIVE_THREAD: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
 CURRENT_MAIN_BASELINE: 9f58b473160e45c645d0baf23dc44240941db17a
 SOURCE_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
 WORK_STATE_BRANCH: work/model-selector-live-catalog-20260712
 MEMORY_SYNC_BRANCH: work/project-memory-sync-20260712-0022
-ACCEPTED_MAIN_PENDING: true
+ACCEPTED_MAIN_PENDING: false
 DRIVE_MEMORY_REV: 2026-07-12-0027-JST
-DRIVE_SYNC_STATUS: SYNCHRONIZATION_IN_PROGRESS
-IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PASS_READY_FOR_FINAL_MAIN_INTEGRATION
+DRIVE_SYNC_STATUS: SYNCHRONIZATION_COMPLETE
+IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PASS_MAIN_INTEGRATION_AND_MEMORY_SYNC_COMPLETE
 NEXT_ROLE: CHATGPT_WORK
 WORK_EXECUTION_CLASS: FINAL_SERIALIZED_INTEGRATION_ONLY
 CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE
@@ -30,8 +30,8 @@ INSTALLED_PLUGIN_PARITY: PASS_EXACT_VERSION_AND_SHA256_MATCH
 MAIN_INTEGRATION_OWNER: CHATGPT_WORK
 STAGE_6_STATUS: PAUSED_BY_USER
 BRIDGE_RESET_STATUS: BLOCKED_UNTIL_MAIN_INTEGRATION_AND_REMOTE_READBACK_PASS
-CYCLE_COMPLETE: false
-NEXT_ACTION: Start a fresh ChatGPT Work session with GitHub remote access. Accept the recorded Codex desktop local plugin parity PASS without attempting local installation. Fresh-fetch current main and the implementation, memory-sync, and task-state branches; safely integrate infra/model-selector-live-catalog-20260712 and work/project-memory-sync-20260712-0022 onto current main; run validators; push and refetch main; prove all implementation and repository-memory files are present; then update task STATE and Google Drive memory to final integrated status. Do not begin bridge reset or continue Stage 6 in this task.
+CYCLE_COMPLETE: true
+NEXT_ACTION: No further action required for this task. Final integration, validator runs, remote main readback, task STATE update, and live Google Drive memory sync are complete. Do not begin bridge reset or continue Stage 6 in this task.
 
 Authority order:
 1. Explicit user instruction
