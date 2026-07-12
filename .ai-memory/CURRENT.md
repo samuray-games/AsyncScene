@@ -2,7 +2,7 @@
 
 MEMORY_REV: 2026-07-12-0027-JST
 EXPECTED_REV: 2026-07-12-0027-JST
-FAIL_CLOSED_STATUS: REVISION_MISMATCH_BLOCKS_PROMOTION
+FAIL_CLOSED_STATUS: INTEGRATION_COMPLETE
 CURRENT_MAIN_BASELINE: 9f58b473160e45c645d0baf23dc44240941db17a
 ACTIVE_TASK: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
 WORK_BRANCH: work/model-selector-live-catalog-20260712
@@ -10,10 +10,10 @@ IMPLEMENTATION_BRANCH: infra/model-selector-live-catalog-20260712
 IMPLEMENTATION_BASE: be3330b1a90527f4ab1a98275949ec3cbaeeb3f6
 IMPLEMENTATION_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
 MEMORY_SYNC_BRANCH: work/project-memory-sync-20260712-0022
-ACCEPTED_MAIN_PENDING: true
+ACCEPTED_MAIN_PENDING: false
 DRIVE_MEMORY_REV: 2026-07-12-0027-JST
-DRIVE_SYNC_STATUS: SYNCHRONIZATION_IN_PROGRESS
-IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PASS_READY_FOR_FINAL_MAIN_INTEGRATION
+DRIVE_SYNC_STATUS: SYNCHRONIZATION_COMPLETE
+IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PASS_MAIN_INTEGRATION_AND_MEMORY_SYNC_COMPLETE
 NEXT_ROLE: CHATGPT_WORK
 WORK_EXECUTION_CLASS: FINAL_SERIALIZED_INTEGRATION_ONLY
 CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE
@@ -28,8 +28,8 @@ MAIN_INTEGRATION_OWNER: CHATGPT_WORK
 REMOTE_MEMORY_BRANCH_STATUS: VERIFIED_PRESENT
 STAGE_6_STATUS: PAUSED_BY_USER
 BRIDGE_RESET_STATUS: BLOCKED_UNTIL_MAIN_INTEGRATION_AND_REMOTE_READBACK_PASS
-CYCLE_COMPLETE: false
-NEXT_ACTION: In a fresh ChatGPT Work session with GitHub remote access, accept the recorded local plugin parity PASS without attempting local installation. Fresh-fetch current main, infra/model-selector-live-catalog-20260712, work/project-memory-sync-20260712-0022, and work/model-selector-live-catalog-20260712; safely integrate the implementation and memory-sync branches onto the then-current main; run validators; push and refetch main; prove all accepted implementation and repository-memory files are present; then update task STATE and Google Drive memory to final integrated status. Do not begin bridge reset or continue Stage 6 in this task.
+CYCLE_COMPLETE: true
+NEXT_ACTION: No further action required for this task. Final integration, validator runs, remote main readback, task STATE update, and live Google Drive memory sync are complete. Do not begin bridge reset or continue Stage 6 in this task.
 
 Repo identity:
 
@@ -66,7 +66,7 @@ Active state:
 - Current `main` was verified at `9f58b473160e45c645d0baf23dc44240941db17a`; final Work integration must fresh-fetch because main may move again.
 - Codex desktop installed Asynchronia 1.0.8 at the recorded local cache path and proved exact SHA-256 parity for `skills/model-selector/SKILL.md`.
 - The local parity gate is complete. Work must not retry local installation or require access to the user's Mac.
-- ChatGPT Work now owns final serialized integration into `main` and final memory synchronization.
+- ChatGPT Work completed final serialized integration into `main` and final memory synchronization.
 
 Current constraints:
 
