@@ -1,0 +1,13 @@
+{
+  "files_scanned": [
+    "manifest.json",
+    "summary.json",
+    "actions.jsonl"
+  ],
+  "known_secret_sources_included": false,
+  "raw_transcripts_included": false,
+  "raw_environment_included": false,
+  "redaction_engine": "MANUAL_BOOTSTRAP_REVIEW",
+  "status": "PASS_NO_SENSITIVE_SOURCE_INCLUDED",
+  "warning": "This bootstrap record predates the automated AI_FORENSICS_V1 sanitizer and must not be treated as proof that automatic redaction is implemented."
+}
