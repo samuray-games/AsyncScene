@@ -1,31 +1,34 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-07-12-0024-JST
-ROOT_CHILD_REV: 2026-07-12-0024-JST
+REPO_MEMORY_REV: 2026-07-12-0026-JST
+ROOT_CHILD_REV: 2026-07-12-0026-JST
 ARCHIVE_CHILD_REV: 2026-07-10-2315-JST
-CURRENT_CHILD_EXPECTED_REV: 2026-07-12-0024-JST
-DECISIONS_CHILD_EXPECTED_REV: 2026-07-12-0024-JST
-CANON_CHILD_EXPECTED_REV: 2026-07-12-0024-JST
-WORKFLOWS_CHILD_EXPECTED_REV: 2026-07-12-0024-JST
+CURRENT_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
+DECISIONS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
+CANON_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
+WORKFLOWS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
 ROOT_STATUS: FAIL_CLOSED_ON_REVISION_MISMATCH
 ACTIVE_CYCLE: MODEL-SELECTOR-LIVE-INVENTORY-20260712
 ACTIVE_THREAD: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
 CURRENT_MAIN_BASELINE: 9f58b473160e45c645d0baf23dc44240941db17a
 SOURCE_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
-WORK_STATE_HEAD: 72d77ba1feb8e2a58593cf4cbf8e3168bc208bb7
+WORK_STATE_HEAD: 8d9ea63c64887bd3c38089dd5d5847f10b60b1f6
 MEMORY_SYNC_BRANCH: work/project-memory-sync-20260712-0022
 ACCEPTED_MAIN_PENDING: true
-DRIVE_MEMORY_REV: 2026-07-12-0024-JST
+DRIVE_MEMORY_REV: 2026-07-12-0025-JST
 DRIVE_SYNC_STATUS: SYNCHRONIZATION_IN_PROGRESS
-IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_READY_FOR_WORK_INSTALL_AND_SERIALIZED_INTEGRATION
-WORK_EXECUTION_CLASS: MAINTENANCE_AND_SERIALIZED_INTEGRATION
-CODEX_MODEL_PREFLIGHT_FOR_WORK: NOT_APPLICABLE
-SAME_THREAD_CONTINUE_FOR_WORK: NOT_REQUIRED_AND_MUST_NOT_BE_REQUESTED
-INSTALLED_PLUGIN_PARITY: UNVERIFIED_NOT_ACCESSIBLE
+IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PENDING
+NEXT_ROLE: CODEX_DESKTOP
+CODEX_EXECUTION_CLASS: LOCAL_PLUGIN_INSTALL_AND_PARITY_ONLY
+CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE
+SAME_THREAD_CONTINUE: NOT_REQUIRED_AND_MUST_NOT_BE_REQUESTED
+SOURCE_MODEL_SELECTOR_SHA256: 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722
+INSTALLED_PLUGIN_PARITY: PENDING_CODEX_DESKTOP_LOCAL_INSTALL
+MAIN_INTEGRATION_OWNER_AFTER_PARITY: CHATGPT_WORK
 STAGE_6_STATUS: PAUSED_BY_USER
 BRIDGE_RESET_STATUS: BLOCKED_UNTIL_PLUGIN_PARITY_AND_MAIN_INTEGRATION_PASS
 CYCLE_COMPLETE: false
-NEXT_ACTION: Start a fresh ChatGPT Work session with working GitHub access and execute installation plus serialized integration as Work, not Codex. Do not invoke model-selector or request CONTINUE. Fresh-fetch current main and the three recorded task branches, verify remote heads, install Asynchronia plugin 1.0.8, prove installed selector parity, safely integrate onto current main, push and refetch, then synchronize task STATE and Google Drive memory.
+NEXT_ACTION: Open Codex desktop on the user's Mac and run the exact ChatGPT-authored local plugin installation and parity task. Codex must install or refresh Asynchronia 1.0.8 from the accepted repository package without repository writes, prove the installed model-selector SHA-256 equals the source hash, and return evidence. After PASS, ChatGPT Work performs serialized integration into current main and synchronizes task STATE, repository memory, and Google Drive.
 
 Authority order:
 1. Explicit user instruction
@@ -44,7 +47,8 @@ Owned memory:
 
 Status:
 - Model-selector source version 1.0.8 is accepted on `infra/model-selector-live-catalog-20260712` at `0024f9315ba83583b6e89e1b007c97645af30da2`.
-- Current `main` is `9f58b473160e45c645d0baf23dc44240941db17a`; integration must account for that newer main commit.
-- The last Work run incorrectly applied the Codex same-thread `CONTINUE` gate and relied on a stale local remote-tracking ref.
-- Work maintenance and serialized integration do not use Codex model preflight or `CONTINUE`.
+- ChatGPT Work cannot install the user's local plugin because its `/root/.codex` targets are read-only and unrelated to the user's Mac installation.
+- Codex desktop is the correct executor for local plugin installation and parity because it can access the authenticated user's writable local Codex home.
+- Codex local parity is maintenance, not an implementation lane. It uses no model preflight, no model switching, and no `CONTINUE`.
+- After local parity PASS, ChatGPT Work remains the serialized integration owner for `main`.
 - Every status report must end with an exact actionable `NEXT_ACTION`.
