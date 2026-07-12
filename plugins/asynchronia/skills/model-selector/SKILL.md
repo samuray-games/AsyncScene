@@ -31,7 +31,7 @@ Before `IMPLEMENTATION_ALLOWED`, Codex must not:
 
 A valid preflight response must end with exactly one standalone fenced code block whose only content is `CONTINUE`. No text may follow that block.
 
-Only exact trimmed `CONTINUE` from the user in the same Codex conversation advances the state to `CONTINUE_RECEIVED`.
+Only exact trimmed `CONTINUE` from the user in the same thread advances the state to `CONTINUE_RECEIVED`.
 
 After `CONTINUE`, Codex must revalidate the task identity, branch authority, exact scope, mirrors, shared wiring, dependencies, and required systems. If anything material changed, return to `PREFLIGHT_REQUIRED` and issue a fresh recommendation.
 
@@ -41,7 +41,7 @@ After `CONTINUE`, Codex must revalidate the task identity, branch authority, exa
 
 The Asynchronia plugin must be resolved automatically for every Asynchronia task.
 
-Use the active installed package when available. If loader attachment or telemetry is unavailable, use the repository source at `plugins/asynchronia/skills/model-selector/SKILL.md` as the mandatory fallback.
+Use the active installed package when available. If loader attachment or telemetry is unavailable, use the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback.
 
 Manual UI attachment is optional context only. Missing manual attachment is not a valid reason to skip this skill or block the task.
 

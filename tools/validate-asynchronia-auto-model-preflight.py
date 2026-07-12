@@ -251,13 +251,47 @@ def validate_manifest_and_marketplace(failures: list[str]) -> dict[str, object]:
         if isinstance(prompts, list):
             prompt_text = "\n".join(str(item) for item in prompts)
             for snippet in (
-                "mandatory model preflight",
-                "same-thread CONTINUE",
-                "before any edits",
+                "PLUGIN_AUTO_ROUTING: REQUIRED",
+                "MODEL_PREFLIGHT_PAUSE: REQUIRED",
+                "WAITING_FOR_MODEL_SELECTION",
+                "exact same-thread CONTINUE",
+                "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
             ):
                 assert_true(snippet in prompt_text, f"missing manifest prompt snippet: {snippet}", failures)
 
     return {"manifest": manifest, "marketplace": marketplace}
+
+
+def validate_current_doc_contracts(failures: list[str]) -> None:
+    agents_override = TextContract(
+        path="AGENTS.override.md",
+        required=(
+            "PLUGIN_AUTO_ROUTING: REQUIRED",
+            "MODEL_PREFLIGHT_PAUSE: REQUIRED",
+            "WAITING_FOR_MODEL_SELECTION",
+            "exact same-thread `CONTINUE`",
+        ),
+        forbidden=(
+            "same Codex conversation",
+            "FAIL_MODEL_PREFLIGHT_NOT_PAUSED",
+            "FAIL_IMPLEMENTED_BEFORE_CONTINUE",
+        ),
+    )
+    bridge = TextContract(
+        path="BRIDGE.md",
+        required=(
+            "mandatory plugin preflight",
+            "same-thread `CONTINUE`",
+            "bridge/N/<thread-id>",
+        ),
+        forbidden=(
+            "automatic model preflight",
+            "exact same-thread `CONTINUE`",
+            "Separate claim tokens are not required.",
+        ),
+    )
+    validate_text_contract(agents_override, failures)
+    validate_text_contract(bridge, failures)
 
 
 def validate_transition_contract(failures: list[str]) -> None:
@@ -443,10 +477,12 @@ def validate_texts(failures: list[str]) -> None:
                 "PLUGIN_AUTO_ROUTING: REQUIRED",
                 "MODEL_PREFLIGHT_PAUSE: REQUIRED",
                 "WAITING_FOR_MODEL_SELECTION",
+                "exact same-thread `CONTINUE`",
+            ),
+            forbidden=(
                 "same Codex conversation",
                 "FAIL_MODEL_PREFLIGHT_NOT_PAUSED",
                 "FAIL_IMPLEMENTED_BEFORE_CONTINUE",
-                "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
             ),
         ),
         TextContract(
@@ -464,11 +500,13 @@ def validate_texts(failures: list[str]) -> None:
         ),
         TextContract(
             "AGENTS.md",
-            required=(
-                "blocking pre-implementation gate",
-                "`WAITING_FOR_MODEL_SELECTION`",
-                "exact same-thread `CONTINUE`",
-            ),
+        required=(
+            "PLUGIN_AUTO_ROUTING: REQUIRED",
+            "MODEL_PREFLIGHT_PAUSE: REQUIRED",
+            "WAITING_FOR_MODEL_SELECTION",
+            "exact same-thread `CONTINUE`",
+            "repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback",
+        ),
             forbidden=(
                 "informational and non-blocking, and it must not become an execution prerequisite, pause, or resume token",
             ),
@@ -485,11 +523,15 @@ def validate_texts(failures: list[str]) -> None:
         TextContract(
             "BRIDGE.md",
             required=(
+                "mandatory plugin preflight",
+                "same-thread `CONTINUE`",
+                "bridge/N/<thread-id>",
+            ),
+            forbidden=(
                 "automatic model preflight",
                 "exact same-thread `CONTINUE`",
                 "Separate claim tokens are not required.",
             ),
-            forbidden=("no preflight or continuation token is allowed.",),
         ),
         TextContract(
             "CODEX_BRIDGE_BOOTSTRAP.md",
@@ -554,6 +596,7 @@ def main() -> int:
 
     json_state = validate_manifest_and_marketplace(failures)
     validate_texts(failures)
+    validate_current_doc_contracts(failures)
     validate_transition_contract(failures)
     validate_terminal_continue_block(failures)
 

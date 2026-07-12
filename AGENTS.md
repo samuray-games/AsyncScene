@@ -276,7 +276,7 @@ For every task, Codex must:
 
 The user selects the active model. If it cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
 
-Only the Asynchronia plugin `model-selector` may originate, rank or name a model recommendation. The current repository preflight contract makes that recommendation a blocking pre-implementation gate. Codex must stop with `WAITING_FOR_MODEL_SELECTION`, emit exactly one standalone fenced `CONTINUE` block, and perform no implementation or mutable command before exact same-thread `CONTINUE`.
+Only the Asynchronia plugin `model-selector` may originate, rank or name a model recommendation. The current repository preflight contract requires `PLUGIN_AUTO_ROUTING: REQUIRED`, `MODEL_PREFLIGHT_PAUSE: REQUIRED`, `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback. Codex must stop with `WAITING_FOR_MODEL_SELECTION`, emit exactly one standalone fenced `CONTINUE` block, and perform no implementation or mutable command before exact same-thread `CONTINUE`.
 
 ## 8.1 Parallel work policy
 
