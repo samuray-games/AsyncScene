@@ -16,6 +16,11 @@ on:
       - created
       - edited
   workflow_dispatch:
+    inputs:
+      task_id:
+        description: Optional task identifier to bind into the published package metadata
+        required: false
+        type: string
 
 permissions:
   contents: write

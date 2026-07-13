@@ -25,17 +25,21 @@ This directory documents the version 1 automatic Asynchronia forensic logging sy
 - Staged runs are stored under `runs/<run-id>/` in the spool.
 - Session-local hook capture metadata is stored under `sessions/<session-id>/`.
 - Session capture uses a standard-library file lock for turn allocation, raw event append, package staging, and metadata transitions.
+- Session metadata records a durable `nextEventIndex` boundary so each completed Stop packages only its own turn-local event window.
+- Completed turn summaries record the session event window and turn sequence for recovery and audit without republishing historical turns.
 
 ## Publication flow
 
 1. Capture or build a local run record.
 2. Sanitize the full package surface and construct `AI_FORENSICS_V1` package files.
 3. Stage the package atomically in the local spool.
-4. Publish through an isolated temporary Git repository using `origin/forensics/ai-runs`.
-5. Verify remote readback for every expected file.
-6. Persist `PACKAGE_UPLOADED_COMMENT_PENDING`.
-7. Add one Issue `#224` comment beginning with `<!-- AI_FORENSICS_RUN_V1 -->`.
-8. Persist `UPLOAD_COMPLETE_INDEXED`.
+4. Serialize every mutable publication transition for one run under a standard-library file lock.
+5. Publish through an isolated temporary Git repository using `origin/forensics/ai-runs`.
+6. If the immutable package already exists remotely with identical contents, recover idempotently instead of attempting an empty commit.
+7. Verify remote readback for every expected file.
+8. Persist `PACKAGE_UPLOADED_COMMENT_PENDING`.
+9. Add one Issue `#224` comment beginning with `<!-- AI_FORENSICS_RUN_V1 -->`.
+10. Persist `UPLOAD_COMPLETE_INDEXED`.
 
 If the package push succeeds but the Issue comment fails, retry verifies the
 existing remote package and posts only the missing comment.
@@ -61,5 +65,7 @@ existing remote package and posts only the missing comment.
 
 - ChatGPT Work has no machine-local lifecycle hook, so Work evidence is protocol-enforced rather than automatic in the same way as Codex Desktop.
 - Version 1 publishes bounded transcript pointers and bounded final-response extracts, not full transcripts.
+- Over-limit JSON artifacts are replaced with valid truncation envelopes, and over-limit `events.jsonl` tails are replaced with bounded omission records rather than partial JSON.
+- GitHub event publication records source and result SHA semantics from the live event payload or checked-out repository state.
 - Version 1 is append-only. Deletion, compaction, and retention pruning are future tasks.
 - Version 1 does not capture hidden chain-of-thought and does not claim access to unavailable internal OpenAI server logs.

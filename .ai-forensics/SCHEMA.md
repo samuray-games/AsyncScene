@@ -89,6 +89,29 @@ The path is never rewritten after successful publication.
 `events.jsonl` is one compact JSON object per physical line. Every non-empty line
 must parse independently with `json.loads`.
 
+If one event exceeds the per-file size limit, publish a bounded truncation
+record for that event rather than partial JSON. If the total JSONL file exceeds
+the limit, publish only complete retained lines plus a final omission record.
+
+Over-limit `.json` artifacts must remain valid JSON by using a truncation
+envelope that records the original size and SHA-256.
+
 Before any Git operation, every package file is scanned for standalone credential
 patterns and private home-directory paths. Publication fails closed if the scan
 finds private content or non-UTF-8 payloads.
+
+## Turn correlation
+
+Codex turn packages must include explicit session correlation metadata without
+republishing the entire historical session. The durable session boundary is
+maintained locally and advanced only after successful staging of the current
+turn package.
+
+## Publication metadata
+
+Mutable publication transitions for one run are serialized under a run-scoped
+file lock.
+
+GitHub evidence comments must keep `packageCommit` distinct from repository
+`sourceSha` and `resultSha`, and must document the SHA semantics when the event
+does not supply `before` and `after`.
