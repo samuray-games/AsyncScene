@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLUGIN_VERSION = "1.0.8"
+EXPECTED_PLUGIN_VERSION = "1.0.9"
 
 
 def read(path: str) -> str:
@@ -109,6 +109,22 @@ class Candidate:
     effort_index: int
 
 
+@dataclass(frozen=True)
+class UiInventory:
+    thread: str
+    surface: str
+    current: bool
+    complete: bool
+    models: tuple[tuple[str, tuple[str, ...]], ...]
+
+
+@dataclass(frozen=True)
+class ReconciliationResult:
+    status: str
+    source: str
+    candidates: tuple[Candidate, ...] = ()
+
+
 def build_candidates(inventory: list[dict[str, object]]) -> list[Candidate]:
     result: list[Candidate] = []
     seen: set[tuple[str, str]] = set()
@@ -144,6 +160,66 @@ def adjacent_pairs(candidates: list[Candidate]) -> set[tuple[str, str, str]]:
     return result
 
 
+def build_ui_candidates(inventory: UiInventory, *, expected_thread: str, expected_surface: str) -> list[Candidate]:
+    if inventory.thread != expected_thread or inventory.surface != expected_surface or not inventory.current or not inventory.complete:
+        raise ValueError("stale or incomplete UI inventory")
+    result: list[Candidate] = []
+    seen: set[tuple[str, str]] = set()
+    for model_name, efforts in inventory.models:
+        if not model_name or not efforts:
+            raise ValueError("incomplete UI model inventory")
+        for index, effort in enumerate(efforts):
+            if not effort:
+                raise ValueError("empty UI effort")
+            key = (model_name, effort)
+            if key in seen:
+                raise ValueError("duplicate UI model-effort pair")
+            seen.add(key)
+            result.append(Candidate(model_name, effort, index))
+    if not result:
+        raise ValueError("empty UI candidate matrix")
+    return result
+
+
+def app_server_signature(inventory: list[dict[str, object]]) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    signature: list[tuple[str, tuple[str, ...]]] = []
+    for model in inventory:
+        if bool(model.get("hidden", False)):
+            continue
+        model_id = str(model.get("id", ""))
+        efforts = model.get("supportedReasoningEfforts")
+        if not isinstance(efforts, list):
+            continue
+        effort_ids = tuple(str(item.get("reasoningEffort", "")) for item in efforts if isinstance(item, dict))
+        signature.append((model_id, effort_ids))
+    return tuple(signature)
+
+
+def reconcile_inventory(
+    *,
+    app_server_inventory: list[dict[str, object]] | None,
+    app_server_error: str | None,
+    ui_inventory: UiInventory | None,
+    expected_thread: str,
+    expected_surface: str,
+) -> ReconciliationResult:
+    if ui_inventory is None:
+        if app_server_error:
+            return ReconciliationResult("BLOCKED_MODEL_INVENTORY_UNAVAILABLE", "app-server-error")
+        return ReconciliationResult("BLOCKED_MODEL_INVENTORY_MISMATCH", "ui-inventory-required")
+    try:
+        ui_candidates = build_ui_candidates(ui_inventory, expected_thread=expected_thread, expected_surface=expected_surface)
+    except ValueError:
+        return ReconciliationResult("BLOCKED_MODEL_INVENTORY_MISMATCH", "stale-or-incomplete-ui-inventory")
+    if app_server_error:
+        return ReconciliationResult("MODEL_INVENTORY_VERIFIED", "user-confirmed-ui-after-app-server-error", tuple(ui_candidates))
+    app_signature = app_server_signature(app_server_inventory or [])
+    ui_signature = ui_inventory.models
+    if app_signature == ui_signature:
+        return ReconciliationResult("MODEL_INVENTORY_VERIFIED", "matched-app-server-and-ui", tuple(ui_candidates))
+    return ReconciliationResult("MODEL_INVENTORY_VERIFIED", "user-confirmed-ui-reconciled-mismatch", tuple(ui_candidates))
+
+
 def validate_manifests(failures: list[str]) -> dict[str, object]:
     manifest = read_json("plugins/asynchronia/.codex-plugin/plugin.json")
     marketplace = read_json(".agents/plugins/marketplace.json")
@@ -164,7 +240,7 @@ def validate_manifests(failures: list[str]) -> dict[str, object]:
     require(isinstance(interface, dict), "manifest interface missing", failures)
     if isinstance(interface, dict):
         text = "\n".join(str(value) for value in interface.get("defaultPrompt", []))
-        for needle in ("codex app-server", "model/list", "supportedReasoningEfforts", "every available model-effort pair", "adjacent efforts", "same-thread CONTINUE"):
+        for needle in ("codex app-server", "model/list", "active Codex desktop UI picker", "app-server-only models", "authority-confirmed model-effort pair", "adjacent efforts", "same-thread CONTINUE"):
             require(needle in text, f"manifest prompt missing {needle}", failures)
     return {"manifest": manifest, "marketplace": marketplace}
 
@@ -174,16 +250,25 @@ def validate_live_contract(failures: list[str]) -> None:
     agents = read("AGENTS.md")
     for needle in (
         "MODEL_INVENTORY_DISCOVERY",
+        "APP_SERVER_CATALOG_EVIDENCE_RECORDED",
+        "MODEL_INVENTORY_RECONCILIATION_REQUIRED",
+        "USER_UI_INVENTORY_REQUIRED",
+        "USER_UI_INVENTORY_RECEIVED",
         "codex app-server",
         '"model/list"',
         '"includeHidden":false',
         "nextCursor",
         "supportedReasoningEfforts",
+        "active desktop UI picker evidence controls actual selectability",
+        "Never merge app-server-only models or efforts into a UI-authoritative matrix.",
+        "User-confirmed UI inventory must be explicit, complete, current, same-thread, surface-specific",
+        "Do not normalize `Light` to `low`, `Extra High` to `xhigh`",
         "evaluated model-effort pair count: N/N",
         "Mandatory adjacent-effort comparison",
         "lowest effort for that model that meets the reliability threshold",
         "MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK",
         "BLOCKED_MODEL_INVENTORY_UNAVAILABLE",
+        "BLOCKED_MODEL_INVENTORY_MISMATCH",
         "FAIL_INCOMPLETE_PAIR_MATRIX",
         "FAIL_ADJACENT_EFFORT_COMPARISON_MISSING",
         "USER_SELECTED_UNVERIFIED",
@@ -192,9 +277,14 @@ def validate_live_contract(failures: list[str]) -> None:
     for needle in (
         "Static repository model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.",
         "start the local `codex app-server` over stdio",
-        "call `model/list` with `includeHidden: false`",
-        "complete matrix of every returned model-effort pair",
-        "immediately lower and higher returned neighbor",
+        "call `model/list` with `includeHidden: false` and follow every `nextCursor` page as supporting catalog evidence",
+        "for Codex Desktop, treat actual active UI picker evidence as the authority for model and effort selectability",
+        "MODEL_INVENTORY_RECONCILIATION_REQUIRED",
+        "BLOCKED_MODEL_INVENTORY_MISMATCH",
+        "Never add app-server-only models or efforts to a UI-authoritative candidate matrix.",
+        "preserve UI display labels exactly",
+        "complete matrix of every authority-confirmed model-effort pair",
+        "immediately lower and higher authority-confirmed neighbor",
         "evaluated model-effort pair count: N/N",
         "MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK",
     ):
@@ -204,6 +294,8 @@ def validate_live_contract(failures: list[str]) -> None:
         "Available reasoning levels are exactly Light, Medium, High and Extra High.",
         "Only these model names are valid:",
         "Only these reasoning levels are valid:",
+        "use only picker-visible models returned by that live client",
+        "model/list output alone is authoritative picker evidence",
         "evaluated pair count: `12/12`",
         "evaluated pair count: `18/18`",
     ):
@@ -211,6 +303,8 @@ def validate_live_contract(failures: list[str]) -> None:
         require(stale not in agents, f"stale AGENTS text remains: {stale}", failures)
     require("no global cartesian product" in selector, "global cartesian product guard missing", failures)
     require("Do not invent an effort ordering from names." in selector, "live effort order guard missing", failures)
+    require("static fallback catalog" not in selector.lower(), "static fallback catalog text introduced", failures)
+    require("static model inventory" not in agents.lower(), "static model inventory text introduced", failures)
 
 
 def validate_matrix_fixture(failures: list[str]) -> None:
@@ -237,6 +331,34 @@ def validate_matrix_fixture(failures: list[str]) -> None:
             pass
         else:
             failures.append("invalid inventory accepted")
+
+
+def validate_reconciliation_fixtures(failures: list[str]) -> None:
+    thread = "thread-current"
+    surface = "codex-desktop"
+    app = [
+        {"id": "ui-model-a", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "Light"}, {"reasoningEffort": "High"}]},
+        {"id": "ui-model-b", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "Light"}, {"reasoningEffort": "Ultra"}]},
+    ]
+    matching_ui = UiInventory(thread, surface, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra"))))
+    subset_ui = UiInventory(thread, surface, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra")), ("ui-model-c", ("Light", "Ultra"))))
+    superset_app = app + [{"id": "server-only", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "High"}]}]
+    stale_ui = UiInventory("other-thread", surface, True, True, (("ui-model-a", ("Light", "High")),))
+    for name, result, expected_source, expected_count in (
+        ("matching", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "matched-app-server-and-ui", 4),
+        ("app_subset", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=subset_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-reconciled-mismatch", 6),
+        ("app_superset", reconcile_inventory(app_server_inventory=superset_app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-reconciled-mismatch", 4),
+        ("cache_error", reconcile_inventory(app_server_inventory=None, app_server_error="unknown variant max", ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-after-app-server-error", 4),
+    ):
+        require(result.status == "MODEL_INVENTORY_VERIFIED", f"{name} did not verify inventory", failures)
+        require(result.source == expected_source, f"{name} source mismatch", failures)
+        require(len(result.candidates) == expected_count, f"{name} candidate count mismatch", failures)
+    blocked = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=None, expected_thread=thread, expected_surface=surface)
+    require(blocked.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "mismatch without UI inventory did not block", failures)
+    stale = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=stale_ui, expected_thread=thread, expected_surface=surface)
+    require(stale.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "stale cross-thread UI inventory accepted", failures)
+    labels = [candidate.effort for candidate in reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface).candidates]
+    require("Light" in labels and "High" in labels and "low" not in labels and "xhigh" not in labels, "UI labels were not preserved exactly", failures)
 
 
 def validate_state_machine(failures: list[str]) -> None:
@@ -286,6 +408,7 @@ def main() -> int:
     state = validate_manifests(failures)
     validate_live_contract(failures)
     validate_matrix_fixture(failures)
+    validate_reconciliation_fixtures(failures)
     validate_state_machine(failures)
     validate_terminal_fence(failures)
     if failures:
@@ -298,8 +421,12 @@ def main() -> int:
         "pluginVersion": EXPECTED_PLUGIN_VERSION,
         "manifestVersion": manifest["version"],
         "marketplaceVersion": marketplace["plugins"][0]["version"],
-        "liveModelInventoryContract": "PASS",
-        "pickerVisibleOnly": "PASS",
+        "appServerCatalogEvidence": "PASS",
+        "desktopUiPickerAuthority": "PASS",
+        "uiMismatchReconciliation": "PASS",
+        "staleUiInventoryRejected": "PASS",
+        "exactUiLabelPreservation": "PASS",
+        "noAppServerOnlyCandidates": "PASS",
         "completePairEnumeration": "PASS",
         "adjacentEffortComparison": "PASS",
         "retryAdjustedCostObjective": "PASS",
