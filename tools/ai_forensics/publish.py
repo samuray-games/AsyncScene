@@ -17,9 +17,11 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.ai_forensics import package as package_builder  # type: ignore[import-not-found]
     from tools.ai_forensics import schema  # type: ignore[import-not-found]
+    from tools.ai_forensics.redact import sanitize_json_compatible, sanitize_text  # type: ignore[import-not-found]
 else:
     from . import package as package_builder
     from . import schema
+    from .redact import sanitize_json_compatible, sanitize_text
 
 DEFAULT_REPO = "samuray-games/AsyncScene"
 DEFAULT_BRANCH = "forensics/ai-runs"
@@ -37,11 +39,92 @@ def default_spool_root() -> Path:
 
 
 def _write_json(path: Path, payload: Any) -> None:
-    path.write_text(schema.deterministic_json_dumps(payload), encoding="utf-8")
+    schema.atomic_write_json(path, payload)
 
 
 def _read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _fsync_directory(path: Path) -> None:
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+def _sanitize_package_payloads(
+    *,
+    manifest: dict[str, Any],
+    events: list[dict[str, Any]],
+    summary: dict[str, Any],
+    git_evidence: dict[str, Any],
+    redaction_report: dict[str, Any],
+    extras: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any], bool]:
+    replacements: list[str] = []
+    reasons: list[str] = []
+    blocked = False
+
+    def sanitize_json(value: Any) -> Any:
+        nonlocal blocked
+        sanitized, item_replacements, item_reasons, item_blocked = sanitize_json_compatible(value)
+        replacements.extend(item_replacements)
+        reasons.extend(item_reasons)
+        blocked = blocked or item_blocked
+        return sanitized
+
+    sanitized_manifest = sanitize_json(manifest)
+    sanitized_events = sanitize_json(events)
+    sanitized_summary = sanitize_json(summary)
+    sanitized_git_evidence = sanitize_json(git_evidence)
+    sanitized_redaction_report = sanitize_json(redaction_report)
+    sanitized_extras: dict[str, Any] = {}
+    for path, value in extras.items():
+        safe_path_result = sanitize_text(path)
+        replacements.extend(safe_path_result.replacements)
+        reasons.extend(safe_path_result.reasons)
+        blocked = blocked or safe_path_result.blocked
+        if isinstance(value, bytes):
+            try:
+                decoded = value.decode("utf-8")
+            except UnicodeDecodeError:
+                blocked = True
+                reasons.append(f"non-utf8 extra: {path}")
+                continue
+            value_result = sanitize_text(decoded)
+            sanitized_extras[safe_path_result.text] = value_result.text
+            replacements.extend(value_result.replacements)
+            reasons.extend(value_result.reasons)
+            blocked = blocked or value_result.blocked
+        elif isinstance(value, str):
+            value_result = sanitize_text(value)
+            sanitized_extras[safe_path_result.text] = value_result.text
+            replacements.extend(value_result.replacements)
+            reasons.extend(value_result.reasons)
+            blocked = blocked or value_result.blocked
+        else:
+            sanitized_extras[safe_path_result.text] = sanitize_json(value)
+
+    sanitized_redaction_report = dict(sanitized_redaction_report)
+    sanitized_redaction_report["blocked"] = bool(sanitized_redaction_report.get("blocked") or blocked)
+    sanitized_redaction_report["replacements"] = sorted(set(sanitized_redaction_report.get("replacements", []) + replacements))
+    sanitized_redaction_report["reasons"] = sorted(set(sanitized_redaction_report.get("reasons", []) + reasons))
+    return (
+        sanitized_manifest,
+        sanitized_events,
+        sanitized_summary,
+        sanitized_git_evidence,
+        sanitized_redaction_report,
+        sanitized_extras,
+        bool(sanitized_redaction_report["blocked"]),
+    )
 
 
 def stage_run_package(
@@ -64,34 +147,76 @@ def stage_run_package(
     spool_root = spool_root or default_spool_root()
     run_dir = spool_root / "runs" / manifest["runId"]
     package_dir = run_dir / "package"
-    package_dir.mkdir(parents=True, exist_ok=True)
+    metadata_path = run_dir / "metadata.json"
+    if metadata_path.exists():
+        existing = _read_json(metadata_path)
+        if existing.get("state") in {"PACKAGE_UPLOADED_COMMENT_PENDING", "UPLOADED", "UPLOAD_COMPLETE_INDEXED"}:
+            raise FileExistsError(f"refusing to restage completed run: {manifest['runId']}")
 
-    files, truncations = package_builder.build_package_files(
+    (
+        sanitized_manifest,
+        sanitized_events,
+        sanitized_summary,
+        sanitized_git_evidence,
+        sanitized_redaction_report,
+        sanitized_extras,
+        blocked,
+    ) = _sanitize_package_payloads(
         manifest=manifest,
         events=events,
         summary=summary,
         git_evidence=git_evidence,
         redaction_report=redaction_report,
-        extras=extras,
+        extras=extras or {},
+    )
+    if blocked:
+        sanitized_manifest = dict(sanitized_manifest)
+        sanitized_manifest["status"] = "UPLOAD_BLOCKED_REDACTION_FAIL"
+
+    files, truncations = package_builder.build_package_files(
+        manifest=sanitized_manifest,
+        events=sanitized_events,
+        summary=sanitized_summary,
+        git_evidence=sanitized_git_evidence,
+        redaction_report=sanitized_redaction_report,
+        extras=sanitized_extras,
     )
 
+    staging_dir = run_dir / f".package.tmp-{os.getpid()}"
+    if staging_dir.exists():
+        shutil.rmtree(staging_dir)
+    staging_dir.mkdir(parents=True, exist_ok=False)
     for relative_path, content in files.items():
-        target = package_dir / relative_path
+        target = staging_dir / relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
+        with target.open("wb") as handle:
+            handle.write(content)
+            handle.flush()
+            try:
+                os.fsync(handle.fileno())
+            except OSError:
+                pass
+    if package_dir.exists():
+        shutil.rmtree(package_dir)
+    os.replace(staging_dir, package_dir)
+    _fsync_directory(run_dir)
 
     metadata = {
         "repository": repository,
         "branch": branch,
         "issueNumber": issue_number,
-        "manifest": manifest,
+        "manifest": sanitized_manifest,
         "truncations": truncations,
-        "state": "UPLOAD_PENDING",
+        "state": "UPLOAD_BLOCKED_REDACTION_FAIL" if blocked else "UPLOAD_PENDING",
+        "captureState": "LOCAL_CAPTURED",
         "createdAtUtc": utc_now_iso(),
         "commentUrl": None,
+        "commentId": None,
         "packageCommit": None,
+        "packageVerifiedAtUtc": None,
+        "observedResult": "redaction blocked before upload" if blocked else "package staged and awaiting upload",
     }
-    _write_json(run_dir / "metadata.json", metadata)
+    _write_json(metadata_path, metadata)
     return run_dir
 
 
@@ -102,15 +227,19 @@ def build_issue_comment(metadata: dict[str, Any]) -> str:
         f"actor: {manifest['actor']}",
         f"runId: {manifest['runId']}",
         f"taskId: {manifest['taskId'] or 'N/A'}",
-        f"status: {manifest['status']}",
+        f"manifestStatus: {manifest['status']}",
         f"repository: {manifest['repository']}",
         f"branch: {manifest['branch']}",
+        f"sourceBranch: {metadata.get('sourceBranch') or manifest['branch']}",
+        f"sourceSha: {metadata.get('sourceSha') or 'UNKNOWN'}",
+        f"resultSha: {metadata.get('resultSha') or metadata.get('packageCommit') or 'UNKNOWN'}",
         f"packagePath: {manifest['packagePath']}",
         f"createdAtUtc: {manifest['createdAtUtc']}",
         f"createdAtJst: {manifest['createdAtJst']}",
-        f"packageCommit: {metadata.get('packageCommit') or 'PENDING'}",
+        f"packageCommit: {metadata.get('packageCommit') or 'UNKNOWN'}",
         f"redactionStatus: {metadata.get('redactionStatus', 'SANITIZED')}",
-        f"uploadState: {metadata.get('state', 'UPLOAD_PENDING')}",
+        f"uploadState: {metadata.get('state', 'PACKAGE_UPLOADED_COMMENT_PENDING')}",
+        f"observedResult: {metadata.get('observedResult') or 'remote package verified; index comment pending'}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -135,9 +264,27 @@ def _origin_url(repo_root: Path) -> str:
     return result.stdout.strip()
 
 
+def _configure_actions_auth(temp_root: Path, origin_url: str, env: dict[str, str] | None = None) -> bool:
+    env = env or os.environ
+    token = env.get("GITHUB_TOKEN")
+    if not token or not origin_url.startswith("https://github.com/"):
+        return False
+    _run(
+        ["git", "config", "--local", "http.https://github.com/.extraheader", "AUTHORIZATION: basic ***"],
+        cwd=temp_root,
+    )
+    encoded = __import__("base64").b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
+    config_path = temp_root / ".git" / "config"
+    text = config_path.read_text(encoding="utf-8")
+    text = text.replace("AUTHORIZATION: basic ***", f"AUTHORIZATION: basic {encoded}")
+    config_path.write_text(text, encoding="utf-8")
+    return True
+
+
 def _prepare_publication_repo(temp_root: Path, origin_url: str, branch: str) -> Path:
     _run(["git", "init"], cwd=temp_root)
     _run(["git", "remote", "add", "origin", origin_url], cwd=temp_root)
+    _configure_actions_auth(temp_root, origin_url)
     _run(["git", "fetch", "origin", branch], cwd=temp_root)
     _run(["git", "checkout", "-B", "publish", "FETCH_HEAD"], cwd=temp_root)
     _run(["git", "config", "user.name", "Codex"], cwd=temp_root)
@@ -190,6 +337,26 @@ def _verify_remote_package(temp_root: Path, branch: str, package_path: str, run_
             raise RuntimeError(f"remote verification mismatch for {remote_path}")
 
 
+def _find_existing_index_comment(repo: str, issue_number: int, run_id: str) -> tuple[int | None, str | None]:
+    completed = subprocess.run(
+        [
+            "gh",
+            "api",
+            f"repos/{repo}/issues/{issue_number}/comments",
+            "--paginate",
+            "--jq",
+            f".[] | select(.body | contains(\"{schema.RUN_INDEX_MARKER}\") and contains(\"runId: {run_id}\")) | [.id, .html_url] | @tsv",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0 or not completed.stdout.strip():
+        return None, None
+    first = completed.stdout.strip().splitlines()[0].split("\t")
+    return int(first[0]), first[1] if len(first) > 1 else None
+
+
 def _post_issue_comment(repo: str, issue_number: int, body: str) -> tuple[int | None, str | None]:
     with tempfile.TemporaryDirectory(prefix="ai-forensics-comment-") as directory:
         payload_path = Path(directory) / "payload.json"
@@ -224,11 +391,17 @@ def publish_staged_run(
     metadata = _read_json(metadata_path)
     manifest = metadata["manifest"]
 
+    if metadata.get("state") == "UPLOAD_BLOCKED_REDACTION_FAIL":
+        return metadata
+
     if metadata.get("commentUrl") and metadata.get("packageCommit"):
+        metadata["state"] = "UPLOAD_COMPLETE_INDEXED"
+        metadata["manifest"]["status"] = "UPLOAD_COMPLETE_INDEXED"
+        _write_json(metadata_path, metadata)
         return metadata
 
     if dry_run:
-        metadata["state"] = "UPLOAD_PENDING"
+        metadata["state"] = metadata.get("state", "UPLOAD_PENDING")
         metadata["dryRun"] = True
         _write_json(metadata_path, metadata)
         return metadata
@@ -236,35 +409,64 @@ def publish_staged_run(
     origin_url = _origin_url(repo_root)
     branch = metadata["branch"]
     package_path = manifest["packagePath"]
-    commit_sha = None
-    with tempfile.TemporaryDirectory(prefix="ai-forensics-publish-") as directory:
-        temp_root = Path(directory)
-        for _ in range(3):
-            if temp_root.exists():
-                for child in temp_root.iterdir():
-                    if child.is_dir():
-                        shutil.rmtree(child)
-                    else:
-                        child.unlink()
-            _prepare_publication_repo(temp_root, origin_url, branch)
-            _copy_package(run_dir, temp_root, package_path)
-            commit_sha = _commit_package(temp_root, manifest["runId"], package_path)
-            pushed, detail = _push_package(temp_root, branch)
-            if pushed:
-                break
-            if detail != "NON_FAST_FORWARD":
-                raise RuntimeError(detail)
-        else:
-            raise RuntimeError("bounded non-fast-forward retry exhausted")
+    if not metadata.get("packageCommit"):
+        commit_sha = None
+        with tempfile.TemporaryDirectory(prefix="ai-forensics-publish-") as directory:
+            temp_root = Path(directory)
+            for _ in range(3):
+                if temp_root.exists():
+                    for child in temp_root.iterdir():
+                        if child.is_dir():
+                            shutil.rmtree(child)
+                        else:
+                            child.unlink()
+                _prepare_publication_repo(temp_root, origin_url, branch)
+                _copy_package(run_dir, temp_root, package_path)
+                commit_sha = _commit_package(temp_root, manifest["runId"], package_path)
+                pushed, detail = _push_package(temp_root, branch)
+                if pushed:
+                    break
+                if detail != "NON_FAST_FORWARD":
+                    raise RuntimeError(detail)
+            else:
+                raise RuntimeError("bounded non-fast-forward retry exhausted")
 
-        _verify_remote_package(temp_root, branch, package_path, run_dir)
+            _verify_remote_package(temp_root, branch, package_path, run_dir)
 
-    metadata["packageCommit"] = commit_sha
-    metadata["state"] = "UPLOADED"
-    body = build_issue_comment(metadata)
+        metadata["packageCommit"] = commit_sha
+        metadata["packageVerifiedAtUtc"] = utc_now_iso()
+        metadata["resultSha"] = commit_sha
+        metadata["state"] = "PACKAGE_UPLOADED_COMMENT_PENDING"
+        metadata["manifest"]["status"] = "PACKAGE_UPLOADED_COMMENT_PENDING"
+        metadata["observedResult"] = "remote package verified; index comment pending"
+        _write_json(metadata_path, metadata)
+    else:
+        with tempfile.TemporaryDirectory(prefix="ai-forensics-verify-") as directory:
+            temp_root = _prepare_publication_repo(Path(directory), origin_url, branch)
+            _verify_remote_package(temp_root, branch, package_path, run_dir)
+
+    existing_id, existing_url = _find_existing_index_comment(metadata["repository"], metadata["issueNumber"], manifest["runId"])
+    if existing_id:
+        metadata["commentId"] = existing_id
+        metadata["commentUrl"] = existing_url
+        metadata["state"] = "UPLOAD_COMPLETE_INDEXED"
+        metadata["manifest"]["status"] = "UPLOAD_COMPLETE_INDEXED"
+        metadata["observedResult"] = "remote package verified and existing index comment reused"
+        _write_json(metadata_path, metadata)
+        return metadata
+
+    comment_ready = dict(metadata)
+    comment_ready["state"] = "UPLOAD_COMPLETE_INDEXED"
+    comment_ready["manifest"] = dict(metadata["manifest"])
+    comment_ready["manifest"]["status"] = "UPLOAD_COMPLETE_INDEXED"
+    comment_ready["observedResult"] = "remote package verified and index comment created"
+    body = build_issue_comment(comment_ready)
     comment_id, comment_url = _post_issue_comment(metadata["repository"], metadata["issueNumber"], body)
     metadata["commentId"] = comment_id
     metadata["commentUrl"] = comment_url
+    metadata["state"] = "UPLOAD_COMPLETE_INDEXED"
+    metadata["manifest"]["status"] = "UPLOAD_COMPLETE_INDEXED"
+    metadata["observedResult"] = "remote package verified and index comment created"
     _write_json(metadata_path, metadata)
     return metadata
 
@@ -282,7 +484,10 @@ def flush_pending(
     results: list[dict[str, Any]] = []
     for run_dir in sorted(path for path in runs_root.iterdir() if path.is_dir()):
         metadata = _read_json(run_dir / "metadata.json")
-        if metadata.get("state") == "UPLOADED" and metadata.get("commentUrl"):
+        if metadata.get("state") == "UPLOAD_BLOCKED_REDACTION_FAIL":
+            results.append(metadata)
+            continue
+        if metadata.get("state") in {"UPLOADED", "UPLOAD_COMPLETE_INDEXED"} and metadata.get("commentUrl"):
             results.append(metadata)
             continue
         try:
@@ -292,7 +497,7 @@ def flush_pending(
             _write_json(run_dir / "metadata.json", metadata)
             results.append(metadata)
         except Exception as exc:  # pragma: no cover - exercised in self-test paths
-            metadata["state"] = "UPLOAD_FAILED"
+            metadata["state"] = "UPLOAD_RETRYABLE_FAILURE"
             metadata["failure"] = str(exc)
             _write_json(run_dir / "metadata.json", metadata)
             results.append(metadata)
@@ -327,6 +532,10 @@ def run_self_test() -> int:
         metadata = publish_staged_run(run_dir, repo_root=repo_root, dry_run=True)
         if metadata.get("state") != "UPLOAD_PENDING":
             raise RuntimeError("dry-run publish should preserve UPLOAD_PENDING state")
+        if _configure_actions_auth(repo_root, "https://github.com/samuray-games/AsyncScene.git", {"GITHUB_TOKEN": "fake-token"}):
+            config_text = (repo_root / ".git" / "config").read_text(encoding="utf-8")
+            if "fake-token" in config_text:
+                raise RuntimeError("token leaked into inspectable config text")
     print("AI_FORENSICS_PUBLISH_SELF_TEST_PASS")
     return 0
 

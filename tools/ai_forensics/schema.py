@@ -20,10 +20,13 @@ ACTORS = ("CODEX", "WORK", "GITHUB", "CHATGPT_ANALYSIS")
 UPLOAD_STATUSES = (
     "LOCAL_CAPTURED",
     "UPLOAD_PENDING",
+    "PACKAGE_UPLOADED_COMMENT_PENDING",
     "UPLOADED",
+    "UPLOAD_COMPLETE_INDEXED",
     "UPLOAD_BLOCKED_REDACTION_FAIL",
     "UPLOAD_BLOCKED_AUTH",
     "UPLOAD_FAILED",
+    "UPLOAD_RETRYABLE_FAILURE",
 )
 MAX_TEXT_FILE_BYTES = 2 * 1024 * 1024
 MAX_PACKAGE_BYTES = 8 * 1024 * 1024
@@ -88,6 +91,10 @@ def parse_utc(value: str) -> datetime:
 
 def deterministic_json_dumps(payload: Any) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+
+
+def compact_json_dumps(payload: Any) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def sha256_bytes(payload: bytes) -> str:
@@ -202,3 +209,21 @@ def ensure_package_files(files: dict[str, bytes]) -> list[str]:
 def write_json(path: Path, payload: Any) -> None:
     path.write_text(deterministic_json_dumps(payload), encoding="utf-8")
 
+
+def atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp-{secrets.token_hex(4)}")
+    with temporary.open("w", encoding="utf-8") as handle:
+        handle.write(text)
+        handle.flush()
+        try:
+            import os
+
+            os.fsync(handle.fileno())
+        except OSError:
+            pass
+    temporary.replace(path)
+
+
+def atomic_write_json(path: Path, payload: Any) -> None:
+    atomic_write_text(path, deterministic_json_dumps(payload))
