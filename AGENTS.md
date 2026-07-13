@@ -263,24 +263,34 @@ For every Asynchronia Codex task, the `model-selector` preflight must:
 - enter `MODEL_INVENTORY_DISCOVERY` before any mutation;
 - start the local `codex app-server` over stdio;
 - complete the `initialize` and `initialized` handshake;
-- call `model/list` with `includeHidden: false` and follow every `nextCursor` page;
-- use only picker-visible models returned by that live client;
-- use only each model's own returned `supportedReasoningEfforts`;
+- call `model/list` with `includeHidden: false` and follow every `nextCursor` page as supporting catalog evidence;
+- reconcile app-server catalog evidence with the active execution surface before building candidates;
+- for Codex Desktop, treat actual active UI picker evidence as the authority for model and effort selectability;
+- enter `MODEL_INVENTORY_RECONCILIATION_REQUIRED` when app-server catalog evidence differs from the active UI picker, has a cache/schema error, omits UI-selectable options, or includes app-server-only options;
+- if exact current same-thread UI inventory is unavailable during reconciliation, stop with `BLOCKED_MODEL_INVENTORY_MISMATCH` and request current screenshot or exact text inventory;
+- if exact current same-thread UI inventory is supplied, use only that UI inventory for the candidate matrix and record app-server output as supporting non-selectability evidence;
+- Never add app-server-only models or efforts to a UI-authoritative candidate matrix;
+- use only each selected authority model's own returned or user-confirmed supported efforts;
 - preserve model and effort identifiers exactly without adding, renaming, normalizing, translating, or inferring options;
-- build and analyze the complete matrix of every returned model-effort pair;
-- compare every effort with its immediately lower and higher returned neighbor for the same model;
+- preserve UI display labels exactly; do not normalize `Light` to `low`, `Extra High` to `xhigh`, or any UI label to an internal identifier;
+- build and analyze the complete matrix of every authority-confirmed model-effort pair;
+- compare every effort with its immediately lower and higher authority-confirmed neighbor for the same model;
 - determine the lowest reliable effort for every model;
 - compare all per-model winners across the non-dominated cost-reliability frontier;
 - recommend the first pair that meets the reliability threshold while minimizing expected total credits after retry and escalation risk;
 - explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary;
 - report `evaluated model-effort pair count: N/N` using the discovered matrix rather than a fixed denominator; and
-- fail closed when inventory discovery, effort coverage, pagination, or task scope is incomplete.
+- fail closed when inventory discovery, UI reconciliation, effort coverage, pagination, or task scope is incomplete.
 
 The optimization objective is `MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`.
 
 The complete evaluation must cover every discovered pair, even when a pair appears obviously weak, expensive, redundant, old, new, default, or unfamiliar.
 
 The user selects the active model and effort. If the active selection cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
+
+Exact same-thread user-confirmed UI inventory is per-run evidence only. It must not be copied into repository memory as a static model catalog, must not create a permanent fallback list, and must not authorize a different task, thread, surface, or later launch.
+
+Never add app-server-only models or efforts to a UI-authoritative candidate matrix.
 
 Only the Asynchronia plugin `model-selector` may originate, rank, or name the recommendation. The repository preflight contract requires `PLUGIN_AUTO_ROUTING: REQUIRED`, `MODEL_PREFLIGHT_PAUSE: REQUIRED`, `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback. Codex must perform no implementation or mutable command before exact same-thread `CONTINUE`.
 

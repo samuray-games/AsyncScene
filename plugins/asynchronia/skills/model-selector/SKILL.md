@@ -1,13 +1,13 @@
 ---
 name: model-selector
-description: Run the mandatory blocking Codex model preflight, discover the picker-visible model inventory and supported reasoning efforts from the local Codex app-server, evaluate every available model-effort pair for the exact task, and recommend the lowest expected total-cost reliable option before same-thread CONTINUE.
+description: Run the mandatory blocking Codex model preflight, reconcile local Codex app-server catalog evidence with active desktop UI picker selectability, evaluate every authority-confirmed model-effort pair for the exact task, and recommend the lowest expected total-cost reliable option before same-thread CONTINUE.
 ---
 
 # Model Selector
 
 Use this skill automatically for every Asynchronia Codex task before implementation, validation, publication, or any other state-changing work.
 
-The user selects the active model. This skill does not claim to inspect or change the model selected in the interface. It discovers the available picker-visible inventory, evaluates it, recommends one model-effort pair, pauses, and waits for exact same-thread `CONTINUE`.
+The user selects the active model. This skill does not claim to inspect or change the model selected in the interface. It collects app-server catalog evidence, reconciles it with active execution-surface picker evidence, evaluates the authority-confirmed inventory, recommends one model-effort pair, pauses, and waits for exact same-thread `CONTINUE`.
 
 ## 1. Mandatory preflight state machine
 
@@ -15,13 +15,17 @@ The legal states are:
 
 1. `PREFLIGHT_REQUIRED`
 2. `MODEL_INVENTORY_DISCOVERY`
-3. `MODEL_INVENTORY_VERIFIED`
-4. `TASK_ANALYSIS_COMPLETE`
-5. `MODEL_RECOMMENDATION_READY`
-6. `WAITING_FOR_MODEL_SELECTION`
-7. `CONTINUE_RECEIVED`
-8. `SCOPE_REVALIDATED`
-9. `IMPLEMENTATION_ALLOWED`
+3. `APP_SERVER_CATALOG_EVIDENCE_RECORDED`
+4. `MODEL_INVENTORY_RECONCILIATION_REQUIRED`
+5. `USER_UI_INVENTORY_REQUIRED`
+6. `USER_UI_INVENTORY_RECEIVED`
+7. `MODEL_INVENTORY_VERIFIED`
+8. `TASK_ANALYSIS_COMPLETE`
+9. `MODEL_RECOMMENDATION_READY`
+10. `WAITING_FOR_MODEL_SELECTION`
+11. `CONTINUE_RECEIVED`
+12. `SCOPE_REVALIDATED`
+13. `IMPLEMENTATION_ALLOWED`
 
 Before `IMPLEMENTATION_ALLOWED`, Codex must not:
 
@@ -57,16 +61,16 @@ The ordered preflight route is:
 5. specialized skills required by routing
 6. pause for same-thread `CONTINUE`
 
-## 3. Authoritative live inventory discovery
+## 3. Catalog evidence and UI authority
 
 Static model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.
 
-For every preflight, discover the current picker-visible model inventory from the local Codex installation by starting `codex app-server` over stdio and calling the stable JSON-RPC method `model/list` after the required `initialize` and `initialized` handshake.
+For every preflight, collect current Codex catalog evidence from the local Codex installation by starting `codex app-server` over stdio and calling the stable JSON-RPC method `model/list` after the required `initialize` and `initialized` handshake.
 
 Use:
 
 ```json
-{"method":"initialize","id":0,"params":{"clientInfo":{"name":"asynchronia_model_selector","title":"Asynchronia Model Selector","version":"1.0.8"}}}
+{"method":"initialize","id":0,"params":{"clientInfo":{"name":"asynchronia_model_selector","title":"Asynchronia Model Selector","version":"1.0.9"}}}
 ```
 
 Then:
@@ -83,33 +87,47 @@ Then request every page:
 
 If `nextCursor` is non-null, request subsequent pages with the returned cursor until `nextCursor` is null.
 
-The preflight must record:
+The preflight must record app-server catalog evidence:
 
 - `inventory_checked_at_utc`;
 - the exact command used to start app-server;
 - app-server initialization success;
 - every page cursor requested;
-- the complete picker-visible model response;
+- the complete app-server model response;
 - each model `id`, `model`, `displayName`, `hidden`, `isDefault`, `defaultReasoningEffort`, `supportedReasoningEfforts`, `inputModalities`, and optional `upgrade` metadata;
 - the Codex CLI version when available;
 - the active repository path and execution surface.
 
-Use only entries returned with `hidden: false` or omitted `hidden` when `includeHidden: false` was used. Do not recommend hidden entries.
+Use only entries returned with `hidden: false` or omitted `hidden` when `includeHidden: false` was used as app-server catalog evidence. Do not recommend hidden entries.
 
 Do not use repository memory, previous chats, old reports, static plugin text, model self-report, or remembered product knowledge as inventory authority.
 
 Do not add, remove, rename, normalize, translate, or infer a model or effort label. Preserve returned identifiers exactly.
 
-If `codex` is unavailable, app-server fails, initialization fails, `model/list` fails, pagination is incomplete, the response is malformed, or the visible inventory is empty, return `BLOCKED_MODEL_INVENTORY_UNAVAILABLE` and do not emit `CONTINUE`.
+For Codex Desktop, active desktop UI picker evidence controls actual selectability. App-server `model/list` remains supporting catalog evidence and is not automatically picker authority.
+
+If app-server catalog evidence and active UI picker evidence match exactly, use the matched inventory as the candidate matrix.
+
+If app-server catalog evidence differs from the active UI picker, omits UI-selectable models or efforts, includes app-server-only models or efforts, has a schema/cache error, or returns labels that do not match active UI labels, enter `MODEL_INVENTORY_RECONCILIATION_REQUIRED`.
+
+If exact current same-thread UI inventory is unavailable during reconciliation, return `BLOCKED_MODEL_INVENTORY_MISMATCH`, report the exact app-server evidence and missing UI evidence, request a current screenshot or exact text inventory, and do not emit `CONTINUE`.
+
+If the user supplies exact current same-thread UI inventory for the active Codex Desktop picker, enter `USER_UI_INVENTORY_RECEIVED`, use only that UI inventory for the candidate matrix, and record app-server data as supporting evidence. Never merge app-server-only models or efforts into a UI-authoritative matrix.
+
+User-confirmed UI inventory must be explicit, complete, current, same-thread, surface-specific, and tied to the active Codex Desktop picker. It is per-run evidence only and must not be stored as repository memory, reused cross-thread, reused for another task, or converted into a durable fallback catalog.
+
+Preserve exact UI model names and effort labels. Do not normalize `Light` to `low`, `Extra High` to `xhigh`, or any other UI label to an app-server/internal identifier.
+
+If `codex` is unavailable, app-server fails, initialization fails, `model/list` fails, pagination is incomplete, the response is malformed, or the visible inventory is empty, record that failure as app-server catalog evidence. For Codex Desktop, continue to UI reconciliation when exact current UI picker evidence is available; otherwise return `BLOCKED_MODEL_INVENTORY_UNAVAILABLE` and do not emit `CONTINUE`.
 
 If any visible model has no non-empty `supportedReasoningEfforts`, return `BLOCKED_MODEL_EFFORT_INVENTORY_INCOMPLETE` and do not silently substitute its default effort.
 
 ## 4. Candidate construction
 
-Construct the complete candidate matrix from the exact live response:
+Construct the complete candidate matrix from the exact verified authority inventory:
 
-- one candidate for every picker-visible model;
-- crossed only with that model's own returned `supportedReasoningEfforts`;
+- one candidate for every authority-confirmed model;
+- crossed only with that model's own returned or user-confirmed supported reasoning efforts;
 - no global cartesian product;
 - no assumed support inherited from another model;
 - no fixed denominator.
@@ -120,7 +138,7 @@ Report:
 
 where both values are calculated from the discovered complete matrix.
 
-For each model, preserve the effort order returned by `supportedReasoningEfforts`. That order defines adjacent efforts for comparison. Do not invent an effort ordering from names.
+For each model, preserve the effort order returned by `supportedReasoningEfforts` or supplied in the exact current UI inventory. That order defines adjacent efforts for comparison. Do not invent an effort ordering from names.
 
 If duplicate model-effort identifiers appear, deduplicate only byte-identical duplicates and report them. Conflicting duplicates are `BLOCKED_MODEL_INVENTORY_CONFLICT`.
 
@@ -273,6 +291,7 @@ Blocked and failed responses must not include the terminal `CONTINUE` block.
 Failure statuses include:
 
 - `BLOCKED_MODEL_INVENTORY_UNAVAILABLE`
+- `BLOCKED_MODEL_INVENTORY_MISMATCH`
 - `BLOCKED_MODEL_EFFORT_INVENTORY_INCOMPLETE`
 - `BLOCKED_MODEL_INVENTORY_CONFLICT`
 - `FAIL_STATIC_MODEL_CATALOG`
