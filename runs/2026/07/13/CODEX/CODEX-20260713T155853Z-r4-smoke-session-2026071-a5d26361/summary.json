@@ -1,0 +1,12 @@
+{
+  "eventCount": 2,
+  "finalEvent": "Stop",
+  "malformedEventLines": [],
+  "sessionEventEndIndex": 5,
+  "sessionEventStartIndex": 3,
+  "sessionEventWindow": "3:5",
+  "sessionId": "<redacted>",
+  "sessionRunId": "<redacted>",
+  "turnSequence": 2,
+  "turnSlug": "turn-000002-4c2445a5"
+}
