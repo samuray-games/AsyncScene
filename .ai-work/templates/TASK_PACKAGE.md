@@ -68,7 +68,7 @@ CREATED_AT: <ISO-8601>
 AUTHOR_ROLE: WORK
 SOURCE_REVISION: <repo SHA>
 
-Use @asynchronia runtime-safety-gate.
+Current routing, scope isolation, model preflight, branch safety, and acceptance rules come from current repository authority. Do not invoke removed or nonexistent skills.
 
 ### Atomic goal
 
