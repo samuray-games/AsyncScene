@@ -115,9 +115,8 @@ BRIDGE_FORBIDDEN_PATHS = (
     ".ai-bridge/receipts/",
 )
 
-OBSOLETE_CODEX_DIRECTIVES = (
-    "Use @asynchronia runtime-safety-gate.",
-)
+SUPPORTED_SKILLS_ROOT = ROOT / "plugins" / "asynchronia" / "skills"
+SKILL_REFERENCE_RE = re.compile(r"Use @asynchronia ([A-Za-z0-9-]+)\.")
 
 
 def parse_header(text: str) -> dict[str, str]:
@@ -127,6 +126,14 @@ def parse_header(text: str) -> dict[str, str]:
         if match:
             result[match.group(1)] = match.group(2)
     return result
+
+
+def supported_skill_names() -> set[str]:
+    return {
+        path.name
+        for path in SUPPORTED_SKILLS_ROOT.iterdir()
+        if path.is_dir() and (path / "SKILL.md").exists()
+    }
 
 
 def validate_file(
@@ -151,9 +158,9 @@ def validate_file(
             errors.append(f"{path}: missing section {section!r}")
 
     if schema_name == "03-codex-task.md" and enforce_active_codex_rules:
-        for directive in OBSOLETE_CODEX_DIRECTIVES:
-            if directive in text:
-                errors.append(f"{path}: obsolete removed directive is forbidden in active task: {directive}")
+        for skill_name in SKILL_REFERENCE_RE.findall(text):
+            if skill_name not in supported_skill_names():
+                errors.append(f"{path}: unsupported skill reference in active task: {skill_name}")
         write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
         for forbidden in BRIDGE_FORBIDDEN_PATHS:
             if forbidden in write_section:

@@ -153,7 +153,7 @@ Safari smoke: `N/A_INFRASTRUCTURE_NO_RUNTIME_SURFACE`.
 ### Codex prompt strategy
 
 - Launch a fresh Codex thread on `infra/ai-forensics-autolog-20260712`.
-- The launch prompt must begin with `Use @asynchronia runtime-safety-gate.`
+- The launch prompt must begin with the current supported Asynchronia safety directive.
 - Codex must perform mandatory live model inventory preflight and pause for same-thread `CONTINUE` before mutation.
 - After `CONTINUE`, Codex performs one serialized implementation lane only.
 - Codex must stop if any required write falls outside the exact scope, if redaction cannot be proven fail-closed, if GitHub publication would require force push, or if bridge/runtime files appear in the diff.

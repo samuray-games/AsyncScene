@@ -12,7 +12,7 @@ The first Codex bootstrap implementation completed the authorized source changes
 Those commands were incorrectly classified as universal blocking validators:
 
 1. `tools/validate-orchestration-policy.py` is a frozen Bridge 062 closed-loop validator. It requires the current branch diff to equal `tools/closed_loop_contract.py::AUTHORIZED_PATHS` and therefore is structurally inapplicable to this selector repair branch.
-2. `tools/validate_ai_work_pipeline.py` validates a legacy fixed task-package schema and still requires the obsolete `runtime-safety-gate` line. That requirement conflicts with current project policy, which forbids the obsolete gate. Its existing diagnostics are repository baseline debt outside this task write scope.
+2. `tools/validate_ai_work_pipeline.py` validates a legacy fixed task-package schema and still carries an obsolete safety-directive line. That requirement conflicts with current project policy, which forbids the obsolete gate. Its existing diagnostics are repository baseline debt outside this task write scope.
 
 The selector implementation is not authorized to modify either validator.
 

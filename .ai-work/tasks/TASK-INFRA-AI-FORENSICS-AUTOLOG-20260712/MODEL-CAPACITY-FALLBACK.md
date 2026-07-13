@@ -35,7 +35,7 @@ In the same Codex thread:
 ### Forbidden action
 
 - Do not begin r3 implementation on Mini Light before the fresh recommendation and new same-thread `CONTINUE`.
-- Do not invoke or reference the removed `runtime-safety-gate`.
+- Do not invoke or reference the removed safety directive.
 - Do not touch `.ai-bridge/**`, bridge refs, Stage 6, game runtime, UI runtime, economy, persistence, deployment mirrors, or `main`.
 - Do not enable `/hooks`.
 
