@@ -506,14 +506,15 @@ def publish_staged_run(
             reused_remote = False
             with tempfile.TemporaryDirectory(prefix="ai-forensics-publish-") as directory:
                 temp_root = Path(directory)
-                for _ in range(3):
+                for attempt in range(3):
                     if temp_root.exists():
                         for child in temp_root.iterdir():
                             if child.is_dir():
                                 shutil.rmtree(child)
                             else:
                                 child.unlink()
-                    _prepare_publication_repo(temp_root, origin_url, branch, bootstrap_repo=repo_root)
+                    bootstrap = repo_root if attempt == 0 else None
+                    _prepare_publication_repo(temp_root, origin_url, branch, bootstrap_repo=bootstrap)
                     commit_sha = _remote_package_commit_if_identical(temp_root, package_path, run_dir)
                     if commit_sha:
                         reused_remote = True
