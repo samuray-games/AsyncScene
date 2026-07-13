@@ -332,11 +332,26 @@ def _configure_actions_auth(temp_root: Path, origin_url: str, env: dict[str, str
     return True
 
 
-def _prepare_publication_repo(temp_root: Path, origin_url: str, branch: str) -> Path:
+def _prepare_publication_repo(
+    temp_root: Path,
+    origin_url: str,
+    branch: str,
+    *,
+    bootstrap_repo: Path | None = None,
+) -> Path:
     _run(["git", "init"], cwd=temp_root)
     _run(["git", "remote", "add", "origin", origin_url], cwd=temp_root)
     _configure_actions_auth(temp_root, origin_url)
-    _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
+    local_ref = f"refs/remotes/origin/{branch}"
+    if bootstrap_repo is not None:
+        bootstrap_path = str(bootstrap_repo.resolve())
+        local_ref_check = _run(["git", "show-ref", "--verify", "--quiet", local_ref], cwd=bootstrap_repo, check=False)
+        if local_ref_check.returncode == 0:
+            _run(["git", "fetch", "--no-tags", bootstrap_path, local_ref], cwd=temp_root)
+        else:
+            _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
+    else:
+        _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
     _run(["git", "checkout", "-B", "publish", "FETCH_HEAD"], cwd=temp_root)
     _run(["git", "config", "user.name", "Codex"], cwd=temp_root)
     _run(["git", "config", "user.email", "codex@local.invalid"], cwd=temp_root)
@@ -498,7 +513,7 @@ def publish_staged_run(
                                 shutil.rmtree(child)
                             else:
                                 child.unlink()
-                    _prepare_publication_repo(temp_root, origin_url, branch)
+                    _prepare_publication_repo(temp_root, origin_url, branch, bootstrap_repo=repo_root)
                     commit_sha = _remote_package_commit_if_identical(temp_root, package_path, run_dir)
                     if commit_sha:
                         reused_remote = True
@@ -534,7 +549,7 @@ def publish_staged_run(
             _write_json(metadata_path, metadata)
         else:
             with tempfile.TemporaryDirectory(prefix="ai-forensics-verify-") as directory:
-                temp_root = _prepare_publication_repo(Path(directory), origin_url, branch)
+                temp_root = _prepare_publication_repo(Path(directory), origin_url, branch, bootstrap_repo=repo_root)
                 _verify_remote_package(temp_root, branch, package_path, run_dir)
 
         existing_id, existing_url = _find_existing_index_comment(metadata["repository"], metadata["issueNumber"], manifest["runId"])

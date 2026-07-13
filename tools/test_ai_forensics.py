@@ -494,7 +494,11 @@ class PublishTests(unittest.TestCase):
             )
             with (
                 mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
-                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(
+                    publish,
+                    "_prepare_publication_repo",
+                    side_effect=lambda temp, _origin, _branch, bootstrap_repo=None: temp,
+                ),
                 mock.patch.object(publish, "_copy_package"),
                 mock.patch.object(publish, "_commit_package", return_value="commit-one") as mocked_commit,
                 mock.patch.object(publish, "_push_package", return_value=(True, "")),
@@ -510,7 +514,11 @@ class PublishTests(unittest.TestCase):
 
             with (
                 mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
-                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(
+                    publish,
+                    "_prepare_publication_repo",
+                    side_effect=lambda temp, _origin, _branch, bootstrap_repo=None: temp,
+                ),
                 mock.patch.object(publish, "_verify_remote_package"),
                 mock.patch.object(publish, "_commit_package") as mocked_commit_again,
                 mock.patch.object(publish, "_find_existing_index_comment", return_value=(None, None)),
@@ -545,7 +553,11 @@ class PublishTests(unittest.TestCase):
             results: list[dict[str, Any]] = []
             with (
                 mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
-                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(
+                    publish,
+                    "_prepare_publication_repo",
+                    side_effect=lambda temp, _origin, _branch, bootstrap_repo=None: temp,
+                ),
                 mock.patch.object(publish, "_remote_package_commit_if_identical", return_value=None),
                 mock.patch.object(publish, "_copy_package"),
                 mock.patch.object(publish, "_commit_package", return_value="commit-one") as mocked_commit,
@@ -590,7 +602,11 @@ class PublishTests(unittest.TestCase):
             )
             with (
                 mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
-                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(
+                    publish,
+                    "_prepare_publication_repo",
+                    side_effect=lambda temp, _origin, _branch, bootstrap_repo=None: temp,
+                ),
                 mock.patch.object(publish, "_remote_package_commit_if_identical", return_value="existing-commit") as mocked_remote,
                 mock.patch.object(publish, "_commit_package") as mocked_commit,
                 mock.patch.object(publish, "_verify_remote_package"),
