@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "SANITIZED",
+  "sensitiveFindings": [],
+  "privatePathsIncluded": false,
+  "credentialsIncluded": false,
+  "notes": [
+    "Package contains only repository identifiers, task metadata, public commit SHAs and sanitized status evidence."
+  ]
+}
