@@ -102,3 +102,40 @@ A report without a concrete `NEXT_ACTION` is incomplete, regardless of how many 
 - Verify exact Google Drive `MEMORY_REV` and current remote branch heads after writes.
 - Run `git diff --check` or equivalent repository formatting validation before integration.
 - Treat any unresolved revision mismatch as fail-closed until the root index is updated.
+
+## Work journaling workflow
+
+Every Asynchronia ChatGPT Work execution, including read-only analysis, must publish one immutable `WORK` forensic package.
+
+Required sequence:
+
+1. Allocate a unique `WORK` run id at execution start.
+2. Record the live memory revision, repository, input task, inspected refs and files, observed SHAs, connector actions, returned commits or URLs, validations, failures, final status, and exact `NEXT_ACTION`.
+3. Sanitize and validate the record before any remote publication.
+4. Publish exactly one immutable package to `forensics/ai-runs`.
+5. Verify remote readback of the published package.
+6. Add exactly one Issue `#224` index comment beginning with `<!-- AI_FORENSICS_RUN_V1 -->` only after remote verification succeeds.
+7. Report journal failure explicitly. Never claim upload success without remote proof.
+
+This workflow is protocol-enforced. It is not a hidden machine-local Work lifecycle hook.
+
+## `лог` review workflow
+
+The exact trimmed command alias is:
+
+`лог`
+
+When the user writes exactly `лог`, ChatGPT must:
+
+1. Fetch live Google Drive project memory in the current response and report exact `MEMORY_REV`.
+2. Fetch current repository primary evidence.
+3. Read Issue `#224` and find the newest valid `<!-- AI_FORENSICS_ANALYSIS_CURSOR_V1 -->` comment.
+4. Enumerate all later valid `<!-- AI_FORENSICS_RUN_V1 -->` comments for `CODEX`, `WORK`, and `GITHUB`.
+5. Fetch every referenced immutable package from `forensics/ai-runs`.
+6. Verify package hashes, schema, markers, actor, run id, task id, branch, commit, time ordering, and remote existence.
+7. Correlate declared agent actions with independent GitHub evidence.
+8. Identify the earliest evidence-backed divergence, downstream effects, missing coverage, unresolved ambiguity, and required correction.
+9. Report findings in Russian with exact evidence citations and without inventing unavailable reasoning.
+10. Only after analysis completes, add one new `<!-- AI_FORENSICS_ANALYSIS_CURSOR_V1 -->` comment containing analyzed-through Issue comment id or time, package commits, verdict, and analysis timestamp.
+
+If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.

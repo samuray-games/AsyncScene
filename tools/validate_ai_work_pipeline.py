@@ -26,6 +26,13 @@ ALLOWED_STATUSES = {
     "CANCELLED",
 }
 
+# These records were finalized under an earlier task schema and are immutable.
+# Revalidating their phase artifacts against a newer schema would turn harmless
+# validator evolution into repository-wide historical breakage.
+HISTORICAL_TERMINAL_STATUSES = {
+    "FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE",
+}
+
 REQUIRED_STATE_KEYS = {
     "TASK_ID",
     "PIPELINE_VERSION",
@@ -108,6 +115,10 @@ BRIDGE_FORBIDDEN_PATHS = (
     ".ai-bridge/receipts/",
 )
 
+OBSOLETE_CODEX_DIRECTIVES = (
+    "Use @asynchronia runtime-safety-gate.",
+)
+
 
 def parse_header(text: str) -> dict[str, str]:
     result: dict[str, str] = {}
@@ -118,7 +129,13 @@ def parse_header(text: str) -> dict[str, str]:
     return result
 
 
-def validate_file(path: Path, task_id: str) -> list[str]:
+def validate_file(
+    path: Path,
+    task_id: str,
+    *,
+    phase_name: str | None = None,
+    enforce_active_codex_rules: bool = False,
+) -> list[str]:
     errors: list[str] = []
     text = path.read_text(encoding="utf-8")
     header = parse_header(text)
@@ -127,14 +144,18 @@ def validate_file(path: Path, task_id: str) -> list[str]:
         errors.append(f"{path}: missing header keys {sorted(missing)}")
     if header.get("TASK_ID") != task_id:
         errors.append(f"{path}: TASK_ID does not match directory")
-    for section in REQUIRED_SECTIONS[path.name]:
+
+    schema_name = phase_name or path.name
+    for section in REQUIRED_SECTIONS[schema_name]:
         if f"### {section}" not in text:
             errors.append(f"{path}: missing section {section!r}")
-    if path.name == "03-codex-task.md":
-        if "Use @asynchronia runtime-safety-gate." not in text:
-            errors.append(f"{path}: missing mandatory runtime safety gate line")
+
+    if schema_name == "03-codex-task.md" and enforce_active_codex_rules:
+        for directive in OBSOLETE_CODEX_DIRECTIVES:
+            if directive in text:
+                errors.append(f"{path}: obsolete removed directive is forbidden in active task: {directive}")
+        write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
         for forbidden in BRIDGE_FORBIDDEN_PATHS:
-            write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
             if forbidden in write_section:
                 errors.append(f"{path}: bridge path appears in allowed writes: {forbidden}")
     return errors
@@ -154,24 +175,57 @@ def validate_task(task_dir: Path) -> list[str]:
         errors.append(f"{state_path}: missing keys {sorted(missing)}")
     if state.get("TASK_ID") != task_id:
         errors.append(f"{state_path}: TASK_ID does not match directory")
-    if state.get("CURRENT_STATUS") not in ALLOWED_STATUSES:
+
+    current_status = state.get("CURRENT_STATUS")
+    if current_status not in ALLOWED_STATUSES and current_status not in HISTORICAL_TERMINAL_STATUSES:
         errors.append(f"{state_path}: invalid CURRENT_STATUS")
 
+    if current_status in HISTORICAL_TERMINAL_STATUSES:
+        if state.get("NEXT_ROLE") != "NONE_FOR_THIS_TASK":
+            errors.append(f"{state_path}: terminal historical task must have NEXT_ROLE NONE_FOR_THIS_TASK")
+        # The CURRENT_ARTIFACT may intentionally be an immutable remote commit
+        # identity rather than a path in the present checkout. Do not reinterpret
+        # or rewrite accepted historical phase artifacts under the current schema.
+        return errors
+
+    current_artifact = state.get("CURRENT_ARTIFACT")
+    resolved_current: Path | None = None
+    if current_artifact and current_artifact != "N/A":
+        resolved_current = ROOT / current_artifact
+        if not resolved_current.exists():
+            errors.append(f"{state_path}: CURRENT_ARTIFACT does not exist: {current_artifact}")
+
     seen_gap = False
+    standard_paths: set[Path] = set()
     for name in PHASE_FILES:
         path = task_dir / name
+        standard_paths.add(path)
         if not path.exists():
             seen_gap = True
             continue
         if seen_gap:
             errors.append(f"{task_dir}: phase file {name} exists after a missing earlier phase")
-        errors.extend(validate_file(path, task_id))
+        errors.extend(
+            validate_file(
+                path,
+                task_id,
+                enforce_active_codex_rules=(resolved_current == path and name == "03-codex-task.md"),
+            )
+        )
 
-    current_artifact = state.get("CURRENT_ARTIFACT")
-    if current_artifact and current_artifact != "N/A":
-        resolved = ROOT / current_artifact
-        if not resolved.exists():
-            errors.append(f"{state_path}: CURRENT_ARTIFACT does not exist: {current_artifact}")
+    if resolved_current and resolved_current.exists() and resolved_current not in standard_paths:
+        if resolved_current.name.startswith("03-codex-task-r") and resolved_current.suffix == ".md":
+            errors.extend(
+                validate_file(
+                    resolved_current,
+                    task_id,
+                    phase_name="03-codex-task.md",
+                    enforce_active_codex_rules=True,
+                )
+            )
+        else:
+            errors.append(f"{state_path}: unsupported corrected CURRENT_ARTIFACT: {current_artifact}")
+
     return errors
 
 

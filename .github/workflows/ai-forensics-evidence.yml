@@ -1,0 +1,63 @@
+name: ai-forensics-evidence
+
+on:
+  push:
+    branches-ignore:
+      - forensics/**
+  pull_request:
+  issues:
+    types:
+      - opened
+      - edited
+      - reopened
+      - closed
+  issue_comment:
+    types:
+      - created
+      - edited
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: Optional task identifier to bind into the published package metadata
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: ai-forensics-publication
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: |
+      github.event_name != 'issue_comment' ||
+      (!contains(github.event.comment.body, '<!-- AI_FORENSICS_RUN_V1 -->') &&
+       !contains(github.event.comment.body, '<!-- AI_FORENSICS_ANALYSIS_CURSOR_V1 -->'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip untrusted fork write context
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "SAFE_SKIP_UNTRUSTED_FORK"
+
+      - uses: actions/checkout@v4
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          python-version: '3.12'
+
+      - name: Compile AI forensics scripts
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: python3 -m py_compile tools/ai_forensics/*.py tools/test_ai_forensics.py
+
+      - name: Publish GitHub evidence
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/ai_forensics/github_event.py --repo .
