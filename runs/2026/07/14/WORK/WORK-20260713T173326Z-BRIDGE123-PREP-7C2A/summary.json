@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "AI_FORENSICS_V1",
+  "actor": "WORK",
+  "runId": "WORK-20260713T173326Z-BRIDGE123-PREP-7C2A",
+  "taskId": "TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
+  "status": "READY_FOR_CODEX",
+  "observedResult": "Fresh bridge revalidation and repository-hardening task package prepared from current main. No main or mailbox ref mutation occurred.",
+  "failures": [
+    "Local container validation unavailable because github.com DNS resolution failed."
+  ],
+  "missingCoverage": [
+    "Executable repository validators must run in Codex before any implementation status promotion."
+  ],
+  "nextAction": "Open Codex on infra/bridge-123-revalidation-repair-20260714, run fresh model preflight, select the recommended pair, and send exact same-thread CONTINUE."
+}
