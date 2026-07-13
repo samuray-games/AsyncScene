@@ -1,0 +1,8 @@
+{
+  "blocked": false,
+  "reasons": [],
+  "replacements": [
+    "home-path",
+    "json-secret-value"
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "branch": "infra/ai-forensics-autolog-20260712",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "/private/tmp/AsyncScene_ai_forensics_r4.1dB4R4\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "infra/ai-forensics-autolog-20260712\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "050c7f3c18948738340eece917f6de9da0fd4619\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "# branch.oid 050c7f3c18948738340eece917f6de9da0fd4619\n# branch.head infra/ai-forensics-autolog-20260712\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "050c7f3c (HEAD -> infra/ai-forensics-autolog-20260712, origin/infra/ai-forensics-autolog-20260712) ai-forensics: shallow publication bootstrap\n982cbc5b ai-forensics: fix r4 publication correctness\n68bd9e3e state(ai-forensics): unblock r4 preflight\n185d6885 Record r4 selector inventory blocker\n27b9a7cf Reject r3 and require AI forensics r4\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/Documents/created apps/AsyncScene\nHEAD 9fcabeffacf93beecd24c38170003efb3ce9bcda\nbranch refs/heads/main\n\nworktree /private/tmp/asynchronia-mailbox-088\nHEAD 3f5b1397bf72b18f10173e54b8ce45bb1b4dfe4c\ndetached\n\nworktree /private/tmp/asynchronia-preflight-088\nHEAD c12e0dacf92ae629215dbcc520b62a10f1d89846\ndetached\n\nworktree /private/tmp/asyncscene-mailbox-retry-ZP0exn\nHEAD 95bb52ed551ed973ee6a8981eab91d02993d3e96\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/asyncscene-mailbox-vX21H8\nHEAD fa9fb0968fbceb4b740e1b4050a8583d4910c234\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/asyncscene-slot1-zIcwqk\nHEAD c3c1b1c79d8be18d1f3f5f034745ce47bb33bcf4\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene-slot3-mailbox\nHEAD 7a04337504986c51059fdfd9044e013274a12b85\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_059_mailbox\nHEAD a110e802ed7e6ee4c69eb3672e209d17c7e50cbf\ndetached\n\nworktree /private/tmp/AsyncScene_ai_forensics_r3.zkU7RA\nHEAD b102f3862678cb874b55bfa612c31025a678ecf2\ndetached\n\nworktree /private/tmp/AsyncScene_ai_forensics_r4.1dB4R4\nHEAD 050c7f3c18948738340eece917f6de9da0fd4619\nbranch refs/heads/infra/ai-forensics-autolog-20260712\n\nworktree /private/tmp/asyncscene_bridge064\nHEAD 3b301f9d6fbc1e1c7a35701421f6ec14efe14087\ndetached\n\nworktree /private/tmp/AsyncScene_bridge090.IQDRHv\nHEAD 42c56c023e3b60f3b9e534dbb720057e78ef0c77\ndetached\n\nworktree /private/tmp/AsyncScene_bridge090_mailbox.5sQJXD\nHEAD abde850c6e039ae31f9404f81606b8bbc9553583\ndetached\n\nworktree /private/tmp/AsyncScene_bridge_084_clean\nHEAD 0f7ecd69fb5857dbb965e6b4ee57dc2737f16f29\ndetached\n\nworktree /private/tmp/AsyncScene_bridge_084_rebuild\nHEAD c5ef0ecea5c96a54604e6d130207ac4fd52789df\ndetached\n\nworktree /private/tmp/AsyncScene_bridge_7h1nud\nHEAD 21f7d5eb38e7067326f56a76e0ebabed0c1758c1\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_bridge_reset_aYncgS\nHEAD 7b64cffef8450f2ae6f019b9452d1e91ccf54ea2\nbranch refs/heads/work/bridge-control-plane-reset-20260712\n\nworktree /private/tmp/AsyncScene_bridge_reset_hf20I2\nHEAD bf2bd48764bd86dfe354062b0fa6eb29d4245417\ndetached\n\nworktree /private/tmp/AsyncScene_bridge_reset_SPd0gl\nHEAD 50d77eb5b5273fffc491a9f111ecdc5d526c7cea\nbranch refs/heads/infra/bridge-control-plane-reset-20260712\n\nworktree /private/tmp/AsyncScene_bridge_slot2_a8a7e3a\nHEAD a8a7e3acacbe2ba7fe6a387cb647d09d7d701a4d\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_bridge_slot3.1pcIDw\nHEAD 4e1c16f7b05147e9ad3572678ebf48bf5ed7b62b\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_e5_mailbox.92Ahw3\nHEAD c47c8930730ce80f69fedfffbaca3d1d35b07521\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_e5_runtime_gate_removal.JGqGUh\nHEAD cf2558d782d614d97bc66deec3a69017f5085d73\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_forensics_r2.Jr5kdB\nHEAD c78ad941b1e9034eef8d0a46e08f9d25be29a405\ndetached\n\nworktree /private/tmp/AsyncScene_forensics_r3.z6j9dn\nHEAD c03c05407a22dfb9814a90a21c07834f15d70375\ndetached\n\nworktree /private/tmp/AsyncScene_forensics_recovery.gDzcTd\nHEAD 7c4d0f9ec47b4c1f8a1e98553ffc876e0d4cd6bb\ndetached\n\nworktree /private/tmp/AsyncScene_forensics_recovery2.uHUoQ3\nHEAD 18daa0ff56c129c850a63aa2e60ce5d0e91957c8\ndetached\n\nworktree /private/tmp/AsyncScene_mailbox_5vAOeQ\nHEAD edf93502db3f9df3f3b8a2d04aecd441df52208b\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_e5.vqfdxN\nHEAD ba0b0bd221c78eecc7f6a0d5c5230831af905c43\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_GOEIgJ\nHEAD 59f12490d90273bc41115516f12d09bd0ab2f940\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_lbWMAX\nHEAD 032e07f3e046cce092de410e754709f1547caf34\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_mxw2Lo\nHEAD f7f28d71aa7f7fb4c6aa2e9b37e94f31f8ed18fa\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_outbox.s7cJVR\nHEAD a4fb5d682f12db0788d5a142336c2c1cbaffa90c\nbranch refs/heads/coordination/chatgpt-codex-bridge\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_pub.NICepK\nHEAD d3d74185a38b77c31b6fba1626e0674be8ec229c\ndetached\n\nworktree /private/tmp/AsyncScene_mailbox_pub3.pRQQMF\nHEAD 0e92e1dd24876f91e72cf78293e8b56bb5205a68\ndetached\n\nworktree /private/tmp/AsyncScene_mailbox_R3HaaG\nHEAD 58f851d9558ead165e7b7c87384c7abd8e427b80\ndetached\n\nworktree /private/tmp/AsyncScene_mailbox_slot1.iT6iP6\nHEAD c8e80d947fc458e227c2022bc1bb68e9696aea70\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_mailbox_slot2.sGvz1i\nHEAD 8cd1d31b59c67a95ecd7a36ef65fb8162172b52c\ndetached\n\nworktree /private/tmp/AsyncScene_mailbox_Un6Bke\nHEAD 33396b717e16dcbf3570d59b50a8849cea39ce65\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_model_selector_correction.JYRYjO\nHEAD d32d107a2b477f272ef34f72b221a0d775409c88\ndetached\n\nworktree /private/tmp/AsyncScene_model_selector_correction_baseline.2GyzIU\nHEAD 4444f7c1f5a0a4cb9239771768997094ab382aaa\ndetached\n\nworktree /private/tmp/AsyncScene_model_selector_live_catalog_20260712\nHEAD 50d77eb5b5273fffc491a9f111ecdc5d526c7cea\nbranch refs/heads/infra/model-selector-live-catalog-20260712\n\nworktree /private/tmp/AsyncScene_model_selector_t7DbrA\nHEAD be3330b1a90527f4ab1a98275949ec3cbaeeb3f6\ndetached\n\nworktree /private/tmp/AsyncScene_model_selector_ui_authority.jBXn59\nHEAD 480b6765ec5e0daa3438f43a349537cc63addeaa\ndetached\n\nworktree /private/tmp/AsyncScene_model_selector_ui_baseline.JY9UaY\nHEAD 1cb68f5fdd0a388c1081de9be4e62620404d05ab\ndetached\n\nworktree /private/tmp/AsyncScene_selector_integration_validate.dKPBNw\nHEAD 9fcabeffacf93beecd24c38170003efb3ce9bcda\ndetached\n\nworktree /private/tmp/AsyncScene_slot1_audit.2javp3\nHEAD ea72e2eccb78c1de791155556980b883e1fc0bbd\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot1_audit.zhICEY\nHEAD 57dae3f7942ba60996604c39115dad0cb4fa2238\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot1_exec.kh7Ymy\nHEAD d15fe4dd34e8c431b02fb5a690982e38e6210fc5\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot1_outbox_exec.46Mh19\nHEAD 7393e4919259bbc36c893ef0b002e9907d4c034e\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot2_fastforward.HIqHBl\nHEAD c5ef0ecea5c96a54604e6d130207ac4fd52789df\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_fix2.qONsAI\nHEAD c5ef0ecea5c96a54604e6d130207ac4fd52789df\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_fix5.Z0FTye\nHEAD baf51aeb1407a3b288d7afd0d07966e1a323bc8a\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_mailbox.0Hmxm7\nHEAD 851796067f4eb20ae41276f34c9369ffe0c21f87\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_mailbox.3IllVl\nHEAD c7b750aa629341881bd8bfc31dbd4abc5a1bf774\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_mailbox.xFffzI\nHEAD c6356fdfa67d1d1239cbf0922b61459394d2f82a\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_outbox.I6nfVu\nHEAD c12e0dacf92ae629215dbcc520b62a10f1d89846\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_pub3.gzvuwx\nHEAD 93995ab4e599ebcb8881a6dc391e2a8ffdd07555\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_src.0wAwUt\nHEAD 0f7ecd69fb5857dbb965e6b4ee57dc2737f16f29\ndetached\n\nworktree /private/tmp/AsyncScene_slot2_task.6jHrXo\nHEAD 2007440347e48277c07572ff96fc2545efdefe19\ndetached\n\nworktree /private/tmp/AsyncScene_slot3_canary.cdHo8l\nHEAD 83e0daff54ba7dd8dcf7f6eb6212600d0bb65275\ndetached\n\nworktree /private/tmp/AsyncScene_slot3_outbox.Fu2QDV\nHEAD 01a10e532a8ff5250ebecb63cb4132c65b21abcd\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot3_outbox.gAHLMa\nHEAD 27c876209f24fb6f8080df798484d5928982a7b5\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot3_outbox.gtOSGg\nHEAD 42da1edc4cd8e74248b812f59935cae41d7b9912\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot3_outbox.jnsfWe\nHEAD 5bc6a03b5862727962843edcaba98c88827f79a7\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_slot3_outbox.qSr4g9\nHEAD 81773fbbb6ccfc564b2c7ebc42910fcbb2baab3d\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_step4_4A_mail.5UvQgk\nHEAD dee1f19cb0d372a767fac67da1179ae83dedf71e\ndetached\nprunable gitdir file points to non-existent location\n\nworktree /private/tmp/AsyncScene_step4_4A_main.lESYnl\nHEAD 15a1fc70f32cfcfc3d0b099f581e2b50d6282b73\ndetached\nprunable gitdir file points to non-existent location\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-13T15:29:26Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene.git (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene.git (push)\n"
+    }
+  ],
+  "cwd": "/private/tmp/AsyncScene_ai_forensics_r4.1dB4R4",
+  "head": "050c7f3c18948738340eece917f6de9da0fd4619",
+  "observedAtUtc": "2026-07-13T15:29:26Z",
+  "refs": [],
+  "repositoryRoot": "/private/tmp/AsyncScene_ai_forensics_r4.1dB4R4"
+}
