@@ -336,7 +336,7 @@ def _prepare_publication_repo(temp_root: Path, origin_url: str, branch: str) -> 
     _run(["git", "init"], cwd=temp_root)
     _run(["git", "remote", "add", "origin", origin_url], cwd=temp_root)
     _configure_actions_auth(temp_root, origin_url)
-    _run(["git", "fetch", "origin", branch], cwd=temp_root)
+    _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
     _run(["git", "checkout", "-B", "publish", "FETCH_HEAD"], cwd=temp_root)
     _run(["git", "config", "user.name", "Codex"], cwd=temp_root)
     _run(["git", "config", "user.email", "codex@local.invalid"], cwd=temp_root)
@@ -408,7 +408,7 @@ def _remote_package_commit_if_identical(temp_root: Path, package_path: str, run_
 
 
 def _verify_remote_package(temp_root: Path, branch: str, package_path: str, run_dir: Path) -> None:
-    _run(["git", "fetch", "origin", branch], cwd=temp_root)
+    _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
     if not _remote_package_commit_if_identical(temp_root, package_path, run_dir):
         raise RuntimeError(f"remote verification mismatch for {package_path}")
 
