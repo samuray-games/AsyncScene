@@ -6,7 +6,7 @@ CREATED_AT: 2026-07-12T21:58:00+09:00
 AUTHOR_ROLE: CHATGPT_ONLY_CONTENT_AUTHORSHIP_WITH_WORK_EVIDENCE
 SOURCE_REVISION: work/ai-forensics-autolog-20260712@174e3a6bf64622994e3c1cd626c3c329409b4115
 SUPERSEDES: 03-codex-task.md
-CORRECTION_REASON: Removed obsolete runtime-safety-gate directive and corrected bootstrap from an arbitrary starting checkout.
+CORRECTION_REASON: Removed obsolete safety directive wording and corrected bootstrap from an arbitrary starting checkout.
 
 ### Atomic goal
 
@@ -14,7 +14,7 @@ Implement version 1 of the automatic Asynchronia AI forensic logging system for 
 
 The result must automatically produce sanitized, immutable, remotely indexed run evidence without touching bridge, Stage 6, game, runtime, economy, persistence, UI, or deployment-mirror surfaces.
 
-This r2 task is authoritative. `03-codex-task.md` is historical specification evidence only. Its obsolete `runtime-safety-gate` directive and its requirement that the starting checkout already equal the implementation branch are void.
+This r2 task is authoritative. `03-codex-task.md` is historical specification evidence only. Its obsolete safety directive wording and its requirement that the starting checkout already equal the implementation branch are void.
 
 ### Exact baseline
 
@@ -89,7 +89,7 @@ Controlled smoke publication remains limited to new immutable package paths unde
 
 ### Forbidden changes
 
-- Do not invoke or reference `runtime-safety-gate`; it has been removed.
+- Do not invoke or reference the removed safety directive; it has been removed.
 - Do not modify any `.ai-bridge/**` path, numbered mailbox ref, legacy bridge ref, bridge routing, claim, inbox, outbox, receipt, state, canary, or reset artifact.
 - Do not continue or modify Stage 6.
 - Do not modify game/runtime JavaScript, HTML, CSS, data, economy, persistence, battle, NPC, UI, smoke registry, deployment mirror, or cache-bust files.

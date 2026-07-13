@@ -22,7 +22,7 @@ This recovery is authorized only in the same Codex thread that already completed
 
 - Do not run another model preflight.
 - Do not request another `CONTINUE`.
-- Do not invoke or reference the removed `runtime-safety-gate`.
+- Do not invoke or reference the removed safety directive.
 - Do not discard, clean, reset, overwrite, or delete `/private/tmp/AsyncScene_forensics_r2.Jr5kdB` before the local implementation has been preserved.
 - Do not resume from the old detached baseline directly because the remote implementation branch now contains the validator lifecycle correction.
 

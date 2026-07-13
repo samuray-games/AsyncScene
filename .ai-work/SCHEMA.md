@@ -57,7 +57,7 @@ Work must not claim implementation or user acceptance.
 
 The first line after metadata must state the task-specific safety and routing authority required by current repository policy.
 
-The removed directive `Use @asynchronia runtime-safety-gate.` is forbidden in every active Codex task. Superseded historical artifacts may retain it only as immutable evidence when the active corrected artifact is named by `STATE.md`.
+Active Codex tasks may invoke only currently installed and supported skill identifiers. Historical artifacts may preserve obsolete directive wording only as immutable evidence when the active corrected artifact is named by `STATE.md`.
 
 Required sections:
 

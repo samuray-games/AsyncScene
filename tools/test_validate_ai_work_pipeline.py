@@ -28,13 +28,7 @@ class PipelineValidatorTests(unittest.TestCase):
         self.assertIn(".ai-bridge/STATE.md", validator.BRIDGE_FORBIDDEN_PATHS)
         self.assertIn(".ai-bridge/outbox/", validator.BRIDGE_FORBIDDEN_PATHS)
 
-    def test_obsolete_runtime_safety_gate_is_forbidden(self) -> None:
-        self.assertIn(
-            "Use @asynchronia runtime-safety-gate.",
-            validator.OBSOLETE_CODEX_DIRECTIVES,
-        )
-
-    def test_obsolete_directive_is_rejected_only_for_active_codex_artifact(self) -> None:
+    def test_unknown_skill_reference_is_rejected_for_active_codex_artifact(self) -> None:
         sections = "\n".join(
             f"### {section}\nvalue"
             for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
@@ -47,7 +41,7 @@ class PipelineValidatorTests(unittest.TestCase):
             "CREATED_AT: 2026-07-12T00:00:00Z\n"
             "AUTHOR_ROLE: WORK\n"
             "SOURCE_REVISION: test\n"
-            "Use @asynchronia runtime-safety-gate.\n"
+            "Use @asynchronia unknown-skill.\n"
             f"{sections}\n"
         )
         with tempfile.TemporaryDirectory() as directory:
@@ -64,7 +58,33 @@ class PipelineValidatorTests(unittest.TestCase):
                 enforce_active_codex_rules=True,
             )
         self.assertEqual(historical_errors, [])
-        self.assertTrue(any("obsolete removed directive" in error for error in active_errors))
+        self.assertTrue(any("unsupported skill reference" in error for error in active_errors))
+
+    def test_supported_skill_reference_remains_valid_for_active_codex_artifact(self) -> None:
+        sections = "\n".join(
+            f"### {section}\nvalue"
+            for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
+        )
+        text = (
+            "TASK_ID: TASK-1\n"
+            "PIPELINE_VERSION: 1.0.0\n"
+            "PHASE: CODEX_TASK\n"
+            "STATUS: READY_FOR_CODEX\n"
+            "CREATED_AT: 2026-07-12T00:00:00Z\n"
+            "AUTHOR_ROLE: WORK\n"
+            "SOURCE_REVISION: test\n"
+            "Use @asynchronia task-router.\n"
+            f"{sections}\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "03-codex-task.md"
+            path.write_text(text, encoding="utf-8")
+            errors = validator.validate_file(
+                path,
+                "TASK-1",
+                enforce_active_codex_rules=True,
+            )
+        self.assertEqual(errors, [])
 
     def test_terminal_historical_task_is_not_revalidated_against_new_phase_schema(self) -> None:
         state = (
