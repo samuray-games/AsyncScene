@@ -1,0 +1,10 @@
+{
+  "blocked": false,
+  "reasons": [],
+  "replacements": [
+    "bearer-token",
+    "github-token",
+    "home-path",
+    "openai-token"
+  ]
+}
