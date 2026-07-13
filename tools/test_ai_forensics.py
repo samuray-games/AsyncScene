@@ -620,6 +620,48 @@ class PublishTests(unittest.TestCase):
             self.assertEqual(metadata["commentId"], 123)
             self.assertIn("existing remote package verified", metadata["observedResult"])
 
+    def test_non_fast_forward_retry_refreshes_from_live_remote(self) -> None:
+        manifest = schema.build_manifest(
+            actor="WORK",
+            run_id=schema.generate_run_id("WORK", "nff-refresh"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="forensics/ai-runs",
+            task_id="TASK-1",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            run_dir = stage_run_package(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD", "head": "c" * 40},
+                redaction_report={"blocked": False, "replacements": []},
+                spool_root=root / "spool",
+            )
+            bootstrap_args: list[Path | None] = []
+
+            def fake_prepare(temp: Path, _origin: str, _branch: str, bootstrap_repo: Path | None = None) -> Path:
+                bootstrap_args.append(bootstrap_repo)
+                return temp
+
+            with (
+                mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
+                mock.patch.object(publish, "_prepare_publication_repo", side_effect=fake_prepare),
+                mock.patch.object(publish, "_remote_package_commit_if_identical", return_value=None),
+                mock.patch.object(publish, "_copy_package"),
+                mock.patch.object(publish, "_commit_package", return_value="commit-one"),
+                mock.patch.object(publish, "_push_package", side_effect=[(False, "NON_FAST_FORWARD"), (True, "")]),
+                mock.patch.object(publish, "_verify_remote_package"),
+                mock.patch.object(publish, "_find_existing_index_comment", return_value=(None, None)),
+                mock.patch.object(publish, "_post_issue_comment", return_value=(123, "https://example.invalid/comment/123")),
+            ):
+                metadata = publish_staged_run(run_dir, repo_root=repo_root)
+            self.assertEqual(bootstrap_args, [repo_root, None])
+            self.assertEqual(metadata["state"], "UPLOAD_COMPLETE_INDEXED")
+
     def test_actions_auth_setup_does_not_print_or_store_raw_token(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)
