@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from argparse import ArgumentParser
 from pathlib import Path
+import fcntl
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -59,11 +61,34 @@ def normalize_hook_event(event_name: str, payload: dict[str, Any]) -> dict[str, 
     return normalized
 
 
+class SessionLock:
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.handle: Any | None = None
+
+    def __enter__(self) -> "SessionLock":
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.handle = self.path.open("a+", encoding="utf-8")
+        fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if self.handle is None:
+            return
+        fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
+        self.handle.close()
+
+
 def _append_event(path: Path, event: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True))
+        handle.write(schema.compact_json_dumps(event))
         handle.write("\n")
+        handle.flush()
+        try:
+            os.fsync(handle.fileno())
+        except OSError:
+            pass
 
 
 def _load_or_init_session(spool_root: Path, session_id: str) -> dict[str, Any]:
@@ -74,12 +99,48 @@ def _load_or_init_session(spool_root: Path, session_id: str) -> dict[str, Any]:
     run_id = schema.generate_run_id("CODEX", session_id)
     metadata = {
         "sessionId": session_id,
-        "runId": run_id,
+        "sessionRunId": run_id,
+        "turnSequence": 0,
         "createdAtUtc": schema.utc_now_iso(),
     }
     session_root.mkdir(parents=True, exist_ok=True)
-    metadata_path.write_text(schema.deterministic_json_dumps(metadata), encoding="utf-8")
+    schema.atomic_write_json(metadata_path, metadata)
     return metadata
+
+
+def _save_session(spool_root: Path, session_id: str, metadata: dict[str, Any]) -> None:
+    session_root = _session_root(spool_root, session_id)
+    schema.atomic_write_json(session_root / "session.json", metadata)
+
+
+def _turn_identity(session_meta: dict[str, Any], stop_event: dict[str, Any]) -> tuple[str, int]:
+    turn_id = stop_event.get("turnId")
+    if isinstance(turn_id, str) and turn_id.strip():
+        sequence = int(session_meta.get("turnSequence", 0)) + 1
+        return schema.stable_slug(turn_id), sequence
+    sequence = int(session_meta.get("turnSequence", 0)) + 1
+    nonce = schema.generate_run_id("CODEX", "turn").rsplit("-", 1)[-1]
+    return f"turn-{sequence:06d}-{nonce}", sequence
+
+
+def _load_valid_events(events_path: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    events: list[dict[str, Any]] = []
+    malformed: list[str] = []
+    if not events_path.exists():
+        return events, malformed
+    for line_number, line in enumerate(events_path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            parsed = json.loads(line)
+        except json.JSONDecodeError as exc:
+            malformed.append(f"line {line_number}: {exc}")
+            continue
+        if isinstance(parsed, dict):
+            events.append(parsed)
+        else:
+            malformed.append(f"line {line_number}: non-object event")
+    return events, malformed
 
 
 def _launch_detached_publisher(repo_root: Path) -> None:
@@ -92,19 +153,17 @@ def _launch_detached_publisher(repo_root: Path) -> None:
     )
 
 
-def _stage_completed_session(spool_root: Path, session_meta: dict[str, Any], repo_root: Path) -> Path:
+def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_root: Path) -> Path:
     session_root = _session_root(spool_root, session_meta["sessionId"])
     events_path = session_root / "events.raw.jsonl"
-    events = [
-        json.loads(line)
-        for line in events_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    events, malformed_lines = _load_valid_events(events_path)
     sanitized_events, replacements, reasons, blocked = sanitize_json_compatible(events)
+    turn_slug = session_meta["activeTurnSlug"]
+    run_id = schema.generate_run_id("CODEX", f"{session_meta['sessionId']}-{turn_slug}")
     if blocked:
         manifest = schema.build_manifest(
             actor="CODEX",
-            run_id=session_meta["runId"],
+            run_id=run_id,
             status="UPLOAD_BLOCKED_REDACTION_FAIL",
             repository="samuray-games/AsyncScene",
             branch="HEAD",
@@ -121,7 +180,7 @@ def _stage_completed_session(spool_root: Path, session_meta: dict[str, Any], rep
 
     manifest = schema.build_manifest(
         actor="CODEX",
-        run_id=session_meta["runId"],
+        run_id=run_id,
         status="UPLOAD_PENDING",
         repository="samuray-games/AsyncScene",
         branch="HEAD",
@@ -130,7 +189,11 @@ def _stage_completed_session(spool_root: Path, session_meta: dict[str, Any], rep
     summary = {
         "eventCount": len(sanitized_events),
         "sessionId": session_meta["sessionId"],
+        "sessionRunId": session_meta.get("sessionRunId"),
+        "turnSlug": turn_slug,
+        "turnSequence": session_meta.get("turnSequence"),
         "finalEvent": sanitized_events[-1]["event"] if sanitized_events else "NONE",
+        "malformedEventLines": malformed_lines,
     }
     extras: dict[str, Any] = {}
     stop_event = next((event for event in sanitized_events if event["event"] == "Stop"), None)
@@ -162,13 +225,29 @@ def capture_event(
 ) -> dict[str, Any]:
     spool_root = spool_root or default_spool_root()
     normalized = normalize_hook_event(event_name, payload)
-    session_meta = _load_or_init_session(spool_root, normalized["sessionId"])
     session_root = _session_root(spool_root, normalized["sessionId"])
-    _append_event(session_root / "events.raw.jsonl", normalized)
-    if launch_publisher and event_name in {"SessionStart", "Stop"}:
+    run_dir: Path | None = None
+    with SessionLock(session_root / "session.lock"):
+        session_meta = _load_or_init_session(spool_root, normalized["sessionId"])
+        if event_name == "Stop":
+            turn_slug, turn_sequence = _turn_identity(session_meta, normalized)
+            session_meta["activeTurnSlug"] = turn_slug
+            session_meta["turnSequence"] = turn_sequence
+            normalized["turnSequence"] = turn_sequence
+            normalized["turnSlug"] = turn_slug
+        _append_event(session_root / "events.raw.jsonl", normalized)
+        if event_name == "Stop":
+            run_dir = _stage_completed_turn(spool_root, session_meta, repo_root)
+            completed = session_meta.setdefault("completedTurns", [])
+            completed.append({"turnSlug": session_meta["activeTurnSlug"], "runDir": str(run_dir)})
+            session_meta.pop("activeTurnSlug", None)
+        _save_session(spool_root, normalized["sessionId"], session_meta)
+
+    if launch_publisher and event_name == "SessionStart":
         _launch_detached_publisher(repo_root)
-    if event_name == "Stop":
-        run_dir = _stage_completed_session(spool_root, session_meta, repo_root)
+    if launch_publisher and event_name == "Stop":
+        _launch_detached_publisher(repo_root)
+    if run_dir is not None:
         return {"session": session_meta, "runDir": str(run_dir)}
     return {"session": session_meta}
 

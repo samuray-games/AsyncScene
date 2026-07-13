@@ -60,10 +60,21 @@ Truncated files must record:
 
 - `LOCAL_CAPTURED`
 - `UPLOAD_PENDING`
+- `PACKAGE_UPLOADED_COMMENT_PENDING`
 - `UPLOADED`
+- `UPLOAD_COMPLETE_INDEXED`
 - `UPLOAD_BLOCKED_REDACTION_FAIL`
 - `UPLOAD_BLOCKED_AUTH`
 - `UPLOAD_FAILED`
+- `UPLOAD_RETRYABLE_FAILURE`
+
+`PACKAGE_UPLOADED_COMMENT_PENDING` means the immutable package was pushed and
+verified on `forensics/ai-runs`, and only the Issue `#224` index comment remains.
+Retries from this state must verify the existing package and post only the
+missing comment.
+
+`UPLOAD_BLOCKED_REDACTION_FAIL` is local-only. Flush operations must skip it and
+must not create a remote package, commit, or Issue comment.
 
 ## Path convention
 
@@ -72,3 +83,12 @@ Immutable published paths use:
 `runs/YYYY/MM/DD/<ACTOR>/<run-id>/`
 
 The path is never rewritten after successful publication.
+
+## JSONL and privacy
+
+`events.jsonl` is one compact JSON object per physical line. Every non-empty line
+must parse independently with `json.loads`.
+
+Before any Git operation, every package file is scanned for standalone credential
+patterns and private home-directory paths. Publication fails closed if the scan
+finds private content or non-UTF-8 payloads.

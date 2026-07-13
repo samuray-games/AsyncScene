@@ -53,4 +53,6 @@ jobs:
 
       - name: Publish GitHub evidence
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 tools/ai_forensics/github_event.py --repo .

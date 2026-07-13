@@ -29,6 +29,22 @@ PRIVATE_KEY_END_PATTERN = re.compile(r"-----END [A-Z0-9 ]*PRIVATE KEY-----")
 ASSIGNMENT_PATTERN = re.compile(
     r'(?im)^(\s*["\']?[A-Za-z0-9_.-]*?(?:api[_-]?key|token|secret|password|passwd|authorization|cookie|session|credential)[A-Za-z0-9_.-]*["\']?\s*[:=]\s*)(.+?)\s*$'
 )
+STANDALONE_SECRET_PATTERNS: tuple[tuple[re.Pattern[str], str, str], ...] = (
+    (re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{16,}\b"), "openai-token", "<redacted:openai-token>"),
+    (re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{16,}\b"), "github-token", "<redacted:github-token>"),
+    (re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"), "aws-access-key", "<redacted:aws-access-key>"),
+    (re.compile(r"\bAIza[0-9A-Za-z_-]{20,}\b"), "google-api-key", "<redacted:google-api-key>"),
+    (re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{16,}\b"), "slack-token", "<redacted:slack-token>"),
+    (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}\b"), "bearer-token", "Bearer <redacted>"),
+    (re.compile(r"(?i)\bBasic\s+[A-Za-z0-9+/=]{16,}\b"), "basic-token", "Basic <redacted>"),
+    (
+        re.compile(
+            r"(?i)\b(?:api[_-]?key|access[_-]?token|secret[_-]?key|client[_-]?secret)[\s:=]+[A-Za-z0-9._~+/=-]{12,}\b"
+        ),
+        "generic-credential",
+        "<redacted:credential>",
+    ),
+)
 
 
 @dataclass(frozen=True)
@@ -89,6 +105,11 @@ def sanitize_text(text: str, *, home: str | None = None) -> RedactionResult:
         sanitized = QUERY_SECRET_PATTERN.sub(r"\1<redacted>", sanitized)
         replacements.append("query-secret")
 
+    for pattern, tag, replacement in STANDALONE_SECRET_PATTERNS:
+        if pattern.search(sanitized):
+            sanitized = pattern.sub(replacement, sanitized)
+            replacements.append(tag)
+
     def assignment_replacer(match: re.Match[str]) -> str:
         prefix = match.group(1)
         value = match.group(2).strip()
@@ -128,6 +149,26 @@ def sanitize_text(text: str, *, home: str | None = None) -> RedactionResult:
         replacements=sorted(set(replacements)),
         reasons=sorted(set(reasons)),
     )
+
+
+def scan_text_for_private_content(text: str, *, home: str | None = None) -> list[str]:
+    findings: list[str] = []
+    for pattern, tag, _replacement in STANDALONE_SECRET_PATTERNS:
+        if pattern.search(text):
+            findings.append(tag)
+    if PRIVATE_KEY_BEGIN_PATTERN.search(text) or PRIVATE_KEY_END_PATTERN.search(text):
+        findings.append("private-key")
+    if AUTH_HEADER_PATTERN.search(text):
+        findings.append("authorization-header")
+    if COOKIE_HEADER_PATTERN.search(text):
+        findings.append("cookie-header")
+    home_prefixes = {home or str(Path.home())}
+    if home is None:
+        home_prefixes.add("/Users/User")
+    for prefix in home_prefixes:
+        if prefix and prefix in text:
+            findings.append("home-path")
+    return sorted(set(findings))
 
 
 def sanitize_json_compatible(payload: Any) -> tuple[Any, list[str], list[str], bool]:

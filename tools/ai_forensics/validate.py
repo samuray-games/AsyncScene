@@ -53,6 +53,11 @@ def validate_repo(repo_root: Path) -> list[str]:
     ):
         if required not in workflows_text:
             errors.append(f"WORKFLOWS.md missing {required!r}")
+    workflow_text = (repo_root / ".github" / "workflows" / "ai-forensics-evidence.yml").read_text(encoding="utf-8")
+    if "GITHUB_TOKEN: ${{ github.token }}" not in workflow_text:
+        errors.append("ai-forensics-evidence workflow does not expose github.token as GITHUB_TOKEN")
+    if "contents: write" not in workflow_text or "issues: write" not in workflow_text:
+        errors.append("ai-forensics-evidence workflow missing least required write permissions")
     return errors
 
 

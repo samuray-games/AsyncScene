@@ -5,7 +5,7 @@ This directory documents the version 1 automatic Asynchronia forensic logging sy
 ## Architecture
 
 - Local Codex hooks capture bounded raw session events into a private spool outside the repository.
-- Sanitized immutable packages are built from the spool and published to `forensics/ai-runs`.
+- Sanitized immutable packages are built per completed turn from the spool and published to `forensics/ai-runs`.
 - GitHub Issue `#224` is the append-only public index for every published package.
 - GitHub Actions produces independent repository-side evidence for supported events.
 - ChatGPT Work uses a protocol-enforced journal rather than a machine-local hidden hook.
@@ -24,15 +24,21 @@ This directory documents the version 1 automatic Asynchronia forensic logging sy
 - Fallback spool root: `~/.codex/forensics-spool`
 - Staged runs are stored under `runs/<run-id>/` in the spool.
 - Session-local hook capture metadata is stored under `sessions/<session-id>/`.
+- Session capture uses a standard-library file lock for turn allocation, raw event append, package staging, and metadata transitions.
 
 ## Publication flow
 
 1. Capture or build a local run record.
-2. Sanitize the record and construct `AI_FORENSICS_V1` package files.
-3. Stage the package in the local spool.
+2. Sanitize the full package surface and construct `AI_FORENSICS_V1` package files.
+3. Stage the package atomically in the local spool.
 4. Publish through an isolated temporary Git repository using `origin/forensics/ai-runs`.
 5. Verify remote readback for every expected file.
-6. Add one Issue `#224` comment beginning with `<!-- AI_FORENSICS_RUN_V1 -->`.
+6. Persist `PACKAGE_UPLOADED_COMMENT_PENDING`.
+7. Add one Issue `#224` comment beginning with `<!-- AI_FORENSICS_RUN_V1 -->`.
+8. Persist `UPLOAD_COMPLETE_INDEXED`.
+
+If the package push succeeds but the Issue comment fails, retry verifies the
+existing remote package and posts only the missing comment.
 
 ## Trust review
 

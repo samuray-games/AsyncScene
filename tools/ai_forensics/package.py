@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from . import schema
+from .redact import scan_text_for_private_content
 
 
 @dataclass(frozen=True)
@@ -59,7 +60,7 @@ def build_package_files(
     add_json("manifest.json", manifest)
 
     events_text = "".join(
-        schema.deterministic_json_dumps(event) for event in events
+        schema.compact_json_dumps(event) + "\n" for event in events
     )
     events_text, truncated = truncate_text("events.jsonl", events_text)
     files["events.jsonl"] = events_text.encode("utf-8")
@@ -79,7 +80,21 @@ def build_package_files(
 
     for path, payload in extras.items():
         if isinstance(payload, bytes):
-            content = payload
+            try:
+                decoded = payload.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise ValueError(f"binary or non-UTF-8 extra rejected: {path}") from exc
+            trimmed, extra_truncation = truncate_text(path, decoded)
+            content = trimmed.encode("utf-8")
+            if extra_truncation is not None:
+                truncations.append(
+                    {
+                        "path": extra_truncation.path,
+                        "originalBytes": extra_truncation.original_bytes,
+                        "publishedBytes": extra_truncation.published_bytes,
+                        "sha256": extra_truncation.sha256,
+                    }
+                )
         elif isinstance(payload, str):
             trimmed, extra_truncation = truncate_text(path, payload)
             content = trimmed.encode("utf-8")
@@ -117,6 +132,24 @@ def build_package_files(
     files["checksums.json"] = schema.deterministic_json_dumps(checksums).encode("utf-8")
 
     errors = schema.ensure_package_files(files)
+    for path, content in files.items():
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            errors.append(f"non-UTF-8 package file: {path}")
+            continue
+        findings = scan_text_for_private_content(text)
+        if findings:
+            errors.append(f"private content scan failed for {path}: {findings}")
+    for line_number, line in enumerate(files.get("events.jsonl", b"").decode("utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            import json
+
+            json.loads(line)
+        except json.JSONDecodeError as exc:
+            errors.append(f"events.jsonl line {line_number} is invalid JSON: {exc}")
     if errors:
         raise ValueError("; ".join(errors))
     return files, truncations
