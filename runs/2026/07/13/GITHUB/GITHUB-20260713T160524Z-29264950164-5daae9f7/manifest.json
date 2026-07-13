@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/ai-forensics-autolog-20260712",
+  "createdAtJst": "2026-07-14 01:05:24 JST",
+  "createdAtUtc": "2026-07-13T16:05:24Z",
+  "packagePath": "runs/2026/07/13/GITHUB/GITHUB-20260713T160524Z-29264950164-5daae9f7",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260713T160524Z-29264950164-5daae9f7",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
