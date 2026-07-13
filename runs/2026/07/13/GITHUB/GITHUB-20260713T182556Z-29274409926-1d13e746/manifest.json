@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/remove-retired-directive-20260714",
+  "createdAtJst": "2026-07-14 03:25:56 JST",
+  "createdAtUtc": "2026-07-13T18:25:56Z",
+  "packagePath": "runs/2026/07/13/GITHUB/GITHUB-20260713T182556Z-29274409926-1d13e746",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260713T182556Z-29274409926-1d13e746",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
