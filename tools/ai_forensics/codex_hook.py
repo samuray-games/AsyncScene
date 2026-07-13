@@ -101,6 +101,7 @@ def _load_or_init_session(spool_root: Path, session_id: str) -> dict[str, Any]:
         "sessionId": session_id,
         "sessionRunId": run_id,
         "turnSequence": 0,
+        "nextEventIndex": 0,
         "createdAtUtc": schema.utc_now_iso(),
     }
     session_root.mkdir(parents=True, exist_ok=True)
@@ -153,11 +154,28 @@ def _launch_detached_publisher(repo_root: Path) -> None:
     )
 
 
-def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_root: Path) -> Path:
+def _stage_completed_turn(
+    spool_root: Path,
+    session_meta: dict[str, Any],
+    repo_root: Path,
+    stop_event: dict[str, Any],
+) -> tuple[Path, int]:
     session_root = _session_root(spool_root, session_meta["sessionId"])
     events_path = session_root / "events.raw.jsonl"
-    events, malformed_lines = _load_valid_events(events_path)
-    sanitized_events, replacements, reasons, blocked = sanitize_json_compatible(events)
+    all_events, malformed_lines = _load_valid_events(events_path)
+    start_index = int(session_meta.get("nextEventIndex", 0))
+    if start_index < 0 or start_index > len(all_events):
+        raise RuntimeError(f"invalid nextEventIndex {start_index} for session {session_meta['sessionId']}")
+    turn_events = all_events[start_index:]
+    if not turn_events:
+        raise RuntimeError("no turn events captured for completed Stop")
+    current_stop = turn_events[-1]
+    if current_stop.get("event") != "Stop":
+        raise RuntimeError("completed turn does not end with Stop")
+    if stop_event.get("observedAtUtc") and current_stop.get("observedAtUtc") != stop_event.get("observedAtUtc"):
+        raise RuntimeError("completed turn Stop does not match current Stop event")
+
+    sanitized_events, replacements, reasons, blocked = sanitize_json_compatible(turn_events)
     turn_slug = session_meta["activeTurnSlug"]
     run_id = schema.generate_run_id("CODEX", f"{session_meta['sessionId']}-{turn_slug}")
     if blocked:
@@ -169,7 +187,7 @@ def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_r
             branch="HEAD",
             task_id=None,
         )
-        return stage_run_package(
+        run_dir = stage_run_package(
             manifest=manifest,
             events=[],
             summary={"blocked": True, "reason": "redaction fail"},
@@ -177,6 +195,7 @@ def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_r
             redaction_report={"blocked": True, "replacements": replacements, "reasons": reasons},
             spool_root=spool_root,
         )
+        return run_dir, len(all_events)
 
     manifest = schema.build_manifest(
         actor="CODEX",
@@ -193,18 +212,24 @@ def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_r
         "turnSlug": turn_slug,
         "turnSequence": session_meta.get("turnSequence"),
         "finalEvent": sanitized_events[-1]["event"] if sanitized_events else "NONE",
+        "sessionEventStartIndex": start_index,
+        "sessionEventEndIndex": len(all_events),
+        "sessionEventWindow": f"{start_index}:{len(all_events)}",
         "malformedEventLines": malformed_lines,
     }
     extras: dict[str, Any] = {}
-    stop_event = next((event for event in sanitized_events if event["event"] == "Stop"), None)
-    if stop_event and stop_event.get("finalAssistantMessage"):
-        final_message = sanitize_text(str(stop_event["finalAssistantMessage"]))
+    sanitized_stop = sanitized_events[-1] if sanitized_events and sanitized_events[-1].get("event") == "Stop" else None
+    if sanitized_stop and sanitized_stop.get("finalAssistantMessage"):
+        final_message = sanitize_text(str(sanitized_stop["finalAssistantMessage"]))
         extras["final-response.txt"] = final_message.text
-    transcript_path = next((event.get("transcriptPath") for event in sanitized_events if event.get("transcriptPath")), None)
+    transcript_path = next(
+        (event.get("transcriptPath") for event in reversed(sanitized_events) if event.get("transcriptPath")),
+        None,
+    )
     if transcript_path:
         transcript = sanitize_text(str(transcript_path))
         extras["transcript-pointer.txt"] = transcript.text
-    return stage_run_package(
+    run_dir = stage_run_package(
         manifest=manifest,
         events=sanitized_events,
         summary=summary,
@@ -213,6 +238,7 @@ def _stage_completed_turn(spool_root: Path, session_meta: dict[str, Any], repo_r
         extras=extras,
         spool_root=spool_root,
     )
+    return run_dir, len(all_events)
 
 
 def capture_event(
@@ -237,9 +263,17 @@ def capture_event(
             normalized["turnSlug"] = turn_slug
         _append_event(session_root / "events.raw.jsonl", normalized)
         if event_name == "Stop":
-            run_dir = _stage_completed_turn(spool_root, session_meta, repo_root)
+            previous_event_index = int(session_meta.get("nextEventIndex", 0))
+            run_dir, next_event_index = _stage_completed_turn(spool_root, session_meta, repo_root, normalized)
+            session_meta["nextEventIndex"] = next_event_index
             completed = session_meta.setdefault("completedTurns", [])
-            completed.append({"turnSlug": session_meta["activeTurnSlug"], "runDir": str(run_dir)})
+            completed.append(
+                {
+                    "turnSlug": session_meta["activeTurnSlug"],
+                    "runDir": str(run_dir),
+                    "eventWindow": f"{previous_event_index}:{next_event_index}",
+                }
+            )
             session_meta.pop("activeTurnSlug", None)
         _save_session(spool_root, normalized["sessionId"], session_meta)
 

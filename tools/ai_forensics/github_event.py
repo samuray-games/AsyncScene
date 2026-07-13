@@ -25,18 +25,67 @@ else:
 SUPPORTED_EVENTS = {"push", "pull_request", "issues", "issue_comment", "workflow_dispatch"}
 
 
-def build_record(event_name: str, payload: dict[str, Any], env: dict[str, str]) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+def _valid_sha(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    candidate = value.strip()
+    if len(candidate) == 40 and all(char in "0123456789abcdefABCDEF" for char in candidate):
+        return candidate.lower()
+    return None
+
+
+def _approved_task_id(payload: dict[str, Any]) -> str | None:
+    direct = payload.get("task_id") or payload.get("taskId")
+    if isinstance(direct, str) and direct.strip():
+        return direct.strip()
+    inputs = payload.get("inputs")
+    if isinstance(inputs, dict):
+        for key in ("task_id", "taskId", "task"):
+            value = inputs.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return None
+
+
+def _github_sha_metadata(event_name: str, payload: dict[str, Any], env: dict[str, str]) -> dict[str, Any]:
+    checkout_sha = _valid_sha(env.get("GITHUB_SHA"))
+    if event_name == "push":
+        source_sha = _valid_sha(payload.get("before")) or checkout_sha
+        result_sha = _valid_sha(payload.get("after")) or checkout_sha
+        return {
+            "sourceSha": source_sha,
+            "sourceShaSemantics": "push.before" if _valid_sha(payload.get("before")) else ("checked_out_head_fallback" if source_sha else None),
+            "resultSha": result_sha,
+            "resultShaSemantics": "push.after" if _valid_sha(payload.get("after")) else ("checked_out_head_fallback" if result_sha else None),
+            "sourceBranch": env.get("GITHUB_REF_NAME") or env.get("GITHUB_REF", "UNKNOWN"),
+        }
+    semantics = "checked_out_head" if checkout_sha else None
+    return {
+        "sourceSha": checkout_sha,
+        "sourceShaSemantics": semantics,
+        "resultSha": checkout_sha,
+        "resultShaSemantics": semantics,
+        "sourceBranch": env.get("GITHUB_REF_NAME") or env.get("GITHUB_REF", "UNKNOWN"),
+    }
+
+
+def build_record(
+    event_name: str,
+    payload: dict[str, Any],
+    env: dict[str, str],
+) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any], dict[str, Any], dict[str, Any]]:
     if event_name not in SUPPORTED_EVENTS:
         raise ValueError(f"unsupported event: {event_name}")
     repository = env.get("GITHUB_REPOSITORY", "samuray-games/AsyncScene")
     run_id = schema.generate_run_id("GITHUB", env.get("GITHUB_RUN_ID", event_name))
+    sha_metadata = _github_sha_metadata(event_name, payload, env)
     manifest = schema.build_manifest(
         actor="GITHUB",
         run_id=run_id,
         status="UPLOAD_PENDING",
         repository=repository,
         branch=env.get("GITHUB_REF_NAME") or env.get("GITHUB_REF", "UNKNOWN"),
-        task_id=payload.get("task_id"),
+        task_id=_approved_task_id(payload),
     )
     events = [
         {
@@ -51,6 +100,10 @@ def build_record(event_name: str, payload: dict[str, Any], env: dict[str, str]) 
         "repository": repository,
         "workflow": env.get("GITHUB_WORKFLOW"),
         "runId": env.get("GITHUB_RUN_ID"),
+        "sourceSha": sha_metadata.get("sourceSha"),
+        "sourceShaSemantics": sha_metadata.get("sourceShaSemantics"),
+        "resultSha": sha_metadata.get("resultSha"),
+        "resultShaSemantics": sha_metadata.get("resultShaSemantics"),
     }
     sanitized_payload, replacements, reasons, blocked = sanitize_json_compatible(payload)
     redaction_report = {
@@ -58,7 +111,7 @@ def build_record(event_name: str, payload: dict[str, Any], env: dict[str, str]) 
         "replacements": replacements,
         "reasons": reasons,
     }
-    return manifest, events, summary, {"payload": sanitized_payload, "redactionReport": redaction_report}
+    return manifest, events, summary, {"payload": sanitized_payload, "redactionReport": redaction_report}, sha_metadata
 
 
 def run_self_test() -> int:
@@ -66,13 +119,14 @@ def run_self_test() -> int:
         root = Path(directory)
         repo_root = root / "repo"
         repo_root.mkdir()
-        manifest, events, summary, extras = build_record(
+        manifest, events, summary, extras, metadata_updates = build_record(
             "workflow_dispatch",
             {"inputs": {"task": "self-test"}},
             {
                 "GITHUB_REPOSITORY": "samuray-games/AsyncScene",
                 "GITHUB_REF_NAME": "main",
                 "GITHUB_RUN_ID": "1234",
+                "GITHUB_SHA": "0123456789abcdef0123456789abcdef01234567",
             },
         )
         run_dir = stage_run_package(
@@ -83,6 +137,7 @@ def run_self_test() -> int:
             redaction_report=extras["redactionReport"],
             extras={"event.json": extras["payload"]},
             spool_root=root / "spool",
+            metadata_updates=metadata_updates,
         )
         metadata = publish_staged_run(run_dir, repo_root=repo_root, dry_run=True)
         if metadata.get("dryRun") is not True:
@@ -110,7 +165,7 @@ def main() -> int:
         return 2
 
     payload = json.loads(Path(event_path).read_text(encoding="utf-8"))
-    manifest, events, summary, extras = build_record(event_name, payload, dict(os.environ))
+    manifest, events, summary, extras, metadata_updates = build_record(event_name, payload, dict(os.environ))
     run_dir = stage_run_package(
         manifest=manifest,
         events=events,
@@ -118,6 +173,7 @@ def main() -> int:
         git_evidence=collect_git_evidence(args.repo, refs=["origin/main"]),
         redaction_report=extras["redactionReport"],
         extras={"event.json": extras["payload"]},
+        metadata_updates=metadata_updates,
     )
     metadata = publish_staged_run(run_dir, repo_root=Path(args.repo).resolve(), dry_run=args.dry_run)
     print(schema.deterministic_json_dumps(metadata))

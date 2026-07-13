@@ -7,10 +7,12 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 from tools.ai_forensics import schema
 from tools.ai_forensics import codex_hook
+from tools.ai_forensics import github_event
 from tools.ai_forensics import publish
 from tools.ai_forensics.codex_hook import capture_event, normalize_hook_event
 from tools.ai_forensics.git_evidence import strip_remote_credentials
@@ -153,6 +155,59 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(len(lines), 2)
         self.assertEqual([json.loads(line)["event"] for line in lines], ["A", "B"])
 
+    def test_over_limit_jsonl_remains_line_valid_and_bounded(self) -> None:
+        manifest = schema.build_manifest(
+            actor="CODEX",
+            run_id=schema.generate_run_id("CODEX", "jsonl-bounded"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="infra/test",
+            task_id="TASK-1",
+        )
+        huge_event = {"event": "Stop", "payload": "x" * (schema.MAX_TEXT_FILE_BYTES + 1024)}
+        repeated_event = {"event": "Tool", "payload": "y" * 1_100_000}
+        files, truncations = build_package_files(
+            manifest=manifest,
+            events=[huge_event, repeated_event, repeated_event],
+            summary={"status": "ok"},
+            git_evidence={"branch": "HEAD"},
+            redaction_report={"blocked": False, "replacements": []},
+        )
+        self.assertLessEqual(len(files["events.jsonl"]), schema.MAX_TEXT_FILE_BYTES)
+        lines = files["events.jsonl"].decode("utf-8").splitlines()
+        parsed = [json.loads(line) for line in lines]
+        self.assertTrue(parsed[0]["truncated"])
+        self.assertEqual(parsed[0]["kind"], "oversize-event")
+        self.assertEqual(parsed[-1]["kind"], "omitted-events-tail")
+        self.assertTrue(any(item["path"] == "events.jsonl" for item in truncations))
+
+    def test_over_limit_json_payloads_remain_valid_json_and_bounded(self) -> None:
+        manifest = schema.build_manifest(
+            actor="CODEX",
+            run_id=schema.generate_run_id("CODEX", "json-bounded"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="infra/test",
+            task_id="TASK-1",
+        )
+        files, truncations = build_package_files(
+            manifest=manifest,
+            events=[{"event": "Stop"}],
+            summary={"blob": "s" * (schema.MAX_TEXT_FILE_BYTES + 4096)},
+            git_evidence={"blob": "g" * (schema.MAX_TEXT_FILE_BYTES + 4096)},
+            redaction_report={"blocked": False, "replacements": []},
+            extras={"event.json": {"blob": "e" * (schema.MAX_TEXT_FILE_BYTES + 4096)}},
+        )
+        for path in ("summary.json", "git-evidence.json", "event.json"):
+            self.assertLessEqual(len(files[path]), schema.MAX_TEXT_FILE_BYTES)
+            payload = json.loads(files[path].decode("utf-8"))
+            self.assertTrue(payload["truncated"])
+            self.assertEqual(payload["path"], path)
+        truncated_paths = {item["path"] for item in truncations}
+        self.assertIn("summary.json", truncated_paths)
+        self.assertIn("git-evidence.json", truncated_paths)
+        self.assertIn("event.json", truncated_paths)
+
     def test_home_paths_removed_from_whole_package(self) -> None:
         manifest = schema.build_manifest(
             actor="CODEX",
@@ -175,6 +230,31 @@ class PackageTests(unittest.TestCase):
             for path in (run_dir / "package").rglob("*"):
                 if path.is_file():
                     self.assertNotIn("/Users/User", path.read_text(encoding="utf-8"))
+
+    def test_final_scan_secret_fixture_creates_blocked_metadata_without_package(self) -> None:
+        manifest = schema.build_manifest(
+            actor="CODEX",
+            run_id=schema.generate_run_id("CODEX", "final-scan"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="infra/test",
+            task_id="TASK-1",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = stage_run_package(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD"},
+                redaction_report={"blocked": False, "replacements": []},
+                extras={"final-response.txt": "-----END PRIVATE KEY-----"},
+                spool_root=Path(directory),
+            )
+            metadata = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["state"], "UPLOAD_BLOCKED_REDACTION_FAIL")
+            self.assertEqual(metadata["redactionStatus"], "BLOCKED_FINAL_SCAN")
+            self.assertIn("private content scan failed", metadata["failure"])
+            self.assertFalse((run_dir / "package").exists())
 
     def test_byte_extras_must_be_utf8(self) -> None:
         manifest = schema.build_manifest(
@@ -226,12 +306,86 @@ class HookTests(unittest.TestCase):
             repo_root.mkdir()
             spool_root = root / "spool"
             capture_event("SessionStart", {"session_id": "s1", "cwd": str(repo_root)}, repo_root, spool_root, launch_publisher=False)
-            first = capture_event("Stop", {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "one"}, repo_root, spool_root, launch_publisher=False)
-            second = capture_event("Stop", {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "two"}, repo_root, spool_root, launch_publisher=False)
+            capture_event(
+                "PostToolUse",
+                {"session_id": "s1", "cwd": str(repo_root), "tool_name": "marker-one"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            first = capture_event(
+                "Stop",
+                {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "one"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            capture_event(
+                "PostToolUse",
+                {"session_id": "s1", "cwd": str(repo_root), "tool_name": "marker-two"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            second = capture_event(
+                "Stop",
+                {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "two"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
             self.assertNotEqual(first["runDir"], second["runDir"])
             first_manifest = json.loads((Path(first["runDir"]) / "package" / "manifest.json").read_text(encoding="utf-8"))
             second_manifest = json.loads((Path(second["runDir"]) / "package" / "manifest.json").read_text(encoding="utf-8"))
             self.assertNotEqual(first_manifest["packagePath"], second_manifest["packagePath"])
+            first_final = (Path(first["runDir"]) / "package" / "final-response.txt").read_text(encoding="utf-8")
+            second_final = (Path(second["runDir"]) / "package" / "final-response.txt").read_text(encoding="utf-8")
+            self.assertEqual(first_final, "one")
+            self.assertEqual(second_final, "two")
+            first_events = (Path(first["runDir"]) / "package" / "events.jsonl").read_text(encoding="utf-8")
+            second_events = (Path(second["runDir"]) / "package" / "events.jsonl").read_text(encoding="utf-8")
+            self.assertIn("marker-one", first_events)
+            self.assertNotIn("marker-two", first_events)
+            self.assertIn("marker-two", second_events)
+            self.assertNotIn("marker-one", second_events)
+            self.assertNotIn('"finalAssistantMessage":"one"', second_events)
+
+    def test_event_boundaries_survive_restart_between_turns(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            spool_root = root / "spool"
+            capture_event("SessionStart", {"session_id": "s1", "cwd": str(repo_root)}, repo_root, spool_root, launch_publisher=False)
+            first = capture_event(
+                "Stop",
+                {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "one"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            session_json = json.loads((spool_root / "sessions" / "s1" / "session.json").read_text(encoding="utf-8"))
+            self.assertEqual(session_json["nextEventIndex"], 2)
+
+            capture_event(
+                "PostToolUse",
+                {"session_id": "s1", "cwd": str(repo_root), "tool_name": "marker-after-restart"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            second = capture_event(
+                "Stop",
+                {"session_id": "s1", "cwd": str(repo_root), "last_assistant_message": "two"},
+                repo_root,
+                spool_root,
+                launch_publisher=False,
+            )
+            first_summary = json.loads((Path(first["runDir"]) / "package" / "summary.json").read_text(encoding="utf-8"))
+            second_summary = json.loads((Path(second["runDir"]) / "package" / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(first_summary["sessionEventWindow"], "0:2")
+            self.assertEqual(second_summary["sessionEventWindow"], "2:4")
+            self.assertEqual(second_summary["turnSequence"], 2)
 
     def test_stop_stages_before_publisher_launch(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -367,6 +521,89 @@ class PublishTests(unittest.TestCase):
             self.assertEqual(retry["state"], "UPLOAD_COMPLETE_INDEXED")
             self.assertEqual(retry["commentId"], 123)
 
+    def test_concurrent_publishers_converge_on_one_commit_and_comment(self) -> None:
+        manifest = schema.build_manifest(
+            actor="WORK",
+            run_id=schema.generate_run_id("WORK", "concurrent"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="forensics/ai-runs",
+            task_id="TASK-1",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            run_dir = stage_run_package(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD", "head": "a" * 40},
+                redaction_report={"blocked": False, "replacements": []},
+                spool_root=root / "spool",
+            )
+            results: list[dict[str, Any]] = []
+            with (
+                mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
+                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(publish, "_remote_package_commit_if_identical", return_value=None),
+                mock.patch.object(publish, "_copy_package"),
+                mock.patch.object(publish, "_commit_package", return_value="commit-one") as mocked_commit,
+                mock.patch.object(publish, "_push_package", return_value=(True, "")),
+                mock.patch.object(publish, "_verify_remote_package"),
+                mock.patch.object(publish, "_find_existing_index_comment", return_value=(None, None)),
+                mock.patch.object(publish, "_post_issue_comment", return_value=(123, "https://example.invalid/comment/123")) as mocked_comment,
+            ):
+                threads = [
+                    threading.Thread(target=lambda: results.append(publish_staged_run(run_dir, repo_root=repo_root))),
+                    threading.Thread(target=lambda: results.append(publish_staged_run(run_dir, repo_root=repo_root))),
+                ]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+            self.assertEqual(mocked_commit.call_count, 1)
+            self.assertEqual(mocked_comment.call_count, 1)
+            self.assertEqual(len(results), 2)
+            self.assertTrue(all(result["state"] == "UPLOAD_COMPLETE_INDEXED" for result in results))
+
+    def test_remote_identical_package_is_recovered_without_commit(self) -> None:
+        manifest = schema.build_manifest(
+            actor="WORK",
+            run_id=schema.generate_run_id("WORK", "recovered"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="forensics/ai-runs",
+            task_id="TASK-1",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            run_dir = stage_run_package(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD", "head": "b" * 40},
+                redaction_report={"blocked": False, "replacements": []},
+                spool_root=root / "spool",
+            )
+            with (
+                mock.patch.object(publish, "_origin_url", return_value="https://github.com/samuray-games/AsyncScene.git"),
+                mock.patch.object(publish, "_prepare_publication_repo", side_effect=lambda temp, _origin, _branch: temp),
+                mock.patch.object(publish, "_remote_package_commit_if_identical", return_value="existing-commit") as mocked_remote,
+                mock.patch.object(publish, "_commit_package") as mocked_commit,
+                mock.patch.object(publish, "_verify_remote_package"),
+                mock.patch.object(publish, "_find_existing_index_comment", return_value=(None, None)),
+                mock.patch.object(publish, "_post_issue_comment", return_value=(123, "https://example.invalid/comment/123")),
+            ):
+                metadata = publish_staged_run(run_dir, repo_root=repo_root)
+            mocked_commit.assert_not_called()
+            self.assertTrue(mocked_remote.called)
+            self.assertEqual(metadata["packageCommit"], "existing-commit")
+            self.assertEqual(metadata["commentId"], 123)
+            self.assertIn("existing remote package verified", metadata["observedResult"])
+
     def test_actions_auth_setup_does_not_print_or_store_raw_token(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)
@@ -403,6 +640,65 @@ class PublishTests(unittest.TestCase):
         self.assertIn("sourceSha: before-sha", body)
         self.assertIn("resultSha: after-sha", body)
         self.assertIn("observedResult: remote package verified", body)
+
+    def test_github_push_record_populates_source_and_result_sha(self) -> None:
+        manifest, events, summary, extras, metadata_updates = github_event.build_record(
+            "push",
+            {
+                "before": "1111111111111111111111111111111111111111",
+                "after": "2222222222222222222222222222222222222222",
+                "inputs": {"task_id": "TASK-1"},
+            },
+            {
+                "GITHUB_REPOSITORY": "samuray-games/AsyncScene",
+                "GITHUB_REF_NAME": "infra/ai-forensics-autolog-20260712",
+                "GITHUB_RUN_ID": "42",
+                "GITHUB_SHA": "3333333333333333333333333333333333333333",
+            },
+        )
+        self.assertEqual(events[0]["event"], "push")
+        self.assertEqual(summary["sourceSha"], "1111111111111111111111111111111111111111")
+        self.assertEqual(summary["resultSha"], "2222222222222222222222222222222222222222")
+        self.assertEqual(metadata_updates["sourceShaSemantics"], "push.before")
+        self.assertEqual(metadata_updates["resultShaSemantics"], "push.after")
+        self.assertEqual(manifest["taskId"], "TASK-1")
+        self.assertIn("payload", extras)
+
+    def test_flush_pending_preserves_comment_pending_after_comment_failure(self) -> None:
+        manifest = schema.build_manifest(
+            actor="WORK",
+            run_id=schema.generate_run_id("WORK", "pending"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="forensics/ai-runs",
+            task_id="TASK-1",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo_root = root / "repo"
+            repo_root.mkdir()
+            run_dir = stage_run_package(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD"},
+                redaction_report={"blocked": False, "replacements": []},
+                spool_root=root / "spool",
+            )
+            with mock.patch.object(
+                publish,
+                "publish_staged_run",
+                side_effect=RuntimeError("comment failed"),
+            ):
+                metadata_path = run_dir / "metadata.json"
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                metadata["packageCommit"] = "commit-one"
+                metadata["state"] = "PACKAGE_UPLOADED_COMMENT_PENDING"
+                metadata["manifest"]["status"] = "PACKAGE_UPLOADED_COMMENT_PENDING"
+                metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+                results = flush_pending(repo_root=repo_root, spool_root=root / "spool")
+            self.assertEqual(results[0]["state"], "PACKAGE_UPLOADED_COMMENT_PENDING")
+            self.assertEqual(results[0]["failure"], "comment failed")
 
     def test_marker_strings_are_stable(self) -> None:
         self.assertEqual(schema.RUN_INDEX_MARKER, "<!-- AI_FORENSICS_RUN_V1 -->")
