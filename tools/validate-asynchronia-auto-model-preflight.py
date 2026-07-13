@@ -40,6 +40,8 @@ class ResumeAttempt:
 class PreflightContract:
     THREAD = "BRIDGE-20260711-087"
     TASK = "TASK-ASYNCHRONIA-PREFLIGHT-RESIDUAL-SYNC"
+    SURFACE = "codex-desktop"
+    LAUNCH = "sha256:launch-and-inventory-snapshot"
     SCOPE = (
         "AGENTS.md",
         "plugins/asynchronia/skills/model-selector/SKILL.md",
@@ -57,8 +59,28 @@ class PreflightContract:
             raise ValueError("invalid discovery transition")
         self.state = "MODEL_INVENTORY_DISCOVERY"
 
-    def verify_inventory(self) -> None:
+    def record_app_server_catalog_evidence(self) -> None:
         if self.state != "MODEL_INVENTORY_DISCOVERY":
+            raise ValueError("invalid app-server catalog transition")
+        self.state = "APP_SERVER_CATALOG_EVIDENCE_RECORDED"
+
+    def require_reconciliation(self) -> None:
+        if self.state != "APP_SERVER_CATALOG_EVIDENCE_RECORDED":
+            raise ValueError("invalid reconciliation transition")
+        self.state = "MODEL_INVENTORY_RECONCILIATION_REQUIRED"
+
+    def require_ui_inventory(self) -> None:
+        if self.state != "MODEL_INVENTORY_RECONCILIATION_REQUIRED":
+            raise ValueError("invalid UI request transition")
+        self.state = "USER_UI_INVENTORY_REQUIRED"
+
+    def receive_ui_inventory(self) -> None:
+        if self.state != "USER_UI_INVENTORY_REQUIRED":
+            raise ValueError("invalid UI receipt transition")
+        self.state = "USER_UI_INVENTORY_RECEIVED"
+
+    def verify_inventory(self) -> None:
+        if self.state != "USER_UI_INVENTORY_RECEIVED":
             raise ValueError("invalid inventory transition")
         self.state = "MODEL_INVENTORY_VERIFIED"
 
@@ -113,6 +135,8 @@ class Candidate:
 class UiInventory:
     thread: str
     surface: str
+    task: str
+    launch: str
     current: bool
     complete: bool
     models: tuple[tuple[str, tuple[str, ...]], ...]
@@ -160,8 +184,22 @@ def adjacent_pairs(candidates: list[Candidate]) -> set[tuple[str, str, str]]:
     return result
 
 
-def build_ui_candidates(inventory: UiInventory, *, expected_thread: str, expected_surface: str) -> list[Candidate]:
-    if inventory.thread != expected_thread or inventory.surface != expected_surface or not inventory.current or not inventory.complete:
+def build_ui_candidates(
+    inventory: UiInventory,
+    *,
+    expected_thread: str,
+    expected_surface: str,
+    expected_task: str,
+    expected_launch: str,
+) -> list[Candidate]:
+    if (
+        inventory.thread != expected_thread
+        or inventory.surface != expected_surface
+        or inventory.task != expected_task
+        or inventory.launch != expected_launch
+        or not inventory.current
+        or not inventory.complete
+    ):
         raise ValueError("stale or incomplete UI inventory")
     result: list[Candidate] = []
     seen: set[tuple[str, str]] = set()
@@ -202,13 +240,23 @@ def reconcile_inventory(
     ui_inventory: UiInventory | None,
     expected_thread: str,
     expected_surface: str,
+    expected_task: str,
+    expected_launch: str,
 ) -> ReconciliationResult:
+    if app_server_inventory is None and not app_server_error:
+        return ReconciliationResult("BLOCKED_MODEL_INVENTORY_UNAVAILABLE", "app-server-evidence-missing")
     if ui_inventory is None:
         if app_server_error:
             return ReconciliationResult("BLOCKED_MODEL_INVENTORY_UNAVAILABLE", "app-server-error")
         return ReconciliationResult("BLOCKED_MODEL_INVENTORY_MISMATCH", "ui-inventory-required")
     try:
-        ui_candidates = build_ui_candidates(ui_inventory, expected_thread=expected_thread, expected_surface=expected_surface)
+        ui_candidates = build_ui_candidates(
+            ui_inventory,
+            expected_thread=expected_thread,
+            expected_surface=expected_surface,
+            expected_task=expected_task,
+            expected_launch=expected_launch,
+        )
     except ValueError:
         return ReconciliationResult("BLOCKED_MODEL_INVENTORY_MISMATCH", "stale-or-incomplete-ui-inventory")
     if app_server_error:
@@ -336,38 +384,60 @@ def validate_matrix_fixture(failures: list[str]) -> None:
 def validate_reconciliation_fixtures(failures: list[str]) -> None:
     thread = "thread-current"
     surface = "codex-desktop"
+    task = "task-current"
+    launch = "launch-current"
     app = [
         {"id": "ui-model-a", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "Light"}, {"reasoningEffort": "High"}]},
         {"id": "ui-model-b", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "Light"}, {"reasoningEffort": "Ultra"}]},
     ]
-    matching_ui = UiInventory(thread, surface, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra"))))
-    subset_ui = UiInventory(thread, surface, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra")), ("ui-model-c", ("Light", "Ultra"))))
+    matching_ui = UiInventory(thread, surface, task, launch, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra"))))
+    subset_ui = UiInventory(thread, surface, task, launch, True, True, (("ui-model-a", ("Light", "High")), ("ui-model-b", ("Light", "Ultra")), ("ui-model-c", ("Light", "Ultra"))))
     superset_app = app + [{"id": "server-only", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "High"}]}]
-    stale_ui = UiInventory("other-thread", surface, True, True, (("ui-model-a", ("Light", "High")),))
+    stale_ui = UiInventory(thread, surface, task, launch, False, True, (("ui-model-a", ("Light", "High")),))
+    incomplete_ui = UiInventory(thread, surface, task, launch, True, False, (("ui-model-a", ("Light", "High")),))
+    cross_thread_ui = UiInventory("other-thread", surface, task, launch, True, True, (("ui-model-a", ("Light", "High")),))
+    cross_task_ui = UiInventory(thread, surface, "other-task", launch, True, True, (("ui-model-a", ("Light", "High")),))
+    wrong_launch_ui = UiInventory(thread, surface, task, "other-launch", True, True, (("ui-model-a", ("Light", "High")),))
     for name, result, expected_source, expected_count in (
-        ("matching", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "matched-app-server-and-ui", 4),
-        ("app_subset", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=subset_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-reconciled-mismatch", 6),
-        ("app_superset", reconcile_inventory(app_server_inventory=superset_app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-reconciled-mismatch", 4),
-        ("cache_error", reconcile_inventory(app_server_inventory=None, app_server_error="unknown variant max", ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface), "user-confirmed-ui-after-app-server-error", 4),
+        ("matching", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch), "matched-app-server-and-ui", 4),
+        ("app_subset", reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=subset_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch), "user-confirmed-ui-reconciled-mismatch", 6),
+        ("app_superset", reconcile_inventory(app_server_inventory=superset_app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch), "user-confirmed-ui-reconciled-mismatch", 4),
+        ("cache_error", reconcile_inventory(app_server_inventory=None, app_server_error="unknown variant max", ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch), "user-confirmed-ui-after-app-server-error", 4),
     ):
         require(result.status == "MODEL_INVENTORY_VERIFIED", f"{name} did not verify inventory", failures)
         require(result.source == expected_source, f"{name} source mismatch", failures)
         require(len(result.candidates) == expected_count, f"{name} candidate count mismatch", failures)
-    blocked = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=None, expected_thread=thread, expected_surface=surface)
+    blocked = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=None, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
     require(blocked.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "mismatch without UI inventory did not block", failures)
-    stale = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=stale_ui, expected_thread=thread, expected_surface=surface)
+    missing_app_server = reconcile_inventory(app_server_inventory=None, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
+    require(missing_app_server.status == "BLOCKED_MODEL_INVENTORY_UNAVAILABLE", "UI inventory without app-server evidence accepted", failures)
+    cross_thread = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=cross_thread_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
+    require(cross_thread.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "cross-thread UI inventory accepted", failures)
+    cross_task = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=cross_task_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
+    require(cross_task.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "cross-task UI inventory accepted", failures)
+    wrong_launch = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=wrong_launch_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
+    require(wrong_launch.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "wrong-launch UI inventory accepted", failures)
+    incomplete = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=incomplete_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
+    require(incomplete.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "incomplete UI inventory accepted", failures)
+    stale = reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=stale_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch)
     require(stale.status == "BLOCKED_MODEL_INVENTORY_MISMATCH", "stale cross-thread UI inventory accepted", failures)
-    labels = [candidate.effort for candidate in reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface).candidates]
+    labels = [candidate.effort for candidate in reconcile_inventory(app_server_inventory=app, app_server_error=None, ui_inventory=matching_ui, expected_thread=thread, expected_surface=surface, expected_task=task, expected_launch=launch).candidates]
     require("Light" in labels and "High" in labels and "low" not in labels and "xhigh" not in labels, "UI labels were not preserved exactly", failures)
 
 
 def validate_state_machine(failures: list[str]) -> None:
     contract = PreflightContract()
-    contract.discover(); contract.verify_inventory(); contract.analyze(); contract.pause()
+    contract.discover(); contract.record_app_server_catalog_evidence(); contract.require_reconciliation(); contract.require_ui_inventory(); contract.receive_ui_inventory(); contract.verify_inventory(); contract.analyze(); contract.pause()
     valid = ResumeAttempt(contract.THREAD, "  CONTINUE  ", contract.TASK, contract.SCOPE, contract.BASELINE, contract.CLAIM, contract.INVENTORY_HASH, authority_verified=True)
     status, allowed, repeated = contract.resume(valid)
     require((status, allowed, repeated) == ("IMPLEMENTATION_ALLOWED", True, False), "valid continuation rejected", failures)
     contract.mutate()
+    direct = PreflightContract(); direct.discover()
+    try:
+        direct.verify_inventory()
+        failures.append("direct discovery-to-verified transition accepted")
+    except ValueError:
+        pass
     variants = {
         "wrong_thread": {"thread": "other"},
         "wrong_task": {"task": "other"},
@@ -383,7 +453,7 @@ def validate_state_machine(failures: list[str]) -> None:
     }
     for name, changes in variants.items():
         data = dict(valid.__dict__); data.update(changes)
-        test = PreflightContract(); test.discover(); test.verify_inventory(); test.analyze(); test.pause()
+        test = PreflightContract(); test.discover(); test.record_app_server_catalog_evidence(); test.require_reconciliation(); test.require_ui_inventory(); test.receive_ui_inventory(); test.verify_inventory(); test.analyze(); test.pause()
         status, allowed, repeated = test.resume(ResumeAttempt(**data))
         require(not allowed, f"{name} allowed implementation", failures)
         if name.startswith("wrong_") and name not in {"wrong_token"}:
@@ -424,7 +494,12 @@ def main() -> int:
         "appServerCatalogEvidence": "PASS",
         "desktopUiPickerAuthority": "PASS",
         "uiMismatchReconciliation": "PASS",
+        "directDiscoveryToVerifiedRejected": "PASS",
+        "missingAppServerEvidenceRejected": "PASS",
+        "crossTaskUiInventoryRejected": "PASS",
+        "wrongLaunchUiInventoryRejected": "PASS",
         "staleUiInventoryRejected": "PASS",
+        "incompleteUiInventoryRejected": "PASS",
         "exactUiLabelPreservation": "PASS",
         "noAppServerOnlyCandidates": "PASS",
         "completePairEnumeration": "PASS",
