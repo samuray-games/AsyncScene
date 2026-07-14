@@ -20,6 +20,10 @@ The selector implementation is not authorized to modify either validator.
 
 The following checks are blocking and must pass on the candidate worktree:
 
+- `Use @asynchronia plugin.` appears as the exact first line of the active executable prompt;
+- `Use @asynchronia task-router.` remains accepted as a supported skill reference where skill references are allowed;
+- unknown skill references are rejected;
+- historical non-active artifacts are not revalidated as active prompts;
 - `python3 tools/validate-asynchronia-auto-model-preflight.py`
 - `python3 -m py_compile tools/validate-asynchronia-auto-model-preflight.py`
 - `git diff --check`
