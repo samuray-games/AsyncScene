@@ -159,6 +159,53 @@ def _snapshot_from_file(path: Path = SNAPSHOT_PATH) -> dict[str, object]:
     return validate_snapshot(snapshot)
 
 
+def _git_blob_sha(path: Path) -> str:
+    result = subprocess.run(["git", "hash-object", str(path)], check=True, capture_output=True, text=True)
+    return result.stdout.strip()
+
+
+def _validate_authority_binding(snapshot: Mapping[str, object]) -> None:
+    manifest = _manifest()
+    artifact_path = _inventory_artifact_path()
+    try:
+        parsed = parse_inventory_markdown(artifact_path)
+        if manifest["inventoryParser"] != "markdown-bullet-inventory-v1":
+            raise SnapshotError("unsupported inventory parser")
+        if snapshot["sourceArtifact"]["path"] != manifest["inventoryArtifactPath"]:
+            raise SnapshotError("snapshot source artifact path does not match authority manifest")
+        if snapshot["sourceArtifact"]["provenanceType"] != manifest["provenanceType"]:
+            raise SnapshotError("snapshot provenance type does not match authority manifest")
+        if snapshot["snapshotRevision"] != manifest["currentSnapshotRevision"]:
+            raise SnapshotError("snapshot revision does not match authority manifest")
+        if snapshot["sourceArtifact"]["blobSha"] != manifest["lastAcceptedBlobSha"]:
+            raise SnapshotError("snapshot source blob sha does not match authority manifest")
+        actual_blob_sha = _git_blob_sha(artifact_path)
+        if actual_blob_sha != manifest["lastAcceptedBlobSha"]:
+            raise SnapshotError("authority artifact bytes do not match expected blob sha")
+        if parsed.model_count != snapshot["completeModelCount"] or parsed.pair_count != snapshot["completeModelEffortPairCount"]:
+            raise SnapshotError("authority artifact counts do not match snapshot counts")
+        parsed_models = list(parsed.models)
+        if len(parsed_models) != len(snapshot["models"]):
+            raise SnapshotError("authority artifact model count does not match snapshot model count")
+        for snapshot_model, parsed_model in zip(snapshot["models"], parsed_models):
+            if snapshot_model["modelLabel"] != parsed_model["modelLabel"]:
+                raise SnapshotError("authority artifact model labels do not match snapshot labels")
+            if snapshot_model["modelIdentifier"] != parsed_model["modelIdentifier"]:
+                raise SnapshotError("authority artifact model identifiers do not match snapshot identifiers")
+            snapshot_efforts = snapshot_model["supportedEfforts"]
+            parsed_efforts = parsed_model["supportedEfforts"]
+            if len(snapshot_efforts) != len(parsed_efforts):
+                raise SnapshotError("authority artifact effort counts do not match snapshot counts")
+            for snapshot_effort, parsed_effort in zip(snapshot_efforts, parsed_efforts):
+                if snapshot_effort["effortLabel"] != parsed_effort["effortLabel"]:
+                    raise SnapshotError("authority artifact effort labels do not match snapshot labels")
+                if snapshot_effort["effortIdentifier"] != parsed_effort["effortIdentifier"]:
+                    raise SnapshotError("authority artifact effort identifiers do not match snapshot identifiers")
+    except (OSError, subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise SnapshotError(f"authority binding failed: {exc}") from exc
+
+
+
 def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = True) -> dict[str, object]:
     if not isinstance(snapshot, Mapping):
         raise SnapshotError("snapshot must be an object")
@@ -237,7 +284,9 @@ def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = Tr
 
 
 def load_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, object]:
-    return _snapshot_from_file(path)
+    snapshot = _snapshot_from_file(path)
+    _validate_authority_binding(snapshot)
+    return snapshot
 
 
 def build_candidate_matrix(snapshot: Mapping[str, object]) -> tuple[Candidate, ...]:
@@ -341,7 +390,7 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
         raise TaskDescriptionError("no candidate satisfies the reliability constraint")
     recommendation = min(suitable, key=lambda item: evaluations.index(item))
     rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]
-    cheapest_rejected = max(rejected, key=lambda item: _ordinal(snapshot, Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, 0)), default=None)
+    cheapest_rejected = min(rejected, key=lambda item: _ordinal(snapshot, Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, 0)), default=None)
     recommendation_index = evaluations.index(recommendation)
     next_more_capable = next((evaluation for evaluation in evaluations[recommendation_index + 1:] if evaluation.verdict == "SUITABLE"), None)
     matrix_hash = _sha256([asdict(evaluation) for evaluation in evaluations])
