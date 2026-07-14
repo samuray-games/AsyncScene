@@ -1,9 +1,9 @@
 ---
 name: model-selector
-description: Run the blocking Asynchronia 1.0.10 confirmed-snapshot preflight, perform deterministic task-specific model-effort analysis, and authorize implementation only after exact same-thread INVENTORY_OK and CONTINUE.
+description: Run the blocking Asynchronia 1.0.11 Markdown-authority preflight, perform deterministic task-specific model-effort analysis, and authorize implementation only after exact same-thread INVENTORY_OK and CONTINUE.
 ---
 
-# Model Selector 1.0.10
+# Model Selector 1.0.11
 
 Use this skill automatically for every Asynchronia Codex task before implementation,
 validation, publication, or any other repository mutation.
@@ -12,11 +12,19 @@ validation, publication, or any other repository mutation.
 
 The routine inventory authority is exactly:
 
-`plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json`
+`plugins/asynchronia/model-selector-authority.json`
 
-The selector loads, schema-validates, hash-validates, and freshness-validates this
-`USER_CONFIRMED` snapshot. It preserves model and effort order, calculates the
-complete model and pair counts from the inventory, and constructs the complete candidate matrix.
+The authority manifest points to the Markdown source of truth:
+
+`../.ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md`
+
+The manifest uses `repository-markdown` provenance.
+
+The selector loads the authority manifest, parses the Markdown inventory, generates
+the canonical snapshot, schema-validates it, hash-validates it, and verifies
+that the authoritative blob SHA matches the manifest.
+It preserves model and effort order, calculates the complete model and pair counts
+from the inventory, and constructs the complete candidate matrix.
 It never updates the snapshot automatically.
 
 The normal production path does not require or attempt `codex app-server`,
@@ -60,12 +68,11 @@ Every production preflight receives a complete structured task description with:
 - concurrency and branch risk.
 
 Missing or malformed task information is fail-closed. The selector evaluates every snapshot model-effort pair exactly once.
-Each evaluation records reliability
-verdict, rejection reason when unreliable, retry risk, escalation risk, and
-relative cost class. The deterministic analyzer selects the lowest-cost pair that
-meets the reliability constraint, reports the evaluated `N/N` count, cheapest
-rejected pair and reason, recommendation, and next more capable plausible pair.
-It must never use an unconditional `RELIABLE` fallback.
+Each evaluation records suitability verdict, rejection reason when unsuitable,
+retry risk, escalation risk, and relative cost class. The deterministic analyzer
+selects the lowest-cost pair that meets the suitability constraint, reports the
+evaluated `N/N` count, cheapest rejected pair and reason, recommendation, and
+next more capable plausible pair. It must never use an unconditional fallback.
 
 The optimization objective is:
 
@@ -110,10 +117,10 @@ invalidation is explicit and prevents continuation until a fresh preflight.
 
 Snapshot replacement is separate from production selection and uses
 `tools/maintain-asynchronia-model-snapshot.py`. It validates identifiers, duplicate
-models, duplicate efforts, empty effort lists, order, counts, canonical hash, and
-status; prints an old-versus-new diff; and requires explicit user confirmation.
-Git history preserves the previous snapshot. The production selector never
-updates its own snapshot.
+models, duplicate efforts, empty effort lists, order, counts, canonical hash,
+provenance, and status; prints an old-versus-new diff; and requires explicit user
+confirmation. Git history preserves the previous snapshot. The production selector
+never updates its own snapshot.
 
 ## Required report and terminal gate
 

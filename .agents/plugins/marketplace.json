@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "asynchronia",
-      "version": "1.0.10",
+      "version": "1.0.11",
       "category": "Developer Tools",
       "source": {
         "source": "local",
