@@ -1,0 +1,106 @@
+{
+  "branch": "infra/remove-retired-directive-20260714",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "infra/remove-retired-directive-20260714\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "2c76bf905d9be1f1cdac3480a0b4f1cefcd29746\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2c76bf905d9be1f1cdac3480a0b4f1cefcd29746\n# branch.head infra/remove-retired-directive-20260714\n# branch.upstream origin/infra/remove-retired-directive-20260714\n# branch.ab +0 -0\n? tools/__pycache__/test_ai_forensics.cpython-312.pyc\n? tools/ai_forensics/__pycache__/\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "2c76bf90 (HEAD -> infra/remove-retired-directive-20260714, origin/infra/remove-retired-directive-20260714) Fix AI work prompt contract validation\n922d8fc5 Remove retired Asynchronia directive\nb9c4a5bc Merge pull request #225 from samuray-games/infra/ai-forensics-autolog-20260712\ncaaded3d state(ai-forensics): record r4 evidence\nc2257fb0 ai-forensics: refresh branch head after nff\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2c76bf905d9be1f1cdac3480a0b4f1cefcd29746\nbranch refs/heads/infra/remove-retired-directive-20260714\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:50:44Z",
+      "stderr": "",
+      "stdout": "02d6b2a0b742e627c5f8fc16588bae9003d722bc\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2c76bf905d9be1f1cdac3480a0b4f1cefcd29746",
+  "observedAtUtc": "2026-07-14T03:50:44Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
