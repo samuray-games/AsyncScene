@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Extract a current ChatGPT Desktop host inventory from supplied live query pages."""
+"""Experimental parser for externally injected ChatGPT Desktop query responses.
+
+This tool is not a production adapter and cannot establish live-host authority.
+"""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 from chatgpt_live_host_inventory import (
-    SOURCE_LIVE,
+    SOURCE_EXPERIMENTAL,
     chatgpt_version,
     extract_inventory,
     locate_renderer_asset,
@@ -18,9 +21,9 @@ from chatgpt_live_host_inventory import (
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host-id", required=True)
-    parser.add_argument("--response-json", action="append", default=[])
-    parser.add_argument("--query-command", help="non-mutating live-host adapter; receives query JSON on stdin and returns response JSON")
+    parser.add_argument("--host-id", required=True, help="experimental input only; production host discovery is unavailable")
+    parser.add_argument("--response-json", action="append", default=[], help="experimental injected response page")
+    parser.add_argument("--query-command", help="experimental external command; receives query JSON on stdin and returns response JSON")
     parser.add_argument("--settings-json")
     parser.add_argument("--app-path", default="/Applications/ChatGPT.app")
     parser.add_argument("--limit", type=int, default=100)
@@ -54,7 +57,7 @@ def main() -> int:
             host_id=args.host_id,
             query_page=query_page if pages or args.query_command else None,
             settings=json.loads(Path(args.settings_json).read_text(encoding="utf-8")) if args.settings_json else None,
-            source=SOURCE_LIVE,
+            source=SOURCE_EXPERIMENTAL,
             limit=args.limit,
         )
         if result["status"] == "BLOCKED_MODEL_INVENTORY_UNAVAILABLE":
@@ -65,6 +68,8 @@ def main() -> int:
             "bundlePath": str(asar_path),
             "rendererAsset": locate_renderer_asset(asar_path),
         }
+        result["adapterStatus"] = "EXPERIMENTAL_NON_PRODUCTION"
+        result["productionUse"] = "FORBIDDEN_NO_SAFE_DESKTOP_READ_ONLY_TRANSPORT"
         print(json.dumps(result, indent=2))
         return 0
     except (OSError, ValueError, json.JSONDecodeError) as exc:

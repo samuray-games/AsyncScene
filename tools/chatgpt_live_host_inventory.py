@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Non-mutating ChatGPT Desktop host inventory extraction primitives."""
+"""Experimental parser for injected ChatGPT Desktop inventory responses.
+
+This module is not a production Desktop adapter. It has no supported read-only
+transport to a running Desktop process and must not be used as live authority.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -12,10 +16,10 @@ from typing import Any, Callable, Iterable
 
 
 QUERY_NAME = "list-models-for-host"
-SOURCE_LIVE = "CHATGPT_DESKTOP_LIVE_HOST_QUERY"
 SOURCE_SNAPSHOT = "USER_CONFIRMED_SNAPSHOT"
 SOURCE_APP_SERVER = "APP_SERVER_EVIDENCE"
 SOURCE_CACHE = "HISTORICAL_CACHE_HINT"
+SOURCE_EXPERIMENTAL = "EXPERIMENTAL_UNVERIFIED_QUERY_INJECTION"
 FALLBACK_SOURCES = {SOURCE_SNAPSHOT, SOURCE_APP_SERVER, SOURCE_CACHE}
 
 
@@ -137,10 +141,10 @@ def _effort_identifier(value: object) -> str:
     raise ValueError("malformed reasoning effort")
 
 
-def parse_live_page(payload: object) -> tuple[list[ModelInventoryEntry], str | None]:
+def parse_response_page(payload: object) -> tuple[list[ModelInventoryEntry], str | None]:
     models = _find_first(payload, ("models", "available_models"))
     if not isinstance(models, list):
-        raise ValueError("live query response has no model list")
+        raise ValueError("query response has no model list")
     entries: list[ModelInventoryEntry] = []
     for item in models:
         if not isinstance(item, dict):
@@ -170,13 +174,13 @@ def extract_inventory(
     host_id: str,
     query_page: Callable[[dict[str, object]], object] | None,
     settings: dict[str, object] | None,
-    source: str = SOURCE_LIVE,
+    source: str = SOURCE_EXPERIMENTAL,
     limit: int = 100,
 ) -> dict[str, object]:
     """Collect all pages and produce a selectable, ordered matrix without mutation."""
     if query_page is None:
         return {"status": "BLOCKED_MODEL_INVENTORY_UNAVAILABLE", "source": "NO_AUTHORITATIVE_INVENTORY"}
-    if source not in {SOURCE_LIVE, *FALLBACK_SOURCES}:
+    if source not in {SOURCE_EXPERIMENTAL, *FALLBACK_SOURCES}:
         raise ValueError("unknown inventory source")
     raw_pages: list[object] = []
     entries: list[ModelInventoryEntry] = []
@@ -187,7 +191,7 @@ def extract_inventory(
         arguments = query_arguments(host_id, cursor, limit)
         page = query_page(arguments)
         raw_pages.append(page)
-        page_entries, cursor = parse_live_page(page)
+        page_entries, cursor = parse_response_page(page)
         entries.extend(page_entries)
         if cursor is None:
             break
@@ -206,10 +210,11 @@ def extract_inventory(
         for effort in entry.supported_reasoning_efforts
     ]
     checked_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    status = "EXPERIMENTAL_NON_PRODUCTION" if source == SOURCE_EXPERIMENTAL else "MODEL_INVENTORY_FALLBACK"
     return {
-        "status": "MODEL_INVENTORY_VERIFIED" if source == SOURCE_LIVE else "MODEL_INVENTORY_FALLBACK",
+        "status": status,
         "source": source,
-        "fallback": source in FALLBACK_SOURCES,
+        "fallback": source in FALLBACK_SOURCES or source == SOURCE_EXPERIMENTAL,
         "discoveredAtUtc": checked_at,
         "sourceMechanism": QUERY_NAME,
         "queryArguments": query_arguments(host_id, None, limit),
@@ -226,4 +231,5 @@ def extract_inventory(
         "rawInventoryHash": canonical_hash(raw_pages),
         "filteredInventoryHash": canonical_hash(filtered),
         "selectedModelMutation": "NONE",
+        "productionUse": "FORBIDDEN_NO_SAFE_DESKTOP_READ_ONLY_TRANSPORT",
     }
