@@ -1,21 +1,21 @@
 {
   "name": "asynchronia",
-  "version": "1.0.9",
-  "description": "Project-specific automatic routing, Codex desktop UI-authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
+  "version": "1.0.10",
+  "description": "Project-specific automatic routing, ChatGPT Desktop live-host model inventory preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Route tasks through UI-authoritative model inventory and scope preflight.",
-    "longDescription": "Provides mandatory routing, Codex desktop UI picker authority reconciled with codex app-server model/list catalog evidence, exhaustive evaluation of every authority-confirmed model-effort pair, adjacent-effort comparison, retry-adjusted cost selection, same-thread CONTINUE gating, scope isolation, deployment verification, and acceptance evidence rules.",
+    "shortDescription": "Route tasks through live host inventory and scope preflight.",
+    "longDescription": "Provides mandatory routing, dynamically discovered ChatGPT Desktop list-models-for-host inventory, complete model-effort pair evaluation, retry-adjusted cost selection, same-thread CONTINUE gating, scope isolation, deployment verification, and acceptance evidence rules.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
       "Automatic repository task routing",
-      "Active desktop UI picker authority",
-      "App-server catalog evidence reconciliation",
+      "Live ChatGPT Desktop host inventory authority",
+      "Dynamic renderer mechanism discovery",
       "Complete model-effort pair evaluation",
       "Adjacent effort comparison",
       "Retry-adjusted cost recommendation",
@@ -33,10 +33,10 @@
     "defaultPrompt": [
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-      "Run codex app-server and call model/list with includeHidden false as supporting catalog evidence before recommending a model.",
-      "Reconcile app-server catalog evidence with the active Codex desktop UI picker before building candidates.",
-      "When app-server and UI differ, exact current same-thread UI inventory controls actual selectability.",
-      "Never add app-server-only models or efforts to a UI-authoritative candidate matrix.",
+      "Dynamically locate the ChatGPT Desktop renderer mechanism and query list-models-for-host with hostId, includeHidden true, cursor, and limit.",
+      "Preserve the complete paginated live inventory and record bundle, renderer, timestamp, and raw/filtered hash provenance.",
+      "Include hidden models in the selectable matrix only when current host use_hidden_models is true.",
+      "Label user-confirmed snapshots, app-server evidence, and historical cache hints as fallbacks, never as live authority.",
       "Use each authority-confirmed model's supported efforts and evaluate every available authority-confirmed model-effort pair.",
       "Compare each effort with its adjacent efforts for the same model and identify the lowest reliable effort per model.",
       "Recommend the option that minimizes expected total credits after retry and escalation risk.",
