@@ -1,0 +1,106 @@
+{
+  "branch": "infra/model-selector-1.0.10-live-host-inventory-20260714",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "infra/model-selector-1.0.10-live-host-inventory-20260714\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "334389195f25862747bec1fcc5796731e4d6289b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid 334389195f25862747bec1fcc5796731e4d6289b\n# branch.head infra/model-selector-1.0.10-live-host-inventory-20260714\n# branch.upstream origin/infra/model-selector-1.0.10-live-host-inventory-20260714\n# branch.ab +0 -0\n? tools/__pycache__/test_ai_forensics.cpython-312.pyc\n? tools/ai_forensics/__pycache__/\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "33438919 (HEAD -> infra/model-selector-1.0.10-live-host-inventory-20260714, origin/infra/model-selector-1.0.10-live-host-inventory-20260714) feat(model-selector): add live host inventory extractor\nb79a0206 (origin/main, origin/infra/remove-retired-directive-20260714) Restore AI work review report and validation\n0096faea Restore AI work status validation\nd6ee7e73 Merge remote-tracking branch 'origin/main' into infra/remove-retired-directive-20260714\n2c76bf90 Fix AI work prompt contract validation\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 334389195f25862747bec1fcc5796731e4d6289b\nbranch refs/heads/infra/model-selector-1.0.10-live-host-inventory-20260714\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T06:11:21Z",
+      "stderr": "",
+      "stdout": "b79a02061bc68745e6f3458690c8166ccd7ff6fc\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "334389195f25862747bec1fcc5796731e4d6289b",
+  "observedAtUtc": "2026-07-14T06:11:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
