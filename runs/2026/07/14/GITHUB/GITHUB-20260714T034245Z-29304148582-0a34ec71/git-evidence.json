@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "ef529215dc35f4818daf212bbdb1dde97ba2e87d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "# branch.oid ef529215dc35f4818daf212bbdb1dde97ba2e87d\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n? tools/__pycache__/test_ai_forensics.cpython-312.pyc\n? tools/ai_forensics/__pycache__/\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "ef529215 (HEAD -> main, origin/main, origin/infra/codex-worktree-lifecycle-20260714) Enforce Codex temporary worktree lifecycle and branch diagnostics\nb9c4a5bc Merge pull request #225 from samuray-games/infra/ai-forensics-autolog-20260712\ncaaded3d state(ai-forensics): record r4 evidence\nc2257fb0 ai-forensics: refresh branch head after nff\ne7a6bba1 ai-forensics: reuse local branch cache for publish bootstrap\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ef529215dc35f4818daf212bbdb1dde97ba2e87d\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T03:42:45Z",
+      "stderr": "",
+      "stdout": "ef529215dc35f4818daf212bbdb1dde97ba2e87d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ef529215dc35f4818daf212bbdb1dde97ba2e87d",
+  "observedAtUtc": "2026-07-14T03:42:45Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
