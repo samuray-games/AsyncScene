@@ -1,7 +1,7 @@
 {
   "name": "asynchronia",
-  "version": "1.0.10",
-  "description": "Project-specific automatic routing, Codex desktop UI-authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
+  "version": "1.0.11",
+  "description": "Project-specific automatic routing, repository-markdown authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
@@ -14,8 +14,7 @@
     "category": "Developer Tools",
     "capabilities": [
       "Automatic repository task routing",
-      "Confirmed user inventory snapshot authority",
-      "App-server catalog evidence reconciliation",
+      "Confirmed repository Markdown inventory authority",
       "Complete model-effort pair evaluation",
       "Adjacent effort comparison",
       "Retry-adjusted cost recommendation",
@@ -33,16 +32,16 @@
     "defaultPrompt": [
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-      "Load and validate the Asynchronia-owned USER_CONFIRMED snapshot before recommending a model.",
+      "Load and validate the authoritative repository Markdown inventory before recommending a model.",
       "Accept a complete structured task description and fail closed when task information is insufficient.",
       "Evaluate every snapshot model-effort pair exactly once with task-specific reliability and cost analysis.",
-      "Never use an unconditional RELIABLE fallback or update the snapshot automatically.",
-      "Compare each effort with its adjacent efforts for the same model and identify the lowest reliable effort per model.",
+      "Never use an unconditional SUITABLE fallback or update the snapshot automatically.",
+      "Compare each effort with its adjacent efforts for the same model and identify the lowest suitable effort per model.",
       "Recommend the option that minimizes expected total credits after retry and escalation risk.",
       "Explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary.",
       "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
       "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
-      "Run task-router, scope-isolation-check, and model-selector before implementation."
+      "Run task-router and scope-isolation-check before implementation; model-selector is repaired separately."
     ]
   }
 }

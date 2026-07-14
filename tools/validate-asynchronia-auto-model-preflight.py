@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Asynchronia 1.0.10 confirmed-snapshot preflight contract."""
+"""Validate the Asynchronia 1.0.11 Markdown-authority preflight contract."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLUGIN_VERSION = "1.0.10"
+EXPECTED_PLUGIN_VERSION = "1.0.11"
 
 
 def read(path: str) -> str:
@@ -34,7 +34,7 @@ def validate_manifests(failures: list[str]) -> None:
 def validate_policy(failures: list[str]) -> None:
     selector = read("plugins/asynchronia/skills/model-selector/SKILL.md")
     required = (
-        "confirmed-model-effort-snapshot.json", "USER_CONFIRMED", "complete candidate matrix",
+        "model-selector-authority.json", "repository-markdown", "complete candidate matrix",
         "structured task description", "evaluates every snapshot model-effort pair exactly once",
         "INVENTORY_OK", "INVENTORY_CHANGED", "same-thread `CONTINUE`", "durable state artifact",
         "taskDescriptionHash", "complete matrix hash", "lowest-cost pair",
@@ -73,10 +73,10 @@ def validate_selector(failures: list[str]) -> None:
     except Exception as exc:  # pragma: no cover
         failures.append(f"selector execution failed: {exc}")
         return
-    require(snapshot["status"] == "USER_CONFIRMED", "snapshot status mismatch", failures)
+    require(snapshot["status"] == "PENDING_CONFIRMATION", "snapshot status mismatch", failures)
     require(len(candidates) == snapshot["completeModelEffortPairCount"], "complete matrix count mismatch", failures)
     require(len(report.evaluations) == len(candidates), "not every pair evaluated", failures)
-    require(any(item.verdict != "RELIABLE" for item in report.evaluations), "all candidates are unconditionally reliable", failures)
+    require(any(item.verdict != "SUITABLE" for item in report.evaluations), "all candidates are unconditionally suitable", failures)
     require("29" not in read("plugins/asynchronia/model_selector.py"), "runtime selector contains static pair count", failures)
 
 

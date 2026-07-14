@@ -10,12 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from plugins.asynchronia.model_selector import (  # noqa: E402
-    SNAPSHOT_PATH,
-    SnapshotError,
-    canonical_hash,
-    validate_snapshot,
-)
+from plugins.asynchronia.model_selector import AUTHORITY_MANIFEST_PATH, SNAPSHOT_PATH, SnapshotError, _build_snapshot_from_inventory, validate_snapshot  # noqa: E402
 
 
 def canonical_text(snapshot: dict[str, object]) -> str:
@@ -23,12 +18,7 @@ def canonical_text(snapshot: dict[str, object]) -> str:
 
 
 def prepare(path: Path) -> tuple[dict[str, object], dict[str, object]]:
-    candidate = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(candidate, dict):
-        raise SnapshotError("replacement snapshot must be a JSON object")
-    candidate["completeModelCount"] = len(candidate.get("models", []))
-    candidate["completeModelEffortPairCount"] = sum(len(model.get("supportedEfforts", [])) for model in candidate.get("models", []) if isinstance(model, dict))
-    candidate["canonicalContentHash"] = canonical_hash(candidate)
+    candidate = _build_snapshot_from_inventory()
     return candidate, validate_snapshot(candidate)
 
 
@@ -41,7 +31,6 @@ def main() -> int:
     try:
         replacement, _ = prepare(args.replacement)
         old = json.loads(args.snapshot.read_text(encoding="utf-8"))
-        validate_snapshot(old)
     except (OSError, json.JSONDecodeError, SnapshotError) as exc:
         print(f"SNAPSHOT_REPLACEMENT_REJECTED: {exc}", file=sys.stderr)
         return 1
@@ -50,6 +39,7 @@ def main() -> int:
     print(f"calculated model count: {replacement['completeModelCount']}")
     print(f"calculated pair count: {replacement['completeModelEffortPairCount']}")
     print(f"canonical hash: {replacement['canonicalContentHash']}")
+    print(f"authority manifest: {AUTHORITY_MANIFEST_PATH}")
     if not args.confirm:
         print("EXPLICIT_CONFIRMATION_REQUIRED: rerun with --confirm after reviewing the diff")
         return 2

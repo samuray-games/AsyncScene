@@ -1,9 +1,4 @@
-"""Confirmed-snapshot model selection and durable same-thread authorization.
-
-The production selector has one inventory authority: the user-confirmed snapshot
-owned by the Asynchronia plugin. Runtime state is stored outside the repository.
-No live Desktop or app-server inventory is consulted here.
-"""
+"""Markdown-driven Asynchronia model selection and same-thread authorization."""
 
 from __future__ import annotations
 
@@ -18,19 +13,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
 
+from .model_selector_inventory import canonical_hash, canonical_snapshot_payload, normalize_effort_identifier, normalize_model_identifier, parse_inventory_markdown
 
+
+AUTHORITY_MANIFEST_PATH = Path(__file__).with_name("model-selector-authority.json")
 SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-snapshot.json"
-SNAPSHOT_STATUS = "USER_CONFIRMED"
-SNAPSHOT_SCHEMA_VERSION = "1.0.10"
+SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
+SNAPSHOT_SCHEMA_VERSION = "1.0.11"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
-REQUIRED_SNAPSHOT_FIELDS = {
-    "schemaVersion", "snapshotRevision", "confirmedTimestamp", "confirmationSource",
-    "applicationSurface", "models", "completeModelCount", "completeModelEffortPairCount",
-    "canonicalContentHash", "status", "supersedes", "notes",
-}
 TASK_FIELDS = (
     "taskId", "taskType", "objective", "readScope", "writeScope", "affectedSystems",
     "runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact",
@@ -42,28 +35,32 @@ SIZE_LEVELS = {"small": 1, "medium": 2, "large": 3, "very_large": 4}
 
 
 class SnapshotError(ValueError):
-    """Raised when a snapshot is malformed, stale, or not user-confirmed."""
+    pass
 
 
 class TaskDescriptionError(ValueError):
-    """Raised when task-specific analysis input is absent or malformed."""
+    pass
 
 
 class AuthorizationError(ValueError):
-    """Raised when durable preflight identity or freshness validation fails."""
+    pass
 
 
 @dataclass(frozen=True)
 class Candidate:
-    model: str
-    effort: str
+    modelLabel: str
+    effortLabel: str
+    modelIdentifier: str
+    effortIdentifier: str
     ordinal: int
 
 
 @dataclass(frozen=True)
 class PairEvaluation:
-    model: str
-    effort: str
+    modelLabel: str
+    effortLabel: str
+    modelIdentifier: str
+    effortIdentifier: str
     verdict: str
     rejectionReason: str | None
     retryRisk: str
@@ -102,34 +99,92 @@ def _sha256(value: object) -> str:
     return "sha256:" + hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
-def _canonical_snapshot_payload(snapshot: Mapping[str, object]) -> bytes:
-    payload = dict(snapshot)
-    payload.pop("canonicalContentHash", None)
-    return _canonical_bytes(payload)
-
-
-def canonical_hash(snapshot: Mapping[str, object]) -> str:
-    return "sha256:" + hashlib.sha256(_canonical_snapshot_payload(snapshot)).hexdigest()
-
-
 def _require_identifier(value: object, label: str) -> str:
     if not isinstance(value, str) or not IDENTIFIER.fullmatch(value):
         raise SnapshotError(f"invalid {label}: {value!r}")
     return value
 
 
+def _manifest() -> dict[str, object]:
+    try:
+        manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SnapshotError(f"unable to read authority manifest: {AUTHORITY_MANIFEST_PATH}") from exc
+    if not isinstance(manifest, dict):
+        raise SnapshotError("authority manifest must be an object")
+    required = {"inventoryArtifactPath", "inventoryParser", "provenanceType", "lastAcceptedBlobSha", "currentSnapshotRevision"}
+    if not required.issubset(manifest):
+        raise SnapshotError("authority manifest is missing required fields")
+    return manifest
+
+
+def _inventory_artifact_path() -> Path:
+    manifest = _manifest()
+    path = Path(manifest["inventoryArtifactPath"])
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parents[2] / path
+    return path
+
+
+def _snapshot_payload_path() -> Path:
+    return SNAPSHOT_PATH
+
+
+def _build_snapshot_from_inventory() -> dict[str, object]:
+    manifest = _manifest()
+    artifact_path = _inventory_artifact_path()
+    parsed = parse_inventory_markdown(artifact_path)
+    return canonical_snapshot_payload(
+        snapshot_revision=str(manifest["currentSnapshotRevision"]),
+        confirmed_timestamp="2026-07-15T00:00:00Z",
+        confirmation_source="USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
+        application_surface="CHATGPT_DESKTOP_APP",
+        supersedes="20260714.1",
+        source_artifact_path=str(manifest["inventoryArtifactPath"]),
+        source_artifact_blob_sha=str(manifest["lastAcceptedBlobSha"]),
+        status=SNAPSHOT_STATUS,
+        models=list(parsed.models),
+        notes=[
+            "This snapshot is generated from the authoritative repository Markdown inventory.",
+            "It is pending same-thread confirmation until the user responds INVENTORY_OK.",
+        ],
+    )
+
+
+def _snapshot_from_file(path: Path = SNAPSHOT_PATH) -> dict[str, object]:
+    try:
+        snapshot = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SnapshotError(f"unable to read snapshot: {path}") from exc
+    return validate_snapshot(snapshot)
+
+
 def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = True) -> dict[str, object]:
     if not isinstance(snapshot, Mapping):
         raise SnapshotError("snapshot must be an object")
-    if set(snapshot) != REQUIRED_SNAPSHOT_FIELDS:
-        raise SnapshotError(f"snapshot fields mismatch; missing={sorted(REQUIRED_SNAPSHOT_FIELDS - set(snapshot))}, extra={sorted(set(snapshot) - REQUIRED_SNAPSHOT_FIELDS)}")
+    required_fields = {
+        "schemaVersion", "snapshotRevision", "confirmedTimestamp", "confirmationSource",
+        "applicationSurface", "sourceArtifact", "models", "completeModelCount",
+        "completeModelEffortPairCount", "canonicalContentHash", "status", "supersedes", "notes",
+    }
+    if set(snapshot) != required_fields:
+        raise SnapshotError(f"snapshot fields mismatch; missing={sorted(required_fields - set(snapshot))}, extra={sorted(set(snapshot) - required_fields)}")
     if snapshot["schemaVersion"] != SNAPSHOT_SCHEMA_VERSION:
         raise SnapshotError("unsupported snapshot schema version")
     for field in ("snapshotRevision", "confirmedTimestamp", "confirmationSource", "applicationSurface"):
         if not isinstance(snapshot[field], str) or not snapshot[field].strip():
             raise SnapshotError(f"{field} must be a non-empty string")
+    source_artifact = snapshot["sourceArtifact"]
+    if not isinstance(source_artifact, Mapping) or set(source_artifact) != {"path", "blobSha", "provenanceType"}:
+        raise SnapshotError("sourceArtifact must contain path, blobSha, and provenanceType")
+    if not isinstance(source_artifact["path"], str) or not source_artifact["path"].strip():
+        raise SnapshotError("sourceArtifact.path must be a non-empty string")
+    if not isinstance(source_artifact["blobSha"], str) or not re.fullmatch(r"[0-9a-f]{40}", source_artifact["blobSha"]):
+        raise SnapshotError("sourceArtifact.blobSha must be a blob sha")
+    if source_artifact["provenanceType"] != "repository-markdown":
+        raise SnapshotError("unsupported provenance type")
     if snapshot["status"] != SNAPSHOT_STATUS:
-        raise SnapshotError("snapshot is not USER_CONFIRMED")
+        raise SnapshotError("snapshot is not pending confirmation")
     if snapshot["supersedes"] is not None and not isinstance(snapshot["supersedes"], str):
         raise SnapshotError("supersedes must be null or a string")
     if not isinstance(snapshot["notes"], list) or not snapshot["notes"] or not all(isinstance(note, str) and note.strip() for note in snapshot["notes"]):
@@ -140,24 +195,36 @@ def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = Tr
     seen_models: set[str] = set()
     normalized_models: list[dict[str, object]] = []
     for model in models:
-        if not isinstance(model, Mapping) or set(model) != {"modelIdentifier", "supportedEfforts"}:
-            raise SnapshotError("each model must contain only modelIdentifier and supportedEfforts")
+        if not isinstance(model, Mapping) or set(model) != {"modelLabel", "modelIdentifier", "supportedEfforts"}:
+            raise SnapshotError("each model must contain modelLabel, modelIdentifier, supportedEfforts")
+        model_label = model["modelLabel"]
+        if not isinstance(model_label, str) or not model_label.strip():
+            raise SnapshotError("modelLabel must be a non-empty string")
         model_id = _require_identifier(model["modelIdentifier"], "model identifier")
         if model_id in seen_models:
             raise SnapshotError(f"duplicate model identifier: {model_id}")
+        if model_id != normalize_model_identifier(model_label):
+            raise SnapshotError(f"model identifier mismatch for {model_label}")
         seen_models.add(model_id)
         efforts = model["supportedEfforts"]
         if not isinstance(efforts, list) or not efforts:
-            raise SnapshotError(f"empty effort list for model: {model_id}")
+            raise SnapshotError(f"empty effort list for model: {model_label}")
         seen_efforts: set[str] = set()
-        ordered_efforts: list[str] = []
+        ordered_efforts: list[dict[str, str]] = []
         for effort in efforts:
-            effort_id = _require_identifier(effort, f"effort identifier for {model_id}")
+            if not isinstance(effort, Mapping) or set(effort) != {"effortLabel", "effortIdentifier"}:
+                raise SnapshotError("each supported effort must contain effortLabel and effortIdentifier")
+            effort_label = effort["effortLabel"]
+            if not isinstance(effort_label, str) or not effort_label.strip():
+                raise SnapshotError("effortLabel must be a non-empty string")
+            effort_id = _require_identifier(effort["effortIdentifier"], f"effort identifier for {model_label}")
             if effort_id in seen_efforts:
-                raise SnapshotError(f"duplicate effort identifier for {model_id}: {effort_id}")
+                raise SnapshotError(f"duplicate effort identifier for {model_label}: {effort_id}")
+            if effort_id != normalize_effort_identifier(effort_label):
+                raise SnapshotError(f"effort identifier mismatch for {model_label} / {effort_label}")
             seen_efforts.add(effort_id)
-            ordered_efforts.append(effort_id)
-        normalized_models.append({"modelIdentifier": model_id, "supportedEfforts": ordered_efforts})
+            ordered_efforts.append({"effortLabel": effort_label, "effortIdentifier": effort_id})
+        normalized_models.append({"modelLabel": model_label, "modelIdentifier": model_id, "supportedEfforts": ordered_efforts})
     model_count = len(normalized_models)
     pair_count = sum(len(model["supportedEfforts"]) for model in normalized_models)
     if snapshot["completeModelCount"] != model_count or snapshot["completeModelEffortPairCount"] != pair_count:
@@ -170,11 +237,7 @@ def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = Tr
 
 
 def load_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, object]:
-    try:
-        snapshot = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise SnapshotError(f"unable to read snapshot: {path}") from exc
-    return validate_snapshot(snapshot)
+    return _snapshot_from_file(path)
 
 
 def build_candidate_matrix(snapshot: Mapping[str, object]) -> tuple[Candidate, ...]:
@@ -183,7 +246,15 @@ def build_candidate_matrix(snapshot: Mapping[str, object]) -> tuple[Candidate, .
     ordinal = 0
     for model in valid["models"]:
         for effort in model["supportedEfforts"]:
-            candidates.append(Candidate(model["modelIdentifier"], effort, ordinal))
+            candidates.append(
+                Candidate(
+                    modelLabel=model["modelLabel"],
+                    effortLabel=effort["effortLabel"],
+                    modelIdentifier=model["modelIdentifier"],
+                    effortIdentifier=effort["effortIdentifier"],
+                    ordinal=ordinal,
+                )
+            )
             ordinal += 1
     return tuple(candidates)
 
@@ -240,29 +311,39 @@ def _cost_class(model_index: int, effort_index: int) -> str:
     return "VERY_HIGH"
 
 
+def _ordinal(snapshot: Mapping[str, object], candidate: Candidate) -> int:
+    for model_index, model in enumerate(snapshot["models"]):
+        if model["modelIdentifier"] != candidate.modelIdentifier:
+            continue
+        for effort_index, effort in enumerate(model["supportedEfforts"]):
+            if effort["effortIdentifier"] == candidate.effortIdentifier:
+                return model_index * 100 + effort_index
+    raise TaskDescriptionError("candidate not present in snapshot")
+
+
 def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], evaluator: Callable[[Candidate, Mapping[str, object], int], str] | None = None) -> EvaluationReport:
     valid_task = _validate_task(task)
     candidates = build_candidate_matrix(snapshot)
     required = _required_score(valid_task)
     evaluations: list[PairEvaluation] = []
     for candidate in candidates:
-        model_index = next(index for index, model in enumerate(snapshot["models"]) if model["modelIdentifier"] == candidate.model)
-        effort_index = next(index for index, effort in enumerate(next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.model)["supportedEfforts"]) if effort == candidate.effort)
+        model_index = next(index for index, model in enumerate(snapshot["models"]) if model["modelIdentifier"] == candidate.modelIdentifier)
+        effort_index = next(index for index, effort in enumerate(next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.modelIdentifier)["supportedEfforts"]) if effort["effortIdentifier"] == candidate.effortIdentifier)
         capability = (model_index + 1) * 10 + effort_index * 2
         injected = evaluator(candidate, valid_task, required) if evaluator else None
-        verdict = injected or ("RELIABLE" if capability >= required else "INSUFFICIENT")
-        reason = None if verdict == "RELIABLE" else f"capability score {capability} is below task requirement {required}"
+        verdict = injected or ("SUITABLE" if capability >= required else "INSUFFICIENT")
+        reason = None if verdict == "SUITABLE" else f"capability score {capability} is below task requirement {required}"
         risk = "LOW" if capability >= required + 3 else ("MEDIUM" if capability >= required else "HIGH")
         escalation = "LOW" if capability >= required + 2 else ("MEDIUM" if capability >= required else "HIGH")
-        evaluations.append(PairEvaluation(candidate.model, candidate.effort, verdict, reason, risk, escalation, _cost_class(model_index, effort_index), capability, required))
-    reliable = [evaluation for evaluation in evaluations if evaluation.verdict == "RELIABLE"]
-    if not reliable:
+        evaluations.append(PairEvaluation(candidate.modelLabel, candidate.effortLabel, candidate.modelIdentifier, candidate.effortIdentifier, verdict, reason, risk, escalation, _cost_class(model_index, effort_index), capability, required))
+    suitable = [evaluation for evaluation in evaluations if evaluation.verdict == "SUITABLE"]
+    if not suitable:
         raise TaskDescriptionError("no candidate satisfies the reliability constraint")
-    recommendation = min(reliable, key=lambda item: next(index for index, evaluation in enumerate(evaluations) if evaluation == item))
-    rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "RELIABLE"]
-    cheapest_rejected = max(rejected, key=lambda item: next(index for index, evaluation in enumerate(evaluations) if evaluation == item), default=None)
+    recommendation = min(suitable, key=lambda item: evaluations.index(item))
+    rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]
+    cheapest_rejected = max(rejected, key=lambda item: _ordinal(snapshot, Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, 0)), default=None)
     recommendation_index = evaluations.index(recommendation)
-    next_more_capable = next((evaluation for evaluation in evaluations[recommendation_index + 1:] if evaluation.verdict == "RELIABLE"), None)
+    next_more_capable = next((evaluation for evaluation in evaluations[recommendation_index + 1:] if evaluation.verdict == "SUITABLE"), None)
     matrix_hash = _sha256([asdict(evaluation) for evaluation in evaluations])
     return EvaluationReport(tuple(evaluations), recommendation, cheapest_rejected, next_more_capable, matrix_hash, required)
 
@@ -315,7 +396,7 @@ def _identity(task: Mapping[str, object], snapshot: Mapping[str, object], report
         "taskId": task["taskId"], "threadId": thread_id, "branch": branch, "baselineSha": baseline,
         "snapshotRevision": snapshot["snapshotRevision"], "snapshotHash": snapshot["canonicalContentHash"],
         "taskDescriptionHash": task_hash(task), "completeMatrixHash": report.matrixHash,
-        "recommendation": {"model": report.recommendation.model, "effort": report.recommendation.effort},
+        "recommendation": {"modelIdentifier": report.recommendation.modelIdentifier, "effortIdentifier": report.recommendation.effortIdentifier},
     }
 
 
@@ -331,6 +412,7 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
         f"status: {status}",
         f"snapshot revision: {snapshot['snapshotRevision']}",
         f"snapshot hash: {snapshot['canonicalContentHash']}",
+        f"source artifact: {snapshot['sourceArtifact']['path']}",
         f"model count: {snapshot['completeModelCount']}",
         f"model-effort pair count: {snapshot['completeModelEffortPairCount']}",
         f"evaluated pair count: {len(report.evaluations)}/{snapshot['completeModelEffortPairCount']}",
@@ -339,10 +421,10 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     ]
     for evaluation in report.evaluations:
         reason = f"; reason={evaluation.rejectionReason}" if evaluation.rejectionReason else ""
-        lines.append(f"- {evaluation.model} / {evaluation.effort}: {evaluation.verdict}; retry={evaluation.retryRisk}; escalation={evaluation.escalationRisk}; cost={evaluation.costClass}{reason}")
-    lines.append(f"cheapest rejected pair: {report.cheapestRejected.model} / {report.cheapestRejected.effort}; reason={report.cheapestRejected.rejectionReason}" if report.cheapestRejected else "cheapest rejected pair: none")
-    lines.append(f"recommended pair: {report.recommendation.model} / {report.recommendation.effort}")
-    lines.append(f"next more capable plausible pair: {report.nextMoreCapable.model} / {report.nextMoreCapable.effort}" if report.nextMoreCapable else "next more capable plausible pair: none")
+        lines.append(f"- {evaluation.modelLabel} / {evaluation.effortLabel}: {evaluation.verdict}; retry={evaluation.retryRisk}; escalation={evaluation.escalationRisk}; cost={evaluation.costClass}{reason}")
+    lines.append(f"cheapest rejected pair: {report.cheapestRejected.modelLabel} / {report.cheapestRejected.effortLabel}; reason={report.cheapestRejected.rejectionReason}" if report.cheapestRejected else "cheapest rejected pair: none")
+    lines.append(f"recommended pair: {report.recommendation.modelLabel} / {report.recommendation.effortLabel}")
+    lines.append(f"next more capable plausible pair: {report.nextMoreCapable.modelLabel} / {report.nextMoreCapable.effortLabel}" if report.nextMoreCapable else "next more capable plausible pair: none")
     lines.append(f"exact next response: {next_response}")
     return "\n".join(lines)
 
@@ -376,13 +458,33 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, build_candidate_matrix(snapshot), report, _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE"), thread_id)
 
 
+def _authority_report(snapshot: Mapping[str, object], updated_snapshot: Mapping[str, object]) -> str:
+    lines = [
+        "status: INVENTORY_CHANGED",
+        f"authority artifact: {snapshot['sourceArtifact']['path']}",
+        f"authority blob sha: {snapshot['sourceArtifact']['blobSha']}",
+        f"current snapshot revision: {snapshot['snapshotRevision']}",
+        f"current snapshot hash: {snapshot['canonicalContentHash']}",
+        f"new snapshot revision: {updated_snapshot['snapshotRevision']}",
+        f"new snapshot hash: {updated_snapshot['canonicalContentHash']}",
+        f"model diff: {snapshot['completeModelCount']} -> {updated_snapshot['completeModelCount']}",
+        f"pair diff: {snapshot['completeModelEffortPairCount']} -> {updated_snapshot['completeModelEffortPairCount']}",
+        f"maintenance task: {MAINTENANCE_TASK_ID}",
+    ]
+    return "\n".join(lines)
+
+
 def record_inventory_changed(thread_id: str, *, state_dir: Path = DEFAULT_STATE_DIR) -> str:
     state = _read_state(thread_id, state_dir)
+    snapshot = load_snapshot()
+    updated_snapshot = _build_snapshot_from_inventory()
+    if state["snapshotRevision"] != snapshot["snapshotRevision"] or state["snapshotHash"] != snapshot["canonicalContentHash"]:
+        raise AuthorizationError("current state is not bound to the canonical snapshot")
     state["state"] = "BLOCKED_MODEL_INVENTORY_CHANGED"
     state["blockedAt"] = _now()
     state["maintenanceTask"] = MAINTENANCE_TASK_ID
     _write_state(state, state_dir)
-    return f"status: BLOCKED_MODEL_INVENTORY_CHANGED\nmaintenance task: {MAINTENANCE_TASK_ID}"
+    return _authority_report(snapshot, updated_snapshot)
 
 
 def record_continue(thread_id: str, token: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> str:
