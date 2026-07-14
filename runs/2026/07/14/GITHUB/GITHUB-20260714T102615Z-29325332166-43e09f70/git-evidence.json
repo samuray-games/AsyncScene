@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:15Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:15Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:15Z",
+      "stderr": "",
+      "stdout": "cab386d0d5229036e0a14d04412c713f2b34a204\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:16Z",
+      "stderr": "",
+      "stdout": "# branch.oid cab386d0d5229036e0a14d04412c713f2b34a204\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:16Z",
+      "stderr": "",
+      "stdout": "cab386d0 (HEAD -> main, origin/main) .\nc8e6b066 (origin/infra/model-selector-1.0.10-confirmed-snapshot-20260714, origin/infra/bridge-123-revalidation-repair-20260714-r2) chore: remove tracked Python bytecode after main sync\nffa580a9 Merge remote-tracking branch 'origin/main' into infra/model-selector-1.0.10-confirmed-snapshot-20260714\n5ce9565e .\n68d13b81 fix(asynchronia): make selector task-specific and durable\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:16Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cab386d0d5229036e0a14d04412c713f2b34a204\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:16Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T10:26:16Z",
+      "stderr": "",
+      "stdout": "cab386d0d5229036e0a14d04412c713f2b34a204\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cab386d0d5229036e0a14d04412c713f2b34a204",
+  "observedAtUtc": "2026-07-14T10:26:16Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
