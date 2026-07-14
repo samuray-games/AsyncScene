@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/model-selector-canonical-source-repair-20260715",
+  "createdAtJst": "2026-07-15 01:28:51 JST",
+  "createdAtUtc": "2026-07-14T16:28:51Z",
+  "packagePath": "runs/2026/07/14/GITHUB/GITHUB-20260714T162851Z-29349804558-1b4c8e58",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260714T162851Z-29349804558-1b4c8e58",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
