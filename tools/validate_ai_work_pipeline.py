@@ -20,21 +20,11 @@ ALLOWED_STATUSES = {
     "READY_FOR_CODEX",
     "IMPLEMENTING",
     "READY_FOR_REVIEW",
+    "ACCEPTED_SOURCE_PENDING_INTEGRATION",
     "CORRECTION_REQUIRED",
     "BLOCKED",
     "ACCEPTED",
     "CANCELLED",
-}
-
-# Only these statuses represent active task packages that should be validated
-# as live prompt material. Review/accepted/history records are evidence only.
-ACTIVE_VALIDATION_STATUSES = {
-    "DRAFT_CHAT",
-    "READY_FOR_WORK",
-    "READY_FOR_CODEX",
-    "IMPLEMENTING",
-    "CORRECTION_REQUIRED",
-    "BLOCKED",
 }
 
 # These records were finalized under an earlier task schema and are immutable.
@@ -42,6 +32,13 @@ ACTIVE_VALIDATION_STATUSES = {
 # validator evolution into repository-wide historical breakage.
 HISTORICAL_TERMINAL_STATUSES = {
     "FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE",
+}
+
+# These known lifecycle states are evidence-only in the task-package validator:
+# they are allowed as current status values, but their phase artifacts are not
+# revalidated as active prompt material.
+EVIDENCE_ONLY_STATUSES = {
+    "ACCEPTED_SOURCE_PENDING_INTEGRATION",
 }
 
 REQUIRED_STATE_KEYS = {
@@ -201,6 +198,9 @@ def validate_task(task_dir: Path) -> list[str]:
         errors.append(f"{state_path}: TASK_ID does not match directory")
 
     current_status = state.get("CURRENT_STATUS")
+    if current_status not in ALLOWED_STATUSES and current_status not in HISTORICAL_TERMINAL_STATUSES:
+        errors.append(f"{state_path}: invalid CURRENT_STATUS")
+
     if current_status in HISTORICAL_TERMINAL_STATUSES:
         if state.get("NEXT_ROLE") != "NONE_FOR_THIS_TASK":
             errors.append(f"{state_path}: terminal historical task must have NEXT_ROLE NONE_FOR_THIS_TASK")
@@ -209,10 +209,7 @@ def validate_task(task_dir: Path) -> list[str]:
         # or rewrite accepted historical phase artifacts under the current schema.
         return errors
 
-    if current_status not in ACTIVE_VALIDATION_STATUSES:
-        # Non-active evidence packages are not revalidated as live prompt
-        # material. Keep them present for auditability, but do not fail the
-        # pipeline because of historical schema drift.
+    if current_status in EVIDENCE_ONLY_STATUSES:
         return errors
 
     current_artifact = state.get("CURRENT_ARTIFACT")
