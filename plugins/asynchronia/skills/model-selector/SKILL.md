@@ -5,6 +5,39 @@ description: Run the mandatory blocking Codex model preflight, reconcile local C
 
 # Model Selector
 
+## Selector 1.0.10 confirmed-snapshot production path
+
+For routine Asynchronia Codex tasks, automatically load and validate the canonical
+Asynchronia-owned snapshot at
+`plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json` before task
+mutation. The snapshot is versioned, `USER_CONFIRMED`, hash-validated, ordered,
+and complete. Print its revision, confirmation timestamp, source, calculated
+model count, calculated model-effort pair count, and every candidate in the
+matrix. Evaluate every pair and recommend the lowest reliable pair.
+
+This production path does not attempt ChatGPT Desktop private socket access,
+renderer injection, AppleScript JavaScript execution, Accessibility scraping,
+OCR, or live app-server inventory. The snapshot is not live Desktop extraction.
+It must never update itself from a cache, historical evidence, inferred data, or
+live host data.
+
+Ask the normal user only to verify whether the printed inventory still matches
+the active Codex picker. Accept exactly `INVENTORY_OK` or `INVENTORY_CHANGED`.
+`INVENTORY_OK` records confirmation for the same thread and moves to
+`WAITING_FOR_MODEL_SELECTION`; exact same-thread `CONTINUE` is still required
+before mutation. `INVENTORY_CHANGED` returns
+`BLOCKED_MODEL_INVENTORY_CHANGED`, provides
+`TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714`, and stops. Never ask the
+normal user to count models or pairs, reproduce efforts, rewrite the matrix, or
+provide screenshots during routine preflight.
+
+Snapshot replacement is a separate controlled workflow using
+`tools/maintain-asynchronia-model-snapshot.py`. It accepts a structured file,
+validates identifiers and duplicate/order rules, calculates counts and the
+canonical hash, prints an old-versus-new diff, and requires explicit
+confirmation. Git history preserves the replaced snapshot. Fallback or inferred
+data is never labeled live UI authority.
+
 Use this skill automatically for every Asynchronia Codex task before implementation, validation, publication, or any other state-changing work.
 
 The user selects the active model. This skill does not claim to inspect or change the model selected in the interface. It collects app-server catalog evidence, reconciles it with active execution-surface picker evidence, evaluates the authority-confirmed inventory, recommends one model-effort pair, pauses, and waits for exact same-thread `CONTINUE`.

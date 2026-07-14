@@ -256,6 +256,17 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 
 ## 8. Model selection rule
 
+Selector 1.0.10 uses the canonical Asynchronia-owned USER_CONFIRMED snapshot at
+`plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json` as the normal
+preflight source. It validates the snapshot, prints its complete inventory, and
+asks only for exact `INVENTORY_OK` or `INVENTORY_CHANGED`. It must not attempt
+Desktop private sockets, renderer injection, AppleScript JavaScript execution,
+Accessibility scraping, OCR, or live app-server inventory. `INVENTORY_CHANGED`
+routes to the dedicated snapshot-maintenance task without asking the user to
+rewrite the inventory. The existing exhaustive evaluation, recommendation,
+same-thread authorization, exact `CONTINUE`, and stale-authorization contracts
+remain required.
+
 Static repository model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.
 
 For every Asynchronia Codex task, the `model-selector` preflight must:
