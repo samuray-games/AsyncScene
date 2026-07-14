@@ -55,6 +55,10 @@ def task(**overrides: object) -> dict[str, object]:
     return result
 
 
+def snapshot_copy() -> dict[str, object]:
+    return copy.deepcopy(load_snapshot())
+
+
 class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -121,6 +125,177 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             finally:
                 selector.AUTHORITY_MANIFEST_PATH = original
 
+    def test_authority_binding_rejects_tampered_snapshot_and_artifact_changes(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            snapshot_path = Path(directory) / "tampered.json"
+            tampered = copy.deepcopy(snapshot)
+            tampered["models"] = list(reversed(tampered["models"]))
+            tampered["canonicalContentHash"] = canonical_hash(tampered)
+            snapshot_path.write_text(json.dumps(tampered, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            with self.assertRaises(SnapshotError):
+                load_snapshot(snapshot_path)
+
+    def test_authority_binding_rejects_changed_model_and_effort_structure(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            model_order = copy.deepcopy(snapshot)
+            model_order["models"] = list(reversed(model_order["models"]))
+            model_order["canonicalContentHash"] = canonical_hash(model_order)
+            model_path = Path(directory) / "model-order.json"
+            model_path.write_text(json.dumps(model_order, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            with self.assertRaises(SnapshotError):
+                load_snapshot(model_path)
+
+            effort_change = copy.deepcopy(snapshot)
+            effort_change["models"][0]["supportedEfforts"] = effort_change["models"][0]["supportedEfforts"][:-1]
+            effort_change["completeModelEffortPairCount"] = sum(len(model["supportedEfforts"]) for model in effort_change["models"])
+            effort_change["canonicalContentHash"] = canonical_hash(effort_change)
+            effort_path = Path(directory) / "effort-change.json"
+            effort_path.write_text(json.dumps(effort_change, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            with self.assertRaises(SnapshotError):
+                load_snapshot(effort_path)
+
+    def test_authority_binding_rejects_mismatched_source_path(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            temp_dir = Path(directory)
+            artifact_copy = temp_dir / "inventory.md"
+            artifact_copy.write_text(Path(ARTIFACT_PATH).read_text(encoding="utf-8"), encoding="utf-8")
+            manifest = {
+                "inventoryArtifactPath": str(artifact_copy),
+                "inventoryParser": "markdown-bullet-inventory-v1",
+                "provenanceType": "repository-markdown",
+                "lastAcceptedBlobSha": snapshot["sourceArtifact"]["blobSha"],
+                "currentSnapshotRevision": snapshot["snapshotRevision"],
+            }
+            changed_snapshot = copy.deepcopy(snapshot)
+            changed_snapshot["sourceArtifact"]["path"] = str(Path(ARTIFACT_PATH))
+            changed_snapshot["canonicalContentHash"] = canonical_hash(changed_snapshot)
+            snapshot_path = temp_dir / "path-mismatch.json"
+            snapshot_path.write_text(json.dumps(changed_snapshot, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            manifest_path = temp_dir / "authority.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            original_manifest = selector.AUTHORITY_MANIFEST_PATH
+            try:
+                selector.AUTHORITY_MANIFEST_PATH = manifest_path
+                with self.assertRaises(SnapshotError):
+                    load_snapshot(snapshot_path)
+            finally:
+                selector.AUTHORITY_MANIFEST_PATH = original_manifest
+
+    def test_authority_binding_rejects_mismatched_source_blob_sha(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            temp_dir = Path(directory)
+            artifact_copy = temp_dir / "inventory.md"
+            artifact_copy.write_text(Path(ARTIFACT_PATH).read_text(encoding="utf-8"), encoding="utf-8")
+            manifest = {
+                "inventoryArtifactPath": str(artifact_copy),
+                "inventoryParser": "markdown-bullet-inventory-v1",
+                "provenanceType": "repository-markdown",
+                "lastAcceptedBlobSha": snapshot["sourceArtifact"]["blobSha"],
+                "currentSnapshotRevision": snapshot["snapshotRevision"],
+            }
+            changed_snapshot = copy.deepcopy(snapshot)
+            changed_snapshot["sourceArtifact"]["path"] = str(artifact_copy)
+            changed_snapshot["sourceArtifact"]["blobSha"] = "0" * 40
+            changed_snapshot["canonicalContentHash"] = canonical_hash(changed_snapshot)
+            snapshot_path = temp_dir / "blob-mismatch.json"
+            snapshot_path.write_text(json.dumps(changed_snapshot, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            manifest_path = temp_dir / "authority.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            original_manifest = selector.AUTHORITY_MANIFEST_PATH
+            try:
+                selector.AUTHORITY_MANIFEST_PATH = manifest_path
+                with self.assertRaises(SnapshotError):
+                    load_snapshot(snapshot_path)
+            finally:
+                selector.AUTHORITY_MANIFEST_PATH = original_manifest
+
+    def test_authority_binding_rejects_manifest_revision_mismatch(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            temp_dir = Path(directory)
+            artifact_copy = temp_dir / "inventory.md"
+            artifact_copy.write_text(Path(ARTIFACT_PATH).read_text(encoding="utf-8"), encoding="utf-8")
+            manifest = {
+                "inventoryArtifactPath": str(artifact_copy),
+                "inventoryParser": "markdown-bullet-inventory-v1",
+                "provenanceType": "repository-markdown",
+                "lastAcceptedBlobSha": snapshot["sourceArtifact"]["blobSha"],
+                "currentSnapshotRevision": "20260715.2",
+            }
+            manifest_path = temp_dir / "authority.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            original_manifest = selector.AUTHORITY_MANIFEST_PATH
+            try:
+                selector.AUTHORITY_MANIFEST_PATH = manifest_path
+                with self.assertRaises(SnapshotError):
+                    load_snapshot()
+            finally:
+                selector.AUTHORITY_MANIFEST_PATH = original_manifest
+
+    def test_start_preflight_fails_closed_when_authority_binding_fails(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            temp_dir = Path(directory)
+            manifest = {
+                "inventoryArtifactPath": str(temp_dir / "missing.md"),
+                "inventoryParser": "markdown-bullet-inventory-v1",
+                "provenanceType": "repository-markdown",
+                "lastAcceptedBlobSha": snapshot["sourceArtifact"]["blobSha"],
+                "currentSnapshotRevision": snapshot["snapshotRevision"],
+            }
+            manifest_path = temp_dir / "authority.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            original_manifest = selector.AUTHORITY_MANIFEST_PATH
+            try:
+                selector.AUTHORITY_MANIFEST_PATH = manifest_path
+                with self.assertRaises(SnapshotError):
+                    start_preflight(task(), "thread-bind", "baseline-bind", branch="branch-bind", state_dir=temp_dir / "state")
+            finally:
+                selector.AUTHORITY_MANIFEST_PATH = original_manifest
+
+    def test_authority_binding_rejects_modified_markdown_bytes(self) -> None:
+        snapshot = snapshot_copy()
+        with tempfile.TemporaryDirectory() as directory:
+            temp_dir = Path(directory)
+            artifact_copy = temp_dir / "inventory.md"
+            artifact_copy.write_text(Path(ARTIFACT_PATH).read_text(encoding="utf-8") + "\n", encoding="utf-8")
+            manifest = {
+                "inventoryArtifactPath": str(artifact_copy),
+                "inventoryParser": "markdown-bullet-inventory-v1",
+                "provenanceType": "repository-markdown",
+                "lastAcceptedBlobSha": snapshot["sourceArtifact"]["blobSha"],
+                "currentSnapshotRevision": snapshot["snapshotRevision"],
+            }
+            changed_snapshot = copy.deepcopy(snapshot)
+            changed_snapshot["sourceArtifact"]["path"] = str(artifact_copy)
+            changed_snapshot["sourceArtifact"]["blobSha"] = snapshot["sourceArtifact"]["blobSha"]
+            changed_snapshot["canonicalContentHash"] = canonical_hash(changed_snapshot)
+            snapshot_path = temp_dir / "artifact-bytes.json"
+            snapshot_path.write_text(json.dumps(changed_snapshot, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            manifest_path = temp_dir / "authority.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            original_manifest = selector.AUTHORITY_MANIFEST_PATH
+            try:
+                selector.AUTHORITY_MANIFEST_PATH = manifest_path
+                with self.assertRaises(SnapshotError):
+                    load_snapshot(snapshot_path)
+            finally:
+                selector.AUTHORITY_MANIFEST_PATH = original_manifest
+
     def test_pending_until_inventory_ok_and_stale_auth_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
@@ -137,6 +312,28 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("WAITING_FOR_MODEL_SELECTION", ok.stdout)
             cont = subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)
             self.assertEqual(cont.returncode, 0)
+
+    def test_cheapest_rejected_pair_and_rendered_output_match_lowest_frontier_rejection(self) -> None:
+        snapshot = load_snapshot()
+        selected_task = task(
+            objective="branch synchronization and proof",
+            runtimeSensitivity="critical",
+            architectureImpact="critical",
+            securityImpact="critical",
+            economyImpact="critical",
+            releaseImpact="critical",
+            validationComplexity="critical",
+            expectedImplementationSize="very_large",
+            ambiguityNovelty="high",
+            concurrencyBranchRisk="critical",
+        )
+        report = evaluate_task(snapshot, selected_task)
+        rejected = [evaluation for evaluation in report.evaluations if evaluation.verdict != "SUITABLE"]
+        expected = min(rejected, key=lambda item: report.evaluations.index(item))
+        self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), (expected.modelIdentifier, expected.effortIdentifier))
+        with tempfile.TemporaryDirectory() as directory:
+            result = start_preflight(selected_task, "thread-render", "baseline-render", branch="render-branch", state_dir=Path(directory))
+            self.assertIn(f"cheapest rejected pair: {expected.modelLabel} / {expected.effortLabel}", result.output)
 
     def test_every_candidate_evaluated_once_and_no_unconditional_fallback(self) -> None:
         snapshot = load_snapshot()
