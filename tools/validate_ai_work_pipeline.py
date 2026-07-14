@@ -38,6 +38,7 @@ HISTORICAL_TERMINAL_STATUSES = {
 # they are allowed as current status values, but their phase artifacts are not
 # revalidated as active prompt material.
 EVIDENCE_ONLY_STATUSES = {
+    "READY_FOR_REVIEW",
     "ACCEPTED_SOURCE_PENDING_INTEGRATION",
 }
 
