@@ -6,6 +6,54 @@ CREATED_AT: 2026-07-14T01:03:15+09:00
 AUTHOR_ROLE: CODEX
 SOURCE_REVISION: infra/ai-forensics-autolog-20260712@c2257fb066fc61226a64dcaaf12c4ba3fb07327e
 
+### Evidence inspected
+
+- Current branch state, merge result, and merge base versus `origin/main`.
+- `tools/validate_ai_work_pipeline.py` and `tools/test_validate_ai_work_pipeline.py`.
+- `AGENTS.md`, `TASKS.md`, `PROJECT_MEMORY.md`, and the AI-forensics task package evidence already recorded below.
+- Current `STATE.md` and the current review report for the AI-forensics task.
+
+### Scope verification
+
+- Validator and tests are limited to the documented AI Work pipeline rules plus the explicit prompt-contract checks for `Use @asynchronia plugin.` and `Use @asynchronia task-router.`.
+- The task package remains within the same repository task area; no bridge, runtime, economy, persistence, deployment, or mirror files were modified.
+- The branch was merged with current `origin/main` without rebase or history rewrite.
+
+### Acceptance criteria results
+
+- Exact first-line plugin invocation is accepted.
+- Invocation not first is rejected.
+- Leading whitespace and blank-line prefixes are rejected.
+- Supported skill references remain accepted.
+- Unknown skill references are rejected.
+- Historical artifact handling remains unchanged.
+- Bridge forbidden-path checks remain intact.
+- Unknown `CURRENT_STATUS` values such as `BANANA_ON_FIRE` are rejected.
+
+### Test results
+
+- `python3 -m py_compile tools/validate_ai_work_pipeline.py tools/test_validate_ai_work_pipeline.py` -> `0`
+- `python3 -m unittest tools.test_validate_ai_work_pipeline -v` -> `0`
+- `python3 tools/validate_ai_work_pipeline.py .` -> `0`
+- `git diff --check` -> `0`
+
+### Runtime status
+
+- N/A. This task only updates repository policy and validation artifacts.
+
+### Findings
+
+- No remaining validation finding in the cleanup scope.
+- The review report itself needed the required schema headings to satisfy the pipeline validator.
+
+### Verdict
+
+READY_FOR_REVIEW
+
+### Exact next action
+
+Review the branch, confirm the report and validator changes, and if acceptable, proceed with the cleanup task review workflow.
+
 ### Baseline and launch proof
 
 - Authorized r4 launch SHA: `68bd9e3eef55f41dfb2ac048e2b27b3e8ff7cc9c`.

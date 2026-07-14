@@ -140,8 +140,8 @@ class PipelineValidatorTests(unittest.TestCase):
         state = (
             "TASK_ID: TASK-1\n"
             "PIPELINE_VERSION: 1.0.0\n"
-            "CURRENT_STATUS: READY_FOR_REVIEW\n"
-            "CURRENT_PHASE: REVIEW_REPORT\n"
+            "CURRENT_STATUS: ACCEPTED_SOURCE_PENDING_INTEGRATION\n"
+            "CURRENT_PHASE: INDEPENDENT_REVIEW_ACCEPTED\n"
             "CURRENT_ARTIFACT: N/A\n"
             "NEXT_ROLE: CODEX\n"
             "NEXT_ACTION: Historical evidence only.\n"
@@ -151,7 +151,7 @@ class PipelineValidatorTests(unittest.TestCase):
             "TASK_ID: TASK-1\n"
             "PIPELINE_VERSION: 1.0.0\n"
             "PHASE: REVIEW_REPORT\n"
-            "STATUS: READY_FOR_REVIEW\n"
+            "STATUS: ACCEPTED_SOURCE_PENDING_INTEGRATION\n"
             "CREATED_AT: 2026-07-12T00:00:00Z\n"
             "AUTHOR_ROLE: WORK\n"
             "SOURCE_REVISION: test\n"
@@ -187,6 +187,24 @@ class PipelineValidatorTests(unittest.TestCase):
             (task_dir / "STATE.md").write_text(state, encoding="utf-8")
             errors = validator.validate_task(task_dir)
         self.assertTrue(any("NONE_FOR_THIS_TASK" in error for error in errors))
+
+    def test_unknown_current_status_is_rejected(self) -> None:
+        state = (
+            "TASK_ID: TASK-1\n"
+            "PIPELINE_VERSION: 1.0.0\n"
+            "CURRENT_STATUS: BANANA_ON_FIRE\n"
+            "CURRENT_PHASE: CODEX_TASK\n"
+            "CURRENT_ARTIFACT: N/A\n"
+            "NEXT_ROLE: CODEX\n"
+            "NEXT_ACTION: Invalid status.\n"
+            "UPDATED_AT: 2026-07-12\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            task_dir = Path(directory) / "TASK-1"
+            task_dir.mkdir()
+            (task_dir / "STATE.md").write_text(state, encoding="utf-8")
+            errors = validator.validate_task(task_dir)
+        self.assertTrue(any("invalid CURRENT_STATUS" in error for error in errors))
 
     def test_missing_state_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
