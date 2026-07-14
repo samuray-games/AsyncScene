@@ -4,6 +4,7 @@ BRIDGE_PROTOCOL: 4.0
 CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
 VALIDATOR: `tools/bridge_v4_contract.py`
+CANONICAL_PUBLICATION_POLICY: `BRIDGE_PUBLICATION_POLICY.md`
 
 ## 1. Fixed commands and refs
 
@@ -47,6 +48,8 @@ A task lane must never push directly to `main`. Successful implementation return
 `VERIFIED_NO_DELTA` remains legal only when explicitly authorized and fully evidenced. Empty commits are forbidden.
 
 ## 5. Mailbox publication
+
+The canonical repository source is `BRIDGE_PUBLICATION_POLICY.md`. Each mailbox copy must equal the deterministic rendered policy for its slot and must agree with its STATE before publication.
 
 Inbox, claim, outbox and receipt for Slot N are published only on mailbox ref N.
 

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ("AGENTS.md", "AGENTS.override.md", "BRIDGE.md")
+FILES = ("AGENTS.md", "AGENTS.override.md", "PROCESS_ROOT_SYNC.md", "ORCHESTRATION.md", "BRIDGE.md")
 REQUIRED_MARKERS = (
     "BRIDGE_PROTOCOL: 4.0",
     "coordination/chatgpt-codex-bridge-1",
@@ -15,6 +15,7 @@ REQUIRED_MARKERS = (
     "coordination/chatgpt-codex-bridge-3",
     "CROSS_SLOT_BLINDNESS: REQUIRED",
     "DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN",
+    "BRIDGE_PUBLICATION_POLICY.md",
 )
 FORBIDDEN_ACTIVE_MARKERS = (
     "BRIDGE_PROTOCOL: 3.3",

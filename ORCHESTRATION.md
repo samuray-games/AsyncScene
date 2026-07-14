@@ -1,13 +1,22 @@
 # Asynchronia Orchestration Protocol
 
 ORCHESTRATION_VERSION: 3.3
-BRIDGE_PROTOCOL: 3.2
+BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 STATUS: ACTIVE
+CROSS_SLOT_BLINDNESS: REQUIRED
+DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
+
+Bridge publication routes are `coordination/chatgpt-codex-bridge-1`,
+`coordination/chatgpt-codex-bridge-2`, and
+`coordination/chatgpt-codex-bridge-3`. `BRIDGE_PUBLICATION_POLICY.md` is the
+canonical policy source for their deterministic slot-local renders.
 
 ## Authority
+
+`BRIDGE_PUBLICATION_POLICY.md` is the canonical repository source for each slot-local mailbox publication-policy render.
 
 Use current remote `AGENTS.override.md`, `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, Git policies, mailbox publication policy, STATE, current inbox and current claim. Historical artifacts are audit-only.
 
