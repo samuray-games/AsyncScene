@@ -26,6 +26,17 @@ ALLOWED_STATUSES = {
     "CANCELLED",
 }
 
+# Only these statuses represent active task packages that should be validated
+# as live prompt material. Review/accepted/history records are evidence only.
+ACTIVE_VALIDATION_STATUSES = {
+    "DRAFT_CHAT",
+    "READY_FOR_WORK",
+    "READY_FOR_CODEX",
+    "IMPLEMENTING",
+    "CORRECTION_REQUIRED",
+    "BLOCKED",
+}
+
 # These records were finalized under an earlier task schema and are immutable.
 # Revalidating their phase artifacts against a newer schema would turn harmless
 # validator evolution into repository-wide historical breakage.
@@ -116,6 +127,7 @@ BRIDGE_FORBIDDEN_PATHS = (
 )
 
 SUPPORTED_SKILLS_ROOT = ROOT / "plugins" / "asynchronia" / "skills"
+PLUGIN_INVOCATION = "Use @asynchronia plugin."
 SKILL_REFERENCE_RE = re.compile(r"Use @asynchronia ([A-Za-z0-9-]+)\.")
 
 
@@ -158,7 +170,12 @@ def validate_file(
             errors.append(f"{path}: missing section {section!r}")
 
     if schema_name == "03-codex-task.md" and enforce_active_codex_rules:
-        for skill_name in SKILL_REFERENCE_RE.findall(text):
+        lines = text.splitlines()
+        if not lines or lines[0] != PLUGIN_INVOCATION:
+            errors.append(f"{path}: active executable Codex prompt must start with {PLUGIN_INVOCATION!r}")
+            return errors
+
+        for skill_name in SKILL_REFERENCE_RE.findall("\n".join(lines[1:])):
             if skill_name not in supported_skill_names():
                 errors.append(f"{path}: unsupported skill reference in active task: {skill_name}")
         write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
@@ -184,15 +201,18 @@ def validate_task(task_dir: Path) -> list[str]:
         errors.append(f"{state_path}: TASK_ID does not match directory")
 
     current_status = state.get("CURRENT_STATUS")
-    if current_status not in ALLOWED_STATUSES and current_status not in HISTORICAL_TERMINAL_STATUSES:
-        errors.append(f"{state_path}: invalid CURRENT_STATUS")
-
     if current_status in HISTORICAL_TERMINAL_STATUSES:
         if state.get("NEXT_ROLE") != "NONE_FOR_THIS_TASK":
             errors.append(f"{state_path}: terminal historical task must have NEXT_ROLE NONE_FOR_THIS_TASK")
         # The CURRENT_ARTIFACT may intentionally be an immutable remote commit
         # identity rather than a path in the present checkout. Do not reinterpret
         # or rewrite accepted historical phase artifacts under the current schema.
+        return errors
+
+    if current_status not in ACTIVE_VALIDATION_STATUSES:
+        # Non-active evidence packages are not revalidated as live prompt
+        # material. Keep them present for auditability, but do not fail the
+        # pipeline because of historical schema drift.
         return errors
 
     current_artifact = state.get("CURRENT_ARTIFACT")

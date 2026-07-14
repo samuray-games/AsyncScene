@@ -1,4 +1,4 @@
-Use the current supported Asynchronia safety directive.
+Use @asynchronia plugin.
 
 TASK_ID: TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712
 PIPELINE_VERSION: 1.0.0

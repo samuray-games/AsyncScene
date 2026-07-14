@@ -24,18 +24,19 @@ In the same Codex thread:
 
 1. Do not mutate repository files, create a worktree, validate implementation, publish forensic packages, enable hooks, commit, or push.
 2. Resolve the Asynchronia plugin. If the installed attachment is unavailable, use `plugins/asynchronia/skills/model-selector/SKILL.md` from the exact remote launch head.
-3. Run a fresh live inventory through `codex app-server` and `model/list`.
-4. Analyze the exact r3 task in `03-codex-task-r3.md`.
-5. Record `gpt-5.4 high` as unavailable for this execution attempt due to the observed capacity error. Do not silently recommend it again unless the current interface proves availability during the new preflight.
-6. Evaluate the full current picker-visible matrix. Do not assume Mini Light is sufficient merely because it can be selected.
-7. Recommend the lowest expected total-cost reliable currently available fallback.
-8. Stop at `WAITING_FOR_MODEL_SELECTION`.
-9. Require a new exact same-thread `CONTINUE` after the user selects the new recommended pair because the prior `CONTINUE` belonged to a materially different recommendation and inventory state.
+3. Treat `Use @asynchronia plugin.` as the supported plugin-level invocation token for the refreshed preflight.
+4. Run a fresh live inventory through `codex app-server` and `model/list`.
+5. Analyze the exact r3 task in `03-codex-task-r3.md`.
+6. Record `gpt-5.4 high` as unavailable for this execution attempt due to the observed capacity error. Do not silently recommend it again unless the current interface proves availability during the new preflight.
+7. Evaluate the full current picker-visible matrix. Do not assume Mini Light is sufficient merely because it can be selected.
+8. Recommend the lowest expected total-cost reliable currently available fallback.
+9. Stop at `WAITING_FOR_MODEL_SELECTION`.
+10. Require a new exact same-thread `CONTINUE` after the user selects the new recommended pair because the prior `CONTINUE` belonged to a materially different recommendation and inventory state.
 
 ### Forbidden action
 
 - Do not begin r3 implementation on Mini Light before the fresh recommendation and new same-thread `CONTINUE`.
-- Do not invoke or reference the removed safety directive.
+- Do not invoke or reference the retired directive wording.
 - Do not touch `.ai-bridge/**`, bridge refs, Stage 6, game runtime, UI runtime, economy, persistence, deployment mirrors, or `main`.
 - Do not enable `/hooks`.
 
