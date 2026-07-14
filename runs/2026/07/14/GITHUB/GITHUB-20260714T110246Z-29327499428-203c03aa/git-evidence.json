@@ -1,0 +1,106 @@
+{
+  "branch": "infra/bridge-123-revalidation-repair-20260714-r2",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "infra/bridge-123-revalidation-repair-20260714-r2\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "c7ea4531fe9e7bdb541af57c761484f91e651c4c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "# branch.oid c7ea4531fe9e7bdb541af57c761484f91e651c4c\n# branch.head infra/bridge-123-revalidation-repair-20260714-r2\n# branch.upstream origin/infra/bridge-123-revalidation-repair-20260714-r2\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "c7ea4531 (HEAD -> infra/bridge-123-revalidation-repair-20260714-r2, origin/infra/bridge-123-revalidation-repair-20260714-r2) Harden Bridge v4 publication policy validation\n15baeb49 (origin/work/bridge-123-revalidation-repair-20260714-r2) Recover bridge revalidation task package\nc8e6b066 (origin/infra/model-selector-1.0.10-confirmed-snapshot-20260714) chore: remove tracked Python bytecode after main sync\nffa580a9 Merge remote-tracking branch 'origin/main' into infra/model-selector-1.0.10-confirmed-snapshot-20260714\n5ce9565e .\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c7ea4531fe9e7bdb541af57c761484f91e651c4c\nbranch refs/heads/infra/bridge-123-revalidation-repair-20260714-r2\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T11:02:46Z",
+      "stderr": "",
+      "stdout": "cab386d0d5229036e0a14d04412c713f2b34a204\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c7ea4531fe9e7bdb541af57c761484f91e651c4c",
+  "observedAtUtc": "2026-07-14T11:02:46Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}

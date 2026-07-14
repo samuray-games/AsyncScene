@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/bridge-123-revalidation-repair-20260714-r2",
+  "createdAtJst": "2026-07-14 20:02:46 JST",
+  "createdAtUtc": "2026-07-14T11:02:46Z",
+  "packagePath": "runs/2026/07/14/GITHUB/GITHUB-20260714T110246Z-29327499428-203c03aa",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260714T110246Z-29327499428-203c03aa",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
