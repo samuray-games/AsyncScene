@@ -1,0 +1,106 @@
+{
+  "branch": "infra/model-selector-1.0.10-confirmed-snapshot-20260714",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "infra/model-selector-1.0.10-confirmed-snapshot-20260714\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "c8e6b0668f39bbc49055bf3638ac2236c5fd4e15\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid c8e6b0668f39bbc49055bf3638ac2236c5fd4e15\n# branch.head infra/model-selector-1.0.10-confirmed-snapshot-20260714\n# branch.upstream origin/infra/model-selector-1.0.10-confirmed-snapshot-20260714\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "c8e6b066 (HEAD -> infra/model-selector-1.0.10-confirmed-snapshot-20260714, origin/infra/model-selector-1.0.10-confirmed-snapshot-20260714) chore: remove tracked Python bytecode after main sync\nffa580a9 Merge remote-tracking branch 'origin/main' into infra/model-selector-1.0.10-confirmed-snapshot-20260714\n5ce9565e (origin/main) .\n68d13b81 fix(asynchronia): make selector task-specific and durable\nc2890b9c chore: remove tracked Python bytecode\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c8e6b0668f39bbc49055bf3638ac2236c5fd4e15\nbranch refs/heads/infra/model-selector-1.0.10-confirmed-snapshot-20260714\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-14T09:05:49Z",
+      "stderr": "",
+      "stdout": "5ce9565eee5e8bb51cfb7b2dbc069d8f56459b3f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c8e6b0668f39bbc49055bf3638ac2236c5fd4e15",
+  "observedAtUtc": "2026-07-14T09:05:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
