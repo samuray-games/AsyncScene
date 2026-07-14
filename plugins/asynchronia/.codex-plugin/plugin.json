@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Project-specific automatic routing, Codex desktop UI-authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"

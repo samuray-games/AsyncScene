@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLUGIN_VERSION = "1.0.9"
+EXPECTED_PLUGIN_VERSION = "1.0.10"
 
 
 def read(path: str) -> str:
@@ -355,6 +355,21 @@ def validate_live_contract(failures: list[str]) -> None:
     require("static model inventory" not in agents.lower(), "static model inventory text introduced", failures)
 
 
+def validate_confirmed_snapshot(failures: list[str]) -> None:
+    sys.path.insert(0, str(ROOT))
+    try:
+        from plugins.asynchronia.model_selector import build_candidate_matrix, load_snapshot
+        snapshot = load_snapshot()
+        candidates = build_candidate_matrix(snapshot)
+    except Exception as exc:  # pragma: no cover - validator reports the concrete failure
+        failures.append(f"confirmed snapshot rejected: {exc}")
+        return
+    require(snapshot["status"] == "USER_CONFIRMED", "confirmed snapshot status mismatch", failures)
+    require(snapshot["completeModelCount"] == len(snapshot["models"]), "snapshot model count is not calculated", failures)
+    require(snapshot["completeModelEffortPairCount"] == len(candidates), "snapshot pair count is not calculated", failures)
+    require(len(candidates) > 0, "confirmed snapshot candidate matrix is empty", failures)
+
+
 def validate_matrix_fixture(failures: list[str]) -> None:
     inventory = [
         {"id": "a", "hidden": False, "supportedReasoningEfforts": [{"reasoningEffort": "low"}, {"reasoningEffort": "medium"}, {"reasoningEffort": "high"}]},
@@ -477,6 +492,7 @@ def main() -> int:
     failures: list[str] = []
     state = validate_manifests(failures)
     validate_live_contract(failures)
+    validate_confirmed_snapshot(failures)
     validate_matrix_fixture(failures)
     validate_reconciliation_fixtures(failures)
     validate_state_machine(failures)

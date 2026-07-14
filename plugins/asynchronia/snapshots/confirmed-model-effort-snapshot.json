@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.10",
+  "snapshotRevision": "20260714.1",
+  "confirmedTimestamp": "2026-07-14T00:00:00Z",
+  "confirmationSource": "USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
+  "applicationSurface": "CHATGPT_DESKTOP_APP",
+  "models": [
+    {"modelIdentifier": "gpt-5.4-mini", "supportedEfforts": ["low", "medium", "high", "xhigh"]},
+    {"modelIdentifier": "gpt-5.4", "supportedEfforts": ["low", "medium", "high", "xhigh"]},
+    {"modelIdentifier": "gpt-5.5", "supportedEfforts": ["low", "medium", "high", "xhigh"]},
+    {"modelIdentifier": "gpt-5.6-luna", "supportedEfforts": ["low", "medium", "high", "xhigh", "max"]},
+    {"modelIdentifier": "gpt-5.6-terra", "supportedEfforts": ["low", "medium", "high", "xhigh", "max", "ultra"]},
+    {"modelIdentifier": "gpt-5.6-sol", "supportedEfforts": ["low", "medium", "high", "xhigh", "max", "ultra"]}
+  ],
+  "completeModelCount": 6,
+  "completeModelEffortPairCount": 29,
+  "canonicalContentHash": "sha256:d59d70f5649f18e7fbf12380524ee1c0e95943a02910161a9474b407028d98af",
+  "status": "USER_CONFIRMED",
+  "supersedes": null,
+  "notes": [
+    "This is a complete versioned user-confirmed model-effort snapshot.",
+    "It is not live Codex Desktop extraction and must not be updated by the production selector.",
+    "Use the dedicated snapshot-maintenance task for explicit replacement after user confirmation."
+  ]
+}
