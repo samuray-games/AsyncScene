@@ -7,6 +7,9 @@ from tools.bridge_v4_contract import (
     validate_command,
     validate_cross_slot_immutability,
     validate_publication,
+    render_slot_policy,
+    validate_policy,
+    validate_snapshot,
     validate_state,
 )
 
@@ -75,6 +78,28 @@ class BridgeV4ContractTests(unittest.TestCase):
 
     def test_memory_paths_are_separate(self):
         self.assertEqual(3, len({memory_path(slot) for slot in (1, 2, 3)}))
+
+    def test_rendered_policy_matches_its_state(self):
+        self.assertEqual([], validate_policy(1, render_slot_policy(1), self.valid_state(1)))
+
+    def test_missing_or_wrong_policy_fails_closed(self):
+        self.assertIn("FAIL_POLICY_RENDER_MISMATCH", validate_policy(2, "", self.valid_state(2)))
+        self.assertIn("FAIL_POLICY_STATE_IDENTITY_MISMATCH", validate_policy(2, render_slot_policy(2), self.valid_state(1)))
+
+    def test_policy_cross_slot_reference_fails(self):
+        policy = render_slot_policy(1) + "OTHER: coordination/chatgpt-codex-bridge-2\n"
+        self.assertTrue(any("FAIL_POLICY_CROSS_SLOT_REFERENCE" in error for error in validate_policy(1, policy)))
+
+    def test_snapshot_must_match_state(self):
+        snapshot = "\n".join(("SLOT: 3", "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-3", "STATUS: AVAILABLE", "CURRENT_THREAD: NONE", "CURRENT_TASK_BRANCH: bridge/3/AVAILABLE"))
+        state = "\n".join(("SLOT: 3", "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-3", "STATUS: AVAILABLE", "THREAD: NONE", "TASK: NONE", "BRANCH_TASK: bridge/3/AVAILABLE"))
+        self.assertEqual([], validate_snapshot(3, snapshot, state))
+        self.assertIn("FAIL_SNAPSHOT_STATE_STATUS_MISMATCH", validate_snapshot(3, snapshot, state.replace("STATUS: AVAILABLE", "STATUS: READY")))
+
+    def test_available_state_requires_empty_identity(self):
+        snapshot = "\n".join(("SLOT: 3", "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-3", "STATUS: AVAILABLE", "CURRENT_THREAD: task", "CURRENT_TASK_BRANCH: bridge/3/task"))
+        state = "\n".join(("SLOT: 3", "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-3", "STATUS: AVAILABLE", "THREAD: task", "TASK: task", "BRANCH_TASK: bridge/3/task"))
+        self.assertIn("FAIL_AVAILABLE_STATE_IDENTITY", validate_snapshot(3, snapshot, state))
 
 
 if __name__ == "__main__":

@@ -5,6 +5,14 @@ ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
 STATUS: ACTIVE
+BRIDGE_PROTOCOL: 4.0
+CROSS_SLOT_BLINDNESS: REQUIRED
+DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
+
+Bridge publication routes are `coordination/chatgpt-codex-bridge-1`,
+`coordination/chatgpt-codex-bridge-2`, and
+`coordination/chatgpt-codex-bridge-3`. `BRIDGE_PUBLICATION_POLICY.md` is the
+canonical policy source for their deterministic slot-local renders.
 
 ## Trigger
 
@@ -23,6 +31,8 @@ Root synchronization is mandatory for reusable defects in:
 - repeated failures the process should prevent.
 
 ## Required propagation
+
+`BRIDGE_PUBLICATION_POLICY.md` is the canonical source; mailbox policy copies must be deterministically rendered and validated against STATE before publication.
 
 Before the next project action ChatGPT must:
 

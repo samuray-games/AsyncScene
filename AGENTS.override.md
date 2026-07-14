@@ -17,6 +17,8 @@ Read root `AGENTS.md` fully. Every rule remains binding except the bridge, publi
 
 ## 1. Authority order
 
+`BRIDGE_PUBLICATION_POLICY.md` is the canonical publication-policy source; a mailbox `.ai-bridge/PUBLICATION_POLICY.md` is valid only as its rendered slot-local copy.
+
 1. explicit current user instruction;
 2. `AGENTS.override.md`;
 3. `AGENTS.md` non-replaced repository policy;

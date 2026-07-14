@@ -9,6 +9,8 @@ BRIDGE_AUTHORITY_CHECK: `python3 tools/bridge_v4_authority_check.py`
 
 ## 0. Bridge command aliases
 
+Canonical repository policy is `BRIDGE_PUBLICATION_POLICY.md`; each mailbox policy is its deterministic slot-local rendered copy.
+
 The exact trimmed user commands `мост 1`, `мост 2`, and `мост 3` are reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
 
 The commands map one-to-one:
