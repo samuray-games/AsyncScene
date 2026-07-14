@@ -1,6 +1,6 @@
 # Asynchronia Bridge v4 Hard-Isolation Override
 
-OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION_WORKTREE_1
+OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION_WORKTREE_2
 BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -10,6 +10,7 @@ MODEL_PREFLIGHT_PAUSE: REQUIRED
 CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
 WORKTREE_LIFECYCLE: REQUIRED
+WORKTREE_DISCLOSURE: IMMEDIATE_AND_CLIENT_INDEPENDENT
 MOBILE_BRANCH_RECOVERY: REQUIRED
 
 Read root `AGENTS.md` fully. Every rule remains binding except the bridge, publication, state, branch and memory clauses explicitly replaced below.
@@ -159,16 +160,22 @@ Bridge infrastructure changes do not require Safari smoke. Safari status is `N/A
 
 Codex prose alone is never acceptance evidence.
 
-## 13. Temporary worktree lifecycle and mobile-safe branch recovery
+## 13. Temporary worktree lifecycle and universal branch-path disclosure
 
-This section is mandatory for every Codex-created Git worktree, including task, cleanup, mailbox, integration, audit and recovery worktrees.
+This section is mandatory for every Codex-created or Codex-discovered Git worktree, including task, cleanup, mailbox, integration, audit and recovery worktrees. It applies regardless of whether the user is currently using Mac, iPhone, web, CLI or any other client. Codex must never assume it knows which client the user is using.
 
-### 13.1 Creation restraint
+### 13.1 Creation restraint and immediate disclosure
 
 - Do not create a temporary worktree when the task can be completed safely in the canonical checkout without violating isolation or publication rules.
 - When isolation requires a worktree, create it only for one exact branch and one exact task.
-- Record the exact branch and absolute worktree path immediately after creation.
-- Paths under `/private/tmp`, `/tmp` or another disposable directory are temporary infrastructure, never a user-facing working location.
+- Immediately after creating a worktree, before continuing substantive task execution, send the user a visible progress message containing the exact branch name and exact absolute worktree path.
+- The immediate disclosure must use these exact fields: `worktree branch:` and `worktree path:`.
+- Do not postpone this disclosure until the terminal report.
+- Do not condition this disclosure on knowing or guessing the user's current device or client.
+- If a pre-existing worktree is discovered during branch occupancy checks, immediately send the user the same exact branch and path fields before attempting recovery.
+- Paths under `/private/tmp`, `/tmp` or another disposable directory are temporary infrastructure. They must still be disclosed immediately, even when automatic cleanup is expected.
+
+Failure to disclose a created or discovered worktree immediately is `FAIL_WORKTREE_DISCLOSURE_DELAYED`.
 
 ### 13.2 Mandatory branch occupancy preflight
 
@@ -176,7 +183,7 @@ Before every branch switch, checkout, branch reuse or worktree creation, Codex m
 
 `git -C "/Users/User/Documents/created apps/AsyncScene" worktree list --porcelain`
 
-If the requested branch is already attached to another worktree, Codex must not return a generic switch failure. It must identify and report all of the following in the same response:
+If the requested branch is already attached to another worktree, Codex must not return a generic switch failure. It must immediately disclose `worktree branch:` and `worktree path:`, then identify and report all of the following in the same response:
 
 - `BLOCKED_BRANCH_ALREADY_CHECKED_OUT`;
 - exact branch name;
@@ -208,17 +215,19 @@ When a branch switch is blocked by a temporary worktree, Codex must first inspec
 - Never require the user to navigate to a `/private/tmp/...` worktree merely to continue ordinary work.
 - Never use `git worktree remove --force`, `git clean`, `git reset --hard` or deletion of the directory unless an explicit current user instruction authorizes that exact destructive action after the dirty state is shown.
 
-### 13.5 iPhone and restricted-client requirement
+### 13.5 Restricted-client recovery
 
 The canonical checkout is:
 
 `/Users/User/Documents/created apps/AsyncScene`
 
-For workflows that may continue from iPhone or another client that cannot select an arbitrary local folder, Codex must leave the requested branch available from the canonical checkout before reporting success.
+Codex must not rely on device detection. It must treat every workflow as potentially continuing from a client that cannot select an arbitrary local folder.
 
-If that cannot be done safely, success is forbidden. The response must return `BLOCKED_MOBILE_BRANCH_UNAVAILABLE` together with the exact branch, exact occupying path and exact unresolved state.
+Before reporting success, Codex must leave the requested branch available from the canonical checkout whenever that can be done safely.
 
-A temporary worktree path is diagnostic evidence only. It is never the required next user action for an iPhone workflow.
+If that cannot be done safely, success is forbidden. The response must return `BLOCKED_CANONICAL_BRANCH_UNAVAILABLE` together with the exact branch, exact occupying path and exact unresolved state.
+
+A temporary worktree path is always required diagnostic information, but it must not be the only possible continuation path.
 
 ### 13.6 Mandatory terminal report
 
