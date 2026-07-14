@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/bridge-state-conflict-marker-repair-20260714",
+  "createdAtJst": "2026-07-14 23:43:58 JST",
+  "createdAtUtc": "2026-07-14T14:43:58Z",
+  "packagePath": "runs/2026/07/14/GITHUB/GITHUB-20260714T144358Z-29342151030-05eede18",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260714T144358Z-29342151030-05eede18",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
