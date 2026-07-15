@@ -1,0 +1,10 @@
+{
+  "credentialFindings": 0,
+  "nonUtf8Findings": 0,
+  "privatePathFindings": 0,
+  "runId": "WORK-20260715T095447Z-PREFLIGHT-COST-CORRECTION-4A8E",
+  "scannedFiles": 5,
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "PASS",
+  "transformations": []
+}
