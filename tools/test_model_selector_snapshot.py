@@ -20,9 +20,12 @@ from plugins.asynchronia.model_selector import (  # noqa: E402
     build_candidate_matrix,
     canonical_hash,
     evaluate_task,
+    current_branch,
     load_snapshot,
     load_task,
     record_inventory_changed,
+    record_inventory_ok,
+    mutation_authorization_guard,
     start_preflight,
     validate_snapshot,
 )
@@ -31,6 +34,7 @@ from plugins.asynchronia.model_selector_inventory import parse_inventory_markdow
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md"
+CHECKED_OUT_BRANCH = current_branch()
 
 
 def task(**overrides: object) -> dict[str, object]:
@@ -83,10 +87,10 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 ),
                 "thread-historical",
                 "baseline-historical",
-                branch="branch-historical",
+                branch=CHECKED_OUT_BRANCH,
                 state_dir=Path(directory) / "state",
             )
-        self.assertEqual(result.status, "MUTATION_PREFLIGHT_REQUIRED")
+        self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
         self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.output)
         self.assertNotIn("WAITING_FOR_MODEL_SELECTION", result.output)
 
@@ -96,11 +100,14 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-read", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-read", "--branch", "branch-read"]
+            common = ["--thread-id", "thread-read", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH]
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             self.assertIn("READ_ONLY_ALLOWED", start.stdout)
-            self.assertIn("plugin version:", start.stdout)
+            self.assertIn("plugin root:", start.stdout)
+            self.assertIn("plugin manifest path:", start.stdout)
+            self.assertIn("manifest version:", start.stdout)
+            self.assertIn("manifest sha256:", start.stdout)
             self.assertIn("authority validation result:", start.stdout)
             self.assertIn("read-only scope:", start.stdout)
             self.assertNotIn("recommended pair:", start.stdout)
@@ -110,6 +117,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertNotIn("model-effort pair count:", start.stdout)
             inventory_ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
             self.assertNotEqual(inventory_ok.returncode, 0)
+            state_files = list(state_dir.glob("*.json"))
+            self.assertEqual(state_files, [])
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -151,12 +160,19 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", "branch-a"]
+            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", CHECKED_OUT_BRANCH]
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
-            self.assertIn("status: MUTATION_PREFLIGHT_REQUIRED", start.stdout)
+            self.assertIn("authorization path: MUTATION_PREFLIGHT_REQUIRED", start.stdout)
+            self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
             self.assertIn("evaluated pair count: 29/29", start.stdout)
             self.assertNotIn("READ_ONLY_ALLOWED", start.stdout)
+            inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
+            self.assertEqual(inspect.returncode, 0)
+            self.assertIn('"state": "WAITING_FOR_INVENTORY_CONFIRMATION"', inspect.stdout)
+            self.assertIn('"stateHistory": [', inspect.stdout)
+            self.assertIn('"MUTATION_PREFLIGHT_REQUIRED"', inspect.stdout)
+            self.assertIn('"WAITING_FOR_INVENTORY_CONFIRMATION"', inspect.stdout)
 
     def test_inventory_changed_resolves_authority_and_differs_from_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -164,7 +180,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", "branch-a"]
+            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", CHECKED_OUT_BRANCH]
             self.assertEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
             result = subprocess.run(command + ["inventory-changed", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0)
@@ -325,7 +341,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             try:
                 selector.AUTHORITY_MANIFEST_PATH = manifest_path
                 with self.assertRaises(SnapshotError):
-                    start_preflight(task(), "thread-bind", "baseline-bind", branch="branch-bind", state_dir=temp_dir / "state")
+                    start_preflight(task(), "thread-bind", "baseline-bind", branch=CHECKED_OUT_BRANCH, state_dir=temp_dir / "state")
             finally:
                 selector.AUTHORITY_MANIFEST_PATH = original_manifest
 
@@ -366,16 +382,59 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", "branch-a"]
+            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", CHECKED_OUT_BRANCH]
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
+            self.assertIn("WAITING_FOR_INVENTORY_CONFIRMATION", inspect.stdout)
             self.assertIn("MUTATION_PREFLIGHT_REQUIRED", inspect.stdout)
             ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
             self.assertEqual(ok.returncode, 0)
             self.assertIn("WAITING_FOR_MODEL_SELECTION", ok.stdout)
             cont = subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)
             self.assertEqual(cont.returncode, 0)
+
+    def test_mutation_guard_rejects_read_only_and_pre_authorization_states(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(task()), encoding="utf-8")
+            read_only_task_file = Path(directory) / "readonly-task.json"
+            read_only_task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            self.assertEqual(start_preflight(task(), "guard-thread", "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir).status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+            with self.assertRaises(AuthorizationError):
+                mutation_authorization_guard("guard-thread", read_only_task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            with self.assertRaises(AuthorizationError):
+                mutation_authorization_guard("missing-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            with self.assertRaises(AuthorizationError):
+                mutation_authorization_guard("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            record_inventory_ok("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            with self.assertRaises(AuthorizationError):
+                mutation_authorization_guard("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            from plugins.asynchronia import model_selector as selector  # noqa: WPS433
+
+            state_path = selector._state_path("guard-thread", state_dir)  # noqa: SLF001
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["state"] = "IMPLEMENTATION_ALLOWED"
+            state["stateHistory"].append("IMPLEMENTATION_ALLOWED")
+            state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            guarded = mutation_authorization_guard("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            self.assertEqual(guarded["state"], "IMPLEMENTATION_ALLOWED")
+
+    def test_read_only_runtime_version_comes_from_manifest_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-read-version", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-version", "--branch", CHECKED_OUT_BRANCH]
+            start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertEqual(start.returncode, 0)
+            self.assertIn("plugin root:", start.stdout)
+            self.assertIn("plugin manifest path:", start.stdout)
+            self.assertIn("manifest version: 1.0.13", start.stdout)
+            manifest_path = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
+            self.assertIn(str(manifest_path), start.stdout)
 
     def test_cheapest_rejected_pair_and_rendered_output_match_lowest_frontier_rejection(self) -> None:
         snapshot = load_snapshot()
@@ -396,7 +455,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         expected = min(rejected, key=lambda item: report.evaluations.index(item))
         self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), (expected.modelIdentifier, expected.effortIdentifier))
         with tempfile.TemporaryDirectory() as directory:
-            result = start_preflight(selected_task, "thread-render", "baseline-render", branch="render-branch", state_dir=Path(directory))
+            result = start_preflight(selected_task, "thread-render", "baseline-render", branch=CHECKED_OUT_BRANCH, state_dir=Path(directory))
             self.assertIn(f"cheapest rejected pair: {expected.modelLabel} / {expected.effortLabel}", result.output)
 
     def test_every_candidate_evaluated_once_and_no_unconditional_fallback(self) -> None:
@@ -424,7 +483,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-b", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-b", "--branch", "branch-b"]
+            common = ["--thread-id", "thread-b", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-b", "--branch", CHECKED_OUT_BRANCH]
             self.assertEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
             self.assertEqual(subprocess.run(command + ["invalidate", "--thread-id", "thread-b", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False).returncode, 0)
             self.assertNotEqual(subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False).returncode, 0)
@@ -442,8 +501,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             write_task_file = Path(directory) / "write-task.json"
             read_task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             write_task_file.write_text(json.dumps(task()), encoding="utf-8")
-            read_common = ["--thread-id", "thread-read-override", "--state-dir", str(read_state_dir), "--task-file", str(read_task_file), "--baseline", "baseline-read", "--branch", "branch-read"]
-            write_common = ["--thread-id", "thread-write-override", "--state-dir", str(write_state_dir), "--task-file", str(write_task_file), "--baseline", "baseline-write", "--branch", "branch-write"]
+            read_common = ["--thread-id", "thread-read-override", "--state-dir", str(read_state_dir), "--task-file", str(read_task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH]
+            write_common = ["--thread-id", "thread-write-override", "--state-dir", str(write_state_dir), "--task-file", str(write_task_file), "--baseline", "baseline-write", "--branch", CHECKED_OUT_BRANCH]
             read_result = subprocess.run(command + ["start", *read_common], capture_output=True, text=True, check=False)
             write_result = subprocess.run(command + ["start", *write_common], capture_output=True, text=True, check=False)
             self.assertEqual(read_result.returncode, 0)

@@ -21,6 +21,8 @@ SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
 PLUGIN_VERSION = "1.0.13"
+PLUGIN_RUNTIME_ROOT = Path(__file__).resolve().parent
+PLUGIN_MANIFEST_PATH = PLUGIN_RUNTIME_ROOT / ".codex-plugin" / "plugin.json"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
@@ -92,6 +94,14 @@ class PreflightResult:
     thread_id: str | None = None
 
 
+@dataclass(frozen=True)
+class PluginRuntimeEvidence:
+    pluginRoot: str
+    manifestPath: str
+    manifestVersion: str
+    manifestSha256: str
+
+
 def _canonical_bytes(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
 
@@ -125,6 +135,46 @@ def _inventory_artifact_path() -> Path:
     if not path.is_absolute():
         path = Path(__file__).resolve().parents[2] / path
     return path
+
+
+def _resolve_git_worktree_root() -> Path:
+    try:
+        result = subprocess.run(["git", "-C", str(PLUGIN_RUNTIME_ROOT), "rev-parse", "--show-toplevel"], check=True, capture_output=True, text=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise AuthorizationError("unable to resolve git worktree root") from exc
+    worktree = Path(result.stdout.strip())
+    if not worktree.is_absolute():
+        raise AuthorizationError("resolved git worktree root is not absolute")
+    return worktree
+
+
+def _read_plugin_runtime_evidence() -> PluginRuntimeEvidence:
+    manifest_path = PLUGIN_MANIFEST_PATH
+    if not manifest_path.exists():
+        raise AuthorizationError("installed plugin manifest is missing")
+    try:
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AuthorizationError("installed plugin manifest is malformed") from exc
+    if not isinstance(manifest, Mapping):
+        raise AuthorizationError("installed plugin manifest is malformed")
+    if manifest.get("name") != "asynchronia":
+        raise AuthorizationError("installed plugin manifest does not match the executing package")
+    version = manifest.get("version")
+    if not isinstance(version, str) or not version.strip():
+        raise AuthorizationError("installed plugin manifest version is missing")
+    if version != PLUGIN_VERSION:
+        raise AuthorizationError("installed plugin manifest version is inconsistent with the executing package")
+    manifest_sha256 = "sha256:" + hashlib.sha256(manifest_bytes).hexdigest()
+    return PluginRuntimeEvidence(str(PLUGIN_RUNTIME_ROOT), str(manifest_path), version, manifest_sha256)
+
+
+def _validate_branch_argument(selected_branch: str | None) -> str:
+    checked_out = current_branch()
+    if selected_branch is not None and selected_branch != checked_out:
+        raise AuthorizationError("explicit branch argument does not match checked-out branch")
+    return checked_out
 
 
 def _snapshot_payload_path() -> Path:
@@ -316,9 +366,14 @@ def _validate_task(task: Mapping[str, object]) -> dict[str, object]:
     for field in ("taskId", "taskType", "objective"):
         if not isinstance(normalized[field], str) or not normalized[field].strip():
             raise TaskDescriptionError(f"{field} must be a non-empty string")
-    for field in ("readScope", "writeScope", "affectedSystems"):
-        if not isinstance(normalized[field], list) or not all(isinstance(item, str) and item.strip() for item in normalized[field]):
-            raise TaskDescriptionError(f"{field} must be a string list")
+    for field in ("readScope", "affectedSystems"):
+        if not isinstance(normalized[field], list) or not normalized[field] or not all(isinstance(item, str) and item.strip() for item in normalized[field]):
+            raise TaskDescriptionError(f"{field} must be a non-empty string list")
+    write_scope = normalized["writeScope"]
+    if not isinstance(write_scope, list):
+        raise TaskDescriptionError("writeScope must be a list")
+    if write_scope and not all(isinstance(item, str) and item.strip() for item in write_scope):
+        raise TaskDescriptionError("writeScope must contain only non-empty strings")
     for field in ("runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact", "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk"):
         if normalized[field] not in LEVELS:
             raise TaskDescriptionError(f"{field} must be one of {sorted(LEVELS)}")
@@ -329,12 +384,14 @@ def _validate_task(task: Mapping[str, object]) -> dict[str, object]:
 
 def _normalized_write_scope(task: Mapping[str, object]) -> tuple[str, ...]:
     normalized = _validate_task(task)
-    return tuple(normalized["writeScope"])
+    write_scope = normalized["writeScope"]
+    if write_scope == ["NONE_READ_ONLY"]:
+        return tuple()
+    return tuple(write_scope)
 
 
 def _is_read_only_task(task: Mapping[str, object]) -> bool:
-    write_scope = _normalized_write_scope(task)
-    return len(write_scope) == 0 or write_scope == ("NONE_READ_ONLY",)
+    return len(_normalized_write_scope(task)) == 0
 
 
 def _authority_validation_result(snapshot: Mapping[str, object] | None = None) -> str:
@@ -425,7 +482,7 @@ def _parse_time(value: str) -> float:
 
 
 def current_branch() -> str:
-    result = subprocess.run(["git", "branch", "--show-current"], check=True, capture_output=True, text=True)
+    result = subprocess.run(["git", "-C", str(_resolve_git_worktree_root()), "branch", "--show-current"], check=True, capture_output=True, text=True)
     branch = result.stdout.strip()
     if not branch:
         raise AuthorizationError("detached HEAD is not an authorized branch")
@@ -475,9 +532,28 @@ def _assert_identity(state: Mapping[str, object], task: Mapping[str, object], sn
             raise AuthorizationError(f"stale authorization: {field} differs")
 
 
+def mutation_authorization_guard(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> Mapping[str, object]:
+    snapshot = load_snapshot(path)
+    valid_task = _validate_task(task)
+    if _is_read_only_task(valid_task):
+        raise AuthorizationError("read-only tasks are not authorized for mutation")
+    selected_branch = branch if branch is not None else current_branch()
+    report = evaluate_task(snapshot, valid_task)
+    state = _read_state(thread_id, state_dir)
+    _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
+    if state.get("state") != "IMPLEMENTATION_ALLOWED":
+        raise AuthorizationError("mutation authorization requires IMPLEMENTATION_ALLOWED")
+    if state.get("stateHistory", [])[-1:] != ["IMPLEMENTATION_ALLOWED"]:
+        raise AuthorizationError("mutation authorization state is stale")
+    if state.get("invalidatedAt"):
+        raise AuthorizationError("mutation authorization state is invalidated")
+    return state
+
+
 def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: str, next_response: str) -> str:
     lines = [
         f"status: {status}",
+        f"authorization path: {'MUTATION_PREFLIGHT_REQUIRED' if status != 'READ_ONLY_ALLOWED' else 'READ_ONLY_ALLOWED'}",
         f"snapshot revision: {snapshot['snapshotRevision']}",
         f"snapshot hash: {snapshot['canonicalContentHash']}",
         f"source artifact: {snapshot['sourceArtifact']['path']}",
@@ -498,12 +574,17 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
 
 
 def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str) -> str:
+    evidence = _read_plugin_runtime_evidence()
+    worktree_root = _resolve_git_worktree_root()
     lines = [
         "status: READ_ONLY_ALLOWED",
-        f"plugin version: {PLUGIN_VERSION}",
-        f"plugin runtime path: {Path(__file__).resolve().parent / '.codex-plugin'}",
+        "authorization path: READ_ONLY_ALLOWED",
+        f"plugin root: {evidence.pluginRoot}",
+        f"plugin manifest path: {evidence.manifestPath}",
+        f"manifest version: {evidence.manifestVersion}",
+        f"manifest sha256: {evidence.manifestSha256}",
         f"current branch: {current_branch()}",
-        f"absolute worktree path: {Path.cwd().resolve()}",
+        f"absolute worktree path: {worktree_root}",
         f"baseline sha: {baseline}",
         f"authority validation result: {_authority_validation_result(snapshot)}",
         f"read-only scope: {task['readScope']}",
@@ -515,26 +596,30 @@ def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object]
 def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
     snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
-    selected_branch = branch or current_branch()
+    selected_branch = branch if branch is not None else current_branch()
+    if branch is not None and branch != current_branch():
+        raise AuthorizationError("explicit branch argument does not match checked-out branch")
     if _is_read_only_task(valid_task):
         output = _read_only_output(valid_task, snapshot, baseline)
         return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
     report = evaluate_task(snapshot, valid_task)
     state = _identity(valid_task, snapshot, report, thread_id, selected_branch, baseline)
-    state.update({"state": "MUTATION_PREFLIGHT_REQUIRED", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
+    state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("MUTATION_PREFLIGHT_REQUIRED", snapshot, valid_task, candidates, report, _output(snapshot, report, "MUTATION_PREFLIGHT_REQUIRED", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
     snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
-    selected_branch = branch or current_branch()
+    selected_branch = branch if branch is not None else current_branch()
+    if branch is not None and branch != current_branch():
+        raise AuthorizationError("explicit branch argument does not match checked-out branch")
     report = evaluate_task(snapshot, valid_task)
     state = _read_state(thread_id, state_dir)
     _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
-    if state["state"] not in {"MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"}:
+    if state["state"] != "WAITING_FOR_INVENTORY_CONFIRMATION":
         raise AuthorizationError("INVENTORY_OK is invalid in the current state")
     state["stateHistory"].append("INVENTORY_CONFIRMED")
     state["state"] = "WAITING_FOR_MODEL_SELECTION"
@@ -578,7 +663,9 @@ def record_continue(thread_id: str, token: str, task: Mapping[str, object], base
         raise AuthorizationError("exact CONTINUE is required")
     snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
-    selected_branch = branch or current_branch()
+    selected_branch = branch if branch is not None else current_branch()
+    if branch is not None and branch != current_branch():
+        raise AuthorizationError("explicit branch argument does not match checked-out branch")
     report = evaluate_task(snapshot, valid_task)
     state = _read_state(thread_id, state_dir)
     _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
