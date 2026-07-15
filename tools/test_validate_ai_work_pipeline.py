@@ -136,6 +136,36 @@ class PipelineValidatorTests(unittest.TestCase):
             errors = validator.validate_task(task_dir)
         self.assertEqual(errors, [])
 
+    def test_active_task_state_rejects_merge_markers_and_duplicate_keys(self) -> None:
+        state = (
+            "TASK_ID: TASK-1\n"
+            "PIPELINE_VERSION: 1.0.0\n"
+            "CURRENT_STATUS: READY_FOR_REVIEW\n"
+            "CURRENT_STATUS: READY_FOR_REVIEW\n"
+            "CURRENT_PHASE: REVIEW\n"
+            "CURRENT_ARTIFACT: .ai-work/tasks/TASK-1/03-codex-task-r2.md\n"
+            "NEXT_ROLE: CHATGPT_REVIEW\n"
+            "NEXT_ACTION: Review.\n"
+            "UPDATED_AT: 2026-07-12T00:00:00+09:00\n"
+            "<<<<<<< HEAD\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            task_dir = Path(directory) / "TASK-1"
+            task_dir.mkdir()
+            (task_dir / "STATE.md").write_text(state, encoding="utf-8")
+            (task_dir / "03-codex-task-r2.md").write_text(self._codex_task_text(), encoding="utf-8")
+            errors = validator.validate_task(task_dir)
+        self.assertTrue(any("unresolved merge markers" in error for error in errors))
+        self.assertTrue(any("duplicate header keys" in error for error in errors))
+
+    def test_active_codex_artifact_rejects_merge_markers(self) -> None:
+        text = self._codex_task_text("<<<<<<< HEAD")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "03-codex-task.md"
+            path.write_text(text, encoding="utf-8")
+            errors = validator.validate_file(path, "TASK-1", enforce_active_codex_rules=True)
+        self.assertTrue(any("unresolved merge markers" in error for error in errors))
+
     def test_historical_non_active_artifact_is_not_revalidated_as_active_prompt(self) -> None:
         state = (
             "TASK_ID: TASK-1\n"

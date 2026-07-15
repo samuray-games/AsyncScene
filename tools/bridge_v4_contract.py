@@ -11,6 +11,7 @@ from pathlib import Path
 SLOTS = (1, 2, 3)
 FORBIDDEN_SHARED_FIELDS = {"OPEN_SLOT_COUNT", "PRIMARY_ACTIVE_SLOT"}
 POLICY_VERSION = "1"
+MERGE_MARKERS = ("<<<<<<<", "=======", ">>>>>>>")
 
 
 def mailbox_ref(slot: int) -> str:
@@ -79,6 +80,23 @@ def parse_state_fields(text: str) -> dict[str, str]:
     return result
 
 
+def duplicate_uppercase_fields(text: str) -> list[str]:
+    counts: dict[str, int] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or ":" not in line:
+            continue
+        key, _value = line.split(":", 1)
+        key = key.strip()
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*", key):
+            counts[key] = counts.get(key, 0) + 1
+    return sorted(key for key, count in counts.items() if count > 1)
+
+
+def unresolved_merge_markers(text: str) -> bool:
+    return any(marker in text for marker in MERGE_MARKERS)
+
+
 def validate_state(slot: int, text: str) -> list[str]:
     errors: list[str] = []
     try:
@@ -86,6 +104,10 @@ def validate_state(slot: int, text: str) -> list[str]:
     except ValueError as exc:
         return [str(exc)]
 
+    if unresolved_merge_markers(text):
+        errors.append("FAIL_UNRESOLVED_MERGE_MARKERS")
+    for key in duplicate_uppercase_fields(text):
+        errors.append(f"FAIL_DUPLICATE_UPPERCASE_FIELD: {key}")
     fields = parse_state_fields(text)
     for field in sorted(FORBIDDEN_SHARED_FIELDS.intersection(fields)):
         errors.append(f"FAIL_SHARED_ACTIVATION_POINTER: {field}")
@@ -121,6 +143,10 @@ def validate_policy(slot: int, policy_text: str, state_text: str | None = None) 
     except ValueError as exc:
         return [str(exc)]
     errors: list[str] = []
+    if unresolved_merge_markers(policy_text):
+        errors.append("FAIL_UNRESOLVED_MERGE_MARKERS")
+    for key in duplicate_uppercase_fields(policy_text):
+        errors.append(f"FAIL_DUPLICATE_UPPERCASE_FIELD: {key}")
     if policy_text != render_slot_policy(slot):
         errors.append("FAIL_POLICY_RENDER_MISMATCH")
     fields = parse_state_fields(policy_text)
@@ -132,6 +158,10 @@ def validate_policy(slot: int, policy_text: str, state_text: str | None = None) 
         if other != slot and f"bridge-{other}" in policy_text.lower():
             errors.append(f"FAIL_POLICY_CROSS_SLOT_REFERENCE: slot {other}")
     if state_text is not None:
+        if unresolved_merge_markers(state_text):
+            errors.append("FAIL_UNRESOLVED_MERGE_MARKERS")
+        for key in duplicate_uppercase_fields(state_text):
+            errors.append(f"FAIL_DUPLICATE_UPPERCASE_FIELD: {key}")
         state = parse_state_fields(state_text)
         if state.get("SLOT") != fields.get("SLOT") or state.get("BRANCH_MAILBOX") != fields.get("BRANCH_MAILBOX"):
             errors.append("FAIL_POLICY_STATE_IDENTITY_MISMATCH")
@@ -140,8 +170,16 @@ def validate_policy(slot: int, policy_text: str, state_text: str | None = None) 
 
 def validate_snapshot(slot: int, snapshot_text: str, state_text: str) -> list[str]:
     _validate_slot(slot)
-    snapshot, state = parse_state_fields(snapshot_text), parse_state_fields(state_text)
     errors: list[str] = []
+    if unresolved_merge_markers(snapshot_text):
+        errors.append("FAIL_UNRESOLVED_MERGE_MARKERS")
+    for key in duplicate_uppercase_fields(snapshot_text):
+        errors.append(f"FAIL_DUPLICATE_UPPERCASE_FIELD: {key}")
+    if unresolved_merge_markers(state_text):
+        errors.append("FAIL_UNRESOLVED_MERGE_MARKERS")
+    for key in duplicate_uppercase_fields(state_text):
+        errors.append(f"FAIL_DUPLICATE_UPPERCASE_FIELD: {key}")
+    snapshot, state = parse_state_fields(snapshot_text), parse_state_fields(state_text)
     if snapshot.get("SLOT") != str(slot) or snapshot.get("BRANCH_MAILBOX") != mailbox_ref(slot):
         errors.append("FAIL_SNAPSHOT_IDENTITY")
     if snapshot.get("CURRENT_THREAD") != state.get("THREAD"):

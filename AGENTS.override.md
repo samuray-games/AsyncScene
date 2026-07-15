@@ -12,6 +12,7 @@ DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
 WORKTREE_LIFECYCLE: REQUIRED
 WORKTREE_DISCLOSURE: IMMEDIATE_AND_CLIENT_INDEPENDENT
 MOBILE_BRANCH_RECOVERY: REQUIRED
+Unresolved merge markers and duplicate authority fields are forbidden in active task and bridge control-plane artifacts.
 
 Read root `AGENTS.md` fully. Every rule remains binding except the bridge, publication, state, branch and memory clauses explicitly replaced below.
 
