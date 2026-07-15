@@ -97,6 +97,14 @@ def unresolved_merge_markers(text: str) -> bool:
     return any(marker in text for marker in MERGE_MARKERS)
 
 
+def _references_foreign_slot_value(value: str, other_slot: int) -> bool:
+    lower_value = value.lower()
+    return (
+        mailbox_ref(other_slot) in lower_value
+        or task_branch_prefix(other_slot) in lower_value
+    )
+
+
 def validate_state(slot: int, text: str) -> list[str]:
     errors: list[str] = []
     try:
@@ -130,9 +138,8 @@ def validate_state(slot: int, text: str) -> list[str]:
 
     other_slots = [other for other in SLOTS if other != slot]
     for key, value in fields.items():
-        upper_value = value.upper()
         for other in other_slots:
-            if key.endswith(f"_SLOT_{other}") or f"BRIDGE-{other}" in upper_value:
+            if key.endswith(f"_SLOT_{other}") or _references_foreign_slot_value(value, other):
                 errors.append(f"FAIL_CROSS_SLOT_STATE: {key} references slot {other}")
     return errors
 

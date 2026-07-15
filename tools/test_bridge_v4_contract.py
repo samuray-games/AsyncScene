@@ -28,6 +28,30 @@ class BridgeV4ContractTests(unittest.TestCase):
             ]
         )
 
+    def manifest_state(self, slot: int, thread: str) -> str:
+        return "\n".join(
+            [
+                "TASK_ID: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
+                "PIPELINE_VERSION: 1.0.3",
+                f"SLOT: {slot}",
+                "STATUS: READY_FOR_MODEL_PREFLIGHT",
+                f"THREAD: {thread}",
+                "GENERATION: 2",
+                "TASK: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
+                f"BRANCH_MAILBOX: {mailbox_ref(slot)}",
+                f"BRANCH_TASK: {task_branch_prefix(slot)}{thread}",
+                "EXECUTION_EPOCH: BRIDGE-123-S1-CANARY-G2-20260714",
+                "AUTHORIZED_BASELINE: c15aac9b203b4a92e5b1115a0c120519b61423d8",
+                f"INBOX: .ai-bridge/inbox/{thread}-01-chatgpt.md",
+                f"CLAIM: .ai-bridge/claims/{thread}-claim-v1-codex.md",
+                f"EXPECTED_OUTBOX: .ai-bridge/outbox/{thread}-01-codex.md",
+                f"EXPECTED_RECEIPT: .ai-bridge/receipts/{thread}-01-receipt.md",
+                "MODEL_PREFLIGHT_STATUS: REQUIRED",
+                "CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED",
+                "SAFARI_STATUS: N/A",
+            ]
+        )
+
     def test_one_to_one_command_routing(self):
         for slot in (1, 2, 3):
             self.assertEqual([], validate_command(slot, mailbox_ref(slot), task_branch_prefix(slot) + "thread"))
@@ -56,9 +80,53 @@ class BridgeV4ContractTests(unittest.TestCase):
         self.assertTrue(any("FAIL_DUPLICATE_UPPERCASE_FIELD: SLOT" in error for error in errors))
 
     def test_state_cannot_name_other_slot(self):
-        state = self.valid_state(1).replace("BRIDGE-20260711-TEST", "BRIDGE-2-FOREIGN")
+        state = self.valid_state(1) + "\nFOREIGN_BRANCH: bridge/2/BRIDGE-20260714-123-091\n"
         errors = validate_state(1, state)
         self.assertTrue(any("FAIL_CROSS_SLOT_STATE" in error for error in errors))
+
+    def test_state_foreign_mailbox_ref_fails_closed(self):
+        state = self.valid_state(1) + "\nFOREIGN_REF: coordination/chatgpt-codex-bridge-2\n"
+        errors = validate_state(1, state)
+        self.assertTrue(any("FAIL_CROSS_SLOT_STATE: FOREIGN_REF references slot 2" == error for error in errors))
+
+    def test_state_foreign_task_branch_fails_closed(self):
+        state = self.valid_state(1) + "\nFOREIGN_BRANCH: bridge/2/BRIDGE-20260714-123-091\n"
+        errors = validate_state(1, state)
+        self.assertTrue(any("FAIL_CROSS_SLOT_STATE: FOREIGN_BRANCH references slot 2" == error for error in errors))
+
+    def test_manifest_slot1_identity_passes_own_slot(self):
+        self.assertEqual([], validate_state(1, self.manifest_state(1, "BRIDGE-20260714-123-101")))
+
+    def test_manifest_slot2_identity_passes_own_slot(self):
+        self.assertEqual([], validate_state(2, self.manifest_state(2, "BRIDGE-20260714-123-091")))
+
+    def test_manifest_slot3_identity_passes_own_slot(self):
+        self.assertEqual([], validate_state(3, self.manifest_state(3, "BRIDGE-20260714-123-301")))
+
+    def test_exact_remote_slot1_state_fixture_passes(self):
+        state = "\n".join(
+            (
+                "TASK_ID: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
+                "PIPELINE_VERSION: 1.0.3",
+                "SLOT: 1",
+                "STATUS: READY_FOR_MODEL_PREFLIGHT",
+                "THREAD: BRIDGE-20260714-123-101",
+                "GENERATION: 2",
+                "TASK: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
+                "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-1",
+                "BRANCH_TASK: bridge/1/BRIDGE-20260714-123-101",
+                "EXECUTION_EPOCH: BRIDGE-123-S1-CANARY-G2-20260714",
+                "AUTHORIZED_BASELINE: c15aac9b203b4a92e5b1115a0c120519b61423d8",
+                "INBOX: .ai-bridge/inbox/BRIDGE-20260714-123-101-01-chatgpt.md",
+                "CLAIM: .ai-bridge/claims/BRIDGE-20260714-123-101-claim-v1-codex.md",
+                "EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260714-123-101-01-codex.md",
+                "EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260714-123-101-01-receipt.md",
+                "MODEL_PREFLIGHT_STATUS: REQUIRED",
+                "CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED",
+                "SAFARI_STATUS: N/A",
+            )
+        )
+        self.assertEqual([], validate_state(1, state))
 
     def test_slot_local_publication_accepts_ai_bridge_artifact(self):
         self.assertEqual([], validate_publication(3, mailbox_ref(3), [".ai-bridge/outbox/thread.md"]))
