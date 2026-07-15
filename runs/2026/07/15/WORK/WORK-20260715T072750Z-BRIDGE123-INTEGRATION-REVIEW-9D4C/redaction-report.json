@@ -1,0 +1,12 @@
+{
+  "credentialFindings": 0,
+  "nonUtf8Findings": 0,
+  "privatePathFindings": 0,
+  "runId": "WORK-20260715T072750Z-BRIDGE123-INTEGRATION-REVIEW-9D4C",
+  "scannedFiles": 5,
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "PASS",
+  "transformations": [
+    "Private machine-local paths were intentionally omitted from the published package."
+  ]
+}
