@@ -1,0 +1,14 @@
+{
+  "actor": "WORK",
+  "branch": "main",
+  "correctedRule": "Use mini/light for preflight start and inventory confirmation when adequate, then switch to the selector recommendation before CONTINUE.",
+  "findings": [
+    "The assistant should have directed the preflight-only steps to the cheapest adequate model.",
+    "The recommended model was required only before the implementation continuation.",
+    "The previous instruction caused avoidable use of a more expensive model."
+  ],
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260715T095447Z-PREFLIGHT-COST-CORRECTION-4A8E",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "verdict": "ACKNOWLEDGED_PROCESS_ERROR"
+}
