@@ -1,0 +1,13 @@
+{
+  "actor": "WORK",
+  "branch": "main",
+  "createdAtJst": "2026-07-15T18:54:47+09:00",
+  "createdAtUtc": "2026-07-15T09:54:47Z",
+  "memoryRev": "2026-07-15-0325-JST",
+  "packagePath": "runs/2026/07/15/WORK/WORK-20260715T095447Z-PREFLIGHT-COST-CORRECTION-4A8E",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260715T095447Z-PREFLIGHT-COST-CORRECTION-4A8E",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "ACKNOWLEDGED_PROCESS_ERROR",
+  "taskId": "TASK-INFRA-BRIDGE-V4-CROSS-SLOT-BOUNDARY-FIX-20260715"
+}
