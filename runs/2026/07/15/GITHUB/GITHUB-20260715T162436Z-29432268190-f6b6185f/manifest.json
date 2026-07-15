@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/model-selector-execution-gate-repair-20260716",
+  "createdAtJst": "2026-07-16 01:24:36 JST",
+  "createdAtUtc": "2026-07-15T16:24:36Z",
+  "packagePath": "runs/2026/07/15/GITHUB/GITHUB-20260715T162436Z-29432268190-f6b6185f",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260715T162436Z-29432268190-f6b6185f",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
