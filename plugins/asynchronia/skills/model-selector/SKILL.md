@@ -18,6 +18,7 @@ The selector now has two distinct authorization paths:
 Read-only tasks must not evaluate the complete candidate matrix, must not emit a recommendation, and must not request `INVENTORY_OK` or `CONTINUE`.
 Read-only tasks therefore have `no matrix evaluation` and `no recommendation`.
 Mutation tasks retain the full executable CLI preflight, complete matrix evaluation, `INVENTORY_OK`, `WAITING_FOR_MODEL_SELECTION`, and exact same-thread `CONTINUE` contract.
+Mutation-capable workflows must use a durable same-thread `IMPLEMENTATION_ALLOWED` guard before changing files, refs, locks, cache, publication state, or project memory.
 
 ## One inventory authority
 
@@ -100,6 +101,8 @@ the recommendation, and the exact next response.
 Read-only output prints the runtime path/version evidence, branch, worktree path,
 baseline SHA, authority validation result, and exact read-only scope, and it never
 prints a recommendation, `INVENTORY_OK`, or `CONTINUE`.
+The runtime evidence is the resolved plugin root, manifest path, manifest version,
+and manifest sha256 read from disk.
 
 Ask the normal user only to verify whether the printed inventory matches the
 active picker on the mutation path. Accept exactly one same-thread response:
@@ -115,6 +118,9 @@ task hash, matrix hash, or recommendation identity differs. Exact same-thread `C
 absent, stale, unconfirmed, cross-thread, or any bound identity has changed.
 After valid `CONTINUE`, revalidate task, scope, branch, baseline, snapshot, and
 recommendation before entering `IMPLEMENTATION_ALLOWED`.
+The mutation guard rejects absent state, read-only tasks, every pre-authorization
+state, invalidated state, stale state, cross-thread identity, and any changed
+task, branch, baseline, snapshot, matrix, or recommendation identity.
 
 ## CLI contract
 

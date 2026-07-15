@@ -37,10 +37,11 @@ def validate_policy(failures: list[str]) -> None:
     required = (
         "model-selector-authority.json", "repository-markdown", "complete candidate matrix",
         "structured task description", "evaluates every snapshot model-effort pair exactly once",
-        "INVENTORY_OK", "INVENTORY_CHANGED", "same-thread `CONTINUE`", "durable state artifact",
+        "READ_ONLY_ALLOWED", "MUTATION_PREFLIGHT_REQUIRED", "INVENTORY_OK", "INVENTORY_CHANGED", "same-thread `CONTINUE`", "durable state artifact",
         "taskDescriptionHash", "complete matrix hash", "lowest-cost pair",
         "does not require or attempt `codex app-server`",
-        "READ_ONLY_ALLOWED", "MUTATION_PREFLIGHT_REQUIRED", "no matrix evaluation", "no recommendation",
+        "no matrix evaluation", "no recommendation", "plugin root", "manifest path", "manifest version", "manifest sha256",
+        "IMPLEMENTATION_ALLOWED", "mutation guard",
     )
     for needle in required:
         require(needle in selector, f"active policy missing {needle}", failures)
@@ -48,7 +49,7 @@ def validate_policy(failures: list[str]) -> None:
         "must start the local `codex app-server`", "call `model/list`", "current UI picker evidence controls",
         "request a current screenshot", "BLOCKED_MODEL_INVENTORY_UNAVAILABLE",
         "USER_UI_INVENTORY_REQUIRED", "APP_SERVER_CATALOG_EVIDENCE_RECORDED",
-        "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
+        "PREFLIGHT_REQUIRED -> WAITING_FOR_INVENTORY_CONFIRMATION -> INVENTORY_CONFIRMED -> WAITING_FOR_MODEL_SELECTION -> CONTINUE_RECEIVED -> SCOPE_REVALIDATED -> IMPLEMENTATION_ALLOWED",
     )
     for needle in forbidden_active:
         require(needle not in selector, f"contradictory legacy policy remains: {needle}", failures)
@@ -105,6 +106,9 @@ def validate_selector(failures: list[str]) -> None:
 
 
 def validate_cli(failures: list[str]) -> None:
+    sys.path.insert(0, str(ROOT))
+    from plugins.asynchronia.model_selector import current_branch  # pylint: disable=import-outside-toplevel
+    checked_out_branch = current_branch()
     mutation_task = {
         "taskId": "VALIDATOR-CLI-TASK", "taskType": "PLUGIN_POLICY", "objective": "validate durable state",
         "readScope": ["plugins/asynchronia"], "writeScope": ["tools"], "affectedSystems": ["selector", "state"],
@@ -125,8 +129,8 @@ def validate_cli(failures: list[str]) -> None:
         read_only_task_file = Path(state_dir) / "read-only-task.json"
         read_only_task_file.write_text(json.dumps(read_only_task), encoding="utf-8")
         base = [sys.executable, str(ROOT / "tools/run-asynchronia-model-preflight.py")]
-        mutation_common = ["--thread-id", "validator-thread", "--state-dir", state_dir, "--task-file", str(mutation_task_file), "--baseline", "validator-baseline", "--branch", "validator-branch"]
-        read_only_common = ["--thread-id", "validator-readonly-thread", "--state-dir", state_dir, "--task-file", str(read_only_task_file), "--baseline", "validator-baseline", "--branch", "validator-branch"]
+        mutation_common = ["--thread-id", "validator-thread", "--state-dir", state_dir, "--task-file", str(mutation_task_file), "--baseline", "validator-baseline", "--branch", checked_out_branch]
+        read_only_common = ["--thread-id", "validator-readonly-thread", "--state-dir", state_dir, "--task-file", str(read_only_task_file), "--baseline", "validator-baseline", "--branch", checked_out_branch]
         start = subprocess.run(base + ["start", *mutation_common], capture_output=True, text=True, check=False)
         ok = subprocess.run(base + ["inventory-ok", *mutation_common], capture_output=True, text=True, check=False)
         cont = subprocess.run(base + ["continue", *mutation_common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)
@@ -134,7 +138,8 @@ def validate_cli(failures: list[str]) -> None:
         read_only = subprocess.run(base + ["start", *read_only_common], capture_output=True, text=True, check=False)
         read_only_continue = subprocess.run(base + ["continue", *read_only_common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)
     require(start.returncode == 0, "CLI start failed", failures)
-    require("status: MUTATION_PREFLIGHT_REQUIRED" in start.stdout, "CLI start status mismatch", failures)
+    require("status: WAITING_FOR_INVENTORY_CONFIRMATION" in start.stdout, "CLI start status mismatch", failures)
+    require("authorization path: MUTATION_PREFLIGHT_REQUIRED" in start.stdout, "CLI start authorization path mismatch", failures)
     require(ok.returncode == 0 and "WAITING_FOR_MODEL_SELECTION" in ok.stdout, "CLI INVENTORY_OK failed", failures)
     require(cont.returncode == 0 and "IMPLEMENTATION_ALLOWED" in cont.stdout, "CLI CONTINUE failed", failures)
     require(inspect.returncode == 0 and "IMPLEMENTATION_ALLOWED" in inspect.stdout, "CLI state did not persist", failures)
