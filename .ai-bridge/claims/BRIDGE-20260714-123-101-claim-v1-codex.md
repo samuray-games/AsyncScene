@@ -3,7 +3,7 @@ SLOT: 1
 THREAD: BRIDGE-20260714-123-101
 GENERATION: 2
 OWNER: SLOT_1_NEXT_CODEX_THREAD
-CLAIM_TYPE: READ_ONLY_CANARY_PREPARATION
+CLAIM_TYPE: READ_ONLY_CANARY_EXECUTION
 BRANCH_TASK: bridge/1/BRIDGE-20260714-123-101
 EXECUTION_EPOCH: BRIDGE-123-S1-CANARY-G2-20260714
 AUTHORIZED_BASELINE: c15aac9b203b4a92e5b1115a0c120519b61423d8
@@ -15,5 +15,6 @@ STATUS: READY_FOR_MODEL_PREFLIGHT
 CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED
 SAFARI_STATUS: N/A
 
-This claim authorizes only slot-local read-only canary preparation.
-No outbox or receipt is created in this turn.
+One Slot 1 read-only canary run is authorized after fresh preflight and same-thread continuation.
+Only the expected Slot 1 outbox and receipt may be published.
+All other changes are out of scope.
