@@ -55,6 +55,12 @@ def task(**overrides: object) -> dict[str, object]:
     return result
 
 
+def read_only_task(**overrides: object) -> dict[str, object]:
+    result = task(writeScope=[])
+    result.update(overrides)
+    return result
+
+
 def snapshot_copy() -> dict[str, object]:
     return copy.deepcopy(load_snapshot())
 
@@ -80,9 +86,30 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 branch="branch-historical",
                 state_dir=Path(directory) / "state",
             )
-        self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+        self.assertEqual(result.status, "MUTATION_PREFLIGHT_REQUIRED")
         self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.output)
         self.assertNotIn("WAITING_FOR_MODEL_SELECTION", result.output)
+
+    def test_read_only_canary_short_circuits_without_mutation_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-read", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-read", "--branch", "branch-read"]
+            start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertEqual(start.returncode, 0)
+            self.assertIn("READ_ONLY_ALLOWED", start.stdout)
+            self.assertIn("plugin version:", start.stdout)
+            self.assertIn("authority validation result:", start.stdout)
+            self.assertIn("read-only scope:", start.stdout)
+            self.assertNotIn("recommended pair:", start.stdout)
+            self.assertNotIn("INVENTORY_OK", start.stdout)
+            self.assertNotIn("CONTINUE", start.stdout)
+            self.assertNotIn("model count:", start.stdout)
+            self.assertNotIn("model-effort pair count:", start.stdout)
+            inventory_ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
+            self.assertNotEqual(inventory_ok.returncode, 0)
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -117,6 +144,19 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
         self.assertTrue(all(item.modelLabel and item.effortLabel for item in report.evaluations))
         self.assertEqual(len(build_candidate_matrix(snapshot)), snapshot["completeModelEffortPairCount"])
+
+    def test_mutation_task_enters_mutation_preflight_required(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-a", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-a", "--branch", "branch-a"]
+            start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertEqual(start.returncode, 0)
+            self.assertIn("status: MUTATION_PREFLIGHT_REQUIRED", start.stdout)
+            self.assertIn("evaluated pair count: 29/29", start.stdout)
+            self.assertNotIn("READ_ONLY_ALLOWED", start.stdout)
 
     def test_inventory_changed_resolves_authority_and_differs_from_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -330,7 +370,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
-            self.assertIn("WAITING_FOR_INVENTORY_CONFIRMATION", inspect.stdout)
+            self.assertIn("MUTATION_PREFLIGHT_REQUIRED", inspect.stdout)
             ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
             self.assertEqual(ok.returncode, 0)
             self.assertIn("WAITING_FOR_MODEL_SELECTION", ok.stdout)
@@ -388,6 +428,30 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
             self.assertEqual(subprocess.run(command + ["invalidate", "--thread-id", "thread-b", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False).returncode, 0)
             self.assertNotEqual(subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False).returncode, 0)
+
+    def test_stale_artifacts_do_not_override_read_only_or_mutation_paths(self) -> None:
+        legacy_plan = (ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712/02-work-plan.md").read_text(encoding="utf-8")
+        project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
+        self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
+        self.assertIn("1.0.8", project_memory)
+        with tempfile.TemporaryDirectory() as directory:
+            read_state_dir = Path(directory) / "read-state"
+            write_state_dir = Path(directory) / "write-state"
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            read_task_file = Path(directory) / "read-task.json"
+            write_task_file = Path(directory) / "write-task.json"
+            read_task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            write_task_file.write_text(json.dumps(task()), encoding="utf-8")
+            read_common = ["--thread-id", "thread-read-override", "--state-dir", str(read_state_dir), "--task-file", str(read_task_file), "--baseline", "baseline-read", "--branch", "branch-read"]
+            write_common = ["--thread-id", "thread-write-override", "--state-dir", str(write_state_dir), "--task-file", str(write_task_file), "--baseline", "baseline-write", "--branch", "branch-write"]
+            read_result = subprocess.run(command + ["start", *read_common], capture_output=True, text=True, check=False)
+            write_result = subprocess.run(command + ["start", *write_common], capture_output=True, text=True, check=False)
+            self.assertEqual(read_result.returncode, 0)
+            self.assertEqual(write_result.returncode, 0)
+            self.assertIn("READ_ONLY_ALLOWED", read_result.stdout)
+            self.assertIn("MUTATION_PREFLIGHT_REQUIRED", write_result.stdout)
+            self.assertNotIn("recommended pair:", read_result.stdout)
+            self.assertIn("recommended pair:", write_result.stdout)
 
 
 if __name__ == "__main__":

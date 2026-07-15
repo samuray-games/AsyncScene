@@ -20,6 +20,7 @@ AUTHORITY_MANIFEST_PATH = Path(__file__).with_name("model-selector-authority.jso
 SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-snapshot.json"
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
+PLUGIN_VERSION = "1.0.13"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
@@ -86,7 +87,7 @@ class PreflightResult:
     snapshot: Mapping[str, object]
     task: Mapping[str, object]
     candidates: tuple[Candidate, ...]
-    report: EvaluationReport
+    report: EvaluationReport | None
     output: str
     thread_id: str | None = None
 
@@ -316,14 +317,32 @@ def _validate_task(task: Mapping[str, object]) -> dict[str, object]:
         if not isinstance(normalized[field], str) or not normalized[field].strip():
             raise TaskDescriptionError(f"{field} must be a non-empty string")
     for field in ("readScope", "writeScope", "affectedSystems"):
-        if not isinstance(normalized[field], list) or not normalized[field] or not all(isinstance(item, str) and item.strip() for item in normalized[field]):
-            raise TaskDescriptionError(f"{field} must be a non-empty string list")
+        if not isinstance(normalized[field], list) or not all(isinstance(item, str) and item.strip() for item in normalized[field]):
+            raise TaskDescriptionError(f"{field} must be a string list")
     for field in ("runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact", "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk"):
         if normalized[field] not in LEVELS:
             raise TaskDescriptionError(f"{field} must be one of {sorted(LEVELS)}")
     if normalized["expectedImplementationSize"] not in SIZE_LEVELS:
         raise TaskDescriptionError(f"expectedImplementationSize must be one of {sorted(SIZE_LEVELS)}")
     return normalized
+
+
+def _normalized_write_scope(task: Mapping[str, object]) -> tuple[str, ...]:
+    normalized = _validate_task(task)
+    return tuple(normalized["writeScope"])
+
+
+def _is_read_only_task(task: Mapping[str, object]) -> bool:
+    write_scope = _normalized_write_scope(task)
+    return len(write_scope) == 0 or write_scope == ("NONE_READ_ONLY",)
+
+
+def _authority_validation_result(snapshot: Mapping[str, object] | None = None) -> str:
+    try:
+        loaded = snapshot if snapshot is not None else load_snapshot()
+    except (SnapshotError, OSError, subprocess.CalledProcessError, FileNotFoundError) as exc:
+        return f"FAIL: {exc}"
+    return f"PASS: {loaded['snapshotRevision']} {loaded['canonicalContentHash']}"
 
 
 def load_task(path: Path) -> dict[str, object]:
@@ -478,16 +497,34 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     return "\n".join(lines)
 
 
+def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str) -> str:
+    lines = [
+        "status: READ_ONLY_ALLOWED",
+        f"plugin version: {PLUGIN_VERSION}",
+        f"plugin runtime path: {Path(__file__).resolve().parent / '.codex-plugin'}",
+        f"current branch: {current_branch()}",
+        f"absolute worktree path: {Path.cwd().resolve()}",
+        f"baseline sha: {baseline}",
+        f"authority validation result: {_authority_validation_result(snapshot)}",
+        f"read-only scope: {task['readScope']}",
+        "next response: none",
+    ]
+    return "\n".join(lines)
+
+
 def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
     snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
     selected_branch = branch or current_branch()
+    if _is_read_only_task(valid_task):
+        output = _read_only_output(valid_task, snapshot, baseline)
+        return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
     report = evaluate_task(snapshot, valid_task)
     state = _identity(valid_task, snapshot, report, thread_id, selected_branch, baseline)
-    state.update({"state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
+    state.update({"state": "MUTATION_PREFLIGHT_REQUIRED", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    return PreflightResult("MUTATION_PREFLIGHT_REQUIRED", snapshot, valid_task, candidates, report, _output(snapshot, report, "MUTATION_PREFLIGHT_REQUIRED", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
@@ -497,7 +534,7 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     report = evaluate_task(snapshot, valid_task)
     state = _read_state(thread_id, state_dir)
     _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
-    if state["state"] != "WAITING_FOR_INVENTORY_CONFIRMATION":
+    if state["state"] not in {"MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"}:
         raise AuthorizationError("INVENTORY_OK is invalid in the current state")
     state["stateHistory"].append("INVENTORY_CONFIRMED")
     state["state"] = "WAITING_FOR_MODEL_SELECTION"
@@ -578,6 +615,8 @@ def run_preflight(user_response: str | None = None, *, thread_id: str | None = N
     if not thread_id or not baseline or not branch:
         raise AuthorizationError("thread, baseline, and branch are required")
     result = start_preflight(task, thread_id, baseline, branch=branch, path=path, state_dir=DEFAULT_STATE_DIR)
+    if result.status == "READ_ONLY_ALLOWED":
+        return result
     if user_response is None:
         return result
     if user_response.strip() == "INVENTORY_CHANGED":
