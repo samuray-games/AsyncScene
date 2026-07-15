@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Asynchronia 1.0.11 Markdown-authority preflight contract."""
+"""Validate the Asynchronia 1.0.12 Markdown-authority preflight contract."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLUGIN_VERSION = "1.0.11"
+EXPECTED_PLUGIN_VERSION = "1.0.12"
 
 
 def read(path: str) -> str:
@@ -32,6 +32,7 @@ def validate_manifests(failures: list[str]) -> None:
 
 
 def validate_policy(failures: list[str]) -> None:
+    manifest = json.loads(read("plugins/asynchronia/.codex-plugin/plugin.json"))
     selector = read("plugins/asynchronia/skills/model-selector/SKILL.md")
     required = (
         "model-selector-authority.json", "repository-markdown", "complete candidate matrix",
@@ -49,6 +50,24 @@ def validate_policy(failures: list[str]) -> None:
     )
     for needle in forbidden_active:
         require(needle not in selector, f"contradictory legacy policy remains: {needle}", failures)
+    manifest_required = (
+        "Use the executable selector CLI at tools/run-asynchronia-model-preflight.py for the production preflight; do not manually simulate selector analysis in prose.",
+        "Treat plugins/asynchronia/model-selector-authority.json and the bound snapshot as the only active selector authority.",
+        "Do not use PROJECT_MEMORY.md, .ai-memory files, or superseded .ai-work/tasks/** selector artifacts as active selector contract or current inventory authority.",
+        "The first selector status must be WAITING_FOR_INVENTORY_CONFIRMATION and the only exact next response at that stage is INVENTORY_OK or INVENTORY_CHANGED.",
+        "Only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
+        "When reporting installed plugin path or version, use runtime filesystem readback evidence rather than repository memory or historical notes.",
+        "Report the exact selector CLI command and its exit status when preflight evidence is requested.",
+    )
+    prompt = manifest.get("interface", {}).get("defaultPrompt", [])
+    require(isinstance(prompt, list), "manifest defaultPrompt must be a list", failures)
+    for needle in manifest_required:
+        require(needle in prompt, f"manifest defaultPrompt missing {needle}", failures)
+    prompt_forbidden = (
+        "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
+    )
+    for needle in prompt_forbidden:
+        require(needle not in prompt, f"manifest defaultPrompt retains superseded instruction: {needle}", failures)
 
 
 def validate_selector(failures: list[str]) -> None:
