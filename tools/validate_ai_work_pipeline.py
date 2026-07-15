@@ -127,6 +127,7 @@ BRIDGE_FORBIDDEN_PATHS = (
 SUPPORTED_SKILLS_ROOT = ROOT / "plugins" / "asynchronia" / "skills"
 PLUGIN_INVOCATION = "Use @asynchronia plugin."
 SKILL_REFERENCE_RE = re.compile(r"Use @asynchronia ([A-Za-z0-9-]+)\.")
+MERGE_MARKERS = ("<<<<<<<", "=======", ">>>>>>>")
 
 
 def parse_header(text: str) -> dict[str, str]:
@@ -136,6 +137,20 @@ def parse_header(text: str) -> dict[str, str]:
         if match:
             result[match.group(1)] = match.group(2)
     return result
+
+
+def duplicate_header_keys(text: str) -> list[str]:
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        match = re.match(r"^([A-Z][A-Z0-9_]*):\s*(.+?)\s*$", line)
+        if match:
+            key = match.group(1)
+            counts[key] = counts.get(key, 0) + 1
+    return sorted(key for key, count in counts.items() if count > 1)
+
+
+def contains_merge_markers(text: str) -> bool:
+    return any(marker in text for marker in MERGE_MARKERS)
 
 
 def supported_skill_names() -> set[str]:
@@ -155,7 +170,12 @@ def validate_file(
 ) -> list[str]:
     errors: list[str] = []
     text = path.read_text(encoding="utf-8")
+    if contains_merge_markers(text):
+        errors.append(f"{path}: unresolved merge markers are forbidden")
     header = parse_header(text)
+    duplicates = duplicate_header_keys(text)
+    if duplicates:
+        errors.append(f"{path}: duplicate header keys {duplicates}")
     missing = COMMON_KEYS - header.keys()
     if missing:
         errors.append(f"{path}: missing header keys {sorted(missing)}")
@@ -191,6 +211,11 @@ def validate_task(task_dir: Path) -> list[str]:
         return [f"{task_dir}: missing STATE.md"]
 
     state_text = state_path.read_text(encoding="utf-8")
+    if contains_merge_markers(state_text):
+        errors.append(f"{state_path}: unresolved merge markers are forbidden")
+    state_duplicates = duplicate_header_keys(state_text)
+    if state_duplicates:
+        errors.append(f"{state_path}: duplicate header keys {state_duplicates}")
     state = parse_header(state_text)
     missing = REQUIRED_STATE_KEYS - state.keys()
     if missing:

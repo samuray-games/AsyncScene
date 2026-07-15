@@ -49,6 +49,12 @@ class BridgeV4ContractTests(unittest.TestCase):
         errors = validate_state(1, state)
         self.assertEqual(2, sum("FAIL_SHARED_ACTIVATION_POINTER" in error for error in errors))
 
+    def test_state_merge_markers_and_duplicate_fields_fail_closed(self):
+        state = self.valid_state(1) + "\nSLOT: 1\n<<<<<<< HEAD\n"
+        errors = validate_state(1, state)
+        self.assertTrue(any("FAIL_UNRESOLVED_MERGE_MARKERS" in error for error in errors))
+        self.assertTrue(any("FAIL_DUPLICATE_UPPERCASE_FIELD: SLOT" in error for error in errors))
+
     def test_state_cannot_name_other_slot(self):
         state = self.valid_state(1).replace("BRIDGE-20260711-TEST", "BRIDGE-2-FOREIGN")
         errors = validate_state(1, state)
@@ -81,6 +87,14 @@ class BridgeV4ContractTests(unittest.TestCase):
 
     def test_rendered_policy_matches_its_state(self):
         self.assertEqual([], validate_policy(1, render_slot_policy(1), self.valid_state(1)))
+
+    def test_policy_and_snapshot_merge_markers_fail_closed(self):
+        policy = render_slot_policy(2) + "SLOT: 2\n"
+        snapshot = "\n".join(("SLOT: 3", "BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-3", "STATUS: AVAILABLE", "CURRENT_THREAD: NONE", "CURRENT_TASK_BRANCH: bridge/3/AVAILABLE", "SLOT: 3", ">>>>>>> branch"))
+        state = self.valid_state(2) + "\nSLOT: 2\n=======\n"
+        self.assertTrue(any("FAIL_DUPLICATE_UPPERCASE_FIELD: SLOT" in error for error in validate_policy(2, policy)))
+        self.assertTrue(any("FAIL_UNRESOLVED_MERGE_MARKERS" in error for error in validate_snapshot(3, snapshot, self.valid_state(3))))
+        self.assertTrue(any("FAIL_UNRESOLVED_MERGE_MARKERS" in error for error in validate_policy(2, render_slot_policy(2), state)))
 
     def test_missing_or_wrong_policy_fails_closed(self):
         self.assertIn("FAIL_POLICY_RENDER_MISMATCH", validate_policy(2, "", self.valid_state(2)))
