@@ -1,0 +1,106 @@
+{
+  "branch": "codex/model-selector-execution-gate-repair-20260716",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:23Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:23Z",
+      "stderr": "",
+      "stdout": "codex/model-selector-execution-gate-repair-20260716\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:23Z",
+      "stderr": "",
+      "stdout": "195de735dffc058585ee381830096c9e7d4c0176\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:24Z",
+      "stderr": "",
+      "stdout": "# branch.oid 195de735dffc058585ee381830096c9e7d4c0176\n# branch.head codex/model-selector-execution-gate-repair-20260716\n# branch.upstream origin/codex/model-selector-execution-gate-repair-20260716\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:24Z",
+      "stderr": "",
+      "stdout": "195de735 (HEAD -> codex/model-selector-execution-gate-repair-20260716, origin/codex/model-selector-execution-gate-repair-20260716) Refine Asynchronia selector authorization policy\n196ce422 fix(asynchronia): enforce executable selector preflight\n3c167565 (origin/main, origin/infra/bridge-v4-cross-slot-boundary-fix-20260715, origin/bridge/3/BRIDGE-20260714-123-301, origin/bridge/2/BRIDGE-20260714-123-091) Fix bridge v4 cross-slot boundary detection\nc15aac9b (origin/infra/bridge-123-state-conflict-repair-20260715, origin/bridge/1/BRIDGE-20260714-123-101) Repair bridge state conflict validation\ndc8e6151 (origin/infra/model-selector-canonical-source-repair-20260715) .\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:24Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 195de735dffc058585ee381830096c9e7d4c0176\nbranch refs/heads/codex/model-selector-execution-gate-repair-20260716\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:24Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-15T17:03:24Z",
+      "stderr": "",
+      "stdout": "3c167565d706ec5efab46e040c3ee9b8698d2857\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "195de735dffc058585ee381830096c9e7d4c0176",
+  "observedAtUtc": "2026-07-15T17:03:24Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
