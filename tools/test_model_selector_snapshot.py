@@ -60,6 +60,30 @@ def snapshot_copy() -> dict[str, object]:
 
 
 class ModelSelectorAuthorityTests(unittest.TestCase):
+    def test_historical_selector_artifacts_remain_stale_fixtures_only(self) -> None:
+        legacy_plan = (
+            ROOT
+            / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712/02-work-plan.md"
+        ).read_text(encoding="utf-8")
+        project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
+        self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
+        self.assertIn("PROJECT_MEMORY.md", legacy_plan)
+        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.8", project_memory)
+        with tempfile.TemporaryDirectory() as directory:
+            result = start_preflight(
+                task(
+                    taskId="TASK-HISTORICAL-FIXTURE",
+                    objective="prove stale selector artifacts cannot override executable authority",
+                ),
+                "thread-historical",
+                "baseline-historical",
+                branch="branch-historical",
+                state_dir=Path(directory) / "state",
+            )
+        self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+        self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.output)
+        self.assertNotIn("WAITING_FOR_MODEL_SELECTION", result.output)
+
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
         parsed = parse_inventory_markdown(Path(ARTIFACT_PATH))

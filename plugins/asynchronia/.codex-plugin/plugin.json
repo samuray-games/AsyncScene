@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Project-specific automatic routing, repository-markdown authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
@@ -32,14 +32,20 @@
     "defaultPrompt": [
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
+      "Use the executable selector CLI at tools/run-asynchronia-model-preflight.py for the production preflight; do not manually simulate selector analysis in prose.",
       "Load and validate the authoritative repository Markdown inventory before recommending a model.",
+      "Treat plugins/asynchronia/model-selector-authority.json and the bound snapshot as the only active selector authority.",
+      "Do not use PROJECT_MEMORY.md, .ai-memory files, or superseded .ai-work/tasks/** selector artifacts as active selector contract or current inventory authority.",
       "Accept a complete structured task description and fail closed when task information is insufficient.",
       "Evaluate every snapshot model-effort pair exactly once with task-specific reliability and cost analysis.",
       "Never use an unconditional SUITABLE fallback or update the snapshot automatically.",
       "Compare each effort with its adjacent efforts for the same model and identify the lowest suitable effort per model.",
       "Recommend the option that minimizes expected total credits after retry and escalation risk.",
       "Explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary.",
-      "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
+      "The first selector status must be WAITING_FOR_INVENTORY_CONFIRMATION and the only exact next response at that stage is INVENTORY_OK or INVENTORY_CHANGED.",
+      "Only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
+      "When reporting installed plugin path or version, use runtime filesystem readback evidence rather than repository memory or historical notes.",
+      "Report the exact selector CLI command and its exit status when preflight evidence is requested.",
       "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
       "Run task-router and scope-isolation-check before implementation; model-selector is repaired separately."
     ]
