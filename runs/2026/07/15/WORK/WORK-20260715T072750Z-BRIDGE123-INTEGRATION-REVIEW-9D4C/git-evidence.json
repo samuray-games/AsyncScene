@@ -1,0 +1,47 @@
+{
+  "branch": "main",
+  "changedPaths": [
+    ".ai-work/tasks/TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714/STATE.md",
+    "AGENTS.override.md",
+    "tools/bridge_v4_contract.py",
+    "tools/test_bridge_v4_contract.py",
+    "tools/test_validate_ai_work_pipeline.py",
+    "tools/validate_ai_work_pipeline.py"
+  ],
+  "independentRemoteEvidence": [
+    "origin/main equals resultSha",
+    "repair commit parent equals sourceSha",
+    "all three numbered mailbox refs remained unchanged"
+  ],
+  "mailboxComparisons": {
+    "1": "IDENTICAL",
+    "2": "IDENTICAL",
+    "3": "IDENTICAL"
+  },
+  "mailboxHeads": {
+    "1": "6727450e193053c8da8162f427404b1473f85d70",
+    "2": "7421761f12126e88047fb2e6cd1c89490129a9c9",
+    "3": "f9ebb33c7319b498307669c0d240f9eb05db8494"
+  },
+  "mainComparison": {
+    "expected": "c15aac9b203b4a92e5b1115a0c120519b61423d8",
+    "observed": "c15aac9b203b4a92e5b1115a0c120519b61423d8",
+    "status": "IDENTICAL"
+  },
+  "reportedValidationEvidence": [
+    "AI_WORK_PIPELINE_PASS",
+    "tools.test_validate_ai_work_pipeline: OK",
+    "tools.test_bridge_v4_contract: OK",
+    "PASS_BRIDGE_V4_ROOT_AUTHORITY",
+    "validate-orchestration-policy: ok=true",
+    "git diff --check: clean",
+    "git status --short: clean"
+  ],
+  "repository": "samuray-games/AsyncScene",
+  "resultSha": "c15aac9b203b4a92e5b1115a0c120519b61423d8",
+  "resultShaSemantics": "origin/main verified after the accepted strict fast-forward integration",
+  "runId": "WORK-20260715T072750Z-BRIDGE123-INTEGRATION-REVIEW-9D4C",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "sourceSha": "dc8e6151499a39b193871db821a05229eec49f6c",
+  "sourceShaSemantics": "origin/main immediately before the accepted bridge state-conflict repair fast-forward"
+}
