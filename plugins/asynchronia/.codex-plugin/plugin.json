@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Project-specific automatic routing, repository-markdown authoritative model preflight reconciliation, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
@@ -46,6 +46,9 @@
       "Only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
       "When reporting installed plugin path or version, use runtime filesystem readback evidence rather than repository memory or historical notes.",
       "Report the exact selector CLI command and its exit status when preflight evidence is requested.",
+      "The mutation path starts at MUTATION_PREFLIGHT_REQUIRED, then enters WAITING_FOR_INVENTORY_CONFIRMATION after the executable selector CLI completes the complete matrix preflight.",
+      "Read-only canary tasks with empty or NONE_READ_ONLY write scope must short-circuit to READ_ONLY_ALLOWED with no matrix evaluation, recommendation, INVENTORY_OK, or CONTINUE.",
+      "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits on the mutation path only.",
       "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
       "Run task-router and scope-isolation-check before implementation; model-selector is repaired separately."
     ]

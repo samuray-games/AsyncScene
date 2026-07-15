@@ -1,12 +1,23 @@
 ---
 name: model-selector
-description: Run the blocking Asynchronia 1.0.11 Markdown-authority preflight, perform deterministic task-specific model-effort analysis, and authorize implementation only after exact same-thread INVENTORY_OK and CONTINUE.
+description: Run the blocking Asynchronia 1.0.13 authorization split, short-circuit read-only canaries without matrix evaluation, and authorize mutation only after exact same-thread INVENTORY_OK and CONTINUE.
 ---
 
-# Model Selector 1.0.11
+# Model Selector 1.0.13
 
 Use this skill automatically for every Asynchronia Codex task before implementation,
 validation, publication, or any other repository mutation.
+
+## Two-path authorization
+
+The selector now has two distinct authorization paths:
+
+- `READ_ONLY_ALLOWED` for tasks whose write scope is explicitly empty or `NONE_READ_ONLY`;
+- `MUTATION_PREFLIGHT_REQUIRED` for every task that can mutate repository files, refs, locks, cache, project memory, publication state, or other external state.
+
+Read-only tasks must not evaluate the complete candidate matrix, must not emit a recommendation, and must not request `INVENTORY_OK` or `CONTINUE`.
+Read-only tasks therefore have `no matrix evaluation` and `no recommendation`.
+Mutation tasks retain the full executable CLI preflight, complete matrix evaluation, `INVENTORY_OK`, `WAITING_FOR_MODEL_SELECTION`, and exact same-thread `CONTINUE` contract.
 
 ## One inventory authority
 
@@ -20,14 +31,14 @@ The authority manifest points to the Markdown source of truth:
 
 The manifest uses `repository-markdown` provenance.
 
-The selector loads the authority manifest, parses the Markdown inventory, generates
+Mutation path only: the selector loads the authority manifest, parses the Markdown inventory, generates
 the canonical snapshot, schema-validates it, hash-validates it, and verifies
 that the authoritative blob SHA matches the manifest.
 It preserves model and effort order, calculates the complete model and pair counts
 from the inventory, and constructs the complete candidate matrix.
 It never updates the snapshot automatically.
 
-The normal production path does not require or attempt `codex app-server`,
+The normal mutation path does not require or attempt `codex app-server`,
 `model/list`, current UI text inventory, screenshots, Accessibility, OCR, private
 Desktop transport, renderer injection, or AppleScript JavaScript execution. The
 snapshot is not live Desktop extraction. Historical, fallback, inferred, cached,
@@ -38,12 +49,14 @@ or app-server data is never labeled live UI authority.
 The legal production states are:
 
 1. `PREFLIGHT_REQUIRED`
-2. `WAITING_FOR_INVENTORY_CONFIRMATION`
-3. `INVENTORY_CONFIRMED`
-4. `WAITING_FOR_MODEL_SELECTION`
-5. `CONTINUE_RECEIVED`
-6. `SCOPE_REVALIDATED`
-7. `IMPLEMENTATION_ALLOWED`
+2. `READ_ONLY_ALLOWED`
+3. `MUTATION_PREFLIGHT_REQUIRED`
+4. `WAITING_FOR_INVENTORY_CONFIRMATION`
+5. `INVENTORY_CONFIRMED`
+6. `WAITING_FOR_MODEL_SELECTION`
+7. `CONTINUE_RECEIVED`
+8. `SCOPE_REVALIDATED`
+9. `IMPLEMENTATION_ALLOWED`
 
 The durable state artifact is per-thread, stored outside Git under the local
 Asynchronia selector state directory, and never under `.ai-bridge/**`. It binds
@@ -67,7 +80,7 @@ Every production preflight receives a complete structured task description with:
 - ambiguity and novelty;
 - concurrency and branch risk.
 
-Missing or malformed task information is fail-closed. The selector evaluates every snapshot model-effort pair exactly once.
+Missing or malformed task information is fail-closed. The mutation path evaluates every snapshot model-effort pair exactly once.
 Each evaluation records suitability verdict, rejection reason when unsuitable,
 retry risk, escalation risk, and relative cost class. The deterministic analyzer
 selects the lowest-cost pair that meets the suitability constraint, reports the
@@ -80,12 +93,16 @@ The optimization objective is:
 
 ## User confirmation and authorization
 
-Routine output automatically prints snapshot revision and hash, the complete
+Mutation-path output automatically prints snapshot revision and hash, the complete
 inventory, calculated model count, calculated pair count, every pair evaluation,
 the recommendation, and the exact next response.
 
+Read-only output prints the runtime path/version evidence, branch, worktree path,
+baseline SHA, authority validation result, and exact read-only scope, and it never
+prints a recommendation, `INVENTORY_OK`, or `CONTINUE`.
+
 Ask the normal user only to verify whether the printed inventory matches the
-active picker. Accept exactly one same-thread response:
+active picker on the mutation path. Accept exactly one same-thread response:
 
 - `INVENTORY_OK`: persist confirmation and enter `WAITING_FOR_MODEL_SELECTION`.
 - `INVENTORY_CHANGED`: enter `BLOCKED_MODEL_INVENTORY_CHANGED`, provide
@@ -101,7 +118,7 @@ recommendation before entering `IMPLEMENTATION_ALLOWED`.
 
 ## CLI contract
 
-Use `tools/run-asynchronia-model-preflight.py` with explicit commands:
+Use `tools/run-asynchronia-model-preflight.py` with explicit commands on the mutation path:
 
 - `start --task-file ... --thread-id ... --baseline ...`
 - `inventory-ok --task-file ... --thread-id ... --baseline ...`
