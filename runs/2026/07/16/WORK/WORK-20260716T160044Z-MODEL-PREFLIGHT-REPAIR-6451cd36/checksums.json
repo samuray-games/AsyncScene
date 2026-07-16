@@ -1,0 +1,10 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "events.jsonl": "sha256:39df626f59501edbe7e3ddf6c57186b044c079959535e9e1b76f7b533c228cb8",
+    "git-evidence.json": "sha256:6814b6c4d6ac6f2a9df66493142229270901111af5d03283a416501aee86931a",
+    "manifest.json": "sha256:b8f7a347fc2a7f8c1d068918b9350d60afcfed5294160dcbd1b5c5f8691bc245",
+    "redaction-report.json": "sha256:e90cee84aa76d1ef530a20175dc6b15d179234bca42e9132ab8682327d1abf7a",
+    "summary.json": "sha256:7cb6af3c1ef120ed3a46e49468c04ed33b6b4cdfae100c436df8d26b53c3756b"
+  }
+}
