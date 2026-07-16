@@ -15,7 +15,7 @@ from plugins.asynchronia.bridge_task_descriptor import (  # noqa: E402
     RESERVED_BRIDGE_TASK_TYPES,
     derive_bridge_task,
 )
-from plugins.asynchronia.model_selector import (  # noqa: E402
+from plugins.asynchronia.model_selector_runtime import (  # noqa: E402
     AuthorizationError,
     SNAPSHOT_PATH,
     SnapshotError,
