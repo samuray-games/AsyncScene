@@ -11,12 +11,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from plugins.asynchronia import model_selector as selector_core  # noqa: E402
 from plugins.asynchronia.model_selector_runtime import (  # noqa: E402
     PLUGIN_VERSION,
     AuthorizationError,
     TaskDescriptionError,
     build_candidate_matrix,
-    current_branch,
     evaluate_task,
     inspect_state,
     load_snapshot,
@@ -27,6 +27,8 @@ from plugins.asynchronia.model_selector_runtime import (  # noqa: E402
     start_preflight,
     task_hash,
 )
+
+TEST_BRANCH = "test/model-selector-attached-branch"
 
 
 def task(**overrides: object) -> dict[str, object]:
@@ -52,6 +54,15 @@ def task(**overrides: object) -> dict[str, object]:
 
 
 class ModelSelectorTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.original_current_branch = selector_core.current_branch
+        selector_core.current_branch = lambda: TEST_BRANCH
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        selector_core.current_branch = cls.original_current_branch
+
     def test_plugin_version_and_inventory_authority(self) -> None:
         self.assertEqual(PLUGIN_VERSION, "1.0.14")
         snapshot = load_snapshot()
@@ -95,35 +106,33 @@ class ModelSelectorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
             selected = task()
-            branch = current_branch()
-            start = start_preflight(selected, "thread-state", "baseline", branch=branch, state_dir=state_dir)
+            start = start_preflight(selected, "thread-state", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(start.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
             self.assertIn("recommended pair:", start.output)
             self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", start.output)
             with self.assertRaises(AuthorizationError):
-                record_continue("thread-state", "CONTINUE", selected, "baseline", branch=branch, state_dir=state_dir)
-            waiting = record_inventory_ok("thread-state", selected, "baseline", branch=branch, state_dir=state_dir)
+                record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            waiting = record_inventory_ok("thread-state", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(waiting.status, "WAITING_FOR_MODEL_SELECTION")
             self.assertIn("exact next response: CONTINUE", waiting.output)
-            result = record_continue("thread-state", "CONTINUE", selected, "baseline", branch=branch, state_dir=state_dir)
+            result = record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertIn("IMPLEMENTATION_ALLOWED", result)
             state = inspect_state("thread-state", state_dir=state_dir)
             self.assertEqual(state["state"], "IMPLEMENTATION_ALLOWED")
-            guarded = mutation_authorization_guard("thread-state", selected, "baseline", branch=branch, state_dir=state_dir)
+            guarded = mutation_authorization_guard("thread-state", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(guarded["taskDescriptionHash"], task_hash(selected))
 
     def test_task_identity_drift_invalidates_authorization(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
-            branch = current_branch()
             original = task()
-            start_preflight(original, "thread-drift", "baseline", branch=branch, state_dir=state_dir)
+            start_preflight(original, "thread-drift", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             with self.assertRaises(AuthorizationError):
                 record_inventory_ok(
                     "thread-drift",
                     task(validationComplexity="critical"),
                     "baseline",
-                    branch=branch,
+                    branch=TEST_BRANCH,
                     state_dir=state_dir,
                 )
 
@@ -140,7 +149,7 @@ class ModelSelectorTests(unittest.TestCase):
                 read_task,
                 "thread-read",
                 "baseline",
-                branch=current_branch(),
+                branch=TEST_BRANCH,
                 state_dir=state_dir,
                 plugin_root=manifest_dir.parent,
             )
