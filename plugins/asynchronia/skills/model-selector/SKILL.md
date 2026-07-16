@@ -103,6 +103,11 @@ baseline SHA, authority validation result, and exact read-only scope, and it nev
 prints a recommendation, `INVENTORY_OK`, or `CONTINUE`.
 The runtime evidence is the resolved plugin root, manifest path, manifest version,
 and manifest sha256 read from disk.
+Read-only canary execution must require an explicit absolute `--plugin-root`
+argument and fail closed when it is absent, relative, malformed, or points at
+the wrong package.
+Repository identity is resolved independently through Git and is never inferred
+from the installed plugin cache.
 
 Ask the normal user only to verify whether the printed inventory matches the
 active picker on the mutation path. Accept exactly one same-thread response:

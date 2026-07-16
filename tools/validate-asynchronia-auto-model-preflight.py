@@ -124,13 +124,19 @@ def validate_cli(failures: list[str]) -> None:
         "expectedImplementationSize": "small", "ambiguityNovelty": "low", "concurrencyBranchRisk": "low",
     }
     with tempfile.TemporaryDirectory() as state_dir:
+        plugin_root = Path(state_dir) / "plugin-root"
+        manifest_dir = plugin_root / ".codex-plugin"
+        manifest_dir.mkdir(parents=True, exist_ok=True)
+        manifest = json.loads(read("plugins/asynchronia/.codex-plugin/plugin.json"))
+        manifest["version"] = EXPECTED_PLUGIN_VERSION
+        (manifest_dir / "plugin.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
         mutation_task_file = Path(state_dir) / "task.json"
         mutation_task_file.write_text(json.dumps(mutation_task), encoding="utf-8")
         read_only_task_file = Path(state_dir) / "read-only-task.json"
         read_only_task_file.write_text(json.dumps(read_only_task), encoding="utf-8")
         base = [sys.executable, str(ROOT / "tools/run-asynchronia-model-preflight.py")]
         mutation_common = ["--thread-id", "validator-thread", "--state-dir", state_dir, "--task-file", str(mutation_task_file), "--baseline", "validator-baseline", "--branch", checked_out_branch]
-        read_only_common = ["--thread-id", "validator-readonly-thread", "--state-dir", state_dir, "--task-file", str(read_only_task_file), "--baseline", "validator-baseline", "--branch", checked_out_branch]
+        read_only_common = ["--thread-id", "validator-readonly-thread", "--state-dir", state_dir, "--task-file", str(read_only_task_file), "--baseline", "validator-baseline", "--branch", checked_out_branch, "--plugin-root", str(plugin_root)]
         start = subprocess.run(base + ["start", *mutation_common], capture_output=True, text=True, check=False)
         ok = subprocess.run(base + ["inventory-ok", *mutation_common], capture_output=True, text=True, check=False)
         cont = subprocess.run(base + ["continue", *mutation_common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)

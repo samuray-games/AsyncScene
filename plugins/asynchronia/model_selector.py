@@ -21,8 +21,6 @@ SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
 PLUGIN_VERSION = "1.0.13"
-PLUGIN_RUNTIME_ROOT = Path(__file__).resolve().parent
-PLUGIN_MANIFEST_PATH = PLUGIN_RUNTIME_ROOT / ".codex-plugin" / "plugin.json"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
@@ -139,7 +137,7 @@ def _inventory_artifact_path() -> Path:
 
 def _resolve_git_worktree_root() -> Path:
     try:
-        result = subprocess.run(["git", "-C", str(PLUGIN_RUNTIME_ROOT), "rev-parse", "--show-toplevel"], check=True, capture_output=True, text=True)
+        result = subprocess.run(["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "--show-toplevel"], check=True, capture_output=True, text=True)
     except (OSError, subprocess.CalledProcessError) as exc:
         raise AuthorizationError("unable to resolve git worktree root") from exc
     worktree = Path(result.stdout.strip())
@@ -148,8 +146,10 @@ def _resolve_git_worktree_root() -> Path:
     return worktree
 
 
-def _read_plugin_runtime_evidence() -> PluginRuntimeEvidence:
-    manifest_path = PLUGIN_MANIFEST_PATH
+def _resolve_plugin_manifest(plugin_root: Path) -> tuple[Path, dict[str, object], bytes]:
+    if not plugin_root.is_absolute():
+        raise AuthorizationError("plugin root must be an absolute path")
+    manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
     if not manifest_path.exists():
         raise AuthorizationError("installed plugin manifest is missing")
     try:
@@ -166,8 +166,15 @@ def _read_plugin_runtime_evidence() -> PluginRuntimeEvidence:
         raise AuthorizationError("installed plugin manifest version is missing")
     if version != PLUGIN_VERSION:
         raise AuthorizationError("installed plugin manifest version is inconsistent with the executing package")
+    return manifest_path, dict(manifest), manifest_bytes
+
+
+def _read_plugin_runtime_evidence(plugin_root: Path | None) -> PluginRuntimeEvidence:
+    if plugin_root is None:
+        raise AuthorizationError("plugin root is required for read-only runtime evidence")
+    manifest_path, manifest, manifest_bytes = _resolve_plugin_manifest(plugin_root)
     manifest_sha256 = "sha256:" + hashlib.sha256(manifest_bytes).hexdigest()
-    return PluginRuntimeEvidence(str(PLUGIN_RUNTIME_ROOT), str(manifest_path), version, manifest_sha256)
+    return PluginRuntimeEvidence(str(plugin_root), str(manifest_path), str(manifest["version"]), manifest_sha256)
 
 
 def _validate_branch_argument(selected_branch: str | None) -> str:
@@ -573,8 +580,8 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     return "\n".join(lines)
 
 
-def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str) -> str:
-    evidence = _read_plugin_runtime_evidence()
+def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str, plugin_root: Path | None) -> str:
+    evidence = _read_plugin_runtime_evidence(plugin_root)
     worktree_root = _resolve_git_worktree_root()
     lines = [
         "status: READ_ONLY_ALLOWED",
@@ -593,14 +600,14 @@ def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object]
     return "\n".join(lines)
 
 
-def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
+def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH, plugin_root: Path | None = None) -> PreflightResult:
     snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
     selected_branch = branch if branch is not None else current_branch()
     if branch is not None and branch != current_branch():
         raise AuthorizationError("explicit branch argument does not match checked-out branch")
     if _is_read_only_task(valid_task):
-        output = _read_only_output(valid_task, snapshot, baseline)
+        output = _read_only_output(valid_task, snapshot, baseline, plugin_root)
         return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
     report = evaluate_task(snapshot, valid_task)
     state = _identity(valid_task, snapshot, report, thread_id, selected_branch, baseline)
@@ -696,12 +703,12 @@ def invalidate_state(thread_id: str, *, state_dir: Path = DEFAULT_STATE_DIR) -> 
     return state
 
 
-def run_preflight(user_response: str | None = None, *, thread_id: str | None = None, path: Path = SNAPSHOT_PATH, task: Mapping[str, object] | None = None, baseline: str = "", branch: str = "") -> PreflightResult:
+def run_preflight(user_response: str | None = None, *, thread_id: str | None = None, path: Path = SNAPSHOT_PATH, task: Mapping[str, object] | None = None, baseline: str = "", branch: str = "", plugin_root: Path | None = None) -> PreflightResult:
     if task is None:
         raise TaskDescriptionError("structured task description is required")
     if not thread_id or not baseline or not branch:
         raise AuthorizationError("thread, baseline, and branch are required")
-    result = start_preflight(task, thread_id, baseline, branch=branch, path=path, state_dir=DEFAULT_STATE_DIR)
+    result = start_preflight(task, thread_id, baseline, branch=branch, path=path, state_dir=DEFAULT_STATE_DIR, plugin_root=plugin_root)
     if result.status == "READ_ONLY_ALLOWED":
         return result
     if user_response is None:
