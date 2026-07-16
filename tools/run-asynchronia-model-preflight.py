@@ -30,6 +30,7 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--thread-id", required=True)
     parser.add_argument("--state-dir", type=Path, default=DEFAULT_STATE_DIR)
     parser.add_argument("--snapshot", type=Path, default=None)
+    parser.add_argument("--plugin-root", type=Path, default=None, help="absolute installed plugin root for read-only canary execution")
 
 
 def _identity(parser: argparse.ArgumentParser) -> None:
@@ -62,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         if args.command == "start":
-            result = start_preflight(load_task(args.task_file), args.thread_id, args.baseline, branch=args.branch or current_branch(), state_dir=args.state_dir, path=args.snapshot or SNAPSHOT_PATH)
+            result = start_preflight(load_task(args.task_file), args.thread_id, args.baseline, branch=args.branch or current_branch(), state_dir=args.state_dir, path=args.snapshot or SNAPSHOT_PATH, plugin_root=args.plugin_root)
             print(result.output)
         elif args.command == "inventory-ok":
             result = record_inventory_ok(args.thread_id, load_task(args.task_file), args.baseline, branch=args.branch or current_branch(), state_dir=args.state_dir, path=args.snapshot or SNAPSHOT_PATH)

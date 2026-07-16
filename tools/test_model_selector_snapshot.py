@@ -35,6 +35,7 @@ from plugins.asynchronia.model_selector_inventory import parse_inventory_markdow
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md"
 CHECKED_OUT_BRANCH = current_branch()
+REPOSITORY_MANIFEST_PATH = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
 
 
 def task(**overrides: object) -> dict[str, object]:
@@ -69,6 +70,25 @@ def snapshot_copy() -> dict[str, object]:
     return copy.deepcopy(load_snapshot())
 
 
+def installed_plugin_root(directory: Path, version: str = "1.0.13", name: str = "asynchronia") -> Path:
+    plugin_root = directory / "installed-plugin"
+    manifest_dir = plugin_root / ".codex-plugin"
+    manifest_dir.mkdir(parents=True, exist_ok=True)
+    source = json.loads(REPOSITORY_MANIFEST_PATH.read_text(encoding="utf-8"))
+    source["name"] = name
+    source["version"] = version
+    (manifest_dir / "plugin.json").write_text(json.dumps(source, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return plugin_root
+
+
+def write_plugin_manifest(plugin_root: Path, manifest: dict[str, object]) -> Path:
+    manifest_dir = plugin_root / ".codex-plugin"
+    manifest_dir.mkdir(parents=True, exist_ok=True)
+    path = manifest_dir / "plugin.json"
+    path.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return path
+
+
 class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_historical_selector_artifacts_remain_stale_fixtures_only(self) -> None:
         legacy_plan = (
@@ -97,10 +117,11 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_read_only_canary_short_circuits_without_mutation_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
+            plugin_root = installed_plugin_root(Path(directory))
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-read", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH]
+            common = ["--thread-id", "thread-read", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH, "--plugin-root", str(plugin_root)]
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             self.assertIn("READ_ONLY_ALLOWED", start.stdout)
@@ -119,6 +140,9 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertNotEqual(inventory_ok.returncode, 0)
             state_files = list(state_dir.glob("*.json"))
             self.assertEqual(state_files, [])
+            self.assertIn(str(plugin_root), start.stdout)
+            self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
+            self.assertIn("manifest version: 1.0.13", start.stdout)
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -408,6 +432,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 mutation_authorization_guard("missing-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
             with self.assertRaises(AuthorizationError):
                 mutation_authorization_guard("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
+            from plugins.asynchronia.model_selector import record_inventory_ok
             record_inventory_ok("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
             with self.assertRaises(AuthorizationError):
                 mutation_authorization_guard("guard-thread", task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
@@ -424,17 +449,59 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_read_only_runtime_version_comes_from_manifest_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.13")
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
-            common = ["--thread-id", "thread-read-version", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-version", "--branch", CHECKED_OUT_BRANCH]
+            common = ["--thread-id", "thread-read-version", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-version", "--branch", CHECKED_OUT_BRANCH, "--plugin-root", str(plugin_root)]
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             self.assertIn("plugin root:", start.stdout)
             self.assertIn("plugin manifest path:", start.stdout)
             self.assertIn("manifest version: 1.0.13", start.stdout)
-            manifest_path = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
-            self.assertIn(str(manifest_path), start.stdout)
+            self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
+
+    def test_read_only_plugin_root_validation_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-invalid-root", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-invalid", "--branch", CHECKED_OUT_BRANCH]
+            self.assertNotEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
+            relative_root = Path("relative-plugin-root")
+            self.assertNotEqual(subprocess.run(command + ["start", *common, "--plugin-root", str(relative_root)], capture_output=True, text=True, check=False).returncode, 0)
+
+    def test_read_only_plugin_version_mismatch_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.11")
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-version-mismatch", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-version-mismatch", "--branch", CHECKED_OUT_BRANCH, "--plugin-root", str(plugin_root)]
+            result = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("inconsistent with the executing package", result.stderr)
+
+    def test_read_only_wrong_name_plugin_root_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            plugin_root = Path(directory) / "wrong-name-plugin"
+            manifest = {
+                "name": "wrong-name",
+                "version": "1.0.13",
+                "description": "bad",
+                "author": {"name": "bad"},
+            }
+            write_plugin_manifest(plugin_root, manifest)
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-wrong-name", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-wrong-name", "--branch", CHECKED_OUT_BRANCH, "--plugin-root", str(plugin_root)]
+            result = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("does not match the executing package", result.stderr)
 
     def test_cheapest_rejected_pair_and_rendered_output_match_lowest_frontier_rejection(self) -> None:
         snapshot = load_snapshot()
@@ -496,12 +563,13 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             read_state_dir = Path(directory) / "read-state"
             write_state_dir = Path(directory) / "write-state"
+            plugin_root = installed_plugin_root(Path(directory))
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
             read_task_file = Path(directory) / "read-task.json"
             write_task_file = Path(directory) / "write-task.json"
             read_task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             write_task_file.write_text(json.dumps(task()), encoding="utf-8")
-            read_common = ["--thread-id", "thread-read-override", "--state-dir", str(read_state_dir), "--task-file", str(read_task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH]
+            read_common = ["--thread-id", "thread-read-override", "--state-dir", str(read_state_dir), "--task-file", str(read_task_file), "--baseline", "baseline-read", "--branch", CHECKED_OUT_BRANCH, "--plugin-root", str(plugin_root)]
             write_common = ["--thread-id", "thread-write-override", "--state-dir", str(write_state_dir), "--task-file", str(write_task_file), "--baseline", "baseline-write", "--branch", CHECKED_OUT_BRANCH]
             read_result = subprocess.run(command + ["start", *read_common], capture_output=True, text=True, check=False)
             write_result = subprocess.run(command + ["start", *write_common], capture_output=True, text=True, check=False)
@@ -511,6 +579,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("MUTATION_PREFLIGHT_REQUIRED", write_result.stdout)
             self.assertNotIn("recommended pair:", read_result.stdout)
             self.assertIn("recommended pair:", write_result.stdout)
+            self.assertNotIn(str(REPOSITORY_MANIFEST_PATH), read_result.stdout)
 
 
 if __name__ == "__main__":

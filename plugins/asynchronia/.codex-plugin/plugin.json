@@ -50,6 +50,8 @@
       "When reporting installed plugin path or version, use runtime filesystem readback evidence rather than repository memory or historical notes.",
       "Report the exact selector CLI command and its exit status when preflight evidence is requested.",
       "Read-only runtime evidence must come from the resolved plugin manifest on disk, including plugin root, manifest path, manifest version, and manifest sha256.",
+      "The read-only canary path must require an explicit absolute --plugin-root argument and fail closed when it is absent, relative, malformed, or points at the wrong package.",
+      "Repository identity must be resolved independently through Git, and never inferred from the installed plugin cache.",
       "Resolve the repository worktree path and active branch through Git; fail closed on branch mismatch.",
       "Mutation-capable workflows must use a durable same-thread IMPLEMENTATION_ALLOWED guard before changing files, refs, locks, cache, publication state, or project memory.",
       "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
