@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "work/project-memory-sync-20260716-2202",
+  "createdAtJst": "2026-07-16 22:11:58 JST",
+  "createdAtUtc": "2026-07-16T13:11:58Z",
+  "packagePath": "runs/2026/07/16/WORK/WORK-20260716T131158Z-selector-memory-sync-4478a224",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260716T131158Z-selector-memory-sync-4478a224",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "TASK-INFRA-SELECTOR-READONLY-CANARY-MEMORY-SYNC-20260716"
+}
