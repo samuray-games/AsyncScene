@@ -44,6 +44,8 @@ class FullSelectorRegressionTests(unittest.TestCase):
             )
             transformed = transformed.replace('"1.0.13"', '"1.0.14"')
             transformed = transformed.replace("manifest version: 1.0.13", "manifest version: 1.0.14")
+            transformed = transformed.replace("INSTALLED_PLUGIN_VERSION: 1.0.8", "INSTALLED_PLUGIN_VERSION: 1.0.13")
+            transformed = transformed.replace('self.assertIn("1.0.8", project_memory)', 'self.assertIn("1.0.13", project_memory)')
             target = repo / "tools/test_model_selector_snapshot_legacy_runtime.py"
             target.write_text(transformed, encoding="utf-8")
 
