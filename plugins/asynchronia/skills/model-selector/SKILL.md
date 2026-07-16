@@ -1,162 +1,100 @@
 ---
 name: model-selector
-description: Run the blocking Asynchronia 1.0.13 authorization split, short-circuit read-only canaries without matrix evaluation, and authorize mutation only after exact same-thread INVENTORY_OK and CONTINUE.
+description: Run Asynchronia 1.0.14 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
-# Model Selector 1.0.13
+# Model Selector 1.0.14
 
-Use this skill automatically for every Asynchronia Codex task before implementation,
-validation, publication, or any other repository mutation.
+Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
 
-## Two-path authorization
+## Non-negotiable execution rule
 
-The selector now has two distinct authorization paths:
+Run `tools/run-asynchronia-model-preflight.py`. Do not simulate the selector in prose. Codex prose is not selector evidence.
 
-- `READ_ONLY_ALLOWED` for tasks whose write scope is explicitly empty or `NONE_READ_ONLY`;
-- `MUTATION_PREFLIGHT_REQUIRED` for every task that can mutate repository files, refs, locks, cache, project memory, publication state, or other external state.
+## Authorization paths
 
-Read-only tasks must not evaluate the complete candidate matrix, must not emit a recommendation, and must not request `INVENTORY_OK` or `CONTINUE`.
-Read-only tasks therefore have `no matrix evaluation` and `no recommendation`.
-Mutation tasks retain the full executable CLI preflight, complete matrix evaluation, `INVENTORY_OK`, `WAITING_FOR_MODEL_SELECTION`, and exact same-thread `CONTINUE` contract.
-Mutation-capable workflows must use a durable same-thread `IMPLEMENTATION_ALLOWED` guard before changing files, refs, locks, cache, publication state, or project memory.
+- `READ_ONLY_ALLOWED` applies only when write scope is empty or exactly `NONE_READ_ONLY`. It performs no matrix evaluation, emits no recommendation, writes no state, and requests neither `INVENTORY_OK` nor `CONTINUE`.
+- `MUTATION_PREFLIGHT_REQUIRED` applies to every mutation-capable task.
 
-## One inventory authority
+The mutation state machine is exactly:
 
-The routine inventory authority is exactly:
+1. `WAITING_FOR_INVENTORY_CONFIRMATION`
+2. exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`
+3. `WAITING_FOR_MODEL_SELECTION`
+4. user selects the printed model and effort in the Codex UI
+5. exact same-thread `CONTINUE`
+6. `SCOPE_REVALIDATED`
+7. `IMPLEMENTATION_ALLOWED`
 
-`plugins/asynchronia/model-selector-authority.json`
+No mutation is allowed before `IMPLEMENTATION_ALLOWED`.
 
-The authority manifest points to the Markdown source of truth:
+## Authoritative bridge task adapter
 
-`../.ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md`
+For exact `мост N` commands, never search historical task folders and never hand-author JSON risk fields. Use:
 
-The manifest uses `repository-markdown` provenance.
+- `bridge-start`
+- `bridge-inventory-ok`
+- `bridge-continue`
 
-Mutation path only: the selector loads the authority manifest, parses the Markdown inventory, generates
-the canonical snapshot, schema-validates it, hash-validates it, and verifies
-that the authoritative blob SHA matches the manifest.
-It preserves model and effort order, calculates the complete model and pair counts
-from the inventory, and constructs the complete candidate matrix.
-It never updates the snapshot automatically.
+The adapter reads the current selected mailbox ref and derives one hash-bound structured task from:
 
-The normal mutation path does not require or attempt `codex app-server`,
-`model/list`, current UI text inventory, screenshots, Accessibility, OCR, private
-Desktop transport, renderer injection, or AppleScript JavaScript execution. The
-snapshot is not live Desktop extraction. Historical, fallback, inferred, cached,
-or app-server data is never labeled live UI authority.
+- mailbox head;
+- slot-local `.ai-bridge/STATE.md`;
+- the exact inbox and claim named by STATE;
+- selected task branch and authorized baseline;
+- the versioned deterministic bridge profile in `plugins/asynchronia/bridge_task_descriptor.py`.
 
-## State machine
+It validates task, slot, thread, generation, branch, epoch, nonce, baseline, mailbox ownership, frozen output paths, Stage 6 pause, no-main-write rule, continuation requirement, runtime scope, and claim profile. Unknown claim types fail closed. Generic `start` rejects reserved bridge task types so a model or assistant cannot smuggle fabricated bridge classifications through a handwritten JSON file.
 
-The legal production states are:
+### Current registered profile
 
-1. `PREFLIGHT_REQUIRED`
-2. `READ_ONLY_ALLOWED`
-3. `MUTATION_PREFLIGHT_REQUIRED`
-4. `WAITING_FOR_INVENTORY_CONFIRMATION`
-5. `INVENTORY_CONFIRMED`
-6. `WAITING_FOR_MODEL_SELECTION`
-7. `CONTINUE_RECEIVED`
-8. `SCOPE_REVALIDATED`
-9. `IMPLEMENTATION_ALLOWED`
+`BRIDGE_TASK_PROFILE_1` supports only `NO_MAIN_DELTA_TRANSPORT_CANARY` with `NO_MAIN_DELTA_TRANSPORT` scope. Its classifications and reasons are code-owned, deterministic, versioned, printed in the preflight evidence, and included in the task hash. They are not inferred conversationally.
 
-The durable state artifact is per-thread, stored outside Git under the local
-Asynchronia selector state directory, and never under `.ai-bridge/**`. It binds
-task ID, thread ID, branch, baseline SHA, snapshot revision and hash,
-`taskDescriptionHash`, complete matrix hash, recommendation identity, confirmation
-timestamp, state, and expiry.
+## Durable state
 
-Before `IMPLEMENTATION_ALLOWED`, do not edit files, create locks, commit, push,
-publish, merge, rebase, reset, stash, clean, amend, or cherry-pick.
+The default selector state directory is resolved with:
 
-## Structured task analysis
+`git rev-parse --git-path asynchronia/model-selector-state`
 
-Every production preflight receives a complete structured task description with:
+This keeps state in Git-private, sandbox-writable storage shared by linked worktrees. The default must never use the legacy user-home directory and must never write under `.ai-bridge/**`. `ASYNCHRONIA_SELECTOR_STATE_DIR` is accepted only as an explicit absolute override.
 
-- task ID, task type, and objective;
-- read scope, write scope, and affected systems;
-- runtime sensitivity;
-- architecture, security, economy, and release impact;
-- validation complexity;
-- expected implementation size;
-- ambiguity and novelty;
-- concurrency and branch risk.
+State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, timestamps, state history, and expiry. Any mismatch or stale state fails closed.
 
-Missing or malformed task information is fail-closed. The mutation path evaluates every snapshot model-effort pair exactly once.
-Each evaluation records suitability verdict, rejection reason when unsuitable,
-retry risk, escalation risk, and relative cost class. The deterministic analyzer
-selects the lowest-cost pair that meets the suitability constraint, reports the
-evaluated `N/N` count, cheapest rejected pair and reason, recommendation, and
-next more capable plausible pair. It must never use an unconditional fallback.
+## Inventory and recommendation
 
-The optimization objective is:
+The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
 
-`MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`
+Mutation output prints:
 
-## User confirmation and authorization
+- task identity, descriptor hash, exact read/write scopes;
+- snapshot revision/hash and complete inventory;
+- evaluated `N/N` matrix;
+- required capability score;
+- rejected frontier and reason;
+- recommended pair;
+- next more capable suitable pair;
+- exact next response.
 
-Mutation-path output automatically prints snapshot revision and hash, the complete
-inventory, calculated model count, calculated pair count, every pair evaluation,
-the recommendation, and the exact next response.
+The user chooses the actual model in the Codex interface. Codex self-report about its model is not proof.
 
-Read-only output prints the runtime path/version evidence, branch, worktree path,
-baseline SHA, authority validation result, and exact read-only scope, and it never
-prints a recommendation, `INVENTORY_OK`, or `CONTINUE`.
-The runtime evidence is the resolved plugin root, manifest path, manifest version,
-and manifest sha256 read from disk.
-Read-only canary execution must require an explicit absolute `--plugin-root`
-argument and fail closed when it is absent, relative, malformed, or points at
-the wrong package.
-Repository identity is resolved independently through Git and is never inferred
-from the installed plugin cache.
+## CLI
 
-Ask the normal user only to verify whether the printed inventory matches the
-active picker on the mutation path. Accept exactly one same-thread response:
-
-- `INVENTORY_OK`: persist confirmation and enter `WAITING_FOR_MODEL_SELECTION`.
-- `INVENTORY_CHANGED`: enter `BLOCKED_MODEL_INVENTORY_CHANGED`, provide
-  `TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714`, and stop. Never ask the user
-  to count models, reproduce efforts, rewrite the matrix, or provide screenshots.
-
-`INVENTORY_OK` is rejected when task ID, thread ID, branch, baseline, snapshot,
-task hash, matrix hash, or recommendation identity differs. Exact same-thread `CONTINUE` is required before mutation.
-`CONTINUE` is rejected when state is
-absent, stale, unconfirmed, cross-thread, or any bound identity has changed.
-After valid `CONTINUE`, revalidate task, scope, branch, baseline, snapshot, and
-recommendation before entering `IMPLEMENTATION_ALLOWED`.
-The mutation guard rejects absent state, read-only tasks, every pre-authorization
-state, invalidated state, stale state, cross-thread identity, and any changed
-task, branch, baseline, snapshot, matrix, or recommendation identity.
-
-## CLI contract
-
-Use `tools/run-asynchronia-model-preflight.py` with explicit commands on the mutation path:
+Generic non-bridge task commands:
 
 - `start --task-file ... --thread-id ... --baseline ...`
 - `inventory-ok --task-file ... --thread-id ... --baseline ...`
-- `inventory-changed --thread-id ...`
 - `continue --task-file ... --thread-id ... --baseline ... --token CONTINUE`
+
+Bridge commands:
+
+- `bridge-start --slot N --thread-id ... --baseline ... --branch ...`
+- `bridge-inventory-ok --slot N --thread-id ... --baseline ... --branch ...`
+- `bridge-continue --slot N --thread-id ... --baseline ... --branch ... --token CONTINUE`
+
+Shared commands:
+
+- `inventory-changed --thread-id ...`
 - `inspect --thread-id ...`
 - `invalidate --thread-id ...`
 
-The state persists across separate CLI processes. `inspect` is read-only. State
-invalidation is explicit and prevents continuation until a fresh preflight.
-
-## Snapshot maintenance
-
-Snapshot replacement is separate from production selection and uses
-`tools/maintain-asynchronia-model-snapshot.py`. It validates identifiers, duplicate
-models, duplicate efforts, empty effort lists, order, counts, canonical hash,
-provenance, and status; prints an old-versus-new diff; and requires explicit user
-confirmation. Git history preserves the previous snapshot. The production selector
-never updates its own snapshot.
-
-## Required report and terminal gate
-
-The preflight report includes status, task identity, exact scope, ordered skill
-route, snapshot metadata, complete matrix, every pair evaluation, recommendation,
-rejection rationale, state identity, and exact next action.
-
-A waiting report ends with exactly one standalone fenced block containing only
-`CONTINUE`. No text follows it. Blocked or failed reports contain no `CONTINUE`.
-
-Only exact trimmed `CONTINUE` from the same thread advances authorization.
+Every bridge command re-derives the task from current authority. Mailbox movement, branch movement, scope change, profile change, or identity drift invalidates continuation.
