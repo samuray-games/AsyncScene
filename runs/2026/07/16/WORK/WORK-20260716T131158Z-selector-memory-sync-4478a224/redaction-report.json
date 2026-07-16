@@ -1,0 +1,14 @@
+{
+  "notes": [
+    "Private local filesystem paths and the full manifest digest remain only in the private live Google Drive memory.",
+    "No credentials, environment values, private keys, cookies, authorization headers, or raw transcripts are included."
+  ],
+  "redactedFields": [
+    "installedPluginPath",
+    "installedManifestPath",
+    "canonicalWorktreePath",
+    "fullManifestDigest"
+  ],
+  "sensitiveSourceIncluded": false,
+  "status": "SANITIZED"
+}
