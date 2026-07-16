@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
+CANONICAL_TEST = ROOT / "tools/test_model_selector_snapshot.py"
 
 
 def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess:
@@ -19,7 +19,7 @@ def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProces
 
 class FullSelectorRegressionTests(unittest.TestCase):
     def test_full_1_0_13_suite_runs_against_1_0_14_in_attached_clone(self) -> None:
-        self.assertTrue(FIXTURE.exists(), "full selector regression fixture is missing")
+        self.assertTrue(CANONICAL_TEST.exists(), "canonical full selector regression is missing")
         with tempfile.TemporaryDirectory(prefix="asynchronia-full-selector-regression-") as directory:
             repo = Path(directory) / "repo"
             repo.mkdir()
@@ -35,8 +35,8 @@ class FullSelectorRegressionTests(unittest.TestCase):
             run("git", "commit", "-qm", "full selector regression fixture", cwd=repo)
             run("git", "branch", "-M", "test/full-selector-regression", cwd=repo)
 
-            fixture = repo / "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
-            transformed = fixture.read_text(encoding="utf-8")
+            canonical = repo / "tools/test_model_selector_snapshot.py"
+            transformed = canonical.read_text(encoding="utf-8")
             transformed = transformed.replace(
                 "from plugins.asynchronia.model_selector import (  # noqa: E402",
                 "from plugins.asynchronia.model_selector_runtime import (  # noqa: E402",
@@ -63,7 +63,7 @@ class FullSelectorRegressionTests(unittest.TestCase):
             self.assertEqual(
                 result.returncode,
                 0,
-                "full legacy regression failed against 1.0.14\nSTDOUT:\n"
+                "full canonical selector regression failed against 1.0.14\nSTDOUT:\n"
                 + result.stdout
                 + "\nSTDERR:\n"
                 + result.stderr,
