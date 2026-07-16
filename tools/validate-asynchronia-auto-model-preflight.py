@@ -85,14 +85,21 @@ def main() -> int:
         failures.append("superseded direct WAITING_FOR_MODEL_SELECTION override remains")
 
     tests = subprocess.run(
-        [sys.executable, "-m", "unittest", "tools.test_model_selector_snapshot", "tools.test_bridge_model_preflight"],
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "tools.test_model_selector_snapshot",
+            "tools.test_bridge_model_preflight",
+            "tools.test_model_selector_full_regression",
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
         check=False,
     )
     if tests.returncode != 0:
-        failures.append("unit/E2E suite failed: " + (tests.stderr.strip() or tests.stdout.strip()))
+        failures.append("unit/E2E/full-regression suite failed: " + (tests.stderr.strip() or tests.stdout.strip()))
 
     if failures:
         print(json.dumps({"status": "FAIL_AUTO_MODEL_PREFLIGHT", "pluginVersion": EXPECTED_VERSION, "failureCount": len(failures), "failures": failures}, indent=2))
@@ -109,6 +116,7 @@ def main() -> int:
                 "sameThreadContinueGate": "PASS",
                 "mailboxMovementInvalidation": "PASS",
                 "fabricatedBridgeTaskRejection": "PASS",
+                "fullLegacySelectorRegression": "PASS",
                 "unitAndBridgeE2E": "PASS",
             },
             indent=2,
