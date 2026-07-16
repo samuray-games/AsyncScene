@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "agent/asynchronia-model-preflight-e2e-repair-20260717",
+  "createdAtJst": "2026-07-17 01:09:45 JST",
+  "createdAtUtc": "2026-07-16T16:09:45Z",
+  "packagePath": "runs/2026/07/16/GITHUB/GITHUB-20260716T160945Z-29514368786-80530d92",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260716T160945Z-29514368786-80530d92",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
