@@ -1,6 +1,6 @@
 # Asynchronia Bridge v4 Hard-Isolation Override
 
-OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION_WORKTREE_2
+OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION_WORKTREE_3
 BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -111,7 +111,7 @@ A global memory index may link to them but must not replace one slot snapshot wh
 
 Updating Slot N memory must preserve byte-identical Slot M memory files.
 
-## 8. Fresh execution and preflight
+## 8. Fresh execution and model preflight
 
 Every exact `мост N` is a fresh attempt for the slot-local execution epoch currently named by mailbox ref N.
 
@@ -120,12 +120,19 @@ Before implementation Codex must:
 1. read root authority;
 2. fetch `origin/main` and only mailbox ref N;
 3. read slot-local STATE, inbox and claim;
-4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and `model-selector`;
-5. perform no mutation during preflight;
-6. pause with `WAITING_FOR_MODEL_SELECTION` and one standalone fenced `CONTINUE` block;
-7. after exact same-thread `CONTINUE`, revalidate slot identity, mailbox head, task branch and scope.
+4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and executable `model-selector`;
+5. use `tools/run-asynchronia-model-preflight.py bridge-start` so the structured task is deterministically derived from current bridge authority;
+6. never search historical task folders, select an unrelated task file, hand-author bridge task JSON, or invent qualitative risk fields;
+7. store durable selector state only in the Git-private path resolved by `git rev-parse --git-path asynchronia/model-selector-state`, unless an explicit absolute override is supplied;
+8. perform no repository, ref, lock, cache, publication, project-memory or external-state mutation during preflight;
+9. pause first at `WAITING_FOR_INVENTORY_CONFIRMATION` and accept only exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`;
+10. after exact `INVENTORY_OK`, re-derive the same bridge task with `bridge-inventory-ok`, print the recommendation, enter `WAITING_FOR_MODEL_SELECTION`, and wait for the user to select that model and effort in the Codex UI;
+11. accept only exact same-thread `CONTINUE` through `bridge-continue`;
+12. after `CONTINUE`, re-derive and revalidate slot identity, mailbox head, task branch, baseline, scope, task hash, matrix hash and recommendation before entering `IMPLEMENTATION_ALLOWED`.
 
-Another slot moving must not invalidate this continuation authorization.
+The Asynchronia plugin alone owns bridge task classification and recommendation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, profile movement, fabricated generic bridge task input, or identity drift fail closed.
+
+Another slot moving must not invalidate this continuation authorization unless the current task explicitly binds that other slot as a stable-read dependency.
 
 ## 9. Completion modes
 
@@ -145,7 +152,12 @@ The old `coordination/chatgpt-codex-bridge` ref is legacy read-only after all th
 
 Migration must not activate work by rewriting the old shared STATE. Existing active evidence is copied to the appropriate numbered ref and verified before cutover.
 
-## 11. Mandatory validator
+## 11. Mandatory validators
+
+Before accepting selector or plugin changes, run:
+
+- `python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight`
+- `python3 tools/validate-asynchronia-auto-model-preflight.py`
 
 Before accepting any bridge publication, run:
 
@@ -155,7 +167,7 @@ Before accepting the protocol migration, run:
 
 `python3 -m unittest tools.test_bridge_v4_contract`
 
-Any cross-slot read, shared activation pointer, wrong mailbox ref, wrong task-branch prefix or direct task publication to main fails closed.
+Any cross-slot read, shared activation pointer, wrong mailbox ref, wrong task-branch prefix, fabricated bridge task descriptor, legacy home-directory selector state, or direct task publication to main fails closed.
 
 ## 12. Runtime and acceptance
 
