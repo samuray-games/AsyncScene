@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import os
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,24 +13,27 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
 
 
+def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(args, cwd=cwd, check=check, capture_output=True)
+
+
 class FullSelectorRegressionTests(unittest.TestCase):
     def test_full_1_0_13_suite_runs_against_1_0_14_in_attached_clone(self) -> None:
         self.assertTrue(FIXTURE.exists(), "full selector regression fixture is missing")
         with tempfile.TemporaryDirectory(prefix="asynchronia-full-selector-regression-") as directory:
             repo = Path(directory) / "repo"
-            subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True, text=True)
-            subprocess.run(
-                ["git", "-C", str(repo), "fetch", "-q", "--no-tags", str(ROOT), "HEAD"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "-C", str(repo), "checkout", "-qb", "test/full-selector-regression", "FETCH_HEAD"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            repo.mkdir()
+
+            archive = run("git", "archive", "--format=tar", "HEAD", cwd=ROOT)
+            with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as payload:
+                payload.extractall(repo, filter="data")
+
+            run("git", "init", "-q", cwd=repo)
+            run("git", "config", "user.name", "Selector Regression", cwd=repo)
+            run("git", "config", "user.email", "selector-regression@local.invalid", cwd=repo)
+            run("git", "add", ".", cwd=repo)
+            run("git", "commit", "-qm", "full selector regression fixture", cwd=repo)
+            run("git", "branch", "-M", "test/full-selector-regression", cwd=repo)
 
             fixture = repo / "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
             transformed = fixture.read_text(encoding="utf-8")
