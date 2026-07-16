@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "64ff9c08ec2c3db114cfd91d373d1fec5243be10\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "# branch.oid 64ff9c08ec2c3db114cfd91d373d1fec5243be10\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "64ff9c08 (HEAD, pull/228/merge) Merge 5a10c17b352e52b683ad5bcd1e5d8938c8a1be0e into 72081f921906dbf7bb5a3a8f0ab227254be8cc20\n5a10c17b (origin/agent/asynchronia-model-preflight-e2e-repair-20260717) Run separated 1.0.14 tests plus canonical full regression\na973ba83 Run the canonical full selector test through the 1.0.14 harness\n29fa8303 Remove duplicate selector fixture after restoring the canonical test\nbc6838c6 Restore the full selector test and separate 1.0.14 coverage\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 64ff9c08ec2c3db114cfd91d373d1fec5243be10\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-16T16:20:04Z",
+      "stderr": "",
+      "stdout": "72081f921906dbf7bb5a3a8f0ab227254be8cc20\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "64ff9c08ec2c3db114cfd91d373d1fec5243be10",
+  "observedAtUtc": "2026-07-16T16:20:04Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
