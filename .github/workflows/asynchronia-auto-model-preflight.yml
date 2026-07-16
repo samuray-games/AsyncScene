@@ -7,9 +7,9 @@ on:
       - "plugins/asynchronia/**"
       - "tools/validate-asynchronia-auto-model-preflight.py"
       - "tools/test_model_selector_snapshot.py"
+      - "tools/test_model_selector_runtime.py"
       - "tools/test_bridge_model_preflight.py"
       - "tools/test_model_selector_full_regression.py"
-      - "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
       - ".github/workflows/asynchronia-auto-model-preflight.yml"
   push:
     branches:
@@ -19,9 +19,9 @@ on:
       - "plugins/asynchronia/**"
       - "tools/validate-asynchronia-auto-model-preflight.py"
       - "tools/test_model_selector_snapshot.py"
+      - "tools/test_model_selector_runtime.py"
       - "tools/test_bridge_model_preflight.py"
       - "tools/test_model_selector_full_regression.py"
-      - "tools/fixtures/test_model_selector_snapshot_1_0_13_full.py"
       - ".github/workflows/asynchronia-auto-model-preflight.yml"
 
 permissions:
