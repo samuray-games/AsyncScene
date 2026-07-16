@@ -16,13 +16,16 @@ from . import model_selector as core
 PLUGIN_VERSION = "1.0.14"
 core.PLUGIN_VERSION = PLUGIN_VERSION
 
+AUTHORITY_MANIFEST_PATH = core.AUTHORITY_MANIFEST_PATH
+SNAPSHOT_PATH = core.SNAPSHOT_PATH
+MAINTENANCE_TASK_ID = core.MAINTENANCE_TASK_ID
 AuthorizationError = core.AuthorizationError
 SnapshotError = core.SnapshotError
 TaskDescriptionError = core.TaskDescriptionError
-SNAPSHOT_PATH = core.SNAPSHOT_PATH
-MAINTENANCE_TASK_ID = core.MAINTENANCE_TASK_ID
 
+_build_snapshot_from_inventory = core._build_snapshot_from_inventory
 build_candidate_matrix = core.build_candidate_matrix
+canonical_hash = core.canonical_hash
 current_branch = core.current_branch
 evaluate_task = core.evaluate_task
 inspect_state = core.inspect_state
