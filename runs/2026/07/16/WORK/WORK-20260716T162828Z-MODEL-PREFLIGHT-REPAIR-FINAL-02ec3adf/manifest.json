@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "main",
+  "createdAtJst": "2026-07-17 01:28:28 JST",
+  "createdAtUtc": "2026-07-16T16:28:28Z",
+  "packagePath": "runs/2026/07/16/WORK/WORK-20260716T162828Z-MODEL-PREFLIGHT-REPAIR-FINAL-02ec3adf",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260716T162828Z-MODEL-PREFLIGHT-REPAIR-FINAL-02ec3adf",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "TASK-INFRA-MODEL-PREFLIGHT-E2E-REPAIR-20260717"
+}
