@@ -1,0 +1,1 @@
+{"event":"chatgpt_work_execution","instruction":"Repair Asynchronia model preflight end to end.","observedAtUtc":"2026-07-16T16:00:44Z","result":"Published draft PR #228 with plugin 1.0.14 bridge authority adapter, Git-private selector state, policy alignment, and passing local plus GitHub CI validation."}
