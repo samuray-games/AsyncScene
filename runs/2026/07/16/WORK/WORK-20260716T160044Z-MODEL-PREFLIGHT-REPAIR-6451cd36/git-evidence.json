@@ -1,0 +1,11 @@
+{
+  "directMainWrite": false,
+  "pullRequest": 228,
+  "repository": "samuray-games/AsyncScene",
+  "resultBranch": "agent/asynchronia-model-preflight-e2e-repair-20260717",
+  "resultSha": "6451cd36b869c772fcfa923a2e061c8f4eb17894",
+  "sourceBranch": "main",
+  "sourceSha": "72081f921906dbf7bb5a3a8f0ab227254be8cc20",
+  "worktreeBranch": "agent/asynchronia-model-preflight-e2e-repair-20260717",
+  "worktreePath": "N/A_CONNECTOR_CREATED_REMOTE_BRANCH_NO_LOCAL_WORKTREE"
+}
