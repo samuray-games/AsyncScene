@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md"
 CHECKED_OUT_BRANCH = current_branch()
 REPOSITORY_MANIFEST_PATH = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
+MODEL_MATRIX_PREFIX = "- "
 
 
 def task(**overrides: object) -> dict[str, object]:
@@ -70,6 +71,10 @@ def snapshot_copy() -> dict[str, object]:
     return copy.deepcopy(load_snapshot())
 
 
+def matrix_lines(text: str) -> list[str]:
+    return [line for line in text.splitlines() if line.startswith(MODEL_MATRIX_PREFIX) and " / " in line and ": " in line]
+
+
 def installed_plugin_root(directory: Path, version: str = "1.0.13", name: str = "asynchronia") -> Path:
     plugin_root = directory / "installed-plugin"
     manifest_dir = plugin_root / ".codex-plugin"
@@ -98,7 +103,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
         self.assertIn("PROJECT_MEMORY.md", legacy_plan)
-        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.8", project_memory)
+        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.13", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             result = start_preflight(
                 task(
@@ -111,13 +116,13 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 state_dir=Path(directory) / "state",
             )
         self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
-        self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.output)
+        self.assertIn("exact next response: INVENTORY_OK", result.output)
         self.assertNotIn("WAITING_FOR_MODEL_SELECTION", result.output)
 
     def test_read_only_canary_short_circuits_without_mutation_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
-            plugin_root = installed_plugin_root(Path(directory))
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.14")
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
@@ -142,7 +147,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(state_files, [])
             self.assertIn(str(plugin_root), start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
-            self.assertIn("manifest version: 1.0.13", start.stdout)
+            self.assertIn("manifest version: 1.0.14", start.stdout)
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -190,6 +195,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("authorization path: MUTATION_PREFLIGHT_REQUIRED", start.stdout)
             self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
             self.assertIn("evaluated pair count: 29/29", start.stdout)
+            self.assertIn("exact next response: INVENTORY_OK", start.stdout)
+            self.assertNotIn("INVENTORY_OK or INVENTORY_CHANGED", start.stdout)
             self.assertNotIn("READ_ONLY_ALLOWED", start.stdout)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(inspect.returncode, 0)
@@ -197,6 +204,34 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn('"stateHistory": [', inspect.stdout)
             self.assertIn('"MUTATION_PREFLIGHT_REQUIRED"', inspect.stdout)
             self.assertIn('"WAITING_FOR_INVENTORY_CONFIRMATION"', inspect.stdout)
+
+    def test_mutation_stdout_exposes_complete_ordered_matrix_and_stop_text(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            task_file = Path(directory) / "task.json"
+            task_file.write_text(json.dumps(task()), encoding="utf-8")
+            command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+            common = ["--thread-id", "thread-matrix", "--state-dir", str(state_dir), "--task-file", str(task_file), "--baseline", "baseline-matrix", "--branch", CHECKED_OUT_BRANCH]
+            start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
+            self.assertEqual(start.returncode, 0)
+            start_lines = matrix_lines(start.stdout)
+            self.assertEqual(len(start_lines), 29)
+            self.assertEqual(len(set(start_lines)), 29)
+            self.assertEqual(start_lines[0], "- 5.4 Mini / Light: INSUFFICIENT; retry=HIGH; escalation=HIGH; cost=LOW; reason=capability score 10 is below task requirement 22")
+            self.assertEqual(start_lines[-1], "- 5.6 Sol / Ultra: SUITABLE; retry=LOW; escalation=LOW; cost=VERY_HIGH")
+            self.assertIn("recommended pair: 5.4 / Medium", start.stdout)
+            self.assertIn("exact next response: INVENTORY_OK", start.stdout)
+            ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
+            self.assertEqual(ok.returncode, 0)
+            ok_lines = matrix_lines(ok.stdout)
+            self.assertEqual(len(ok_lines), 29)
+            self.assertEqual(len(set(ok_lines)), 29)
+            self.assertIn("status: WAITING_FOR_MODEL_SELECTION", ok.stdout)
+            self.assertIn("recommended pair: 5.4 / Medium", ok.stdout)
+            self.assertIn("instruction: select the recommended pair in the Codex UI", ok.stdout)
+            self.assertIn("mutation authorization: not yet authorized", ok.stdout)
+            self.assertIn("exact next response: CONTINUE", ok.stdout)
+            self.assertNotIn("INVENTORY_OK or INVENTORY_CHANGED", ok.stdout)
 
     def test_inventory_changed_resolves_authority_and_differs_from_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -449,7 +484,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_read_only_runtime_version_comes_from_manifest_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
-            plugin_root = installed_plugin_root(Path(directory), version="1.0.13")
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.14")
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
@@ -458,7 +493,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(start.returncode, 0)
             self.assertIn("plugin root:", start.stdout)
             self.assertIn("plugin manifest path:", start.stdout)
-            self.assertIn("manifest version: 1.0.13", start.stdout)
+            self.assertIn("manifest version: 1.0.14", start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
 
     def test_read_only_plugin_root_validation_fails_closed(self) -> None:
@@ -559,11 +594,11 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         legacy_plan = (ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712/02-work-plan.md").read_text(encoding="utf-8")
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
-        self.assertIn("1.0.8", project_memory)
+        self.assertIn("1.0.13", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             read_state_dir = Path(directory) / "read-state"
             write_state_dir = Path(directory) / "write-state"
-            plugin_root = installed_plugin_root(Path(directory))
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.14")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
             read_task_file = Path(directory) / "read-task.json"
             write_task_file = Path(directory) / "write-task.json"
@@ -579,6 +614,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("MUTATION_PREFLIGHT_REQUIRED", write_result.stdout)
             self.assertNotIn("recommended pair:", read_result.stdout)
             self.assertIn("recommended pair:", write_result.stdout)
+            self.assertIn("exact next response: INVENTORY_OK", write_result.stdout)
             self.assertNotIn(str(REPOSITORY_MANIFEST_PATH), read_result.stdout)
 
 
