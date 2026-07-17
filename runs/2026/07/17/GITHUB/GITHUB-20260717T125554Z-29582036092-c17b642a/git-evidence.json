@@ -1,0 +1,106 @@
+{
+  "branch": "recovery/alpha-main-artifact-revert-20260717",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "recovery/alpha-main-artifact-revert-20260717\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "63df518a274174e9810a03812a4fb83b9e65faff\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid 63df518a274174e9810a03812a4fb83b9e65faff\n# branch.head recovery/alpha-main-artifact-revert-20260717\n# branch.upstream origin/recovery/alpha-main-artifact-revert-20260717\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "63df518a (HEAD -> recovery/alpha-main-artifact-revert-20260717, origin/recovery/alpha-main-artifact-revert-20260717) Revert \"Add sanitized Alpha evidence package\"\nefd2a0e4 (origin/main) Add sanitized Alpha evidence package\n02ec3adf Synchronize memory after model-preflight repair (#229)\n47ed2df0 Repair Asynchronia bridge model preflight end to end (#228)\n72081f92 (origin/bridge/3/BRIDGE-20260716-RESET-301, origin/bridge/2/BRIDGE-20260716-RESET-201, origin/bridge/1/BRIDGE-20260716-RESET-101) Sync accepted Asynchronia 1.0.13 canary memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 63df518a274174e9810a03812a4fb83b9e65faff\nbranch refs/heads/recovery/alpha-main-artifact-revert-20260717\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T12:55:54Z",
+      "stderr": "",
+      "stdout": "efd2a0e41da683bd3479182d996e6838a87c5fa7\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "63df518a274174e9810a03812a4fb83b9e65faff",
+  "observedAtUtc": "2026-07-17T12:55:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
