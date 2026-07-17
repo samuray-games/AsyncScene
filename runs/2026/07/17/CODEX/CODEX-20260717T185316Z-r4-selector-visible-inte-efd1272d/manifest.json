@@ -1,0 +1,12 @@
+{
+  "actor": "CODEX",
+  "branch": "main",
+  "createdAtJst": "2026-07-18 03:53:16 JST",
+  "createdAtUtc": "2026-07-17T18:53:16Z",
+  "packagePath": "runs/2026/07/17/CODEX/CODEX-20260717T185316Z-r4-selector-visible-inte-efd1272d",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "CODEX-20260717T185316Z-r4-selector-visible-inte-efd1272d",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "TASK-INFRA-SELECTOR-VISIBLE-MATRIX-INTEGRATION-R4-20260718"
+}

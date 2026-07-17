@@ -1,0 +1,112 @@
+{
+  "freshChatCanary": {
+    "promptSha256": "dba389b98aa2dc5b8598bb82b903f88f5abbe35cfc04e4ed2792a3f9fb7532b2",
+    "status": "PREPARED_NOT_EXECUTED"
+  },
+  "integration": {
+    "changedPaths": [
+      ".agents/plugins/marketplace.json",
+      "plugins/asynchronia/.codex-plugin/plugin.json",
+      "plugins/asynchronia/model_selector_runtime.py",
+      "plugins/asynchronia/response_relay_contract.py",
+      "plugins/asynchronia/skills/model-selector/SKILL.md",
+      "plugins/asynchronia/skills/task-router/SKILL.md",
+      "tools/test_model_selector_full_regression.py",
+      "tools/test_model_selector_response_contract.py",
+      "tools/test_model_selector_runtime.py",
+      "tools/test_model_selector_snapshot.py",
+      "tools/validate-asynchronia-auto-model-preflight.py"
+    ],
+    "forbiddenScopeConfirmation": true,
+    "implementationBranchPreserved": true,
+    "oldMainSha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+    "resultingMainTreeSha": "e367cab5647c2411f2282a152110f1d6012b92d3",
+    "resultingSquashMergeSha": "52314c012c0cbc5f5e7b6669f1060d6cb8ae2518",
+    "reviewedHeadTreeSha": "e367cab5647c2411f2282a152110f1d6012b92d3",
+    "treeEquality": true
+  },
+  "mergedMainValidation": {
+    "aiForensicsValidate": "AI_FORENSICS_VALIDATE_PASS",
+    "autoModelPreflight": "PASS_AUTO_MODEL_PREFLIGHT",
+    "gitDiffCheck": "PASS",
+    "pyCompile": "PASS",
+    "unitTests": "PASS"
+  },
+  "plugin": {
+    "currentChatHotReloaded": false,
+    "installed14Preserved": "PASS",
+    "installedParity": "PASS",
+    "installedPluginVersion": "1.0.15",
+    "repositoryPluginVersion": "1.0.15",
+    "versionSelectionMetadata": "NONE_DISCOVERED_OR_REQUIRED"
+  },
+  "postMergeWorkflows": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-07-17T18:48:06Z",
+      "databaseId": 29605167763,
+      "displayTitle": "pages build and deployment",
+      "event": "dynamic",
+      "headSha": "52314c012c0cbc5f5e7b6669f1060d6cb8ae2518",
+      "status": "completed",
+      "updatedAt": "2026-07-17T18:48:28Z",
+      "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29605167763",
+      "workflowName": "pages-build-deployment"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-07-17T18:48:06Z",
+      "databaseId": 29605168314,
+      "displayTitle": "R3: repair visible selector matrix relay contract (#232)",
+      "event": "push",
+      "headSha": "52314c012c0cbc5f5e7b6669f1060d6cb8ae2518",
+      "status": "completed",
+      "updatedAt": "2026-07-17T18:48:28Z",
+      "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29605168314",
+      "workflowName": "ai-forensics-evidence"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-07-17T18:48:06Z",
+      "databaseId": 29605168329,
+      "displayTitle": "R3: repair visible selector matrix relay contract (#232)",
+      "event": "push",
+      "headSha": "52314c012c0cbc5f5e7b6669f1060d6cb8ae2518",
+      "status": "completed",
+      "updatedAt": "2026-07-17T18:48:22Z",
+      "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29605168329",
+      "workflowName": "Asynchronia automatic model preflight"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-07-17T18:48:06Z",
+      "databaseId": 29605168333,
+      "displayTitle": "R3: repair visible selector matrix relay contract (#232)",
+      "event": "push",
+      "headSha": "52314c012c0cbc5f5e7b6669f1060d6cb8ae2518",
+      "status": "completed",
+      "updatedAt": "2026-07-17T18:48:23Z",
+      "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29605168333",
+      "workflowName": "orchestration-policy"
+    }
+  ],
+  "reviewedPullRequest": {
+    "number": 232,
+    "reviewedHead": "38291b76e4e1d1119624f8a377866329c81202de",
+    "reviewedPackage": {
+      "packageCommit": "4d83961b4458193d9c18bea26498c28283f5277a",
+      "packagePath": "runs/2026/07/17/CODEX/CODEX-20260717T171411Z-selector-visible-matrix--c02a56ac",
+      "runId": "CODEX-20260717T171411Z-selector-visible-matrix--c02a56ac"
+    },
+    "url": "https://github.com/samuray-games/AsyncScene/pull/232"
+  },
+  "selectorAuthorization": {
+    "baseline": "38291b76e4e1d1119624f8a377866329c81202de",
+    "recommendation": "gpt-5.4 / high",
+    "result": "PASS_MUTATION_AUTHORIZATION_GUARD",
+    "reviewedHead": "38291b76e4e1d1119624f8a377866329c81202de",
+    "selectorFinalState": "IMPLEMENTATION_ALLOWED"
+  },
+  "stage6Status": "UNCHANGED",
+  "taskId": "TASK-INFRA-SELECTOR-VISIBLE-MATRIX-INTEGRATION-R4-20260718"
+}
