@@ -1,0 +1,13 @@
+{
+  "categories_removed": [
+    "private connector URLs and IDs",
+    "local filesystem paths",
+    "private source content",
+    "source hashes and counts",
+    "raw tool errors",
+    "identities and email addresses",
+    "transcripts and environment data"
+  ],
+  "forbidden_token_matches_after_sanitization": 0,
+  "status": "PASS_PUBLIC_SAFE"
+}
