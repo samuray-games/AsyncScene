@@ -1,0 +1,9 @@
+{
+  "checksums": {
+    "manifest.json": "e558ea674b7dd7775850a7ff2d82ce570cd40f18e09a94580e4385277f36f4aa",
+    "events.jsonl": "0d02cea0c336d9a686a710fbb8f466b7370c53ed23a7631878cf228cec16315f",
+    "summary.json": "b646f422ffb17c326c1b68ef4781bfe178cff0f080c4dbfdd9e4759a77eb156c",
+    "git-evidence.json": "c8493bcbef9e3cb969ba65374ea5684930c78491d579a14a859bc153752cc9de",
+    "redaction-report.json": "23941db84fddb56c231470c72b0e4f408176543a4ec7255e41a3768b69bfd940"
+  }
+}

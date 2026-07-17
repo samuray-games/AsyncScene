@@ -1,0 +1,11 @@
+{
+  "sanitized": true,
+  "path_redaction": "<HOME>",
+  "removed_patterns": [
+    "absolute home-directory paths",
+    "raw selector continuation token",
+    "raw user message contents beyond required gate booleans",
+    "private connector or session identifiers",
+    "private prompts"
+  ]
+}

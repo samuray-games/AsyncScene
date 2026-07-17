@@ -1,0 +1,15 @@
+{
+  "initial_main_sha": "efd2a0e41da683bd3479182d996e6838a87c5fa7",
+  "pr_head_sha": "63df518a274174e9810a03812a4fb83b9e65faff",
+  "result_main_sha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "result_main_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3",
+  "clean_target_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3",
+  "forensics_branch_head_before": "cc697907b66376eb89a992505c4e1f378d4b0755",
+  "pr_commit_count": 1,
+  "pr_changed_file_count": 1,
+  "pr_changed_paths": [
+    "forensics/ai-runs/S6-ALPHA-FAIL-EVIDENCE-20260717T000000Z.md"
+  ],
+  "tree_equality": true,
+  "contaminated_file_absent_from_origin_main": true
+}

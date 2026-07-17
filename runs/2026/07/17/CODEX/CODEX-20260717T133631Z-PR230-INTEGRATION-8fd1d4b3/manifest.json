@@ -1,0 +1,36 @@
+{
+  "schema": "AI_FORENSICS_V1",
+  "run_id": "CODEX-20260717T133631Z-PR230-INTEGRATION-8fd1d4b3",
+  "actor": "CODEX",
+  "repository": "samuray-games/AsyncScene",
+  "source_branch": "recovery/alpha-main-artifact-revert-20260717",
+  "source_head": "63df518a274174e9810a03812a4fb83b9e65faff",
+  "initial_main_sha": "efd2a0e41da683bd3479182d996e6838a87c5fa7",
+  "result_main_sha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "result_main_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3",
+  "clean_target_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3",
+  "forensics_branch_head_before": "cc697907b66376eb89a992505c4e1f378d4b0755",
+  "pr": {
+    "number": 230,
+    "merge_method": "squash",
+    "base": "main",
+    "base_sha_before_merge": "efd2a0e41da683bd3479182d996e6838a87c5fa7",
+    "head_branch": "recovery/alpha-main-artifact-revert-20260717",
+    "head_sha": "63df518a274174e9810a03812a4fb83b9e65faff"
+  },
+  "selector": {
+    "thread_id": "TASK-INTEGRATE-PR230-AUTHORIZED-20260717",
+    "authorization_path": "MUTATION_PREFLIGHT_REQUIRED",
+    "snapshot_revision": "20260715.1",
+    "snapshot_hash": "sha256:b3757604eb46cb62b7a1a03290722394abf025282a12011fcc6e2befa15af64c",
+    "task_description_hash": "sha256:d5fb56a80e6a99e9d2adcd50197e02c3111e011219fa6fc888ff48c55b964275",
+    "matrix_hash": "sha256:0a403b344c21a0579a57d91a473a6d8b3c5a60122884df37c6b8b20edec965bc",
+    "recommended_model": "gpt-5.4",
+    "recommended_effort": "medium"
+  },
+  "supersedes_selector_authorization_claim_from_run": "CODEX-20260717T145900Z-ALPHA-MAIN-REVERT-9c7d8c2a",
+  "sanitized": true,
+  "path_prefix_redaction": {
+    "private_home_prefix": "<HOME>"
+  }
+}

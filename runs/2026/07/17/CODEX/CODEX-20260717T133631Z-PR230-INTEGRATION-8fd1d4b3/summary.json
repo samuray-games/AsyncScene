@@ -1,0 +1,11 @@
+{
+  "verdict": "PR230_AUTHORIZED_AND_MERGED",
+  "changed_refs": {
+    "origin/main": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+    "origin/forensics/ai-runs": "PENDING_PACKAGE_PUSH"
+  },
+  "changed_paths": [
+    "forensics/ai-runs/S6-ALPHA-FAIL-EVIDENCE-20260717T000000Z.md"
+  ],
+  "notes": "Selector gate completed on the new thread, mutation guard passed before merge, PR 230 was made ready-for-review due GitHub draft merge restriction, and the resulting main tree matches the clean target tree."
+}

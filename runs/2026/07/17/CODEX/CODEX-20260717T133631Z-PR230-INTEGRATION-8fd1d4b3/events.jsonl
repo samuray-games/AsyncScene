@@ -1,0 +1,11 @@
+{"ts": "2026-07-17T13:26:18Z", "event": "selector_start", "state": "WAITING_FOR_INVENTORY_CONFIRMATION"}
+{"ts": "2026-07-17T13:27:37Z", "event": "selector_inventory_ok", "state": "WAITING_FOR_MODEL_SELECTION", "recommended_model": "gpt-5.4", "recommended_effort": "medium"}
+{"ts": "2026-07-17T13:29:02Z", "event": "selector_user_gate", "exact_continue_observed_after_stop": true, "model_selection_stop_occurred": true}
+{"ts": "2026-07-17T13:29:02Z", "event": "selector_continue", "state": "CONTINUE_RECEIVED"}
+{"ts": "2026-07-17T13:29:02Z", "event": "selector_scope_revalidated", "state": "SCOPE_REVALIDATED"}
+{"ts": "2026-07-17T13:29:02Z", "event": "selector_implementation_allowed", "state": "IMPLEMENTATION_ALLOWED"}
+{"ts": "2026-07-17T13:29:03Z", "event": "mutation_authorization_guard", "result": "PASS_MUTATION_AUTHORIZATION_GUARD"}
+{"ts": "2026-07-17T13:35:04Z", "event": "pr_ready_for_review", "reason": "GitHub API rejected merge while draft"}
+{"ts": "2026-07-17T13:35:20Z", "event": "pr_final_revalidation", "base_sha": "efd2a0e41da683bd3479182d996e6838a87c5fa7", "head_sha": "63df518a274174e9810a03812a4fb83b9e65faff", "changed_file_count": 1}
+{"ts": "2026-07-17T13:35:25Z", "event": "pr_squash_merged", "pr_number": 230, "result_main_sha": "3d7a2c4484506a40d56cfafce33cf77ca605203f"}
+{"ts": "2026-07-17T13:35:40Z", "event": "main_tree_verified", "result_main_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3", "clean_target_tree_sha": "a3eae70c37a27602af7670231b9d9752e83f49a3", "tree_equal": true}
