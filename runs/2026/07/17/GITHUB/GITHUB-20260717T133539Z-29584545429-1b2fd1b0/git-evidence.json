@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "3d7a2c4484506a40d56cfafce33cf77ca605203f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3d7a2c4484506a40d56cfafce33cf77ca605203f\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "3d7a2c44 (HEAD -> main, origin/main) Remove unauthorized Alpha forensic artifact from main\nefd2a0e4 Add sanitized Alpha evidence package\n02ec3adf Synchronize memory after model-preflight repair (#229)\n47ed2df0 Repair Asynchronia bridge model preflight end to end (#228)\n72081f92 (origin/bridge/3/BRIDGE-20260716-RESET-301, origin/bridge/2/BRIDGE-20260716-RESET-201, origin/bridge/1/BRIDGE-20260716-RESET-101) Sync accepted Asynchronia 1.0.13 canary memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3d7a2c4484506a40d56cfafce33cf77ca605203f\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T13:35:39Z",
+      "stderr": "",
+      "stdout": "3d7a2c4484506a40d56cfafce33cf77ca605203f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "observedAtUtc": "2026-07-17T13:35:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
