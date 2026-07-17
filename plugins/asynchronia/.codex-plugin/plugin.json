@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Project-specific automatic routing, bridge-authority-derived model preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
@@ -40,6 +40,10 @@
       "Before IMPLEMENTATION_ALLOWED, do not edit files, refs, locks, cache, publication state, project memory, or external state.",
       "Read-only tasks with empty or NONE_READ_ONLY write scope short-circuit to READ_ONLY_ALLOWED with no matrix evaluation, recommendation, INVENTORY_OK, or CONTINUE.",
       "Use plugins/asynchronia/model-selector-authority.json and its bound snapshot as the only active inventory authority.",
+      "At WAITING_FOR_INVENTORY_CONFIRMATION and WAITING_FOR_MODEL_SELECTION, faithfully relay the complete executable selector stdout to the user-visible response.",
+      "The visible mutation preflight response must include state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
+      "Do not summarize, truncate, omit evaluated pairs, duplicate evaluated pairs, reconstruct different values, or replace executable selector evidence with prose.",
+      "When preflight, transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.",
       "Report exact selector CLI command, exit status, stdout, stderr, branch, worktree path, state directory, and task descriptor provenance when preflight evidence is requested."
     ]
   }
