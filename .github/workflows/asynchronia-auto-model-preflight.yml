@@ -6,6 +6,10 @@ on:
       - "AGENTS.override.md"
       - "plugins/asynchronia/**"
       - "tools/validate-asynchronia-auto-model-preflight.py"
+      - "tools/test_model_selector_snapshot.py"
+      - "tools/test_model_selector_runtime.py"
+      - "tools/test_bridge_model_preflight.py"
+      - "tools/test_model_selector_full_regression.py"
       - ".github/workflows/asynchronia-auto-model-preflight.yml"
   push:
     branches:
@@ -14,6 +18,10 @@ on:
       - "AGENTS.override.md"
       - "plugins/asynchronia/**"
       - "tools/validate-asynchronia-auto-model-preflight.py"
+      - "tools/test_model_selector_snapshot.py"
+      - "tools/test_model_selector_runtime.py"
+      - "tools/test_bridge_model_preflight.py"
+      - "tools/test_model_selector_full_regression.py"
       - ".github/workflows/asynchronia-auto-model-preflight.yml"
 
 permissions:
@@ -28,4 +36,20 @@ jobs:
         with:
           python-version: "3.12"
       - name: Validate automatic plugin and model preflight contract
-        run: python3 tools/validate-asynchronia-auto-model-preflight.py
+        id: validate
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 tools/validate-asynchronia-auto-model-preflight.py 2>&1 | tee model-preflight-validation.log
+      - name: Upload model-preflight failure log
+        if: steps.validate.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-preflight-validation-failure
+          path: model-preflight-validation.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail when validation failed
+        if: steps.validate.outcome == 'failure'
+        run: exit 1

@@ -35,6 +35,13 @@ class BridgeV4AuthorityCheckTests(unittest.TestCase):
             (root / "BRIDGE.md").unlink()
             self.assertIn("FAIL_AUTHORITY_MISSING: BRIDGE.md", validate_authority(root))
 
+    def test_missing_canonical_policy_marker_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.write_authority(root)
+            (root / "BRIDGE.md").write_text("BRIDGE_PROTOCOL: 4.0\n", encoding="utf-8")
+            self.assertTrue(any("BRIDGE_PUBLICATION_POLICY.md" in error for error in validate_authority(root)))
+
 
 if __name__ == "__main__":
     unittest.main()

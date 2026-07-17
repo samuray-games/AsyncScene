@@ -1,0 +1,76 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "SessionStart",
+          "--repo",
+          "."
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "UserPromptSubmit",
+          "--repo",
+          "."
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "PostToolUse",
+          "--repo",
+          "."
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "SubagentStart",
+          "--repo",
+          "."
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "SubagentStop",
+          "--repo",
+          "."
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": [
+          "python3",
+          "tools/ai_forensics/codex_hook.py",
+          "Stop",
+          "--repo",
+          "."
+        ]
+      }
+    ]
+  }
+}

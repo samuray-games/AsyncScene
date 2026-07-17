@@ -9,6 +9,8 @@ BRIDGE_AUTHORITY_CHECK: `python3 tools/bridge_v4_authority_check.py`
 
 ## 0. Bridge command aliases
 
+Canonical repository policy is `BRIDGE_PUBLICATION_POLICY.md`; each mailbox policy is its deterministic slot-local rendered copy.
+
 The exact trimmed user commands `мост 1`, `мост 2`, and `мост 3` are reserved for the ChatGPT-Codex mailbox bridge and must be processed before any generic interpretation.
 
 The commands map one-to-one:
@@ -256,31 +258,31 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 
 ## 8. Model selection rule
 
-Static repository model whitelists, static effort whitelists, and fixed model-effort pair counts are forbidden.
+Selector 1.0.10 uses the canonical Asynchronia-owned USER_CONFIRMED snapshot at
+`plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json` as the normal
+preflight source. It validates the snapshot, prints its complete inventory, and
+asks only for exact `INVENTORY_OK` or `INVENTORY_CHANGED`. It must not attempt
+Desktop private sockets, renderer injection, AppleScript JavaScript execution,
+Accessibility scraping, OCR, or live app-server inventory. `INVENTORY_CHANGED`
+routes to the dedicated snapshot-maintenance task without asking the user to
+rewrite the inventory. The existing exhaustive evaluation, recommendation,
+same-thread authorization, exact `CONTINUE`, and stale-authorization contracts
+remain required.
 
-For every Asynchronia Codex task, the `model-selector` preflight must:
+The complete evaluation must cover every snapshot pair, even when a pair appears
+weak, expensive, redundant, old, new, default, or unfamiliar. Each production
+preflight receives a complete structured task description and fails closed when
+task identity, scope, risk, size, novelty, validation, or branch information is
+missing. The analyzer evaluates every pair exactly once and recommends the
+lowest-cost pair satisfying the task-specific reliability constraint.
 
-- enter `MODEL_INVENTORY_DISCOVERY` before any mutation;
-- start the local `codex app-server` over stdio;
-- complete the `initialize` and `initialized` handshake;
-- call `model/list` with `includeHidden: false` and follow every `nextCursor` page;
-- use only picker-visible models returned by that live client;
-- use only each model's own returned `supportedReasoningEfforts`;
-- preserve model and effort identifiers exactly without adding, renaming, normalizing, translating, or inferring options;
-- build and analyze the complete matrix of every returned model-effort pair;
-- compare every effort with its immediately lower and higher returned neighbor for the same model;
-- determine the lowest reliable effort for every model;
-- compare all per-model winners across the non-dominated cost-reliability frontier;
-- recommend the first pair that meets the reliability threshold while minimizing expected total credits after retry and escalation risk;
-- explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary;
-- report `evaluated model-effort pair count: N/N` using the discovered matrix rather than a fixed denominator; and
-- fail closed when inventory discovery, effort coverage, pagination, or task scope is incomplete.
+The durable state binds task ID, thread ID, branch, baseline SHA, snapshot
+revision/hash, task-description hash, complete matrix hash, recommendation, and
+expiry. `INVENTORY_OK` and exact same-thread `CONTINUE` are required before
+mutation; task, scope, branch, baseline, snapshot, matrix, recommendation, and
+freshness are revalidated after `CONTINUE`.
 
 The optimization objective is `MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`.
-
-The complete evaluation must cover every discovered pair, even when a pair appears obviously weak, expensive, redundant, old, new, default, or unfamiliar.
-
-The user selects the active model and effort. If the active selection cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Codex self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
 
 Only the Asynchronia plugin `model-selector` may originate, rank, or name the recommendation. The repository preflight contract requires `PLUGIN_AUTO_ROUTING: REQUIRED`, `MODEL_PREFLIGHT_PAUSE: REQUIRED`, `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback. Codex must perform no implementation or mutable command before exact same-thread `CONTINUE`.
 

@@ -1,62 +1,55 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-07-12-0029-JST
-ROOT_CHILD_REV: 2026-07-12-0029-JST
+REPO_MEMORY_REV: 2026-07-17-0123-JST
+ROOT_CHILD_REV: 2026-07-17-0123-JST
 ARCHIVE_CHILD_REV: 2026-07-10-2315-JST
-CURRENT_CHILD_EXPECTED_REV: 2026-07-12-0029-JST
+CURRENT_CHILD_EXPECTED_REV: 2026-07-17-0123-JST
 DECISIONS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
 CANON_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
 WORKFLOWS_CHILD_EXPECTED_REV: 2026-07-12-0026-JST
-ROOT_STATUS: FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE
-ACTIVE_CYCLE: MODEL-SELECTOR-LIVE-INVENTORY-20260712
-ACTIVE_THREAD: TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712
+ROOT_STATUS: SELECTOR_1_0_14_MUTATION_E2E_REPAIR_INTEGRATED_INSTALLATION_AND_LIVE_CANARY_PENDING
+ACTIVE_CYCLE: MODEL-PREFLIGHT-E2E-REPAIR-20260717
+ACTIVE_THREAD: TASK-INFRA-MODEL-PREFLIGHT-E2E-REPAIR-20260717
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_RULE: RESOLVE_D dynamically at read time; do not store a field claiming to be the immutable final current main SHA
-SOURCE_HEAD: 0024f9315ba83583b6e89e1b007c97645af30da2
-WORK_STATE_BRANCH: work/model-selector-live-catalog-20260712
-MEMORY_SYNC_BRANCH: work/project-memory-sync-20260712-0022
+CURRENT_MAIN_SHA_RULE: resolve dynamically at read time
+ACCEPTED_IMPLEMENTATION_HEAD: 47ed2df0908d82da91b14b9cb85ff01f0bf1f12c
+MEMORY_SYNC_BRANCH: work/project-memory-sync-20260717-0123
 ACCEPTED_MAIN_PENDING: false
-DRIVE_MEMORY_REV: 2026-07-12-0029-JST
+DRIVE_MEMORY_REV: 2026-07-17-0123-JST
 DRIVE_SYNC_STATUS: SYNCHRONIZATION_COMPLETE
-IMPLEMENTATION_STATUS: SOURCE_ACCEPTED_LOCAL_PLUGIN_PARITY_PASS_MAIN_INTEGRATION_AND_MEMORY_SYNC_COMPLETE
-DECISION_STATUS: FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE
-PACKAGE_STATUS: FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE
-CURRENT_STATUS: FINAL_MAIN_AND_MEMORY_SYNC_COMPLETE
+CURRENT_STATUS: REPAIR_INTEGRATED_INSTALLATION_PENDING
 MAIN_INTEGRATION_STATUS: COMPLETE
-CYCLE_COMPLETE: true
-NEXT_ROLE: NONE_FOR_THIS_TASK
-WORK_EXECUTION_CLASS: CLOSED_NO_FURTHER_EXECUTION
-CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE
-SAME_THREAD_CONTINUE: NOT_REQUIRED_AND_MUST_NOT_BE_REQUESTED
-SOURCE_MODEL_SELECTOR_SHA256: 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722
-INSTALLED_PLUGIN_PATH: /Users/User/.codex/plugins/cache/asynchronia-local/asynchronia/1.0.8
-INSTALLED_PLUGIN_VERSION: 1.0.8
-INSTALLED_MODEL_SELECTOR_SHA256: 696b4af88e7cc98d98339d7efed37361e1a8c04c33215fe77cd88f1eaac62722
-INSTALLED_PLUGIN_PARITY: PASS_EXACT_VERSION_AND_SHA256_MATCH
-MAIN_INTEGRATION_OWNER: NONE_FOR_THIS_TASK
+REPOSITORY_PLUGIN_VERSION: 1.0.14
+INSTALLED_PLUGIN_VERSION: 1.0.13
+INSTALLED_PLUGIN_STATUS: UPDATE_REQUIRED
+INSTALLED_PLUGIN_MANIFEST_PARITY: PENDING_1_0_14_INSTALLATION
+MUTATION_E2E_REPAIR_PR: 228
+MUTATION_E2E_REPAIR_STATUS: INTEGRATED
+MUTATION_E2E_LIVE_CANARY_STATUS: PENDING_INSTALLATION_AND_USER_MODEL_SELECTION
+AUTOMATIC_MODEL_PREFLIGHT_CI: PASS_RUN_32
+ORCHESTRATION_POLICY_CI: PASS_RUN_117
+AI_FORENSICS_EVIDENCE_CI: PASS_RUN_136
+SAFARI_SMOKE_STATUS: N/A_INFRASTRUCTURE_ONLY_NO_RUNTIME_OR_GAME_FILE_CHANGE
+PROJECT_ACTIVITY_STATUS: PAUSED_BY_USER_FOR_CANON_REPAIR
 STAGE_6_STATUS: PAUSED_BY_USER
-BRIDGE_RESET_STATUS: REQUIRES_SEPARATE_FRESH_REVALIDATION_TASK
-NEXT_ACTION: No further action required for this task. Final integration, validator runs, remote main readback, task STATE update, and live Google Drive memory sync are complete. Do not begin bridge reset or continue Stage 6 in this task.
+NEXT_ACTION: Install Asynchronia 1.0.14 locally, verify filesystem manifest parity, then run a fresh Slot 1 mutation E2E from exact command мост 1.
 
 Authority order:
 1. Explicit user instruction
 2. Current repository primary evidence
-3. Active task or bridge STATE
+3. Active task or bridge state
 4. Repository memory index and children
 5. Live Google Drive project memory
 6. Immutable archive
 
-Owned memory:
-- `.ai-memory/CURRENT.md`
-- `.ai-memory/DECISIONS.md`
-- `.ai-memory/CANON.md`
-- `.ai-memory/WORKFLOWS.md`
-- `.ai-memory/archive/`
-
 Status:
-- Model-selector source version 1.0.8 is accepted on `infra/model-selector-live-catalog-20260712` at `0024f9315ba83583b6e89e1b007c97645af30da2`.
-- Codex desktop installed the local package at `/Users/User/.codex/plugins/cache/asynchronia-local/asynchronia/1.0.8`.
-- Installed plugin version is 1.0.8 and installed `model-selector/SKILL.md` SHA-256 exactly matches the accepted source hash.
-- Local plugin parity is complete. Work must not repeat installation or require access to the user's Mac.
-- Final serialized integration and memory synchronization are complete. No execution owner remains for this task.
-- Every status report must end with an exact actionable `NEXT_ACTION`.
+- Root-cause repair PR #228 was squash-merged into `main` at `47ed2df0908d82da91b14b9cb85ff01f0bf1f12c`.
+- Repository manifests identify Asynchronia `1.0.14`; the last independently verified local installation remains `1.0.13` and is stale.
+- The plugin now derives numbered bridge tasks from current slot-local STATE, inbox, claim, mailbox head, task branch, baseline and a versioned code-owned profile.
+- Generic task-file commands reject reserved bridge task types; unknown claim profiles fail closed.
+- Durable selector state uses Git-private storage resolved by `git rev-parse --git-path asynchronia/model-selector-state`, not the user-home directory.
+- Mutation flow is `WAITING_FOR_INVENTORY_CONFIRMATION` -> exact `INVENTORY_OK` -> `WAITING_FOR_MODEL_SELECTION` -> user model selection -> exact same-thread `CONTINUE` -> `IMPLEMENTATION_ALLOWED`.
+- The canonical 586-line selector test remains byte-identical. Its full 27-test battery passes against 1.0.14, alongside the new runtime and synthetic Git bridge E2E suite.
+- Final repair-head GitHub workflows passed: automatic model preflight run 32, orchestration-policy run 117 and ai-forensics-evidence run 136.
+- Live numbered bridge mutation acceptance remains pending until 1.0.14 is installed and Slot 1 is run from a fresh thread.
+- No runtime, gameplay, UI, economy, persistence, Stage 6, deployment mirror or numbered mailbox files changed.

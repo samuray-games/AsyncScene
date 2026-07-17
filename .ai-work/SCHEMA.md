@@ -1,6 +1,6 @@
 # AI Work Artifact Schema
 
-SCHEMA_VERSION: 1.0.0
+SCHEMA_VERSION: 1.0.2
 
 ## Common header
 
@@ -55,9 +55,9 @@ Work must not claim implementation or user acceptance.
 
 ## 03 Codex task
 
-The first line after metadata must be:
+The first line of an active executable Codex prompt must be exactly `Use @asynchronia plugin.`.
 
-`Use @asynchronia runtime-safety-gate.`
+Active Codex tasks may invoke only currently installed and supported skill identifiers. Skill references such as `Use @asynchronia task-router.` remain valid where skill references are allowed. Historical artifacts may preserve obsolete directive wording only as immutable evidence when the active corrected artifact is named by `STATE.md`.
 
 Required sections:
 
@@ -108,7 +108,7 @@ Required keys:
 - `NEXT_ACTION`
 - `UPDATED_AT`
 
-Allowed statuses:
+Allowed active statuses:
 
 - `DRAFT_CHAT`
 - `READY_FOR_WORK`
@@ -119,6 +119,8 @@ Allowed statuses:
 - `BLOCKED`
 - `ACCEPTED`
 - `CANCELLED`
+
+Explicit immutable terminal statuses from an earlier schema epoch may remain valid when the validator lists them as historical terminal statuses and their `STATE.md` has `NEXT_ROLE: NONE_FOR_THIS_TASK`. Their phase artifacts and external immutable commit identities must not be rewritten or reinterpreted under a newer active-task schema.
 
 ## Promotion rules
 

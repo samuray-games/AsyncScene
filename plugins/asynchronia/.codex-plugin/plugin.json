@@ -1,45 +1,46 @@
 {
   "name": "asynchronia",
-  "version": "1.0.8",
-  "description": "Project-specific automatic routing, live Codex model inventory preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
+  "version": "1.0.14",
+  "description": "Project-specific automatic routing, bridge-authority-derived model preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Route tasks through live model inventory and scope preflight.",
-    "longDescription": "Provides mandatory routing, picker-visible model and effort discovery through codex app-server model/list, exhaustive evaluation of every available model-effort pair, adjacent-effort comparison, retry-adjusted cost selection, same-thread CONTINUE gating, scope isolation, deployment verification, and acceptance evidence rules.",
+    "shortDescription": "Route tasks through authoritative model inventory and bridge-derived scope preflight.",
+    "longDescription": "Provides mandatory routing, deterministic bridge task classification, confirmed-snapshot model inventory, complete model-effort evaluation, retry-adjusted cost selection, durable same-thread authorization in Git-private storage, scope isolation, deployment verification, and acceptance evidence rules.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
       "Automatic repository task routing",
-      "Live picker-visible model inventory discovery",
+      "Bridge-authority-derived task descriptions",
+      "Deterministic versioned risk classification",
+      "Confirmed repository Markdown inventory authority",
       "Complete model-effort pair evaluation",
-      "Adjacent effort comparison",
       "Retry-adjusted cost recommendation",
       "Mandatory blocking model preflight",
-      "Same-thread CONTINUE resume contract",
-      "Repository skill source fallback",
+      "Same-thread INVENTORY_OK and CONTINUE authorization",
+      "Sandbox-safe Git-private durable state",
       "Repository scope checks",
       "Workflow routing",
-      "Smoke orchestration",
-      "Deployment verification",
       "Acceptance evidence gating",
-      "Change validation",
       "Scope isolation"
     ],
     "defaultPrompt": [
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
-      "Run codex app-server and call model/list with includeHidden false before recommending a model.",
-      "Use each model's returned supportedReasoningEfforts and evaluate every available model-effort pair.",
-      "Compare each effort with its adjacent efforts for the same model and identify the lowest reliable effort per model.",
-      "Recommend the option that minimizes expected total credits after retry and escalation risk.",
-      "Explain why the next cheaper plausible pair is insufficient and why the next more expensive plausible pair is unnecessary.",
-      "Pause with WAITING_FOR_MODEL_SELECTION and wait for exact same-thread CONTINUE before any edits.",
-      "Use the repository skill source under plugins/asynchronia/skills/ as the mandatory fallback if needed.",
-      "Run task-router, scope-isolation-check, and model-selector before implementation."
+      "Use the executable selector CLI at tools/run-asynchronia-model-preflight.py; do not manually simulate selector analysis in prose.",
+      "For exact numbered bridge commands, use bridge-start, bridge-inventory-ok, and bridge-continue. Never invent or hand-author bridge task risk fields.",
+      "Derive bridge task identity, frozen scope, and classification only from current slot-local STATE, inbox, claim, mailbox head, task branch, and the versioned bridge task profile.",
+      "Unknown bridge claim types or incomplete bridge authority must fail closed.",
+      "Store durable selector state in the repository Git-private path resolved by git rev-parse --git-path asynchronia/model-selector-state, never under the user home or .ai-bridge.",
+      "The first mutation selector status is WAITING_FOR_INVENTORY_CONFIRMATION and the only next response is INVENTORY_OK or INVENTORY_CHANGED.",
+      "Only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and request exact same-thread CONTINUE.",
+      "Before IMPLEMENTATION_ALLOWED, do not edit files, refs, locks, cache, publication state, project memory, or external state.",
+      "Read-only tasks with empty or NONE_READ_ONLY write scope short-circuit to READ_ONLY_ALLOWED with no matrix evaluation, recommendation, INVENTORY_OK, or CONTINUE.",
+      "Use plugins/asynchronia/model-selector-authority.json and its bound snapshot as the only active inventory authority.",
+      "Report exact selector CLI command, exit status, stdout, stderr, branch, worktree path, state directory, and task descriptor provenance when preflight evidence is requested."
     ]
   }
 }

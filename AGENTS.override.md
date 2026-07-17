@@ -1,6 +1,6 @@
 # Asynchronia Bridge v4 Hard-Isolation Override
 
-OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION
+OVERRIDE_VERSION: BRIDGE_V4_HARD_ISOLATION_WORKTREE_3
 BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
@@ -9,10 +9,16 @@ PLUGIN_AUTO_ROUTING: REQUIRED
 MODEL_PREFLIGHT_PAUSE: REQUIRED
 CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
+WORKTREE_LIFECYCLE: REQUIRED
+WORKTREE_DISCLOSURE: IMMEDIATE_AND_CLIENT_INDEPENDENT
+MOBILE_BRANCH_RECOVERY: REQUIRED
+Unresolved merge markers and duplicate authority fields are forbidden in active task and bridge control-plane artifacts.
 
 Read root `AGENTS.md` fully. Every rule remains binding except the bridge, publication, state, branch and memory clauses explicitly replaced below.
 
 ## 1. Authority order
+
+`BRIDGE_PUBLICATION_POLICY.md` is the canonical publication-policy source; a mailbox `.ai-bridge/PUBLICATION_POLICY.md` is valid only as its rendered slot-local copy.
 
 1. explicit current user instruction;
 2. `AGENTS.override.md`;
@@ -105,7 +111,7 @@ A global memory index may link to them but must not replace one slot snapshot wh
 
 Updating Slot N memory must preserve byte-identical Slot M memory files.
 
-## 8. Fresh execution and preflight
+## 8. Fresh execution and model preflight
 
 Every exact `мост N` is a fresh attempt for the slot-local execution epoch currently named by mailbox ref N.
 
@@ -114,12 +120,19 @@ Before implementation Codex must:
 1. read root authority;
 2. fetch `origin/main` and only mailbox ref N;
 3. read slot-local STATE, inbox and claim;
-4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and `model-selector`;
-5. perform no mutation during preflight;
-6. pause with `WAITING_FOR_MODEL_SELECTION` and one standalone fenced `CONTINUE` block;
-7. after exact same-thread `CONTINUE`, revalidate slot identity, mailbox head, task branch and scope.
+4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and executable `model-selector`;
+5. use `tools/run-asynchronia-model-preflight.py bridge-start` so the structured task is deterministically derived from current bridge authority;
+6. never search historical task folders, select an unrelated task file, hand-author bridge task JSON, or invent qualitative risk fields;
+7. store durable selector state only in the Git-private path resolved by `git rev-parse --git-path asynchronia/model-selector-state`, unless an explicit absolute override is supplied;
+8. perform no repository, ref, lock, cache, publication, project-memory or external-state mutation during preflight;
+9. pause first at `WAITING_FOR_INVENTORY_CONFIRMATION` and accept only exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`;
+10. after exact `INVENTORY_OK`, re-derive the same bridge task with `bridge-inventory-ok`, print the recommendation, enter `WAITING_FOR_MODEL_SELECTION`, and wait for the user to select that model and effort in the Codex UI;
+11. accept only exact same-thread `CONTINUE` through `bridge-continue`;
+12. after `CONTINUE`, re-derive and revalidate slot identity, mailbox head, task branch, baseline, scope, task hash, matrix hash and recommendation before entering `IMPLEMENTATION_ALLOWED`.
 
-Another slot moving must not invalidate this continuation authorization.
+The Asynchronia plugin alone owns bridge task classification and recommendation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, profile movement, fabricated generic bridge task input, or identity drift fail closed.
+
+Another slot moving must not invalidate this continuation authorization unless the current task explicitly binds that other slot as a stable-read dependency.
 
 ## 9. Completion modes
 
@@ -139,7 +152,12 @@ The old `coordination/chatgpt-codex-bridge` ref is legacy read-only after all th
 
 Migration must not activate work by rewriting the old shared STATE. Existing active evidence is copied to the appropriate numbered ref and verified before cutover.
 
-## 11. Mandatory validator
+## 11. Mandatory validators
+
+Before accepting selector or plugin changes, run:
+
+- `python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight`
+- `python3 tools/validate-asynchronia-auto-model-preflight.py`
 
 Before accepting any bridge publication, run:
 
@@ -149,10 +167,92 @@ Before accepting the protocol migration, run:
 
 `python3 -m unittest tools.test_bridge_v4_contract`
 
-Any cross-slot read, shared activation pointer, wrong mailbox ref, wrong task-branch prefix or direct task publication to main fails closed.
+Any cross-slot read, shared activation pointer, wrong mailbox ref, wrong task-branch prefix, fabricated bridge task descriptor, legacy home-directory selector state, or direct task publication to main fails closed.
 
 ## 12. Runtime and acceptance
 
 Bridge infrastructure changes do not require Safari smoke. Safari status is `N/A` unless game/runtime code changes.
 
 Codex prose alone is never acceptance evidence.
+
+## 13. Temporary worktree lifecycle and universal branch-path disclosure
+
+This section is mandatory for every Codex-created or Codex-discovered Git worktree, including task, cleanup, mailbox, integration, audit and recovery worktrees. It applies regardless of whether the user is currently using Mac, iPhone, web, CLI or any other client. Codex must never assume it knows which client the user is using.
+
+### 13.1 Creation restraint and immediate disclosure
+
+- Do not create a temporary worktree when the task can be completed safely in the canonical checkout without violating isolation or publication rules.
+- When isolation requires a worktree, create it only for one exact branch and one exact task.
+- Immediately after creating a worktree, before continuing substantive task execution, send the user a visible progress message containing the exact branch name and exact absolute worktree path.
+- The immediate disclosure must use these exact fields: `worktree branch:` and `worktree path:`.
+- Do not postpone this disclosure until the terminal report.
+- Do not condition this disclosure on knowing or guessing the user's current device or client.
+- If a pre-existing worktree is discovered during branch occupancy checks, immediately send the user the same exact branch and path fields before attempting recovery.
+- Paths under `/private/tmp`, `/tmp` or another disposable directory are temporary infrastructure. They must still be disclosed immediately, even when automatic cleanup is expected.
+
+Failure to disclose a created or discovered worktree immediately is `FAIL_WORKTREE_DISCLOSURE_DELAYED`.
+
+### 13.2 Mandatory branch occupancy preflight
+
+Before every branch switch, checkout, branch reuse or worktree creation, Codex must run or obtain equivalent evidence from:
+
+`git -C "/Users/User/Documents/created apps/AsyncScene" worktree list --porcelain`
+
+If the requested branch is already attached to another worktree, Codex must not return a generic switch failure. It must immediately disclose `worktree branch:` and `worktree path:`, then identify and report all of the following in the same response:
+
+- `BLOCKED_BRANCH_ALREADY_CHECKED_OUT`;
+- exact branch name;
+- exact absolute occupying worktree path;
+- whether that worktree is temporary or canonical;
+- whether it is clean, dirty, missing or locked;
+- the exact automatic recovery action attempted or the exact reason recovery was unsafe.
+
+### 13.3 Automatic cleanup
+
+At successful completion, cancellation, supersession or safe abandonment of a temporary worktree, Codex must:
+
+1. inspect its status and branch identity;
+2. preserve or publish every authorized task-owned commit;
+3. refuse destructive cleanup when uncommitted or untracked task-owned data would be lost;
+4. remove the temporary worktree when clean and no longer required;
+5. run `git -C "/Users/User/Documents/created apps/AsyncScene" worktree prune`;
+6. verify that the removed path and branch occupancy no longer appear in `git worktree list --porcelain`.
+
+A task is not complete while its disposable worktree remains attached without an explicit active owner and reason. Silent orphaned temporary worktrees are `FAIL_ORPHANED_WORKTREE`.
+
+### 13.4 Automatic recovery before asking the user
+
+When a branch switch is blocked by a temporary worktree, Codex must first inspect that worktree automatically.
+
+- If it is clean, unlocked and no active task still owns it, remove it, prune worktrees, verify release, and retry the requested switch in the canonical checkout.
+- If its branch is fully published and only disposable files remain, remove it only when the files are proven non-task-owned.
+- If it is dirty, locked, missing, actively owned or contains unpublished commits, do not force-remove it. Return the full diagnostic contract from section 13.2.
+- Never require the user to navigate to a `/private/tmp/...` worktree merely to continue ordinary work.
+- Never use `git worktree remove --force`, `git clean`, `git reset --hard` or deletion of the directory unless an explicit current user instruction authorizes that exact destructive action after the dirty state is shown.
+
+### 13.5 Restricted-client recovery
+
+The canonical checkout is:
+
+`/Users/User/Documents/created apps/AsyncScene`
+
+Codex must not rely on device detection. It must treat every workflow as potentially continuing from a client that cannot select an arbitrary local folder.
+
+Before reporting success, Codex must leave the requested branch available from the canonical checkout whenever that can be done safely.
+
+If that cannot be done safely, success is forbidden. The response must return `BLOCKED_CANONICAL_BRANCH_UNAVAILABLE` together with the exact branch, exact occupying path and exact unresolved state.
+
+A temporary worktree path is always required diagnostic information, but it must not be the only possible continuation path.
+
+### 13.6 Mandatory terminal report
+
+Every Codex response that creates, uses, finds, removes or is blocked by a worktree must include:
+
+- `worktree branch`;
+- `worktree path`;
+- `worktree state`;
+- `cleanup result`;
+- `canonical checkout branch availability`;
+- `exact next user action`.
+
+Use `N/A` only with a concrete reason. Omitting a known temporary path or branch is `FAIL_WORKTREE_DIAGNOSTIC_OMITTED`.
