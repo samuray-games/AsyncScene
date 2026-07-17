@@ -1,0 +1,18 @@
+{
+  "branch": "recovery/alpha-main-artifact-revert-20260717",
+  "draft_pr": {
+    "number": 230,
+    "url": "https://github.com/samuray-games/AsyncScene/pull/230"
+  },
+  "forensics_branch_head_before": "4d859eb0e58a50099b0524627187493044ea34d2",
+  "head": "63df518a274174e9810a03812a4fb83b9e65faff",
+  "issue_224_invalid_comment_id": 4999825840,
+  "origin_main": "efd2a0e41da683bd3479182d996e6838a87c5fa7",
+  "path_prefix_redaction": {
+    "private_home_prefix": "<HOME>"
+  },
+  "repository": "samuray-games/AsyncScene",
+  "run_id": "CODEX-20260717T145900Z-ALPHA-MAIN-REVERT-9c7d8c2a",
+  "sanitized": true,
+  "schema": "AI_FORENSICS_V1"
+}

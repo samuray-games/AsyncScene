@@ -1,0 +1,9 @@
+{
+  "path_redaction": "<HOME>",
+  "removed_patterns": [
+    "absolute home-directory paths",
+    "private connector/session identifiers",
+    "raw prompts"
+  ],
+  "sanitized": true
+}
