@@ -1,0 +1,21 @@
+{
+  "actualWorktreeBranch": "main",
+  "actualWorktreePath": "<HOME>/Documents/created apps/AsyncScene",
+  "changedPaths": [],
+  "correctionVerdict": "CORRECTED_ACCEPTED_WITH_TEST_DEBT",
+  "currentHead": "02ec3adfea4469e932e63e5bc9c8ae600190f1ef",
+  "failureClassification": [
+    "two stale 1.0.8 memory expectations",
+    "two stale synthetic 1.0.13 fixture assumptions",
+    "not evidence of a current selector regression"
+  ],
+  "installedPluginVersion": "1.0.14",
+  "originMain": "02ec3adfea4469e932e63e5bc9c8ae600190f1ef",
+  "previousReportContradiction": "previous Worktree Branch main claim was false",
+  "repoPluginVersion": "1.0.14",
+  "slot1BridgeValidator": "N/A_NO_ACTIVE_SLOT1_THREAD",
+  "validatorResults": {
+    "auto_model_preflight": "PASS_AUTO_MODEL_PREFLIGHT",
+    "model_selector_snapshot_and_bridge_preflight": "FAIL_4_STALE_EXPECTATIONS"
+  }
+}
