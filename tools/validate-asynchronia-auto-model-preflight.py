@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,7 +43,6 @@ def main() -> int:
         '"IMPLEMENTATION_ALLOWED"',
         "taskDescriptionHash",
         "completeMatrixHash",
-        "recommended pair:",
     )
     for needle in required_selector:
         if needle not in selector and needle not in runtime:
@@ -83,6 +83,54 @@ def main() -> int:
             failures.append(f"active policy missing: {needle}")
     if "pause with `WAITING_FOR_MODEL_SELECTION` and one standalone fenced `CONTINUE` block" in override:
         failures.append("superseded direct WAITING_FOR_MODEL_SELECTION override remains")
+
+    selector_task = {
+        "taskId": "TASK-VALIDATE-AUTO-MODEL-PREFLIGHT",
+        "taskType": "PLUGIN_POLICY",
+        "objective": "validate selector user-visible output contract",
+        "readScope": ["plugins/asynchronia"],
+        "writeScope": ["plugins/asynchronia/model_selector.py"],
+        "affectedSystems": ["selector", "state"],
+        "runtimeSensitivity": "low",
+        "architectureImpact": "high",
+        "securityImpact": "medium",
+        "economyImpact": "low",
+        "releaseImpact": "medium",
+        "validationComplexity": "high",
+        "expectedImplementationSize": "medium",
+        "ambiguityNovelty": "low",
+        "concurrencyBranchRisk": "medium",
+    }
+    with tempfile.TemporaryDirectory() as directory:
+        task_path = Path(directory) / "task.json"
+        state_dir = Path(directory) / "state"
+        task_path.write_text(json.dumps(selector_task), encoding="utf-8")
+        command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
+        common = ["--thread-id", "validate-auto-model", "--state-dir", str(state_dir), "--task-file", str(task_path), "--baseline", "validate-baseline"]
+        start = subprocess.run(command + ["start", *common], cwd=ROOT, capture_output=True, text=True, check=False)
+        ok = subprocess.run(command + ["inventory-ok", *common], cwd=ROOT, capture_output=True, text=True, check=False)
+        if start.returncode != 0:
+            failures.append("selector start stdout regression failed: " + (start.stderr.strip() or start.stdout.strip()))
+        else:
+            for needle in (
+                "status: WAITING_FOR_INVENTORY_CONFIRMATION",
+                "recommended pair:",
+                "exact next response: INVENTORY_OK",
+            ):
+                if needle not in start.stdout:
+                    failures.append(f"selector start stdout missing: {needle}")
+        if ok.returncode != 0:
+            failures.append("selector inventory-ok stdout regression failed: " + (ok.stderr.strip() or ok.stdout.strip()))
+        else:
+            for needle in (
+                "status: WAITING_FOR_MODEL_SELECTION",
+                "recommended pair:",
+                "instruction: select the recommended pair in the Codex UI",
+                "mutation authorization: not yet authorized",
+                "exact next response: CONTINUE",
+            ):
+                if needle not in ok.stdout:
+                    failures.append(f"selector inventory-ok stdout missing: {needle}")
 
     tests = subprocess.run(
         [

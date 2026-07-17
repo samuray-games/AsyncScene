@@ -557,7 +557,15 @@ def mutation_authorization_guard(thread_id: str, task: Mapping[str, object], bas
     return state
 
 
-def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: str, next_response: str) -> str:
+def _output(
+    snapshot: Mapping[str, object],
+    report: EvaluationReport,
+    status: str,
+    next_response: str,
+    *,
+    inventory_instruction: str | None = None,
+    mutation_authorized: bool | None = None,
+) -> str:
     lines = [
         f"status: {status}",
         f"authorization path: {'MUTATION_PREFLIGHT_REQUIRED' if status != 'READ_ONLY_ALLOWED' else 'READ_ONLY_ALLOWED'}",
@@ -576,6 +584,10 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     lines.append(f"cheapest rejected pair: {report.cheapestRejected.modelLabel} / {report.cheapestRejected.effortLabel}; reason={report.cheapestRejected.rejectionReason}" if report.cheapestRejected else "cheapest rejected pair: none")
     lines.append(f"recommended pair: {report.recommendation.modelLabel} / {report.recommendation.effortLabel}")
     lines.append(f"next more capable plausible pair: {report.nextMoreCapable.modelLabel} / {report.nextMoreCapable.effortLabel}" if report.nextMoreCapable else "next more capable plausible pair: none")
+    if inventory_instruction:
+        lines.append(f"instruction: {inventory_instruction}")
+    if mutation_authorized is not None:
+        lines.append(f"mutation authorization: {'authorized' if mutation_authorized else 'not yet authorized'}")
     lines.append(f"exact next response: {next_response}")
     return "\n".join(lines)
 
@@ -614,7 +626,15 @@ def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *
     state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    return PreflightResult(
+        "WAITING_FOR_INVENTORY_CONFIRMATION",
+        snapshot,
+        valid_task,
+        candidates,
+        report,
+        _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK"),
+        thread_id,
+    )
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
@@ -633,7 +653,22 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     state["stateHistory"].append("WAITING_FOR_MODEL_SELECTION")
     state["inventoryConfirmedAt"] = _now()
     _write_state(state, state_dir)
-    return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, build_candidate_matrix(snapshot), report, _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE"), thread_id)
+    return PreflightResult(
+        "WAITING_FOR_MODEL_SELECTION",
+        snapshot,
+        valid_task,
+        build_candidate_matrix(snapshot),
+        report,
+        _output(
+            snapshot,
+            report,
+            "WAITING_FOR_MODEL_SELECTION",
+            "CONTINUE",
+            inventory_instruction="select the recommended pair in the Codex UI",
+            mutation_authorized=False,
+        ),
+        thread_id,
+    )
 
 
 def _authority_report(snapshot: Mapping[str, object], updated_snapshot: Mapping[str, object]) -> str:
