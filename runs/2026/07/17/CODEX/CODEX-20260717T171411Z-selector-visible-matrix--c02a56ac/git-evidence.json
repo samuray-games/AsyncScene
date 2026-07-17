@@ -1,0 +1,21 @@
+{
+  "baseSha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "branch": "infra/selector-visible-matrix-r3-20260718",
+  "changedPaths": [
+    ".agents/plugins/marketplace.json",
+    "plugins/asynchronia/.codex-plugin/plugin.json",
+    "plugins/asynchronia/model_selector_runtime.py",
+    "plugins/asynchronia/response_relay_contract.py",
+    "plugins/asynchronia/skills/model-selector/SKILL.md",
+    "plugins/asynchronia/skills/task-router/SKILL.md",
+    "tools/test_model_selector_full_regression.py",
+    "tools/test_model_selector_response_contract.py",
+    "tools/test_model_selector_runtime.py",
+    "tools/test_model_selector_snapshot.py",
+    "tools/validate-asynchronia-auto-model-preflight.py"
+  ],
+  "head": "38291b76e4e1d1119624f8a377866329c81202de",
+  "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+  "originMain": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "statusShort": []
+}

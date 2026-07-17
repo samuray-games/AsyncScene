@@ -1,0 +1,12 @@
+{
+  "actor": "CODEX",
+  "branch": "infra/selector-visible-matrix-r3-20260718",
+  "createdAtJst": "2026-07-18 02:14:11 JST",
+  "createdAtUtc": "2026-07-17T17:14:11Z",
+  "packagePath": "runs/2026/07/17/CODEX/CODEX-20260717T171411Z-selector-visible-matrix--c02a56ac",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "CODEX-20260717T171411Z-selector-visible-matrix--c02a56ac",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "TASK-INFRA-SELECTOR-VISIBLE-MATRIX-REPAIR-R3-20260718"
+}

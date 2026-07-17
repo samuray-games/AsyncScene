@@ -1,0 +1,7 @@
+{"baseline":"3d7a2c4484506a40d56cfafce33cf77ca605203f","event":"authorization_verified","observedAtUtc":"2026-07-17T16:59:00Z","result":"PASS_MUTATION_AUTHORIZATION_GUARD"}
+{"branch":"infra/selector-visible-matrix-r3-20260718","event":"branch_pushed","headSha":"38291b76e4e1d1119624f8a377866329c81202de","observedAtUtc":"2026-07-17T17:04:34Z"}
+{"draft":true,"event":"draft_pr_created","number":232,"observedAtUtc":"2026-07-17T17:06:42Z","url":"https://github.com/samuray-games/AsyncScene/pull/232"}
+{"conclusion":"success","event":"pr_workflow_completed","headSha":"38291b76e4e1d1119624f8a377866329c81202de","observedAtUtc":"2026-07-17T17:06:59Z","runId":29598781650,"url":"https://github.com/samuray-games/AsyncScene/actions/runs/29598781650","workflowName":"Asynchronia automatic model preflight"}
+{"conclusion":"success","event":"pr_workflow_completed","headSha":"38291b76e4e1d1119624f8a377866329c81202de","observedAtUtc":"2026-07-17T17:07:06Z","runId":29598781701,"url":"https://github.com/samuray-games/AsyncScene/actions/runs/29598781701","workflowName":"ai-forensics-evidence"}
+{"conclusion":"success","event":"pr_workflow_completed","headSha":"38291b76e4e1d1119624f8a377866329c81202de","observedAtUtc":"2026-07-17T17:06:56Z","runId":29598781552,"url":"https://github.com/samuray-games/AsyncScene/actions/runs/29598781552","workflowName":"orchestration-policy"}
+{"actor":"CODEX","event":"forensics_publication_requested","observedAtUtc":"2026-07-17T17:14:11Z","result":"pending publication"}

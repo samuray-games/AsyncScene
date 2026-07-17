@@ -1,0 +1,162 @@
+{
+  "authorization": {
+    "mutationGuard": "PASS_MUTATION_AUTHORIZATION_GUARD",
+    "recommendation": "gpt-5.4 / high",
+    "selectorFinalState": "IMPLEMENTATION_ALLOWED"
+  },
+  "baselineSha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+  "branch": "infra/selector-visible-matrix-r3-20260718",
+  "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+  "implementation": {
+    "changedFileReasons": {
+      ".agents/plugins/marketplace.json": "Synchronize marketplace plugin version to 1.0.15.",
+      "plugins/asynchronia/.codex-plugin/plugin.json": "Bind the response-layer defaultPrompt to faithful full selector-output relay and bump plugin version.",
+      "plugins/asynchronia/model_selector_runtime.py": "Synchronize current runtime version constant to 1.0.15.",
+      "plugins/asynchronia/response_relay_contract.py": "Define deterministic validation for faithful selector output relay.",
+      "plugins/asynchronia/skills/model-selector/SKILL.md": "Require faithful visible relay of complete executable selector output.",
+      "plugins/asynchronia/skills/task-router/SKILL.md": "Require exact selector-output relay at both mandatory visible stops.",
+      "tools/test_model_selector_full_regression.py": "Run full regression against the live working tree and current version contract.",
+      "tools/test_model_selector_response_contract.py": "Exercise the actual response-contract layer with positive and negative fixtures.",
+      "tools/test_model_selector_runtime.py": "Assert current runtime version authority is 1.0.15.",
+      "tools/test_model_selector_snapshot.py": "Keep selector snapshot expectations aligned with the live 1.0.15 surfaces and dynamic pair count.",
+      "tools/validate-asynchronia-auto-model-preflight.py": "Fail closed when the prompt/skill/router response relay contract is incomplete and verify version authority."
+    },
+    "changedFiles": [
+      ".agents/plugins/marketplace.json",
+      "plugins/asynchronia/.codex-plugin/plugin.json",
+      "plugins/asynchronia/model_selector_runtime.py",
+      "plugins/asynchronia/response_relay_contract.py",
+      "plugins/asynchronia/skills/model-selector/SKILL.md",
+      "plugins/asynchronia/skills/task-router/SKILL.md",
+      "tools/test_model_selector_full_regression.py",
+      "tools/test_model_selector_response_contract.py",
+      "tools/test_model_selector_runtime.py",
+      "tools/test_model_selector_snapshot.py",
+      "tools/validate-asynchronia-auto-model-preflight.py"
+    ],
+    "pluginVersionFrom": "1.0.14",
+    "pluginVersionTo": "1.0.15"
+  },
+  "pullRequest": {
+    "base": "main",
+    "baseSha": "3d7a2c4484506a40d56cfafce33cf77ca605203f",
+    "draft": true,
+    "head": "infra/selector-visible-matrix-r3-20260718",
+    "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+    "number": 232,
+    "url": "https://github.com/samuray-games/AsyncScene/pull/232"
+  },
+  "remoteCI": {
+    "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+    "workflows": [
+      {
+        "conclusion": "success",
+        "createdAt": "2026-07-17T17:06:42Z",
+        "databaseId": 29598781552,
+        "displayTitle": "R3: repair visible selector matrix relay contract",
+        "event": "pull_request",
+        "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+        "status": "completed",
+        "updatedAt": "2026-07-17T17:06:56Z",
+        "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29598781552",
+        "workflowName": "orchestration-policy"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-07-17T17:06:42Z",
+        "databaseId": 29598781650,
+        "displayTitle": "R3: repair visible selector matrix relay contract",
+        "event": "pull_request",
+        "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+        "status": "completed",
+        "updatedAt": "2026-07-17T17:06:59Z",
+        "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29598781650",
+        "workflowName": "Asynchronia automatic model preflight"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-07-17T17:06:42Z",
+        "databaseId": 29598781701,
+        "displayTitle": "R3: repair visible selector matrix relay contract",
+        "event": "pull_request",
+        "headSha": "38291b76e4e1d1119624f8a377866329c81202de",
+        "status": "completed",
+        "updatedAt": "2026-07-17T17:07:06Z",
+        "url": "https://github.com/samuray-games/AsyncScene/actions/runs/29598781701",
+        "workflowName": "ai-forensics-evidence"
+      }
+    ]
+  },
+  "scopeConfirmation": {
+    "excluded": [
+      "main",
+      "runtime",
+      "gameplay",
+      "UI",
+      "economy",
+      "persistence",
+      "NPC",
+      "battle",
+      "narrative",
+      "canon",
+      "Stage 6",
+      "workflow files",
+      "numbered bridge mailboxes",
+      "repository memory files",
+      "installed plugin cache",
+      "PR #231"
+    ],
+    "externalPublicationScope": [
+      "branch infra/selector-visible-matrix-r3-20260718",
+      "draft PR #232",
+      "one immutable package on origin/forensics/ai-runs",
+      "one Issue #224 index comment"
+    ],
+    "trackedWriteScope": [
+      "plugins/asynchronia",
+      "tools",
+      ".agents/plugins/marketplace.json"
+    ]
+  },
+  "selectorThreadId": "TASK-INFRA-SELECTOR-VISIBLE-MATRIX-REPAIR-R3-20260718",
+  "status": {
+    "independentReviewRequired": true,
+    "installationStatus": "INSTALLATION_DEFERRED_OUT_OF_SCOPE",
+    "pr231UsedAsBase": false,
+    "runtimeSmoke": "N/A_INFRASTRUCTURE_ONLY"
+  },
+  "taskId": "TASK-INFRA-SELECTOR-VISIBLE-MATRIX-REPAIR-R3-20260718",
+  "validation": {
+    "local": [
+      {
+        "command": "python3 -m py_compile plugins/asynchronia/response_relay_contract.py plugins/asynchronia/model_selector_runtime.py tools/test_model_selector_response_contract.py tools/test_model_selector_full_regression.py tools/test_model_selector_snapshot.py tools/test_model_selector_runtime.py tools/validate-asynchronia-auto-model-preflight.py",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m unittest tools.test_model_selector_response_contract",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m unittest tools.test_model_selector_runtime tools.test_model_selector_snapshot tools.test_model_selector_full_regression tools.test_bridge_model_preflight tools.test_model_selector_response_contract",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m unittest tools.test_model_selector_runtime tools.test_model_selector_full_regression tools.test_model_selector_response_contract",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 tools/validate-asynchronia-auto-model-preflight.py",
+        "result": "PASS_AUTO_MODEL_PREFLIGHT"
+      },
+      {
+        "command": "python3 tools/ai_forensics/validate.py --repo .",
+        "result": "AI_FORENSICS_VALIDATE_PASS"
+      }
+    ],
+    "negativeRegression": "PASS recommendation-only visible relay rejected"
+  }
+}
