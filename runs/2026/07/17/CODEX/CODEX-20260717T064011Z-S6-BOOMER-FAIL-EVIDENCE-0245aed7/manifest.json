@@ -1,0 +1,12 @@
+{
+  "actor": "CODEX",
+  "branch": "forensics/ai-runs",
+  "createdAtJst": "2026-07-17 15:40:11 JST",
+  "createdAtUtc": "2026-07-17T06:40:11Z",
+  "packagePath": "runs/2026/07/17/CODEX/CODEX-20260717T064011Z-S6-BOOMER-FAIL-EVIDENCE-0245aed7",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "CODEX-20260717T064011Z-S6-BOOMER-FAIL-EVIDENCE-0245aed7",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "S6-BOOMER-FAIL-EVIDENCE"
+}

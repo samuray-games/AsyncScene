@@ -1,0 +1,25 @@
+{
+  "acceptedFinding": {
+    "excludedNonLiveFixtures": 8,
+    "liveFail": 0,
+    "livePass": 147,
+    "liveRows": 147,
+    "state": "STATIC_PASS / READY_FOR_RUNTIME_SMOKE",
+    "structuralFailures": 0
+  },
+  "auditHashes": {
+    "docs": "26ea31be9c08b5dd0517b4a0439860cfde14e232a4703d51771bff16f328f967",
+    "match": true,
+    "root": "26ea31be9c08b5dd0517b4a0439860cfde14e232a4703d51771bff16f328f967"
+  },
+  "currentAuthority": {
+    "branch": "main",
+    "head": "02ec3adfea4469e932e63e5bc9c8ae600190f1ef",
+    "originMain": "02ec3adfea4469e932e63e5bc9c8ae600190f1ef",
+    "worktreePath": "<HOME>/Documents/created apps/AsyncScene"
+  },
+  "installedPluginVersion": "1.0.14",
+  "repositoryPluginVersion": "1.0.14",
+  "status": "BOOMER_EVIDENCE_ACCEPTED",
+  "worktreeClean": true
+}
