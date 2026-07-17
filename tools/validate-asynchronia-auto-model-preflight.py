@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Asynchronia 1.0.14 bridge-derived model-preflight contract."""
+"""Validate the Asynchronia 1.0.15 bridge-derived model-preflight contract."""
 
 from __future__ import annotations
 
@@ -9,7 +9,15 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_VERSION = "1.0.14"
+sys.path.insert(0, str(ROOT))
+
+from plugins.asynchronia.response_relay_contract import (  # noqa: E402
+    PROMPT_REQUIRED_LINES,
+    ROUTER_REQUIRED_LINES,
+    SKILL_REQUIRED_LINES,
+)
+
+EXPECTED_VERSION = "1.0.15"
 
 
 def read(path: str) -> str:
@@ -32,10 +40,12 @@ def main() -> int:
     bridge = read("plugins/asynchronia/bridge_task_descriptor.py")
     cli = read("tools/run-asynchronia-model-preflight.py")
     skill = read("plugins/asynchronia/skills/model-selector/SKILL.md")
+    router = read("plugins/asynchronia/skills/task-router/SKILL.md")
     override = read("AGENTS.override.md")
+    prompt = "\n".join(manifest.get("interface", {}).get("defaultPrompt", []))
 
     required_selector = (
-        'PLUGIN_VERSION = "1.0.14"',
+        'PLUGIN_VERSION = "1.0.15"',
         "asynchronia/model-selector-state",
         '"WAITING_FOR_INVENTORY_CONFIRMATION"',
         '"WAITING_FOR_MODEL_SELECTION"',
@@ -81,6 +91,15 @@ def main() -> int:
     for needle in required_policy:
         if needle not in skill and needle not in override:
             failures.append(f"active policy missing: {needle}")
+    for needle in PROMPT_REQUIRED_LINES:
+        if needle not in prompt:
+            failures.append(f"defaultPrompt missing relay contract: {needle}")
+    for needle in SKILL_REQUIRED_LINES:
+        if needle not in skill:
+            failures.append(f"model-selector skill missing relay contract: {needle}")
+    for needle in ROUTER_REQUIRED_LINES:
+        if needle not in router:
+            failures.append(f"task-router missing relay contract: {needle}")
     if "pause with `WAITING_FOR_MODEL_SELECTION` and one standalone fenced `CONTINUE` block" in override:
         failures.append("superseded direct WAITING_FOR_MODEL_SELECTION override remains")
 
@@ -92,6 +111,7 @@ def main() -> int:
             "tools.test_model_selector_runtime",
             "tools.test_bridge_model_preflight",
             "tools.test_model_selector_full_regression",
+            "tools.test_model_selector_response_contract",
         ],
         cwd=ROOT,
         capture_output=True,

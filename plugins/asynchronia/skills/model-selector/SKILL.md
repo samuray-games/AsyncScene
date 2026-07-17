@@ -1,9 +1,9 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.14 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
+description: Run Asynchronia 1.0.15 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
-# Model Selector 1.0.14
+# Model Selector 1.0.15
 
 Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
 
@@ -74,6 +74,41 @@ Mutation output prints:
 - recommended pair;
 - next more capable suitable pair;
 - exact next response.
+
+## Visible response relay
+
+At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout.
+
+Required visible relay fields:
+
+- `state directory`
+- `status`
+- `authorization path`
+- `snapshot revision`
+- `snapshot hash`
+- `source artifact`
+- `model count`
+- `model-effort pair count`
+- `evaluated pair count`
+- `required capability score`
+- the complete ordered evaluation matrix
+- every evaluated model-effort pair exactly once
+- `cheapest rejected pair` and its reason
+- `recommended pair`
+- `next more capable plausible pair`
+- `exact next response`
+
+Forbidden relay behavior:
+
+- summarize the matrix
+- omit rejected or suitable pairs
+- duplicate pairs
+- truncate the executable output
+- reconstruct different values from prose
+- continue past the required stop
+- replace executable evidence with an assistant-generated approximation
+
+When transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.
 
 The user chooses the actual model in the Codex interface. Codex self-report about its model is not proof.
 
