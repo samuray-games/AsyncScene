@@ -1,0 +1,106 @@
+{
+  "branch": "infra/selector-visible-matrix-r3-20260718",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "infra/selector-visible-matrix-r3-20260718\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "38291b76e4e1d1119624f8a377866329c81202de\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "# branch.oid 38291b76e4e1d1119624f8a377866329c81202de\n# branch.head infra/selector-visible-matrix-r3-20260718\n# branch.upstream origin/infra/selector-visible-matrix-r3-20260718\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "38291b76 (HEAD -> infra/selector-visible-matrix-r3-20260718, origin/infra/selector-visible-matrix-r3-20260718) Add selector relay regressions and validation\nb46185da Repair visible selector relay contract\n3d7a2c44 (origin/main) Remove unauthorized Alpha forensic artifact from main\nefd2a0e4 Add sanitized Alpha evidence package\n02ec3adf Synchronize memory after model-preflight repair (#229)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 38291b76e4e1d1119624f8a377866329c81202de\nbranch refs/heads/infra/selector-visible-matrix-r3-20260718\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-17T17:04:34Z",
+      "stderr": "",
+      "stdout": "3d7a2c4484506a40d56cfafce33cf77ca605203f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "38291b76e4e1d1119624f8a377866329c81202de",
+  "observedAtUtc": "2026-07-17T17:04:34Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
