@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import io
 import os
+import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,15 +17,24 @@ def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProces
 
 
 class FullSelectorRegressionTests(unittest.TestCase):
-    def test_full_1_0_13_suite_runs_against_1_0_14_in_attached_clone(self) -> None:
+    def test_full_current_suite_runs_against_1_0_15_in_attached_clone(self) -> None:
         self.assertTrue(CANONICAL_TEST.exists(), "canonical full selector regression is missing")
         with tempfile.TemporaryDirectory(prefix="asynchronia-full-selector-regression-") as directory:
             repo = Path(directory) / "repo"
             repo.mkdir()
 
-            archive = run("git", "archive", "--format=tar", "HEAD", cwd=ROOT)
-            with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as payload:
-                payload.extractall(repo, filter="data")
+            tracked_and_untracked = run(
+                "git",
+                "ls-files",
+                "-co",
+                "--exclude-standard",
+                cwd=ROOT,
+            ).stdout.decode("utf-8").splitlines()
+            for relative in tracked_and_untracked:
+                source = ROOT / relative
+                target = repo / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
 
             run("git", "init", "-q", cwd=repo)
             run("git", "config", "user.name", "Selector Regression", cwd=repo)
@@ -42,10 +50,6 @@ class FullSelectorRegressionTests(unittest.TestCase):
                 "from plugins.asynchronia.model_selector_runtime import (  # noqa: E402",
                 1,
             )
-            transformed = transformed.replace('"1.0.13"', '"1.0.14"')
-            transformed = transformed.replace("manifest version: 1.0.13", "manifest version: 1.0.14")
-            transformed = transformed.replace("INSTALLED_PLUGIN_VERSION: 1.0.8", "INSTALLED_PLUGIN_VERSION: 1.0.13")
-            transformed = transformed.replace('self.assertIn("1.0.8", project_memory)', 'self.assertIn("1.0.13", project_memory)')
             target = repo / "tools/test_model_selector_snapshot_legacy_runtime.py"
             target.write_text(transformed, encoding="utf-8")
 
@@ -63,7 +67,7 @@ class FullSelectorRegressionTests(unittest.TestCase):
             self.assertEqual(
                 result.returncode,
                 0,
-                "full canonical selector regression failed against 1.0.14\nSTDOUT:\n"
+                "full canonical selector regression failed against 1.0.15\nSTDOUT:\n"
                 + result.stdout
                 + "\nSTDERR:\n"
                 + result.stderr,
