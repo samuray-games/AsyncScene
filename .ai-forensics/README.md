@@ -17,6 +17,8 @@ This directory documents the version 1 automatic Asynchronia forensic logging sy
 - Sanitization runs before hashing any published package content.
 - Publication fails closed on uncertain secret handling with `UPLOAD_BLOCKED_REDACTION_FAIL`.
 - Published packages must never contain raw credentials, cookies, `.env` values, authorization headers, private keys, or private home-directory paths.
+- Home-path handling is generic across foreign-machine macOS `/Users/<user>/...`, Linux `/home/<user>/...`, `/root/...`, and Windows drive-based user homes. Sanitization replaces the private root with `<HOME>` and retains only the non-private suffix.
+- Package sanitization protects new packages; it does not retroactively remove already-published Git objects or historical Issue content.
 
 ## Local spool
 
@@ -68,4 +70,6 @@ existing remote package and posts only the missing comment.
 - Over-limit JSON artifacts are replaced with valid truncation envelopes, and over-limit `events.jsonl` tails are replaced with bounded omission records rather than partial JSON.
 - GitHub event publication records source and result SHA semantics from the live event payload or checked-out repository state.
 - Version 1 is append-only. Deletion, compaction, and retention pruning are future tasks.
+- R1 prevention work is limited to generic redaction, final-scan enforcement, deterministic public-surface auditing, tests, and debt measurement. It does not rewrite history or mutate Issue `#224`.
+- R2 destructive history remediation requires separate explicit authorization, verified backups, complete remote-ref inventory, collaborator coordination, and post-rewrite GitHub cache/support handling. No R1 package may bypass the append-only contract to journal contaminated historical evidence.
 - Version 1 does not capture hidden chain-of-thought and does not claim access to unavailable internal OpenAI server logs.
