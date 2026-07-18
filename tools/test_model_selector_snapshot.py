@@ -29,11 +29,11 @@ from plugins.asynchronia.model_selector import (  # noqa: E402
     start_preflight,
     validate_snapshot,
 )
-from plugins.asynchronia.model_selector_inventory import parse_inventory_markdown  # noqa: E402
+from plugins.asynchronia.model_selector_inventory import normalize_model_identifier, parse_inventory_markdown  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md"
+ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md"
 CHECKED_OUT_BRANCH = current_branch()
 REPOSITORY_MANIFEST_PATH = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
 
@@ -70,7 +70,7 @@ def snapshot_copy() -> dict[str, object]:
     return copy.deepcopy(load_snapshot())
 
 
-def installed_plugin_root(directory: Path, version: str = "1.0.15", name: str = "asynchronia") -> Path:
+def installed_plugin_root(directory: Path, version: str = "1.0.16", name: str = "asynchronia") -> Path:
     plugin_root = directory / "installed-plugin"
     manifest_dir = plugin_root / ".codex-plugin"
     manifest_dir.mkdir(parents=True, exist_ok=True)
@@ -142,25 +142,62 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(state_files, [])
             self.assertIn(str(plugin_root), start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
-            self.assertIn("manifest version: 1.0.15", start.stdout)
+            self.assertIn("manifest version: 1.0.16", start.stdout)
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
         parsed = parse_inventory_markdown(Path(ARTIFACT_PATH))
-        self.assertEqual(manifest["inventoryArtifactPath"], str(Path(".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md")))
-        self.assertEqual(manifest["lastAcceptedBlobSha"], "3d77fba4924a200bef9cb7ec7ef76f3aeb45cbdb")
-        self.assertEqual(parsed.model_count, 6)
-        self.assertEqual(parsed.pair_count, 29)
+        self.assertEqual(manifest["inventoryArtifactPath"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md")))
+        actual_blob_sha = subprocess.run(["git", "hash-object", str(ROOT / manifest["inventoryArtifactPath"])], check=True, capture_output=True, text=True).stdout.strip()
+        self.assertEqual(manifest["lastAcceptedBlobSha"], actual_blob_sha)
+        self.assertEqual(manifest["currentSnapshotRevision"], "20260718.1")
+        self.assertEqual(parsed.model_count, 3)
+        self.assertEqual(parsed.pair_count, 15)
+        self.assertEqual([model["modelLabel"] for model in parsed.models], ["5.5", "5.6 Luna", "5.6 Terra/Sol"])
+        self.assertEqual([model["modelIdentifier"] for model in parsed.models], ["gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra-sol"])
+        self.assertNotIn("5.4 Mini", [model["modelLabel"] for model in parsed.models])
+        self.assertNotIn("5.4", [model["modelLabel"] for model in parsed.models])
+        self.assertEqual(
+            [(model["modelLabel"], effort["effortLabel"]) for model in parsed.models for effort in model["supportedEfforts"]],
+            [
+                ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
+                ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
+                ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
+                ("5.6 Terra/Sol", "Light"), ("5.6 Terra/Sol", "Medium"), ("5.6 Terra/Sol", "High"),
+                ("5.6 Terra/Sol", "Extra High"), ("5.6 Terra/Sol", "Max"), ("5.6 Terra/Sol", "Ultra"),
+            ],
+        )
+
+    def test_slash_containing_model_labels_normalize_without_splitting_models(self) -> None:
+        self.assertEqual(normalize_model_identifier("5.6 Terra/Sol"), "gpt-5.6-terra-sol")
+        self.assertEqual(normalize_model_identifier("5.5"), "gpt-5.5")
+        self.assertEqual(normalize_model_identifier("5.6 Luna"), "gpt-5.6-luna")
 
     def test_generated_snapshot_matches_authority_and_persists_provenance(self) -> None:
         snapshot = _build_snapshot_from_inventory()
         parsed = parse_inventory_markdown(Path(ARTIFACT_PATH))
         self.assertEqual(snapshot["completeModelCount"], parsed.model_count)
         self.assertEqual(snapshot["completeModelEffortPairCount"], parsed.pair_count)
-        self.assertEqual(snapshot["sourceArtifact"]["path"], str(Path(".ai-work/tasks/TASK-INFRA-AI-FORENSICS-AUTOLOG-20260712/UI-VISIBLE-MODEL-INVENTORY.md")))
-        self.assertEqual(snapshot["sourceArtifact"]["blobSha"], "3d77fba4924a200bef9cb7ec7ef76f3aeb45cbdb")
+        self.assertEqual(snapshot["sourceArtifact"]["path"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md")))
+        self.assertEqual(snapshot["sourceArtifact"]["blobSha"], json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))["lastAcceptedBlobSha"])
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-18T06:29:00Z")
+        self.assertEqual(snapshot["applicationSurface"], "CODEX_DESKTOP_APP")
+        self.assertEqual(snapshot["completeModelCount"], 3)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 15)
+        self.assertEqual(snapshot["supersedes"], "20260715.1")
         self.assertEqual(snapshot["canonicalContentHash"], canonical_hash(snapshot))
+
+    def test_active_plugin_version_surfaces_agree(self) -> None:
+        manifest = json.loads(REPOSITORY_MANIFEST_PATH.read_text(encoding="utf-8"))
+        marketplace = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
+        entry = next(item for item in marketplace["plugins"] if item["name"] == "asynchronia")
+        self.assertEqual(manifest["version"], "1.0.16")
+        self.assertEqual(entry["version"], "1.0.16")
+        self.assertIn('PLUGIN_VERSION = "1.0.16"', (ROOT / "plugins/asynchronia/model_selector.py").read_text(encoding="utf-8"))
+        self.assertIn('PLUGIN_VERSION = "1.0.16"', (ROOT / "plugins/asynchronia/model_selector_runtime.py").read_text(encoding="utf-8"))
+        self.assertIn("Asynchronia 1.0.16", (ROOT / "plugins/asynchronia/skills/model-selector/SKILL.md").read_text(encoding="utf-8"))
+        self.assertIn('EXPECTED_VERSION = "1.0.16"', (ROOT / "tools/validate-asynchronia-auto-model-preflight.py").read_text(encoding="utf-8"))
 
     def test_exact_labels_survive_generation_and_ids_remain_separate(self) -> None:
         snapshot = _build_snapshot_from_inventory()
@@ -173,7 +210,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_current_snapshot_loads_and_normal_output_uses_picker_labels(self) -> None:
         snapshot = load_snapshot()
         report = evaluate_task(snapshot, task())
-        self.assertEqual(snapshot["snapshotRevision"], "20260715.1")
+        self.assertEqual(snapshot["snapshotRevision"], "20260718.1")
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
         self.assertTrue(all(item.modelLabel and item.effortLabel for item in report.evaluations))
         self.assertEqual(len(build_candidate_matrix(snapshot)), snapshot["completeModelEffortPairCount"])
@@ -210,7 +247,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
             result = subprocess.run(command + ["inventory-changed", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0)
-            self.assertIn(MAINTENANCE_TASK_ID, result.stdout)
+            self.assertIn("TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718", result.stdout)
             self.assertIn("authority artifact:", result.stdout)
             self.assertIn("model diff:", result.stdout)
 
@@ -451,7 +488,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_read_only_runtime_version_comes_from_manifest_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
-            plugin_root = installed_plugin_root(Path(directory), version="1.0.15")
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.16")
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
@@ -460,7 +497,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(start.returncode, 0)
             self.assertIn("plugin root:", start.stdout)
             self.assertIn("plugin manifest path:", start.stdout)
-            self.assertIn("manifest version: 1.0.15", start.stdout)
+            self.assertIn("manifest version: 1.0.16", start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
 
     def test_read_only_plugin_root_validation_fails_closed(self) -> None:
@@ -492,7 +529,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             plugin_root = Path(directory) / "wrong-name-plugin"
             manifest = {
                 "name": "wrong-name",
-                "version": "1.0.15",
+                "version": "1.0.16",
                 "description": "bad",
                 "author": {"name": "bad"},
             }
