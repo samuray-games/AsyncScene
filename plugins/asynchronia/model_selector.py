@@ -20,8 +20,8 @@ AUTHORITY_MANIFEST_PATH = Path(__file__).with_name("model-selector-authority.jso
 SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-snapshot.json"
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
-PLUGIN_VERSION = "1.0.13"
-MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260714"
+PLUGIN_VERSION = "1.0.16"
+MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -194,10 +194,10 @@ def _build_snapshot_from_inventory() -> dict[str, object]:
     parsed = parse_inventory_markdown(artifact_path)
     return canonical_snapshot_payload(
         snapshot_revision=str(manifest["currentSnapshotRevision"]),
-        confirmed_timestamp="2026-07-15T00:00:00Z",
+        confirmed_timestamp="2026-07-18T06:29:00Z",
         confirmation_source="USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
-        application_surface="CHATGPT_DESKTOP_APP",
-        supersedes="20260714.1",
+        application_surface="CODEX_DESKTOP_APP",
+        supersedes="20260715.1",
         source_artifact_path=str(manifest["inventoryArtifactPath"]),
         source_artifact_blob_sha=str(manifest["lastAcceptedBlobSha"]),
         status=SNAPSHOT_STATUS,

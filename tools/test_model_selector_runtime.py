@@ -64,14 +64,16 @@ class ModelSelectorTests(unittest.TestCase):
         selector_core.current_branch = cls.original_current_branch
 
     def test_plugin_version_and_inventory_authority(self) -> None:
-        self.assertEqual(PLUGIN_VERSION, "1.0.15")
+        self.assertEqual(PLUGIN_VERSION, "1.0.16")
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
-        self.assertEqual(snapshot["snapshotRevision"], "20260715.1")
+        self.assertEqual(snapshot["snapshotRevision"], "20260718.1")
         self.assertEqual(len(candidates), snapshot["completeModelEffortPairCount"])
-        self.assertEqual(len(candidates), 29)
+        self.assertEqual(snapshot["completeModelCount"], 3)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 15)
+        self.assertEqual(len(candidates), 15)
         report = evaluate_task(snapshot, task())
-        self.assertEqual(len(report.evaluations), 29)
+        self.assertEqual(len(report.evaluations), 15)
         self.assertTrue(report.recommendation.modelLabel)
 
     def test_default_state_is_git_private_and_not_legacy_home_path(self) -> None:
