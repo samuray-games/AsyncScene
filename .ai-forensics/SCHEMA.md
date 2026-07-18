@@ -97,8 +97,24 @@ Over-limit `.json` artifacts must remain valid JSON by using a truncation
 envelope that records the original size and SHA-256.
 
 Before any Git operation, every package file is scanned for standalone credential
-patterns and private home-directory paths. Publication fails closed if the scan
-finds private content or non-UTF-8 payloads.
+patterns and private home-directory paths. The home detector is independent of
+the current runner account and covers foreign-machine macOS
+`/Users/<user>/...`, Linux `/home/<user>/...`, `/root/...`, and Windows drive
+user-home paths. Sanitization replaces the private home root with `<HOME>` while
+retaining a safe suffix. Publication fails closed if the scan finds private
+content or non-UTF-8 payloads.
+
+The read-only `tools/ai_forensics/public_surface_audit.py` audits reachable text
+blobs without checking them out and can explicitly read Issue `#224` comments
+through authenticated `gh api`. It reports categories, refs, commit and blob
+identifiers, repository-relative paths, safe line numbers, and one-way
+fingerprints only.
+
+R1 prevention and debt measurement do not erase already-published Git objects or
+Issue content. R2 history remediation is a separate destructive operation that
+requires explicit authorization, verified backups, complete remote-ref
+inventory, collaborator coordination, and post-rewrite GitHub cache/support
+handling. Ordinary package operation remains append-only.
 
 ## Turn correlation
 
