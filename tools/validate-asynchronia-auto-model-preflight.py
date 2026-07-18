@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Asynchronia 1.0.15 bridge-derived model-preflight contract."""
+"""Validate the Asynchronia 1.0.16 bridge-derived model-preflight contract."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from plugins.asynchronia.response_relay_contract import (  # noqa: E402
     SKILL_REQUIRED_LINES,
 )
 
-EXPECTED_VERSION = "1.0.15"
+EXPECTED_VERSION = "1.0.16"
 
 
 def read(path: str) -> str:
@@ -45,7 +45,7 @@ def main() -> int:
     prompt = "\n".join(manifest.get("interface", {}).get("defaultPrompt", []))
 
     required_selector = (
-        'PLUGIN_VERSION = "1.0.15"',
+        'PLUGIN_VERSION = "1.0.16"',
         "asynchronia/model-selector-state",
         '"WAITING_FOR_INVENTORY_CONFIRMATION"',
         '"WAITING_FOR_MODEL_SELECTION"',

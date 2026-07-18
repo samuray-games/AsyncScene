@@ -1,9 +1,9 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.15 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
+description: Run Asynchronia 1.0.16 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
-# Model Selector 1.0.15
+# Model Selector 1.0.16
 
 Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
 
