@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "recovery/alpha-forensics-privacy-remediation-r1-20260718",
+  "createdAtJst": "2026-07-18 23:20:39 JST",
+  "createdAtUtc": "2026-07-18T14:20:39Z",
+  "packagePath": "runs/2026/07/18/GITHUB/GITHUB-20260718T142039Z-29647846209-fb3d4a38",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260718T142039Z-29647846209-fb3d4a38",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
