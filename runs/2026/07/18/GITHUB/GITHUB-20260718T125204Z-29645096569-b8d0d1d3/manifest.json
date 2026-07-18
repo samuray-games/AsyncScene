@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "bridge/3/BRIDGE-20260718-REISSUE-301",
+  "createdAtJst": "2026-07-18 21:52:04 JST",
+  "createdAtUtc": "2026-07-18T12:52:04Z",
+  "packagePath": "runs/2026/07/18/GITHUB/GITHUB-20260718T125204Z-29645096569-b8d0d1d3",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260718T125204Z-29645096569-b8d0d1d3",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
