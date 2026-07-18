@@ -26,6 +26,15 @@ PRIVATE_KEY_BLOCK_PATTERN = re.compile(
 )
 PRIVATE_KEY_BEGIN_PATTERN = re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----")
 PRIVATE_KEY_END_PATTERN = re.compile(r"-----END [A-Z0-9 ]*PRIVATE KEY-----")
+POSIX_HOME_PATH_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_/:.-])(?P<root>/(?:Users|home)/[^/\\\s\"'<>]+|/root)"
+    r"(?P<suffix>(?:[/\\][^/\\\s\"'<>]+)*)"
+)
+WINDOWS_HOME_PATH_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_/:.-])(?P<root>[A-Za-z]:[\\/]+Users[\\/]+[^\\/\s\"'<>]+)"
+    r"(?P<suffix>(?:[\\/][^\\/\s\"'<>]+)*)",
+    re.IGNORECASE,
+)
 ASSIGNMENT_PATTERN = re.compile(
     r'(?im)^(\s*["\']?[A-Za-z0-9_.-]*?(?:api[_-]?key|token|secret|password|passwd|authorization|cookie|session|credential)[A-Za-z0-9_.-]*["\']?\s*[:=]\s*)(.+?)\s*$'
 )
@@ -53,6 +62,68 @@ class RedactionResult:
     blocked: bool
     replacements: list[str]
     reasons: list[str]
+
+
+@dataclass(frozen=True)
+class PrivateContentFinding:
+    category: str
+    value: str
+    line: int
+
+
+def _home_path_matches(text: str) -> list[re.Match[str]]:
+    matches = list(POSIX_HOME_PATH_PATTERN.finditer(text))
+    matches.extend(WINDOWS_HOME_PATH_PATTERN.finditer(text))
+    return sorted(matches, key=lambda match: (match.start(), match.end()))
+
+
+def _replace_home_paths(text: str) -> tuple[str, bool]:
+    matches = _home_path_matches(text)
+    if not matches:
+        return text, False
+    parts: list[str] = []
+    cursor = 0
+    for match in matches:
+        if match.start() < cursor:
+            continue
+        parts.append(text[cursor : match.start()])
+        parts.append("<HOME>")
+        parts.append(match.group("suffix"))
+        cursor = match.end()
+    parts.append(text[cursor:])
+    return "".join(parts), True
+
+
+def iter_private_content(text: str) -> list[PrivateContentFinding]:
+    findings: list[PrivateContentFinding] = []
+
+    def add(category: str, match: re.Match[str]) -> None:
+        findings.append(
+            PrivateContentFinding(
+                category=category,
+                value=match.group(0),
+                line=text.count("\n", 0, match.start()) + 1,
+            )
+        )
+
+    for pattern, tag, _replacement in STANDALONE_SECRET_PATTERNS:
+        for match in pattern.finditer(text):
+            add(tag, match)
+    for pattern, tag in (
+        (PRIVATE_KEY_BEGIN_PATTERN, "private-key"),
+        (PRIVATE_KEY_END_PATTERN, "private-key"),
+        (AUTH_HEADER_PATTERN, "authorization-header"),
+        (COOKIE_HEADER_PATTERN, "cookie-header"),
+    ):
+        for match in pattern.finditer(text):
+            add(tag, match)
+    for match in _home_path_matches(text):
+        add("home-path", match)
+
+    unique: dict[tuple[str, int, str], PrivateContentFinding] = {}
+    for finding in findings:
+        unique[(finding.category, finding.line, finding.value)] = finding
+    return sorted(unique.values(), key=lambda finding: (finding.line, finding.category, finding.value))
 
 
 def _entropy(value: str) -> float:
@@ -132,14 +203,14 @@ def sanitize_text(text: str, *, home: str | None = None) -> RedactionResult:
             sanitized = re.sub(escaped, "<redacted>", sanitized, count=1)
             replacements.append("high-entropy-secret")
 
-    home_prefixes = {home or str(Path.home())}
-    parent = str(Path(home_prefixes.copy().pop()).parent)
-    if parent.startswith("/Users/"):
-        user_name = Path(home or str(Path.home())).name
-        home_prefixes.add(f"/Users/{user_name}")
-    for prefix in sorted(home_prefixes, key=len, reverse=True):
-        if prefix and prefix in sanitized:
-            sanitized = sanitized.replace(prefix, "<HOME>")
+    sanitized, home_replaced = _replace_home_paths(sanitized)
+    if home_replaced:
+        replacements.append("home-path")
+
+    if home:
+        custom_home = str(Path(home))
+        if custom_home in sanitized:
+            sanitized = sanitized.replace(custom_home, "<HOME>")
             replacements.append("home-path")
 
     blocked = bool(reasons and not replacements)
@@ -152,23 +223,12 @@ def sanitize_text(text: str, *, home: str | None = None) -> RedactionResult:
 
 
 def scan_text_for_private_content(text: str, *, home: str | None = None) -> list[str]:
-    findings: list[str] = []
-    for pattern, tag, _replacement in STANDALONE_SECRET_PATTERNS:
-        if pattern.search(text):
-            findings.append(tag)
-    if PRIVATE_KEY_BEGIN_PATTERN.search(text) or PRIVATE_KEY_END_PATTERN.search(text):
-        findings.append("private-key")
-    if AUTH_HEADER_PATTERN.search(text):
-        findings.append("authorization-header")
-    if COOKIE_HEADER_PATTERN.search(text):
-        findings.append("cookie-header")
-    home_prefixes = {home or str(Path.home())}
-    if home is None:
-        home_prefixes.add("/Users/User")
-    for prefix in home_prefixes:
-        if prefix and prefix in text:
-            findings.append("home-path")
-    return sorted(set(findings))
+    findings = {finding.category for finding in iter_private_content(text)}
+    if home:
+        custom_home = str(Path(home))
+        if custom_home in text:
+            findings.add("home-path")
+    return sorted(findings)
 
 
 def sanitize_json_compatible(payload: Any) -> tuple[Any, list[str], list[str], bool]:

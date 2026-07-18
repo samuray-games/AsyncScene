@@ -14,11 +14,12 @@ from tools.ai_forensics import schema
 from tools.ai_forensics import codex_hook
 from tools.ai_forensics import github_event
 from tools.ai_forensics import publish
+from tools.ai_forensics import public_surface_audit
 from tools.ai_forensics.codex_hook import capture_event, normalize_hook_event
 from tools.ai_forensics.git_evidence import strip_remote_credentials
 from tools.ai_forensics.package import build_package_files, truncate_text
 from tools.ai_forensics.publish import build_issue_comment, flush_pending, publish_staged_run, stage_run_package
-from tools.ai_forensics.redact import sanitize_json_compatible, sanitize_text
+from tools.ai_forensics.redact import scan_text_for_private_content, sanitize_json_compatible, sanitize_text
 
 
 class SchemaTests(unittest.TestCase):
@@ -107,6 +108,41 @@ class RedactionTests(unittest.TestCase):
         self.assertNotIn("ghp_", result.text)
         self.assertNotIn("AKIA1234567890ABCDEF", result.text)
         self.assertNotIn("abcdefghijklmnopqrstuvwxyz123456", result.text)
+
+    def test_redacts_foreign_machine_home_paths(self) -> None:
+        samples = (
+            "/Users/foreign_mac_fixture/project/file",
+            "/home/foreign_linux_fixture/project/file",
+            "/root/private/file",
+            r"C:\Users\foreign_windows_fixture\project\file",
+            "C:/Users/foreign_windows_fixture/project/file",
+        )
+        for sample in samples:
+            result = sanitize_text(sample)
+            self.assertIn("<HOME>", result.text)
+            self.assertIn("home-path", result.replacements)
+            self.assertEqual(scan_text_for_private_content(sample), ["home-path"])
+
+    def test_sanitizes_nested_home_paths_and_preserves_safe_suffix(self) -> None:
+        payload = {
+            "json": {"path": "/Users/foreign_json_fixture/summary.json"},
+            "array": ["/home/foreign_array_fixture/events.jsonl"],
+            "event": {"cwd": r"C:\Users\foreign_event_fixture\run"},
+            "summary": "C:/Users/foreign_summary_fixture/report.txt",
+            "gitEvidence": {"repositoryRoot": "/root/foreign_git_fixture/repo"},
+            "textExtra": "https://example.com/public and /Users/foreign_text_fixture/final.txt",
+        }
+        sanitized, _replacements, _reasons, blocked = sanitize_json_compatible(payload)
+        rendered = json.dumps(sanitized)
+        self.assertFalse(blocked)
+        self.assertEqual(rendered.count("<HOME>"), 6)
+        self.assertNotIn("foreign_json_fixture", rendered)
+        self.assertIn("<HOME>/summary.json", rendered)
+        self.assertIn("https://example.com/public", rendered)
+
+    def test_home_scanner_has_no_false_positives(self) -> None:
+        clean = "repo/Users/foreign/path https://example.com/Users/foreign/path commit=c78ad941b1e9034eef8d0a46e08f9d25be29a405"
+        self.assertEqual(scan_text_for_private_content(clean), [])
 
 
 class PackageTests(unittest.TestCase):
@@ -220,16 +256,35 @@ class PackageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             run_dir = stage_run_package(
                 manifest=manifest,
-                events=[{"event": "Stop", "cwd": "/Users/User/private"}],
-                summary={"path": "/Users/User/private-summary"},
-                git_evidence={"repositoryRoot": "/Users/User/private-git"},
+                events=[{"event": "Stop", "cwd": "/Users/foreign_package_fixture/private"}],
+                summary={"path": "/Users/foreign_package_fixture/private-summary"},
+                git_evidence={"repositoryRoot": "/Users/foreign_package_fixture/private-git"},
                 redaction_report={"blocked": False, "replacements": []},
-                extras={"final-response.txt": "/Users/User/private-final"},
+                extras={"final-response.txt": "/Users/foreign_package_fixture/private-final"},
                 spool_root=Path(directory),
             )
             for path in (run_dir / "package").rglob("*"):
                 if path.is_file():
-                    self.assertNotIn("/Users/User", path.read_text(encoding="utf-8"))
+                    self.assertNotIn("/Users/foreign_package_fixture", path.read_text(encoding="utf-8"))
+
+    def test_final_scan_rejects_supported_home_path_that_survives(self) -> None:
+        manifest = schema.build_manifest(
+            actor="CODEX",
+            run_id=schema.generate_run_id("CODEX", "foreign-home-final-scan"),
+            status="UPLOAD_PENDING",
+            repository="samuray-games/AsyncScene",
+            branch="infra/test",
+            task_id="TASK-1",
+        )
+        with self.assertRaisesRegex(ValueError, "private content scan failed"):
+            build_package_files(
+                manifest=manifest,
+                events=[{"event": "Stop"}],
+                summary={"status": "ok"},
+                git_evidence={"branch": "HEAD"},
+                redaction_report={"blocked": False, "replacements": []},
+                extras={"final-response.txt": "/home/foreign_survivor_fixture/private"},
+            )
 
     def test_final_scan_secret_fixture_creates_blocked_metadata_without_package(self) -> None:
         manifest = schema.build_manifest(
@@ -274,6 +329,80 @@ class PackageTests(unittest.TestCase):
                 redaction_report={"blocked": False, "replacements": []},
                 extras={"binary.bin": b"\xff\xfe"},
             )
+
+
+class PublicSurfaceAuditTests(unittest.TestCase):
+    def _git(self, repo: Path, *args: str) -> str:
+        result = subprocess.run(
+            ["git", *args], cwd=repo, text=True, capture_output=True, check=True
+        )
+        return result.stdout.strip()
+
+    def _new_repo(self, content: str | None) -> tuple[Path, str | None]:
+        directory = tempfile.TemporaryDirectory()
+        repo = Path(directory.name)
+        self.addCleanup(directory.cleanup)
+        self._git(repo, "init", "--quiet")
+        self._git(repo, "config", "user.name", "Synthetic Audit")
+        self._git(repo, "config", "user.email", "audit@example.invalid")
+        if content is None:
+            return repo, None
+        (repo / "evidence.txt").write_text(content, encoding="utf-8")
+        self._git(repo, "add", "evidence.txt")
+        self._git(repo, "commit", "--quiet", "-m", "synthetic evidence")
+        return repo, self._git(repo, "rev-parse", "HEAD")
+
+    def test_audit_finds_historical_home_path_without_raw_content(self) -> None:
+        private_path = "/Users/audit_historical_fixture/private"
+        repo, commit_sha = self._new_repo(private_path + "\n")
+        assert commit_sha is not None
+        blob_sha = self._git(repo, "rev-parse", "HEAD:evidence.txt")
+        findings = public_surface_audit.audit_refs(repo, ["HEAD"])
+        self.assertEqual(len(findings), 1)
+        finding = findings[0]
+        self.assertEqual(finding.category, "home-path")
+        self.assertEqual(finding.commit_sha, commit_sha)
+        self.assertEqual(finding.blob_sha, blob_sha)
+        self.assertEqual(finding.path, "evidence.txt")
+        self.assertEqual(finding.line, 1)
+        rendered = json.dumps([item.as_dict() for item in findings], sort_keys=True)
+        self.assertNotIn(private_path, rendered)
+        self.assertTrue(finding.fingerprint.startswith("sha256:"))
+
+    def test_audit_deduplicates_same_blob_across_commits_and_refs(self) -> None:
+        repo, commit_sha = self._new_repo("/home/audit_duplicate_fixture/private\n")
+        assert commit_sha is not None
+        self._git(repo, "branch", "duplicate-ref", commit_sha)
+        findings = public_surface_audit.audit_refs(repo, ["HEAD", "duplicate-ref"])
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].commit_sha, commit_sha)
+
+    def test_audit_cli_returns_nonzero_and_never_prints_raw_content(self) -> None:
+        private_path = "C:/Users/audit_cli_fixture/private"
+        repo, _commit_sha = self._new_repo(private_path + "\n")
+        result = subprocess.run(
+            [
+                "python3",
+                str(Path(__file__).with_name("ai_forensics") / "public_surface_audit.py"),
+                "--repo",
+                str(repo),
+                "--ref",
+                "HEAD",
+                "--json",
+            ],
+            cwd=Path(__file__).parents[1],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(private_path, result.stdout)
+        self.assertIn('"category": "home-path"', result.stdout)
+
+    def test_clean_audit_returns_zero(self) -> None:
+        repo, _commit_sha = self._new_repo("repo/Users/ordinary/path https://example.com/Users/ordinary/path\n")
+        findings = public_surface_audit.audit_refs(repo, ["HEAD"])
+        self.assertEqual(findings, [])
 
 
 class HookTests(unittest.TestCase):

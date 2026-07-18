@@ -30,6 +30,7 @@ def validate_repo(repo_root: Path) -> list[str]:
         repo_root / "tools" / "ai_forensics" / "codex_hook.py",
         repo_root / "tools" / "ai_forensics" / "publish.py",
         repo_root / "tools" / "ai_forensics" / "github_event.py",
+        repo_root / "tools" / "ai_forensics" / "public_surface_audit.py",
         repo_root / "tools" / "test_ai_forensics.py",
         repo_root / ".github" / "workflows" / "ai-forensics-evidence.yml",
     ):
@@ -58,6 +59,15 @@ def validate_repo(repo_root: Path) -> list[str]:
         errors.append("ai-forensics-evidence workflow does not expose github.token as GITHUB_TOKEN")
     if "contents: write" not in workflow_text or "issues: write" not in workflow_text:
         errors.append("ai-forensics-evidence workflow missing least required write permissions")
+
+    readme_text = (repo_root / ".ai-forensics" / "README.md").read_text(encoding="utf-8")
+    for required in ("foreign-machine", "<HOME>", "retroactively", "R1", "R2", "append-only"):
+        if required not in readme_text:
+            errors.append(f".ai-forensics/README.md missing {required!r}")
+    schema_text = (repo_root / ".ai-forensics" / "SCHEMA.md").read_text(encoding="utf-8")
+    for required in ("foreign-machine", "public_surface_audit.py", "explicit authorization", "collaborator coordination"):
+        if required not in schema_text:
+            errors.append(f".ai-forensics/SCHEMA.md missing {required!r}")
     return errors
 
 
