@@ -1,6 +1,6 @@
 {
   "name": "asynchronia",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Project-specific automatic routing, bridge-authority-derived model preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
   "author": {
     "name": "Asynchronia Project"

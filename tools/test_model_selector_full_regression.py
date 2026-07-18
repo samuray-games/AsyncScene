@@ -17,7 +17,7 @@ def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProces
 
 
 class FullSelectorRegressionTests(unittest.TestCase):
-    def test_full_current_suite_runs_against_1_0_15_in_attached_clone(self) -> None:
+    def test_full_current_suite_runs_against_1_0_16_in_attached_clone(self) -> None:
         self.assertTrue(CANONICAL_TEST.exists(), "canonical full selector regression is missing")
         with tempfile.TemporaryDirectory(prefix="asynchronia-full-selector-regression-") as directory:
             repo = Path(directory) / "repo"
@@ -67,7 +67,7 @@ class FullSelectorRegressionTests(unittest.TestCase):
             self.assertEqual(
                 result.returncode,
                 0,
-                "full canonical selector regression failed against 1.0.15\nSTDOUT:\n"
+                "full canonical selector regression failed against 1.0.16\nSTDOUT:\n"
                 + result.stdout
                 + "\nSTDERR:\n"
                 + result.stderr,

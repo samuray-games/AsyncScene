@@ -1,4 +1,4 @@
-"""Asynchronia 1.0.15 runtime facade over the stable selector core.
+"""Asynchronia 1.0.16 runtime facade over the stable selector core.
 
 The executable CLI is the production entrypoint. This facade binds the installed
 package version and provides sandbox-safe Git-private durable state storage while
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from . import model_selector as core
 
-PLUGIN_VERSION = "1.0.15"
+PLUGIN_VERSION = "1.0.16"
 core.PLUGIN_VERSION = PLUGIN_VERSION
 
 AUTHORITY_MANIFEST_PATH = core.AUTHORITY_MANIFEST_PATH

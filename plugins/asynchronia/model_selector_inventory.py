@@ -19,7 +19,9 @@ class ParsedInventory:
 
 
 def normalize_model_identifier(label: str) -> str:
-    return "gpt-" + label.strip().lower().replace(" ", "-")
+    normalized = re.sub(r"[^a-z0-9.]+", "-", label.strip().lower())
+    normalized = re.sub(r"-+", "-", normalized).strip("-")
+    return "gpt-" + normalized
 
 
 def normalize_effort_identifier(label: str) -> str:
