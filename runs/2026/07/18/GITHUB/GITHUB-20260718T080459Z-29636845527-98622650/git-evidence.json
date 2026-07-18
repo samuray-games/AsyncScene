@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "8b63552233cfd66ccb577b02e8259e8140f4f37e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8b63552233cfd66ccb577b02e8259e8140f4f37e\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "8b635522 (HEAD, pull/234/merge) Merge 4043a06ceca52ecb50b283a7d12cdd65ea0dc791 into 2f418a95e771a8d2a2f7231f27df3940b412b94e\n4043a06c (origin/infra/model-snapshot-maintenance-20260718) Maintain Asynchronia model inventory snapshot\n2f418a95 (origin/main) Revert \"Merge branch 'main' of https://github.com/samuray-games/AsyncScene into infra/bridge-control-plane-reset-20260716\" (#233)\n55764494 Merge branch 'main' of https://github.com/samuray-games/AsyncScene into infra/bridge-control-plane-reset-20260716\n52314c01 R3: repair visible selector matrix relay contract (#232)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8b63552233cfd66ccb577b02e8259e8140f4f37e\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-18T08:04:59Z",
+      "stderr": "",
+      "stdout": "2f418a95e771a8d2a2f7231f27df3940b412b94e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8b63552233cfd66ccb577b02e8259e8140f4f37e",
+  "observedAtUtc": "2026-07-18T08:04:59Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
