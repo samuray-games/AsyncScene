@@ -53,7 +53,8 @@ Apply these rules in order:
 - If task scope changes materially, recompute the recommendation before relying on it.
 - The router may repeat the selector recommendation but cannot verify or change the active interface model.
 - Active model remains `USER_SELECTED_UNVERIFIED`.
-- The router must carry the selector's exact output forward unchanged, including `WAITING_FOR_MODEL_SELECTION` and the exact same-thread fenced `CONTINUE` token when current policy requires the pause.
+- The router must carry the selector's exact output forward unchanged at `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, including every evaluated pair, the current state, and the exact next response.
+- The router must preserve the exact same-thread fenced `CONTINUE` token when current policy requires the pause.
 
 ### 4. Parallel planning
 
