@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "recovery/alpha-main-artifact-revert-20260717",
+  "createdAtJst": "2026-07-19 18:09:14 JST",
+  "createdAtUtc": "2026-07-19T09:09:14Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T090914Z-29681064965-75f6403d",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T090914Z-29681064965-75f6403d",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
