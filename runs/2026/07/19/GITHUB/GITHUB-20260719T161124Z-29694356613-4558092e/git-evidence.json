@@ -1,0 +1,106 @@
+{
+  "branch": "infra/github-transport-resilience-20260720",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "infra/github-transport-resilience-20260720\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "545b60f60ae2edfbd0bf1be5ac80c7366eaa6311\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "# branch.oid 545b60f60ae2edfbd0bf1be5ac80c7366eaa6311\n# branch.head infra/github-transport-resilience-20260720\n# branch.upstream origin/infra/github-transport-resilience-20260720\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "545b60f6 (HEAD -> infra/github-transport-resilience-20260720, origin/infra/github-transport-resilience-20260720) Add fail-closed GitHub transport resilience\n5ebd6f49 (origin/main) Finalize post-R2 repository memory closure (#237)\neda96655 Close post-R2 repository memory (#236)\n4a5e0f9d (origin/recovery/alpha-forensics-history-remediation-r2-20260719) Harden AI forensics privacy boundary (#235)\nb8af9bcc Revert accidental bootstrap placeholder\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 545b60f60ae2edfbd0bf1be5ac80c7366eaa6311\nbranch refs/heads/infra/github-transport-resilience-20260720\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T16:11:24Z",
+      "stderr": "",
+      "stdout": "5ebd6f498e5466735ffd326c969f6fb607ae625d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "545b60f60ae2edfbd0bf1be5ac80c7366eaa6311",
+  "observedAtUtc": "2026-07-19T16:11:24Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
