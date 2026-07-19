@@ -1,0 +1,106 @@
+{
+  "branch": "infra/post-r2-repository-memory-closure-completion-stamp-20260719",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "infra/post-r2-repository-memory-closure-completion-stamp-20260719\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "baa0dfa2e423c908e83af679bf9f63e41d90f7d9\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid baa0dfa2e423c908e83af679bf9f63e41d90f7d9\n# branch.head infra/post-r2-repository-memory-closure-completion-stamp-20260719\n# branch.upstream origin/infra/post-r2-repository-memory-closure-completion-stamp-20260719\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "baa0dfa2 (HEAD -> infra/post-r2-repository-memory-closure-completion-stamp-20260719, origin/infra/post-r2-repository-memory-closure-completion-stamp-20260719) Finalize post-R2 repository memory closure\neda96655 (origin/main) Close post-R2 repository memory (#236)\n4a5e0f9d (origin/recovery/alpha-forensics-history-remediation-r2-20260719) Harden AI forensics privacy boundary (#235)\nb8af9bcc Revert accidental bootstrap placeholder\n05a951d0 noop\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD baa0dfa2e423c908e83af679bf9f63e41d90f7d9\nbranch refs/heads/infra/post-r2-repository-memory-closure-completion-stamp-20260719\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T15:13:54Z",
+      "stderr": "",
+      "stdout": "eda96655f561f1479873392c8b7101393aa09f33\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "baa0dfa2e423c908e83af679bf9f63e41d90f7d9",
+  "observedAtUtc": "2026-07-19T15:13:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
