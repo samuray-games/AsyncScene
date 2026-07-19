@@ -9082,6 +9082,6 @@ Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from mai
 
 - `TASK-INFRA-GITHUB-TRANSPORT-RESILIENCE` — status: COMPLETE; PR #238 squash-merged into accepted `main` at `c99d8cebdcf9c36ecf09c05be9eb746b6bb7b699`; transport resilience helper and publisher integration are now part of accepted main.
 - Known selector regression fixture mismatch (`1.0.13` versus current authority `1.0.16`) remains pre-existing and unrelated; no new task is inferred from it.
-- `TASK-INFRA-POST-TRANSPORT-RESILIENCE-MEMORY-CLOSURE-20260720` — status: DRAFT_PR_READY_FOR_REVIEW; tracked memory records the accepted main and merged transport-resilience task without changing implementation files.
+- `TASK-INFRA-POST-TRANSPORT-RESILIENCE-MEMORY-CLOSURE-20260720` — status: COMPLETE/CLOSED; terminal: `PASS_POST_TRANSPORT_RESILIENCE_MEMORY_CLOSURE_COMPLETE`; tracked memory records the accepted main and merged transport-resilience task without changing implementation files.
 - Runtime and Stage 6 remain STOPPED. R2 recovery artifacts remain preserved.
-- NEXT_ACTION: review and integrate `TASK-INFRA-POST-TRANSPORT-RESILIENCE-MEMORY-CLOSURE-20260720` from branch `infra/post-transport-resilience-memory-closure-20260720`; do not resume Stage 6 or runtime automatically.
+- NEXT_ACTION: `AWAIT_EXPLICIT_USER_DIRECTION`; do not resume Stage 6 or runtime automatically.
