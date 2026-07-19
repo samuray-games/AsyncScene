@@ -2,16 +2,18 @@
 
 This file holds durable process decisions that should rarely change.
 
-MEMORY_REVISION: 2026-07-12-0026-JST
-EXPECTED_REVISION: 2026-07-12-0026-JST
+MEMORY_REVISION: 2026-07-19-2328-JST
+EXPECTED_REVISION: 2026-07-19-2328-JST
+NOTION_MEMORY_REVISION: 2026-07-19-2311-JST
 
 ## Source of truth
 
 - Repository files are authoritative for current implementation state.
 - GitHub is the accessibility fallback so memory can be read away from the local machine.
-- The live Google Drive document `ASYNCHRONIA - PROJECT MEMORY` is the mandatory cross-chat bootstrap and must be read directly in every project response.
-- When Google Drive conflicts with newer repository primary evidence, use the repository fact, report the conflict, and update Google Drive in the same execution when authorized.
+- The live cross-chat bootstrap is the Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, and must be fetched directly in every project response when bootstrap context is needed.
+- When Notion conflicts with newer repository primary evidence, use the repository fact, report the conflict, and update Notion in the same execution when authorized.
 - A local branch or local remote-tracking ref is not proof of current remote state. Work must fresh-fetch and verify the actual remote ref before reporting its head or absence.
+- Repository memory revisions and Notion `MEMORY_REV` are separate revision domains.
 
 ## Memory layout
 
@@ -30,7 +32,7 @@ EXPECTED_REVISION: 2026-07-12-0026-JST
 - Historical bridge artifacts 062/063 remain immutable and must not be rewritten.
 - If bootstrap text, remote memory, and repo memory disagree, the current repository primary evidence wins and the mismatch must be called out explicitly.
 - `PROJECT_MEMORY.md` must stay compact, carry the current revision fields, and fail closed on revision mismatches.
-- After every accepted remote state change, synchronize task STATE, Google Drive project memory, and the authorized repository memory snapshot in the same execution.
+- After every accepted remote state change, synchronize task STATE, canonical Notion project memory, and the authorized repository memory snapshot in the same execution when authorized.
 - When frozen scope or direct-main protection prevents repository-memory publication, create or update a dedicated memory-sync branch, record the deferral explicitly, and assign integration as the next action.
 
 ## Work and Codex role boundary
