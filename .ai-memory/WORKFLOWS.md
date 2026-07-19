@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-19-2304-JST
-EXPECTED_REVISION: 2026-07-19-2304-JST
-NOTION_MEMORY_REVISION: 2026-07-19-2259-JST
+MEMORY_REVISION: 2026-07-19-2328-JST
+EXPECTED_REVISION: 2026-07-19-2328-JST
+NOTION_MEMORY_REVISION: 2026-07-19-2311-JST
 
 Authoritative order for memory and workflow facts:
 
