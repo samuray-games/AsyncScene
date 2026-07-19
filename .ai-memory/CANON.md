@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-19-2328-JST
-EXPECTED_REVISION: 2026-07-19-2328-JST
-NOTION_MEMORY_REVISION: 2026-07-19-2311-JST
+MEMORY_REVISION: 2026-07-20-0011-JST
+EXPECTED_REVISION: 2026-07-20-0011-JST
+NOTION_MEMORY_REVISION: 2026-07-19-2356-JST
 
 ## Canon principles
 
@@ -27,7 +27,7 @@ NOTION_MEMORY_REVISION: 2026-07-19-2311-JST
 - A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
 - Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
-- Accepted main is `4a5e0f9d0eb6e63b0704ca996f1446152905e785`; R2 history remediation and post-R2 canonical realignment are PASS; Stage 6 and runtime remain stopped.
+- Accepted main is `eda96655f561f1479873392c8b7101393aa09f33`; R2 history remediation, post-R2 canonical realignment, and post-R2 repository-memory closure are PASS; Stage 6 and runtime remain stopped.
 
 ## Reading priority
 
