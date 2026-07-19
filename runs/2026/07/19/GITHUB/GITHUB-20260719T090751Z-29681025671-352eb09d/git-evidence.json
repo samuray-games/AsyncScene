@@ -1,0 +1,106 @@
+{
+  "branch": "recovery/alpha-forensics-privacy-remediation-r1-20260718",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:51Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:51Z",
+      "stderr": "",
+      "stdout": "recovery/alpha-forensics-privacy-remediation-r1-20260718\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:51Z",
+      "stderr": "",
+      "stdout": "1bdff203a2019f27b0c5c72dd8255601c0a73903\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:52Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1bdff203a2019f27b0c5c72dd8255601c0a73903\n# branch.head recovery/alpha-forensics-privacy-remediation-r1-20260718\n# branch.upstream origin/recovery/alpha-forensics-privacy-remediation-r1-20260718\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:52Z",
+      "stderr": "",
+      "stdout": "1bdff203 (HEAD -> recovery/alpha-forensics-privacy-remediation-r1-20260718, origin/recovery/alpha-forensics-privacy-remediation-r1-20260718) Harden AI forensics privacy boundary\nb8af9bcc Revert accidental bootstrap placeholder\n05a951d0 noop\n7a7df548 (origin/bridge/3/BRIDGE-20260718-REISSUE-301) Maintain Asynchronia model inventory snapshot (#234)\nf351ffd5 Revert \"Merge branch 'main' of https://github.com/samuray-games/AsyncScene into infra/bridge-control-plane-reset-20260716\" (#233)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:52Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1bdff203a2019f27b0c5c72dd8255601c0a73903\nbranch refs/heads/recovery/alpha-forensics-privacy-remediation-r1-20260718\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:52Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T09:07:52Z",
+      "stderr": "",
+      "stdout": "4a5e0f9d0eb6e63b0704ca996f1446152905e785\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1bdff203a2019f27b0c5c72dd8255601c0a73903",
+  "observedAtUtc": "2026-07-19T09:07:52Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
