@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/main-authority-repair-20260718",
+  "createdAtJst": "2026-07-19 17:56:53 JST",
+  "createdAtUtc": "2026-07-19T08:56:53Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T085653Z-29680695871-77e3bb2c",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T085653Z-29680695871-77e3bb2c",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
