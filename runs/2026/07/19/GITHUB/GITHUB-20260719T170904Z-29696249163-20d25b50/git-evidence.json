@@ -1,0 +1,106 @@
+{
+  "branch": "infra/post-transport-resilience-memory-closure-20260720",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "infra/post-transport-resilience-memory-closure-20260720\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "7aa94cf8c8ca436023356060e577595accdbc89c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7aa94cf8c8ca436023356060e577595accdbc89c\n# branch.head infra/post-transport-resilience-memory-closure-20260720\n# branch.upstream origin/infra/post-transport-resilience-memory-closure-20260720\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "7aa94cf8 (HEAD -> infra/post-transport-resilience-memory-closure-20260720, origin/infra/post-transport-resilience-memory-closure-20260720) docs: finalize transport resilience memory closure\nf40c0a55 docs: close transport resilience memory\nc99d8ceb (origin/main) Add fail-closed GitHub transport resilience (#238)\n5ebd6f49 Finalize post-R2 repository memory closure (#237)\neda96655 Close post-R2 repository memory (#236)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7aa94cf8c8ca436023356060e577595accdbc89c\nbranch refs/heads/infra/post-transport-resilience-memory-closure-20260720\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T17:09:04Z",
+      "stderr": "",
+      "stdout": "c99d8cebdcf9c36ecf09c05be9eb746b6bb7b699\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7aa94cf8c8ca436023356060e577595accdbc89c",
+  "observedAtUtc": "2026-07-19T17:09:04Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}

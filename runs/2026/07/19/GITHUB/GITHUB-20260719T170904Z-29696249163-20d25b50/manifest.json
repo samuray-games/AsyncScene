@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/post-transport-resilience-memory-closure-20260720",
+  "createdAtJst": "2026-07-20 02:09:04 JST",
+  "createdAtUtc": "2026-07-19T17:09:04Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T170904Z-29696249163-20d25b50",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T170904Z-29696249163-20d25b50",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
