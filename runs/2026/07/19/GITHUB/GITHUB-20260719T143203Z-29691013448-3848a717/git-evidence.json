@@ -1,0 +1,106 @@
+{
+  "branch": "infra/post-r2-repository-memory-closure-20260719",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "infra/post-r2-repository-memory-closure-20260719\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "cf465da8077cb173b421eef24c9cbd08cef3563d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "# branch.oid cf465da8077cb173b421eef24c9cbd08cef3563d\n# branch.head infra/post-r2-repository-memory-closure-20260719\n# branch.upstream origin/infra/post-r2-repository-memory-closure-20260719\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "cf465da8 (HEAD -> infra/post-r2-repository-memory-closure-20260719, origin/infra/post-r2-repository-memory-closure-20260719) Fix protective archive ref\nfb829597 Correct memory closure archive identity\n045cafd0 Preserve durable memory policy in closure\n2e5486d8 Close post-R2 repository memory\n4a5e0f9d (origin/recovery/alpha-forensics-history-remediation-r2-20260719, origin/main) Harden AI forensics privacy boundary (#235)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cf465da8077cb173b421eef24c9cbd08cef3563d\nbranch refs/heads/infra/post-r2-repository-memory-closure-20260719\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-19T14:32:03Z",
+      "stderr": "",
+      "stdout": "4a5e0f9d0eb6e63b0704ca996f1446152905e785\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cf465da8077cb173b421eef24c9cbd08cef3563d",
+  "observedAtUtc": "2026-07-19T14:32:03Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
