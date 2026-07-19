@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/github-transport-resilience-20260720",
+  "createdAtJst": "2026-07-20 01:25:39 JST",
+  "createdAtUtc": "2026-07-19T16:25:39Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T162539Z-29694826265-8569dd72",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T162539Z-29694826265-8569dd72",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
