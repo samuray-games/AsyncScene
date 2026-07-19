@@ -94,6 +94,18 @@ class FetchTests(unittest.TestCase):
         self.assertNotIn("--prune", runner.calls[0])
         self.assertIn("http.version=HTTP/1.1", runner.calls[1])
 
+    def test_verify_ref_retries_http11_after_transport_failure(self) -> None:
+        sha = "a" * 40
+        runner = FakeRunner([
+            failed("Recv failure: Connection reset by peer"),
+            transport.CommandResult((), 0, f"{sha} refs/heads/main\n", ""),
+        ])
+        with tempfile.TemporaryDirectory() as directory:
+            observed, result = transport.verify_ref(directory, "refs/heads/main", runner=runner, backoff_seconds=0)
+        self.assertEqual(observed, sha)
+        self.assertTrue(result.retried)
+        self.assertIn("http.version=HTTP/1.1", runner.calls[1])
+
 
 class PushSafetyTests(unittest.TestCase):
     def test_ambiguous_push_resolves_success_when_remote_is_new_sha(self) -> None:

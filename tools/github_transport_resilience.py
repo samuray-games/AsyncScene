@@ -317,6 +317,7 @@ def verify_ref(
     *,
     remote: str = "origin",
     runner: Runner | None = None,
+    backoff_seconds: float = DEFAULT_BACKOFF_SECONDS,
 ) -> tuple[str | None, OperationResult]:
     """Read one remote ref without updating local refs."""
 
@@ -325,9 +326,14 @@ def verify_ref(
     remote_ref = _remote_ref_line(ref)
     command = ("git", "ls-remote", remote, remote_ref)
     result = run(command, root)
-    attempt = _attempt("verify-ref", result)
+    attempts = [_attempt("verify-ref", result)]
+    if result.returncode != 0 and classify_transport_error(result.stderr + "\n" + result.stdout) is not None:
+        _backoff(backoff_seconds)
+        fallback = ("git", "-c", "http.version=HTTP/1.1", "ls-remote", remote, remote_ref)
+        result = run(fallback, root)
+        attempts.append(_attempt("verify-ref-http11", result))
     if result.returncode != 0:
-        return None, OperationResult(STATE_EXTERNAL_VERIFICATION_REQUIRED, (attempt,))
+        return None, OperationResult(STATE_EXTERNAL_VERIFICATION_REQUIRED, tuple(attempts), retried=len(attempts) > 1)
     sha: str | None = None
     for line in result.stdout.splitlines():
         parsed = _parse_ref_line(line)
@@ -335,8 +341,14 @@ def verify_ref(
             sha = parsed[0]
             break
     if sha is None:
-        return None, OperationResult(STATE_REMOTE_REF_MISSING, (attempt,))
-    return sha, OperationResult(STATE_INVENTORY_SUCCEEDED, (attempt,), remote_sha=sha)
+        return None, OperationResult(STATE_REMOTE_REF_MISSING, tuple(attempts), retried=len(attempts) > 1)
+    return sha, OperationResult(
+        STATE_INVENTORY_SUCCEEDED,
+        tuple(attempts),
+        remote_sha=sha,
+        resolution_state=STATE_SAFE_RETRY_ALLOWED if len(attempts) > 1 else None,
+        retried=len(attempts) > 1,
+    )
 
 
 def _push_command(
@@ -391,7 +403,13 @@ def push_ref(
         return OperationResult(STATE_PUSH_FAILED, tuple(attempts))
 
     _backoff(backoff_seconds)
-    remote_sha, verification = verify_ref(repo, ref, remote=remote, runner=run)
+    remote_sha, verification = verify_ref(
+        repo,
+        ref,
+        remote=remote,
+        runner=run,
+        backoff_seconds=backoff_seconds,
+    )
     attempts.extend(verification.attempts)
     if remote_sha == expected_new_sha:
         return OperationResult(
@@ -428,7 +446,13 @@ def push_ref(
             retried=True,
         )
 
-    final_sha, final_verification = verify_ref(repo, ref, remote=remote, runner=run)
+    final_sha, final_verification = verify_ref(
+        repo,
+        ref,
+        remote=remote,
+        runner=run,
+        backoff_seconds=backoff_seconds,
+    )
     attempts.extend(final_verification.attempts)
     if final_sha == expected_new_sha:
         return OperationResult(
