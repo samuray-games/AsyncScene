@@ -9077,3 +9077,11 @@ Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from mai
 - `TASK-INFRA-POST-R2-CANONICAL-REALIGNMENT-20260719` — status: COMPLETE; terminal: `PASS_POST_R2_CANONICAL_REALIGNMENT`.
 - `TASK-INFRA-POST-R2-REPOSITORY-MEMORY-CLOSURE-20260719` — status: COMPLETE; terminal: `PASS_POST_R2_REPOSITORY_MEMORY_CLOSURE_COMPLETE`; PR #236 integrated by squash merge to `eda96655f561f1479873392c8b7101393aa09f33`.
 - `TASK-INFRA-GITHUB-TRANSPORT-RESILIENCE` — status: READY_NEXT; memory closure prerequisite satisfied; task not started.
+
+## 2026-07-20 — Post-transport-resilience repository memory closure
+
+- `TASK-INFRA-GITHUB-TRANSPORT-RESILIENCE` — status: COMPLETE; PR #238 squash-merged into accepted `main` at `c99d8cebdcf9c36ecf09c05be9eb746b6bb7b699`; transport resilience helper and publisher integration are now part of accepted main.
+- Known selector regression fixture mismatch (`1.0.13` versus current authority `1.0.16`) remains pre-existing and unrelated; no new task is inferred from it.
+- `TASK-INFRA-POST-TRANSPORT-RESILIENCE-MEMORY-CLOSURE-20260720` — status: DRAFT_PR_READY_FOR_REVIEW; tracked memory records the accepted main and merged transport-resilience task without changing implementation files.
+- Runtime and Stage 6 remain STOPPED. R2 recovery artifacts remain preserved.
+- NEXT_ACTION: review and integrate `TASK-INFRA-POST-TRANSPORT-RESILIENCE-MEMORY-CLOSURE-20260720` from branch `infra/post-transport-resilience-memory-closure-20260720`; do not resume Stage 6 or runtime automatically.
