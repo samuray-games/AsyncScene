@@ -39,6 +39,9 @@ window.Game = window.Game || {};
   }
 
   const ONBOARDING_SEEN_STORAGE_KEY = "AsyncScene_onboarding_seen_v1";
+  const UI_PROFILE_STORAGE_KEY = "AsyncScene_ui_profile_v1";
+  const UI_PROFILE_FALLBACK = "millennial";
+  const UI_PROFILE_SUPPORTED_FALLBACK = Object.freeze(["default", "millennial", "boomer", "zoomer", "alpha"]);
 
   function getStorage(){
     try {
@@ -68,6 +71,67 @@ window.Game = window.Game || {};
     } catch (_) {
       return false;
     }
+  }
+
+  function getSupportedUiProfileIds(){
+    const registry = Game && Game.Data && Game.Data.UI_PROFILE_REGISTRY;
+    const configured = registry && Array.isArray(registry.supported) ? registry.supported : UI_PROFILE_SUPPORTED_FALLBACK;
+    const supported = new Set();
+    configured.forEach((value) => {
+      const normalized = String(value == null ? "" : value).trim().toLowerCase();
+      if (normalized) supported.add(normalized);
+    });
+    supported.add(UI_PROFILE_FALLBACK);
+    return supported;
+  }
+
+  function normalizePersistedUiProfile(value){
+    const normalized = String(value == null ? "" : value).trim().toLowerCase();
+    return getSupportedUiProfileIds().has(normalized) ? normalized : UI_PROFILE_FALLBACK;
+  }
+
+  function ensureSaveContainer(){
+    if (!State.save || typeof State.save !== "object" || Array.isArray(State.save)) State.save = {};
+    return State.save;
+  }
+
+  function readPersistedUiProfile(){
+    const storage = getStorage();
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(UI_PROFILE_STORAGE_KEY);
+      if (raw === null) return null;
+      const normalized = normalizePersistedUiProfile(raw);
+      if (raw !== normalized) {
+        try { storage.setItem(UI_PROFILE_STORAGE_KEY, normalized); } catch (_) {}
+      }
+      return normalized;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writePersistedUiProfile(value){
+    const normalized = normalizePersistedUiProfile(value);
+    const save = ensureSaveContainer();
+    save.uiProfile = normalized;
+    const storage = getStorage();
+    if (storage) {
+      try { storage.setItem(UI_PROFILE_STORAGE_KEY, normalized); } catch (_) {}
+    }
+    return normalized;
+  }
+
+  function restorePersistedUiProfile(){
+    const persisted = readPersistedUiProfile();
+    if (persisted !== null) {
+      ensureSaveContainer().uiProfile = persisted;
+      return persisted;
+    }
+    const legacy = State.save && typeof State.save === "object" && typeof State.save.uiProfile === "string"
+      ? State.save.uiProfile
+      : null;
+    return legacy === null ? null : writePersistedUiProfile(legacy);
   }
 
   function ensureProgressOnboardingSeen(){
@@ -2159,6 +2223,7 @@ window.Game = window.Game || {};
 
   const State = {
     isStarted: false,
+    save: {},
 
     // NPC runtime state
     npc: {
@@ -2319,6 +2384,7 @@ window.Game = window.Game || {};
 };
 
   State.provocationCooldowns = State.battleProvocationCooldowns;
+  restorePersistedUiProfile();
 
   guardPointsObject(State.me, "State.me.points");
   let _stateRepValue = Number.isFinite(State.rep) ? (State.rep | 0) : 0;
@@ -4747,6 +4813,12 @@ window.Game = window.Game || {};
     getOnboardingSeen: () => ensureProgressOnboardingSeen(),
     setOnboardingSeen: (value) => setOnboardingSeen(value),
     resetOnboardingSeen: () => setOnboardingSeen(false),
+
+    getUiProfileStorageKey: () => UI_PROFILE_STORAGE_KEY,
+    normalizePersistedUiProfile: (value) => normalizePersistedUiProfile(value),
+    readPersistedUiProfile: () => readPersistedUiProfile(),
+    writePersistedUiProfile: (value) => writePersistedUiProfile(value),
+    restorePersistedUiProfile: () => restorePersistedUiProfile(),
 
     getNpcState: () => State.npc,
     setNpcCooldowns: ({ chatMs, actionMs }) => {
