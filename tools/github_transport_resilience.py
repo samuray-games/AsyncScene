@@ -411,6 +411,18 @@ def push_ref(
         backoff_seconds=backoff_seconds,
     )
     attempts.extend(verification.attempts)
+    if verification.state == STATE_EXTERNAL_VERIFICATION_REQUIRED:
+        return OperationResult(
+            STATE_EXTERNAL_VERIFICATION_REQUIRED,
+            tuple(attempts),
+            resolution_state=STATE_EXTERNAL_VERIFICATION_REQUIRED,
+        )
+    if verification.state == STATE_REMOTE_REF_MISSING:
+        return OperationResult(
+            STATE_BLOCKED_REMOTE_MOVED,
+            tuple(attempts),
+            resolution_state=STATE_BLOCKED_REMOTE_MOVED,
+        )
     if remote_sha == expected_new_sha:
         return OperationResult(
             STATE_AMBIGUOUS_PUSH_RESOLVED_SUCCESS,
@@ -454,6 +466,13 @@ def push_ref(
         backoff_seconds=backoff_seconds,
     )
     attempts.extend(final_verification.attempts)
+    if final_verification.state == STATE_EXTERNAL_VERIFICATION_REQUIRED:
+        return OperationResult(
+            STATE_EXTERNAL_VERIFICATION_REQUIRED,
+            tuple(attempts),
+            resolution_state=STATE_EXTERNAL_VERIFICATION_REQUIRED,
+            retried=True,
+        )
     if final_sha == expected_new_sha:
         return OperationResult(
             STATE_AMBIGUOUS_PUSH_RESOLVED_SUCCESS,
@@ -462,7 +481,7 @@ def push_ref(
             resolution_state=STATE_AMBIGUOUS_PUSH_RESOLVED_SUCCESS,
             retried=True,
         )
-    if final_sha != expected_old_sha:
+    if final_verification.state == STATE_REMOTE_REF_MISSING or final_sha != expected_old_sha:
         return OperationResult(
             STATE_BLOCKED_REMOTE_MOVED,
             tuple(attempts),

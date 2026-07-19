@@ -106,8 +106,68 @@ class FetchTests(unittest.TestCase):
         self.assertTrue(result.retried)
         self.assertIn("http.version=HTTP/1.1", runner.calls[1])
 
+    def test_missing_ref_is_distinct_from_verification_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            missing_runner = FakeRunner([transport.CommandResult((), 0, "", "")])
+            missing_sha, missing = transport.verify_ref(directory, "refs/heads/missing", runner=missing_runner, backoff_seconds=0)
+            unavailable_runner = FakeRunner([
+                failed("Recv failure: Connection reset by peer"),
+                failed("TLS handshake timeout"),
+            ])
+            unavailable_sha, unavailable = transport.verify_ref(directory, "refs/heads/missing", runner=unavailable_runner, backoff_seconds=0)
+        self.assertIsNone(missing_sha)
+        self.assertEqual(missing.state, transport.STATE_REMOTE_REF_MISSING)
+        self.assertIsNone(unavailable_sha)
+        self.assertEqual(unavailable.state, transport.STATE_EXTERNAL_VERIFICATION_REQUIRED)
+
 
 class PushSafetyTests(unittest.TestCase):
+    def test_initial_verification_unavailable_propagates_without_retry(self) -> None:
+        old, new = "a" * 40, "b" * 40
+        runner = FakeRunner([
+            failed("Recv failure: Connection reset by peer"),
+            failed("Recv failure: Connection reset by peer"),
+            failed("TLS handshake timeout"),
+        ])
+        with tempfile.TemporaryDirectory() as directory:
+            result = transport.push_ref(
+                directory,
+                remote="origin",
+                source="HEAD",
+                ref="refs/heads/main",
+                expected_old_sha=old,
+                expected_new_sha=new,
+                runner=runner,
+                backoff_seconds=0,
+            )
+        self.assertEqual(result.state, transport.STATE_EXTERNAL_VERIFICATION_REQUIRED)
+        self.assertNotEqual(result.state, transport.STATE_BLOCKED_REMOTE_MOVED)
+        self.assertEqual(len([call for call in runner.calls if "push" in call]), 1)
+
+    def test_final_verification_unavailable_propagates_without_third_push(self) -> None:
+        old, new = "a" * 40, "b" * 40
+        runner = FakeRunner([
+            failed("Recv failure: Connection reset by peer"),
+            transport.CommandResult((), 0, f"{old} refs/heads/main\n", ""),
+            failed("TLS handshake timeout"),
+            failed("Recv failure: Connection reset by peer"),
+            failed("TLS handshake timeout"),
+        ])
+        with tempfile.TemporaryDirectory() as directory:
+            result = transport.push_ref(
+                directory,
+                remote="origin",
+                source="HEAD",
+                ref="refs/heads/main",
+                expected_old_sha=old,
+                expected_new_sha=new,
+                runner=runner,
+                backoff_seconds=0,
+            )
+        self.assertEqual(result.state, transport.STATE_EXTERNAL_VERIFICATION_REQUIRED)
+        self.assertNotEqual(result.state, transport.STATE_BLOCKED_REMOTE_MOVED)
+        self.assertEqual(len([call for call in runner.calls if "push" in call]), 2)
+
     def test_ambiguous_push_resolves_success_when_remote_is_new_sha(self) -> None:
         old, new = "a" * 40, "b" * 40
         runner = FakeRunner([failed("Recv failure: Connection reset by peer"), transport.CommandResult((), 0, f"{new} refs/heads/main\n", "")])
