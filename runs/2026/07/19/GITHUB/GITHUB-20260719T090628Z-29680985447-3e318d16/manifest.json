@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "recovery/alpha-forensics-history-remediation-r2-20260719",
+  "createdAtJst": "2026-07-19 18:06:28 JST",
+  "createdAtUtc": "2026-07-19T09:06:28Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T090628Z-29680985447-3e318d16",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T090628Z-29680985447-3e318d16",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
