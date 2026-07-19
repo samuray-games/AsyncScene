@@ -11,7 +11,7 @@ Immutable completion record.
 - Automated forensics branch causal closure: 9-of-9.
 - Canonical local realignment: `PASS_POST_R2_CANONICAL_REALIGNMENT`.
 - Recovery bundle SHA-256: `b9137274b662e5a7328e2f8b6b6981c16e0b0a2dc01a324a6c527c0dfab56b07`.
-- Protective local ref: `refs/asynchronia/backups/post-r2-local-main-a89d13c59163cba8bdfb5f83ddceb7107339882`.
+- Protective local ref: `refs/asynchronia/backups/post-r2-local-main-a89d13c59163cba8bdfb5b5f83ddceb7107339882`.
 - Provider-side physical unreachable-object/cache purge: not claimed; not required for ref-reachability acceptance.
 - Stage 6 remained stopped throughout.
 - No runtime or gameplay mutation occurred.
