@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/selector-visible-matrix-20260717",
+  "createdAtJst": "2026-07-19 18:01:44 JST",
+  "createdAtUtc": "2026-07-19T09:01:44Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T090144Z-29680843801-f3b55100",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T090144Z-29680843801-f3b55100",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
