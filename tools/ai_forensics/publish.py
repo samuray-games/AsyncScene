@@ -16,10 +16,12 @@ from typing import Any
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools import github_transport_resilience  # type: ignore[import-not-found]
     from tools.ai_forensics import package as package_builder  # type: ignore[import-not-found]
     from tools.ai_forensics import schema  # type: ignore[import-not-found]
     from tools.ai_forensics.redact import sanitize_json_compatible, sanitize_text  # type: ignore[import-not-found]
 else:
+    from tools import github_transport_resilience
     from . import package as package_builder
     from . import schema
     from .redact import sanitize_json_compatible, sanitize_text
@@ -349,9 +351,13 @@ def _prepare_publication_repo(
         if local_ref_check.returncode == 0:
             _run(["git", "fetch", "--no-tags", bootstrap_path, local_ref], cwd=temp_root)
         else:
-            _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
+            fetch_result = github_transport_resilience.fetch_exact_refs(temp_root, [branch], depth=1)
+            if fetch_result.state != github_transport_resilience.STATE_FETCH_SUCCEEDED:
+                raise RuntimeError(github_transport_resilience.result_json(fetch_result))
     else:
-        _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
+        fetch_result = github_transport_resilience.fetch_exact_refs(temp_root, [branch], depth=1)
+        if fetch_result.state != github_transport_resilience.STATE_FETCH_SUCCEEDED:
+            raise RuntimeError(github_transport_resilience.result_json(fetch_result))
     _run(["git", "checkout", "-B", "publish", "FETCH_HEAD"], cwd=temp_root)
     _run(["git", "config", "user.name", "Codex"], cwd=temp_root)
     _run(["git", "config", "user.email", "codex@local.invalid"], cwd=temp_root)
@@ -381,18 +387,33 @@ def _commit_package(temp_root: Path, run_id: str, package_path: str) -> str:
 
 
 def _push_package(temp_root: Path, branch: str) -> tuple[bool, str]:
-    completed = _run(
-        ["git", "push", "origin", f"HEAD:{branch}"],
-        cwd=temp_root,
-        check=False,
+    expected_old_sha = _run(["git", "rev-parse", "FETCH_HEAD"], cwd=temp_root).stdout.strip()
+    expected_new_sha = _run(["git", "rev-parse", "HEAD"], cwd=temp_root).stdout.strip()
+    result = github_transport_resilience.push_ref(
+        temp_root,
+        remote="origin",
+        source="HEAD",
+        ref=branch,
+        expected_old_sha=expected_old_sha,
+        expected_new_sha=expected_new_sha,
     )
-    if completed.returncode == 0:
-        return True, completed.stdout + completed.stderr
-    if "non-fast-forward" in completed.stderr or "[rejected]" in completed.stderr:
+    if result.state in {
+        github_transport_resilience.STATE_PUSH_SUCCEEDED,
+        github_transport_resilience.STATE_AMBIGUOUS_PUSH_RESOLVED_SUCCESS,
+    }:
+        return True, github_transport_resilience.result_json(result)
+    if any(
+        marker in attempt.stderr.lower()
+        for attempt in result.attempts
+        for marker in ("non-fast-forward", "[rejected]")
+    ):
         return False, "NON_FAST_FORWARD"
-    if "Authentication failed" in completed.stderr or "permission denied" in completed.stderr.lower():
-        raise PermissionError(completed.stderr.strip())
-    raise RuntimeError(completed.stderr.strip() or completed.stdout.strip())
+    if any(
+        "authentication failed" in attempt.stderr.lower() or "permission denied" in attempt.stderr.lower()
+        for attempt in result.attempts
+    ):
+        raise PermissionError(next(attempt.stderr for attempt in result.attempts if attempt.stderr))
+    raise RuntimeError(github_transport_resilience.result_json(result))
 
 
 def _remote_package_commit_if_identical(temp_root: Path, package_path: str, run_dir: Path) -> str | None:
@@ -423,7 +444,9 @@ def _remote_package_commit_if_identical(temp_root: Path, package_path: str, run_
 
 
 def _verify_remote_package(temp_root: Path, branch: str, package_path: str, run_dir: Path) -> None:
-    _run(["git", "fetch", "--depth", "1", "--no-tags", "origin", branch], cwd=temp_root)
+    fetch_result = github_transport_resilience.fetch_exact_refs(temp_root, [branch], depth=1)
+    if fetch_result.state != github_transport_resilience.STATE_FETCH_SUCCEEDED:
+        raise RuntimeError(github_transport_resilience.result_json(fetch_result))
     if not _remote_package_commit_if_identical(temp_root, package_path, run_dir):
         raise RuntimeError(f"remote verification mismatch for {package_path}")
 
