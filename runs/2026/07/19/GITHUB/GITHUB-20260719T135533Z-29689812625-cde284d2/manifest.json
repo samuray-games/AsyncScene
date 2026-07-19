@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/post-r2-repository-memory-closure-20260719",
+  "createdAtJst": "2026-07-19 22:55:33 JST",
+  "createdAtUtc": "2026-07-19T13:55:33Z",
+  "packagePath": "runs/2026/07/19/GITHUB/GITHUB-20260719T135533Z-29689812625-cde284d2",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260719T135533Z-29689812625-cde284d2",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
