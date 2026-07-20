@@ -1,0 +1,106 @@
+{
+  "branch": "codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "2e360a6137f8b15e28c004a66afc7ed320ce7024\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2e360a6137f8b15e28c004a66afc7ed320ce7024\n# branch.head codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215\n# branch.upstream origin/codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "2e360a61 (HEAD -> codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215, origin/main, origin/codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215) Close repository memory after PR 245 (#246)\n5e82e587 Apply Stage 6 Alpha frozen copy (#245)\ne74a51bd Stage 6: close repository memory after PR 243 (#244)\nbb1b383f Stage 6: repair shared dev-check/index conflict markers (#243)\nfdf50cdb Sync repository memory to Notion 1649 (#242)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2e360a6137f8b15e28c004a66afc7ed320ce7024\nbranch refs/heads/codex/post-alpha-safari-pass-repository-memory-closure-20260721-0215\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T17:26:02Z",
+      "stderr": "",
+      "stdout": "2e360a6137f8b15e28c004a66afc7ed320ce7024\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2e360a6137f8b15e28c004a66afc7ed320ce7024",
+  "observedAtUtc": "2026-07-20T17:26:02Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
