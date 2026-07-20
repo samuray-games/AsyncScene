@@ -1,11 +1,11 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-07-20-2154-JST
-NOTION_MEMORY_REV: 2026-07-20-2154-JST
+REPO_MEMORY_REV: 2026-07-21-0147-JST
+NOTION_MEMORY_REV: 2026-07-21-0147-JST
 CURRENT_MAIN_REF: origin/main
-ACCEPTED_IMPLEMENTATION_HEAD: bb1b383f88bce5e22bed116fd195edb6a0a6c58b
-ROOT_STATUS: POST_PR243_REPOSITORY_MEMORY_CLOSURE_COMPLETE
-CURRENT_STATUS: POST_PR243_REPOSITORY_MEMORY_CLOSURE_COMPLETE
+ACCEPTED_IMPLEMENTATION_HEAD: 5e82e587241a180f44814cdfe7445da015c136dc
+ROOT_STATUS: POST_PR245_REPOSITORY_MEMORY_CLOSURE_COMPLETE
+CURRENT_STATUS: POST_PR245_REPOSITORY_MEMORY_CLOSURE_COMPLETE
 R2_HISTORY_REMEDIATION: COMPLETE / PASS_ALPHA_FORENSICS_HISTORY_REMEDIATION_R2_REFS_REWRITTEN_VERIFIED
 POST_R2_CANONICAL_REALIGNMENT: COMPLETE / PASS_POST_R2_CANONICAL_REALIGNMENT
 POST_R2_REPOSITORY_MEMORY_CLOSURE: COMPLETE / PASS_POST_R2_REPOSITORY_MEMORY_CLOSURE_COMPLETE
@@ -22,6 +22,11 @@ PR_243_MERGE_COMMIT: bb1b383f88bce5e22bed116fd195edb6a0a6c58b
 PR_243_INTEGRATION: COMPLETE / SHARED_DEV_CHECK_INDEX_CONFLICT_MARKER_REPAIR
 REPOSITORY_MEMORY_SYNC_20260720_1649: COMPLETE / CLOSED
 POST_PR243_REPOSITORY_MEMORY_CLOSURE: COMPLETE / CLOSED
+PR_245_REVIEWED_HEAD: 547ed5d5c8d3e7395b7d8a2cd8c60cfbe3608694
+PR_245_MERGE_COMMIT: 5e82e587241a180f44814cdfe7445da015c136dc
+PR_245_INTEGRATION: COMPLETE / STAGE6_ALPHA_FROZEN_COPY_IMPLEMENTATION
+PR_245_RUNTIME_PATHS: AsyncScene/Web/data.js; docs/data.js; AsyncScene/Web/system.js; docs/system.js
+POST_PR245_REPOSITORY_MEMORY_CLOSURE: COMPLETE / CLOSED
 BRIDGE_V4_REAL_PROFILE_REPAIR: COMPLETE / BACKEND_CONTROL_PLANE_INTEGRATED
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
 REPOSITORY_PLUGIN_VERSION: 1.0.16
@@ -32,16 +37,16 @@ SELECTOR_SNAPSHOT_REVISION: 20260718.1
 MODEL_INVENTORY: 3 models / 15 model-effort pairs
 CURRENT_FORENSICS_AI_RUN: 22534687693fe56394912b0abbcfb595f529abde
 CONTAMINATED_CURRENT_REF_REACHABILITY: 0
-STAGE_6: READY_FOR_ALPHA_FROZEN_COPY_IMPLEMENTATION
+STAGE_6: ALPHA_FROZEN_COPY_INTEGRATED / SAFARI_PENDING
 RUNTIME: STOPPED
-STAGE_6_PRODUCT_IMPLEMENTATION: NOT_STARTED
-ALPHA_STAGE6_IMPLEMENTATION: NOT_STARTED
+STAGE_6_PRODUCT_IMPLEMENTATION: STARTED
+ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
 SAFARI_RUNTIME_SMOKE: PENDING_USER
 USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
 USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
 TRANSPORT_RESILIENCE: COMPLETE / PASS_TRANSPORT_RESILIENCE_INTEGRATED_PR_238
-NEXT_ACTION: TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION
+NEXT_ACTION: USER_SAFARI_RUNTIME_SMOKE_STAGE6_ALPHA_FROZEN_COPY
 
 ## Canonical cross-chat bootstrap
 
@@ -51,6 +56,6 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-2154-JST`. PR #243 is verified integrated as the prerequisite shared dev-check/index conflict-marker repair: reviewed remote head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit/current main `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`. The post-PR243 repository-memory closure is complete/closed and does not require a recursive closure task. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 product implementation and Alpha implementation remain `NOT_STARTED`; Safari runtime smoke remains `PENDING_USER`; durable next action is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-21-0147-JST`. PR #245 is verified integrated as the Stage 6 Alpha frozen-copy implementation: reviewed head `547ed5d5c8d3e7395b7d8a2cd8c60cfbe3608694`, merge commit/current main `5e82e587241a180f44814cdfe7445da015c136dc`, runtime paths `AsyncScene/Web/data.js`, `docs/data.js`, `AsyncScene/Web/system.js`, and `docs/system.js`. The post-PR245 repository-memory closure is complete/closed and does not require a recursive closure task. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; Safari runtime smoke remains `PENDING_USER`; durable next action is `USER_SAFARI_RUNTIME_SMOKE_STAGE6_ALPHA_FROZEN_COPY`.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.
