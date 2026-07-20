@@ -61,7 +61,7 @@ def main() -> int:
         failures.append("legacy home-directory state path remains")
 
     required_bridge = (
-        'PROFILE_VERSION = "BRIDGE_TASK_PROFILE_1"',
+        'PROFILE_VERSION = "BRIDGE_TASK_PROFILE_2"',
         '"NO_MAIN_DELTA_TRANSPORT_CANARY"',
         "selected branch must be",
         "origin/main head",
