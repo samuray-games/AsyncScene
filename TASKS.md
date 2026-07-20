@@ -1,3 +1,16 @@
+## 2026-07-21 - Post-Alpha Safari pass repository memory closure
+- Status: complete/closed.
+- User-executed Safari acceptance for the dedicated Stage 6 Alpha frozen-copy runtime matrix passed with active profile `alpha`.
+- Stage 6 Alpha frozen-copy runtime matrix result: `ok:true`, `failures:[]`.
+- PR #246 bookkeeping closure integrated to main `2e360a6137f8b15e28c004a66afc7ed320ce7024` with reviewed head `be4f8fdb5f84a1a4f07fac270a87cf811be71b18`; accepted implementation head remains `5e82e587241a180f44814cdfe7445da015c136dc`.
+- Legacy Alpha Step 4.3.x suite failed due stale historical contract drift, classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: OPEN`.
+- Current canonical counts 174 / 152 / 206 differ from historical aggregate counts 164 / 122 / 187.
+- Stage 6 product implementation remains `STARTED`, Alpha frozen copy remains `COMPLETE / INTEGRATED`, and Stage 6 overall is `NOT COMPLETE`.
+- Live Notion and tracked repository memory revision: `2026-07-21-0215-JST`.
+- Conversational `мост 1`, `мост 2`, `мост 3` mean Slot 1, Slot 2, Slot 3 and are not invocations of the retired literal short command interface unless explicitly stated otherwise.
+- This closure is complete/closed and does not require recursive memory closure.
+- NEXT_ACTION: `TASK-STAGE6-ALPHA-LEGACY-SMOKE-CONTRACT-REALIGNMENT-20260721`.
+
 ## 2026-07-21 - Post-PR245 repository memory closure
 - Status: complete/closed.
 - PR #245 `Stage 6: apply Alpha frozen copy` integrated to main `5e82e587241a180f44814cdfe7445da015c136dc`.
