@@ -1,0 +1,106 @@
+{
+  "branch": "codex/post-pr243-repository-memory-closure-20260720-1957",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "codex/post-pr243-repository-memory-closure-20260720-1957\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "bb1b383f88bce5e22bed116fd195edb6a0a6c58b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "# branch.oid bb1b383f88bce5e22bed116fd195edb6a0a6c58b\n# branch.head codex/post-pr243-repository-memory-closure-20260720-1957\n# branch.upstream origin/codex/post-pr243-repository-memory-closure-20260720-1957\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "bb1b383f (HEAD -> codex/post-pr243-repository-memory-closure-20260720-1957, origin/main, origin/codex/post-pr243-repository-memory-closure-20260720-1957) Stage 6: repair shared dev-check/index conflict markers (#243)\nfdf50cdb Sync repository memory to Notion 1649 (#242)\n92db49b0 Close post-PR-240 repository memory (#241)\nd9a7e1b9 Repair Bridge v4 real task profile execution (#240)\n47443f41 docs: close post-transport-resilience memory (#239)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bb1b383f88bce5e22bed116fd195edb6a0a6c58b\nbranch refs/heads/codex/post-pr243-repository-memory-closure-20260720-1957\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T11:49:38Z",
+      "stderr": "",
+      "stdout": "bb1b383f88bce5e22bed116fd195edb6a0a6c58b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bb1b383f88bce5e22bed116fd195edb6a0a6c58b",
+  "observedAtUtc": "2026-07-20T11:49:38Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
