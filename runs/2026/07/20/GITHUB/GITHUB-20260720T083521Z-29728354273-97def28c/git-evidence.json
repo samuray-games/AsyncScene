@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "b9b0ef82f4ac334c4c67de18ae6650c88eddd5b7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid b9b0ef82f4ac334c4c67de18ae6650c88eddd5b7\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "b9b0ef82 (HEAD, pull/242/merge) Merge ccb24cfb47007b809a70cf1572f6d9db3c25adbd into 92db49b0249e9b87e04bb87ea8123cda5833dd95\nccb24cfb (origin/codex/repository-memory-sync-20260720-1649) Correct memory sync implementation head\n76b22c28 Sync repository memory to Notion 1649\n92db49b0 (origin/main) Close post-PR-240 repository memory (#241)\nd9a7e1b9 Repair Bridge v4 real task profile execution (#240)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b9b0ef82f4ac334c4c67de18ae6650c88eddd5b7\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T08:35:21Z",
+      "stderr": "",
+      "stdout": "92db49b0249e9b87e04bb87ea8123cda5833dd95\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b9b0ef82f4ac334c4c67de18ae6650c88eddd5b7",
+  "observedAtUtc": "2026-07-20T08:35:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
