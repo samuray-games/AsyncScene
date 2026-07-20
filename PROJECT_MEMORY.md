@@ -3,8 +3,7 @@
 REPO_MEMORY_REV: 2026-07-20-1649-JST
 NOTION_MEMORY_REV: 2026-07-20-1649-JST
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA: 92db49b0249e9b87e04bb87ea8123cda5833dd95
-ACCEPTED_IMPLEMENTATION_HEAD: e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a
+ACCEPTED_IMPLEMENTATION_HEAD: d9a7e1b954e5f122a1621785e2176d93b697873f
 ROOT_STATUS: REPOSITORY_MEMORY_SYNC_20260720_1649_COMPLETE
 CURRENT_STATUS: REPOSITORY_MEMORY_SYNC_20260720_1649_COMPLETE
 R2_HISTORY_REMEDIATION: COMPLETE / PASS_ALPHA_FORENSICS_HISTORY_REMEDIATION_R2_REFS_REWRITTEN_VERIFIED
@@ -14,7 +13,9 @@ PR_236_INTEGRATION: COMPLETE / squash merge to eda96655f561f1479873392c8b7101393
 PR_238_INTEGRATION: COMPLETE / squash merge to c99d8cebdcf9c36ecf09c05be9eb746b6bb7b699
 PR_240_INTEGRATION: COMPLETE / squash merge to d9a7e1b954e5f122a1621785e2176d93b697873f
 PR_241_REVIEWED_HEAD: e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a
-PR_241_INTEGRATION: COMPLETE / squash merge to 92db49b0249e9b87e04bb87ea8123cda5833dd95
+PR_241_MERGE_COMMIT: 92db49b0249e9b87e04bb87ea8123cda5833dd95
+PR_241_INTEGRATION: COMPLETE / memory-task bookkeeping only / squash merge to 92db49b0249e9b87e04bb87ea8123cda5833dd95
+PR_242_BASE: 92db49b0249e9b87e04bb87ea8123cda5833dd95
 REPOSITORY_MEMORY_SYNC_20260720_1649: COMPLETE / CLOSED
 BRIDGE_V4_REAL_PROFILE_REPAIR: COMPLETE / BACKEND_CONTROL_PLANE_INTEGRATED
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
@@ -42,6 +43,6 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-1649-JST`. PR #241 is verified merged: reviewed head `e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a`, merge/current main `92db49b0249e9b87e04bb87ea8123cda5833dd95`. This memory sync is complete/closed and does not require a recursive closure task.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-1649-JST`. PR #241 is verified merged as memory/task bookkeeping only: reviewed head `e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a`, merge commit and PR #242 base `92db49b0249e9b87e04bb87ea8123cda5833dd95`. The accepted implementation head remains PR #240 merge `d9a7e1b954e5f122a1621785e2176d93b697873f`. This memory sync is complete/closed and does not require a recursive closure task.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.
