@@ -1,3 +1,16 @@
+## 2026-07-21 - Post-PR245 repository memory closure
+- Status: complete/closed.
+- PR #245 `Stage 6: apply Alpha frozen copy` integrated to main `5e82e587241a180f44814cdfe7445da015c136dc`.
+- Reviewed head: `547ed5d5c8d3e7395b7d8a2cd8c60cfbe3608694`.
+- Exact runtime paths integrated: `AsyncScene/Web/data.js`, `docs/data.js`, `AsyncScene/Web/system.js`, `docs/system.js`.
+- Blob identities: system.js mirror pair `f165b22fd3ec67d45f7ab15790b3d91db8606305`; data.js mirror pair `1ef08b25f72456f7f4700b62c90d747bf3c71d07`.
+- Live Notion and tracked repository memory revision: `2026-07-21-0147-JST`.
+- Alpha frozen-copy implementation is complete/integrated; Stage 6 overall is not complete.
+- Safari runtime smoke remains `PENDING_USER`.
+- Conversational `мост 1`, `мост 2`, `мост 3` mean Slot 1, Slot 2, Slot 3 and are not invocations of the retired literal short command interface unless explicitly stated otherwise.
+- This closure is complete/closed and does not require recursive memory closure.
+- NEXT_ACTION: `USER_SAFARI_RUNTIME_SMOKE_STAGE6_ALPHA_FROZEN_COPY`.
+
 ## 2026-07-20 - Post-PR243 repository memory closure
 - Status: complete/closed.
 - PR #243 prerequisite repair integrated to main `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`.
