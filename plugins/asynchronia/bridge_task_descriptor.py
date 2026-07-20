@@ -7,14 +7,13 @@ import json
 import re
 import subprocess
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Callable, Mapping
 
 from .model_selector import AuthorizationError, TaskDescriptionError
 
 HEADER_RE = re.compile(r"^(?P<key>[A-Z][A-Z0-9_]*):\s*(?P<value>.*)$")
 PROFILE_VERSION = "BRIDGE_TASK_PROFILE_1"
-RESERVED_BRIDGE_TASK_TYPES = frozenset({"NO_MAIN_DELTA_TRANSPORT_CANARY", "BRIDGE_TRANSPORT_CANARY"})
 
 NO_MAIN_DELTA_PROFILE: dict[str, str] = {
     "runtimeSensitivity": "low",
@@ -40,6 +39,48 @@ NO_MAIN_DELTA_REASONS: dict[str, str] = {
     "concurrencyBranchRisk": "The task must prove that two independent mailbox refs did not move while publishing one slot.",
 }
 
+STAGE_6_TASK_PROFILE: dict[str, str] = {
+    "runtimeSensitivity": "high",
+    "architectureImpact": "high",
+    "securityImpact": "high",
+    "economyImpact": "medium",
+    "releaseImpact": "medium",
+    "validationComplexity": "high",
+    "expectedImplementationSize": "medium",
+    "ambiguityNovelty": "medium",
+    "concurrencyBranchRisk": "critical",
+}
+
+STAGE_6_TASK_REASONS: dict[str, str] = {
+    "runtimeSensitivity": "The issuing authority explicitly names a Stage 6 task lane; runtime semantics remain outside this descriptor.",
+    "architectureImpact": "The registered profile may change project-owned files while preserving bridge identity and branch isolation.",
+    "securityImpact": "The task still requires same-thread model authorization and cannot write main or mailbox control-plane files.",
+    "economyImpact": "The bridge layer does not infer economy behavior; the authority-owned scope is the only project surface admitted.",
+    "releaseImpact": "The task is a project implementation lane and does not itself publish product release artifacts.",
+    "validationComplexity": "Acceptance requires selector identity, exact scope, branch lineage, continuation, and task-local validation evidence.",
+    "expectedImplementationSize": "The authority-owned write scope determines the implementation surface; the registered profile uses the medium-size class.",
+    "ambiguityNovelty": "Only the exact registered profile and authority-supplied objective and scopes are accepted.",
+    "concurrencyBranchRisk": "Stage 6 lanes require dedicated bridge/<slot>/<thread-id> branches and collision-free slot-local execution.",
+}
+
+REGISTERED_REAL_BRIDGE_PROFILES: dict[str, dict[str, object]] = {
+    "STAGE_6_TASK_LANE": {
+        "task": STAGE_6_TASK_PROFILE,
+        "reasons": STAGE_6_TASK_REASONS,
+        "runtimeScope": "STAGE_6_TASK_LANE",
+        "affectedSystems": ["bridge-control-plane-authorization", "task-branch-execution", "stage-6-lane-isolation"],
+    },
+}
+
+REGISTERED_BRIDGE_TASK_TYPES = frozenset(
+    {"NO_MAIN_DELTA_TRANSPORT_CANARY", "BRIDGE_TRANSPORT_CANARY", *REGISTERED_REAL_BRIDGE_PROFILES}
+)
+RESERVED_BRIDGE_TASK_TYPES = REGISTERED_BRIDGE_TASK_TYPES
+BRIDGE_TASK_TYPE_PREFIXES = ("BRIDGE_", "STAGE_6_")
+COMPLETED_EPOCH_STATUSES = frozenset(
+    {"COMPLETED", "PASS_TASK_BRANCH_PUSHED", "PASS_VERIFIED_NO_DELTA", "ACCEPTED", "DONE"}
+)
+
 
 @dataclass(frozen=True)
 class BridgeTaskDescriptor:
@@ -62,7 +103,7 @@ class BridgeTaskDescriptor:
             "deterministic task classification:",
         ]
         reasons = self.evidence["classificationReasons"]
-        for field in NO_MAIN_DELTA_PROFILE:
+        for field in reasons:
             lines.append(f"- {field}: {self.task[field]}; reason={reasons[field]}")
         return "\n".join(lines)
 
@@ -107,6 +148,24 @@ def _canonical_hash(value: object) -> str:
     return "sha256:" + hashlib.sha256(encoded).hexdigest()
 
 
+def _same_scope(field: str, sources: Mapping[str, Mapping[str, str]]) -> list[str]:
+    raw = _same(field, sources)
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise TaskDescriptionError(f"{field} must be a JSON array") from exc
+    if not isinstance(parsed, list) or any(not isinstance(item, str) or not item.strip() for item in parsed):
+        raise TaskDescriptionError(f"{field} must be a JSON array of non-empty strings")
+    values = [item.strip() for item in parsed]
+    if len(values) != len(set(values)):
+        raise TaskDescriptionError(f"duplicate path in {field}")
+    for value in values:
+        path = PurePosixPath(value)
+        if path.is_absolute() or ".." in path.parts or ".ai-bridge" in path.parts or ".git" in path.parts:
+            raise TaskDescriptionError(f"{field} contains a forbidden path: {value}")
+    return values
+
+
 def _bool_true(value: str, field: str) -> None:
     if value.lower() != "true":
         raise TaskDescriptionError(f"{field} must be true")
@@ -146,6 +205,11 @@ def derive_bridge_task_from_texts(
     inbox = parse_bridge_headers(inbox_text, "inbox")
     sources = {"STATE": state, "claim": claim, "inbox": inbox}
 
+    if state.get("STATUS") in COMPLETED_EPOCH_STATUSES:
+        raise TaskDescriptionError(
+            f"COMPLETED_BRIDGE_EPOCH_REISSUE_REQUIRED: STATUS={state['STATUS']} is terminal"
+        )
+
     for field in ("TASK_ID", "SLOT", "THREAD", "GENERATION", "BRANCH_TASK", "EXECUTION_EPOCH", "NONCE", "AUTHORIZED_BASELINE"):
         _same(field, sources)
     if int(_required(state, "SLOT", "STATE")) != slot:
@@ -177,35 +241,86 @@ def derive_bridge_task_from_texts(
     if expected_outbox not in inbox_text or expected_receipt not in inbox_text:
         raise TaskDescriptionError("inbox prose does not contain the frozen output paths")
 
+    claim_type = _required(claim, "CLAIM_TYPE", "claim")
+    if claim_type != "NO_MAIN_DELTA_TRANSPORT_CANARY" and claim_type not in REGISTERED_REAL_BRIDGE_PROFILES:
+        raise TaskDescriptionError(f"unregistered bridge task profile: CLAIM_TYPE={claim_type}")
+
     for label, headers in sources.items():
         if _required(headers, "STATUS", label) != "READY_FOR_MODEL_PREFLIGHT":
             raise TaskDescriptionError(f"{label} is not READY_FOR_MODEL_PREFLIGHT")
         if _required(headers, "CONTINUATION_STATUS", label) != "SAME_THREAD_CONTINUE_REQUIRED":
             raise TaskDescriptionError(f"{label} does not require same-thread continuation")
-        _bool_true(_required(headers, "ALLOW_VERIFIED_NO_DELTA", label), f"{label}.ALLOW_VERIFIED_NO_DELTA")
+        if claim_type == "NO_MAIN_DELTA_TRANSPORT_CANARY":
+            _bool_true(_required(headers, "ALLOW_VERIFIED_NO_DELTA", label), f"{label}.ALLOW_VERIFIED_NO_DELTA")
+            if _required(headers, "STAGE_6_STATUS", label) != "PAUSED_BY_USER":
+                raise TaskDescriptionError(f"{label} does not preserve the Stage 6 pause")
+        elif _required(headers, "ALLOW_VERIFIED_NO_DELTA", label).lower() != "false":
+            raise TaskDescriptionError(f"{label}.ALLOW_VERIFIED_NO_DELTA must be false for a real task lane")
         _bool_true(_required(headers, "NO_MAIN_WRITE", label), f"{label}.NO_MAIN_WRITE")
-        if _required(headers, "STAGE_6_STATUS", label) != "PAUSED_BY_USER":
-            raise TaskDescriptionError(f"{label} does not preserve the Stage 6 pause")
 
     if _required(state, "MODEL_PREFLIGHT_STATUS", "STATE") != "REQUIRED":
         raise TaskDescriptionError("STATE does not require model preflight")
-    if _required(state, "RUNTIME_SCOPE", "STATE") != "NONE_INFRASTRUCTURE_ONLY":
+    if claim_type == "NO_MAIN_DELTA_TRANSPORT_CANARY" and _required(state, "RUNTIME_SCOPE", "STATE") != "NONE_INFRASTRUCTURE_ONLY":
         raise TaskDescriptionError("unsupported runtime scope for no-main-delta canary")
 
-    claim_type = _required(claim, "CLAIM_TYPE", "claim")
-    canary_scope = _required(claim, "CANARY_SCOPE", "claim")
-    if claim_type != "NO_MAIN_DELTA_TRANSPORT_CANARY" or canary_scope != "NO_MAIN_DELTA_TRANSPORT":
-        raise TaskDescriptionError(
-            f"unregistered bridge task profile: CLAIM_TYPE={claim_type}, CANARY_SCOPE={canary_scope}"
+    if claim_type == "NO_MAIN_DELTA_TRANSPORT_CANARY":
+        canary_scope = _required(claim, "CANARY_SCOPE", "claim")
+        if canary_scope != "NO_MAIN_DELTA_TRANSPORT":
+            raise TaskDescriptionError(
+                f"unregistered bridge task profile: CLAIM_TYPE={claim_type}, CANARY_SCOPE={canary_scope}"
+            )
+        objective = (
+            f"Verify Slot {slot} no-main-delta bridge transport authority at mailbox head {mailbox_head} "
+            "and publish only the frozen slot-local outbox and receipt after complete model authorization."
         )
+        read_scope = [
+            "AGENTS.override.md",
+            "AGENTS.md",
+            "PROCESS_ROOT_SYNC.md",
+            "ORCHESTRATION.md",
+            "BRIDGE.md",
+            "BRIDGE_PUBLICATION_POLICY.md",
+            f"{display_mailbox}@{mailbox_head}:.ai-bridge/PUBLICATION_POLICY.md",
+            f"{display_mailbox}@{mailbox_head}:{inbox_path}",
+            f"{display_mailbox}@{mailbox_head}:{claim_path}",
+            f"origin/main@{baseline}",
+            f"{selected_branch}@{baseline}",
+            f"policy:{PROFILE_VERSION}",
+        ]
+        write_scope = [expected_outbox, expected_receipt]
+        classification = NO_MAIN_DELTA_PROFILE
+        classification_reasons = NO_MAIN_DELTA_REASONS
+        affected_systems = ["bridge-control-plane", f"slot-{slot}-mailbox-publication", "model-selector-authorization"]
+    else:
+        profile = REGISTERED_REAL_BRIDGE_PROFILES.get(claim_type)
+        if profile is None:
+            raise TaskDescriptionError(f"unregistered bridge task profile: CLAIM_TYPE={claim_type}")
+        profile_name = _same("BRIDGE_TASK_PROFILE", sources)
+        if profile_name != claim_type:
+            raise TaskDescriptionError(
+                f"bridge task profile mismatch: CLAIM_TYPE={claim_type}, BRIDGE_TASK_PROFILE={profile_name}"
+            )
+        for field, expected in {
+            "RUNTIME_SCOPE": profile["runtimeScope"],
+            "ALLOW_VERIFIED_NO_DELTA": "false",
+            "NO_MAIN_WRITE": "true",
+        }.items():
+            if _same(field, sources) != expected:
+                raise TaskDescriptionError(f"registered profile {claim_type} requires {field}: {expected}")
+        for label, headers in sources.items():
+            if _required(headers, "STAGE_6_STATUS", label) not in {"AUTHORIZED_BY_USER", "ACTIVE_BY_USER"}:
+                raise TaskDescriptionError(f"{label}.STAGE_6_STATUS must be AUTHORIZED_BY_USER or ACTIVE_BY_USER")
+        objective = _same("OBJECTIVE", sources)
+        read_scope = _same_scope("READ_SCOPE", sources)
+        write_scope = _same_scope("WRITE_SCOPE", sources)
+        classification = profile["task"]
+        classification_reasons = profile["reasons"]
+        affected_systems = profile["affectedSystems"]
 
     task: dict[str, object] = {
         "taskId": _required(state, "TASK_ID", "STATE"),
         "taskType": claim_type,
-        "objective": (
-            f"Verify Slot {slot} no-main-delta bridge transport authority at mailbox head {mailbox_head} "
-            "and publish only the frozen slot-local outbox and receipt after complete model authorization."
-        ),
+        "objective": objective,
         "readScope": [
             "AGENTS.override.md",
             "AGENTS.md",
@@ -220,14 +335,11 @@ def derive_bridge_task_from_texts(
             f"origin/main@{baseline}",
             f"{selected_branch}@{baseline}",
             f"policy:{PROFILE_VERSION}",
+            *read_scope,
         ],
-        "writeScope": [expected_outbox, expected_receipt],
-        "affectedSystems": [
-            "bridge-control-plane",
-            f"slot-{slot}-mailbox-publication",
-            "model-selector-authorization",
-        ],
-        **NO_MAIN_DELTA_PROFILE,
+        "writeScope": write_scope,
+        "affectedSystems": affected_systems,
+        **classification,
     }
     evidence: dict[str, object] = {
         "profileVersion": PROFILE_VERSION,
@@ -239,7 +351,7 @@ def derive_bridge_task_from_texts(
         "stateSha256": _sha256_text(state_text),
         "claimSha256": _sha256_text(claim_text),
         "inboxSha256": _sha256_text(inbox_text),
-        "classificationReasons": dict(NO_MAIN_DELTA_REASONS),
+        "classificationReasons": dict(classification_reasons),
     }
     evidence["inputHash"] = _canonical_hash(
         {
@@ -276,13 +388,20 @@ def derive_bridge_task(
     thread_id: str,
     repository_root: Path,
     reader: Callable[[str, str], str] | None = None,
+    execution_phase: str = "start",
 ) -> BridgeTaskDescriptor:
+    if execution_phase not in {"start", "continuation"}:
+        raise TaskDescriptionError("execution phase must be start or continuation")
     canonical_mailbox, display_mailbox = _normalize_mailbox_ref(slot, mailbox_ref)
     mailbox_head = _git(repository_root, "rev-parse", display_mailbox)
     main_head = _git(repository_root, "rev-parse", "origin/main")
     task_head = _git(repository_root, "rev-parse", selected_branch)
-    if main_head != baseline:
-        raise TaskDescriptionError(f"origin/main head {main_head} does not match authorized baseline {baseline}")
+    if main_head != baseline and execution_phase == "start":
+        raise TaskDescriptionError(
+            "STALE_BRIDGE_AUTHORITY_REISSUE_REQUIRED: "
+            f"origin/main head {main_head} does not match authorized baseline {baseline}; "
+            f"fresh bridge-start requires origin/main={baseline} and a newly issued epoch"
+        )
     if task_head != baseline:
         raise TaskDescriptionError(f"task branch head {task_head} does not match authorized baseline {baseline}")
 
@@ -297,7 +416,9 @@ def derive_bridge_task(
         raise TaskDescriptionError("STATE mailbox branch does not match selected slot")
     inbox_path = _required(state_headers, "INBOX", "STATE")
     claim_path = _required(state_headers, "CLAIM", "STATE")
-    return derive_bridge_task_from_texts(
+    expected_outbox = _required(state_headers, "EXPECTED_OUTBOX", "STATE")
+    expected_receipt = _required(state_headers, "EXPECTED_RECEIPT", "STATE")
+    descriptor = derive_bridge_task_from_texts(
         slot=slot,
         mailbox_ref=display_mailbox,
         mailbox_head=mailbox_head,
@@ -309,3 +430,16 @@ def derive_bridge_task(
         inbox_text=read(display_mailbox, inbox_path),
         state_path=state_path,
     )
+    completed = []
+    for artifact_path in (expected_outbox, expected_receipt):
+        try:
+            read(display_mailbox, artifact_path)
+        except (AuthorizationError, TaskDescriptionError, OSError, KeyError):
+            continue
+        completed.append(artifact_path)
+    if completed:
+        raise TaskDescriptionError(
+            "COMPLETED_BRIDGE_EPOCH_REISSUE_REQUIRED: expected completion artifact exists: "
+            + ", ".join(completed)
+        )
+    return descriptor

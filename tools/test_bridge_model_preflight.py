@@ -74,6 +74,58 @@ No other repository write is authorized.
     return state, claim, inbox
 
 
+def stage6_authority_texts(*, thread: str, branch: str, baseline: str) -> tuple[str, str, str]:
+    task_id = "TASK-STAGE6-TEST"
+    inbox_path = f".ai-bridge/inbox/{thread}-01-chatgpt.md"
+    claim_path = f".ai-bridge/claims/{thread}-claim-v1-codex.md"
+    outbox = f".ai-bridge/outbox/{thread}-01-codex.md"
+    receipt = f".ai-bridge/receipts/{thread}-01-receipt.md"
+    common = f"""TASK_ID: {task_id}
+SLOT: 1
+THREAD: {thread}
+GENERATION: 1
+BRANCH_TASK: {branch}
+EXECUTION_EPOCH: STAGE6-TEST-EPOCH
+NONCE: STAGE6-TEST-NONCE
+AUTHORIZED_BASELINE: {baseline}
+STATUS: READY_FOR_MODEL_PREFLIGHT
+CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED
+ALLOW_VERIFIED_NO_DELTA: false
+NO_MAIN_WRITE: true
+STAGE_6_STATUS: AUTHORIZED_BY_USER
+BRIDGE_TASK_PROFILE: STAGE_6_TASK_LANE
+OBJECTIVE: Execute one registered Stage 6 lane with the frozen authority-owned scope.
+READ_SCOPE: ["AsyncScene/Web", "docs"]
+WRITE_SCOPE: ["AsyncScene/Web/Stage6Lane.js"]
+RUNTIME_SCOPE: STAGE_6_TASK_LANE
+"""
+    state = common + f"""PIPELINE_VERSION: 1.0.4
+BRIDGE_PROTOCOL: 4.0
+TASK: {task_id}
+BRANCH_MAILBOX: coordination/chatgpt-codex-bridge-1
+INBOX: {inbox_path}
+CLAIM: {claim_path}
+EXPECTED_OUTBOX: {outbox}
+EXPECTED_RECEIPT: {receipt}
+MODEL_PREFLIGHT_STATUS: REQUIRED
+MAILBOX_OWNERSHIP: SLOT_LOCAL_ONLY
+"""
+    claim = common + f"""OWNER: TEST_CODEX_THREAD
+CLAIM_TYPE: STAGE_6_TASK_LANE
+INBOX: {inbox_path}
+EXPECTED_OUTBOX: {outbox}
+EXPECTED_RECEIPT: {receipt}
+"""
+    inbox = common + f"""MAILBOX_OWNERSHIP: coordination/chatgpt-codex-bridge-1
+
+The authority-owned scope above is the only project scope for this Stage 6 lane.
+Expected completion paths remain slot-local:
+- {outbox}
+- {receipt}
+"""
+    return state, claim, inbox
+
+
 def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
     return subprocess.run(args, cwd=cwd, check=check, capture_output=True, text=True)
 
@@ -133,6 +185,30 @@ class BridgeDescriptorTests(unittest.TestCase):
                 inbox_text=inbox,
             )
 
+    def test_registered_non_canary_profile_derives_authority_owned_scope(self) -> None:
+        thread = "BRIDGE-STAGE6-101"
+        branch = f"bridge/1/{thread}"
+        baseline = "a" * 40
+        objective = "Execute one registered Stage 6 lane with the frozen authority-owned scope."
+        read_scope = '["AsyncScene/Web", "docs"]'
+        write_scope = '["AsyncScene/Web/Stage6Lane.js"]'
+        state, claim, inbox = stage6_authority_texts(thread=thread, branch=branch, baseline=baseline)
+        descriptor = derive_bridge_task_from_texts(
+            slot=1,
+            mailbox_ref="origin/coordination/chatgpt-codex-bridge-1",
+            mailbox_head="b" * 40,
+            selected_branch=branch,
+            baseline=baseline,
+            thread_id=thread,
+            state_text=state,
+            claim_text=claim,
+            inbox_text=inbox,
+        )
+        self.assertEqual("STAGE_6_TASK_LANE", descriptor.task["taskType"])
+        self.assertEqual(["AsyncScene/Web/Stage6Lane.js"], descriptor.task["writeScope"])
+        self.assertIn(objective, descriptor.task["objective"])
+        self.assertIn("deterministic task classification:", descriptor.render_evidence())
+
 
 class BridgeCliEndToEndTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -160,14 +236,15 @@ class BridgeCliEndToEndTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.directory.cleanup()
 
-    def _publish_mailbox(self, suffix: str = "") -> str:
+    def _publish_mailbox(self, suffix: str = "", *, artifacts: bool = False, profile: str = "canary") -> str:
         if self.mailbox_repo.exists():
             shutil.rmtree(self.mailbox_repo)
         self.mailbox_repo.mkdir()
         run("git", "init", "-q", cwd=self.mailbox_repo)
         run("git", "config", "user.name", "Mailbox", cwd=self.mailbox_repo)
         run("git", "config", "user.email", "mailbox@example.com", cwd=self.mailbox_repo)
-        state, claim, inbox = authority_texts(thread=self.thread, branch=self.branch, baseline=self.baseline)
+        authority_factory = stage6_authority_texts if profile == "stage6" else authority_texts
+        state, claim, inbox = authority_factory(thread=self.thread, branch=self.branch, baseline=self.baseline)
         state += suffix
         headers = {}
         for line in state.splitlines():
@@ -180,6 +257,9 @@ class BridgeCliEndToEndTests(unittest.TestCase):
             headers["CLAIM"]: claim,
             ".ai-bridge/PUBLICATION_POLICY.md": "SLOT: 1\n",
         }
+        if artifacts:
+            paths[headers["EXPECTED_OUTBOX"]] = "STATUS: PASS_VERIFIED_NO_DELTA\n"
+            paths[headers["EXPECTED_RECEIPT"]] = "STATUS: PASS_VERIFIED_NO_DELTA\n"
         for relative, content in paths.items():
             path = self.mailbox_repo / relative
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -226,6 +306,14 @@ class BridgeCliEndToEndTests(unittest.TestCase):
         self.assertEqual(cont.returncode, 0, cont.stderr)
         self.assertIn("IMPLEMENTATION_ALLOWED", cont.stdout)
 
+    def test_registered_non_canary_bridge_reaches_inventory_pause(self) -> None:
+        self._publish_mailbox(profile="stage6")
+        result = self._cli("bridge-start")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("task descriptor source: BRIDGE_AUTHORITY_DERIVED", result.stdout)
+        self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", result.stdout)
+        self.assertIn("recommended pair:", result.stdout)
+
     def test_mailbox_movement_invalidates_same_thread_state(self) -> None:
         start = self._cli("bridge-start")
         self.assertEqual(start.returncode, 0, start.stderr)
@@ -234,13 +322,51 @@ class BridgeCliEndToEndTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("stale authorization", result.stderr)
 
+    def test_stale_unstarted_epoch_requires_authority_reissue(self) -> None:
+        tree = run("git", "rev-parse", f"{self.baseline}^{{tree}}", cwd=self.repo).stdout.strip()
+        advanced = subprocess.run(
+            ["git", "commit-tree", tree, "-p", self.baseline],
+            cwd=self.repo,
+            input="advance main\n",
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        run("git", "update-ref", "refs/remotes/origin/main", advanced, cwd=self.repo)
+        result = self._cli("bridge-start")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("STALE_BRIDGE_AUTHORITY_REISSUE_REQUIRED", result.stderr)
+
+    def test_authorized_continuation_survives_main_movement(self) -> None:
+        start = self._cli("bridge-start")
+        self.assertEqual(start.returncode, 0, start.stderr)
+        tree = run("git", "rev-parse", f"{self.baseline}^{{tree}}", cwd=self.repo).stdout.strip()
+        advanced = subprocess.run(
+            ["git", "commit-tree", tree, "-p", self.baseline],
+            cwd=self.repo,
+            input="advance main after authorization\n",
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        run("git", "update-ref", "refs/remotes/origin/main", advanced, cwd=self.repo)
+        result = self._cli("bridge-inventory-ok")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("WAITING_FOR_MODEL_SELECTION", result.stdout)
+
+    def test_completed_epoch_cannot_be_silently_rerun(self) -> None:
+        self._publish_mailbox(artifacts=True)
+        result = self._cli("bridge-start")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("COMPLETED_BRIDGE_EPOCH_REISSUE_REQUIRED", result.stderr)
+
     def test_generic_cli_rejects_handwritten_reserved_bridge_task(self) -> None:
         task_file = self.repo / "fabricated.json"
         task_file.write_text(
             json.dumps(
                 {
                     "taskId": "FABRICATED",
-                    "taskType": "NO_MAIN_DELTA_TRANSPORT_CANARY",
+                    "taskType": "STAGE_6_TASK_LANE",
                     "objective": "fabricated",
                     "readScope": ["x"],
                     "writeScope": ["y"],

@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from plugins.asynchronia.bridge_task_descriptor import (  # noqa: E402
+    BRIDGE_TASK_TYPE_PREFIXES,
     RESERVED_BRIDGE_TASK_TYPES,
     derive_bridge_task,
 )
@@ -97,7 +98,8 @@ def _snapshot(args: argparse.Namespace) -> Path:
 
 def _generic_task(args: argparse.Namespace) -> dict[str, object]:
     task = load_task(args.task_file)
-    if str(task["taskType"]) in RESERVED_BRIDGE_TASK_TYPES or str(task["taskType"]).startswith("BRIDGE_"):
+    task_type = str(task["taskType"])
+    if task_type in RESERVED_BRIDGE_TASK_TYPES or task_type.startswith(BRIDGE_TASK_TYPE_PREFIXES):
         raise TaskDescriptionError("reserved bridge tasks must use bridge-start, bridge-inventory-ok, or bridge-continue")
     return task
 
@@ -111,6 +113,7 @@ def _bridge(args: argparse.Namespace):
         baseline=args.baseline,
         thread_id=args.thread_id,
         repository_root=ROOT,
+        execution_phase="start" if args.command == "bridge-start" else "continuation",
     )
     print(descriptor.render_evidence())
     return descriptor
