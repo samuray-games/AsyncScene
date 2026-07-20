@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-20-1957-JST
-EXPECTED_REVISION: 2026-07-20-1957-JST
-NOTION_MEMORY_REVISION: 2026-07-20-1957-JST
+MEMORY_REVISION: 2026-07-20-2154-JST
+EXPECTED_REVISION: 2026-07-20-2154-JST
+NOTION_MEMORY_REVISION: 2026-07-20-2154-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -21,6 +21,8 @@ Authoritative order for memory and workflow facts:
 11. `.ai-memory/archive/`
 
 Current execution handoff: PR #243 integrated the prerequisite shared dev-check/index conflict-marker repair, and the post-PR243 repository-memory closure is complete/closed. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The next serialized implementation is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
+
+Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
 ## Bootstrap workflow
 

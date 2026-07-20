@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-20-1957-JST
-EXPECTED_REVISION: 2026-07-20-1957-JST
-NOTION_MEMORY_REVISION: 2026-07-20-1957-JST
+MEMORY_REVISION: 2026-07-20-2154-JST
+EXPECTED_REVISION: 2026-07-20-2154-JST
+NOTION_MEMORY_REVISION: 2026-07-20-2154-JST
 
 ## Canon principles
 
@@ -29,6 +29,7 @@ NOTION_MEMORY_REVISION: 2026-07-20-1957-JST
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
 - Accepted implementation head is PR #243 merge `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`; PR #243 completed the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735` and original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`.
 - Stage 6 product implementation and Alpha implementation have not started; Safari runtime smoke remains `PENDING_USER`.
+- Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
 - The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The post-PR243 repository-memory closure is complete/closed, and the durable handoff is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
 
 ## Reading priority

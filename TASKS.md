@@ -4,7 +4,8 @@
 - Reviewed remote head: `4673302113c22606d86c06d778d73641e03f2735`.
 - Original locally validated content-equivalent commit: `5a3fac9e51b19b8273b03db9558a5fa900aefac2`.
 - Exactly four runtime prerequisite files were integrated; no Alpha implementation occurred.
-- Live Notion and tracked repository memory revision: `2026-07-20-1957-JST`.
+- Live Notion and tracked repository memory revision: `2026-07-20-2154-JST`.
+- Conversational `мост 1`, `мост 2`, `мост 3` mean Slot 1, Slot 2, Slot 3 and are not invocations of the retired literal short command interface unless explicitly stated otherwise.
 - Stage 6 product implementation remains `NOT_STARTED`.
 - Safari runtime smoke remains `PENDING_USER`.
 - This closure is complete/closed and does not require recursive memory closure.

@@ -1,7 +1,7 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-20-1957-JST
-NOTION_MEMORY_REV: 2026-07-20-1957-JST
+MEMORY_REV: 2026-07-20-2154-JST
+NOTION_MEMORY_REV: 2026-07-20-2154-JST
 CURRENT_STATUS: POST_PR243_REPOSITORY_MEMORY_CLOSURE_COMPLETE
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
@@ -34,9 +34,10 @@ ALPHA_STAGE6_IMPLEMENTATION: NOT_STARTED
 RUNTIME: STOPPED
 SAFARI_RUNTIME_SMOKE: PENDING_USER
 USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
+USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
 NEXT_ACTION: TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION
 
 Canonical bootstrap: live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-1957-JST`; PR #243 integrated the prerequisite shared dev-check/index conflict-marker repair to accepted implementation head `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`; this post-PR243 repository-memory closure is complete/closed and does not require recursive memory closure. Stage 6 product implementation and Alpha implementation remain `NOT_STARTED`; Safari runtime smoke remains `PENDING_USER`; `NEXT_ACTION` is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-2154-JST`; PR #243 integrated the prerequisite shared dev-check/index conflict-marker repair to accepted implementation head `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`; this post-PR243 repository-memory closure is complete/closed and does not require recursive memory closure. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 product implementation and Alpha implementation remain `NOT_STARTED`; Safari runtime smoke remains `PENDING_USER`; `NEXT_ACTION` is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
 The former Google Drive document is deprecated migration-stub context only.

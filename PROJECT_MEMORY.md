@@ -1,7 +1,7 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-07-20-1957-JST
-NOTION_MEMORY_REV: 2026-07-20-1957-JST
+REPO_MEMORY_REV: 2026-07-20-2154-JST
+NOTION_MEMORY_REV: 2026-07-20-2154-JST
 CURRENT_MAIN_REF: origin/main
 ACCEPTED_IMPLEMENTATION_HEAD: bb1b383f88bce5e22bed116fd195edb6a0a6c58b
 ROOT_STATUS: POST_PR243_REPOSITORY_MEMORY_CLOSURE_COMPLETE
@@ -38,6 +38,7 @@ STAGE_6_PRODUCT_IMPLEMENTATION: NOT_STARTED
 ALPHA_STAGE6_IMPLEMENTATION: NOT_STARTED
 SAFARI_RUNTIME_SMOKE: PENDING_USER
 USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
+USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
 TRANSPORT_RESILIENCE: COMPLETE / PASS_TRANSPORT_RESILIENCE_INTEGRATED_PR_238
 NEXT_ACTION: TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION
@@ -50,6 +51,6 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-1957-JST`. PR #243 is verified integrated as the prerequisite shared dev-check/index conflict-marker repair: reviewed remote head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit/current main `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`. The post-PR243 repository-memory closure is complete/closed and does not require a recursive closure task. Stage 6 product implementation and Alpha implementation remain `NOT_STARTED`; Safari runtime smoke remains `PENDING_USER`; durable next action is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-20-2154-JST`. PR #243 is verified integrated as the prerequisite shared dev-check/index conflict-marker repair: reviewed remote head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit/current main `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`. The post-PR243 repository-memory closure is complete/closed and does not require a recursive closure task. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 product implementation and Alpha implementation remain `NOT_STARTED`; Safari runtime smoke remains `PENDING_USER`; durable next action is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.
