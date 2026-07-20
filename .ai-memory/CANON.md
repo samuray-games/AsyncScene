@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-20-1649-JST
-EXPECTED_REVISION: 2026-07-20-1649-JST
-NOTION_MEMORY_REVISION: 2026-07-20-1649-JST
+MEMORY_REVISION: 2026-07-20-2154-JST
+EXPECTED_REVISION: 2026-07-20-2154-JST
+NOTION_MEMORY_REVISION: 2026-07-20-2154-JST
 
 ## Canon principles
 
@@ -27,8 +27,10 @@ NOTION_MEMORY_REVISION: 2026-07-20-1649-JST
 - A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
 - Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
-- Accepted implementation head remains PR #240 merge `d9a7e1b954e5f122a1621785e2176d93b697873f`; PR #241 repository-memory closure is memory/task bookkeeping only, with reviewed head `e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a` and merge commit `92db49b0249e9b87e04bb87ea8123cda5833dd95`; PR #240 Bridge v4 backend/control-plane repair is integrated and `BRIDGE_TASK_PROFILE_2` is current; Stage 6 product implementation has not started and runtime remains stopped.
-- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The user has explicitly directed Stage 6 continuation; the next action is the serialized Stage 6 shared dev-check/index conflict-marker repair task, not another memory-closure cycle.
+- Accepted implementation head is PR #243 merge `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`; PR #243 completed the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735` and original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`.
+- Stage 6 product implementation and Alpha implementation have not started; Safari runtime smoke remains `PENDING_USER`.
+- Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
+- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The post-PR243 repository-memory closure is complete/closed, and the durable handoff is `TASK-STAGE6-ALPHA-FROZEN-COPY-IMPLEMENTATION`.
 
 ## Reading priority
 
