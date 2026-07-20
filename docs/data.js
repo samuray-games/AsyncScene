@@ -536,8 +536,8 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   Data.TEXTS.alpha = Object.freeze({
     ...ZOOMER_TEXTS_BASELINE,
     escape_button_label: "Уйти: −{X}💰",
-    teach_sent_dm: "{student}: {arg}. Цена {cost} 💰.",
-    teach_sent_chat: "Аргумент: {teacher} → {student}.",
+    teach_sent_dm: "{student}: {arg}. -{cost}💰.",
+    teach_sent_chat: "{teacher} → {student}: аргумент.",
     invite_open_hint: "Указать имя",
     invite_invalid: "Игрок: нет"
   });
