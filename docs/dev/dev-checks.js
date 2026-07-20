@@ -54688,43 +54688,6 @@ ALX_0206 | action_verbs | помяло`;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
   function smokeBoomerEconomyConflictTerminologyOnce() {
-<<<<<<< HEAD
-    const buildTag = "build_2026_07_11_step4_4b_boomer_runtime_aggregate_fix3";
-    const commit = "step4_4b_boomer_runtime_aggregate";
-    const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix3_v20260711_001";
-    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_fix3_20260711a";
-    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_fix3_20260711a";
-    const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
-    const snapshot = (data) => {
-      if (!data) return null;
-      const dbg = Game && Game.__D ? Game.__D : null;
-      const state = Game && Game.State ? Game.State : null;
-      const localSnapshot = (() => {
-        if (typeof localStorage === "undefined") return null;
-        const out = {};
-        for (let index = 0; index < localStorage.length; index += 1) {
-          const key = localStorage.key(index);
-          if (key && /^(Game|ASYNC|DEV|ui|profile|money|rep|influence)/i.test(key)) out[key] = localStorage.getItem(key);
-        }
-        return out;
-      })();
-      return {
-        profile: typeof data.getUiProfile === "function" ? data.getUiProfile() : data.UI_PROFILE,
-        textMode: data.TEXT_MODE,
-        points: typeof data.points === "number" ? data.points : (typeof data.POINTS === "number" ? data.POINTS : null),
-        rep: typeof data.rep === "number" ? data.rep : (typeof data.REP === "number" ? data.REP : null),
-        influence: typeof data.influence === "number" ? data.influence : (typeof data.INFLUENCE === "number" ? data.INFLUENCE : null),
-        battleState: JSON.stringify(data.battleState || data.BATTLE_STATE || (state && state.battleState) || null),
-        moneyLog: JSON.stringify((dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog : (Array.isArray(data.moneyLog) ? data.moneyLog : [])),
-        persistence: JSON.stringify(data.persistence || data.PERSISTENCE || (state && state.persistence) || null),
-        localStorage: JSON.stringify(localSnapshot),
-        textsBoomer: JSON.stringify(data.TEXTS && data.TEXTS.boomer),
-        textsMillennial: JSON.stringify(data.TEXTS && data.TEXTS.millennial),
-        textsZoomer: JSON.stringify(data.TEXTS && data.TEXTS.zoomer),
-        startBoomer: JSON.stringify(data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer),
-        npcBoomer: JSON.stringify(data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer),
-        copBoomer: JSON.stringify(data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer)
-=======
     const buildTag = "build_2026_07_11_step4_4b_boomer_runtime_aggregate_fix4";
     const commit = "step4_4b_boomer_runtime_aggregate";
     const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix4_v20260711_001";
@@ -54898,7 +54861,6 @@ ALX_0206 | action_verbs | помяло`;
         moneyLogRejectsMutation: mutate("moneyLog", (value) => { value.__mutated_money_log = [{ amount: 999999 }]; }),
         persistenceRejectsMutation: mutate("persistence", (value) => { value.__mutated_save = { counter: 999999 }; }),
         localStorageRejectsMutation: mutate("localStorage", (value) => { value.__mutated_storage = { present: true, value: "__mutated__" }; })
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
       };
     };
     const readScriptUrl = () => {
@@ -54971,8 +54933,6 @@ ALX_0206 | action_verbs | помяло`;
       stateRestored: false,
       runtimeSourceUrl: "",
       runtimeChecks: {},
-<<<<<<< HEAD
-=======
       beforeDigest: "",
       afterDigest: "",
       profileRestored: false,
@@ -54982,7 +54942,6 @@ ALX_0206 | action_verbs | помяло`;
       persistenceRestored: false,
       localStorageRestored: false,
       adversarialRestorationFixtures: {},
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
       pageUrl: typeof location !== "undefined" ? String(location.href || "") : "",
       failures: [],
       forbiddenRemaining: [],
@@ -54990,37 +54949,10 @@ ALX_0206 | action_verbs | помяло`;
       failedChecks: []
     };
     const data = (Game && Game.Data) ? Game.Data : null;
-<<<<<<< HEAD
-    const before = snapshot(data);
-    const originalProfile = data && typeof data.getUiProfile === "function" ? data.getUiProfile() : (data && data.UI_PROFILE ? data.UI_PROFILE : "default");
-    const originalTextMode = data && typeof data.TEXT_MODE === "string" ? data.TEXT_MODE : "millennial";
-    const originalPoints = data && typeof data.points === "number" ? data.points : (data && typeof data.POINTS === "number" ? data.POINTS : null);
-    const originalRep = data && typeof data.rep === "number" ? data.rep : (data && typeof data.REP === "number" ? data.REP : null);
-    const originalInfluence = data && typeof data.influence === "number" ? data.influence : (data && typeof data.INFLUENCE === "number" ? data.INFLUENCE : null);
-    const restoreState = () => {
-      if (!data) return;
-      if (typeof data.setUiProfile === "function") data.setUiProfile(originalProfile || "default");
-      else data.UI_PROFILE = originalProfile || "default";
-      if (typeof data.TEXT_MODE === "string") data.TEXT_MODE = originalTextMode;
-      if (typeof originalPoints === "number") {
-        if (typeof data.points === "number") data.points = originalPoints;
-        if (typeof data.POINTS === "number") data.POINTS = originalPoints;
-      }
-      if (typeof originalRep === "number") {
-        if (typeof data.rep === "number") data.rep = originalRep;
-        if (typeof data.REP === "number") data.REP = originalRep;
-      }
-      if (typeof originalInfluence === "number") {
-        if (typeof data.influence === "number") data.influence = originalInfluence;
-        if (typeof data.INFLUENCE === "number") data.INFLUENCE = originalInfluence;
-      }
-    };
-=======
     const tracker = makeRuntimeStateTracker(data);
     const before = tracker.digest();
     result.beforeDigest = before.digest;
     result.adversarialRestorationFixtures = runAdversarialRestorationFixtures(before);
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
     const addFailure = (check, detail) => {
       result.failedChecks.push(check);
       result.failures.push({ check, detail });
@@ -55037,18 +54969,11 @@ ALX_0206 | action_verbs | помяло`;
         { id: "runtime_source_url", label: "Influence", pass: !!(runtimeUrl && runtimeUrl.includes(expectedScriptMarker)), detail: runtimeUrl },
         { id: "page_url", label: "voting", pass: typeof location !== "undefined" && !!String(location.href || "").length, detail: typeof location !== "undefined" ? String(location.href || "") : null },
         { id: "cache_bust", label: "majority/minority outcomes", pass: typeof location !== "undefined" && String(location.href || "").includes(expectedCacheBust), detail: typeof location !== "undefined" ? String(location.href || "") : null },
-<<<<<<< HEAD
-        { id: "state_snapshot", label: "rematch", pass: !before || JSON.stringify(before) === JSON.stringify(snapshot(data)), detail: { before, after: snapshot(data) } },
-=======
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
         { id: "fallback_resolution", label: "NPC-vs-NPC conflict text", pass: evidence.fallbackResolutionOk, detail: evidence },
         { id: "placeholders", label: "conflict results", pass: evidence.placeholderOk, detail: evidence.suspiciousPlaceholders },
         { id: "protected_numbers", label: "DM", pass: evidence.protectedNumbersOk, detail: evidence.protectedNumbers },
         { id: "emoji_contracts", label: "reports", pass: evidence.emojiContractsOk, detail: evidence.emojiHits },
         { id: "cross_profile_leakage", label: "report resolution", pass: evidence.crossProfileLeakageOk, detail: evidence.tabooTerms },
-<<<<<<< HEAD
-        { id: "taboo_terms", label: "taboo terms", pass: evidence.tabooTermsOk, detail: evidence.tabooTerms }
-=======
         { id: "taboo_terms", label: "taboo terms", pass: evidence.tabooTermsOk, detail: evidence.tabooTerms },
         { id: "adversarial_profile", label: "profile restore fixture", pass: result.adversarialRestorationFixtures.profileRejectsMutation === true, detail: result.adversarialRestorationFixtures },
         { id: "adversarial_economy", label: "economy restore fixture", pass: result.adversarialRestorationFixtures.economyRejectsMutation === true, detail: result.adversarialRestorationFixtures },
@@ -55056,7 +54981,6 @@ ALX_0206 | action_verbs | помяло`;
         { id: "adversarial_money_log", label: "moneyLog restore fixture", pass: result.adversarialRestorationFixtures.moneyLogRejectsMutation === true, detail: result.adversarialRestorationFixtures },
         { id: "adversarial_persistence", label: "persistence restore fixture", pass: result.adversarialRestorationFixtures.persistenceRejectsMutation === true, detail: result.adversarialRestorationFixtures },
         { id: "adversarial_local_storage", label: "localStorage restore fixture", pass: result.adversarialRestorationFixtures.localStorageRejectsMutation === true, detail: result.adversarialRestorationFixtures }
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
       ];
       result.runtimeChecks = checks.reduce((acc, entry) => {
         acc[entry.id] = entry.pass;
@@ -55071,20 +54995,6 @@ ALX_0206 | action_verbs | помяло`;
         if (entry.id === "base_smoke" || entry.id === "profile_diff" || entry.id === "runtime_source_url" || entry.id === "page_url" || entry.id === "cache_bust" || entry.id === "state_snapshot") return;
         addUnique(result.forbiddenRemaining, { check: entry.id, detail: entry.detail });
       });
-<<<<<<< HEAD
-      if (before && JSON.stringify(before) !== JSON.stringify(snapshot(data))) addFailure("state_drift_detected", { before, after: snapshot(data) });
-      restoreState();
-      result.stateRestored = !before || JSON.stringify(before) === JSON.stringify(snapshot(data));
-      if (result.stateRestored !== true) addFailure("state_restore_failed", { before, after: snapshot(data) });
-      result.ok = result.failedChecks.length === 0
-        && result.failures.length === 0
-        && result.stateRestored === true
-        && result.checkedCount === checks.length
-        && result.coveredFeatureZones.length === checks.length
-        && result.forbiddenRemaining.length === 0
-        && result.missingCoverage.length === 0;
-=======
->>>>>>> 25bee74c99fa19ae5914e1739e2ff6a46eb8aeec
     } catch (err) {
       addFailure("smoke_exception", err && err.message ? String(err.message) : String(err));
     } finally {
