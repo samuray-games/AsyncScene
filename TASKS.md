@@ -1,3 +1,13 @@
+## 2026-07-20 - Repository memory sync to live Notion 1649
+- Status: complete/closed.
+- Live Notion `MEMORY_REV` is `2026-07-20-1649-JST`; tracked repository memory is synchronized to that revision.
+- PR #241 is verified merged: reviewed head `e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a`, merge/current main `92db49b0249e9b87e04bb87ea8123cda5833dd95`.
+- PR #241 durable state is preserved: Stage 6 product implementation had not started at the closure point, runtime remains stopped, and the retired short bridge interface remains permanently retired.
+- The user has explicitly directed Stage 6 continuation after this closure.
+- This memory sync is complete/closed and does not require a recursive repository-memory closure.
+- Validation scope: memory/task bookkeeping and static consistency only; runtime smoke is not applicable.
+- NEXT_ACTION: `TASK-STAGE6-SHARED-DEV-CHECK-INDEX-CONFLICT-MARKER-REPAIR`.
+
 ## 2026-07-20 - Post-PR-240 repository memory closure
 - Status: complete/closed.
 - PR #240 integration is complete; accepted implementation head is `d9a7e1b954e5f122a1621785e2176d93b697873f`.
