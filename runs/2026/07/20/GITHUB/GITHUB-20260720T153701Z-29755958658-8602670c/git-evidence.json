@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage6-alpha-frozen-copy-implementation",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "codex/stage6-alpha-frozen-copy-implementation\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "e74a51bd8682c5b0c96a268be31b165db8b449f7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "# branch.oid e74a51bd8682c5b0c96a268be31b165db8b449f7\n# branch.head codex/stage6-alpha-frozen-copy-implementation\n# branch.upstream origin/codex/stage6-alpha-frozen-copy-implementation\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "e74a51bd (HEAD -> codex/stage6-alpha-frozen-copy-implementation, origin/main, origin/codex/stage6-alpha-frozen-copy-implementation) Stage 6: close repository memory after PR 243 (#244)\nbb1b383f Stage 6: repair shared dev-check/index conflict markers (#243)\nfdf50cdb Sync repository memory to Notion 1649 (#242)\n92db49b0 Close post-PR-240 repository memory (#241)\nd9a7e1b9 Repair Bridge v4 real task profile execution (#240)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e74a51bd8682c5b0c96a268be31b165db8b449f7\nbranch refs/heads/codex/stage6-alpha-frozen-copy-implementation\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T15:37:01Z",
+      "stderr": "",
+      "stdout": "e74a51bd8682c5b0c96a268be31b165db8b449f7\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e74a51bd8682c5b0c96a268be31b165db8b449f7",
+  "observedAtUtc": "2026-07-20T15:37:01Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
