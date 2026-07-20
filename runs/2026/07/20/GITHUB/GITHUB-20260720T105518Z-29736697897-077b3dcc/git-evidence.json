@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "5114363e0dd0a0161df88da50c0e4d3cfd69c2b7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5114363e0dd0a0161df88da50c0e4d3cfd69c2b7\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "5114363e (HEAD, pull/243/merge) Merge 4673302113c22606d86c06d778d73641e03f2735 into fdf50cdb0ad521914c0e284a69a6129a56450bbc\n46733021 (origin/codex/stage6-shared-dev-check-index-conflict-marker-repair) Repair shared dev-check/index conflict markers\nfdf50cdb (origin/main) Sync repository memory to Notion 1649 (#242)\n92db49b0 Close post-PR-240 repository memory (#241)\nd9a7e1b9 Repair Bridge v4 real task profile execution (#240)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5114363e0dd0a0161df88da50c0e4d3cfd69c2b7\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T10:55:18Z",
+      "stderr": "",
+      "stdout": "fdf50cdb0ad521914c0e284a69a6129a56450bbc\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5114363e0dd0a0161df88da50c0e4d3cfd69c2b7",
+  "observedAtUtc": "2026-07-20T10:55:18Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
