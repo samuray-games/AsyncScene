@@ -98,7 +98,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
         self.assertIn("PROJECT_MEMORY.md", legacy_plan)
-        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.13", project_memory)
+        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.16", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             result = start_preflight(
                 task(
@@ -598,7 +598,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         legacy_plan = (ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712/02-work-plan.md").read_text(encoding="utf-8")
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
-        self.assertIn("1.0.13", project_memory)
+        self.assertIn("1.0.16", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             read_state_dir = Path(directory) / "read-state"
             write_state_dir = Path(directory) / "write-state"

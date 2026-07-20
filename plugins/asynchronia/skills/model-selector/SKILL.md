@@ -48,7 +48,7 @@ It validates task, slot, thread, generation, branch, epoch, nonce, baseline, mai
 
 ### Current registered profile
 
-`BRIDGE_TASK_PROFILE_1` supports only `NO_MAIN_DELTA_TRANSPORT_CANARY` with `NO_MAIN_DELTA_TRANSPORT` scope. Its classifications and reasons are code-owned, deterministic, versioned, printed in the preflight evidence, and included in the task hash. They are not inferred conversationally.
+`BRIDGE_TASK_PROFILE_2` supports the registered `NO_MAIN_DELTA_TRANSPORT_CANARY` profile and registered real task profiles such as `STAGE_6_TASK_LANE`. Its classifications and reasons are code-owned, deterministic, versioned, printed in the preflight evidence, and included in the task hash. Real mutation profiles require authority-owned objective, read scope, and non-empty write scope; they are not inferred conversationally.
 
 ## Durable state
 

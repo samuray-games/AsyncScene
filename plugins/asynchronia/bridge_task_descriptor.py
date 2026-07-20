@@ -13,7 +13,7 @@ from typing import Callable, Mapping
 from .model_selector import AuthorizationError, TaskDescriptionError
 
 HEADER_RE = re.compile(r"^(?P<key>[A-Z][A-Z0-9_]*):\s*(?P<value>.*)$")
-PROFILE_VERSION = "BRIDGE_TASK_PROFILE_1"
+PROFILE_VERSION = "BRIDGE_TASK_PROFILE_2"
 
 NO_MAIN_DELTA_PROFILE: dict[str, str] = {
     "runtimeSensitivity": "low",
@@ -80,6 +80,10 @@ BRIDGE_TASK_TYPE_PREFIXES = ("BRIDGE_", "STAGE_6_")
 COMPLETED_EPOCH_STATUSES = frozenset(
     {"COMPLETED", "PASS_TASK_BRANCH_PUSHED", "PASS_VERIFIED_NO_DELTA", "ACCEPTED", "DONE"}
 )
+
+
+class BridgeArtifactMissing(Exception):
+    """The repository positively confirmed that one expected artifact is absent."""
 
 
 @dataclass(frozen=True)
@@ -156,6 +160,8 @@ def _same_scope(field: str, sources: Mapping[str, Mapping[str, str]]) -> list[st
         raise TaskDescriptionError(f"{field} must be a JSON array") from exc
     if not isinstance(parsed, list) or any(not isinstance(item, str) or not item.strip() for item in parsed):
         raise TaskDescriptionError(f"{field} must be a JSON array of non-empty strings")
+    if not parsed:
+        raise TaskDescriptionError(f"{field} must contain at least one path for a registered real mutation profile")
     values = [item.strip() for item in parsed]
     if len(values) != len(set(values)):
         raise TaskDescriptionError(f"duplicate path in {field}")
@@ -273,20 +279,7 @@ def derive_bridge_task_from_texts(
             f"Verify Slot {slot} no-main-delta bridge transport authority at mailbox head {mailbox_head} "
             "and publish only the frozen slot-local outbox and receipt after complete model authorization."
         )
-        read_scope = [
-            "AGENTS.override.md",
-            "AGENTS.md",
-            "PROCESS_ROOT_SYNC.md",
-            "ORCHESTRATION.md",
-            "BRIDGE.md",
-            "BRIDGE_PUBLICATION_POLICY.md",
-            f"{display_mailbox}@{mailbox_head}:.ai-bridge/PUBLICATION_POLICY.md",
-            f"{display_mailbox}@{mailbox_head}:{inbox_path}",
-            f"{display_mailbox}@{mailbox_head}:{claim_path}",
-            f"origin/main@{baseline}",
-            f"{selected_branch}@{baseline}",
-            f"policy:{PROFILE_VERSION}",
-        ]
+        read_scope = []
         write_scope = [expected_outbox, expected_receipt]
         classification = NO_MAIN_DELTA_PROFILE
         classification_reasons = NO_MAIN_DELTA_REASONS
@@ -408,7 +401,26 @@ def derive_bridge_task(
     def default_reader(ref: str, path: str) -> str:
         return _git(repository_root, "show", f"{ref}:{path}")
 
+    def default_artifact_reader(ref: str, path: str) -> str:
+        object_spec = f"{ref}:{path}"
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(repository_root), "cat-file", "-e", object_spec],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except OSError:
+            raise
+        if result.returncode != 0:
+            stderr = result.stderr.strip()
+            if "does not exist in" in stderr or (stderr.startswith("fatal: path ") and " does not exist" in stderr):
+                raise BridgeArtifactMissing(path)
+            raise AuthorizationError(f"unable to verify bridge artifact {path}: {stderr}")
+        return _git(repository_root, "show", object_spec)
+
     read = reader or default_reader
+    artifact_read = reader or default_artifact_reader
     state_path = ".ai-bridge/STATE.md"
     state_text = read(display_mailbox, state_path)
     state_headers = parse_bridge_headers(state_text, "STATE")
@@ -433,9 +445,13 @@ def derive_bridge_task(
     completed = []
     for artifact_path in (expected_outbox, expected_receipt):
         try:
-            read(display_mailbox, artifact_path)
-        except (AuthorizationError, TaskDescriptionError, OSError, KeyError):
+            artifact_read(display_mailbox, artifact_path)
+        except BridgeArtifactMissing:
             continue
+        except Exception as exc:
+            raise TaskDescriptionError(
+                f"BRIDGE_ARTIFACT_VERIFICATION_FAILED: unable to verify {artifact_path}: {exc}"
+            ) from exc
         completed.append(artifact_path)
     if completed:
         raise TaskDescriptionError(
