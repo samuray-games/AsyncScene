@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-21-0147-JST
-EXPECTED_REVISION: 2026-07-21-0147-JST
-NOTION_MEMORY_REVISION: 2026-07-21-0147-JST
+MEMORY_REVISION: 2026-07-21-0215-JST
+EXPECTED_REVISION: 2026-07-21-0215-JST
+NOTION_MEMORY_REVISION: 2026-07-21-0215-JST
 
 ## Canon principles
 
@@ -28,9 +28,11 @@ NOTION_MEMORY_REVISION: 2026-07-21-0147-JST
 - Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
 - Accepted implementation head is PR #245 merge `5e82e587241a180f44814cdfe7445da015c136dc`; PR #245 integrated the Stage 6 Alpha frozen copy with reviewed head `547ed5d5c8d3e7395b7d8a2cd8c60cfbe3608694`. PR #243 remains accepted history for the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`.
-- Stage 6 product implementation has started and Alpha frozen-copy implementation is complete/integrated; Stage 6 overall is not complete, and Safari runtime smoke remains `PENDING_USER`.
+- PR #246 is bookkeeping closure history, with reviewed head `be4f8fdb5f84a1a4f07fac270a87cf811be71b18` and merge commit `2e360a6137f8b15e28c004a66afc7ed320ce7024`; it does not replace the accepted implementation head.
+- Stage 6 product implementation has started and Alpha frozen-copy implementation is complete/integrated. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; Stage 6 overall is not complete.
+- Legacy Alpha Step 4.3.x smoke failures are `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: OPEN`, not a Stage 6 frozen-copy product regression. Current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187.
 - Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
-- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The post-PR245 repository-memory closure is complete/closed, and the durable handoff is `USER_SAFARI_RUNTIME_SMOKE_STAGE6_ALPHA_FROZEN_COPY`.
+- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The post-Alpha-Safari-pass repository-memory closure is complete/closed, and the durable handoff is `TASK-STAGE6-ALPHA-LEGACY-SMOKE-CONTRACT-REALIGNMENT-20260721`.
 
 ## Reading priority
 
