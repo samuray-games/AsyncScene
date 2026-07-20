@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-20-1604-JST
-EXPECTED_REVISION: 2026-07-20-1604-JST
-NOTION_MEMORY_REVISION: 2026-07-20-1604-JST
+MEMORY_REVISION: 2026-07-20-1649-JST
+EXPECTED_REVISION: 2026-07-20-1649-JST
+NOTION_MEMORY_REVISION: 2026-07-20-1649-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks, and Stage 6 planning or execution begins only under explicit user direction after this closure is integrated.
+Current execution handoff: the retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The user has explicitly directed Stage 6 continuation, and the next action is the serialized Stage 6 shared dev-check/index conflict-marker repair task.
 
 ## Bootstrap workflow
 
