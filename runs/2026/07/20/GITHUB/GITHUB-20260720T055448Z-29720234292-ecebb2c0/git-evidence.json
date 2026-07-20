@@ -1,0 +1,106 @@
+{
+  "branch": "codex/bridge-v4-real-profile-repair-20260720",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "codex/bridge-v4-real-profile-repair-20260720\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "6c5ca657965a14b260f257614ea7569c53db6488\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6c5ca657965a14b260f257614ea7569c53db6488\n# branch.head codex/bridge-v4-real-profile-repair-20260720\n# branch.upstream origin/codex/bridge-v4-real-profile-repair-20260720\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "6c5ca657 (HEAD -> codex/bridge-v4-real-profile-repair-20260720, origin/codex/bridge-v4-real-profile-repair-20260720) Repair bridge v4 real task profile execution\n47443f41 (origin/main) docs: close post-transport-resilience memory (#239)\nc99d8ceb Add fail-closed GitHub transport resilience (#238)\n5ebd6f49 Finalize post-R2 repository memory closure (#237)\neda96655 Close post-R2 repository memory (#236)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6c5ca657965a14b260f257614ea7569c53db6488\nbranch refs/heads/codex/bridge-v4-real-profile-repair-20260720\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T05:54:48Z",
+      "stderr": "",
+      "stdout": "47443f4161ba0ce943f976cd7d7044540557ba22\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6c5ca657965a14b260f257614ea7569c53db6488",
+  "observedAtUtc": "2026-07-20T05:54:48Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
