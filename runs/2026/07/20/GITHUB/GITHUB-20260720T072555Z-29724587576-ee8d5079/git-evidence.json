@@ -1,0 +1,106 @@
+{
+  "branch": "codex/post-pr240-repository-memory-closure-20260720",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "codex/post-pr240-repository-memory-closure-20260720\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a\n# branch.head codex/post-pr240-repository-memory-closure-20260720\n# branch.upstream origin/codex/post-pr240-repository-memory-closure-20260720\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "e43fcdb6 (HEAD -> codex/post-pr240-repository-memory-closure-20260720, origin/codex/post-pr240-repository-memory-closure-20260720) Close post-PR-240 repository memory\nd9a7e1b9 (origin/main) Repair Bridge v4 real task profile execution (#240)\n47443f41 docs: close post-transport-resilience memory (#239)\nc99d8ceb Add fail-closed GitHub transport resilience (#238)\n5ebd6f49 Finalize post-R2 repository memory closure (#237)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a\nbranch refs/heads/codex/post-pr240-repository-memory-closure-20260720\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-20T07:25:55Z",
+      "stderr": "",
+      "stdout": "d9a7e1b954e5f122a1621785e2176d93b697873f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e43fcdb67cd24d46ac9358bbe79d8f2aba0b034a",
+  "observedAtUtc": "2026-07-20T07:25:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
