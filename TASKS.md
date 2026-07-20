@@ -1,3 +1,12 @@
+## 2026-07-20 - Post-PR-240 repository memory closure
+- Status: complete/closed.
+- PR #240 integration is complete; accepted implementation head is `d9a7e1b954e5f122a1621785e2176d93b697873f`.
+- Bridge v4 backend/control-plane repair is integrated and `BRIDGE_TASK_PROFILE_2` is current.
+- Stage 6 product implementation has not started. Runtime remains stopped.
+- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks.
+- Durable next action: Stage 6 planning or execution is available only under explicit user direction; no automatic infrastructure repair cycle is created.
+- Validation scope: memory/task bookkeeping and static consistency only; runtime smoke is not applicable.
+
 ## 2026-07-10 — Repo-first memory migration
 - Status: complete.
 - Goal: move the project from one monolithic Google Drive-style memory document to a repository-first memory system that is readable through GitHub outside the local machine.

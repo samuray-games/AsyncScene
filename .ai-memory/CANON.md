@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-20-0205-JST
-EXPECTED_REVISION: 2026-07-20-0205-JST
-NOTION_MEMORY_REVISION: 2026-07-20-0204-JST
+MEMORY_REVISION: 2026-07-20-1604-JST
+EXPECTED_REVISION: 2026-07-20-1604-JST
+NOTION_MEMORY_REVISION: 2026-07-20-1604-JST
 
 ## Canon principles
 
@@ -27,7 +27,8 @@ NOTION_MEMORY_REVISION: 2026-07-20-0204-JST
 - A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
 - Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
-- Accepted main is `c99d8cebdcf9c36ecf09c05be9eb746b6bb7b699`; R2 history remediation, post-R2 canonical realignment, post-R2 repository-memory closure, and transport resilience integration through PR #238 are PASS; Stage 6 and runtime remain stopped.
+- Accepted main is `d9a7e1b954e5f122a1621785e2176d93b697873f`; PR #240 Bridge v4 backend/control-plane repair is integrated and `BRIDGE_TASK_PROFILE_2` is current; Stage 6 product implementation has not started and runtime remains stopped.
+- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The next action is explicit user-directed Stage 6 planning or execution, not another automatic infrastructure repair cycle.
 
 ## Reading priority
 
