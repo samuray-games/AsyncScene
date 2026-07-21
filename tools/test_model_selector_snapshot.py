@@ -33,7 +33,7 @@ from plugins.asynchronia.model_selector_inventory import normalize_model_identif
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md"
+ARTIFACT_PATH = ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md"
 CHECKED_OUT_BRANCH = current_branch()
 REPOSITORY_MANIFEST_PATH = ROOT / "plugins/asynchronia/.codex-plugin/plugin.json"
 
@@ -147,19 +147,21 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
         parsed = parse_inventory_markdown(Path(ARTIFACT_PATH))
-        self.assertEqual(manifest["inventoryArtifactPath"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md")))
+        self.assertEqual(manifest["inventoryArtifactPath"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md")))
         actual_blob_sha = subprocess.run(["git", "hash-object", str(ROOT / manifest["inventoryArtifactPath"])], check=True, capture_output=True, text=True).stdout.strip()
         self.assertEqual(manifest["lastAcceptedBlobSha"], actual_blob_sha)
-        self.assertEqual(manifest["currentSnapshotRevision"], "20260718.1")
-        self.assertEqual(parsed.model_count, 3)
-        self.assertEqual(parsed.pair_count, 15)
-        self.assertEqual([model["modelLabel"] for model in parsed.models], ["5.5", "5.6 Luna", "5.6 Terra/Sol"])
-        self.assertEqual([model["modelIdentifier"] for model in parsed.models], ["gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra-sol"])
-        self.assertNotIn("5.4 Mini", [model["modelLabel"] for model in parsed.models])
-        self.assertNotIn("5.4", [model["modelLabel"] for model in parsed.models])
+        self.assertEqual(manifest["currentSnapshotRevision"], "20260722.1")
+        self.assertEqual(parsed.model_count, 5)
+        self.assertEqual(parsed.pair_count, 23)
+        self.assertEqual([model["modelLabel"] for model in parsed.models], ["5.4 Mini", "5.4", "5.5", "5.6 Luna", "5.6 Terra/Sol"])
+        self.assertEqual([model["modelIdentifier"] for model in parsed.models], ["gpt-5.4-mini", "gpt-5.4", "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra-sol"])
+        self.assertIn("5.4 Mini", [model["modelLabel"] for model in parsed.models])
+        self.assertIn("5.4", [model["modelLabel"] for model in parsed.models])
         self.assertEqual(
             [(model["modelLabel"], effort["effortLabel"]) for model in parsed.models for effort in model["supportedEfforts"]],
             [
+                ("5.4 Mini", "Light"), ("5.4 Mini", "Medium"), ("5.4 Mini", "High"), ("5.4 Mini", "Extra High"),
+                ("5.4", "Light"), ("5.4", "Medium"), ("5.4", "High"), ("5.4", "Extra High"),
                 ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
                 ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
                 ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
@@ -178,14 +180,14 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         parsed = parse_inventory_markdown(Path(ARTIFACT_PATH))
         self.assertEqual(snapshot["completeModelCount"], parsed.model_count)
         self.assertEqual(snapshot["completeModelEffortPairCount"], parsed.pair_count)
-        self.assertEqual(snapshot["sourceArtifact"]["path"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718/UI-VISIBLE-MODEL-INVENTORY.md")))
+        self.assertEqual(snapshot["sourceArtifact"]["path"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md")))
         self.assertEqual(snapshot["sourceArtifact"]["blobSha"], json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))["lastAcceptedBlobSha"])
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
-        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-18T06:29:00Z")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-22T06:29:00Z")
         self.assertEqual(snapshot["applicationSurface"], "CODEX_DESKTOP_APP")
-        self.assertEqual(snapshot["completeModelCount"], 3)
-        self.assertEqual(snapshot["completeModelEffortPairCount"], 15)
-        self.assertEqual(snapshot["supersedes"], "20260715.1")
+        self.assertEqual(snapshot["completeModelCount"], 5)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 23)
+        self.assertEqual(snapshot["supersedes"], "20260718.1")
         self.assertEqual(snapshot["canonicalContentHash"], canonical_hash(snapshot))
 
     def test_active_plugin_version_surfaces_agree(self) -> None:
@@ -210,7 +212,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_current_snapshot_loads_and_normal_output_uses_picker_labels(self) -> None:
         snapshot = load_snapshot()
         report = evaluate_task(snapshot, task())
-        self.assertEqual(snapshot["snapshotRevision"], "20260718.1")
+        self.assertEqual(snapshot["snapshotRevision"], "20260722.1")
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
         self.assertTrue(all(item.modelLabel and item.effortLabel for item in report.evaluations))
         self.assertEqual(len(build_candidate_matrix(snapshot)), snapshot["completeModelEffortPairCount"])
@@ -247,7 +249,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False).returncode, 0)
             result = subprocess.run(command + ["inventory-changed", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0)
-            self.assertIn("TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260718", result.stdout)
+            self.assertIn("TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722", result.stdout)
             self.assertIn("authority artifact:", result.stdout)
             self.assertIn("model diff:", result.stdout)
 

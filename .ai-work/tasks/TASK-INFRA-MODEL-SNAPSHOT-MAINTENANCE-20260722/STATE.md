@@ -1,0 +1,8 @@
+TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
+PIPELINE_VERSION: 1.0.0
+CURRENT_STATUS: READY_FOR_REVIEW
+CURRENT_PHASE: REVIEW
+CURRENT_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/03-codex-task.md
+NEXT_ROLE: CHATGPT_REVIEW
+NEXT_ACTION: Independently review the exact remote draft PR for selector snapshot maintenance before integration planning; do not merge or resume Stage 6.
+UPDATED_AT: 2026-07-22T15:29:00+09:00
