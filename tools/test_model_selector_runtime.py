@@ -68,6 +68,7 @@ class ModelSelectorTests(unittest.TestCase):
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
         self.assertEqual(snapshot["snapshotRevision"], "20260722.1")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-21T17:36:00Z")
         self.assertEqual(len(candidates), snapshot["completeModelEffortPairCount"])
         self.assertEqual(snapshot["completeModelCount"], 5)
         self.assertEqual(snapshot["completeModelEffortPairCount"], 23)

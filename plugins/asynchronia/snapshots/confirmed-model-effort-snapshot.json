@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0.11",
   "snapshotRevision": "20260722.1",
-  "confirmedTimestamp": "2026-07-22T06:29:00Z",
+  "confirmedTimestamp": "2026-07-21T17:36:00Z",
   "confirmationSource": "USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
   "applicationSurface": "CODEX_DESKTOP_APP",
   "sourceArtifact": {
     "path": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md",
-    "blobSha": "12ef86006c96189852a4433c172f3a1080951bc6",
+    "blobSha": "921f59f436067165d89aff43c6c9ec3bb6d65910",
     "provenanceType": "repository-markdown"
   },
   "models": [
@@ -135,7 +135,7 @@
   ],
   "completeModelCount": 5,
   "completeModelEffortPairCount": 23,
-  "canonicalContentHash": "sha256:0c79184aba1158824f861ffc5e80aad076a5a436005a0c784dbb0d6c417ca2b1",
+  "canonicalContentHash": "sha256:fd2e23e53a1e9b5be0d215b8a1cc2d424bf169a82f5e7a27ddb5180d4ea6b2c3",
   "status": "PENDING_CONFIRMATION",
   "supersedes": "20260718.1",
   "notes": [

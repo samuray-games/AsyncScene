@@ -2,7 +2,7 @@ TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
 PIPELINE_VERSION: 1.0.0
 PHASE: WORK_PLAN
 STATUS: READY_FOR_CODEX
-CREATED_AT: 2026-07-22T15:29:00+09:00
+CREATED_AT: 2026-07-22T02:36:00+09:00
 AUTHOR_ROLE: CHATGPT
 SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87ae7cb8eb4ab5b490348
 
@@ -16,6 +16,7 @@ SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87
 - The authority manifest currently points to the historical 3-model, 15-pair inventory at revision `20260718.1`.
 - The parser already supports slash-containing model labels such as `5.6 Terra/Sol`.
 - The task is a bootstrap maintenance refresh of authoritative inventory data and direct expectations.
+- Independent review identified the active `plugins/asynchronia/model_selector.py` maintenance metadata as the only narrow scope expansion required for the corrected snapshot evidence.
 
 ### Conflict check
 
@@ -46,6 +47,7 @@ SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87
 - `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/STATE.md`
 - `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md`
 - `plugins/asynchronia/model-selector-authority.json`
+- `plugins/asynchronia/model_selector.py`
 - `plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json`
 - `tools/test_model_selector_snapshot.py`
 - `tools/test_model_selector_runtime.py`

@@ -4,7 +4,7 @@ TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
 PIPELINE_VERSION: 1.0.0
 PHASE: CODEX_TASK
 STATUS: READY_FOR_CODEX
-CREATED_AT: 2026-07-22T15:29:00+09:00
+CREATED_AT: 2026-07-22T02:36:00+09:00
 AUTHOR_ROLE: CHATGPT
 SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87ae7cb8eb4ab5b490348
 
@@ -29,10 +29,10 @@ Repair the stale selector snapshot from the exact user-confirmed Codex Desktop p
 - `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/STATE.md`
 - `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md`
 - `plugins/asynchronia/model-selector-authority.json`
+- `plugins/asynchronia/model_selector.py`
 - `plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json`
 - `tools/test_model_selector_snapshot.py`
 - `tools/test_model_selector_runtime.py`
-- `tools/test_model_selector_full_regression.py`
 
 ### Forbidden changes
 
@@ -46,12 +46,13 @@ Repair the stale selector snapshot from the exact user-confirmed Codex Desktop p
 
 - The user-confirmed inventory is exactly `5.4 Mini`, `5.4`, `5.5`, `5.6 Luna`, and `5.6 Terra/Sol`, with 23 pairs.
 - The historical inventory revision is `20260718.1`; the new snapshot supersedes it with revision `20260722.1`.
+- Independent review proved the task originally touched a narrow selector-source metadata collision, and this continuation explicitly authorizes that exact `model_selector.py` expansion only.
 
 ### Implementation requirements
 
 1. Create the five exact AI-work files in this task directory. The inventory must identify the user-confirmed Codex Desktop picker, list exactly five model lines and 23 pairs, record the return of `5.4 Mini` and `5.4`, supersede `20260718.1`, and avoid claiming independent official documentation confirmation.
 2. Point the authority manifest to the new inventory artifact and bind its actual Git blob SHA. Set revision `20260722.1`.
-3. Generate the snapshot through repository code with timestamp `2026-07-22T06:29:00Z`, source `USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY`, surface `CODEX_DESKTOP_APP`, status `PENDING_CONFIRMATION`, counts `5` and `23`, and supersedes `20260718.1`.
+3. Generate the snapshot through repository code with confirmation timestamp `2026-07-21T17:36:00Z`, source `USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY`, surface `CODEX_DESKTOP_APP`, status `PENDING_CONFIRMATION`, counts `5` and `23`, and supersedes `20260718.1`.
 4. Normalize `5.6 Terra/Sol` to `gpt-5.6-terra-sol` by lowercasing, converting unsupported separators to hyphens, collapsing repeated hyphens, and trimming hyphens without changing effort normalization semantics.
 5. Update direct tests to the new inventory, counts, identifiers, and provenance.
 6. After implementation only, run the separately required fresh generic CLI `start` with temporary task and state paths as non-authorizing acceptance evidence; do not send `INVENTORY_OK` or `INVENTORY_CHANGED`.
@@ -69,4 +70,3 @@ git diff --check
 ### Required final report
 
 Return the exact branch, worktree evidence, baseline/final SHAs, inventory blob SHA and manifest binding, canonical snapshot hash, old/new revisions, old/new counts, labels, identifiers, validation results, commit/push evidence, draft PR URL, and the exact next action to return for independent PR review and integration planning.
-

@@ -2,7 +2,7 @@ TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
 PIPELINE_VERSION: 1.0.0
 PHASE: CHAT_BRIEF
 STATUS: READY_FOR_CODEX
-CREATED_AT: 2026-07-22T15:29:00+09:00
+CREATED_AT: 2026-07-22T02:36:00+09:00
 AUTHOR_ROLE: CHATGPT
 SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87ae7cb8eb4ab5b490348
 
@@ -25,6 +25,7 @@ Repair the stale Asynchronia selector inventory from the user-confirmed Codex De
 - The active inventory source is the new task-local `UI-VISIBLE-MODEL-INVENTORY.md`.
 - The selected Codex UI model is reported only as `USER_SELECTED_UNVERIFIED`.
 - Snapshot generation and canonical hashing must use repository code.
+- The corrective continuation explicitly authorizes the narrow `plugins/asynchronia/model_selector.py` metadata-only maintenance update identified by independent review.
 
 ### Constraints
 

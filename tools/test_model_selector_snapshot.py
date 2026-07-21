@@ -183,7 +183,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual(snapshot["sourceArtifact"]["path"], str(Path(".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md")))
         self.assertEqual(snapshot["sourceArtifact"]["blobSha"], json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))["lastAcceptedBlobSha"])
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
-        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-22T06:29:00Z")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-21T17:36:00Z")
         self.assertEqual(snapshot["applicationSurface"], "CODEX_DESKTOP_APP")
         self.assertEqual(snapshot["completeModelCount"], 5)
         self.assertEqual(snapshot["completeModelEffortPairCount"], 23)

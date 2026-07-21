@@ -194,7 +194,7 @@ def _build_snapshot_from_inventory() -> dict[str, object]:
     parsed = parse_inventory_markdown(artifact_path)
     return canonical_snapshot_payload(
         snapshot_revision=str(manifest["currentSnapshotRevision"]),
-        confirmed_timestamp="2026-07-22T06:29:00Z",
+        confirmed_timestamp="2026-07-21T17:36:00Z",
         confirmation_source="USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
         application_surface="CODEX_DESKTOP_APP",
         supersedes="20260718.1",

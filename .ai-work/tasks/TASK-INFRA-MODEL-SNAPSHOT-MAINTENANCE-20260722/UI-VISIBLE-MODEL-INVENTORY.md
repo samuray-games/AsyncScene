@@ -2,13 +2,13 @@ TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
 PIPELINE_VERSION: 1.0.11
 PHASE: UI_VISIBLE_MODEL_INVENTORY
 STATUS: PENDING_CONFIRMATION
-CREATED_AT: 2026-07-22T15:29:00+09:00
+CREATED_AT: 2026-07-22T02:36:00+09:00
 AUTHOR_ROLE: CHATGPT
 SOURCE_REVISION: infra/model-snapshot-maintenance-20260722@fb93ef9c5f8eda44fea87ae7cb8eb4ab5b490348
 
 ### User-confirmed active Codex UI picker
 
-The user directly inspected the active Codex Desktop picker on 2026-07-22 JST and confirmed this complete inventory. This private UI inventory is the source for this maintenance snapshot; this artifact does not claim that official OpenAI documentation independently confirms the private picker contents.
+The user directly inspected the active Codex Desktop picker on 2026-07-22 02:36:00+09:00 and confirmed this complete inventory. This private UI inventory is the source for this maintenance snapshot; this artifact does not claim that official OpenAI documentation independently confirms the private picker contents.
 
 - 5.4 Mini: Light, Medium, High, Extra High
 - 5.4: Light, Medium, High, Extra High
@@ -55,4 +55,4 @@ This artifact supersedes snapshot revision `20260718.1` and establishes snapshot
 
 Confirmation source: `USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY`.
 Application surface: `CODEX_DESKTOP_APP`.
-Confirmed timestamp: `2026-07-22T06:29:00Z`.
+Confirmed timestamp: `2026-07-22T02:36:00+09:00`.
