@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage6-alpha-legacy-smoke-contract-realignment-20260721",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "codex/stage6-alpha-legacy-smoke-contract-realignment-20260721\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "0928e367de57a6769d99e2206c6f86b7072302ff\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "# branch.oid 0928e367de57a6769d99e2206c6f86b7072302ff\n# branch.head codex/stage6-alpha-legacy-smoke-contract-realignment-20260721\n# branch.upstream origin/codex/stage6-alpha-legacy-smoke-contract-realignment-20260721\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "0928e367 (HEAD -> codex/stage6-alpha-legacy-smoke-contract-realignment-20260721, origin/codex/stage6-alpha-legacy-smoke-contract-realignment-20260721) Realign legacy alpha smoke contracts to current inventory\n88b5cf6d (origin/main) Infra: refresh Codex model inventory snapshot (#248)\nfb93ef9c Sync memory after Alpha Safari runtime pass (#247)\n2e360a61 Close repository memory after PR 245 (#246)\n5e82e587 Apply Stage 6 Alpha frozen copy (#245)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 0928e367de57a6769d99e2206c6f86b7072302ff\nbranch refs/heads/codex/stage6-alpha-legacy-smoke-contract-realignment-20260721\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-21T20:18:38Z",
+      "stderr": "",
+      "stdout": "88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "0928e367de57a6769d99e2206c6f86b7072302ff",
+  "observedAtUtc": "2026-07-21T20:18:38Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
