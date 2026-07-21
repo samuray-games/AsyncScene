@@ -26,11 +26,11 @@ publishRoot: docs
 - changed mappings: 16
 - identity mappings: 7
 - canonical convergences: 3
-- new feature groups: 7
-- new feature mappings: 73
+- new feature groups: 8
+- new feature mappings: 83
 - new feature coverage: 100%
 - changed new-feature mappings: 66
-- identity new-feature mappings: 7
+- identity new-feature mappings: 17
 - target taboo hits: 0
 - inventory extension rows: `TXT_0165` through `TXT_0174`
 - allowed lexicon extension rows: `ALX_0188` through `ALX_0206`
@@ -95,11 +95,11 @@ publishRoot: docs
 
 - Canonical list: `docs/UI_PROFILE_ALPHA_NEW_FEATURES.md`
 - Runtime mirror: `AsyncScene/Web/UI_PROFILE_ALPHA_NEW_FEATURES.md`
-- new feature groups: 7
-- new feature mappings: 73
+- new feature groups: 8
+- new feature mappings: 83
 - new feature coverage: 100%
 - changed new-feature mappings: 66
-- identity new-feature mappings: 7
+- identity new-feature mappings: 17
 - Covered groups:
   - `cop`
   - `mafia`
@@ -108,11 +108,13 @@ publishRoot: docs
   - `npc_vs_npc`
   - `timers`
   - `economy_ui`
+  - `respect`
 
 ## Runtime acceptance
 
-- Historical Step 4.3.6 aggregate identity is preserved below.
-- The current compiled package extends that accepted base with `TXT_0165` through `TXT_0174` and `ALX_0188` through `ALX_0206`.
+- Historical Step 4.3.6 aggregate identity is preserved as lineage only.
+- The current legacy Alpha contract is derived from the accepted compiled inventory and the additive Step 6.4 respect coverage.
+- The current compiled package extends the earlier accepted base with `TXT_0165` through `TXT_0174` and `ALX_0188` through `ALX_0206`.
 - Accepted smoke references:
   - `Game.__DEV.smokeAlphaLexiconInventoryFix5()`
   - `Game.__DEV.smokeAlphaAllowedLexiconFix1()`
@@ -124,16 +126,16 @@ publishRoot: docs
   - commit: `step4_3_6_alpha_lexicon_runtime_smoke_fix1`
   - smokeVersion: `step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001`
   - buildTag: `build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1`
-- Accepted Step 4.3.6 PASS evidence:
+- Current legacy Alpha aggregate target:
   - `ok:true`
-  - `inventoryEntryCount:164`
-  - `inventoryUniqueTextCount:122`
-  - `allowedLexiconEntryCount:187`
+  - `inventoryEntryCount:174`
+  - `inventoryUniqueTextCount:152`
+  - `allowedLexiconEntryCount:206`
   - `tabooEntryCount:60`
   - `zMappingCount:23`
   - `zMappingCoveragePercent:100`
-  - `newFeatureCount:7`
-  - `newFeatureMappedEntryCount:73`
+  - `newFeatureCount:8`
+  - `newFeatureMappedEntryCount:83`
   - `newFeatureCoveragePercent:100`
   - `targetTabooHitCount:0`
   - `childSmokeCount:5`
@@ -142,8 +144,8 @@ publishRoot: docs
   - `forbiddenRemaining:[]`
   - `missingCoverage:[]`
   - `failedChecks:[]`
-  - `runtimeCopyChanged:true`
-  - `mappingApplied:true`
+  - `runtimeCopyChanged:false`
+  - `mappingApplied:false`
   - `docsMirrorMatches:true`
   - `productionGatePlacementOk:true`
   - `registrationPrecedesThrowingInstallers:true`
@@ -151,7 +153,7 @@ publishRoot: docs
 - Source documentation content checks passed before Fix1.
 - Fix1 uses a deployable acceptance manifest: `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`
 - `docs/` is the GitHub Pages publish root, so the deployed alpha path is `ALPHA_LEXICON.md`.
-- Source `TASKS.md` and `PROJECT_MEMORY.md` are verified through the generated acceptance manifest instead of browser-fetching repository-root paths.
+- Acceptance identity binds only to the stable mirrored Alpha lexicon document inputs recorded in the generated acceptance manifest.
 - Repository paths must not be treated as browser URLs.
 - Step 4.3.7 documentation acceptance smoke: `Game.__DEV.smokeAlphaLexiconDocsFix1()`
 - Step 4.3.7 Safari PASS is pending and must not be claimed here.
@@ -182,7 +184,5 @@ publishRoot: docs
 - `AsyncScene/Web/UI_PROFILE_ALPHA_Z_TO_ALPHA_MAPPING.md`
 - `docs/UI_PROFILE_ALPHA_NEW_FEATURES.md`
 - `AsyncScene/Web/UI_PROFILE_ALPHA_NEW_FEATURES.md`
-- `TASKS.md`
-- `PROJECT_MEMORY.md`
 - `ALPHA_LEXICON_DOCS_ACCEPTANCE.json`
 - `docs/ALPHA_LEXICON_DOCS_ACCEPTANCE.json`
