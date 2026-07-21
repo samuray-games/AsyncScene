@@ -67,13 +67,26 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(PLUGIN_VERSION, "1.0.16")
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
-        self.assertEqual(snapshot["snapshotRevision"], "20260718.1")
+        self.assertEqual(snapshot["snapshotRevision"], "20260722.1")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-21T17:36:00Z")
         self.assertEqual(len(candidates), snapshot["completeModelEffortPairCount"])
-        self.assertEqual(snapshot["completeModelCount"], 3)
-        self.assertEqual(snapshot["completeModelEffortPairCount"], 15)
-        self.assertEqual(len(candidates), 15)
+        self.assertEqual(snapshot["completeModelCount"], 5)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 23)
+        self.assertEqual(len(candidates), 23)
+        self.assertEqual(
+            [(candidate.modelLabel, candidate.effortLabel) for candidate in candidates],
+            [
+                ("5.4 Mini", "Light"), ("5.4 Mini", "Medium"), ("5.4 Mini", "High"), ("5.4 Mini", "Extra High"),
+                ("5.4", "Light"), ("5.4", "Medium"), ("5.4", "High"), ("5.4", "Extra High"),
+                ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
+                ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
+                ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
+                ("5.6 Terra/Sol", "Light"), ("5.6 Terra/Sol", "Medium"), ("5.6 Terra/Sol", "High"),
+                ("5.6 Terra/Sol", "Extra High"), ("5.6 Terra/Sol", "Max"), ("5.6 Terra/Sol", "Ultra"),
+            ],
+        )
         report = evaluate_task(snapshot, task())
-        self.assertEqual(len(report.evaluations), 15)
+        self.assertEqual(len(report.evaluations), 23)
         self.assertTrue(report.recommendation.modelLabel)
 
     def test_default_state_is_git_private_and_not_legacy_home_path(self) -> None:
