@@ -216,6 +216,43 @@
   <script defer src="ui/ui-loops.js?v=2"></script>
   <script defer src="ui/ui-boot.js?v=step6_2_conflict_result_profile_sampling_fix4_20260704a"></script>
   <script>
+    const resolveDevCheckExport = (name) => {
+      const stores = [
+        window.Game && window.Game.__DEV,
+        window.Game && window.Game.Dev
+      ].filter((store) => store && typeof store === "object");
+      for (const store of stores) {
+        const fn = store[name];
+        if (typeof fn === "function") return fn;
+      }
+      throw new ReferenceError(`Missing declaration for ${name}`);
+    };
+    const installDevCheckLexicalAlias = (name) => {
+      if (Object.prototype.hasOwnProperty.call(window, name)) return;
+      Object.defineProperty(window, name, {
+        configurable: true,
+        get() {
+          return resolveDevCheckExport(name);
+        }
+      });
+    };
+    installDevCheckLexicalAlias("smokeBoomerRuntimeGapIntegrationStep35Fix7Once");
+    installDevCheckLexicalAlias("smokeZoomerFeelStep63UiNpcLengthOnce");
+    if (typeof window.addUnique !== "function") {
+      window.addUnique = function addUnique(list, value) {
+        if (!Array.isArray(list)) return list;
+        const duplicate = list.some((entry) => {
+          if (entry === value) return true;
+          try {
+            return JSON.stringify(entry) === JSON.stringify(value);
+          } catch (_) {
+            return false;
+          }
+        });
+        if (!duplicate) list.push(value);
+        return list;
+      };
+    }
     window.getZoomerShorteningDocsBootSmokeRegistry = function getZoomerShorteningDocsBootSmokeRegistry() {
       const names = [
         "smokeZoomerShorteningDocsStep6Fix1Once",
@@ -224,29 +261,15 @@
         "smokeZoomerShorteningDocsStep6Fix4Once",
         "smokeZoomerShorteningDocsStep6RegistryProbeOnce"
       ];
-      const stores = [
-        window.Game && window.Game.__DEV,
-        window.Game && window.Game.Dev
-      ].filter((store) => store && typeof store === "object");
       const registry = {};
       for (const name of names) {
-        let fn = null;
-        for (const store of stores) {
-          if (typeof store[name] === "function") {
-            fn = store[name];
-            break;
-          }
-        }
-        if (typeof fn !== "function") {
-          throw new ReferenceError(`Missing declaration for ${name}`);
-        }
-        registry[name] = fn;
+        registry[name] = resolveDevCheckExport(name);
       }
       return registry;
     };
   </script>
-  <!-- Stage 6 Boomer 4.4B boot-recovery cache-bust keeps the published dev-check runtime fresh. -->
-  <script defer src="dev/dev-checks.js?v=step6_boomer_4_4b_dev_checks_boot_registration_recovery_20260722b"></script>
+  <!-- Stage 6 Boomer 4.4B scope-cluster recovery cache-bust keeps the published dev-check runtime fresh. -->
+  <script defer src="dev/dev-checks.js?v=step6_boomer_4_4b_scope_cluster_recovery_20260722c"></script>
 
 </body>
 </html>
