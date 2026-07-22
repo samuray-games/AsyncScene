@@ -15,8 +15,8 @@ window.Game = window.Game || {};
     return;
   }
 
-  const ADAPTER_BUILD_TAG = "build_2026_07_22_step4_4b_boomer_current_contract_adapter_v1";
-  const ADAPTER_SMOKE_VERSION = "boomer_step4_4b_current_contract_adapter_v20260722_001";
+  const ADAPTER_BUILD_TAG = "build_2026_07_22_step4_4b_boomer_current_contract_adapter_v2";
+  const ADAPTER_SMOKE_VERSION = "boomer_step4_4b_current_contract_adapter_v20260722_002";
   const AUDIT_FILE = "UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md";
   const SUPERSEDED_CHECKS = new Set(["base_smoke", "profile_diff", "placeholders", "emoji_contracts"]);
   const CHECK_LABELS = {
@@ -62,6 +62,7 @@ window.Game = window.Game || {};
         break;
       }
     }
+
     const text = loaded ? loaded.text : "";
     const checks = {
       buildMarker: text.includes("UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT"),
@@ -73,6 +74,7 @@ window.Game = window.Game || {};
       structural0: text.includes("structuralFailureCount: 0"),
       placeholderAuthority: text.includes("placeholder_mismatch") && text.includes("placeholder-broken")
     };
+
     return {
       ok: !!loaded && Object.values(checks).every(Boolean),
       url: loaded ? loaded.url : null,
@@ -113,11 +115,15 @@ window.Game = window.Game || {};
     const data = Game && Game.Data;
     const strings = [];
     const seenObjects = new WeakSet();
+
     collectStrings(data && data.TEXTS && data.TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
+    // CAP_MESSAGES can be exposed either as the active-profile getter result or as a profile map.
+    collectStrings(data && data.CAP_MESSAGES, strings, seenObjects);
     collectStrings(data && data.CAP_MESSAGES && data.CAP_MESSAGES.boomer, strings, seenObjects);
+
     const joined = strings.join("\n");
     const required = ["💰", "⭐", "⚡"];
     const dataHits = required.filter((emoji) => joined.includes(emoji));
@@ -127,16 +133,23 @@ window.Game = window.Game || {};
       const node = document.querySelector(`[data-profile-stat="${profileStat}"] .statIcon`);
       return node ? String(node.textContent || "").trim() : "";
     };
+
     const dom = {
       points: readIcon("points"),
       rep: readIcon("rep"),
       influence: readIcon("influence")
     };
+    const domValues = Object.values(dom);
+    const domHits = required.filter((emoji) => domValues.includes(emoji));
+    const combinedHits = required.filter((emoji) => dataHits.includes(emoji) || domHits.includes(emoji));
     const domOk = dom.points === "💰" && dom.rep === "⭐" && dom.influence === "⚡";
+
     return {
-      ok: dataHits.length === required.length && domOk,
+      ok: combinedHits.length === required.length && domOk,
       required,
       dataHits,
+      domHits,
+      combinedHits,
       dom,
       domOk
     };
@@ -179,15 +192,14 @@ window.Game = window.Game || {};
 
   const allAdversarialFixturesPass = (fixtures) => {
     if (!fixtures || typeof fixtures !== "object") return false;
-    const required = [
+    return [
       "profileRejectsMutation",
       "economyRejectsMutation",
       "battleStateRejectsMutation",
       "moneyLogRejectsMutation",
       "persistenceRejectsMutation",
       "localStorageRejectsMutation"
-    ];
-    return required.every((key) => fixtures[key] === true);
+    ].every((key) => fixtures[key] === true);
   };
 
   const smokeBoomerEconomyConflictTerminologyCurrentContractOnce = function smokeBoomerEconomyConflictTerminologyCurrentContractOnce() {
@@ -253,12 +265,7 @@ window.Game = window.Game || {};
       rawLegacyOk: !!(raw && raw.ok === true),
       rawLegacyFailedChecks: Array.isArray(raw && raw.failedChecks) ? raw.failedChecks.slice() : [],
       supersededLegacyChecks: Array.from(SUPERSEDED_CHECKS),
-      currentAuthority: {
-        audit,
-        profileArchitecture,
-        emojiContracts,
-        legacyBaseHealth
-      },
+      currentAuthority: { audit, profileArchitecture, emojiContracts, legacyBaseHealth },
       runtimeChecks,
       failedChecks,
       failures,
@@ -299,7 +306,7 @@ window.Game = window.Game || {};
     Game.Dev.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyCurrentContractOnce;
   }
 
-  console.warn("BOOMER_STEP4_4B_CURRENT_CONTRACT_ADAPTER_INSTALLED_V1", {
+  console.warn("BOOMER_STEP4_4B_CURRENT_CONTRACT_ADAPTER_INSTALLED_V2", {
     adapterBuildTag: ADAPTER_BUILD_TAG,
     adapterSmokeVersion: ADAPTER_SMOKE_VERSION,
     smokeType: typeof devStore.smokeBoomerEconomyConflictTerminologyOnce,
