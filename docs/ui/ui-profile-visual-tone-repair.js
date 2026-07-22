@@ -1,93 +1,168 @@
-// Stage 6 final visual tone separation repair v3.
-// Presentation-only. Preserves gameplay/state/economy and PR #245 Alpha frozen keys.
+// Stage 6 final presentation authority v4.
+// Presentation-only: one canonical profile layer and one unified stat-toast pipeline.
+// Gameplay, economy, battle rules, NPC behavior, state, persistence and outcomes are untouched.
 window.Game = window.Game || {};
 
-(function installStage6VisualToneRepairV3() {
+(function installStage6FinalPresentationV4() {
   const Game = window.Game;
   const Data = Game.Data;
   const UI = Game.UI;
-  const System = Game.System;
+  const OriginalSystem = Game.System;
 
-  if (!Data || !UI || !System) {
-    console.error("STAGE6_VISUAL_TONE_REPAIR_V3_INSTALL_FAILED", {
+  if (!Data || !UI || !OriginalSystem) {
+    console.error("STAGE6_FINAL_PRESENTATION_V4_INSTALL_FAILED", {
       hasData: !!Data,
       hasUI: !!UI,
-      hasSystem: !!System
+      hasSystem: !!OriginalSystem
     });
     return;
   }
 
   Game.__DEV = Game.__DEV || {};
-  if (Game.__DEV.__stage6VisualToneRepairV3Installed) return;
+  if (Game.__DEV.__stage6FinalPresentationV4Installed) return;
 
-  const BUILD_TAG = "build_2026_07_22_stage6_visual_tone_repair_v3";
-  const SMOKE_VERSION = "stage6_visual_tone_repair_v20260722_003";
+  const BUILD_TAG = "build_2026_07_23_stage6_final_presentation_v4";
+  const SMOKE_VERSION = "stage6_final_presentation_v20260723_004";
   const PROFILE_KEYS = Object.freeze(["millennial", "zoomer", "alpha", "boomer"]);
-  const STAT_ICONS = Object.freeze({ influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" });
+  const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
+  const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
+  const COALESCE_MS = 90;
+  const ACTIVE_MERGE_MS = 350;
+  const VISIBLE_MS = 1700;
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
-      chatPlaceholder: "Напиши сообщение.", chatSend: "Отправить",
-      dmPlaceholder: "Напиши в личку.", dmSend: "Отправить", dmHeader: "Личка",
-      battlesHeader: "Баттлы", menu: "Меню", attackBadge: "Аргумент", defenseBadge: "Ответ",
-      dismiss: "Отойти", escape: "Уйти"
+      chatPlaceholder: "Напиши сообщение.",
+      chatSend: "Отправить",
+      dmPlaceholder: "Напиши лично.",
+      dmSend: "Отправить",
+      dmHeader: "Личные сообщения",
+      battlesHeader: "Конфликты",
+      menu: "Меню",
+      attackBadge: "Аргумент",
+      defenseBadge: "Ответ",
+      opponentArgLabel: "Аргумент оппонента",
+      ownDefenseLabel: "Мой ответ",
+      dismiss: "Отойти",
+      escape: "Уйти"
     }),
     zoomer: Object.freeze({
-      chatPlaceholder: "Пиши по теме.", chatSend: "Заслать",
-      dmPlaceholder: "Пиши в личку.", dmSend: "Заслать", dmHeader: "Личка",
-      battlesHeader: "Баттлы", menu: "Меню", attackBadge: "Вброс", defenseBadge: "Ответка",
-      dismiss: "Отвали", escape: "Свалить"
+      chatPlaceholder: "Сообщение",
+      chatSend: "Отправить",
+      dmPlaceholder: "Личное сообщение",
+      dmSend: "Отправить",
+      dmHeader: "Личные",
+      battlesHeader: "Бои",
+      menu: "Меню",
+      attackBadge: "Аргумент",
+      defenseBadge: "Ответ",
+      opponentArgLabel: "Аргумент",
+      ownDefenseLabel: "Ответ",
+      dismiss: "Отойти",
+      escape: "Уйти"
     }),
     alpha: Object.freeze({
-      chatPlaceholder: "Сообщение", chatSend: "Отпр.",
-      dmPlaceholder: "ЛС", dmSend: "Отпр.", dmHeader: "ЛС",
-      battlesHeader: "Бои", menu: "Меню", attackBadge: "Атк", defenseBadge: "Ответ",
-      dismiss: "Стоп", escape: "Уйти"
+      chatPlaceholder: "Напиши.",
+      chatSend: "Отправить",
+      dmPlaceholder: "Напиши.",
+      dmSend: "Отправить",
+      dmHeader: "Личное",
+      battlesHeader: "Бои",
+      menu: "Меню",
+      attackBadge: "Ход",
+      defenseBadge: "Ответ",
+      opponentArgLabel: "Ход",
+      ownDefenseLabel: "Ответ",
+      dismiss: "Стоп",
+      escape: "Уйти"
     }),
     boomer: Object.freeze({
-      chatPlaceholder: "Введите сообщение.", chatSend: "Отправить",
-      dmPlaceholder: "Введите личное сообщение.", dmSend: "Отправить", dmHeader: "Сообщения",
-      battlesHeader: "Конфликты", menu: "Меню", attackBadge: "Аргумент", defenseBadge: "Ответ",
-      dismiss: "Отказаться", escape: "Выйти"
+      chatPlaceholder: "Введите сообщение.",
+      chatSend: "Отправить",
+      dmPlaceholder: "Введите личное сообщение.",
+      dmSend: "Отправить",
+      dmHeader: "Сообщения",
+      battlesHeader: "Конфликты",
+      menu: "Меню",
+      attackBadge: "Аргумент",
+      defenseBadge: "Ответ",
+      opponentArgLabel: "Аргумент оппонента",
+      ownDefenseLabel: "Ваш ответ",
+      dismiss: "Отказаться",
+      escape: "Выйти"
     })
   });
 
   const TEXT_OVERRIDES = Object.freeze({
     millennial: Object.freeze({
       escape_button_label: "Уйти −{X} 💰",
-      events_header: "События", events_title: "События ({count})",
-      battle_invite_title: "Вызов", battle_action_accept: "Принять",
-      battle_action_decline: "Отклонить", battle_action_attack: "Атаковать",
-      battle_action_rematch: "Реванш", battle_action_report: "Пожаловаться",
-      dm_empty: "Пока пусто.", dm_action_unavailable: "Недоступно."
+      events_header: "События",
+      events_title: "События ({count})",
+      battle_invite_title: "Конфликты",
+      battle_action_accept: "Принять",
+      battle_action_decline: "Отклонить",
+      battle_action_attack: "Атаковать",
+      battle_action_rematch: "Реванш",
+      battle_action_report: "Пожаловаться",
+      dm_empty: "Пока пусто.",
+      dm_action_unavailable: "Недоступно."
     }),
     zoomer: Object.freeze({
-      escape_button_label: "Свалить −{X} 💰",
-      events_header: "Движ", events_title: "Движ ({count})",
-      battle_invite_title: "Залёт", battle_action_accept: "Вписаться",
-      battle_action_decline: "Скипнуть", battle_action_attack: "Влететь",
-      battle_action_rematch: "Ещё раунд", battle_action_report: "Сдать копу",
-      dm_empty: "Личка молчит.", dm_action_unavailable: "Пока закрыто."
+      escape_button_label: "Уйти −{X} 💰",
+      events_header: "События",
+      events_title: "События {count}",
+      battle_invite_title: "Бои",
+      battle_action_accept: "Принять",
+      battle_action_decline: "Отказ",
+      battle_action_attack: "Атака",
+      battle_action_rematch: "Ещё",
+      battle_action_report: "Сообщить",
+      dm_empty: "Пусто.",
+      dm_action_unavailable: "Недоступно."
     }),
     alpha: Object.freeze({
-      tie_start: "Голос", tie_call_to_action: "Выбрать", tie_click_name_hint: "Имя",
-      vote_ok: "Учтён", vote_already: "Уже", vote_fail: "Нет",
-      events_header: "События", events_title: "События {count}", events_empty: "Пусто.",
-      events_panel_hint: "Последние события.", battles_empty: "Пусто.", battle_invite_title: "Бой",
-      battle_action_accept: "Да", battle_action_decline: "Нет", battle_action_attack: "Атака",
-      battle_action_rematch: "Ещё", battle_action_report: "Сообщить", dm_empty: "Пусто.",
-      dm_action_unavailable: "Нет.", battle_energy_locked_hint: "⚡{energy}",
-      events_close_extra: "Свернуть", events_clear_all: "Очистить", events_clear: "Очистить",
-      events_done: "Готово", events_left: "{sec} сек", menu_title: "Меню",
-      return_to_start: "На старт", menu_unavailable: "Нет.", goal_label: "Цель"
+      tie_start: "Голос",
+      tie_call_to_action: "Выбрать",
+      tie_click_name_hint: "Имя",
+      vote_ok: "Учтено",
+      vote_already: "Уже",
+      vote_fail: "Нет",
+      events_header: "События",
+      events_title: "События {count}",
+      events_empty: "Пусто.",
+      events_panel_hint: "События.",
+      battles_empty: "Пусто.",
+      battle_invite_title: "Бои",
+      battle_action_accept: "Да",
+      battle_action_decline: "Нет",
+      battle_action_attack: "Ход",
+      battle_action_rematch: "Ещё",
+      battle_action_report: "Сообщить",
+      dm_empty: "Пусто.",
+      dm_action_unavailable: "Нет.",
+      battle_energy_locked_hint: "Нужно ⚡{energy}",
+      events_close_extra: "Свернуть",
+      events_clear_all: "Очистить",
+      events_clear: "Очистить",
+      events_done: "Готово",
+      events_left: "{sec} сек",
+      menu_title: "Меню",
+      return_to_start: "На старт",
+      menu_unavailable: "Нет.",
+      goal_label: "Цель"
     }),
     boomer: Object.freeze({
       escape_button_label: "Выйти −{X} 💰",
-      events_header: "События", events_title: "События: {count}",
-      battle_invite_title: "Вызов", battle_action_accept: "Принять",
-      battle_action_decline: "Отказаться", battle_action_attack: "Атаковать",
-      battle_action_rematch: "Реванш", battle_action_report: "Сообщить",
-      dm_empty: "Сообщений пока нет.", dm_action_unavailable: "Действие недоступно."
+      events_header: "События",
+      events_title: "События: {count}",
+      battle_invite_title: "Конфликты",
+      battle_action_accept: "Принять",
+      battle_action_decline: "Отказаться",
+      battle_action_attack: "Атаковать",
+      battle_action_rematch: "Реванш",
+      battle_action_report: "Сообщить",
+      dm_empty: "Сообщений пока нет.",
+      dm_action_unavailable: "Действие недоступно."
     })
   });
 
@@ -102,34 +177,147 @@ window.Game = window.Game || {};
     start_action: "Старт"
   });
 
-  const SYSTEM_ROUTE_OVERRIDES = Object.freeze({
-    millennial: Object.freeze({
-      "warnings.escapeNeedsPoints": "Не хватает 💰, чтобы уйти.",
-      "notifications.escapePaid": "Уход: −1 💰.",
-      "notifications.escapeVoteCost": "Уход: −{escapeCost} 💰.",
-      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
-    }),
-    zoomer: Object.freeze({
-      "warnings.escapeNeedsPoints": "Мало 💰, чтобы свалить.",
-      "notifications.escapePaid": "Свалил: −1 💰.",
-      "notifications.escapeVoteCost": "Свалить: −{escapeCost} 💰.",
-      "notifications.trainingSent": "Аргумент залетел: {teacher} → {student}."
-    }),
-    alpha: Object.freeze({}),
-    boomer: Object.freeze({
-      "warnings.escapeNeedsPoints": "Недостаточно 💰, чтобы выйти.",
-      "notifications.escapePaid": "Выход: −1 💰.",
-      "notifications.escapeVoteCost": "Выход: −{escapeCost} 💰.",
-      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
-    })
-  });
-
   const ALPHA_FROZEN_EXPECTED = Object.freeze({
     escape_button_label: "Уйти: −{X}💰",
     teach_sent_dm: "{student}: {arg}. -{cost}💰.",
     teach_sent_chat: "{teacher} → {student}: аргумент.",
     invite_open_hint: "Указать имя",
     invite_invalid: "Игрок: нет"
+  });
+
+  const PROFILE_TEXT_OVERRIDES = Object.freeze({
+    zoomer: Object.freeze({
+      not_enough_money: "Не хватает денег.",
+      not_enough_stars: "Не хватает репутации.",
+      purchase_success: "Покупка готова.",
+      sale_success: "Продажа готова.",
+      reward_received: "Награда получена.",
+      penalty_received: "Штраф применён.",
+      generic_error: "Ошибка.",
+      generic_success: "Готово.",
+      money_received: "Деньги получены.",
+      money_spent: "Деньги списаны.",
+      money_changed_positive: "Баланс вырос.",
+      money_changed_negative: "Баланс снизился.",
+      poverty_state: "Денег мало.",
+      rich_state: "Денег достаточно.",
+      bankrupt_state: "Денег нет.",
+      income_event: "Доход получен.",
+      expense_event: "Расход учтён.",
+      economy_neutral: "Баланс без изменений.",
+      reputation_increased: "Репутация выросла.",
+      reputation_decreased: "Репутация снизилась.",
+      reputation_unchanged: "Репутация без изменений.",
+      respect_gained: "Уважение выросло.",
+      respect_lost: "Уважение снизилось.",
+      disrespect_event: "Отношение ухудшилось.",
+      reputation_high: "Репутация высокая.",
+      reputation_low: "Репутация низкая.",
+      reputation_recovered: "Репутация восстановилась.",
+      reputation_damaged: "Репутация снизилась."
+    }),
+    alpha: Object.freeze({
+      not_enough_money: "Нет денег.",
+      not_enough_stars: "Нет репутации.",
+      purchase_success: "Куплено.",
+      sale_success: "Продано.",
+      reward_received: "Награда.",
+      penalty_received: "Штраф.",
+      generic_error: "Ошибка.",
+      generic_success: "Готово.",
+      money_received: "Деньги получены.",
+      money_spent: "Деньги списаны.",
+      money_changed_positive: "Баланс вырос.",
+      money_changed_negative: "Баланс снизился.",
+      poverty_state: "Мало денег.",
+      rich_state: "Денег хватает.",
+      bankrupt_state: "Нет денег.",
+      income_event: "Доход.",
+      expense_event: "Расход.",
+      economy_neutral: "Без изменений.",
+      reputation_increased: "Репутация выросла.",
+      reputation_decreased: "Репутация снизилась.",
+      reputation_unchanged: "Без изменений.",
+      respect_gained: "Уважение выросло.",
+      respect_lost: "Уважение снизилось.",
+      disrespect_event: "Отношение хуже.",
+      reputation_high: "Репутация высокая.",
+      reputation_low: "Репутация низкая.",
+      reputation_recovered: "Репутация восстановлена.",
+      reputation_damaged: "Репутация снижена."
+    })
+  });
+
+  const LEGACY_SYSTEM_PHRASE_OVERRIDES = Object.freeze({
+    zoomer: Object.freeze({
+      "Кошелёк в нуле 💀": "Не хватает денег.",
+      "Звёзд не завезли ⭐": "Не хватает репутации.",
+      "Забрал. Минус монеты.": "Покупка готова.",
+      "Слил в плюс.": "Продажа готова.",
+      "Лут прилетел.": "Награда получена.",
+      "Минуснули.": "Штраф применён.",
+      "Что-то сломалось 🫠": "Ошибка.",
+      "Есть.": "Готово.",
+      "Монеты зашли.": "Деньги получены.",
+      "Монеты ушли.": "Деньги списаны.",
+      "Баланс подрос.": "Баланс вырос.",
+      "Баланс просел.": "Баланс снизился.",
+      "Кошелёк дышит на мемах.": "Денег мало.",
+      "Кошелёк жирный.": "Денег достаточно.",
+      "Финансовый ноль 💀": "Денег нет.",
+      "Плюс к кассе.": "Доход получен.",
+      "Кассу подрезало.": "Расход учтён.",
+      "По монетам без движухи.": "Баланс без изменений.",
+      "Репа подросла.": "Репутация выросла.",
+      "Репа просела.": "Репутация снизилась.",
+      "По репе без движухи.": "Репутация без изменений.",
+      "Тебя начали респектить.": "Уважение выросло.",
+      "Респект просел.": "Уважение снизилось.",
+      "На тебя косо смотрят.": "Отношение ухудшилось.",
+      "Репа на весу.": "Репутация высокая.",
+      "Репа тонкая.": "Репутация низкая.",
+      "Репа отлипла.": "Репутация восстановилась.",
+      "Репу помяло.": "Репутация снизилась."
+    }),
+    alpha: Object.freeze({
+      "Кошелёк в нуле 💀": "Нет денег.",
+      "Есть.": "Готово."
+    })
+  });
+
+  const SYSTEM_ROUTE_OVERRIDES = Object.freeze({
+    millennial: Object.freeze({
+      "errors.insufficientPoints": "Недостаточно денег.",
+      "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
+      "warnings.escapeNeedsPoints": "Не хватает денег, чтобы уйти.",
+      "notifications.escapePaid": "Уход: −1.",
+      "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
+      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
+    }),
+    zoomer: Object.freeze({
+      "errors.insufficientPoints": "Не хватает денег.",
+      "errors.pointsLowBattle": "Не хватает денег.",
+      "warnings.escapeNeedsPoints": "Не хватает денег.",
+      "notifications.escapePaid": "Уход: −1.",
+      "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
+      "notifications.trainingSent": "Аргумент: {teacher} → {student}."
+    }),
+    alpha: Object.freeze({
+      "errors.insufficientPoints": "Нет денег.",
+      "errors.pointsLowBattle": "Нет денег.",
+      "warnings.escapeNeedsPoints": "Нет денег.",
+      "notifications.escapePaid": "Уход −1.",
+      "notifications.escapeVoteCost": "Уход −{escapeCost}.",
+      "notifications.trainingSent": "{teacher} → {student}: аргумент."
+    }),
+    boomer: Object.freeze({
+      "errors.insufficientPoints": "Недостаточно денег.",
+      "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
+      "warnings.escapeNeedsPoints": "Недостаточно денег, чтобы выйти.",
+      "notifications.escapePaid": "Выход: −1.",
+      "notifications.escapeVoteCost": "Выход: −{escapeCost}.",
+      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
+    })
   });
 
   function activeProfile() {
@@ -168,85 +356,330 @@ window.Game = window.Game || {};
     });
   }
 
-  function installSystemRoutingRepair() {
-    if (System.say && System.say.__stage6VisualToneRepairV3Wrapped) return;
-    const originalSay = System.say;
-    const kindAliases = {
+  function canonicalizeLegacySystemPhrase(profile, text) {
+    const source = String(text == null ? "" : text);
+    const bucket = LEGACY_SYSTEM_PHRASE_OVERRIDES[profile];
+    return bucket && Object.prototype.hasOwnProperty.call(bucket, source) ? bucket[source] : source;
+  }
+
+  function canonicalSystemText(profile, kind, code, ctx) {
+    const groupAliases = {
       error: "errors", errors: "errors", warning: "warnings", warnings: "warnings",
       notification: "notifications", notifications: "notifications",
       event: "systemEvents", events: "systemEvents", systemEvent: "systemEvents", systemEvents: "systemEvents"
     };
-    const wrapped = function stage6ProfileAwareSystemSayV3(kind, code, ctx) {
-      const group = kindAliases[String(kind || "").trim()] || String(kind || "").trim();
-      const key = `${group}.${String(code || "").trim()}`;
-      const bucket = SYSTEM_ROUTE_OVERRIDES[activeProfile()] || SYSTEM_ROUTE_OVERRIDES.millennial;
-      if (Object.prototype.hasOwnProperty.call(bucket, key)) return renderSimpleTemplate(bucket[key], ctx);
-      return originalSay.call(this, kind, code, ctx);
+    const group = groupAliases[String(kind || "").trim()] || String(kind || "").trim();
+    const routeKey = `${group}.${String(code || "").trim()}`;
+    const bucket = SYSTEM_ROUTE_OVERRIDES[profile] || SYSTEM_ROUTE_OVERRIDES.millennial;
+    if (Object.prototype.hasOwnProperty.call(bucket, routeKey)) return renderSimpleTemplate(bucket[routeKey], ctx);
+    return canonicalizeLegacySystemPhrase(profile, OriginalSystem.say(kind, code, ctx));
+  }
+
+  function installSystemPresentationRouting() {
+    const old = Game.System;
+    if (!old || old.__stage6FinalPresentationV4Wrapped) return;
+
+    const wrappedProfileText = function stage6ProfileTextV4(key, ctx) {
+      const profile = activeProfile();
+      const bucket = PROFILE_TEXT_OVERRIDES[profile];
+      if (bucket && Object.prototype.hasOwnProperty.call(bucket, String(key || ""))) {
+        return renderSimpleTemplate(bucket[String(key || "")], ctx);
+      }
+      return canonicalizeLegacySystemPhrase(profile, old.profileText(key, ctx));
     };
-    wrapped.__stage6VisualToneRepairV3Wrapped = true;
-    wrapped.__stage6VisualToneRepairOriginal = originalSay;
-    System.say = wrapped;
-  }
 
-  function stripOwnStatIcon(kind, text) {
-    const icon = STAT_ICONS[String(kind || "").trim()];
-    let value = String(text == null ? "" : text).trim();
-    if (!icon || !value.includes(icon)) return value;
-    value = value.split(icon).join("")
-      .replace(/\s{2,}/g, " ")
-      .replace(/\s+([.,!?;:])/g, "$1")
-      .trim();
-    return value;
-  }
+    const wrappedSay = function stage6SystemSayV4(kind, code, ctx) {
+      return canonicalSystemText(activeProfile(), kind, code, ctx);
+    };
 
-  function normalizedDeltaToastText(kind, text, delta) {
-    const cleaned = stripOwnStatIcon(kind, text);
-    if (cleaned) return cleaned;
-    const d = Number(delta || 0) | 0;
-    if (!d) return "";
-    return `${d > 0 ? "+" : ""}${d}`;
-  }
+    const wrappedPolicy = function stage6DeliveryPolicyV4(kind, code, ctx) {
+      const base = old.deliveryPolicy(kind, code, ctx);
+      return { ...base, text: wrappedSay(kind, code, ctx) };
+    };
 
-  function normalizeRenderedDeltaToast(kind, delta) {
-    if (typeof document === "undefined") return;
-    const nodes = Array.from(document.querySelectorAll(`.statToast--delta[data-delta-kind="${String(kind)}"]`));
-    nodes.forEach((node) => {
-      const nodeDelta = Number(node.dataset && node.dataset.delta != null ? node.dataset.delta : delta) | 0;
-      const normalized = normalizedDeltaToastText(kind, node.textContent, nodeDelta);
-      if (normalized) node.textContent = normalized;
-      else node.remove();
+    const wrappedDeliver = function stage6DeliverV4(kind, code, ctx, opts) {
+      const policy = wrappedPolicy(kind, code, ctx);
+      const options = opts && typeof opts === "object" ? opts : {};
+      const currentUI = Game.UI;
+      if (policy.devLog && Game.__DEV && Array.isArray(Game.__DEV.systemLog)) {
+        try { Game.__DEV.systemLog.push({ kind: policy.kind, code: policy.code, text: policy.text, ts: Date.now() }); } catch (_) {}
+      }
+      if (options.silentIncoming && policy.panel && currentUI && typeof currentUI.pushIncomingSystem === "function") {
+        currentUI.pushIncomingSystem(policy.panel, policy.kind, policy.code, ctx, { ...options, text: policy.text, policy });
+        return policy;
+      }
+      if (policy.toast && currentUI && typeof currentUI.showStatToast === "function") {
+        currentUI.showStatToast(policy.statKind, policy.text);
+        return policy;
+      }
+      if (policy.chat && currentUI && typeof currentUI.pushSystem === "function") {
+        currentUI.pushSystem(policy.text, { ...options, routed: true, policy });
+        return policy;
+      }
+      return policy;
+    };
+
+    Game.System = Object.freeze({
+      ...old,
+      say: wrappedSay,
+      profileText: wrappedProfileText,
+      deliveryPolicy: wrappedPolicy,
+      route: wrappedPolicy,
+      deliver: wrappedDeliver,
+      __stage6FinalPresentationV4Wrapped: true,
+      __stage6FinalPresentationOriginal: old
     });
   }
 
-  function installToastRepair() {
-    if (typeof UI.showStatToast === "function" && !UI.showStatToast.__stage6VisualToneRepairV3Wrapped) {
-      const original = UI.showStatToast;
-      const wrapped = function stage6StatToastNoOwnIconV3(kind, text) {
-        const normalized = stripOwnStatIcon(kind, text);
-        if (!normalized) return null;
-        return original.call(this, kind, normalized);
+  function cleanOwnIcon(kind, text) {
+    const icon = STAT_ICONS[String(kind || "").trim()];
+    let value = String(text == null ? "" : text);
+    if (icon) value = value.split(icon).join("");
+    return value.replace(/\s{2,}/g, " ").replace(/\s+([.,!?;:])/g, "$1").trim();
+  }
+
+  function parseDeltaCandidate(kind, text) {
+    if (!STAT_KINDS.includes(String(kind || ""))) return null;
+    const cleaned = cleanOwnIcon(kind, text).replace(/−/g, "-");
+    if (/\bцель\b/i.test(cleaned)) return null;
+    const signed = cleaned.match(/([+-])\s*(\d+)/);
+    if (signed) {
+      const n = parseInt(signed[2], 10);
+      if (Number.isFinite(n) && n > 0) return signed[1] === "-" ? -n : n;
+    }
+    const unsigned = cleaned.match(/\b(\d+)\b/);
+    if (!unsigned) return null;
+    const n = parseInt(unsigned[1], 10);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    if (/(потрат|списан|уменьш|сниз|расход|штраф|оплат|стоим|минус|ушл)/i.test(cleaned)) return -n;
+    if (/(получ|увелич|вырос|рост|доход|возврат|награ|плюс|пришл)/i.test(cleaned)) return n;
+    return null;
+  }
+
+  function emptyBurst() {
+    return { authoritative: Object.create(null), candidates: Object.create(null), messages: [] };
+  }
+
+  const toastState = {
+    pending: emptyBurst(),
+    visible: { deltas: Object.create(null), messages: [], lastUpdateAt: 0 },
+    flushTimer: null,
+    hideTimer: null
+  };
+
+  function addUniqueMessage(list, text) {
+    const value = String(text || "").trim();
+    if (value && !list.includes(value)) list.push(value);
+  }
+
+  function addCandidate(kind, delta, text) {
+    const key = String(kind || "");
+    if (!STAT_KINDS.includes(key) || !Number.isFinite(delta) || !delta) return;
+    const list = toastState.pending.candidates[key] || (toastState.pending.candidates[key] = []);
+    const signature = `${delta}|${String(text || "").trim()}`;
+    if (!list.some((entry) => entry.signature === signature)) list.push({ delta: delta | 0, signature });
+  }
+
+  function addAuthoritativeDelta(kind, delta) {
+    const key = String(kind || "");
+    const value = Number(delta || 0) | 0;
+    if (!STAT_KINDS.includes(key) || !value) return;
+    toastState.pending.authoritative[key] = (toastState.pending.authoritative[key] || 0) + value;
+  }
+
+  function neutralizeLegacyStatToasts() {
+    try {
+      document.querySelectorAll('.statToast--delta, [id^="statToast_"]').forEach((el) => {
+        if (el && el.id === "stage6UnifiedStatToast") return;
+        try { el.remove(); } catch (_) { try { el.style.display = "none"; } catch (_) {} }
+      });
+    } catch (_) {}
+  }
+
+  function formatDelta(profile, kind, delta) {
+    const value = Number(delta || 0) | 0;
+    if (!value) return "";
+    const sign = value > 0 ? "+" : "−";
+    const abs = Math.abs(value);
+    if (profile === "boomer") {
+      if (kind === "points") return value > 0 ? `Баланс увеличился на ${abs}.` : `Баланс уменьшился на ${abs}.`;
+      if (kind === "rep") return value > 0 ? `Репутация выросла на ${abs}.` : `Репутация снизилась на ${abs}.`;
+      if (kind === "influence") return value > 0 ? `Влияние выросло на ${abs}.` : `Влияние снизилось на ${abs}.`;
+      return value > 0 ? `Побед стало больше на ${abs}.` : `Побед стало меньше на ${abs}.`;
+    }
+    if (profile === "zoomer") {
+      const noun = kind === "points" ? "к балансу" : (kind === "rep" ? "к репутации" : (kind === "influence" ? "к влиянию" : "к победам"));
+      return `${sign}${abs} ${noun}`;
+    }
+    if (profile === "alpha") {
+      const noun = kind === "points" ? "Деньги" : (kind === "rep" ? "Репутация" : (kind === "influence" ? "Влияние" : "Победы"));
+      return `${noun} ${sign}${abs}`;
+    }
+    const noun = kind === "points" ? "Баланс" : (kind === "rep" ? "Репутация" : (kind === "influence" ? "Влияние" : "Победы"));
+    return `${noun}: ${sign}${abs}`;
+  }
+
+  function targetRepMessage(profile, amount) {
+    const n = Math.abs(Number(amount || 1) | 0) || 1;
+    if (profile === "boomer") return `У цели репутация выросла на ${n}.`;
+    if (profile === "zoomer") return `Цели +${n} к репутации`;
+    if (profile === "alpha") return `Цель: репутация +${n}`;
+    return `Репутация цели: +${n}`;
+  }
+
+  function renderBurstText(profile, burst) {
+    const parts = [];
+    STAT_KINDS.forEach((kind) => {
+      const value = burst.deltas[kind] || 0;
+      const line = formatDelta(profile, kind, value);
+      if (line) parts.push(line);
+    });
+    burst.messages.forEach((message) => addUniqueMessage(parts, message));
+    if (profile === "boomer") return parts.join(" ");
+    if (profile === "alpha") return parts.join(" / ");
+    return parts.join(" · ");
+  }
+
+  function positionUnifiedToast(el) {
+    if (!el || typeof document === "undefined") return;
+    const anchor = document.getElementById("balance") || document.getElementById("topBar");
+    if (!anchor || !anchor.getBoundingClientRect) return;
+    const r = anchor.getBoundingClientRect();
+    el.style.left = `${Math.round(r.left + (r.width / 2))}px`;
+    el.style.top = `${Math.round(r.bottom + 8)}px`;
+    el.style.transform = "translateX(-50%)";
+  }
+
+  function ensureUnifiedToast() {
+    let el = document.getElementById("stage6UnifiedStatToast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "stage6UnifiedStatToast";
+      el.className = "statToast statToast--stage6-unified";
+      el.dataset.stage6Unified = "1";
+      el.onclick = () => {
+        el.style.display = "none";
+        toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
       };
-      wrapped.__stage6VisualToneRepairV3Wrapped = true;
-      wrapped.__stage6VisualToneRepairOriginal = original;
-      UI.showStatToast = wrapped;
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  function resolvePendingBurst() {
+    const burst = { deltas: Object.create(null), messages: [] };
+    STAT_KINDS.forEach((kind) => {
+      const authoritative = toastState.pending.authoritative[kind] || 0;
+      if (authoritative) {
+        burst.deltas[kind] = authoritative;
+        return;
+      }
+      const candidates = toastState.pending.candidates[kind] || [];
+      if (candidates.length) burst.deltas[kind] = candidates.reduce((sum, entry) => sum + (entry.delta | 0), 0);
+    });
+    toastState.pending.messages.forEach((message) => addUniqueMessage(burst.messages, message));
+    toastState.pending = emptyBurst();
+    return burst;
+  }
+
+  function flushUnifiedToast() {
+    toastState.flushTimer = null;
+    const burst = resolvePendingBurst();
+    const hasDelta = STAT_KINDS.some((kind) => !!burst.deltas[kind]);
+    if (!hasDelta && !burst.messages.length) return;
+
+    const now = Date.now();
+    const canMerge = toastState.visible.lastUpdateAt > 0 && (now - toastState.visible.lastUpdateAt) <= ACTIVE_MERGE_MS;
+    if (!canMerge) toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
+
+    STAT_KINDS.forEach((kind) => {
+      const value = burst.deltas[kind] || 0;
+      if (value) toastState.visible.deltas[kind] = (toastState.visible.deltas[kind] || 0) + value;
+    });
+    burst.messages.forEach((message) => addUniqueMessage(toastState.visible.messages, message));
+    toastState.visible.lastUpdateAt = now;
+
+    neutralizeLegacyStatToasts();
+    const el = ensureUnifiedToast();
+    const text = renderBurstText(activeProfile(), toastState.visible);
+    if (!text) return;
+    el.textContent = text;
+    positionUnifiedToast(el);
+    el.style.display = "block";
+    el.style.opacity = "1";
+
+    try { clearTimeout(toastState.hideTimer); } catch (_) {}
+    toastState.hideTimer = setTimeout(() => {
+      try { el.style.display = "none"; } catch (_) {}
+      toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
+    }, VISIBLE_MS);
+  }
+
+  function scheduleToastFlush() {
+    if (toastState.flushTimer) return;
+    toastState.flushTimer = setTimeout(flushUnifiedToast, COALESCE_MS);
+  }
+
+  function canonicalNonDeltaToast(kind, text) {
+    const profile = activeProfile();
+    let value = cleanOwnIcon(kind, text);
+    if (!value) return "";
+
+    if (kind === "rep" && /\bцель\b/i.test(value)) {
+      const amountMatch = value.replace(/−/g, "-").match(/\+\s*(\d+)/);
+      if (amountMatch) return targetRepMessage(profile, parseInt(amountMatch[1], 10));
     }
 
-    if (typeof UI.emitStatDelta === "function" && !UI.emitStatDelta.__stage6VisualToneRepairV3Wrapped) {
-      const original = UI.emitStatDelta;
-      const wrapped = function stage6DeltaToastNoOwnIconV3(kind, delta, opts) {
-        const result = original.call(this, kind, delta, opts);
-        normalizeRenderedDeltaToast(kind, delta);
-        return result;
-      };
-      wrapped.__stage6VisualToneRepairV3Wrapped = true;
-      wrapped.__stage6VisualToneRepairOriginal = original;
-      UI.emitStatDelta = wrapped;
-    }
+    value = canonicalizeLegacySystemPhrase(profile, value);
+    if (profile !== "zoomer" && profile !== "alpha") return value;
+    const replacements = [
+      [/кошел[её]к в нуле/ig, "Нет денег"],
+      [/зв[её]зд не завезли/ig, "Нет репутации"],
+      [/лут прилетел/ig, profile === "alpha" ? "Награда" : "Награда получена"],
+      [/минуснули/ig, "Штраф"],
+      [/репа/ig, "репутация"],
+      [/без движухи/ig, "без изменений"],
+      [/залетел/ig, "отправлен"],
+      [/зашли/ig, "получены"],
+      [/ушли/ig, "списаны"]
+    ];
+    replacements.forEach(([pattern, replacement]) => { value = value.replace(pattern, replacement); });
+    return value.replace(/\s{2,}/g, " ").trim();
+  }
+
+  function installUnifiedToastOwner() {
+    neutralizeLegacyStatToasts();
+
+    const show = function stage6UnifiedShowStatToastV4(kind, text) {
+      const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
+      const candidate = parseDeltaCandidate(key, text);
+      if (candidate) addCandidate(key, candidate, text);
+      else addUniqueMessage(toastState.pending.messages, canonicalNonDeltaToast(key, text));
+      scheduleToastFlush();
+      return null;
+    };
+    show.__stage6UnifiedToastV4 = true;
+
+    const emit = function stage6UnifiedEmitStatDeltaV4(kind, delta) {
+      addAuthoritativeDelta(kind, delta);
+      scheduleToastFlush();
+      return null;
+    };
+    emit.__stage6UnifiedToastV4 = true;
+
+    UI.showStatToast = show;
+    UI.emitStatDelta = emit;
+    UI.showInfluenceToast = (text) => UI.showStatToast("influence", text);
+
+    window.addEventListener("resize", () => {
+      const el = document.getElementById("stage6UnifiedStatToast");
+      if (el && el.style.display !== "none") positionUnifiedToast(el);
+    });
   }
 
   const LABEL_VARIANTS = Object.freeze({
-    attack: new Set(["Вброс", "Аргумент", "Атака", "Атк"]),
-    defense: new Set(["Ответка", "Ответ"]),
+    attack: new Set(["Вброс", "Аргумент", "Атака", "Атк", "Ход"]),
+    defense: new Set(["Ответка", "Ответ", "Контраргумент"]),
     dismiss: new Set(["Отвали", "Отойти", "Отказаться", "Стоп"]),
     escape: new Set(["Свалить", "Уйти", "Выйти"])
   });
@@ -255,6 +688,31 @@ window.Game = window.Game || {};
     if (!el || !target) return;
     const current = String(el.textContent || "").trim();
     if (variants.has(current) && current !== target) el.textContent = target;
+  }
+
+  function routeScopedNodeText(root, copy) {
+    if (!root || typeof NodeFilter === "undefined") return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      const parent = node.parentElement;
+      if (parent && !parent.closest("#chatLog") && !parent.closest("#dmLog")) {
+        const before = String(node.nodeValue || "");
+        const trimmed = before.trim();
+        let after = before;
+        if (/^Вброс:\s*/i.test(trimmed)) after = before.replace(/Вброс:\s*/i, `${copy.attackBadge}: `);
+        else if (trimmed === "Вброс" || trimmed === "Атк") after = before.replace(trimmed, copy.attackBadge);
+        else if (trimmed === "Ответка" || trimmed === "Контраргумент") after = before.replace(trimmed, copy.defenseBadge);
+        else if (trimmed === "Мой контраргумент") after = before.replace(trimmed, copy.ownDefenseLabel);
+        else if (trimmed === "Аргумент оппонента") after = before.replace(trimmed, copy.opponentArgLabel);
+        else if (trimmed === "Отвали" || trimmed === "Свалить") {
+          const target = trimmed === "Отвали" ? copy.dismiss : copy.escape;
+          after = before.replace(trimmed, target);
+        }
+        if (after !== before) node.nodeValue = after;
+      }
+      node = walker.nextNode();
+    }
   }
 
   function syncHardcodedControls() {
@@ -279,7 +737,13 @@ window.Game = window.Game || {};
     const dmHeader = document.querySelector("#dmBlock .headerTitleText");
     if (dmHeader && dmHeader.textContent !== copy.dmHeader) dmHeader.textContent = copy.dmHeader;
     const dmTitle = document.getElementById("dmTitle");
-    if (dmTitle && dmTitle.textContent !== copy.dmHeader) dmTitle.textContent = copy.dmHeader;
+    if (dmTitle) {
+      const firstText = Array.from(dmTitle.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
+      if (firstText) {
+        const raw = String(firstText.nodeValue || "");
+        firstText.nodeValue = raw.includes(":") ? raw.replace(/^[^:]+:/, `${copy.dmHeader}:`) : copy.dmHeader;
+      }
+    }
     const battlesHeader = document.querySelector("#battlesBlock .battleTitleText");
     if (battlesHeader && battlesHeader.textContent !== copy.battlesHeader) battlesHeader.textContent = copy.battlesHeader;
     const eventsHeader = document.querySelector("#eventsBlock .headerTitleText");
@@ -291,66 +755,27 @@ window.Game = window.Game || {};
       replaceSemanticExactText(el, LABEL_VARIANTS.defense, copy.defenseBadge);
     });
 
-    const root = document.getElementById("app");
-    if (root) {
-      root.querySelectorAll("button, .miniBtn").forEach((el) => {
+    const app = document.getElementById("app");
+    if (app) {
+      app.querySelectorAll("button, .miniBtn").forEach((el) => {
         replaceSemanticExactText(el, LABEL_VARIANTS.dismiss, copy.dismiss);
         replaceSemanticExactText(el, LABEL_VARIANTS.escape, copy.escape);
       });
     }
 
-    if (profile === "alpha") {
-      const tier = document.getElementById("argTierPill");
-      if (tier && /^Твой тон:/i.test(String(tier.textContent || ""))) {
-        const first = Array.from(tier.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
-        if (first) first.nodeValue = String(first.nodeValue || "").replace(/^Твой тон:/i, "Тон:");
-      }
-    }
-  }
-
-  function canonicalizeEventText(text) {
-    return String(text || "")
-      .replace(/ пытается прекратить контакт с /g, " пытается Отвали ")
-      .replace(/ пытается отойти от /g, " пытается Отвали ")
-      .replace(/ пытается остановить контакт с /g, " пытается Отвали ")
-      .replace(/: не удалось прекратить контакт с /g, ": Отвали не прошел ")
-      .replace(/: не удалось отойти от /g, ": Отвали не прошел ")
-      .replace(/: не удалось остановить контакт с /g, ": Отвали не прошел ")
-      .replace(/: прекратил контакт с /g, ": Отвали ")
-      .replace(/: отошёл от /g, ": Отвали ")
-      .replace(/: остановил контакт с /g, ": Отвали ")
-      .replace(/ пытается выйти из конфликта с /g, " пытается Свалить ")
-      .replace(/ пытается уйти от /g, " пытается Свалить ")
-      .replace(/: не удалось выйти из конфликта с /g, ": Свалить не удалось ")
-      .replace(/: не удалось уйти от /g, ": Свалить не удалось ")
-      .replace(/: вышел из конфликта с /g, ": Свалить ")
-      .replace(/: ушёл от /g, ": Свалить ");
+    routeScopedNodeText(document.getElementById("battlesBlock"), copy);
+    routeScopedNodeText(document.getElementById("teachPanel"), copy);
+    routeScopedNodeText(document.getElementById("dmActions"), copy);
   }
 
   function eventTextForProfile(text, profile) {
-    const out = canonicalizeEventText(text);
-    if (profile === "zoomer") return out;
-    if (profile === "boomer") return out
-      .replace(/ пытается Отвали /g, " пытается прекратить контакт с ")
-      .replace(/: Отвали не прошел /g, ": не удалось прекратить контакт с ")
-      .replace(/: Отвали /g, ": прекратил контакт с ")
-      .replace(/ пытается Свалить /g, " пытается выйти из конфликта с ")
-      .replace(/: Свалить не удалось /g, ": не удалось выйти из конфликта с ")
-      .replace(/: Свалить /g, ": вышел из конфликта с ");
-    if (profile === "alpha") return out
-      .replace(/ пытается Отвали /g, " пытается остановить контакт с ")
-      .replace(/: Отвали не прошел /g, ": контакт не остановлен: ")
-      .replace(/: Отвали /g, ": контакт остановлен: ")
-      .replace(/ пытается Свалить /g, " пытается уйти от ")
-      .replace(/: Свалить не удалось /g, ": уйти не удалось: ")
-      .replace(/: Свалить /g, ": ушёл от ");
-    return out
-      .replace(/ пытается Отвали /g, " пытается отойти от ")
-      .replace(/: Отвали не прошел /g, ": не удалось отойти от ")
-      .replace(/: Отвали /g, ": отошёл от ")
-      .replace(/ пытается Свалить /g, " пытается уйти от ")
-      .replace(/: Свалить не удалось /g, ": не удалось уйти от ")
-      .replace(/: Свалить /g, ": ушёл от ");
+    const copy = CONTROL_COPY[profile] || CONTROL_COPY.millennial;
+    return String(text || "")
+      .replace(/\bОтвали\b/g, copy.dismiss)
+      .replace(/\bСвалить\b/g, copy.escape)
+      .replace(/\bВброс\b/g, copy.attackBadge)
+      .replace(/\bОтветка\b/g, copy.defenseBadge)
+      .replace(/\bконтраргумент\b/gi, copy.defenseBadge.toLowerCase());
   }
 
   function syncEventCopy() {
@@ -373,7 +798,7 @@ window.Game = window.Game || {};
     if (syncing) return;
     syncing = true;
     try {
-      if (typeof document !== "undefined" && document.body) document.body.dataset.uiProfile = activeProfile();
+      if (document.body) document.body.dataset.uiProfile = activeProfile();
       syncHardcodedControls();
       syncEventCopy();
     } finally {
@@ -391,15 +816,15 @@ window.Game = window.Game || {};
   }
 
   function installProfileChangeHook() {
-    if (typeof Data.setUiProfile !== "function" || Data.setUiProfile.__stage6VisualToneRepairV3Wrapped) return;
+    if (typeof Data.setUiProfile !== "function" || Data.setUiProfile.__stage6FinalPresentationV4Wrapped) return;
     const original = Data.setUiProfile;
-    const wrapped = function stage6ProfileSetWithVisualSyncV3(profile) {
+    const wrapped = function stage6ProfileSetV4(profile) {
       const result = original.call(this, profile);
       queueSync();
       return result;
     };
-    wrapped.__stage6VisualToneRepairV3Wrapped = true;
-    wrapped.__stage6VisualToneRepairOriginal = original;
+    wrapped.__stage6FinalPresentationV4Wrapped = true;
+    wrapped.__stage6FinalPresentationOriginal = original;
     Data.setUiProfile = wrapped;
   }
 
@@ -418,23 +843,26 @@ window.Game = window.Game || {};
       const current = activeProfile();
       if (current === last) return;
       last = current;
+      toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
+      const toast = document.getElementById("stage6UnifiedStatToast");
+      if (toast) toast.style.display = "none";
       queueSync();
     }, 250);
   }
 
   patchProfileDictionaries();
-  installSystemRoutingRepair();
-  installToastRepair();
+  installSystemPresentationRouting();
+  installUnifiedToastOwner();
   installProfileChangeHook();
   const observer = installScopedObserver();
   const profileWatcher = installProfileWatcher();
   syncVisibleProfileCopy();
 
-  Game.__DEV.__stage6VisualToneRepairV3Installed = true;
-  Game.__DEV.__stage6VisualToneRepairV3Observer = observer;
-  Game.__DEV.__stage6VisualToneRepairV3ProfileWatcher = profileWatcher;
+  Game.__DEV.__stage6FinalPresentationV4Installed = true;
+  Game.__DEV.__stage6FinalPresentationV4Observer = observer;
+  Game.__DEV.__stage6FinalPresentationV4ProfileWatcher = profileWatcher;
 
-  Game.__DEV.previewStage6VisualToneProfileV3 = function previewStage6VisualToneProfileV3(profile) {
+  Game.__DEV.previewStage6FinalProfileV4 = function previewStage6FinalProfileV4(profile) {
     const key = PROFILE_KEYS.includes(String(profile || "").trim().toLowerCase())
       ? String(profile).trim().toLowerCase()
       : "millennial";
@@ -457,32 +885,48 @@ window.Game = window.Game || {};
     };
   };
 
+  Game.__DEV.previewStage6UnifiedToastV4 = function previewStage6UnifiedToastV4(profile, deltas, messages) {
+    const key = PROFILE_KEYS.includes(String(profile || "").trim().toLowerCase())
+      ? String(profile).trim().toLowerCase()
+      : "millennial";
+    return renderBurstText(key, {
+      deltas: { ...(deltas || {}) },
+      messages: Array.isArray(messages) ? messages.slice() : []
+    });
+  };
+
   Game.__DEV.smokeStage6FinalVisualToneRepairOnce = function smokeStage6FinalVisualToneRepairOnce() {
     const alpha = Data.TEXTS && Data.TEXTS.alpha ? Data.TEXTS.alpha : {};
     const alphaFrozenCopyPreserved = Object.keys(ALPHA_FROZEN_EXPECTED).every((key) => (
       String(alpha[key] == null ? "" : alpha[key]) === ALPHA_FROZEN_EXPECTED[key]
     ));
-    const z = CONTROL_COPY.zoomer;
-    const a = CONTROL_COPY.alpha;
-    const persistentKeys = ["chatPlaceholder", "chatSend", "dmPlaceholder", "dmSend", "dmHeader", "battlesHeader", "attackBadge", "defenseBadge", "dismiss", "escape"];
-    const persistentDiffCount = persistentKeys.filter((key) => z[key] !== a[key]).length;
-    const zoomerChars = persistentKeys.reduce((sum, key) => sum + String(z[key] || "").length, 0);
-    const alphaChars = persistentKeys.reduce((sum, key) => sum + String(a[key] || "").length, 0);
-    const boomerPreview = JSON.stringify(Game.__DEV.previewStage6VisualToneProfileV3("boomer")).toLowerCase();
+    const previews = Object.fromEntries(PROFILE_KEYS.map((profile) => [profile, Game.__DEV.previewStage6FinalProfileV4(profile)]));
+    const visibleCombined = JSON.stringify(previews);
+    const zText = JSON.stringify(previews.zoomer || {}).toLowerCase();
+    const mText = JSON.stringify(previews.millennial || {}).toLowerCase();
+    const bText = JSON.stringify(previews.boomer || {}).toLowerCase();
+    const aText = JSON.stringify(previews.alpha || {}).toLowerCase();
     const checks = {
-      installed: Game.__DEV.__stage6VisualToneRepairV3Installed === true,
+      installed: Game.__DEV.__stage6FinalPresentationV4Installed === true,
       alphaFrozenCopyPreserved,
-      persistentZoomerAlphaDiffCount: persistentDiffCount >= 8,
-      alphaPersistentChromeShorter: alphaChars < zoomerChars,
+      fourDistinctProfiles: new Set(PROFILE_KEYS.map((profile) => JSON.stringify(previews[profile]))).size === 4,
+      noVisibleVbrosLeak: !/(вброс|ответка)/i.test(visibleCombined),
+      millennialNoVbros: !/(вброс|ответка)/i.test(mText),
+      boomerNoVbros: !/(вброс|ответка)/i.test(bText),
+      zoomerNoFakeSlang: !/(вброс|ответка|заслать|отвали|свалить|репа|лут|движуха|мем)/i.test(zText),
+      alphaNoCounterargumentOrCrypticAttack: !/(контраргумент|атк|вброс|ответка)/i.test(aText),
       millennialEscapeCurrencyClear: /💰/.test(String(Data.TEXTS.millennial && Data.TEXTS.millennial.escape_button_label || "")),
-      boomerNoObservedSlang: !/(отвали|свалить|вброс|заслать|пиши по теме)/i.test(boomerPreview),
-      iconOnlyRepBecomesDelta: normalizedDeltaToastText("rep", "⭐", 1) === "+1",
-      iconPlusDeltaLosesOwnIcon: normalizedDeltaToastText("points", "💰 +2", 2) === "+2",
-      nonOwnTextPreserved: normalizedDeltaToastText("rep", "Репутация выросла.", 1) === "Репутация выросла.",
-      systemRoutingWrapped: !!(System.say && System.say.__stage6VisualToneRepairV3Wrapped),
-      statToastWrapped: !!(UI.showStatToast && UI.showStatToast.__stage6VisualToneRepairV3Wrapped),
-      statDeltaWrapped: !!(UI.emitStatDelta && UI.emitStatDelta.__stage6VisualToneRepairV3Wrapped),
-      profileChangeWrapped: !!(Data.setUiProfile && Data.setUiProfile.__stage6VisualToneRepairV3Wrapped),
+      unifiedToastShowOwned: !!(UI.showStatToast && UI.showStatToast.__stage6UnifiedToastV4),
+      unifiedToastDeltaOwned: !!(UI.emitStatDelta && UI.emitStatDelta.__stage6UnifiedToastV4),
+      noLegacyDeltaNodesAtInstall: !document.querySelector('.statToast--delta'),
+      combinedMillennialPreview: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, ["Репутация цели: +1"]) === "Баланс: −1 · Репутация: +1 · Репутация цели: +1",
+      combinedZoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []) === "−1 к балансу · +1 к репутации",
+      combinedAlphaPreview: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []) === "Деньги −1 / Репутация +1",
+      combinedBoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []) === "Баланс уменьшился на 1. Репутация выросла на 1.",
+      targetRepNotParsedAsPlayerDelta: parseDeltaCandidate("rep", "Цель получила +1 ⭐.") === null,
+      profileChangeWrapped: !!(Data.setUiProfile && Data.setUiProfile.__stage6FinalPresentationV4Wrapped),
+      systemPresentationWrapped: !!(Game.System && Game.System.__stage6FinalPresentationV4Wrapped),
+      observerInstalled: !!observer,
       profileWatcherInstalled: !!profileWatcher
     };
     const failures = Object.keys(checks).filter((key) => checks[key] !== true);
@@ -493,18 +937,26 @@ window.Game = window.Game || {};
       activeProfile: activeProfile(),
       checks,
       failures,
-      persistentDiffCount,
-      zoomerChars,
-      alphaChars,
-      previews: Object.fromEntries(PROFILE_KEYS.map((profile) => [profile, Game.__DEV.previewStage6VisualToneProfileV3(profile)]))
+      previews,
+      toastPreviews: {
+        millennial: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, []),
+        zoomer: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []),
+        alpha: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []),
+        boomer: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, [])
+      },
+      targetRepPreviews: {
+        millennial: targetRepMessage("millennial", 1),
+        zoomer: targetRepMessage("zoomer", 1),
+        alpha: targetRepMessage("alpha", 1),
+        boomer: targetRepMessage("boomer", 1)
+      }
     };
   };
 
-  console.warn("STAGE6_VISUAL_TONE_REPAIR_V3_INSTALLED", {
+  console.warn("STAGE6_FINAL_PRESENTATION_V4_READY", {
     buildTag: BUILD_TAG,
     smokeVersion: SMOKE_VERSION,
-    activeProfile: activeProfile(),
-    observer: !!observer,
-    profileWatcher: !!profileWatcher
+    profile: activeProfile(),
+    unifiedToast: true
   });
 })();
