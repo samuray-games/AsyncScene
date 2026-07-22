@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-toast-alpha-visible-separation-fix-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-toast-alpha-visible-separation-fix-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "212597f49dd4d6cb2765f66921837d0af5ec8153\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid 212597f49dd4d6cb2765f66921837d0af5ec8153\n# branch.head chatgpt/stage6-toast-alpha-visible-separation-fix-20260722\n# branch.upstream origin/chatgpt/stage6-toast-alpha-visible-separation-fix-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "212597f4 (HEAD -> chatgpt/stage6-toast-alpha-visible-separation-fix-20260722, origin/main, origin/chatgpt/stage6-toast-alpha-visible-separation-fix-20260722) Stage 6: repair final visual tone separation\n87fd85c8 Stage 6: fix Boomer 4.4B emoji evidence aggregation\n2858b810 Stage 6: realign Boomer 4.4B child smoke contracts to current authority\n120feb63 Remove accidental noop file\n77dfbf5d noop\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 212597f49dd4d6cb2765f66921837d0af5ec8153\nbranch refs/heads/chatgpt/stage6-toast-alpha-visible-separation-fix-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:55:31Z",
+      "stderr": "",
+      "stdout": "212597f49dd4d6cb2765f66921837d0af5ec8153\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "212597f49dd4d6cb2765f66921837d0af5ec8153",
+  "observedAtUtc": "2026-07-22T14:55:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
