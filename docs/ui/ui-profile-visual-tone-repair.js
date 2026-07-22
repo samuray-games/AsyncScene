@@ -47,11 +47,11 @@ window.Game = window.Game || {};
       escape: "Уйти"
     }),
     zoomer: Object.freeze({
-      chatPlaceholder: "Напиши коротко.",
+      chatPlaceholder: "Сообщение",
       chatSend: "Отправить",
-      dmPlaceholder: "Напиши лично.",
+      dmPlaceholder: "Личное сообщение",
       dmSend: "Отправить",
-      dmHeader: "Личка",
+      dmHeader: "Личные",
       battlesHeader: "Бои",
       menu: "Меню",
       attackBadge: "Аргумент",
@@ -114,8 +114,8 @@ window.Game = window.Game || {};
       battle_invite_title: "Бои",
       battle_action_accept: "Принять",
       battle_action_decline: "Отказ",
-      battle_action_attack: "Атаковать",
-      battle_action_rematch: "Ещё раз",
+      battle_action_attack: "Атака",
+      battle_action_rematch: "Ещё",
       battle_action_report: "Сообщить",
       dm_empty: "Пусто.",
       dm_action_unavailable: "Недоступно."
@@ -135,7 +135,7 @@ window.Game = window.Game || {};
       battle_invite_title: "Бои",
       battle_action_accept: "Да",
       battle_action_decline: "Нет",
-      battle_action_attack: "Атака",
+      battle_action_attack: "Ход",
       battle_action_rematch: "Ещё",
       battle_action_report: "Сообщить",
       dm_empty: "Пусто.",
@@ -238,8 +238,8 @@ window.Game = window.Game || {};
       reputation_increased: "Репутация выросла.",
       reputation_decreased: "Репутация снизилась.",
       reputation_unchanged: "Без изменений.",
-      respect_gained: "Уважение +.",
-      respect_lost: "Уважение −.",
+      respect_gained: "Уважение выросло.",
+      respect_lost: "Уважение снизилось.",
       disrespect_event: "Отношение хуже.",
       reputation_high: "Репутация высокая.",
       reputation_low: "Репутация низкая.",
@@ -248,26 +248,71 @@ window.Game = window.Game || {};
     })
   });
 
+  const LEGACY_SYSTEM_PHRASE_OVERRIDES = Object.freeze({
+    zoomer: Object.freeze({
+      "Кошелёк в нуле 💀": "Не хватает денег.",
+      "Звёзд не завезли ⭐": "Не хватает репутации.",
+      "Забрал. Минус монеты.": "Покупка готова.",
+      "Слил в плюс.": "Продажа готова.",
+      "Лут прилетел.": "Награда получена.",
+      "Минуснули.": "Штраф применён.",
+      "Что-то сломалось 🫠": "Ошибка.",
+      "Есть.": "Готово.",
+      "Монеты зашли.": "Деньги получены.",
+      "Монеты ушли.": "Деньги списаны.",
+      "Баланс подрос.": "Баланс вырос.",
+      "Баланс просел.": "Баланс снизился.",
+      "Кошелёк дышит на мемах.": "Денег мало.",
+      "Кошелёк жирный.": "Денег достаточно.",
+      "Финансовый ноль 💀": "Денег нет.",
+      "Плюс к кассе.": "Доход получен.",
+      "Кассу подрезало.": "Расход учтён.",
+      "По монетам без движухи.": "Баланс без изменений.",
+      "Репа подросла.": "Репутация выросла.",
+      "Репа просела.": "Репутация снизилась.",
+      "По репе без движухи.": "Репутация без изменений.",
+      "Тебя начали респектить.": "Уважение выросло.",
+      "Респект просел.": "Уважение снизилось.",
+      "На тебя косо смотрят.": "Отношение ухудшилось.",
+      "Репа на весу.": "Репутация высокая.",
+      "Репа тонкая.": "Репутация низкая.",
+      "Репа отлипла.": "Репутация восстановилась.",
+      "Репу помяло.": "Репутация снизилась."
+    }),
+    alpha: Object.freeze({
+      "Кошелёк в нуле 💀": "Нет денег.",
+      "Есть.": "Готово."
+    })
+  });
+
   const SYSTEM_ROUTE_OVERRIDES = Object.freeze({
     millennial: Object.freeze({
+      "errors.insufficientPoints": "Недостаточно денег.",
+      "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
       "warnings.escapeNeedsPoints": "Не хватает денег, чтобы уйти.",
       "notifications.escapePaid": "Уход: −1.",
       "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
       "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
     }),
     zoomer: Object.freeze({
+      "errors.insufficientPoints": "Не хватает денег.",
+      "errors.pointsLowBattle": "Не хватает денег.",
       "warnings.escapeNeedsPoints": "Не хватает денег.",
       "notifications.escapePaid": "Уход: −1.",
       "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
       "notifications.trainingSent": "Аргумент: {teacher} → {student}."
     }),
     alpha: Object.freeze({
+      "errors.insufficientPoints": "Нет денег.",
+      "errors.pointsLowBattle": "Нет денег.",
       "warnings.escapeNeedsPoints": "Нет денег.",
       "notifications.escapePaid": "Уход −1.",
       "notifications.escapeVoteCost": "Уход −{escapeCost}.",
       "notifications.trainingSent": "{teacher} → {student}: аргумент."
     }),
     boomer: Object.freeze({
+      "errors.insufficientPoints": "Недостаточно денег.",
+      "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
       "warnings.escapeNeedsPoints": "Недостаточно денег, чтобы выйти.",
       "notifications.escapePaid": "Выход: −1.",
       "notifications.escapeVoteCost": "Выход: −{escapeCost}.",
@@ -311,6 +356,12 @@ window.Game = window.Game || {};
     });
   }
 
+  function canonicalizeLegacySystemPhrase(profile, text) {
+    const source = String(text == null ? "" : text);
+    const bucket = LEGACY_SYSTEM_PHRASE_OVERRIDES[profile];
+    return bucket && Object.prototype.hasOwnProperty.call(bucket, source) ? bucket[source] : source;
+  }
+
   function canonicalSystemText(profile, kind, code, ctx) {
     const groupAliases = {
       error: "errors", errors: "errors", warning: "warnings", warnings: "warnings",
@@ -321,7 +372,7 @@ window.Game = window.Game || {};
     const routeKey = `${group}.${String(code || "").trim()}`;
     const bucket = SYSTEM_ROUTE_OVERRIDES[profile] || SYSTEM_ROUTE_OVERRIDES.millennial;
     if (Object.prototype.hasOwnProperty.call(bucket, routeKey)) return renderSimpleTemplate(bucket[routeKey], ctx);
-    return OriginalSystem.say(kind, code, ctx);
+    return canonicalizeLegacySystemPhrase(profile, OriginalSystem.say(kind, code, ctx));
   }
 
   function installSystemPresentationRouting() {
@@ -334,7 +385,7 @@ window.Game = window.Game || {};
       if (bucket && Object.prototype.hasOwnProperty.call(bucket, String(key || ""))) {
         return renderSimpleTemplate(bucket[String(key || "")], ctx);
       }
-      return old.profileText(key, ctx);
+      return canonicalizeLegacySystemPhrase(profile, old.profileText(key, ctx));
     };
 
     const wrappedSay = function stage6SystemSayV4(kind, code, ctx) {
@@ -368,7 +419,7 @@ window.Game = window.Game || {};
       return policy;
     };
 
-    const next = {
+    Game.System = Object.freeze({
       ...old,
       say: wrappedSay,
       profileText: wrappedProfileText,
@@ -377,8 +428,7 @@ window.Game = window.Game || {};
       deliver: wrappedDeliver,
       __stage6FinalPresentationV4Wrapped: true,
       __stage6FinalPresentationOriginal: old
-    };
-    Game.System = Object.freeze(next);
+    });
   }
 
   function cleanOwnIcon(kind, text) {
@@ -391,6 +441,7 @@ window.Game = window.Game || {};
   function parseDeltaCandidate(kind, text) {
     if (!STAT_KINDS.includes(String(kind || ""))) return null;
     const cleaned = cleanOwnIcon(kind, text).replace(/−/g, "-");
+    if (/\bцель\b/i.test(cleaned)) return null;
     const signed = cleaned.match(/([+-])\s*(\d+)/);
     if (signed) {
       const n = parseInt(signed[2], 10);
@@ -466,6 +517,14 @@ window.Game = window.Game || {};
     }
     const noun = kind === "points" ? "Баланс" : (kind === "rep" ? "Репутация" : (kind === "influence" ? "Влияние" : "Победы"));
     return `${noun}: ${sign}${abs}`;
+  }
+
+  function targetRepMessage(profile, amount) {
+    const n = Math.abs(Number(amount || 1) | 0) || 1;
+    if (profile === "boomer") return `У цели репутация выросла на ${n}.`;
+    if (profile === "zoomer") return `Цели +${n} к репутации`;
+    if (profile === "alpha") return `Цель: репутация +${n}`;
+    return `Репутация цели: +${n}`;
   }
 
   function renderBurstText(profile, burst) {
@@ -565,6 +624,13 @@ window.Game = window.Game || {};
     const profile = activeProfile();
     let value = cleanOwnIcon(kind, text);
     if (!value) return "";
+
+    if (kind === "rep" && /\bцель\b/i.test(value)) {
+      const amountMatch = value.replace(/−/g, "-").match(/\+\s*(\d+)/);
+      if (amountMatch) return targetRepMessage(profile, parseInt(amountMatch[1], 10));
+    }
+
+    value = canonicalizeLegacySystemPhrase(profile, value);
     if (profile !== "zoomer" && profile !== "alpha") return value;
     const replacements = [
       [/кошел[её]к в нуле/ig, "Нет денег"],
@@ -672,9 +738,11 @@ window.Game = window.Game || {};
     if (dmHeader && dmHeader.textContent !== copy.dmHeader) dmHeader.textContent = copy.dmHeader;
     const dmTitle = document.getElementById("dmTitle");
     if (dmTitle) {
-      const current = String(dmTitle.textContent || "");
-      if (!current.includes(":")) dmTitle.textContent = copy.dmHeader;
-      else dmTitle.textContent = current.replace(/^[^:]+:/, `${copy.dmHeader}:`);
+      const firstText = Array.from(dmTitle.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
+      if (firstText) {
+        const raw = String(firstText.nodeValue || "");
+        firstText.nodeValue = raw.includes(":") ? raw.replace(/^[^:]+:/, `${copy.dmHeader}:`) : copy.dmHeader;
+      }
     }
     const battlesHeader = document.querySelector("#battlesBlock .battleTitleText");
     if (battlesHeader && battlesHeader.textContent !== copy.battlesHeader) battlesHeader.textContent = copy.battlesHeader;
@@ -851,10 +919,11 @@ window.Game = window.Game || {};
       unifiedToastShowOwned: !!(UI.showStatToast && UI.showStatToast.__stage6UnifiedToastV4),
       unifiedToastDeltaOwned: !!(UI.emitStatDelta && UI.emitStatDelta.__stage6UnifiedToastV4),
       noLegacyDeltaNodesAtInstall: !document.querySelector('.statToast--delta'),
-      combinedMillennialPreview: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, []) === "Баланс: −1 · Репутация: +1",
+      combinedMillennialPreview: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, ["Репутация цели: +1"]) === "Баланс: −1 · Репутация: +1 · Репутация цели: +1",
       combinedZoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []) === "−1 к балансу · +1 к репутации",
       combinedAlphaPreview: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []) === "Деньги −1 / Репутация +1",
       combinedBoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []) === "Баланс уменьшился на 1. Репутация выросла на 1.",
+      targetRepNotParsedAsPlayerDelta: parseDeltaCandidate("rep", "Цель получила +1 ⭐.") === null,
       profileChangeWrapped: !!(Data.setUiProfile && Data.setUiProfile.__stage6FinalPresentationV4Wrapped),
       systemPresentationWrapped: !!(Game.System && Game.System.__stage6FinalPresentationV4Wrapped),
       observerInstalled: !!observer,
@@ -874,6 +943,12 @@ window.Game = window.Game || {};
         zoomer: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []),
         alpha: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []),
         boomer: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, [])
+      },
+      targetRepPreviews: {
+        millennial: targetRepMessage("millennial", 1),
+        zoomer: targetRepMessage("zoomer", 1),
+        alpha: targetRepMessage("alpha", 1),
+        boomer: targetRepMessage("boomer", 1)
       }
     };
   };
