@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:31Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:31Z",
+      "stderr": "",
+      "stdout": "19d3817865c7855fa6f0fbfa801d99834f375c53\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:32Z",
+      "stderr": "",
+      "stdout": "# branch.oid 19d3817865c7855fa6f0fbfa801d99834f375c53\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:32Z",
+      "stderr": "",
+      "stdout": "19d38178 (HEAD, pull/255/merge) Merge bcc7b02d0193ee895b659b5aea6ce6cf84607d86 into 2858b810a2c14ced38923497b60069b4dc48b95c\nbcc7b02d (origin/chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722) Mirror Boomer 4.4B adapter cache bust\n9b326822 Restore unrelated conflict-api cache marker\n0fcdfcf6 Bust Boomer 4.4B adapter cache for emoji fix\n8252f99e Mirror Boomer 4.4B emoji evidence fix\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:32Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 19d3817865c7855fa6f0fbfa801d99834f375c53\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:32Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:12:32Z",
+      "stderr": "",
+      "stdout": "2858b810a2c14ced38923497b60069b4dc48b95c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "19d3817865c7855fa6f0fbfa801d99834f375c53",
+  "observedAtUtc": "2026-07-22T11:12:32Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
