@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-21-0215-JST
-EXPECTED_REVISION: 2026-07-21-0215-JST
-NOTION_MEMORY_REVISION: 2026-07-21-0215-JST
+MEMORY_REVISION: 2026-07-22-1341-JST
+EXPECTED_REVISION: 2026-07-22-1341-JST
+NOTION_MEMORY_REVISION: 2026-07-22-1341-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; the post-Alpha-Safari-pass repository-memory closure is complete/closed. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: OPEN`, not as Stage 6 frozen-copy product regression. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. Stage 6 overall is not complete; the next action is `TASK-STAGE6-ALPHA-LEGACY-SMOKE-CONTRACT-REALIGNMENT-20260721`.
+Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-07-22-1341-JST`; PR #248 model-selector inventory maintenance and PR #249 Stage 6 Alpha legacy smoke contract realignment are both integrated. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; the post-PR249 repository-memory closure is complete/closed. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as Stage 6 frozen-copy product regression. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. Stage 6 overall is not complete; the next action is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 

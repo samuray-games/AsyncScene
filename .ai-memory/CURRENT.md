@@ -1,11 +1,11 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-21-0215-JST
-NOTION_MEMORY_REV: 2026-07-21-0215-JST
-CURRENT_STATUS: POST_ALPHA_SAFARI_PASS_REPOSITORY_MEMORY_CLOSURE_COMPLETE
+MEMORY_REV: 2026-07-22-1341-JST
+NOTION_MEMORY_REV: 2026-07-22-1341-JST
+CURRENT_STATUS: POST_PR249_REPOSITORY_MEMORY_CLOSURE_COMPLETE
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
-ACCEPTED_IMPLEMENTATION_HEAD: 5e82e587241a180f44814cdfe7445da015c136dc
+ACCEPTED_IMPLEMENTATION_HEAD: a782f98960851934b93f6ed27d7e5c7b278efc58
 REPOSITORY_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: CURRENT
@@ -34,23 +34,31 @@ PR_246_REVIEWED_HEAD: be4f8fdb5f84a1a4f07fac270a87cf811be71b18
 PR_246_MERGE_COMMIT: 2e360a6137f8b15e28c004a66afc7ed320ce7024
 PR_246_INTEGRATION: COMPLETE / POST_PR245_REPOSITORY_MEMORY_CLOSURE
 POST_ALPHA_SAFARI_PASS_REPOSITORY_MEMORY_CLOSURE: COMPLETE / CLOSED
+PR_248_REVIEWED_HEAD: f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b
+PR_248_MERGE_COMMIT: 88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108
+PR_248_INTEGRATION: COMPLETE / MODEL_SELECTOR_INVENTORY_MAINTENANCE
+SELECTOR_SNAPSHOT_REVISION: 20260722.1
+MODEL_INVENTORY: 5 models / 23 model-effort pairs
+PR_249_REVIEWED_HEAD: 0928e367de57a6769d99e2206c6f86b7072302ff
+PR_249_MERGE_COMMIT: a782f98960851934b93f6ed27d7e5c7b278efc58
+PR_249_INTEGRATION: COMPLETE / STAGE6_ALPHA_LEGACY_SMOKE_CONTRACT_REALIGNMENT
 BRIDGE_V4_REAL_PROFILE_REPAIR: COMPLETE / BACKEND_CONTROL_PLANE_INTEGRATED
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
-STAGE_6: ALPHA_FROZEN_COPY_SAFARI_PASS / LEGACY_SMOKE_DRIFT_OPEN / NOT_COMPLETE
+STAGE_6: ALPHA_FROZEN_COPY_SAFARI_PASS / LEGACY_SMOKE_DRIFT_REPAIRED / NOT_COMPLETE
 STAGE_6_PRODUCT_IMPLEMENTATION: STARTED
 ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
 SAFARI_STAGE6_ALPHA_FROZEN_COPY: PASS
 SAFARI_STAGE6_ALPHA_FROZEN_COPY_PROFILE: alpha
 SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
-LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: OPEN
+LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
 LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
 RUNTIME: STOPPED
-SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT_OPEN
+SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT_REPAIRED
 USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
 USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
-NEXT_ACTION: TASK-STAGE6-ALPHA-LEGACY-SMOKE-CONTRACT-REALIGNMENT-20260721
+NEXT_ACTION: CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE
 
 Canonical bootstrap: live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-21-0215-JST`; accepted implementation head remains PR #245 merge `5e82e587241a180f44814cdfe7445da015c136dc`, while PR #246 is bookkeeping closure history. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: OPEN`, not as a Stage 6 frozen-copy product regression; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. This post-Safari repository-memory closure is complete/closed and does not require recursive memory closure. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; `NEXT_ACTION` is `TASK-STAGE6-ALPHA-LEGACY-SMOKE-CONTRACT-REALIGNMENT-20260721`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-22-1341-JST`; accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`, PR #248 integrated model-selector inventory maintenance to main `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108` with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b`, and PR #249 integrated Stage 6 Alpha legacy smoke contract realignment to main `a782f98960851934b93f6ed27d7e5c7b278efc58` with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as a Stage 6 frozen-copy product regression; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. This post-PR249 repository-memory closure is complete/closed and does not require recursive memory closure. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; `NEXT_ACTION` is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
 The former Google Drive document is deprecated migration-stub context only.
