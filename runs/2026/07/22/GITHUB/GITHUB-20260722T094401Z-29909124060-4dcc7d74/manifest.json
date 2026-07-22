@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722",
+  "createdAtJst": "2026-07-22 18:44:01 JST",
+  "createdAtUtc": "2026-07-22T09:44:01Z",
+  "packagePath": "runs/2026/07/22/GITHUB/GITHUB-20260722T094401Z-29909124060-4dcc7d74",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260722T094401Z-29909124060-4dcc7d74",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
