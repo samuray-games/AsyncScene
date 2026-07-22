@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "9b32682220352e56172f75b38e77b361341c24d1\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "# branch.oid 9b32682220352e56172f75b38e77b361341c24d1\n# branch.head chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722\n# branch.upstream origin/chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "9b326822 (HEAD -> chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722, origin/chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722) Restore unrelated conflict-api cache marker\n0fcdfcf6 Bust Boomer 4.4B adapter cache for emoji fix\n8252f99e Mirror Boomer 4.4B emoji evidence fix\n209dcf1b Fix Boomer 4.4B emoji evidence aggregation\n2858b810 (origin/main) Stage 6: realign Boomer 4.4B child smoke contracts to current authority\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 9b32682220352e56172f75b38e77b361341c24d1\nbranch refs/heads/chatgpt/stage6-boomer-step4-4b-emoji-evidence-fix-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T11:10:35Z",
+      "stderr": "",
+      "stdout": "2858b810a2c14ced38923497b60069b4dc48b95c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "9b32682220352e56172f75b38e77b361341c24d1",
+  "observedAtUtc": "2026-07-22T11:10:35Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
