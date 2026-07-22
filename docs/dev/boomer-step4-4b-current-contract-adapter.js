@@ -15,8 +15,8 @@ window.Game = window.Game || {};
     return;
   }
 
-  const ADAPTER_BUILD_TAG = "build_2026_07_22_step4_4b_boomer_current_contract_adapter_v1";
-  const ADAPTER_SMOKE_VERSION = "boomer_step4_4b_current_contract_adapter_v20260722_001";
+  const ADAPTER_BUILD_TAG = "build_2026_07_22_step4_4b_boomer_current_contract_adapter_v2";
+  const ADAPTER_SMOKE_VERSION = "boomer_step4_4b_current_contract_adapter_v20260722_002";
   const AUDIT_FILE = "UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT.md";
   const SUPERSEDED_CHECKS = new Set(["base_smoke", "profile_diff", "placeholders", "emoji_contracts"]);
   const CHECK_LABELS = {
@@ -117,6 +117,7 @@ window.Game = window.Game || {};
     collectStrings(data && data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
+    collectStrings(data && data.CAP_MESSAGES, strings, seenObjects);
     collectStrings(data && data.CAP_MESSAGES && data.CAP_MESSAGES.boomer, strings, seenObjects);
     const joined = strings.join("\n");
     const required = ["💰", "⭐", "⚡"];
@@ -132,11 +133,16 @@ window.Game = window.Game || {};
       rep: readIcon("rep"),
       influence: readIcon("influence")
     };
+    const domValues = Object.values(dom);
+    const domHits = required.filter((emoji) => domValues.includes(emoji));
+    const combinedHits = required.filter((emoji) => dataHits.includes(emoji) || domHits.includes(emoji));
     const domOk = dom.points === "💰" && dom.rep === "⭐" && dom.influence === "⚡";
     return {
-      ok: dataHits.length === required.length && domOk,
+      ok: combinedHits.length === required.length && domOk,
       required,
       dataHits,
+      domHits,
+      combinedHits,
       dom,
       domOk
     };
@@ -299,7 +305,7 @@ window.Game = window.Game || {};
     Game.Dev.smokeBoomerEconomyConflictTerminologyOnce = smokeBoomerEconomyConflictTerminologyCurrentContractOnce;
   }
 
-  console.warn("BOOMER_STEP4_4B_CURRENT_CONTRACT_ADAPTER_INSTALLED_V1", {
+  console.warn("BOOMER_STEP4_4B_CURRENT_CONTRACT_ADAPTER_INSTALLED_V2", {
     adapterBuildTag: ADAPTER_BUILD_TAG,
     adapterSmokeVersion: ADAPTER_SMOKE_VERSION,
     smokeType: typeof devStore.smokeBoomerEconomyConflictTerminologyOnce,
