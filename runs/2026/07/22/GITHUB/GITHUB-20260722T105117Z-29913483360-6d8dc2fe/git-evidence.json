@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:17Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:17Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:17Z",
+      "stderr": "",
+      "stdout": "6826be06ffad3383a5987aaf65eaa7a9a609b91a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:18Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6826be06ffad3383a5987aaf65eaa7a9a609b91a\n# branch.head chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722\n# branch.upstream origin/chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:18Z",
+      "stderr": "",
+      "stdout": "6826be06 (HEAD -> chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722, origin/chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722) Load Boomer 4.4B current-contract adapter\nb743aa33 Mirror Boomer 4.4B current-contract adapter\nffa65e37 Add Boomer 4.4B current-contract adapter\n120feb63 (origin/main) Remove accidental noop file\n77dfbf5d noop\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:18Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6826be06ffad3383a5987aaf65eaa7a9a609b91a\nbranch refs/heads/chatgpt/stage6-boomer-step4-4b-current-contract-realignment-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:18Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:51:18Z",
+      "stderr": "",
+      "stdout": "120feb63e7a4def269a46c7e53b19ba9b19181da\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6826be06ffad3383a5987aaf65eaa7a9a609b91a",
+  "observedAtUtc": "2026-07-22T10:51:18Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
