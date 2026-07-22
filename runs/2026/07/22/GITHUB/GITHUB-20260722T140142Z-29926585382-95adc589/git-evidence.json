@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-final-visual-tone-separation-repair-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-final-visual-tone-separation-repair-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "a8cc059270cc38bb0549a5de2be454958d2f0c65\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "# branch.oid a8cc059270cc38bb0549a5de2be454958d2f0c65\n# branch.head chatgpt/stage6-final-visual-tone-separation-repair-20260722\n# branch.upstream origin/chatgpt/stage6-final-visual-tone-separation-repair-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "a8cc0592 (HEAD -> chatgpt/stage6-final-visual-tone-separation-repair-20260722, origin/chatgpt/stage6-final-visual-tone-separation-repair-20260722) Mirror post-dev-check visual tone repair entrypoint\nd5337d00 Load visual tone repair after existing dev-check adapters\n27210594 Preserve Alpha frozen copy in final visual tone repair\n98fbdf28 Mirror canon-safe Stage 6 visual tone repair v2\n7eb4ab1f Add canon-safe Stage 6 visual tone repair v2\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD a8cc059270cc38bb0549a5de2be454958d2f0c65\nbranch refs/heads/chatgpt/stage6-final-visual-tone-separation-repair-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T14:01:42Z",
+      "stderr": "",
+      "stdout": "87fd85c85409c68b67b932438cd798904f8e4722\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "a8cc059270cc38bb0549a5de2be454958d2f0c65",
+  "observedAtUtc": "2026-07-22T14:01:42Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
