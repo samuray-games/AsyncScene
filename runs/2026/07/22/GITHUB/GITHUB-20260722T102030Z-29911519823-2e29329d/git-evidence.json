@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "a8edfe5322cc73bd57fcb4aab1d16f037ba60ea3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "# branch.oid a8edfe5322cc73bd57fcb4aab1d16f037ba60ea3\n# branch.head chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722\n# branch.upstream origin/chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "a8edfe53 (HEAD -> chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722, origin/main, origin/chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722) Stage 6: recover dev-check boot registration for Boomer 4.4B (#252)\n1548aae8 Stage 6: realign Boomer 4.4B smoke to current runtime asset (#251)\n052e5e39 Stage 6: synchronize repository memory after PR #248 and #249 (#250)\na782f989 Stage 6: realign legacy Alpha smoke contracts (#249)\n88b5cf6d Infra: refresh Codex model inventory snapshot (#248)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD a8edfe5322cc73bd57fcb4aab1d16f037ba60ea3\nbranch refs/heads/chatgpt/stage6-boomer-step4-4b-scope-cluster-recovery-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:20:30Z",
+      "stderr": "",
+      "stdout": "a8edfe5322cc73bd57fcb4aab1d16f037ba60ea3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "a8edfe5322cc73bd57fcb4aab1d16f037ba60ea3",
+  "observedAtUtc": "2026-07-22T10:20:30Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
