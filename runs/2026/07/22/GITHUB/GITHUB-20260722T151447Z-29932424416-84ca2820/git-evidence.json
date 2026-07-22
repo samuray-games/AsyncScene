@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "6581723800cb258e8755f5c29fcfce7e1067a251\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6581723800cb258e8755f5c29fcfce7e1067a251\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "65817238 (HEAD, pull/257/merge) Merge f2a8c08392e8e938f3a44af8c5f72dcc029e8e9f into 212597f49dd4d6cb2765f66921837d0af5ec8153\nf2a8c083 (origin/chatgpt/stage6-toast-alpha-visible-separation-fix-20260722) Restore docs index terminal newline\n4d8d054e Restore source index terminal newline\ne9c4b8de Mirror Stage 6 visual tone repair v3 entrypoint\n49184c78 Load Stage 6 visual tone repair v3\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6581723800cb258e8755f5c29fcfce7e1067a251\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T15:14:47Z",
+      "stderr": "",
+      "stdout": "212597f49dd4d6cb2765f66921837d0af5ec8153\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6581723800cb258e8755f5c29fcfce7e1067a251",
+  "observedAtUtc": "2026-07-22T15:14:47Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
