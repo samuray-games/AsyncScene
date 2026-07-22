@@ -54635,11 +54635,10 @@ ALX_0206 | action_verbs | помяло`;
   if (Game.Dev && typeof Game.Dev === "object") Game.Dev.smokeBoomerProfileDiffOnce = smokeBoomerProfileDiffOnce;
   console.warn("BOOMER_PROFILE_DIFF_SMOKE_INSTALLED_V1", typeof Game.__DEV.smokeBoomerProfileDiffOnce);
   function smokeBoomerEconomyConflictTerminologyOnce() {
-    const buildTag = "build_2026_07_11_step4_4b_boomer_runtime_aggregate_fix4";
+    const buildTag = "build_2026_07_22_step4_4b_boomer_runtime_aggregate_fix5";
     const commit = "step4_4b_boomer_runtime_aggregate";
-    const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix4_v20260711_001";
-    const expectedCacheBust = "step4_4b_boomer_runtime_aggregate_fix4_20260711a";
-    const expectedScriptMarker = "dev/dev-checks.js?v=step4_4b_boomer_runtime_aggregate_fix4_20260711a";
+    const smokeVersion = "boomer_step4_4b_runtime_aggregate_fix5_v20260722_001";
+    const smokeFunctionName = "smokeBoomerEconomyConflictTerminologyOnce";
     const featureZones = ["Points / 💰", "REP / ⭐", "Influence", "voting", "majority/minority outcomes", "rematch", "NPC-vs-NPC conflict text", "conflict results", "DM", "reports", "report resolution"];
     const runtimeStorageKeyRe = /^(Game|ASYNC|DEV|ui|profile|money|rep|influence|battle|conflict|save|persist)/i;
     const stableStringify = (value) => {
@@ -54816,6 +54815,45 @@ ALX_0206 | action_verbs | помяло`;
       const hit = scripts.find((script) => String(script.src || "").includes("dev/dev-checks.js"));
       return String(hit && hit.src || "");
     };
+    const inspectLoadedDevChecksAsset = (runtimeUrl) => {
+      const report = {
+        sameOrigin: false,
+        canonicalPath: false,
+        nonEmptyVersion: false,
+        sourceReadable: false,
+        sourceContainsBuildTag: false,
+        sourceContainsSmokeVersion: false,
+        sourceContainsSmokeFunction: false,
+        assetUrl: runtimeUrl || "",
+        assetPath: "",
+        assetVersion: "",
+        sourceLength: 0
+      };
+      if (!runtimeUrl || typeof URL === "undefined" || typeof location === "undefined") return report;
+      try {
+        const parsed = new URL(runtimeUrl, location.href);
+        report.assetPath = parsed.pathname;
+        report.assetVersion = parsed.searchParams.get("v") || "";
+        report.sameOrigin = parsed.origin === location.origin;
+        report.canonicalPath = parsed.pathname.endsWith("/dev/dev-checks.js") || parsed.pathname.endsWith("/AsyncScene/dev/dev-checks.js");
+        report.nonEmptyVersion = report.assetVersion.trim().length > 0;
+        if (!report.sameOrigin || !report.canonicalPath || typeof XMLHttpRequest === "undefined") return report;
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", parsed.href, false);
+        xhr.send(null);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const source = String(xhr.responseText || "");
+          report.sourceReadable = source.length > 0;
+          report.sourceLength = source.length;
+          report.sourceContainsBuildTag = source.includes(buildTag);
+          report.sourceContainsSmokeVersion = source.includes(smokeVersion);
+          report.sourceContainsSmokeFunction = source.includes(`function ${smokeFunctionName}()`) || source.includes(`${smokeFunctionName} =`);
+        }
+      } catch (err) {
+        report.error = err && err.message ? String(err.message) : String(err);
+      }
+      return report;
+    };
     const collectStrings = (value, out, seen) => {
       if (value === null || value === undefined) return;
       if (typeof value === "string") {
@@ -54890,6 +54928,7 @@ ALX_0206 | action_verbs | помяло`;
       localStorageRestored: false,
       adversarialRestorationFixtures: {},
       pageUrl: typeof location !== "undefined" ? String(location.href || "") : "",
+      loadedRuntimeAsset: null,
       failures: [],
       forbiddenRemaining: [],
       missingCoverage: [],
@@ -54909,13 +54948,15 @@ ALX_0206 | action_verbs | помяло`;
       const profileDiffSmoke = typeof smokeBoomerProfileDiffOnce === "function" ? smokeBoomerProfileDiffOnce() : null;
       const runtimeUrl = readScriptUrl();
       result.runtimeSourceUrl = runtimeUrl;
+      result.loadedRuntimeAsset = inspectLoadedDevChecksAsset(runtimeUrl);
       const evidence = inspectEvidence(data);
       const checks = [
         { id: "base_smoke", label: "Points / 💰", pass: !!(baseSmoke && baseSmoke.ok === true), detail: baseSmoke },
         { id: "profile_diff", label: "REP / ⭐", pass: !!(profileDiffSmoke && profileDiffSmoke.ok === true), detail: profileDiffSmoke },
-        { id: "runtime_source_url", label: "Influence", pass: !!(runtimeUrl && runtimeUrl.includes(expectedScriptMarker)), detail: runtimeUrl },
+        { id: "runtime_source_url", label: "Influence", pass: !!(result.loadedRuntimeAsset && result.loadedRuntimeAsset.sameOrigin === true && result.loadedRuntimeAsset.canonicalPath === true), detail: result.loadedRuntimeAsset },
         { id: "page_url", label: "voting", pass: typeof location !== "undefined" && !!String(location.href || "").length, detail: typeof location !== "undefined" ? String(location.href || "") : null },
-        { id: "cache_bust", label: "majority/minority outcomes", pass: typeof location !== "undefined" && String(location.href || "").includes(expectedCacheBust), detail: typeof location !== "undefined" ? String(location.href || "") : null },
+        { id: "cache_bust", label: "majority/minority outcomes", pass: !!(result.loadedRuntimeAsset && result.loadedRuntimeAsset.nonEmptyVersion === true), detail: result.loadedRuntimeAsset },
+        { id: "runtime_source_contract", label: "rematch", pass: !!(result.loadedRuntimeAsset && result.loadedRuntimeAsset.sourceReadable === true && result.loadedRuntimeAsset.sourceContainsBuildTag === true && result.loadedRuntimeAsset.sourceContainsSmokeVersion === true && result.loadedRuntimeAsset.sourceContainsSmokeFunction === true), detail: result.loadedRuntimeAsset },
         { id: "fallback_resolution", label: "NPC-vs-NPC conflict text", pass: evidence.fallbackResolutionOk, detail: evidence },
         { id: "placeholders", label: "conflict results", pass: evidence.placeholderOk, detail: evidence.suspiciousPlaceholders },
         { id: "protected_numbers", label: "DM", pass: evidence.protectedNumbersOk, detail: evidence.protectedNumbers },
