@@ -215,8 +215,38 @@
   <script defer src="ui/ui-console-panel.js?v=2"></script>
   <script defer src="ui/ui-loops.js?v=2"></script>
   <script defer src="ui/ui-boot.js?v=step6_2_conflict_result_profile_sampling_fix4_20260704a"></script>
-  <!-- Boomer Step 4.4B cache-bust keeps the published dev-check runtime fresh. -->
-  <script defer src="dev/dev-checks.js?v=step6_boomer_4_4b_smoke_contract_realign_20260722a"></script>
+  <script>
+    window.getZoomerShorteningDocsBootSmokeRegistry = function getZoomerShorteningDocsBootSmokeRegistry() {
+      const names = [
+        "smokeZoomerShorteningDocsStep6Fix1Once",
+        "smokeZoomerShorteningDocsStep6Fix2Once",
+        "smokeZoomerShorteningDocsStep6Fix3Once",
+        "smokeZoomerShorteningDocsStep6Fix4Once",
+        "smokeZoomerShorteningDocsStep6RegistryProbeOnce"
+      ];
+      const stores = [
+        window.Game && window.Game.__DEV,
+        window.Game && window.Game.Dev
+      ].filter((store) => store && typeof store === "object");
+      const registry = {};
+      for (const name of names) {
+        let fn = null;
+        for (const store of stores) {
+          if (typeof store[name] === "function") {
+            fn = store[name];
+            break;
+          }
+        }
+        if (typeof fn !== "function") {
+          throw new ReferenceError(`Missing declaration for ${name}`);
+        }
+        registry[name] = fn;
+      }
+      return registry;
+    };
+  </script>
+  <!-- Stage 6 Boomer 4.4B boot-recovery cache-bust keeps the published dev-check runtime fresh. -->
+  <script defer src="dev/dev-checks.js?v=step6_boomer_4_4b_dev_checks_boot_registration_recovery_20260722b"></script>
 
 </body>
 </html>
