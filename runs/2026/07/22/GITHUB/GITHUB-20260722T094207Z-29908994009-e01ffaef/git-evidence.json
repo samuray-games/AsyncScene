@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "1548aae817f700c98208e8b7051b58babdeb2fe2\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1548aae817f700c98208e8b7051b58babdeb2fe2\n# branch.head chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722\n# branch.upstream origin/chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "1548aae8 (HEAD -> chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722, origin/main, origin/chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722) Stage 6: realign Boomer 4.4B smoke to current runtime asset (#251)\n052e5e39 Stage 6: synchronize repository memory after PR #248 and #249 (#250)\na782f989 Stage 6: realign legacy Alpha smoke contracts (#249)\n88b5cf6d Infra: refresh Codex model inventory snapshot (#248)\nfb93ef9c Sync memory after Alpha Safari runtime pass (#247)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1548aae817f700c98208e8b7051b58babdeb2fe2\nbranch refs/heads/chatgpt/stage6-boomer-step4-4b-dev-checks-boot-recovery-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T09:42:07Z",
+      "stderr": "",
+      "stdout": "1548aae817f700c98208e8b7051b58babdeb2fe2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1548aae817f700c98208e8b7051b58babdeb2fe2",
+  "observedAtUtc": "2026-07-22T09:42:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
