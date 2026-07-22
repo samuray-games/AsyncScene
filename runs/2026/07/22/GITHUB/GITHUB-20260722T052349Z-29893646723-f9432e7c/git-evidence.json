@@ -1,0 +1,106 @@
+{
+  "branch": "work/stage6-post-pr249-repository-memory-closure-20260722",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "work/stage6-post-pr249-repository-memory-closure-20260722\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "084ebbd29f03f0d2c55fa9ba8fa8902410840d6f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid 084ebbd29f03f0d2c55fa9ba8fa8902410840d6f\n# branch.head work/stage6-post-pr249-repository-memory-closure-20260722\n# branch.upstream origin/work/stage6-post-pr249-repository-memory-closure-20260722\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "084ebbd2 (HEAD -> work/stage6-post-pr249-repository-memory-closure-20260722, origin/work/stage6-post-pr249-repository-memory-closure-20260722) Restore repository memory newline\nd1a31369 Fix current post-PR249 memory status\ne7c62927 Fix post-PR249 repository memory status\nb3f2a48e Sync post-PR249 repository memory\na782f989 (origin/main) Stage 6: realign legacy Alpha smoke contracts (#249)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 084ebbd29f03f0d2c55fa9ba8fa8902410840d6f\nbranch refs/heads/work/stage6-post-pr249-repository-memory-closure-20260722\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:23:49Z",
+      "stderr": "",
+      "stdout": "a782f98960851934b93f6ed27d7e5c7b278efc58\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "084ebbd29f03f0d2c55fa9ba8fa8902410840d6f",
+  "observedAtUtc": "2026-07-22T05:23:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
