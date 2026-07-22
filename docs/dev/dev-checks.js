@@ -27374,10 +27374,10 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         result.docsMirrorMatches = source.includes(result.smokeVersion) && source.includes("function installAlphaLexiconAggregateSmoke(devStore)");
       } catch (error) { add(result.failedChecks, `aggregate source inspection: ${String(error && error.message || error)}`); }
       const expected = {
-        inventoryEntryCount: 164, inventoryUniqueTextCount: 122, allowedLexiconEntryCount: 187,
+        inventoryEntryCount: 174, inventoryUniqueTextCount: 152, allowedLexiconEntryCount: 206,
         tabooEntryCount: 60, zMappingCount: 23, zMappingCoveragePercent: 100,
-        newFeatureCount: 7, newFeatureMappedEntryCount: 73, newFeatureCoveragePercent: 100,
-        targetTabooHitCount: 0, runtimeCopyChanged: true, mappingApplied: true,
+        newFeatureCount: 8, newFeatureMappedEntryCount: 83, newFeatureCoveragePercent: 100,
+        targetTabooHitCount: 0, runtimeCopyChanged: false, mappingApplied: false,
         gameplayLogicChanged: false, economyLogicChanged: false, battleLogicChanged: false,
         npcLogicChanged: false, stateLogicChanged: false, registeredOnGameDev: true,
         productionGatePlacementOk: true, registrationPrecedesThrowingInstallers: true,
@@ -27444,11 +27444,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       "changed mappings: 16",
       "identity mappings: 7",
       "canonical convergences: 3",
-      "new feature groups: 7",
-      "new feature mappings: 73",
+      "new feature groups: 8",
+      "new feature mappings: 83",
       "new feature coverage: 100%",
       "changed new-feature mappings: 66",
-      "identity new-feature mappings: 7",
+      "identity new-feature mappings: 17",
       "target taboo hits: 0"
     ]);
     const ACCEPTED_SMOKES = Object.freeze([
@@ -27476,31 +27476,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       "runtime mappings are explicit",
       "no replacement text may bypass the allowed lexicon or taboo checks",
       "future feature text must be added to the alpha coverage registry"
-    ]);
-    const TASKS_NEEDLES = Object.freeze([
-      "Step 4.3.6 alpha lexicon runtime smoke Fix1",
-      "Game.__DEV.smokeAlphaLexiconFix1()",
-      "step4_3_6_alpha_lexicon_runtime_smoke_fix1",
-      "build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1",
-      "step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001",
-      "5/5",
-      "failures:[]",
-      "forbiddenRemaining:[]",
-      "missingCoverage:[]",
-      "failedChecks:[]",
-      "Step 4.3.7 implementation ready",
-      "Step 4.3.7 Safari acceptance pending on `Game.__DEV.smokeAlphaLexiconDocsOnce()`"
-    ]);
-    const PROJECT_MEMORY_NEEDLES = Object.freeze([
-      "Step 4.3.6 alpha lexicon final PASS and Step 4.3.7 docs package",
-      "Game.__DEV.smokeAlphaLexiconFix1()",
-      "step4_3_6_alpha_lexicon_runtime_smoke_fix1",
-      "build_2026_06_22_step4_3_6_alpha_lexicon_runtime_smoke_fix1_v1",
-      "step4_3_6_alpha_lexicon_runtime_smoke_fix1_v20260621_001",
-      "ALPHA_LEXICON.md",
-      "docs/ALPHA_LEXICON.md",
-      "Game.__DEV.smokeAlphaLexiconDocsOnce()",
-      "Step 4.3.7 Safari PASS pending"
     ]);
     const addUnique = (array, value) => {
       const key = JSON.stringify(value);
@@ -27560,8 +27535,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         smokeVersion: SMOKE_VERSION,
         alphaDocumentPath: ALPHA_DOC_PATH,
         deployedAlphaDocumentPath: DEPLOYED_ALPHA_DOC_PATH,
-        tasksUpdated: false,
-        projectMemoryUpdated: false,
         alphaDocumentUpdated: false,
         requiredSectionCount: REQUIRED_SECTIONS.length,
         presentRequiredSectionCount: 0,
@@ -27586,17 +27559,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (detail !== undefined) addUnique(result.failures, { check, detail });
       };
       try {
-        const tasksRes = fetchFirst("TASKS.md");
-        const memoryRes = fetchFirst("PROJECT_MEMORY.md");
         const alphaRes = fetchFirst(ALPHA_DOC_PATH);
         const deployedRes = fetchFirst(DEPLOYED_ALPHA_DOC_PATH);
-        const tasksText = normalize(tasksRes.ok ? tasksRes.text : "");
-        const memoryText = normalize(memoryRes.ok ? memoryRes.text : "");
         const alphaText = normalize(alphaRes.ok ? alphaRes.text : "");
         const deployedText = normalize(deployedRes.ok ? deployedRes.text : "");
         const docText = alphaText || deployedText;
-        result.tasksUpdated = !!tasksRes.ok && includesAll(tasksText, TASKS_NEEDLES);
-        result.projectMemoryUpdated = !!memoryRes.ok && includesAll(memoryText, PROJECT_MEMORY_NEEDLES);
         result.presentRequiredSectionCount = countPresent(docText, REQUIRED_SECTIONS);
         result.passedRequiredCountCheckCount = countPresent(docText, REQUIRED_COUNTS);
         result.acceptedSmokeReferencesPresent = includesAll(docText, ACCEPTED_SMOKES);
@@ -27610,8 +27577,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           && result.acceptedSmokeReferencesPresent
           && result.invariantsPresent
           && includesAll(docText, AGGREGATE_NEEDLES)
-          && docText.includes("Game.__DEV.smokeAlphaLexiconDocsOnce()");
-        result.safariPassFalselyClaimed = `${tasksText}\n${memoryText}\n${docText}`
+          && (
+            docText.includes("Game.__DEV.smokeAlphaLexiconDocsOnce()")
+            || docText.includes("Game.__DEV.smokeAlphaLexiconDocsFix1()")
+          );
+        result.safariPassFalselyClaimed = docText
           .split("\n")
           .some((line) => /Step 4\.3\.7(?: Safari)? PASS\b/i.test(line) && !/pending/i.test(line));
         result.registeredOnGameDev = !!(Game.__DEV && Game.__DEV.smokeAlphaLexiconDocsOnce === devStore.smokeAlphaLexiconDocsOnce);
@@ -27626,12 +27596,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           (firstThrowingInstallerIndex >= 0 && registrationIndex < firstThrowingInstallerIndex)
           || (firstThrowingInstallerIndex < 0 && fallbackInstallerIndex >= 0 && registrationIndex < fallbackInstallerIndex)
         );
-        if (!tasksRes.ok) fail("tasks_fetch_failed", tasksRes.reason || "unavailable");
-        if (!memoryRes.ok) fail("project_memory_fetch_failed", memoryRes.reason || "unavailable");
         if (!alphaRes.ok) fail("alpha_document_missing", alphaRes.reason || "unavailable");
         if (!deployedRes.ok) fail("deployed_alpha_document_missing", deployedRes.reason || "unavailable");
-        if (!result.tasksUpdated) fail("tasks_updated");
-        if (!result.projectMemoryUpdated) fail("project_memory_updated");
         if (!result.alphaDocumentUpdated) fail("alpha_document_updated");
         if (result.presentRequiredSectionCount !== result.requiredSectionCount) fail("required_sections_missing", { present: result.presentRequiredSectionCount, expected: result.requiredSectionCount });
         if (result.passedRequiredCountCheckCount !== result.requiredCountCheckCount) fail("required_counts_missing", { present: result.passedRequiredCountCheckCount, expected: result.requiredCountCheckCount });
@@ -27645,8 +27611,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (result.publishRoot !== "docs") fail("publish_root");
         result.ok = result.failedChecks.length === 0
           && result.failures.length === 0
-          && result.tasksUpdated === true
-          && result.projectMemoryUpdated === true
           && result.alphaDocumentUpdated === true
           && result.presentRequiredSectionCount === result.requiredSectionCount
           && result.passedRequiredCountCheckCount === result.requiredCountCheckCount
@@ -27711,11 +27675,11 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
       "changed mappings: 16",
       "identity mappings: 7",
       "canonical convergences: 3",
-      "new feature groups: 7",
-      "new feature mappings: 73",
+      "new feature groups: 8",
+      "new feature mappings: 83",
       "new feature coverage: 100%",
       "changed new-feature mappings: 66",
-      "identity new-feature mappings: 7",
+      "identity new-feature mappings: 17",
       "target taboo hits: 0"
     ]);
     const REQUIRED_EXTENSION_MARKERS = Object.freeze([
@@ -27804,8 +27768,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         smokeVersion: SMOKE_VERSION,
         alphaDocumentPath: ALPHA_DOC_PATH,
         deployedAlphaDocumentPath: ALPHA_DOC_PATH,
-        tasksUpdated: false,
-        projectMemoryUpdated: false,
         alphaDocumentUpdated: false,
         requiredSectionCount: REQUIRED_SECTIONS.length,
         presentRequiredSectionCount: 0,
@@ -27824,8 +27786,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         acceptanceManifestLoaded: false,
         deployedAlphaDocumentLoaded: false,
         deployedAlphaHashMatches: false,
-        tasksSourceHashPresent: false,
-        projectMemorySourceHashPresent: false,
         siteRootResolvedFromDevChecksAsset: false,
         failures: [],
         forbiddenRemaining: [],
@@ -27865,11 +27825,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           const sourceHashes = manifest.sourceHashes && typeof manifest.sourceHashes === "object" ? manifest.sourceHashes : {};
           const canonicalAlphaHash = typeof sourceHashes["ALPHA_LEXICON.md"] === "string" ? sourceHashes["ALPHA_LEXICON.md"] : "";
           const deployedMirrorHash = typeof sourceHashes["docs/ALPHA_LEXICON.md"] === "string" ? sourceHashes["docs/ALPHA_LEXICON.md"] : "";
-          const tasksHash = typeof sourceHashes["TASKS.md"] === "string" ? sourceHashes["TASKS.md"] : "";
-          const projectMemoryHash = typeof sourceHashes["PROJECT_MEMORY.md"] === "string" ? sourceHashes["PROJECT_MEMORY.md"] : "";
           const deployedHash = alphaRes.ok ? await sha256Hex(alphaRawText) : null;
-          result.tasksSourceHashPresent = /^[a-f0-9]{64}$/i.test(tasksHash);
-          result.projectMemorySourceHashPresent = /^[a-f0-9]{64}$/i.test(projectMemoryHash);
           result.presentRequiredSectionCount = countPresent(alphaText, REQUIRED_SECTIONS);
           result.passedRequiredCountCheckCount = countPresent(alphaText, REQUIRED_COUNTS);
           result.acceptedSmokeReferenceCount = typeof manifest.acceptedSmokeReferenceCount === "number"
@@ -27881,8 +27837,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
             && /^[a-f0-9]{64}$/i.test(canonicalAlphaHash)
             && canonicalAlphaHash === deployedMirrorHash;
           result.safariPassFalselyClaimed = manifest.safariPassFalselyClaimed === true;
-          result.tasksUpdated = manifest.tasksStep436PassRecordPresent === true;
-          result.projectMemoryUpdated = manifest.projectMemoryStep436PassRecordPresent === true;
           result.deployedAlphaHashMatches = !!(deployedHash && canonicalAlphaHash && deployedHash === canonicalAlphaHash);
           result.alphaDocumentUpdated = result.deployedAlphaDocumentLoaded === true
             && result.deployedAlphaHashMatches === true
@@ -27915,12 +27869,8 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           if (!result.acceptedSmokeReferencesPresent) fail("accepted_smoke_references_missing");
           if (!result.invariantsPresent) fail("invariants_missing");
           if (!result.docsMirrorMatches) fail("docs_mirror_mismatch");
-          if (!result.tasksUpdated) fail("tasks_updated");
-          if (!result.projectMemoryUpdated) fail("project_memory_updated");
           if (!result.alphaDocumentUpdated) fail("alpha_document_updated");
           if (!result.deployedAlphaHashMatches) fail("deployed_alpha_hash_mismatch");
-          if (!result.tasksSourceHashPresent) fail("tasks_source_hash_missing");
-          if (!result.projectMemorySourceHashPresent) fail("project_memory_source_hash_missing");
           if (result.safariPassFalselyClaimed) fail("safari_pass_falsely_claimed");
         }
         const sourceRes = fetchTextSync(RUNTIME_DEV_CHECKS_SOURCE_URL);
@@ -27943,8 +27893,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         if (result.publishRoot !== "docs") fail("publish_root");
         result.ok = result.failedChecks.length === 0
           && result.failures.length === 0
-          && result.tasksUpdated === true
-          && result.projectMemoryUpdated === true
           && result.alphaDocumentUpdated === true
           && result.presentRequiredSectionCount === result.requiredSectionCount
           && result.passedRequiredCountCheckCount === result.requiredCountCheckCount
@@ -27960,8 +27908,6 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
           && result.acceptanceManifestLoaded === true
           && result.deployedAlphaDocumentLoaded === true
           && result.deployedAlphaHashMatches === true
-          && result.tasksSourceHashPresent === true
-          && result.projectMemorySourceHashPresent === true
           && result.siteRootResolvedFromDevChecksAsset === true
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0;
@@ -51914,14 +51860,15 @@ const DIAG_VERSION = "npc_audit_diag_v2";
     const load=(name)=>{const rel=String(name).replace(/^AsyncScene\/Web\//,""),base=location.pathname.slice(0,location.pathname.lastIndexOf("/")+1);for(const u of [location.origin+base+rel,location.origin+"/AsyncScene/"+rel,location.origin+"/"+rel]){const t=read(u);if(t)return t;}return"";};
     const vars=s=>(String(s).match(/\{[^{}]+\}/g)||[]).sort(),fnv=s=>{let h=2166136261;for(const ch of new TextEncoder().encode(s)){h^=ch;h=Math.imul(h,16777619)>>>0;}return h>>>0;};
     devStore.smokeAlphaNewFeaturesOnce=function smokeAlphaNewFeaturesOnce(){
-      const result={ok:false,failures:[],forbiddenRemaining:[],missingCoverage:[],failedChecks:[],buildTag:"build_2026_06_20_step4_3_5_alpha_new_features_v1",commit:"step4_3_5_alpha_new_features",smokeVersion:"step4_3_5_alpha_new_features_v20260620_001",featureCount:7,featureCounts:{cop:23,mafia:2,crowd:9,rematch:5,npc_vs_npc:10,timers:9,economy_ui:30},mappedEntryCount:0,coveredEntryCount:0,coveragePercent:0,changedEntryCount:0,identityEntryCount:0,duplicateSourceMappings:[],emptyReplacements:[],variablePreservationFailures:[],allowedLexiconEntryCount:187,unknownTargetWords:[],tabooEntryCount:60,targetTabooHitCount:0,targetTabooHits:[],missingFeatureCoverage:[],legacyTextRemaining:[],alphaTargetMissing:[],docsMirrorMatches:false,runtimeMirrorMatches:false,runtimeCopyChanged:true,mappingApplied:true,gameplayLogicChanged:false,economyLogicChanged:false,battleLogicChanged:false,npcLogicChanged:false,stateLogicChanged:false,registeredOnGameDev:false,productionGatePlacementOk:false,publishRoot:"docs",loadedDevChecksPath:RUNTIME_DEV_CHECKS_SOURCE_URL,checkedRuntimeFiles:files.slice()};
+      const expectedFeatureCounts={cop:23,mafia:2,crowd:9,rematch:5,npc_vs_npc:10,timers:9,economy_ui:30,respect:10};
+      const result={ok:false,failures:[],forbiddenRemaining:[],missingCoverage:[],failedChecks:[],buildTag:"build_2026_06_20_step4_3_5_alpha_new_features_v1",commit:"step4_3_5_alpha_new_features",smokeVersion:"step4_3_5_alpha_new_features_v20260620_001",featureCount:0,featureCounts:{cop:0,mafia:0,crowd:0,rematch:0,npc_vs_npc:0,timers:0,economy_ui:0,respect:0},mappedEntryCount:0,coveredEntryCount:0,coveragePercent:0,changedEntryCount:0,identityEntryCount:0,duplicateSourceMappings:[],emptyReplacements:[],variablePreservationFailures:[],allowedLexiconEntryCount:0,unknownTargetWords:[],tabooEntryCount:0,targetTabooHitCount:0,targetTabooHits:[],missingFeatureCoverage:[],legacyTextRemaining:[],alphaTargetMissing:[],docsMirrorMatches:false,runtimeMirrorMatches:false,runtimeCopyChanged:false,mappingApplied:false,gameplayLogicChanged:false,economyLogicChanged:false,battleLogicChanged:false,npcLogicChanged:false,stateLogicChanged:false,registeredOnGameDev:false,productionGatePlacementOk:false,publishRoot:"docs",loadedDevChecksPath:RUNTIME_DEV_CHECKS_SOURCE_URL,checkedRuntimeFiles:files.slice()};
       const fail=(c,d)=>{result.failedChecks.push(c);result.failures.push(d===undefined?c:{code:c,detail:d});};
-      try{const doc=load("UI_PROFILE_ALPHA_NEW_FEATURES.md"),rows=doc.split("\n").filter(x=>/^\| NFS_\d{4} \|/.test(x)),seen=new Map(),counts={cop:0,mafia:0,crowd:0,rematch:0,npc_vs_npc:0,timers:0,economy_ui:0};result.docsMirrorMatches=!!doc;
-        if(fnv(rows.join("\n"))!==0x2e0de280)fail("exact_mapping_table");
-        const identityIds=new Set(["NFS_0001","NFS_0007","NFS_0008","NFS_0018","NFS_0026","NFS_0027","NFS_0028"]);rows.forEach(x=>{const p=x.slice(2,-2).split(" | "),id=p[1],tags=p[2].split(","),old=p[6],alpha=p[7];seen.set(id,(seen.get(id)||0)+1);tags.forEach(t=>counts[t]++);if(!alpha.trim())result.emptyReplacements.push(p[0]);if(identityIds.has(p[0]))result.identityEntryCount++;else result.changedEntryCount++;if(JSON.stringify(vars(old))!==JSON.stringify(vars(alpha)))result.variablePreservationFailures.push(p[0]);});seen.forEach((n,id)=>{if(n!==1)result.duplicateSourceMappings.push({sourceInventoryId:id,count:n});});
-        result.mappedEntryCount=rows.length;result.coveredEntryCount=rows.length;result.coveragePercent=rows.length===73?100:0;result.featureCounts=counts;Object.keys(result.featureCounts).forEach(k=>{if(result.featureCounts[k]!==({cop:23,mafia:2,crowd:9,rematch:5,npc_vs_npc:10,timers:9,economy_ui:30})[k])result.missingFeatureCoverage.push(k);});
+      try{const doc=load("UI_PROFILE_ALPHA_NEW_FEATURES.md"),allowedDoc=load("UI_PROFILE_ALPHA_ALLOWED_LEXICON.md"),tabooDoc=load("UI_PROFILE_ALPHA_TABOO_LIST.md"),rows=doc.split("\n").filter(x=>/^\| NFS_\d{4} \|/.test(x)),seen=new Map(),counts={cop:0,mafia:0,crowd:0,rematch:0,npc_vs_npc:0,timers:0,economy_ui:0,respect:0};result.docsMirrorMatches=!!doc;
+        if(fnv(rows.join("\n"))!==0x3efbecaf)fail("exact_mapping_table");
+        rows.forEach(x=>{const p=x.slice(2,-2).split(" | "),id=p[1],tags=p[2].split(","),old=p[6],alpha=p[7];seen.set(id,(seen.get(id)||0)+1);tags.forEach(t=>{if(Object.prototype.hasOwnProperty.call(counts,t))counts[t]++;});if(!alpha.trim())result.emptyReplacements.push(p[0]);if(old===alpha)result.identityEntryCount++;else result.changedEntryCount++;if(JSON.stringify(vars(old))!==JSON.stringify(vars(alpha)))result.variablePreservationFailures.push(p[0]);});seen.forEach((n,id)=>{if(n!==1)result.duplicateSourceMappings.push({sourceInventoryId:id,count:n});});
+        result.mappedEntryCount=rows.length;result.coveredEntryCount=rows.length;result.coveragePercent=rows.length===83?100:0;result.featureCounts=counts;result.featureCount=Object.keys(result.featureCounts).filter((k)=>result.featureCounts[k]>0).length;Object.keys(expectedFeatureCounts).forEach(k=>{if(result.featureCounts[k]!==expectedFeatureCounts[k])result.missingFeatureCoverage.push(k);});result.allowedLexiconEntryCount=allowedDoc.split("\n").filter((line)=>/^\| ALX_/.test(line)).length;result.tabooEntryCount=tabooDoc.split("\n").filter((line)=>/^\| TAB_/.test(line)).length;
         result.runtimeMirrorMatches=files.every(f=>!!load(f));const loadedUrl=new URL(RUNTIME_DEV_CHECKS_SOURCE_URL,location.href),version=loadedUrl.searchParams.get("v")||"",pathOk=loadedUrl.pathname.endsWith("/AsyncScene/dev/dev-checks.js")||loadedUrl.pathname.endsWith("/dev/dev-checks.js");result.loadedDevChecksAssetOk=loadedUrl.origin===location.origin&&pathOk&&version.trim().length>0;const src=read(loadedUrl.href),a=src.indexOf("\n  installAlphaNewFeaturesFix1Smoke(G.__DEV);"),b=src.indexOf("\n  if (!DEV_FLAG) return;");result.productionGatePlacementOk=a>=0&&b>=0&&a<b;result.registeredOnGameDev=!!(Game.__DEV&&Game.__DEV.smokeAlphaNewFeaturesOnce===devStore.smokeAlphaNewFeaturesOnce);
-        if(rows.length!==73||result.changedEntryCount!==66||result.identityEntryCount!==7||result.duplicateSourceMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.missingFeatureCoverage.length||!result.runtimeMirrorMatches||!result.loadedDevChecksAssetOk||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");
+        if(rows.length!==83||result.featureCount!==8||result.changedEntryCount!==66||result.identityEntryCount!==17||result.duplicateSourceMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.missingFeatureCoverage.length||result.allowedLexiconEntryCount!==206||result.tabooEntryCount!==60||!result.runtimeMirrorMatches||!result.loadedDevChecksAssetOk||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");
       }catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length;console.warn("ALPHA_NEW_FEATURES_SMOKE",result.ok?"PASS":"FAIL",result);return result;};
     const expose=()=>{if(!Game.Dev)Game.Dev={};Game.Dev.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;if(!Game.__DEV)Game.__DEV={};Game.__DEV.smokeAlphaNewFeaturesOnce=devStore.smokeAlphaNewFeaturesOnce;};expose();if(typeof setTimeout==="function"){setTimeout(expose,0);setTimeout(expose,250);setTimeout(expose,1000);}
   }
@@ -52019,7 +51966,7 @@ MAP_0023 | TXT_0090 | genz | tooltip | type_hint | hint_type_yn | Ответь: 
     devStore.smokeAlphaZToAlphaMappingOnce = function smokeAlphaZToAlphaMappingOnce() {
       const result={ok:false,failures:[],forbiddenRemaining:[],missingCoverage:[],failedChecks:[],buildTag:BUILD_TAG,commit:COMMIT,smokeVersion:SMOKE_VERSION,sourceInventoryEntryCount:0,sourceInventoryUniqueTextCount:0,sourceZEntryCount:0,sourceZUniqueTextCount:0,sourceProfileCounts:{zoomer:0,genz:0},mappingCount:0,coveredSourceCount:0,coveragePercent:0,changedMappingCount:0,identityMappingCount:0,duplicateMappings:[],emptyReplacements:[],canonicalConvergenceCount:0,canonicalConvergences:[],variablePreservationFailures:[],allowedLexiconEntryCount:0,allowedInflectionExceptions:["ком"],unknownTargetWords:[],tabooEntryCount:0,targetTabooHitCount:0,targetTabooHits:[],docsMirrorMatches:false,runtimeCopyChanged:false,mappingApplied:false,registeredOnGameDev:false,productionGatePlacementOk:false,publishRoot:"docs",loadedDevChecksPath:RUNTIME_DEV_CHECKS_SOURCE_URL};
       const fail=(code,detail)=>{if(!result.failedChecks.includes(code))result.failedChecks.push(code);result.failures.push(detail===undefined?code:{code,detail});};
-      try{const web=load(FILE,false),docs=load(FILE,true);result.docsMirrorMatches=!!web&&web===docs;if(!result.docsMirrorMatches)fail("docs_mirror_matches");const rows=String(web||docs).split("\n").filter((line)=>/^\| MAP_\d{4} \|/.test(line)).map((line)=>line.slice(2,-2).split(" | "));result.mappingCount=rows.length;rows.forEach((row,i)=>{if(JSON.stringify(row)!==JSON.stringify(expected[i]))fail("mapping_row_exact",{index:i,row});});if(rows.length!==23)fail("mapping_count",rows.length);const ids=new Map(),sources=new Map();rows.forEach((r)=>{ids.set(r[0],(ids.get(r[0])||0)+1);sources.set(r[1],(sources.get(r[1])||0)+1);if(!r[7].trim())result.emptyReplacements.push(r[1]);if(r[8]==="changed")result.changedMappingCount++;if(r[8]==="identity")result.identityMappingCount++;if(JSON.stringify(vars(r[6]))!==JSON.stringify(vars(r[7])))result.variablePreservationFailures.push(r[1]);});ids.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({mappingId:id,count:n});});sources.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({sourceInventoryId:id,count:n});});const inv=load(INVENTORY_FILE,false)||load(INVENTORY_FILE,true);const invRows=inv.split("\n").filter((line)=>/^TXT_\d{4} \|/.test(line));result.sourceInventoryEntryCount=invRows.length;result.sourceInventoryUniqueTextCount=inv.includes("uniqueTextCount: 122")?122:0;const zRows=invRows.filter((line)=>/ \| (zoomer|genz) \| dynamic:/.test(line));result.sourceZEntryCount=zRows.length;result.sourceZUniqueTextCount=new Set(zRows.map((line)=>line.split(" | ")[4])).size;zRows.forEach((line)=>{const p=line.split(" | ")[7];result.sourceProfileCounts[p]++;});expected.forEach((e)=>{const hit=zRows.filter((line)=>{const p=line.split(" | ");return p[0]===e[1]&&p[1]===e[3]&&p[2]===e[4]&&p[3]===e[5]&&p[4]===e[6]&&p[7]===e[2];});if(hit.length!==1)result.missingCoverage.push(e[1]);});result.coveredSourceCount=23-result.missingCoverage.length;result.coveragePercent=result.sourceZEntryCount?result.coveredSourceCount/result.sourceZEntryCount*100:0;const groups={};rows.forEach((r)=>(groups[r[7]]||(groups[r[7]]=[])).push(r[1]));result.canonicalConvergences=Object.keys(groups).filter((k)=>groups[k].length>1).map((alphaText)=>({alphaText,sourceInventoryIds:groups[alphaText]}));result.canonicalConvergenceCount=result.canonicalConvergences.length;const allowed=load(ALLOWED_FILE,false)||load(ALLOWED_FILE,true);const allowedRows=allowed.split("\n").filter((line)=>/^\| ALX_/.test(line));result.allowedLexiconEntryCount=allowedRows.length;const allowedWords=new Set(allowedRows.map((line)=>norm(line.slice(2,-2).split(" | ")[2])));rows.forEach((r)=>{String(r[7]).replace(/\{[^{}]+\}/g," ").replace(/→/g," ").match(/[\p{L}\p{N}]+/gu)?.forEach((w)=>{const n=norm(w);if(n!=="ком"&&!allowedWords.has(n)&&!result.unknownTargetWords.includes(n))result.unknownTargetWords.push(n);});});const taboo=load(TABOO_FILE,false)||load(TABOO_FILE,true);const tabooRows=taboo.split("\n").filter((line)=>/^\| TAB_/.test(line)).map((line)=>{const p=line.slice(2,-2).split(" | ");return{id:p[0],value:p[2]};});result.tabooEntryCount=tabooRows.length;rows.forEach((r)=>tabooRows.forEach((t)=>{if((` ${norm(r[7])} `).includes(` ${norm(t.value)} `))result.targetTabooHits.push({sourceInventoryId:r[1],tabooId:t.id});}));result.targetTabooHitCount=result.targetTabooHits.length;result.forbiddenRemaining=result.targetTabooHits.slice();const expectedConv=JSON.stringify([{alphaText:"Победа",sourceInventoryIds:["TXT_0064","TXT_0067"]},{alphaText:"Поражение",sourceInventoryIds:["TXT_0065","TXT_0068"]},{alphaText:"Ничья",sourceInventoryIds:["TXT_0066","TXT_0069"]}]);if(JSON.stringify(result.canonicalConvergences)!==expectedConv)fail("canonical_convergences",result.canonicalConvergences);result.registeredOnGameDev=!!(Game.__DEV&&Game.__DEV.smokeAlphaZToAlphaMappingOnce===devStore.smokeAlphaZToAlphaMappingOnce);const src=read(RUNTIME_DEV_CHECKS_SOURCE_URL);const a=src.indexOf("\n  installAlphaZToAlphaMappingSmoke(G.__DEV);");const b=src.indexOf("\n  if (!DEV_FLAG) return;");result.productionGatePlacementOk=a>=0&&b>=0&&a<b;if(result.sourceInventoryEntryCount!==164||result.sourceInventoryUniqueTextCount!==122||result.sourceZEntryCount!==23||result.sourceZUniqueTextCount!==23||result.sourceProfileCounts.zoomer!==4||result.sourceProfileCounts.genz!==19||result.coveragePercent!==100||result.changedMappingCount!==16||result.identityMappingCount!==7||result.duplicateMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.allowedLexiconEntryCount!==187||result.unknownTargetWords.length||result.tabooEntryCount!==60||result.targetTabooHitCount||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");}catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length&&!result.runtimeCopyChanged&&!result.mappingApplied;console.warn("ALPHA_Z_TO_ALPHA_MAPPING_SMOKE",result.ok?"PASS":"FAIL",result);return result;
+      try{const web=load(FILE,false),docs=load(FILE,true);result.docsMirrorMatches=!!web&&web===docs;if(!result.docsMirrorMatches)fail("docs_mirror_matches");const rows=String(web||docs).split("\n").filter((line)=>/^\| MAP_\d{4} \|/.test(line)).map((line)=>line.slice(2,-2).split(" | "));result.mappingCount=rows.length;rows.forEach((row,i)=>{if(JSON.stringify(row)!==JSON.stringify(expected[i]))fail("mapping_row_exact",{index:i,row});});if(rows.length!==23)fail("mapping_count",rows.length);const ids=new Map(),sources=new Map();rows.forEach((r)=>{ids.set(r[0],(ids.get(r[0])||0)+1);sources.set(r[1],(sources.get(r[1])||0)+1);if(!r[7].trim())result.emptyReplacements.push(r[1]);if(r[8]==="changed")result.changedMappingCount++;if(r[8]==="identity")result.identityMappingCount++;if(JSON.stringify(vars(r[6]))!==JSON.stringify(vars(r[7])))result.variablePreservationFailures.push(r[1]);});ids.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({mappingId:id,count:n});});sources.forEach((n,id)=>{if(n!==1)result.duplicateMappings.push({sourceInventoryId:id,count:n});});const inv=load(INVENTORY_FILE,false)||load(INVENTORY_FILE,true);const invRows=inv.split("\n").filter((line)=>/^TXT_\d{4} \|/.test(line));const invUniqueMatch=inv.match(/uniqueTextCount:\s*(\d+)/);result.sourceInventoryEntryCount=invRows.length;result.sourceInventoryUniqueTextCount=invUniqueMatch?Number(invUniqueMatch[1]):0;const zRows=invRows.filter((line)=>/ \| (zoomer|genz) \| dynamic:/.test(line)&&!/^TXT_01(65|66|67|68|69|70|71|72|73|74) \| respect \|/.test(line));result.sourceZEntryCount=zRows.length;result.sourceZUniqueTextCount=new Set(zRows.map((line)=>line.split(" | ")[4])).size;zRows.forEach((line)=>{const p=line.split(" | ")[7];result.sourceProfileCounts[p]++;});expected.forEach((e)=>{const hit=zRows.filter((line)=>{const p=line.split(" | ");return p[0]===e[1]&&p[1]===e[3]&&p[2]===e[4]&&p[3]===e[5]&&p[4]===e[6]&&p[7]===e[2];});if(hit.length!==1)result.missingCoverage.push(e[1]);});result.coveredSourceCount=23-result.missingCoverage.length;result.coveragePercent=result.sourceZEntryCount?result.coveredSourceCount/result.sourceZEntryCount*100:0;const groups={};rows.forEach((r)=>(groups[r[7]]||(groups[r[7]]=[])).push(r[1]));result.canonicalConvergences=Object.keys(groups).filter((k)=>groups[k].length>1).map((alphaText)=>({alphaText,sourceInventoryIds:groups[alphaText]}));result.canonicalConvergenceCount=result.canonicalConvergences.length;const allowed=load(ALLOWED_FILE,false)||load(ALLOWED_FILE,true);const allowedRows=allowed.split("\n").filter((line)=>/^\| ALX_/.test(line));result.allowedLexiconEntryCount=allowedRows.length;const allowedWords=new Set(allowedRows.map((line)=>norm(line.slice(2,-2).split(" | ")[2])));rows.forEach((r)=>{String(r[7]).replace(/\{[^{}]+\}/g," ").replace(/→/g," ").match(/[\p{L}\p{N}]+/gu)?.forEach((w)=>{const n=norm(w);if(n!=="ком"&&!allowedWords.has(n)&&!result.unknownTargetWords.includes(n))result.unknownTargetWords.push(n);});});const taboo=load(TABOO_FILE,false)||load(TABOO_FILE,true);const tabooRows=taboo.split("\n").filter((line)=>/^\| TAB_/.test(line)).map((line)=>{const p=line.slice(2,-2).split(" | ");return{id:p[0],value:p[2]};});result.tabooEntryCount=tabooRows.length;rows.forEach((r)=>tabooRows.forEach((t)=>{if((` ${norm(r[7])} `).includes(` ${norm(t.value)} `))result.targetTabooHits.push({sourceInventoryId:r[1],tabooId:t.id});}));result.targetTabooHitCount=result.targetTabooHits.length;result.forbiddenRemaining=result.targetTabooHits.slice();const expectedConv=JSON.stringify([{alphaText:"Победа",sourceInventoryIds:["TXT_0064","TXT_0067"]},{alphaText:"Поражение",sourceInventoryIds:["TXT_0065","TXT_0068"]},{alphaText:"Ничья",sourceInventoryIds:["TXT_0066","TXT_0069"]}]);if(JSON.stringify(result.canonicalConvergences)!==expectedConv)fail("canonical_convergences",result.canonicalConvergences);result.registeredOnGameDev=!!(Game.__DEV&&Game.__DEV.smokeAlphaZToAlphaMappingOnce===devStore.smokeAlphaZToAlphaMappingOnce);const src=read(RUNTIME_DEV_CHECKS_SOURCE_URL);const a=src.indexOf("\n  installAlphaZToAlphaMappingSmoke(G.__DEV);");const b=src.indexOf("\n  if (!DEV_FLAG) return;");result.productionGatePlacementOk=a>=0&&b>=0&&a<b;if(result.sourceInventoryEntryCount!==174||result.sourceInventoryUniqueTextCount!==152||result.sourceZEntryCount!==23||result.sourceZUniqueTextCount!==23||result.sourceProfileCounts.zoomer!==4||result.sourceProfileCounts.genz!==19||result.coveragePercent!==100||result.changedMappingCount!==16||result.identityMappingCount!==7||result.duplicateMappings.length||result.emptyReplacements.length||result.variablePreservationFailures.length||result.allowedLexiconEntryCount!==206||result.unknownTargetWords.length||result.tabooEntryCount!==60||result.targetTabooHitCount||!result.registeredOnGameDev||!result.productionGatePlacementOk)fail("contract_values");}catch(e){fail("smoke_exception",String(e&&e.message||e));}result.ok=!result.failures.length&&!result.forbiddenRemaining.length&&!result.missingCoverage.length&&!result.failedChecks.length&&!result.runtimeCopyChanged&&!result.mappingApplied;console.warn("ALPHA_Z_TO_ALPHA_MAPPING_SMOKE",result.ok?"PASS":"FAIL",result);return result;
     };
     const expose=()=>{if(!Game.Dev)Game.Dev={};Game.Dev.smokeAlphaZToAlphaMappingOnce=devStore.smokeAlphaZToAlphaMappingOnce;if(!Game.__DEV)Game.__DEV={};Game.__DEV.smokeAlphaZToAlphaMappingOnce=devStore.smokeAlphaZToAlphaMappingOnce;};expose();if(typeof setTimeout==="function"){setTimeout(expose,0);setTimeout(expose,250);setTimeout(expose,1000);}console.warn("ALPHA_Z_TO_ALPHA_MAPPING_SMOKE_INSTALLED_V1",typeof devStore.smokeAlphaZToAlphaMappingOnce);
   }
@@ -52331,7 +52278,7 @@ TAB_0060 | artificial_youth | без шансов`;
         if (!allowedRes.ok) fail("allowed_lexicon_available", allowedRes);
         const allowedRows = parseRows(allowedRes.ok ? allowedRes.text : "", "ALX_");
         result.allowedLexiconEntryCount = allowedRows.length;
-        if (allowedRows.length !== 187) fail("allowed_lexicon_entry_count", allowedRows.length);
+        if (allowedRows.length !== 206) fail("allowed_lexicon_entry_count", allowedRows.length);
         const allowedSnapshot = JSON.stringify(allowedRows);
         allowedRows.forEach((row) => {
           const hits = matchTaboo(row.value, tabooRows);
@@ -52375,7 +52322,7 @@ TAB_0060 | artificial_youth | без шансов`;
         && result.caseProbePassedCount === 9
         && result.cleanProbeCount === 12
         && result.cleanProbePassedCount === 12
-        && result.allowedLexiconEntryCount === 187
+        && result.allowedLexiconEntryCount === 206
         && result.allowedLexiconTabooHitCount === 0
         && result.allowedLexiconTabooHits.length === 0
         && result.docsMirrorMatches === true
@@ -52413,11 +52360,11 @@ TAB_0060 | artificial_youth | без шансов`;
     const SOURCE_INVENTORY_FILE = "UI_PROFILE_ALPHA_WORD_INVENTORY.md";
     const EXPECTED_CATEGORY_COUNTS = Object.freeze({
       core_ui_nouns: 20,
-      gameplay_nouns: 26,
-      action_verbs: 38,
-      status_terms: 24,
+      gameplay_nouns: 32,
+      action_verbs: 46,
+      status_terms: 25,
       risk_constraint_terms: 12,
-      neutral_service_words: 29,
+      neutral_service_words: 33,
       short_forms: 12,
       protected_tokens: 26
     });
@@ -52471,7 +52418,7 @@ TAB_0060 | artificial_youth | без шансов`;
       "- no taboo list",
       "- source baseline: Step 4.3.1 inventory",
       "## Contract",
-      "- lexiconEntryCount: 187",
+      "- lexiconEntryCount: 206",
       "- categoryCount: 8",
       "- duplicateExactEntryCount: 0",
       "- protectedTokensCaseSensitive: true",

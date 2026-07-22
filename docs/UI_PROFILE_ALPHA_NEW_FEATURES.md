@@ -2,20 +2,21 @@
 
 ## Scope
 
-- Seven new feature groups are covered.
-- Seventy-three registered runtime copy entries are covered.
+- Eight new feature groups are covered.
+- Eighty-three registered runtime copy entries are covered.
 - Sixty-six entries change.
-- Seven entries remain exact identity mappings.
+- Seventeen entries remain exact identity mappings.
+- The original 23-row Z-to-Alpha cohort is unchanged; the later respect coverage stays additive.
 - Copy changes only.
 - Gameplay and economy rules are unchanged.
 - Runtime keys and variables are unchanged.
 
 ## Contract
 
-- featureCount: 7
-- mappedEntryCount: 73
+- featureCount: 8
+- mappedEntryCount: 83
 - changedEntryCount: 66
-- identityEntryCount: 7
+- identityEntryCount: 17
 - coveragePercent: 100
 - runtimeCopyChanged: true
 - mappingApplied: true
@@ -34,6 +35,7 @@
 - npc_vs_npc: 10
 - timers: 9
 - economy_ui: 30
+- respect: 10
 
 ## Exact mapping table
 

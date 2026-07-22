@@ -3,20 +3,14 @@
   "generatedForStep": "4.3.7-fix1",
   "publishRoot": "docs",
   "sourceFiles": {
-    "tasks": "TASKS.md",
-    "projectMemory": "PROJECT_MEMORY.md",
     "alphaCanonical": "ALPHA_LEXICON.md",
     "alphaDeployedMirror": "docs/ALPHA_LEXICON.md"
   },
   "sourceHashes": {
-    "TASKS.md": "0115fff9c195d7f8cdda72892c7d86cc2bbe6b2652d5e1c867a86f4450567f66",
-    "PROJECT_MEMORY.md": "960dedf3720b56c8baa97996241c4be52852b416c4206c87c967e9c6d0583a3d",
-    "ALPHA_LEXICON.md": "b195a1f4934a4af7086b4f37a0e9ec90cb36109c6dc3b0cd702f9fd98472d745",
-    "docs/ALPHA_LEXICON.md": "b195a1f4934a4af7086b4f37a0e9ec90cb36109c6dc3b0cd702f9fd98472d745"
+    "ALPHA_LEXICON.md": "28ede77f706cf3876e605423f9fa32afa4ab8497ac59f6ce07bf8ddbb12a42a1",
+    "docs/ALPHA_LEXICON.md": "28ede77f706cf3876e605423f9fa32afa4ab8497ac59f6ce07bf8ddbb12a42a1"
   },
   "alphaMirrorMatches": true,
-  "tasksStep436PassRecordPresent": true,
-  "projectMemoryStep436PassRecordPresent": true,
   "alphaDocumentRequiredSectionsPresent": true,
   "alphaDocumentRequiredCountsPresent": true,
   "acceptedSmokeReferenceCount": 6,
