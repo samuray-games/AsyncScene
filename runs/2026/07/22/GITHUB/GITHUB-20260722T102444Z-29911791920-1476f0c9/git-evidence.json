@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "1536696270199b4aa846c58361b3d222c79f0482\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1536696270199b4aa846c58361b3d222c79f0482\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "15366962 (HEAD -> main, origin/main) Stage 6: recover remaining Boomer 4.4B dev-check scope leaks (#253)\na8edfe53 Stage 6: recover dev-check boot registration for Boomer 4.4B (#252)\n1548aae8 Stage 6: realign Boomer 4.4B smoke to current runtime asset (#251)\n052e5e39 Stage 6: synchronize repository memory after PR #248 and #249 (#250)\na782f989 Stage 6: realign legacy Alpha smoke contracts (#249)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1536696270199b4aa846c58361b3d222c79f0482\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T10:24:44Z",
+      "stderr": "",
+      "stdout": "1536696270199b4aa846c58361b3d222c79f0482\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1536696270199b4aa846c58361b3d222c79f0482",
+  "observedAtUtc": "2026-07-22T10:24:44Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
