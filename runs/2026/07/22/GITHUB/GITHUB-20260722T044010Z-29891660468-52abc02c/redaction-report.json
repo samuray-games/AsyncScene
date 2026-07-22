@@ -1,0 +1,8 @@
+{
+  "blocked": false,
+  "reasons": [],
+  "replacements": [
+    "high-entropy-secret",
+    "home-path"
+  ]
+}
