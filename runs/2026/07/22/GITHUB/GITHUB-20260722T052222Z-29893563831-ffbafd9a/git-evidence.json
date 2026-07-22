@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "d99cd79396092a0249d5127f5244dc168edb3bfd\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "# branch.oid d99cd79396092a0249d5127f5244dc168edb3bfd\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "d99cd793 (HEAD, pull/250/merge) Merge e7c62927b619ce19d181f7943123468a6df6ccdf into a782f98960851934b93f6ed27d7e5c7b278efc58\ne7c62927 (origin/work/stage6-post-pr249-repository-memory-closure-20260722) Fix post-PR249 repository memory status\nb3f2a48e Sync post-PR249 repository memory\na782f989 (origin/main) Stage 6: realign legacy Alpha smoke contracts (#249)\n88b5cf6d Infra: refresh Codex model inventory snapshot (#248)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD d99cd79396092a0249d5127f5244dc168edb3bfd\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-22T05:22:22Z",
+      "stderr": "",
+      "stdout": "a782f98960851934b93f6ed27d7e5c7b278efc58\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "d99cd79396092a0249d5127f5244dc168edb3bfd",
+  "observedAtUtc": "2026-07-22T05:22:22Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
