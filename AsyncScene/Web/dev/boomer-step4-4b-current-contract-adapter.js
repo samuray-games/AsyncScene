@@ -62,7 +62,6 @@ window.Game = window.Game || {};
         break;
       }
     }
-
     const text = loaded ? loaded.text : "";
     const checks = {
       buildMarker: text.includes("UI_PROFILE_BOOMER_STEP_4_4_ECONOMY_CONFLICT_TERMINOLOGY_AUDIT"),
@@ -74,7 +73,6 @@ window.Game = window.Game || {};
       structural0: text.includes("structuralFailureCount: 0"),
       placeholderAuthority: text.includes("placeholder_mismatch") && text.includes("placeholder-broken")
     };
-
     return {
       ok: !!loaded && Object.values(checks).every(Boolean),
       url: loaded ? loaded.url : null,
@@ -115,15 +113,12 @@ window.Game = window.Game || {};
     const data = Game && Game.Data;
     const strings = [];
     const seenObjects = new WeakSet();
-
     collectStrings(data && data.TEXTS && data.TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.START_SCREEN_PROFILE_TEXTS && data.START_SCREEN_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS && data.NPC_EVENT_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
     collectStrings(data && data.COP_TEMPLATES_PROFILE_TEXTS && data.COP_TEMPLATES_PROFILE_TEXTS.boomer, strings, seenObjects);
-    // CAP_MESSAGES can be exposed either as the active-profile getter result or as a profile map.
     collectStrings(data && data.CAP_MESSAGES, strings, seenObjects);
     collectStrings(data && data.CAP_MESSAGES && data.CAP_MESSAGES.boomer, strings, seenObjects);
-
     const joined = strings.join("\n");
     const required = ["💰", "⭐", "⚡"];
     const dataHits = required.filter((emoji) => joined.includes(emoji));
@@ -133,7 +128,6 @@ window.Game = window.Game || {};
       const node = document.querySelector(`[data-profile-stat="${profileStat}"] .statIcon`);
       return node ? String(node.textContent || "").trim() : "";
     };
-
     const dom = {
       points: readIcon("points"),
       rep: readIcon("rep"),
@@ -143,7 +137,6 @@ window.Game = window.Game || {};
     const domHits = required.filter((emoji) => domValues.includes(emoji));
     const combinedHits = required.filter((emoji) => dataHits.includes(emoji) || domHits.includes(emoji));
     const domOk = dom.points === "💰" && dom.rep === "⭐" && dom.influence === "⚡";
-
     return {
       ok: combinedHits.length === required.length && domOk,
       required,
@@ -192,14 +185,15 @@ window.Game = window.Game || {};
 
   const allAdversarialFixturesPass = (fixtures) => {
     if (!fixtures || typeof fixtures !== "object") return false;
-    return [
+    const required = [
       "profileRejectsMutation",
       "economyRejectsMutation",
       "battleStateRejectsMutation",
       "moneyLogRejectsMutation",
       "persistenceRejectsMutation",
       "localStorageRejectsMutation"
-    ].every((key) => fixtures[key] === true);
+    ];
+    return required.every((key) => fixtures[key] === true);
   };
 
   const smokeBoomerEconomyConflictTerminologyCurrentContractOnce = function smokeBoomerEconomyConflictTerminologyCurrentContractOnce() {
@@ -265,7 +259,12 @@ window.Game = window.Game || {};
       rawLegacyOk: !!(raw && raw.ok === true),
       rawLegacyFailedChecks: Array.isArray(raw && raw.failedChecks) ? raw.failedChecks.slice() : [],
       supersededLegacyChecks: Array.from(SUPERSEDED_CHECKS),
-      currentAuthority: { audit, profileArchitecture, emojiContracts, legacyBaseHealth },
+      currentAuthority: {
+        audit,
+        profileArchitecture,
+        emojiContracts,
+        legacyBaseHealth
+      },
       runtimeChecks,
       failedChecks,
       failures,
