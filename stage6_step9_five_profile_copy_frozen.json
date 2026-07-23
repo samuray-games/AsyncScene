@@ -6,57 +6,392 @@
   "pre_freeze_head": "a6104bb7e2f6f6dba595bfb5aa4b88eb957df099",
   "live_notion_memory_rev": "2026-07-23-2150-JST",
   "user_review_verdict": "ВСЁ ОК",
-  "frozen_json_sha256": "379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac",
   "row_count": 48,
   "rows": [
-    {"text_id":"start.continue","boomer":"Продолжить настройку","genX":"Дальше","millennial":"Поехали дальше","zoomer":"Погнали","alpha":"Го"},
-    {"text_id":"start.rules","boomer":"Правила игры","genX":"Как тут всё устроено","millennial":"Правила","zoomer":"Как играть","alpha":"Правила"},
-    {"text_id":"chat.placeholder","boomer":"Введите сообщение","genX":"Пиши сюда","millennial":"Напиши сообщение","zoomer":"Что скажешь?","alpha":"чат..."},
-    {"text_id":"chat.send","boomer":"Отправить сообщение","genX":"Отправить","millennial":"Отправить","zoomer":"Кинуть","alpha":"Отправить"},
-    {"text_id":"dm.header","boomer":"Личные сообщения","genX":"Приват","millennial":"Личка","zoomer":"ЛС","alpha":"DM"},
-    {"text_id":"dm.placeholder","boomer":"Введите личное сообщение","genX":"Пиши лично","millennial":"Напиши в личку","zoomer":"В личку","alpha":"дм..."},
-    {"text_id":"dm.send","boomer":"Отправить","genX":"Отправить","millennial":"Отправить","zoomer":"Кинуть","alpha":"Отправить"},
-    {"text_id":"panel.battles","boomer":"Конфликты","genX":"Разборки","millennial":"Споры","zoomer":"Баттлы","alpha":"Бои"},
-    {"text_id":"panel.events","boomer":"События","genX":"Что происходит","millennial":"События","zoomer":"Движ","alpha":"Ивенты"},
-    {"text_id":"battle.attack_badge","boomer":"Аргумент","genX":"Наезд","millennial":"Аргумент","zoomer":"Вброс","alpha":"Ход"},
-    {"text_id":"battle.defense_badge","boomer":"Ответ","genX":"Ответка","millennial":"Контраргумент","zoomer":"Контра","alpha":"Ответ"},
-    {"text_id":"battle.opponent_argument","boomer":"Аргумент оппонента","genX":"Что тебе предъявили","millennial":"Аргумент соперника","zoomer":"Что тебе вкинули","alpha":"Ход соперника"},
-    {"text_id":"battle.my_answer","boomer":"Ваш ответ","genX":"Твоя ответка","millennial":"Твой контраргумент","zoomer":"Твоя контра","alpha":"Ответ"},
-    {"text_id":"battle.accept","boomer":"Принять вызов","genX":"Вписаться","millennial":"Принять","zoomer":"Залететь","alpha":"В бой"},
-    {"text_id":"battle.decline","boomer":"Отказаться","genX":"Пас","millennial":"Отклонить","zoomer":"Скип","alpha":"Нет"},
-    {"text_id":"battle.attack_action","boomer":"Атаковать","genX":"Врубиться","millennial":"Атаковать","zoomer":"Влететь","alpha":"Ход"},
-    {"text_id":"battle.rematch","boomer":"Предложить реванш","genX":"Ещё разок","millennial":"Реванш","zoomer":"Рематч","alpha":"Ещё"},
-    {"text_id":"battle.report","boomer":"Сообщить","genX":"Сдать","millennial":"Пожаловаться","zoomer":"Репорт","alpha":"Жалоба"},
-    {"text_id":"economy.not_enough_money","boomer":"Недостаточно монет.","genX":"Денег не хватает.","millennial":"Не хватает денег.","zoomer":"Кошелёк пуст 💀","alpha":"0 денег 💀"},
-    {"text_id":"economy.not_enough_rep","boomer":"Недостаточно репутации.","genX":"Репутации не хватает.","millennial":"Не хватает репутации.","zoomer":"Репы не хватает.","alpha":"⭐ мало"},
-    {"text_id":"toast.money_gain","boomer":"Баланс пополнен на {X}.","genX":"+{X} в карман.","millennial":"Баланс: +{X}. Наконец-то.","zoomer":"+{X} к банку 💸","alpha":"+{X}💰 W"},
-    {"text_id":"toast.money_loss","boomer":"Списано {X}.","genX":"−{X}. Ну бывает.","millennial":"Баланс: −{X}. Бюджет снова страдает.","zoomer":"−{X} 💀","alpha":"−{X}💰 L"},
-    {"text_id":"toast.rep_gain","boomer":"Репутация выросла на {X}.","genX":"Репутация +{X}. Нормально.","millennial":"Репутация +{X}. Социальный капитал работает.","zoomer":"Репа +{X} 📈","alpha":"+{X}⭐ aura+"},
-    {"text_id":"toast.rep_loss","boomer":"Репутация снизилась на {X}.","genX":"Репутация −{X}. Облом.","millennial":"Репутация −{X}. Интернет помнит всё.","zoomer":"Репа −{X} 💀","alpha":"−{X}⭐ aura−"},
-    {"text_id":"toast.influence_gain","boomer":"Влияние увеличилось на {X}.","genX":"Влияние +{X}. Вес появился.","millennial":"Влияние +{X}. Кажется, нас услышали.","zoomer":"Влияние +{X}. Имба.","alpha":"+{X}⚡ W"},
-    {"text_id":"toast.combined_respect","boomer":"Списана 1 монета. Репутация цели выросла на 1.","genX":"−1 из кармана. Цели +1 к репутации.","millennial":"Баланс −1. Репутация цели +1. Социальный капитал перераспределён.","zoomer":"−1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен.","alpha":"−1💰 / цель +1⭐"},
-    {"text_id":"result.win","boomer":"Победа.","genX":"Нормально разобрались.","millennial":"Победа. Можно выдохнуть.","zoomer":"W. Разнесли.","alpha":"W"},
-    {"text_id":"result.loss","boomer":"Поражение.","genX":"Вот это облом.","millennial":"Ну всё, приехали.","zoomer":"Нас cooked 💀","alpha":"L 💀"},
-    {"text_id":"result.draw","boomer":"Ничья.","genX":"Разошлись по нулям.","millennial":"Ничья. Никто не победил, зато все устали.","zoomer":"По нулям.","alpha":"="},
-    {"text_id":"vote.majority","boomer":"Вы поддержали большинство.","genX":"Ты оказался с большинством.","millennial":"Ты с большинством. Сегодня демократия сработала.","zoomer":"Ты в мейнстриме.","alpha":"толпа W"},
-    {"text_id":"vote.minority","boomer":"Вы оказались в меньшинстве.","genX":"Ты остался в меньшинстве.","millennial":"Ты в меньшинстве. Бывает.","zoomer":"Ты в андердоге.","alpha":"1 vs all 💀"},
-    {"text_id":"conflict.finished","boomer":"Конфликт завершён.","genX":"Разборка закончена.","millennial":"Всё, спор закрыт.","zoomer":"Катка закрыта.","alpha":"gg"},
-    {"text_id":"reaction.bad","boomer":"Вот ведь неприятность.","genX":"Вот отстой.","millennial":"Ну это прям жесть.","zoomer":"Кринж.","alpha":"💀"},
-    {"text_id":"reaction.surprised","boomer":"Вот это номер!","genX":"Ни фига себе.","millennial":"Я сейчас серьёзно это вижу?","zoomer":"ЧЕГО 💀","alpha":"бро что 💀"},
-    {"text_id":"reaction.agree","boomer":"Совершенно верно.","genX":"Точно.","millennial":"Вот это база.","zoomer":"База.","alpha":"W"},
-    {"text_id":"reaction.disagree","boomer":"Позвольте не согласиться.","genX":"Да ну нафиг.","millennial":"Ну нет, ребят.","zoomer":"Скип.","alpha":"L тейк"},
-    {"text_id":"reaction.relatable","boomer":"Понимаю. Знакомая ситуация.","genX":"Знакомо.","millennial":"Жиза, конечно.","zoomer":"Жиза.","alpha":"real"},
-    {"text_id":"reaction.wait","boomer":"Одну минуту.","genX":"Погоди.","millennial":"Так, стоп.","zoomer":"Холдап.","alpha":"стоп чат"},
-    {"text_id":"reaction.start","boomer":"Ну что ж, приступим.","genX":"Погнали.","millennial":"Ладно, поехали.","zoomer":"Го.","alpha":"sigma mode"},
-    {"text_id":"reaction.weird","boomer":"Не совсем понимаю происходящее.","genX":"Что за фигня?","millennial":"Это вообще как?","zoomer":"Что за рофл?","alpha":"NPC moment"},
-    {"text_id":"reaction.disaster","boomer":"Положение крайне неприятное.","genX":"Ну всё, приехали.","millennial":"Это фиаско.","zoomer":"мы cooked 💀","alpha":"−1000 aura"},
-    {"text_id":"empty.dm","boomer":"Личных сообщений пока нет.","genX":"Пусто. Никто не пишет.","millennial":"Пока пусто. Даже спама нет.","zoomer":"В личке тишина.","alpha":"DM 0"},
-    {"text_id":"empty.events","boomer":"Новых событий нет.","genX":"Тишина. Ничего не происходит.","millennial":"Событий нет. Подозрительно спокойно.","zoomer":"Движ пока спит.","alpha":"ивентов 0"},
-    {"text_id":"empty.battles","boomer":"Активных конфликтов нет.","genX":"Разборок нет.","millennial":"Никто не зовёт спорить. Наслаждайся моментом.","zoomer":"Баттлов нет.","alpha":"боёв 0"},
-    {"text_id":"cop.accept","boomer":"Сообщение принято. Начинаю проверку.","genX":"Принято. Сейчас глянем.","millennial":"Принято. Запускаю проверку.","zoomer":"Репорт принят. Чекаю.","alpha":"репорт ок"},
-    {"text_id":"cop.false_report","boomer":"Проверка показала, что сообщение неверно.","genX":"Не подтвердилось. Мимо.","millennial":"Проверка не подтвердила жалобу. Неловко вышло.","zoomer":"Репорт мимо 💀","alpha":"false report L"},
-    {"text_id":"cooldown.wait","boomer":"Повторите позже.","genX":"Погоди немного.","millennial":"Нужно немного подождать.","zoomer":"КД. Подожди.","alpha":"КД"},
-    {"text_id":"onboarding.profile_helper","boomer":"Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.","genX":"Это только настройка интерфейса. Год не сохраняем, потом можно поменять.","millennial":"Только для интерфейса. Не сохраняем. Можно поменять позже.","zoomer":"Только стиль UI. Год не сохраняем, потом сменишь.","alpha":"only style. year not saved."}
+    {
+      "text_id": "start.continue",
+      "boomer": "Продолжить настройку",
+      "genX": "Дальше",
+      "millennial": "Поехали дальше",
+      "zoomer": "Погнали",
+      "alpha": "Го"
+    },
+    {
+      "text_id": "start.rules",
+      "boomer": "Правила игры",
+      "genX": "Как тут всё устроено",
+      "millennial": "Правила",
+      "zoomer": "Как играть",
+      "alpha": "Правила"
+    },
+    {
+      "text_id": "chat.placeholder",
+      "boomer": "Введите сообщение",
+      "genX": "Пиши сюда",
+      "millennial": "Напиши сообщение",
+      "zoomer": "Что скажешь?",
+      "alpha": "чат..."
+    },
+    {
+      "text_id": "chat.send",
+      "boomer": "Отправить сообщение",
+      "genX": "Отправить",
+      "millennial": "Отправить",
+      "zoomer": "Кинуть",
+      "alpha": "Отправить"
+    },
+    {
+      "text_id": "dm.header",
+      "boomer": "Личные сообщения",
+      "genX": "Приват",
+      "millennial": "Личка",
+      "zoomer": "ЛС",
+      "alpha": "Личка"
+    },
+    {
+      "text_id": "dm.placeholder",
+      "boomer": "Введите личное сообщение",
+      "genX": "Пиши лично",
+      "millennial": "Напиши в личку",
+      "zoomer": "В личку",
+      "alpha": "в личку..."
+    },
+    {
+      "text_id": "dm.send",
+      "boomer": "Отправить",
+      "genX": "Отправить",
+      "millennial": "Отправить",
+      "zoomer": "Кинуть",
+      "alpha": "Отправить"
+    },
+    {
+      "text_id": "panel.battles",
+      "boomer": "Конфликты",
+      "genX": "Стычки",
+      "millennial": "Споры",
+      "zoomer": "Баттлы",
+      "alpha": "Бои"
+    },
+    {
+      "text_id": "panel.events",
+      "boomer": "События",
+      "genX": "Что происходит",
+      "millennial": "События",
+      "zoomer": "Движ",
+      "alpha": "Ивенты"
+    },
+    {
+      "text_id": "battle.attack_badge",
+      "boomer": "Аргумент",
+      "genX": "Ход",
+      "millennial": "Аргумент",
+      "zoomer": "Вброс",
+      "alpha": "Ход"
+    },
+    {
+      "text_id": "battle.defense_badge",
+      "boomer": "Ответ",
+      "genX": "Ответ",
+      "millennial": "Контраргумент",
+      "zoomer": "Контра",
+      "alpha": "Ответ"
+    },
+    {
+      "text_id": "battle.opponent_argument",
+      "boomer": "Аргумент оппонента",
+      "genX": "Что сказал соперник",
+      "millennial": "Аргумент соперника",
+      "zoomer": "Что тебе вкинули",
+      "alpha": "Ход соперника"
+    },
+    {
+      "text_id": "battle.my_answer",
+      "boomer": "Ваш ответ",
+      "genX": "Твой ответ",
+      "millennial": "Твой контраргумент",
+      "zoomer": "Твоя контра",
+      "alpha": "Мой ответ"
+    },
+    {
+      "text_id": "battle.accept",
+      "boomer": "Принять вызов",
+      "genX": "Вписаться",
+      "millennial": "Принять",
+      "zoomer": "Залететь",
+      "alpha": "В бой"
+    },
+    {
+      "text_id": "battle.decline",
+      "boomer": "Отказаться",
+      "genX": "Пас",
+      "millennial": "Отклонить",
+      "zoomer": "Скип",
+      "alpha": "Нет"
+    },
+    {
+      "text_id": "battle.attack_action",
+      "boomer": "Атаковать",
+      "genX": "Атаковать",
+      "millennial": "Атаковать",
+      "zoomer": "Влететь",
+      "alpha": "Ход"
+    },
+    {
+      "text_id": "battle.rematch",
+      "boomer": "Предложить реванш",
+      "genX": "Ещё разок",
+      "millennial": "Реванш",
+      "zoomer": "Рематч",
+      "alpha": "Ещё"
+    },
+    {
+      "text_id": "battle.report",
+      "boomer": "Сообщить",
+      "genX": "Пожаловаться",
+      "millennial": "Пожаловаться",
+      "zoomer": "Репорт",
+      "alpha": "Репорт"
+    },
+    {
+      "text_id": "economy.not_enough_money",
+      "boomer": "Недостаточно монет.",
+      "genX": "Денег не хватает.",
+      "millennial": "Не хватает денег.",
+      "zoomer": "Кошелёк пуст 💀",
+      "alpha": "0 денег 💀"
+    },
+    {
+      "text_id": "economy.not_enough_rep",
+      "boomer": "Недостаточно репутации.",
+      "genX": "Репутации не хватает.",
+      "millennial": "Не хватает репутации.",
+      "zoomer": "Репы не хватает.",
+      "alpha": "⭐ мало"
+    },
+    {
+      "text_id": "toast.money_gain",
+      "boomer": "Баланс пополнен на {X}.",
+      "genX": "+{X} в карман.",
+      "millennial": "Баланс: +{X}. Наконец-то.",
+      "zoomer": "+{X} к банку 💸",
+      "alpha": "+{X}💰 W"
+    },
+    {
+      "text_id": "toast.money_loss",
+      "boomer": "Списано {X}.",
+      "genX": "−{X}. Ну бывает.",
+      "millennial": "Баланс: −{X}. Бюджет снова страдает.",
+      "zoomer": "−{X} 💀",
+      "alpha": "−{X}💰 L"
+    },
+    {
+      "text_id": "toast.rep_gain",
+      "boomer": "Репутация выросла на {X}.",
+      "genX": "Репутация +{X}. Нормально.",
+      "millennial": "Репутация +{X}. Карма пошла вверх.",
+      "zoomer": "Репа +{X} 📈",
+      "alpha": "+{X}⭐ · аура ↑"
+    },
+    {
+      "text_id": "toast.rep_loss",
+      "boomer": "Репутация снизилась на {X}.",
+      "genX": "Репутация −{X}. Облом.",
+      "millennial": "Репутация −{X}. Интернет помнит всё.",
+      "zoomer": "Репа −{X} 💀",
+      "alpha": "−{X}⭐ aura−"
+    },
+    {
+      "text_id": "toast.influence_gain",
+      "boomer": "Влияние увеличилось на {X}.",
+      "genX": "Влияние +{X}. Вес появился.",
+      "millennial": "Влияние +{X}. Кажется, нас услышали.",
+      "zoomer": "Влияние +{X}. Имба.",
+      "alpha": "+{X}⚡ W"
+    },
+    {
+      "text_id": "toast.combined_respect",
+      "boomer": "Списана 1 монета. Репутация цели выросла на 1.",
+      "genX": "−1 из кармана. Цели +1 к репутации.",
+      "millennial": "Баланс −1. Цели +1 к репутации. Карма, но с бухгалтерией.",
+      "zoomer": "−1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен.",
+      "alpha": "−1💰 / цели +1⭐"
+    },
+    {
+      "text_id": "result.win",
+      "boomer": "Победа.",
+      "genX": "Нормально разобрались.",
+      "millennial": "Победа. Можно выдохнуть.",
+      "zoomer": "W. Разнесли.",
+      "alpha": "W"
+    },
+    {
+      "text_id": "result.loss",
+      "boomer": "Поражение.",
+      "genX": "Вот это облом.",
+      "millennial": "Ну всё, приехали.",
+      "zoomer": "Нас вынесли 💀",
+      "alpha": "L 💀"
+    },
+    {
+      "text_id": "result.draw",
+      "boomer": "Ничья.",
+      "genX": "Разошлись по нулям.",
+      "millennial": "Ничья. Никто не победил, зато все устали.",
+      "zoomer": "По нулям.",
+      "alpha": "ничья ="
+    },
+    {
+      "text_id": "vote.majority",
+      "boomer": "Вы поддержали большинство.",
+      "genX": "Ты оказался с большинством.",
+      "millennial": "Ты с большинством. Сегодня демократия сработала.",
+      "zoomer": "Ты с большинством. W.",
+      "alpha": "большинство W"
+    },
+    {
+      "text_id": "vote.minority",
+      "boomer": "Вы оказались в меньшинстве.",
+      "genX": "Ты остался в меньшинстве.",
+      "millennial": "Ты в меньшинстве. Бывает.",
+      "zoomer": "Ты против толпы 💀",
+      "alpha": "в меньшинстве 💀"
+    },
+    {
+      "text_id": "conflict.finished",
+      "boomer": "Конфликт завершён.",
+      "genX": "Разборка закончена.",
+      "millennial": "Всё, спор закрыт.",
+      "zoomer": "Катка закрыта.",
+      "alpha": "gg"
+    },
+    {
+      "text_id": "reaction.bad",
+      "boomer": "Вот ведь неприятность.",
+      "genX": "Вот отстой.",
+      "millennial": "Ну это прям жесть.",
+      "zoomer": "Кринж.",
+      "alpha": "💀"
+    },
+    {
+      "text_id": "reaction.surprised",
+      "boomer": "Вот это номер!",
+      "genX": "Ни фига себе.",
+      "millennial": "Я сейчас серьёзно это вижу?",
+      "zoomer": "ЧЕГО 💀",
+      "alpha": "бро что 💀"
+    },
+    {
+      "text_id": "reaction.agree",
+      "boomer": "Совершенно верно.",
+      "genX": "Точно.",
+      "millennial": "Вот это база.",
+      "zoomer": "База.",
+      "alpha": "W"
+    },
+    {
+      "text_id": "reaction.disagree",
+      "boomer": "Не соглашусь.",
+      "genX": "Да ну нафиг.",
+      "millennial": "Ну нет, ребят.",
+      "zoomer": "Скип.",
+      "alpha": "L тейк"
+    },
+    {
+      "text_id": "reaction.relatable",
+      "boomer": "Понимаю. Знакомая ситуация.",
+      "genX": "Знакомо.",
+      "millennial": "Жиза, конечно.",
+      "zoomer": "Жиза.",
+      "alpha": "рил"
+    },
+    {
+      "text_id": "reaction.wait",
+      "boomer": "Одну минуту.",
+      "genX": "Погоди.",
+      "millennial": "Так, стоп.",
+      "zoomer": "сек",
+      "alpha": "стоп"
+    },
+    {
+      "text_id": "reaction.start",
+      "boomer": "Ну что ж, приступим.",
+      "genX": "Погнали.",
+      "millennial": "Ладно, поехали.",
+      "zoomer": "Го.",
+      "alpha": "го"
+    },
+    {
+      "text_id": "reaction.weird",
+      "boomer": "Не совсем понимаю происходящее.",
+      "genX": "Что за фигня?",
+      "millennial": "Это вообще как?",
+      "zoomer": "Что за рофл?",
+      "alpha": "NPC момент"
+    },
+    {
+      "text_id": "reaction.disaster",
+      "boomer": "Дела плохи.",
+      "genX": "Ну всё, приехали.",
+      "millennial": "Это фиаско.",
+      "zoomer": "мы cooked 💀",
+      "alpha": "аура −1000"
+    },
+    {
+      "text_id": "empty.dm",
+      "boomer": "Личных сообщений пока нет.",
+      "genX": "Пусто. Никто не пишет.",
+      "millennial": "Пока пусто. Даже спама нет.",
+      "zoomer": "В личке тишина.",
+      "alpha": "личка 0"
+    },
+    {
+      "text_id": "empty.events",
+      "boomer": "Новых событий нет.",
+      "genX": "Тишина. Ничего не происходит.",
+      "millennial": "Событий нет. Подозрительно спокойно.",
+      "zoomer": "Движ пока спит.",
+      "alpha": "ивентов 0"
+    },
+    {
+      "text_id": "empty.battles",
+      "boomer": "Активных конфликтов нет.",
+      "genX": "Разборок нет.",
+      "millennial": "Никто не зовёт спорить. Наслаждайся моментом.",
+      "zoomer": "Баттлов нет.",
+      "alpha": "боёв 0"
+    },
+    {
+      "text_id": "cop.accept",
+      "boomer": "Сообщение принято. Начинаю проверку.",
+      "genX": "Принято. Сейчас глянем.",
+      "millennial": "Принято. Запускаю проверку.",
+      "zoomer": "Репорт принят. Чекаю.",
+      "alpha": "репорт ок"
+    },
+    {
+      "text_id": "cop.false_report",
+      "boomer": "Проверка показала, что сообщение неверно.",
+      "genX": "Не подтвердилось. Мимо.",
+      "millennial": "Проверка не подтвердила жалобу. Неловко вышло.",
+      "zoomer": "Репорт мимо 💀",
+      "alpha": "репорт мимо L"
+    },
+    {
+      "text_id": "cooldown.wait",
+      "boomer": "Повторите позже.",
+      "genX": "Погоди немного.",
+      "millennial": "Нужно немного подождать.",
+      "zoomer": "КД. Подожди.",
+      "alpha": "КД"
+    },
+    {
+      "text_id": "onboarding.profile_helper",
+      "boomer": "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
+      "genX": "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
+      "millennial": "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      "zoomer": "Только стиль UI. Год не сохраняем, потом сменишь.",
+      "alpha": "только стиль. год не сохраняем."
+    }
   ],
   "shared_intentionally": [
     "digit_up_first",
