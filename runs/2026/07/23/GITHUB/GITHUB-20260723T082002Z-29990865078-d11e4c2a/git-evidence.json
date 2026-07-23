@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-step9-five-profile-foundation-20260723",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-step9-five-profile-foundation-20260723\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "b1f8efe341353dc3c3173be744d4b5d5fbc3fff1\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "# branch.oid b1f8efe341353dc3c3173be744d4b5d5fbc3fff1\n# branch.head chatgpt/stage6-step9-five-profile-foundation-20260723\n# branch.upstream origin/chatgpt/stage6-step9-five-profile-foundation-20260723\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "b1f8efe3 (HEAD -> chatgpt/stage6-step9-five-profile-foundation-20260723, origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Stage 6 Step 9: add human-friendly user review sheet\nc458e106 Stage 6 Step 9: update creative review index after inventory and gap closure\n7f994ee1 Stage 6 Step 9: align Codex contract with fresh inventory and gap closure\n8aa66850 Stage 6 Step 9: prepare freeze and implementation handoff\n6a4c9762 Stage 6 Step 9: prepare consolidated user review package\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b1f8efe341353dc3c3173be744d4b5d5fbc3fff1\nbranch refs/heads/chatgpt/stage6-step9-five-profile-foundation-20260723\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T08:20:02Z",
+      "stderr": "",
+      "stdout": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b1f8efe341353dc3c3173be744d4b5d5fbc3fff1",
+  "observedAtUtc": "2026-07-23T08:20:02Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
