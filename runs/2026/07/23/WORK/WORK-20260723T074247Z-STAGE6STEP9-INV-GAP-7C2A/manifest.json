@@ -1,0 +1,18 @@
+{
+  "schema_version": "AI_FORENSICS_V1",
+  "actor": "WORK",
+  "run_id": "WORK-20260723T074247Z-STAGE6STEP9-INV-GAP-7C2A",
+  "task_id": "STAGE6-STEP9-FIVE-PROFILE-TONE",
+  "repository": "samuray-games/AsyncScene",
+  "memory_rev_input": "2026-07-23-1600-JST",
+  "started_at_utc": "2026-07-23T07:42:47Z",
+  "started_at_jst": "2026-07-23T16:42:47+09:00",
+  "baseline_main": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e",
+  "work_branch": "chatgpt/stage6-step9-five-profile-foundation-20260723",
+  "branch_before_head": "7bb048255df25c616cb0e290c986f7a2f5c6ced0",
+  "branch_after_head": "c458e10600e89211520862c122c0d7b5cddb627f",
+  "scope": "documentation/data foundation only; no runtime/game implementation",
+  "status": "PARTIAL_WORKFLOW_COMPLETE_WAITING_USER_REVIEW",
+  "redaction_status": "SANITIZED_NO_SECRETS_NO_RAW_PRIVATE_TRANSCRIPTS",
+  "index_issue": 224
+}
