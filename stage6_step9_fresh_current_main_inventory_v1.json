@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "status": "COMPLETE_CURRENT_MAIN_SOURCE_BOUND_INVENTORY_NOT_FROZEN",
+  "baselineMain": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e",
+  "historicalSeed": {
+    "commit": "e94e4bcb888f4a1e54b2879e3a810118e53a62d9",
+    "authoritativeForCurrentMain": false,
+    "historicalCounts": {
+      "activeRecords": 1930,
+      "uniqueActiveTexts": 853,
+      "dynamicTemplates": 306
+    }
+  },
+  "inventoryModel": "active_entrypoint_graph_plus_exact_source_blobs_plus_semantic_family_classification",
+  "runtimeRoot": {
+    "path": "AsyncScene/Web/index.html",
+    "blobSha": "1b97ea0fc63374fe150782796674f9618bf42a90"
+  },
+  "activeSources": [
+    {"path":"AsyncScene/Web/util.js","blobSha":"f37aec4ca6f1831d9e513e54858249f62bc6523e","class":"UTILITY"},
+    {"path":"AsyncScene/Web/system.js","blobSha":"f165b22fd3ec67d45f7ab15790b3d91db8606305","class":"COPY_AND_ROUTING"},
+    {"path":"AsyncScene/Web/state.js","blobSha":"5bb465e69d9fd513583039c2e0f7e94e732220ca","class":"STATE_WITH_VISIBLE_FALLBACKS"},
+    {"path":"AsyncScene/Web/data.js","blobSha":"1ef08b25f72456f7f4700b62c90d747bf3c71d07","class":"PROFILE_DICTIONARIES_AND_MECHANIC_DATA"},
+    {"path":"AsyncScene/Web/npcs.js","blobSha":"4b9028974788a6922c13cbe07f7422dcf817785c","class":"NPC_COPY_AND_RUNTIME"},
+    {"path":"AsyncScene/Web/conflict/conflict-core.js","blobSha":"1cf8ac4cba02d736229cb7f3fac3a7891fa6983b","class":"CONFLICT_RUNTIME_AND_VISIBLE_RESULTS"},
+    {"path":"AsyncScene/Web/conflict/conflict-economy.js","blobSha":"c65e85a60552ec1f0ace42562f3f43e377e994aa","class":"ECONOMY_RUNTIME_AND_VISIBLE_RESULTS"},
+    {"path":"AsyncScene/Web/conflict/conflict-arguments.js","blobSha":"559dc0a8a89d648de241e9d9e8daf07e30798aae","class":"ARGUMENT_RUNTIME_AND_PRESENTATION"},
+    {"path":"AsyncScene/Web/conflict/conflict-api.js","blobSha":"ae6e6e9c823a092999e14bee49b866ea867eacee","class":"CONFLICT_API"},
+    {"path":"AsyncScene/Web/events.js","blobSha":"447bdc2d362785dc9655c208a20cecb4cdd66aad","class":"EVENT_CROWD_FEED_RUNTIME"},
+    {"path":"AsyncScene/Web/ui/ui-core.js","blobSha":"f9af88596ba1e7f69c4517416cacb1397563d487","class":"PERSISTENT_UI_P2P_TOASTS"},
+    {"path":"AsyncScene/Web/ui/ui-chat.js","blobSha":"fcf5c14178f896da9a7b8603684c5102a88cd216","class":"CHAT_UI"},
+    {"path":"AsyncScene/Web/ui/ui-dm.js","blobSha":"872d8a416e56b25a975491b187d247d03b4f106a","class":"DM_REPORT_RESPECT_TRAINING_UI"},
+    {"path":"AsyncScene/Web/ui/logger.js","blobSha":"b177e28df09f6f9b85b685d4f29a8824dea3d439","class":"NON_PLAYER_FACING_LOGGING"},
+    {"path":"AsyncScene/Web/ui/ui-battles.js","blobSha":"9b11eeffeff3091c4933130d73d96843301f0b08","class":"BATTLE_UI"},
+    {"path":"AsyncScene/Web/ui/ui-events.js","blobSha":"ef70753ced6fd1396542098c45b425631a2bf4f2","class":"EVENT_UI"},
+    {"path":"AsyncScene/Web/ui/ui-menu.js","blobSha":"b0c698154c66f7b52fd37ca33a75e909b00fb67d","class":"MENU_GOAL_TRAINING_P2P_UI"},
+    {"path":"AsyncScene/Web/ui/ui-console-panel.js","blobSha":"c1ceffc7b8505a12c1ab34574bab0bde9cf68d39","class":"DEV_MODE_ONLY"},
+    {"path":"AsyncScene/Web/ui/ui-loops.js","blobSha":"576dad3f551925467c46660da3e0c1f7d42fc83c","class":"UI_LOOP_WIRING"},
+    {"path":"AsyncScene/Web/ui/ui-boot.js","blobSha":"cf712490a4f771f2354e39634f73aeef4337bc2f","class":"BOOT_START_PERSISTENT_UI"},
+    {"path":"AsyncScene/Web/dev/dev-checks.js","blobSha":"1f1b58d232dfa7eb25578836ffebd5206602db50","class":"DEV_SMOKE_NON_PLAYER_FACING"},
+    {"path":"AsyncScene/Web/dev/boomer-step4-4b-current-contract-adapter.js","blobSha":"93840aeaada56bbac392fcf63ad73c887088f795","class":"DEV_SMOKE_NON_PLAYER_FACING"},
+    {"path":"AsyncScene/Web/ui/ui-profile-visual-tone-repair.js","blobSha":"df69cc0ac3e7e3899955d0144cb06e5d0dfa6347","class":"LATE_STAGE6_PRESENTATION_AUTHORITY"},
+    {"path":"AsyncScene/Web/style.css","blobSha":"738398815ed6ca310a5e3dee0dbea2cd24729e89","class":"PRESENTATION_NON_SEMANTIC_COPY_AUTHORITY"}
+  ],
+  "seedCarryForward": {
+    "exactBlobMatches": [
+      {"path":"AsyncScene/Web/npcs.js","blobSha":"4b9028974788a6922c13cbe07f7422dcf817785c"},
+      {"path":"AsyncScene/Web/ui/ui-menu.js","blobSha":"b0c698154c66f7b52fd37ca33a75e909b00fb67d"}
+    ],
+    "changedRequireFreshBinding": ["AsyncScene/Web/data.js","AsyncScene/Web/system.js","AsyncScene/Web/ui/ui-dm.js","AsyncScene/Web/ui/ui-events.js","AsyncScene/Web/ui/ui-battles.js"],
+    "formerFallbackNowExactBound": ["AsyncScene/Web/index.html","AsyncScene/Web/state.js","AsyncScene/Web/ui/ui-boot.js","AsyncScene/Web/ui/ui-core.js"]
+  },
+  "mirrorAudit": {
+    "exactParity": [
+      "index.html","data.js","system.js","events.js","conflict/conflict-core.js","conflict/conflict-economy.js","conflict/conflict-arguments.js","ui/ui-core.js","ui/ui-chat.js","ui/ui-dm.js","ui/ui-battles.js","ui/ui-events.js","ui/ui-profile-visual-tone-repair.js","util.js"
+    ],
+    "drift": [
+      {"path":"npcs.js","sourceSha":"4b9028974788a6922c13cbe07f7422dcf817785c","docsSha":"86088ba5c918f65301707280a29e22236e0b90b7"},
+      {"path":"ui/ui-menu.js","sourceSha":"b0c698154c66f7b52fd37ca33a75e909b00fb67d","docsSha":"96a8ea2b1701a411c89ae69128c324e1aa2c2436"},
+      {"path":"ui/ui-boot.js","sourceSha":"cf712490a4f771f2354e39634f73aeef4337bc2f","docsSha":"339470154f9528dccba618782156a2749d4e407e"},
+      {"path":"conflict/conflict-api.js","sourceSha":"ae6e6e9c823a092999e14bee49b866ea867eacee","docsSha":"0bb1b2982af33c3200aa00eaca28eabd1253d877"},
+      {"path":"state.js","sourceSha":"5bb465e69d9fd513583039c2e0f7e94e732220ca","docsSha":"e55871fffb2ced60a0617bdf47e6476542157563"},
+      {"path":"ui/ui-loops.js","sourceSha":"576dad3f551925467c46660da3e0c1f7d42fc83c","docsSha":"bb55a3d1ebe0cc46200cacbc9ebeffa6a5ae01cd"}
+    ]
+  },
+  "structuralFindings": [
+    "GEN_X_YEAR_BAND_EXISTS_BUT_NOT_SUPPORTED_REGISTRY",
+    "GEN_X_MISSING_FROM_RESOLVE_UI_TEXT_MODE",
+    "GEN_X_MISSING_FROM_FINAL_PRESENTATION_PROFILE_KEYS",
+    "ALPHA_PARTIALLY_INHERITS_ZOOMER_BASELINE",
+    "COP_AND_CAP_PROFILE_FAMILIES_HAVE_SHARED_MILLENNIAL_FALLBACKS",
+    "NPC_ARREST_KEYS_ARE_LEGACY_SUPERSEDED_CANDIDATES",
+    "DISABLED_P2P_BACKLOG_IS_HIDDEN_BY_PRODUCT_DECISION"
+  ],
+  "semanticFamilies": [
+    {"id":"start_onboarding","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"persistent_chrome","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"chat","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"dm","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"battle_conflict_actions","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"argument_presentation","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"argument_canon","state":"MECHANIC_CANON_LOCKED"},
+    {"id":"vote_crowd","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"report_cop","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"economy_copy","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"economy_numeric_mechanics","state":"MECHANIC_CANON_LOCKED"},
+    {"id":"unified_stat_toasts","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL_PRESERVE_COALESCING"},
+    {"id":"win_loss_draw","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"cooldowns_empty_errors_success","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"system_feed_unlocks","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL"},
+    {"id":"npc_speech_dm","state":"MISSING_CREATIVE_DECISION_PENDING_USER_APPROVAL_AND_MIRROR_DRIFT"},
+    {"id":"accessibility_stepper_labels","state":"SHARED_INTENTIONALLY_ACCESSIBILITY_CANON"},
+    {"id":"dev_debug_copy","state":"NON_PLAYER_FACING"},
+    {"id":"legacy_conflict_old","state":"LEGACY_SUPERSEDED"},
+    {"id":"npc_arrest","state":"LEGACY_SUPERSEDED_CANDIDATE"},
+    {"id":"disabled_p2p_backlog","state":"PRODUCT_DECISION_HIDE_UNTIL_FEATURE_ENABLED"}
+  ],
+  "supplementalStoredExport": {
+    "authoritativeUniqueCurrentCount": null,
+    "reason": "stored export has no self-declared generation commit and contains overlapping categories, docs/dev/history and mirrors",
+    "categoryHitCounts": {
+      "buttons": 547,
+      "errorsWarnings": 1267,
+      "htmlText": 937,
+      "labels": 847,
+      "npcSayDm": 583,
+      "reportsLogsFeedTimelineChronicle": 1377,
+      "tablesCardsLists": 1547,
+      "templateLiterals": 4394,
+      "toastsNotifications": 484,
+      "tooltipsTitlesAriaPlaceholder": 20
+    },
+    "totalCategoryHits": 12003
+  },
+  "result": "FRESH_CURRENT_MAIN_INVENTORY_COMPLETE",
+  "nextAction": "STEP9_GAP_CLOSURE_FROM_CURRENT_MAIN_INVENTORY"
+}
