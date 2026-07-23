@@ -5,7 +5,7 @@ STATUS: `PREP_COMPLETE / FROZEN_PACKAGE_EMITTED / AWAITING_CODEX_PREFLIGHT`
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
 FOUNDATION_BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
-FROZEN_JSON_SHA256: `edede1a379d320b13abca7b1a6f4bada1d0d648dc3307fcdefb698513850ec50`
+FROZEN_JSON_SHA256: `d8482df254c7591e0e9ffe8d38285fa742ac1cdadc2aeafd076a8a4edda23e16`
 
 ## 1. What can be completed before user approval
 
@@ -41,7 +41,7 @@ After user review is marked approved:
 7. record:
    - baseline main SHA;
    - foundation branch/head;
-   - frozen JSON SHA-256 (`379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`);
+   - frozen JSON SHA-256 (`d8482df254c7591e0e9ffe8d38285fa742ac1cdadc2aeafd076a8a4edda23e16`);
    - exact implementation semantic IDs;
    - exact intended shared rows;
    - excluded legacy/dev/mechanic rows;

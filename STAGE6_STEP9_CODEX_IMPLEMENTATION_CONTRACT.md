@@ -3,7 +3,7 @@
 STATUS: `DRAFT / PREP_COMPLETE / FROZEN_HASH_BOUND`
 
 BASELINE_MAIN_FOR_FOUNDATION: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
-FROZEN_JSON_SHA256: `edede1a379d320b13abca7b1a6f4bada1d0d648dc3307fcdefb698513850ec50`
+FROZEN_JSON_SHA256: `d8482df254c7591e0e9ffe8d38285fa742ac1cdadc2aeafd076a8a4edda23e16`
 
 COPY_AUTHORITY: User + ChatGPT
 
@@ -22,7 +22,7 @@ Codex must not implement this package until all of the following exist:
 1. explicit user approval/corrections of the consolidated Step 9 review package;
 2. `STAGE6_STEP9_FIVE_PROFILE_COPY_FROZEN.md`;
 3. `stage6_step9_five_profile_copy_frozen.json`;
-4. exact SHA-256 of the frozen JSON bytes (`379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`);
+4. exact SHA-256 of the frozen JSON bytes (`d8482df254c7591e0e9ffe8d38285fa742ac1cdadc2aeafd076a8a4edda23e16`);
 5. exact implementation branch/scope from then-current main;
 6. required repository model preflight for the actual Codex task.
 

@@ -7,6 +7,7 @@ FOUNDATION_BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
 PRE_FREEZE_HEAD: `a6104bb7e2f6f6dba595bfb5aa4b88eb957df099`
 LIVE_NOTION_MEMORY_REV: `2026-07-23-2150-JST`
 USER_REVIEW_VERDICT: `ВСЁ ОК`
+FROZEN_JSON_SHA256: `d8482df254c7591e0e9ffe8d38285fa742ac1cdadc2aeafd076a8a4edda23e16`
 
 ## 1. Frozen scope
 
@@ -14,7 +15,7 @@ This file freezes the exact five-profile row matrix used for Step 9 freeze work 
 
 The review package approval is deterministic; no wording invention is allowed.
 
-## 2. Frozen row matrix
+## 2. Core frozen row matrix
 
 | TEXT_ID | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
 |---|---|---|---|---|---|
@@ -67,7 +68,84 @@ The review package approval is deterministic; no wording invention is allowed.
 | cooldown.wait | Повторите позже. | Погоди немного. | Нужно немного подождать. | КД. Подожди. | КД |
 | onboarding.profile_helper | Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже. | Это только настройка интерфейса. Год не сохраняем, потом можно поменять. | Только для интерфейса. Не сохраняем. Можно поменять позже. | Только стиль UI. Год не сохраняем, потом сменишь. | только стиль. год не сохраняем. |
 
-## 3. Intentional shared items
+## 3. Approval coverage rows
+
+### A families
+
+| SEMANTIC_ID | TEXT_ID | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
+|---|---|---|---|---|---|---|
+| A1 | start.title | Asynchronia | Asynchronia | Asynchronia | Asynchronia | Asynchronia |
+| A2 | start.birth_digits_label | Последние две цифры года рождения | Две последние цифры года рождения | Последние 2 цифры года рождения | Последние 2 цифры года рождения | 2 цифры года рождения |
+| A3 | start.profile_helper | Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже. | Это только настройка интерфейса. Год не сохраняем, потом можно поменять. | Только для интерфейса. Год не сохраняем. Профиль потом можно поменять. | Только стиль UI. Год не сохраняем, потом сменишь. | только стиль. год не сохраняем. сменить можно. |
+| A4 | start.continue | Начать игру | Поехали | Старт | В игру | В игру |
+| A5 | start.rules | Правила игры | Как тут всё устроено | Правила | Как играть | Правила |
+| A6 | start.async_value | Асинхронная онлайн-игра: играйте тогда, когда вам удобно. | Асинхронная онлайн-игра. Заходи когда удобно. | Асинхронная онлайн-игра: заходи когда удобно. | Асинхронная онлайн-игра. Играй когда удобно. | асинхронная игра · играй когда хочешь |
+| A7 | start.no_simultaneous_required | Не нужно собираться одновременно - каждый заходит в игру в своё время. | Не надо ждать остальных онлайн - каждый играет в своё время. | Не нужно совпадать по расписанию - каждый играет в своё время. | Не надо ждать всех онлайн - каждый заходит когда хочет. | все онлайн сразу не нужны |
+| A8 | chat.placeholder | Введите сообщение | Пиши сюда | Напиши сообщение | Что скажешь? | чат... |
+| A9 | chat.send | Отправить сообщение | Отправить | Отправить | Кинуть | Отправить |
+| A10 | dm.header | Личные сообщения | Личка | Личка | ЛС | Личка |
+| A11 | panel.battles | Конфликты | Стычки | Споры | Баттлы | Бои |
+| A12 | panel.events | События | Что происходит | События | Движ | Ивенты |
+| A13 | battle.accept | Принять вызов | Вписаться | Принять | Залететь | В бой |
+| A14 | battle.decline | Отказаться | Пас | Отклонить | Скип | Нет |
+| A15 | battle.attack_action | Атаковать | Атаковать | Атаковать | Влететь | Ход |
+| A16 | battle.report | Сообщить | Пожаловаться | Пожаловаться | Репорт | Репорт |
+
+### B families
+
+| SEMANTIC_ID | TEXT_ID | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
+|---|---|---|---|---|---|---|
+| B1 | economy.not_enough_money | Недостаточно монет. | Денег не хватает. | Не хватает денег. | Кошелёк пуст 💀 | 0 денег 💀 |
+| B2 | toast.money_gain | Баланс пополнен на {X}. | +{X} в карман. | Баланс: +{X}. Наконец-то. | +{X} к банку 💸 | +{X}💰 W |
+| B3 | toast.money_loss | Списано {X}. | −{X}. Ну бывает. | Баланс: −{X}. Бюджет снова страдает. | −{X} 💀 | −{X}💰 L |
+| B4 | toast.rep_gain | Репутация выросла на {X}. | Репутация +{X}. Нормально. | Репутация +{X}. Карма пошла вверх. | Репа +{X} 📈 | +{X}⭐ · аура ↑ |
+| B5 | toast.rep_loss | Репутация снизилась на {X}. | Репутация −{X}. Облом. | Репутация −{X}. Интернет помнит всё. | Репа −{X} 💀 | −{X}⭐ aura− |
+| B6 | toast.combined_respect | Списана 1 монета. Репутация цели выросла на 1. | −1 из кармана. Цели +1 к репутации. | Баланс −1. Цели +1 к репутации. Карма, но с бухгалтерией. | −1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен. | −1💰 / цели +1⭐ |
+| B7 | result.win | Победа. | Нормально разобрались. | Победа. Можно выдохнуть. | W. Разнесли. | W |
+| B8 | result.loss | Поражение. | Вот это облом. | Ну всё, приехали. | Нас вынесли 💀 | L 💀 |
+| B9 | result.draw | Ничья. | Разошлись по нулям. | Ничья. Никто не победил, зато все устали. | По нулям. | ничья = |
+| B10 | vote.majority | Вы поддержали большинство. | Ты оказался с большинством. | Ты с большинством. Сегодня демократия сработала. | Ты с большинством. W. | большинство W |
+| B11 | vote.minority | Вы оказались в меньшинстве. | Ты остался в меньшинстве. | Ты в меньшинстве. Бывает. | Ты против толпы 💀 | в меньшинстве 💀 |
+| B12 | economy.purchase_success | Куплено. | Куплено. Деньги ушли. | Куплено. Финансовая ответственность снова отложена. | Забрали. −💰. | куплено / −💰 |
+| B13 | rep.recovered | Репутация восстановлена. | Репутацию выправили. | Репутация восстановилась. Цифровой след немного простил. | Репа отхилилась. | репутация вернулась |
+| B14 | respect.gained | Уважение к вам выросло. | Тебя зауважали. | Уважение выросло. Карма плюс. | Респект +. | респект ↑ |
+
+### C families
+
+| SEMANTIC_ID | TEXT_ID | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
+|---|---|---|---|---|---|---|
+| C1 | event.joined | {name} появился на площади. | {name} пришёл на площадь. | {name} появился на площади. Новый участник треда. | {name} залетел на площадь. | {name} в игре. |
+| C2 | event.moved | Вы перешли в локацию: {location}. | Перешёл: {location}. | Переход: {location}. Новая вкладка мира открыта. | Мув → {location}. | → {location} |
+| C3 | event.battle_challenge | {attackerName} [⚡{attackerInf}] бросил вызов. | {attackerName} [⚡{attackerInf}] полез в спор. | {attackerName} [⚡{attackerInf}] бросил вызов. Ну всё, начался тред. | {attackerName} [⚡{attackerInf}] залетел в баттл. | {attackerName} ⚡{attackerInf}: 1v1 |
+| C4 | event.npc_battle_start | {a} бросил вызов {b}. | {a} вызвал {b}. | {a} вызывает {b}. NPC тоже решили выяснить отношения. | {a} vs {b}. го. | {a} vs {b} · го |
+| C5 | unlock.black | Открыты чёрные аргументы. | Чёрный уровень открыт. | Чёрные аргументы открыты. Финальный босс риторики найден. | ⚫ аргументы открыты. имба. | ⚫ макс ✓ |
+| C6 | battle.rematch | Предложить реванш | Ещё разок | Реванш | Рематч | Ещё |
+| C7 | cost.confirm_generic | Потратить {cost} 💰? | Потратить {cost} 💰? | Потратить {cost} 💰? | −{cost} 💰? | −{cost}💰? |
+| C8 | battle.boost_action | Усилить - {cost} 💰 | Усилить - {cost} 💰 | Усилить · {cost} 💰 | Буст −{cost} 💰 | Буст −{cost}💰 |
+| C9 | argument.reroll_action | Обновить аргументы - {cost} 💰 | Другие аргументы - {cost} 💰 | Перебрать аргументы · {cost} 💰 | Реролл −{cost} 💰 | Реролл −{cost}💰 |
+| C10 | hint.weakness_action | Подсказка - {cost} 💰 | Подсказка - {cost} 💰 | Подсказка · {cost} 💰 | Хинт −{cost} 💰 | Хинт −{cost}💰 |
+| C11 | conflict.intervene_action | Вмешаться - {cost} 💰 | Влезть - {cost} 💰 | Вмешаться · {cost} 💰 | Вмешаться −{cost} 💰 | Вмешаться −{cost}💰 |
+| C12 | npc.force_event_action | Запустить событие - {cost} 💰 | Подкинуть событие - {cost} 💰 | Запустить событие · {cost} 💰 | Форснуть ивент −{cost} 💰 | Форснуть ивент −{cost}💰 |
+| C13 | dismiss.action | Отказаться | Отказаться | Отказаться | Отказаться | Нет |
+| C14 | report.false_repeat | Повторное ложное сообщение. Репутация снижена на {rep}. | Опять мимо. Репутация −{rep}. | Репутация −{rep}. Повторный ложный репорт остался в истории. | опять репорт мимо 💀 · −{rep} репы | опять мимо 💀 −{rep}⭐ |
+
+## 4. NPC visible role labels
+
+| ROLE | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
+|---|---|---|---|---|---|
+| BANDIT | Грабитель | Бандит | Гопник | Бандит | Грабитель |
+| TOXIC | Скандалист | Провокатор | Тролль | Токсик | Токсик |
+| COP | Полицейский | Мент | Коп | Коп | Коп |
+| CROWD | Зеваки | Народ | Толпа | Чат | Чат |
+| MAFIA | Мафиози | Братва | Мафия | Мафия | Мафия |
+
+## 5. Address register
+
+- Boomer UI/system address: lowercase Russian `вы` forms; neutral nouns/infinitives/buttons allowed; NPC speech role-dependent.
+- Gen X UI/system address: `ты` / neutral; concise and restrained; no forced `вы`; no generic gangster cosplay in normal UI; NPC speech role-dependent.
+- Millennial / Zoomer / Alpha: `ты` / neutral according to approved profiles.
+
+## 6. Intentional shared items
 
 - `digit_up_first`
 - `digit_down_first`
@@ -76,7 +154,7 @@ The review package approval is deterministic; no wording invention is allowed.
 
 These accessibility labels remain intentionally shared and clear.
 
-## 4. Excluded / locked items
+## 7. Excluded / locked items
 
 - `npcArrestCop`
 - `npcArrestMafia`
@@ -87,15 +165,16 @@ These accessibility labels remain intentionally shared and clear.
 
 These are not part of the frozen creative row set.
 
-## 5. Mechanic locks
+## 8. Mechanic locks
 
-- argument_canon
-- economy_numeric_mechanics
-- vote_math
-- cooldown_behavior
-- rep_points_influence_outcomes
-- pr_258_unified_stat_toast_architecture
+- argument canon
+- economy numeric values
+- vote math
+- cooldown behavior
+- REP/points/influence outcomes
+- PR #258 unified stat-toast architecture
+- disabled P2P hidden while capability is off
 
-## 6. Freeze checkpoint
+## 9. Freeze checkpoint
 
-Once the JSON companion file is written and hashed, this package is complete.
+This package is complete once the JSON companion file is written and hashed.

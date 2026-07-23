@@ -414,5 +414,485 @@
     "cooldown_behavior",
     "rep_points_influence_outcomes",
     "pr_258_unified_stat_toast_architecture"
-  ]
+  ],
+  "coverage": {
+    "semantic_families": {
+      "A": [
+        {
+          "semantic_id": "A1",
+          "text_id": "start.title",
+          "boomer": "Asynchronia",
+          "genX": "Asynchronia",
+          "millennial": "Asynchronia",
+          "zoomer": "Asynchronia",
+          "alpha": "Asynchronia"
+        },
+        {
+          "semantic_id": "A2",
+          "text_id": "start.birth_digits_label",
+          "boomer": "Последние две цифры года рождения",
+          "genX": "Две последние цифры года рождения",
+          "millennial": "Последние 2 цифры года рождения",
+          "zoomer": "Последние 2 цифры года рождения",
+          "alpha": "2 цифры года рождения"
+        },
+        {
+          "semantic_id": "A3",
+          "text_id": "start.profile_helper",
+          "boomer": "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
+          "genX": "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
+          "millennial": "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
+          "zoomer": "Только стиль UI. Год не сохраняем, потом сменишь.",
+          "alpha": "только стиль. год не сохраняем. сменить можно."
+        },
+        {
+          "semantic_id": "A4",
+          "text_id": "start.continue",
+          "boomer": "Начать игру",
+          "genX": "Поехали",
+          "millennial": "Старт",
+          "zoomer": "В игру",
+          "alpha": "В игру"
+        },
+        {
+          "semantic_id": "A5",
+          "text_id": "start.rules",
+          "boomer": "Правила игры",
+          "genX": "Как тут всё устроено",
+          "millennial": "Правила",
+          "zoomer": "Как играть",
+          "alpha": "Правила"
+        },
+        {
+          "semantic_id": "A6",
+          "text_id": "start.async_value",
+          "boomer": "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
+          "genX": "Асинхронная онлайн-игра. Заходи когда удобно.",
+          "millennial": "Асинхронная онлайн-игра: заходи когда удобно.",
+          "zoomer": "Асинхронная онлайн-игра. Играй когда удобно.",
+          "alpha": "асинхронная игра · играй когда хочешь"
+        },
+        {
+          "semantic_id": "A7",
+          "text_id": "start.no_simultaneous_required",
+          "boomer": "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+          "genX": "Не надо ждать остальных онлайн - каждый играет в своё время.",
+          "millennial": "Не нужно совпадать по расписанию - каждый играет в своё время.",
+          "zoomer": "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+          "alpha": "все онлайн сразу не нужны"
+        },
+        {
+          "semantic_id": "A8",
+          "text_id": "chat.placeholder",
+          "boomer": "Введите сообщение",
+          "genX": "Пиши сюда",
+          "millennial": "Напиши сообщение",
+          "zoomer": "Что скажешь?",
+          "alpha": "чат..."
+        },
+        {
+          "semantic_id": "A9",
+          "text_id": "chat.send",
+          "boomer": "Отправить сообщение",
+          "genX": "Отправить",
+          "millennial": "Отправить",
+          "zoomer": "Кинуть",
+          "alpha": "Отправить"
+        },
+        {
+          "semantic_id": "A10",
+          "text_id": "dm.header",
+          "boomer": "Личные сообщения",
+          "genX": "Личка",
+          "millennial": "Личка",
+          "zoomer": "ЛС",
+          "alpha": "Личка"
+        },
+        {
+          "semantic_id": "A11",
+          "text_id": "panel.battles",
+          "boomer": "Конфликты",
+          "genX": "Стычки",
+          "millennial": "Споры",
+          "zoomer": "Баттлы",
+          "alpha": "Бои"
+        },
+        {
+          "semantic_id": "A12",
+          "text_id": "panel.events",
+          "boomer": "События",
+          "genX": "Что происходит",
+          "millennial": "События",
+          "zoomer": "Движ",
+          "alpha": "Ивенты"
+        },
+        {
+          "semantic_id": "A13",
+          "text_id": "battle.accept",
+          "boomer": "Принять вызов",
+          "genX": "Вписаться",
+          "millennial": "Принять",
+          "zoomer": "Залететь",
+          "alpha": "В бой"
+        },
+        {
+          "semantic_id": "A14",
+          "text_id": "battle.decline",
+          "boomer": "Отказаться",
+          "genX": "Пас",
+          "millennial": "Отклонить",
+          "zoomer": "Скип",
+          "alpha": "Нет"
+        },
+        {
+          "semantic_id": "A15",
+          "text_id": "battle.attack_action",
+          "boomer": "Атаковать",
+          "genX": "Атаковать",
+          "millennial": "Атаковать",
+          "zoomer": "Влететь",
+          "alpha": "Ход"
+        },
+        {
+          "semantic_id": "A16",
+          "text_id": "battle.report",
+          "boomer": "Сообщить",
+          "genX": "Пожаловаться",
+          "millennial": "Пожаловаться",
+          "zoomer": "Репорт",
+          "alpha": "Репорт"
+        }
+      ],
+      "B": [
+        {
+          "semantic_id": "B1",
+          "text_id": "economy.not_enough_money",
+          "boomer": "Недостаточно монет.",
+          "genX": "Денег не хватает.",
+          "millennial": "Не хватает денег.",
+          "zoomer": "Кошелёк пуст 💀",
+          "alpha": "0 денег 💀"
+        },
+        {
+          "semantic_id": "B2",
+          "text_id": "toast.money_gain",
+          "boomer": "Баланс пополнен на {X}.",
+          "genX": "+{X} в карман.",
+          "millennial": "Баланс: +{X}. Наконец-то.",
+          "zoomer": "+{X} к банку 💸",
+          "alpha": "+{X}💰 W"
+        },
+        {
+          "semantic_id": "B3",
+          "text_id": "toast.money_loss",
+          "boomer": "Списано {X}.",
+          "genX": "−{X}. Ну бывает.",
+          "millennial": "Баланс: −{X}. Бюджет снова страдает.",
+          "zoomer": "−{X} 💀",
+          "alpha": "−{X}💰 L"
+        },
+        {
+          "semantic_id": "B4",
+          "text_id": "toast.rep_gain",
+          "boomer": "Репутация выросла на {X}.",
+          "genX": "Репутация +{X}. Нормально.",
+          "millennial": "Репутация +{X}. Карма пошла вверх.",
+          "zoomer": "Репа +{X} 📈",
+          "alpha": "+{X}⭐ · аура ↑"
+        },
+        {
+          "semantic_id": "B5",
+          "text_id": "toast.rep_loss",
+          "boomer": "Репутация снизилась на {X}.",
+          "genX": "Репутация −{X}. Облом.",
+          "millennial": "Репутация −{X}. Интернет помнит всё.",
+          "zoomer": "Репа −{X} 💀",
+          "alpha": "−{X}⭐ aura−"
+        },
+        {
+          "semantic_id": "B6",
+          "text_id": "toast.combined_respect",
+          "boomer": "Списана 1 монета. Репутация цели выросла на 1.",
+          "genX": "−1 из кармана. Цели +1 к репутации.",
+          "millennial": "Баланс −1. Цели +1 к репутации. Карма, но с бухгалтерией.",
+          "zoomer": "−1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен.",
+          "alpha": "−1💰 / цели +1⭐"
+        },
+        {
+          "semantic_id": "B7",
+          "text_id": "result.win",
+          "boomer": "Победа.",
+          "genX": "Нормально разобрались.",
+          "millennial": "Победа. Можно выдохнуть.",
+          "zoomer": "W. Разнесли.",
+          "alpha": "W"
+        },
+        {
+          "semantic_id": "B8",
+          "text_id": "result.loss",
+          "boomer": "Поражение.",
+          "genX": "Вот это облом.",
+          "millennial": "Ну всё, приехали.",
+          "zoomer": "Нас вынесли 💀",
+          "alpha": "L 💀"
+        },
+        {
+          "semantic_id": "B9",
+          "text_id": "result.draw",
+          "boomer": "Ничья.",
+          "genX": "Разошлись по нулям.",
+          "millennial": "Ничья. Никто не победил, зато все устали.",
+          "zoomer": "По нулям.",
+          "alpha": "ничья ="
+        },
+        {
+          "semantic_id": "B10",
+          "text_id": "vote.majority",
+          "boomer": "Вы поддержали большинство.",
+          "genX": "Ты оказался с большинством.",
+          "millennial": "Ты с большинством. Сегодня демократия сработала.",
+          "zoomer": "Ты с большинством. W.",
+          "alpha": "большинство W"
+        },
+        {
+          "semantic_id": "B11",
+          "text_id": "vote.minority",
+          "boomer": "Вы оказались в меньшинстве.",
+          "genX": "Ты остался в меньшинстве.",
+          "millennial": "Ты в меньшинстве. Бывает.",
+          "zoomer": "Ты против толпы 💀",
+          "alpha": "в меньшинстве 💀"
+        },
+        {
+          "semantic_id": "B12",
+          "text_id": "economy.purchase_success",
+          "boomer": "Куплено.",
+          "genX": "Куплено. Деньги ушли.",
+          "millennial": "Куплено. Финансовая ответственность снова отложена.",
+          "zoomer": "Забрали. −💰.",
+          "alpha": "куплено / −💰"
+        },
+        {
+          "semantic_id": "B13",
+          "text_id": "rep.recovered",
+          "boomer": "Репутация восстановлена.",
+          "genX": "Репутацию выправили.",
+          "millennial": "Репутация восстановилась. Цифровой след немного простил.",
+          "zoomer": "Репа отхилилась.",
+          "alpha": "репутация вернулась"
+        },
+        {
+          "semantic_id": "B14",
+          "text_id": "respect.gained",
+          "boomer": "Уважение к вам выросло.",
+          "genX": "Тебя зауважали.",
+          "millennial": "Уважение выросло. Карма плюс.",
+          "zoomer": "Респект +.",
+          "alpha": "респект ↑"
+        }
+      ],
+      "C": [
+        {
+          "semantic_id": "C1",
+          "text_id": "event.joined",
+          "boomer": "{name} появился на площади.",
+          "genX": "{name} пришёл на площадь.",
+          "millennial": "{name} появился на площади. Новый участник треда.",
+          "zoomer": "{name} залетел на площадь.",
+          "alpha": "{name} в игре."
+        },
+        {
+          "semantic_id": "C2",
+          "text_id": "event.moved",
+          "boomer": "Вы перешли в локацию: {location}.",
+          "genX": "Перешёл: {location}.",
+          "millennial": "Переход: {location}. Новая вкладка мира открыта.",
+          "zoomer": "Мув → {location}.",
+          "alpha": "→ {location}"
+        },
+        {
+          "semantic_id": "C3",
+          "text_id": "event.battle_challenge",
+          "boomer": "{attackerName} [⚡{attackerInf}] бросил вызов.",
+          "genX": "{attackerName} [⚡{attackerInf}] полез в спор.",
+          "millennial": "{attackerName} [⚡{attackerInf}] бросил вызов. Ну всё, начался тред.",
+          "zoomer": "{attackerName} [⚡{attackerInf}] залетел в баттл.",
+          "alpha": "{attackerName} ⚡{attackerInf}: 1v1"
+        },
+        {
+          "semantic_id": "C4",
+          "text_id": "event.npc_battle_start",
+          "boomer": "{a} бросил вызов {b}.",
+          "genX": "{a} вызвал {b}.",
+          "millennial": "{a} вызывает {b}. NPC тоже решили выяснить отношения.",
+          "zoomer": "{a} vs {b}. го.",
+          "alpha": "{a} vs {b} · го"
+        },
+        {
+          "semantic_id": "C5",
+          "text_id": "unlock.black",
+          "boomer": "Открыты чёрные аргументы.",
+          "genX": "Чёрный уровень открыт.",
+          "millennial": "Чёрные аргументы открыты. Финальный босс риторики найден.",
+          "zoomer": "⚫ аргументы открыты. имба.",
+          "alpha": "⚫ макс ✓"
+        },
+        {
+          "semantic_id": "C6",
+          "text_id": "battle.rematch",
+          "boomer": "Предложить реванш",
+          "genX": "Ещё разок",
+          "millennial": "Реванш",
+          "zoomer": "Рематч",
+          "alpha": "Ещё"
+        },
+        {
+          "semantic_id": "C7",
+          "text_id": "cost.confirm_generic",
+          "boomer": "Потратить {cost} 💰?",
+          "genX": "Потратить {cost} 💰?",
+          "millennial": "Потратить {cost} 💰?",
+          "zoomer": "−{cost} 💰?",
+          "alpha": "−{cost}💰?"
+        },
+        {
+          "semantic_id": "C8",
+          "text_id": "battle.boost_action",
+          "boomer": "Усилить - {cost} 💰",
+          "genX": "Усилить - {cost} 💰",
+          "millennial": "Усилить · {cost} 💰",
+          "zoomer": "Буст −{cost} 💰",
+          "alpha": "Буст −{cost}💰"
+        },
+        {
+          "semantic_id": "C9",
+          "text_id": "argument.reroll_action",
+          "boomer": "Обновить аргументы - {cost} 💰",
+          "genX": "Другие аргументы - {cost} 💰",
+          "millennial": "Перебрать аргументы · {cost} 💰",
+          "zoomer": "Реролл −{cost} 💰",
+          "alpha": "Реролл −{cost}💰"
+        },
+        {
+          "semantic_id": "C10",
+          "text_id": "hint.weakness_action",
+          "boomer": "Подсказка - {cost} 💰",
+          "genX": "Подсказка - {cost} 💰",
+          "millennial": "Подсказка · {cost} 💰",
+          "zoomer": "Хинт −{cost} 💰",
+          "alpha": "Хинт −{cost}💰"
+        },
+        {
+          "semantic_id": "C11",
+          "text_id": "conflict.intervene_action",
+          "boomer": "Вмешаться - {cost} 💰",
+          "genX": "Влезть - {cost} 💰",
+          "millennial": "Вмешаться · {cost} 💰",
+          "zoomer": "Вмешаться −{cost} 💰",
+          "alpha": "Вмешаться −{cost}💰"
+        },
+        {
+          "semantic_id": "C12",
+          "text_id": "npc.force_event_action",
+          "boomer": "Запустить событие - {cost} 💰",
+          "genX": "Подкинуть событие - {cost} 💰",
+          "millennial": "Запустить событие · {cost} 💰",
+          "zoomer": "Форснуть ивент −{cost} 💰",
+          "alpha": "Форснуть ивент −{cost}💰"
+        },
+        {
+          "semantic_id": "C13",
+          "text_id": "dismiss.action",
+          "boomer": "Отказаться",
+          "genX": "Отказаться",
+          "millennial": "Отказаться",
+          "zoomer": "Отказаться",
+          "alpha": "Нет"
+        },
+        {
+          "semantic_id": "C14",
+          "text_id": "report.false_repeat",
+          "boomer": "Повторное ложное сообщение. Репутация снижена на {rep}.",
+          "genX": "Опять мимо. Репутация −{rep}.",
+          "millennial": "Репутация −{rep}. Повторный ложный репорт остался в истории.",
+          "zoomer": "опять репорт мимо 💀 · −{rep} репы",
+          "alpha": "опять мимо 💀 −{rep}⭐"
+        }
+      ]
+    },
+    "npc_visible_role_labels": [
+      {
+        "role": "BANDIT",
+        "boomer": "Грабитель",
+        "genX": "Бандит",
+        "millennial": "Гопник",
+        "zoomer": "Бандит",
+        "alpha": "Грабитель"
+      },
+      {
+        "role": "TOXIC",
+        "boomer": "Скандалист",
+        "genX": "Провокатор",
+        "millennial": "Тролль",
+        "zoomer": "Токсик",
+        "alpha": "Токсик"
+      },
+      {
+        "role": "COP",
+        "boomer": "Полицейский",
+        "genX": "Мент",
+        "millennial": "Коп",
+        "zoomer": "Коп",
+        "alpha": "Коп"
+      },
+      {
+        "role": "CROWD",
+        "boomer": "Зеваки",
+        "genX": "Народ",
+        "millennial": "Толпа",
+        "zoomer": "Чат",
+        "alpha": "Чат"
+      },
+      {
+        "role": "MAFIA",
+        "boomer": "Мафиози",
+        "genX": "Братва",
+        "millennial": "Мафия",
+        "zoomer": "Мафия",
+        "alpha": "Мафия"
+      }
+    ],
+    "address_register": {
+      "boomer": {
+        "ui_system_address": "lowercase вы",
+        "allowed": [
+          "neutral nouns",
+          "infinitives",
+          "buttons"
+        ],
+        "npc_dialogue": "role-dependent"
+      },
+      "genX": {
+        "ui_system_address": "ты / neutral",
+        "style": [
+          "concise",
+          "restrained",
+          "no forced вы",
+          "no generic gangster cosplay"
+        ],
+        "npc_dialogue": "role-dependent"
+      },
+      "millennial": {
+        "ui_system_address": "ты / neutral"
+      },
+      "zoomer": {
+        "ui_system_address": "ты / neutral"
+      },
+      "alpha": {
+        "ui_system_address": "ты / neutral"
+      }
+    }
+  },
+  "coverage_row_count": 44,
+  "npc_visible_role_label_count": 5
 }
