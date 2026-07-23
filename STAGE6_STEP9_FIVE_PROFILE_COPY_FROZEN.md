@@ -1,0 +1,103 @@
+# STAGE 6 STEP 9 - FIVE PROFILE COPY FROZEN
+
+STATUS: `FROZEN`
+
+BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
+FOUNDATION_BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
+PRE_FREEZE_HEAD: `a6104bb7e2f6f6dba595bfb5aa4b88eb957df099`
+LIVE_NOTION_MEMORY_REV: `2026-07-23-2150-JST`
+USER_REVIEW_VERDICT: `ВСЁ ОК`
+FROZEN_JSON_SHA256: `379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`
+
+## 1. Frozen scope
+
+This file freezes the exact five-profile row matrix used for Step 9 freeze work on the PR #259 foundation branch.
+
+The review package approval is deterministic; no wording invention is allowed.
+
+## 2. Frozen row matrix
+
+| TEXT_ID | BOOMER | GEN_X | MILLENNIAL | ZOOMER | ALPHA |
+|---|---|---|---|---|---|
+| start.continue | Продолжить настройку | Дальше | Поехали дальше | Погнали | Го |
+| start.rules | Правила игры | Как тут всё устроено | Правила | Как играть | Правила |
+| chat.placeholder | Введите сообщение | Пиши сюда | Напиши сообщение | Что скажешь? | чат... |
+| chat.send | Отправить сообщение | Отправить | Отправить | Кинуть | Отправить |
+| dm.header | Личные сообщения | Приват | Личка | ЛС | DM |
+| dm.placeholder | Введите личное сообщение | Пиши лично | Напиши в личку | В личку | дм... |
+| dm.send | Отправить | Отправить | Отправить | Кинуть | Отправить |
+| panel.battles | Конфликты | Разборки | Споры | Баттлы | Бои |
+| panel.events | События | Что происходит | События | Движ | Ивенты |
+| battle.attack_badge | Аргумент | Наезд | Аргумент | Вброс | Ход |
+| battle.defense_badge | Ответ | Ответка | Контраргумент | Контра | Ответ |
+| battle.opponent_argument | Аргумент оппонента | Что тебе предъявили | Аргумент соперника | Что тебе вкинули | Ход соперника |
+| battle.my_answer | Ваш ответ | Твоя ответка | Твой контраргумент | Твоя контра | Ответ |
+| battle.accept | Принять вызов | Вписаться | Принять | Залететь | В бой |
+| battle.decline | Отказаться | Пас | Отклонить | Скип | Нет |
+| battle.attack_action | Атаковать | Врубиться | Атаковать | Влететь | Ход |
+| battle.rematch | Предложить реванш | Ещё разок | Реванш | Рематч | Ещё |
+| battle.report | Сообщить | Сдать | Пожаловаться | Репорт | Жалоба |
+| economy.not_enough_money | Недостаточно монет. | Денег не хватает. | Не хватает денег. | Кошелёк пуст 💀 | 0 денег 💀 |
+| economy.not_enough_rep | Недостаточно репутации. | Репутации не хватает. | Не хватает репутации. | Репы не хватает. | ⭐ мало |
+| toast.money_gain | Баланс пополнен на {X}. | +{X} в карман. | Баланс: +{X}. Наконец-то. | +{X} к банку 💸 | +{X}💰 W |
+| toast.money_loss | Списано {X}. | −{X}. Ну бывает. | Баланс: −{X}. Бюджет снова страдает. | −{X} 💀 | −{X}💰 L |
+| toast.rep_gain | Репутация выросла на {X}. | Репутация +{X}. Нормально. | Репутация +{X}. Социальный капитал работает. | Репа +{X} 📈 | +{X}⭐ aura+ |
+| toast.rep_loss | Репутация снизилась на {X}. | Репутация −{X}. Облом. | Репутация −{X}. Интернет помнит всё. | Репа −{X} 💀 | −{X}⭐ aura− |
+| toast.influence_gain | Влияние увеличилось на {X}. | Влияние +{X}. Вес появился. | Влияние +{X}. Кажется, нас услышали. | Влияние +{X}. Имба. | +{X}⚡ W |
+| toast.combined_respect | Списана 1 монета. Репутация цели выросла на 1. | −1 из кармана. Цели +1 к репутации. | Баланс −1. Репутация цели +1. Социальный капитал перераспределён. | −1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен. | −1💰 / цель +1⭐ |
+| result.win | Победа. | Нормально разобрались. | Победа. Можно выдохнуть. | W. Разнесли. | W |
+| result.loss | Поражение. | Вот это облом. | Ну всё, приехали. | Нас cooked 💀 | L 💀 |
+| result.draw | Ничья. | Разошлись по нулям. | Ничья. Никто не победил, зато все устали. | По нулям. | = |
+| vote.majority | Вы поддержали большинство. | Ты оказался с большинством. | Ты с большинством. Сегодня демократия сработала. | Ты в мейнстриме. | толпа W |
+| vote.minority | Вы оказались в меньшинстве. | Ты остался в меньшинстве. | Ты в меньшинстве. Бывает. | Ты в андердоге. | 1 vs all 💀 |
+| conflict.finished | Конфликт завершён. | Разборка закончена. | Всё, спор закрыт. | Катка закрыта. | gg |
+| reaction.bad | Вот ведь неприятность. | Вот отстой. | Ну это прям жесть. | Кринж. | 💀 |
+| reaction.surprised | Вот это номер! | Ни фига себе. | Я сейчас серьёзно это вижу? | ЧЕГО 💀 | бро что 💀 |
+| reaction.agree | Совершенно верно. | Точно. | Вот это база. | База. | W |
+| reaction.disagree | Позвольте не согласиться. | Да ну нафиг. | Ну нет, ребят. | Скип. | L тейк |
+| reaction.relatable | Понимаю. Знакомая ситуация. | Знакомо. | Жиза, конечно. | Жиза. | real |
+| reaction.wait | Одну минуту. | Погоди. | Так, стоп. | Холдап. | стоп чат |
+| reaction.start | Ну что ж, приступим. | Погнали. | Ладно, поехали. | Го. | sigma mode |
+| reaction.weird | Не совсем понимаю происходящее. | Что за фигня? | Это вообще как? | Что за рофл? | NPC moment |
+| reaction.disaster | Положение крайне неприятное. | Ну всё, приехали. | Это фиаско. | мы cooked 💀 | −1000 aura |
+| empty.dm | Личных сообщений пока нет. | Пусто. Никто не пишет. | Пока пусто. Даже спама нет. | В личке тишина. | DM 0 |
+| empty.events | Новых событий нет. | Тишина. Ничего не происходит. | Событий нет. Подозрительно спокойно. | Движ пока спит. | ивентов 0 |
+| empty.battles | Активных конфликтов нет. | Разборок нет. | Никто не зовёт спорить. Наслаждайся моментом. | Баттлов нет. | боёв 0 |
+| cop.accept | Сообщение принято. Начинаю проверку. | Принято. Сейчас глянем. | Принято. Запускаю проверку. | Репорт принят. Чекаю. | репорт ок |
+| cop.false_report | Проверка показала, что сообщение неверно. | Не подтвердилось. Мимо. | Проверка не подтвердила жалобу. Неловко вышло. | Репорт мимо 💀 | false report L |
+| cooldown.wait | Повторите позже. | Погоди немного. | Нужно немного подождать. | КД. Подожди. | КД |
+| onboarding.profile_helper | Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже. | Это только настройка интерфейса. Год не сохраняем, потом можно поменять. | Только для интерфейса. Не сохраняем. Можно поменять позже. | Только стиль UI. Год не сохраняем, потом сменишь. | only style. year not saved. |
+
+## 3. Intentional shared items
+
+- `digit_up_first`
+- `digit_down_first`
+- `digit_up_second`
+- `digit_down_second`
+
+These accessibility labels remain intentionally shared and clear.
+
+## 4. Excluded / locked items
+
+- `npcArrestCop`
+- `npcArrestMafia`
+- `npcArrestBandit`
+- `npcArrestToxic`
+- `npcArrestCrowd`
+- `p2pBacklogReason`
+
+These are not part of the frozen creative row set.
+
+## 5. Mechanic locks
+
+- argument canon
+- economy numeric values
+- vote math
+- cooldown behavior
+- REP/points/influence outcomes
+- PR #258 unified stat-toast architecture
+- disabled P2P hidden while capability is off
+
+## 6. Freeze checkpoint
+
+Once the JSON companion file is written and hashed, this package is complete.

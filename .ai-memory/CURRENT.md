@@ -1,8 +1,8 @@
 # Current Memory
 
-MEMORY_REV: 2026-07-22-1341-JST
-NOTION_MEMORY_REV: 2026-07-22-1341-JST
-CURRENT_STATUS: POST_PR249_REPOSITORY_MEMORY_CLOSURE_COMPLETE
+MEMORY_REV: 2026-07-23-2150-JST
+NOTION_MEMORY_REV: 2026-07-23-2150-JST
+CURRENT_STATUS: STAGE6_STEP9_FIVE_PROFILE_COPY_FROZEN
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
 ACCEPTED_IMPLEMENTATION_HEAD: a782f98960851934b93f6ed27d7e5c7b278efc58
@@ -57,8 +57,8 @@ SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CO
 USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
 USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
-NEXT_ACTION: CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE
+NEXT_ACTION: RUN_ACTUAL_CODEX_MODEL_PREFLIGHT_AFTER_STEP6_FREEZE
 
 Canonical bootstrap: live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-22-1341-JST`; accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`, PR #248 integrated model-selector inventory maintenance to main `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108` with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b`, and PR #249 integrated Stage 6 Alpha legacy smoke contract realignment to main `a782f98960851934b93f6ed27d7e5c7b278efc58` with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as a Stage 6 frozen-copy product regression; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. This post-PR249 repository-memory closure is complete/closed and does not require recursive memory closure. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; `NEXT_ACTION` is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-23-2150-JST`; accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`, PR #248 integrated model-selector inventory maintenance to main `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108` with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b`, and PR #249 integrated Stage 6 Alpha legacy smoke contract realignment to main `a782f98960851934b93f6ed27d7e5c7b278efc58` with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. Step 9 freeze completed on `chatgpt/stage6-step9-five-profile-foundation-20260723` at head `a6104bb7e2f6f6dba595bfb5aa4b88eb957df099` with frozen JSON SHA-256 `379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as a Stage 6 frozen-copy product regression; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. This post-PR249 repository-memory closure is complete/closed and does not require recursive memory closure. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; `NEXT_ACTION` is `RUN_ACTUAL_CODEX_MODEL_PREFLIGHT_AFTER_STEP6_FREEZE`.
 The former Google Drive document is deprecated migration-stub context only.

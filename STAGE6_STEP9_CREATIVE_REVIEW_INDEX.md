@@ -1,12 +1,13 @@
 # STAGE 6 STEP 9 - CREATIVE REVIEW INDEX
 
-STATUS: `READY_FOR_USER_REVIEW / NOT_FROZEN`
+STATUS: `FREEZE_COMPLETE / SHA256_BOUND / NOT_IMPLEMENTED`
 
-REVIEW_NOTE: `USER_REVIEW_CORRECTIONS_ROUND_1 / NOT_YET_APPROVED`
+REVIEW_NOTE: `USER_REVIEW_CORRECTIONS_ROUND_1 / APPROVED`
 
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
 BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
+FROZEN_JSON_SHA256: `379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`
 
 ## 1. Current checklist
 
@@ -14,8 +15,8 @@ BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
 - [x] 2. `RU_CULTURAL_AUTHENTICITY_PASS B/X/M/Z/A`
 - [x] 3. `FRESH_CURRENT_MAIN_INVENTORY`
 - [x] 4. `GAP_CLOSURE`
-- [ ] 5. `USER_REVIEW` - exact consolidated gateway ready
-- [ ] 6. `FREEZE + SHA256` - blocked by user approval
+- [x] 5. `USER_REVIEW` - exact consolidated gateway approved via `ВСЁ ОК`
+- [x] 6. `FREEZE + SHA256` - frozen package emitted and hashed
 - [ ] 7. `CODEX_IMPLEMENTATION` - blocked by frozen hash and implementation preflight
 
 Stage 6 remains `NOT COMPLETE`.

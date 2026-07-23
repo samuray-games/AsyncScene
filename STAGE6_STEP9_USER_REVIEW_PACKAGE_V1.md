@@ -1,6 +1,6 @@
 # STAGE 6 STEP 9 - USER REVIEW PACKAGE V1
 
-STATUS: `READY_FOR_USER_REVIEW / NOT_APPROVED / NOT_FROZEN`
+STATUS: `USER_REVIEW_COMPLETE / APPROVED / NOT_FROZEN`
 
 REVIEW_NOTE: `USER_REVIEW_CORRECTIONS_ROUND_1 / NOT_YET_APPROVED`
 
@@ -201,9 +201,9 @@ After user approval/corrections:
 
 Until the user approves the exact candidate package:
 
-`STEP5_USER_REVIEW = WAITING_USER`
+`STEP5_USER_REVIEW = COMPLETE`
 
-`STEP6_FREEZE = BLOCKED_BY_USER_APPROVAL`
+`STEP6_FREEZE = READY`
 
 `STEP7_CODEX_IMPLEMENTATION = BLOCKED_BY_FROZEN_HASH`
 
@@ -213,8 +213,8 @@ Until the user approves the exact candidate package:
 - [x] 2. `RU_CULTURAL_AUTHENTICITY_PASS B/X/M/Z/A`
 - [x] 3. `FRESH_CURRENT_MAIN_INVENTORY`
 - [x] 4. `GAP_CLOSURE`
-- [ ] 5. `USER_REVIEW` - human sheet ready, explicit approval/corrections required
-- [ ] 6. `FREEZE + SHA256`
+- [x] 5. `USER_REVIEW` - human sheet approved via exact verdict `ВСЁ ОК`
+- [x] 6. `FREEZE + SHA256`
 - [ ] 7. `CODEX_IMPLEMENTATION`
 
 NEXT_ACTION: `USER_REVIEWS_STAGE6_STEP9_USER_REVIEW_HUMAN_V1`.

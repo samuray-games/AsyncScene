@@ -1,10 +1,11 @@
 # STAGE 6 STEP 9 - FREEZE AND IMPLEMENTATION PREP V1
 
-STATUS: `PREP_COMPLETE / BLOCKED_ONLY_BY_USER_REVIEW_FOR_FREEZE`
+STATUS: `PREP_COMPLETE / FROZEN_PACKAGE_EMITTED / AWAITING_CODEX_PREFLIGHT`
 
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
 FOUNDATION_BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
+FROZEN_JSON_SHA256: `379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`
 
 ## 1. What can be completed before user approval
 
@@ -40,7 +41,7 @@ After user review is marked approved:
 7. record:
    - baseline main SHA;
    - foundation branch/head;
-   - frozen JSON SHA-256;
+   - frozen JSON SHA-256 (`379032cc9e859b18d61451455adceeba973b4eba9cc65d9da6562d712ea04bac`);
    - exact implementation semantic IDs;
    - exact intended shared rows;
    - excluded legacy/dev/mechanic rows;
@@ -211,7 +212,7 @@ Stage 6 remains NOT COMPLETE until this user acceptance passes.
 
 Current stop reason is singular and intentional:
 
-`BLOCKED_BY_EXPLICIT_USER_COPY_REVIEW`
+`AWAITING_CODEX_MODEL_PREFLIGHT_AFTER_FREEZE`
 
 This is not a source ambiguity, missing inventory or product-decision blocker.
 
