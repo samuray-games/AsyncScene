@@ -1,0 +1,13 @@
+{
+  "files_scanned": [
+    "manifest.json",
+    "summary.json",
+    "actions.jsonl"
+  ],
+  "known_secret_sources_included": false,
+  "raw_transcripts_included": false,
+  "raw_environment_included": false,
+  "private_connector_payloads_included": false,
+  "redaction_engine": "MANUAL_WORK_SUMMARY_SANITIZATION",
+  "status": "PASS_NO_SENSITIVE_SOURCE_INCLUDED"
+}
