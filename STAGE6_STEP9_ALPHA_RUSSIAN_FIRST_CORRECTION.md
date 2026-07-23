@@ -1,6 +1,6 @@
 # STAGE 6 STEP 9 - ALPHA RUSSIAN-FIRST CORRECTION
 
-STATUS: DIRECT_USER_CORRECTION / OVERRIDES_CONFLICTING_ALPHA_DRAFT_COPY
+STATUS: `DIRECT_USER_CORRECTION / STEP1_REWRITE_PASS_EXECUTED`
 
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
@@ -92,14 +92,25 @@ Examples:
 - `NPC момент`
 - `L тейк`
 - `аура −1000`
-- `W move`
 - `cooked`
 
 Even here, English density is a stylistic option, not a mandatory default.
 
-## 3. Draft lines requiring systematic rewrite before freeze
+## 3. Rewrite pass execution
 
-The following draft pattern is now invalid when used broadly:
+The full current-foundation Alpha rewrite pass has now been executed in:
+
+- `STAGE6_STEP9_ALPHA_RUSSIAN_FIRST_REWRITE_V1.md`
+- `stage6_step9_alpha_ru_rewrite_v1.json`
+
+Those two artifacts supersede conflicting Alpha copy in:
+
+- semantic matrix Batch 1-4;
+- NPC five-profile voice pack;
+- start/onboarding draft;
+- five-profile voice bible examples.
+
+The rewrite pass converts broad English-first patterns such as:
 
 - `start`
 - `rules`
@@ -108,42 +119,26 @@ The following draft pattern is now invalid when used broadly:
 - `move > ...`
 - `event forced`
 - `vote shield ON`
-- `report W`
 - `pay up`
-- `rematch`
 - `boost on`
 - `hint unlocked`
 - `join locked`
 
-Each must be reviewed individually and rewritten Russian-first unless the borrowed English token is genuinely natural and user-approved.
-
-Example correction direction:
-
-| Over-English draft | Russian-first Alpha direction |
-|---|---|
-| `start` | `го` |
-| `rules` | `правила` |
-| `report ✓` | `репорт ✓` |
-| `checking` | `чекаю` |
-| `move > {location}` | `→ {location}` |
-| `pay up 💀` | `гони 💰` |
-| `rematch` | `ещё?` / `рематч` only if approved as natural borrowed gaming term |
-| `event forced` | `ивент форснут` |
-| `vote shield ON` | `щит голоса ON` or a more natural approved Russian-first form |
+into Russian-first Alpha equivalents while preserving selective authentic markers such as `W/L`, `NPC`, `аура`, `cooked`, `mid`, `skill issue`, `репорт`, `ивент`, `КД`, `реролл` when contextually correct.
 
 ## 4. What remains valid Alpha identity
 
 Still valid as generation markers when semantically correct:
 
 - `W / L`
-- `aura`
+- `аура` / `aura` only as expressive social-status framing, not silent REP renaming
 - `NPC`
 - `cooked`
 - `mid`
 - `yapping`
-- `bro`
+- `bro/бро`
 - `real`
-- `nah`
+- `nah` only when natural in an I3 context
 - `rizz` only for charm/flirt semantics
 - `sigma` only where semantically natural
 - `skibidi` rare absurd flavour only
@@ -151,7 +146,7 @@ Still valid as generation markers when semantically correct:
 - emoji as syntax
 - lowercase and compressed grammar
 
-These markers should be embedded into Russian-speaking usage rather than turning the entire profile into English.
+These markers must be embedded into Russian-speaking usage rather than turning the entire profile into English.
 
 ## 5. Hidden-label target
 
@@ -169,18 +164,21 @@ PASS requires:
 - Russian-first comprehension remains intact;
 - English/code tokens are selective and authentic;
 - critical UI never requires English proficiency;
-- no profile-wide English fallback.
+- no profile-wide English fallback;
+- Russian cultural localization rules are respected.
 
-## 6. Authority
+## 6. Current completion state
 
-This direct user correction overrides conflicting Alpha draft strings in:
+`FULL_ALPHA_RUSSIAN_FIRST_REWRITE`: `COMPLETE_AS_DRAFT_REWRITE_PASS`
 
-- semantic matrix Batch 1-4;
-- NPC five-profile voice pack;
-- start/onboarding draft;
-- five-profile voice bibles;
-- any future Step 9 Alpha copy.
+This does NOT mean frozen/approved implementation copy.
 
-Those artifacts remain DRAFT and must be systematically corrected before freeze.
+Remaining before Codex:
 
-NEXT_ACTION: run a full Alpha-column Russian-first rewrite pass across all current Step 9 draft artifacts before any user freeze or Codex implementation.
+1. run `RU_CULTURAL_AUTHENTICITY_PASS_ALL_FIVE_COLUMNS`;
+2. refresh full current-main inventory;
+3. close source/mechanic ambiguity gaps;
+4. user review and corrections;
+5. freeze exact Markdown + JSON + SHA-256.
+
+NEXT_ACTION: `RU_CULTURAL_AUTHENTICITY_PASS_ALL_FIVE_COLUMNS`.
