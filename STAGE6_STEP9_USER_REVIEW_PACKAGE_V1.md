@@ -4,6 +4,18 @@ STATUS: `READY_FOR_USER_REVIEW / NOT_APPROVED / NOT_FROZEN`
 
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
+## 0. Human-facing entrypoint
+
+For actual user review, open only:
+
+`STAGE6_STEP9_USER_REVIEW_HUMAN_V1.md`
+
+That file is the intentionally simplified review surface. It presents resolved candidates after applying the precedence below and gives short review IDs such as `A4`, `B7`, `D-BANDIT`.
+
+The user does **not** need to inspect Batch 1-4, overlays, inventories or source maps.
+
+If the user approves a profile/family without exceptions, that is approval of the **voice direction for the underlying family**. Before freeze, ChatGPT must propagate any corrections through the complete exact row set, run consistency checks, then emit the exact frozen Markdown/JSON/hash.
+
 ## 1. Purpose
 
 This is the single review gateway before freeze.
@@ -199,8 +211,8 @@ Until the user approves the exact candidate package:
 - [x] 2. `RU_CULTURAL_AUTHENTICITY_PASS B/X/M/Z/A`
 - [x] 3. `FRESH_CURRENT_MAIN_INVENTORY`
 - [x] 4. `GAP_CLOSURE`
-- [ ] 5. `USER_REVIEW` - package ready, explicit approval/corrections required
+- [ ] 5. `USER_REVIEW` - human sheet ready, explicit approval/corrections required
 - [ ] 6. `FREEZE + SHA256`
 - [ ] 7. `CODEX_IMPLEMENTATION`
 
-NEXT_ACTION: `USER_REVIEW_STEP9_CONSOLIDATED_COPY_PACKAGE`.
+NEXT_ACTION: `USER_REVIEWS_STAGE6_STEP9_USER_REVIEW_HUMAN_V1`.
