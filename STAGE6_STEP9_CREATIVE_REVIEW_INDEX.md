@@ -1,379 +1,183 @@
 # STAGE 6 STEP 9 - CREATIVE REVIEW INDEX
 
-STATUS: FOUNDATION_IN_PROGRESS / NOT_FROZEN
+STATUS: `READY_FOR_USER_REVIEW / NOT_FROZEN`
 
 BASELINE_MAIN: `7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
 
 BRANCH: `chatgpt/stage6-step9-five-profile-foundation-20260723`
 
-## 1. Purpose
+## 1. Current checklist
 
-This is the single navigation/decision index for the Step 9 creative foundation.
+- [x] 1. `FULL_ALPHA_RUSSIAN_FIRST_REWRITE`
+- [x] 2. `RU_CULTURAL_AUTHENTICITY_PASS B/X/M/Z/A`
+- [x] 3. `FRESH_CURRENT_MAIN_INVENTORY`
+- [x] 4. `GAP_CLOSURE`
+- [ ] 5. `USER_REVIEW` - exact consolidated gateway ready
+- [ ] 6. `FREEZE + SHA256` - blocked by user approval
+- [ ] 7. `CODEX_IMPLEMENTATION` - blocked by frozen hash and implementation preflight
 
-Codex implementation remains forbidden until an exact frozen package revision/hash is approved.
+Stage 6 remains `NOT COMPLETE`.
 
-## 2. Foundation artifacts
+## 2. Read these first
 
-### Core contract
+### Review gateway
 
-`STAGE6_STEP9_FIVE_PROFILE_FOUNDATION.md`
+`STAGE6_STEP9_USER_REVIEW_PACKAGE_V1.md`
 
-Defines:
+This is the single precedence/approval gateway. It defines which draft wins when earlier artifacts conflict.
 
-- five first-class profiles;
-- semantic-equivalence model;
-- intensity ladder;
-- hidden-label acceptance;
-- mechanics invariant;
+### Fresh current-main inventory
+
+- `STAGE6_STEP9_FRESH_CURRENT_MAIN_INVENTORY_V1.md`
+- `stage6_step9_fresh_current_main_inventory_v1.json`
+
+Bound to exact main:
+
+`7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e`
+
+The historical seed counts `1930 / 853 / 306` remain historical only and are not relabeled as current.
+
+### Gap closure
+
+`STAGE6_STEP9_GAP_CLOSURE_V1.md`
+
+All known source/product/structure ambiguities now have explicit dispositions, including:
+
 - Gen X first-class requirement;
-- unified-toast preservation;
-- creative ownership boundary.
+- Alpha partial Zoomer inheritance;
+- four-profile late presentation authority;
+- COP/CAP shared fallback families;
+- NPC profile coverage;
+- source/docs mirror drift;
+- disabled P2P hide decision;
+- `npcArrest*` legacy/orphan cleanup gate;
+- accessibility intentional sharing;
+- mechanic-canon locks;
+- unified-toast architecture preservation;
+- wrapper placeholder discipline.
 
-### Detailed voice bibles
+### Freeze/implementation prep
 
-`STAGE6_STEP9_FIVE_PROFILE_RU_VOICE_BIBLES_DRAFT.md`
+- `STAGE6_STEP9_FREEZE_AND_IMPLEMENTATION_PREP_V1.md`
+- `STAGE6_STEP9_CODEX_IMPLEMENTATION_CONTRACT.md`
 
-Defines:
+These are prepared but not authorized until user approval and frozen SHA-256 exist.
 
-- Boomer rhythm/lexicon/humour/emoji/profanity/cultural palette;
-- Gen X independent voice;
-- Millennial early/mid-RuNet and self-irony lane;
-- Zoomer current network-native lane;
-- Alpha code/brainrot-native lane;
-- cross-profile contrast matrix;
-- marker-distribution checks.
+## 3. Candidate copy authority order
 
-### Gen X deep dive
+Highest to lowest:
 
-`STAGE6_STEP9_GENX_PROFILE_DRAFT.md`
+1. direct current user decisions and `STAGE6_STEP9_SOURCE_DECISIONS_RESOLVED.md`;
+2. exact row/line corrections in `STAGE6_STEP9_RU_CULTURAL_AUTHENTICITY_PASS_V1.md`;
+3. Alpha exact overlay in `STAGE6_STEP9_ALPHA_RUSSIAN_FIRST_REWRITE_V1.md` + JSON;
+4. base semantic matrices Batch 1-4;
+5. dedicated start/onboarding and NPC packs;
+6. voice bibles/cultural/slang rules as constraints.
 
-Defines a dedicated Russian Gen X profile rather than a fallback alias.
+Nothing is frozen until the user approves the resolved package.
 
-### Semantic matrix Batch 1
+## 4. Foundation artifacts
 
-`STAGE6_STEP9_RU_SEMANTIC_MATRIX_DRAFT.md`
-
-First 48 high-frequency intents:
+### Core model
 
-- start;
-- chat/DM;
-- persistent panels;
-- conflict actions;
-- economy blockers;
-- toasts;
-- results;
-- vote outcomes;
-- empty states;
-- cop/cooldown;
-- reaction archetypes.
+- `STAGE6_STEP9_FIVE_PROFILE_FOUNDATION.md`
+- `STAGE6_STEP9_FIVE_PROFILE_RU_VOICE_BIBLES_DRAFT.md`
+- `STAGE6_STEP9_GENX_PROFILE_DRAFT.md`
+- `STAGE6_STEP9_RU_CULTURAL_LOCALIZATION_RULES.md`
+- `STAGE6_STEP9_SLANG_SEMANTIC_VALIDATION.md`
 
-### Semantic matrix Batch 2
+### Candidate semantic copy
 
-`STAGE6_STEP9_RU_SEMANTIC_MATRIX_BATCH2_DRAFT.md`
+- `STAGE6_STEP9_RU_SEMANTIC_MATRIX_DRAFT.md`
+- `STAGE6_STEP9_RU_SEMANTIC_MATRIX_BATCH2_DRAFT.md`
+- `STAGE6_STEP9_RU_SEMANTIC_MATRIX_BATCH3_SYSTEM_EVENTS_DRAFT.md`
+- `STAGE6_STEP9_RU_SEMANTIC_MATRIX_BATCH4_CONFLICT_ECONOMY_DRAFT.md`
+- `stage6_step9_ru_semantic_matrix_draft.json`
 
-Adds:
+### Alpha correction/overlay
 
-- events/menu controls;
-- invite/search;
-- argument hints;
-- teaching flow;
-- battle locks;
-- full vote/tie flow;
-- economy states;
-- reputation/social states;
-- cop/report flow;
-- stronger NPC reaction archetypes.
+- `STAGE6_STEP9_ALPHA_RUSSIAN_FIRST_CORRECTION.md`
+- `STAGE6_STEP9_ALPHA_RUSSIAN_FIRST_REWRITE_V1.md`
+- `stage6_step9_alpha_ru_rewrite_v1.json`
 
-### Semantic matrix Batch 3
+### Dedicated family packs
 
-`STAGE6_STEP9_RU_SEMANTIC_MATRIX_BATCH3_SYSTEM_EVENTS_DRAFT.md`
+- `STAGE6_STEP9_START_ONBOARDING_FIVE_PROFILE_DRAFT.md`
+- `STAGE6_STEP9_NPC_FIVE_PROFILE_VOICE_PACK_DRAFT.md`
 
-Adds:
+### Current-main evidence/decisions
 
-- joined/moved/DM feed;
-- battle lifecycle feed;
-- robbery/shame feed;
-- crowd feed;
-- argument-tier unlocks;
-- role-specific NPC outcome announcements;
-- composed system wrapper rules;
-- explicit semantic blockers for ambiguous `npcArrest*` rows.
+- `STAGE6_STEP9_SOURCE_DECISIONS_RESOLVED.md`
+- `STAGE6_STEP9_FRESH_CURRENT_MAIN_INVENTORY_PREFLIGHT.md`
+- `STAGE6_STEP9_FRESH_CURRENT_MAIN_INVENTORY_V1.md`
+- `stage6_step9_fresh_current_main_inventory_v1.json`
+- `STAGE6_STEP9_GAP_CLOSURE_V1.md`
 
-### Start/onboarding pack
+## 5. Current structural findings
 
-`STAGE6_STEP9_START_ONBOARDING_FIVE_PROFILE_DRAFT.md`
+### Gen X
 
-Complete first-impression pass for:
+Fresh current source proves Gen X has a birth-year band and canonical normalization but is not first-class in supported text/presentation routing. Implementation must add an explicit fifth profile.
 
-- birth-year field;
-- privacy/non-storage helper;
-- feeling-year field;
-- continue/start/reset/rules;
-- risk/stake/result honesty lines;
-- accessibility labels.
+### Alpha/Zoomer
 
-### NPC voice pack
+Fresh current source still contains structural inheritance between Alpha/Zoomer in underlying dictionaries. Frozen copy must use explicit per-profile resolution, with equality allowed only when intentionally shared.
 
-`STAGE6_STEP9_NPC_FIVE_PROFILE_VOICE_PACK_DRAFT.md`
+### Late presentation authority
 
-Five-profile candidate pools for:
+`ui/ui-profile-visual-tone-repair.js` is loaded last and currently declares only four profile keys. It must become five-profile authority rather than adding another competing patch layer.
 
-- bandit;
-- toxic;
-- cop;
-- crowd;
-- mafia.
+### Mirrors
 
-### Slang semantic validation
+Fresh blob audit found current source/docs drift in multiple pairs. Step 9 implementation must use targeted serialized mirror reconciliation, never blind whole-file overwrite.
 
-`STAGE6_STEP9_SLANG_SEMANTIC_VALIDATION.md`
+### P2P
 
-Meaning gate for:
+Disabled block decision is fixed:
 
-- W/L;
-- cooked;
-- aura;
-- rizz;
-- skibidi;
-- sigma;
-- NPC;
-- mid;
-- yapping;
-- fanum tax;
-- mog;
-- brainrot;
-- кринж;
-- база;
-- жиза;
-- скип;
-- вайб;
-- имба;
-- рофл;
-- репа;
-- лут;
-- skill issue.
+`HIDE_DISABLED_P2P_BLOCK_UNTIL_FEATURE_ENABLED`.
 
-### Legacy recovery audit
+### `npcArrest*`
 
-`STAGE6_STEP9_LEGACY_COPY_RECOVERY_AUDIT.md`
+Removed from creative queue as legacy/orphan candidates. Final deletion requires zero-callsite precheck on implementation baseline.
 
-Quantifies older architecture failure:
+## 6. User review order
 
-- 57 core resolved four-profile keys;
-- Zoomer == Alpha on all 57/57 in seed;
-- Boomer == Millennial on 19/57;
-- Gen X absent first-class;
-- old corpus useful as raw material, not final authority.
-
-### Inventory coverage plan
-
-`STAGE6_STEP9_FULL_TEXT_INVENTORY_COVERAGE_PLAN.md`
-
-Seed package:
-
-- 1930 active records;
-- 853 unique active texts;
-- 306 dynamic templates;
-- snapshot commit is older than current main.
-
-Requires fresh current-main rebuild before freeze.
-
-### Codex contract
-
-`STAGE6_STEP9_CODEX_IMPLEMENTATION_CONTRACT.md`
-
-Codex may implement only exact frozen copy.
-
-No independent:
-
-- invention;
-- sanitisation;
-- shortening;
-- synonym substitution;
-- slang rewriting;
-- mechanics change.
-
-### Machine-readable draft
-
-`stage6_step9_ru_semantic_matrix_draft.json`
-
-Early machine-readable companion. Must be regenerated/expanded after creative review; current file is not complete enough for implementation.
-
-## 3. Already proven structural findings
-
-### Finding A - Gen X is partially plumbed but not first-class
-
-Current runtime has:
-
-- birth-year band `1965-1980 -> genX`;
-- canonical `genx -> genX` normalization.
-
-Missing first-class path includes:
-
-- supported registry;
-- text mode;
-- dictionaries;
-- start copy;
-- presentation profile keys;
-- smokes/preview matrices;
-- complete player-facing surfaces.
-
-### Finding B - old Alpha/Zoomer separation was structurally fake
-
-Seed core resolved texts:
-
-`Zoomer == Alpha: 57 / 57`
-
-This explains the user's visual failure report.
-
-### Finding C - Millennial was too often neutral/default
-
-Step 9 requires a real Millennial culture lane, not simply the fallback copy.
-
-### Finding D - unified toast architecture should survive
-
-PR #258's coalescing toast pipeline is independent of copy tone and should remain.
-
-## 4. Known draft candidates already REJECTED before user freeze
-
-These must not be implemented as written:
-
-1. `fanum tax 💰` as generic bandit money robbery - wrong semantic meaning.
-2. `Не делай skill issue.` as bandit compliance threat - wrong context.
-3. generic `sigma mode` for `Начинаем` - too vague/forced for generic action.
-4. `rizz` as generic REP/influence - wrong semantics unless actual charm/flirt context exists.
-5. `skibidi` as a stable synonym for `плохо` - semantically unstable/nonsense-coded.
-6. any literal replacement of canonical REP stat with `aura` without a separate explicit mechanic/presentation decision.
-
-Status: `REJECT_MISUSED_SLANG` or `REQUIRES_REASSIGNMENT`.
-
-## 5. Known rows requiring fresh mechanic/source confirmation
-
-Do not creatively freeze until current source meaning/visibility is verified:
-
-- `npcArrestCop`
-- `npcArrestMafia`
-- `npcArrestBandit`
-- `npcArrestToxic`
-- `npcArrestCrowd`
-- `P2P: анти-абуз.` visibility/classification
-- any system wrapper where nested composed text could double punctuation/slang
-- any stale seed row whose current main source changed after 2026-07-03.
-
-Status: `MECHANIC_SEMANTICS_REQUIRES_FRESH_SOURCE_CONFIRMATION`.
-
-## 6. Creative review order
-
-Review should not be random.
-
-### Pass 1 - signature/persistent UI
-
-Goal: generation recognisable before rare events.
-
-Review:
-
-1. start/onboarding;
-2. chat/DM controls;
-3. events/battles/menu headers;
-4. conflict action labels;
-5. vote actions.
-
-### Pass 2 - high-frequency feedback
-
-Review:
-
-1. stat toasts;
-2. economy/REP states;
-3. errors/success;
-4. result language;
-5. empty states;
-6. cooldowns.
-
-### Pass 3 - system/feed
-
-Review:
-
-1. movement/join;
-2. battle feed;
-3. crowd vote feed;
-4. robbery/report;
-5. unlock/progression messages.
-
-### Pass 4 - NPC full flavour
-
-Review:
-
-1. bandit;
-2. toxic;
-3. cop;
-4. crowd;
-5. mafia;
-6. later remaining role/DM families.
-
-### Pass 5 - full inventory closure
-
-Fresh current-main inventory rebuild and row-by-row state:
-
-- `APPROVED_FIVE_PROFILE`
-- `KEEP_SHARED_INTENTIONALLY`
-- `MECHANIC_CANON_LOCKED`
-- `NON_PLAYER_FACING`
-- `MISSING_CREATIVE_DECISION`
-- `LEGACY_SUPERSEDED`
-
-No silent fallback allowed.
-
-## 7. User approval format
-
-For efficient review, present batches rather than 853 texts at once.
-
-Each approval batch should show:
-
-`TEXT_ID | semantic intent | intensity | B | X | M | Z | A | review note`
-
-User corrections override all prior drafts immediately.
-
-Approval state per row:
+1. first impression/high-frequency persistent UI;
+2. system/feed/progression;
+3. conflict/economy long tail;
+4. NPC full flavour;
+5. intentional sharing/exclusions.
+
+Approval states:
 
 - `APPROVED`
 - `EDIT_REQUIRED`
-- `REJECTED`
 - `SHARED_INTENTIONALLY`
-- `BLOCKED_MECHANIC_CONFIRMATION`
+- `MECHANIC_CANON_LOCKED`
+- `NON_PLAYER_FACING`
+- `LEGACY_SUPERSEDED`
 
-## 8. Frozen package requirements
+## 7. Freeze gate
 
-Before Codex implementation, create:
+Freeze is allowed only after explicit user review.
+
+Then generate:
 
 1. `STAGE6_STEP9_FIVE_PROFILE_COPY_FROZEN.md`
 2. `stage6_step9_five_profile_copy_frozen.json`
-3. exact SHA-256 of machine-readable frozen mapping;
-4. fresh current-main full inventory coverage report;
-5. zero unresolved `MISSING_CREATIVE_DECISION` on player-facing rows in selected implementation wave;
-6. exact Codex implementation scope/waves;
-7. placeholder invariant checks;
-8. profile separation tests;
-9. slang semantic validation result.
+3. exact SHA-256 of frozen JSON bytes
+4. exact implementation scope from then-current main
+5. Codex task bound to the frozen hash
 
-## 9. Codex handoff rule
+Codex may not invent, soften, translate, shorten or improve frozen copy.
 
-Codex begins implementation only after:
-
-- user explicitly approves/freeze package;
-- frozen hash exists;
-- exact baseline current main is re-read;
-- model preflight requirements are satisfied for actual Codex implementation task;
-- scope is isolated;
-- current inventory is refreshed.
-
-Codex must not use DRAFT files as permission to choose wording.
-
-## 10. Stage 6 completion rule
+## 8. Completion rule
 
 Even after implementation and automated PASS:
 
-`Stage 6 != COMPLETE`
+`STAGE 6 != COMPLETE`
 
-until the user visually sees the deployed five-profile result and explicitly confirms PASS.
+until the user runs/observes the deployed Safari result for all five profiles and explicitly accepts it.
 
-NEXT_ACTION: continue creative expansion/review until the five-profile matrix is ready for user freeze, then prepare exact Codex implementation task from the frozen hash.
+NEXT_ACTION: `USER_REVIEW_STEP9_CONSOLIDATED_COPY_PACKAGE`.
