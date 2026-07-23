@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "a38f5fedfb2447ce502b89f98d7e3ad6a6d49218\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid a38f5fedfb2447ce502b89f98d7e3ad6a6d49218\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "a38f5fed (HEAD, pull/259/merge) Merge 0c38763aedecb0eb629af563972848ccc13f4eca into 7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e\n0c38763a (origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Expand Step 9 matrix with five-profile system events\ne68bcf9c Add five-profile start and onboarding copy draft\n1092318d Add detailed five-profile Russian voice bibles\ne365d9dd Add Step 9 slang semantic validation gate\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD a38f5fedfb2447ce502b89f98d7e3ad6a6d49218\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T04:09:07Z",
+      "stderr": "",
+      "stdout": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "a38f5fedfb2447ce502b89f98d7e3ad6a6d49218",
+  "observedAtUtc": "2026-07-23T04:09:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
