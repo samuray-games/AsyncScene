@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "6ebbc0401858085651fd51876beffdf168cd4318\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6ebbc0401858085651fd51876beffdf168cd4318\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "6ebbc040 (HEAD, pull/259/merge) Merge aa92a853b3d44426df5a6cb21aaedd711dbbb8c8 into 7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e\naa92a853 (origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Stage 6 Step 9: complete Russian cultural authenticity pass\nedb97fec Stage 6 Step 9: resolve orphan arrest and disabled P2P decisions\n761b1d1c Mark Alpha Russian-first rewrite pass executed\nb64bc5d2 Add machine-readable Alpha Russian-first rewrite v1\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6ebbc0401858085651fd51876beffdf168cd4318\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-23T06:53:48Z",
+      "stderr": "",
+      "stdout": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6ebbc0401858085651fd51876beffdf168cd4318",
+  "observedAtUtc": "2026-07-23T06:53:48Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
