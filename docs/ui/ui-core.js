@@ -286,32 +286,12 @@ window.Game = window.Game || {};
     const playerToPlayerEnabled = Game.Rules.isP2PPlayerToPlayerEnabled();
     return !transfersEnabled || !playerToPlayerEnabled;
   };
-  UI.createP2PBacklogBlock = function({ onExplain }) {
+  UI.createP2PBacklogBlock = function() {
     const wrapper = document.createElement("div");
     wrapper.className = "p2pBacklogBlock";
-    const title = document.createElement("div");
-    title.className = "p2pBacklogBlock__title";
-    title.textContent = p2pCopy("errors", "unavailable");
-    const reason = document.createElement("div");
-    reason.className = "p2pBacklogBlock__reason";
-    reason.textContent = p2pCopy("systemEvents", "p2pBacklogReason");
-    const explain = document.createElement("button");
-    explain.type = "button";
-    explain.className = "p2pBacklogBlock__link";
-    explain.textContent = "Почему?";
-    explain.style.cursor = "pointer";
-    explain.style.border = "none";
-    explain.style.background = "none";
-    explain.style.padding = "0";
-    explain.style.textDecoration = "underline";
-    explain.style.color = "inherit";
-    explain.setAttribute("aria-role", "button");
-    explain.addEventListener("click", () => {
-      if (typeof onExplain === "function") onExplain(p2pCopy("errors", "unavailable"));
-    });
-    wrapper.appendChild(title);
-    wrapper.appendChild(reason);
-    wrapper.appendChild(explain);
+    wrapper.hidden = true;
+    wrapper.setAttribute("aria-hidden", "true");
+    wrapper.dataset.stage6Step9Hidden = "HIDE_DISABLED_P2P_BLOCK_UNTIL_FEATURE_ENABLED";
     return wrapper;
   };
 

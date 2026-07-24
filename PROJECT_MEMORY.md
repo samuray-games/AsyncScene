@@ -1,11 +1,11 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-07-22-1341-JST
-NOTION_MEMORY_REV: 2026-07-22-1341-JST
+REPO_MEMORY_REV: 2026-07-24-0154-JST
+NOTION_MEMORY_REV: 2026-07-24-0154-JST
 CURRENT_MAIN_REF: origin/main
 ACCEPTED_IMPLEMENTATION_HEAD: a782f98960851934b93f6ed27d7e5c7b278efc58
 ROOT_STATUS: POST_PR249_REPOSITORY_MEMORY_CLOSURE_COMPLETE
-CURRENT_STATUS: POST_PR249_REPOSITORY_MEMORY_CLOSURE_COMPLETE
+CURRENT_STATUS: STAGE6_STEP9_FIVE_PROFILE_COPY_FROZEN
 R2_HISTORY_REMEDIATION: COMPLETE / PASS_ALPHA_FORENSICS_HISTORY_REMEDIATION_R2_REFS_REWRITTEN_VERIFIED
 POST_R2_CANONICAL_REALIGNMENT: COMPLETE / PASS_POST_R2_CANONICAL_REALIGNMENT
 POST_R2_REPOSITORY_MEMORY_CLOSURE: COMPLETE / PASS_POST_R2_REPOSITORY_MEMORY_CLOSURE_COMPLETE
@@ -39,6 +39,9 @@ MODEL_INVENTORY: 5 models / 23 model-effort pairs
 PR_249_REVIEWED_HEAD: 0928e367de57a6769d99e2206c6f86b7072302ff
 PR_249_MERGE_COMMIT: a782f98960851934b93f6ed27d7e5c7b278efc58
 PR_249_INTEGRATION: COMPLETE / STAGE6_ALPHA_LEGACY_SMOKE_CONTRACT_REALIGNMENT
+PR_259_FROZEN_BRANCH: chatgpt/stage6-step9-five-profile-foundation-20260723
+PR_259_FROZEN_CONTENT_COMMIT: e13419c38b9bf23fd601923a6d4a3a500012c8eb
+PR_259_FROZEN_JSON_SHA256: 6aa42c46c4bc594d234894dd92f57fd31292cce31953dab78343b653cfbdd45f
 BRIDGE_V4_REAL_PROFILE_REPAIR: COMPLETE / BACKEND_CONTROL_PLANE_INTEGRATED
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
 REPOSITORY_PLUGIN_VERSION: 1.0.16
@@ -48,6 +51,7 @@ INSTALLED_PLUGIN_MANIFEST_PARITY: CONFIRMED_23_OF_23
 CURRENT_FORENSICS_AI_RUN: 22534687693fe56394912b0abbcfb595f529abde
 CONTAMINATED_CURRENT_REF_REACHABILITY: 0
 STAGE_6: ALPHA_FROZEN_COPY_SAFARI_PASS / LEGACY_SMOKE_DRIFT_REPAIRED / NOT_COMPLETE
+STAGE_6_STEP9: USER_REVIEW_COMPLETE / FREEZE_COMPLETE / CODEX_IMPLEMENTATION_BLOCKED_BY_PREFLIGHT
 RUNTIME: STOPPED
 STAGE_6_PRODUCT_IMPLEMENTATION: STARTED
 ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
@@ -61,7 +65,7 @@ USER_STAGE6_CONTINUATION_DIRECTIVE: RECEIVED
 USER_SLOT_SHORTHAND: conversational `мост 1` = Slot 1, `мост 2` = Slot 2, `мост 3` = Slot 3; these are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command.
 RETIRED_SHORT_BRIDGE_INTERFACE: PERMANENTLY_RETIRED / NOT_CURRENT_WORKFLOW_AUTHORITY
 TRANSPORT_RESILIENCE: COMPLETE / PASS_TRANSPORT_RESILIENCE_INTEGRATED_PR_238
-NEXT_ACTION: CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE
+NEXT_ACTION: RUN_ACTUAL_CODEX_MODEL_PREFLIGHT_AFTER_STEP6_FREEZE
 
 ## Canonical cross-chat bootstrap
 
@@ -71,6 +75,6 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-22-1341-JST`. Accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`; PR #248 integrated model-selector inventory maintenance to main `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108` with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b`; PR #249 integrated Stage 6 Alpha legacy smoke contract realignment to main `a782f98960851934b93f6ed27d7e5c7b278efc58` with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as `STAGE6_ALPHA_FROZEN_COPY_REGRESSION`; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. This post-PR249 repository-memory closure is complete/closed and does not require a recursive closure task. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; durable next action is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-07-24-0154-JST`. Accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`, PR #248 integrated model-selector inventory maintenance to main `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108` with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b`, and PR #249 integrated Stage 6 Alpha legacy smoke contract realignment to main `a782f98960851934b93f6ed27d7e5c7b278efc58` with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. Step 9 freeze completed on `chatgpt/stage6-step9-five-profile-foundation-20260723` with frozen content commit `e13419c38b9bf23fd601923a6d4a3a500012c8eb` and frozen JSON SHA-256 `6aa42c46c4bc594d234894dd92f57fd31292cce31953dab78343b653cfbdd45f`. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as a Stage 6 frozen-copy product regression; current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187. Conversational `мост 1`, `мост 2`, and `мост 3` are slot references, not invocations of the retired literal short command interface unless the user explicitly says they are issuing a command. Stage 6 overall is not complete; `NEXT_ACTION` is `RUN_ACTUAL_CODEX_MODEL_PREFLIGHT_AFTER_STEP6_FREEZE`.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.

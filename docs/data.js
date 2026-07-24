@@ -26,15 +26,17 @@ window.Game = window.Game || {};
   });
   Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
     millennial: Object.freeze({
-      start_title: "AsyncScene",
+      start_title: "Asynchronia",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       fantasy_birth_label: "Кажется, я родился в …",
-      start_continue: "Продолжить",
+      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
+      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      start_continue: "Старт",
       start_start: "Старт",
       start_reset: "Сбросить старт",
       "introLines[0]": String((((Data.START_SCREEN || {}).introLines || [])[0]) == null ? "" : Data.START_SCREEN.introLines[0]),
@@ -45,15 +47,17 @@ window.Game = window.Game || {};
       start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
     }),
     boomer: Object.freeze({
-      start_title: "AsyncScene",
+      start_title: "Asynchronia",
       birth_digits_label: "Последние две цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Эти данные используются только для настройки интерфейса. Они не сохраняются. Вы сможете изменить их позже.",
+      profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
       fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
-      start_continue: "Продолжить настройку",
+      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
+      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      start_continue: "Начать игру",
       start_start: "Начать игру",
       start_reset: "Сбросить выбор",
       rules_action: "Правила игры",
@@ -65,20 +69,56 @@ window.Game = window.Game || {};
       "actions.start": "Начать",
       "actions.rules": "Правила",
     }),
-    zoomer: Object.freeze({
-      start_title: "AsyncScene",
-      birth_digits_label: "Две цифры вайба",
-      digit_up_first: "Первая цифра выше",
-      digit_down_first: "Первая цифра ниже",
-      digit_up_second: "Вторая цифра выше",
-      digit_down_second: "Вторая цифра ниже",
-      profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
-      fantasy_birth_label: "по вайбу я родился в …",
-      start_continue: "Погнали",
-      start_start: "Старт",
+    genX: Object.freeze({
+      start_title: "Asynchronia",
+      birth_digits_label: "Две последние цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
+      fantasy_birth_label: "Год по ощущению",
+      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
+      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      start_continue: "Поехали",
+      start_start: "Поехали",
       start_reset: "Сбросить выбор",
-      rules_action: "Правила коротко",
-      start_action: "Войти",
+      rules_action: "Как тут всё устроено",
+      start_action: "Поехали",
+    }),
+    zoomer: Object.freeze({
+      start_title: "Asynchronia",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
+      fantasy_birth_label: "по вайбу я родился в …",
+      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
+      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      start_continue: "В игру",
+      start_start: "В игру",
+      start_reset: "Сбросить выбор",
+      rules_action: "Как играть",
+      start_action: "В игру",
+    }),
+    alpha: Object.freeze({
+      start_title: "Asynchronia",
+      birth_digits_label: "2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "только стиль. год не сохраняем. сменить можно.",
+      fantasy_birth_label: "Год по ощущению",
+      async_value: "асинхронная игра · играй когда хочешь",
+      no_simultaneous_required: "все онлайн сразу не нужны",
+      start_continue: "В игру",
+      start_start: "В игру",
+      start_reset: "Сброс",
+      rules_action: "Правила",
+      start_action: "В игру",
     }),
   });
   Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
@@ -233,7 +273,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   // UI profile resolver (default | silent | ancient | medieval | renaissance | industrial | boomer | genX | millennial | zoomer | alpha | future)
   const UI_PROFILE_REGISTRY = Object.freeze({
-    supported: Object.freeze(["default", "millennial", "boomer", "zoomer", "alpha"]),
+    supported: Object.freeze(["default", "boomer", "genX", "millennial", "zoomer", "alpha"]),
     future: Object.freeze(["ancient", "classic", "future", "sciFi", "medieval", "empire", "galactic"]),
   });
   const UI_PROFILE_RULES = Object.freeze({
@@ -360,7 +400,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
 
   Data.getUiProfile = () => Data.normalizeUiProfile(Data.UI_PROFILE);
 
-  // Text mode (millennial | zoomer | alpha | boomer)
+  // Text mode (millennial | zoomer | alpha | boomer | genX)
   Data.TEXT_MODE = "millennial";
   const resolveUiTextMode = (profile) => {
     const normalized = typeof Data.normalizeUiProfile === "function"
@@ -369,6 +409,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     if (normalized === "zoomer") return "zoomer";
     if (normalized === "alpha") return "alpha";
     if (normalized === "boomer") return "boomer";
+    if (normalized === "genX") return "genX";
     return "millennial";
   };
   const resolveUiTextProfileName = (forcedProfile) => {
@@ -378,6 +419,7 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
     if (rawMode === "zoomer" || rawMode === "genz") return "zoomer";
     if (rawMode === "alpha") return "alpha";
     if (rawMode === "boomer") return "boomer";
+    if (rawMode === "genx") return "genX";
     const activeProfile = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
     return resolveUiTextMode(activeProfile);
   };
