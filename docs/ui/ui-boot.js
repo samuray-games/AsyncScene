@@ -121,39 +121,96 @@ window.Game = window.Game || {};
     if (Data && typeof Data.resolveStartScreenText === "function") {
       return String(Data.resolveStartScreenText(key, forcedProfile) || "");
     }
-    const raw = String(forcedProfile == null ? (Data && Data.TEXT_MODE) : forcedProfile || "").trim().toLowerCase();
-    const mode = (raw === "zoomer" || raw === "alpha" || raw === "genz") ? "zoomer" : "millennial";
+    const raw = String(forcedProfile == null ? (Data && Data.TEXT_MODE) : forcedProfile || "").trim();
+    const low = raw.toLowerCase();
+    const mode = low === "genx" ? "genX" : (low === "boomer" || low === "millennial" || low === "zoomer" || low === "alpha" ? low : "millennial");
     const millennial = {
-      start_title: "AsyncScene",
+      start_title: "Asynchronia",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
+      profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
-      start_continue: "Продолжить",
+      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
+      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      start_continue: "Старт",
       start_start: "Старт",
       start_reset: "Сбросить старт",
       rules_action: "Правила",
       start_action: "Старт",
     };
-    const zoomer = {
-      start_title: "AsyncScene",
-      birth_digits_label: "Две цифры вайба",
-      digit_up_first: "Первая цифра выше",
-      digit_down_first: "Первая цифра ниже",
-      digit_up_second: "Вторая цифра выше",
-      digit_down_second: "Вторая цифра ниже",
-      profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
-      fantasy_birth_label: "по вайбу я родился в …",
-      start_continue: "Погнали",
-      start_start: "Старт",
-      start_reset: "Снести выбор",
-      rules_action: "Правила без душноты",
-      start_action: "Войти",
+    const boomer = {
+      start_title: "Asynchronia",
+      birth_digits_label: "Последние две цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
+      fantasy_birth_label: "Год по ощущению",
+      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
+      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      start_continue: "Начать игру",
+      start_start: "Начать игру",
+      start_reset: "Сбросить выбор",
+      rules_action: "Правила игры",
+      start_action: "Начать игру",
     };
-    const table = mode === "zoomer" ? zoomer : millennial;
+    const genX = {
+      start_title: "Asynchronia",
+      birth_digits_label: "Две последние цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
+      fantasy_birth_label: "Год по ощущению",
+      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
+      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      start_continue: "Поехали",
+      start_start: "Поехали",
+      start_reset: "Сбросить выбор",
+      rules_action: "Как тут всё устроено",
+      start_action: "Поехали",
+    };
+    const zoomer = {
+      start_title: "Asynchronia",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
+      fantasy_birth_label: "по вайбу я родился в …",
+      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
+      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      start_continue: "В игру",
+      start_start: "В игру",
+      start_reset: "Снести выбор",
+      rules_action: "Как играть",
+      start_action: "В игру",
+    };
+    const alpha = {
+      start_title: "Asynchronia",
+      birth_digits_label: "2 цифры года рождения",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "только стиль. год не сохраняем. сменить можно.",
+      fantasy_birth_label: "Год по ощущению",
+      async_value: "асинхронная игра · играй когда хочешь",
+      no_simultaneous_required: "все онлайн сразу не нужны",
+      start_continue: "В игру",
+      start_start: "В игру",
+      start_reset: "Сброс",
+      rules_action: "Правила",
+      start_action: "В игру",
+    };
+    const tables = { boomer, genX, millennial, zoomer, alpha };
+    const table = tables[mode] || millennial;
     return String(Object.prototype.hasOwnProperty.call(table, key) ? table[key] : millennial[key] || "");
   }
 

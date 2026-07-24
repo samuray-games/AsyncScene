@@ -23,7 +23,7 @@ window.Game = window.Game || {};
 
   const BUILD_TAG = "build_2026_07_23_stage6_final_presentation_v4";
   const SMOKE_VERSION = "stage6_final_presentation_v20260723_004";
-  const PROFILE_KEYS = Object.freeze(["millennial", "zoomer", "alpha", "boomer"]);
+  const PROFILE_KEYS = Object.freeze(["boomer", "genX", "millennial", "zoomer", "alpha"]);
   const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
@@ -36,13 +36,14 @@ window.Game = window.Game || {};
       chatSend: "Отправить",
       dmPlaceholder: "Напиши лично.",
       dmSend: "Отправить",
-      dmHeader: "Личные сообщения",
-      battlesHeader: "Конфликты",
+      dmHeader: "Личка",
+      battlesHeader: "Споры",
+      eventsHeader: "События",
       menu: "Меню",
       attackBadge: "Аргумент",
-      defenseBadge: "Ответ",
-      opponentArgLabel: "Аргумент оппонента",
-      ownDefenseLabel: "Мой ответ",
+      defenseBadge: "Контраргумент",
+      opponentArgLabel: "Аргумент соперника",
+      ownDefenseLabel: "Твой контраргумент",
       dismiss: "Отойти",
       escape: "Уйти"
     }),
@@ -51,13 +52,14 @@ window.Game = window.Game || {};
       chatSend: "Отправить",
       dmPlaceholder: "Личное сообщение",
       dmSend: "Отправить",
-      dmHeader: "Личные",
-      battlesHeader: "Бои",
+      dmHeader: "ЛС",
+      battlesHeader: "Баттлы",
+      eventsHeader: "Движ",
       menu: "Меню",
-      attackBadge: "Аргумент",
-      defenseBadge: "Ответ",
-      opponentArgLabel: "Аргумент",
-      ownDefenseLabel: "Ответ",
+      attackBadge: "Вброс",
+      defenseBadge: "Контра",
+      opponentArgLabel: "Что тебе вкинули",
+      ownDefenseLabel: "Твоя контра",
       dismiss: "Отойти",
       escape: "Уйти"
     }),
@@ -68,6 +70,7 @@ window.Game = window.Game || {};
       dmSend: "Отправить",
       dmHeader: "Личное",
       battlesHeader: "Бои",
+      eventsHeader: "Ивенты",
       menu: "Меню",
       attackBadge: "Ход",
       defenseBadge: "Ответ",
@@ -83,6 +86,7 @@ window.Game = window.Game || {};
       dmSend: "Отправить",
       dmHeader: "Сообщения",
       battlesHeader: "Конфликты",
+      eventsHeader: "События",
       menu: "Меню",
       attackBadge: "Аргумент",
       defenseBadge: "Ответ",
@@ -90,35 +94,133 @@ window.Game = window.Game || {};
       ownDefenseLabel: "Ваш ответ",
       dismiss: "Отказаться",
       escape: "Выйти"
+    }),
+    genX: Object.freeze({
+      chatPlaceholder: "Пиши сюда",
+      chatSend: "Отправить",
+      dmPlaceholder: "Пиши лично",
+      dmSend: "Отправить",
+      dmHeader: "Личка",
+      battlesHeader: "Стычки",
+      eventsHeader: "Что происходит",
+      menu: "Меню",
+      attackBadge: "Ход",
+      defenseBadge: "Ответ",
+      opponentArgLabel: "Что сказал соперник",
+      ownDefenseLabel: "Твой ответ",
+      dismiss: "Отказаться",
+      escape: "Уйти"
     })
   });
 
+  const NPC_VISIBLE_ROLE_LABELS = Object.freeze({
+    BANDIT: Object.freeze({ boomer: "Грабитель", genX: "Бандит", millennial: "Гопник", zoomer: "Бандит", alpha: "Грабитель" }),
+    TOXIC: Object.freeze({ boomer: "Скандалист", genX: "Провокатор", millennial: "Тролль", zoomer: "Токсик", alpha: "Токсик" }),
+    COP: Object.freeze({ boomer: "Полицейский", genX: "Мент", millennial: "Коп", zoomer: "Коп", alpha: "Коп" }),
+    CROWD: Object.freeze({ boomer: "Зеваки", genX: "Народ", millennial: "Толпа", zoomer: "Чат", alpha: "Чат" }),
+    MAFIA: Object.freeze({ boomer: "Мафиози", genX: "Братва", millennial: "Мафия", zoomer: "Мафия", alpha: "Мафия" })
+  });
+
+  const COMBINED_RESPECT_COPY = Object.freeze({
+    boomer: "Списана 1 монета. Репутация цели выросла на 1.",
+    genX: "−1 из кармана. Цели +1 к репутации.",
+    millennial: "Баланс −1. Цели +1 к репутации. Карма, но с бухгалтерией.",
+    zoomer: "−1💰 тебе · +1⭐ цели. Баланс вселенной восстановлен.",
+    alpha: "−1💰 / цели +1⭐"
+  });
+
   const TEXT_OVERRIDES = Object.freeze({
+    boomer: Object.freeze({
+      escape_button_label: "Выйти −{X} 💰",
+      events_header: "События",
+      events_title: "События: {count}",
+      battle_invite_title: "Конфликты",
+      battle_action_accept: "Принять вызов",
+      battle_action_decline: "Отказаться",
+      battle_action_attack: "Атаковать",
+      battle_action_rematch: "Предложить реванш",
+      battle_action_report: "Сообщить",
+      dm_empty: "Личных сообщений пока нет.",
+      dm_action_unavailable: "Действие недоступно.",
+      events_empty: "Новых событий нет.",
+      battles_empty: "Активных конфликтов нет.",
+      cost_confirm_generic: "Потратить {cost} 💰?",
+      battle_boost_action: "Усилить - {cost} 💰",
+      argument_reroll_action: "Обновить аргументы - {cost} 💰",
+      hint_weakness_action: "Подсказка - {cost} 💰",
+      conflict_intervene_action: "Вмешаться - {cost} 💰",
+      npc_force_event_action: "Запустить событие - {cost} 💰",
+      dismiss_action: "Отказаться",
+      report_false_repeat: "Повторное ложное сообщение. Репутация снижена на {rep}."
+    }),
+    genX: Object.freeze({
+      escape_button_label: "Уйти −{X} 💰",
+      events_header: "Что происходит",
+      events_title: "Что происходит: {count}",
+      battle_invite_title: "Стычки",
+      battle_action_accept: "Вписаться",
+      battle_action_decline: "Пас",
+      battle_action_attack: "Атаковать",
+      battle_action_rematch: "Ещё разок",
+      battle_action_report: "Пожаловаться",
+      dm_empty: "Пусто. Никто не пишет.",
+      dm_action_unavailable: "Недоступно.",
+      events_empty: "Тишина. Ничего не происходит.",
+      battles_empty: "Разборок нет.",
+      cost_confirm_generic: "Потратить {cost} 💰?",
+      battle_boost_action: "Усилить - {cost} 💰",
+      argument_reroll_action: "Другие аргументы - {cost} 💰",
+      hint_weakness_action: "Подсказка - {cost} 💰",
+      conflict_intervene_action: "Влезть - {cost} 💰",
+      npc_force_event_action: "Подкинуть событие - {cost} 💰",
+      dismiss_action: "Отказаться",
+      report_false_repeat: "Опять мимо. Репутация −{rep}."
+    }),
     millennial: Object.freeze({
       escape_button_label: "Уйти −{X} 💰",
       events_header: "События",
       events_title: "События ({count})",
-      battle_invite_title: "Конфликты",
+      battle_invite_title: "Споры",
       battle_action_accept: "Принять",
       battle_action_decline: "Отклонить",
       battle_action_attack: "Атаковать",
       battle_action_rematch: "Реванш",
       battle_action_report: "Пожаловаться",
-      dm_empty: "Пока пусто.",
-      dm_action_unavailable: "Недоступно."
+      dm_empty: "Пока пусто. Даже спама нет.",
+      dm_action_unavailable: "Недоступно.",
+      events_empty: "Событий нет. Подозрительно спокойно.",
+      battles_empty: "Никто не зовёт спорить. Наслаждайся моментом.",
+      cost_confirm_generic: "Потратить {cost} 💰?",
+      battle_boost_action: "Усилить · {cost} 💰",
+      argument_reroll_action: "Перебрать аргументы · {cost} 💰",
+      hint_weakness_action: "Подсказка · {cost} 💰",
+      conflict_intervene_action: "Вмешаться · {cost} 💰",
+      npc_force_event_action: "Запустить событие · {cost} 💰",
+      dismiss_action: "Отказаться",
+      report_false_repeat: "Репутация −{rep}. Повторный ложный репорт остался в истории."
     }),
     zoomer: Object.freeze({
       escape_button_label: "Уйти −{X} 💰",
-      events_header: "События",
-      events_title: "События {count}",
-      battle_invite_title: "Бои",
-      battle_action_accept: "Принять",
-      battle_action_decline: "Отказ",
-      battle_action_attack: "Атака",
-      battle_action_rematch: "Ещё",
-      battle_action_report: "Сообщить",
-      dm_empty: "Пусто.",
-      dm_action_unavailable: "Недоступно."
+      events_header: "Движ",
+      events_title: "Движ {count}",
+      battle_invite_title: "Баттлы",
+      battle_action_accept: "Залететь",
+      battle_action_decline: "Скип",
+      battle_action_attack: "Влететь",
+      battle_action_rematch: "Рематч",
+      battle_action_report: "Репорт",
+      dm_empty: "В личке тишина.",
+      dm_action_unavailable: "Недоступно.",
+      events_empty: "Движ пока спит.",
+      battles_empty: "Баттлов нет.",
+      cost_confirm_generic: "−{cost} 💰?",
+      battle_boost_action: "Буст −{cost} 💰",
+      argument_reroll_action: "Реролл −{cost} 💰",
+      hint_weakness_action: "Хинт −{cost} 💰",
+      conflict_intervene_action: "Вмешаться −{cost} 💰",
+      npc_force_event_action: "Форснуть ивент −{cost} 💰",
+      dismiss_action: "Отказаться",
+      report_false_repeat: "опять репорт мимо 💀 · −{rep} репы"
     }),
     alpha: Object.freeze({
       tie_start: "Голос",
@@ -127,20 +229,21 @@ window.Game = window.Game || {};
       vote_ok: "Учтено",
       vote_already: "Уже",
       vote_fail: "Нет",
-      events_header: "События",
-      events_title: "События {count}",
-      events_empty: "Пусто.",
+      events_header: "Ивенты",
+      events_title: "Ивенты {count}",
+      events_empty: "ивентов 0",
       events_panel_hint: "События.",
-      battles_empty: "Пусто.",
+      battles_empty: "боёв 0",
       battle_invite_title: "Бои",
-      battle_action_accept: "Да",
+      battle_action_accept: "В бой",
       battle_action_decline: "Нет",
       battle_action_attack: "Ход",
       battle_action_rematch: "Ещё",
-      battle_action_report: "Сообщить",
-      dm_empty: "Пусто.",
+      battle_action_report: "Репорт",
+      dm_empty: "личка 0",
       dm_action_unavailable: "Нет.",
       battle_energy_locked_hint: "Нужно ⚡{energy}",
+      cost_confirm_generic: "−{cost}💰?",
       events_close_extra: "Свернуть",
       events_clear_all: "Очистить",
       events_clear: "Очистить",
@@ -149,32 +252,75 @@ window.Game = window.Game || {};
       menu_title: "Меню",
       return_to_start: "На старт",
       menu_unavailable: "Нет.",
-      goal_label: "Цель"
-    }),
-    boomer: Object.freeze({
-      escape_button_label: "Выйти −{X} 💰",
-      events_header: "События",
-      events_title: "События: {count}",
-      battle_invite_title: "Конфликты",
-      battle_action_accept: "Принять",
-      battle_action_decline: "Отказаться",
-      battle_action_attack: "Атаковать",
-      battle_action_rematch: "Реванш",
-      battle_action_report: "Сообщить",
-      dm_empty: "Сообщений пока нет.",
-      dm_action_unavailable: "Действие недоступно."
+      goal_label: "Цель",
+      battle_boost_action: "Буст −{cost}💰",
+      argument_reroll_action: "Реролл −{cost}💰",
+      hint_weakness_action: "Хинт −{cost}💰",
+      conflict_intervene_action: "Вмешаться −{cost}💰",
+      npc_force_event_action: "Форснуть ивент −{cost}💰",
+      dismiss_action: "Нет",
+      report_false_repeat: "опять мимо 💀 −{rep}⭐"
     })
   });
 
-  const START_ALPHA_OVERRIDES = Object.freeze({
-    birth_digits_label: "2 цифры года",
-    profile_helper: "Только интерфейс. Можно сменить.",
-    fantasy_birth_label: "Год по ощущению",
-    start_continue: "Дальше",
-    start_start: "Старт",
-    start_reset: "Сброс",
-    rules_action: "Правила",
-    start_action: "Старт"
+  const START_PROFILE_OVERRIDES = Object.freeze({
+    boomer: Object.freeze({
+      title: "Asynchronia",
+      birth_digits_label: "Последние две цифры года рождения",
+      profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
+      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
+      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      start_continue: "Начать игру",
+      start_start: "Начать игру",
+      rules_action: "Правила игры",
+      start_action: "Начать игру"
+    }),
+    genX: Object.freeze({
+      title: "Asynchronia",
+      birth_digits_label: "Две последние цифры года рождения",
+      profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
+      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
+      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      start_continue: "Поехали",
+      start_start: "Поехали",
+      rules_action: "Как тут всё устроено",
+      start_action: "Поехали"
+    }),
+    millennial: Object.freeze({
+      title: "Asynchronia",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
+      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
+      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      start_continue: "Старт",
+      start_start: "Старт",
+      rules_action: "Правила",
+      start_action: "Старт"
+    }),
+    zoomer: Object.freeze({
+      title: "Asynchronia",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
+      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
+      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      start_continue: "В игру",
+      start_start: "В игру",
+      rules_action: "Как играть",
+      start_action: "В игру"
+    }),
+    alpha: Object.freeze({
+      title: "Asynchronia",
+      birth_digits_label: "2 цифры года рождения",
+      profile_helper: "только стиль. год не сохраняем. сменить можно.",
+      async_value: "асинхронная игра · играй когда хочешь",
+      no_simultaneous_required: "все онлайн сразу не нужны",
+      fantasy_birth_label: "Год по ощущению",
+      start_continue: "В игру",
+      start_start: "В игру",
+      start_reset: "Сброс",
+      rules_action: "Правила",
+      start_action: "В игру"
+    })
   });
 
   const ALPHA_FROZEN_EXPECTED = Object.freeze({
@@ -186,10 +332,10 @@ window.Game = window.Game || {};
   });
 
   const PROFILE_TEXT_OVERRIDES = Object.freeze({
-    zoomer: Object.freeze({
-      not_enough_money: "Не хватает денег.",
-      not_enough_stars: "Не хватает репутации.",
-      purchase_success: "Покупка готова.",
+    boomer: Object.freeze({
+      not_enough_money: "Недостаточно монет.",
+      not_enough_stars: "Недостаточно репутации.",
+      purchase_success: "Куплено.",
       sale_success: "Продажа готова.",
       reward_received: "Награда получена.",
       penalty_received: "Штраф применён.",
@@ -197,8 +343,8 @@ window.Game = window.Game || {};
       generic_success: "Готово.",
       money_received: "Деньги получены.",
       money_spent: "Деньги списаны.",
-      money_changed_positive: "Баланс вырос.",
-      money_changed_negative: "Баланс снизился.",
+      money_changed_positive: "Баланс пополнен.",
+      money_changed_negative: "Списано.",
       poverty_state: "Денег мало.",
       rich_state: "Денег достаточно.",
       bankrupt_state: "Денег нет.",
@@ -208,18 +354,108 @@ window.Game = window.Game || {};
       reputation_increased: "Репутация выросла.",
       reputation_decreased: "Репутация снизилась.",
       reputation_unchanged: "Репутация без изменений.",
-      respect_gained: "Уважение выросло.",
+      respect_gained: "Уважение к вам выросло.",
       respect_lost: "Уважение снизилось.",
       disrespect_event: "Отношение ухудшилось.",
       reputation_high: "Репутация высокая.",
       reputation_low: "Репутация низкая.",
-      reputation_recovered: "Репутация восстановилась.",
+      reputation_recovered: "Репутация восстановлена.",
+      reputation_damaged: "Репутация снижена."
+    }),
+    genX: Object.freeze({
+      not_enough_money: "Денег не хватает.",
+      not_enough_stars: "Репутации не хватает.",
+      purchase_success: "Куплено. Деньги ушли.",
+      sale_success: "Продажа готова.",
+      reward_received: "Награда получена.",
+      penalty_received: "Штраф применён.",
+      generic_error: "Ошибка.",
+      generic_success: "Готово.",
+      money_received: "Деньги получены.",
+      money_spent: "Деньги списаны.",
+      money_changed_positive: "+{X} в карман.",
+      money_changed_negative: "−{X}. Ну бывает.",
+      poverty_state: "Денег мало.",
+      rich_state: "Денег достаточно.",
+      bankrupt_state: "Денег нет.",
+      income_event: "Доход получен.",
+      expense_event: "Расход учтён.",
+      economy_neutral: "Баланс без изменений.",
+      reputation_increased: "Репутация +{X}. Нормально.",
+      reputation_decreased: "Репутация −{X}. Облом.",
+      reputation_unchanged: "Репутация без изменений.",
+      respect_gained: "Тебя зауважали.",
+      respect_lost: "Уважение снизилось.",
+      disrespect_event: "Отношение ухудшилось.",
+      reputation_high: "Репутация высокая.",
+      reputation_low: "Репутация низкая.",
+      reputation_recovered: "Репутацию выправили.",
+      reputation_damaged: "Репутация снижена."
+    }),
+    millennial: Object.freeze({
+      not_enough_money: "Не хватает денег.",
+      not_enough_stars: "Не хватает репутации.",
+      purchase_success: "Куплено. Финансовая ответственность снова отложена.",
+      sale_success: "Продажа готова.",
+      reward_received: "Награда получена.",
+      penalty_received: "Штраф применён.",
+      generic_error: "Ошибка.",
+      generic_success: "Готово.",
+      money_received: "Деньги получены.",
+      money_spent: "Деньги списаны.",
+      money_changed_positive: "Баланс: +{X}. Наконец-то.",
+      money_changed_negative: "Баланс: −{X}. Бюджет снова страдает.",
+      poverty_state: "Денег мало.",
+      rich_state: "Денег достаточно.",
+      bankrupt_state: "Денег нет.",
+      income_event: "Доход получен.",
+      expense_event: "Расход учтён.",
+      economy_neutral: "Баланс без изменений.",
+      reputation_increased: "Репутация +{X}. Карма пошла вверх.",
+      reputation_decreased: "Репутация −{X}. Интернет помнит всё.",
+      reputation_unchanged: "Репутация без изменений.",
+      respect_gained: "Уважение выросло. Карма плюс.",
+      respect_lost: "Уважение снизилось.",
+      disrespect_event: "Отношение ухудшилось.",
+      reputation_high: "Репутация высокая.",
+      reputation_low: "Репутация низкая.",
+      reputation_recovered: "Репутация восстановилась. Цифровой след немного простил.",
+      reputation_damaged: "Репутация снижена."
+    }),
+    zoomer: Object.freeze({
+      not_enough_money: "Кошелёк пуст 💀",
+      not_enough_stars: "Репы не хватает.",
+      purchase_success: "Забрали. −💰.",
+      sale_success: "Продажа готова.",
+      reward_received: "Награда получена.",
+      penalty_received: "Штраф применён.",
+      generic_error: "Ошибка.",
+      generic_success: "Готово.",
+      money_received: "Деньги получены.",
+      money_spent: "Деньги списаны.",
+      money_changed_positive: "+{X} к банку 💸",
+      money_changed_negative: "−{X} 💀",
+      poverty_state: "Денег мало.",
+      rich_state: "Денег достаточно.",
+      bankrupt_state: "Денег нет.",
+      income_event: "Доход получен.",
+      expense_event: "Расход учтён.",
+      economy_neutral: "Баланс без изменений.",
+      reputation_increased: "Репа +{X} 📈",
+      reputation_decreased: "Репа −{X} 💀",
+      reputation_unchanged: "Репутация без изменений.",
+      respect_gained: "Респект +.",
+      respect_lost: "Уважение снизилось.",
+      disrespect_event: "Отношение ухудшилось.",
+      reputation_high: "Репутация высокая.",
+      reputation_low: "Репутация низкая.",
+      reputation_recovered: "Репа отхилилась.",
       reputation_damaged: "Репутация снизилась."
     }),
     alpha: Object.freeze({
-      not_enough_money: "Нет денег.",
-      not_enough_stars: "Нет репутации.",
-      purchase_success: "Куплено.",
+      not_enough_money: "0 денег 💀",
+      not_enough_stars: "⭐ мало",
+      purchase_success: "куплено / −💰",
       sale_success: "Продано.",
       reward_received: "Награда.",
       penalty_received: "Штраф.",
@@ -227,23 +463,23 @@ window.Game = window.Game || {};
       generic_success: "Готово.",
       money_received: "Деньги получены.",
       money_spent: "Деньги списаны.",
-      money_changed_positive: "Баланс вырос.",
-      money_changed_negative: "Баланс снизился.",
+      money_changed_positive: "+{X}💰 W",
+      money_changed_negative: "−{X}💰 L",
       poverty_state: "Мало денег.",
       rich_state: "Денег хватает.",
       bankrupt_state: "Нет денег.",
       income_event: "Доход.",
       expense_event: "Расход.",
       economy_neutral: "Без изменений.",
-      reputation_increased: "Репутация выросла.",
-      reputation_decreased: "Репутация снизилась.",
+      reputation_increased: "+{X}⭐ · аура ↑",
+      reputation_decreased: "−{X}⭐ aura−",
       reputation_unchanged: "Без изменений.",
-      respect_gained: "Уважение выросло.",
+      respect_gained: "респект ↑",
       respect_lost: "Уважение снизилось.",
       disrespect_event: "Отношение хуже.",
       reputation_high: "Репутация высокая.",
       reputation_low: "Репутация низкая.",
-      reputation_recovered: "Репутация восстановлена.",
+      reputation_recovered: "репутация вернулась",
       reputation_damaged: "Репутация снижена."
     })
   });
@@ -286,13 +522,44 @@ window.Game = window.Game || {};
   });
 
   const SYSTEM_ROUTE_OVERRIDES = Object.freeze({
+    boomer: Object.freeze({
+      "errors.insufficientPoints": "Недостаточно монет.",
+      "errors.pointsLowBattle": "Недостаточно монет.",
+      "warnings.escapeNeedsPoints": "Недостаточно монет.",
+      "notifications.escapePaid": "Списана 1 монета.",
+      "notifications.escapeVoteCost": "Списано {escapeCost}.",
+      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}.",
+      "systemEvents.joined": "{name} появился на площади.",
+      "systemEvents.moved": "Вы перешли в локацию: {location}.",
+      "systemEvents.battleChallenge": "{attackerName} [⚡{attackerInf}] бросил вызов.",
+      "systemEvents.npcBattleStart": "{a} бросил вызов {b}.",
+      "systemEvents.unlockBlack": "Открыты чёрные аргументы."
+    }),
+    genX: Object.freeze({
+      "errors.insufficientPoints": "Денег не хватает.",
+      "errors.pointsLowBattle": "Денег не хватает.",
+      "warnings.escapeNeedsPoints": "Денег не хватает.",
+      "notifications.escapePaid": "−1 из кармана.",
+      "notifications.escapeVoteCost": "−{escapeCost} из кармана.",
+      "notifications.trainingSent": "Аргумент: {teacher} → {student}.",
+      "systemEvents.joined": "{name} пришёл на площадь.",
+      "systemEvents.moved": "Перешёл: {location}.",
+      "systemEvents.battleChallenge": "{attackerName} [⚡{attackerInf}] полез в спор.",
+      "systemEvents.npcBattleStart": "{a} вызвал {b}.",
+      "systemEvents.unlockBlack": "Чёрный уровень открыт."
+    }),
     millennial: Object.freeze({
       "errors.insufficientPoints": "Недостаточно денег.",
       "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
       "warnings.escapeNeedsPoints": "Не хватает денег, чтобы уйти.",
       "notifications.escapePaid": "Уход: −1.",
       "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
-      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
+      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}.",
+      "systemEvents.joined": "{name} появился на площади. Новый участник треда.",
+      "systemEvents.moved": "Переход: {location}. Новая вкладка мира открыта.",
+      "systemEvents.battleChallenge": "{attackerName} [⚡{attackerInf}] бросил вызов. Ну всё, начался тред.",
+      "systemEvents.npcBattleStart": "{a} вызывает {b}. NPC тоже решили выяснить отношения.",
+      "systemEvents.unlockBlack": "Чёрные аргументы открыты. Финальный босс риторики найден."
     }),
     zoomer: Object.freeze({
       "errors.insufficientPoints": "Не хватает денег.",
@@ -300,7 +567,12 @@ window.Game = window.Game || {};
       "warnings.escapeNeedsPoints": "Не хватает денег.",
       "notifications.escapePaid": "Уход: −1.",
       "notifications.escapeVoteCost": "Уход: −{escapeCost}.",
-      "notifications.trainingSent": "Аргумент: {teacher} → {student}."
+      "notifications.trainingSent": "Аргумент: {teacher} → {student}.",
+      "systemEvents.joined": "{name} залетел на площадь.",
+      "systemEvents.moved": "Мув → {location}.",
+      "systemEvents.battleChallenge": "{attackerName} [⚡{attackerInf}] залетел в баттл.",
+      "systemEvents.npcBattleStart": "{a} vs {b}. го.",
+      "systemEvents.unlockBlack": "⚫ аргументы открыты. имба."
     }),
     alpha: Object.freeze({
       "errors.insufficientPoints": "Нет денег.",
@@ -308,15 +580,12 @@ window.Game = window.Game || {};
       "warnings.escapeNeedsPoints": "Нет денег.",
       "notifications.escapePaid": "Уход −1.",
       "notifications.escapeVoteCost": "Уход −{escapeCost}.",
-      "notifications.trainingSent": "{teacher} → {student}: аргумент."
-    }),
-    boomer: Object.freeze({
-      "errors.insufficientPoints": "Недостаточно денег.",
-      "errors.pointsLowBattle": "Недостаточно денег для конфликта.",
-      "warnings.escapeNeedsPoints": "Недостаточно денег, чтобы выйти.",
-      "notifications.escapePaid": "Выход: −1.",
-      "notifications.escapeVoteCost": "Выход: −{escapeCost}.",
-      "notifications.trainingSent": "Аргумент передан: {teacher} → {student}."
+      "notifications.trainingSent": "{teacher} → {student}: аргумент.",
+      "systemEvents.joined": "{name} в игре.",
+      "systemEvents.moved": "→ {location}",
+      "systemEvents.battleChallenge": "{attackerName} ⚡{attackerInf}: 1v1",
+      "systemEvents.npcBattleStart": "{a} vs {b} · го",
+      "systemEvents.unlockBlack": "⚫ макс ✓"
     })
   });
 
@@ -324,8 +593,18 @@ window.Game = window.Game || {};
     const raw = typeof Data.getUiProfile === "function" ? Data.getUiProfile() : Data.UI_PROFILE;
     const normalized = typeof Data.normalizeUiProfile === "function"
       ? Data.normalizeUiProfile(raw)
-      : String(raw || "").trim().toLowerCase();
-    return PROFILE_KEYS.includes(normalized) ? normalized : "millennial";
+      : String(raw || "").trim();
+    if (normalized === "genX") return normalized;
+    const key = String(normalized || "").trim().toLowerCase();
+    if (key === "genx") return "genX";
+    return PROFILE_KEYS.includes(key) ? key : "millennial";
+  }
+
+  function normalizeProfileKey(profile) {
+    const raw = String(profile || "").trim();
+    if (raw === "genX" || raw.toLowerCase() === "genx") return "genX";
+    const key = raw.toLowerCase();
+    return PROFILE_KEYS.includes(key) ? key : "millennial";
   }
 
   function renderSimpleTemplate(template, ctx) {
@@ -338,21 +617,36 @@ window.Game = window.Game || {};
   function patchProfileDictionaries() {
     const texts = Data.TEXTS || (Data.TEXTS = {});
     const millennialBase = texts.millennial || texts.genz || {};
-    const zoomerBase = texts.zoomer || texts.alpha || millennialBase;
-    const alphaBase = texts.alpha || zoomerBase;
     const boomerBase = texts.boomer || millennialBase;
+    const genXBase = texts.genX || texts.genx || millennialBase;
+    const zoomerBase = texts.zoomer || millennialBase;
+    const alphaBase = texts.alpha || millennialBase;
 
+    texts.boomer = Object.freeze({ ...boomerBase, ...TEXT_OVERRIDES.boomer });
+    texts.genX = Object.freeze({ ...genXBase, ...TEXT_OVERRIDES.genX });
     texts.millennial = Object.freeze({ ...millennialBase, ...TEXT_OVERRIDES.millennial });
     texts.default = texts.millennial;
     texts.zoomer = Object.freeze({ ...zoomerBase, ...TEXT_OVERRIDES.zoomer });
     texts.alpha = Object.freeze({ ...alphaBase, ...TEXT_OVERRIDES.alpha });
-    texts.boomer = Object.freeze({ ...boomerBase, ...TEXT_OVERRIDES.boomer });
 
     const starts = Data.START_SCREEN_PROFILE_TEXTS || {};
-    const z = starts.zoomer || starts.millennial || {};
+    const startBase = starts.millennial || {};
+    const startFor = (profile) => Object.freeze({
+      ...startBase,
+      ...(starts[profile] || {}),
+      ...START_PROFILE_OVERRIDES[profile]
+    });
     Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
       ...starts,
-      alpha: Object.freeze({ ...z, ...START_ALPHA_OVERRIDES })
+      boomer: startFor("boomer"),
+      genX: Object.freeze({
+        ...startBase,
+        ...(starts.genX || starts.genx || {}),
+        ...START_PROFILE_OVERRIDES.genX
+      }),
+      millennial: startFor("millennial"),
+      zoomer: startFor("zoomer"),
+      alpha: startFor("alpha")
     });
   }
 
@@ -499,32 +793,53 @@ window.Game = window.Game || {};
   function formatDelta(profile, kind, delta) {
     const value = Number(delta || 0) | 0;
     if (!value) return "";
-    const sign = value > 0 ? "+" : "−";
     const abs = Math.abs(value);
-    if (profile === "boomer") {
-      if (kind === "points") return value > 0 ? `Баланс увеличился на ${abs}.` : `Баланс уменьшился на ${abs}.`;
-      if (kind === "rep") return value > 0 ? `Репутация выросла на ${abs}.` : `Репутация снизилась на ${abs}.`;
-      if (kind === "influence") return value > 0 ? `Влияние выросло на ${abs}.` : `Влияние снизилось на ${abs}.`;
-      return value > 0 ? `Побед стало больше на ${abs}.` : `Побед стало меньше на ${abs}.`;
-    }
-    if (profile === "zoomer") {
-      const noun = kind === "points" ? "к балансу" : (kind === "rep" ? "к репутации" : (kind === "influence" ? "к влиянию" : "к победам"));
-      return `${sign}${abs} ${noun}`;
-    }
-    if (profile === "alpha") {
-      const noun = kind === "points" ? "Деньги" : (kind === "rep" ? "Репутация" : (kind === "influence" ? "Влияние" : "Победы"));
-      return `${noun} ${sign}${abs}`;
-    }
-    const noun = kind === "points" ? "Баланс" : (kind === "rep" ? "Репутация" : (kind === "influence" ? "Влияние" : "Победы"));
-    return `${noun}: ${sign}${abs}`;
+    const templates = Object.freeze({
+      boomer: Object.freeze({
+        points: value > 0 ? "Баланс пополнен на {X}." : "Списано {X}.",
+        rep: value > 0 ? "Репутация выросла на {X}." : "Репутация снизилась на {X}.",
+        influence: value > 0 ? "Влияние увеличилось на {X}." : "Влияние снизилось на {X}.",
+        wins: value > 0 ? "Победа." : "Поражение."
+      }),
+      genX: Object.freeze({
+        points: value > 0 ? "+{X} в карман." : "−{X}. Ну бывает.",
+        rep: value > 0 ? "Репутация +{X}. Нормально." : "Репутация −{X}. Облом.",
+        influence: value > 0 ? "Влияние +{X}. Вес появился." : "Влияние −{X}.",
+        wins: value > 0 ? "Нормально разобрались." : "Вот это облом."
+      }),
+      millennial: Object.freeze({
+        points: value > 0 ? "Баланс: +{X}. Наконец-то." : "Баланс: −{X}. Бюджет снова страдает.",
+        rep: value > 0 ? "Репутация +{X}. Карма пошла вверх." : "Репутация −{X}. Интернет помнит всё.",
+        influence: value > 0 ? "Влияние +{X}. Кажется, нас услышали." : "Влияние −{X}.",
+        wins: value > 0 ? "Победа. Можно выдохнуть." : "Ну всё, приехали."
+      }),
+      zoomer: Object.freeze({
+        points: value > 0 ? "+{X} к банку 💸" : "−{X} 💀",
+        rep: value > 0 ? "Репа +{X} 📈" : "Репа −{X} 💀",
+        influence: value > 0 ? "Влияние +{X}. Имба." : "Влияние −{X}.",
+        wins: value > 0 ? "W. Разнесли." : "Нас вынесли 💀"
+      }),
+      alpha: Object.freeze({
+        points: value > 0 ? "+{X}💰 W" : "−{X}💰 L",
+        rep: value > 0 ? "+{X}⭐ · аура ↑" : "−{X}⭐ aura−",
+        influence: value > 0 ? "+{X}⚡ W" : "−{X}⚡ L",
+        wins: value > 0 ? "W" : "L 💀"
+      })
+    });
+    const bucket = templates[profile] || templates.millennial;
+    return renderSimpleTemplate(bucket[kind] || "", { X: abs });
   }
 
   function targetRepMessage(profile, amount) {
     const n = Math.abs(Number(amount || 1) | 0) || 1;
-    if (profile === "boomer") return `У цели репутация выросла на ${n}.`;
-    if (profile === "zoomer") return `Цели +${n} к репутации`;
-    if (profile === "alpha") return `Цель: репутация +${n}`;
-    return `Репутация цели: +${n}`;
+    if (n === 1 && COMBINED_RESPECT_COPY[profile]) {
+      return COMBINED_RESPECT_COPY[profile].replace(/^(Списана 1 монета\.|−1 из кармана\.|Баланс −1\.|−1💰 тебе ·|−1💰 \/)\s*/, "").trim();
+    }
+    if (profile === "boomer") return `Репутация цели выросла на ${n}.`;
+    if (profile === "genX") return `Цели +${n} к репутации.`;
+    if (profile === "zoomer") return `+${n}⭐ цели.`;
+    if (profile === "alpha") return `цели +${n}⭐`;
+    return `Цели +${n} к репутации.`;
   }
 
   function renderBurstText(profile, burst) {
@@ -747,7 +1062,7 @@ window.Game = window.Game || {};
     const battlesHeader = document.querySelector("#battlesBlock .battleTitleText");
     if (battlesHeader && battlesHeader.textContent !== copy.battlesHeader) battlesHeader.textContent = copy.battlesHeader;
     const eventsHeader = document.querySelector("#eventsBlock .headerTitleText");
-    const eventsText = typeof Data.t === "function" ? Data.t("events_header") : "События";
+    const eventsText = copy.eventsHeader || (typeof Data.t === "function" ? Data.t("events_header") : "События");
     if (eventsHeader && eventsHeader.textContent !== eventsText) eventsHeader.textContent = eventsText;
 
     document.querySelectorAll("#teachPanel .badge").forEach((el) => {
@@ -850,6 +1165,13 @@ window.Game = window.Game || {};
     }, 250);
   }
 
+  function visibleRoleLabel(role, profile) {
+    const row = NPC_VISIBLE_ROLE_LABELS[String(role || "").trim().toUpperCase()];
+    if (!row) return String(role || "");
+    const key = normalizeProfileKey(profile || activeProfile());
+    return row[key] || row.millennial || String(role || "");
+  }
+
   patchProfileDictionaries();
   installSystemPresentationRouting();
   installUnifiedToastOwner();
@@ -861,11 +1183,11 @@ window.Game = window.Game || {};
   Game.__DEV.__stage6FinalPresentationV4Installed = true;
   Game.__DEV.__stage6FinalPresentationV4Observer = observer;
   Game.__DEV.__stage6FinalPresentationV4ProfileWatcher = profileWatcher;
+  Game.__DEV.__stage6Step9NpcVisibleRoleLabels = NPC_VISIBLE_ROLE_LABELS;
+  Game.__DEV.stage6Step9VisibleRoleLabel = visibleRoleLabel;
 
   Game.__DEV.previewStage6FinalProfileV4 = function previewStage6FinalProfileV4(profile) {
-    const key = PROFILE_KEYS.includes(String(profile || "").trim().toLowerCase())
-      ? String(profile).trim().toLowerCase()
-      : "millennial";
+    const key = normalizeProfileKey(profile);
     const layer = Data.TEXTS && Data.TEXTS[key] ? Data.TEXTS[key] : {};
     return {
       profile: key,
@@ -881,14 +1203,13 @@ window.Game = window.Game || {};
         teach_sent_chat: layer.teach_sent_chat,
         invite_open_hint: layer.invite_open_hint,
         invite_invalid: layer.invite_invalid
-      }
+      },
+      npcRoleLabels: Object.fromEntries(Object.keys(NPC_VISIBLE_ROLE_LABELS).map((role) => [role, visibleRoleLabel(role, key)]))
     };
   };
 
   Game.__DEV.previewStage6UnifiedToastV4 = function previewStage6UnifiedToastV4(profile, deltas, messages) {
-    const key = PROFILE_KEYS.includes(String(profile || "").trim().toLowerCase())
-      ? String(profile).trim().toLowerCase()
-      : "millennial";
+    const key = normalizeProfileKey(profile);
     return renderBurstText(key, {
       deltas: { ...(deltas || {}) },
       messages: Array.isArray(messages) ? messages.slice() : []
@@ -896,33 +1217,33 @@ window.Game = window.Game || {};
   };
 
   Game.__DEV.smokeStage6FinalVisualToneRepairOnce = function smokeStage6FinalVisualToneRepairOnce() {
-    const alpha = Data.TEXTS && Data.TEXTS.alpha ? Data.TEXTS.alpha : {};
-    const alphaFrozenCopyPreserved = Object.keys(ALPHA_FROZEN_EXPECTED).every((key) => (
-      String(alpha[key] == null ? "" : alpha[key]) === ALPHA_FROZEN_EXPECTED[key]
-    ));
     const previews = Object.fromEntries(PROFILE_KEYS.map((profile) => [profile, Game.__DEV.previewStage6FinalProfileV4(profile)]));
-    const visibleCombined = JSON.stringify(previews);
-    const zText = JSON.stringify(previews.zoomer || {}).toLowerCase();
-    const mText = JSON.stringify(previews.millennial || {}).toLowerCase();
-    const bText = JSON.stringify(previews.boomer || {}).toLowerCase();
-    const aText = JSON.stringify(previews.alpha || {}).toLowerCase();
+    const startProfiles = Data.START_SCREEN_PROFILE_TEXTS || {};
+    const roleProfilesComplete = Object.keys(NPC_VISIBLE_ROLE_LABELS).every((role) => (
+      PROFILE_KEYS.every((profile) => !!visibleRoleLabel(role, profile))
+    ));
     const checks = {
       installed: Game.__DEV.__stage6FinalPresentationV4Installed === true,
-      alphaFrozenCopyPreserved,
-      fourDistinctProfiles: new Set(PROFILE_KEYS.map((profile) => JSON.stringify(previews[profile]))).size === 4,
-      noVisibleVbrosLeak: !/(вброс|ответка)/i.test(visibleCombined),
-      millennialNoVbros: !/(вброс|ответка)/i.test(mText),
-      boomerNoVbros: !/(вброс|ответка)/i.test(bText),
-      zoomerNoFakeSlang: !/(вброс|ответка|заслать|отвали|свалить|репа|лут|движуха|мем)/i.test(zText),
-      alphaNoCounterargumentOrCrypticAttack: !/(контраргумент|атк|вброс|ответка)/i.test(aText),
-      millennialEscapeCurrencyClear: /💰/.test(String(Data.TEXTS.millennial && Data.TEXTS.millennial.escape_button_label || "")),
+      fiveDistinctProfiles: new Set(PROFILE_KEYS.map((profile) => JSON.stringify(previews[profile]))).size === 5,
+      genXFirstClass: !!(Data.TEXTS && Data.TEXTS.genX) && normalizeProfileKey("genx") === "genX",
+      genXDmHeaderFrozen: previews.genX && previews.genX.controls.dmHeader === "Личка",
+      genXBattlesFrozen: previews.genX && previews.genX.controls.battlesHeader === "Стычки",
+      alphaExplicitAttackAction: previews.alpha && previews.alpha.text.battle_action_attack === "Ход",
+      alphaNoZoomerEventsHeader: previews.alpha && previews.alpha.text.events_header === "Ивенты",
+      startGenXExplicit: startProfiles.genX && startProfiles.genX.birth_digits_label === "Две последние цифры года рождения",
+      startAlphaExplicit: startProfiles.alpha && startProfiles.alpha.async_value === "асинхронная игра · играй когда хочешь",
+      frozenCostPlaceholdersPreserved: Data.TEXTS.genX && Data.TEXTS.genX.argument_reroll_action === "Другие аргументы - {cost} 💰",
+      frozenRepPlaceholderPreserved: Data.TEXTS.alpha && Data.TEXTS.alpha.report_false_repeat === "опять мимо 💀 −{rep}⭐",
+      roleProfilesComplete,
+      npcGenXRoleLabels: visibleRoleLabel("COP", "genX") === "Мент" && visibleRoleLabel("MAFIA", "genX") === "Братва",
       unifiedToastShowOwned: !!(UI.showStatToast && UI.showStatToast.__stage6UnifiedToastV4),
       unifiedToastDeltaOwned: !!(UI.emitStatDelta && UI.emitStatDelta.__stage6UnifiedToastV4),
       noLegacyDeltaNodesAtInstall: !document.querySelector('.statToast--delta'),
-      combinedMillennialPreview: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, ["Репутация цели: +1"]) === "Баланс: −1 · Репутация: +1 · Репутация цели: +1",
-      combinedZoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []) === "−1 к балансу · +1 к репутации",
-      combinedAlphaPreview: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []) === "Деньги −1 / Репутация +1",
-      combinedBoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []) === "Баланс уменьшился на 1. Репутация выросла на 1.",
+      combinedMillennialPreview: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, ["Цели +1 к репутации."]) === "Баланс: −1. Бюджет снова страдает. · Репутация +1. Карма пошла вверх. · Цели +1 к репутации.",
+      combinedGenXPreview: Game.__DEV.previewStage6UnifiedToastV4("genX", { points: -1, rep: 1 }, []) === "−1. Ну бывает. · Репутация +1. Нормально.",
+      combinedZoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []) === "−1 💀 · Репа +1 📈",
+      combinedAlphaPreview: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []) === "−1💰 L / +1⭐ · аура ↑",
+      combinedBoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []) === "Списано 1. Репутация выросла на 1.",
       targetRepNotParsedAsPlayerDelta: parseDeltaCandidate("rep", "Цель получила +1 ⭐.") === null,
       profileChangeWrapped: !!(Data.setUiProfile && Data.setUiProfile.__stage6FinalPresentationV4Wrapped),
       systemPresentationWrapped: !!(Game.System && Game.System.__stage6FinalPresentationV4Wrapped),
@@ -939,19 +1260,23 @@ window.Game = window.Game || {};
       failures,
       previews,
       toastPreviews: {
+        boomer: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []),
+        genX: Game.__DEV.previewStage6UnifiedToastV4("genX", { points: -1, rep: 1 }, []),
         millennial: Game.__DEV.previewStage6UnifiedToastV4("millennial", { points: -1, rep: 1 }, []),
         zoomer: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []),
-        alpha: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []),
-        boomer: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, [])
+        alpha: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, [])
       },
       targetRepPreviews: {
+        boomer: targetRepMessage("boomer", 1),
+        genX: targetRepMessage("genX", 1),
         millennial: targetRepMessage("millennial", 1),
         zoomer: targetRepMessage("zoomer", 1),
-        alpha: targetRepMessage("alpha", 1),
-        boomer: targetRepMessage("boomer", 1)
+        alpha: targetRepMessage("alpha", 1)
       }
     };
   };
+
+  Game.__DEV.smokeStage6Step9FiveProfileRuntimeOnce = Game.__DEV.smokeStage6FinalVisualToneRepairOnce;
 
   console.warn("STAGE6_FINAL_PRESENTATION_V4_READY", {
     buildTag: BUILD_TAG,

@@ -304,10 +304,15 @@ Each wave must be isolated, reviewable and serialized around shared runtime/dev-
 
 ## 19. Current gate
 
-`CODEX_IMPLEMENTATION_AUTHORIZED = FALSE`
+`CODEX_IMPLEMENTATION_AUTHORIZED = TRUE`
 
-Reason:
+Current authority:
 
-`WAITING_FOR_USER_REVIEW -> FROZEN_JSON_SHA256_NOT_CREATED`
+- Step 5 `[x] USER_REVIEW`.
+- Step 6 `[x] FREEZE + SHA256`.
+- Executable selector state: `IMPLEMENTATION_ALLOWED`.
+- Authorized thread: `019f8ffa-074f-7003-bd47-dd02bc7bb3be`.
+- Frozen content commit: `e13419c38b9bf23fd601923a6d4a3a500012c8eb`.
+- Frozen JSON SHA-256: `6aa42c46c4bc594d234894dd92f57fd31292cce31953dab78343b653cfbdd45f`.
 
-NEXT_ACTION: `USER_REVIEW_STEP9_CONSOLIDATED_COPY_PACKAGE`, then freeze exact copy/hash before any Codex implementation.
+NEXT_ACTION: `CODEX_IMPLEMENTATION_EXECUTING_STEP7_STATIC_WAVES_1_TO_5`.

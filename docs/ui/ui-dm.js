@@ -1083,6 +1083,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       p2p_disabled: dmUnavailableText()
     };
     const appendP2PControls = () => {
+      const p2pEnabled = Game.Rules && typeof Game.Rules.isP2PTransfersEnabled === "function"
+        && Game.Rules.isP2PTransfersEnabled()
+        && typeof Game.Rules.isP2PPlayerToPlayerEnabled === "function"
+        && Game.Rules.isP2PPlayerToPlayerEnabled();
+      if (!p2pEnabled) return;
       if (Game.Rules && typeof Game.Rules.isP2PBacklogActive === "function"
         && Game.Rules.isP2PBacklogActive()
         && UI && typeof UI.createP2PBacklogBlock === "function") {

@@ -520,7 +520,9 @@ window.Game = window.Game || {};
     const profile = data && typeof data.getUiProfile === "function"
       ? String(data.getUiProfile() || "millennial").trim().toLowerCase()
       : String((data && data.UI_PROFILE) || "millennial").trim().toLowerCase();
-    if (profile === "millennial" || profile === "zoomer" || profile === "boomer" || profile === "alpha") return profile;
+    if (profile === "millennial" || profile === "zoomer" || profile === "boomer" || profile === "genx" || profile === "alpha") {
+      return profile === "genx" ? "genX" : profile;
+    }
     return "millennial";
   }
 
