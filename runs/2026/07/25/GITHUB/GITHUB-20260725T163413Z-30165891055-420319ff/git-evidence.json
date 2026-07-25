@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-step9-five-profile-foundation-20260723",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-step9-five-profile-foundation-20260723\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "8c885c3f4af51ac00fa917e506cd58eae83b2d53\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8c885c3f4af51ac00fa917e506cd58eae83b2d53\n# branch.head chatgpt/stage6-step9-five-profile-foundation-20260723\n# branch.upstream origin/chatgpt/stage6-step9-five-profile-foundation-20260723\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "8c885c3f (HEAD -> chatgpt/stage6-step9-five-profile-foundation-20260723, origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Fix UI boot forbidden state access\n0576e9a1 (origin/main) Restore security repair scope\nb97cebe5 Fix security audit protected-surface inspection\nd3941833 Fix Step 9 initial profile sync loop\n643d50e9 Repair Step 9 frozen runtime bindings\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8c885c3f4af51ac00fa917e506cd58eae83b2d53\nbranch refs/heads/chatgpt/stage6-step9-five-profile-foundation-20260723\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-25T16:34:13Z",
+      "stderr": "",
+      "stdout": "0576e9a11422a1c0e4692424d3a7d1e07a3be5dc\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8c885c3f4af51ac00fa917e506cd58eae83b2d53",
+  "observedAtUtc": "2026-07-25T16:34:13Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
