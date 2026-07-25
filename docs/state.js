@@ -1901,6 +1901,16 @@ window.Game = window.Game || {};
   function auditSecurityCaller(stack){
     if (!stack) return "unknown";
     const pieces = stack.split("|").map(x => x.trim()).filter(Boolean);
+    for (const piece of pieces) {
+      const normalized = piece.toLowerCase();
+      if (normalized.includes("capturesecuritystack")) continue;
+      if (normalized.includes("auditsecuritycaller")) continue;
+      if (normalized.includes("emitforbiddenaccess")) continue;
+      if (normalized.includes("object.get")) continue;
+      if (normalized.includes(" get@")) continue;
+      if (normalized.startsWith("get@")) continue;
+      return piece;
+    }
     return pieces.length ? pieces[0] : "unknown";
   }
 
@@ -1949,11 +1959,11 @@ window.Game = window.Game || {};
   function isProtectedSurface(target){
     if (!target) return false;
     if (target === Game) return true;
-    const stateSurface = Game && Game.State;
+    const stateSurface = Game && Game.__S;
     if (stateSurface && target === stateSurface) return true;
-    const stateApiSurface = Game && Game.StateAPI;
+    const stateApiSurface = Game && Game.__A;
     if (stateApiSurface && target === stateApiSurface) return true;
-    const debugSurface = isDevFlag() ? (Game && Game.Debug) : null;
+    const debugSurface = Game && Game.__D;
     if (debugSurface && target === debugSurface) return true;
     const coreSurface = Game && Game._ConflictCore;
     if (coreSurface && target === coreSurface) return true;
@@ -1970,15 +1980,12 @@ window.Game = window.Game || {};
   function describeSurface(target){
     if (!target) return "unknown";
     if (target === Game) return "Game";
-    if (target === (Game && Game.State)) return "Game.State";
-    if (target === (Game && Game.StateAPI)) return "Game.StateAPI";
-    const debugSurface = isDevFlag() ? (Game && Game.Debug) : null;
+    if (target === (Game && Game.__S)) return "Game.State";
+    if (target === (Game && Game.__A)) return "Game.StateAPI";
+    const debugSurface = Game && Game.__D;
     if (debugSurface && target === debugSurface) return "Game.Debug";
     if (target === (Game && Game._ConflictCore)) return "Game._ConflictCore";
     if (target === (Game && Game.ConflictCore)) return "Game.ConflictCore";
-    if (target === (Game && Game.__S)) return "Game.__S";
-    if (target === (Game && Game.__A)) return "Game.__A";
-    if (target === (Game && Game.__D)) return "Game.__D";
     return "protected";
   }
 
@@ -3226,12 +3233,12 @@ window.Game = window.Game || {};
       "С нулем в кармане бой неинтересен.",
       "Не сейчас. Нужны очки.",
       "Бой? С такими ресурсами?",
-      "Без ставки не пойду.",
+      "Я не благотворительность.",
       "Сейчас не хочу.",
       "Будут очки — будет ставка.",
-      "Пустой кошелёк. Боя не будет.",
+      "Пустой кошелек - пустой разговор.",
       "Ты серьезно?",
-      "Позже, когда будут очки.",
+      "Позже.",
     ];
 
     const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs, { devSmoke: !!payload.devSmoke });
@@ -3703,8 +3710,8 @@ window.Game = window.Game || {};
       if (!pool.length) return;
       const npc = pool[Math.floor(Math.random() * pool.length)];
       if (!npc || !npc.id) return;
-      let line = "за это спрошу";
-      if (roleKey === "bandit") line = "долг вернём";
+      let line = "ты за это ответишь";
+      if (roleKey === "bandit") line = "долг вернем, не забудь";
       if (Game.NPC && typeof Game.NPC.generateAggroDMLine === "function") {
         const fallback = Game.NPC.generateAggroDMLine(npc);
         if (!line && fallback) line = fallback;
@@ -4005,7 +4012,7 @@ window.Game = window.Game || {};
     try {
       const victimized = checkIfVictimized(targetId);
       if (victimized) {
-        copDmTo(copId, "Принял. Уже вмешался.");
+        copDmTo(copId, "Сообщение принято. Я вмешался.");
         const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
         const returnAmount = victimized.stolenAmount || 0;
         if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
