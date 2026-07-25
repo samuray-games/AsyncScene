@@ -311,6 +311,12 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   });
   const UI_PROFILE_RESERVED_FUTURE_IDS = Object.freeze(UI_PROFILE_REGISTRY.future.slice());
   const UI_PROFILE_RESERVED_FUTURE_ID_SET = new Set(UI_PROFILE_RESERVED_FUTURE_IDS.map((value) => String(value).trim().toLowerCase()));
+  const canonicalizeUiProfileId = (profile) => {
+    const lowered = String(profile == null ? "" : profile).trim().toLowerCase();
+    if (!lowered) return "";
+    const supported = UI_PROFILE_REGISTRY.supported.find((value) => String(value).toLowerCase() === lowered);
+    return supported || lowered;
+  };
   const UI_PROFILE_FUTURE_HOOK = Object.freeze({
     registry: UI_PROFILE_REGISTRY,
     supportedIds: UI_PROFILE_REGISTRY.supported,
@@ -321,9 +327,9 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       return UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value);
     },
     resolve(profile) {
-      const value = String(profile == null ? "" : profile).trim().toLowerCase();
+      const value = canonicalizeUiProfileId(profile);
       if (!value) return "millennial";
-      if (UI_PROFILE_RESERVED_FUTURE_ID_SET.has(value)) return "millennial";
+      if (UI_PROFILE_RESERVED_FUTURE_ID_SET.has(String(value).toLowerCase())) return "millennial";
       if (UI_PROFILE_REGISTRY.supported.includes(value)) return value;
       return "millennial";
     },
