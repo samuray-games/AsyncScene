@@ -1201,9 +1201,9 @@ window.Game = window.Game || {};
   installSystemPresentationRouting();
   installUnifiedToastOwner();
   installProfileChangeHook();
+  syncVisibleProfileCopy();
   const observer = installScopedObserver();
   const profileWatcher = installProfileWatcher();
-  syncVisibleProfileCopy();
 
   Game.__DEV.__stage6FinalPresentationV4Installed = true;
   Game.__DEV.__stage6FinalPresentationV4Observer = observer;
