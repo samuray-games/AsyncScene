@@ -1,0 +1,522 @@
+{
+  "after": "643d50e959a8ff187b607f29f28c59737feeb82f",
+  "base_ref": "refs/heads/chatgpt/stage6-step9-five-profile-foundation-20260723",
+  "before": "7673f3487b0dd52c0c5cb2c7826f4e3fe5cc570e",
+  "commits": [
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "aa92a853b3d44426df5a6cb21aaedd711dbbb8c8",
+      "message": "Stage 6 Step 9: complete Russian cultural authenticity pass",
+      "timestamp": "2026-07-23T15:53:09+09:00",
+      "tree_id": "b10338b5a2803023fbfcacf556439277591072ff",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/aa92a853b3d44426df5a6cb21aaedd711dbbb8c8"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "7bb048255df25c616cb0e290c986f7a2f5c6ced0",
+      "message": "Stage 6 Step 9: start fresh current-main inventory preflight",
+      "timestamp": "2026-07-23T15:59:49+09:00",
+      "tree_id": "8642fe7b4eb0ba18f4ec307638bc056b70122fe0",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/7bb048255df25c616cb0e290c986f7a2f5c6ced0"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "f0604072913eac79615b9c70b3c966d918965aea",
+      "message": "Stage 6 Step 9: complete fresh current-main source-bound inventory",
+      "timestamp": "2026-07-23T16:31:45+09:00",
+      "tree_id": "9ee35d1d32e7b170e23a1656d2b2f33f952fd3fa",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/f0604072913eac79615b9c70b3c966d918965aea"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "970cf4a789c584b30d3f5476a63f4bc7f9edf638",
+      "message": "Stage 6 Step 9: add machine-readable fresh current-main inventory",
+      "timestamp": "2026-07-23T16:32:41+09:00",
+      "tree_id": "7a194111df91071363802bc483ea49cae827d983",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/970cf4a789c584b30d3f5476a63f4bc7f9edf638"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "b94b2662b83ab624df53f3a568759e1ec1d7b4e8",
+      "message": "Stage 6 Step 9: close source and structural inventory gaps",
+      "timestamp": "2026-07-23T16:34:31+09:00",
+      "tree_id": "c7b9c118029ed0a7e7a0101c23fd6858861d4ace",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/b94b2662b83ab624df53f3a568759e1ec1d7b4e8"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "6a4c97625a8c5599650d78524c6c0a64b54a1c64",
+      "message": "Stage 6 Step 9: prepare consolidated user review package",
+      "timestamp": "2026-07-23T16:36:03+09:00",
+      "tree_id": "1eb8c96d537a99b3e54b5fa87896e9fcbafd61eb",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/6a4c97625a8c5599650d78524c6c0a64b54a1c64"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "8aa6685078c5593c71540ced5364f01240520766",
+      "message": "Stage 6 Step 9: prepare freeze and implementation handoff",
+      "timestamp": "2026-07-23T16:37:27+09:00",
+      "tree_id": "dd7cd606b6e3a18eccf37270ad3326057f821bf5",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/8aa6685078c5593c71540ced5364f01240520766"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "7f994ee11524065f722783ba4620b3cb551ca866",
+      "message": "Stage 6 Step 9: align Codex contract with fresh inventory and gap closure",
+      "timestamp": "2026-07-23T16:38:39+09:00",
+      "tree_id": "6846dc94ae7e10cc3dcedfb30b02a3ea3b13d21b",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/7f994ee11524065f722783ba4620b3cb551ca866"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "c458e10600e89211520862c122c0d7b5cddb627f",
+      "message": "Stage 6 Step 9: update creative review index after inventory and gap closure",
+      "timestamp": "2026-07-23T16:39:20+09:00",
+      "tree_id": "59cc07424578b6ad35d109f1c88aa91522364074",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/c458e10600e89211520862c122c0d7b5cddb627f"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "b1f8efe341353dc3c3173be744d4b5d5fbc3fff1",
+      "message": "Stage 6 Step 9: add human-friendly user review sheet",
+      "timestamp": "2026-07-23T17:19:48+09:00",
+      "tree_id": "48000beb361db778c8d39665798813fa204510a3",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/b1f8efe341353dc3c3173be744d4b5d5fbc3fff1"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "5c2be5513ad1adc198c5165f765a4ebe505368fd",
+      "message": "Stage 6 Step 9: make human review sheet the user-facing gateway",
+      "timestamp": "2026-07-23T17:20:44+09:00",
+      "tree_id": "9a27fe2683f69a49ba58e39c15badea02443a987",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/5c2be5513ad1adc198c5165f765a4ebe505368fd"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "a6104bb7e2f6f6dba595bfb5aa4b88eb957df099",
+      "message": "Update Step 9 user review corrections",
+      "timestamp": "2026-07-23T21:34:10+09:00",
+      "tree_id": "18739a370417163ea198bc6d1585235aa1e9e4b2",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/a6104bb7e2f6f6dba595bfb5aa4b88eb957df099"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "36175117f83b45e2e6941542d72c483a367b5ba8",
+      "message": "Freeze Stage 6 Step 9 five-profile copy",
+      "timestamp": "2026-07-24T00:22:26+09:00",
+      "tree_id": "4ede03316124f36c3369f719d7a2d90a01587748",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/36175117f83b45e2e6941542d72c483a367b5ba8"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "1ff5f593393b07042ebbf08a96abbd961c77ebfb",
+      "message": "Repair Stage 9 frozen copy hash",
+      "timestamp": "2026-07-24T01:00:28+09:00",
+      "tree_id": "bdf3f2c8a8b17732f31dbfd347c84eb267479950",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/1ff5f593393b07042ebbf08a96abbd961c77ebfb"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "cba6825677cbd8563e87223a12211077e1a6e7b5",
+      "message": "Expand Step 9 frozen authority coverage",
+      "timestamp": "2026-07-24T01:20:29+09:00",
+      "tree_id": "5ded484e25243626bd0e8e9e8793f93231365c54",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/cba6825677cbd8563e87223a12211077e1a6e7b5"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "e5799511917350bb18f2e76100a59efcc2283a9d",
+      "message": "Sync Step 9 frozen head metadata",
+      "timestamp": "2026-07-24T01:22:46+09:00",
+      "tree_id": "a5bcb6074dbf79f49649d24a569939714cfe08f7",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/e5799511917350bb18f2e76100a59efcc2283a9d"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "e13419c38b9bf23fd601923a6d4a3a500012c8eb",
+      "message": "Fix Step 9 Gen X DM header authority",
+      "timestamp": "2026-07-24T01:39:34+09:00",
+      "tree_id": "ba12216c4d709586f347a4e78da28f629e7d3666",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/e13419c38b9bf23fd601923a6d4a3a500012c8eb"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "2141225927cf6587b1ada02a20a6030f5e9aefc0",
+      "message": "Close Step 9 frozen authority metadata",
+      "timestamp": "2026-07-24T02:23:35+09:00",
+      "tree_id": "d0454fc430cd3275b7493108cbfa59ea0f7d6e78",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/2141225927cf6587b1ada02a20a6030f5e9aefc0"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "dcebab9cf3d185e50e0ec3a9f04f64b1f87bd5d2",
+      "message": "Implement Step 9 five-profile runtime",
+      "timestamp": "2026-07-24T15:14:10+09:00",
+      "tree_id": "acad8822fcf8f92a079dc9aec6a8d5cc49d44c63",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/dcebab9cf3d185e50e0ec3a9f04f64b1f87bd5d2"
+    },
+    {
+      "author": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "committer": {
+        "email": "raykhalit@icloud.com",
+        "name": "samuray-games",
+        "username": "samuray-games"
+      },
+      "distinct": false,
+      "id": "643d50e959a8ff187b607f29f28c59737feeb82f",
+      "message": "Repair Step 9 frozen runtime bindings",
+      "timestamp": "2026-07-25T14:59:56+09:00",
+      "tree_id": "1a57420a4f8f75e6bd930086549da6eb51f2b623",
+      "url": "https://github.com/samuray-games/AsyncScene/commit/643d50e959a8ff187b607f29f28c59737feeb82f"
+    }
+  ],
+  "compare": "https://github.com/samuray-games/AsyncScene/compare/7673f3487b0d...643d50e959a8",
+  "created": false,
+  "deleted": false,
+  "forced": false,
+  "head_commit": {
+    "author": {
+      "email": "raykhalit@icloud.com",
+      "name": "samuray-games",
+      "username": "samuray-games"
+    },
+    "committer": {
+      "email": "raykhalit@icloud.com",
+      "name": "samuray-games",
+      "username": "samuray-games"
+    },
+    "distinct": false,
+    "id": "643d50e959a8ff187b607f29f28c59737feeb82f",
+    "message": "Repair Step 9 frozen runtime bindings",
+    "timestamp": "2026-07-25T14:59:56+09:00",
+    "tree_id": "1a57420a4f8f75e6bd930086549da6eb51f2b623",
+    "url": "https://github.com/samuray-games/AsyncScene/commit/643d50e959a8ff187b607f29f28c59737feeb82f"
+  },
+  "pusher": {
+    "email": "raykhalit@icloud.com",
+    "name": "samuray-games"
+  },
+  "ref": "refs/heads/main",
+  "repository": {
+    "allow_forking": true,
+    "archive_url": "https://api.github.com/repos/samuray-games/AsyncScene/{archive_format}{/ref}",
+    "archived": false,
+    "assignees_url": "https://api.github.com/repos/samuray-games/AsyncScene/assignees{/user}",
+    "blobs_url": "https://api.github.com/repos/samuray-games/AsyncScene/git/blobs{/sha}",
+    "branches_url": "https://api.github.com/repos/samuray-games/AsyncScene/branches{/branch}",
+    "clone_url": "https://github.com/samuray-games/AsyncScene.git",
+    "collaborators_url": "https://api.github.com/repos/samuray-games/AsyncScene/collaborators{/collaborator}",
+    "comments_url": "https://api.github.com/repos/samuray-games/AsyncScene/comments{/number}",
+    "commits_url": "https://api.github.com/repos/samuray-games/AsyncScene/commits{/sha}",
+    "compare_url": "https://api.github.com/repos/samuray-games/AsyncScene/compare/{base}...{head}",
+    "contents_url": "https://api.github.com/repos/samuray-games/AsyncScene/contents/{+path}",
+    "contributors_url": "https://api.github.com/repos/samuray-games/AsyncScene/contributors",
+    "created_at": 1768098272,
+    "default_branch": "main",
+    "deployments_url": "https://api.github.com/repos/samuray-games/AsyncScene/deployments",
+    "description": null,
+    "disabled": false,
+    "downloads_url": "https://api.github.com/repos/samuray-games/AsyncScene/downloads",
+    "events_url": "https://api.github.com/repos/samuray-games/AsyncScene/events",
+    "fork": false,
+    "forks": 0,
+    "forks_count": 0,
+    "forks_url": "https://api.github.com/repos/samuray-games/AsyncScene/forks",
+    "full_name": "samuray-games/AsyncScene",
+    "git_commits_url": "https://api.github.com/repos/samuray-games/AsyncScene/git/commits{/sha}",
+    "git_refs_url": "https://api.github.com/repos/samuray-games/AsyncScene/git/refs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/samuray-games/AsyncScene/git/tags{/sha}",
+    "git_url": "git://github.com/samuray-games/AsyncScene.git",
+    "has_discussions": false,
+    "has_downloads": true,
+    "has_issues": true,
+    "has_pages": true,
+    "has_projects": true,
+    "has_pull_requests": true,
+    "has_wiki": false,
+    "homepage": null,
+    "hooks_url": "https://api.github.com/repos/samuray-games/AsyncScene/hooks",
+    "html_url": "https://github.com/samuray-games/AsyncScene",
+    "id": 1131949485,
+    "is_template": false,
+    "issue_comment_url": "https://api.github.com/repos/samuray-games/AsyncScene/issues/comments{/number}",
+    "issue_events_url": "https://api.github.com/repos/samuray-games/AsyncScene/issues/events{/number}",
+    "issues_url": "https://api.github.com/repos/samuray-games/AsyncScene/issues{/number}",
+    "keys_url": "https://api.github.com/repos/samuray-games/AsyncScene/keys{/key_id}",
+    "labels_url": "https://api.github.com/repos/samuray-games/AsyncScene/labels{/name}",
+    "language": "JavaScript",
+    "languages_url": "https://api.github.com/repos/samuray-games/AsyncScene/languages",
+    "license": null,
+    "master_branch": "main",
+    "merges_url": "https://api.github.com/repos/samuray-games/AsyncScene/merges",
+    "milestones_url": "https://api.github.com/repos/samuray-games/AsyncScene/milestones{/number}",
+    "mirror_url": null,
+    "name": "AsyncScene",
+    "node_id": "R_kgDOQ3gtrQ",
+    "notifications_url": "https://api.github.com/repos/samuray-games/AsyncScene/notifications{?since,all,participating}",
+    "open_issues": 26,
+    "open_issues_count": 26,
+    "owner": {
+      "avatar_url": "https://avatars.githubusercontent.com/u/254195349?v=4",
+      "email": "raykhalit@icloud.com",
+      "events_url": "https://api.github.com/users/samuray-games/events{/privacy}",
+      "followers_url": "https://api.github.com/users/samuray-games/followers",
+      "following_url": "https://api.github.com/users/samuray-games/following{/other_user}",
+      "gists_url": "https://api.github.com/users/samuray-games/gists{/gist_id}",
+      "gravatar_id": "",
+      "html_url": "https://github.com/samuray-games",
+      "id": 254195349,
+      "login": "samuray-games",
+      "name": "samuray-games",
+      "node_id": "U_kgDODya2lQ",
+      "organizations_url": "https://api.github.com/users/samuray-games/orgs",
+      "received_events_url": "https://api.github.com/users/samuray-games/received_events",
+      "repos_url": "https://api.github.com/users/samuray-games/repos",
+      "site_admin": false,
+      "starred_url": "https://api.github.com/users/samuray-games/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/samuray-games/subscriptions",
+      "type": "User",
+      "url": "https://api.github.com/users/samuray-games",
+      "user_view_type": "public"
+    },
+    "private": false,
+    "pull_request_creation_policy": "collaborators_only",
+    "pulls_url": "https://api.github.com/repos/samuray-games/AsyncScene/pulls{/number}",
+    "pushed_at": 1784968624,
+    "releases_url": "https://api.github.com/repos/samuray-games/AsyncScene/releases{/id}",
+    "size": 58406,
+    "ssh_url": "git@github.com:samuray-games/AsyncScene.git",
+    "stargazers": 0,
+    "stargazers_count": 0,
+    "stargazers_url": "https://api.github.com/repos/samuray-games/AsyncScene/stargazers",
+    "statuses_url": "https://api.github.com/repos/samuray-games/AsyncScene/statuses/{sha}",
+    "subscribers_url": "https://api.github.com/repos/samuray-games/AsyncScene/subscribers",
+    "subscription_url": "https://api.github.com/repos/samuray-games/AsyncScene/subscription",
+    "svn_url": "https://github.com/samuray-games/AsyncScene",
+    "tags_url": "https://api.github.com/repos/samuray-games/AsyncScene/tags",
+    "teams_url": "https://api.github.com/repos/samuray-games/AsyncScene/teams",
+    "topics": [],
+    "trees_url": "https://api.github.com/repos/samuray-games/AsyncScene/git/trees{/sha}",
+    "updated_at": "2026-07-22T16:24:28Z",
+    "url": "https://api.github.com/repos/samuray-games/AsyncScene",
+    "visibility": "public",
+    "watchers": 0,
+    "watchers_count": 0,
+    "web_commit_signoff_required": false
+  },
+  "sender": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/254195349?v=4",
+    "events_url": "https://api.github.com/users/samuray-games/events{/privacy}",
+    "followers_url": "https://api.github.com/users/samuray-games/followers",
+    "following_url": "https://api.github.com/users/samuray-games/following{/other_user}",
+    "gists_url": "https://api.github.com/users/samuray-games/gists{/gist_id}",
+    "gravatar_id": "",
+    "html_url": "https://github.com/samuray-games",
+    "id": 254195349,
+    "login": "samuray-games",
+    "node_id": "U_kgDODya2lQ",
+    "organizations_url": "https://api.github.com/users/samuray-games/orgs",
+    "received_events_url": "https://api.github.com/users/samuray-games/received_events",
+    "repos_url": "https://api.github.com/users/samuray-games/repos",
+    "site_admin": false,
+    "starred_url": "https://api.github.com/users/samuray-games/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/samuray-games/subscriptions",
+    "type": "User",
+    "url": "https://api.github.com/users/samuray-games",
+    "user_view_type": "public"
+  }
+}
