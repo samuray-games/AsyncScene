@@ -360,14 +360,14 @@ window.Game = window.Game || {};
   function getOnboardingSeen(UI) {
     const G = window.Game || {};
     if (G.__A && typeof G.__A.getOnboardingSeen === "function") return G.__A.getOnboardingSeen() === true;
-    const S = (UI && UI.S) || G.State || G.__S || null;
+    const S = getPrimaryAuthorizedState(UI);
     return !!(S && S.progress && S.progress.onboardingSeen === true);
   }
 
   function setOnboardingSeen(UI, value) {
     const G = window.Game || {};
     if (G.__A && typeof G.__A.setOnboardingSeen === "function") return G.__A.setOnboardingSeen(value) === true;
-    const S = (UI && UI.S) || G.State || G.__S || null;
+    const S = getPrimaryAuthorizedState(UI);
     if (S) {
       S.progress = S.progress || {};
       S.progress.onboardingSeen = value === true;
@@ -379,6 +379,24 @@ window.Game = window.Game || {};
     const G = window.Game || {};
     if (G.__A && typeof G.__A.resetOnboardingSeen === "function") return G.__A.resetOnboardingSeen() === true;
     return setOnboardingSeen(UI, false);
+  }
+
+  function getPrimaryAuthorizedState(UI) {
+    const G = window.Game || {};
+    const state = UI && UI.S;
+    if (state && typeof state === "object") return state;
+    if (G.__S && typeof G.__S === "object") return G.__S;
+    return null;
+  }
+
+  function getAuthorizedStateTargets(UI) {
+    const G = window.Game || {};
+    const targets = [];
+    [UI && UI.S, G.__S].forEach((state) => {
+      if (!state || typeof state !== "object" || targets.indexOf(state) >= 0) return;
+      targets.push(state);
+    });
+    return targets;
   }
 
   function syncUiTextModeFromUiProfile(uiProfile) {
@@ -492,18 +510,10 @@ window.Game = window.Game || {};
     } else {
       Data.UI_PROFILE = uiProfile;
     }
-    if (UI && UI.S) {
-      UI.S.flags = UI.S.flags || {};
-      UI.S.flags.uiProfile = uiProfile;
-    }
-    if (G.__S && G.__S !== (UI && UI.S)) {
-      G.__S.flags = G.__S.flags || {};
-      G.__S.flags.uiProfile = uiProfile;
-    }
-    if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
-      G.State.flags = G.State.flags || {};
-      G.State.flags.uiProfile = uiProfile;
-    }
+    getAuthorizedStateTargets(UI).forEach((state) => {
+      state.flags = state.flags || {};
+      state.flags.uiProfile = uiProfile;
+    });
     return uiProfile;
   }
 
@@ -519,18 +529,13 @@ window.Game = window.Game || {};
   }
 
   function restoreFreshStartScreenState(UI) {
-    const G = window.Game || {};
     resetOnboardingSeen(UI);
-    if (UI && UI.S) {
-      UI.S.isStarted = false;
-      UI.S.flags = UI.S.flags || {};
-      UI.S.flags.started = false;
-    }
-    if (G.State) {
-      G.State.isStarted = false;
-      G.State.flags = G.State.flags || {};
-      G.State.flags.started = false;
-    }
+    getAuthorizedStateTargets(UI).forEach((state) => {
+      state.isStarted = false;
+      state.flags = state.flags || {};
+      state.flags.started = false;
+    });
+    const G = window.Game || {};
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = false;
     }
@@ -553,7 +558,7 @@ window.Game = window.Game || {};
     const uiProfile = supportedUiProfileSet.has(normalizedResolvedUiProfile)
       ? normalizedResolvedUiProfile
       : "millennial";
-    const profileTargets = [Data, UI && UI.S, G.__S, G.State];
+    const profileTargets = [Data, ...getAuthorizedStateTargets(UI)];
     profileTargets.forEach((state) => {
       if (!state || typeof state !== "object") return;
       if (state.flags && typeof state.flags === "object" && Object.prototype.hasOwnProperty.call(state.flags, "uiProfile")) {
@@ -565,19 +570,12 @@ window.Game = window.Game || {};
     } else if (Data && typeof Data === "object") {
       Data.UI_PROFILE = uiProfile;
     }
-    if (UI && UI.S) {
-      UI.S.flags = UI.S.flags || {};
-      UI.S.flags.uiProfile = uiProfile;
-    }
-    if (G.__S && G.__S !== (UI && UI.S)) {
-      G.__S.flags = G.__S.flags || {};
-      G.__S.flags.uiProfile = uiProfile;
-    }
-    if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
-      G.State.flags = G.State.flags || {};
-      G.State.flags.uiProfile = uiProfile;
-    }
-    const saveTargets = [UI && UI.S, G.__S, G.State];
+    const stateTargets = getAuthorizedStateTargets(UI);
+    stateTargets.forEach((state) => {
+      state.flags = state.flags || {};
+      state.flags.uiProfile = uiProfile;
+    });
+    const saveTargets = stateTargets;
     saveTargets.forEach((state) => {
       if (!state) return;
       state.save = { uiProfile };
@@ -595,20 +593,18 @@ window.Game = window.Game || {};
   }
 
   function shouldShowFreshStartScreen(UI) {
-    const G = window.Game || {};
-    const S = (UI && UI.S) || G.State || G.__S || null;
-    const flags = (S && S.flags) || (G.State && G.State.flags) || {};
+    const S = getPrimaryAuthorizedState(UI);
+    const flags = (S && S.flags) || {};
     return !(S && S.isStarted === true) && flags.started !== true;
   }
 
   function clearStartScreenInterference(UI) {
     try { if (document.body) document.body.classList.remove("menu-open"); } catch (_) {}
     try {
-      const S = (UI && UI.S) || (window.Game && (window.Game.__S || window.Game.State));
-      if (S) {
-        S.flags = S.flags || {};
-        S.flags.menuOpen = false;
-      }
+      getAuthorizedStateTargets(UI).forEach((state) => {
+        state.flags = state.flags || {};
+        state.flags.menuOpen = false;
+      });
     } catch (_) {}
     try {
       const right = document.getElementById("right");
@@ -798,7 +794,7 @@ window.Game = window.Game || {};
     }
 
     const savedUiProfile = (() => {
-      const state = (UI && UI.S) || (window.Game && (window.Game.__S || window.Game.State)) || null;
+      const state = getPrimaryAuthorizedState(UI);
       const profile = state && state.save && typeof state.save.uiProfile === "string" ? state.save.uiProfile : "";
       return String(profile || "").trim();
     })();
@@ -810,19 +806,10 @@ window.Game = window.Game || {};
         } else if (D && typeof D === "object") {
           D.UI_PROFILE = savedUiProfile;
         }
-        if (UI && UI.S) {
-          UI.S.flags = UI.S.flags || {};
-          UI.S.flags.uiProfile = savedUiProfile;
-        }
-        const G = window.Game || {};
-        if (G.__S && G.__S !== (UI && UI.S)) {
-          G.__S.flags = G.__S.flags || {};
-          G.__S.flags.uiProfile = savedUiProfile;
-        }
-        if (G.State && G.State !== (UI && UI.S) && G.State !== G.__S) {
-          G.State.flags = G.State.flags || {};
-          G.State.flags.uiProfile = savedUiProfile;
-        }
+        getAuthorizedStateTargets(UI).forEach((state) => {
+          state.flags = state.flags || {};
+          state.flags.uiProfile = savedUiProfile;
+        });
       }
     }
 
@@ -878,23 +865,17 @@ window.Game = window.Game || {};
 
   function returnToStartScreen(UI) {
     const G = window.Game || {};
-    const S = UI && UI.S ? UI.S : null;
+    const S = getPrimaryAuthorizedState(UI);
+    const stateTargets = getAuthorizedStateTargets(UI);
     if (UI && typeof UI.hideMenu === "function") {
       try { UI.hideMenu(); } catch (_) {}
     }
-    if (S) {
-      S.flags = S.flags || {};
-      S.flags.started = false;
-      S.isStarted = false;
-      S.flags.menuOpen = false;
-    }
-    if (G.State && G.State !== S) {
-      G.State.isStarted = false;
-      if (G.State.flags) {
-        G.State.flags.started = false;
-        G.State.flags.menuOpen = false;
-      }
-    }
+    stateTargets.forEach((state) => {
+      state.flags = state.flags || {};
+      state.flags.started = false;
+      state.isStarted = false;
+      state.flags.menuOpen = false;
+    });
     if (G.__DEV && typeof G.__DEV === "object") {
       G.__DEV.__uiProfileAppliedBeforeEnter = false;
     }
@@ -1304,6 +1285,7 @@ window.Game = window.Game || {};
         markBootDiag("START_NEEDS_NAME");
         return;
       }
+      const stateTargets = getAuthorizedStateTargets(UI);
       const resumeMode = getOnboardingSeen(UI);
       if (G.__DEV && typeof G.__DEV === "object") {
         G.__DEV.__uiProfileAppliedBeforeEnter = false;
@@ -1314,12 +1296,11 @@ window.Game = window.Game || {};
 
       if (resumeMode && !(S.flags.started || S.isStarted === true)) {
         markBootDiag("START_RESUME_MODE");
-        S.flags.started = true;
-        S.isStarted = true;
-        if (G.State) {
-          G.State.isStarted = true;
-          if (G.State.flags) G.State.flags.started = true;
-        }
+        stateTargets.forEach((state) => {
+          state.flags = state.flags || {};
+          state.flags.started = true;
+          state.isStarted = true;
+        });
         if (!S.me) S.me = { id: "me" };
         if (!S.me.name) S.me.name = name;
         ensureStartScreenHidden(UI);
@@ -1337,12 +1318,11 @@ window.Game = window.Game || {};
       }
 
       if (S.flags.started || S.isStarted === true) {
-        S.flags.started = true;
-        S.isStarted = true;
-        if (G.State) {
-          G.State.isStarted = true;
-          if (G.State.flags) G.State.flags.started = true;
-        }
+        stateTargets.forEach((state) => {
+          state.flags = state.flags || {};
+          state.flags.started = true;
+          state.isStarted = true;
+        });
         markBootDiag("START_HIDE_ATTEMPT");
         ensureStartScreenHidden(UI);
         startHidden = true;
@@ -1352,12 +1332,11 @@ window.Game = window.Game || {};
 
       markBootDiag("START_STEP_2");
       setOnboardingSeen(UI, true);
-      S.flags.started = true;
-      S.isStarted = true;
-      if (G.State) {
-        G.State.isStarted = true;
-        if (G.State.flags) G.State.flags.started = true;
-      }
+      stateTargets.forEach((state) => {
+        state.flags = state.flags || {};
+        state.flags.started = true;
+        state.isStarted = true;
+      });
       if (!S.me) S.me = { id: "me" };
 
       markBootDiag("START_STEP_3");
@@ -1430,10 +1409,11 @@ window.Game = window.Game || {};
       S.flags.started = true;
       S.flags.highlightEventId = null;
       S.isStarted = true;
-      if (G.State) {
-        G.State.isStarted = true;
-        if (G.State.flags) G.State.flags.started = true;
-      }
+      stateTargets.forEach((state) => {
+        state.flags = state.flags || {};
+        state.flags.started = true;
+        state.isStarted = true;
+      });
 
       if (UI.closeDM) UI.closeDM();
 
