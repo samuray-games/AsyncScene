@@ -636,8 +636,9 @@ window.Game = window.Game || {};
 
   function applyStartScreenContent(UI) {
     const $ = UI.$;
+    const G = window.Game || {};
     markUiBootVersion();
-    const D = (window.Game && window.Game.Data) ? window.Game.Data : null;
+    const D = G.Data || null;
     const activeProfile = getActiveStartScreenProfile(UI);
     const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
     const title = spec && typeof spec.title === "string" ? spec.title : "";

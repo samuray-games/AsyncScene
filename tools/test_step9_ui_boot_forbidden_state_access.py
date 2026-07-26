@@ -7,12 +7,17 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE_SHA = "0576e9a11422a1c0e4692424d3a7d1e07a3be5dc"
-EXPECTED_UI_BOOT_TOKEN = "step9_ui_boot_forbidden_state_fix_20260726a"
+BASELINE_SHA = "8c885c3f4af51ac00fa917e506cd58eae83b2d53"
+EXPECTED_UI_BOOT_TOKEN = "step9_ui_boot_g_scope_fix_20260726b"
 
 BOOT_CASES = {
     "source": ROOT / "AsyncScene" / "Web" / "ui" / "ui-boot.js",
     "docs": ROOT / "docs" / "ui" / "ui-boot.js",
+}
+
+BOOT_RELATIVE_PATHS = {
+    "source": "AsyncScene/Web/ui/ui-boot.js",
+    "docs": "docs/ui/ui-boot.js",
 }
 
 INDEX_CASES = {
@@ -109,8 +114,7 @@ def git_show(revision: str, relative_path: str) -> str:
     return completed.stdout
 
 
-def run_ui_boot_harness(label: str, path: Path) -> dict[str, object]:
-    source = path.read_text(encoding="utf-8")
+def run_ui_boot_harness_source(label: str, source: str) -> dict[str, object]:
     extracted = "\n\n".join(extract_named_function(source, name) for name in HARNESS_FUNCTIONS)
     script = """
 const FILE_LABEL = __FILE_LABEL__;
@@ -443,7 +447,10 @@ function createEnvironment(options = {}) {
     },
   });
   globalThis.window = { Game };
-  globalThis.G = Game;
+  delete globalThis.G;
+  if (Object.prototype.hasOwnProperty.call(globalThis, "G")) {
+    throw new Error("ambient global G unexpectedly present after delete");
+  }
   globalThis.document = document;
   globalThis.getComputedStyle = (element) => ({
     display: element && element.style && element.style.display ? element.style.display : "",
@@ -478,6 +485,14 @@ function changedDigitCount(beforeDigits, afterDigits) {
     if (beforeDigits[index] !== afterDigits[index]) changed += 1;
   }
   return changed;
+}
+
+function captureError(error) {
+  if (!error) return null;
+  return {
+    name: typeof error.name === "string" ? error.name : null,
+    message: typeof error.message === "string" ? error.message : String(error),
+  };
 }
 
 function resolveStartScreenText(_data, key) {
@@ -519,8 +534,19 @@ syncUiTextModeFromUiProfile = function wrappedSyncUiTextModeFromUiProfile(...arg
   return originalSyncUiTextModeFromUiProfile(...args);
 };
 
-function runBirthYearScenario(buttonId) {
+function runBirthYearScenario(buttonId, options = {}) {
   const env = createEnvironment();
+  const installDevRefresh = options.installDevRefresh === true;
+  let devRefreshCalls = 0;
+  env.Game.__DEV = env.Game.__DEV && typeof env.Game.__DEV === "object" ? env.Game.__DEV : {};
+  if (installDevRefresh) {
+    env.Game.__DEV.refreshOnboardingStartScreenOnce = function refreshOnboardingStartScreenOnce() {
+      devRefreshCalls += 1;
+    };
+  } else {
+    delete env.Game.__DEV.refreshOnboardingStartScreenOnce;
+  }
+  const ambientGPresentBeforeClick = Object.prototype.hasOwnProperty.call(globalThis, "G");
   applyStartScreenContent(env.UI);
   const picker = env.document.getElementById("startBirthYearPicker");
   const button = env.document.getElementById(buttonId);
@@ -529,18 +555,30 @@ function runBirthYearScenario(buttonId) {
     env.document.getElementById("startBirthYearDigit1").textContent,
   ];
   const beforeForbidden = forbiddenCount(env.Game);
-  picker.dispatch("click", button);
+  let clickUncaughtError = null;
+  try {
+    picker.dispatch("click", button);
+  } catch (error) {
+    clickUncaughtError = captureError(error);
+  }
   const afterDigits = [
     env.document.getElementById("startBirthYearDigit0").textContent,
     env.document.getElementById("startBirthYearDigit1").textContent,
   ];
+  const ambientGPresentAfterClick = Object.prototype.hasOwnProperty.call(globalThis, "G");
+  const digitValue = picker.getAttribute("data-birth-year-value");
   return {
+    ambientGPresentBeforeClick,
+    ambientGPresentAfterClick,
+    clickUncaughtError,
     changedDigitCount: changedDigitCount(beforeDigits, afterDigits),
-    digitValue: picker.getAttribute("data-birth-year-value"),
+    digitValue,
     forbiddenDelta: forbiddenCount(env.Game) - beforeForbidden,
     dataUiProfile: env.Game.Data.getUiProfile(),
     uiStateProfile: env.UI.S.flags.uiProfile || null,
     internalStateProfile: env.Game.__S.flags.uiProfile || null,
+    devRefreshCalls,
+    pageUsable: !!picker && digitValue === `${afterDigits[0]}${afterDigits[1]}` && !!env.document.getElementById("btnStart"),
   };
 }
 
@@ -724,6 +762,8 @@ const result = {
   fileLabel: FILE_LABEL,
   birthYearUp: runBirthYearScenario("startBirthYear0Up"),
   birthYearDown: runBirthYearScenario("startBirthYear0Down"),
+  birthYearUpWithDevRefresh: runBirthYearScenario("startBirthYear0Up", { installDevRefresh: true }),
+  birthYearDownWithDevRefresh: runBirthYearScenario("startBirthYear0Down", { installDevRefresh: true }),
   savedUiProfileRestore: runSavedProfileRestoreScenario(),
   sharedSync: runSharedSyncScenario(),
   applyDistinct: runApplyDistinctScenario(),
@@ -753,6 +793,10 @@ console.log(JSON.stringify(result));
     return json.loads(completed.stdout)
 
 
+def run_ui_boot_harness(label: str, path: Path) -> dict[str, object]:
+    return run_ui_boot_harness_source(label, path.read_text(encoding="utf-8"))
+
+
 class Step9UiBootForbiddenStateAccessTests(unittest.TestCase):
     maxDiff = None
 
@@ -761,19 +805,51 @@ class Step9UiBootForbiddenStateAccessTests(unittest.TestCase):
         docs_result = run_ui_boot_harness("docs", BOOT_CASES["docs"])
 
         for result in (source_result, docs_result):
+            self.assertFalse(result["birthYearUp"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearUp"]["ambientGPresentAfterClick"])
+            self.assertIsNone(result["birthYearUp"]["clickUncaughtError"])
             self.assertEqual(result["birthYearUp"]["changedDigitCount"], 1)
             self.assertEqual(result["birthYearUp"]["digitValue"], "10")
             self.assertEqual(result["birthYearUp"]["forbiddenDelta"], 0)
             self.assertEqual(result["birthYearUp"]["dataUiProfile"], "alpha")
             self.assertEqual(result["birthYearUp"]["uiStateProfile"], "alpha")
             self.assertEqual(result["birthYearUp"]["internalStateProfile"], "alpha")
+            self.assertTrue(result["birthYearUp"]["pageUsable"])
 
+            self.assertFalse(result["birthYearDown"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearDown"]["ambientGPresentAfterClick"])
+            self.assertIsNone(result["birthYearDown"]["clickUncaughtError"])
             self.assertEqual(result["birthYearDown"]["changedDigitCount"], 1)
             self.assertEqual(result["birthYearDown"]["digitValue"], "90")
             self.assertEqual(result["birthYearDown"]["forbiddenDelta"], 0)
             self.assertEqual(result["birthYearDown"]["dataUiProfile"], "zoomer")
             self.assertEqual(result["birthYearDown"]["uiStateProfile"], "zoomer")
             self.assertEqual(result["birthYearDown"]["internalStateProfile"], "zoomer")
+            self.assertTrue(result["birthYearDown"]["pageUsable"])
+
+            self.assertFalse(result["birthYearUpWithDevRefresh"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearUpWithDevRefresh"]["ambientGPresentAfterClick"])
+            self.assertIsNone(result["birthYearUpWithDevRefresh"]["clickUncaughtError"])
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["changedDigitCount"], 1)
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["digitValue"], "10")
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["forbiddenDelta"], 0)
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["dataUiProfile"], "alpha")
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["uiStateProfile"], "alpha")
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["internalStateProfile"], "alpha")
+            self.assertEqual(result["birthYearUpWithDevRefresh"]["devRefreshCalls"], 1)
+            self.assertTrue(result["birthYearUpWithDevRefresh"]["pageUsable"])
+
+            self.assertFalse(result["birthYearDownWithDevRefresh"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearDownWithDevRefresh"]["ambientGPresentAfterClick"])
+            self.assertIsNone(result["birthYearDownWithDevRefresh"]["clickUncaughtError"])
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["changedDigitCount"], 1)
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["digitValue"], "90")
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["forbiddenDelta"], 0)
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["dataUiProfile"], "zoomer")
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["uiStateProfile"], "zoomer")
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["internalStateProfile"], "zoomer")
+            self.assertEqual(result["birthYearDownWithDevRefresh"]["devRefreshCalls"], 1)
+            self.assertTrue(result["birthYearDownWithDevRefresh"]["pageUsable"])
 
             self.assertEqual(result["savedUiProfileRestore"]["forbiddenDelta"], 0)
             self.assertEqual(result["savedUiProfileRestore"]["dataUiProfile"], "alpha")
@@ -847,6 +923,8 @@ class Step9UiBootForbiddenStateAccessTests(unittest.TestCase):
         comparable_keys = (
             "birthYearUp",
             "birthYearDown",
+            "birthYearUpWithDevRefresh",
+            "birthYearDownWithDevRefresh",
             "savedUiProfileRestore",
             "sharedSync",
             "restore",
@@ -866,6 +944,21 @@ class Step9UiBootForbiddenStateAccessTests(unittest.TestCase):
             {key: value for key, value in source_result["applyShared"].items() if key != "syncUiTextModeCalls"},
             {key: value for key, value in docs_result["applyShared"].items() if key != "syncUiTextModeCalls"},
         )
+
+    def test_baseline_click_path_fails_without_ambient_g_alias(self) -> None:
+        for label, relative_path in BOOT_RELATIVE_PATHS.items():
+            baseline_source = git_show(BASELINE_SHA, relative_path)
+            result = run_ui_boot_harness_source(f"{label}-baseline", baseline_source)
+            self.assertFalse(result["birthYearUp"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearUp"]["ambientGPresentAfterClick"])
+            self.assertIsNotNone(result["birthYearUp"]["clickUncaughtError"])
+            self.assertEqual(result["birthYearUp"]["clickUncaughtError"]["message"], "G is not defined")
+            self.assertEqual(result["birthYearUp"]["forbiddenDelta"], 0)
+            self.assertFalse(result["birthYearDown"]["ambientGPresentBeforeClick"])
+            self.assertFalse(result["birthYearDown"]["ambientGPresentAfterClick"])
+            self.assertIsNotNone(result["birthYearDown"]["clickUncaughtError"])
+            self.assertEqual(result["birthYearDown"]["clickUncaughtError"]["message"], "G is not defined")
+            self.assertEqual(result["birthYearDown"]["forbiddenDelta"], 0)
 
     def test_production_functions_no_longer_reference_public_game_state_getter(self) -> None:
         for label, path in BOOT_CASES.items():
