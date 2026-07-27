@@ -1729,17 +1729,49 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             state.reportUi = Object.assign({}, getReportUiState(), patch);
             renderSubmitButton();
           };
-          const renderSubmitButton = () => {
+          const clearReportWakeTimer = () => {
+            if (!state.reportWakeTimer) return;
+            try { clearTimeout(state.reportWakeTimer); } catch (_) {}
+            state.reportWakeTimer = null;
+          };
+          const selectedCopId = () => (target && target.id) ? target.id : withId;
+          const getAuthoritativeReportUiState = () => {
             const uiState = getReportUiState();
+            const copId = selectedCopId();
+            const pending = uiState.status === "pending" && uiState.pendingId
+              && Game.__A && typeof Game.__A.getPendingReport === "function"
+              ? Game.__A.getPendingReport(uiState.pendingId)
+              : null;
+            if (pending && !pending.resolved) return uiState;
+            if (Game.__A && typeof Game.__A.isCopBusyById === "function" && Game.__A.isCopBusyById(copId)) {
+              return Object.assign({}, uiState, { status: "cooldown", copId });
+            }
+            return Object.assign({}, uiState, { status: "idle", pendingId: null, copId });
+          };
+          const scheduleReportWake = (copId) => {
+            clearReportWakeTimer();
+            if (!Game.__A || typeof Game.__A.getReportCooldownLeftMsForCop !== "function") return;
+            const left = Math.max(0, Number(Game.__A.getReportCooldownLeftMsForCop(copId)) || 0);
+            if (!left) return;
+            state.reportWakeTimer = setTimeout(() => {
+              state.reportWakeTimer = null;
+              renderSubmitButton();
+            }, Math.min(left + 25, 5 * 60 * 1000));
+          };
+          const renderSubmitButton = () => {
+            const uiState = getAuthoritativeReportUiState();
+            state.reportUi = uiState;
             if (uiState.status === "pending") {
               submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "pending");
               submitBtn.disabled = true;
             } else if (uiState.status === "cooldown") {
               submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "cooldown");
               submitBtn.disabled = true;
+              scheduleReportWake(uiState.copId);
             } else {
               submitBtn.textContent = resolveDmActionLabel("dm.report.submit", null, "idle");
               submitBtn.disabled = false;
+              clearReportWakeTimer();
             }
           };
           renderSubmitButton();
@@ -1751,8 +1783,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               return;
             }
             if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") return;
-            const reportUi = getReportUiState();
-            const copId = (target && target.id) ? target.id : withId;
+            const reportUi = getAuthoritativeReportUiState();
+            const copId = selectedCopId();
             const targetId = target && target.id;
             if (reportUi.status === "pending") {
               try {
@@ -1795,7 +1827,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
                 try {
                   console.warn("UI_REPORT_RESOLVE_DONE_V1", { pendingId: res.pendingId, ok: resolved && resolved.ok, reasonCode: resolved && resolved.reasonCode });
                 } catch (_) {}
-                setReportUiState({ status: "cooldown", pendingId: res.pendingId, copId: res.copId || copId, targetId: res.targetId || targetId, reason: resolved && resolved.reasonCode });
+                const resolvedCopId = res.copId || copId;
+                const status = Game.__A && typeof Game.__A.isCopBusyById === "function" && Game.__A.isCopBusyById(resolvedCopId) ? "cooldown" : "idle";
+                setReportUiState({ status, pendingId: null, copId: resolvedCopId, targetId: res.targetId || targetId, reason: resolved && resolved.reasonCode });
                 try {
                   console.warn("UI_REPORT_SUBMIT_REENABLED_V1", { copId: res.copId || copId, targetId: res.targetId || targetId, reason: "resolved" });
                 } catch (_) {}
@@ -1813,7 +1847,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               }
               handlePendingResult(result);
             } else if (result && result.ok) {
-              setReportUiState({ status: "cooldown", copId, targetId, reason: result.reasonCode });
+              const status = Game.__A && typeof Game.__A.isCopBusyById === "function" && Game.__A.isCopBusyById(copId) ? "cooldown" : "idle";
+              setReportUiState({ status, pendingId: null, copId, targetId, reason: result.reasonCode });
               try {
                 console.warn("UI_REPORT_SUBMIT_REENABLED_V1", { copId, targetId, reason: "resolved" });
               } catch (_) {}
@@ -1821,7 +1856,8 @@ console.warn("UI_RESPECT_HOOKS_READY", {
               try {
                 console.warn("UI_REPORT_SUBMIT_BLOCKED_V1", { copId, targetId, reason: result.reason || "unknown" });
               } catch (_) {}
-              setReportUiState({ status: "cooldown", copId, targetId, reason: result.reason });
+              const status = Game.__A && typeof Game.__A.isCopBusyById === "function" && Game.__A.isCopBusyById(copId) ? "cooldown" : "idle";
+              setReportUiState({ status, pendingId: null, copId, targetId, reason: result.reason });
             }
 
             state.q = "";

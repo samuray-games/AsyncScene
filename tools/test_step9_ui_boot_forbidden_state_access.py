@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE_SHA = "8c885c3f4af51ac00fa917e506cd58eae83b2d53"
-EXPECTED_UI_BOOT_TOKEN = "step9_ui_boot_g_scope_fix_20260726b"
+EXPECTED_UI_BOOT_TOKEN = "stage6_step9_five_profile_runtime_repair_20260727a"
 STALE_UI_BOOT_TOKEN = "step9_ui_boot_forbidden_state_fix_20260726a"
 
 BOOT_CASES = {

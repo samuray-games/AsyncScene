@@ -541,7 +541,8 @@ window.Game ||= {};
     const quota = (Game && Game.Config && Number.isFinite(Game.Config.copQuota)) ? Game.Config.copQuota : (1 / 11);
     const beforeBudget = prevBudget;
     const baseBudget = Math.min(1, prevBudget + quota);
-    const allowCop = baseBudget >= 1.0;
+    const lastAmbientCop = npcState && npcState.lastAmbientPublicChatWasCop === true;
+    const allowCop = baseBudget >= 1.0 && !lastAmbientCop;
 
     const cops = [];
     const others = [];
@@ -627,11 +628,13 @@ window.Game ||= {};
       const nextBudget = isCopSelected ? Math.max(0, baseBudget - 1) : baseBudget;
       if (npcState) {
         npcState.copBudget = nextBudget;
+        npcState.lastAmbientPublicChatWasCop = !!isCopSelected;
         if (isCopSelected) {
           npcState.copQuotaReady = false;
         }
       } else if (S && S.npc) {
         S.npc.copBudget = nextBudget;
+        S.npc.lastAmbientPublicChatWasCop = !!isCopSelected;
       }
       if (collector) {
         collector.budgetAfter = nextBudget;

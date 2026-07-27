@@ -15,15 +15,25 @@ window.Game = window.Game || {};
   const $ = (id) => document.getElementById(id);
   const TOPBAR_STAT_TITLES_DEFAULT = Object.freeze({
     influence: "Влияние",
-    rep: "⭐",
-    points: "💰",
+    rep: "Репутация",
+    points: "Баланс",
     wins: "Победы",
   });
   const TOPBAR_STAT_TITLES = Object.freeze({
     default: TOPBAR_STAT_TITLES_DEFAULT,
     millennial: TOPBAR_STAT_TITLES_DEFAULT,
-    zoomer: TOPBAR_STAT_TITLES_DEFAULT,
-    alpha: TOPBAR_STAT_TITLES_DEFAULT,
+    zoomer: Object.freeze({
+      influence: "Влияние",
+      rep: "Репа",
+      points: "Баланс",
+      wins: "Победы",
+    }),
+    alpha: Object.freeze({
+      influence: "влияние",
+      rep: "репа",
+      points: "баланс",
+      wins: "победы",
+    }),
     boomer: Object.freeze({
       influence: "Влияние",
       rep: "Репутация",
@@ -773,7 +783,7 @@ window.Game = window.Game || {};
     return t;
   }
 
-  function pushChat({ name, text, system=false, id=null, action=null, battleId=null }) {
+  function pushChat({ name, text, system=false, id=null, action=null, battleId=null, speakerId=null, sourceTag=null }) {
     let msgName = name;
     if (system) {
       const n = String(msgName || "").trim().toLowerCase();
@@ -788,11 +798,14 @@ window.Game = window.Game || {};
       isSystem: !!system,
       action: action || null,
       battleId: battleId || null,
+      sourceTag: sourceTag || null,
       text: system ? String(text || "") : (isCopSpeaker(name) ? String(text || "") : normalizePublic(text)),
     };
     // Attach resolved speakerId for reliable influence pill rendering
     const speaker = getPlayerByName(name);
-    if (speaker && speaker.id) {
+    if (speakerId) {
+      msg.speakerId = speakerId;
+    } else if (speaker && speaker.id) {
       msg.speakerId = speaker.id;
     } else {
       msg.speakerId = null;

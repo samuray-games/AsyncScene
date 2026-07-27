@@ -550,7 +550,7 @@ window.Game = window.Game || {};
                 } catch (_) {}
                 const text = Game.NPC.generateChatLine(npc);
                 if (text != null && String(text).trim().length > 0) {
-                  UI.pushChat({ name: npc.name, text: String(text), system: false });
+                  UI.pushChat({ name: npc.name, text: String(text), system: false, speakerId: npc.id, sourceTag: "ambient_npc_chat" });
                   try { if (Game.__A && typeof Game.__A.markNpcChat === "function") Game.__A.markNpcChat(); } catch (_) {}
                 }
               }
@@ -1231,7 +1231,7 @@ window.Game = window.Game || {};
         let npc = null;
         try {
           if (Game.NPC.pickReactingNpc) npc = Game.NPC.pickReactingNpc();
-          else if (Game.NPC.randomForChat) npc = Game.NPC.randomForChat();
+          else if (Game.NPC.randomForChat) npc = Game.NPC.randomForChat({ excludeRoles: ["cop", "police"] });
           else if (Game.NPC.randomAny) npc = Game.NPC.randomAny();
         } catch (_) {}
 
@@ -1240,7 +1240,7 @@ window.Game = window.Game || {};
         const text = Game.NPC.generateReactionToMe(npc, meName);
         if (text != null && String(text).trim().length > 0) {
           // Avoid recursive reaction: this call will go through wrapper but won't match isMeMsg
-          UI.pushChat({ name: npc.name, text: String(text), system: false, speakerId: npc.id });
+          UI.pushChat({ name: npc.name, text: String(text), system: false, speakerId: npc.id, sourceTag: "player_reaction" });
         }
       } catch (_) {}
     };

@@ -28,7 +28,6 @@ window.Game = window.Game || {};
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
   const ACTIVE_MERGE_MS = 350;
-  const VISIBLE_MS = 1700;
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -659,7 +658,11 @@ window.Game = window.Game || {};
     const startFor = (profile) => Object.freeze({
       ...startBase,
       ...(starts[profile] || {}),
-      ...START_PROFILE_OVERRIDES[profile]
+      ...START_PROFILE_OVERRIDES[profile],
+      "introLines[0]": START_PROFILE_OVERRIDES[profile].async_value,
+      "introLines[1]": START_PROFILE_OVERRIDES[profile].no_simultaneous_required,
+      "introLines[2]": "",
+      economyHonestyLine: ""
     });
     Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
       ...starts,
@@ -667,7 +670,11 @@ window.Game = window.Game || {};
       genX: Object.freeze({
         ...startBase,
         ...(starts.genX || starts.genx || {}),
-        ...START_PROFILE_OVERRIDES.genX
+        ...START_PROFILE_OVERRIDES.genX,
+        "introLines[0]": START_PROFILE_OVERRIDES.genX.async_value,
+        "introLines[1]": START_PROFILE_OVERRIDES.genX.no_simultaneous_required,
+        "introLines[2]": "",
+        economyHonestyLine: ""
       }),
       millennial: startFor("millennial"),
       zoomer: startFor("zoomer"),
@@ -947,12 +954,6 @@ window.Game = window.Game || {};
     positionUnifiedToast(el);
     el.style.display = "block";
     el.style.opacity = "1";
-
-    try { clearTimeout(toastState.hideTimer); } catch (_) {}
-    toastState.hideTimer = setTimeout(() => {
-      try { el.style.display = "none"; } catch (_) {}
-      toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
-    }, VISIBLE_MS);
   }
 
   function scheduleToastFlush() {

@@ -2552,6 +2552,7 @@ window.Game = window.Game || {};
       playerId: opts.playerId || null,
       isMe: !!opts.isMe,
       speakerId: opts.playerId || null,
+      sourceTag: opts.sourceTag || null,
 
       // Mentions metadata (optional, for UI highlights)
       mentions: extractMentionedIds(text),
@@ -3478,7 +3479,7 @@ window.Game = window.Game || {};
     const msg = (isKey && tpl && listName && tpl[listName])
       ? fill(pick(tpl[listName]))
       : fill(String(text || ""));
-    pushChat(copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars })), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v") });
+    pushChat(copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars })), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v"), sourceTag: "explicit_cop_public_notice" });
   }
 
   // Backward-compat wrappers (legacy callsites rely on assignedCopId).
@@ -4779,10 +4780,19 @@ window.Game = window.Game || {};
       if (!State.npc) State.npc = {};
       const next = Number.isFinite(value) ? value : 0;
       State.npc.copBudget = next;
+      State.npc.lastAmbientPublicChatWasCop = false;
     },
 
     // Cop reports (denunciations)
     canReport,
+    isCopBusyById,
+    getReportCooldownLeftMsForCop: (copId) => {
+      const cop = resolveCopById(copId);
+      if (!cop || !cop.id) return 0;
+      const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
+      const last = State.reports.copCooldowns[cop.id] || 0;
+      return Math.max(0, cdMs - (Date.now() - last));
+    },
     getReportCooldownLeftMs,
     hasReported,
     applyReportByRole,

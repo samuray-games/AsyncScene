@@ -452,9 +452,7 @@ window.Game = window.Game || {};
     const introTexts = [
       resolveStartScreenText(D, "introLines[0]", activeProfile),
       resolveStartScreenText(D, "introLines[1]", activeProfile),
-      resolveStartScreenText(D, "introLines[2]", activeProfile),
-    ];
-    const economyText = resolveStartScreenText(D, "economyHonestyLine", activeProfile);
+    ].filter((line) => String(line || "").trim());
     const setText = (selector, value) => {
       const el = root.querySelector(selector);
       if (el) el.textContent = String(value || "");
@@ -483,13 +481,22 @@ window.Game = window.Game || {};
     setAttr("#btnRules", "aria-label", rulesText);
     setAttr("#btnRules", "title", rulesText);
     setText("#btnResetOnboarding", resetText);
-    const introNodes = Array.from(root.querySelectorAll("#startIntroLines .startIntroLine"));
-    if (introNodes.length === 3) {
-      introNodes.forEach((node, index) => {
-        node.textContent = String(introTexts[index] || "");
+    const linesEl = root.querySelector("#startIntroLines");
+    if (linesEl) {
+      linesEl.textContent = "";
+      introTexts.slice(0, 2).forEach((line) => {
+        const div = document.createElement("div");
+        div.className = "startIntroLine";
+        div.textContent = String(line || "");
+        linesEl.appendChild(div);
       });
     }
-    setText("#startEconomyHonestyLine", economyText);
+    const economyEl = root.querySelector("#startEconomyHonestyLine");
+    if (economyEl) {
+      economyEl.textContent = "";
+      economyEl.hidden = true;
+      economyEl.style.display = "none";
+    }
   }
 
   function syncStartScreenUiProfileFromSelection(UI, rawBirthYearValue) {
@@ -645,9 +652,7 @@ window.Game = window.Game || {};
     const introLines = [
       resolveStartScreenText(D, "introLines[0]", activeProfile),
       resolveStartScreenText(D, "introLines[1]", activeProfile),
-      resolveStartScreenText(D, "introLines[2]", activeProfile),
-    ];
-    const economyHonestyText = resolveStartScreenText(D, "economyHonestyLine", activeProfile);
+    ].filter((line) => String(line || "").trim());
     const actions = spec && spec.actions ? spec.actions : {};
 
     const titleEl = $("startTitle") || document.getElementById("startTitle");
@@ -656,7 +661,7 @@ window.Game = window.Game || {};
     const linesEl = $("startIntroLines") || document.getElementById("startIntroLines");
     if (linesEl) {
       linesEl.textContent = "";
-      introLines.forEach((line) => {
+      introLines.slice(0, 2).forEach((line) => {
         const div = document.createElement("div");
         div.className = "startIntroLine";
         div.textContent = String(line || "");
@@ -671,7 +676,9 @@ window.Game = window.Game || {};
       linesEl.parentNode.insertBefore(economyEl, linesEl.nextSibling);
     }
     if (economyEl) {
-      economyEl.textContent = economyHonestyText;
+      economyEl.textContent = "";
+      economyEl.hidden = true;
+      economyEl.style.display = "none";
     }
 
     let birthYearLabel = $("startBirthYearLabel") || document.getElementById("startBirthYearLabel");
