@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:58Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:58Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:58Z",
+      "stderr": "",
+      "stdout": "3e9602903ab124658319abd584c480682002feb4\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:59Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3e9602903ab124658319abd584c480682002feb4\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:59Z",
+      "stderr": "",
+      "stdout": "3e960290 (HEAD -> main, origin/main, origin/chatgpt/stage6-step9-five-profile-runtime-defect-repair-20260727) Complete five-profile runtime validation follow-up\nf939b7ba Repair five-profile runtime defects\nc9ef4b2c (origin/chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727) Repair Stage 6 observer validation contracts\n0d567f4e Fix Stage 6 visual-tone observer loop\na3361932 (origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Fix ui boot G scope regression\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:59Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3e9602903ab124658319abd584c480682002feb4\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:59Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T16:52:59Z",
+      "stderr": "",
+      "stdout": "3e9602903ab124658319abd584c480682002feb4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3e9602903ab124658319abd584c480682002feb4",
+  "observedAtUtc": "2026-07-27T16:52:59Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
