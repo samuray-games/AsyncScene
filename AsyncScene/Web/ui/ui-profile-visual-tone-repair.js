@@ -1081,7 +1081,8 @@ window.Game = window.Game || {};
       const firstText = Array.from(dmTitle.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
       if (firstText) {
         const raw = String(firstText.nodeValue || "");
-        firstText.nodeValue = raw.includes(":") ? raw.replace(/^[^:]+:/, `${copy.dmHeader}:`) : copy.dmHeader;
+        const next = raw.includes(":") ? raw.replace(/^[^:]+:/, `${copy.dmHeader}:`) : copy.dmHeader;
+        if (next !== raw) firstText.nodeValue = next;
       }
     }
     const battlesHeader = document.querySelector("#battlesBlock .battleTitleText");
