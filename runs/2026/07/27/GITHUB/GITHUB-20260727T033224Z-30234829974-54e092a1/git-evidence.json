@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "c9ef4b2cd9be074a9dc808aeebe90db1baf17798\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "# branch.oid c9ef4b2cd9be074a9dc808aeebe90db1baf17798\n# branch.head chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727\n# branch.upstream origin/chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "c9ef4b2c (HEAD -> chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727, origin/chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727) Repair Stage 6 observer validation contracts\n0d567f4e Fix Stage 6 visual-tone observer loop\na3361932 (origin/main, origin/chatgpt/stage6-step9-five-profile-foundation-20260723) Fix ui boot G scope regression\n8c885c3f Fix UI boot forbidden state access\n0576e9a1 Restore security repair scope\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c9ef4b2cd9be074a9dc808aeebe90db1baf17798\nbranch refs/heads/chatgpt/stage6-step9-visual-tone-observer-loop-repair-20260727\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-07-27T03:32:24Z",
+      "stderr": "",
+      "stdout": "a3361932229ce1b6ee77a6d01e297367eaf05f6f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c9ef4b2cd9be074a9dc808aeebe90db1baf17798",
+  "observedAtUtc": "2026-07-27T03:32:24Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
