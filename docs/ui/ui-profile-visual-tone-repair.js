@@ -887,6 +887,10 @@ window.Game = window.Game || {};
     return parts.join(" · ");
   }
 
+  function hasVisibleToastState() {
+    return STAT_KINDS.some((kind) => !!toastState.visible.deltas[kind]) || toastState.visible.messages.length > 0;
+  }
+
   function positionUnifiedToast(el) {
     if (!el || typeof document === "undefined") return;
     const anchor = document.getElementById("balance") || document.getElementById("topBar");
@@ -911,6 +915,18 @@ window.Game = window.Game || {};
       document.body.appendChild(el);
     }
     return el;
+  }
+
+  function rerenderVisibleToast(forceVisible = false) {
+    if (!hasVisibleToastState()) return false;
+    const el = ensureUnifiedToast();
+    const text = renderBurstText(activeProfile(), toastState.visible);
+    if (!text) return false;
+    el.textContent = text;
+    positionUnifiedToast(el);
+    if (forceVisible || el.style.display !== "block") el.style.display = "block";
+    el.style.opacity = "1";
+    return true;
   }
 
   function resolvePendingBurst() {
@@ -947,13 +963,7 @@ window.Game = window.Game || {};
     toastState.visible.lastUpdateAt = now;
 
     neutralizeLegacyStatToasts();
-    const el = ensureUnifiedToast();
-    const text = renderBurstText(activeProfile(), toastState.visible);
-    if (!text) return;
-    el.textContent = text;
-    positionUnifiedToast(el);
-    el.style.display = "block";
-    el.style.opacity = "1";
+    rerenderVisibleToast(true);
   }
 
   function scheduleToastFlush() {
@@ -1185,9 +1195,7 @@ window.Game = window.Game || {};
       const current = activeProfile();
       if (current === last) return;
       last = current;
-      toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
-      const toast = document.getElementById("stage6UnifiedStatToast");
-      if (toast) toast.style.display = "none";
+      rerenderVisibleToast(true);
       queueSync();
     }, 250);
   }

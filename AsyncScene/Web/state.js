@@ -2852,7 +2852,7 @@ window.Game = window.Game || {};
     const msg = fillCopTemplate(raw, cop, vars);
     if (!msg) return false;
     const speechMsg = npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars });
-    pushChat(String(cop.name || "Коп"), copLine(speechMsg), { isSystem: false, playerId: copId });
+    pushChat(String(cop.name || "Коп"), copLine(speechMsg), { isSystem: false, playerId: copId, sourceTag: "explicit_cop_public_notice" });
     return true;
   }
 
@@ -2896,6 +2896,7 @@ window.Game = window.Game || {};
     ch.introSentByCopId ||= {};
     ch.lastKindByCopId ||= {};
     ch.lastTextByCopId ||= {};
+    ch.skippedDmTargetDiagnostics ||= [];
 
     let did = false;
 
@@ -2912,11 +2913,6 @@ window.Game = window.Game || {};
       const dueChat = now0 >= (ch.nextChatAtByCopId[cid] || 0);
       const dueDm = now0 >= (ch.nextDmAtByCopId[cid] || 0);
       if (!dueChat && !dueDm) continue;
-
-      // IMPORTANT: each cop emits into exactly ONE channel per tick (chat OR DM), no dual-send.
-      const channel = (dueChat && dueDm)
-        ? (Math.random() < 0.5 ? "chat" : "dm")
-        : (dueChat ? "chat" : "dm");
 
       let listName = "chatReplies";
       if (busy) {
@@ -2946,33 +2942,30 @@ window.Game = window.Game || {};
             }
           }
           if (msg) {
-            if (channel === "chat") {
-              pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+            const targetId = (cop && cop.id) ? cop.id : "";
+            if (targetId) {
+              pushDm(targetId, String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
+              ok = true;
+              ch.lastTextByCopId[cid] = msg;
             } else {
-              const targetId = (cop && cop.id) ? cop.id : "";
-              if (targetId) {
-                pushDm(targetId, String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
-              } else {
-                // Fallback to chat when we cannot resolve a real cop id
-                pushChat(String(cop.name || "Коп"), copLine(msg), { isSystem: false, playerId: cid });
-              }
+              if (ch.skippedDmTargetDiagnostics.length >= 8) ch.skippedDmTargetDiagnostics.shift();
+              ch.skippedDmTargetDiagnostics.push({
+                copId: cid,
+                listName,
+                reason: "missing_dm_target",
+                ts: now0,
+              });
             }
-            ok = true;
-            ch.lastTextByCopId[cid] = msg;
           }
         }
       } catch (_) {
         ok = false;
       }
 
-      // Reschedule: always push the chosen channel forward; push the other slightly to prevent immediate back-to-back.
-      if (channel === "chat") {
-        ch.nextChatAtByCopId[cid] = now0 + 45000 + Math.floor(Math.random() * 45000);
-        if (dueDm) ch.nextDmAtByCopId[cid] = Math.max(ch.nextDmAtByCopId[cid] || 0, now0 + 18000);
-      } else {
-        ch.nextDmAtByCopId[cid] = now0 + 60000 + Math.floor(Math.random() * 60000);
-        if (dueChat) ch.nextChatAtByCopId[cid] = Math.max(ch.nextChatAtByCopId[cid] || 0, now0 + 18000);
-      }
+      // Keep the legacy per-cop scheduler state, but periodic chatter now emits only into DM.
+      const nextDmAt = now0 + 60000 + Math.floor(Math.random() * 60000);
+      ch.nextDmAtByCopId[cid] = nextDmAt;
+      ch.nextChatAtByCopId[cid] = nextDmAt;
 
       if (ok) {
         did = true;
