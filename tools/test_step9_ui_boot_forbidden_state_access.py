@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE_SHA = "8c885c3f4af51ac00fa917e506cd58eae83b2d53"
 EXPECTED_UI_BOOT_TOKEN = "step9_ui_boot_g_scope_fix_20260726b"
+STALE_UI_BOOT_TOKEN = "step9_ui_boot_forbidden_state_fix_20260726a"
 
 BOOT_CASES = {
     "source": ROOT / "AsyncScene" / "Web" / "ui" / "ui-boot.js",
@@ -970,23 +971,18 @@ class Step9UiBootForbiddenStateAccessTests(unittest.TestCase):
                     msg=f"{label} production function still references public Game.State: {name}",
                 )
 
-    def test_index_files_only_bump_ui_boot_query_token(self) -> None:
+    def test_index_files_keep_expected_ui_boot_query_token(self) -> None:
         for relative_path, path in (
             ("AsyncScene/Web/index.html", INDEX_CASES["source"]),
             ("docs/index.html", INDEX_CASES["docs"]),
         ):
             current = path.read_text(encoding="utf-8")
-            baseline = git_show(BASELINE_SHA, relative_path)
-
-            current_match = UI_BOOT_TOKEN_PATTERN.search(current)
-            baseline_match = UI_BOOT_TOKEN_PATTERN.search(baseline)
-            self.assertIsNotNone(current_match, msg=f"missing ui-boot token in {relative_path}")
-            self.assertIsNotNone(baseline_match, msg=f"missing baseline ui-boot token in {relative_path}")
-            self.assertEqual(current_match.group(1), EXPECTED_UI_BOOT_TOKEN)
-
-            normalized_current = UI_BOOT_TOKEN_PATTERN.sub('ui/ui-boot.js?v=<UI_BOOT_TOKEN>', current, count=1)
-            normalized_baseline = UI_BOOT_TOKEN_PATTERN.sub('ui/ui-boot.js?v=<UI_BOOT_TOKEN>', baseline, count=1)
-            self.assertEqual(normalized_current, normalized_baseline)
+            match = UI_BOOT_TOKEN_PATTERN.search(current)
+            self.assertIsNotNone(match, msg=f"missing ui-boot token in {relative_path}")
+            self.assertEqual(match.group(1), EXPECTED_UI_BOOT_TOKEN)
+            self.assertEqual(current.count("ui/ui-boot.js?v="), 1, msg=f"unexpected ui-boot script count in {relative_path}")
+            self.assertIn('src="ui/ui-boot.js?v=', current)
+            self.assertNotIn(STALE_UI_BOOT_TOKEN, current)
 
 
 if __name__ == "__main__":

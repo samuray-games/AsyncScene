@@ -130,7 +130,12 @@ def build_runtime_snippet(source: str) -> str:
     return "\n\n".join(parts)
 
 
-def run_observer_harness(source: str, initial_dm_title: str, max_microtasks: int = 24) -> dict[str, object]:
+def run_observer_harness(
+    source: str,
+    initial_dm_title: str,
+    max_microtasks: int = 24,
+    observed_dm_title: str | None = None,
+) -> dict[str, object]:
     runtime = build_runtime_snippet(source)
     script = f"""
 const mutationLog = [];
@@ -418,12 +423,22 @@ observerEntries.length = 0;
 syncCount = 0;
 
 installScopedObserver();
-queueSync();
+const observedDmTitle = {json.dumps(observed_dm_title)};
+let externalMutationCount = 0;
+if (observedDmTitle !== null) {{
+  dmTitle.textContent = observedDmTitle;
+  externalMutationCount = mutationLog.length;
+}} else {{
+  queueSync();
+}}
 const observerRun = runQueuedMicrotasks({max_microtasks});
+const productionCorrectionMutationCount = mutationLog.length - externalMutationCount;
 const result = {{
   initialDmTitle: {json.dumps(initial_dm_title)},
   afterInitial,
   initialMutationCount,
+  externalMutationCount,
+  productionCorrectionMutationCount,
   syncCount,
   mutationCount: mutationLog.length,
   sameValueMutationCount: mutationLog.filter((entry) => entry.same).length,
@@ -492,20 +507,28 @@ class Stage6FinalPresentationObserverQuiescenceTests(unittest.TestCase):
 
         self.assertEqual(results["source"], results["docs"])
 
-    def test_patched_mirrors_update_once_then_stabilize_without_text_drift(self) -> None:
+    def test_patched_mirrors_recover_after_observed_character_data_mutation(self) -> None:
         results = {}
         for label, relative_path in VISUAL_CASES.items():
-            results[label] = run_observer_harness(read(relative_path), initial_dm_title="ЛС: 2")
+            results[label] = run_observer_harness(
+                read(relative_path),
+                initial_dm_title="Личка: 2",
+                observed_dm_title="ЛС: 2",
+            )
 
         for result in results.values():
             self.assertEqual(result["afterInitial"], "Личка: 2")
-            self.assertEqual(result["initialMutationCount"], 1)
+            self.assertEqual(result["initialMutationCount"], 0)
+            self.assertEqual(result["externalMutationCount"], 1)
+            self.assertEqual(result["productionCorrectionMutationCount"], 1)
+            self.assertEqual(result["mutationCount"], 2)
             self.assertTrue(result["quiesced"])
             self.assertEqual(result["remainingMicrotasks"], 0)
             self.assertEqual(result["sameValueMutationCount"], 0)
-            self.assertEqual(result["observerCallbackCount"], 0)
-            self.assertEqual(result["syncCount"], 1)
+            self.assertEqual(result["observerCallbackCount"], 2)
+            self.assertEqual(result["syncCount"], 2)
             self.assertEqual(result["finalDmTitle"], "Личка: 2")
+            self.assertGreater(result["processedMicrotasks"], 0)
 
         self.assertEqual(results["source"], results["docs"])
 
