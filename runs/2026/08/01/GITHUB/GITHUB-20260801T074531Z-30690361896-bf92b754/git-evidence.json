@@ -1,0 +1,106 @@
+{
+  "branch": "infra/model-selector-cost-order-20260801",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:31Z",
+      "stderr": "",
+      "stdout": "infra/model-selector-cost-order-20260801\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:31Z",
+      "stderr": "",
+      "stdout": "8f8481572e991e2b44c6be167c662eeeb2be15b7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:32Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8f8481572e991e2b44c6be167c662eeeb2be15b7\n# branch.head infra/model-selector-cost-order-20260801\n# branch.upstream origin/infra/model-selector-cost-order-20260801\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:32Z",
+      "stderr": "",
+      "stdout": "8f848157 (HEAD -> infra/model-selector-cost-order-20260801, origin/infra/model-selector-cost-order-20260801) Implement official Codex credit cost ordering\n7d886cbc (origin/main) Merge pull request #260 from samuray-games/infra/model-snapshot-maintenance-20260801\n9c8e463e (origin/infra/model-snapshot-maintenance-20260801) Correct selector snapshot supersedes chain\n48e52230 Refresh Codex model selector inventory authority\n3e960290 (origin/chatgpt/stage6-step9-five-profile-runtime-defect-repair-20260727) Complete five-profile runtime validation follow-up\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:32Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8f8481572e991e2b44c6be167c662eeeb2be15b7\nbranch refs/heads/infra/model-selector-cost-order-20260801\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:32Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T07:45:32Z",
+      "stderr": "",
+      "stdout": "7d886cbc597937dc570a3502b0cd579373647957\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8f8481572e991e2b44c6be167c662eeeb2be15b7",
+  "observedAtUtc": "2026-08-01T07:45:32Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}

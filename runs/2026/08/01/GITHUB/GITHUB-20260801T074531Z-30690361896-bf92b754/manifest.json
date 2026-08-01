@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/model-selector-cost-order-20260801",
+  "createdAtJst": "2026-08-01 16:45:31 JST",
+  "createdAtUtc": "2026-08-01T07:45:31Z",
+  "packagePath": "runs/2026/08/01/GITHUB/GITHUB-20260801T074531Z-30690361896-bf92b754",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260801T074531Z-30690361896-bf92b754",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
