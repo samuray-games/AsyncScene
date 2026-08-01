@@ -190,7 +190,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual(snapshot["applicationSurface"], "CODEX_DESKTOP_APP")
         self.assertEqual(snapshot["completeModelCount"], 6)
         self.assertEqual(snapshot["completeModelEffortPairCount"], 29)
-        self.assertEqual(snapshot["supersedes"], "20260718.1")
+        self.assertEqual(snapshot["supersedes"], "20260722.1")
         self.assertEqual(snapshot["canonicalContentHash"], canonical_hash(snapshot))
 
     def test_active_plugin_version_surfaces_agree(self) -> None:

@@ -165,9 +165,9 @@
   ],
   "completeModelCount": 6,
   "completeModelEffortPairCount": 29,
-  "canonicalContentHash": "sha256:743fb85a7287076bfae93604b74209c687d71ade90b5b3495a30882f3c1ecfb8",
+  "canonicalContentHash": "sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf",
   "status": "PENDING_CONFIRMATION",
-  "supersedes": "20260718.1",
+  "supersedes": "20260722.1",
   "notes": [
     "This snapshot is generated from the authoritative repository Markdown inventory.",
     "It is pending same-thread confirmation until the user responds INVENTORY_OK."

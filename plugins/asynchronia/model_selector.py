@@ -197,7 +197,7 @@ def _build_snapshot_from_inventory() -> dict[str, object]:
         confirmed_timestamp="2026-08-01T05:31:00Z",
         confirmation_source="USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
         application_surface="CODEX_DESKTOP_APP",
-        supersedes="20260718.1",
+        supersedes="20260722.1",
         source_artifact_path=str(manifest["inventoryArtifactPath"]),
         source_artifact_blob_sha=str(manifest["lastAcceptedBlobSha"]),
         status=SNAPSHOT_STATUS,
