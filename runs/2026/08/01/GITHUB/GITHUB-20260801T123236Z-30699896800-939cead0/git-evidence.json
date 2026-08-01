@@ -1,0 +1,106 @@
+{
+  "branch": "memory/post-pr261-sync-20260801",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "memory/post-pr261-sync-20260801\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "3da7d904f965ba5105ed231331a9f6e46440dde3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3da7d904f965ba5105ed231331a9f6e46440dde3\n# branch.head memory/post-pr261-sync-20260801\n# branch.upstream origin/memory/post-pr261-sync-20260801\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "3da7d904 (HEAD -> memory/post-pr261-sync-20260801, origin/memory/post-pr261-sync-20260801) Sync post-PR261 memory surfaces\nbe9f4955 Sync post-PR261 repository memory\nb6e95d07 (origin/main) Merge pull request #261 from samuray-games/infra/model-selector-cost-order-20260801\na1c14ebf (origin/infra/model-selector-cost-order-20260801) Correct selector cost authority validation\n8f848157 Implement official Codex credit cost ordering\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3da7d904f965ba5105ed231331a9f6e46440dde3\nbranch refs/heads/memory/post-pr261-sync-20260801\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T12:32:36Z",
+      "stderr": "",
+      "stdout": "b6e95d0746580e6e080edd7ba08249e4371f3c1c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3da7d904f965ba5105ed231331a9f6e46440dde3",
+  "observedAtUtc": "2026-08-01T12:32:36Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
