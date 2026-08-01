@@ -1,8 +1,8 @@
 {
   "authorityVersion": "1.0.11",
-  "inventoryArtifactPath": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722/UI-VISIBLE-MODEL-INVENTORY.md",
+  "inventoryArtifactPath": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md",
   "inventoryParser": "markdown-bullet-inventory-v1",
   "provenanceType": "repository-markdown",
-  "lastAcceptedBlobSha": "921f59f436067165d89aff43c6c9ec3bb6d65910",
-  "currentSnapshotRevision": "20260722.1"
+  "lastAcceptedBlobSha": "dba335f701f704a3e38cd2318cd59a0a964852af",
+  "currentSnapshotRevision": "20260801.1"
 }
