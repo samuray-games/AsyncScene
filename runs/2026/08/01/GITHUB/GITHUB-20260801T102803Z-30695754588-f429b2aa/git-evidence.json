@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "b6e95d0746580e6e080edd7ba08249e4371f3c1c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "# branch.oid b6e95d0746580e6e080edd7ba08249e4371f3c1c\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "b6e95d07 (HEAD -> main, origin/main) Merge pull request #261 from samuray-games/infra/model-selector-cost-order-20260801\na1c14ebf (origin/infra/model-selector-cost-order-20260801) Correct selector cost authority validation\n8f848157 Implement official Codex credit cost ordering\n7d886cbc Merge pull request #260 from samuray-games/infra/model-snapshot-maintenance-20260801\n9c8e463e (origin/infra/model-snapshot-maintenance-20260801) Correct selector snapshot supersedes chain\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b6e95d0746580e6e080edd7ba08249e4371f3c1c\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T10:28:03Z",
+      "stderr": "",
+      "stdout": "b6e95d0746580e6e080edd7ba08249e4371f3c1c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b6e95d0746580e6e080edd7ba08249e4371f3c1c",
+  "observedAtUtc": "2026-08-01T10:28:03Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
