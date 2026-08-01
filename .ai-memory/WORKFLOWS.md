@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-07-22-1341-JST
-EXPECTED_REVISION: 2026-07-22-1341-JST
-NOTION_MEMORY_REVISION: 2026-07-22-1341-JST
+MEMORY_REVISION: 2026-08-01-2154-JST
+EXPECTED_REVISION: 2026-08-01-2154-JST
+NOTION_MEMORY_REVISION: 2026-08-01-2154-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,20 +20,20 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-07-22-1341-JST`; PR #248 model-selector inventory maintenance and PR #249 Stage 6 Alpha legacy smoke contract realignment are both integrated. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; the post-PR249 repository-memory closure is complete/closed. Legacy Alpha Step 4.3.x smoke failures are classified as `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not as Stage 6 frozen-copy product regression. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. Stage 6 overall is not complete; the next action is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
+Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-01-2154-JST`; PR #261 is integrated, closed, and non-draft. Implementation main before this documentation-only closure was `b6e95d0746580e6e080edd7ba08249e4371f3c1c`, and the accepted PR #261 head was `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`. Repository plugin version is `1.0.17`; installed plugin version is `1.0.16` with status `STALE_REFRESH_DEFERRED`. Selector snapshot revision and cost authority revision are both `20260801.1`. Inventory remains `6 models / 29 model-effort pairs`. The blocked security task is paused and untouched; capability calibration is not started and deferred until explicit user resumption of the security task. Stage 6 is incomplete. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The exact next action is `AWAIT_EXPLICIT_USER_RESUME_OF_BLOCKED_SECURITY_TASK_THEN_RUN_CAPABILITY_CALIBRATION_AUDIT`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
 ## Bootstrap workflow
 
-1. Fetch the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY` in the current response.
-2. Report its exact top-level `MEMORY_REV`.
-3. Read the active task or bridge `STATE.md`.
-4. Verify current repository primary sources, exact remote branches, SHAs, code, and runtime evidence.
-5. Read `PROJECT_MEMORY.md` and `.ai-memory/CURRENT.md`.
-6. Read `.ai-memory/DECISIONS.md`, `.ai-memory/CANON.md`, `.ai-memory/WORKFLOWS.md`, and `TASKS.md` as relevant.
-7. Use Notion as compact cross-chat bootstrap context and archives/backups as historical evidence only.
-8. Follow defined Notion recovery paths and fail closed if the canonical page cannot be loaded or a revision conflict remains unresolved.
+1. Independently review the current repository memory sync against the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`.
+2. Confirm the exact top-level `MEMORY_REV` is `2026-08-01-2154-JST`.
+3. Verify current repository primary sources, exact remote branches, SHAs, and the three active memory surfaces.
+4. Read `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, and `.ai-memory/WORKFLOWS.md`.
+5. Confirm PR #261 is merged, closed, and non-draft, with accepted head `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`.
+6. Confirm repository plugin `1.0.17`, installed plugin `1.0.16`, selector snapshot revision `20260801.1`, cost authority revision `20260801.1`, and inventory `6 models / 29 model-effort pairs`.
+7. Preserve the paused-and-untouched blocked security task and the deferred capability calibration note.
+8. Stop after publication or verification without starting capability calibration or any security-task restart.
 
 Canonical Notion page ID: `3a0815ae-752f-8139-945e-e38dfefbb111`.
 Canonical URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
@@ -55,11 +55,11 @@ After every accepted remote state change:
 ## Work versus Codex routing workflow
 
 1. Read the active task-local `STATE.md` before invoking any plugin skill.
-2. If the active phase is ChatGPT Work maintenance or serialized integration and `CODEX_MODEL_PREFLIGHT: NOT_APPLICABLE`, do not invoke model-selector, do not pause for model selection, and do not request or accept same-thread `CONTINUE`.
+2. If the active phase is documentation-only maintenance, do not invoke model-selector, do not pause for model selection, and do not request or accept same-thread `CONTINUE`.
 3. Apply Codex model preflight only to an actual Codex implementation lane or numbered bridge command whose current authority explicitly requires it.
-4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local Work phase.
-5. If Work reports a remote branch head or absence, it must first fresh-fetch the remote. A stale local branch or stale remote-tracking ref is not evidence.
-6. A Work response that asks the user for `CONTINUE` during a no-preflight Work phase is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
+4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local work phase.
+5. If the repository reports a remote branch head or absence, fresh-fetch the remote before treating it as evidence.
+6. A documentation-only response that asks the user for `CONTINUE` is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
 
 ## Local plugin installation and parity workflow
 
