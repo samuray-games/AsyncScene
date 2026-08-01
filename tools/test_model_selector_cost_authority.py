@@ -23,6 +23,7 @@ class CostAuthorityTests(unittest.TestCase):
         self.authority = load_cost_authority(inventory_model_ids=self.inventory_ids, repository_root=ROOT)
 
     def test_schema_blob_hash_vectors_and_five_tiers(self) -> None:
+        self.assertEqual(self.authority.schemaVersion, "1.0.0")
         self.assertEqual(self.authority.authorityRevision, "20260801.1")
         self.assertEqual(self.authority.pricingBasis, "CODEX_CREDITS_PER_1M_TOKENS_STANDARD_SPEED")
         self.assertEqual(self.authority.sourceArtifactBlobSha, "d308a4a7d0ec19305c4db6b4e67951ee8b83fc77")
@@ -32,6 +33,28 @@ class CostAuthorityTests(unittest.TestCase):
             ("gpt-5.6-luna",), ("gpt-5.4-mini",), ("gpt-5.6-terra",),
             ("gpt-5.4",), ("gpt-5.5", "gpt-5.6-sol"),
         ])
+
+    def test_exact_schema_and_provenance_validation_fail_closed(self) -> None:
+        mutations = (
+            ("unsupported schema version", lambda value: value.update(schemaVersion="1.0.1")),
+            ("non-string schema version", lambda value: value.update(schemaVersion=1)),
+            ("malformed timestamp", lambda value: value.update(confirmedTimestamp="2026-08-01")),
+            ("non-string timestamp", lambda value: value.update(confirmedTimestamp=None)),
+            ("non-UTC offset", lambda value: value.update(confirmedTimestamp="2026-08-01T07:34:14+00:00")),
+            ("impossible UTC date", lambda value: value.update(confirmedTimestamp="2026-02-30T07:34:14Z")),
+            ("wrong official URL", lambda value: value.update(officialSourceUrl="https://help.openai.com/en/articles/other")),
+            ("URL suffix", lambda value: value.update(officialSourceUrl="https://help.openai.com/en/articles/20001106-codex-rate-card?ref=authority")),
+            ("alternate relative artifact path", lambda value: value.update(sourceArtifactPath="./.ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md")),
+            ("absolute artifact path", lambda value: value.update(sourceArtifactPath=str(ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md"))),
+            ("traversal artifact path", lambda value: value.update(sourceArtifactPath=".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/../TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md")),
+        )
+        for label, mutation in mutations:
+            with self.subTest(label=label):
+                candidate = copy.deepcopy(json.loads(AUTHORITY_PATH.read_text()))
+                mutation(candidate)
+                candidate["canonicalContentHash"] = canonical_hash(candidate)
+                with self.assertRaises(CostAuthorityError):
+                    load_cost_authority_from_mapping(candidate)
 
     def test_decimal_safe_comparison_and_incomparable_fail_closed(self) -> None:
         vectors = {

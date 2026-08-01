@@ -7,6 +7,7 @@ import json
 import re
 import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Mapping, Sequence
@@ -16,7 +17,11 @@ COST_AUTHORITY_PATH = Path(__file__).with_name("model-selector-cost-authority.js
 PRICING_BASIS = "CODEX_CREDITS_PER_1M_TOKENS_STANDARD_SPEED"
 AUTHORITY_REVISION = "20260801.1"
 STATUS = "ACTIVE"
+SCHEMA_VERSION = "1.0.0"
+OFFICIAL_SOURCE_URL = "https://help.openai.com/en/articles/20001106-codex-rate-card"
+SOURCE_ARTIFACT_PATH = ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md"
 DECIMAL_RE = re.compile(r"^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
+RFC3339_UTC_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?Z$")
 
 
 class CostAuthorityError(ValueError):
@@ -86,6 +91,16 @@ def _blob_sha(path: Path) -> str:
     return result.stdout.strip()
 
 
+def _validate_confirmed_timestamp(value: object) -> str:
+    if not isinstance(value, str) or not RFC3339_UTC_RE.fullmatch(value):
+        raise CostAuthorityError("confirmedTimestamp must be a valid RFC3339 UTC timestamp")
+    try:
+        datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError as exc:
+        raise CostAuthorityError("confirmedTimestamp must contain a valid calendar date and time") from exc
+    return value
+
+
 def _vector_from_record(record: Mapping[str, object], model_id: str) -> CostVector:
     required = {"modelIdentifier", "inputCredits", "cachedInputCredits", "outputCredits"}
     if set(record) != required or record.get("modelIdentifier") != model_id:
@@ -146,12 +161,17 @@ def validate_authority(authority: Mapping[str, object], *, repository_root: Path
     }
     if set(authority) != required:
         raise CostAuthorityError("cost authority schema fields mismatch")
+    if authority["schemaVersion"] != SCHEMA_VERSION or not isinstance(authority["schemaVersion"], str):
+        raise CostAuthorityError("unsupported cost authority schema version")
     if authority["authorityRevision"] != AUTHORITY_REVISION or authority["pricingBasis"] != PRICING_BASIS:
         raise CostAuthorityError("unsupported cost authority identity")
     if authority["standardSpeed"] != "Standard" or authority["status"] != STATUS:
         raise CostAuthorityError("unsupported cost authority speed or status")
-    if not isinstance(authority["sourceArtifactPath"], str) or not authority["sourceArtifactPath"].strip():
-        raise CostAuthorityError("source artifact path is missing")
+    _validate_confirmed_timestamp(authority["confirmedTimestamp"])
+    if authority["officialSourceUrl"] != OFFICIAL_SOURCE_URL:
+        raise CostAuthorityError("cost authority source URL is not the exact official rate card")
+    if authority["sourceArtifactPath"] != SOURCE_ARTIFACT_PATH:
+        raise CostAuthorityError("cost authority source artifact path is not the exact repository-relative artifact")
     if not isinstance(authority["sourceArtifactBlobSha"], str) or not re.fullmatch(r"[0-9a-f]{40}", authority["sourceArtifactBlobSha"]):
         raise CostAuthorityError("source artifact blob sha is malformed")
     if not isinstance(authority["officialSourceUrl"], str) or not authority["officialSourceUrl"].startswith("https://help.openai.com/"):
@@ -176,9 +196,7 @@ def validate_authority(authority: Mapping[str, object], *, repository_root: Path
     if authority["derivedCostTiers"] != serialized_tiers:
         raise CostAuthorityError("derived cost tiers do not match cost vectors")
     if repository_root is not None:
-        artifact = Path(authority["sourceArtifactPath"])
-        if not artifact.is_absolute():
-            artifact = repository_root / artifact
+        artifact = repository_root / SOURCE_ARTIFACT_PATH
         if not artifact.is_file() or _blob_sha(artifact) != authority["sourceArtifactBlobSha"]:
             raise CostAuthorityError("source artifact blob verification failed")
     return CostAuthority(
