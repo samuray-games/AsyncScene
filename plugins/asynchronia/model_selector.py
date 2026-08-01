@@ -34,9 +34,24 @@ TASK_FIELDS = (
 )
 LEVELS = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 SIZE_LEVELS = {"small": 1, "medium": 2, "large": 3, "very_large": 4}
-MODEL_FLOORS = ("gpt-5.4-mini", "gpt-5.4", "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
-FAMILY_FLOOR_ORDER = ("gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
-EFFORT_FLOOR_ORDER = ("Light", "Medium", "High", "Extra High", "Max", "Ultra")
+MODEL_FLOOR_ORDER = ("gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
+MODEL_STABLE_FLOOR_RANKS = {
+    "gpt-5.4-mini": -1,
+    "gpt-5.4": -1,
+    "gpt-5.5": -1,
+    "gpt-5.6-luna": 0,
+    "gpt-5.6-terra": 1,
+    "gpt-5.6-sol": 2,
+}
+EFFORT_FLOOR_ORDER = ("light", "medium", "high", "extra-high", "max", "ultra")
+EFFORT_FLOOR_RENDER = {
+    "light": "Light",
+    "medium": "Medium",
+    "high": "High",
+    "extra-high": "Extra High",
+    "max": "Max",
+    "ultra": "Ultra",
+}
 
 
 class SnapshotError(ValueError):
@@ -424,15 +439,15 @@ def _is_docs_only_mutation(task: Mapping[str, object]) -> bool:
 
 
 def _model_floor_index(model_identifier: str) -> int:
-    try:
-        return FAMILY_FLOOR_ORDER.index(model_identifier)
-    except ValueError:
-        return 0
+    if model_identifier in MODEL_STABLE_FLOOR_RANKS:
+        return MODEL_STABLE_FLOOR_RANKS[model_identifier]
+    raise TaskDescriptionError(f"unknown model floor: {model_identifier}")
 
 
 def _effort_floor_index(effort_identifier: str) -> int:
+    normalized = effort_identifier.lower().replace("_", "-")
     try:
-        return EFFORT_FLOOR_ORDER.index(effort_identifier)
+        return EFFORT_FLOOR_ORDER.index(normalized)
     except ValueError as exc:
         raise TaskDescriptionError(f"unknown effort floor: {effort_identifier}") from exc
 
@@ -442,18 +457,18 @@ def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str 
     if _is_read_only_task(normalized):
         return (None, None)
     if _is_docs_only_mutation(normalized):
-        return ("gpt-5.6-luna", "Light")
+        return ("gpt-5.6-luna", "light")
+    if required_score < 10 or required_score > 39:
+        raise TaskDescriptionError("required score must be between 10 and 39")
     model_floor = "gpt-5.6-luna"
     if required_score <= 19:
-        effort_floor = "Light"
+        effort_floor = "light"
     elif required_score <= 29:
-        effort_floor = "Medium"
+        effort_floor = "medium"
     elif required_score <= 37:
-        effort_floor = "High"
+        effort_floor = "high"
     elif required_score <= 39:
-        effort_floor = "Max"
-    else:
-        effort_floor = "Ultra"
+        effort_floor = "max"
     broad_cross_cutting = (
         normalized["expectedImplementationSize"] in {"large", "very_large"}
         and len(normalized["affectedSystems"]) >= 3
@@ -463,23 +478,19 @@ def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str 
     )
     if broad_cross_cutting:
         model_floor = "gpt-5.6-sol"
-        effort_floor = "Light"
-        if normalized["runtimeSensitivity"] in {"high", "critical"}:
-            effort_floor = "High"
-        return model_floor, effort_floor
     if normalized["runtimeSensitivity"] in {"high", "critical"}:
-        effort_floor = max(effort_floor, "High", key=_effort_floor_index)
+        effort_floor = max(effort_floor, "high", key=_effort_floor_index)
     if normalized["architectureImpact"] in {"high", "critical"}:
-        effort_floor = max(effort_floor, "High", key=_effort_floor_index)
+        effort_floor = max(effort_floor, "high", key=_effort_floor_index)
     if normalized["securityImpact"] in {"high", "critical"}:
         model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
-        effort_floor = max(effort_floor, "Light", key=_effort_floor_index)
+        effort_floor = max(effort_floor, "light", key=_effort_floor_index)
     if normalized["economyImpact"] in {"high", "critical"}:
         model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
-        effort_floor = max(effort_floor, "Light", key=_effort_floor_index)
+        effort_floor = max(effort_floor, "light", key=_effort_floor_index)
     if normalized["ambiguityNovelty"] in {"high", "critical"} and normalized["concurrencyBranchRisk"] in {"high", "critical"}:
         model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
-        effort_floor = max(effort_floor, "Medium", key=_effort_floor_index)
+        effort_floor = max(effort_floor, "medium", key=_effort_floor_index)
     return model_floor, effort_floor
 
 
@@ -545,6 +556,8 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
     model_floor, effort_floor = _policy_floor(valid_task, required)
     if model_floor is None:
         raise TaskDescriptionError("read-only tasks do not produce recommendations")
+    if not 10 <= required <= 39:
+        raise TaskDescriptionError("required score must be between 10 and 39")
     evaluations: list[PairEvaluation] = []
     for candidate in candidates:
         model_index = next(index for index, model in enumerate(snapshot["models"]) if model["modelIdentifier"] == candidate.modelIdentifier)
@@ -553,13 +566,18 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
         injected = evaluator(candidate, valid_task, required) if evaluator else None
         policy_suitable = (
             _model_floor_index(candidate.modelIdentifier) >= _model_floor_index(model_floor)
-            and _effort_floor_index(candidate.effortLabel) >= _effort_floor_index(effort_floor)
+            and _effort_floor_index(candidate.effortIdentifier) >= _effort_floor_index(effort_floor)
         )
-        verdict = injected or ("SUITABLE" if capability >= required and policy_suitable else "INSUFFICIENT")
+        if not policy_suitable:
+            verdict = "INSUFFICIENT"
+        elif injected == "SUITABLE" or injected is None:
+            verdict = "SUITABLE" if capability >= required else "INSUFFICIENT"
+        else:
+            verdict = injected
         if verdict == "SUITABLE":
             reason = None
         elif not policy_suitable:
-            reason = f"policy floors require at least {model_floor} / {effort_floor}"
+            reason = f"policy floors require at least {model_floor} / {EFFORT_FLOOR_RENDER[effort_floor]}"
         else:
             reason = f"capability score {capability} is below task requirement {required}"
         risk = "LOW" if capability >= required + 3 else ("MEDIUM" if capability >= required else "HIGH")
@@ -577,8 +595,7 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
         raise TaskDescriptionError("no candidate satisfies the reliability constraint")
     def key(item: PairEvaluation) -> tuple[object, ...]:
         candidate = Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, item.candidateOrdinal)
-        policy_rank = (_model_floor_index(item.modelIdentifier), _effort_floor_index(item.effortLabel))
-        return policy_rank + selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
+        return selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
 
     recommendation = min(suitable, key=key)
     rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]

@@ -4,7 +4,7 @@ TASK_ID: TASK-INFRA-MODEL-SELECTOR-CAPABILITY-CALIBRATION-20260801
 PIPELINE_VERSION: 1.0.18
 PHASE: CODEX_TASK
 STATUS: READY_FOR_REVIEW
-CREATED_AT: 2026-08-01T00:00:00Z
+CREATED_AT: 2026-08-01T14:51:31Z
 AUTHOR_ROLE: CHATGPT
 SOURCE_REVISION: infra/model-selector-capability-calibration-20260801@d4527217e3ec4b5cbe2978bef1974fc8a300058a
 
@@ -16,7 +16,7 @@ SOURCE_REVISION: infra/model-selector-capability-calibration-20260801@d4527217e3
   "taskType": "PLUGIN_POLICY",
   "objective": "Implement scope-aware capability calibration policy gates while preserving inventory authority, cost authority, and selector state semantics.",
   "readScope": ["plugins/asynchronia", "tools", ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-CAPABILITY-CALIBRATION-20260801"],
-  "writeScope": ["plugins/asynchronia/model_selector.py", "plugins/asynchronia/.codex-plugin/plugin.json", ".agents/plugins/marketplace.json", "plugins/asynchronia/skills/model-selector/SKILL.md", "tools/test_model_selector_snapshot.py", "tools/test_bridge_model_preflight.py", "tools/test_model_selector_runtime.py", "tools/test_model_selector_response_contract.py", ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-CAPABILITY-CALIBRATION-20260801"],
+  "writeScope": ["plugins/asynchronia/model_selector.py", "tools/test_model_selector_runtime.py", ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-CAPABILITY-CALIBRATION-20260801"],
   "affectedSystems": ["selector", "plugin-package", "tests", "task-evidence"],
   "runtimeSensitivity": "high",
   "architectureImpact": "high",

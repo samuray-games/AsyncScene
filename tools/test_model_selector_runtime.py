@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -193,6 +194,17 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
         self.assertEqual(report.recommendation.effortLabel, "Light")
 
+    def test_luna_floor_rejects_lower_family_models(self) -> None:
+        self.assertLess(selector_core._model_floor_index("gpt-5.4-mini"), selector_core._model_floor_index("gpt-5.6-luna"))
+        self.assertLess(selector_core._model_floor_index("gpt-5.4"), selector_core._model_floor_index("gpt-5.6-luna"))
+        self.assertLess(selector_core._model_floor_index("gpt-5.5"), selector_core._model_floor_index("gpt-5.6-luna"))
+
+    def test_unknown_model_and_effort_identities_fail_closed(self) -> None:
+        with self.assertRaises(TaskDescriptionError):
+            selector_core._model_floor_index("gpt-unknown")
+        with self.assertRaises(TaskDescriptionError):
+            selector_core._effort_floor_index("mystery")
+
     def test_runtime_floor_raises_effort_without_leaving_luna_family(self) -> None:
         runtime_task = task(
             runtimeSensitivity="high",
@@ -207,6 +219,14 @@ class ModelSelectorTests(unittest.TestCase):
         report = evaluate_task(load_snapshot(), runtime_task)
         self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
         self.assertEqual(report.recommendation.effortLabel, "High")
+
+    def test_required_score_out_of_bounds_fail_closed(self) -> None:
+        with patch.object(selector_core, "_required_score", return_value=9):
+            with self.assertRaises(TaskDescriptionError):
+                evaluate_task(load_snapshot(), task())
+        with patch.object(selector_core, "_required_score", return_value=40):
+            with self.assertRaises(TaskDescriptionError):
+                evaluate_task(load_snapshot(), task())
 
     def test_security_floor_escalates_to_terra_light(self) -> None:
         security_task = task(
@@ -223,6 +243,35 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(report.recommendation.modelLabel, "5.6 Terra")
         self.assertEqual(report.recommendation.effortLabel, "Light")
 
+    def test_injected_evaluator_cannot_promote_below_floor(self) -> None:
+        security_task = task(
+            securityImpact="high",
+            runtimeSensitivity="low",
+            architectureImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        report = evaluate_task(load_snapshot(), security_task, evaluator=lambda *_: "SUITABLE")
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Terra")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_injected_evaluator_cannot_promote_effort_below_required_floor(self) -> None:
+        runtime_task = task(
+            runtimeSensitivity="high",
+            architectureImpact="low",
+            securityImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        report = evaluate_task(load_snapshot(), runtime_task, evaluator=lambda *_: "SUITABLE")
+        self.assertEqual(report.recommendation.effortLabel, "High")
+
     def test_broad_cross_cutting_escalates_to_sol_light(self) -> None:
         broad_task = task(
             architectureImpact="high",
@@ -238,7 +287,24 @@ class ModelSelectorTests(unittest.TestCase):
         )
         report = evaluate_task(load_snapshot(), broad_task)
         self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
-        self.assertEqual(report.recommendation.effortLabel, "Light")
+        self.assertEqual(report.recommendation.effortLabel, "High")
+
+    def test_broad_and_architecture_keeps_higher_effort_floor(self) -> None:
+        broad_task = task(
+            architectureImpact="high",
+            securityImpact="high",
+            economyImpact="high",
+            releaseImpact="high",
+            validationComplexity="high",
+            concurrencyBranchRisk="high",
+            runtimeSensitivity="low",
+            ambiguityNovelty="low",
+            expectedImplementationSize="very_large",
+            affectedSystems=["a", "b", "c"],
+        )
+        report = evaluate_task(load_snapshot(), broad_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertEqual(report.recommendation.effortLabel, "High")
 
     def test_broad_and_runtime_combination_escalates_to_sol_high(self) -> None:
         broad_task = task(
@@ -256,6 +322,41 @@ class ModelSelectorTests(unittest.TestCase):
         report = evaluate_task(load_snapshot(), broad_task)
         self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
         self.assertEqual(report.recommendation.effortLabel, "High")
+
+    def test_broad_and_ambiguity_concurrency_preserves_medium_floor(self) -> None:
+        broad_task = task(
+            architectureImpact="high",
+            securityImpact="high",
+            economyImpact="high",
+            releaseImpact="high",
+            validationComplexity="high",
+            concurrencyBranchRisk="high",
+            runtimeSensitivity="low",
+            ambiguityNovelty="high",
+            expectedImplementationSize="very_large",
+            affectedSystems=["a", "b", "c"],
+        )
+        report = evaluate_task(load_snapshot(), broad_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertGreaterEqual(selector_core._effort_floor_index(report.recommendation.effortIdentifier), selector_core._effort_floor_index("medium"))
+
+    def test_broad_with_scalar_38_reaches_sol_max(self) -> None:
+        broad_task = task(
+            architectureImpact="high",
+            securityImpact="high",
+            economyImpact="high",
+            releaseImpact="high",
+            validationComplexity="high",
+            concurrencyBranchRisk="high",
+            runtimeSensitivity="low",
+            ambiguityNovelty="low",
+            expectedImplementationSize="very_large",
+            affectedSystems=["a", "b", "c"],
+        )
+        with patch.object(selector_core, "_required_score", return_value=38):
+            report = evaluate_task(load_snapshot(), broad_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertEqual(report.recommendation.effortLabel, "Max")
 
     def test_task_schema_rejects_missing_classification(self) -> None:
         broken = task()
