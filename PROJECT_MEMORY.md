@@ -1,7 +1,7 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-08-01-2118-JST
-NOTION_MEMORY_REV: 2026-08-01-2118-JST
+REPO_MEMORY_REV: 2026-08-01-2154-JST
+NOTION_MEMORY_REV: 2026-08-01-2154-JST
 CURRENT_MAIN_REF: origin/main
 CURRENT_MAIN_SHA: b6e95d0746580e6e080edd7ba08249e4371f3c1c
 ACCEPTED_IMPLEMENTATION_HEAD: a1c14ebf53d2147b9fd754f955a98321dbb31a3a
@@ -22,7 +22,18 @@ COST_AUTHORITY_HASH: sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20
 COST_AUTHORITY_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md
 MODEL_INVENTORY: 6 models / 29 model-effort pairs
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
-NEXT_ACTION: RUN_CAPABILITY_CALIBRATION_AUDIT_BEFORE_RESUMING_BLOCKED_SECURITY_TASK
+STAGE_6: ALPHA_FROZEN_COPY_SAFARI_PASS / LEGACY_SMOKE_DRIFT_REPAIRED / NOT_COMPLETE
+STAGE_6_STEP9: USER_REVIEW_COMPLETE / FREEZE_COMPLETE / CODEX_IMPLEMENTATION_BLOCKED_BY_PREFLIGHT
+RUNTIME: STOPPED
+STAGE_6_PRODUCT_IMPLEMENTATION: STARTED
+ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
+SAFARI_STAGE6_ALPHA_FROZEN_COPY: PASS
+SAFARI_STAGE6_ALPHA_FROZEN_COPY_PROFILE: alpha
+SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
+LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
+LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
+SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT_REPAIRED
+NEXT_ACTION: AWAIT_EXPLICIT_USER_RESUME_OF_BLOCKED_SECURITY_TASK_THEN_RUN_CAPABILITY_CALIBRATION_AUDIT
 
 ## Canonical cross-chat bootstrap
 
@@ -32,6 +43,6 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-01-2118-JST`. PR #261 is integrated, closed, and non-draft through merge commit `b6e95d0746580e6e080edd7ba08249e4371f3c1c`; the accepted head was `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`, with merge parents `7d886cbc597937dc570a3502b0cd579373647957` and `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`. Current main is `origin/main` at `b6e95d0746580e6e080edd7ba08249e4371f3c1c`. Implementation main before this documentation-only closure was `b6e95d0746580e6e080edd7ba08249e4371f3c1c`. Repository plugin version is `1.0.17`; installed plugin version is `1.0.16` with status `STALE_REFRESH_DEFERRED`. Selector snapshot revision is `20260801.1` with canonical hash `sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf` and source artifact `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md`. Cost authority revision is `20260801.1` with canonical hash `sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20c9c3e694522e` and official cost artifact `.ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md`. The compact current state records the blocked security task as paused and untouched; capability calibration is not started and deferred until explicit user resumption of the security task.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-01-2154-JST`. PR #261 is integrated, closed, and non-draft through merge commit `b6e95d0746580e6e080edd7ba08249e4371f3c1c`; the accepted head was `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`, with merge parents `7d886cbc597937dc570a3502b0cd579373647957` and `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`. Current main is `origin/main` at `b6e95d0746580e6e080edd7ba08249e4371f3c1c`. Implementation main before this documentation-only closure was `b6e95d0746580e6e080edd7ba08249e4371f3c1c`. Repository plugin version is `1.0.17`; installed plugin version is `1.0.16` with status `STALE_REFRESH_DEFERRED`. Selector snapshot revision is `20260801.1` with canonical hash `sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf` and source artifact `.ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md`. Cost authority revision is `20260801.1` with canonical hash `sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20c9c3e694522e` and official cost artifact `.ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md`. The compact current state records the blocked security task as paused and untouched; capability calibration is not started and deferred until explicit user resumption of the security task.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.

@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-01-2118-JST
-EXPECTED_REVISION: 2026-08-01-2118-JST
-NOTION_MEMORY_REVISION: 2026-08-01-2118-JST
+MEMORY_REVISION: 2026-08-01-2154-JST
+EXPECTED_REVISION: 2026-08-01-2154-JST
+NOTION_MEMORY_REVISION: 2026-08-01-2154-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,14 +20,14 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-01-2118-JST`; PR #261 is integrated, closed, and non-draft. Implementation main before this documentation-only closure was `b6e95d0746580e6e080edd7ba08249e4371f3c1c`, and the accepted PR #261 head was `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`. Repository plugin version is `1.0.17`; installed plugin version is `1.0.16` with status `STALE_REFRESH_DEFERRED`. Selector snapshot revision and cost authority revision are both `20260801.1`. Inventory remains `6 models / 29 model-effort pairs`. The blocked security task is paused and untouched; capability calibration is not started and deferred until explicit user resumption of the security task. Stage 6 is incomplete. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The exact next action is `INDEPENDENTLY_REVIEW_AND_MERGE_POST_PR261_MEMORY_SYNC_THEN_STOP`.
+Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-01-2154-JST`; PR #261 is integrated, closed, and non-draft. Implementation main before this documentation-only closure was `b6e95d0746580e6e080edd7ba08249e4371f3c1c`, and the accepted PR #261 head was `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`. Repository plugin version is `1.0.17`; installed plugin version is `1.0.16` with status `STALE_REFRESH_DEFERRED`. Selector snapshot revision and cost authority revision are both `20260801.1`. Inventory remains `6 models / 29 model-effort pairs`. The blocked security task is paused and untouched; capability calibration is not started and deferred until explicit user resumption of the security task. Stage 6 is incomplete. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The exact next action is `AWAIT_EXPLICIT_USER_RESUME_OF_BLOCKED_SECURITY_TASK_THEN_RUN_CAPABILITY_CALIBRATION_AUDIT`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
 ## Bootstrap workflow
 
 1. Independently review the current repository memory sync against the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`.
-2. Confirm the exact top-level `MEMORY_REV` is `2026-08-01-2118-JST`.
+2. Confirm the exact top-level `MEMORY_REV` is `2026-08-01-2154-JST`.
 3. Verify current repository primary sources, exact remote branches, SHAs, and the three active memory surfaces.
 4. Read `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, and `.ai-memory/WORKFLOWS.md`.
 5. Confirm PR #261 is merged, closed, and non-draft, with accepted head `a1c14ebf53d2147b9fd754f955a98321dbb31a3a`.
