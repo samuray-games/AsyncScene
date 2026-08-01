@@ -21,7 +21,7 @@ AUTHORITY_MANIFEST_PATH = Path(__file__).with_name("model-selector-authority.jso
 SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-snapshot.json"
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
-PLUGIN_VERSION = "1.0.17"
+PLUGIN_VERSION = "1.0.18"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
@@ -34,6 +34,9 @@ TASK_FIELDS = (
 )
 LEVELS = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 SIZE_LEVELS = {"small": 1, "medium": 2, "large": 3, "very_large": 4}
+MODEL_FLOORS = ("gpt-5.4-mini", "gpt-5.4", "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
+FAMILY_FLOOR_ORDER = ("gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
+EFFORT_FLOOR_ORDER = ("Light", "Medium", "High", "Extra High", "Max", "Ultra")
 
 
 class SnapshotError(ValueError):
@@ -405,6 +408,81 @@ def _is_read_only_task(task: Mapping[str, object]) -> bool:
     return len(_normalized_write_scope(task)) == 0
 
 
+def _is_docs_only_mutation(task: Mapping[str, object]) -> bool:
+    normalized = _validate_task(task)
+    write_scope = normalized["writeScope"]
+    if not write_scope:
+        return False
+    if normalized["expectedImplementationSize"] != "small":
+        return False
+    if any(normalized[field] != "low" for field in (
+        "runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact",
+        "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk",
+    )):
+        return False
+    return all(isinstance(path, str) and path.endswith((".md", ".txt")) for path in write_scope)
+
+
+def _model_floor_index(model_identifier: str) -> int:
+    try:
+        return FAMILY_FLOOR_ORDER.index(model_identifier)
+    except ValueError:
+        return 0
+
+
+def _effort_floor_index(effort_identifier: str) -> int:
+    try:
+        return EFFORT_FLOOR_ORDER.index(effort_identifier)
+    except ValueError as exc:
+        raise TaskDescriptionError(f"unknown effort floor: {effort_identifier}") from exc
+
+
+def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str | None, str | None]:
+    normalized = _validate_task(task)
+    if _is_read_only_task(normalized):
+        return (None, None)
+    if _is_docs_only_mutation(normalized):
+        return ("gpt-5.6-luna", "Light")
+    model_floor = "gpt-5.6-luna"
+    if required_score <= 19:
+        effort_floor = "Light"
+    elif required_score <= 29:
+        effort_floor = "Medium"
+    elif required_score <= 37:
+        effort_floor = "High"
+    elif required_score <= 39:
+        effort_floor = "Max"
+    else:
+        effort_floor = "Ultra"
+    broad_cross_cutting = (
+        normalized["expectedImplementationSize"] in {"large", "very_large"}
+        and len(normalized["affectedSystems"]) >= 3
+        and sum(1 for field in (
+            "architectureImpact", "securityImpact", "economyImpact", "releaseImpact", "validationComplexity", "concurrencyBranchRisk",
+        ) if normalized[field] in {"high", "critical"}) >= 3
+    )
+    if broad_cross_cutting:
+        model_floor = "gpt-5.6-sol"
+        effort_floor = "Light"
+        if normalized["runtimeSensitivity"] in {"high", "critical"}:
+            effort_floor = "High"
+        return model_floor, effort_floor
+    if normalized["runtimeSensitivity"] in {"high", "critical"}:
+        effort_floor = max(effort_floor, "High", key=_effort_floor_index)
+    if normalized["architectureImpact"] in {"high", "critical"}:
+        effort_floor = max(effort_floor, "High", key=_effort_floor_index)
+    if normalized["securityImpact"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "Light", key=_effort_floor_index)
+    if normalized["economyImpact"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "Light", key=_effort_floor_index)
+    if normalized["ambiguityNovelty"] in {"high", "critical"} and normalized["concurrencyBranchRisk"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "Medium", key=_effort_floor_index)
+    return model_floor, effort_floor
+
+
 def _authority_validation_result(snapshot: Mapping[str, object] | None = None) -> str:
     try:
         loaded = snapshot if snapshot is not None else load_snapshot()
@@ -464,14 +542,26 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
     candidates = build_candidate_matrix(snapshot)
     authority = _cost_authority(snapshot)
     required = _required_score(valid_task)
+    model_floor, effort_floor = _policy_floor(valid_task, required)
+    if model_floor is None:
+        raise TaskDescriptionError("read-only tasks do not produce recommendations")
     evaluations: list[PairEvaluation] = []
     for candidate in candidates:
         model_index = next(index for index, model in enumerate(snapshot["models"]) if model["modelIdentifier"] == candidate.modelIdentifier)
         effort_index = next(index for index, effort in enumerate(next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.modelIdentifier)["supportedEfforts"]) if effort["effortIdentifier"] == candidate.effortIdentifier)
         capability = (model_index + 1) * 10 + effort_index * 2
         injected = evaluator(candidate, valid_task, required) if evaluator else None
-        verdict = injected or ("SUITABLE" if capability >= required else "INSUFFICIENT")
-        reason = None if verdict == "SUITABLE" else f"capability score {capability} is below task requirement {required}"
+        policy_suitable = (
+            _model_floor_index(candidate.modelIdentifier) >= _model_floor_index(model_floor)
+            and _effort_floor_index(candidate.effortLabel) >= _effort_floor_index(effort_floor)
+        )
+        verdict = injected or ("SUITABLE" if capability >= required and policy_suitable else "INSUFFICIENT")
+        if verdict == "SUITABLE":
+            reason = None
+        elif not policy_suitable:
+            reason = f"policy floors require at least {model_floor} / {effort_floor}"
+        else:
+            reason = f"capability score {capability} is below task requirement {required}"
         risk = "LOW" if capability >= required + 3 else ("MEDIUM" if capability >= required else "HIGH")
         escalation = "LOW" if capability >= required + 2 else ("MEDIUM" if capability >= required else "HIGH")
         tier = tier_for_model(authority, candidate.modelIdentifier)
@@ -487,7 +577,8 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
         raise TaskDescriptionError("no candidate satisfies the reliability constraint")
     def key(item: PairEvaluation) -> tuple[object, ...]:
         candidate = Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, item.candidateOrdinal)
-        return selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
+        policy_rank = (_model_floor_index(item.modelIdentifier), _effort_floor_index(item.effortLabel))
+        return policy_rank + selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
 
     recommendation = min(suitable, key=key)
     rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]
@@ -596,7 +687,7 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
         f"official cost source artifact: {authority.sourceArtifactPath}",
         "Standard-speed assumption: exact official token credits; no effort multiplier",
         "ordered cost tiers: " + " | ".join(f"{tier.index}={','.join(tier.modelIdentifiers)}" for tier in authority.tiers),
-        "recommendation selection policy: cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, stable candidate ordinal",
+        "recommendation selection policy: policy floors, cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, stable candidate ordinal",
         f"model count: {snapshot['completeModelCount']}",
         f"model-effort pair count: {snapshot['completeModelEffortPairCount']}",
         f"evaluated pair count: {len(report.evaluations)}/{snapshot['completeModelEffortPairCount']}",

@@ -64,7 +64,7 @@ class ModelSelectorTests(unittest.TestCase):
         selector_core.current_branch = cls.original_current_branch
 
     def test_plugin_version_and_inventory_authority(self) -> None:
-        self.assertEqual(PLUGIN_VERSION, "1.0.17")
+        self.assertEqual(PLUGIN_VERSION, "1.0.18")
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
         self.assertEqual(snapshot["snapshotRevision"], "20260801.1")
@@ -175,6 +175,87 @@ class ModelSelectorTests(unittest.TestCase):
             self.assertEqual(result.status, "READ_ONLY_ALLOWED")
             self.assertNotIn("recommended pair:", result.output)
             self.assertEqual(list(state_dir.glob("*.json")), [])
+
+    def test_docs_only_mutation_recommendation_remains_luna_light(self) -> None:
+        docs_task = task(
+            writeScope=["plugins/asynchronia/notes.md"],
+            runtimeSensitivity="low",
+            architectureImpact="low",
+            securityImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            expectedImplementationSize="small",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        report = evaluate_task(load_snapshot(), docs_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_runtime_floor_raises_effort_without_leaving_luna_family(self) -> None:
+        runtime_task = task(
+            runtimeSensitivity="high",
+            architectureImpact="low",
+            securityImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        report = evaluate_task(load_snapshot(), runtime_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
+        self.assertEqual(report.recommendation.effortLabel, "High")
+
+    def test_security_floor_escalates_to_terra_light(self) -> None:
+        security_task = task(
+            securityImpact="high",
+            runtimeSensitivity="low",
+            architectureImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        report = evaluate_task(load_snapshot(), security_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Terra")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_broad_cross_cutting_escalates_to_sol_light(self) -> None:
+        broad_task = task(
+            architectureImpact="high",
+            securityImpact="high",
+            economyImpact="high",
+            releaseImpact="high",
+            validationComplexity="high",
+            concurrencyBranchRisk="high",
+            runtimeSensitivity="low",
+            ambiguityNovelty="low",
+            expectedImplementationSize="very_large",
+            affectedSystems=["a", "b", "c"],
+        )
+        report = evaluate_task(load_snapshot(), broad_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_broad_and_runtime_combination_escalates_to_sol_high(self) -> None:
+        broad_task = task(
+            architectureImpact="high",
+            securityImpact="high",
+            economyImpact="high",
+            releaseImpact="high",
+            validationComplexity="high",
+            concurrencyBranchRisk="high",
+            runtimeSensitivity="high",
+            ambiguityNovelty="low",
+            expectedImplementationSize="very_large",
+            affectedSystems=["a", "b", "c"],
+        )
+        report = evaluate_task(load_snapshot(), broad_task)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertEqual(report.recommendation.effortLabel, "High")
 
     def test_task_schema_rejects_missing_classification(self) -> None:
         broken = task()
