@@ -1,15 +1,15 @@
 {
   "name": "asynchronia",
-  "version": "1.0.16",
-  "description": "Project-specific automatic routing, bridge-authority-derived model preflight, scope checks, and evidence workflows for every Codex task in the Asynchronia repository.",
+  "version": "1.0.17",
+  "description": "Project-specific automatic routing with official Codex-credit authority, cheapest-sufficient selection, bridge-derived preflight, scope checks, and evidence workflows.",
   "author": {
     "name": "Asynchronia Project"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Asynchronia",
-    "shortDescription": "Route tasks through authoritative model inventory and bridge-derived scope preflight.",
-    "longDescription": "Provides mandatory routing, deterministic bridge task classification, confirmed-snapshot model inventory, complete model-effort evaluation, retry-adjusted cost selection, durable same-thread authorization in Git-private storage, scope isolation, deployment verification, and acceptance evidence rules.",
+    "shortDescription": "Select the cheapest sufficient verified Codex model using exact credit evidence.",
+    "longDescription": "Provides mandatory routing, deterministic bridge task classification, confirmed-snapshot model inventory, complete model-effort evaluation, official Standard-speed Codex-credit authority, exact cost-tier evidence, cost-authority identity binding, durable same-thread authorization in Git-private storage, scope isolation, deployment verification, and acceptance evidence rules. Capability semantics remain unchanged in 1.0.17 and require a separate calibration audit before security work resumes.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,6 +31,9 @@
       "PLUGIN_AUTO_ROUTING: REQUIRED",
       "MODEL_PREFLIGHT_PAUSE: REQUIRED",
       "Use the executable selector CLI at tools/run-asynchronia-model-preflight.py; do not manually simulate selector analysis in prose.",
+      "Use plugins/asynchronia/model-selector-cost-authority.json as the official Standard-speed Codex-credit authority; bind its revision, canonical hash, pricing basis, and source artifact blob to selector identity.",
+      "Recommend the cheapest sufficient candidate by neutral component-wise dominance cost tiers, exact decimal credits, lowest sufficient effort, retry risk, escalation risk, capability margin, and stable candidate ordinal.",
+      "Capability semantics remain unchanged in 1.0.17; universal Luna / Light recommendations require a separate capability calibration audit before the blocked security task resumes.",
       "For exact numbered bridge commands, use bridge-start, bridge-inventory-ok, and bridge-continue. Never invent or hand-author bridge task risk fields.",
       "Derive bridge task identity, frozen scope, and classification only from current slot-local STATE, inbox, claim, mailbox head, task branch, and the versioned bridge task profile.",
       "Unknown bridge claim types or incomplete bridge authority must fail closed.",

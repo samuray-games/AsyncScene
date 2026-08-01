@@ -14,13 +14,14 @@ from pathlib import Path
 from typing import Callable, Iterable, Mapping
 
 from .model_selector_inventory import canonical_hash, canonical_snapshot_payload, normalize_effort_identifier, normalize_model_identifier, parse_inventory_markdown
+from .model_selector_costs import CostAuthority, CostAuthorityError, exact_vector_text, load_cost_authority, selection_key, tier_for_model
 
 
 AUTHORITY_MANIFEST_PATH = Path(__file__).with_name("model-selector-authority.json")
 SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-snapshot.json"
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
-PLUGIN_VERSION = "1.0.16"
+PLUGIN_VERSION = "1.0.17"
 MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
@@ -67,8 +68,11 @@ class PairEvaluation:
     retryRisk: str
     escalationRisk: str
     costClass: str
+    costVector: tuple[str, str, str]
+    costTierIndex: int
     capabilityScore: int
     requiredScore: int
+    candidateOrdinal: int
 
 
 @dataclass(frozen=True)
@@ -432,17 +436,6 @@ def _required_score(task: Mapping[str, object]) -> int:
     return score
 
 
-def _cost_class(model_index: int, effort_index: int) -> str:
-    ordinal = model_index * 4 + effort_index
-    if ordinal <= 3:
-        return "LOW"
-    if ordinal <= 9:
-        return "MEDIUM"
-    if ordinal <= 16:
-        return "HIGH"
-    return "VERY_HIGH"
-
-
 def _ordinal(snapshot: Mapping[str, object], candidate: Candidate) -> int:
     for model_index, model in enumerate(snapshot["models"]):
         if model["modelIdentifier"] != candidate.modelIdentifier:
@@ -453,9 +446,23 @@ def _ordinal(snapshot: Mapping[str, object], candidate: Candidate) -> int:
     raise TaskDescriptionError("candidate not present in snapshot")
 
 
+def _cost_authority(snapshot: Mapping[str, object]) -> CostAuthority:
+    try:
+        root = _resolve_git_worktree_root()
+        return load_cost_authority(inventory_model_ids=[model["modelIdentifier"] for model in snapshot["models"]], repository_root=root)
+    except CostAuthorityError as exc:
+        raise SnapshotError(str(exc)) from exc
+
+
+def _effort_index(snapshot: Mapping[str, object], candidate: Candidate) -> int:
+    model = next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.modelIdentifier)
+    return next(index for index, effort in enumerate(model["supportedEfforts"]) if effort["effortIdentifier"] == candidate.effortIdentifier)
+
+
 def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], evaluator: Callable[[Candidate, Mapping[str, object], int], str] | None = None) -> EvaluationReport:
     valid_task = _validate_task(task)
     candidates = build_candidate_matrix(snapshot)
+    authority = _cost_authority(snapshot)
     required = _required_score(valid_task)
     evaluations: list[PairEvaluation] = []
     for candidate in candidates:
@@ -467,15 +474,29 @@ def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], ev
         reason = None if verdict == "SUITABLE" else f"capability score {capability} is below task requirement {required}"
         risk = "LOW" if capability >= required + 3 else ("MEDIUM" if capability >= required else "HIGH")
         escalation = "LOW" if capability >= required + 2 else ("MEDIUM" if capability >= required else "HIGH")
-        evaluations.append(PairEvaluation(candidate.modelLabel, candidate.effortLabel, candidate.modelIdentifier, candidate.effortIdentifier, verdict, reason, risk, escalation, _cost_class(model_index, effort_index), capability, required))
+        tier = tier_for_model(authority, candidate.modelIdentifier)
+        vector = authority.models[candidate.modelIdentifier]
+        evaluations.append(PairEvaluation(
+            candidate.modelLabel, candidate.effortLabel, candidate.modelIdentifier, candidate.effortIdentifier,
+            verdict, reason, risk, escalation, f"TIER_{tier.index}",
+            (vector.inputCredits, vector.cachedInputCredits, vector.outputCredits), tier.index,
+            capability, required, candidate.ordinal,
+        ))
     suitable = [evaluation for evaluation in evaluations if evaluation.verdict == "SUITABLE"]
     if not suitable:
         raise TaskDescriptionError("no candidate satisfies the reliability constraint")
-    recommendation = min(suitable, key=lambda item: evaluations.index(item))
+    def key(item: PairEvaluation) -> tuple[object, ...]:
+        candidate = Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, item.candidateOrdinal)
+        return selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
+
+    recommendation = min(suitable, key=key)
     rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]
-    cheapest_rejected = min(rejected, key=lambda item: _ordinal(snapshot, Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, 0)), default=None)
-    recommendation_index = evaluations.index(recommendation)
-    next_more_capable = next((evaluation for evaluation in evaluations[recommendation_index + 1:] if evaluation.verdict == "SUITABLE"), None)
+    cheapest_rejected = min(rejected, key=key, default=None)
+    next_more_capable = min(
+        (evaluation for evaluation in suitable if evaluation.capabilityScore > recommendation.capabilityScore),
+        key=key,
+        default=None,
+    )
     matrix_hash = _sha256([asdict(evaluation) for evaluation in evaluations])
     return EvaluationReport(tuple(evaluations), recommendation, cheapest_rejected, next_more_capable, matrix_hash, required)
 
@@ -524,10 +545,14 @@ def _read_state(thread_id: str, state_dir: Path) -> dict[str, object]:
 
 
 def _identity(task: Mapping[str, object], snapshot: Mapping[str, object], report: EvaluationReport, thread_id: str, branch: str, baseline: str) -> dict[str, object]:
+    authority = _cost_authority(snapshot)
     return {
         "taskId": task["taskId"], "threadId": thread_id, "branch": branch, "baselineSha": baseline,
         "snapshotRevision": snapshot["snapshotRevision"], "snapshotHash": snapshot["canonicalContentHash"],
         "taskDescriptionHash": task_hash(task), "completeMatrixHash": report.matrixHash,
+        "costAuthorityRevision": authority.authorityRevision,
+        "costAuthorityHash": authority.canonicalContentHash,
+        "pricingBasis": authority.pricingBasis,
         "recommendation": {"modelIdentifier": report.recommendation.modelIdentifier, "effortIdentifier": report.recommendation.effortIdentifier},
     }
 
@@ -558,12 +583,20 @@ def mutation_authorization_guard(thread_id: str, task: Mapping[str, object], bas
 
 
 def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: str, next_response: str) -> str:
+    authority = _cost_authority(snapshot)
     lines = [
         f"status: {status}",
         f"authorization path: {'MUTATION_PREFLIGHT_REQUIRED' if status != 'READ_ONLY_ALLOWED' else 'READ_ONLY_ALLOWED'}",
         f"snapshot revision: {snapshot['snapshotRevision']}",
         f"snapshot hash: {snapshot['canonicalContentHash']}",
         f"source artifact: {snapshot['sourceArtifact']['path']}",
+        f"cost authority revision: {authority.authorityRevision}",
+        f"cost authority hash: {authority.canonicalContentHash}",
+        f"pricing basis: {authority.pricingBasis}",
+        f"official cost source artifact: {authority.sourceArtifactPath}",
+        "Standard-speed assumption: exact official token credits; no effort multiplier",
+        "ordered cost tiers: " + " | ".join(f"{tier.index}={','.join(tier.modelIdentifiers)}" for tier in authority.tiers),
+        "recommendation selection policy: cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, stable candidate ordinal",
         f"model count: {snapshot['completeModelCount']}",
         f"model-effort pair count: {snapshot['completeModelEffortPairCount']}",
         f"evaluated pair count: {len(report.evaluations)}/{snapshot['completeModelEffortPairCount']}",
@@ -572,7 +605,7 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     ]
     for evaluation in report.evaluations:
         reason = f"; reason={evaluation.rejectionReason}" if evaluation.rejectionReason else ""
-        lines.append(f"- {evaluation.modelLabel} / {evaluation.effortLabel}: {evaluation.verdict}; retry={evaluation.retryRisk}; escalation={evaluation.escalationRisk}; cost={evaluation.costClass}{reason}")
+        lines.append(f"- {evaluation.modelLabel} / {evaluation.effortLabel}: {evaluation.verdict}; retry={evaluation.retryRisk}; escalation={evaluation.escalationRisk}; cost={evaluation.costClass}; cost-tier={evaluation.costTierIndex}; credits={'/'.join(evaluation.costVector)}{reason}")
     lines.append(f"cheapest rejected pair: {report.cheapestRejected.modelLabel} / {report.cheapestRejected.effortLabel}; reason={report.cheapestRejected.rejectionReason}" if report.cheapestRejected else "cheapest rejected pair: none")
     lines.append(f"recommended pair: {report.recommendation.modelLabel} / {report.recommendation.effortLabel}")
     lines.append(f"next more capable plausible pair: {report.nextMoreCapable.modelLabel} / {report.nextMoreCapable.effortLabel}" if report.nextMoreCapable else "next more capable plausible pair: none")
@@ -582,6 +615,7 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
 
 def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str, plugin_root: Path | None) -> str:
     evidence = _read_plugin_runtime_evidence(plugin_root)
+    authority = _cost_authority(snapshot)
     worktree_root = _resolve_git_worktree_root()
     lines = [
         "status: READ_ONLY_ALLOWED",
@@ -594,6 +628,7 @@ def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object]
         f"absolute worktree path: {worktree_root}",
         f"baseline sha: {baseline}",
         f"authority validation result: {_authority_validation_result(snapshot)}",
+        f"cost authority validation result: PASS {authority.authorityRevision} {authority.canonicalContentHash}",
         f"read-only scope: {task['readScope']}",
         "next response: none",
     ]

@@ -1,9 +1,9 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.16 model preflight using authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
+description: Run Asynchronia 1.0.17 model preflight using official Codex-credit authority, cheapest-sufficient selection, authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
-# Model Selector 1.0.16
+# Model Selector 1.0.17
 
 Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
 
@@ -58,11 +58,13 @@ The default selector state directory is resolved with:
 
 This keeps state in Git-private, sandbox-writable storage shared by linked worktrees. The default must never use the legacy user-home directory and must never write under `.ai-bridge/**`. `ASYNCHRONIA_SELECTOR_STATE_DIR` is accepted only as an explicit absolute override.
 
-State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, timestamps, state history, and expiry. Any mismatch or stale state fails closed.
+State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, official cost-authority revision/hash, pricing basis, timestamps, state history, and expiry. Any mismatch or stale state fails closed.
 
 ## Inventory and recommendation
 
 The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
+
+Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability math is unchanged in 1.0.17. Under the current calibration, Luna / Light is selected for every valid requirement from 10 through 39; a separate capability calibration audit is required before the blocked security task resumes.
 
 Mutation output prints:
 
@@ -91,6 +93,9 @@ Required visible relay fields:
 - `model-effort pair count`
 - `evaluated pair count`
 - `required capability score`
+- cost authority revision/hash, pricing basis, and official source artifact
+- exact credits and `TIER_N` / `cost-tier=N` on every matrix row
+- ordered cost tiers and the cheapest-sufficient selection policy
 - the complete ordered evaluation matrix
 - every evaluated model-effort pair exactly once
 - `cheapest rejected pair` and its reason
