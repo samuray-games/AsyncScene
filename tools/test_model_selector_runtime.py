@@ -64,7 +64,7 @@ class ModelSelectorTests(unittest.TestCase):
         selector_core.current_branch = cls.original_current_branch
 
     def test_plugin_version_and_inventory_authority(self) -> None:
-        self.assertEqual(PLUGIN_VERSION, "1.0.16")
+        self.assertEqual(PLUGIN_VERSION, "1.0.17")
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
         self.assertEqual(snapshot["snapshotRevision"], "20260801.1")

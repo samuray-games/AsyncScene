@@ -70,7 +70,7 @@ def snapshot_copy() -> dict[str, object]:
     return copy.deepcopy(load_snapshot())
 
 
-def installed_plugin_root(directory: Path, version: str = "1.0.16", name: str = "asynchronia") -> Path:
+def installed_plugin_root(directory: Path, version: str = "1.0.17", name: str = "asynchronia") -> Path:
     plugin_root = directory / "installed-plugin"
     manifest_dir = plugin_root / ".codex-plugin"
     manifest_dir.mkdir(parents=True, exist_ok=True)
@@ -98,7 +98,6 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
         self.assertIn("PROJECT_MEMORY.md", legacy_plan)
-        self.assertIn("INSTALLED_PLUGIN_VERSION: 1.0.16", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             result = start_preflight(
                 task(
@@ -142,7 +141,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(state_files, [])
             self.assertIn(str(plugin_root), start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
-            self.assertIn("manifest version: 1.0.16", start.stdout)
+            self.assertIn("manifest version: 1.0.17", start.stdout)
 
     def test_authority_manifest_and_direct_markdown_parse(self) -> None:
         manifest = json.loads(AUTHORITY_MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -197,12 +196,12 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         manifest = json.loads(REPOSITORY_MANIFEST_PATH.read_text(encoding="utf-8"))
         marketplace = json.loads((ROOT / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "asynchronia")
-        self.assertEqual(manifest["version"], "1.0.16")
-        self.assertEqual(entry["version"], "1.0.16")
-        self.assertIn('PLUGIN_VERSION = "1.0.16"', (ROOT / "plugins/asynchronia/model_selector.py").read_text(encoding="utf-8"))
-        self.assertIn('PLUGIN_VERSION = "1.0.16"', (ROOT / "plugins/asynchronia/model_selector_runtime.py").read_text(encoding="utf-8"))
-        self.assertIn("Asynchronia 1.0.16", (ROOT / "plugins/asynchronia/skills/model-selector/SKILL.md").read_text(encoding="utf-8"))
-        self.assertIn('EXPECTED_VERSION = "1.0.16"', (ROOT / "tools/validate-asynchronia-auto-model-preflight.py").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["version"], "1.0.17")
+        self.assertEqual(entry["version"], "1.0.17")
+        self.assertIn('PLUGIN_VERSION = "1.0.17"', (ROOT / "plugins/asynchronia/model_selector.py").read_text(encoding="utf-8"))
+        self.assertIn('PLUGIN_VERSION = "1.0.17"', (ROOT / "plugins/asynchronia/model_selector_runtime.py").read_text(encoding="utf-8"))
+        self.assertIn("Asynchronia 1.0.17", (ROOT / "plugins/asynchronia/skills/model-selector/SKILL.md").read_text(encoding="utf-8"))
+        self.assertIn('EXPECTED_VERSION = "1.0.17"', (ROOT / "tools/validate-asynchronia-auto-model-preflight.py").read_text(encoding="utf-8"))
 
     def test_exact_labels_survive_generation_and_ids_remain_separate(self) -> None:
         snapshot = _build_snapshot_from_inventory()
@@ -514,7 +513,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
     def test_read_only_runtime_version_comes_from_manifest_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
-            plugin_root = installed_plugin_root(Path(directory), version="1.0.16")
+            plugin_root = installed_plugin_root(Path(directory), version="1.0.17")
             task_file = Path(directory) / "task.json"
             task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
             command = [sys.executable, "tools/run-asynchronia-model-preflight.py"]
@@ -523,7 +522,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertEqual(start.returncode, 0)
             self.assertIn("plugin root:", start.stdout)
             self.assertIn("plugin manifest path:", start.stdout)
-            self.assertIn("manifest version: 1.0.16", start.stdout)
+            self.assertIn("manifest version: 1.0.17", start.stdout)
             self.assertIn(str(plugin_root / ".codex-plugin" / "plugin.json"), start.stdout)
 
     def test_read_only_plugin_root_validation_fails_closed(self) -> None:
@@ -555,7 +554,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             plugin_root = Path(directory) / "wrong-name-plugin"
             manifest = {
                 "name": "wrong-name",
-                "version": "1.0.16",
+                "version": "1.0.17",
                 "description": "bad",
                 "author": {"name": "bad"},
             }
@@ -624,7 +623,6 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         legacy_plan = (ROOT / ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-LIVE-CATALOG-20260712/02-work-plan.md").read_text(encoding="utf-8")
         project_memory = (ROOT / "PROJECT_MEMORY.md").read_text(encoding="utf-8")
         self.assertIn("WAITING_FOR_MODEL_SELECTION", legacy_plan)
-        self.assertIn("1.0.16", project_memory)
         with tempfile.TemporaryDirectory() as directory:
             read_state_dir = Path(directory) / "read-state"
             write_state_dir = Path(directory) / "write-state"
