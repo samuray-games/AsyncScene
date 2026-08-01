@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "infra/model-snapshot-maintenance-20260801",
+  "createdAtJst": "2026-08-01 15:17:34 JST",
+  "createdAtUtc": "2026-08-01T06:17:34Z",
+  "packagePath": "runs/2026/08/01/GITHUB/GITHUB-20260801T061734Z-30687461700-28a7f538",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260801T061734Z-30687461700-28a7f538",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
