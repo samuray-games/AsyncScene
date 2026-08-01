@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "6d65cfe25011d9e1f1d3202439072bbb4526292d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6d65cfe25011d9e1f1d3202439072bbb4526292d\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "6d65cfe2 (HEAD, pull/260/merge) Merge 9c8e463efd5c169be26907395be8707e2beab427 into 3e9602903ab124658319abd584c480682002feb4\n9c8e463e (origin/infra/model-snapshot-maintenance-20260801) Correct selector snapshot supersedes chain\n48e52230 Refresh Codex model selector inventory authority\n3e960290 (origin/main, origin/chatgpt/stage6-step9-five-profile-runtime-defect-repair-20260727) Complete five-profile runtime validation follow-up\nf939b7ba Repair five-profile runtime defects\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6d65cfe25011d9e1f1d3202439072bbb4526292d\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-01T06:18:01Z",
+      "stderr": "",
+      "stdout": "3e9602903ab124658319abd584c480682002feb4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6d65cfe25011d9e1f1d3202439072bbb4526292d",
+  "observedAtUtc": "2026-08-01T06:18:01Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
