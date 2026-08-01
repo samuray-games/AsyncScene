@@ -67,12 +67,12 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(PLUGIN_VERSION, "1.0.16")
         snapshot = load_snapshot()
         candidates = build_candidate_matrix(snapshot)
-        self.assertEqual(snapshot["snapshotRevision"], "20260722.1")
-        self.assertEqual(snapshot["confirmedTimestamp"], "2026-07-21T17:36:00Z")
+        self.assertEqual(snapshot["snapshotRevision"], "20260801.1")
+        self.assertEqual(snapshot["confirmedTimestamp"], "2026-08-01T05:31:00Z")
         self.assertEqual(len(candidates), snapshot["completeModelEffortPairCount"])
-        self.assertEqual(snapshot["completeModelCount"], 5)
-        self.assertEqual(snapshot["completeModelEffortPairCount"], 23)
-        self.assertEqual(len(candidates), 23)
+        self.assertEqual(snapshot["completeModelCount"], 6)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 29)
+        self.assertEqual(len(candidates), 29)
         self.assertEqual(
             [(candidate.modelLabel, candidate.effortLabel) for candidate in candidates],
             [
@@ -81,13 +81,17 @@ class ModelSelectorTests(unittest.TestCase):
                 ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
                 ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
                 ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
-                ("5.6 Terra/Sol", "Light"), ("5.6 Terra/Sol", "Medium"), ("5.6 Terra/Sol", "High"),
-                ("5.6 Terra/Sol", "Extra High"), ("5.6 Terra/Sol", "Max"), ("5.6 Terra/Sol", "Ultra"),
+                ("5.6 Terra", "Light"), ("5.6 Terra", "Medium"), ("5.6 Terra", "High"),
+                ("5.6 Terra", "Extra High"), ("5.6 Terra", "Max"), ("5.6 Terra", "Ultra"),
+                ("5.6 Sol", "Light"), ("5.6 Sol", "Medium"), ("5.6 Sol", "High"),
+                ("5.6 Sol", "Extra High"), ("5.6 Sol", "Max"), ("5.6 Sol", "Ultra"),
             ],
         )
         report = evaluate_task(snapshot, task())
-        self.assertEqual(len(report.evaluations), 23)
+        self.assertEqual(len(report.evaluations), 29)
         self.assertTrue(report.recommendation.modelLabel)
+        self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 29)
+        self.assertNotIn("gpt-5.6-terra-sol", {item.modelIdentifier for item in report.evaluations})
 
     def test_default_state_is_git_private_and_not_legacy_home_path(self) -> None:
         state_dir = resolve_default_state_dir(ROOT)
