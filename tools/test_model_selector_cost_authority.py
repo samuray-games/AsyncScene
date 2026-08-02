@@ -93,10 +93,33 @@ class CostAuthorityTests(unittest.TestCase):
             selector._assert_identity(stale, task(), self.snapshot, report, "cost-thread", "branch", "baseline")
 
     def test_29_pair_order_capability_math_recommendations_and_cost_evidence(self) -> None:
-        expected = ("gpt-5.6-luna", "light")
+        policy_task = {
+            "taskId": "TASK-LOW-RISK",
+            "taskType": "PLUGIN_POLICY",
+            "objective": "validate calibrated scalar bands",
+            "readScope": ["plugins/asynchronia"],
+            "writeScope": ["plugins/asynchronia/model_selector.py"],
+            "affectedSystems": ["selector"],
+            "runtimeSensitivity": "low",
+            "architectureImpact": "low",
+            "securityImpact": "low",
+            "economyImpact": "low",
+            "releaseImpact": "low",
+            "validationComplexity": "low",
+            "expectedImplementationSize": "small",
+            "ambiguityNovelty": "low",
+            "concurrencyBranchRisk": "low",
+        }
+        expected_pairs = {
+            range(10, 20): ("gpt-5.6-luna", "light"),
+            range(20, 30): ("gpt-5.6-luna", "medium"),
+            range(30, 38): ("gpt-5.6-luna", "high"),
+            range(38, 40): ("gpt-5.6-luna", "max"),
+        }
         for required in range(10, 40):
             with patch.object(selector, "_required_score", return_value=required):
-                report = selector.evaluate_task(self.snapshot, task())
+                report = selector.evaluate_task(self.snapshot, policy_task)
+            expected = next(pair for band, pair in expected_pairs.items() if required in band)
             self.assertEqual((report.recommendation.modelIdentifier, report.recommendation.effortIdentifier), expected)
             self.assertEqual(len(report.evaluations), 29)
             self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 29)
@@ -105,10 +128,27 @@ class CostAuthorityTests(unittest.TestCase):
             self.assertEqual(report.evaluations[12].costVector, ("5", "0.5", "30"))
 
     def test_cheapest_rejected_and_next_more_capable_are_cost_aware(self) -> None:
+        policy_task = {
+            "taskId": "TASK-LOW-RISK",
+            "taskType": "PLUGIN_POLICY",
+            "objective": "validate calibrated frontier outputs",
+            "readScope": ["plugins/asynchronia"],
+            "writeScope": ["plugins/asynchronia/model_selector.py"],
+            "affectedSystems": ["selector"],
+            "runtimeSensitivity": "low",
+            "architectureImpact": "low",
+            "securityImpact": "low",
+            "economyImpact": "low",
+            "releaseImpact": "low",
+            "validationComplexity": "low",
+            "expectedImplementationSize": "small",
+            "ambiguityNovelty": "low",
+            "concurrencyBranchRisk": "low",
+        }
         with patch.object(selector, "_required_score", return_value=24):
-            report = selector.evaluate_task(self.snapshot, task())
-        self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), ("gpt-5.4-mini", "light"))
-        self.assertEqual((report.nextMoreCapable.modelIdentifier, report.nextMoreCapable.effortIdentifier), ("gpt-5.6-luna", "medium"))
+            report = selector.evaluate_task(self.snapshot, policy_task)
+        self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), ("gpt-5.6-luna", "light"))
+        self.assertEqual((report.nextMoreCapable.modelIdentifier, report.nextMoreCapable.effortIdentifier), ("gpt-5.6-luna", "high"))
         rendered = selector._output(self.snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK")
         self.assertEqual(sum("credits=" in line for line in rendered.splitlines()), 29)
         self.assertIn("cost=TIER_1; cost-tier=1; credits=5/0.5/30", rendered)
@@ -120,7 +160,7 @@ class CostAuthorityTests(unittest.TestCase):
             plugin_root = Path(directory) / "plugin"
             manifest = plugin_root / ".codex-plugin"
             manifest.mkdir(parents=True)
-            (manifest / "plugin.json").write_text(json.dumps({"name": "asynchronia", "version": "1.0.17"}))
+            (manifest / "plugin.json").write_text(json.dumps({"name": "asynchronia", "version": "1.0.18"}))
             output = selector.start_preflight(read_only, "read-only-cost", "baseline", branch=selector.current_branch(), plugin_root=plugin_root).output
         self.assertIn("cost authority validation result: PASS", output)
         self.assertNotIn("evaluation matrix:", output)

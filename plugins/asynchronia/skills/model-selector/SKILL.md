@@ -1,9 +1,9 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.17 model preflight using official Codex-credit authority, cheapest-sufficient selection, authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
+description: Run Asynchronia 1.0.18 model preflight using official Codex-credit authority, cheapest-sufficient selection, authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
-# Model Selector 1.0.17
+# Model Selector 1.0.18
 
 Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
 
@@ -64,7 +64,7 @@ State is per-thread and binds task ID, task hash, thread, branch, baseline, snap
 
 The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
 
-Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability math is unchanged in 1.0.17. Under the current calibration, Luna / Light is selected for every valid requirement from 10 through 39; a separate capability calibration audit is required before the blocked security task resumes.
+Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
 
 Mutation output prints:
 
