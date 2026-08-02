@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import unittest
 from pathlib import Path
@@ -8,6 +9,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_INDEX = (ROOT / "docs" / "index.html").resolve()
 STATE_SOURCE = ROOT / "AsyncScene" / "Web" / "state.js"
+UI_DM_SOURCES = (
+    ("runtime", ROOT / "AsyncScene" / "Web" / "ui" / "ui-dm.js"),
+    ("docs", ROOT / "docs" / "ui" / "ui-dm.js"),
+)
+RESPECT_ACTOR_ID_READ = 'const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";'
+RESPECT_MUTATION_BOUNDARY = "Game.StateAPI.giveRespect(meId, targetId, timestamp)"
+INTERNAL_STATE_MUTATION_PATTERNS = (
+    r"\bGame\.__S(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*[^\]]+\s*\]))*\s*(?:=|\+=|-=|\*=|/=|%=|\*\*=|&&=|\|\|=|\?\?=|\+\+|--)",
+    r"(?:\+\+|--)\s*Game\.__S\b",
+    r"\bdelete\s+Game\.__S\b",
+    r"\b(?:Object\.(?:assign|defineProperty|defineProperties|setPrototypeOf)|Reflect\.(?:set|deleteProperty|defineProperty))\s*\(\s*Game\.__S\b",
+    r"\bGame\.__S(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*[^\]]+\s*\]))*\s*\.\s*(?:push|pop|shift|unshift|splice|sort|reverse|copyWithin|fill|set|add|delete|clear)\s*\(",
+)
 
 
 def extract_named_function(source: str, name: str) -> str:
@@ -43,6 +57,75 @@ def extract_named_function(source: str, name: str) -> str:
             if depth == 0:
                 return source[start:index + 1]
     raise AssertionError(f"unterminated function {name}")
+
+
+def extract_const_arrow_function(source: str, name: str) -> str:
+    anchor = f"const {name} ="
+    start = source.find(anchor)
+    if start < 0:
+        raise AssertionError(f"missing const arrow function {name}")
+    brace = source.find("{", start)
+    if brace < 0:
+        raise AssertionError(f"missing function body for {name}")
+    depth = 0
+    for index in range(brace, len(source)):
+        ch = source[index]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start:index + 1]
+    raise AssertionError(f"unterminated const arrow function {name}")
+
+
+def run_ui_respect_authorized_state_harness() -> dict[str, object]:
+    source = UI_DM_SOURCES[0][1].read_text(encoding="utf-8")
+    visible_hook = extract_const_arrow_function(source, "__uiRespectButtonVisible__")
+    click_hook = extract_const_arrow_function(source, "__uiRespectClick__")
+    script = f"""
+let protectedReads = 0;
+const calls = [];
+const Game = {{
+  __S: {{ me: {{ id: "player" }} }},
+  StateAPI: {{
+    giveRespect(...args) {{
+      calls.push(args);
+      return null;
+    }}
+  }}
+}};
+Object.defineProperty(Game, "State", {{
+  configurable: true,
+  get() {{
+    protectedReads += 1;
+    return {{ me: {{ id: "protected-player" }} }};
+  }}
+}});
+
+{visible_hook}
+{click_hook}
+
+const visibleSelf = __uiRespectButtonVisible__("player");
+const visibleOther = __uiRespectButtonVisible__("npc_1");
+const clickSelf = __uiRespectClick__("player", 123);
+const clickOther = __uiRespectClick__("npc_1", 123);
+console.log(JSON.stringify({{ protectedReads, visibleSelf, visibleOther, clickSelf, clickOther, calls }}));
+"""
+    completed = subprocess.run(
+        ["node", "--input-type=module", "-e", script],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise AssertionError(
+            "ui respect authorized-state harness failed\n"
+            f"stdout:\n{completed.stdout}\n"
+            f"stderr:\n{completed.stderr}"
+        )
+    return json.loads(completed.stdout)
 
 
 def run_state_security_harness() -> dict[str, object]:
@@ -229,6 +312,44 @@ try {{
 
 
 class Step9SecurityAuditSelfTriggerTests(unittest.TestCase):
+    def test_respect_hooks_use_only_the_authorized_internal_state_surface(self) -> None:
+        for label, path in UI_DM_SOURCES:
+            source = path.read_text(encoding="utf-8")
+            for name in ("__uiRespectButtonVisible__", "__uiRespectClick__"):
+                hook = extract_const_arrow_function(source, name)
+                self.assertIn(RESPECT_ACTOR_ID_READ, hook, msg=f"{label} {name} does not use the exact actor identity read")
+                self.assertIsNone(
+                    re.search(r"\bGame\.State(?!API)\b", hook),
+                    msg=f"{label} {name} reads protected Game.State",
+                )
+                for pattern in INTERNAL_STATE_MUTATION_PATTERNS:
+                    self.assertIsNone(
+                        re.search(pattern, hook),
+                        msg=f"{label} {name} mutates the authorized internal state surface: {pattern}",
+                    )
+                if name == "__uiRespectClick__":
+                    self.assertIn(
+                        RESPECT_MUTATION_BOUNDARY,
+                        hook,
+                        msg=f"{label} {name} does not use the required StateAPI mutation boundary",
+                    )
+                else:
+                    self.assertNotIn(
+                        "Game.StateAPI.giveRespect(",
+                        hook,
+                        msg=f"{label} {name} must remain a pure visibility predicate",
+                    )
+
+    def test_respect_hooks_do_not_read_protected_state_and_preserve_actor_behavior(self) -> None:
+        result = run_ui_respect_authorized_state_harness()
+
+        self.assertEqual(result["protectedReads"], 0)
+        self.assertFalse(result["visibleSelf"])
+        self.assertTrue(result["visibleOther"])
+        self.assertIsNone(result["clickSelf"])
+        self.assertIsNone(result["clickOther"])
+        self.assertEqual(result["calls"], [["player", "npc_1", 123]])
+
     def test_state_security_harness_avoids_self_trigger_and_preserves_guards(self) -> None:
         result = run_state_security_harness()
 
