@@ -1,0 +1,106 @@
+{
+  "branch": "infra/model-selector-capability-calibration-20260801",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "infra/model-selector-capability-calibration-20260801\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "385ece29f893a1741508a19de6e9dab2ecb5f3de\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "# branch.oid 385ece29f893a1741508a19de6e9dab2ecb5f3de\n# branch.head infra/model-selector-capability-calibration-20260801\n# branch.upstream origin/infra/model-selector-capability-calibration-20260801\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "385ece29 (HEAD -> infra/model-selector-capability-calibration-20260801, origin/infra/model-selector-capability-calibration-20260801) Finish calibration evidence cleanup\ne001e295 Refresh calibration task state head\n03f9032e Align scope and trim regression noise\n3cfaabe9 Update calibration task state\nc6a7c826 Calibrate model selector policy floors\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 385ece29f893a1741508a19de6e9dab2ecb5f3de\nbranch refs/heads/infra/model-selector-capability-calibration-20260801\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T03:29:10Z",
+      "stderr": "",
+      "stdout": "d4527217e3ec4b5cbe2978bef1974fc8a300058a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "385ece29f893a1741508a19de6e9dab2ecb5f3de",
+  "observedAtUtc": "2026-08-02T03:29:10Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
