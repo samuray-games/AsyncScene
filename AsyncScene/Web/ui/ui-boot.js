@@ -2533,13 +2533,24 @@ window.Game = window.Game || {};
         };
         try {
           if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
+          const currentYear = new Date().getFullYear();
+          const currentYearInput = String(currentYear % 100).padStart(2, "0");
+          const nextYearInput = String((currentYear + 1) % 100).padStart(2, "0");
           const cases = [
-            { input: "87", year: 1987, profile: "millennial" },
-            { input: "98", year: 1998, profile: "zoomer" },
-            { input: "04", year: 2004, profile: "zoomer" },
-            { input: "15", year: 2015, profile: "alpha" },
-            { input: "55", year: 1955, profile: "boomer" },
-            { input: "30", year: 1930, profile: "silent" },
+            { input: "", year: null, profile: "default" },
+            { input: "45", year: 1945, profile: "industrial" },
+            { input: "46", year: 1946, profile: "boomer" },
+            { input: "64", year: 1964, profile: "boomer" },
+            { input: "65", year: 1965, profile: "genX" },
+            { input: "80", year: 1980, profile: "genX" },
+            { input: "81", year: 1981, profile: "millennial" },
+            { input: "96", year: 1996, profile: "millennial" },
+            { input: "97", year: 1997, profile: "zoomer" },
+            { input: "12", year: 2012, profile: "zoomer" },
+            { input: "13", year: 2013, profile: "alpha" },
+            { input: currentYearInput, year: currentYear, profile: "alpha" },
+            { input: nextYearInput, year: currentYear + 1, profile: "future" },
+            { input: "30", year: 1930, profile: "industrial" },
           ];
           result.resolverChecks = cases.map((entry) => {
             const actualProfile = resolvePrimary(entry.input);
@@ -2554,16 +2565,37 @@ window.Game = window.Game || {};
           const beforeRawText = readPersistedText();
           const uiProfile = resolvePrimary("90");
           if (uiProfile !== "millennial") fail("ui_profile_from_resolver_failed", { input: "90", uiProfile });
-          afterRawText = readPersistedText();
+          const afterResolveText = readPersistedText();
           const forbiddenPattern = /(birthYear|birth_year|fantasyBirthYear|year|age|birthDate|birthday|generation|generationYear|profileYear|uiBirthYear|selectedBirthYear|selectedYear)/i;
-          result.rawInputClearedAfterResolver = beforeRawText.allText === afterRawText.allText && !/90|01/.test(afterRawText.allText);
-          if (!result.rawInputClearedAfterResolver) fail("raw_input_not_cleared_after_resolver", { beforeRawText, afterRawText });
+          result.rawInputClearedAfterResolver = beforeRawText.allText === afterResolveText.allText && !/90|01/.test(afterResolveText.allText);
+          if (!result.rawInputClearedAfterResolver) fail("raw_input_not_cleared_after_resolver", { beforeRawText, afterResolveText });
+          const previousUiProfile = G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || "default";
+          const previousTextMode = G.Data ? G.Data.TEXT_MODE : null;
+          const stateSnapshots = getAuthorizedStateTargets(UI).map((state) => ({
+            state,
+            hadFlags: !!(state && Object.prototype.hasOwnProperty.call(state, "flags")),
+            flags: state && state.flags && typeof state.flags === "object" ? { ...state.flags } : null,
+            hadSave: !!(state && Object.prototype.hasOwnProperty.call(state, "save")),
+            save: state && state.save && typeof state.save === "object" ? { ...state.save } : null,
+          }));
+          applyUiProfileBeforeEnter(UI, "90");
+          afterRawText = readPersistedText();
+          stateSnapshots.forEach(({ state, hadFlags, flags, hadSave, save }) => {
+            if (!state) return;
+            if (hadFlags) state.flags = flags;
+            else delete state.flags;
+            if (hadSave) state.save = save;
+            else delete state.save;
+          });
+          if (G.Data && typeof G.Data.setUiProfile === "function") G.Data.setUiProfile(previousUiProfile);
+          else if (G.Data && typeof G.Data === "object") G.Data.UI_PROFILE = previousUiProfile;
+          if (G.Data && previousTextMode != null) G.Data.TEXT_MODE = previousTextMode;
           const afterSave = JSON.parse(afterRawText.saveText || "{}");
           const afterStorage = afterRawText.storageText || "";
           const afterSnapshot = afterRawText.snapshotText || "";
           const afterWorldSnapshot = afterRawText.worldSnapshotText || "";
           const saveKeys = Object.keys(afterSave || {});
-          result.saveContainsUiProfile = Object.prototype.hasOwnProperty.call(afterSave, "uiProfile") && ["default", "millennial", "zoomer", "alpha", "boomer", "genX", "silent"].includes(String(afterSave.uiProfile || ""));
+          result.saveContainsUiProfile = Object.prototype.hasOwnProperty.call(afterSave, "uiProfile") && ["default", "millennial", "zoomer", "alpha", "boomer", "genX"].includes(String(afterSave.uiProfile || ""));
           if (saveKeys.some((key) => key !== "uiProfile")) fail("save_contains_extra_keys", saveKeys);
           result.saveDoesNotContainBirthYear = !Object.prototype.hasOwnProperty.call(afterSave, "birthYear");
           result.saveDoesNotContainYear = !Object.prototype.hasOwnProperty.call(afterSave, "year");

@@ -26,6 +26,16 @@ class ProfileBootstrapFindingsTests(unittest.TestCase):
             self.assertIn('id="startBirthYearFeelingLabel" class="startFieldLabel" hidden', boot)
             self.assertIn('id="startBirthYearFeelingInput" class="input"', boot)
             self.assertIn('style="display:none;visibility:hidden;opacity:0;"', boot)
+            self.assertIn('{ input: "45", year: 1945, profile: "industrial" }', boot)
+            self.assertIn('{ input: "46", year: 1946, profile: "boomer" }', boot)
+            self.assertIn('{ input: "65", year: 1965, profile: "genX" }', boot)
+            self.assertIn('{ input: "81", year: 1981, profile: "millennial" }', boot)
+            self.assertIn('{ input: "97", year: 1997, profile: "zoomer" }', boot)
+            self.assertIn('{ input: "13", year: 2013, profile: "alpha" }', boot)
+            self.assertIn('const currentYearInput = String(currentYear % 100).padStart(2, "0");', boot)
+            self.assertIn('applyUiProfileBeforeEnter(UI, "90");', boot)
+            self.assertIn('profile: "industrial" }', boot)
+            self.assertNotIn('profile: "silent"', boot)
 
             for exact in (
                 '"argument.select": "Выбери аргумент."',
