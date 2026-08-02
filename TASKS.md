@@ -1,3 +1,11 @@
+## 2026-08-02 - PR263 capability-calibration integration and memory synchronization
+- PR #263 integration complete; accepted head `4da08911b057f42463ded1870a5a52b2906bef1e`; merge commit `6a82086174546fa24b10a22109f6a9a6e307c24e`.
+- Merge parents: `d4527217e3ec4b5cbe2978bef1974fc8a300058a` then `4da08911b057f42463ded1870a5a52b2906bef1e`.
+- Repository plugin version `1.0.18`; installed plugin `1.0.16` pending refresh.
+- Selector calibration accepted and integrated; security task remains paused.
+- Reserved memory revision: `2026-08-02-1249-JST`.
+- Next action: `REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT`.
+
 ## 2026-07-22 - Post-PR249 repository memory closure
 - Status: complete/closed.
 - Live Notion and tracked repository memory revision: `2026-07-22-1341-JST`.
