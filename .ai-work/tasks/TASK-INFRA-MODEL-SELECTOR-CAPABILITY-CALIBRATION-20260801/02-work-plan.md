@@ -27,6 +27,8 @@ SOURCE_REVISION: infra/model-selector-capability-calibration-20260801@d4527217e3
 
 - `python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight`
 - `python3 -m unittest tools.test_model_selector_runtime tools.test_model_selector_response_contract`
+- `python3 -m unittest tools.test_model_selector_cost_authority`
+- `python3 -m unittest tools.test_model_selector_full_regression`
 - `python3 tools/validate-asynchronia-auto-model-preflight.py`
 - `python3 tools/validate_ai_work_pipeline.py`
 - `git diff --check`

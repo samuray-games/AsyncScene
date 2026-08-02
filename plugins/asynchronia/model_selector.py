@@ -34,7 +34,6 @@ TASK_FIELDS = (
 )
 LEVELS = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 SIZE_LEVELS = {"small": 1, "medium": 2, "large": 3, "very_large": 4}
-MODEL_FLOOR_ORDER = ("gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol")
 MODEL_STABLE_FLOOR_RANKS = {
     "gpt-5.4-mini": -1,
     "gpt-5.4": -1,

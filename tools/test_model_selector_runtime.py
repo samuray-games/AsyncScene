@@ -199,6 +199,26 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertLess(selector_core._model_floor_index("gpt-5.4"), selector_core._model_floor_index("gpt-5.6-luna"))
         self.assertLess(selector_core._model_floor_index("gpt-5.5"), selector_core._model_floor_index("gpt-5.6-luna"))
 
+    def test_luna_floor_rejects_lower_family_models_behaviorally(self) -> None:
+        task_for_score_10 = task(
+            securityImpact="low",
+            runtimeSensitivity="low",
+            architectureImpact="low",
+            economyImpact="low",
+            releaseImpact="low",
+            validationComplexity="low",
+            ambiguityNovelty="low",
+            concurrencyBranchRisk="low",
+        )
+        with patch.object(selector_core, "_required_score", return_value=10):
+            report = evaluate_task(load_snapshot(), task_for_score_10)
+        rejected = [evaluation for evaluation in report.evaluations if evaluation.modelIdentifier in {"gpt-5.4-mini", "gpt-5.4", "gpt-5.5"}]
+        self.assertEqual(len(rejected), 12)
+        for evaluation in rejected:
+            self.assertNotEqual(evaluation.verdict, "SUITABLE")
+            self.assertIsNotNone(evaluation.rejectionReason)
+            self.assertIn("policy floors require at least gpt-5.6-luna / Light", evaluation.rejectionReason)
+
     def test_unknown_model_and_effort_identities_fail_closed(self) -> None:
         with self.assertRaises(TaskDescriptionError):
             selector_core._model_floor_index("gpt-unknown")
@@ -272,7 +292,7 @@ class ModelSelectorTests(unittest.TestCase):
         report = evaluate_task(load_snapshot(), runtime_task, evaluator=lambda *_: "SUITABLE")
         self.assertEqual(report.recommendation.effortLabel, "High")
 
-    def test_broad_cross_cutting_escalates_to_sol_light(self) -> None:
+    def test_broad_cross_cutting_escalates_to_sol_high(self) -> None:
         broad_task = task(
             architectureImpact="high",
             securityImpact="high",

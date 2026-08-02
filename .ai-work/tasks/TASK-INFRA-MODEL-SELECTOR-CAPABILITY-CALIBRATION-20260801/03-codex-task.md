@@ -80,6 +80,8 @@ Run the required unittests and validators, prove inventory and cost authority un
 
 - `python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight`
 - `python3 -m unittest tools.test_model_selector_runtime tools.test_model_selector_response_contract`
+- `python3 -m unittest tools.test_model_selector_cost_authority`
+- `python3 -m unittest tools.test_model_selector_full_regression`
 - `python3 tools/validate-asynchronia-auto-model-preflight.py`
 - `python3 tools/validate_ai_work_pipeline.py`
 - `git diff --check`
