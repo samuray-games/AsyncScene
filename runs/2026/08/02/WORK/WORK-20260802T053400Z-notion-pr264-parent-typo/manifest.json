@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "forensics/ai-runs",
+  "createdAtJst": "2026-08-02 14:34:18 JST",
+  "createdAtUtc": "2026-08-02T05:34:18Z",
+  "packagePath": "runs/2026/08/02/WORK/WORK-20260802T053400Z-notion-pr264-parent-typo",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260802T053400Z-notion-pr264-parent-typo",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "repair malformed PR264 second-parent SHA in canonical Notion memory"
+}

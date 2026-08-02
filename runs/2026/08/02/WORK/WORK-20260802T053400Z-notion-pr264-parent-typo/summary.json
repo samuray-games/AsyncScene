@@ -1,0 +1,11 @@
+{
+  "correctedValue": "bb14f8cde9065b9b29cd2433fd97285f72631c2b",
+  "nextAction": "REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT",
+  "oldMalformedValue": "bb14f8cde9065b9b29cd2433fd97285f72631e",
+  "pr264AcceptedHead": "bb14f8cde9065b9b29cd2433fd97285f72631c2b",
+  "pr264MergeCommit": "db54b15ea65226d7513fa38e0fc788452bd3bff6",
+  "remoteMain": "db54b15ea65226d7513fa38e0fc788452bd3bff6",
+  "repositoryFilesOrRefsChanged": false,
+  "status": "NOTION_CORRECTION_COMPLETE",
+  "task": "repair malformed PR264 second-parent SHA in canonical Notion memory"
+}
