@@ -13,6 +13,15 @@ UI_DM_SOURCES = (
     ("runtime", ROOT / "AsyncScene" / "Web" / "ui" / "ui-dm.js"),
     ("docs", ROOT / "docs" / "ui" / "ui-dm.js"),
 )
+RESPECT_ACTOR_ID_READ = 'const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";'
+RESPECT_MUTATION_BOUNDARY = "Game.StateAPI.giveRespect(meId, targetId, timestamp)"
+INTERNAL_STATE_MUTATION_PATTERNS = (
+    r"\bGame\.__S(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*[^\]]+\s*\]))*\s*(?:=|\+=|-=|\*=|/=|%=|\*\*=|&&=|\|\|=|\?\?=|\+\+|--)",
+    r"(?:\+\+|--)\s*Game\.__S\b",
+    r"\bdelete\s+Game\.__S\b",
+    r"\b(?:Object\.(?:assign|defineProperty|defineProperties|setPrototypeOf)|Reflect\.(?:set|deleteProperty|defineProperty))\s*\(\s*Game\.__S\b",
+    r"\bGame\.__S(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*[^\]]+\s*\]))*\s*\.\s*(?:push|pop|shift|unshift|splice|sort|reverse|copyWithin|fill|set|add|delete|clear)\s*\(",
+)
 
 
 def extract_named_function(source: str, name: str) -> str:
@@ -308,11 +317,28 @@ class Step9SecurityAuditSelfTriggerTests(unittest.TestCase):
             source = path.read_text(encoding="utf-8")
             for name in ("__uiRespectButtonVisible__", "__uiRespectClick__"):
                 hook = extract_const_arrow_function(source, name)
+                self.assertIn(RESPECT_ACTOR_ID_READ, hook, msg=f"{label} {name} does not use the exact actor identity read")
                 self.assertIsNone(
                     re.search(r"\bGame\.State(?!API)\b", hook),
                     msg=f"{label} {name} reads protected Game.State",
                 )
-                self.assertIn("Game.__S", hook, msg=f"{label} {name} does not use the authorized state surface")
+                for pattern in INTERNAL_STATE_MUTATION_PATTERNS:
+                    self.assertIsNone(
+                        re.search(pattern, hook),
+                        msg=f"{label} {name} mutates the authorized internal state surface: {pattern}",
+                    )
+                if name == "__uiRespectClick__":
+                    self.assertIn(
+                        RESPECT_MUTATION_BOUNDARY,
+                        hook,
+                        msg=f"{label} {name} does not use the required StateAPI mutation boundary",
+                    )
+                else:
+                    self.assertNotIn(
+                        "Game.StateAPI.giveRespect(",
+                        hook,
+                        msg=f"{label} {name} must remain a pure visibility predicate",
+                    )
 
     def test_respect_hooks_do_not_read_protected_state_and_preserve_actor_behavior(self) -> None:
         result = run_ui_respect_authorized_state_harness()
