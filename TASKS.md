@@ -1,11 +1,20 @@
+## 2026-08-02 - PR266 canon synchronization
+- PR #266 `docs: reconcile post-PR265 execution canon` is closed and merged through GitHub merge-commit flow as `7bdd59870df2f027eabc8f3e703955c522dcd819`.
+- Ordered merge parents: `9f85b7fd8e0231bec064b651677e114e5e9bfc02` then `846cfe9a9e459e83bb7c0cfbe5b3294ff436835a`.
+- The merged delta is exactly `TASKS.md`, `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md`; runtime/UI/source/tests/dependencies were unchanged.
+- Integration task: `integrate-canon-pr266-20260802`; descriptor hash: `sha256:ad608a1af94bc514dff5ea7d3939552c8b547583642de449abda1e961a2c381b`; selector: `5.6 Luna / Light`.
+- Canonical `main` is accepted at `7bdd59870df2f027eabc8f3e703955c522dcd819`; the PR task branch `codex/canon-reconciliation-20260802` has been verified absent remotely and locally.
+- Existing Step 6.9.1 identity remains `build_2026_06_15_step6_9_1_runtime_feel_checklist`; no new execution task ID is assigned by this canon sync.
+- NEXT_ACTION: `RUN_READ_ONLY_PREFLIGHT_FOR_EXISTING_STEP_6_9_1_RUNTIME_FEEL_CHECKLIST_ON_BASELINE_7BDD5987`.
+
 ## 2026-08-02 - PR263 capability-calibration integration and memory synchronization
 - PR #263 integration complete; accepted head `4da08911b057f42463ded1870a5a52b2906bef1e`; merge commit `6a82086174546fa24b10a22109f6a9a6e307c24e`.
 - Merge parents: `d4527217e3ec4b5cbe2978bef1974fc8a300058a` then `4da08911b057f42463ded1870a5a52b2906bef1e`.
 - Repository plugin version `1.0.18`; installed plugin `1.0.16` pending refresh.
 - Selector calibration accepted and integrated; security task remains paused.
 - Reserved memory revision: `2026-08-02-1249-JST`.
-- PR #265 security repair, post-merge local synchronization, and task-branch cleanup are complete at accepted baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`; do not reopen that security chain.
-- Next action: `SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd`.
+- PR #265 security repair, post-merge local synchronization, and task-branch cleanup are complete at historical baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`; do not reopen that security chain.
+- Superseded next action: `SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd`.
 
 ## 2026-07-22 - Post-PR249 repository memory closure
 - Status: complete/closed.

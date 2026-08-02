@@ -1,12 +1,12 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-02-2107-JST
-NOTION_MEMORY_REV: 2026-08-02-2107-JST
-CURRENT_STATUS: PR265_POST_MERGE_CANON_RECONCILIATION_COMPLETE
+MEMORY_REV: 2026-08-02-2158-JST
+NOTION_MEMORY_REV: 2026-08-02-2158-JST
+CURRENT_STATUS: PR266_POST_MERGE_CANON_SYNCHRONIZED
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA: 9f85b7fd8e0231bec064b651677e114e5e9bfc02
-ACCEPTED_IMPLEMENTATION_HEAD: 4e4081169eab2f023ad328f48344f10ae7d7adb0
+CURRENT_MAIN_SHA: 7bdd59870df2f027eabc8f3e703955c522dcd819
+ACCEPTED_IMPLEMENTATION_HEAD: 7bdd59870df2f027eabc8f3e703955c522dcd819
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_CLOSED_PR265
@@ -29,7 +29,13 @@ SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
 LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
 LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
 SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT_REPAIRED
-NEXT_ACTION: SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd
+INTEGRATION_TASK: integrate-canon-pr266-20260802
+INTEGRATION_DESCRIPTOR_HASH: sha256:ad608a1af94bc514dff5ea7d3939552c8b547583642de449abda1e961a2c381b
+INTEGRATION_SELECTOR: 5.6 Luna / Light
+PR266_MERGE_SHA: 7bdd59870df2f027eabc8f3e703955c522dcd819
+PR266_TASK_BRANCH_CLEANUP: REMOTE_AND_LOCAL_ABSENT
+STEP_6_9_1_EXISTING_IDENTITY: build_2026_06_15_step6_9_1_runtime_feel_checklist
+NEXT_ACTION: RUN_READ_ONLY_PREFLIGHT_FOR_EXISTING_STEP_6_9_1_RUNTIME_FEEL_CHECKLIST_ON_BASELINE_7BDD5987
 
 Canonical bootstrap: live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-02-2107-JST`; PR #265 security repair, local main synchronization, and task-branch cleanup are complete at baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`. The security task is closed and must not be reopened. Capability calibration is complete and integrated; installed-plugin staleness remains separate maintenance and is not a prerequisite for this closed PR. The former Google Drive document remains deprecated migration-stub context only.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-02-2158-JST`; PR #266 canon reconciliation is merged at baseline `7bdd59870df2f027eabc8f3e703955c522dcd819`, with branch cleanup confirmed. The closed PR #265 security task must not be reopened. Existing Step 6.9.1 identity remains `build_2026_06_15_step6_9_1_runtime_feel_checklist`; the former Google Drive document remains deprecated migration-stub context only.
