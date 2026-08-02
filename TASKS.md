@@ -4,7 +4,8 @@
 - Repository plugin version `1.0.18`; installed plugin `1.0.16` pending refresh.
 - Selector calibration accepted and integrated; security task remains paused.
 - Reserved memory revision: `2026-08-02-1249-JST`.
-- Next action: `REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT`.
+- PR #265 security repair, post-merge local synchronization, and task-branch cleanup are complete at accepted baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`; do not reopen that security chain.
+- Next action: `SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd`.
 
 ## 2026-07-22 - Post-PR249 repository memory closure
 - Status: complete/closed.
