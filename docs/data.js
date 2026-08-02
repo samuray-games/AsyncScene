@@ -903,6 +903,34 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
       return String(v);
     });
   };
+  const PROFILE_COPY_OVERRIDES = Object.freeze({
+    millennial: Object.freeze({
+      "argument.select": "Выбери аргумент.",
+      "vote.not_voted": "Ты ещё не проголосовал.",
+    }),
+    genX: Object.freeze({
+      "argument.select": "Выбери аргумент.",
+      "vote.not_voted": "Голос ещё не отдан.",
+    }),
+    boomer: Object.freeze({
+      "vote.prompt": "Выберите, кого вы поддерживаете.",
+      "argument.select": "Выберите аргумент.",
+      "vote.not_voted": "Вы ещё не голосовали.",
+    }),
+    zoomer: Object.freeze({
+      "vote.prompt": "Выбирай, за кого топишь",
+    }),
+  });
+  Data.resolveProfileCopy = (key, forcedProfile) => {
+    const mode = resolveUiTextProfileName(forcedProfile);
+    const profileOverrides = PROFILE_COPY_OVERRIDES[mode] || {};
+    if (Object.prototype.hasOwnProperty.call(profileOverrides, key)) return String(profileOverrides[key] || "");
+    if (key === "vote.prompt") {
+      const textLayer = (Data.TEXTS && (Data.TEXTS[mode] || Data.TEXTS.millennial)) || {};
+      return String(textLayer.tie_click_name_hint || "");
+    }
+    return "";
+  };
   Data.resolveConflictResultText = (key) => Data.t(key);
   Data.resolveStartScreenText = (key, forcedProfile) => {
     const mode = resolveUiTextProfileName(forcedProfile);

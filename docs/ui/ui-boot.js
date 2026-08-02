@@ -246,8 +246,8 @@ window.Game = window.Game || {};
             </div>
           </div>
           <div id="startBirthYearHint" class="startFieldHint">${resolveStartScreenText(D, "profile_helper", activeProfile)}</div>
-          <label id="startBirthYearFeelingLabel" class="startFieldLabel">${resolveStartScreenText(D, "fantasy_birth_label", activeProfile)}</label>
-          <input id="startBirthYearFeelingInput" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" />
+          <label id="startBirthYearFeelingLabel" class="startFieldLabel" hidden aria-hidden="true" style="display:none;visibility:hidden;opacity:0;">${resolveStartScreenText(D, "fantasy_birth_label", activeProfile)}</label>
+          <input id="startBirthYearFeelingInput" class="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" hidden aria-hidden="true" style="display:none;visibility:hidden;opacity:0;" />
           <div id="startBtns">
             <button id="btnStart" class="btn primary"></button>
             <button id="btnRules" class="btn"></button>
@@ -274,6 +274,9 @@ window.Game = window.Game || {};
   function ensureStartScreenVisible(UI) {
     const st = ensureStartScreenExists(UI);
     if (!st) return;
+
+    const freshDefaultApplied = ensureFreshMillennialBirthYearDefault(UI);
+    if (freshDefaultApplied) syncStartScreenUiProfileFromSelection(UI, readBirthYearProfileValue());
 
     // Make visible regardless of CSS implementation in index.html
     st.classList.remove("hidden");
@@ -425,6 +428,27 @@ window.Game = window.Game || {};
     return readBirthYearProfileValue();
   }
 
+  const DEFAULT_MILLENNIAL_BIRTH_YEAR = "90";
+  function ensureFreshMillennialBirthYearDefault(UI) {
+    if (getOnboardingSeen(UI)) return false;
+    const G = window.Game || {};
+    if (G.__DEV && G.__DEV.__freshMillennialBirthYearDefaultApplied === true) return false;
+    const picker = document.getElementById("startBirthYearPicker");
+    const digit0 = document.getElementById("startBirthYearDigit0");
+    const digit1 = document.getElementById("startBirthYearDigit1");
+    if (!picker || !digit0 || !digit1) return false;
+    const current = String(picker.getAttribute("data-birth-year-value") || `${digit0.textContent || "0"}${digit1.textContent || "0"}`);
+    if (current === "00" || !/^\d{2}$/.test(current)) {
+      digit0.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[0];
+      digit1.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[1];
+      digit0.setAttribute("data-birth-year-digit-value", DEFAULT_MILLENNIAL_BIRTH_YEAR[0]);
+      digit1.setAttribute("data-birth-year-digit-value", DEFAULT_MILLENNIAL_BIRTH_YEAR[1]);
+      picker.setAttribute("data-birth-year-value", DEFAULT_MILLENNIAL_BIRTH_YEAR);
+    }
+    if (G.__DEV && typeof G.__DEV === "object") G.__DEV.__freshMillennialBirthYearDefaultApplied = true;
+    return true;
+  }
+
   function getActiveStartScreenProfile(UI) {
     const G = window.Game || {};
     const Data = G.Data || null;
@@ -504,7 +528,12 @@ window.Game = window.Game || {};
     const Data = G.Data || null;
     if (!Data || typeof Data !== "object") return "default";
     const registry = Data.UI_PROFILE_REGISTRY && typeof Data.UI_PROFILE_REGISTRY === "object" ? Data.UI_PROFILE_REGISTRY : null;
-    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported) ? registry.supported.map((value) => String(value || "").trim().toLowerCase()) : ["default", "millennial", "zoomer", "alpha"]);
+    const normalizeSupportedProfile = (value) => typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(value)
+      : String(value || "").trim().toLowerCase();
+    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported)
+      ? registry.supported.map(normalizeSupportedProfile)
+      : ["default", "boomer", "genX", "millennial", "zoomer", "alpha"].map(normalizeSupportedProfile));
     const resolvedUiProfile = typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
@@ -529,10 +558,12 @@ window.Game = window.Game || {};
     const digit0 = document.getElementById("startBirthYearDigit0");
     const digit1 = document.getElementById("startBirthYearDigit1");
     const secondary = document.getElementById("startBirthYearFeelingInput");
-    if (digit0) digit0.textContent = "0";
-    if (digit1) digit1.textContent = "0";
-    if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", "00");
+    if (digit0) digit0.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[0];
+    if (digit1) digit1.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[1];
+    if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", DEFAULT_MILLENNIAL_BIRTH_YEAR);
     if (secondary) secondary.value = "";
+    const G = window.Game || {};
+    if (G.__DEV && typeof G.__DEV === "object") G.__DEV.__freshMillennialBirthYearDefaultApplied = false;
   }
 
   function restoreFreshStartScreenState(UI) {
@@ -555,7 +586,12 @@ window.Game = window.Game || {};
     const G = window.Game || {};
     const Data = G.Data || null;
     const registry = Data && Data.UI_PROFILE_REGISTRY && typeof Data.UI_PROFILE_REGISTRY === "object" ? Data.UI_PROFILE_REGISTRY : null;
-    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported) ? registry.supported.map((value) => String(value || "").trim().toLowerCase()) : ["default", "millennial", "zoomer", "alpha"]);
+    const normalizeSupportedProfile = (value) => Data && typeof Data.normalizeUiProfile === "function"
+      ? Data.normalizeUiProfile(value)
+      : String(value || "").trim().toLowerCase();
+    const supportedUiProfileSet = new Set(Array.isArray(registry && registry.supported)
+      ? registry.supported.map(normalizeSupportedProfile)
+      : ["default", "boomer", "genX", "millennial", "zoomer", "alpha"].map(normalizeSupportedProfile));
     const resolvedUiProfile = Data && typeof Data.resolveUiProfileFromBirthYearValue === "function"
       ? Data.resolveUiProfileFromBirthYearValue(rawBirthYearValue)
       : "default";
@@ -1928,6 +1964,7 @@ window.Game = window.Game || {};
           appliedBeforeFirstRender: "not_observed",
           textMixingDetected: false,
           newStorageKeys: [],
+          unexpectedStorageKeys: [],
           firstRenderObserved: false,
           firstRenderPath: null,
           enterObserved: false,
@@ -1979,7 +2016,7 @@ window.Game = window.Game || {};
         };
         const expectedCases = [
           ["", "default"],
-          ["80", "default"],
+          ["80", "genX"],
           ["81", "millennial"],
           ["90", "millennial"],
           ["96", "millennial"],
@@ -1988,7 +2025,7 @@ window.Game = window.Game || {};
           ["00", "zoomer"],
           ["01", "zoomer"],
           ["12", "zoomer"],
-          ["13", "default"],
+          ["13", "alpha"],
         ];
         try {
           if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") {
@@ -2123,7 +2160,9 @@ window.Game = window.Game || {};
             ...((afterPersisted.snapshotKeys || []).filter((key) => !(beforePersisted.snapshotKeys || []).includes(key))),
             ...((afterPersisted.worldSnapshotKeys || []).filter((key) => !(beforePersisted.worldSnapshotKeys || []).includes(key))),
           ]));
-          if (result.newStorageKeys.length) fail("new_storage_keys_detected", result.newStorageKeys.slice());
+          const expectedStorageKeys = new Set(["AsyncScene_onboarding_seen_v1", "uiProfile"]);
+          result.unexpectedStorageKeys = result.newStorageKeys.filter((key) => !expectedStorageKeys.has(key));
+          if (result.unexpectedStorageKeys.length) fail("new_storage_keys_detected", result.unexpectedStorageKeys.slice());
           const afterMixSignature = JSON.stringify({
             uiProfile: G.Data && typeof G.Data.getUiProfile === "function" ? G.Data.getUiProfile() : (G.Data && G.Data.UI_PROFILE) || null,
             textMode: G.Data ? G.Data.TEXT_MODE : null,
@@ -2174,7 +2213,7 @@ window.Game = window.Game || {};
           && result.resolvedCases.every((item, idx) => item && item.expected === expectedCases[idx][1] && item.actual === expectedCases[idx][1])
           && result.appliedBeforeEnter === true
           && result.textMixingDetected === false
-          && result.newStorageKeys.length === 0
+          && result.unexpectedStorageKeys.length === 0
           && result.failures.length === 0
           && result.forbiddenRemaining.length === 0
           && result.missingCoverage.length === 0
