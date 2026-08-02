@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import unittest
 from pathlib import Path
@@ -8,6 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_INDEX = (ROOT / "docs" / "index.html").resolve()
 STATE_SOURCE = ROOT / "AsyncScene" / "Web" / "state.js"
+UI_DM_SOURCES = (
+    ("runtime", ROOT / "AsyncScene" / "Web" / "ui" / "ui-dm.js"),
+    ("docs", ROOT / "docs" / "ui" / "ui-dm.js"),
+)
 
 
 def extract_named_function(source: str, name: str) -> str:
@@ -43,6 +48,75 @@ def extract_named_function(source: str, name: str) -> str:
             if depth == 0:
                 return source[start:index + 1]
     raise AssertionError(f"unterminated function {name}")
+
+
+def extract_const_arrow_function(source: str, name: str) -> str:
+    anchor = f"const {name} ="
+    start = source.find(anchor)
+    if start < 0:
+        raise AssertionError(f"missing const arrow function {name}")
+    brace = source.find("{", start)
+    if brace < 0:
+        raise AssertionError(f"missing function body for {name}")
+    depth = 0
+    for index in range(brace, len(source)):
+        ch = source[index]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start:index + 1]
+    raise AssertionError(f"unterminated const arrow function {name}")
+
+
+def run_ui_respect_authorized_state_harness() -> dict[str, object]:
+    source = UI_DM_SOURCES[0][1].read_text(encoding="utf-8")
+    visible_hook = extract_const_arrow_function(source, "__uiRespectButtonVisible__")
+    click_hook = extract_const_arrow_function(source, "__uiRespectClick__")
+    script = f"""
+let protectedReads = 0;
+const calls = [];
+const Game = {{
+  __S: {{ me: {{ id: "player" }} }},
+  StateAPI: {{
+    giveRespect(...args) {{
+      calls.push(args);
+      return null;
+    }}
+  }}
+}};
+Object.defineProperty(Game, "State", {{
+  configurable: true,
+  get() {{
+    protectedReads += 1;
+    return {{ me: {{ id: "protected-player" }} }};
+  }}
+}});
+
+{visible_hook}
+{click_hook}
+
+const visibleSelf = __uiRespectButtonVisible__("player");
+const visibleOther = __uiRespectButtonVisible__("npc_1");
+const clickSelf = __uiRespectClick__("player", 123);
+const clickOther = __uiRespectClick__("npc_1", 123);
+console.log(JSON.stringify({{ protectedReads, visibleSelf, visibleOther, clickSelf, clickOther, calls }}));
+"""
+    completed = subprocess.run(
+        ["node", "--input-type=module", "-e", script],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise AssertionError(
+            "ui respect authorized-state harness failed\n"
+            f"stdout:\n{completed.stdout}\n"
+            f"stderr:\n{completed.stderr}"
+        )
+    return json.loads(completed.stdout)
 
 
 def run_state_security_harness() -> dict[str, object]:
@@ -229,6 +303,27 @@ try {{
 
 
 class Step9SecurityAuditSelfTriggerTests(unittest.TestCase):
+    def test_respect_hooks_use_only_the_authorized_internal_state_surface(self) -> None:
+        for label, path in UI_DM_SOURCES:
+            source = path.read_text(encoding="utf-8")
+            for name in ("__uiRespectButtonVisible__", "__uiRespectClick__"):
+                hook = extract_const_arrow_function(source, name)
+                self.assertIsNone(
+                    re.search(r"\bGame\.State(?!API)\b", hook),
+                    msg=f"{label} {name} reads protected Game.State",
+                )
+                self.assertIn("Game.__S", hook, msg=f"{label} {name} does not use the authorized state surface")
+
+    def test_respect_hooks_do_not_read_protected_state_and_preserve_actor_behavior(self) -> None:
+        result = run_ui_respect_authorized_state_harness()
+
+        self.assertEqual(result["protectedReads"], 0)
+        self.assertFalse(result["visibleSelf"])
+        self.assertTrue(result["visibleOther"])
+        self.assertIsNone(result["clickSelf"])
+        self.assertIsNone(result["clickOther"])
+        self.assertEqual(result["calls"], [["player", "npc_1", 123]])
+
     def test_state_security_harness_avoids_self_trigger_and_preserves_guards(self) -> None:
         result = run_state_security_harness()
 

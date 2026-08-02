@@ -156,13 +156,13 @@ const callDevToastProbe = (text) => {
 };
 
 const __uiRespectButtonVisible__ = (targetId) => {
-  const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
+  const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";
   if (!targetId) return false;
   return String(targetId) !== String(meId);
 };
 
 const __uiRespectClick__ = (targetId, timestamp = Date.now()) => {
-  const meId = (Game.State && Game.State.me && Game.State.me.id) ? Game.State.me.id : "me";
+  const meId = (Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : "me";
   if (!targetId || targetId === meId) return null;
   if (!Game.StateAPI || typeof Game.StateAPI.giveRespect !== "function") return null;
   const res = Game.StateAPI.giveRespect(meId, targetId, timestamp);
