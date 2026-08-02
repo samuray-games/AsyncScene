@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "9f85b7fd8e0231bec064b651677e114e5e9bfc02\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid 9f85b7fd8e0231bec064b651677e114e5e9bfc02\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "9f85b7fd (HEAD -> main, origin/main) Merge pull request #265 from samuray-games/chatgpt/stage6-step9-security-ui-dm-game-state-repair-20260801\n4e408116 (origin/chatgpt/stage6-step9-security-ui-dm-game-state-repair-20260801) Strengthen respect hook security regression\na711c19d Fix respect UI protected state access\ndb54b15e Merge pull request #264 from samuray-games/memory/post-pr263-sync-20260802\nbb14f8cd (origin/memory/post-pr263-sync-20260802) Adjust memory sync control-plane evidence\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 9f85b7fd8e0231bec064b651677e114e5e9bfc02\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T10:21:49Z",
+      "stderr": "",
+      "stdout": "9f85b7fd8e0231bec064b651677e114e5e9bfc02\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "9f85b7fd8e0231bec064b651677e114e5e9bfc02",
+  "observedAtUtc": "2026-08-02T10:21:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
