@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "3552e1dae8013945a114b2427c895d8a825e229f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3552e1dae8013945a114b2427c895d8a825e229f\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "3552e1da (HEAD, pull/267/merge) Merge ceb7ea3df4926c8c73ab7cc784f222e7607f2efe into 7bdd59870df2f027eabc8f3e703955c522dcd819\nceb7ea3d (origin/codex/sync-repository-memory-after-pr266-20260802) docs: synchronize post-PR266 canon memory\n7bdd5987 (origin/main) Merge pull request #266 from samuray-games/codex/canon-reconciliation-20260802\n846cfe9a docs: align canon status with PR265 baseline\n2548da15 docs: reconcile post-PR265 execution canon\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3552e1dae8013945a114b2427c895d8a825e229f\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:29:16Z",
+      "stderr": "",
+      "stdout": "7bdd59870df2f027eabc8f3e703955c522dcd819\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3552e1dae8013945a114b2427c895d8a825e229f",
+  "observedAtUtc": "2026-08-02T13:29:16Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
