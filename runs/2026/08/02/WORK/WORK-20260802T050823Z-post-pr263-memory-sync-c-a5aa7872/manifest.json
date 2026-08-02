@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "memory/post-pr263-sync-20260802",
+  "createdAtJst": "2026-08-02 14:08:23 JST",
+  "createdAtUtc": "2026-08-02T05:08:23Z",
+  "packagePath": "runs/2026/08/02/WORK/WORK-20260802T050823Z-post-pr263-memory-sync-c-a5aa7872",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260802T050823Z-post-pr263-memory-sync-c-a5aa7872",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "post-pr263 repository-memory synchronization correction"
+}

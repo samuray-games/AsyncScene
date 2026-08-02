@@ -1,0 +1,7 @@
+{
+  "base": "6a82086174546fa24b10a22109f6a9a6e307c24e",
+  "branch": "memory/post-pr263-sync-20260802",
+  "head": "bb14f8cde9065b9b29cd2433fd97285f72631c2b",
+  "notionMemoryRev": "2026-08-01-2218-JST",
+  "repository": "samuray-games/AsyncScene"
+}
