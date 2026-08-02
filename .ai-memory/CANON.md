@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-07-22-1341-JST
-EXPECTED_REVISION: 2026-07-22-1341-JST
-NOTION_MEMORY_REVISION: 2026-07-22-1341-JST
+MEMORY_REVISION: 2026-08-02-1249-JST
+EXPECTED_REVISION: 2026-08-02-1249-JST
+NOTION_MEMORY_REVISION: 2026-08-02-1249-JST
 
 ## Canon principles
 
@@ -27,10 +27,11 @@ NOTION_MEMORY_REVISION: 2026-07-22-1341-JST
 - A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
 - Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
 - Serialized integration into `main` remains a separate phase after installed-package parity passes.
-- Accepted implementation head is PR #249 merge `a782f98960851934b93f6ed27d7e5c7b278efc58`; PR #249 integrated Stage 6 Alpha legacy smoke contract realignment with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. PR #248 remains accepted history for model-selector inventory maintenance with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b` and merge commit `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108`. PR #243 remains accepted history for the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`.
+- Accepted implementation head is PR #263 merge `6a82086174546fa24b10a22109f6a9a6e307c24e`; PR #263 integrated capability-calibration policy gates with reviewed head `4da08911b057f42463ded1870a5a52b2906bef1e` and merge parents `d4527217e3ec4b5cbe1974fc8a300058a` and `4da08911b057f42463ded1870a5a52b2906bef1e`. PR #249 remains accepted history for Stage 6 Alpha legacy smoke contract realignment with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. PR #248 remains accepted history for model-selector inventory maintenance with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b` and merge commit `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108`. PR #243 remains accepted history for the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`.
 - PR #246 is bookkeeping closure history, with reviewed head `be4f8fdb5f84a1a4f07fac270a87cf811be71b18` and merge commit `2e360a6137f8b15e28c004a66afc7ed320ce7024`; it does not replace the accepted implementation head.
 - Stage 6 product implementation has started and Alpha frozen-copy implementation is complete/integrated. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; Stage 6 overall is not complete.
 - Legacy Alpha Step 4.3.x smoke failures are `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not a Stage 6 frozen-copy product regression. Current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187.
+- PR #263 capability calibration is complete and integrated. Durable selector calibration facts: read-only tasks produce no recommendation; docs-only small low-risk mutation floors at Luna / Light; scalar bands are 10-19 Luna / Light, 20-29 Luna / Medium, 30-37 Luna / High, 38-39 Luna / Max; runtime or architecture high raises effort to High; security or economy high raises model to Terra and effort to Light; ambiguity high plus concurrency high raises Terra / Medium; broad cross-cutting raises model to Sol; floors join independently and filter candidates only; unknown model or effort identities and required scores outside 10-39 fail closed; Mini, GPT-5.4, and GPT-5.5 remain inventory evidence below the Luna policy floor; Sol is reachable only through the broad predicate.
 - Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
 - The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The post-PR249 repository-memory closure is complete/closed, and the durable handoff is `CHATGPT_DETERMINE_NEXT_STAGE6_PRODUCT_TASK_FROM_CURRENT_MAIN_AFTER_MEMORY_CLOSURE`.
 
