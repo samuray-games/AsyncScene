@@ -1,0 +1,106 @@
+{
+  "branch": "codex/sync-repository-memory-after-pr266-20260802",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "codex/sync-repository-memory-after-pr266-20260802\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "ceb7ea3df4926c8c73ab7cc784f222e7607f2efe\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "# branch.oid ceb7ea3df4926c8c73ab7cc784f222e7607f2efe\n# branch.head codex/sync-repository-memory-after-pr266-20260802\n# branch.upstream origin/codex/sync-repository-memory-after-pr266-20260802\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "ceb7ea3d (HEAD -> codex/sync-repository-memory-after-pr266-20260802, origin/codex/sync-repository-memory-after-pr266-20260802) docs: synchronize post-PR266 canon memory\n7bdd5987 (origin/main) Merge pull request #266 from samuray-games/codex/canon-reconciliation-20260802\n846cfe9a docs: align canon status with PR265 baseline\n2548da15 docs: reconcile post-PR265 execution canon\n9f85b7fd Merge pull request #265 from samuray-games/chatgpt/stage6-step9-security-ui-dm-game-state-repair-20260801\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ceb7ea3df4926c8c73ab7cc784f222e7607f2efe\nbranch refs/heads/codex/sync-repository-memory-after-pr266-20260802\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-02T13:28:50Z",
+      "stderr": "",
+      "stdout": "7bdd59870df2f027eabc8f3e703955c522dcd819\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ceb7ea3df4926c8c73ab7cc784f222e7607f2efe",
+  "observedAtUtc": "2026-08-02T13:28:50Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
