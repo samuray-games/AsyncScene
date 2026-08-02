@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "forensics/ai-runs",
+  "createdAtJst": "2026-08-02 14:21:10 JST",
+  "createdAtUtc": "2026-08-02T05:21:10Z",
+  "packagePath": "runs/2026/08/02/WORK/WORK-20260802T052100Z-pr264-integration-notion-sync",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260802T052100Z-pr264-integration-notion-sync",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "PR264 serialized integration and Notion synchronization"
+}
