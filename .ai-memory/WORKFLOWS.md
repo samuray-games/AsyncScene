@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-02-1249-JST
-EXPECTED_REVISION: 2026-08-02-1249-JST
-NOTION_MEMORY_REVISION: 2026-08-02-1249-JST
+MEMORY_REVISION: 2026-08-02-2107-JST
+EXPECTED_REVISION: 2026-08-02-2107-JST
+NOTION_MEMORY_REVISION: 2026-08-02-2107-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-02-1249-JST`; PR #263 is integrated, closed, and non-draft. Implementation main before this documentation-only closure was `6a82086174546fa24b10a22109f6a9a6e307c24e`, and the accepted PR #263 head was `4da08911b057f42463ded1870a5a52b2906bef1e`. Repository plugin version is `1.0.18`; installed plugin version is `1.0.16` with status `STALE_REFRESH_REQUIRED_BEFORE_SECURITY_RESUME`. Selector snapshot revision and cost authority revision are both `20260801.1`. Inventory remains `6 models / 29 model-effort pairs`. The blocked security task is paused and untouched; capability calibration is completed and integrated. Stage 6 is incomplete. The retired short bridge interface is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. The exact next action is `REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT`.
+Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-02-2107-JST`; PR #265 security repair, post-merge local synchronization, and task-branch cleanup are complete at accepted baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`. The closed security chain must not be reopened. Repository plugin calibration remains complete; installed-plugin staleness is separate maintenance. Stage 6 is incomplete, and the exact next action is `SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 

@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-02-1249-JST
-EXPECTED_REVISION: 2026-08-02-1249-JST
-NOTION_MEMORY_REVISION: 2026-08-02-1249-JST
+MEMORY_REVISION: 2026-08-02-2107-JST
+EXPECTED_REVISION: 2026-08-02-2107-JST
+NOTION_MEMORY_REVISION: 2026-08-02-2107-JST
 
 ## Canon principles
 
@@ -33,7 +33,7 @@ NOTION_MEMORY_REVISION: 2026-08-02-1249-JST
 - Legacy Alpha Step 4.3.x smoke failures are `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not a Stage 6 frozen-copy product regression. Current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187.
 - PR #263 capability calibration is complete and integrated. Durable selector calibration facts: read-only tasks produce no recommendation; docs-only small low-risk mutation floors at Luna / Light; scalar bands are 10-19 Luna / Light, 20-29 Luna / Medium, 30-37 Luna / High, 38-39 Luna / Max; runtime or architecture high raises effort to High; security or economy high raises model to Terra and effort to Light; ambiguity high plus concurrency high raises Terra / Medium; broad cross-cutting raises model to Sol; floors join independently and filter candidates only; unknown model or effort identities and required scores outside 10-39 fail closed; Mini, GPT-5.4, and GPT-5.5 remain inventory evidence below the Luna policy floor; Sol is reachable only through the broad predicate.
 - Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
-- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. PR #263 capability calibration is complete and integrated, and the current durable handoff is `REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT`.
+- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. PR #263 capability calibration and PR #265 security repair are complete and integrated; the current accepted baseline is `9f85b7fd8e0231bec064b651677e114e5e9bfc02`. The next action is separate Stage 6 task selection from the existing plan; no runtime task is invented by this reconciliation.
 
 ## Reading priority
 

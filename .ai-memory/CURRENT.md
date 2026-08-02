@@ -1,15 +1,15 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-02-1249-JST
-NOTION_MEMORY_REV: 2026-08-02-1249-JST
-CURRENT_STATUS: POST_PR263_REPOSITORY_MEMORY_SYNC_COMPLETE
+MEMORY_REV: 2026-08-02-2107-JST
+NOTION_MEMORY_REV: 2026-08-02-2107-JST
+CURRENT_STATUS: PR265_POST_MERGE_CANON_RECONCILIATION_COMPLETE
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA: 6a82086174546fa24b10a22109f6a9a6e307c24e
-ACCEPTED_IMPLEMENTATION_HEAD: 4da08911b057f42463ded1870a5a52b2906bef1e
+CURRENT_MAIN_SHA: 9f85b7fd8e0231bec064b651677e114e5e9bfc02
+ACCEPTED_IMPLEMENTATION_HEAD: 4e4081169eab2f023ad328f48344f10ae7d7adb0
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
-INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REQUIRED_BEFORE_SECURITY_RESUME
+INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_CLOSED_PR265
 SELECTOR_SNAPSHOT_REVISION: 20260801.1
 SELECTOR_CANONICAL_HASH: sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf
 SELECTOR_SOURCE_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md
@@ -29,7 +29,7 @@ SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
 LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
 LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
 SAFARI_RUNTIME_SMOKE: STAGE6_ALPHA_FROZEN_COPY_PASS_ONLY / LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT_REPAIRED
-NEXT_ACTION: REFRESH_LOCAL_ASYNCHRONIA_PLUGIN_TO_1_0_18_VERIFY_PARITY_THEN_RESUME_BLOCKED_SECURITY_TASK_WITH_CALIBRATED_PREFLIGHT
+NEXT_ACTION: SELECT_NEXT_STAGE6_ATOMIC_TASK_FROM_EXISTING_PLAN_ON_BASELINE_9f85b7fd
 
 Canonical bootstrap: live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
-Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-02-1249-JST`; PR #263 is integrated, closed, and non-draft through merge commit `6a82086174546fa24b10a22109f6a9a6e307c24e`; the accepted head was `4da08911b057f42463ded1870a5a52b2906bef1e`, with merge parents `d4527217e3ec4b5cbe2978bef1974fc8a300058a` and `4da08911b057f42463ded1870a5a52b2906bef1e`. Implementation main before this documentation-only closure was `6a82086174546fa24b10a22109f6a9a6e307c24e`. Repository plugin version is `1.0.18`; installed plugin version is `1.0.16` with status `STALE_REFRESH_REQUIRED_BEFORE_SECURITY_RESUME`. Selector snapshot revision is `20260801.1` with canonical hash `sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf`; cost authority revision is `20260801.1` with canonical hash `sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20c9c3e694522e`. The compact current state records the blocked security task as paused and untouched; capability calibration is completed and integrated, and local plugin refresh is the next prerequisite before security resume. The former Google Drive document remains deprecated migration-stub context only.
+Repository memory is synchronized to live Notion `MEMORY_REV 2026-08-02-2107-JST`; PR #265 security repair, local main synchronization, and task-branch cleanup are complete at baseline `9f85b7fd8e0231bec064b651677e114e5e9bfc02`. The security task is closed and must not be reopened. Capability calibration is complete and integrated; installed-plugin staleness remains separate maintenance and is not a prerequisite for this closed PR. The former Google Drive document remains deprecated migration-stub context only.
