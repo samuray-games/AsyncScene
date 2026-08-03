@@ -25,6 +25,14 @@ const resolveUiMode = () => {
 };
 const DM_ACTION_PROFILE_KEYS = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
 const DM_ACTION_PROFILE_SET = new Set(DM_ACTION_PROFILE_KEYS);
+const resolveProfileCopy = (key, fallback, profile) => {
+  const Data = Game.Data || null;
+  if (Data && typeof Data.resolveProfileCopy === "function") {
+    const resolved = Data.resolveProfileCopy(key, profile);
+    if (resolved) return resolved;
+  }
+  return String(fallback || "");
+};
 const DM_REPORT_SURFACE_COPY_DEFAULT = Object.freeze({
   placeholder: "Ник бандита или токсика.",
   hint: "Сдай токсика, бандита или мафиози.",
@@ -489,7 +497,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const title = document.createElement("div");
     title.className = "pill";
-    title.textContent = "Выбери аргумент. Он одноразовый. Цена видна.";
+    title.textContent = resolveProfileCopy("argument.select", "Выбери аргумент. Он одноразовый. Цена видна.");
     panel.appendChild(title);
 
     const grid = document.createElement("div");

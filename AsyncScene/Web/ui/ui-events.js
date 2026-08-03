@@ -17,7 +17,7 @@ window.Game = window.Game || {};
     const normalized = String(profile || "").trim().toLowerCase();
     return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
   };
-  const EVENT_VOTE_PROFILE_KEYS = Object.freeze(["default", "millennial", "zoomer", "alpha", "boomer"]);
+  const EVENT_VOTE_PROFILE_KEYS = Object.freeze(["default", "millennial", "genx", "zoomer", "alpha", "boomer"]);
   const EVENT_VOTE_PROFILE_SET = new Set(EVENT_VOTE_PROFILE_KEYS);
   const EVENT_VOTE_PRESENTATION_BASE = Object.freeze({
     "vote.disabled": () => systemSay("errors", "unavailable"),
@@ -60,6 +60,14 @@ window.Game = window.Game || {};
       : EVENT_VOTE_PRESENTATION_BASE[keyId];
     return typeof overrideValue === "function" ? String(overrideValue() || "") : String(overrideValue || "");
   };
+  const resolveProfileCopy = (key, fallback, profile) => {
+    const Data = Game.Data || null;
+    if (Data && typeof Data.resolveProfileCopy === "function") {
+      const resolved = Data.resolveProfileCopy(key, profile);
+      if (resolved) return resolved;
+    }
+    return String(fallback || "");
+  };
   const isVoteNoPointsNote = (note) => {
     const text = String(note || "").trim();
     return text === "Мало 💰" || text === "Не хватает 💰.";
@@ -100,6 +108,17 @@ window.Game = window.Game || {};
         voteNoPoints: resolveEventVotePresentation("vote.no_points", "unknown"),
       },
     };
+  };
+  Game.__DEV.__smokeProfileCopyMatrix = function smokeProfileCopyMatrix() {
+    const profiles = ["millennial", "genX", "zoomer", "boomer"];
+    return profiles.reduce((result, profile) => {
+      result[profile] = {
+        votePrompt: resolveProfileCopy("vote.prompt", t("tie_click_name_hint"), profile),
+        argumentSelect: resolveProfileCopy("argument.select", "", profile),
+        notVoted: resolveProfileCopy("vote.not_voted", "", profile),
+      };
+      return result;
+    }, {});
   };
   const $ = UI.$;
   const escapeHtml = UI.escapeHtml;
@@ -876,7 +895,7 @@ window.Game = window.Game || {};
             ? `Отвали ${bName}?`
             : `Свалить ${aName}?`;
         } else {
-          hint.textContent = t("tie_click_name_hint");
+          hint.textContent = resolveProfileCopy("vote.prompt", t("tie_click_name_hint"));
         }
         card.appendChild(hint);
 
@@ -1133,7 +1152,7 @@ window.Game = window.Game || {};
               }
               if (!myVote) {
                 const rowChoice = document.createElement("div");
-                rowChoice.textContent = "Ты не голосовал";
+                rowChoice.textContent = resolveProfileCopy("vote.not_voted", "Ты не голосовал");
                 info.appendChild(rowChoice);
                 try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
               }

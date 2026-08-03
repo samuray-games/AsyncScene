@@ -26,6 +26,14 @@
     return normalized === "boomer" ? "boomer" : ((normalized === "alpha" || normalized === "zoomer") ? "zoomer" : "millennial");
   };
   const isBoomerUiMode = () => resolveUiMode() === "boomer";
+  const resolveProfileCopy = (key, fallback, profile) => {
+    const Data = Game.Data || null;
+    if (Data && typeof Data.resolveProfileCopy === "function") {
+      const resolved = Data.resolveProfileCopy(key, profile);
+      if (resolved) return resolved;
+    }
+    return String(fallback || "");
+  };
   if (!Game.__DEV) Game.__DEV = {};
   Game.__DEV.__smokeBoomerTermsStep42Battles = function smokeBoomerTermsStep42Battles(profile) {
     const mode = String(profile || "").trim().toLowerCase() === "boomer" ? "boomer" : "millennial";
@@ -2008,13 +2016,13 @@ UI.renderBattles = () => {
 
       if (!uiThinksResolved) {
        if (b.status === "pickDefense") line.textContent = "Выбери контраргумент";
-       else if (b.status === "pickAttack") line.textContent = "Выбери аргумент";
+       else if (b.status === "pickAttack") line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
        else if (isEscapeVote(b)) {
          const mode = (b.escapeVote && b.escapeVote.mode) ? b.escapeVote.mode : "smyt";
          line.textContent = (mode === "off") ? "Отвали?" : "Свалить?";
        }
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
-       else line.textContent = "Выбери аргумент";
+       else line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
       } else {
         line.textContent = _normalizeResultText(b);
       }
