@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "f078cab25b358f8aa491c52f1de2cf9d108e13c2\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "# branch.oid f078cab25b358f8aa491c52f1de2cf9d108e13c2\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "f078cab2 (HEAD -> main, origin/main) Merge pull request #269 from samuray-games/codex/repair-delta-toast-position-and-aggregation-20260802\n2d1cdb89 (origin/codex/repair-delta-toast-position-and-aggregation-20260802) Fix independent delta toast aggregation and placement\n8a18e12b Merge pull request #268 from samuray-games/codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n50b1501a fix initial profile-aware start render\n63bfc477 fix stale profile mapping smoke contract\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f078cab25b358f8aa491c52f1de2cf9d108e13c2\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T06:00:18Z",
+      "stderr": "",
+      "stdout": "f078cab25b358f8aa491c52f1de2cf9d108e13c2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f078cab25b358f8aa491c52f1de2cf9d108e13c2",
+  "observedAtUtc": "2026-08-03T06:00:18Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
