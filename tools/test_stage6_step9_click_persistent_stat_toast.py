@@ -310,27 +310,34 @@ advance(800);
 window.Game.UI.emitStatDelta("rep", 2);
 advance(100);
 flushMicrotasks();
-const duringIndependentExpiry = {{
+const afterFormerTtl = {{
   pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
   repText: repToast ? repToast.textContent : "",
   repDisplay: repToast ? repToast.style.display || "" : "",
 }};
 
-advance(400);
+advance(5_000);
 flushMicrotasks();
-const afterPointsExpiry = {{
+const afterLongWait = {{
+  pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
+  repDisplay: repToast ? repToast.style.display || "" : "",
+}};
+
+if (pointsToast && typeof pointsToast.onclick === "function") pointsToast.onclick();
+flushMicrotasks();
+const afterPointsClick = {{
   pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
   repDisplay: repToast ? repToast.style.display || "" : "",
 }};
 
 if (repToast && typeof repToast.onclick === "function") repToast.onclick();
 flushMicrotasks();
-const afterReset = {{
+const afterRepClick = {{
   pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
   repDisplay: repToast ? repToast.style.display || "" : "",
 }};
 
-console.log(JSON.stringify({{ before, duringIndependentExpiry, afterPointsExpiry, afterReset }}));
+console.log(JSON.stringify({{ before, afterFormerTtl, afterLongWait, afterPointsClick, afterRepClick }}));
 """.replace("__SOURCE__", json.dumps(source)).replace("{{", "{").replace("}}", "}")
     completed = subprocess.run(
         ["node", "--input-type=module", "-e", script],
@@ -364,13 +371,15 @@ class ClickPersistentStatToastTests(unittest.TestCase):
             self.assertEqual(result["before"]["pointsPosition"]["display"], "block")
             self.assertEqual(result["before"]["repPosition"]["display"], "block")
             self.assertEqual(result["before"]["toastCount"], 2)
-            self.assertEqual(result["duringIndependentExpiry"]["pointsDisplay"], "block")
-            self.assertEqual(result["duringIndependentExpiry"]["repText"], "+1")
-            self.assertEqual(result["duringIndependentExpiry"]["repDisplay"], "block")
-            self.assertEqual(result["afterPointsExpiry"]["pointsDisplay"], "none")
-            self.assertEqual(result["afterPointsExpiry"]["repDisplay"], "block")
-            self.assertEqual(result["afterReset"]["pointsDisplay"], "none")
-            self.assertEqual(result["afterReset"]["repDisplay"], "none")
+            self.assertEqual(result["afterFormerTtl"]["pointsDisplay"], "block")
+            self.assertEqual(result["afterFormerTtl"]["repText"], "+1")
+            self.assertEqual(result["afterFormerTtl"]["repDisplay"], "block")
+            self.assertEqual(result["afterLongWait"]["pointsDisplay"], "block")
+            self.assertEqual(result["afterLongWait"]["repDisplay"], "block")
+            self.assertEqual(result["afterPointsClick"]["pointsDisplay"], "none")
+            self.assertEqual(result["afterPointsClick"]["repDisplay"], "block")
+            self.assertEqual(result["afterRepClick"]["pointsDisplay"], "none")
+            self.assertEqual(result["afterRepClick"]["repDisplay"], "none")
 
 
 if __name__ == "__main__":

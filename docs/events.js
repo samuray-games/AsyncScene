@@ -964,10 +964,16 @@ window.Game ||= {};
   }
 
   function sysNpcDrawStartLine(aName, aInf, bName, bInf){
-    const fallback = `Тут ничья!!! ${aName} [${aInf ?? "?"}] vs ${bName} [${bInf ?? "?"}]. Выбирай, за кого топишь.`;
+    const prompt = D && typeof D.resolveProfileCopy === "function"
+      ? D.resolveProfileCopy("vote.prompt")
+      : "";
+    const fallback = `Тут ничья!!! ${aName} [${aInf ?? "?"}] vs ${bName} [${bInf ?? "?"}]. ${prompt || "Выберите сторону."}`;
     const fn = D && D.SYS && D.SYS.npcDrawCallToAction;
     if (typeof fn === "function") {
-      try { return fn(aName, aInf, bName, bInf) || fallback; } catch (_) { return fallback; }
+      try {
+        const resolved = String(fn(aName, aInf, bName, bInf) || "");
+        if (resolved && !resolved.includes("Выбирай, за кого топишь")) return resolved;
+      } catch (_) {}
     }
     return fallback;
   }
@@ -1341,7 +1347,9 @@ window.Game ||= {};
 
     // Block only a second player vote, but keep the event open for NPC votes until endsAt.
     if (e.playerVoted) {
-      e.note = "Ты уже проголосовал.";
+      e.note = D && typeof D.resolveProfileCopy === "function"
+        ? D.resolveProfileCopy("vote.already") || "Ты уже проголосовал."
+        : "Ты уже проголосовал.";
       requestRender();
       return false;
     }
@@ -1366,7 +1374,9 @@ window.Game ||= {};
       e.myVote = crowd.voters[meId];
       e.bet = { side: e.myVote };
       e.reveal = true;
-      e.note = "Ты уже проголосовал.";
+      e.note = D && typeof D.resolveProfileCopy === "function"
+        ? D.resolveProfileCopy("vote.already") || "Ты уже проголосовал."
+        : "Ты уже проголосовал.";
       requestRender();
       return false;
     }

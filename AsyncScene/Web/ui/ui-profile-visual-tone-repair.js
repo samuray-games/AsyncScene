@@ -27,8 +27,6 @@ window.Game = window.Game || {};
   const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
-  const ACTIVE_MERGE_MS = 350;
-  const DELTA_TOAST_LIFETIME_MS = 1200;
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -295,7 +293,7 @@ window.Game = window.Game || {};
       profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
       async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
       no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
-      start_continue: "Начать игру",
+      start_continue: "Продолжить игру",
       start_start: "Начать игру",
       rules_action: "Правила игры",
       start_action: "Начать игру"
@@ -306,7 +304,7 @@ window.Game = window.Game || {};
       profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
       async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
       no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
-      start_continue: "Поехали",
+      start_continue: "Продолжить игру",
       start_start: "Поехали",
       rules_action: "Как тут всё устроено",
       start_action: "Поехали"
@@ -317,7 +315,7 @@ window.Game = window.Game || {};
       profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
       no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
-      start_continue: "Старт",
+      start_continue: "Продолжить игру",
       start_start: "Старт",
       rules_action: "Правила",
       start_action: "Старт"
@@ -328,7 +326,7 @@ window.Game = window.Game || {};
       profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
       async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
       no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       rules_action: "Как играть",
       start_action: "В игру"
@@ -340,7 +338,7 @@ window.Game = window.Game || {};
       async_value: "асинхронная игра · играй когда хочешь",
       no_simultaneous_required: "все онлайн сразу не нужны",
       fantasy_birth_label: "Год по ощущению",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       start_reset: "Сброс",
       rules_action: "Правила",
@@ -795,7 +793,6 @@ window.Game = window.Game || {};
     pending: emptyBurst(),
     visible: { deltas: Object.create(null), messages: [], lastUpdateAt: 0 },
     flushTimer: null,
-    hideTimer: null
   };
 
   const deltaToastStates = Object.create(null);
@@ -803,7 +800,7 @@ window.Game = window.Game || {};
   function getDeltaToastState(kind) {
     const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
     if (!deltaToastStates[key]) {
-      deltaToastStates[key] = { pending: 0, total: 0, flushTimer: null, expiryTimer: null, el: null };
+      deltaToastStates[key] = { pending: 0, total: 0, flushTimer: null, el: null };
     }
     return { key, state: deltaToastStates[key] };
   }
@@ -823,11 +820,9 @@ window.Game = window.Game || {};
     const entry = getDeltaToastState(kind);
     const state = entry.state;
     if (state.flushTimer) clearTimeout(state.flushTimer);
-    if (state.expiryTimer) clearTimeout(state.expiryTimer);
     state.pending = 0;
     state.total = 0;
     state.flushTimer = null;
-    state.expiryTimer = null;
     if (state.el) {
       try { state.el.remove(); } catch (_) { state.el.style.display = "none"; }
     }
@@ -865,8 +860,6 @@ window.Game = window.Game || {};
     positionDeltaToast(entry.key, el);
     el.style.display = "block";
     el.style.opacity = "1";
-    if (state.expiryTimer) clearTimeout(state.expiryTimer);
-    state.expiryTimer = setTimeout(() => resetDeltaToast(entry.key), DELTA_TOAST_LIFETIME_MS);
   }
 
   function flushDeltaToast(kind) {
@@ -1049,8 +1042,6 @@ window.Game = window.Game || {};
     if (!hasDelta && !burst.messages.length) return;
 
     const now = Date.now();
-    const canMerge = toastState.visible.lastUpdateAt > 0 && (now - toastState.visible.lastUpdateAt) <= ACTIVE_MERGE_MS;
-    if (!canMerge) toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };
 
     STAT_KINDS.forEach((kind) => {
       const value = burst.deltas[kind] || 0;
@@ -1059,7 +1050,6 @@ window.Game = window.Game || {};
     burst.messages.forEach((message) => addUniqueMessage(toastState.visible.messages, message));
     toastState.visible.lastUpdateAt = now;
 
-    neutralizeLegacyStatToasts();
     rerenderVisibleToast(true);
   }
 

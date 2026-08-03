@@ -36,7 +36,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Кажется, я родился в …",
       async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
       no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
-      start_continue: "Старт",
+      start_continue: "Продолжить игру",
       start_start: "Старт",
       start_reset: "Сбросить старт",
       "introLines[0]": String((((Data.START_SCREEN || {}).introLines || [])[0]) == null ? "" : Data.START_SCREEN.introLines[0]),
@@ -57,7 +57,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
       async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
       no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
-      start_continue: "Начать игру",
+      start_continue: "Продолжить игру",
       start_start: "Начать игру",
       start_reset: "Сбросить выбор",
       rules_action: "Правила игры",
@@ -80,7 +80,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год по ощущению",
       async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
       no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
-      start_continue: "Поехали",
+      start_continue: "Продолжить игру",
       start_start: "Поехали",
       start_reset: "Сбросить выбор",
       rules_action: "Как тут всё устроено",
@@ -97,7 +97,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "по вайбу я родился в …",
       async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
       no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       start_reset: "Сбросить выбор",
       rules_action: "Как играть",
@@ -114,7 +114,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год по ощущению",
       async_value: "асинхронная игра · играй когда хочешь",
       no_simultaneous_required: "все онлайн сразу не нужны",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       start_reset: "Сброс",
       rules_action: "Правила",
@@ -905,20 +905,47 @@ Data.MAX_NPC_SHARE_CROWD = 1.0;
   };
   const PROFILE_COPY_OVERRIDES = Object.freeze({
     millennial: Object.freeze({
+      "vote.prompt": "Имя в списке — сторона.",
       "argument.select": "Выбери аргумент.",
+      "argument.select.defense": "Выбери контраргумент.",
+      "argument.select.player": "Выбери игрока.",
+      "vote.choice": "Твой выбор",
+      "vote.already": "Ты уже проголосовал.",
       "vote.not_voted": "Ты ещё не проголосовал.",
     }),
     genX: Object.freeze({
+      "vote.prompt": "Имя задаёт сторону.",
       "argument.select": "Выбери аргумент.",
+      "argument.select.defense": "Выбери контраргумент.",
+      "argument.select.player": "Выбери игрока.",
+      "vote.choice": "Твой выбор",
+      "vote.already": "Ты уже проголосовал.",
       "vote.not_voted": "Голос ещё не отдан.",
     }),
     boomer: Object.freeze({
       "vote.prompt": "Выберите, кого вы поддерживаете.",
       "argument.select": "Выберите аргумент.",
+      "argument.select.defense": "Выберите контраргумент.",
+      "argument.select.player": "Выберите игрока.",
+      "vote.choice": "Ваш выбор",
+      "vote.already": "Ваш голос уже был учтён.",
       "vote.not_voted": "Вы ещё не голосовали.",
+      "escape.confirm.off": "Отказаться?",
+      "escape.confirm.smyt": "Выйти?",
     }),
     zoomer: Object.freeze({
       "vote.prompt": "Выбирай, за кого топишь",
+      "argument.select.defense": "Выбирай контраргумент.",
+      "argument.select.player": "Выбирай игрока.",
+      "vote.choice": "Твой выбор",
+      "vote.already": "Ты уже проголосовал.",
+    }),
+    alpha: Object.freeze({
+      "vote.prompt": "ВЫБЕРИ ИМЯ",
+      "argument.select.defense": "ВЫБЕРИ КОНТРАРГУМЕНТ",
+      "argument.select.player": "ВЫБЕРИ ИГРОКА",
+      "vote.choice": "ТВОЙ ВЫБОР",
+      "vote.already": "✓ ЕСТЬ",
     }),
   });
   Data.resolveProfileCopy = (key, forcedProfile) => {
@@ -11146,8 +11173,8 @@ K YN A9: Нет.
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
           && startDom.samples.fantasy_birth_label.millennial === "Кажется, я родился в …"
           && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
-          && startDom.samples.start_continue.millennial === "Продолжить"
-          && startDom.samples.start_continue.zoomer === "Погнали"
+          && startDom.samples.start_continue.millennial === "Продолжить игру"
+          && startDom.samples.start_continue.zoomer === "Продолжить игру"
           && startDom.samples.start_start.default === "Старт"
           && startDom.samples.start_start.millennial === "Старт"
           && startDom.samples.start_start.zoomer === "Старт"
@@ -11298,7 +11325,7 @@ K YN A9: Нет.
           birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Две цифры вайба" },
           profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
           fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
-          start_continue: { millennial: "Продолжить", zoomer: "Погнали" },
+          start_continue: { millennial: "Продолжить игру", zoomer: "Продолжить игру" },
           start_start: { millennial: "Старт", zoomer: "Старт" },
           start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
           rules_action: { millennial: "Правила", zoomer: "Правила коротко" },
@@ -11656,7 +11683,7 @@ K YN A9: Нет.
         && startSamples.birth_digits_label && startSamples.birth_digits_label.zoomer === "Две цифры вайба"
         && startSamples.profile_helper && startSamples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
         && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
-        && startSamples.start_continue && startSamples.start_continue.zoomer === "Погнали"
+        && startSamples.start_continue && startSamples.start_continue.zoomer === "Продолжить игру"
         && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
         && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
         && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила коротко"

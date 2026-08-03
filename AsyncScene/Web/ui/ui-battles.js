@@ -41,7 +41,7 @@
       rematchAlreadyRequested: mode === "boomer" ? "Реванш уже запрошен." : "Реванш: ожидание",
       rematchNotEligible: mode === "boomer" ? "Повторный спор недоступен: текущий спор ещё не завершён." : "Недоступно. Конфликт: активно",
       rematchNotFound: mode === "boomer" ? "Повторный спор для этого конфликта недоступен." : "Недоступно.",
-      choosePlayer: mode === "boomer" ? "Выберите игрока." : "Выбери игрока.",
+      choosePlayer: resolveProfileCopy("argument.select.player", mode === "boomer" ? "Выберите игрока." : "Выбери игрока.", mode),
       targetMissing: mode === "boomer" ? "Такой игрок не найден." : "Такого нет.",
       cooldownShort: mode === "boomer" ? "Нужно подождать перед повторным действием." : systemSay("warnings", "cooldownShort"),
       insufficientPoints: mode === "boomer" ? "Недостаточно 💰." : systemSay("errors", "insufficientPoints")
@@ -163,7 +163,9 @@
       el.style.background = "rgba(0,0,0,0.85)";
       el.style.color = "white";
       el.style.zIndex = "999999";
-      el.style.pointerEvents = "none";
+      el.style.pointerEvents = "auto";
+      el.style.cursor = "pointer";
+      el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
       el.style.transition = "opacity 120ms ease";
       el.style.opacity = "0";
       try { document.body.appendChild(el); } catch (_) {}
@@ -179,13 +181,6 @@
       el.style.display = "block";
       // show
       requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
-    } catch (_) {}
-    try {
-      if (el.__btnToastTimer) clearTimeout(el.__btnToastTimer);
-      el.__btnToastTimer = setTimeout(() => {
-        try { el.style.opacity = "0"; } catch (_) {}
-        try { setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 160); } catch (_) {}
-      }, 1200);
     } catch (_) {}
   }
 
@@ -211,17 +206,13 @@
       el.style.background = "rgba(0,0,0,0.75)";
       el.style.color = "white";
       el.style.zIndex = "9999";
-      el.style.pointerEvents = "none";
+      el.style.pointerEvents = "auto";
+      el.style.cursor = "pointer";
+      el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
       try { chip.appendChild(el); } catch (_) {}
     }
     el.textContent = msg;
     el.style.display = "block";
-    try {
-      if (chip.__chipToastTimer) clearTimeout(chip.__chipToastTimer);
-      chip.__chipToastTimer = setTimeout(() => {
-        try { if (el) el.style.display = "none"; } catch (_) {}
-      }, 1200);
-    } catch (_) {}
   }
 
   const UI_CROWD_TIMER_WARMUP_MS = 60000;
@@ -1674,7 +1665,7 @@ UI.renderBattles = () => {
           // Start battle from input value
           const nameRaw = String(input.value || "").trim();
           if (!nameRaw) {
-            const msg = isBoomerUiMode() ? "Выберите игрока." : "Выбери игрока.";
+            const msg = resolveProfileCopy("argument.select.player", isBoomerUiMode() ? "Выберите игрока." : "Выбери игрока.");
             if (UI && typeof UI.showActionToast === "function") UI.showActionToast(battleBtn, msg);
             else if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
             return;
@@ -2015,11 +2006,13 @@ UI.renderBattles = () => {
       const shouldRenderResolvedCard = uiThinksResolved && !isEscape && !isDraw;
 
       if (!uiThinksResolved) {
-       if (b.status === "pickDefense") line.textContent = "Выбери контраргумент";
+       if (b.status === "pickDefense") line.textContent = resolveProfileCopy("argument.select.defense", isBoomerUiMode() ? "Выберите контраргумент." : "Выбери контраргумент.");
        else if (b.status === "pickAttack") line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
        else if (isEscapeVote(b)) {
          const mode = (b.escapeVote && b.escapeVote.mode) ? b.escapeVote.mode : "smyt";
-         line.textContent = (mode === "off") ? "Отвали?" : "Свалить?";
+         line.textContent = mode === "off"
+           ? resolveProfileCopy("escape.confirm.off", isBoomerUiMode() ? "Отказаться?" : "Отвали?")
+           : resolveProfileCopy("escape.confirm.smyt", isBoomerUiMode() ? "Выйти?" : "Свалить?");
        }
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
        else line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
@@ -2056,7 +2049,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = "Выбери сторону.";
+          voteHint.textContent = resolveProfileCopy("vote.prompt", "Выбери сторону.");
           escapeWrap.appendChild(voteHint);
 
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
@@ -2283,7 +2276,7 @@ UI.renderBattles = () => {
 
           const voteHint = document.createElement("div");
           voteHint.className = "pill";
-          voteHint.textContent = isMyDraw ? "Выбери сторону." : "Смотри исход.";
+          voteHint.textContent = isMyDraw ? resolveProfileCopy("vote.prompt", "Выбери сторону.") : "Смотри исход.";
           drawWrap.appendChild(voteHint);
 
           const timerLine = document.createElement("div");

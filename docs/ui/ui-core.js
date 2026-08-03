@@ -1103,27 +1103,6 @@ window.Game = window.Game || {};
     showDeltaToastInstant(kind, (delta | 0), opts || null);
   };
 
-  // De-dup stat toasts by text (hide previous identical ones).
-  (function(){
-    if (UI.__statToastDedupPatched) return;
-    UI.__statToastDedupPatched = true;
-    const prev = UI.showStatToast;
-    UI.showStatToast = (kind, text) => {
-      try {
-        const msg = String(text || "");
-        const existing = Array.from(document.querySelectorAll(".statToast"));
-        for (const el of existing) {
-          try {
-            // Do not de-dup delta-toasts: each delta must be visible separately.
-            if (el && el.classList && el.classList.contains("statToast--delta")) continue;
-            if (el && el.textContent === msg) el.style.display = "none";
-          } catch (_) {}
-        }
-      } catch (_) {}
-      return prev(kind, text);
-    };
-  })();
-
   // Action toast anchored to any element (e.g., button near an input).
   // Used for "Выбери игрока." under submit buttons.
   UI.showActionToast = (anchorEl, text) => {
@@ -1148,25 +1127,6 @@ window.Game = window.Game || {};
     toast.style.transform = "translateX(-50%)";
     pushToastToTape(text);
   };
-
-  // Hide all but the newest identical toast (prevents piling duplicates).
-  (function(){
-    if (UI.__toastDedupPatched) return;
-    UI.__toastDedupPatched = true;
-    const prev = UI.showActionToast;
-    UI.showActionToast = (anchorEl, text) => {
-      try {
-        const msg = String(text || "");
-        const existing = Array.from(document.querySelectorAll(".statToast"));
-        for (const el of existing) {
-          try {
-            if (el && el.textContent === msg) el.style.display = "none";
-          } catch (_) {}
-        }
-      } catch (_) {}
-      return prev(anchorEl, text);
-    };
-  })();
 
   UI.showInfluenceToast = (text) => {
     UI.showStatToast("influence", text);

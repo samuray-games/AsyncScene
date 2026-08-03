@@ -497,7 +497,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     const title = document.createElement("div");
     title.className = "pill";
-    title.textContent = resolveProfileCopy("argument.select", "Выбери аргумент. Он одноразовый. Цена видна.");
+          title.textContent = resolveProfileCopy("argument.select", "Выбери аргумент. Он одноразовый. Цена видна.");
     panel.appendChild(title);
 
     const grid = document.createElement("div");
@@ -1305,7 +1305,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         const p2 = getS().players[targetId2];
         const cleanName = p2 && p2.name ? String(p2.name) : q;
 
-        dmPushLine(withId, "Система", `Ты позвал(а) ${cleanName} в личку.`);
+        dmPushLine(withId, "Система", isBoomerUiMode()
+          ? `Вы пригласили ${cleanName} в личные сообщения.`
+          : `Ты позвал(а) ${cleanName} в личку.`);
         UI.pushSystem(systemSay("systemEvents", "dmInvite", { name: getS().me.name, guest: cleanName, target: target.name }));
 
         getS().dm.inviteOpen = false;
@@ -1459,7 +1461,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (target && target.role === "mafia") {
           // Per spec: mafia immediate trap DM and start battle
           const mafiaName = "Аркадий Петрович";
-          const reply = "Ты мне пишешь? Тогда поговорим лично.";
+          const reply = isBoomerUiMode()
+            ? "Вы пишете мне? Тогда поговорим лично."
+            : "Ты мне пишешь? Тогда поговорим лично.";
           dmPushLine(curId, mafiaName, reply);
           dmInput.value = "";
           UI.renderDM();
@@ -1787,7 +1791,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             stop(e);
             const q0 = String(input.value || "").trim();
             if (!q0) {
-              if (UI && typeof UI.showActionToast === "function") UI.showActionToast(submitBtn, "Выбери игрока.");
+              if (UI && typeof UI.showActionToast === "function") UI.showActionToast(submitBtn, resolveProfileCopy("argument.select.player", "Выбери игрока."));
               return;
             }
             if (!Game.__A || typeof Game.__A.applyReportByRole !== "function") return;
