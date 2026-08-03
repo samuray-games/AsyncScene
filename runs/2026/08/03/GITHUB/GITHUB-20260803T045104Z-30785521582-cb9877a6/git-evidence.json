@@ -1,0 +1,106 @@
+{
+  "branch": "codex/repair-profile-bootstrap-copy-and-age-routing-20260802",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:04Z",
+      "stderr": "",
+      "stdout": "codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:04Z",
+      "stderr": "",
+      "stdout": "50b1501af8580d6e4f6e5b738b1705e5b5a34291\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:05Z",
+      "stderr": "",
+      "stdout": "# branch.oid 50b1501af8580d6e4f6e5b738b1705e5b5a34291\n# branch.head codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n# branch.upstream origin/codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:05Z",
+      "stderr": "",
+      "stdout": "50b1501a (HEAD -> codex/repair-profile-bootstrap-copy-and-age-routing-20260802, origin/codex/repair-profile-bootstrap-copy-and-age-routing-20260802) fix initial profile-aware start render\n63bfc477 fix stale profile mapping smoke contract\n0a6c24f6 fix profile bootstrap copy and age routing\nd0fe4e44 (origin/main) docs: synchronize repository canon after PR #266\nceb7ea3d docs: synchronize post-PR266 canon memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:05Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 50b1501af8580d6e4f6e5b738b1705e5b5a34291\nbranch refs/heads/codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:05Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T04:51:05Z",
+      "stderr": "",
+      "stdout": "d0fe4e445caa17fd64da67bfe90a045f4f57acc6\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "50b1501af8580d6e4f6e5b738b1705e5b5a34291",
+  "observedAtUtc": "2026-08-03T04:51:05Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
