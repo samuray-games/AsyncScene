@@ -924,6 +924,7 @@ window.Game = window.Game || {};
     if (!chip) return null;
     return chip.querySelector(".statIcon") || chip;
   }
+  UI.getStatAnchor = statAnchor;
 
   function maybeQueueStatDeltaFromState(next){
     // Track stat values for UI, but do NOT generate delta-toasts here.

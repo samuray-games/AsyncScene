@@ -28,6 +28,7 @@ window.Game = window.Game || {};
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
   const ACTIVE_MERGE_MS = 350;
+  const DELTA_TOAST_LIFETIME_MS = 1200;
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -793,6 +794,98 @@ window.Game = window.Game || {};
     hideTimer: null
   };
 
+  const deltaToastStates = Object.create(null);
+
+  function getDeltaToastState(kind) {
+    const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
+    if (!deltaToastStates[key]) {
+      deltaToastStates[key] = { pending: 0, total: 0, flushTimer: null, expiryTimer: null, el: null };
+    }
+    return { key, state: deltaToastStates[key] };
+  }
+
+  function signedDelta(value) {
+    const n = Number(value || 0) | 0;
+    return n > 0 ? `+${n}` : String(n);
+  }
+
+  function deltaAnchor(kind) {
+    if (UI && typeof UI.getStatAnchor === "function") return UI.getStatAnchor(kind);
+    const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
+    return chip ? (chip.querySelector(".statIcon") || chip) : null;
+  }
+
+  function resetDeltaToast(kind) {
+    const entry = getDeltaToastState(kind);
+    const state = entry.state;
+    if (state.flushTimer) clearTimeout(state.flushTimer);
+    if (state.expiryTimer) clearTimeout(state.expiryTimer);
+    state.pending = 0;
+    state.total = 0;
+    state.flushTimer = null;
+    state.expiryTimer = null;
+    if (state.el) {
+      try { state.el.remove(); } catch (_) { state.el.style.display = "none"; }
+    }
+    state.el = null;
+  }
+
+  function positionDeltaToast(kind, el) {
+    const anchor = deltaAnchor(kind);
+    if (!anchor || !anchor.getBoundingClientRect || !el) return false;
+    const r = anchor.getBoundingClientRect();
+    el.style.left = `${Math.round(r.left + (r.width / 2))}px`;
+    el.style.top = `${Math.round(r.bottom + 8)}px`;
+    el.style.transform = "translateX(-50%)";
+    return true;
+  }
+
+  function renderDeltaToast(kind) {
+    const entry = getDeltaToastState(kind);
+    const state = entry.state;
+    if (!state.total) return;
+    const anchor = deltaAnchor(entry.key);
+    if (!anchor) return;
+    let el = state.el;
+    if (!el || !el.isConnected) {
+      el = document.createElement("div");
+      el.id = `stage6DeltaToast_${entry.key}`;
+      el.className = "statToast statToast--delta statToast--stage6-delta";
+      el.dataset.deltaKey = entry.key;
+      el.dataset.deltaResource = entry.key;
+      el.onclick = () => resetDeltaToast(entry.key);
+      document.body.appendChild(el);
+      state.el = el;
+    }
+    el.textContent = signedDelta(state.total);
+    positionDeltaToast(entry.key, el);
+    el.style.display = "block";
+    el.style.opacity = "1";
+    if (state.expiryTimer) clearTimeout(state.expiryTimer);
+    state.expiryTimer = setTimeout(() => resetDeltaToast(entry.key), DELTA_TOAST_LIFETIME_MS);
+  }
+
+  function flushDeltaToast(kind) {
+    const entry = getDeltaToastState(kind);
+    const state = entry.state;
+    state.flushTimer = null;
+    if (!state.pending) return;
+    state.total += state.pending;
+    state.pending = 0;
+    renderDeltaToast(entry.key);
+  }
+
+  function queueDeltaToast(kind, delta) {
+    const entry = getDeltaToastState(kind);
+    const value = Number(delta || 0) | 0;
+    if (!value) return null;
+    entry.state.pending += value;
+    if (!entry.state.flushTimer) {
+      entry.state.flushTimer = setTimeout(() => flushDeltaToast(entry.key), COALESCE_MS);
+    }
+    return entry.state;
+  }
+
   function addUniqueMessage(list, text) {
     const value = String(text || "").trim();
     if (value && !list.includes(value)) list.push(value);
@@ -1004,16 +1097,15 @@ window.Game = window.Game || {};
     const show = function stage6UnifiedShowStatToastV4(kind, text) {
       const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
       const candidate = parseDeltaCandidate(key, text);
-      if (candidate) addCandidate(key, candidate, text);
+      if (candidate) queueDeltaToast(key, candidate);
       else addUniqueMessage(toastState.pending.messages, canonicalNonDeltaToast(key, text));
-      scheduleToastFlush();
+      if (!candidate) scheduleToastFlush();
       return null;
     };
     show.__stage6UnifiedToastV4 = true;
 
     const emit = function stage6UnifiedEmitStatDeltaV4(kind, delta) {
-      addAuthoritativeDelta(kind, delta);
-      scheduleToastFlush();
+      queueDeltaToast(kind, delta);
       return null;
     };
     emit.__stage6UnifiedToastV4 = true;
@@ -1025,6 +1117,10 @@ window.Game = window.Game || {};
     window.addEventListener("resize", () => {
       const el = document.getElementById("stage6UnifiedStatToast");
       if (el && el.style.display !== "none") positionUnifiedToast(el);
+      STAT_KINDS.forEach((kind) => {
+        const state = deltaToastStates[kind];
+        if (state && state.el && state.el.style.display !== "none") positionDeltaToast(kind, state.el);
+      });
     });
   }
 
