@@ -44,6 +44,18 @@ def read(path: Path) -> str:
 
 
 class FiveProfileRuntimeDefectStaticTests(unittest.TestCase):
+    def test_target_reference_guard_blocks_nominative_and_plural_forms(self) -> None:
+        expected_guard = r"/(?:^|[^\p{L}\p{N}_])(?:цель|цели)(?=$|[^\p{L}\p{N}_])/iu"
+        blocked = ("Цель получила +1 ⭐.", "Цель: +1⭐.", "Цели +1⭐.")
+        player_deltas = ("Репутация +1 ⭐.", "Репутация -1 ⭐.", "Баланс +1💰.", "Баланс -1💰.")
+        for root in (WEB, DOCS):
+            profile = read(root / "ui" / "ui-profile-visual-tone-repair.js")
+            self.assertIn(expected_guard, profile)
+            for text in blocked:
+                self.assertRegex(text, r"(?iu)(?:^|[^\w])(?:цель|цели)(?=$|[^\w])")
+            for text in player_deltas:
+                self.assertNotRegex(text, r"(?iu)(?:^|[^\w])(?:цель|цели)(?=$|[^\w])")
+
     def test_start_screen_intro_contract_is_two_lines_without_legacy_copy(self) -> None:
         for root in (WEB, DOCS):
             boot = read(root / "ui" / "ui-boot.js")

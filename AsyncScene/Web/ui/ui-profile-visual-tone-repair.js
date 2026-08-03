@@ -766,7 +766,7 @@ window.Game = window.Game || {};
   }
 
   function containsTargetReference(text) {
-    return /(?:^|[^\p{L}\p{N}_])цели?(?=$|[^\p{L}\p{N}_])/iu.test(String(text || ""));
+    return /(?:^|[^\p{L}\p{N}_])(?:цель|цели)(?=$|[^\p{L}\p{N}_])/iu.test(String(text || ""));
   }
 
   function parseDeltaCandidate(kind, text) {
