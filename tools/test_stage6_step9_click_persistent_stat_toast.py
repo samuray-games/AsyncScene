@@ -139,11 +139,14 @@ class FakeElement {{
   querySelectorAll() {{
     return [];
   }}
-  querySelector() {{
+  querySelector(selector) {{
+    const statMatch = String(selector || "").match(/^\\[data-profile-stat="([^"]+)"\\]$/);
+    if (statMatch) return this.ownerDocument.statAnchors.get(statMatch[1]) || null;
     return null;
   }}
   getBoundingClientRect() {{
-    return {{ left: 120, width: 80, bottom: 40 }};
+    const offsets = {{ anchor_points: 120, anchor_rep: 220, anchor_influence: 320, anchor_wins: 420 }};
+    return {{ left: offsets[this.id] || 120, width: 80, bottom: 40 }};
   }}
   set textContent(next) {{
     this.__textContent = String(next || "");
@@ -160,8 +163,12 @@ class FakeElement {{
 class FakeDocument {{
   constructor() {{
     this.elements = new Map();
+    this.statAnchors = new Map();
     this.body = new FakeElement(this, "body", "body");
     this.body.isConnected = true;
+    for (const kind of ["points", "rep", "influence", "wins"]) {{
+      this.statAnchors.set(kind, new FakeElement(this, `anchor_${{kind}}`, "span"));
+    }}
   }}
   register(element) {{
     this.elements.set(element.id, element);
@@ -177,9 +184,13 @@ class FakeDocument {{
     return this.elements.get(String(id)) || null;
   }}
   querySelectorAll() {{
-    return [];
+    return Array.from(this.elements.values()).filter((element) => String(element.className || "").includes("statToast"));
   }}
   querySelector(selector) {{
+    const statMatch = String(selector || "").match(/^\\[data-profile-stat="([^"]+)"\\] \\.statIcon$/);
+    if (statMatch) return this.statAnchors.get(statMatch[1]) || null;
+    const chipMatch = String(selector || "").match(/^\\[data-profile-stat="([^"]+)"\\]$/);
+    if (chipMatch) return this.statAnchors.get(chipMatch[1]) || null;
     if (selector === "#dmBlock .headerTitleText") return null;
     if (selector === "#battlesBlock .battleTitleText") return null;
     if (selector === "#eventsBlock .headerTitleText") return null;
@@ -280,55 +291,46 @@ vm.createContext(context);
 vm.runInContext(source, context, {{ filename: "ui-profile-visual-tone-repair.js" }});
 
 window.Game.UI.emitStatDelta("points", 2);
-window.Game.UI.emitStatDelta("rep", 1);
+window.Game.UI.emitStatDelta("points", 3);
+window.Game.UI.emitStatDelta("rep", -1);
 advance(200);
 flushMicrotasks();
 
-const toast = document.getElementById("stage6UnifiedStatToast");
-const beforeText = toast ? toast.textContent : "";
-const beforePosition = toast ? {{ left: toast.style.left || "", top: toast.style.top || "", display: toast.style.display || "" }} : null;
+const pointsToast = document.getElementById("stage6DeltaToast_points");
+const repToast = document.getElementById("stage6DeltaToast_rep");
+const before = {{
+  pointsText: pointsToast ? pointsToast.textContent : "",
+  repText: repToast ? repToast.textContent : "",
+  pointsPosition: pointsToast ? {{ left: pointsToast.style.left || "", top: pointsToast.style.top || "", display: pointsToast.style.display || "" }} : null,
+  repPosition: repToast ? {{ left: repToast.style.left || "", top: repToast.style.top || "", display: repToast.style.display || "" }} : null,
+  toastCount: document.querySelectorAll(".statToast").length,
+}};
 
-advance(120_000);
-window.Game.UI.renderChat();
-window.Game.UI.renderDM();
-window.Game.UI.renderEvents();
-window.Game.UI.renderBattles();
-window.Game.UI.requestRenderAll();
-window.Game.UI.renderAll();
+advance(800);
+window.Game.UI.emitStatDelta("rep", 2);
+advance(100);
+flushMicrotasks();
+const duringIndependentExpiry = {{
+  pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
+  repText: repToast ? repToast.textContent : "",
+  repDisplay: repToast ? repToast.style.display || "" : "",
+}};
 
-window.Game.Data.setUiProfile("alpha");
-for (const observer of observers) observer.callback([]);
+advance(400);
 flushMicrotasks();
-for (const [, interval] of intervals.entries()) interval.fn();
-flushMicrotasks();
-for (const listener of resizeListeners) listener();
-flushMicrotasks();
+const afterPointsExpiry = {{
+  pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
+  repDisplay: repToast ? repToast.style.display || "" : "",
+}};
 
-const afterText = toast ? toast.textContent : "";
-const afterPosition = toast ? {{ left: toast.style.left || "", top: toast.style.top || "", display: toast.style.display || "" }} : null;
-const timersBeforeClick = timers.size;
-if (toast && typeof toast.onclick === "function") toast.onclick();
+if (repToast && typeof repToast.onclick === "function") repToast.onclick();
 flushMicrotasks();
-const afterClickDisplay = toast ? toast.style.display || "" : "";
-const afterClickText = toast ? toast.textContent : "";
-window.Game.Data.setUiProfile("millennial");
-for (const [, interval] of intervals.entries()) interval.fn();
-flushMicrotasks();
+const afterReset = {{
+  pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
+  repDisplay: repToast ? repToast.style.display || "" : "",
+}};
 
-console.log(JSON.stringify({{
-  beforeText,
-  beforePosition,
-  afterText,
-  afterPosition,
-  afterClickDisplay,
-  afterClickText,
-  renderCalls: window.Game.UI.renderCalls,
-  pendingTimers: timers.size,
-  timersBeforeClick,
-  intervalCount: intervals.size,
-  observerCount: observers.length,
-  resizeListenerCount: resizeListeners.length,
-}}));
+console.log(JSON.stringify({{ before, duringIndependentExpiry, afterPointsExpiry, afterReset }}));
 """.replace("__SOURCE__", json.dumps(source)).replace("{{", "{").replace("}}", "}")
     completed = subprocess.run(
         ["node", "--input-type=module", "-e", script],
@@ -347,36 +349,28 @@ console.log(JSON.stringify({{
 
 
 class ClickPersistentStatToastTests(unittest.TestCase):
-    def test_unified_toast_is_click_persistent_across_mirrors(self) -> None:
+    def test_delta_toasts_are_keyed_positioned_and_independent_across_mirrors(self) -> None:
         for path in VISUAL_PATHS:
             source = read(path)
-            watcher = source[source.index("function installProfileWatcher") : source.index("function visibleRoleLabel")]
-            self.assertNotIn('toastState.visible = { deltas: Object.create(null), messages: [], lastUpdateAt: 0 };', watcher)
-            self.assertNotIn('toast.style.display = "none"', watcher)
-
             result = run_toast_harness(source)
-
-            self.assertIn("Баланс: +2.", result["beforeText"])
-            self.assertIn("Репутация +1.", result["beforeText"])
-            self.assertEqual(result["beforePosition"]["display"], "block")
-            self.assertIn("+2💰", result["afterText"])
-            self.assertIn("+1⭐", result["afterText"])
-            self.assertEqual(result["afterPosition"]["display"], "block")
-            self.assertEqual(result["beforePosition"]["left"], result["afterPosition"]["left"])
-            self.assertEqual(result["beforePosition"]["top"], result["afterPosition"]["top"])
-            self.assertEqual(result["afterText"].count("+2💰"), 1)
-            self.assertEqual(result["afterText"].count("+1⭐"), 1)
-            self.assertEqual(
-                result["renderCalls"],
-                ["renderChat", "renderDM", "renderEvents", "renderBattles", "requestRenderAll", "renderAll"],
-            )
-            self.assertEqual(result["timersBeforeClick"], 0)
-            self.assertEqual(result["pendingTimers"], 0)
-            self.assertEqual(result["afterClickDisplay"], "none")
-            self.assertEqual(result["afterClickText"], result["afterText"])
-            self.assertEqual(result["intervalCount"], 1)
-            self.assertEqual(result["observerCount"], 1)
-            self.assertEqual(result["resizeListenerCount"], 1)
+            self.assertEqual(result["before"]["pointsText"], "+5")
+            self.assertEqual(result["before"]["repText"], "-1")
+            self.assertRegex(result["before"]["pointsText"], r"^[+-]\d+$")
+            self.assertRegex(result["before"]["repText"], r"^[+-]\d+$")
+            self.assertEqual(result["before"]["pointsPosition"]["top"], "48px")
+            self.assertEqual(result["before"]["repPosition"]["top"], "48px")
+            self.assertEqual(result["before"]["pointsPosition"]["left"], "160px")
+            self.assertEqual(result["before"]["repPosition"]["left"], "260px")
+            self.assertEqual(result["before"]["pointsPosition"]["display"], "block")
+            self.assertEqual(result["before"]["repPosition"]["display"], "block")
+            self.assertEqual(result["before"]["toastCount"], 2)
+            self.assertEqual(result["duringIndependentExpiry"]["pointsDisplay"], "block")
+            self.assertEqual(result["duringIndependentExpiry"]["repText"], "+1")
+            self.assertEqual(result["duringIndependentExpiry"]["repDisplay"], "block")
+            self.assertEqual(result["afterPointsExpiry"]["pointsDisplay"], "none")
+            self.assertEqual(result["afterPointsExpiry"]["repDisplay"], "block")
+            self.assertEqual(result["afterReset"]["pointsDisplay"], "none")
+            self.assertEqual(result["afterReset"]["repDisplay"], "none")
 
 
 if __name__ == "__main__":
