@@ -474,8 +474,8 @@ window.Game = window.Game || {};
     const rulesText = resolveStartScreenText(D, "rules_action", activeProfile);
     const resetText = resolveStartScreenText(D, "start_reset", activeProfile);
     const introTexts = [
-      resolveStartScreenText(D, "introLines[0]", activeProfile),
-      resolveStartScreenText(D, "introLines[1]", activeProfile),
+      resolveStartScreenText(D, "async_value", activeProfile),
+      resolveStartScreenText(D, "no_simultaneous_required", activeProfile),
     ].filter((line) => String(line || "").trim());
     const setText = (selector, value) => {
       const el = root.querySelector(selector);
@@ -613,6 +613,7 @@ window.Game = window.Game || {};
     } else if (Data && typeof Data === "object") {
       Data.UI_PROFILE = uiProfile;
     }
+    syncUiTextModeFromUiProfile(uiProfile);
     const stateTargets = getAuthorizedStateTargets(UI);
     stateTargets.forEach((state) => {
       state.flags = state.flags || {};
@@ -677,6 +678,24 @@ window.Game = window.Game || {};
     ensureFreshStartScreenVisible(UI);
   }
 
+  function captureInitialStartScreenRender(UI) {
+    const G = window.Game || {};
+    const root = document.getElementById("startScreen");
+    const linesRoot = document.getElementById("startIntroLines");
+    const lines = linesRoot && typeof linesRoot.querySelectorAll === "function"
+      ? Array.from(linesRoot.querySelectorAll(".startIntroLine")).map((node) => String(node.textContent || "").trim()).filter(Boolean)
+      : [];
+    if (G.__DEV && typeof G.__DEV === "object") {
+      G.__DEV.__initialStartScreenRender = {
+        observed: !!(root && linesRoot),
+        profile: getActiveStartScreenProfile(UI),
+        birthYearValue: readBirthYearProfileValue(),
+        lines,
+        genericFallbackPresent: lines.includes("Оппонент задаёт риск.") || lines.includes("Ставка списывает ресурс."),
+      };
+    }
+  }
+
   function applyStartScreenContent(UI) {
     const $ = UI.$;
     const G = window.Game || {};
@@ -686,8 +705,8 @@ window.Game = window.Game || {};
     const spec = (D && D.START_SCREEN) ? D.START_SCREEN : null;
     const title = spec && typeof spec.title === "string" ? spec.title : "";
     const introLines = [
-      resolveStartScreenText(D, "introLines[0]", activeProfile),
-      resolveStartScreenText(D, "introLines[1]", activeProfile),
+      resolveStartScreenText(D, "async_value", activeProfile),
+      resolveStartScreenText(D, "no_simultaneous_required", activeProfile),
     ].filter((line) => String(line || "").trim());
     const actions = spec && spec.actions ? spec.actions : {};
 
@@ -2635,9 +2654,9 @@ window.Game = window.Game || {};
       G.Dev.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1 = G.__DEV.smokeToneProfilesStep47FantasyYearsSafeFinalSmokeFix1;
     }
     if (typeof G.__DEV.smokeBirthYearUiProfileSelectionFinal !== "function") {
-      const BUILD_TAG = "build_2026_06_14_step6_3_6_ui_profile_save_validation";
-      const COMMIT = "step6_3_6_ui_profile_save_validation";
-      const SMOKE_VERSION = "step6_3_6_ui_profile_save_validation_v20260614_001";
+      const BUILD_TAG = "build_2026_08_03_profile_bootstrap_initial_render_fix";
+      const COMMIT = "profile_bootstrap_initial_render_fix";
+      const SMOKE_VERSION = "profile_bootstrap_initial_render_fix_smoke_v20260803_001";
       G.__DEV.smokeBirthYearUiProfileSelectionFinal = function smokeBirthYearUiProfileSelectionFinal() {
         const forbiddenValues = ["90", "01", "1987", "1998", "2004", "2015", "1955", "1930"];
         let afterRawText = null;
@@ -2655,6 +2674,9 @@ window.Game = window.Game || {};
           saveDoesNotContainAge: false,
           localStorageDoesNotContainBirthYearYearAge: false,
           snapshotDoesNotContainBirthYearYearAge: false,
+          initialFirstRender: null,
+          initialFirstRenderMatchesCanonicalProfile: false,
+          initialFirstRenderHasGenericFallback: false,
           reloadLoadsUiFromSavedProfile: false,
           reloadDoesNotAskYearWhenUiProfileExists: false,
           reloadDoesNotRestoreBirthYearYearAge: false,
@@ -2691,7 +2713,28 @@ window.Game = window.Game || {};
           const worldSnapshotText = JSON.stringify((state && state.worldSnapshot) || {});
           return { storageText, saveText, snapshotText, worldSnapshotText, allText: [storageText, saveText, snapshotText, worldSnapshotText].join("|") };
         };
+        const inspectInitialFirstRender = () => {
+          const captured = G.__DEV && G.__DEV.__initialStartScreenRender && typeof G.__DEV.__initialStartScreenRender === "object"
+            ? G.__DEV.__initialStartScreenRender
+            : null;
+          const expectedProfile = resolvePrimary("90");
+          const expectedLines = [
+            resolveStartScreenText(G.Data, "async_value", expectedProfile),
+            resolveStartScreenText(G.Data, "no_simultaneous_required", expectedProfile),
+          ].filter((line) => String(line || "").trim());
+          result.initialFirstRender = captured;
+          result.initialFirstRenderHasGenericFallback = !!(captured && captured.genericFallbackPresent === true);
+          result.initialFirstRenderMatchesCanonicalProfile = !!(captured
+            && captured.observed === true
+            && captured.birthYearValue === "90"
+            && captured.profile === expectedProfile
+            && JSON.stringify(captured.lines || []) === JSON.stringify(expectedLines));
+          if (!result.initialFirstRender) fail("initial_first_render_not_observed", null);
+          if (result.initialFirstRenderHasGenericFallback) fail("initial_first_render_generic_fallback", captured);
+          if (!result.initialFirstRenderMatchesCanonicalProfile) fail("initial_first_render_not_canonical", { captured, expectedProfile, expectedLines });
+        };
         try {
+          inspectInitialFirstRender();
           if (!G.Data || typeof G.Data.resolveUiProfileFromBirthYearValue !== "function") fail("resolver_missing", "Game.Data.resolveUiProfileFromBirthYearValue");
           const currentYear = new Date().getFullYear();
           const currentYearInput = String(currentYear % 100).padStart(2, "0");
@@ -2805,6 +2848,8 @@ window.Game = window.Game || {};
           && result.saveDoesNotContainBirthYear === true
           && result.saveDoesNotContainYear === true
           && result.saveDoesNotContainAge === true
+          && result.initialFirstRenderMatchesCanonicalProfile === true
+          && result.initialFirstRenderHasGenericFallback === false
           && result.localStorageDoesNotContainBirthYearYearAge === true
           && result.snapshotDoesNotContainBirthYearYearAge === true
           && result.reloadLoadsUiFromSavedProfile === true
@@ -8981,6 +9026,7 @@ window.Game = window.Game || {};
     bindLocations(UI);
 
     ensureStartScreenVisible(UI);
+    if (!getOnboardingSeen(UI)) applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
     applyStartScreenContent(UI);
     installOnboardingDevHooks(UI);
 
@@ -9001,6 +9047,7 @@ window.Game = window.Game || {};
     // Fresh/clean state must leave the existing start screen visible even if
     // earlier boot work or stale DOM attributes hid it before content binding.
     keepFreshStartScreenVisible(UI);
+    captureInitialStartScreenRender(UI);
 
     try {
       UI.S.flags = UI.S.flags || {};
