@@ -1,0 +1,106 @@
+{
+  "branch": "codex/repair-stage6-runtime-four-defects-20260803",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "codex/repair-stage6-runtime-four-defects-20260803\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "46337d432b555665d5b2bcbd60ea8b9f751fe373\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "# branch.oid 46337d432b555665d5b2bcbd60ea8b9f751fe373\n# branch.head codex/repair-stage6-runtime-four-defects-20260803\n# branch.upstream origin/codex/repair-stage6-runtime-four-defects-20260803\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "46337d43 (HEAD -> codex/repair-stage6-runtime-four-defects-20260803, origin/codex/repair-stage6-runtime-four-defects-20260803) fix: repair stage 6 runtime acceptance paths\nde1b3523 (origin/main) Fix nominative target reference classification (#271)\n3b9e1c55 (origin/bridge/target-reference-soft-sign-20260803) fix stage6 target reference classification\n39a3f07e Merge pull request #270 from samuray-games/codex/repair-stage6-target-rep-delta-classification-20260803\n1e46539a Fix Cyrillic target reputation delta classification\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 46337d432b555665d5b2bcbd60ea8b9f751fe373\nbranch refs/heads/codex/repair-stage6-runtime-four-defects-20260803\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T13:19:02Z",
+      "stderr": "",
+      "stdout": "de1b3523a46086c714b6bbb77fdb7ab0091578ad\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "46337d432b555665d5b2bcbd60ea8b9f751fe373",
+  "observedAtUtc": "2026-08-03T13:19:02Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
