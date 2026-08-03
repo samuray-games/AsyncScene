@@ -110,11 +110,15 @@ window.Game = window.Game || {};
     };
   };
   Game.__DEV.__smokeProfileCopyMatrix = function smokeProfileCopyMatrix() {
-    const profiles = ["millennial", "genX", "zoomer", "boomer"];
+    const profiles = ["boomer", "genX", "millennial", "zoomer", "alpha"];
     return profiles.reduce((result, profile) => {
       result[profile] = {
         votePrompt: resolveProfileCopy("vote.prompt", t("tie_click_name_hint"), profile),
         argumentSelect: resolveProfileCopy("argument.select", "", profile),
+        defenseSelect: resolveProfileCopy("argument.select.defense", "", profile),
+        playerSelect: resolveProfileCopy("argument.select.player", "", profile),
+        voteChoice: resolveProfileCopy("vote.choice", "", profile),
+        voteAlready: resolveProfileCopy("vote.already", "", profile),
         notVoted: resolveProfileCopy("vote.not_voted", "", profile),
       };
       return result;
@@ -216,7 +220,9 @@ window.Game = window.Game || {};
         el.style.background = "rgba(0,0,0,0.85)";
         el.style.color = "white";
         el.style.zIndex = "999999";
-        el.style.pointerEvents = "none";
+        el.style.pointerEvents = "auto";
+        el.style.cursor = "pointer";
+        el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
         el.style.transition = "opacity 120ms ease";
         el.style.opacity = "0";
         try { document.body.appendChild(el); } catch (_) {}
@@ -231,13 +237,6 @@ window.Game = window.Game || {};
         el.style.transform = "translateY(-50%)";
         el.style.display = "block";
         requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
-      } catch (_) {}
-      try {
-        if (el.__voteToastTimer) clearTimeout(el.__voteToastTimer);
-        el.__voteToastTimer = setTimeout(() => {
-          try { el.style.opacity = "0"; } catch (_) {}
-          try { setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 160); } catch (_) {}
-        }, 1200);
       } catch (_) {}
     } catch (_) {}
   }
@@ -1146,7 +1145,7 @@ window.Game = window.Game || {};
                 const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
                 const myChoiceLabel = (myVote === "a") ? (useLabels ? ne.voteLabels.a : aName) : (useLabels ? ne.voteLabels.b : bName);
                 const rowChoice = document.createElement("div");
-                rowChoice.textContent = `Твой выбор: ${myChoiceLabel}`;
+                rowChoice.textContent = `${resolveProfileCopy("vote.choice", "Твой выбор")}: ${myChoiceLabel}`;
                 info.appendChild(rowChoice);
                 try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
               }

@@ -39,14 +39,24 @@ class ProfileBootstrapFindingsTests(unittest.TestCase):
 
             for exact in (
                 '"argument.select": "Выбери аргумент."',
+                '"argument.select.defense": "Выбери контраргумент."',
+                '"argument.select.player": "Выбери игрока."',
+                '"vote.choice": "Твой выбор"',
                 '"vote.not_voted": "Ты ещё не проголосовал."',
                 '"vote.not_voted": "Голос ещё не отдан."',
                 '"vote.prompt": "Выберите, кого вы поддерживаете."',
                 '"argument.select": "Выберите аргумент."',
+                '"argument.select.defense": "Выберите контраргумент."',
+                '"argument.select.player": "Выберите игрока."',
+                '"vote.choice": "Ваш выбор"',
                 '"vote.not_voted": "Вы ещё не голосовали."',
                 '"vote.prompt": "Выбирай, за кого топишь"',
             ):
                 self.assertIn(exact, data)
+            self.assertIn('start_continue: "Продолжить игру"', data)
+            self.assertIn('start_continue: "Продолжить игру"', boot)
+            self.assertIn('getOnboardingSeen(UI)', boot)
+            self.assertIn('resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile)', boot)
             self.assertIn('resolveProfileCopy("vote.prompt"', events)
             self.assertIn('resolveProfileCopy("vote.not_voted"', events)
             self.assertIn('resolveProfileCopy("argument.select"', battles)
@@ -68,13 +78,18 @@ vm.runInContext(fs.readFileSync("AsyncScene/Web/data.js", "utf8"), context);
 const D = context.Game.Data;
 const values = ["64", "65", "80", "81", "96", "97", "12", "13", "00", "99"];
 const profiles = Object.fromEntries(values.map(value => [value, D.resolveUiProfileFromBirthYearValue(value)]));
-const copy = Object.fromEntries(["millennial", "genX", "zoomer", "boomer"].map(profile => [profile, {
+const copy = Object.fromEntries(["boomer", "genX", "millennial", "zoomer", "alpha"].map(profile => [profile, {
   normalized: D.normalizeUiProfile(profile),
   prompt: D.resolveProfileCopy("vote.prompt", profile),
   argument: D.resolveProfileCopy("argument.select", profile),
+  defense: D.resolveProfileCopy("argument.select.defense", profile),
+  player: D.resolveProfileCopy("argument.select.player", profile),
+  choice: D.resolveProfileCopy("vote.choice", profile),
+  already: D.resolveProfileCopy("vote.already", profile),
   notVoted: D.resolveProfileCopy("vote.not_voted", profile)
 }]));
-process.stdout.write(JSON.stringify({ profiles, copy }));
+const start = Object.fromEntries(["boomer", "genX", "millennial", "zoomer", "alpha"].map(profile => [profile, D.resolveStartScreenText("start_continue", profile)]));
+process.stdout.write(JSON.stringify({ profiles, copy, start }));
 '''
         result = subprocess.run(
             ["node", "-e", script],
@@ -85,7 +100,7 @@ process.stdout.write(JSON.stringify({ profiles, copy }));
         )
         payload = json.loads(result.stdout)
         self.assertEqual(
-            payload["profiles"],
+        payload["profiles"],
             {
                 "64": "boomer",
                 "65": "genX",
@@ -99,6 +114,15 @@ process.stdout.write(JSON.stringify({ profiles, copy }));
                 "99": "zoomer",
             },
         )
+        self.assertEqual(set(payload["start"].values()), {"Продолжить игру"})
+        self.assertEqual(payload["copy"]["boomer"]["defense"], "Выберите контраргумент.")
+        self.assertEqual(payload["copy"]["boomer"]["player"], "Выберите игрока.")
+        self.assertEqual(payload["copy"]["boomer"]["choice"], "Ваш выбор")
+        self.assertEqual(payload["copy"]["boomer"]["already"], "Ваш голос уже был учтён.")
+        self.assertEqual(payload["copy"]["alpha"]["prompt"], "ВЫБЕРИ ИМЯ")
+        self.assertEqual(payload["copy"]["alpha"]["defense"], "ВЫБЕРИ КОНТРАРГУМЕНТ")
+        self.assertEqual(payload["copy"]["alpha"]["player"], "ВЫБЕРИ ИГРОКА")
+        self.assertEqual(payload["copy"]["genX"]["prompt"], "Имя задаёт сторону.")
         self.assertEqual(payload["copy"]["millennial"]["argument"], "Выбери аргумент.")
         self.assertEqual(payload["copy"]["millennial"]["notVoted"], "Ты ещё не проголосовал.")
         self.assertEqual(payload["copy"]["genX"]["normalized"], "genX")

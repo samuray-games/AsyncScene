@@ -135,7 +135,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
       async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
       no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
-      start_continue: "Старт",
+      start_continue: "Продолжить игру",
       start_start: "Старт",
       start_reset: "Сбросить старт",
       rules_action: "Правила",
@@ -152,7 +152,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год по ощущению",
       async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
       no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
-      start_continue: "Начать игру",
+      start_continue: "Продолжить игру",
       start_start: "Начать игру",
       start_reset: "Сбросить выбор",
       rules_action: "Правила игры",
@@ -169,7 +169,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год по ощущению",
       async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
       no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
-      start_continue: "Поехали",
+      start_continue: "Продолжить игру",
       start_start: "Поехали",
       start_reset: "Сбросить выбор",
       rules_action: "Как тут всё устроено",
@@ -186,7 +186,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "по вайбу я родился в …",
       async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
       no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       start_reset: "Снести выбор",
       rules_action: "Как играть",
@@ -203,7 +203,7 @@ window.Game = window.Game || {};
       fantasy_birth_label: "Год по ощущению",
       async_value: "асинхронная игра · играй когда хочешь",
       no_simultaneous_required: "все онлайн сразу не нужны",
-      start_continue: "В игру",
+      start_continue: "Продолжить игру",
       start_start: "В игру",
       start_reset: "Сброс",
       rules_action: "Правила",
@@ -1001,7 +1001,14 @@ window.Game = window.Game || {};
           S.locationId = l.id;
           const locPill = $("locPill");
           if (locPill) locPill.textContent = `Локация: ${l.name}`;
-          if (UI.pushSystem) UI.pushSystem(`Ты переместился(ась): ${l.name}.`);
+          if (UI.pushSystem) {
+            const Data = Game.Data || null;
+            const isBoomer = Data && typeof Data.getUiProfile === "function" && Data.getUiProfile() === "boomer";
+            const routed = Game.System && typeof Game.System.say === "function"
+              ? Game.System.say("systemEvents", "moved", { location: l.name })
+              : "";
+            UI.pushSystem(routed || (isBoomer ? `Вы перешли в локацию: ${l.name}.` : `Ты переместился(ась): ${l.name}.`));
+          }
           S.flags.locationsOpen = false;
           UI.renderLocations();
         };
@@ -11057,7 +11064,7 @@ window.Game = window.Game || {};
           birth_digits_label: "Последние две цифры года рождения",
           profile_helper: "Эти данные используются только для настройки интерфейса. Они не сохраняются. Вы сможете изменить их позже.",
           fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
-          start_continue: "Продолжить настройку",
+          start_continue: "Продолжить игру",
           start_start: "Начать игру",
         });
         const nonBoomerExpected = Object.freeze({
@@ -11067,7 +11074,7 @@ window.Game = window.Game || {};
             birth_digits_label: "Последние 2 цифры года рождения",
             profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
             fantasy_birth_label: "Кажется, я родился в …",
-            start_continue: "Продолжить",
+            start_continue: "Продолжить игру",
             start_start: "Старт",
           }),
           millennial: Object.freeze({
@@ -11076,7 +11083,7 @@ window.Game = window.Game || {};
             birth_digits_label: "Последние 2 цифры года рождения",
             profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
             fantasy_birth_label: "Кажется, я родился в …",
-            start_continue: "Продолжить",
+            start_continue: "Продолжить игру",
             start_start: "Старт",
           }),
           zoomer: Object.freeze({
@@ -11085,7 +11092,7 @@ window.Game = window.Game || {};
             birth_digits_label: "Две цифры вайба",
             profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
             fantasy_birth_label: "по вайбу я родился в …",
-            start_continue: "Погнали",
+            start_continue: "Продолжить игру",
             start_start: "Старт",
           }),
           alpha: Object.freeze({
@@ -11094,7 +11101,7 @@ window.Game = window.Game || {};
             birth_digits_label: "Две цифры вайба",
             profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
             fantasy_birth_label: "по вайбу я родился в …",
-            start_continue: "Погнали",
+            start_continue: "Продолжить игру",
             start_start: "Старт",
           }),
         });

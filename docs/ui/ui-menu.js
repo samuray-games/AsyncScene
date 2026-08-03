@@ -411,10 +411,6 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
 
-    try { clearTimeout(UI._lotteryToastTimer); } catch (_) {}
-    UI._lotteryToastTimer = setTimeout(() => {
-      if (toast) toast.style.display = "none";
-    }, 5000);
   }
 
   function ensurePointsActions() {
