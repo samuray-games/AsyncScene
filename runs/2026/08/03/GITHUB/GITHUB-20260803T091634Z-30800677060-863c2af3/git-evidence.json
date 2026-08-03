@@ -1,0 +1,106 @@
+{
+  "branch": "codex/repair-stage6-target-rep-delta-classification-20260803",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:34Z",
+      "stderr": "",
+      "stdout": "codex/repair-stage6-target-rep-delta-classification-20260803\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:34Z",
+      "stderr": "",
+      "stdout": "1e46539af095c6a05287971660fc486ded44d519\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:35Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1e46539af095c6a05287971660fc486ded44d519\n# branch.head codex/repair-stage6-target-rep-delta-classification-20260803\n# branch.upstream origin/codex/repair-stage6-target-rep-delta-classification-20260803\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:35Z",
+      "stderr": "",
+      "stdout": "1e46539a (HEAD -> codex/repair-stage6-target-rep-delta-classification-20260803, origin/codex/repair-stage6-target-rep-delta-classification-20260803) Fix Cyrillic target reputation delta classification\nf078cab2 (origin/main) Merge pull request #269 from samuray-games/codex/repair-delta-toast-position-and-aggregation-20260802\n2d1cdb89 Fix independent delta toast aggregation and placement\n8a18e12b Merge pull request #268 from samuray-games/codex/repair-profile-bootstrap-copy-and-age-routing-20260802\n50b1501a fix initial profile-aware start render\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:35Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1e46539af095c6a05287971660fc486ded44d519\nbranch refs/heads/codex/repair-stage6-target-rep-delta-classification-20260803\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:35Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-03T09:16:35Z",
+      "stderr": "",
+      "stdout": "f078cab25b358f8aa491c52f1de2cf9d108e13c2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1e46539af095c6a05287971660fc486ded44d519",
+  "observedAtUtc": "2026-08-03T09:16:35Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
