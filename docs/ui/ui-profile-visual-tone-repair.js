@@ -765,10 +765,14 @@ window.Game = window.Game || {};
     return value.replace(/\s{2,}/g, " ").replace(/\s+([.,!?;:])/g, "$1").trim();
   }
 
+  function containsTargetReference(text) {
+    return /(?:^|[^\p{L}\p{N}_])цели?(?=$|[^\p{L}\p{N}_])/iu.test(String(text || ""));
+  }
+
   function parseDeltaCandidate(kind, text) {
     if (!STAT_KINDS.includes(String(kind || ""))) return null;
     const cleaned = cleanOwnIcon(kind, text).replace(/−/g, "-");
-    if (/\bцель\b/i.test(cleaned)) return null;
+    if (containsTargetReference(cleaned)) return null;
     const signed = cleaned.match(/([+-])\s*(\d+)/);
     if (signed) {
       const n = parseInt(signed[2], 10);
@@ -1069,7 +1073,7 @@ window.Game = window.Game || {};
     let value = cleanOwnIcon(kind, text);
     if (!value) return "";
 
-    if (kind === "rep" && /\bцель\b/i.test(value)) {
+    if (kind === "rep" && containsTargetReference(value)) {
       const amountMatch = value.replace(/−/g, "-").match(/\+\s*(\d+)/);
       if (amountMatch) return targetRepMessage(profile, parseInt(amountMatch[1], 10));
     }
@@ -1375,7 +1379,15 @@ window.Game = window.Game || {};
       combinedZoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("zoomer", { points: -1, rep: 1 }, []) === "−1 💀 · Репа +1 📈",
       combinedAlphaPreview: Game.__DEV.previewStage6UnifiedToastV4("alpha", { points: -1, rep: 1 }, []) === "−1💰 L / +1⭐ · аура ↑",
       combinedBoomerPreview: Game.__DEV.previewStage6UnifiedToastV4("boomer", { points: -1, rep: 1 }, []) === "Списано 1. Репутация выросла на 1.",
-      targetRepNotParsedAsPlayerDelta: parseDeltaCandidate("rep", "Цель получила +1 ⭐.") === null,
+      targetRepNotParsedAsPlayerDelta: [
+        "Цель получила +1 ⭐.",
+        "Цель: +1⭐.",
+        "Цели +1⭐."
+      ].every((text) => parseDeltaCandidate("rep", text) === null),
+      playerRepPositiveStillParses: parseDeltaCandidate("rep", "Вы получили +1 ⭐.") === 1,
+      playerRepNegativeStillParses: parseDeltaCandidate("rep", "Репутация −1 ⭐.") === -1,
+      playerPointsPositiveStillParses: parseDeltaCandidate("points", "Вы получили +2 💰.") === 2,
+      playerPointsNegativeStillParses: parseDeltaCandidate("points", "Списано 2 💰.") === -2,
       profileChangeWrapped: !!(Data.setUiProfile && Data.setUiProfile.__stage6FinalPresentationV4Wrapped),
       systemPresentationWrapped: !!(Game.System && Game.System.__stage6FinalPresentationV4Wrapped),
       observerInstalled: !!observer,
