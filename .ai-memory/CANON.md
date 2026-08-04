@@ -1,46 +1,52 @@
 # Canon
 
-This file captures stable product canon relevant to memory handling.
+This file records stable product and memory canon.
 
-MEMORY_REVISION: 2026-08-02-2158-JST
-EXPECTED_REVISION: 2026-08-02-2158-JST
-NOTION_MEMORY_REVISION: 2026-08-02-2158-JST
+MEMORY_REVISION: 2026-08-04-1642-JST
+EXPECTED_REVISION: 2026-08-04-1642-JST
+NOTION_MEMORY_REVISION: 2026-08-04-1642-JST
 
 ## Canon principles
 
-- Git-tracked repo content is authoritative for implementation state.
-- Memory documents should be easy to read from GitHub without local file access.
-- The live memory index must stay compact enough for new chats to load quickly.
-- Historical detail belongs in the archive, not the current memory snapshot.
-- The canonical live cross-chat bootstrap is the Notion page `ASYNCHRONIA - PROJECT MEMORY`, which must remain synchronized with accepted remote state when authorized.
-- Every current-state summary must include the exact next action required to advance the project.
+- Current repository policy, source, tests, and execution evidence are authoritative for implementation state.
+- The canonical cross-chat bootstrap is the live Notion page `ASYNCHRONIA - PROJECT MEMORY`.
+- Current summaries stay compact; historical detail remains in Git history and `.ai-memory/archive/`.
+- Direct writes to `main` are forbidden unless current repository authority explicitly permits them.
+- A pending branch is evidence of work, not accepted main state.
+- Every active status must name one exact next action.
+
+## Accepted Stage 6 product contract
+
+- Stage 6 is complete and accepted.
+- Accepted runtime implementation head: `f8fe6555462e072f416ff5d64df8947def74a76e`.
+- Boomer-facing runtime copy consistently uses formal Russian `Вы/Ваш` forms across accepted surfaces.
+- Voting prompts are profile-specific for Boomer, Gen X, Millennial, Zoomer, and Alpha; shared cross-profile fallback leakage is forbidden.
+- A fresh first launch keeps the fresh-start label. After the player has entered a game, returning to the start screen shows exactly `Продолжить игру`.
+- Every production toast remains visible until that exact toast is clicked. Timer, TTL, and animation-based automatic dismissal are forbidden.
+- Toasts dismiss independently; clicking one toast must not clear unrelated visible toasts.
+- Lottery feedback must exist and remain click-only whether or not `#btnLotteryTop` exists. When the anchor is absent, deterministic safe viewport placement is required.
+- Disabled lottery behavior and gameplay/economy mechanics remain unchanged by the toast presentation repair.
+
+## Acceptance evidence
+
+- PR #272 merged the full Stage 6 runtime repair batch.
+- PR #273 merged the final anchor-optional lottery-toast repair.
+- Corrected full Safari acceptance passed Boomer formality, five canonical vote prompts, fresh/returning start behavior, first-entry state, and delta-toast aggregation, persistence, and independent click dismissal.
+- Final Safari acceptance verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87`, then passed anchor-present and anchor-absent lottery-toast existence, visibility, deterministic placement, persistence beyond six seconds, and click dismissal.
 
 ## Protected facts
 
-- Bridge artifacts 062/063 are immutable history.
-- Memory migration must not touch runtime/game code.
-- Accepted behavior, UI canon, and process contracts should be recorded once here rather than repeated in the live index.
-- The legacy pre-split root memory must be preserved as an archive artifact with exact bytes, not reauthored from summary text.
-- A pending implementation branch is evidence of current work, not an accepted main state.
-- Direct task writes to `main` remain forbidden unless explicit current authority grants them.
-- Work and Codex are separate execution roles. Codex continuation gates are not automatically inherited by Work maintenance or integration tasks.
-- A cloud Work container's read-only `/root/.codex` is not the user's local Codex installation. Local plugin installation and parity must run in an executor that can access the authenticated user's writable Codex home.
-- Codex desktop may perform an explicitly authorized local plugin installation and parity phase without becoming the repository integration owner.
-- Serialized integration into `main` remains a separate phase after installed-package parity passes.
-- Accepted implementation head is PR #263 merge `6a82086174546fa24b10a22109f6a9a6e307c24e`; PR #263 integrated capability-calibration policy gates with reviewed head `4da08911b057f42463ded1870a5a52b2906bef1e` and merge parents `d4527217e3ec4b5cbe1974fc8a300058a` and `4da08911b057f42463ded1870a5a52b2906bef1e`. PR #249 remains accepted history for Stage 6 Alpha legacy smoke contract realignment with reviewed head `0928e367de57a6769d99e2206c6f86b7072302ff`. PR #248 remains accepted history for model-selector inventory maintenance with reviewed head `f13a0cbdf293dc8d82bb91c21e5879cfa2712d5b` and merge commit `88b5cf6dbe4d4db76187aca3b6baaa3e2a4d6108`. PR #243 remains accepted history for the prerequisite shared dev-check/index conflict-marker repair with reviewed head `4673302113c22606d86c06d778d73641e03f2735`, original locally validated content-equivalent commit `5a3fac9e51b19b8273b03db9558a5fa900aefac2`, and merge commit `bb1b383f88bce5e22bed116fd195edb6a0a6c58b`.
-- PR #246 is bookkeeping closure history, with reviewed head `be4f8fdb5f84a1a4f07fac270a87cf811be71b18` and merge commit `2e360a6137f8b15e28c004a66afc7ed320ce7024`; it does not replace the accepted implementation head.
-- Stage 6 product implementation has started and Alpha frozen-copy implementation is complete/integrated. The user-executed Safari Stage 6 Alpha frozen-copy matrix passed with active profile `alpha`, `ok:true`, and `failures:[]`; Stage 6 overall is not complete.
-- Legacy Alpha Step 4.3.x smoke failures are `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not a Stage 6 frozen-copy product regression. Current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187.
-- PR #263 capability calibration is complete and integrated. Durable selector calibration facts: read-only tasks produce no recommendation; docs-only small low-risk mutation floors at Luna / Light; scalar bands are 10-19 Luna / Light, 20-29 Luna / Medium, 30-37 Luna / High, 38-39 Luna / Max; runtime or architecture high raises effort to High; security or economy high raises model to Terra and effort to Light; ambiguity high plus concurrency high raises Terra / Medium; broad cross-cutting raises model to Sol; floors join independently and filter candidates only; unknown model or effort identities and required scores outside 10-39 fail closed; Mini, GPT-5.4, and GPT-5.5 remain inventory evidence below the Luna policy floor; Sol is reachable only through the broad predicate.
-- Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
-- The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks. PR #263 capability calibration, PR #265 security repair, and PR #266 canon reconciliation are complete and integrated; the current accepted baseline is `7bdd59870df2f027eabc8f3e703955c522dcd819`. The existing Step 6.9.1 identity remains `build_2026_06_15_step6_9_1_runtime_feel_checklist`; no new execution task ID is invented by this reconciliation.
+- Stage 7 is a historical non-active draft. It must not be inferred, revived, planned, implemented, or published without a new explicit user instruction.
+- Bridge artifacts 062/063 remain immutable history.
+- The retired short bridge interface remains retired. Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 unless the user explicitly invokes another contract.
+- The former Google Drive project-memory document is a deprecated migration stub and never substitutes for the live Notion bootstrap.
+- Current model inventory revision `20260801.1` contains 6 models and 29 model-effort pairs. `Low` is not a recorded effort label.
 
 ## Reading priority
 
-- Use current repository primary evidence first.
-- Use active task or bridge STATE for exact in-flight phase and next action.
-- Use `CURRENT.md` for the compact live summary.
-- Use this file for stable canon.
-- Fetch the canonical Notion page in the current response and report its exact top-level `MEMORY_REV`.
-- The former Google Drive document is a deprecated migration stub only.
-- Use the archive only when the current state needs historical context.
+1. Latest explicit user instruction.
+2. Current project instructions.
+3. `AGENTS.override.md`, `AGENTS.md`, and applicable policy files.
+4. Current repository execution sources and relevant code.
+5. Live canonical Notion memory.
+6. Historical archives and backups.
