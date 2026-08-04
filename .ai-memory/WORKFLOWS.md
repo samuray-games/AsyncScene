@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-02-2158-JST
-EXPECTED_REVISION: 2026-08-02-2158-JST
-NOTION_MEMORY_REVISION: 2026-08-02-2158-JST
+MEMORY_REVISION: 2026-08-04-1642-JST
+EXPECTED_REVISION: 2026-08-04-1642-JST
+NOTION_MEMORY_REVISION: 2026-08-04-1642-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,22 +20,23 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: the live Notion page and repository primary evidence are synchronized at `2026-08-02-2158-JST`; PR #266 canon reconciliation is complete at accepted baseline `7bdd59870df2f027eabc8f3e703955c522dcd819`, with exact five-file canon-only scope and branch cleanup confirmed. The closed security chain must not be reopened. Existing Step 6.9.1 identity is `build_2026_06_15_step6_9_1_runtime_feel_checklist`; the exact next action is `RUN_READ_ONLY_PREFLIGHT_FOR_EXISTING_STEP_6_9_1_RUNTIME_FEEL_CHECKLIST_ON_BASELINE_7BDD5987`.
+Current execution handoff: Stage 6 is complete and accepted at runtime implementation head `f8fe6555462e072f416ff5d64df8947def74a76e`. Corrected full Safari acceptance passed Boomer formality, five canonical vote prompts, fresh/returning start state, first-entry state, and delta-toast behavior. Final hash-gated Safari acceptance verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87`, then passed anchor-present and anchor-absent lottery-toast existence, visibility, deterministic placement, persistence beyond six seconds, and exact-toast click dismissal. Stage 7 remains historical and inactive. The exact next action is `STOP_STAGE6_AND_WAIT_FOR_EXPLICIT_USER_INSTRUCTION_BEFORE_ANY_STAGE7_WORK`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
 ## Bootstrap workflow
 
-1. Independently review the current repository memory sync against the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`.
-2. Confirm the exact top-level `MEMORY_REV` is `2026-08-02-2158-JST`.
-3. Verify current repository primary sources, exact remote branches, SHAs, and the three active memory surfaces.
-4. Read `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, and `.ai-memory/WORKFLOWS.md`.
-5. Confirm PR #263 is merged, closed, and non-draft, with accepted head `4da08911b057f42463ded1870a5a52b2906bef1e`.
-6. Confirm repository plugin `1.0.18`, installed plugin `1.0.16`, selector snapshot revision `20260801.1`, cost authority revision `20260801.1`, and inventory `6 models / 29 model-effort pairs`.
-7. Preserve the paused-and-untouched blocked security task and the integrated capability calibration note.
-8. Stop after publication or verification without starting capability calibration or any security-task restart.
+1. Fetch the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY` during the current response.
+2. Report its exact top-level `MEMORY_REV`.
+3. Fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` immediately afterward.
+4. Verify current repository primary sources, exact remote branches, SHAs, and the active memory surfaces.
+5. Read `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, and `.ai-memory/WORKFLOWS.md`.
+6. Confirm current accepted runtime implementation head and current repository policy before acting.
+7. Preserve closed historical security, calibration, and Stage 6 task chains unless a new explicit user instruction reopens them.
+8. Do not start Stage 7 from a historical draft or inferred next-step assumption.
 
 Canonical Notion page ID: `3a0815ae-752f-8139-945e-e38dfefbb111`.
+Active handoff page ID: `3b1815ae-752f-811a-8b90-f6c43d13611c`.
 Canonical URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111.
 The former Google Drive document is a deprecated migration stub only.
 
@@ -43,14 +44,15 @@ The former Google Drive document is a deprecated migration stub only.
 
 After every accepted remote state change:
 
-1. Update the task-local `STATE.md` with exact branches, SHAs, validations, blocker, phase, and `NEXT_ACTION`.
+1. Update the task-local `STATE.md` with exact branches, SHAs, validations, blocker, phase, and `NEXT_ACTION` when one exists.
 2. Update the canonical Notion project memory when authorized.
-3. Update `CURRENT.md` with the compact live state.
-4. Update `PROJECT_MEMORY.md` as the compact index and pointer file.
-5. Update `DECISIONS.md`, `CANON.md`, or `WORKFLOWS.md` only when a durable rule changed.
-6. Update `TASKS.md` when the active work state changes and the exact task scope permits it.
-7. Append completed cycle history to `.ai-memory/archive/` only after acceptance and integration.
-8. Re-read every written target and verify revision, branches, SHAs, status, and next action.
+3. Update the existing active handoff; do not create a replacement page.
+4. Update `CURRENT.md` with the compact live state.
+5. Update `PROJECT_MEMORY.md` as the compact index and pointer file.
+6. Update `DECISIONS.md`, `CANON.md`, or `WORKFLOWS.md` only when a durable rule changed.
+7. Update `TASKS.md` when the active work state changes and the exact task scope permits it.
+8. Append completed cycle history to `.ai-memory/archive/` only after acceptance and integration.
+9. Re-read every written target and verify revision, branches, SHAs, status, and next action.
 
 ## Work versus Codex routing workflow
 
@@ -60,6 +62,7 @@ After every accepted remote state change:
 4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local work phase.
 5. If the repository reports a remote branch head or absence, fresh-fetch the remote before treating it as evidence.
 6. A documentation-only response that asks the user for `CONTINUE` is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
+7. Respect explicit user quota constraints. Do not invoke Work or Codex for mechanical documentation synchronization when direct safe tools are available.
 
 ## Local plugin installation and parity workflow
 
@@ -90,6 +93,13 @@ After every accepted remote state change:
 3. Update canonical Notion in the same execution when authorized; otherwise state synchronization deferred.
 4. If repository-memory integration is blocked by scope or branch policy, publish a dedicated memory-sync branch and record the deferral.
 5. Do not overwrite accepted bridge history or runtime facts.
+
+## Stage transition workflow
+
+1. Closing an accepted stage does not authorize the next stage.
+2. Historical drafts are not active tasks.
+3. Stage 7 may begin only after a new explicit user instruction naming or clearly authorizing Stage 7 work.
+4. Until then, do not create Stage 7 plans, prompts, branches, implementation, publication, or acceptance work.
 
 ## Reporting workflow
 
