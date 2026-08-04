@@ -5,21 +5,36 @@ NOTION_MEMORY_REV: 2026-08-04-1642-JST
 CURRENT_STATUS: STAGE6_COMPLETE_ACCEPTED
 ACTIVE_TASK: NONE
 CURRENT_MAIN_REF: origin/main
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: f8fe6555462e072f416ff5d64df8947def74a76e
 ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: f8fe6555462e072f416ff5d64df8947def74a76e
-RUNTIME: PUBLISHED_AND_LIVE_VERIFIED
-STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
-STAGE_7: HISTORICAL_NON_ACTIVE_DRAFT / EXPLICIT_USER_START_REQUIRED
-MODEL_INVENTORY: 6 models / 29 model-effort pairs
+REPOSITORY_PLUGIN_VERSION: 1.0.18
+INSTALLED_PLUGIN_VERSION: 1.0.16
+INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_CLOSED_PR265
 SELECTOR_SNAPSHOT_REVISION: 20260801.1
+SELECTOR_CANONICAL_HASH: sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf
+SELECTOR_SOURCE_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md
+COST_AUTHORITY_REVISION: 20260801.1
+COST_AUTHORITY_HASH: sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20c9c3e694522e
+COST_AUTHORITY_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md
+MODEL_INVENTORY: 6 models / 29 model-effort pairs
+BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
+STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
+STAGE_6_STEP9: COMPLETE / ACCEPTED
+STAGE_7: HISTORICAL_NON_ACTIVE_DRAFT / EXPLICIT_USER_START_REQUIRED
+RUNTIME: PUBLISHED_AND_LIVE_VERIFIED
+STAGE_6_PRODUCT_IMPLEMENTATION: COMPLETE
+ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
+SAFARI_STAGE6_ALPHA_FROZEN_COPY: PASS
+SAFARI_STAGE6_ALPHA_FROZEN_COPY_PROFILE: alpha
+SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
+LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
+LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
+SAFARI_RUNTIME_SMOKE: STAGE6_FULL_ACCEPTANCE_PASS
+PR272_MERGE_SHA: 2b5fbe4f4a250dfc50af732490a672b0c33a9cb6
+PR273_MERGE_SHA: f8fe6555462e072f416ff5d64df8947def74a76e
+LIVE_UI_MENU_GIT_BLOB_SHA1: 73cd833d3950b5356300bc3d09c1c8c5c8ef5e87
 NEXT_ACTION: STOP_STAGE6_AND_WAIT_FOR_EXPLICIT_USER_INSTRUCTION_BEFORE_ANY_STAGE7_WORK
 
-## Current accepted evidence
+Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-- PR #272 completed the Stage 6 runtime repair batch.
-- PR #273 completed the final anchor-optional lottery-toast repair at runtime implementation head `f8fe6555462e072f416ff5d64df8947def74a76e`.
-- Corrected full Safari acceptance passed Boomer formality, five canonical vote prompts, fresh/returning start state, first-entry state, and delta-toast behavior.
-- Final Safari acceptance verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87` before executing runtime checks.
-- Anchor-present and anchor-absent lottery toasts both existed, were visible and correctly positioned, persisted beyond six seconds, and dismissed only on click.
-- No known Stage 6 acceptance blocker remains.
-
-Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`. Report the exact top-level `MEMORY_REV`. Repository primary evidence remains authoritative. The former Google Drive document is deprecated.
+Stage 6 runtime implementation is accepted at `f8fe6555462e072f416ff5d64df8947def74a76e`. Corrected full Safari acceptance passed Boomer formality, five canonical vote prompts, fresh/returning start state, first-entry state, and delta-toast behavior. Final hash-gated Safari acceptance verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87`, then passed lottery-toast existence, visibility, deterministic placement, persistence beyond six seconds, and click dismissal with and without `#btnLotteryTop`. No known Stage 6 acceptance blocker remains. Stage 7 is inactive until explicitly started by the user.
