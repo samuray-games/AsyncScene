@@ -1,0 +1,419 @@
+/* Stage 6.1 generational color themes.
+   Presentation only. Semantic battle-strength, danger, reward and disabled colors
+   remain owned by style-base.css. */
+
+body[data-ui-profile]{
+  --profile-accent:#645fd8;
+  --profile-accent-soft:rgba(100,95,216,.18);
+  --profile-accent-border:rgba(100,95,216,.46);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(100,95,216,.72);
+  --profile-glow-1:rgba(100,95,216,.20);
+  --profile-glow-2:rgba(42,157,145,.14);
+  --profile-glow-3:rgba(217,154,170,.13);
+  --profile-screen-mask:rgba(25,22,38,.35);
+  --profile-header-gradient:linear-gradient(180deg, var(--panelGradTop), var(--panelGradBottom));
+  --profile-control-radius:14px;
+  --profile-card-radius:18px;
+  --profile-start-radius:26px;
+  --profile-accent-shadow:0 0 0 2px var(--profile-accent-soft);
+
+  background:
+    radial-gradient(900px 520px at 32% 10%, var(--profile-glow-1), transparent 62%),
+    radial-gradient(900px 620px at 88% 66%, var(--profile-glow-2), transparent 64%),
+    radial-gradient(1100px 900px at 28% 94%, var(--profile-glow-3), transparent 66%),
+    var(--bg);
+}
+
+body[data-ui-profile="boomer"]{
+  color-scheme:light;
+  --bg:#f1e6d0;
+  --panel:#fff9ec;
+  --panel2:#eadcc4;
+  --panelSolid:#fff9ec;
+  --line:rgba(72,51,34,.22);
+  --text:#28231e;
+  --muted:rgba(40,35,30,.70);
+  --muted2:rgba(40,35,30,.52);
+  --shadow:0 18px 42px rgba(73,45,24,.18);
+  --r:14px;
+  --surface:#fff9ec;
+  --surfaceSoft:#eadcc4;
+  --surfaceHover:#e3d2b4;
+  --panelGradTop:#fff9ec;
+  --panelGradTopAlt:#fff7e7;
+  --panelGradBottom:#eadcc4;
+  --cardBg:#f7ecd8;
+  --chipNeutralBg:rgba(122,48,48,.06);
+  --chipNeutralBorder:rgba(122,48,48,.22);
+  --chipHiddenBg:rgba(35,62,92,.09);
+  --chipHiddenBorder:rgba(35,62,92,.28);
+  --hiddenText:#28231e;
+  --kcol:rgba(35,46,58,.92);
+  --kbd:rgba(20,28,38,.58);
+  --sys:rgba(122,48,48,.14);
+  --sysText:#512020;
+  --mention-other-color:#235c4c;
+  --profile-accent:#7a3030;
+  --profile-accent-soft:rgba(122,48,48,.14);
+  --profile-accent-border:rgba(122,48,48,.48);
+  --profile-accent-text:#fff9ec;
+  --profile-focus:rgba(35,62,92,.72);
+  --profile-glow-1:rgba(167,131,79,.18);
+  --profile-glow-2:rgba(35,62,92,.10);
+  --profile-glow-3:rgba(122,48,48,.08);
+  --profile-screen-mask:rgba(40,30,22,.28);
+  --profile-header-gradient:linear-gradient(180deg, #fff9ec, #ecddc4);
+  --profile-control-radius:8px;
+  --profile-card-radius:12px;
+  --profile-start-radius:16px;
+  --profile-accent-shadow:0 0 0 1px rgba(167,131,79,.42);
+}
+
+body[data-ui-profile="genX"]{
+  color-scheme:dark;
+  --bg:#171a1f;
+  --panel:#262b32;
+  --panel2:#1d2127;
+  --panelSolid:#262b32;
+  --line:rgba(201,185,143,.22);
+  --text:#ece8df;
+  --muted:rgba(236,232,223,.68);
+  --muted2:rgba(236,232,223,.46);
+  --shadow:0 18px 46px rgba(0,0,0,.52);
+  --r:10px;
+  --surface:#2b3037;
+  --surfaceSoft:#20252b;
+  --surfaceHover:#343a42;
+  --panelGradTop:#2a3037;
+  --panelGradTopAlt:#272d34;
+  --panelGradBottom:#1c2026;
+  --cardBg:#20252b;
+  --chipNeutralBg:rgba(196,91,60,.07);
+  --chipNeutralBorder:rgba(196,91,60,.25);
+  --chipHiddenBg:rgba(62,146,144,.09);
+  --chipHiddenBorder:rgba(62,146,144,.30);
+  --hiddenText:#ece8df;
+  --kcol:rgba(12,14,18,.94);
+  --kbd:rgba(201,185,143,.30);
+  --sys:rgba(62,146,144,.18);
+  --sysText:#d8fffb;
+  --mention-other-color:#d5b76d;
+  --profile-accent:#c45b3c;
+  --profile-accent-soft:rgba(196,91,60,.18);
+  --profile-accent-border:rgba(196,91,60,.52);
+  --profile-accent-text:#fff8ee;
+  --profile-focus:rgba(62,146,144,.78);
+  --profile-glow-1:rgba(196,91,60,.15);
+  --profile-glow-2:rgba(62,146,144,.13);
+  --profile-glow-3:rgba(201,185,143,.06);
+  --profile-screen-mask:rgba(5,7,9,.62);
+  --profile-header-gradient:linear-gradient(180deg, #30363e, #20242a);
+  --profile-control-radius:7px;
+  --profile-card-radius:8px;
+  --profile-start-radius:10px;
+  --profile-accent-shadow:0 0 0 1px rgba(62,146,144,.32);
+}
+
+body[data-ui-profile="millennial"]{
+  color-scheme:light;
+  --bg:#f6f3f0;
+  --panel:#ffffff;
+  --panel2:#eeeaf2;
+  --panelSolid:#ffffff;
+  --line:rgba(62,53,84,.15);
+  --text:#292734;
+  --muted:rgba(41,39,52,.67);
+  --muted2:rgba(41,39,52,.46);
+  --shadow:0 22px 58px rgba(57,45,89,.16);
+  --r:22px;
+  --surface:#ffffff;
+  --surfaceSoft:#eeeaf2;
+  --surfaceHover:#e7e1ed;
+  --panelGradTop:#ffffff;
+  --panelGradTopAlt:#ffffff;
+  --panelGradBottom:#f0ebf3;
+  --cardBg:#f4f0f6;
+  --chipNeutralBg:rgba(100,95,216,.06);
+  --chipNeutralBorder:rgba(100,95,216,.19);
+  --chipHiddenBg:rgba(42,157,145,.08);
+  --chipHiddenBorder:rgba(42,157,145,.24);
+  --hiddenText:#292734;
+  --kcol:rgba(35,33,44,.90);
+  --kbd:rgba(35,33,44,.30);
+  --sys:rgba(100,95,216,.14);
+  --sysText:#3f3a9c;
+  --mention-other-color:#14786f;
+  --profile-accent:#645fd8;
+  --profile-accent-soft:rgba(100,95,216,.16);
+  --profile-accent-border:rgba(100,95,216,.43);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(100,95,216,.72);
+  --profile-glow-1:rgba(100,95,216,.18);
+  --profile-glow-2:rgba(42,157,145,.13);
+  --profile-glow-3:rgba(217,154,170,.13);
+  --profile-screen-mask:rgba(31,25,49,.28);
+  --profile-header-gradient:linear-gradient(180deg, #ffffff, #f0ebf3);
+  --profile-control-radius:14px;
+  --profile-card-radius:18px;
+  --profile-start-radius:26px;
+  --profile-accent-shadow:0 0 0 2px rgba(100,95,216,.12);
+}
+
+body[data-ui-profile="zoomer"]{
+  color-scheme:dark;
+  --bg:#0e0b16;
+  --panel:#1b1628;
+  --panel2:#130f1d;
+  --panelSolid:#1b1628;
+  --line:rgba(153,92,255,.23);
+  --text:#f7f4ff;
+  --muted:rgba(247,244,255,.68);
+  --muted2:rgba(247,244,255,.46);
+  --shadow:0 24px 72px rgba(0,0,0,.66), 0 0 34px rgba(153,92,255,.08);
+  --r:18px;
+  --surface:#211a31;
+  --surfaceSoft:#171222;
+  --surfaceHover:#2a203e;
+  --panelGradTop:#211a31;
+  --panelGradTopAlt:#1e172d;
+  --panelGradBottom:#120e1c;
+  --cardBg:#171222;
+  --chipNeutralBg:rgba(153,92,255,.08);
+  --chipNeutralBorder:rgba(153,92,255,.27);
+  --chipHiddenBg:rgba(0,213,245,.08);
+  --chipHiddenBorder:rgba(0,213,245,.28);
+  --hiddenText:#f7f4ff;
+  --kcol:rgba(5,4,9,.96);
+  --kbd:rgba(0,213,245,.28);
+  --sys:rgba(153,92,255,.19);
+  --sysText:#f3eaff;
+  --mention-other-color:#c6ff3d;
+  --profile-accent:#995cff;
+  --profile-accent-soft:rgba(153,92,255,.20);
+  --profile-accent-border:rgba(153,92,255,.58);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(0,213,245,.82);
+  --profile-glow-1:rgba(153,92,255,.22);
+  --profile-glow-2:rgba(0,213,245,.13);
+  --profile-glow-3:rgba(198,255,61,.06);
+  --profile-screen-mask:rgba(5,3,10,.68);
+  --profile-header-gradient:linear-gradient(180deg, rgba(43,31,65,.98), rgba(24,17,37,.98));
+  --profile-control-radius:13px;
+  --profile-card-radius:16px;
+  --profile-start-radius:22px;
+  --profile-accent-shadow:0 0 0 2px rgba(153,92,255,.16), 0 0 22px rgba(0,213,245,.08);
+}
+
+body[data-ui-profile="alpha"]{
+  color-scheme:light;
+  --bg:#eef9ff;
+  --panel:#ffffff;
+  --panel2:#e5f5fb;
+  --panelSolid:#ffffff;
+  --line:rgba(23,36,58,.14);
+  --text:#17243a;
+  --muted:rgba(23,36,58,.66);
+  --muted2:rgba(23,36,58,.44);
+  --shadow:0 24px 64px rgba(38,117,150,.16);
+  --r:28px;
+  --surface:#ffffff;
+  --surfaceSoft:#e5f5fb;
+  --surfaceHover:#d9f0f8;
+  --panelGradTop:#ffffff;
+  --panelGradTopAlt:#ffffff;
+  --panelGradBottom:#e8f7fc;
+  --cardBg:#edf9fc;
+  --chipNeutralBg:rgba(0,167,214,.06);
+  --chipNeutralBorder:rgba(0,167,214,.20);
+  --chipHiddenBg:rgba(120,104,255,.07);
+  --chipHiddenBorder:rgba(120,104,255,.23);
+  --hiddenText:#17243a;
+  --kcol:rgba(28,32,54,.92);
+  --kbd:rgba(28,32,54,.28);
+  --sys:rgba(0,167,214,.14);
+  --sysText:#07586f;
+  --mention-other-color:#bd315d;
+  --profile-accent:#00a7d6;
+  --profile-accent-soft:rgba(0,167,214,.16);
+  --profile-accent-border:rgba(0,167,214,.42);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(120,104,255,.72);
+  --profile-glow-1:rgba(0,167,214,.17);
+  --profile-glow-2:rgba(255,100,143,.12);
+  --profile-glow-3:rgba(120,104,255,.11);
+  --profile-screen-mask:rgba(15,54,73,.23);
+  --profile-header-gradient:linear-gradient(135deg, #ffffff 0%, #e9faff 58%, #f9efff 100%);
+  --profile-control-radius:18px;
+  --profile-card-radius:24px;
+  --profile-start-radius:32px;
+  --profile-accent-shadow:0 0 0 2px rgba(0,167,214,.11);
+}
+
+body[data-ui-profile] #chatHeader,
+body[data-ui-profile] #topBar,
+body[data-ui-profile] .topbar,
+body[data-ui-profile] .blockHeader,
+body[data-ui-profile] .panelHeader{
+  background:var(--profile-header-gradient);
+}
+
+body[data-ui-profile] .block,
+body[data-ui-profile] .panel,
+body[data-ui-profile] .chat,
+body[data-ui-profile] .menuPanel{
+  border-radius:var(--r);
+}
+
+body[data-ui-profile] .battleCard,
+body[data-ui-profile] .eventCard,
+body[data-ui-profile] .bubble{
+  border-radius:var(--profile-card-radius);
+}
+
+body[data-ui-profile] button,
+body[data-ui-profile] .btn,
+body[data-ui-profile] .input,
+body[data-ui-profile] #chatInput,
+body[data-ui-profile] #dmInput,
+body[data-ui-profile] #nameInput,
+body[data-ui-profile] #reportInput,
+body[data-ui-profile] .lotteryInput,
+body[data-ui-profile] .panelCtrlBtn,
+body[data-ui-profile] .menuCloseBtn{
+  border-radius:var(--profile-control-radius);
+}
+
+body[data-ui-profile] #startCard{
+  border-radius:var(--profile-start-radius);
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+}
+
+body[data-ui-profile] #startScreen{
+  background:var(--profile-screen-mask);
+}
+
+body[data-ui-profile] .modal,
+body[data-ui-profile] .card{
+  background:linear-gradient(180deg, var(--panelGradTopAlt), var(--panelGradBottom));
+}
+
+body[data-ui-profile] .btn.primary,
+body[data-ui-profile] #startCard .btn.primary{
+  background:var(--profile-accent);
+  border-color:var(--profile-accent-border);
+  color:var(--profile-accent-text);
+  box-shadow:var(--profile-accent-shadow);
+}
+
+body[data-ui-profile] .panelCtrlBtn.is-active,
+body[data-ui-profile] .eventVoteBtn.selected,
+body[data-ui-profile] .eventVoteBtn.is-selected,
+body[data-ui-profile] .eventVoteBtn.selected:disabled,
+body[data-ui-profile] .eventVoteBtn.is-selected.is-disabled,
+body[data-ui-profile] .eventVoteBtn.selected[aria-disabled="true"],
+body[data-ui-profile] .eventVoteBtn.is-selected[aria-disabled="true"]{
+  background:var(--profile-accent-soft);
+  border-color:var(--profile-accent-border);
+  color:var(--text);
+  box-shadow:var(--profile-accent-shadow);
+}
+
+body[data-ui-profile] .eventVoteBtn:not(:disabled):not(.is-disabled):not([aria-disabled="true"]):hover,
+body[data-ui-profile] .mention-item:hover{
+  background:var(--profile-accent-soft);
+}
+
+body[data-ui-profile] .mention-item.active,
+body[data-ui-profile] .dmList .dmTab.active,
+body[data-ui-profile] .bubble.meMention,
+body[data-ui-profile] .dmLine.focusFlash{
+  border-color:var(--profile-accent-border);
+  box-shadow:var(--profile-accent-shadow);
+}
+
+body[data-ui-profile] .mention,
+body[data-ui-profile] .mention.me{
+  color:var(--profile-accent);
+}
+
+body[data-ui-profile] .mention.me{
+  background:var(--profile-accent-soft);
+  border-color:var(--profile-accent-border);
+}
+
+body[data-ui-profile] .bubble.sys{
+  background:var(--sys);
+  border-color:var(--profile-accent-border);
+}
+
+body[data-ui-profile] .bubble.sys .name,
+body[data-ui-profile] .bubble.sys .txt{
+  color:var(--sysText);
+}
+
+body[data-ui-profile] .bubble.sys .meta{
+  color:var(--muted);
+}
+
+body[data-ui-profile] #chatInput:focus,
+body[data-ui-profile] #dmInput:focus,
+body[data-ui-profile] #nameInput:focus,
+body[data-ui-profile] #reportInput:focus,
+body[data-ui-profile] .input:focus,
+body[data-ui-profile] .lotteryInput:focus,
+body[data-ui-profile] .bubble:focus-visible,
+body[data-ui-profile] button:focus-visible,
+body[data-ui-profile] .btn:focus-visible{
+  outline:2px solid var(--profile-focus);
+  outline-offset:2px;
+  border-color:var(--profile-accent-border);
+}
+
+body[data-ui-profile="boomer"] .blockHeader,
+body[data-ui-profile="boomer"] .panelHeader,
+body[data-ui-profile="boomer"] .chatHeader{
+  box-shadow:inset 0 -1px 0 rgba(167,131,79,.32);
+}
+
+body[data-ui-profile="genX"] .blockHeader,
+body[data-ui-profile="genX"] .panelHeader,
+body[data-ui-profile="genX"] .chatHeader{
+  text-transform:none;
+  letter-spacing:.015em;
+  box-shadow:inset 3px 0 0 var(--profile-accent);
+}
+
+body[data-ui-profile="zoomer"] .block,
+body[data-ui-profile="zoomer"] .panel,
+body[data-ui-profile="zoomer"] .chat,
+body[data-ui-profile="zoomer"] #topBar{
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(0,213,245,.07);
+}
+
+body[data-ui-profile="alpha"] .statChip,
+body[data-ui-profile="alpha"] .badge,
+body[data-ui-profile="alpha"] .pill{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 5px 18px rgba(0,167,214,.08);
+}
+
+@media (prefers-reduced-motion:reduce){
+  body[data-ui-profile] *,
+  body[data-ui-profile] *::before,
+  body[data-ui-profile] *::after{
+    transition-duration:.001ms;
+    animation-duration:.001ms;
+    animation-iteration-count:1;
+  }
+}
+
+@media (forced-colors:active){
+  body[data-ui-profile]{
+    --profile-accent:Highlight;
+    --profile-accent-soft:Canvas;
+    --profile-accent-border:Highlight;
+    --profile-accent-text:HighlightText;
+    --profile-focus:Highlight;
+    --profile-accent-shadow:none;
+  }
+}
