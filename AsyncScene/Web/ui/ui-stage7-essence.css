@@ -12,7 +12,7 @@ body.stage7EssenceOpen{
 .stage7EssenceModal{
   position:fixed;
   inset:0;
-  z-index:2147483000;
+  z-index:2147483647;
   display:grid;
   place-items:center;
   padding:16px;
