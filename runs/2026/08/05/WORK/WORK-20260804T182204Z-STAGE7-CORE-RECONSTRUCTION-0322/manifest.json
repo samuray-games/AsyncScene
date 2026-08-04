@@ -1,0 +1,26 @@
+{
+  "actor": "WORK",
+  "createdAtJst": "2026-08-05T03:22:04+09:00",
+  "createdAtUtc": "2026-08-04T18:22:04Z",
+  "files": [
+    "manifest.json",
+    "events.jsonl",
+    "summary.json",
+    "git-evidence.json",
+    "redaction-report.json",
+    "checksums.json"
+  ],
+  "finalStatus": "SCOPE_FROZEN_RUNTIME_IMPLEMENTATION_NOT_STARTED",
+  "manifestStatus": "UPLOAD_COMPLETE_INDEXED",
+  "packagePath": "runs/2026/08/05/WORK/WORK-20260804T182204Z-STAGE7-CORE-RECONSTRUCTION-0322",
+  "redactionStatus": "SANITIZED",
+  "repository": "samuray-games/AsyncScene",
+  "resultSha": "5f6cb94713abecf3a3dc8d3abc38b5c7a1927e2c",
+  "runId": "WORK-20260804T182204Z-STAGE7-CORE-RECONSTRUCTION-0322",
+  "schemaVersion": "AI_FORENSICS_RUN_V1",
+  "sourceBranch": "main",
+  "sourceSha": "e54390fe6164f601caeaf2819e2ea56ed25c8eb0",
+  "taskId": "TASK-STAGE7-CORE-RECONSTRUCTION-20260805",
+  "uploadState": "UPLOAD_COMPLETE_INDEXED",
+  "workingBranch": "chatgpt/stage7-memory-sync-20260805"
+}
