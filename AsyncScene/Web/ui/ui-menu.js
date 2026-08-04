@@ -351,7 +351,6 @@ window.Game = window.Game || {};
 
   function showLotteryToast(text) {
     const btn = document.getElementById("btnLotteryTop");
-    if (!btn) return;
 
     let toast = document.getElementById("lotteryToast");
     if (!toast) {
@@ -363,9 +362,11 @@ window.Game = window.Game || {};
     }
 
     toast.textContent = text;
-    const r = btn.getBoundingClientRect();
-    const left = Math.round(r.left + (r.width / 2));
-    const top = Math.round(r.bottom + 8);
+    const r = btn ? btn.getBoundingClientRect() : null;
+    const left = r ? Math.round(r.left + (r.width / 2)) : Math.round(window.innerWidth / 2);
+    const top = r
+      ? Math.round(r.bottom + 8)
+      : Math.max(16, Math.round(window.innerHeight / 2) - 24);
     toast.style.left = `${left}px`;
     toast.style.top = `${top}px`;
     toast.style.display = "block";
