@@ -12,6 +12,7 @@ SOURCE = ROOT / "AsyncScene" / "Web"
 DEPLOYED = ROOT / "docs"
 PROJECT = ROOT / "AsyncScene" / "AsyncScene.xcodeproj" / "project.pbxproj"
 PROFILES = ("boomer", "genX", "millennial", "zoomer", "alpha")
+PRESERVED_BASE_GIT_BLOB_SHA1 = "738398815ed6ca310a5e3dee0dbea2cd24729e89"
 REQUIRED_VARS = (
     "--bg",
     "--panel",
@@ -49,6 +50,12 @@ def read(path: Path) -> str:
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def git_blob_sha1(path: Path) -> str:
+    content = path.read_bytes()
+    framed = f"blob {len(content)}\0".encode("ascii") + content
+    return hashlib.sha1(framed).hexdigest()
 
 
 def profile_block(css: str, profile: str) -> str:
@@ -104,6 +111,8 @@ def main() -> None:
     base = read(source_base)
     assert ":root{" in base, "preserved base stylesheet is missing its root token block"
     assert "@import" not in base, "preserved base stylesheet must not become another loader"
+    assert git_blob_sha1(source_base) == PRESERVED_BASE_GIT_BLOB_SHA1, "source base stylesheet no longer matches accepted original bytes"
+    assert git_blob_sha1(deployed_base) == PRESERVED_BASE_GIT_BLOB_SHA1, "deployed base stylesheet no longer matches accepted original bytes"
 
     css = read(source_theme)
     rows: dict[str, dict[str, str]] = {}
@@ -172,7 +181,7 @@ def main() -> None:
         {
             "profiles": list(PROFILES),
             "loaderSha256": digest(source_loader),
-            "baseSha256": digest(source_base),
+            "baseGitBlobSha1": git_blob_sha1(source_base),
             "themeSha256": digest(source_theme),
             "xcodeResources": list(XCODE_RESOURCES),
             "contrasts": contrasts,
