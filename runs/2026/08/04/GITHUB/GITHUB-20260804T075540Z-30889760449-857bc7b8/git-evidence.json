@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage6-final-canon-sync-20260804",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage6-final-canon-sync-20260804\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "f44c95ef3bf323cdd67a4f89341cd5a8e74f5f32\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "# branch.oid f44c95ef3bf323cdd67a4f89341cd5a8e74f5f32\n# branch.head chatgpt/stage6-final-canon-sync-20260804\n# branch.upstream origin/chatgpt/stage6-final-canon-sync-20260804\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "f44c95ef (HEAD -> chatgpt/stage6-final-canon-sync-20260804, origin/chatgpt/stage6-final-canon-sync-20260804) docs: record final Stage 6 acceptance\nf8fe6555 (origin/main) fix: make Stage 6 lottery toast anchor-optional (#273)\n781fae8c (origin/codex/repair-stage6-lottery-toast-anchorless-click-only-20260804) fix: make lottery toast anchor-optional\n2b5fbe4f fix: repair Stage 6 runtime acceptance paths (#272)\n46337d43 fix: repair stage 6 runtime acceptance paths\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f44c95ef3bf323cdd67a4f89341cd5a8e74f5f32\nbranch refs/heads/chatgpt/stage6-final-canon-sync-20260804\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:55:40Z",
+      "stderr": "",
+      "stdout": "f8fe6555462e072f416ff5d64df8947def74a76e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f44c95ef3bf323cdd67a4f89341cd5a8e74f5f32",
+  "observedAtUtc": "2026-08-04T07:55:40Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
