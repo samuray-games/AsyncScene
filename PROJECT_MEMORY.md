@@ -1,19 +1,16 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-08-04-1642-JST
-NOTION_MEMORY_REV: 2026-08-04-1642-JST
+REPO_MEMORY_REV: 2026-08-05-0307-JST
+NOTION_MEMORY_REV: 2026-08-05-0259-JST
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: f8fe6555462e072f416ff5d64df8947def74a76e
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: f8fe6555462e072f416ff5d64df8947def74a76e
-ROOT_STATUS: STAGE6_COMPLETE_ACCEPTED
-CURRENT_STATUS: STAGE6_COMPLETE_ACCEPTED
-PR_263_INTEGRATION: COMPLETE / merged to 6a82086174546fa24b10a22109f6a9a6e307c24e
-PR_263_REVIEWED_HEAD: 4da08911b057f42463ded1870a5a52b2906bef1e
-PR_263_MERGE_PARENT_1: d4527217e3ec4b5cbe1974fc8a300058a
-PR_263_MERGE_PARENT_2: 4da08911b057f42463ded1870a5a52b2906bef1e
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+ROOT_STATUS: STAGE7_ACTIVE
+CURRENT_STATUS: STAGE7_ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED / ASSISTANT_PRODUCT_LEAD_ACTIVE
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
-INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_CLOSED_PR265
+INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
 SELECTOR_SNAPSHOT_REVISION: 20260801.1
 SELECTOR_CANONICAL_HASH: sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf
 SELECTOR_SOURCE_ARTIFACT: .ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md
@@ -24,7 +21,16 @@ MODEL_INVENTORY: 6 models / 29 model-effort pairs
 BRIDGE_TASK_PROFILE: BRIDGE_TASK_PROFILE_2
 STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
 STAGE_6_STEP9: COMPLETE / ACCEPTED
-STAGE_7: HISTORICAL_NON_ACTIVE_DRAFT / EXPLICIT_USER_START_REQUIRED
+STAGE_7: ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED
+STAGE_7_0: COMPLETE / ESSENCE_MODAL_ACCEPTED
+STAGE_7_0_FEATURE_MERGE: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
+STAGE_7_0_PRESTART_FIX_MERGE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+STAGE_7_1: NEXT_ATOMIC_RUNTIME_SCOPE
+STAGE_7_5: FIRST_REAL_ASYNCHRONOUS_WORLD_ADVANCE / FOREGROUND_AND_BACKGROUND_PATHS_REQUIRED
+POST_CONFLICT_FREEDOM_CARD: ACCEPTED_PRODUCT_CONTRACT / NO_RUNTIME_CHANGE_YET
+POST_CONFLICT_FREEDOM_CARD_TITLE: Мир живёт дальше
+POST_CONFLICT_FREEDOM_CARD_BODY: Первый конфликт завершён. Можешь продолжить исследовать игру или заняться своими делами. Мир будет жить дальше и меняться из-за твоего выбора, даже когда тебя нет в игре. Когда вернёшься, увидишь, к чему всё привело.
+PRODUCT_FREEZE: NO_NEW_THEME_PROFILE_CURRENCY_NPC_CATEGORY_LOCATION_OR_BROAD_SECONDARY_SUBSYSTEM_BEFORE_CORE_LOOP_USER_EVIDENCE
 RUNTIME: PUBLISHED_AND_LIVE_VERIFIED
 STAGE_6_PRODUCT_IMPLEMENTATION: COMPLETE
 ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
@@ -33,20 +39,15 @@ SAFARI_STAGE6_ALPHA_FROZEN_COPY_PROFILE: alpha
 SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
 LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
 LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
-SAFARI_RUNTIME_SMOKE: STAGE6_FULL_ACCEPTANCE_PASS
-CAPABILITY_CALIBRATION: COMPLETED_AND_INTEGRATED
-CAPABILITY_POLICY_SUMMARY: read-only short-circuits; docs-only small low-risk mutations use Luna / Light; scalar bands are 10-19 Luna / Light, 20-29 Luna / Medium, 30-37 Luna / High, 38-39 Luna / Max; runtime or architecture high raises effort to High; security or economy high raises model to Terra and effort to Light; ambiguity high plus concurrency high raises Terra / Medium; broad cross-cutting raises model to Sol; floors join independently and filter candidates only; unknown model or effort identities and required scores outside 10-39 fail closed; Mini, GPT-5.4, and GPT-5.5 remain inventory evidence below the Luna policy floor; Sol is reachable only via the broad predicate
-PR_266_INTEGRATION_TASK: integrate-canon-pr266-20260802
-PR_266_DESCRIPTOR_HASH: sha256:ad608a1af94bc514dff5ea7d3939552c8b547583642de449abda1e961a2c381b
-PR_266_MERGE_SHA: 7bdd59870df2f027eabc8f3e703955c522dcd819
-PR_266_MERGE_PARENT_1: 9f85b7fd8e0231bec064b651677e114e5e9bfc02
-PR_266_MERGE_PARENT_2: 846cfe9a9e459e83bb7c0cfbe5b3294ff436835a
-PR_266_SELECTOR: 5.6 Luna / Light
-PR_266_TASK_BRANCH_CLEANUP: REMOTE_AND_LOCAL_ABSENT
+SAFARI_RUNTIME_SMOKE: STAGE7_ESSENCE_MODAL_FINAL_ACCEPTANCE_PASS
 PR_272_RUNTIME_REPAIR_MERGE_SHA: 2b5fbe4f4a250dfc50af732490a672b0c33a9cb6
 PR_273_LOTTERY_TOAST_MERGE_SHA: f8fe6555462e072f416ff5d64df8947def74a76e
+PR_277_STAGE7_ESSENCE_MERGE_SHA: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
+PR_278_STAGE7_PRESTART_FIX_MERGE_SHA: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
 LIVE_UI_MENU_GIT_BLOB_SHA1: 73cd833d3950b5356300bc3d09c1c8c5c8ef5e87
-NEXT_ACTION: STOP_STAGE6_AND_WAIT_FOR_EXPLICIT_USER_INSTRUCTION_BEFORE_ANY_STAGE7_WORK
+LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
+MEMORY_SYNC_BRANCH: chatgpt/stage7-memory-sync-20260805
+NEXT_ACTION: FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES
 
 ## Canonical cross-chat bootstrap
 
@@ -56,6 +57,8 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository runtime implementation is accepted at `f8fe6555462e072f416ff5d64df8947def74a76e`. PR #272 completed the four-group runtime repair. PR #273 completed the final anchor-optional lottery-toast repair. The corrected full Safari package passed Boomer formality, five canonical vote prompts, fresh/returning start state, first-entry state, and delta-toast behavior. The final hash-gated Safari package verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87`, then passed anchor-present and anchor-absent lottery-toast existence, visibility, deterministic placement, persistence beyond six seconds, and exact-toast click dismissal. Stage 6 is complete and accepted. Stage 7 remains historical and inactive until a new explicit user instruction starts it.
+Repository implementation evidence is current through `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`. Stage 6 remains complete and accepted. Stage 7 was explicitly started by the user, the five-profile essence modal and its pre-start stacking repair are accepted, and Stage 7 is now product canon as `CORE EXPERIENCE RECONSTRUCTION`.
+
+The next product task is not presentation expansion. It is one isolated causal conflict with first meaningful action within 30 seconds, exactly three responses, a 2-3 minute complete cycle, visible Money and Reputation only, branch-derived causal records, NPC memory, and one persisted asynchronous continuation. The player may remain in the app or leave; both paths must resolve the same continuation exactly once. The first unlocked main-world overlay teaches this promise with the accepted `Мир живёт дальше` copy.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.

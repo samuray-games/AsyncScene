@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-04-1642-JST
-EXPECTED_REVISION: 2026-08-04-1642-JST
-NOTION_MEMORY_REVISION: 2026-08-04-1642-JST
+MEMORY_REVISION: 2026-08-05-0307-JST
+EXPECTED_REVISION: 2026-08-05-0307-JST
+NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted at runtime implementation head `f8fe6555462e072f416ff5d64df8947def74a76e`. Corrected full Safari acceptance passed Boomer formality, five canonical vote prompts, fresh/returning start state, first-entry state, and delta-toast behavior. Final hash-gated Safari acceptance verified live `docs/ui/ui-menu.js` Git blob SHA-1 `73cd833d3950b5356300bc3d09c1c8c5c8ef5e87`, then passed anchor-present and anchor-absent lottery-toast existence, visibility, deterministic placement, persistence beyond six seconds, and exact-toast click dismissal. Stage 7 remains historical and inactive. The exact next action is `STOP_STAGE6_AND_WAIT_FOR_EXPLICIT_USER_INSTRUCTION_BEFORE_ANY_STAGE7_WORK`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7 was explicitly started by the user and is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 is complete and accepted through PR #277 merge `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3` and PR #278 merge `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`. The active documentation-maintenance branch is `chatgpt/stage7-memory-sync-20260805`. The exact next product action is `FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -28,12 +28,12 @@ Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мос
 
 1. Fetch the canonical Notion page `ASYNCHRONIA - PROJECT MEMORY` during the current response.
 2. Report its exact top-level `MEMORY_REV`.
-3. Fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` immediately afterward.
+3. Fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` immediately afterward when project execution state is needed.
 4. Verify current repository primary sources, exact remote branches, SHAs, and the active memory surfaces.
-5. Read `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, and `.ai-memory/WORKFLOWS.md`.
+5. Read `AGENTS.override.md`, `AGENTS.md`, `TASKS.md`, `PROJECT_MEMORY.md`, `.ai-memory/CURRENT.md`, `.ai-memory/CANON.md`, and `.ai-memory/WORKFLOWS.md` as required by the task.
 6. Confirm current accepted runtime implementation head and current repository policy before acting.
 7. Preserve closed historical security, calibration, and Stage 6 task chains unless a new explicit user instruction reopens them.
-8. Do not start Stage 7 from a historical draft or inferred next-step assumption.
+8. Do not infer stage activation from a historical draft. For Stage 7, the required explicit user authorization has been received and is recorded in live Notion and repository memory.
 
 Canonical Notion page ID: `3a0815ae-752f-8139-945e-e38dfefbb111`.
 Active handoff page ID: `3b1815ae-752f-811a-8b90-f6c43d13611c`.
@@ -50,19 +50,32 @@ After every accepted remote state change:
 4. Update `CURRENT.md` with the compact live state.
 5. Update `PROJECT_MEMORY.md` as the compact index and pointer file.
 6. Update `DECISIONS.md`, `CANON.md`, or `WORKFLOWS.md` only when a durable rule changed.
-7. Update `TASKS.md` when the active work state changes and the exact task scope permits it.
+7. Update `TASKS.md` when the active work state changes and the exact task scope and editing surface permit it.
 8. Append completed cycle history to `.ai-memory/archive/` only after acceptance and integration.
 9. Re-read every written target and verify revision, branches, SHAs, status, and next action.
 
 ## Work versus Codex routing workflow
 
-1. Read the active task-local `STATE.md` before invoking any plugin skill.
+1. Read the active task-local `STATE.md` before invoking any plugin skill when one exists.
 2. If the active phase is documentation-only maintenance, do not invoke model-selector, do not pause for model selection, and do not request or accept same-thread `CONTINUE`.
 3. Apply Codex model preflight only to an actual Codex implementation lane or numbered bridge command whose current authority explicitly requires it.
-4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local work phase.
+4. Generic Codex rules found in `AGENTS.md` do not override a more specific task-local Work phase.
 5. If the repository reports a remote branch head or absence, fresh-fetch the remote before treating it as evidence.
 6. A documentation-only response that asks the user for `CONTINUE` is `WORK_ROLE_CONFUSION` and must be rejected without sending `CONTINUE`.
 7. Respect explicit user quota constraints. Do not invoke Work or Codex for mechanical documentation synchronization when direct safe tools are available.
+
+## Stage 7 execution workflow
+
+1. Enforce the product freeze until observed user evidence proves the causal core loop.
+2. Finish repository-memory synchronization before treating stale `STAGE_7: HISTORICAL_NON_ACTIVE_DRAFT` text as repaired on `main`.
+3. Freeze one atomic Stage 7.1 runtime scope before implementation.
+4. The first conflict must begin with a personally relevant accusation and expose the first meaningful action within 30 seconds.
+5. One click on `Ответить` reveals exactly `Отрицать`, `Обвинить Кена`, and `Заплатить`.
+6. The complete first cycle targets 2-3 minutes and shows only Money and Reputation before unlock.
+7. Every branch records a causal chain, NPC memory changes, a distinct consequence, and one pending `awaiting_world_advance` continuation.
+8. `completed -> main_unlocked` remains the frozen state order. `post_conflict_freedom_card` is an overlay inside `main_unlocked`, not a ninth state.
+9. If the player remains online, the due continuation appears live. If the player leaves, the same continuation appears on return. Both paths must settle exactly once.
+10. User-owned Safari acceptance remains required for user-visible runtime completion.
 
 ## Local plugin installation and parity workflow
 
@@ -82,24 +95,26 @@ After every accepted remote state change:
 1. Never widen an active implementation scope merely to update shared memory.
 2. Never write directly to `main` when repository policy forbids it.
 3. When current task scope prevents a shared-memory write, create or update a dedicated memory-sync branch from current `main`.
-4. Record `MAIN_SHARED_MEMORY_DEFERRED_UNTIL_IMPLEMENTATION_ACCEPTANCE_AND_INTEGRATION` in active state and canonical Notion memory.
-5. Name integration of the memory-sync branch in the exact `NEXT_ACTION`.
+4. Record `MAIN_SHARED_MEMORY_DEFERRED_UNTIL_MEMORY_SYNC_INTEGRATION` in active state and canonical Notion memory.
+5. Name integration of the memory-sync branch in the exact `NEXT_ACTION` when integration is still pending.
 6. Do not claim all repository memory is synchronized on `main` until the memory-sync branch is integrated and re-read.
 
 ## Conflict workflow
 
-1. If repository primary evidence conflicts with Notion, use the repository fact.
-2. Report the exact conflict with paths, branches, and SHAs.
-3. Update canonical Notion in the same execution when authorized; otherwise state synchronization deferred.
-4. If repository-memory integration is blocked by scope or branch policy, publish a dedicated memory-sync branch and record the deferral.
-5. Do not overwrite accepted bridge history or runtime facts.
+1. If repository primary implementation evidence conflicts with Notion, use the repository fact.
+2. If tracked repository memory conflicts with newer accepted implementation evidence and live Notion, report the exact stale paths and repair them on a dedicated memory-sync branch.
+3. Report the exact conflict with paths, branches, and SHAs.
+4. Update canonical Notion in the same execution when authorized; otherwise state synchronization deferred.
+5. If repository-memory integration is blocked by scope or branch policy, publish a dedicated memory-sync branch and record the deferral.
+6. Do not overwrite accepted bridge history or runtime facts.
 
 ## Stage transition workflow
 
 1. Closing an accepted stage does not authorize the next stage.
 2. Historical drafts are not active tasks.
-3. Stage 7 may begin only after a new explicit user instruction naming or clearly authorizing Stage 7 work.
-4. Until then, do not create Stage 7 plans, prompts, branches, implementation, publication, or acceptance work.
+3. A new stage may begin only after a new explicit user instruction naming or clearly authorizing that work.
+4. Stage 7 satisfied this gate through explicit user authorization and is now active. Do not revert it to historical or inactive status from older snapshots.
+5. Future stage transitions still require their own explicit authorization.
 
 ## Reporting workflow
 
@@ -119,7 +134,8 @@ A report without a concrete `NEXT_ACTION` is incomplete, regardless of how many 
 - Keep evidence limited to files actually changed.
 - Verify revision consistency across the root index and current child files.
 - Verify exact Notion `MEMORY_REV` and current remote branch heads after writes.
-- Run `git diff --check` or equivalent repository formatting validation before integration.
+- Run `git diff --check` or equivalent repository formatting validation before integration when a local checkout is available.
+- Through connector-only maintenance, use branch readback, exact file comparison, and PR changed-path verification as the equivalent evidence surface.
 - Treat any unresolved revision mismatch as fail-closed until the root index is updated.
 
 ## Work journaling workflow
@@ -158,3 +174,5 @@ When the user writes exactly `лог`, ChatGPT must:
 10. Only after analysis completes, add one new `<!-- AI_FORENSICS_ANALYSIS_CURSOR_V1 -->` comment containing analyzed-through Issue comment id or time, package commits, verdict, and analysis timestamp.
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
+
+NEXT_ACTION: FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES
