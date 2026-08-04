@@ -1,0 +1,54 @@
+{
+  "baseline": {
+    "branch": "main",
+    "sha": "e54390fe6164f601caeaf2819e2ea56ed25c8eb0"
+  },
+  "changedPaths": [
+    "PROJECT_MEMORY.md",
+    ".ai-memory/CURRENT.md",
+    ".ai-memory/CANON.md",
+    ".ai-memory/WORKFLOWS.md"
+  ],
+  "commits": [
+    {
+      "path": "PROJECT_MEMORY.md",
+      "sha": "59d7a1f2464b681094da4ecaf954e7f52475cb66"
+    },
+    {
+      "path": ".ai-memory/CURRENT.md",
+      "sha": "04bc16028c8f3230462ed3c55e8fdd58ac27d3ad"
+    },
+    {
+      "path": ".ai-memory/CANON.md",
+      "sha": "655bea82213745045e731dd25123959eb4933b62"
+    },
+    {
+      "path": ".ai-memory/WORKFLOWS.md",
+      "sha": "1bb73651af6c7ac02591eced1975f376e74d4eab"
+    }
+  ],
+  "mainReadback": {
+    "repoMemoryRev": "2026-08-05-0307-JST",
+    "sha": "5f6cb94713abecf3a3dc8d3abc38b5c7a1927e2c"
+  },
+  "memorySyncBranch": {
+    "head": "1bb73651af6c7ac02591eced1975f376e74d4eab",
+    "name": "chatgpt/stage7-memory-sync-20260805"
+  },
+  "pullRequest": {
+    "base": "e54390fe6164f601caeaf2819e2ea56ed25c8eb0",
+    "head": "1bb73651af6c7ac02591eced1975f376e74d4eab",
+    "mergeSha": "5f6cb94713abecf3a3dc8d3abc38b5c7a1927e2c",
+    "number": 279,
+    "state": "merged"
+  },
+  "repository": "samuray-games/AsyncScene",
+  "runtimeChanged": false,
+  "schemaVersion": "AI_FORENSICS_GIT_EVIDENCE_V1",
+  "workflow": {
+    "conclusion": "success",
+    "name": "ai-forensics-evidence",
+    "runId": 30937552118,
+    "runNumber": 556
+  }
+}
