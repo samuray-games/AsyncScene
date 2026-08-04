@@ -1,3 +1,18 @@
 /* Stage 6.1 stylesheet loader. Keep imports first. */
 @import url("style-base.css?v=stage6_1_generational_color_themes_20260804a");
 @import url("ui-profile-themes.css?v=stage6_1_generational_color_themes_20260804a");
+
+/* Last-mile overrides for legacy hardcoded blue states. */
+body[data-ui-profile] .mention-item.active,
+body[data-ui-profile] .dmLine.focusFlash{
+  background:var(--profile-accent-soft);
+}
+
+body[data-ui-profile] .dmLine.focusFlash{
+  outline:1px solid var(--profile-accent-border);
+}
+
+body[data-ui-profile] .chatResizeHandle:focus-visible{
+  outline:2px solid var(--profile-focus);
+  outline-offset:-3px;
+}

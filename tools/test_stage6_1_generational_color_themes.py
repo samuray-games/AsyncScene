@@ -38,6 +38,11 @@ EXPECTED_IMPORTS = (
     '@import url("style-base.css?v=stage6_1_generational_color_themes_20260804a");',
     '@import url("ui-profile-themes.css?v=stage6_1_generational_color_themes_20260804a");',
 )
+REQUIRED_LOADER_RULES = (
+    "body[data-ui-profile] .mention-item.active",
+    "body[data-ui-profile] .dmLine.focusFlash",
+    "body[data-ui-profile] .chatResizeHandle:focus-visible",
+)
 XCODE_RESOURCES = {
     "style-base.css": ("A61100012F00000100000001", "A61100022F00000100000001"),
     "ui-profile-themes.css": ("A61100032F00000100000001", "A61100042F00000100000001"),
@@ -107,6 +112,8 @@ def main() -> None:
     imports = tuple(line.strip() for line in loader.splitlines() if line.strip().startswith("@import"))
     assert imports == EXPECTED_IMPORTS, f"unexpected loader imports: {imports!r}"
     assert loader.index(EXPECTED_IMPORTS[0]) < loader.index(EXPECTED_IMPORTS[1]), "base must load before themes"
+    missing_loader_rules = [rule for rule in REQUIRED_LOADER_RULES if rule not in loader]
+    assert not missing_loader_rules, f"missing legacy accent overrides: {missing_loader_rules}"
 
     base = read(source_base)
     assert ":root{" in base, "preserved base stylesheet is missing its root token block"
