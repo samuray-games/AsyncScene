@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A61100022F00000100000001 /* style-base.css in Resources */ = {isa = PBXBuildFile; fileRef = A61100012F00000100000001 /* style-base.css */; };
+		A61100042F00000100000001 /* ui-profile-themes.css in Resources */ = {isa = PBXBuildFile; fileRef = A61100032F00000100000001 /* ui-profile-themes.css */; };
 		CEB35A7A2EEE869600E9F026 /* data.js in Resources */ = {isa = PBXBuildFile; fileRef = CEB35A792EEE869600E9F026 /* data.js */; };
 		CEB35A7C2EEE86B600E9F026 /* conflict-old.js in Resources */ = {isa = PBXBuildFile; fileRef = CEB35A7B2EEE86B600E9F026 /* conflict-old.js */; };
 		CEB35A7E2EEE86D200E9F026 /* ui-old.js in Resources */ = {isa = PBXBuildFile; fileRef = CEB35A7D2EEE86D200E9F026 /* ui-old.js */; };
@@ -19,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A61100012F00000100000001 /* style-base.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "style-base.css"; sourceTree = "<group>"; };
+		A61100032F00000100000001 /* ui-profile-themes.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "ui-profile-themes.css"; sourceTree = "<group>"; };
 		CEB35A792EEE869600E9F026 /* data.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = data.js; sourceTree = "<group>"; };
 		CEB35A7B2EEE86B600E9F026 /* conflict-old.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "conflict-old.js"; sourceTree = "<group>"; };
 		CEB35A7D2EEE86D200E9F026 /* ui-old.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "ui-old.js"; sourceTree = "<group>"; };
@@ -85,6 +89,8 @@
 				CEB35A872EEF1BD700E9F026 /* events.js */,
 				CEB35A852EEF1B3200E9F026 /* state.js */,
 				CEB35A832EEF1B0F00E9F026 /* util.js */,
+				A61100032F00000100000001 /* ui-profile-themes.css */,
+				A61100012F00000100000001 /* style-base.css */,
 				CEB35A812EEF093700E9F026 /* style.css */,
 				CEB35A7F2EEE912400E9F026 /* npcs.js */,
 				CEB35A7D2EEE86D200E9F026 /* ui-old.js */,
@@ -167,6 +173,8 @@
 				CEB35A7E2EEE86D200E9F026 /* ui-old.js in Resources */,
 				CEB35A7A2EEE869600E9F026 /* data.js in Resources */,
 				CEB35A842EEF1B0F00E9F026 /* util.js in Resources */,
+				A61100042F00000100000001 /* ui-profile-themes.css in Resources */,
+				A61100022F00000100000001 /* style-base.css in Resources */,
 				CEB35A822EEF093700E9F026 /* style.css in Resources */,
 				CEB35A882EEF1BD700E9F026 /* events.js in Resources */,
 				CEB35A802EEE912400E9F026 /* npcs.js in Resources */,

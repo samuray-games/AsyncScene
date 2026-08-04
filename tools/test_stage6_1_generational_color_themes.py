@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "AsyncScene" / "Web"
 DEPLOYED = ROOT / "docs"
+PROJECT = ROOT / "AsyncScene" / "AsyncScene.xcodeproj" / "project.pbxproj"
 PROFILES = ("boomer", "genX", "millennial", "zoomer", "alpha")
 REQUIRED_VARS = (
     "--bg",
@@ -36,6 +37,10 @@ EXPECTED_IMPORTS = (
     '@import url("style-base.css?v=stage6_1_generational_color_themes_20260804a");',
     '@import url("ui-profile-themes.css?v=stage6_1_generational_color_themes_20260804a");',
 )
+XCODE_RESOURCES = {
+    "style-base.css": ("A61100012F00000100000001", "A61100022F00000100000001"),
+    "ui-profile-themes.css": ("A61100032F00000100000001", "A61100042F00000100000001"),
+}
 
 
 def read(path: Path) -> str:
@@ -58,6 +63,13 @@ def declarations(block: str) -> dict[str, str]:
         key: value.strip()
         for key, value in re.findall(r"(--[A-Za-z0-9_-]+)\s*:\s*([^;]+);", block)
     }
+
+
+def pbx_section(project: str, name: str) -> str:
+    start = f"/* Begin {name} section */"
+    end = f"/* End {name} section */"
+    assert project.count(start) == 1 and project.count(end) == 1, f"invalid {name} section markers"
+    return project.split(start, 1)[1].split(end, 1)[0]
 
 
 def main() -> None:
@@ -124,6 +136,19 @@ def main() -> None:
     wiring = 'document.body.dataset.uiProfile = activeProfile()'
     assert wiring in source_profile_js, "body data-ui-profile synchronization is missing"
 
+    project = read(PROJECT)
+    file_refs = pbx_section(project, "PBXFileReference")
+    build_files = pbx_section(project, "PBXBuildFile")
+    groups = pbx_section(project, "PBXGroup")
+    resources = pbx_section(project, "PBXResourcesBuildPhase")
+    for filename, (file_ref, build_ref) in XCODE_RESOURCES.items():
+        assert file_refs.count(f"{file_ref} /* {filename} */") == 1, f"{filename} file reference missing or duplicated"
+        assert f'path = "{filename}";' in file_refs, f"{filename} path missing"
+        assert build_files.count(f"{build_ref} /* {filename} in Resources */") == 1, f"{filename} build file missing or duplicated"
+        assert f"fileRef = {file_ref} /* {filename} */" in build_files, f"{filename} build file points elsewhere"
+        assert groups.count(f"{file_ref} /* {filename} */") == 1, f"{filename} Web group membership missing or duplicated"
+        assert resources.count(f"{build_ref} /* {filename} in Resources */") == 1, f"{filename} Resources phase membership missing or duplicated"
+
     print(
         "STAGE6_1_GENERATIONAL_COLOR_THEMES_STATIC_PASS",
         {
@@ -131,6 +156,7 @@ def main() -> None:
             "loaderSha256": digest(source_loader),
             "baseSha256": digest(source_base),
             "themeSha256": digest(source_theme),
+            "xcodeResources": list(XCODE_RESOURCES),
             "signatures": signatures,
         },
     )
