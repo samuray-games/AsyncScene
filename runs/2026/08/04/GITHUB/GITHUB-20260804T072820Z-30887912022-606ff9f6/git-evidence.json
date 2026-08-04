@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "6e692147ab66b5b8e46e95d3f11d1e8bc450b0ae\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6e692147ab66b5b8e46e95d3f11d1e8bc450b0ae\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "6e692147 (HEAD, pull/273/merge) Merge 781fae8c29a218475a2f541c621ad22a6f5acbe4 into 2b5fbe4f4a250dfc50af732490a672b0c33a9cb6\n781fae8c (origin/codex/repair-stage6-lottery-toast-anchorless-click-only-20260804) fix: make lottery toast anchor-optional\n2b5fbe4f fix: repair Stage 6 runtime acceptance paths (#272)\n46337d43 fix: repair stage 6 runtime acceptance paths\nde1b3523 Fix nominative target reference classification (#271)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6e692147ab66b5b8e46e95d3f11d1e8bc450b0ae\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T07:28:20Z",
+      "stderr": "",
+      "stdout": "f8fe6555462e072f416ff5d64df8947def74a76e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6e692147ab66b5b8e46e95d3f11d1e8bc450b0ae",
+  "observedAtUtc": "2026-08-04T07:28:20Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
