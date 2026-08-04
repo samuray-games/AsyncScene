@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-essence-prestart-overlay-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-essence-prestart-overlay-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "# branch.oid bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3\n# branch.head chatgpt/stage7-essence-prestart-overlay-20260805\n# branch.upstream origin/chatgpt/stage7-essence-prestart-overlay-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "bf54de85 (HEAD -> chatgpt/stage7-essence-prestart-overlay-20260805, origin/main, origin/chatgpt/stage7-essence-prestart-overlay-20260805) feat: add Stage 7 profile essence modal (#277)\nea609d44 (origin/chatgpt/stage7-essence-modal-20260805) test: cover Stage 7 essence modal\n9090d8cc feat: mirror Stage 7 essence modal wiring\n99002452 feat: wire Stage 7 essence modal\ne74a68e7 style: complete Stage 7 essence CSS mirror\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3\nbranch refs/heads/chatgpt/stage7-essence-prestart-overlay-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-04T16:58:47Z",
+      "stderr": "",
+      "stdout": "bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3",
+  "observedAtUtc": "2026-08-04T16:58:47Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
