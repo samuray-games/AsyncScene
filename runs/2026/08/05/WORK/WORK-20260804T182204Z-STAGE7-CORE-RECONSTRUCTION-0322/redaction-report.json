@@ -1,0 +1,8 @@
+{
+  "notes": "No credentials, connector tokens, email addresses, local paths containing user secrets, or private chain-of-thought content included.",
+  "personalDataIncluded": "none beyond project identifiers and public repository metadata",
+  "schemaVersion": "AI_FORENSICS_REDACTION_REPORT_V1",
+  "secretsDetected": 0,
+  "status": "SANITIZED",
+  "tokensDetected": 0
+}
