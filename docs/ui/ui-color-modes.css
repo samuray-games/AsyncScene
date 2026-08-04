@@ -1,0 +1,536 @@
+/* Stage 6.2 dual color modes.
+   Presentation only. The accepted Stage 6.1 profile layer remains the fallback.
+   This layer resolves five profiles across explicit light/dark root modes.
+   Semantic reward, warning, danger and disabled colors remain owned by style-base.css. */
+html[data-ui-color-mode="light"] body[data-ui-profile="boomer"]{
+  color-scheme:light;
+  --bg:#f1e6d0;
+  --panel:#fff9ec;
+  --panel2:#eadcc4;
+  --panelSolid:#fff9ec;
+  --line:rgba(72,51,34,.22);
+  --text:#28231e;
+  --muted:rgba(40,35,30,.70);
+  --muted2:rgba(40,35,30,.52);
+  --shadow:0 18px 42px rgba(73,45,24,.18);
+  --r:14px;
+  --surface:#fff9ec;
+  --surfaceSoft:#eadcc4;
+  --surfaceHover:#e3d2b4;
+  --panelGradTop:#fff9ec;
+  --panelGradTopAlt:#fff7e7;
+  --panelGradBottom:#eadcc4;
+  --cardBg:#f7ecd8;
+  --chipNeutralBg:rgba(122,48,48,.06);
+  --chipNeutralBorder:rgba(122,48,48,.22);
+  --chipHiddenBg:rgba(35,62,92,.09);
+  --chipHiddenBorder:rgba(35,62,92,.28);
+  --hiddenText:#28231e;
+  --kcol:rgba(35,46,58,.92);
+  --kbd:rgba(20,28,38,.58);
+  --sys:rgba(122,48,48,.14);
+  --sysText:#512020;
+  --mention-other-color:#235c4c;
+  --profile-accent:#7a3030;
+  --profile-accent-soft:rgba(122,48,48,.14);
+  --profile-accent-border:rgba(122,48,48,.48);
+  --profile-accent-text:#fff9ec;
+  --profile-focus:rgba(35,62,92,.72);
+  --profile-glow-1:rgba(167,131,79,.18);
+  --profile-glow-2:rgba(35,62,92,.10);
+  --profile-glow-3:rgba(122,48,48,.08);
+  --profile-screen-mask:rgba(40,30,22,.28);
+  --profile-header-gradient:linear-gradient(180deg, #fff9ec, #ecddc4);
+  --profile-control-radius:8px;
+  --profile-card-radius:12px;
+  --profile-start-radius:16px;
+  --profile-accent-shadow:0 0 0 1px rgba(167,131,79,.42);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="boomer"]{
+  color-scheme:dark;
+  --bg:#17120f;
+  --panel:#261d18;
+  --panel2:#1d1612;
+  --panelSolid:#261d18;
+  --line:rgba(213,180,128,.22);
+  --text:#f2e8d8;
+  --muted:rgba(242,232,216,.70);
+  --muted2:rgba(242,232,216,.48);
+  --shadow:0 20px 52px rgba(0,0,0,.58);
+  --r:14px;
+  --surface:#2b211b;
+  --surfaceSoft:#201813;
+  --surfaceHover:#34271f;
+  --panelGradTop:#2b211b;
+  --panelGradTopAlt:#281f19;
+  --panelGradBottom:#1b1410;
+  --cardBg:#211914;
+  --chipNeutralBg:rgba(201,111,103,.08);
+  --chipNeutralBorder:rgba(201,111,103,.28);
+  --chipHiddenBg:rgba(91,132,171,.10);
+  --chipHiddenBorder:rgba(91,132,171,.31);
+  --hiddenText:#f2e8d8;
+  --kcol:rgba(8,7,6,.95);
+  --kbd:rgba(213,180,128,.31);
+  --sys:rgba(201,111,103,.17);
+  --sysText:#ffe9e5;
+  --mention-other-color:#86c9b2;
+  --profile-accent:#c96f67;
+  --profile-accent-soft:rgba(201,111,103,.18);
+  --profile-accent-border:rgba(201,111,103,.56);
+  --profile-accent-text:#1b0d0c;
+  --profile-focus:rgba(91,132,171,.82);
+  --profile-glow-1:rgba(213,180,128,.15);
+  --profile-glow-2:rgba(91,132,171,.12);
+  --profile-glow-3:rgba(201,111,103,.10);
+  --profile-screen-mask:rgba(4,3,2,.66);
+  --profile-header-gradient:linear-gradient(180deg, #30241d, #1e1712);
+  --profile-control-radius:8px;
+  --profile-card-radius:12px;
+  --profile-start-radius:16px;
+  --profile-accent-shadow:0 0 0 1px rgba(213,180,128,.34);
+}
+
+html[data-ui-color-mode="light"] body[data-ui-profile="genX"]{
+  color-scheme:light;
+  --bg:#e7e3d8;
+  --panel:#f7f3e9;
+  --panel2:#d9d6cd;
+  --panelSolid:#f7f3e9;
+  --line:rgba(34,39,44,.22);
+  --text:#22272c;
+  --muted:rgba(34,39,44,.68);
+  --muted2:rgba(34,39,44,.48);
+  --shadow:0 18px 44px rgba(50,48,42,.19);
+  --r:10px;
+  --surface:#f7f3e9;
+  --surfaceSoft:#ddd9cf;
+  --surfaceHover:#d2cec4;
+  --panelGradTop:#faf6ed;
+  --panelGradTopAlt:#f3efe6;
+  --panelGradBottom:#d9d6cd;
+  --cardBg:#e2dfd6;
+  --chipNeutralBg:rgba(155,61,40,.07);
+  --chipNeutralBorder:rgba(155,61,40,.25);
+  --chipHiddenBg:rgba(47,119,117,.08);
+  --chipHiddenBorder:rgba(47,119,117,.27);
+  --hiddenText:#22272c;
+  --kcol:rgba(34,39,44,.88);
+  --kbd:rgba(34,39,44,.29);
+  --sys:rgba(47,119,117,.15);
+  --sysText:#174f4d;
+  --mention-other-color:#765817;
+  --profile-accent:#9b3d28;
+  --profile-accent-soft:rgba(155,61,40,.15);
+  --profile-accent-border:rgba(155,61,40,.48);
+  --profile-accent-text:#fffaf1;
+  --profile-focus:rgba(47,119,117,.78);
+  --profile-glow-1:rgba(155,61,40,.12);
+  --profile-glow-2:rgba(47,119,117,.10);
+  --profile-glow-3:rgba(128,107,62,.07);
+  --profile-screen-mask:rgba(34,39,44,.25);
+  --profile-header-gradient:linear-gradient(180deg, #faf6ed, #ddd9cf);
+  --profile-control-radius:7px;
+  --profile-card-radius:8px;
+  --profile-start-radius:10px;
+  --profile-accent-shadow:0 0 0 1px rgba(47,119,117,.28);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="genX"]{
+  color-scheme:dark;
+  --bg:#171a1f;
+  --panel:#262b32;
+  --panel2:#1d2127;
+  --panelSolid:#262b32;
+  --line:rgba(201,185,143,.22);
+  --text:#ece8df;
+  --muted:rgba(236,232,223,.68);
+  --muted2:rgba(236,232,223,.46);
+  --shadow:0 18px 46px rgba(0,0,0,.52);
+  --r:10px;
+  --surface:#2b3037;
+  --surfaceSoft:#20252b;
+  --surfaceHover:#343a42;
+  --panelGradTop:#2a3037;
+  --panelGradTopAlt:#272d34;
+  --panelGradBottom:#1c2026;
+  --cardBg:#20252b;
+  --chipNeutralBg:rgba(173,71,45,.07);
+  --chipNeutralBorder:rgba(173,71,45,.25);
+  --chipHiddenBg:rgba(62,146,144,.09);
+  --chipHiddenBorder:rgba(62,146,144,.30);
+  --hiddenText:#ece8df;
+  --kcol:rgba(12,14,18,.94);
+  --kbd:rgba(201,185,143,.30);
+  --sys:rgba(62,146,144,.18);
+  --sysText:#d8fffb;
+  --mention-other-color:#d5b76d;
+  --profile-accent:#ad472d;
+  --profile-accent-soft:rgba(173,71,45,.18);
+  --profile-accent-border:rgba(173,71,45,.52);
+  --profile-accent-text:#fff8ee;
+  --profile-focus:rgba(62,146,144,.78);
+  --profile-glow-1:rgba(173,71,45,.15);
+  --profile-glow-2:rgba(62,146,144,.13);
+  --profile-glow-3:rgba(201,185,143,.06);
+  --profile-screen-mask:rgba(5,7,9,.62);
+  --profile-header-gradient:linear-gradient(180deg, #30363e, #20242a);
+  --profile-control-radius:7px;
+  --profile-card-radius:8px;
+  --profile-start-radius:10px;
+  --profile-accent-shadow:0 0 0 1px rgba(62,146,144,.32);
+}
+
+html[data-ui-color-mode="light"] body[data-ui-profile="millennial"]{
+  color-scheme:light;
+  --bg:#f6f3f0;
+  --panel:#ffffff;
+  --panel2:#eeeaf2;
+  --panelSolid:#ffffff;
+  --line:rgba(62,53,84,.15);
+  --text:#292734;
+  --muted:rgba(41,39,52,.67);
+  --muted2:rgba(41,39,52,.46);
+  --shadow:0 22px 58px rgba(57,45,89,.16);
+  --r:22px;
+  --surface:#ffffff;
+  --surfaceSoft:#eeeaf2;
+  --surfaceHover:#e7e1ed;
+  --panelGradTop:#ffffff;
+  --panelGradTopAlt:#ffffff;
+  --panelGradBottom:#f0ebf3;
+  --cardBg:#f4f0f6;
+  --chipNeutralBg:rgba(100,95,216,.06);
+  --chipNeutralBorder:rgba(100,95,216,.19);
+  --chipHiddenBg:rgba(42,157,145,.08);
+  --chipHiddenBorder:rgba(42,157,145,.24);
+  --hiddenText:#292734;
+  --kcol:rgba(35,33,44,.90);
+  --kbd:rgba(35,33,44,.30);
+  --sys:rgba(100,95,216,.14);
+  --sysText:#3f3a9c;
+  --mention-other-color:#14786f;
+  --profile-accent:#645fd8;
+  --profile-accent-soft:rgba(100,95,216,.16);
+  --profile-accent-border:rgba(100,95,216,.43);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(100,95,216,.72);
+  --profile-glow-1:rgba(100,95,216,.18);
+  --profile-glow-2:rgba(42,157,145,.13);
+  --profile-glow-3:rgba(217,154,170,.13);
+  --profile-screen-mask:rgba(31,25,49,.28);
+  --profile-header-gradient:linear-gradient(180deg, #ffffff, #f0ebf3);
+  --profile-control-radius:14px;
+  --profile-card-radius:18px;
+  --profile-start-radius:26px;
+  --profile-accent-shadow:0 0 0 2px rgba(100,95,216,.12);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="millennial"]{
+  color-scheme:dark;
+  --bg:#17131d;
+  --panel:#25202d;
+  --panel2:#1d1925;
+  --panelSolid:#25202d;
+  --line:rgba(192,184,224,.18);
+  --text:#f5f1f7;
+  --muted:rgba(245,241,247,.68);
+  --muted2:rgba(245,241,247,.46);
+  --shadow:0 24px 64px rgba(0,0,0,.58);
+  --r:22px;
+  --surface:#2b2534;
+  --surfaceSoft:#201b28;
+  --surfaceHover:#342c3e;
+  --panelGradTop:#2b2534;
+  --panelGradTopAlt:#28222f;
+  --panelGradBottom:#1b1722;
+  --cardBg:#211c29;
+  --chipNeutralBg:rgba(138,131,244,.08);
+  --chipNeutralBorder:rgba(138,131,244,.27);
+  --chipHiddenBg:rgba(68,190,177,.09);
+  --chipHiddenBorder:rgba(68,190,177,.29);
+  --hiddenText:#f5f1f7;
+  --kcol:rgba(8,6,11,.95);
+  --kbd:rgba(192,184,224,.27);
+  --sys:rgba(138,131,244,.18);
+  --sysText:#eeeaff;
+  --mention-other-color:#82d8cd;
+  --profile-accent:#8a83f4;
+  --profile-accent-soft:rgba(138,131,244,.19);
+  --profile-accent-border:rgba(138,131,244,.55);
+  --profile-accent-text:#17131d;
+  --profile-focus:rgba(68,190,177,.82);
+  --profile-glow-1:rgba(138,131,244,.19);
+  --profile-glow-2:rgba(68,190,177,.12);
+  --profile-glow-3:rgba(220,138,166,.10);
+  --profile-screen-mask:rgba(5,3,8,.64);
+  --profile-header-gradient:linear-gradient(180deg, #302938, #1e1925);
+  --profile-control-radius:14px;
+  --profile-card-radius:18px;
+  --profile-start-radius:26px;
+  --profile-accent-shadow:0 0 0 2px rgba(138,131,244,.14);
+}
+
+html[data-ui-color-mode="light"] body[data-ui-profile="zoomer"]{
+  color-scheme:light;
+  --bg:#f4efff;
+  --panel:#ffffff;
+  --panel2:#e9e0f6;
+  --panelSolid:#ffffff;
+  --line:rgba(113,56,200,.20);
+  --text:#241a30;
+  --muted:rgba(36,26,48,.68);
+  --muted2:rgba(36,26,48,.46);
+  --shadow:0 22px 62px rgba(91,55,142,.19), 0 0 30px rgba(0,170,205,.07);
+  --r:18px;
+  --surface:#ffffff;
+  --surfaceSoft:#ede5f8;
+  --surfaceHover:#e3d7f2;
+  --panelGradTop:#ffffff;
+  --panelGradTopAlt:#fbf8ff;
+  --panelGradBottom:#e9e0f6;
+  --cardBg:#eee7f8;
+  --chipNeutralBg:rgba(113,56,200,.07);
+  --chipNeutralBorder:rgba(113,56,200,.24);
+  --chipHiddenBg:rgba(0,154,185,.08);
+  --chipHiddenBorder:rgba(0,154,185,.26);
+  --hiddenText:#241a30;
+  --kcol:rgba(25,18,35,.91);
+  --kbd:rgba(0,154,185,.29);
+  --sys:rgba(113,56,200,.14);
+  --sysText:#4f228f;
+  --mention-other-color:#4d6d00;
+  --profile-accent:#7138c8;
+  --profile-accent-soft:rgba(113,56,200,.16);
+  --profile-accent-border:rgba(113,56,200,.48);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(0,154,185,.78);
+  --profile-glow-1:rgba(113,56,200,.17);
+  --profile-glow-2:rgba(0,170,205,.11);
+  --profile-glow-3:rgba(150,190,0,.07);
+  --profile-screen-mask:rgba(36,26,48,.25);
+  --profile-header-gradient:linear-gradient(180deg, #ffffff, #ebe1f7);
+  --profile-control-radius:13px;
+  --profile-card-radius:16px;
+  --profile-start-radius:22px;
+  --profile-accent-shadow:0 0 0 2px rgba(113,56,200,.13), 0 0 18px rgba(0,170,205,.06);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="zoomer"]{
+  color-scheme:dark;
+  --bg:#0e0b16;
+  --panel:#1b1628;
+  --panel2:#130f1d;
+  --panelSolid:#1b1628;
+  --line:rgba(136,72,224,.23);
+  --text:#f7f4ff;
+  --muted:rgba(247,244,255,.68);
+  --muted2:rgba(247,244,255,.46);
+  --shadow:0 24px 72px rgba(0,0,0,.66), 0 0 34px rgba(136,72,224,.08);
+  --r:18px;
+  --surface:#211a31;
+  --surfaceSoft:#171222;
+  --surfaceHover:#2a203e;
+  --panelGradTop:#211a31;
+  --panelGradTopAlt:#1e172d;
+  --panelGradBottom:#120e1c;
+  --cardBg:#171222;
+  --chipNeutralBg:rgba(136,72,224,.08);
+  --chipNeutralBorder:rgba(136,72,224,.27);
+  --chipHiddenBg:rgba(0,213,245,.08);
+  --chipHiddenBorder:rgba(0,213,245,.28);
+  --hiddenText:#f7f4ff;
+  --kcol:rgba(5,4,9,.96);
+  --kbd:rgba(0,213,245,.28);
+  --sys:rgba(136,72,224,.19);
+  --sysText:#f3eaff;
+  --mention-other-color:#c6ff3d;
+  --profile-accent:#8848e0;
+  --profile-accent-soft:rgba(136,72,224,.20);
+  --profile-accent-border:rgba(136,72,224,.58);
+  --profile-accent-text:#ffffff;
+  --profile-focus:rgba(0,213,245,.82);
+  --profile-glow-1:rgba(136,72,224,.22);
+  --profile-glow-2:rgba(0,213,245,.13);
+  --profile-glow-3:rgba(198,255,61,.06);
+  --profile-screen-mask:rgba(5,3,10,.68);
+  --profile-header-gradient:linear-gradient(180deg, rgba(43,31,65,.98), rgba(24,17,37,.98));
+  --profile-control-radius:13px;
+  --profile-card-radius:16px;
+  --profile-start-radius:22px;
+  --profile-accent-shadow:0 0 0 2px rgba(136,72,224,.16), 0 0 22px rgba(0,213,245,.08);
+}
+
+html[data-ui-color-mode="light"] body[data-ui-profile="alpha"]{
+  color-scheme:light;
+  --bg:#eef9ff;
+  --panel:#ffffff;
+  --panel2:#e5f5fb;
+  --panelSolid:#ffffff;
+  --line:rgba(23,36,58,.14);
+  --text:#17243a;
+  --muted:rgba(23,36,58,.66);
+  --muted2:rgba(23,36,58,.44);
+  --shadow:0 24px 64px rgba(38,117,150,.16);
+  --r:28px;
+  --surface:#ffffff;
+  --surfaceSoft:#e5f5fb;
+  --surfaceHover:#d9f0f8;
+  --panelGradTop:#ffffff;
+  --panelGradTopAlt:#ffffff;
+  --panelGradBottom:#e8f7fc;
+  --cardBg:#edf9fc;
+  --chipNeutralBg:rgba(0,167,214,.06);
+  --chipNeutralBorder:rgba(0,167,214,.20);
+  --chipHiddenBg:rgba(120,104,255,.07);
+  --chipHiddenBorder:rgba(120,104,255,.23);
+  --hiddenText:#17243a;
+  --kcol:rgba(28,32,54,.92);
+  --kbd:rgba(28,32,54,.28);
+  --sys:rgba(0,167,214,.14);
+  --sysText:#07586f;
+  --mention-other-color:#bd315d;
+  --profile-accent:#00a7d6;
+  --profile-accent-soft:rgba(0,167,214,.16);
+  --profile-accent-border:rgba(0,167,214,.42);
+  --profile-accent-text:#17243a;
+  --profile-focus:rgba(120,104,255,.72);
+  --profile-glow-1:rgba(0,167,214,.17);
+  --profile-glow-2:rgba(255,100,143,.12);
+  --profile-glow-3:rgba(120,104,255,.11);
+  --profile-screen-mask:rgba(15,54,73,.23);
+  --profile-header-gradient:linear-gradient(135deg, #ffffff 0%, #e9faff 58%, #f9efff 100%);
+  --profile-control-radius:18px;
+  --profile-card-radius:24px;
+  --profile-start-radius:32px;
+  --profile-accent-shadow:0 0 0 2px rgba(0,167,214,.11);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="alpha"]{
+  color-scheme:dark;
+  --bg:#061820;
+  --panel:#0d2731;
+  --panel2:#092029;
+  --panelSolid:#0d2731;
+  --line:rgba(128,222,240,.18);
+  --text:#e9fbff;
+  --muted:rgba(233,251,255,.68);
+  --muted2:rgba(233,251,255,.46);
+  --shadow:0 26px 72px rgba(0,0,0,.62);
+  --r:28px;
+  --surface:#12313c;
+  --surfaceSoft:#0a232d;
+  --surfaceHover:#173b47;
+  --panelGradTop:#14343f;
+  --panelGradTopAlt:#10303a;
+  --panelGradBottom:#081e27;
+  --cardBg:#0b242e;
+  --chipNeutralBg:rgba(47,208,246,.08);
+  --chipNeutralBorder:rgba(47,208,246,.26);
+  --chipHiddenBg:rgba(156,139,255,.09);
+  --chipHiddenBorder:rgba(156,139,255,.29);
+  --hiddenText:#e9fbff;
+  --kcol:rgba(2,8,11,.96);
+  --kbd:rgba(128,222,240,.28);
+  --sys:rgba(47,208,246,.16);
+  --sysText:#c9f7ff;
+  --mention-other-color:#ff93b4;
+  --profile-accent:#2fd0f6;
+  --profile-accent-soft:rgba(47,208,246,.18);
+  --profile-accent-border:rgba(47,208,246,.53);
+  --profile-accent-text:#061820;
+  --profile-focus:rgba(156,139,255,.82);
+  --profile-glow-1:rgba(47,208,246,.18);
+  --profile-glow-2:rgba(255,105,150,.10);
+  --profile-glow-3:rgba(156,139,255,.11);
+  --profile-screen-mask:rgba(1,7,10,.68);
+  --profile-header-gradient:linear-gradient(135deg, #143640 0%, #0d2b35 58%, #211c3d 100%);
+  --profile-control-radius:18px;
+  --profile-card-radius:24px;
+  --profile-start-radius:32px;
+  --profile-accent-shadow:0 0 0 2px rgba(47,208,246,.13), 0 0 24px rgba(156,139,255,.07);
+}
+
+body[data-ui-profile] .uiColorModeControls{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:var(--profile-card-radius);
+  background:var(--surfaceSoft);
+}
+
+body[data-ui-profile] .uiColorModeHeader{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+
+body[data-ui-profile] .uiColorModeLabel{
+  color:var(--text);
+  font-size:13px;
+  font-weight:900;
+}
+
+body[data-ui-profile] .uiColorModeResolved{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+body[data-ui-profile] .uiColorModeChoices{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+body[data-ui-profile] .uiColorModeButton{
+  flex:1 1 92px;
+  min-width:0;
+  border-color:var(--line);
+  background:var(--surface);
+  color:var(--text);
+}
+
+body[data-ui-profile] .uiColorModeButton:hover{
+  background:var(--surfaceHover);
+}
+
+body[data-ui-profile] .uiColorModeButton.is-active,
+body[data-ui-profile] .uiColorModeButton[aria-pressed="true"]{
+  background:var(--profile-accent-soft);
+  border-color:var(--profile-accent-border);
+  color:var(--text);
+  box-shadow:var(--profile-accent-shadow);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="boomer"] .blockHeader,
+html[data-ui-color-mode="dark"] body[data-ui-profile="boomer"] .panelHeader,
+html[data-ui-color-mode="dark"] body[data-ui-profile="boomer"] .chatHeader{
+  box-shadow:inset 0 -1px 0 rgba(213,180,128,.24);
+}
+
+html[data-ui-color-mode="dark"] body[data-ui-profile="alpha"] .statChip,
+html[data-ui-color-mode="dark"] body[data-ui-profile="alpha"] .badge,
+html[data-ui-color-mode="dark"] body[data-ui-profile="alpha"] .pill{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 6px 20px rgba(47,208,246,.06);
+}
+
+@media (forced-colors:active){
+  html[data-ui-color-mode] body[data-ui-profile]{
+    --profile-accent:Highlight;
+    --profile-accent-soft:Canvas;
+    --profile-accent-border:Highlight;
+    --profile-accent-text:HighlightText;
+    --profile-focus:Highlight;
+    --profile-accent-shadow:none;
+  }
+
+  body[data-ui-profile] .uiColorModeButton.is-active,
+  body[data-ui-profile] .uiColorModeButton[aria-pressed="true"]{
+    outline:2px solid Highlight;
+  }
+}
