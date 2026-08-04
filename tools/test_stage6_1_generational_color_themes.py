@@ -72,6 +72,18 @@ def pbx_section(project: str, name: str) -> str:
     return project.split(start, 1)[1].split(end, 1)[0]
 
 
+def relative_luminance(hex_color: str) -> float:
+    assert re.fullmatch(r"#[0-9a-fA-F]{6}", hex_color), f"contrast color must be six-digit hex: {hex_color}"
+    channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def contrast_ratio(first: str, second: str) -> float:
+    high, low = sorted((relative_luminance(first), relative_luminance(second)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
 def main() -> None:
     source_loader = SOURCE / "style.css"
     deployed_loader = DEPLOYED / "style.css"
@@ -95,6 +107,7 @@ def main() -> None:
 
     css = read(source_theme)
     rows: dict[str, dict[str, str]] = {}
+    contrasts: dict[str, dict[str, float]] = {}
     for profile in PROFILES:
         block = profile_block(css, profile)
         row = declarations(block)
@@ -102,7 +115,12 @@ def main() -> None:
         assert not missing, f"{profile} missing variables: {missing}"
         forbidden = [name for name in FORBIDDEN_SEMANTIC_VARS if name in row]
         assert not forbidden, f"{profile} overrides semantic variables: {forbidden}"
+        main_contrast = contrast_ratio(row["--text"], row["--panel"])
+        primary_contrast = contrast_ratio(row["--profile-accent-text"], row["--profile-accent"])
+        assert main_contrast >= 7.0, f"{profile} main text contrast below 7:1: {main_contrast:.2f}"
+        assert primary_contrast >= 4.5, f"{profile} primary action contrast below 4.5:1: {primary_contrast:.2f}"
         rows[profile] = row
+        contrasts[profile] = {"main": round(main_contrast, 2), "primary": round(primary_contrast, 2)}
 
     signatures = {
         profile: (
@@ -157,6 +175,7 @@ def main() -> None:
             "baseSha256": digest(source_base),
             "themeSha256": digest(source_theme),
             "xcodeResources": list(XCODE_RESOURCES),
+            "contrasts": contrasts,
             "signatures": signatures,
         },
     )

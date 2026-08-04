@@ -89,8 +89,8 @@ body[data-ui-profile="genX"]{
   --panelGradTopAlt:#272d34;
   --panelGradBottom:#1c2026;
   --cardBg:#20252b;
-  --chipNeutralBg:rgba(196,91,60,.07);
-  --chipNeutralBorder:rgba(196,91,60,.25);
+  --chipNeutralBg:rgba(173,71,45,.07);
+  --chipNeutralBorder:rgba(173,71,45,.25);
   --chipHiddenBg:rgba(62,146,144,.09);
   --chipHiddenBorder:rgba(62,146,144,.30);
   --hiddenText:#ece8df;
@@ -99,12 +99,12 @@ body[data-ui-profile="genX"]{
   --sys:rgba(62,146,144,.18);
   --sysText:#d8fffb;
   --mention-other-color:#d5b76d;
-  --profile-accent:#c45b3c;
-  --profile-accent-soft:rgba(196,91,60,.18);
-  --profile-accent-border:rgba(196,91,60,.52);
+  --profile-accent:#ad472d;
+  --profile-accent-soft:rgba(173,71,45,.18);
+  --profile-accent-border:rgba(173,71,45,.52);
   --profile-accent-text:#fff8ee;
   --profile-focus:rgba(62,146,144,.78);
-  --profile-glow-1:rgba(196,91,60,.15);
+  --profile-glow-1:rgba(173,71,45,.15);
   --profile-glow-2:rgba(62,146,144,.13);
   --profile-glow-3:rgba(201,185,143,.06);
   --profile-screen-mask:rgba(5,7,9,.62);
@@ -166,11 +166,11 @@ body[data-ui-profile="zoomer"]{
   --panel:#1b1628;
   --panel2:#130f1d;
   --panelSolid:#1b1628;
-  --line:rgba(153,92,255,.23);
+  --line:rgba(136,72,224,.23);
   --text:#f7f4ff;
   --muted:rgba(247,244,255,.68);
   --muted2:rgba(247,244,255,.46);
-  --shadow:0 24px 72px rgba(0,0,0,.66), 0 0 34px rgba(153,92,255,.08);
+  --shadow:0 24px 72px rgba(0,0,0,.66), 0 0 34px rgba(136,72,224,.08);
   --r:18px;
   --surface:#211a31;
   --surfaceSoft:#171222;
@@ -179,22 +179,22 @@ body[data-ui-profile="zoomer"]{
   --panelGradTopAlt:#1e172d;
   --panelGradBottom:#120e1c;
   --cardBg:#171222;
-  --chipNeutralBg:rgba(153,92,255,.08);
-  --chipNeutralBorder:rgba(153,92,255,.27);
+  --chipNeutralBg:rgba(136,72,224,.08);
+  --chipNeutralBorder:rgba(136,72,224,.27);
   --chipHiddenBg:rgba(0,213,245,.08);
   --chipHiddenBorder:rgba(0,213,245,.28);
   --hiddenText:#f7f4ff;
   --kcol:rgba(5,4,9,.96);
   --kbd:rgba(0,213,245,.28);
-  --sys:rgba(153,92,255,.19);
+  --sys:rgba(136,72,224,.19);
   --sysText:#f3eaff;
   --mention-other-color:#c6ff3d;
-  --profile-accent:#995cff;
-  --profile-accent-soft:rgba(153,92,255,.20);
-  --profile-accent-border:rgba(153,92,255,.58);
+  --profile-accent:#8848e0;
+  --profile-accent-soft:rgba(136,72,224,.20);
+  --profile-accent-border:rgba(136,72,224,.58);
   --profile-accent-text:#ffffff;
   --profile-focus:rgba(0,213,245,.82);
-  --profile-glow-1:rgba(153,92,255,.22);
+  --profile-glow-1:rgba(136,72,224,.22);
   --profile-glow-2:rgba(0,213,245,.13);
   --profile-glow-3:rgba(198,255,61,.06);
   --profile-screen-mask:rgba(5,3,10,.68);
@@ -202,7 +202,7 @@ body[data-ui-profile="zoomer"]{
   --profile-control-radius:13px;
   --profile-card-radius:16px;
   --profile-start-radius:22px;
-  --profile-accent-shadow:0 0 0 2px rgba(153,92,255,.16), 0 0 22px rgba(0,213,245,.08);
+  --profile-accent-shadow:0 0 0 2px rgba(136,72,224,.16), 0 0 22px rgba(0,213,245,.08);
 }
 
 body[data-ui-profile="alpha"]{
@@ -237,7 +237,7 @@ body[data-ui-profile="alpha"]{
   --profile-accent:#00a7d6;
   --profile-accent-soft:rgba(0,167,214,.16);
   --profile-accent-border:rgba(0,167,214,.42);
-  --profile-accent-text:#ffffff;
+  --profile-accent-text:#17243a;
   --profile-focus:rgba(120,104,255,.72);
   --profile-glow-1:rgba(0,167,214,.17);
   --profile-glow-2:rgba(255,100,143,.12);
