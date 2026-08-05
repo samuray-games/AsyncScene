@@ -41,7 +41,7 @@ jobs:
                   output.append(line)
                   continue
               if inside:
-                  output.append('          ' + line)
+                  output.append(('          ' + line) if line else '')
                   repaired += 1
                   if line.strip() == "'''":
                       inside = False
