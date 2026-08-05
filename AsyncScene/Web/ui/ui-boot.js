@@ -547,18 +547,20 @@ window.Game = window.Game || {};
   }
 
   function resetStartScreenInputs() {
+    const resetBirthYear = typeof DEFAULT_MILLENNIAL_BIRTH_YEAR === "string"
+      ? DEFAULT_MILLENNIAL_BIRTH_YEAR
+      : "00";
     const picker = document.getElementById("startBirthYearPicker");
     const digit0 = document.getElementById("startBirthYearDigit0");
     const digit1 = document.getElementById("startBirthYearDigit1");
     const secondary = document.getElementById("startBirthYearFeelingInput");
-    if (digit0) digit0.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[0];
-    if (digit1) digit1.textContent = DEFAULT_MILLENNIAL_BIRTH_YEAR[1];
-    if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", DEFAULT_MILLENNIAL_BIRTH_YEAR);
+    if (digit0) digit0.textContent = resetBirthYear[0];
+    if (digit1) digit1.textContent = resetBirthYear[1];
+    if (picker && typeof picker.setAttribute === "function") picker.setAttribute("data-birth-year-value", resetBirthYear);
     if (secondary) secondary.value = "";
     const G = window.Game || {};
     if (G.__DEV && typeof G.__DEV === "object") G.__DEV.__freshMillennialBirthYearDefaultApplied = false;
   }
-
   function restoreFreshStartScreenState(UI) {
     resetOnboardingSeen(UI);
     getAuthorizedStateTargets(UI).forEach((state) => {
@@ -1379,8 +1381,23 @@ window.Game = window.Game || {};
         }
         UI.buildPlayers && UI.buildPlayers();
         if (UI.applyMobilePanelDefaults) UI.applyMobilePanelDefaults();
-        if (UI.startLoops) UI.startLoops();
-        UI.renderAll && UI.renderAll();
+        let normalWorldStarted = false;
+        const startNormalWorld = () => {
+          if (normalWorldStarted) return;
+          normalWorldStarted = true;
+          if (UI.startLoops) UI.startLoops();
+          UI.renderAll && UI.renderAll();
+        };
+        const firstExperience = G.Stage7FirstExperience;
+        if (firstExperience && typeof firstExperience.claimResume === "function") {
+          const claim = firstExperience.claimResume({ UI, state: S, playerName: name, startNormalWorld });
+          if (claim && claim.claimed === true) {
+            UI.renderAll && UI.renderAll();
+            ensureStartScreenHidden(UI);
+            return;
+          }
+        }
+        startNormalWorld();
         ensureStartScreenHidden(UI);
         return;
       }
@@ -1490,6 +1507,23 @@ window.Game = window.Game || {};
 
       // Hide start again before rendering so later UI work cannot re-show it.
       ensureStartScreenHidden(UI);
+
+      let normalWorldStarted = false;
+      const startNormalWorld = () => {
+        if (normalWorldStarted) return;
+        normalWorldStarted = true;
+        if (UI.startLoops) UI.startLoops();
+        UI.renderAll && UI.renderAll();
+      };
+      const firstExperience = G.Stage7FirstExperience;
+      if (firstExperience && typeof firstExperience.claimFreshStart === "function") {
+        const claim = firstExperience.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
+        if (claim && claim.claimed === true) {
+          UI.renderAll && UI.renderAll();
+          ensureStartScreenHidden(UI);
+          return;
+        }
+      }
 
       // Welcome
       if (G.Data && G.Data.SYS && G.Data.SYS.joined) UI.pushSystem && UI.pushSystem(G.Data.SYS.joined(name));

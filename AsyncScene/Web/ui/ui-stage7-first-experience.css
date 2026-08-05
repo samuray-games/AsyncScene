@@ -1,0 +1,55 @@
+/* Stage 7.1 first causal experience */
+.stage7FirstExperiencePanel {
+  order: -100;
+  border: 1px solid var(--border, rgba(255,255,255,.16));
+  background: var(--panel, rgba(20,22,28,.94));
+}
+.stage7FirstExperiencePanel[hidden] { display: none !important; }
+.stage7FirstExperiencePanel .panelBody,
+.stage7FirstExperiencePanel { color: var(--text, inherit); }
+.stage7FirstExperiencePanel h2 { margin: 0 0 10px; font-size: 1.15rem; }
+.stage7FirstExperiencePanel p { margin: 8px 0; line-height: 1.45; }
+.stage7ChoiceGrid { display: grid; gap: 8px; }
+.stage7FirstExperienceAction { width: 100%; margin-top: 10px; }
+.stage7VoteRow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 6px;
+  margin: 14px 0;
+}
+.stage7VoteMarker {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(255,255,255,.16));
+  font-size: .78rem;
+  text-align: center;
+}
+.stage7VoteMarker.pending { opacity: .45; }
+.stage7VoteMarker.player { background: color-mix(in srgb, var(--accent, #6f8cff) 22%, transparent); }
+.stage7VoteMarker.ken { background: color-mix(in srgb, var(--danger, #d96b6b) 20%, transparent); }
+.stage7Result,
+.stage7KenLine,
+.stage7DecisionHook { font-weight: 700; }
+.stage7Support { margin-top: 10px; opacity: .72; font-size: .86rem; }
+.stage7FreedomCard { position: relative; padding: 4px; }
+html.stage7-first-experience-active [data-profile-stat="influence"],
+html.stage7-first-experience-active [data-profile-stat="wins"],
+html.stage7-first-experience-active #weeklyCapLine,
+html.stage7-first-experience-active #weeklyCapNote,
+html.stage7-first-experience-active #pointsCapNote,
+html.stage7-first-experience-active #btnMenu,
+html.stage7-first-experience-active #menuBlock,
+html.stage7-first-experience-active #dmBlock,
+html.stage7-first-experience-active #battlesBlock,
+html.stage7-first-experience-active #eventsBlock,
+html.stage7-first-experience-active #chatInputRow,
+html.stage7-first-experience-active #locPill,
+html.stage7-first-experience-active #locDropdown { display: none !important; }
+html.stage7-first-experience-active #stage7FirstExperiencePanel { display: block !important; }
+@media (max-width: 760px) {
+  .stage7VoteRow { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .stage7VoteMarker { min-height: 34px; font-size: .68rem; }
+}
