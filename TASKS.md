@@ -1,3 +1,11 @@
+## 2026-08-06 - Stage 7.8 full onboarding Safari acceptance
+- User returned explicit `PASS` for the complete redesigned onboarding on iPhone Safari private mode.
+- Accepted runtime: PR #293 squash merge `49bb6f2802052d6783aaee608891e7c687858806` on top of PR #292.
+- Accepted visible sequence: first conflict -> locked three-NPC intermission -> second round -> six questions -> full unlock -> immediate Райхан injection -> real argument battle -> seamless normal play.
+- Accepted persistence: active bridge battle resumes without duplication and a completed bridge battle does not replay.
+- Validation evidence: pre-merge run `31030967584` PASS; post-merge run `31031221045` PASS; Pages build `1134266731` built without error.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_9_DENY_BRANCH_EVIDENCE_PAYOFF_IN_FIRST_REAL_BATTLE`.
+
 ## 2026-08-05 — PR287 Stage 7.5 branch-derived follow-up
 - PR #287 merged into `main` as `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` from `3a33291e5dd0436e18f6396095c5fb89bdec484d`.
 - Exact runtime scope was four files: the two Stage 7 first-experience mirrors and the two entrypoint cache-bust mirrors.
