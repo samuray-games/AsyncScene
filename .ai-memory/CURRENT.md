@@ -1,13 +1,14 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-05-1924-JST
-NOTION_MEMORY_REV: 2026-08-05-1924-JST
-CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_5_USER_ACCEPTED_COMPLETE / REPOSITORY_MEMORY_SYNCED / STAGE7_6_VISIBLE_LATER_REACTION_NEXT
-ACTIVE_TASK: STAGE7_6_VISIBLE_LATER_REACTION_SELECTION
+MEMORY_REV: 2026-08-05-2229-JST
+NOTION_MEMORY_REV: 2026-08-05-2229-JST
+CURRENT_STATUS: STAGE7_ACTIVE / ONBOARDING_FLOW_REDESIGN_ACCEPTED / REPOSITORY_MEMORY_SYNCED / LIMITED_THREE_NPC_INTERMISSION_NEXT
+ACTIVE_TASK: STAGE7_7_LOCKED_THREE_NPC_INTERMISSION
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e43f34900db30294b596608f58e88ff16726bf71
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: ec0912fa63c820881498a926676d9f0cbc3c7516
 CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
 ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
+LATEST_MERGED_RUNTIME_HEAD: ec0912fa63c820881498a926676d9f0cbc3c7516
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -25,6 +26,7 @@ STAGE_7: ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED
 STAGE_7_0: COMPLETE / ESSENCE_MODAL_FINAL_ACCEPTANCE_PASS
 STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
 STAGE_7_5: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
+STAGE_7_6: MERGED / SUPERSEDED_BEFORE_SAFARI_ACCEPTANCE
 POST_CONFLICT_FREEDOM_CARD: IMPLEMENTED / USER_SAFARI_ACCEPTANCE_PASS
 PRODUCT_FREEZE: ACTIVE
 RUNTIME: PUBLISHED_AND_USER_ACCEPTED
@@ -39,10 +41,12 @@ LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
 MEMORY_SYNC_BRANCH: chatgpt/stage7-5-acceptance-memory-sync-20260805
 STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
 STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
-NEXT_ACTION: SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE
+NEXT_ACTION: IMPLEMENT_STAGE7_7_LOCKED_THREE_NPC_INTERMISSION_AND_SECOND_ROUND_TRIGGER
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. The accepted runtime is `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`; the current repository baseline after memory sync is `e43f34900db30294b596608f58e88ff16726bf71`.
+Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. The latest merged runtime is `ec0912fa63c820881498a926676d9f0cbc3c7516`; the latest user-accepted runtime remains `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`. Stage 7.6 was merged but superseded before Safari acceptance.
 
-The next atomic runtime task is Stage 7.6: make the persisted Stage 7.5 follow-up choice cause one visible later world reaction. Primary and secondary choices must produce distinguishable, explainable, exactly-once, refresh-safe reactions without broad subsystem expansion.
+The user-approved onboarding sequence is first scripted conflict, a locked approximately 45-second intermission exposing exactly three NPCs, a second scripted round, the six-question comprehension gate, full unlock, an immediate Райхан injection, and the first real argument battle through the existing conflict API. Normal play continues without another onboarding gate after that battle.
+
+The next atomic runtime task is Stage 7.7: keep the full game locked after round one, expose exactly three lightweight NPC interactions, support foreground and leave/return timing, and trigger round two exactly once.

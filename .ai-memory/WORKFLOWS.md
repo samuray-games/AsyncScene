@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-05-1924-JST
-EXPECTED_REVISION: 2026-08-05-1924-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
+MEMORY_REVISION: 2026-08-05-2229-JST
+EXPECTED_REVISION: 2026-08-05-2229-JST
+NOTION_MEMORY_REVISION: 2026-08-05-2229-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. Stage 7.5 runtime `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` passed the dedicated iPhone Safari gate. Repository memory is synchronized from baseline `e43f34900db30294b596608f58e88ff16726bf71`. The exact next product action is `SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. Stage 7.6 merged at `ec0912fa63c820881498a926676d9f0cbc3c7516` but was superseded before Safari acceptance. Repository memory is synchronized from `ec0912fa63c820881498a926676d9f0cbc3c7516`. The exact next action is `IMPLEMENT_STAGE7_7_LOCKED_THREE_NPC_INTERMISSION_AND_SECOND_ROUND_TRIGGER`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -67,16 +67,16 @@ After every accepted remote state change:
 ## Stage 7 execution workflow
 
 1. Enforce the product freeze until observed user evidence proves the causal core loop.
-2. Stage 7.1 through Stage 7.5 are complete and user-accepted for their tested scopes; do not reopen them without a concrete regression.
-3. Stage 7.2 evidence remains one foreground sample and must not be misrepresented as population coverage. Stage 7.3 separately accepted the return path and continuity evidence.
-4. Implement one atomic Stage 7.6 slice where the persisted primary or secondary Stage 7.5 follow-up choice causes one visibly different later world reaction.
-5. The reaction must be exactly-once, refresh-safe, causally explainable from NPC memory, and delivered without broad subsystem expansion.
-6. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
-7. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
-8. Collect one continuation-interest answer without forcing a positive response or changing settlement.
-9. Produce one deterministic developer report with thresholds, raw answers, pass/fail fields, and no network transmission.
-10. Source and deployed mirrors, persistence, settlement traceability, and Safari acceptance remain mandatory.
-11. World expansion remains frozen until the evidence harness can produce observed results.
+2. Preserve accepted Stage 7.1 through Stage 7.5 behavior unless the superseding onboarding sequence explicitly relocates its timing.
+3. Keep the full game locked after the first scripted conflict.
+4. Implement an approximately 45-second intermission with exactly three lightweight NPC interaction surfaces. The player may interact, stay idle, background the app, or leave and return.
+5. Start the second scripted round exactly once when the interval expires or the player returns after it is due.
+6. Present the six-question comprehension gate only after round two. Full systems remain locked until the questionnaire is completed.
+7. After unlock, immediately present a Райхан injection and create the first real incoming argument battle through `Game.Conflict.incoming(opponentId, opts)`. Use the existing conflict UI and argument resolution; do not fake the battle in the Stage 7 controller.
+8. After that real battle, release all remaining onboarding control and continue normal play seamlessly.
+9. Remove, repurpose, or migrate superseded Stage 7.6 follow-up/later-reaction states so duplicate onboarding cannot appear.
+10. Preserve first-round branchId, worldAdvanceId, persistence, exactly-once settlement, foreground/return continuity, and old-save migration.
+11. Deliver in atomic GitHub-only PRs with focused regressions, source/docs parity, forensics, Pages verification, and iPhone Safari acceptance.
 
 ## Local plugin installation and parity workflow
 
@@ -176,4 +176,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE
+NEXT_ACTION: IMPLEMENT_STAGE7_7_LOCKED_THREE_NPC_INTERMISSION_AND_SECOND_ROUND_TRIGGER
