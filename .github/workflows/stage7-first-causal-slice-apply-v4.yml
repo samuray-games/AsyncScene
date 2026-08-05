@@ -1,0 +1,72 @@
+name: Apply Stage 7 first causal slice v4
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-first-causal-slice-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-first-causal-slice-20260805
+          fetch-depth: 0
+
+      - name: Apply runtime patch from accepted Pages boot
+        shell: bash
+        run: |
+          cp docs/ui/ui-boot.js AsyncScene/Web/ui/ui-boot.js
+          python3 tools/_stage7_apply_runtime.py
+
+      - name: Validate Stage 7.1
+        shell: bash
+        run: |
+          python3 -m py_compile tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_essence_modal.py
+          python3 tools/test_stage7_essence_prestart_overlay.py
+          python3 tools/test_step9_ui_boot_forbidden_state_access.py
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          cmp -s AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          cmp -s AsyncScene/Web/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.css
+          cmp -s AsyncScene/Web/index.html docs/index.html
+          cmp -s AsyncScene/Web/ui/ui-boot.js docs/ui/ui-boot.js
+          git diff --check
+
+      - name: Commit mirrored runtime integration
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            docs/ui/ui-stage7-first-experience.js \
+            docs/ui/ui-stage7-first-experience.css \
+            AsyncScene/Web/index.html \
+            docs/index.html \
+            AsyncScene/Web/ui/ui-boot.js \
+            docs/ui/ui-boot.js
+          python3 - <<'PY'
+          import subprocess
+          expected = {
+              'docs/ui/ui-stage7-first-experience.js',
+              'docs/ui/ui-stage7-first-experience.css',
+              'AsyncScene/Web/index.html',
+              'docs/index.html',
+              'AsyncScene/Web/ui/ui-boot.js',
+              'docs/ui/ui-boot.js',
+          }
+          actual = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          if actual != expected:
+              raise SystemExit(f'integration scope mismatch: expected={sorted(expected)} actual={sorted(actual)}')
+          print('PASS_STAGE7_INTEGRATION_SCOPE')
+          PY
+          git diff --cached --check
+          git commit -m 'feat: integrate first causal Stage 7 experience'
+          git push origin HEAD:chatgpt/stage7-first-causal-slice-20260805
