@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-observed-evidence-harness-20260805",
+  "createdAtJst": "2026-08-05 11:29:45 JST",
+  "createdAtUtc": "2026-08-05T02:29:45Z",
+  "packagePath": "runs/2026/08/05/GITHUB/GITHUB-20260805T022945Z-30969498436-987a1820",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260805T022945Z-30969498436-987a1820",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
