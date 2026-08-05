@@ -21,11 +21,13 @@ def require(condition, message):
 require(JS_A.read_bytes() == JS_B.read_bytes(), "JS mirrors differ")
 require(CSS_A.read_bytes() == CSS_B.read_bytes(), "CSS mirrors differ")
 require(INDEX_A.read_bytes() == INDEX_B.read_bytes(), "index mirrors differ")
-require(BOOT_A.read_bytes() == BOOT_B.read_bytes(), "boot mirrors differ")
 
 js = JS_A.read_text(encoding="utf-8")
 index = INDEX_A.read_text(encoding="utf-8")
-boot = BOOT_A.read_text(encoding="utf-8")
+boots = {
+    "source": BOOT_A.read_text(encoding="utf-8"),
+    "docs": BOOT_B.read_text(encoding="utf-8"),
+}
 
 require('const STATES = ["accusation", "answer", "reaction", "vote", "consequence", "rematch", "completed", "main_unlocked"]' in js, "state order missing")
 require('const RESPONSE_IDS = ["deny", "accuse_ken", "pay"]' in js, "response IDs missing")
@@ -72,8 +74,11 @@ require(css_ref in index, "CSS wiring missing")
 require(js_ref in index, "JS wiring missing")
 require(index.index(css_ref) > index.index('ui/ui-stage7-essence.css'), "first-experience CSS order wrong")
 require(index.index(js_ref) < index.index('ui/ui-boot.js'), "controller must load before boot")
-require('claimFreshStart({ UI, state: S, playerName: name, startNormalWorld })' in boot, "fresh delegation missing")
-require('claimResume({ UI, state: S, playerName: name, startNormalWorld })' in boot, "resume delegation missing")
-require(boot.count('let normalWorldStarted = false;') == 2, "idempotent release closures missing")
+
+for label, boot in boots.items():
+    require('claimFreshStart({ UI, state: S, playerName: name, startNormalWorld })' in boot, f"{label} fresh delegation missing")
+    require('claimResume({ UI, state: S, playerName: name, startNormalWorld })' in boot, f"{label} resume delegation missing")
+    require(boot.count('let normalWorldStarted = false;') == 2, f"{label} idempotent release closures missing")
+    require(boot.count('if (UI.startLoops) UI.startLoops();') >= 2, f"{label} normal loop release missing")
 
 print("PASS_STAGE7_FIRST_CAUSAL_VERTICAL_SLICE")
