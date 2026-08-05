@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-resume-migration-fix-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-resume-migration-fix-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "252814a07f53b50a4de233f381901646e78cbc38\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "# branch.oid 252814a07f53b50a4de233f381901646e78cbc38\n# branch.head chatgpt/stage7-resume-migration-fix-20260805\n# branch.upstream origin/chatgpt/stage7-resume-migration-fix-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "252814a0 (HEAD -> chatgpt/stage7-resume-migration-fix-20260805, origin/chatgpt/stage7-resume-migration-fix-20260805) ci: add Stage 7 resume migration patch\n1babc437 (origin/main) feat: add first causal Stage 7 experience (#281)\n4b6db2b9 policy: adopt GitHub-only development workflow (#280)\n5f6cb947 docs: synchronize Stage 7 repository memory (#279)\n1bb73651 (origin/chatgpt/stage7-memory-sync-20260805) docs: update Stage 7 memory workflow\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 252814a07f53b50a4de233f381901646e78cbc38\nbranch refs/heads/chatgpt/stage7-resume-migration-fix-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:56:38Z",
+      "stderr": "",
+      "stdout": "1babc437adbfa39e07d870ae206df1af124aad08\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "252814a07f53b50a4de233f381901646e78cbc38",
+  "observedAtUtc": "2026-08-05T01:56:38Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
