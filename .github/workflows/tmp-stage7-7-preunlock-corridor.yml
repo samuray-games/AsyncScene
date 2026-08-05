@@ -27,6 +27,8 @@ jobs:
         run: python tools/tmp_fix_stage7_7_patcher.py
       - name: Apply Stage 7.7 corridor patch
         run: python tools/tmp_stage7_7_preunlock_corridor_patch.py
+      - name: Clean generated closure
+        run: python tools/tmp_cleanup_stage7_7_generated.py
       - name: Restore committed patcher
         run: git checkout -- tools/tmp_stage7_7_preunlock_corridor_patch.py
       - name: Run focused regression
