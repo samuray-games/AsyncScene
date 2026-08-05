@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-7-preunlock-corridor-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-7-preunlock-corridor-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "db54050073adabaa3e879e9cb72bf228606ad521\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid db54050073adabaa3e879e9cb72bf228606ad521\n# branch.head chatgpt/stage7-7-preunlock-corridor-20260805\n# branch.upstream origin/chatgpt/stage7-7-preunlock-corridor-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "db540500 (HEAD -> chatgpt/stage7-7-preunlock-corridor-20260805, origin/chatgpt/stage7-7-preunlock-corridor-20260805) chore: add temporary Stage 7.7 implementation workflow\n7a8691c8 test: add Stage 7.7 pre-unlock corridor regression\n6b64b9a5 chore: add temporary Stage 7.7 corridor patcher\nfa61092e (origin/main) docs: record superseding Stage 7 onboarding flow (#291)\nec0912fa feat: show later reaction to Stage 7 follow-up (#290)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD db54050073adabaa3e879e9cb72bf228606ad521\nbranch refs/heads/chatgpt/stage7-7-preunlock-corridor-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T14:01:33Z",
+      "stderr": "",
+      "stdout": "fa61092e8f5a37a77d86b63699081e7c6b2f04bb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "db54050073adabaa3e879e9cb72bf228606ad521",
+  "observedAtUtc": "2026-08-05T14:01:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
