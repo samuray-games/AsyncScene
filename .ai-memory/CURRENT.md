@@ -1,11 +1,11 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-05-1817-JST
-NOTION_MEMORY_REV: 2026-08-05-1817-JST
-CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_4_USER_ACCEPTED_COMPLETE / STAGE7_5_MERGED_AND_PAGES_BUILT / SAFARI_ACCEPTANCE_PENDING
-ACTIVE_TASK: STAGE7_5_BRANCH_DERIVED_FOLLOW_UP_SAFARI_ACCEPTANCE
+MEMORY_REV: 2026-08-05-1924-JST
+NOTION_MEMORY_REV: 2026-08-05-1924-JST
+CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_5_USER_ACCEPTED_COMPLETE / REPOSITORY_MEMORY_SYNCED / STAGE7_6_VISIBLE_LATER_REACTION_NEXT
+ACTIVE_TASK: STAGE7_6_VISIBLE_LATER_REACTION_SELECTION
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e43f34900db30294b596608f58e88ff16726bf71
 CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
 ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
 REPOSITORY_PLUGIN_VERSION: 1.0.18
@@ -24,7 +24,7 @@ STAGE_6_STEP9: COMPLETE / ACCEPTED
 STAGE_7: ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED
 STAGE_7_0: COMPLETE / ESSENCE_MODAL_FINAL_ACCEPTANCE_PASS
 STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
-STAGE_7_5: COMPLETE / FOREGROUND_AND_BACKGROUND_EXACTLY_ONCE_ACCEPTED
+STAGE_7_5: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
 POST_CONFLICT_FREEDOM_CARD: IMPLEMENTED / USER_SAFARI_ACCEPTANCE_PASS
 PRODUCT_FREEZE: ACTIVE
 RUNTIME: PUBLISHED_AND_USER_ACCEPTED
@@ -36,13 +36,13 @@ PR282_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 STAGE7_1_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_TAB
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: codex/stage7-3-core-loop-evidence-20260805
+MEMORY_SYNC_BRANCH: chatgpt/stage7-5-acceptance-memory-sync-20260805
 STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
 STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
-NEXT_ACTION: IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY
+NEXT_ACTION: SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; the Stage 7.2 harness is at `f00317a022486566293b870f0540db5cbf1ef08c` and its foreground sample is user-observed.
+Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. The accepted runtime is `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`; the current repository baseline after memory sync is `e43f34900db30294b596608f58e88ff16726bf71`.
 
-The next atomic runtime task is Stage 7.3 continuation-integrity evidence. Explicit test mode only: verify selected branch and worldAdvanceId stability through continuation presentation while leaving normal-player behavior unchanged.
+The next atomic runtime task is Stage 7.6: make the persisted Stage 7.5 follow-up choice cause one visible later world reaction. Primary and secondary choices must produce distinguishable, explainable, exactly-once, refresh-safe reactions without broad subsystem expansion.
