@@ -1,0 +1,55 @@
+name: stage7-4-product-apply-v2
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-4-personalization-20260805
+    paths:
+      - .github/workflows/stage7-4-product-apply-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-product:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: chatgpt/stage7-4-personalization-20260805
+      - name: Generate Stage 7.4 product files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/stage7-4-personalization-apply.yml').read_text(encoding='utf-8')
+          marker = "          python3 <<'PY'\n"
+          start = source.index(marker) + len(marker)
+          end = source.index("\n          PY", start)
+          block = source[start:end]
+          code = '\n'.join(line[10:] if line.startswith('          ') else line for line in block.splitlines())
+          exec(compile(code, '<stage7-4-generator>', 'exec'), {'__name__': '__main__'})
+          PY
+      - name: Validate Stage 7.4 product
+        shell: bash
+        run: |
+          python3 tools/test_stage7_observed_evidence_harness.py
+          python3 tools/test_stage7_essence_modal.py
+          python3 tools/test_stage7_essence_prestart_overlay.py
+          python3 tools/test_stage7_4_personalization.py
+          node --check AsyncScene/Web/ui/ui-stage7-personalization.js
+          node --check docs/ui/ui-stage7-personalization.js
+          cmp -s AsyncScene/Web/ui/ui-stage7-personalization.js docs/ui/ui-stage7-personalization.js
+          cmp -s AsyncScene/Web/index.html docs/index.html
+      - name: Commit product files
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add AsyncScene/Web/index.html docs/index.html \
+            AsyncScene/Web/ui/ui-stage7-personalization.js \
+            docs/ui/ui-stage7-personalization.js \
+            tools/test_stage7_4_personalization.py
+          git commit -m "feat: personalize Stage 7 onboarding"
+          git push origin HEAD:chatgpt/stage7-4-personalization-20260805
