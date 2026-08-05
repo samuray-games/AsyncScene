@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `f00317a022486566293b870f0540db5cbf1ef08c`. The active documentation-maintenance branch is `chatgpt/stage7-accepted-memory-sync-20260805`. Stage 7.2 user evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once 1/1, continuation interest `Да`. The exact next product action is `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `f00317a022486566293b870f0540db5cbf1ef08c`. The active implementation branch is `codex/stage7-3-core-loop-evidence-20260805`. Stage 7.2 user evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once 1/1, continuation interest `Да`. The exact next product action is `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -67,10 +67,10 @@ After every accepted remote state change:
 ## Stage 7 execution workflow
 
 1. Enforce the product freeze until observed user evidence proves the causal core loop.
-2. Stage 7.1 is complete and user-accepted through `main@f00317a022486566293b870f0540db5cbf1ef08c`; do not reopen it without a concrete regression.
+2. Stage 7.1 is complete and user-accepted through `main@1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; do not reopen it without a concrete regression.
 3. Stage 7.2 observed-evidence harness is merged and one foreground Safari sample is user-accepted; do not claim population coverage or return-path acceptance.
 4. Implement one atomic Stage 7.3 continuation-integrity evidence slice behind explicit test mode only.
-4. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
+5. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
 6. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
 7. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
 8. Collect one continuation-interest answer without forcing a positive response or changing settlement.
