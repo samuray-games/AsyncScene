@@ -37,8 +37,10 @@ for forbidden in ("fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"):
     assert forbidden not in source, f"network API forbidden in personalization layer: {forbidden}"
 
 controller = CONTROLLER.read_text(encoding="utf-8")
-assert 'change: "Кен убедил одного человека поддержать его."' in controller
-assert 'hook: "Мика просит доказательство. Сначала ответить ей или поговорить с Олегом?"' in controller
+assert 'change: "Райхан убедил одного человека поддержать его."' in controller
+assert 'hook: "Настя просит доказательство. Сначала ответить ей или поговорить с Олегом?"' in controller
+assert 'name: "Райхан"' in controller
+assert 'name: "Настя"' in controller
 assert 'function getStartName(UI)' in (ROOT / "AsyncScene/Web/ui/ui-boot.js").read_text(encoding="utf-8")
 assert 'document.getElementById("nameInput")' in (ROOT / "AsyncScene/Web/ui/ui-boot.js").read_text(encoding="utf-8")
 
