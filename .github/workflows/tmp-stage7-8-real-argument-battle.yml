@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  implement-and-test:
+  harden-and-test:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -23,20 +23,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply Stage 7.8 bridge patch
-        run: python tools/tmp_stage7_8_real_argument_battle_patch.py
+      - name: Apply Stage 7.8 reentrancy and recovery fix
+        run: python tools/tmp_stage7_8_reentrancy_recovery_fix.py
       - name: Run Stage 7.8 focused regression
         run: python tools/test_stage7_7_preunlock_corridor.py
       - name: Validate exact generated scope
         run: |
           git diff --check
           actual="$(git diff --name-only | sort | tr '\n' ' ')"
-          expected="AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.js tools/test_stage7_7_preunlock_corridor.py "
+          expected="AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js tools/test_stage7_7_preunlock_corridor.py "
           test "$actual" = "$expected"
-      - name: Commit Stage 7.8 runtime
+      - name: Commit Stage 7.8 hardening
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.js tools/test_stage7_7_preunlock_corridor.py
-          git commit -m 'feat: bridge Stage 7 onboarding into real argument battle'
+          git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js tools/test_stage7_7_preunlock_corridor.py
+          git commit -m 'fix: make Stage 7 real battle bridge reentrant-safe'
           git push
