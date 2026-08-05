@@ -3,7 +3,7 @@
 MEMORY_REV: 2026-08-05-1546-JST
 NOTION_MEMORY_REV: 2026-08-05-1546-JST
 CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_USER_EVIDENCE_PASS / FOREGROUND_PATH_CONFIRMED / STAGE7_3_SELECTION_REQUIRED
-ACTIVE_TASK: STAGE7_ACCEPTED_MEMORY_SYNC_THEN_STAGE7_2_TEST_HARNESS
+ACTIVE_TASK: STAGE7_3_RETURN_CONTINUITY_EVIDENCE
 CURRENT_MAIN_REF: origin/main
 CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: f00317a022486566293b870f0540db5cbf1ef08c
 CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: f00317a022486566293b870f0540db5cbf1ef08c
@@ -32,17 +32,17 @@ PR277_MERGE_SHA: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 PR278_MERGE_SHA: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
 PR280_MERGE_SHA: 4b6db2b9b540e8c7fe32e51eda60c4cd784797b6
 PR281_MERGE_SHA: 1babc437adbfa39e07d870ae206df1af124aad08
-PR282_MERGE_SHA: f00317a022486566293b870f0540db5cbf1ef08c
+PR282_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 STAGE7_1_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_TAB
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
+MEMORY_SYNC_BRANCH: codex/stage7-3-core-loop-evidence-20260805
 STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
 STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
 NEXT_ACTION: IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `f00317a022486566293b870f0540db5cbf1ef08c`; GitHub Pages build `1132995890` published the accepted iPhone Safari flow.
+Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; the Stage 7.2 harness is at `f00317a022486566293b870f0540db5cbf1ef08c` and its foreground sample is user-observed.
 
-The next atomic runtime task is Stage 7.2 observed core-loop evidence. Explicit test mode only: measure first-action and cycle timing, branch choice, foreground/return path, exactly-once settlement, causal comprehension, and continuation interest while leaving normal-player behavior unchanged.
+The next atomic runtime task is Stage 7.3 continuation-integrity evidence. Explicit test mode only: verify selected branch and worldAdvanceId stability through continuation presentation while leaving normal-player behavior unchanged.
