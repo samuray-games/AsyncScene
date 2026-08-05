@@ -1,0 +1,69 @@
+name: Fix Stage 7 bootstrap YAML
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-first-causal-slice-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  fix-bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-first-causal-slice-20260805
+          fetch-depth: 0
+
+      - name: Repair embedded multiline indentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/stage7-first-causal-slice-bootstrap.yml')
+          lines = path.read_text(encoding='utf-8').splitlines()
+          targets = (
+              "resume_anchor = '''",
+              "resume_replacement = '''",
+              "fresh_anchor = '''",
+              "fresh_replacement = '''",
+          )
+          output = []
+          inside = False
+          repaired = 0
+          for line in lines:
+              if not inside and any(marker in line for marker in targets):
+                  inside = True
+                  output.append(line)
+                  continue
+              if inside:
+                  output.append('          ' + line)
+                  repaired += 1
+                  if line.strip() == "'''":
+                      inside = False
+                  continue
+              if line.strip() == "if: github.actor != 'github-actions[bot]'":
+                  continue
+              output.append(line)
+          if inside:
+              raise SystemExit('unterminated embedded multiline block')
+          if repaired < 20:
+              raise SystemExit(f'unexpected repair count: {repaired}')
+          path.write_text('\n'.join(output) + '\n', encoding='utf-8')
+          print(f'PASS_REPAIRED_LINES={repaired}')
+          PY
+
+      - name: Commit repaired bootstrap and remove fixer
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/fix-stage7-bootstrap.yml
+          git add .github/workflows/stage7-first-causal-slice-bootstrap.yml
+          git diff --cached --check
+          git commit -m 'ci: repair Stage 7 bootstrap workflow'
+          git push origin HEAD:chatgpt/stage7-first-causal-slice-20260805
