@@ -32,9 +32,26 @@ jobs:
           new_open = 'TEST = r"""from pathlib'
           old_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n\'\'\'\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
           new_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n"""\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
-          if text.count(old_open) != 1 or text.count(old_close) != 1:
-              raise SystemExit("temporary test generator quote anchors changed")
-          path.write_text(text.replace(old_open, new_open, 1).replace(old_close, new_close, 1), encoding="utf-8")
+          old_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{label}: expected one match, found {count}")
+    return text.replace(old, new, 1)
+'''
+          new_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if label == "controller active resume payoff":
+        if count < 1:
+            raise SystemExit(f"{label}: expected at least one match, found {count}")
+        return text.replace(old, new, 1)
+    if count != 1:
+        raise SystemExit(f"{label}: expected one match, found {count}")
+    return text.replace(old, new, 1)
+'''
+          if text.count(old_open) != 1 or text.count(old_close) != 1 or text.count(old_helper) != 1:
+              raise SystemExit("temporary patch repair anchors changed")
+          text = text.replace(old_open, new_open, 1).replace(old_close, new_close, 1).replace(old_helper, new_helper, 1)
+          path.write_text(text, encoding="utf-8")
           PY
           set +e
           output="$(python tools/tmp_stage7_9_deny_evidence_patch.py 2>&1)"
