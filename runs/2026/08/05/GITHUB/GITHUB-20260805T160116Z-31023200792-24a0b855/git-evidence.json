@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-8-real-argument-battle-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-8-real-argument-battle-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "00053282a62740fbf106f1ec86a9747ae216f800\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "# branch.oid 00053282a62740fbf106f1ec86a9747ae216f800\n# branch.head chatgpt/stage7-8-real-argument-battle-20260806\n# branch.upstream origin/chatgpt/stage7-8-real-argument-battle-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "00053282 (HEAD -> chatgpt/stage7-8-real-argument-battle-20260806, origin/chatgpt/stage7-8-real-argument-battle-20260806) chore: validate Stage 7.8 battle lifecycle\n6006195f test: add Stage 7.8 real battle lifecycle closure\n03b6dcf8 fix: make Stage 7 real battle bridge reentrant-safe\n72f2f223 chore: validate Stage 7.8 bridge hardening\nac39e08e test: harden Stage 7.8 bridge reentrancy and recovery\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 00053282a62740fbf106f1ec86a9747ae216f800\nbranch refs/heads/chatgpt/stage7-8-real-argument-battle-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:01:16Z",
+      "stderr": "",
+      "stdout": "a70bf2f85f79633c4741c40798008232fa1117fe\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "00053282a62740fbf106f1ec86a9747ae216f800",
+  "observedAtUtc": "2026-08-05T16:01:16Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
