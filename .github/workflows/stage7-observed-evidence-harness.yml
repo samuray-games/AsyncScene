@@ -1,0 +1,71 @@
+name: Stage 7.2 observed evidence harness
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-observed-evidence-harness-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-observed-evidence-harness-20260805
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply Stage 7.2 harness
+        run: python3 tools/_stage7_observed_evidence_patch.py
+      - name: Validate Stage 7.2 and protected contracts
+        run: |
+          python3 -m py_compile tools/test_stage7_first_causal_vertical_slice.py tools/test_stage7_observed_evidence_harness.py
+          python3 tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_observed_evidence_harness.py
+          python3 tools/test_stage7_essence_modal.py
+          python3 tools/test_stage7_essence_prestart_overlay.py
+          python3 tools/test_step9_ui_boot_forbidden_state_access.py
+          python3 tools/test_stage6_profile_bootstrap_findings.py
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          cmp AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          cmp AsyncScene/Web/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.css
+          cmp AsyncScene/Web/index.html docs/index.html
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          expected = {
+              'AsyncScene/Web/ui/ui-stage7-first-experience.js',
+              'docs/ui/ui-stage7-first-experience.js',
+              'AsyncScene/Web/ui/ui-stage7-first-experience.css',
+              'docs/ui/ui-stage7-first-experience.css',
+              'AsyncScene/Web/index.html',
+              'docs/index.html',
+              'tools/test_stage7_first_causal_vertical_slice.py',
+              'tools/test_stage7_observed_evidence_harness.py',
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != expected:
+              raise SystemExit(f'changed paths mismatch: {sorted(changed)}')
+          print('PASS_STAGE7_OBSERVED_EVIDENCE_EXACT_SCOPE')
+          PY
+      - name: Commit Stage 7.2 runtime
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            AsyncScene/Web/ui/ui-stage7-first-experience.js \
+            docs/ui/ui-stage7-first-experience.js \
+            AsyncScene/Web/ui/ui-stage7-first-experience.css \
+            docs/ui/ui-stage7-first-experience.css \
+            AsyncScene/Web/index.html \
+            docs/index.html \
+            tools/test_stage7_first_causal_vertical_slice.py \
+            tools/test_stage7_observed_evidence_harness.py
+          git commit -m 'feat: add Stage 7.2 observed evidence harness'
+          git push origin HEAD:chatgpt/stage7-observed-evidence-harness-20260805
