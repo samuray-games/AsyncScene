@@ -614,10 +614,11 @@ window.Game = window.Game || {};
 
   function claimResume(nextContext) {
     const existing = loadSnapshot();
-    if (!existing || existing.worldAdvanceSettled) {
-      return { claimed: false, mode: existing ? "complete" : "not_applicable", stateId: existing && existing.stateId || null, releaseNormalWorld: () => {} };
+    if (existing && existing.worldAdvanceSettled) {
+      return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
-    snapshot = existing;
+    const migratedLegacySave = !existing;
+    snapshot = existing || defaultSnapshot();
     if (snapshot.stateId === "completed") snapshot.stateId = "main_unlocked";
     const dueOnReturn = snapshot.stateId === "main_unlocked"
       && snapshot.awaitingWorldAdvance
@@ -630,9 +631,18 @@ window.Game = window.Game || {};
     }
     saveSnapshot();
     attach(nextContext);
-    telemetry("first_experience.entry_opened", { mode: "resume" });
+    telemetry("first_experience.entry_opened", { mode: migratedLegacySave ? "legacy_resume_migration" : "resume" });
+    if (migratedLegacySave) {
+      telemetry("first_experience.legacy_save_migrated");
+      telemetry("first_experience.prelude_started");
+    }
     if (dueOnReturn) telemetry("first_experience.world_advance_presented", { mode: "return", worldAdvanceId: snapshot.worldAdvanceId });
-    return { claimed: true, mode: "resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+    return {
+      claimed: true,
+      mode: migratedLegacySave ? "legacy_resume_migration" : "resume",
+      stateId: snapshot.stateId,
+      releaseNormalWorld: releaseNormalWorldOnce,
+    };
   }
 
   function isPending() {
