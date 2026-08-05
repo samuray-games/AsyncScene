@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-3-core-loop-evidence-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "codex/stage7-3-core-loop-evidence-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "bd09bab039eef0065c30cc3e96d514baad54fd42\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid bd09bab039eef0065c30cc3e96d514baad54fd42\n# branch.head codex/stage7-3-core-loop-evidence-20260805\n# branch.upstream origin/codex/stage7-3-core-loop-evidence-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "bd09bab0 (HEAD -> codex/stage7-3-core-loop-evidence-20260805, origin/codex/stage7-3-core-loop-evidence-20260805) feat: add Stage 7.3 continuation integrity evidence\n7214fc0c feat: add Stage 7.3 continuation integrity evidence\n0ac17c5d feat: add Stage 7.3 continuation integrity evidence\n2258fbbf feat: add Stage 7.3 continuation integrity evidence\n3067a751 feat: add Stage 7.3 continuation integrity evidence\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bd09bab039eef0065c30cc3e96d514baad54fd42\nbranch refs/heads/codex/stage7-3-core-loop-evidence-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T07:20:39Z",
+      "stderr": "",
+      "stdout": "f00317a022486566293b870f0540db5cbf1ef08c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bd09bab039eef0065c30cc3e96d514baad54fd42",
+  "observedAtUtc": "2026-08-05T07:20:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
