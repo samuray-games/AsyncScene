@@ -431,6 +431,8 @@ window.Game = window.Game || {};
       secondRoundChoiceId: null,
       queuedAt: null,
       createdAt: null,
+      completedAt: null,
+      outcome: null,
       injectionShown: false,
       injectionShownAt: null,
       attemptCount: 0,
@@ -444,12 +446,14 @@ window.Game = window.Game || {};
     if (!raw || typeof raw !== "object") return base;
     return Object.assign(base, raw, {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
-      status: ["not_started", "pending", "created"].includes(raw.status) ? raw.status : "not_started",
+      status: ["not_started", "pending", "created", "completed"].includes(raw.status) ? raw.status : "not_started",
       battleId: typeof raw.battleId === "string" && raw.battleId ? raw.battleId : null,
       branchId: RESPONSE_IDS.includes(raw.branchId) ? raw.branchId : null,
       secondRoundChoiceId: ["primary", "secondary"].includes(raw.secondRoundChoiceId) ? raw.secondRoundChoiceId : null,
       queuedAt: Number.isFinite(Number(raw.queuedAt)) ? Number(raw.queuedAt) : null,
       createdAt: Number.isFinite(Number(raw.createdAt)) ? Number(raw.createdAt) : null,
+      completedAt: Number.isFinite(Number(raw.completedAt)) ? Number(raw.completedAt) : null,
+      outcome: typeof raw.outcome === "string" && raw.outcome ? raw.outcome : null,
       injectionShown: raw.injectionShown === true,
       injectionShownAt: Number.isFinite(Number(raw.injectionShownAt)) ? Number(raw.injectionShownAt) : null,
       attemptCount: Math.max(0, Number(raw.attemptCount) | 0),
@@ -1036,6 +1040,28 @@ window.Game = window.Game || {};
       && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID) || null;
   }
 
+  function syncRealArgumentBattleLifecycle() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "created") return false;
+    const battle = findExistingRealBattle();
+    if (!battle) return false;
+    const completed = battle.resolved === true
+      || battle.finished === true
+      || battle.status === "finished";
+    if (!completed) return false;
+    bridge.status = "completed";
+    bridge.completedAt = bridge.completedAt || Date.now();
+    bridge.outcome = typeof battle.result === "string" && battle.result ? battle.result : null;
+    bridge.lastFailureReason = null;
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_completed", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      battleId: bridge.battleId,
+      outcome: bridge.outcome,
+    });
+    return true;
+  }
+
   function getRealBattleInjection() {
     const branchId = snapshot && snapshot.branchId;
     const choiceId = snapshot && snapshot.followUpChoiceId;
@@ -1344,6 +1370,7 @@ window.Game = window.Game || {};
 
   function schedulerTick() {
     if (!snapshot || !context) return;
+    syncRealArgumentBattleLifecycle();
     const nowMono = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
     if (!lastTickAt) lastTickAt = nowMono;
     if (!document.hidden && !snapshot.preludeComplete) {
@@ -1615,6 +1642,7 @@ window.Game = window.Game || {};
   G.__DEV.openStage7Questions = openQuestionsForDev;
   G.__DEV.answerStage7CurrentQuestionCorrect = answerCurrentQuestionCorrectForDev;
   G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
+  G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,

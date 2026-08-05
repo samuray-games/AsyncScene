@@ -38,6 +38,8 @@ assert "releaseNormalWorldOnce();" in source
 assert "conflict.incoming(REAL_BATTLE_OPPONENT_ID" in source
 assert "stage7OnboardingBridgeId" in source
 assert "realBattleBridgeInFlight" in source
+assert "syncRealArgumentBattleLifecycle" in source
+assert "real_argument_battle_completed" in source
 for stale in [
     "FOLLOW_UP_REACTION_DELAY_MS",
     "presentFollowUpReaction",
@@ -259,9 +261,18 @@ assert.strictEqual(incomingCalls, 2, "missing battle was not recreated exactly o
 assert.strictEqual(state.battles.length, 1);
 assert.strictEqual(snap.realBattleBridge.status, "created");
 assert.strictEqual(snap.realBattleBridge.battleId, "stage7_real_battle_2");
+state.battles[0].resolved = true;
+state.battles[0].finished = true;
+state.battles[0].status = "finished";
+state.battles[0].result = "win";
+assert.strictEqual(dev.syncStage7RealArgumentBattleLifecycle(), true, "finished battle lifecycle was not recorded");
+snap = dev.getStage7FirstExperienceSnapshot();
+assert.strictEqual(snap.realBattleBridge.status, "completed");
+assert.strictEqual(snap.realBattleBridge.outcome, "win");
+state.battles.length = 0;
 Game.Stage7FirstExperience.destroy();
 const resumed = Game.Stage7FirstExperience.claimResume(context);
-assert.strictEqual(resumed.claimed, false, "completed corridor replayed after bridge recovery");
+assert.strictEqual(resumed.claimed, false, "completed real battle replayed after refresh");
 assert.strictEqual(incomingCalls, 2);
 
 Game.__DEV.resetStage7FirstExperience();
