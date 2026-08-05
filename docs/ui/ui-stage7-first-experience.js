@@ -97,6 +97,9 @@ window.Game = window.Game || {};
       cycleMs: null,
       branchId: null,
       continuationPath: null,
+      continuationStateValid: null,
+      presentedBranchId: null,
+      presentedWorldAdvanceId: null,
       settlementAppliedCount: 0,
       worldAdvancePresentedCount: 0,
       worldAdvanceSettledCount: 0,
@@ -130,6 +133,9 @@ window.Game = window.Game || {};
       cycleMs: Number.isFinite(Number(raw.cycleMs)) ? Math.max(0, Number(raw.cycleMs)) : null,
       branchId: RESPONSE_IDS.includes(raw.branchId) ? raw.branchId : null,
       continuationPath: ["foreground", "return"].includes(raw.continuationPath) ? raw.continuationPath : null,
+      continuationStateValid: raw.continuationStateValid === true,
+      presentedBranchId: RESPONSE_IDS.includes(raw.presentedBranchId) ? raw.presentedBranchId : null,
+      presentedWorldAdvanceId: typeof raw.presentedWorldAdvanceId === "string" && raw.presentedWorldAdvanceId ? raw.presentedWorldAdvanceId : null,
       settlementAppliedCount: Math.max(0, Number(raw.settlementAppliedCount) | 0),
       worldAdvancePresentedCount: Math.max(0, Number(raw.worldAdvancePresentedCount) | 0),
       worldAdvanceSettledCount: Math.max(0, Number(raw.worldAdvanceSettledCount) | 0),
@@ -218,6 +224,9 @@ window.Game = window.Game || {};
     const exactlyOncePass = evidence.settlementAppliedCount === 1
       && evidence.worldAdvancePresentedCount === 1
       && evidence.worldAdvanceSettledCount === 1;
+    const continuationStatePass = evidence.continuationStateValid === true
+      && evidence.presentedBranchId === evidence.branchId
+      && evidence.presentedWorldAdvanceId === snapshot.worldAdvanceId;
     return {
       schemaVersion: 1,
       testMode: true,
@@ -240,8 +249,12 @@ window.Game = window.Game || {};
       worldAdvanceSettledCount: evidence.worldAdvanceSettledCount,
       exactlyOncePass,
       continuationPathPass,
+      continuationStatePass,
+      continuationStateValid: evidence.continuationStateValid,
+      presentedBranchId: evidence.presentedBranchId,
+      presentedWorldAdvanceId: evidence.presentedWorldAdvanceId,
       answers: clone(evidence.answers),
-      overallPass: firstActionPass && cyclePass && comprehensionPass && continuationPathPass && exactlyOncePass,
+      overallPass: firstActionPass && cyclePass && comprehensionPass && continuationPathPass && continuationStatePass && exactlyOncePass,
     };
   }
 
@@ -256,6 +269,10 @@ window.Game = window.Game || {};
     const evidence = snapshot && snapshot.evidence;
     if (!TEST_MODE || !evidence) return;
     evidence.continuationPath = mode === "return" ? "return" : "foreground";
+    evidence.presentedBranchId = snapshot.branchId;
+    evidence.presentedWorldAdvanceId = snapshot.worldAdvanceId;
+    evidence.continuationStateValid = evidence.branchId === snapshot.branchId
+      && evidence.presentedWorldAdvanceId === snapshot.worldAdvanceId;
     evidence.worldAdvancePresentedCount += 1;
   }
 
@@ -477,7 +494,7 @@ window.Game = window.Game || {};
     )).join("");
     panel.innerHTML = `
       <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle">
-        <div class="stage7EvidenceBadge">Тест Stage 7.2 · ${evidence.questionIndex + 1}/${questions.length}</div>
+        <div class="stage7EvidenceBadge">Тест Stage 7.3 · ${evidence.questionIndex + 1}/${questions.length}</div>
         <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
         <div class="stage7EvidenceOptions">${options}</div>
       </div>`;
@@ -490,13 +507,14 @@ window.Game = window.Game || {};
     const interestLabels = { yes: "Да", unsure: "Пока не уверен", no: "Нет" };
     panel.innerHTML = `
       <div class="stage7EvidenceReport" role="dialog" aria-modal="true" aria-labelledby="stage7EvidenceReportTitle">
-        <div class="stage7EvidenceBadge">Тест Stage 7.2 завершён</div>
+        <div class="stage7EvidenceBadge">Тест Stage 7.3 завершён</div>
         <h2 id="stage7EvidenceReportTitle">Отчёт о первом цикле</h2>
         <div class="stage7EvidenceMetric"><span>Первое действие</span><strong>${Math.round(report.firstActionMs || 0)} мс ${status(report.firstActionPass)}</strong></div>
         <div class="stage7EvidenceMetric"><span>Полный цикл</span><strong>${Math.round(report.cycleMs || 0)} мс ${status(report.cyclePass)}</strong></div>
         <div class="stage7EvidenceMetric"><span>Понимание причин</span><strong>${report.comprehensionScore}/${report.comprehensionTotal} ${status(report.comprehensionPass)}</strong></div>
         <div class="stage7EvidenceMetric"><span>Продолжение</span><strong>${report.continuationPath || "нет"} ${status(report.continuationPathPass)}</strong></div>
         <div class="stage7EvidenceMetric"><span>Exactly once</span><strong>${report.settlementAppliedCount}/${report.worldAdvancePresentedCount}/${report.worldAdvanceSettledCount} ${status(report.exactlyOncePass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Причина сохранена</span><strong>${report.continuationStateValid ? "ветка и worldAdvanceId совпали" : "связь потеряна"} ${status(report.continuationStatePass)}</strong></div>
         <div class="stage7EvidenceMetric"><span>Хочется продолжения</span><strong>${interestLabels[report.continuationInterest] || "нет ответа"}</strong></div>
         <p class="stage7EvidenceOverall">Итог: ${status(report.overallPass)}</p>
         ${actionButton("Продолжить в мир", "finish-evidence-report")}
@@ -1049,5 +1067,7 @@ window.Game = window.Game || {};
     completeCycleTargetMs: COMPLETE_CYCLE_TARGET_MS,
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
+    continuationStateEvidence: true,
+    stage: "7.3",
   });
 })();

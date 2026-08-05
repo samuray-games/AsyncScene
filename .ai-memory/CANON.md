@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-05-1111-JST
-EXPECTED_REVISION: 2026-08-05-1111-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
+MEMORY_REVISION: 2026-08-05-1546-JST
+EXPECTED_REVISION: 2026-08-05-1546-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1546-JST
 
 ## Canon principles
 
@@ -36,7 +36,7 @@ NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Current accepted runtime implementation head is `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`.
+- Current accepted runtime implementation head is `f00317a022486566293b870f0540db5cbf1ef08c`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -54,6 +54,8 @@ NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
 - User testing must happen before world expansion. Hard criteria include first action and cycle-time targets, causal comprehension, three distinguishable continuations, visible reflection of the earlier choice, and no meaningful event without an explainable cause.
 - Stage 7.1 user acceptance passed in iPhone Safari after PR #282 merge `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db` and Pages build `1132995890`; the private-tab retest confirmed the legacy-save migration and repaired cache delivery.
 - Stage 7.2 is the observed core-loop evidence harness. It is enabled only by explicit test mode and must not alter normal-player behavior. It measures first-action time, complete-cycle time, branch choice, foreground/return path, and exactly-once continuation settlement, then records compact causal-comprehension and continuation-interest answers.
+- Stage 7.2 user-observed evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once counts 1/1/1, continuation interest `Да`. This does not establish population percentages or return-path coverage.
+- Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
 
 ## Protected facts
 
@@ -93,4 +95,4 @@ NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY`.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.

@@ -1,3 +1,10 @@
+## 2026-08-05 — Stage 7.2 user evidence and Stage 7.3 continuation-integrity slice
+- User-observed Stage 7.2 run is accepted for the tested foreground path: first meaningful action 22238 ms, complete cycle 64778 ms, causal comprehension 5/5, continuation foreground, exactly-once counts 1/1/1, continuation interest Да.
+- This is one user-run sample; population percentages and return-path coverage remain unestablished. Safari acceptance remains pending for the new Stage 7.3 runtime evidence.
+- Stage 7.3 atomic scope: in explicit test mode only, record and validate that the selected branch and worldAdvanceId remain stable when the continuation is presented. Normal-player behavior, settlement mechanics, and presentation-only scope remain unchanged.
+- Branch: codex/stage7-3-core-loop-evidence-20260805, baseline: f00317a022486566293b870f0540db5cbf1ef08c.
+- NEXT_ACTION: run required Actions/tests, review exact diff, open and merge PR, verify Pages, then request user Safari acceptance for Stage 7.3.
+
 ## 2026-08-02 - PR266 canon synchronization
 - PR #266 `docs: reconcile post-PR265 execution canon` is closed and merged through GitHub merge-commit flow as `7bdd59870df2f027eabc8f3e703955c522dcd819`.
 - Ordered merge parents: `9f85b7fd8e0231bec064b651677e114e5e9bfc02` then `846cfe9a9e459e83bb7c0cfbe5b3294ff436835a`.

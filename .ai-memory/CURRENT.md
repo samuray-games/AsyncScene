@@ -1,13 +1,13 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-05-1111-JST
-NOTION_MEMORY_REV: 2026-08-05-1111-JST
-CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_OBSERVED_EVIDENCE_HARNESS_NEXT
-ACTIVE_TASK: STAGE7_ACCEPTED_MEMORY_SYNC_THEN_STAGE7_2_TEST_HARNESS
+MEMORY_REV: 2026-08-05-1546-JST
+NOTION_MEMORY_REV: 2026-08-05-1546-JST
+CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_USER_EVIDENCE_PASS / FOREGROUND_PATH_CONFIRMED / STAGE7_3_SELECTION_REQUIRED
+ACTIVE_TASK: STAGE7_3_RETURN_CONTINUITY_EVIDENCE
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: f00317a022486566293b870f0540db5cbf1ef08c
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: f00317a022486566293b870f0540db5cbf1ef08c
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: f00317a022486566293b870f0540db5cbf1ef08c
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -36,11 +36,13 @@ PR282_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 STAGE7_1_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_TAB
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
-NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY
+MEMORY_SYNC_BRANCH: codex/stage7-3-core-loop-evidence-20260805
+STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
+STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
+NEXT_ACTION: IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; GitHub Pages build `1132995890` published the accepted iPhone Safari flow.
+Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; the Stage 7.2 harness is at `f00317a022486566293b870f0540db5cbf1ef08c` and its foreground sample is user-observed.
 
-The next atomic runtime task is Stage 7.2 observed core-loop evidence. Explicit test mode only: measure first-action and cycle timing, branch choice, foreground/return path, exactly-once settlement, causal comprehension, and continuation interest while leaving normal-player behavior unchanged.
+The next atomic runtime task is Stage 7.3 continuation-integrity evidence. Explicit test mode only: verify selected branch and worldAdvanceId stability through continuation presentation while leaving normal-player behavior unchanged.

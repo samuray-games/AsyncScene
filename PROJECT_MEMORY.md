@@ -1,13 +1,13 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-08-05-1111-JST
-NOTION_MEMORY_REV: 2026-08-05-1111-JST
+REPO_MEMORY_REV: 2026-08-05-1546-JST
+NOTION_MEMORY_REV: 2026-08-05-1546-JST
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: f00317a022486566293b870f0540db5cbf1ef08c
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: f00317a022486566293b870f0540db5cbf1ef08c
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: f00317a022486566293b870f0540db5cbf1ef08c
 ROOT_STATUS: STAGE7_ACTIVE
-CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_OBSERVED_EVIDENCE_HARNESS_NEXT
+CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_USER_EVIDENCE_PASS / FOREGROUND_PATH_CONFIRMED / STAGE7_3_SELECTION_REQUIRED
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -50,8 +50,10 @@ PR_282_STAGE7_1_LEGACY_RESUME_FIX_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe
 STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 LIVE_UI_MENU_GIT_BLOB_SHA1: 73cd833d3950b5356300bc3d09c1c8c5c8ef5e87
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
-NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY
+MEMORY_SYNC_BRANCH: codex/stage7-3-core-loop-evidence-20260805
+STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
+STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
+NEXT_ACTION: IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY
 
 ## Canonical cross-chat bootstrap
 
@@ -61,8 +63,8 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository implementation evidence is current through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`. Stage 6 remains complete and accepted. Stage 7.0 and Stage 7.1 are complete and user-accepted. The first causal conflict, legacy-save migration, freedom card, and exactly-once foreground/return world advance are live on GitHub Pages.
+Repository implementation evidence is current through `f00317a022486566293b870f0540db5cbf1ef08c`. Stage 6 remains complete and accepted. Stage 7.0 and Stage 7.1 are complete and user-accepted. The first causal conflict, legacy-save migration, freedom card, and exactly-once foreground/return world advance are live on GitHub Pages.
 
-The next product task is Stage 7.2 observed core-loop evidence, not world expansion. An explicit test mode must measure first-action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement, then collect compact causal-comprehension and continuation-interest answers without changing normal-player behavior.
+Stage 7.2 user-observed evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once counts 1/1/1, continuation interest Да. This does not establish population percentages or return-path coverage. Stage 7.3 adds explicit-test-mode evidence that the selected branch and worldAdvanceId remain causally stable through continuation presentation.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.

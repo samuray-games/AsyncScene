@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-05-1111-JST
-EXPECTED_REVISION: 2026-08-05-1111-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
+MEMORY_REVISION: 2026-08-05-1546-JST
+EXPECTED_REVISION: 2026-08-05-1546-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1546-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`. The active documentation-maintenance branch is `chatgpt/stage7-accepted-memory-sync-20260805`. The exact next product action is `IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `f00317a022486566293b870f0540db5cbf1ef08c`. The active implementation branch is `codex/stage7-3-core-loop-evidence-20260805`. Stage 7.2 user evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once 1/1, continuation interest `Да`. The exact next product action is `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -68,14 +68,15 @@ After every accepted remote state change:
 
 1. Enforce the product freeze until observed user evidence proves the causal core loop.
 2. Stage 7.1 is complete and user-accepted through `main@1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; do not reopen it without a concrete regression.
-3. Before world expansion, implement one atomic Stage 7.2 observed-evidence harness behind explicit test mode only.
-4. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
-5. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
-6. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
-7. Collect one continuation-interest answer without forcing a positive response or changing settlement.
-8. Produce one deterministic developer report with thresholds, raw answers, pass/fail fields, and no network transmission.
-9. Source and deployed mirrors, persistence, settlement traceability, and Safari acceptance remain mandatory.
-10. World expansion remains frozen until the evidence harness can produce observed results.
+3. Stage 7.2 observed-evidence harness is merged and one foreground Safari sample is user-accepted; do not claim population coverage or return-path acceptance.
+4. Implement one atomic Stage 7.3 continuation-integrity evidence slice behind explicit test mode only.
+5. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
+6. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
+7. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
+8. Collect one continuation-interest answer without forcing a positive response or changing settlement.
+9. Produce one deterministic developer report with thresholds, raw answers, pass/fail fields, and no network transmission.
+10. Source and deployed mirrors, persistence, settlement traceability, and Safari acceptance remain mandatory.
+11. World expansion remains frozen until the evidence harness can produce observed results.
 
 ## Local plugin installation and parity workflow
 
