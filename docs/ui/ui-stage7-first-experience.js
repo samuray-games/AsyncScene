@@ -25,36 +25,36 @@ window.Game = window.Game || {};
   const RESPONSE_IDS = ["deny", "accuse_ken", "pay"];
   const PRELUDE = [
     { id: "room_entered", at: 1000, name: "System", text: "Ты вошёл в комнату.", system: true },
-    { id: "mika_missing_money", at: 3500, name: "Мика", text: "Из общей кассы пропали деньги." },
+    { id: "mika_missing_money", at: 3500, name: "Настя", text: "Из общей кассы пропали деньги." },
     { id: "oleg_context", at: 6500, name: "Олег", text: "Пропажу заметили ещё до появления новичка?" },
-    { id: "ken_hint", at: 9500, name: "Кен", text: "Новичок пришёл - и деньги исчезли. Странное совпадение." },
-    { id: "mika_brake", at: 12500, name: "Мика", text: "Без доказательств никого не обвиняем." },
-    { id: "ken_accusation", at: 15000, name: "Кен", text: "Это сделал ты. Деньги пропали после твоего появления." },
+    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл - и деньги исчезли. Странное совпадение." },
+    { id: "mika_brake", at: 12500, name: "Настя", text: "Без доказательств никого не обвиняем." },
+    { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты. Деньги пропали после твоего появления." },
   ];
   const BRANCHES = {
     deny: {
       id: "deny",
       label: "Отрицать",
       player: "Я ничего не крал.",
-      reaction: "Кен не показал доказательств. Остальные должны решить, кому верить.",
+      reaction: "Райхан не показал доказательств. Остальные должны решить, кому верить.",
       result: "Большинство встало на твою сторону.",
-      consequence: "Репутация выросла. Кен потерял поддержку.",
+      consequence: "Репутация выросла. Райхан потерял поддержку.",
       vote: [1, 0, 1, 1, 0],
-      change: "Кен убедил одного человека поддержать его.",
+      change: "Райхан убедил одного человека поддержать его.",
       cause: "После твоего отрицания он начал искать подтверждение своей версии.",
-      hook: "Мика просит доказательство. Сначала ответить ей или поговорить с Олегом?",
+      hook: "Настя просит доказательство. Сначала ответить ей или поговорить с Олегом?",
     },
     accuse_ken: {
       id: "accuse_ken",
-      label: "Обвинить Кена",
-      player: "Это Кен пытается свалить кражу на меня.",
+      label: "Обвинить Райхана",
+      player: "Это Райхан пытается свалить кражу на меня.",
       reaction: "Теперь вы обвиняете друг друга. Остальные должны решить, кому верить.",
       result: "Большинство встало на твою сторону.",
       consequence: "Репутация выросла. Конфликт обострился.",
       vote: [0, 1, 1, 0, 1],
-      change: "Кен объявил, что добьётся публичного реванша.",
+      change: "Райхан объявил, что добьётся публичного реванша.",
       cause: "Твоё встречное обвинение превратило спор в личную борьбу.",
-      hook: "Подготовить доказательства или попытаться лишить Кена поддержки?",
+      hook: "Подготовить доказательства или попытаться лишить Райхана поддержки?",
     },
     pay: {
       id: "pay",
@@ -66,7 +66,7 @@ window.Game = window.Game || {};
       vote: [1, 0, 0, 1, 1],
       change: "Олег рассказал другим, что на тебя можно давить.",
       cause: "Ты заплатил, чтобы закрыть ущерб, и он запомнил этот способ.",
-      hook: "Объясниться с Микой или потребовать от Олега молчания?",
+      hook: "Объясниться с Настей или потребовать от Олега молчания?",
     },
   };
 
@@ -558,8 +558,8 @@ window.Game = window.Game || {};
     const startNpcPoints = G.Data && Number.isFinite(G.Data.START_POINTS_NPC)
       ? (G.Data.START_POINTS_NPC | 0)
       : (G.Data && Number.isFinite(G.Data.POINTS_START_NPC) ? (G.Data.POINTS_START_NPC | 0) : 10);
-    if (!S.players.npc_stage7_ken) S.players.npc_stage7_ken = { id: "npc_stage7_ken", name: "Кен", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
-    if (!S.players.npc_stage7_mika) S.players.npc_stage7_mika = { id: "npc_stage7_mika", name: "Мика", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
+    if (!S.players.npc_stage7_ken) S.players.npc_stage7_ken = { id: "npc_stage7_ken", name: "Райхан", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
+    if (!S.players.npc_stage7_mika) S.players.npc_stage7_mika = { id: "npc_stage7_mika", name: "Настя", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
     if (!S.players.npc_bandit) S.players.npc_bandit = { id: "npc_bandit", name: "Олег", role: "bandit", npc: true, points: startNpcPoints, meta: {} };
     ["npc_stage7_ken", "npc_stage7_mika", "npc_bandit"].forEach((id) => {
       const player = S.players[id];
@@ -655,7 +655,7 @@ window.Game = window.Game || {};
     return `<div class="stage7VoteRow" aria-label="Пять голосов">${branch.vote.map((side, index) => {
       const resolved = index < snapshot.voteStep;
       const cls = !resolved ? "pending" : (side ? "player" : "ken");
-      const text = !resolved ? "•" : (side ? "За тебя" : "За Кена");
+      const text = !resolved ? "•" : (side ? "За тебя" : "За Райхана");
       return `<span class="stage7VoteMarker ${cls}" data-vote-index="${index}">${text}</span>`;
     }).join("")}</div>`;
   }
