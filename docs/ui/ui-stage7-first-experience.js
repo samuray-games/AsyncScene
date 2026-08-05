@@ -1455,6 +1455,13 @@ window.Game = window.Game || {};
           || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
         ))
         : null;
+      if (bridge.status === "created" && resumedBattle) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        syncRealArgumentBattleLifecycle();
+        return { claimed: true, mode: "battle_bridge_active_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
       if (bridge.status === "created" && !resumedBattle) {
         bridge.status = "pending";
         bridge.battleId = null;
@@ -1492,6 +1499,13 @@ window.Game = window.Game || {};
           || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
         ))
         : null;
+      if (bridge.status === "created" && resumedBattle) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        syncRealArgumentBattleLifecycle();
+        return { claimed: true, mode: "battle_bridge_active_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
       if (bridge.status === "created" && !resumedBattle) {
         bridge.status = "pending";
         bridge.battleId = null;
