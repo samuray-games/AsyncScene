@@ -54,6 +54,8 @@ new_harness = (
     "    assert \"STAGE7_9_DENY_EVIDENCE_PAYOFF_DYNAMIC_OK\" in completed.stdout\n"
     "finally:\n"
 )
+old_finish = 'console.log("STAGE7_9_DENY_EVIDENCE_PAYOFF_DYNAMIC_OK");\n'
+new_finish = 'Game.Stage7FirstExperience.destroy();\nconsole.log("STAGE7_9_DENY_EVIDENCE_PAYOFF_DYNAMIC_OK");\n'
 
 anchors = [
     ("open", old_open, new_open),
@@ -61,6 +63,7 @@ anchors = [
     ("helper", old_helper, new_helper),
     ("identity", old_identity, new_identity),
     ("harness", old_harness, new_harness),
+    ("finish", old_finish, new_finish),
 ]
 for label, old, _ in anchors:
     if text.count(old) != 1:
