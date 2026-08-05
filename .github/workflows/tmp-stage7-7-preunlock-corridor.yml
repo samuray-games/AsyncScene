@@ -23,8 +23,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Repair temporary patcher
+        run: python tools/tmp_fix_stage7_7_patcher.py
       - name: Apply Stage 7.7 corridor patch
         run: python tools/tmp_stage7_7_preunlock_corridor_patch.py
+      - name: Restore committed patcher
+        run: git checkout -- tools/tmp_stage7_7_preunlock_corridor_patch.py
       - name: Run focused regression
         run: python tools/test_stage7_7_preunlock_corridor.py
       - name: Validate exact generated scope
