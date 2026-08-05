@@ -68,6 +68,36 @@ window.Game = window.Game || {};
     },
   };
 
+  const BRANCH_FOLLOW_UPS = {
+    deny: {
+      title: "Доказательство у тебя",
+      prompt: "Настя ждёт доказательство. Что сделать сейчас?",
+      primaryLabel: "Показать доказательство",
+      secondaryLabel: "Оставить при себе",
+      memoryTarget: "npc_stage7_mika",
+      primaryMemory: { evidenceShared: 1 },
+      secondaryMemory: { evidenceHeld: 1 },
+    },
+    accuse_ken: {
+      title: "Конфликт не закончился",
+      prompt: "Райхан требует продолжения. Как поступить?",
+      primaryLabel: "Принять реванш",
+      secondaryLabel: "Потребовать свидетеля",
+      memoryTarget: "npc_stage7_ken",
+      primaryMemory: { publicRematchAccepted: 1 },
+      secondaryMemory: { witnessRequested: 1 },
+    },
+    pay: {
+      title: "Оплата не закрыла вопрос",
+      prompt: "Олег понял, что на тебя можно давить. Что сделать сейчас?",
+      primaryLabel: "Потребовать расписку",
+      secondaryLabel: "Оставить всё как есть",
+      memoryTarget: "npc_bandit",
+      primaryMemory: { receiptDemanded: 1 },
+      secondaryMemory: { pressureIgnored: 1 },
+    },
+  };
+
   let context = null;
   let snapshot = null;
   let scheduler = null;
@@ -303,6 +333,9 @@ window.Game = window.Game || {};
       worldAdvanceSettled: false,
       worldAdvancePresented: false,
       worldAdvancePresentationMode: null,
+      branchFollowUpPending: false,
+      followUpChoiceId: null,
+      followUpSettled: false,
       lastHiddenAt: null,
       npcMemory: {},
       evidence: defaultEvidence(),
@@ -332,6 +365,10 @@ window.Game = window.Game || {};
       awaitingWorldAdvance: raw.awaitingWorldAdvance === true,
       worldAdvanceSettled: raw.worldAdvanceSettled === true && typeof raw.worldAdvanceId === "string" && raw.worldAdvanceId.length > 0,
       worldAdvancePresented: raw.worldAdvancePresented === true,
+      branchFollowUpPending: raw.branchFollowUpPending === true,
+      followUpChoiceId: ["primary", "secondary"].includes(raw.followUpChoiceId) ? raw.followUpChoiceId : null,
+      followUpSettled: raw.followUpSettled === true
+        || (raw.worldAdvanceSettled === true && !Object.prototype.hasOwnProperty.call(raw, "branchFollowUpPending")),
       freedomCardShown: raw.freedomCardShown === true,
       freedomCardDismissed: raw.freedomCardDismissed === true,
       npcMemory: raw.npcMemory && typeof raw.npcMemory === "object" ? raw.npcMemory : {},
@@ -522,6 +559,21 @@ window.Game = window.Game || {};
       </div>`;
   }
 
+  function renderBranchFollowUp(panel) {
+    const offer = BRANCH_FOLLOW_UPS[snapshot && snapshot.branchId];
+    if (!offer) return;
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp">
+        <h2>${offer.title}</h2>
+        <p>${offer.prompt}</p>
+        <div class="stage7ChoiceGrid">
+          ${actionButton(offer.primaryLabel, "resolve-branch-follow-up", 'data-follow-up="primary"')}
+          ${actionButton(offer.secondaryLabel, "resolve-branch-follow-up", 'data-follow-up="secondary"')}
+        </div>
+        <div class="stage7Support">Этот выбор сохранится и повлияет на дальнейшие реакции.</div>
+      </div>`;
+  }
+
   function render() {
     if (!snapshot) return;
     const panel = ensurePanel();
@@ -557,8 +609,15 @@ window.Game = window.Game || {};
     }
 
     panel.hidden = false;
-    const controlled = snapshot.stateId !== "main_unlocked" || !snapshot.freedomCardDismissed;
+    const controlled = snapshot.stateId !== "main_unlocked"
+      || !snapshot.freedomCardDismissed
+      || snapshot.branchFollowUpPending;
     setControlledMode(controlled);
+
+    if (snapshot.branchFollowUpPending && !snapshot.followUpSettled) {
+      renderBranchFollowUp(panel);
+      return;
+    }
 
     if (snapshot.stateId === "main_unlocked") {
       if (!snapshot.freedomCardDismissed) {
@@ -752,6 +811,8 @@ window.Game = window.Game || {};
     snapshot.awaitingWorldAdvance = false;
     snapshot.worldAdvanceSettled = true;
     snapshot.worldAdvancePresented = false;
+    snapshot.branchFollowUpPending = true;
+    snapshot.followUpSettled = false;
     if (TEST_MODE && snapshot.evidence) {
       snapshot.evidence.worldAdvanceSettledCount += 1;
       if (deferRelease) {
@@ -762,14 +823,37 @@ window.Game = window.Game || {};
     }
     saveSnapshot();
     telemetry("first_experience.world_advance_settled", { worldAdvanceId: snapshot.worldAdvanceId });
+    telemetry("first_experience.branch_follow_up_presented", { branchId: snapshot.branchId });
     if (deferRelease) {
       if (snapshot.evidence) snapshot.evidence.finalReport = getObservedEvidenceReport();
       saveSnapshot();
       render();
       return true;
     }
-    releaseNormalWorldOnce();
+    render();
     return true;
+  }
+
+  function settleBranchFollowUp(choiceId) {
+    if (!snapshot || !snapshot.branchFollowUpPending || snapshot.followUpSettled) return;
+    const offer = BRANCH_FOLLOW_UPS[snapshot.branchId];
+    if (!offer || !["primary", "secondary"].includes(choiceId)) return;
+    const memory = choiceId === "primary" ? offer.primaryMemory : offer.secondaryMemory;
+    snapshot.followUpChoiceId = choiceId;
+    snapshot.followUpSettled = true;
+    snapshot.branchFollowUpPending = false;
+    snapshot.npcMemory[offer.memoryTarget] = Object.assign(
+      {},
+      snapshot.npcMemory[offer.memoryTarget] || {},
+      memory
+    );
+    saveSnapshot();
+    telemetry("first_experience.branch_follow_up_settled", {
+      branchId: snapshot.branchId,
+      choiceId,
+    });
+    render();
+    releaseNormalWorldOnce();
   }
 
   function runAction(action, button) {
@@ -858,8 +942,11 @@ window.Game = window.Game || {};
       snapshot.evidence.reportDismissed = true;
       saveSnapshot();
       telemetry("stage7_evidence.report_dismissed", { overallPass: !!(getObservedEvidenceReport() || {}).overallPass });
-      releaseNormalWorldOnce();
-    } else if (action === "ack-world-advance" && snapshot.worldAdvancePresented) {
+      if (snapshot.branchFollowUpPending && !snapshot.followUpSettled) render();
+      else releaseNormalWorldOnce();
+    } else if (action === "resolve-branch-follow-up" && snapshot.branchFollowUpPending && !snapshot.followUpSettled) {
+      settleBranchFollowUp(button && button.getAttribute("data-follow-up"));
+    } else if (action === "ack-world-advance" && snapshot.worldAdvancePresented && !snapshot.worldAdvanceSettled) {
       acknowledgeWorldAdvance();
     }
   }
@@ -937,7 +1024,7 @@ window.Game = window.Game || {};
 
   function claimFreshStart(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled && !hasPendingEvidenceReport(existing)) {
+    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -950,7 +1037,7 @@ window.Game = window.Game || {};
 
   function claimResume(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled && !hasPendingEvidenceReport(existing)) {
+    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -985,7 +1072,7 @@ window.Game = window.Game || {};
 
   function isPending() {
     const current = snapshot || loadSnapshot();
-    return !!(current && !current.worldAdvanceSettled);
+    return !!(current && (!current.worldAdvanceSettled || current.branchFollowUpPending));
   }
 
   function getSnapshot() {
