@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "fa61092e8f5a37a77d86b63699081e7c6b2f04bb\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "# branch.oid fa61092e8f5a37a77d86b63699081e7c6b2f04bb\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "fa61092e (HEAD -> main, origin/main) docs: record superseding Stage 7 onboarding flow (#291)\nec0912fa feat: show later reaction to Stage 7 follow-up (#290)\nb920f417 docs: record accepted Stage 7.5 Safari gate (#289)\ne43f3490 docs: sync Stage 7.5 repository memory (#288)\ncfe567e2 (origin/chatgpt/stage7-5-memory-sync-20260805) docs: sync Stage 7.5 repository memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fa61092e8f5a37a77d86b63699081e7c6b2f04bb\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:50:19Z",
+      "stderr": "",
+      "stdout": "fa61092e8f5a37a77d86b63699081e7c6b2f04bb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fa61092e8f5a37a77d86b63699081e7c6b2f04bb",
+  "observedAtUtc": "2026-08-05T13:50:19Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
