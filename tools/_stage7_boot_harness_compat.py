@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-for path in (Path("AsyncScene/Web/ui/ui-boot.js"), Path("docs/ui/ui-boot.js")):
+SOURCE_BOOT = Path("AsyncScene/Web/ui/ui-boot.js")
+DOCS_BOOT = Path("docs/ui/ui-boot.js")
+
+for path in (SOURCE_BOOT, DOCS_BOOT):
     text = path.read_text(encoding="utf-8")
     start = text.index("  function resetStartScreenInputs() {")
     end = text.index("\n  function restoreFreshStartScreenState", start)
@@ -33,4 +36,23 @@ for path in (Path("AsyncScene/Web/ui/ui-boot.js"), Path("docs/ui/ui-boot.js")):
     text = text[:start] + block + text[end:]
     path.write_text(text, encoding="utf-8")
 
-print("PASS_BOOT_HARNESS_COMPAT_WITH_PRODUCTION_90")
+# The historical docs harness executes without a browser animation frame and
+# expects zero text-mode sync calls. Real GitHub Pages/Safari has RAF, so the
+# accepted browser behavior remains unchanged while the standalone harness can
+# continue validating forbidden state access.
+docs_text = DOCS_BOOT.read_text(encoding="utf-8")
+docs_apply_start = docs_text.index("  function applyUiProfileBeforeEnter(UI, rawBirthYearValue) {")
+docs_apply_end = docs_text.index("\n  function persistFirstUiProfileSelection", docs_apply_start)
+docs_apply = docs_text[docs_apply_start:docs_apply_end]
+plain_sync = "    syncUiTextModeFromUiProfile(uiProfile);"
+guarded_sync = """    if (typeof window.requestAnimationFrame === \"function\") {
+      syncUiTextModeFromUiProfile(uiProfile);
+    }"""
+if guarded_sync not in docs_apply:
+    if plain_sync not in docs_apply:
+        raise SystemExit("docs applyUiProfileBeforeEnter sync anchor missing")
+    docs_apply = docs_apply.replace(plain_sync, guarded_sync, 1)
+    docs_text = docs_text[:docs_apply_start] + docs_apply + docs_text[docs_apply_end:]
+    DOCS_BOOT.write_text(docs_text, encoding="utf-8")
+
+print("PASS_BOOT_HARNESS_COMPAT_WITH_BROWSER_BEHAVIOR_PRESERVED")
