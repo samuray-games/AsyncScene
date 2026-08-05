@@ -220,6 +220,7 @@ window.Game = window.Game || {};
   let visibilityBound = false;
   let lastIntermissionSecond = null;
   let realBattleBridgeTimer = null;
+  let realBattleBridgeInFlight = false;
 
   function clone(value) {
     try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
@@ -1079,6 +1080,9 @@ window.Game = window.Game || {};
     if (!snapshot || !snapshot.onboardingUnlocked) return false;
     const bridge = getBridgeState();
     if (!bridge || bridge.status !== "pending") return bridge && bridge.status === "created";
+    if (realBattleBridgeInFlight) return true;
+    realBattleBridgeInFlight = true;
+    try {
 
     const existing = findExistingRealBattle();
     if (existing) return adoptRealBattle(existing);
@@ -1128,6 +1132,9 @@ window.Game = window.Game || {};
       reason: bridge.lastFailureReason,
     });
     return false;
+    } finally {
+      realBattleBridgeInFlight = false;
+    }
   }
 
   function scheduleRealArgumentBattleBridge() {
@@ -1412,7 +1419,23 @@ window.Game = window.Game || {};
     const existing = loadSnapshot();
     if (existing && existing.onboardingUnlocked) {
       const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      const resumeState = nextContext && nextContext.state
+        ? nextContext.state
+        : (G.__S || G.State || null);
+      const resumedBattle = resumeState && Array.isArray(resumeState.battles)
+        ? resumeState.battles.find((battle) => battle && (
+          (battle.meta && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID)
+          || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
+        ))
+        : null;
+      if (bridge.status === "created" && !resumedBattle) {
+        bridge.status = "pending";
+        bridge.battleId = null;
+        bridge.attemptCount = 0;
+        bridge.lastFailureReason = "created_battle_missing_after_resume";
+      }
       if (bridge.status === "pending") {
+        bridge.attemptCount = 0;
         snapshot = Object.assign(existing, { realBattleBridge: bridge });
         attach(nextContext);
         releaseNormalWorldOnce();
@@ -1433,7 +1456,23 @@ window.Game = window.Game || {};
     const existing = loadSnapshot();
     if (existing && existing.onboardingUnlocked) {
       const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      const resumeState = nextContext && nextContext.state
+        ? nextContext.state
+        : (G.__S || G.State || null);
+      const resumedBattle = resumeState && Array.isArray(resumeState.battles)
+        ? resumeState.battles.find((battle) => battle && (
+          (battle.meta && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID)
+          || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
+        ))
+        : null;
+      if (bridge.status === "created" && !resumedBattle) {
+        bridge.status = "pending";
+        bridge.battleId = null;
+        bridge.attemptCount = 0;
+        bridge.lastFailureReason = "created_battle_missing_after_resume";
+      }
       if (bridge.status === "pending") {
+        bridge.attemptCount = 0;
         snapshot = Object.assign(existing, { realBattleBridge: bridge });
         attach(nextContext);
         releaseNormalWorldOnce();
@@ -1546,6 +1585,7 @@ window.Game = window.Game || {};
     scheduler = null;
     voteTimer = null;
     realBattleBridgeTimer = null;
+    realBattleBridgeInFlight = false;
     context = null;
     lastTickAt = 0;
     nextPreludeEligibleAt = 0;

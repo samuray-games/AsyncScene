@@ -37,6 +37,7 @@ assert "snapshot.onboardingUnlocked = true" in source
 assert "releaseNormalWorldOnce();" in source
 assert "conflict.incoming(REAL_BATTLE_OPPONENT_ID" in source
 assert "stage7OnboardingBridgeId" in source
+assert "realBattleBridgeInFlight" in source
 for stale in [
     "FOLLOW_UP_REACTION_DELAY_MS",
     "presentFollowUpReaction",
@@ -111,6 +112,7 @@ global.document = {
 
 let normalWorldStarts = 0;
 let incomingCalls = 0;
+let reentrantBridgeProbe = false;
 const visibleLines = [];
 const state = {
   me: { id: "me", points: 20 },
@@ -145,7 +147,11 @@ const UI = {
   S: state,
   pushSystem(text) { visibleLines.push({ system: true, text }); },
   pushChat(entry) { visibleLines.push(entry); },
-  requestRenderAll() {},
+  requestRenderAll() {
+    if (reentrantBridgeProbe && Game.__DEV && typeof Game.__DEV.runStage7RealArgumentBattleBridge === "function") {
+      Game.__DEV.runStage7RealArgumentBattleBridge();
+    }
+  },
   renderAll() {},
 };
 const context = {
@@ -200,7 +206,9 @@ for (let i = 0; i < 5; i += 1) {
   assert.strictEqual(dev.answerStage7CurrentQuestionCorrect(), true);
   assert.strictEqual(normalWorldStarts, 0, "world unlocked before sixth question");
 }
+reentrantBridgeProbe = true;
 assert.strictEqual(dev.answerStage7CurrentQuestionCorrect(), true);
+reentrantBridgeProbe = false;
 snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.onboardingUnlocked, true);
 assert.strictEqual(snap.stateId, "main_unlocked");
@@ -238,10 +246,23 @@ snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.realBattleBridge.status, "created");
 assert.strictEqual(snap.realBattleBridge.battleId, "stage7_real_battle_1");
 assert.strictEqual(incomingCalls, 1, "existing bridge battle was duplicated");
+const createdButMissing = JSON.parse(storage.get(storageKey));
+createdButMissing.realBattleBridge.status = "created";
+createdButMissing.realBattleBridge.battleId = "stage7_real_battle_1";
+storage.set(storageKey, JSON.stringify(createdButMissing));
+state.battles.length = 0;
+Game.Stage7FirstExperience.destroy();
+const recreated = Game.Stage7FirstExperience.claimResume(context);
+assert.strictEqual(recreated.claimed, true, "missing created battle was not recovered");
+snap = dev.getStage7FirstExperienceSnapshot();
+assert.strictEqual(incomingCalls, 2, "missing battle was not recreated exactly once");
+assert.strictEqual(state.battles.length, 1);
+assert.strictEqual(snap.realBattleBridge.status, "created");
+assert.strictEqual(snap.realBattleBridge.battleId, "stage7_real_battle_2");
 Game.Stage7FirstExperience.destroy();
 const resumed = Game.Stage7FirstExperience.claimResume(context);
 assert.strictEqual(resumed.claimed, false, "completed corridor replayed after bridge recovery");
-assert.strictEqual(incomingCalls, 1);
+assert.strictEqual(incomingCalls, 2);
 
 Game.__DEV.resetStage7FirstExperience();
 Game.Stage7FirstExperience.claimFreshStart(context);
