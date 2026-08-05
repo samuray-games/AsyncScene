@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-05-1924-JST
-EXPECTED_REVISION: 2026-08-05-1924-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
+MEMORY_REVISION: 2026-08-05-2229-JST
+EXPECTED_REVISION: 2026-08-05-2229-JST
+NOTION_MEMORY_REVISION: 2026-08-05-2229-JST
 
 ## Canon principles
 
@@ -15,6 +15,16 @@ NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 - The canonical live cross-chat bootstrap is the Notion page `ASYNCHRONIA - PROJECT MEMORY`, which must remain synchronized with accepted remote state when authorized.
 - Every current-state summary must include the exact next action required to advance the project.
 - The assistant uses masculine grammatical self-reference in Asynchronia project communication.
+
+## Superseding Stage 7 onboarding flow
+
+- The user-approved sequence is first scripted conflict -> locked three-NPC intermission -> second scripted round -> six-question gate -> full unlock -> immediate Райхан injection -> first real argument battle -> seamless normal play.
+- The full game must remain locked after round one. Exactly three NPCs are available for lightweight interaction during the existing approximately 45-second foreground or leave/return interval.
+- Round two starts exactly once when the interval expires or the player returns after it is due.
+- The six questions occur only after round two. Full systems unlock only after questionnaire completion.
+- The post-unlock Райхан injection must create a real incoming conflict through `Game.Conflict.incoming(opponentId, opts)` and use the existing argument picker and resolution UI. Another scripted imitation is forbidden.
+- Existing Stage 7.6 follow-up and later-reaction behavior was merged at `ec0912fa63c820881498a926676d9f0cbc3c7516` but superseded before Safari acceptance. It must be removed, repurposed, or migrated rather than stacked beside the new onboarding.
+- Preserve accepted first-round branching, persistence, exactly-once behavior, branchId/worldAdvanceId continuity, foreground/return semantics, and old-save migration.
 
 ## Accepted Stage 7.5 product slice
 
@@ -43,7 +53,7 @@ NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Current accepted runtime implementation head is `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`.
+- Latest merged runtime implementation head is `ec0912fa63c820881498a926676d9f0cbc3c7516`. Latest user-accepted runtime remains `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` because Stage 7.6 was superseded before its Safari gate.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -65,7 +75,7 @@ NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 - Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
 - Stage 7.4 user acceptance covers the nickname field, nickname usage, visible names `Райхан` and `Настя`, return copy, and the explanation before the six-question gate.
 - Stage 7.5 user acceptance covers the branch-derived follow-up choice, persistence into target NPC memory, release ordering, and no replay after refresh.
-- Stage 7.6 must make the saved primary or secondary follow-up choice cause one visibly different later world reaction, exactly once and refresh-safe, without broad subsystem expansion.
+- Stage 7.6 later-reaction implementation is historical merged evidence only and is not the active onboarding contract. The active next slice is the locked three-NPC intermission and exactly-once transition to round two.
 
 ## Protected facts
 
@@ -105,4 +115,4 @@ NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE`.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_7_LOCKED_THREE_NPC_INTERMISSION_AND_SECOND_ROUND_TRIGGER`.

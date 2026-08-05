@@ -1,13 +1,14 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-08-05-1924-JST
-NOTION_MEMORY_REV: 2026-08-05-1924-JST
+REPO_MEMORY_REV: 2026-08-05-2229-JST
+NOTION_MEMORY_REV: 2026-08-05-2229-JST
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e43f34900db30294b596608f58e88ff16726bf71
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: ec0912fa63c820881498a926676d9f0cbc3c7516
 CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
 ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 7a75edea6619d9a55bf2eff8a6d1838cb3edc82f
+LATEST_MERGED_RUNTIME_HEAD: ec0912fa63c820881498a926676d9f0cbc3c7516
 ROOT_STATUS: STAGE7_ACTIVE
-CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_5_USER_ACCEPTED_COMPLETE / REPOSITORY_MEMORY_SYNCED / STAGE7_6_VISIBLE_LATER_REACTION_NEXT
+CURRENT_STATUS: STAGE7_ACTIVE / ONBOARDING_FLOW_REDESIGN_ACCEPTED / REPOSITORY_MEMORY_SYNCED / LIMITED_THREE_NPC_INTERMISSION_NEXT
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -27,6 +28,7 @@ STAGE_7_0_FEATURE_MERGE: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 STAGE_7_0_PRESTART_FIX_MERGE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
 STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
 STAGE_7_5: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
+STAGE_7_6: MERGED / SUPERSEDED_BEFORE_SAFARI_ACCEPTANCE
 POST_CONFLICT_FREEDOM_CARD: IMPLEMENTED / USER_SAFARI_ACCEPTANCE_PASS
 POST_CONFLICT_FREEDOM_CARD_TITLE: Мир живёт дальше
 POST_CONFLICT_FREEDOM_CARD_BODY: Первый конфликт завершён. Можешь продолжить исследовать игру или заняться своими делами. Мир будет жить дальше и меняться из-за твоего выбора, даже когда тебя нет в игре. Когда вернёшься, увидишь, к чему всё привело.
@@ -53,7 +55,7 @@ LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
 MEMORY_SYNC_BRANCH: chatgpt/stage7-5-acceptance-memory-sync-20260805
 STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
 STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
-NEXT_ACTION: SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE
+NEXT_ACTION: IMPLEMENT_STAGE7_7_LOCKED_THREE_NPC_INTERMISSION_AND_SECOND_ROUND_TRIGGER
 
 ## Canonical cross-chat bootstrap
 
@@ -63,8 +65,10 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository implementation evidence is current through runtime `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` with repository memory baseline `e43f34900db30294b596608f58e88ff16726bf71`. Stage 6 remains complete and accepted. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. The first causal conflict, legacy-save migration, freedom card, exactly-once foreground/return world advance, personalization, and branch-derived follow-up choice are live on GitHub Pages.
+Repository implementation evidence is current through merged runtime `ec0912fa63c820881498a926676d9f0cbc3c7516`. Stage 6 remains complete and accepted. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. Stage 7.6 merged a later follow-up reaction but was superseded before Safari acceptance by the explicit onboarding redesign below.
 
-Stage 7.2 user-observed evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once counts 1/1/1, continuation interest Да. Stage 7.3 accepted the return path and branch/worldAdvanceId continuity. Stage 7.4 accepted nickname personalization and visible names Райхан/Настя. Stage 7.5 accepted a branch-derived follow-up choice that persists in NPC memory, blocks normal-world release until answered, and does not replay after refresh. The next atomic task is one visible later world reaction derived from that persisted follow-up choice.
+The accepted onboarding sequence is: first scripted conflict -> locked intermission with exactly three NPCs for approximately 45 seconds or leave/return -> second scripted round -> six-question comprehension gate -> full game unlock -> immediate Райхан injection -> first real argument battle through `Game.Conflict.incoming(opponentId, opts)` -> seamless normal play. The full game must not unlock after round one. Existing Stage 7.6 follow-up/later-reaction logic must be removed, repurposed, or migrated rather than layered as duplicate onboarding.
+
+Preserve the accepted first-round branch, persistence, exactly-once semantics, branchId/worldAdvanceId continuity, leave/return behavior, and old-save migration. The next atomic task is the locked three-NPC intermission and exactly-once transition into round two.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.
