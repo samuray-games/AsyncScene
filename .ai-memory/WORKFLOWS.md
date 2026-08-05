@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-05-1817-JST
-EXPECTED_REVISION: 2026-08-05-1817-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
+MEMORY_REVISION: 2026-08-05-1924-JST
+EXPECTED_REVISION: 2026-08-05-1924-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7.0 and Stage 7.4 are complete and user-accepted. Stage 7.5 is merged at `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`; Pages build `30994053777` is built and served. The exact next product action is `USER_RUN_STAGE7_5_BRANCH_DERIVED_FOLLOW_UP_IN_IPHONE_SAFARI_PRIVATE_TAB_AND_RETURN_EXACT_RESULT`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.0 through Stage 7.5 are accepted for their tested scopes. Stage 7.5 runtime `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` passed the dedicated iPhone Safari gate. Repository memory is synchronized from baseline `e43f34900db30294b596608f58e88ff16726bf71`. The exact next product action is `SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -67,10 +67,10 @@ After every accepted remote state change:
 ## Stage 7 execution workflow
 
 1. Enforce the product freeze until observed user evidence proves the causal core loop.
-2. Stage 7.1 is complete and user-accepted through `main@1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; do not reopen it without a concrete regression.
-3. Stage 7.2 observed-evidence harness is merged and one foreground Safari sample is user-accepted; do not claim population coverage or return-path acceptance.
-4. Implement one atomic Stage 7.3 continuation-integrity evidence slice behind explicit test mode only.
-5. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
+2. Stage 7.1 through Stage 7.5 are complete and user-accepted for their tested scopes; do not reopen them without a concrete regression.
+3. Stage 7.2 evidence remains one foreground sample and must not be misrepresented as population coverage. Stage 7.3 separately accepted the return path and continuity evidence.
+4. Implement one atomic Stage 7.6 slice where the persisted primary or secondary Stage 7.5 follow-up choice causes one visibly different later world reaction.
+5. The reaction must be exactly-once, refresh-safe, causally explainable from NPC memory, and delivered without broad subsystem expansion.
 6. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
 7. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
 8. Collect one continuation-interest answer without forcing a positive response or changing settlement.
@@ -176,4 +176,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY
+NEXT_ACTION: SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE

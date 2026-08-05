@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-05-1817-JST
-EXPECTED_REVISION: 2026-08-05-1817-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
+MEMORY_REVISION: 2026-08-05-1924-JST
+EXPECTED_REVISION: 2026-08-05-1924-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1924-JST
 
 ## Canon principles
 
@@ -20,8 +20,8 @@ NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 
 - PR #287 is merged at `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`.
 - The existing Stage 7 branch and worldAdvanceId remain authoritative.
-- A single branch-derived follow-up choice is persisted in NPC memory before normal-world release.
-- GitHub Pages build `30994053777` served the merged entrypoint; Safari acceptance remains pending.
+- A single branch-derived follow-up choice is persisted in NPC memory before normal-world release. The follow-up matches the original branch, normal-world release waits for the answer, and refresh does not replay the resolved card.
+- GitHub Pages build `30994053777` served the merged entrypoint; the dedicated iPhone Safari acceptance run returned explicit `PASS`.
 
 ## Accepted Stage 6 product contract
 
@@ -43,7 +43,7 @@ NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Current accepted runtime implementation head is `f00317a022486566293b870f0540db5cbf1ef08c`.
+- Current accepted runtime implementation head is `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -51,7 +51,7 @@ NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 - The three branches must be genuinely different and none objectively correct. Each must create a distinguishable consequence and continuation hook.
 - Every meaningful outcome must persist actor, action, target, motive, evidence, prior state, changed state, immediate consequence, relationship change, world change, witness, and future hook as applicable.
 - The first central NPC set is Ken, Mika, and Oleg. Their behavior must derive from explicit goals, fears, relationships, memory, debts/promises, current threats, and current plans rather than ambient timer noise.
-- Stage 7.5 is `FIRST REAL ASYNCHRONOUS WORLD ADVANCE`. Closing the app is optional.
+- The first real asynchronous world advance remains accepted from the earlier causal slice. Stage 7.5 now names the accepted branch-derived follow-up choice stored in NPC memory before normal-world release.
 - After the first conflict, exactly one branch-derived `awaiting_world_advance` continuation is persisted. Foreground and background paths use the same causal source, world mutation, and exactly-once settlement.
 - If the player stays, `main_unlocked` opens the available main world and the due continuation later appears live. Repeated clicks cannot force or duplicate it.
 - If the player leaves or backgrounds the app, the same due continuation appears on return as `Пока тебя не было...`.
@@ -63,6 +63,9 @@ NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 - Stage 7.2 is the observed core-loop evidence harness. It is enabled only by explicit test mode and must not alter normal-player behavior. It measures first-action time, complete-cycle time, branch choice, foreground/return path, and exactly-once continuation settlement, then records compact causal-comprehension and continuation-interest answers.
 - Stage 7.2 user-observed evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once counts 1/1/1, continuation interest `Да`. This does not establish population percentages or return-path coverage.
 - Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
+- Stage 7.4 user acceptance covers the nickname field, nickname usage, visible names `Райхан` and `Настя`, return copy, and the explanation before the six-question gate.
+- Stage 7.5 user acceptance covers the branch-derived follow-up choice, persistence into target NPC memory, release ordering, and no replay after refresh.
+- Stage 7.6 must make the saved primary or secondary follow-up choice cause one visibly different later world reaction, exactly once and refresh-safe, without broad subsystem expansion.
 
 ## Protected facts
 
@@ -102,4 +105,4 @@ NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.
+- NEXT_ACTION: `SELECT_AND_IMPLEMENT_STAGE7_6_VISIBLE_LATER_REACTION_FROM_PERSISTED_FOLLOW_UP_CHOICE`.
