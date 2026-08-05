@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/github-only-workflow-20260805",
+  "createdAtJst": "2026-08-05 09:51:04 JST",
+  "createdAtUtc": "2026-08-05T00:51:04Z",
+  "packagePath": "runs/2026/08/05/GITHUB/GITHUB-20260805T005104Z-30964585255-77161eac",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260805T005104Z-30964585255-77161eac",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
