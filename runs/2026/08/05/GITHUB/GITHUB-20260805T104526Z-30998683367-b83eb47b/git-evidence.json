@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-6-visible-later-reaction-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-6-visible-later-reaction-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "1b6f0cba9fd03fdeb13071209531459efb9c71f7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1b6f0cba9fd03fdeb13071209531459efb9c71f7\n# branch.head chatgpt/stage7-6-visible-later-reaction-20260805\n# branch.upstream origin/chatgpt/stage7-6-visible-later-reaction-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "1b6f0cba (HEAD -> chatgpt/stage7-6-visible-later-reaction-20260805, origin/chatgpt/stage7-6-visible-later-reaction-20260805) chore: add temporary Stage 7.6 runtime patcher\nb920f417 (origin/main) docs: record accepted Stage 7.5 Safari gate (#289)\ne43f3490 docs: sync Stage 7.5 repository memory (#288)\ncfe567e2 (origin/chatgpt/stage7-5-memory-sync-20260805) docs: sync Stage 7.5 repository memory\n7a75edea feat: make Stage 7 branch matter after unlock (#287)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1b6f0cba9fd03fdeb13071209531459efb9c71f7\nbranch refs/heads/chatgpt/stage7-6-visible-later-reaction-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T10:45:26Z",
+      "stderr": "",
+      "stdout": "b920f41740df5e6475b330f14784f7f369a00b20\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1b6f0cba9fd03fdeb13071209531459efb9c71f7",
+  "observedAtUtc": "2026-08-05T10:45:26Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
