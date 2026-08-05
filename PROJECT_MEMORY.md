@@ -46,11 +46,11 @@ PR_277_STAGE7_ESSENCE_MERGE_SHA: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 PR_278_STAGE7_PRESTART_FIX_MERGE_SHA: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
 PR_280_GITHUB_ONLY_POLICY_MERGE_SHA: 4b6db2b9b540e8c7fe32e51eda60c4cd784797b6
 PR_281_STAGE7_1_RUNTIME_MERGE_SHA: 1babc437adbfa39e07d870ae206df1af124aad08
-PR_282_STAGE7_1_LEGACY_RESUME_FIX_MERGE_SHA: f00317a022486566293b870f0540db5cbf1ef08c
+PR_282_STAGE7_1_LEGACY_RESUME_FIX_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 LIVE_UI_MENU_GIT_BLOB_SHA1: 73cd833d3950b5356300bc3d09c1c8c5c8ef5e87
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
+MEMORY_SYNC_BRANCH: codex/stage7-3-core-loop-evidence-20260805
 STAGE7_2_USER_EVIDENCE: PASS / firstActionMs=22238 / cycleMs=64778 / comprehension=5/5 / continuation=foreground / exactlyOnce=1/1/1 / interest=Да
 STAGE7_2_USER_EVIDENCE_SCOPE: one user-run foreground sample; population percentages and return-path coverage remain unestablished
 NEXT_ACTION: IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY
@@ -65,6 +65,6 @@ The former Google Drive document is a deprecated migration stub only, not the li
 
 Repository implementation evidence is current through `f00317a022486566293b870f0540db5cbf1ef08c`. Stage 6 remains complete and accepted. Stage 7.0 and Stage 7.1 are complete and user-accepted. The first causal conflict, legacy-save migration, freedom card, and exactly-once foreground/return world advance are live on GitHub Pages.
 
-The next product task is Stage 7.2 observed core-loop evidence, not world expansion. An explicit test mode must measure first-action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement, then collect compact causal-comprehension and continuation-interest answers without changing normal-player behavior.
+Stage 7.2 user-observed evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once counts 1/1/1, continuation interest Да. This does not establish population percentages or return-path coverage. Stage 7.3 adds explicit-test-mode evidence that the selected branch and worldAdvanceId remain causally stable through continuation presentation.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.
