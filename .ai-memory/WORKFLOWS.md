@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-05-0307-JST
-EXPECTED_REVISION: 2026-08-05-0307-JST
-NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
+MEMORY_REVISION: 2026-08-05-1111-JST
+EXPECTED_REVISION: 2026-08-05-1111-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7 was explicitly started by the user and is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 is complete and accepted through PR #277 merge `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3` and PR #278 merge `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`. The active documentation-maintenance branch is `chatgpt/stage7-memory-sync-20260805`. The exact next product action is `FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`. The active documentation-maintenance branch is `chatgpt/stage7-accepted-memory-sync-20260805`. The exact next product action is `IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -67,15 +67,15 @@ After every accepted remote state change:
 ## Stage 7 execution workflow
 
 1. Enforce the product freeze until observed user evidence proves the causal core loop.
-2. Finish repository-memory synchronization before treating stale `STAGE_7: HISTORICAL_NON_ACTIVE_DRAFT` text as repaired on `main`.
-3. Freeze one atomic Stage 7.1 runtime scope before implementation.
-4. The first conflict must begin with a personally relevant accusation and expose the first meaningful action within 30 seconds.
-5. One click on `Ответить` reveals exactly `Отрицать`, `Обвинить Кена`, and `Заплатить`.
-6. The complete first cycle targets 2-3 minutes and shows only Money and Reputation before unlock.
-7. Every branch records a causal chain, NPC memory changes, a distinct consequence, and one pending `awaiting_world_advance` continuation.
-8. `completed -> main_unlocked` remains the frozen state order. `post_conflict_freedom_card` is an overlay inside `main_unlocked`, not a ninth state.
-9. If the player remains online, the due continuation appears live. If the player leaves, the same continuation appears on return. Both paths must settle exactly once.
-10. User-owned Safari acceptance remains required for user-visible runtime completion.
+2. Stage 7.1 is complete and user-accepted through `main@1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; do not reopen it without a concrete regression.
+3. Before world expansion, implement one atomic Stage 7.2 observed-evidence harness behind explicit test mode only.
+4. Normal-player behavior must remain byte-for-byte or semantically unchanged outside explicit test mode.
+5. Measure first meaningful action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement.
+6. Collect compact causal-comprehension answers covering accusation, chosen action, reaction, resource consequence, and later world change.
+7. Collect one continuation-interest answer without forcing a positive response or changing settlement.
+8. Produce one deterministic developer report with thresholds, raw answers, pass/fail fields, and no network transmission.
+9. Source and deployed mirrors, persistence, settlement traceability, and Safari acceptance remain mandatory.
+10. World expansion remains frozen until the evidence harness can produce observed results.
 
 ## Local plugin installation and parity workflow
 
@@ -175,4 +175,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES
+NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY

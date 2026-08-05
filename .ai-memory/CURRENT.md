@@ -1,13 +1,13 @@
 # Current Memory
 
-MEMORY_REV: 2026-08-05-0307-JST
-NOTION_MEMORY_REV: 2026-08-05-0259-JST
-CURRENT_STATUS: STAGE7_ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED / ASSISTANT_PRODUCT_LEAD_ACTIVE
-ACTIVE_TASK: STAGE7_REPOSITORY_MEMORY_SYNC_THEN_STAGE7_1_SCOPE_FREEZE
+MEMORY_REV: 2026-08-05-1111-JST
+NOTION_MEMORY_REV: 2026-08-05-1111-JST
+CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_OBSERVED_EVIDENCE_HARNESS_NEXT
+ACTIVE_TASK: STAGE7_ACCEPTED_MEMORY_SYNC_THEN_STAGE7_2_TEST_HARNESS
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -23,19 +23,24 @@ STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
 STAGE_6_STEP9: COMPLETE / ACCEPTED
 STAGE_7: ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED
 STAGE_7_0: COMPLETE / ESSENCE_MODAL_FINAL_ACCEPTANCE_PASS
-STAGE_7_1: NEXT_ATOMIC_RUNTIME_SCOPE
-STAGE_7_5: FIRST_REAL_ASYNCHRONOUS_WORLD_ADVANCE / FOREGROUND_AND_BACKGROUND_PATHS_REQUIRED
-POST_CONFLICT_FREEDOM_CARD: ACCEPTED_PRODUCT_CONTRACT / NO_RUNTIME_CHANGE_YET
+STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
+STAGE_7_5: COMPLETE / FOREGROUND_AND_BACKGROUND_EXACTLY_ONCE_ACCEPTED
+POST_CONFLICT_FREEDOM_CARD: IMPLEMENTED / USER_SAFARI_ACCEPTANCE_PASS
 PRODUCT_FREEZE: ACTIVE
-RUNTIME: PUBLISHED_AND_LIVE_VERIFIED
+RUNTIME: PUBLISHED_AND_USER_ACCEPTED
 PR277_MERGE_SHA: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 PR278_MERGE_SHA: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+PR280_MERGE_SHA: 4b6db2b9b540e8c7fe32e51eda60c4cd784797b6
+PR281_MERGE_SHA: 1babc437adbfa39e07d870ae206df1af124aad08
+PR282_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
+STAGE7_1_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_TAB
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-memory-sync-20260805
-NEXT_ACTION: FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES
+MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
+NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Stage 6 remains complete and accepted. Stage 7 was explicitly started and is active as `CORE EXPERIENCE RECONSTRUCTION`. The accepted Stage 7 essence modal is integrated through PR #277, and the pre-start overlay repair is integrated and accepted through PR #278.
+Stage 6 remains complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`; GitHub Pages build `1132995890` published the accepted iPhone Safari flow.
 
-The next atomic runtime task must prove the actual game: one personal accusation, first action within 30 seconds, exactly three responses, a complete 2-3 minute causal cycle, only Money and Reputation visible, distinct consequences, one branch-derived pending world advance, and the accepted `Мир живёт дальше` post-conflict overlay. Leaving the app is optional; foreground and return-after-absence paths must apply the same continuation exactly once.
+The next atomic runtime task is Stage 7.2 observed core-loop evidence. Explicit test mode only: measure first-action and cycle timing, branch choice, foreground/return path, exactly-once settlement, causal comprehension, and continuation interest while leaving normal-player behavior unchanged.
