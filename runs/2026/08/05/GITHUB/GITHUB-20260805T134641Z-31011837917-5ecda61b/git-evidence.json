@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-onboarding-redesign-memory-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-onboarding-redesign-memory-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "ab6f8f5098cc955a80ce05d2d1da96f83bf4ea17\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "# branch.oid ab6f8f5098cc955a80ce05d2d1da96f83bf4ea17\n# branch.head chatgpt/stage7-onboarding-redesign-memory-20260805\n# branch.upstream origin/chatgpt/stage7-onboarding-redesign-memory-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "ab6f8f50 (HEAD -> chatgpt/stage7-onboarding-redesign-memory-20260805, origin/chatgpt/stage7-onboarding-redesign-memory-20260805) chore: remove temporary onboarding memory patcher\nea871b3f docs: record superseding Stage 7 onboarding flow\n91a27ef4 chore: add temporary onboarding memory workflow\n00a61b46 chore: add temporary onboarding memory sync patcher\nec0912fa (origin/main) feat: show later reaction to Stage 7 follow-up (#290)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ab6f8f5098cc955a80ce05d2d1da96f83bf4ea17\nbranch refs/heads/chatgpt/stage7-onboarding-redesign-memory-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T13:46:41Z",
+      "stderr": "",
+      "stdout": "ec0912fa63c820881498a926676d9f0cbc3c7516\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ab6f8f5098cc955a80ce05d2d1da96f83bf4ea17",
+  "observedAtUtc": "2026-08-05T13:46:41Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
