@@ -24,7 +24,6 @@ jobs:
         run: python3 tools/_stage7_accepted_memory_sync.py
       - name: Validate exact documentation scope
         run: |
-          python3 tools/_stage7_accepted_memory_sync.py
           git diff --check
           python3 - <<'PY'
           import subprocess
