@@ -21,7 +21,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply Stage 7.2 harness
-        run: python3 tools/_stage7_observed_evidence_patch.py
+        run: |
+          python3 tools/_stage7_observed_evidence_patch.py
+          python3 tools/_stage7_observed_evidence_test_fix.py
       - name: Validate Stage 7.2 and protected contracts
         run: |
           python3 -m py_compile tools/test_stage7_first_causal_vertical_slice.py tools/test_stage7_observed_evidence_harness.py
