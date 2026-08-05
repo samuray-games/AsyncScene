@@ -92,3 +92,34 @@ html.stage7-first-experience-active #stage7FirstExperiencePanel { display: block
 .stage7EvidenceStatus.pass { opacity: 1; }
 .stage7EvidenceStatus.fail { text-decoration: underline; }
 .stage7EvidenceOverall { font-size: 18px; font-weight: 800; }
+
+
+/* Stage 7.7 locked three-NPC intermission */
+.stage7IntermissionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.stage7NpcAction {
+  min-height: 76px;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  text-align: left;
+  white-space: normal;
+}
+.stage7NpcAction strong { font-size: 1rem; }
+.stage7NpcAction span { opacity: .72; font-size: .8rem; }
+.stage7NpcReply {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border, rgba(255,255,255,.16));
+  background: color-mix(in srgb, var(--panel, #14161c) 85%, var(--accent, #6f8cff) 15%);
+}
+.stage7NpcReply p { margin-bottom: 0; }
+@media (max-width: 760px) {
+  .stage7IntermissionGrid { grid-template-columns: 1fr; }
+  .stage7NpcAction { min-height: 58px; }
+}
