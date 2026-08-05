@@ -1,0 +1,66 @@
+name: Validate Stage 7 legacy resume migration
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-resume-migration-fix-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-resume-migration-fix-20260805
+          fetch-depth: 0
+
+      - name: Apply legacy resume migration
+        run: python3 tools/_stage7_resume_migration_patch.py
+
+      - name: Validate focused and protected contracts
+        shell: bash
+        run: |
+          python3 -m py_compile tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_essence_modal.py
+          python3 tools/test_stage7_essence_prestart_overlay.py
+          python3 tools/test_step9_ui_boot_forbidden_state_access.py
+          python3 tools/test_stage6_step9_profile_bootstrap_findings.py
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          cmp -s AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          cmp -s AsyncScene/Web/index.html docs/index.html
+          git diff --check
+
+      - name: Commit five-file runtime fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            AsyncScene/Web/ui/ui-stage7-first-experience.js \
+            docs/ui/ui-stage7-first-experience.js \
+            AsyncScene/Web/index.html \
+            docs/index.html \
+            tools/test_stage7_first_causal_vertical_slice.py
+          python3 - <<'PY'
+          import subprocess
+          expected = {
+              'AsyncScene/Web/ui/ui-stage7-first-experience.js',
+              'docs/ui/ui-stage7-first-experience.js',
+              'AsyncScene/Web/index.html',
+              'docs/index.html',
+              'tools/test_stage7_first_causal_vertical_slice.py',
+          }
+          actual = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          if actual != expected:
+              raise SystemExit(f'scope mismatch: expected={sorted(expected)} actual={sorted(actual)}')
+          print('PASS_STAGE7_LEGACY_RESUME_SCOPE')
+          PY
+          git diff --cached --check
+          git commit -m 'fix: migrate legacy saves into Stage 7 first experience'
+          git push origin HEAD:chatgpt/stage7-resume-migration-fix-20260805
