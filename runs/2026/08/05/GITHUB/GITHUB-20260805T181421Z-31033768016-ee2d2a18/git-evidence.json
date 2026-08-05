@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-9-deny-evidence-payoff-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-9-deny-evidence-payoff-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "518ecc8f4a7d58b00bcdd2685cf3b4272417c578\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid 518ecc8f4a7d58b00bcdd2685cf3b4272417c578\n# branch.head chatgpt/stage7-9-deny-evidence-payoff-20260806\n# branch.upstream origin/chatgpt/stage7-9-deny-evidence-payoff-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "518ecc8f (HEAD -> chatgpt/stage7-9-deny-evidence-payoff-20260806, origin/main, origin/chatgpt/stage7-9-deny-evidence-payoff-20260806) docs: record accepted Stage 7.8 onboarding (#294)\n49bb6f28 feat: bridge Stage 7 onboarding into real argument battle (#293)\na70bf2f8 feat: add locked Stage 7 pre-unlock corridor (#292)\nfa61092e docs: record superseding Stage 7 onboarding flow (#291)\nec0912fa feat: show later reaction to Stage 7 follow-up (#290)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 518ecc8f4a7d58b00bcdd2685cf3b4272417c578\nbranch refs/heads/chatgpt/stage7-9-deny-evidence-payoff-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:14:21Z",
+      "stderr": "",
+      "stdout": "518ecc8f4a7d58b00bcdd2685cf3b4272417c578\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "518ecc8f4a7d58b00bcdd2685cf3b4272417c578",
+  "observedAtUtc": "2026-08-05T18:14:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
