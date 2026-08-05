@@ -1,0 +1,48 @@
+name: Stage 7 accepted memory sync
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-accepted-memory-sync-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-accepted-memory-sync-20260805
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply compact memory synchronization
+        run: python3 tools/_stage7_accepted_memory_sync.py
+      - name: Validate exact documentation scope
+        run: |
+          python3 tools/_stage7_accepted_memory_sync.py
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          expected = {
+              'PROJECT_MEMORY.md',
+              '.ai-memory/CURRENT.md',
+              '.ai-memory/CANON.md',
+              '.ai-memory/WORKFLOWS.md',
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != expected:
+              raise SystemExit(f'changed paths mismatch: {sorted(changed)}')
+          print('PASS_STAGE7_ACCEPTED_MEMORY_SYNC_SCOPE')
+          PY
+      - name: Commit synchronized memory
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add PROJECT_MEMORY.md .ai-memory/CURRENT.md .ai-memory/CANON.md .ai-memory/WORKFLOWS.md
+          git commit -m 'docs: record accepted Stage 7.1 runtime state'
+          git push origin HEAD:chatgpt/stage7-accepted-memory-sync-20260805
