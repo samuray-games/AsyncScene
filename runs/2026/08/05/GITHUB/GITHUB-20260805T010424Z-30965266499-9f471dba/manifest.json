@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-first-causal-slice-20260805",
+  "createdAtJst": "2026-08-05 10:04:24 JST",
+  "createdAtUtc": "2026-08-05T01:04:24Z",
+  "packagePath": "runs/2026/08/05/GITHUB/GITHUB-20260805T010424Z-30965266499-9f471dba",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260805T010424Z-30965266499-9f471dba",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
