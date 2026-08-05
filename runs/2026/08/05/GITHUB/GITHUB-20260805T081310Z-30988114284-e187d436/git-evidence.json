@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-4-personalization-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-4-personalization-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "f2a9ff970cdf4cffc427fc77e5eb5fe8035c9795\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "# branch.oid f2a9ff970cdf4cffc427fc77e5eb5fe8035c9795\n# branch.head chatgpt/stage7-4-personalization-20260805\n# branch.upstream origin/chatgpt/stage7-4-personalization-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "f2a9ff97 (HEAD -> chatgpt/stage7-4-personalization-20260805, origin/chatgpt/stage7-4-personalization-20260805) fix: validate Stage 7.4 against current cache contract\n5802cf3d fix: rerun Stage 7.4 product generation\nbe6e102b fix: apply Stage 7.4 product without workflow mutation\ndf5209e8 fix: repair Stage 7.4 apply validation\nd71bf9b3 chore: stage Stage 7.4 personalization apply\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f2a9ff970cdf4cffc427fc77e5eb5fe8035c9795\nbranch refs/heads/chatgpt/stage7-4-personalization-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T08:13:10Z",
+      "stderr": "",
+      "stdout": "6b41ea366633d76bf1cb04aea854fe237142ad0c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f2a9ff970cdf4cffc427fc77e5eb5fe8035c9795",
+  "observedAtUtc": "2026-08-05T08:13:10Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
