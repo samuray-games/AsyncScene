@@ -1,13 +1,13 @@
 # Current Memory Index
 
-REPO_MEMORY_REV: 2026-08-05-0307-JST
-NOTION_MEMORY_REV: 2026-08-05-0259-JST
+REPO_MEMORY_REV: 2026-08-05-1111-JST
+NOTION_MEMORY_REV: 2026-08-05-1111-JST
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
 ROOT_STATUS: STAGE7_ACTIVE
-CURRENT_STATUS: STAGE7_ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED / ASSISTANT_PRODUCT_LEAD_ACTIVE
+CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_1_ACCEPTED_COMPLETE / STAGE7_2_OBSERVED_EVIDENCE_HARNESS_NEXT
 REPOSITORY_PLUGIN_VERSION: 1.0.18
 INSTALLED_PLUGIN_VERSION: 1.0.16
 INSTALLED_PLUGIN_STATUS: STALE_REFRESH_REMAINS_SEPARATE_FROM_STAGE7_PRODUCT_WORK
@@ -25,13 +25,13 @@ STAGE_7: ACTIVE / CORE_EXPERIENCE_RECONSTRUCTION_ACCEPTED
 STAGE_7_0: COMPLETE / ESSENCE_MODAL_ACCEPTED
 STAGE_7_0_FEATURE_MERGE: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 STAGE_7_0_PRESTART_FIX_MERGE: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
-STAGE_7_1: NEXT_ATOMIC_RUNTIME_SCOPE
-STAGE_7_5: FIRST_REAL_ASYNCHRONOUS_WORLD_ADVANCE / FOREGROUND_AND_BACKGROUND_PATHS_REQUIRED
-POST_CONFLICT_FREEDOM_CARD: ACCEPTED_PRODUCT_CONTRACT / NO_RUNTIME_CHANGE_YET
+STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
+STAGE_7_5: COMPLETE / FOREGROUND_AND_BACKGROUND_EXACTLY_ONCE_ACCEPTED
+POST_CONFLICT_FREEDOM_CARD: IMPLEMENTED / USER_SAFARI_ACCEPTANCE_PASS
 POST_CONFLICT_FREEDOM_CARD_TITLE: Мир живёт дальше
 POST_CONFLICT_FREEDOM_CARD_BODY: Первый конфликт завершён. Можешь продолжить исследовать игру или заняться своими делами. Мир будет жить дальше и меняться из-за твоего выбора, даже когда тебя нет в игре. Когда вернёшься, увидишь, к чему всё привело.
 PRODUCT_FREEZE: NO_NEW_THEME_PROFILE_CURRENCY_NPC_CATEGORY_LOCATION_OR_BROAD_SECONDARY_SUBSYSTEM_BEFORE_CORE_LOOP_USER_EVIDENCE
-RUNTIME: PUBLISHED_AND_LIVE_VERIFIED
+RUNTIME: PUBLISHED_AND_USER_ACCEPTED
 STAGE_6_PRODUCT_IMPLEMENTATION: COMPLETE
 ALPHA_STAGE6_IMPLEMENTATION: COMPLETE / INTEGRATED
 SAFARI_STAGE6_ALPHA_FROZEN_COPY: PASS
@@ -39,15 +39,19 @@ SAFARI_STAGE6_ALPHA_FROZEN_COPY_PROFILE: alpha
 SAFARI_STAGE6_ALPHA_FROZEN_COPY_MATRIX: ok:true / failures:[]
 LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED
 LEGACY_ALPHA_SMOKE_DRIFT_COUNTS: current 174 / 152 / 206; historical Step 4.3.6 164 / 122 / 187
-SAFARI_RUNTIME_SMOKE: STAGE7_ESSENCE_MODAL_FINAL_ACCEPTANCE_PASS
+SAFARI_RUNTIME_SMOKE: STAGE7_1_FIRST_CAUSAL_EXPERIENCE_PASS
 PR_272_RUNTIME_REPAIR_MERGE_SHA: 2b5fbe4f4a250dfc50af732490a672b0c33a9cb6
 PR_273_LOTTERY_TOAST_MERGE_SHA: f8fe6555462e072f416ff5d64df8947def74a76e
 PR_277_STAGE7_ESSENCE_MERGE_SHA: bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3
 PR_278_STAGE7_PRESTART_FIX_MERGE_SHA: e54390fe6164f601caeaf2819e2ea56ed25c8eb0
+PR_280_GITHUB_ONLY_POLICY_MERGE_SHA: 4b6db2b9b540e8c7fe32e51eda60c4cd784797b6
+PR_281_STAGE7_1_RUNTIME_MERGE_SHA: 1babc437adbfa39e07d870ae206df1af124aad08
+PR_282_STAGE7_1_LEGACY_RESUME_FIX_MERGE_SHA: 1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db
+STAGE7_1_PAGES_BUILD: 1132995890 / built / no error
 LIVE_UI_MENU_GIT_BLOB_SHA1: 73cd833d3950b5356300bc3d09c1c8c5c8ef5e87
 LIVE_STAGE7_ESSENCE_CSS_GIT_BLOB_SHA1: d01a2218ba8c782544aa9805a1cbdfdd9c4e972d
-MEMORY_SYNC_BRANCH: chatgpt/stage7-memory-sync-20260805
-NEXT_ACTION: FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES
+MEMORY_SYNC_BRANCH: chatgpt/stage7-accepted-memory-sync-20260805
+NEXT_ACTION: IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY
 
 ## Canonical cross-chat bootstrap
 
@@ -57,8 +61,8 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Repository implementation evidence is current through `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`. Stage 6 remains complete and accepted. Stage 7 was explicitly started by the user, the five-profile essence modal and its pre-start stacking repair are accepted, and Stage 7 is now product canon as `CORE EXPERIENCE RECONSTRUCTION`.
+Repository implementation evidence is current through `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`. Stage 6 remains complete and accepted. Stage 7.0 and Stage 7.1 are complete and user-accepted. The first causal conflict, legacy-save migration, freedom card, and exactly-once foreground/return world advance are live on GitHub Pages.
 
-The next product task is not presentation expansion. It is one isolated causal conflict with first meaningful action within 30 seconds, exactly three responses, a 2-3 minute complete cycle, visible Money and Reputation only, branch-derived causal records, NPC memory, and one persisted asynchronous continuation. The player may remain in the app or leave; both paths must resolve the same continuation exactly once. The first unlocked main-world overlay teaches this promise with the accepted `Мир живёт дальше` copy.
+The next product task is Stage 7.2 observed core-loop evidence, not world expansion. An explicit test mode must measure first-action time, complete-cycle time, selected branch, foreground/return continuation path, and exactly-once settlement, then collect compact causal-comprehension and continuation-interest answers without changing normal-player behavior.
 
 Archives and backups are historical evidence. Provider-side physical unreachable-object purge is not claimed or required for ref-reachability acceptance.

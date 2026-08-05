@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-05-0307-JST
-EXPECTED_REVISION: 2026-08-05-0307-JST
-NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
+MEMORY_REVISION: 2026-08-05-1111-JST
+EXPECTED_REVISION: 2026-08-05-1111-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1111-JST
 
 ## Canon principles
 
@@ -36,10 +36,10 @@ NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Current accepted runtime implementation head is `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
+- Current accepted runtime implementation head is `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
-- Stage 7.1 must implement one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, a complete 2-3 minute cycle, no pre-action tutorial, and only Money and Reputation visible.
+- Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
 - The first conflict begins with `Кен обвиняет тебя в краже. Все это видят.` The first verb is `Ответить`. One click reveals exactly `Отрицать`, `Обвинить Кена`, and `Заплатить`.
 - The three branches must be genuinely different and none objectively correct. Each must create a distinguishable consequence and continuation hook.
 - Every meaningful outcome must persist actor, action, target, motive, evidence, prior state, changed state, immediate consequence, relationship change, world change, witness, and future hook as applicable.
@@ -52,6 +52,8 @@ NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
 - Accepted freedom-card copy: title `Мир живёт дальше`; body `Первый конфликт завершён. Можешь продолжить исследовать игру или заняться своими делами. Мир будет жить дальше и меняться из-за твоего выбора, даже когда тебя нет в игре. Когда вернёшься, увидишь, к чему всё привело.`; primary CTA `Продолжить исследовать`; support line `Можно закрыть игру в любой момент. Всё сохранено.`
 - The freedom card grants permission to leave but never forces exit, opens an external service, fakes closing the app, changes settlement timing, or implies that the player is irrelevant.
 - User testing must happen before world expansion. Hard criteria include first action and cycle-time targets, causal comprehension, three distinguishable continuations, visible reflection of the earlier choice, and no meaningful event without an explainable cause.
+- Stage 7.1 user acceptance passed in iPhone Safari after PR #282 merge `1333ddda7aceacf0f10cd6b2b3f9baa30fe0a9db` and Pages build `1132995890`; the private-tab retest confirmed the legacy-save migration and repaired cache delivery.
+- Stage 7.2 is the observed core-loop evidence harness. It is enabled only by explicit test mode and must not alter normal-player behavior. It measures first-action time, complete-cycle time, branch choice, foreground/return path, and exactly-once continuation settlement, then records compact causal-comprehension and continuation-interest answers.
 
 ## Protected facts
 
@@ -91,4 +93,4 @@ NOTION_MEMORY_REVISION: 2026-08-05-0259-JST
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `FREEZE_STAGE7_1_ATOMIC_SCOPE_THEN_IMPLEMENT_ONE_COMPLETE_THREE_MINUTE_CAUSAL_CONFLICT_WITH_EXACTLY_THREE_BRANCHES`.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_2_OBSERVED_CORE_LOOP_EVIDENCE_HARNESS_IN_EXPLICIT_TEST_MODE_ONLY`.
