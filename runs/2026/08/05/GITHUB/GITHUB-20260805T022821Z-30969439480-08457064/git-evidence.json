@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-observed-evidence-harness-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:21Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-observed-evidence-harness-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:21Z",
+      "stderr": "",
+      "stdout": "064b5870c9ff59bebd67dc899c9627d6ffc6f696\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:22Z",
+      "stderr": "",
+      "stdout": "# branch.oid 064b5870c9ff59bebd67dc899c9627d6ffc6f696\n# branch.head chatgpt/stage7-observed-evidence-harness-20260805\n# branch.upstream origin/chatgpt/stage7-observed-evidence-harness-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:22Z",
+      "stderr": "",
+      "stdout": "064b5870 (HEAD -> chatgpt/stage7-observed-evidence-harness-20260805, origin/chatgpt/stage7-observed-evidence-harness-20260805) ci: add Stage 7.2 evidence harness patcher\n293aca3d (origin/main) docs: record accepted Stage 7.1 runtime state (#283)\n1333ddda fix: migrate legacy saves into Stage 7 first experience (#282)\n1babc437 feat: add first causal Stage 7 experience (#281)\n4b6db2b9 policy: adopt GitHub-only development workflow (#280)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:22Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 064b5870c9ff59bebd67dc899c9627d6ffc6f696\nbranch refs/heads/chatgpt/stage7-observed-evidence-harness-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:22Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T02:28:22Z",
+      "stderr": "",
+      "stdout": "293aca3d9269ae073c3b4ad41e4735ce4a9b69da\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "064b5870c9ff59bebd67dc899c9627d6ffc6f696",
+  "observedAtUtc": "2026-08-05T02:28:22Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
