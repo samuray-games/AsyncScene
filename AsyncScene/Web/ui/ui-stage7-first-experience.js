@@ -3,10 +3,22 @@ window.Game = window.Game || {};
 
 (() => {
   const G = window.Game;
-  const STORAGE_KEY = "AsyncScene_first_experience_v1";
+  const TEST_MODE_PARAM = "stage7test";
+  const TEST_RUN_PARAM = "stage7testrun";
+  const SEARCH_PARAMS = typeof location !== "undefined" ? new URLSearchParams(location.search || "") : new URLSearchParams();
+  const TEST_MODE = SEARCH_PARAMS.get(TEST_MODE_PARAM) === "1";
+  const TEST_RUN_TOKEN = (SEARCH_PARAMS.get(TEST_RUN_PARAM) || "default")
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 40) || "default";
+  const STORAGE_KEY_NORMAL = "AsyncScene_first_experience_v1";
+  const STORAGE_KEY_TEST_PREFIX = "AsyncScene_first_experience_evidence_v1";
+  const STORAGE_KEY = TEST_MODE ? `${STORAGE_KEY_TEST_PREFIX}:${TEST_RUN_TOKEN}` : STORAGE_KEY_NORMAL;
   const SCENARIO_ID = "first_experience_personal_conflict_v1";
   const WORLD_ADVANCE_DELAY_MS = 45_000;
   const PRELUDE_MIN_GAP_MS = 800;
+  const FIRST_ACTION_TARGET_MS = 30_000;
+  const COMPLETE_CYCLE_TARGET_MS = 180_000;
+  const COMPREHENSION_PASS_MIN = 4;
   const STATES = ["accusation", "answer", "reaction", "vote", "consequence", "rematch", "completed", "main_unlocked"];
   const RESPONSE_IDS = ["deny", "accuse_ken", "pay"];
   const PRELUDE = [
@@ -70,6 +82,187 @@ window.Game = window.Game || {};
     try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
   }
 
+  function defaultEvidence() {
+    if (!TEST_MODE) return null;
+    const startedAt = Date.now();
+    return {
+      schemaVersion: 1,
+      enabled: true,
+      runToken: TEST_RUN_TOKEN,
+      sessionId: `stage7_evidence:${TEST_RUN_TOKEN}:${startedAt}`,
+      startedAt,
+      firstActionAt: null,
+      firstActionMs: null,
+      cycleCompletedAt: null,
+      cycleMs: null,
+      branchId: null,
+      continuationPath: null,
+      settlementAppliedCount: 0,
+      worldAdvancePresentedCount: 0,
+      worldAdvanceSettledCount: 0,
+      questionnaireOpen: false,
+      questionIndex: 0,
+      answers: {},
+      answersComplete: false,
+      comprehensionScore: null,
+      continuationInterest: null,
+      reportReady: false,
+      reportDismissed: false,
+      completedAt: null,
+      finalReport: null,
+    };
+  }
+
+  function sanitizeEvidence(raw) {
+    if (!TEST_MODE) return null;
+    const base = defaultEvidence();
+    if (!raw || typeof raw !== "object") return base;
+    const answers = raw.answers && typeof raw.answers === "object" ? raw.answers : {};
+    return Object.assign(base, raw, {
+      schemaVersion: 1,
+      enabled: true,
+      runToken: TEST_RUN_TOKEN,
+      sessionId: typeof raw.sessionId === "string" && raw.sessionId ? raw.sessionId : base.sessionId,
+      startedAt: Number.isFinite(Number(raw.startedAt)) ? Number(raw.startedAt) : base.startedAt,
+      firstActionAt: Number.isFinite(Number(raw.firstActionAt)) ? Number(raw.firstActionAt) : null,
+      firstActionMs: Number.isFinite(Number(raw.firstActionMs)) ? Math.max(0, Number(raw.firstActionMs)) : null,
+      cycleCompletedAt: Number.isFinite(Number(raw.cycleCompletedAt)) ? Number(raw.cycleCompletedAt) : null,
+      cycleMs: Number.isFinite(Number(raw.cycleMs)) ? Math.max(0, Number(raw.cycleMs)) : null,
+      branchId: RESPONSE_IDS.includes(raw.branchId) ? raw.branchId : null,
+      continuationPath: ["foreground", "return"].includes(raw.continuationPath) ? raw.continuationPath : null,
+      settlementAppliedCount: Math.max(0, Number(raw.settlementAppliedCount) | 0),
+      worldAdvancePresentedCount: Math.max(0, Number(raw.worldAdvancePresentedCount) | 0),
+      worldAdvanceSettledCount: Math.max(0, Number(raw.worldAdvanceSettledCount) | 0),
+      questionnaireOpen: raw.questionnaireOpen === true,
+      questionIndex: Math.max(0, Math.min(5, Number(raw.questionIndex) | 0)),
+      answers,
+      answersComplete: raw.answersComplete === true,
+      comprehensionScore: Number.isFinite(Number(raw.comprehensionScore)) ? Number(raw.comprehensionScore) : null,
+      continuationInterest: ["yes", "unsure", "no"].includes(raw.continuationInterest) ? raw.continuationInterest : null,
+      reportReady: raw.reportReady === true,
+      reportDismissed: raw.reportDismissed === true,
+      completedAt: Number.isFinite(Number(raw.completedAt)) ? Number(raw.completedAt) : null,
+      finalReport: raw.finalReport && typeof raw.finalReport === "object" ? raw.finalReport : null,
+    });
+  }
+
+  function evidenceQuestions() {
+    const branchId = snapshot && snapshot.branchId;
+    const branch = branchId ? BRANCHES[branchId] : null;
+    const reactionOptions = RESPONSE_IDS.map((id) => ({ id, label: BRANCHES[id].reaction }));
+    const causeOptions = RESPONSE_IDS.map((id) => ({ id, label: BRANCHES[id].cause }));
+    return [
+      {
+        id: "accusation",
+        prompt: "В чём тебя обвинили?",
+        correct: "theft",
+        options: [
+          { id: "theft", label: "В краже денег из общей кассы" },
+          { id: "insult", label: "В оскорблении Кена" },
+          { id: "vote", label: "В проигранном голосовании" },
+        ],
+      },
+      {
+        id: "action",
+        prompt: "Как ты ответил?",
+        correct: branchId,
+        options: RESPONSE_IDS.map((id) => ({ id, label: BRANCHES[id].label })),
+      },
+      {
+        id: "reaction",
+        prompt: "Что произошло сразу после твоего ответа?",
+        correct: branchId,
+        options: reactionOptions,
+      },
+      {
+        id: "resource",
+        prompt: "Какой ресурс изменился из-за решения?",
+        correct: branchId === "pay" ? "money" : "reputation",
+        options: [
+          { id: "reputation", label: "Репутация выросла на 2" },
+          { id: "money", label: "Деньги уменьшились на 3" },
+          { id: "none", label: "Ни деньги, ни репутация не изменились" },
+        ],
+      },
+      {
+        id: "cause",
+        prompt: "Почему мир изменился позже?",
+        correct: branchId,
+        options: causeOptions,
+      },
+      {
+        id: "interest",
+        prompt: "Хочется узнать, что будет дальше?",
+        correct: null,
+        options: [
+          { id: "yes", label: "Да" },
+          { id: "unsure", label: "Пока не уверен" },
+          { id: "no", label: "Нет" },
+        ],
+      },
+    ].filter((question) => question.id === "interest" || branch);
+  }
+
+  function getObservedEvidenceReport() {
+    const evidence = snapshot && snapshot.evidence;
+    if (!TEST_MODE || !evidence) return null;
+    const scoredQuestions = evidenceQuestions().filter((question) => question.correct !== null);
+    const comprehensionScore = scoredQuestions.reduce(
+      (score, question) => score + (evidence.answers[question.id] === question.correct ? 1 : 0),
+      0
+    );
+    const firstActionPass = Number.isFinite(evidence.firstActionMs) && evidence.firstActionMs <= FIRST_ACTION_TARGET_MS;
+    const cyclePass = Number.isFinite(evidence.cycleMs) && evidence.cycleMs <= COMPLETE_CYCLE_TARGET_MS;
+    const comprehensionPass = comprehensionScore >= COMPREHENSION_PASS_MIN;
+    const continuationPathPass = ["foreground", "return"].includes(evidence.continuationPath);
+    const exactlyOncePass = evidence.settlementAppliedCount === 1
+      && evidence.worldAdvancePresentedCount === 1
+      && evidence.worldAdvanceSettledCount === 1;
+    return {
+      schemaVersion: 1,
+      testMode: true,
+      runToken: evidence.runToken,
+      sessionId: evidence.sessionId,
+      branchId: evidence.branchId,
+      continuationPath: evidence.continuationPath,
+      firstActionMs: evidence.firstActionMs,
+      firstActionTargetMs: FIRST_ACTION_TARGET_MS,
+      firstActionPass,
+      cycleMs: evidence.cycleMs,
+      cycleTargetMs: COMPLETE_CYCLE_TARGET_MS,
+      cyclePass,
+      comprehensionScore,
+      comprehensionTotal: scoredQuestions.length,
+      comprehensionPass,
+      continuationInterest: evidence.continuationInterest,
+      settlementAppliedCount: evidence.settlementAppliedCount,
+      worldAdvancePresentedCount: evidence.worldAdvancePresentedCount,
+      worldAdvanceSettledCount: evidence.worldAdvanceSettledCount,
+      exactlyOncePass,
+      continuationPathPass,
+      answers: clone(evidence.answers),
+      overallPass: firstActionPass && cyclePass && comprehensionPass && continuationPathPass && exactlyOncePass,
+    };
+  }
+
+  function markEvidenceFirstAction() {
+    const evidence = snapshot && snapshot.evidence;
+    if (!TEST_MODE || !evidence || evidence.firstActionAt) return;
+    evidence.firstActionAt = Date.now();
+    evidence.firstActionMs = Math.max(0, evidence.firstActionAt - evidence.startedAt);
+  }
+
+  function markEvidenceWorldAdvancePresented(mode) {
+    const evidence = snapshot && snapshot.evidence;
+    if (!TEST_MODE || !evidence) return;
+    evidence.continuationPath = mode === "return" ? "return" : "foreground";
+    evidence.worldAdvancePresentedCount += 1;
+  }
+
+  function hasPendingEvidenceReport(value) {
+    return !!(TEST_MODE && value && value.evidence && value.evidence.reportReady && !value.evidence.reportDismissed);
+  }
+
   function defaultSnapshot() {
     return {
       schemaVersion: 1,
@@ -95,6 +288,7 @@ window.Game = window.Game || {};
       worldAdvancePresentationMode: null,
       lastHiddenAt: null,
       npcMemory: {},
+      evidence: defaultEvidence(),
       telemetry: [],
       telemetrySeq: 0,
     };
@@ -124,6 +318,7 @@ window.Game = window.Game || {};
       freedomCardShown: raw.freedomCardShown === true,
       freedomCardDismissed: raw.freedomCardDismissed === true,
       npcMemory: raw.npcMemory && typeof raw.npcMemory === "object" ? raw.npcMemory : {},
+      evidence: sanitizeEvidence(raw.evidence),
       telemetry: Array.isArray(raw.telemetry) ? raw.telemetry.slice(-80) : [],
     });
   }
@@ -257,13 +452,55 @@ window.Game = window.Game || {};
     const branch = BRANCHES[snapshot.branchId];
     if (!branch) return;
     const header = snapshot.worldAdvancePresentationMode === "return" ? "Пока тебя не было..." : "События продолжились";
+    const nextAction = TEST_MODE
+      ? actionButton("Ответить на 6 вопросов", "open-evidence-questionnaire")
+      : actionButton("Продолжить", "ack-world-advance");
     panel.innerHTML = `
       <div class="stage7WorldAdvance">
         <h2>${header}</h2>
         <p><strong>${branch.change}</strong></p>
         <p>${branch.cause}</p>
         <p class="stage7DecisionHook">${branch.hook}</p>
-        ${actionButton("Продолжить", "ack-world-advance")}
+        ${nextAction}
+      </div>`;
+  }
+
+  function renderEvidenceQuestion(panel) {
+    const evidence = snapshot && snapshot.evidence;
+    const questions = evidenceQuestions();
+    const question = evidence && questions[evidence.questionIndex];
+    if (!evidence || !question) return;
+    const options = question.options.map((option) => actionButton(
+      option.label,
+      "answer-evidence-question",
+      `data-evidence-question="${question.id}" data-evidence-answer="${option.id}"`
+    )).join("");
+    panel.innerHTML = `
+      <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle">
+        <div class="stage7EvidenceBadge">Тест Stage 7.2 · ${evidence.questionIndex + 1}/${questions.length}</div>
+        <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
+        <div class="stage7EvidenceOptions">${options}</div>
+      </div>`;
+  }
+
+  function renderEvidenceReport(panel) {
+    const report = getObservedEvidenceReport();
+    if (!report) return;
+    const status = (pass) => `<span class="stage7EvidenceStatus ${pass ? "pass" : "fail"}">${pass ? "PASS" : "FAIL"}</span>`;
+    const interestLabels = { yes: "Да", unsure: "Пока не уверен", no: "Нет" };
+    panel.innerHTML = `
+      <div class="stage7EvidenceReport" role="dialog" aria-modal="true" aria-labelledby="stage7EvidenceReportTitle">
+        <div class="stage7EvidenceBadge">Тест Stage 7.2 завершён</div>
+        <h2 id="stage7EvidenceReportTitle">Отчёт о первом цикле</h2>
+        <div class="stage7EvidenceMetric"><span>Первое действие</span><strong>${Math.round(report.firstActionMs || 0)} мс ${status(report.firstActionPass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Полный цикл</span><strong>${Math.round(report.cycleMs || 0)} мс ${status(report.cyclePass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Понимание причин</span><strong>${report.comprehensionScore}/${report.comprehensionTotal} ${status(report.comprehensionPass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Продолжение</span><strong>${report.continuationPath || "нет"} ${status(report.continuationPathPass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Exactly once</span><strong>${report.settlementAppliedCount}/${report.worldAdvancePresentedCount}/${report.worldAdvanceSettledCount} ${status(report.exactlyOncePass)}</strong></div>
+        <div class="stage7EvidenceMetric"><span>Хочется продолжения</span><strong>${interestLabels[report.continuationInterest] || "нет ответа"}</strong></div>
+        <p class="stage7EvidenceOverall">Итог: ${status(report.overallPass)}</p>
+        ${actionButton("Продолжить в мир", "finish-evidence-report")}
+        <div class="stage7Support">Отчёт сохранён только в этом браузере. Ничего не отправляется в сеть.</div>
       </div>`;
   }
 
@@ -272,6 +509,20 @@ window.Game = window.Game || {};
     const panel = ensurePanel();
     if (!panel) return;
     const branch = snapshot.branchId ? BRANCHES[snapshot.branchId] : null;
+
+    if (TEST_MODE && snapshot.evidence && snapshot.evidence.reportReady && !snapshot.evidence.reportDismissed) {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderEvidenceReport(panel);
+      return;
+    }
+
+    if (TEST_MODE && snapshot.evidence && snapshot.evidence.questionnaireOpen && !snapshot.evidence.answersComplete) {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderEvidenceQuestion(panel);
+      return;
+    }
 
     if (snapshot.worldAdvancePresented && !snapshot.worldAdvanceSettled) {
       panel.hidden = false;
@@ -354,7 +605,11 @@ window.Game = window.Game || {};
   function applySettlement() {
     if (!snapshot || !snapshot.branchId) return false;
     const branchId = snapshot.branchId;
-    const settlementId = snapshot.settlementId || `first_experience_settlement_v1:${branchId}`;
+    const evidence = snapshot.evidence;
+    const settlementBase = `first_experience_settlement_v1:${branchId}`;
+    const settlementId = snapshot.settlementId || (TEST_MODE && evidence
+      ? `${settlementBase}:${evidence.sessionId}`
+      : settlementBase);
     snapshot.settlementId = settlementId;
     saveSnapshot();
     if (snapshot.settled || (branchId === "pay" && ledgerHasMoneySettlement(settlementId))) {
@@ -383,6 +638,7 @@ window.Game = window.Game || {};
     }
     if (result && result.ok === false && result.reason !== "duplicate") return false;
     snapshot.settled = true;
+    if (TEST_MODE && evidence) evidence.settlementAppliedCount += 1;
     if (branchId === "accuse_ken") {
       snapshot.npcMemory.npc_stage7_ken = Object.assign({}, snapshot.npcMemory.npc_stage7_ken || {}, { ken_escalation: 1 });
     }
@@ -413,9 +669,17 @@ window.Game = window.Game || {};
     if (!snapshot || !snapshot.branchId) return;
     snapshot.stateId = "completed";
     snapshot.cycleCompletedAt = Date.now();
+    if (TEST_MODE && snapshot.evidence) {
+      snapshot.evidence.cycleCompletedAt = snapshot.cycleCompletedAt;
+      snapshot.evidence.cycleMs = Math.max(0, snapshot.cycleCompletedAt - snapshot.evidence.startedAt);
+      snapshot.evidence.branchId = snapshot.branchId;
+    }
     snapshot.awaitingWorldAdvance = true;
     snapshot.worldAdvanceDueAt = snapshot.cycleCompletedAt + WORLD_ADVANCE_DELAY_MS;
-    snapshot.worldAdvanceId = `first_experience_world_advance_v1:${snapshot.branchId}`;
+    const worldAdvanceBase = `first_experience_world_advance_v1:${snapshot.branchId}`;
+    snapshot.worldAdvanceId = TEST_MODE && snapshot.evidence
+      ? `${worldAdvanceBase}:${snapshot.evidence.sessionId}`
+      : worldAdvanceBase;
     snapshot.worldAdvanceSettled = false;
     snapshot.worldAdvancePresented = false;
     saveSnapshot();
@@ -430,6 +694,7 @@ window.Game = window.Game || {};
     if (!snapshot || snapshot.worldAdvanceSettled || snapshot.worldAdvancePresented || !snapshot.awaitingWorldAdvance) return false;
     snapshot.worldAdvancePresented = true;
     snapshot.worldAdvancePresentationMode = mode === "return" ? "return" : "foreground";
+    markEvidenceWorldAdvancePresented(snapshot.worldAdvancePresentationMode);
     saveSnapshot();
     telemetry("first_experience.world_advance_presented", {
       mode: snapshot.worldAdvancePresentationMode,
@@ -462,20 +727,37 @@ window.Game = window.Game || {};
     if (context && typeof context.startNormalWorld === "function") context.startNormalWorld();
   }
 
-  function acknowledgeWorldAdvance() {
-    if (!snapshot || snapshot.worldAdvanceSettled) return;
+  function acknowledgeWorldAdvance(options) {
+    if (!snapshot || snapshot.worldAdvanceSettled) return false;
+    const deferRelease = !!(options && options.deferRelease);
     hydrateBranchMemory();
     snapshot.awaitingWorldAdvance = false;
     snapshot.worldAdvanceSettled = true;
     snapshot.worldAdvancePresented = false;
+    if (TEST_MODE && snapshot.evidence) {
+      snapshot.evidence.worldAdvanceSettledCount += 1;
+      if (deferRelease) {
+        snapshot.evidence.reportReady = true;
+        snapshot.evidence.completedAt = Date.now();
+        snapshot.evidence.finalReport = getObservedEvidenceReport();
+      }
+    }
     saveSnapshot();
     telemetry("first_experience.world_advance_settled", { worldAdvanceId: snapshot.worldAdvanceId });
+    if (deferRelease) {
+      if (snapshot.evidence) snapshot.evidence.finalReport = getObservedEvidenceReport();
+      saveSnapshot();
+      render();
+      return true;
+    }
     releaseNormalWorldOnce();
+    return true;
   }
 
   function runAction(action, button) {
     if (!snapshot) return;
     if (action === "open-answer" && snapshot.stateId === "accusation") {
+      markEvidenceFirstAction();
       snapshot.stateId = "answer";
       saveSnapshot();
       telemetry("first_experience.answer_opened");
@@ -484,6 +766,7 @@ window.Game = window.Game || {};
       const branchId = button && button.getAttribute("data-branch");
       if (!RESPONSE_IDS.includes(branchId)) return;
       snapshot.branchId = branchId;
+      if (TEST_MODE && snapshot.evidence) snapshot.evidence.branchId = branchId;
       snapshot.selectedAt = Date.now();
       snapshot.stateId = "reaction";
       saveSnapshot();
@@ -524,6 +807,40 @@ window.Game = window.Game || {};
       } else {
         render();
       }
+    } else if (action === "open-evidence-questionnaire" && TEST_MODE && snapshot.worldAdvancePresented) {
+      snapshot.evidence.questionnaireOpen = true;
+      snapshot.evidence.questionIndex = 0;
+      saveSnapshot();
+      telemetry("stage7_evidence.questionnaire_opened");
+      render();
+    } else if (action === "answer-evidence-question" && TEST_MODE && snapshot.evidence && snapshot.evidence.questionnaireOpen) {
+      const questions = evidenceQuestions();
+      const question = questions[snapshot.evidence.questionIndex];
+      const questionId = button && button.getAttribute("data-evidence-question");
+      const answerId = button && button.getAttribute("data-evidence-answer");
+      if (!question || question.id !== questionId || !question.options.some((option) => option.id === answerId)) return;
+      snapshot.evidence.answers[question.id] = answerId;
+      if (question.id === "interest") snapshot.evidence.continuationInterest = answerId;
+      snapshot.evidence.questionIndex += 1;
+      if (snapshot.evidence.questionIndex >= questions.length) {
+        snapshot.evidence.answersComplete = true;
+        const report = getObservedEvidenceReport();
+        snapshot.evidence.comprehensionScore = report ? report.comprehensionScore : null;
+        saveSnapshot();
+        telemetry("stage7_evidence.questionnaire_completed", {
+          score: snapshot.evidence.comprehensionScore,
+          interest: snapshot.evidence.continuationInterest,
+        });
+        acknowledgeWorldAdvance({ deferRelease: true });
+      } else {
+        saveSnapshot();
+        render();
+      }
+    } else if (action === "finish-evidence-report" && TEST_MODE && snapshot.evidence && snapshot.evidence.reportReady) {
+      snapshot.evidence.reportDismissed = true;
+      saveSnapshot();
+      telemetry("stage7_evidence.report_dismissed", { overallPass: !!(getObservedEvidenceReport() || {}).overallPass });
+      releaseNormalWorldOnce();
     } else if (action === "ack-world-advance" && snapshot.worldAdvancePresented) {
       acknowledgeWorldAdvance();
     }
@@ -578,6 +895,7 @@ window.Game = window.Game || {};
         const due = snapshot.stateId === "main_unlocked"
           && snapshot.awaitingWorldAdvance
           && !snapshot.worldAdvanceSettled
+          && !snapshot.worldAdvancePresented
           && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
         if (due) {
           presentWorldAdvance("return");
@@ -601,7 +919,7 @@ window.Game = window.Game || {};
 
   function claimFreshStart(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled) {
+    if (existing && existing.worldAdvanceSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -614,7 +932,7 @@ window.Game = window.Game || {};
 
   function claimResume(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled) {
+    if (existing && existing.worldAdvanceSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -622,10 +940,12 @@ window.Game = window.Game || {};
     if (snapshot.stateId === "completed") snapshot.stateId = "main_unlocked";
     const dueOnReturn = snapshot.stateId === "main_unlocked"
       && snapshot.awaitingWorldAdvance
+      && !snapshot.worldAdvancePresented
       && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
     if (dueOnReturn) {
       snapshot.worldAdvancePresented = true;
       snapshot.worldAdvancePresentationMode = "return";
+      markEvidenceWorldAdvancePresented("return");
     } else if (snapshot.stateId === "main_unlocked" && snapshot.freedomCardShown && !snapshot.freedomCardDismissed) {
       snapshot.freedomCardDismissed = true;
     }
@@ -700,6 +1020,7 @@ window.Game = window.Game || {};
     claimResume,
     isPending,
     getSnapshot,
+    getObservedEvidenceReport,
     resetForDev,
     advanceForegroundForDev,
     destroy,
@@ -707,6 +1028,7 @@ window.Game = window.Game || {};
 
   if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
   G.__DEV.getStage7FirstExperienceSnapshot = getSnapshot;
+  G.__DEV.getStage7ObservedEvidenceReport = getObservedEvidenceReport;
   G.__DEV.resetStage7FirstExperience = resetForDev;
   G.__DEV.advanceStage7FirstExperienceForeground = advanceForegroundForDev;
   G.__DEV.settleStage7FirstExperienceWorldAdvance = settleWorldAdvanceForDev;
@@ -717,5 +1039,15 @@ window.Game = window.Game || {};
     states: STATES.slice(),
     responses: RESPONSE_IDS.slice(),
     worldAdvanceDelayMs: WORLD_ADVANCE_DELAY_MS,
+  });
+  G.__DEV.smokeStage7ObservedEvidenceHarness = () => ({
+    ok: TEST_MODE && !!G.__DEV.getStage7ObservedEvidenceReport,
+    testMode: TEST_MODE,
+    runToken: TEST_RUN_TOKEN,
+    storageKey: STORAGE_KEY,
+    firstActionTargetMs: FIRST_ACTION_TARGET_MS,
+    completeCycleTargetMs: COMPLETE_CYCLE_TARGET_MS,
+    comprehensionPassMin: COMPREHENSION_PASS_MIN,
+    networkTransmission: false,
   });
 })();

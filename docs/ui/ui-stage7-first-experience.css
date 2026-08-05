@@ -53,3 +53,42 @@ html.stage7-first-experience-active #stage7FirstExperiencePanel { display: block
   .stage7VoteRow { grid-template-columns: repeat(5, 1fr); gap: 4px; }
   .stage7VoteMarker { min-height: 34px; font-size: .68rem; }
 }
+
+
+/* Stage 7.2 explicit observed-evidence test mode */
+.stage7EvidenceBadge {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(255,255,255,.16));
+  font-size: 12px;
+  font-weight: 700;
+}
+.stage7EvidenceOptions {
+  display: grid;
+  gap: 8px;
+}
+.stage7EvidenceOptions .stage7FirstExperienceAction {
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+}
+.stage7EvidenceReport {
+  display: grid;
+  gap: 10px;
+}
+.stage7EvidenceMetric {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,.12));
+}
+.stage7EvidenceMetric strong { text-align: right; }
+.stage7EvidenceStatus { font-size: 12px; font-weight: 800; }
+.stage7EvidenceStatus.pass { opacity: 1; }
+.stage7EvidenceStatus.fail { text-decoration: underline; }
+.stage7EvidenceOverall { font-size: 18px; font-weight: 800; }
