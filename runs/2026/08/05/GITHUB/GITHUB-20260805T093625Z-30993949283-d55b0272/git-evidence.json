@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-5-branch-consequence-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-5-branch-consequence-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "3a33291e5dd0436e18f6396095c5fb89bdec484d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3a33291e5dd0436e18f6396095c5fb89bdec484d\n# branch.head chatgpt/stage7-5-branch-consequence-20260805\n# branch.upstream origin/chatgpt/stage7-5-branch-consequence-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "3a33291e (HEAD -> chatgpt/stage7-5-branch-consequence-20260805, origin/chatgpt/stage7-5-branch-consequence-20260805) feat: make Stage 7 branch matter after unlock\n65a1a692 (origin/main) feat: personalize Stage 7 onboarding (#286)\n6b41ea36 feat: add Stage 7.3 continuation integrity evidence (#285)\ncf3f6f06 (origin/codex/stage7-3-core-loop-evidence-20260805) fix: correct Stage 7.3 memory lineage\n2f8cc8fa fix: correct Stage 7.3 memory lineage\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3a33291e5dd0436e18f6396095c5fb89bdec484d\nbranch refs/heads/chatgpt/stage7-5-branch-consequence-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T09:36:25Z",
+      "stderr": "",
+      "stdout": "65a1a69289393caaa08c5137a72e5fd2e24bb8c0\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3a33291e5dd0436e18f6396095c5fb89bdec484d",
+  "observedAtUtc": "2026-08-05T09:36:25Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
