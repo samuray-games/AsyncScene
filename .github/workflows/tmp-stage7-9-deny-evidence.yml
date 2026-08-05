@@ -24,6 +24,18 @@ jobs:
           node-version: "22"
       - name: Apply Stage 7.9 implementation
         run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("tools/tmp_stage7_9_deny_evidence_patch.py")
+          text = path.read_text(encoding="utf-8")
+          old_open = "TEST = r'''from pathlib"
+          new_open = 'TEST = r"""from pathlib'
+          old_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n\'\'\'\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
+          new_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n"""\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
+          if text.count(old_open) != 1 or text.count(old_close) != 1:
+              raise SystemExit("temporary test generator quote anchors changed")
+          path.write_text(text.replace(old_open, new_open, 1).replace(old_close, new_close, 1), encoding="utf-8")
+          PY
           set +e
           output="$(python tools/tmp_stage7_9_deny_evidence_patch.py 2>&1)"
           status=$?
