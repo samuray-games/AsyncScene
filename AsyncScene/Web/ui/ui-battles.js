@@ -2451,6 +2451,9 @@ UI.renderBattles = () => {
         const rerollCost = Number.isFinite(D0.COST_REROLL_ARGUMENTS) ? (D0.COST_REROLL_ARGUMENTS | 0) : 3;
         const hintCost = Number.isFinite(D0.COST_HINT_WEAKNESS) ? (D0.COST_HINT_WEAKNESS | 0) : 2;
         const canFreeOff = (S && S.me && Number.isFinite(S.me.influence) ? S.me.influence : (S && S.me ? (S.me.influence || 0) : 0)) >= 5;
+        const stage7DenyEvidencePayoff = b && b.meta && b.meta.stage7DenyEvidencePayoff
+          ? b.meta.stage7DenyEvidencePayoff
+          : null;
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2465,9 +2468,15 @@ UI.renderBattles = () => {
           incoming.className = "choiceRow";
 
           const chip = document.createElement("div");
-          chip.className = clsForColor(null, true);
+          const evidenceRevealed = !!(stage7DenyEvidencePayoff
+            && stage7DenyEvidencePayoff.status === "revealed"
+            && b.attack.color);
+          chip.className = clsForColor(evidenceRevealed ? b.attack.color : null, !evidenceRevealed);
           chip.textContent = `Вброс: ${String(argCanonUiText(b.attack, "Q") || "")}`;
-          chip.style.color = "rgba(255,255,255,.92)";
+          if (!evidenceRevealed) chip.style.color = "rgba(255,255,255,.92)";
+          else if (b.attack.color === "k") chip.style.color = "#ddd";
+          else chip.style.color = "black";
+          chip.dataset.stage7DenyEvidenceRevealed = String(evidenceRevealed);
           // show toast above incoming (grey) attack when clicked
           chip.onclick = (e) => {
             stop(e);
@@ -2484,6 +2493,15 @@ UI.renderBattles = () => {
           };
           incoming.appendChild(chip);
           card.appendChild(incoming);
+          if (evidenceRevealed) {
+            const evidenceNote = document.createElement("div");
+            evidenceNote.className = "noteLine";
+            evidenceNote.dataset.testid = "stage7-deny-evidence-revealed";
+            evidenceNote.textContent = stage7DenyEvidencePayoff.mode === "held"
+              ? "Сохранённое доказательство раскрыло цвет вброса."
+              : "Публичное доказательство раскрыло цвет вброса.";
+            card.appendChild(evidenceNote);
+          }
         }
 
        // Attack choices (ALWAYS 3) - built once per battle/status, then reused
@@ -2818,6 +2836,29 @@ UI.renderBattles = () => {
        if (b.status === "pickDefense") {
           const actions = document.createElement("div");
           actions.className = "actions";
+
+          if (stage7DenyEvidencePayoff
+            && stage7DenyEvidencePayoff.mode === "held"
+            && stage7DenyEvidencePayoff.status === "pending") {
+            const evidenceBtn = document.createElement("button");
+            evidenceBtn.className = "btn small";
+            evidenceBtn.type = "button";
+            evidenceBtn.dataset.testid = "stage7-deny-evidence-reveal";
+            evidenceBtn.textContent = "Показать доказательство";
+            evidenceBtn.onclick = (e) => {
+              stop(e);
+              _captureBattleFocus(b.id, card);
+              const stage7 = Game && Game.Stage7FirstExperience;
+              const used = !!(stage7
+                && typeof stage7.revealHeldDenyEvidence === "function"
+                && stage7.revealHeldDenyEvidence(b.id));
+              if (!used && UI && typeof UI.showActionToast === "function") {
+                UI.showActionToast(evidenceBtn, "Доказательство уже недоступно.");
+              }
+              requestAll();
+            };
+            actions.appendChild(evidenceBtn);
+          }
 
           const isMafiaBattle = !!(opp && opp.role === "mafia");
 
