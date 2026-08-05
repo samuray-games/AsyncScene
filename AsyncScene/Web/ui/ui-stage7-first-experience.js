@@ -14,7 +14,7 @@ window.Game = window.Game || {};
   const STORAGE_KEY_TEST_PREFIX = "AsyncScene_first_experience_evidence_v1";
   const STORAGE_KEY = TEST_MODE ? `${STORAGE_KEY_TEST_PREFIX}:${TEST_RUN_TOKEN}` : STORAGE_KEY_NORMAL;
   const SCENARIO_ID = "first_experience_personal_conflict_v1";
-  const ONBOARDING_FLOW_VERSION = 2;
+  const ONBOARDING_FLOW_VERSION = 3;
   const WORLD_ADVANCE_DELAY_MS = 45_000;
   const INTERMISSION_DELAY_MS = WORLD_ADVANCE_DELAY_MS;
   const PRELUDE_MIN_GAP_MS = 800;
@@ -190,6 +190,25 @@ window.Game = window.Game || {};
     },
   ];
 
+  const REAL_BATTLE_BRIDGE_ID = "stage7_first_real_argument_battle_v1";
+  const REAL_BATTLE_OPPONENT_ID = "npc_stage7_ken";
+  const REAL_BATTLE_RETRY_MS = 250;
+  const REAL_BATTLE_MAX_ATTEMPTS = 40;
+  const REAL_BATTLE_INJECTIONS = {
+    deny: {
+      primary: "Настя показала твоё доказательство. Но оно доказывает только то, что ты успел подготовить оправдание. Отвечай публично.",
+      secondary: "Доказательство опять осталось у тебя. Значит, его никто не видел. Отвечай публично.",
+    },
+    accuse_ken: {
+      primary: "Ты сам принял реванш. Хватит прятаться за словами - отвечай аргументом.",
+      secondary: "Приводи свидетеля. А сначала объясни всем, почему обвиняешь меня.",
+    },
+    pay: {
+      primary: "Расписка подтверждает платёж, а не невиновность. Объясни это всем.",
+      secondary: "Ты заплатил и оставил всё как есть. Для остальных это выглядит как признание.",
+    },
+  };
+
   let context = null;
   let snapshot = null;
   let scheduler = null;
@@ -200,6 +219,7 @@ window.Game = window.Game || {};
   let normalWorldReleased = false;
   let visibilityBound = false;
   let lastIntermissionSecond = null;
+  let realBattleBridgeTimer = null;
 
   function clone(value) {
     try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
@@ -401,6 +421,42 @@ window.Game = window.Game || {};
     return false;
   }
 
+  function defaultRealBattleBridge() {
+    return {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      status: "not_started",
+      battleId: null,
+      branchId: null,
+      secondRoundChoiceId: null,
+      queuedAt: null,
+      createdAt: null,
+      injectionShown: false,
+      injectionShownAt: null,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      lastFailureReason: null,
+    };
+  }
+
+  function sanitizeRealBattleBridge(raw) {
+    const base = defaultRealBattleBridge();
+    if (!raw || typeof raw !== "object") return base;
+    return Object.assign(base, raw, {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      status: ["not_started", "pending", "created"].includes(raw.status) ? raw.status : "not_started",
+      battleId: typeof raw.battleId === "string" && raw.battleId ? raw.battleId : null,
+      branchId: RESPONSE_IDS.includes(raw.branchId) ? raw.branchId : null,
+      secondRoundChoiceId: ["primary", "secondary"].includes(raw.secondRoundChoiceId) ? raw.secondRoundChoiceId : null,
+      queuedAt: Number.isFinite(Number(raw.queuedAt)) ? Number(raw.queuedAt) : null,
+      createdAt: Number.isFinite(Number(raw.createdAt)) ? Number(raw.createdAt) : null,
+      injectionShown: raw.injectionShown === true,
+      injectionShownAt: Number.isFinite(Number(raw.injectionShownAt)) ? Number(raw.injectionShownAt) : null,
+      attemptCount: Math.max(0, Number(raw.attemptCount) | 0),
+      lastAttemptAt: Number.isFinite(Number(raw.lastAttemptAt)) ? Number(raw.lastAttemptAt) : null,
+      lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
+    });
+  }
+
   function defaultSnapshot() {
     return {
       schemaVersion: 2,
@@ -434,6 +490,7 @@ window.Game = window.Game || {};
       unlockedAt: null,
       lastHiddenAt: null,
       npcMemory: {},
+      realBattleBridge: defaultRealBattleBridge(),
       evidence: defaultEvidence(),
       telemetry: [],
       telemetrySeq: 0,
@@ -484,6 +541,7 @@ window.Game = window.Game || {};
       unlockedAt: Number.isFinite(Number(raw.unlockedAt)) ? Number(raw.unlockedAt) : null,
       lastHiddenAt: Number.isFinite(Number(raw.lastHiddenAt)) ? Number(raw.lastHiddenAt) : null,
       npcMemory: raw.npcMemory && typeof raw.npcMemory === "object" ? raw.npcMemory : {},
+      realBattleBridge: sanitizeRealBattleBridge(raw.realBattleBridge),
       evidence: sanitizeEvidence(raw.evidence),
       telemetry: Array.isArray(raw.telemetry) ? raw.telemetry.slice(-80) : [],
     });
@@ -731,6 +789,11 @@ window.Game = window.Game || {};
     if (snapshot.onboardingUnlocked) {
       setControlledMode(false);
       panel.remove();
+      const bridge = getBridgeState();
+      if (bridge && bridge.status === "pending") {
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+      }
       return;
     }
 
@@ -953,6 +1016,131 @@ window.Game = window.Game || {};
     ensureScenarioPlayers();
   }
 
+  function getBridgeState() {
+    if (!snapshot) return null;
+    snapshot.realBattleBridge = sanitizeRealBattleBridge(snapshot.realBattleBridge);
+    return snapshot.realBattleBridge;
+  }
+
+  function getBridgeBattleList() {
+    const state = context && context.state
+      ? context.state
+      : (G.__S || G.State || null);
+    return state && Array.isArray(state.battles) ? state.battles : [];
+  }
+
+  function findExistingRealBattle() {
+    return getBridgeBattleList().find((battle) => battle
+      && battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID) || null;
+  }
+
+  function getRealBattleInjection() {
+    const branchId = snapshot && snapshot.branchId;
+    const choiceId = snapshot && snapshot.followUpChoiceId;
+    const branch = branchId && REAL_BATTLE_INJECTIONS[branchId];
+    return branch && branch[choiceId]
+      ? branch[choiceId]
+      : "Первый спор был разминкой. Теперь отвечай публично - аргументом.";
+  }
+
+  function adoptRealBattle(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage7OnboardingBridgeId: REAL_BATTLE_BRIDGE_ID,
+      stage7BranchId: snapshot.branchId,
+      stage7SecondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    bridge.status = "created";
+    bridge.battleId = battle.id || battle.battleId || bridge.battleId;
+    bridge.createdAt = bridge.createdAt || Date.now();
+    bridge.lastFailureReason = null;
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_created", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      battleId: bridge.battleId,
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    if (realBattleBridgeTimer) {
+      clearTimeout(realBattleBridgeTimer);
+      realBattleBridgeTimer = null;
+    }
+    if (context && context.UI) {
+      const UI = context.UI;
+      if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+      else if (typeof UI.renderAll === "function") UI.renderAll();
+    }
+    return true;
+  }
+
+  function attemptRealArgumentBattleBridge() {
+    if (!snapshot || !snapshot.onboardingUnlocked) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "pending") return bridge && bridge.status === "created";
+
+    const existing = findExistingRealBattle();
+    if (existing) return adoptRealBattle(existing);
+
+    releaseNormalWorldOnce();
+    ensureScenarioPlayers();
+    const state = context && context.state ? context.state : (G.__S || G.State || null);
+    const rayhan = state && state.players ? state.players[REAL_BATTLE_OPPONENT_ID] : null;
+    if (rayhan) rayhan.name = "Райхан";
+
+    if (!bridge.injectionShown) {
+      bridge.injectionShown = true;
+      bridge.injectionShownAt = Date.now();
+      saveSnapshot();
+      pushLine({ name: "Райхан", text: getRealBattleInjection() });
+      pushLine({ system: true, text: "Райхан перевёл спор в баттл. Выбери аргумент защиты." });
+    }
+
+    bridge.attemptCount += 1;
+    bridge.lastAttemptAt = Date.now();
+    saveSnapshot();
+
+    const conflict = G.Conflict;
+    if (!conflict || typeof conflict.incoming !== "function") {
+      bridge.lastFailureReason = "conflict_api_not_ready";
+      saveSnapshot();
+      return false;
+    }
+
+    const result = conflict.incoming(REAL_BATTLE_OPPONENT_ID, {
+      stage7OnboardingBridgeId: REAL_BATTLE_BRIDGE_ID,
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    const battle = result && result.ok === true
+      ? (result.battle || getBridgeBattleList().find((item) => item && (item.id === result.battleId || item.battleId === result.battleId)) || null)
+      : (result && (result.id || result.battleId) ? result : null);
+    if (battle) return adoptRealBattle(battle);
+
+    bridge.lastFailureReason = result && (result.reason || result.error)
+      ? String(result.reason || result.error)
+      : "incoming_failed";
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_retry", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      attemptCount: bridge.attemptCount,
+      reason: bridge.lastFailureReason,
+    });
+    return false;
+  }
+
+  function scheduleRealArgumentBattleBridge() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "pending" || realBattleBridgeTimer) return false;
+    if (bridge.attemptCount >= REAL_BATTLE_MAX_ATTEMPTS) return false;
+    realBattleBridgeTimer = setTimeout(() => {
+      realBattleBridgeTimer = null;
+      if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+    }, REAL_BATTLE_RETRY_MS);
+    return true;
+  }
+
   function releaseNormalWorldOnce() {
     setControlledMode(false);
     const panel = document.getElementById("stage7FirstExperiencePanel");
@@ -1056,6 +1244,12 @@ window.Game = window.Game || {};
     snapshot.onboardingUnlocked = true;
     snapshot.unlockedAt = Date.now();
     snapshot.stateId = "main_unlocked";
+    snapshot.realBattleBridge = Object.assign(defaultRealBattleBridge(), {
+      status: "pending",
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+      queuedAt: Date.now(),
+    });
     saveSnapshot();
     if (TEST_MODE) {
       snapshot.evidence.finalReport = getObservedEvidenceReport();
@@ -1069,6 +1263,7 @@ window.Game = window.Game || {};
     });
     telemetry("first_experience.full_game_unlocked", { branchId: snapshot.branchId });
     releaseNormalWorldOnce();
+    if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
     return true;
   }
 
@@ -1216,6 +1411,14 @@ window.Game = window.Game || {};
   function claimFreshStart(nextContext) {
     const existing = loadSnapshot();
     if (existing && existing.onboardingUnlocked) {
+      const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      if (bridge.status === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -1229,6 +1432,14 @@ window.Game = window.Game || {};
   function claimResume(nextContext) {
     const existing = loadSnapshot();
     if (existing && existing.onboardingUnlocked) {
+      const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      if (bridge.status === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -1331,8 +1542,10 @@ window.Game = window.Game || {};
   function destroy() {
     if (scheduler) clearInterval(scheduler);
     if (voteTimer) clearTimeout(voteTimer);
+    if (realBattleBridgeTimer) clearTimeout(realBattleBridgeTimer);
     scheduler = null;
     voteTimer = null;
+    realBattleBridgeTimer = null;
     context = null;
     lastTickAt = 0;
     nextPreludeEligibleAt = 0;
@@ -1361,6 +1574,7 @@ window.Game = window.Game || {};
   G.__DEV.resolveStage7RoundTwo = resolveRoundTwoForDev;
   G.__DEV.openStage7Questions = openQuestionsForDev;
   G.__DEV.answerStage7CurrentQuestionCorrect = answerCurrentQuestionCorrectForDev;
+  G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,
@@ -1380,12 +1594,13 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.7",
+    stage: "7.8",
     onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
     intermissionDelayMs: INTERMISSION_DELAY_MS,
     limitedNpcCount: INTERMISSION_NPCS.length,
     secondRoundBeforeQuestions: true,
     fullUnlockAfterQuestions: true,
-    realArgumentBattleBridgePending: true,
+    realArgumentBattleBridgePending: false,
+    realArgumentBattleBridgeId: REAL_BATTLE_BRIDGE_ID,
   });
 })();

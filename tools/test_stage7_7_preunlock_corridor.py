@@ -19,7 +19,7 @@ docs_index = DOCS_INDEX.read_text(encoding="utf-8")
 
 assert source == docs, "source/docs controller mirrors diverged"
 assert css == docs_css, "source/docs CSS mirrors diverged"
-assert "const ONBOARDING_FLOW_VERSION = 2" in source
+assert "const ONBOARDING_FLOW_VERSION = 3" in source
 assert "const INTERMISSION_DELAY_MS = WORLD_ADVANCE_DELAY_MS" in source
 assert '"intermission", "round_two", "round_two_result", "questionnaire"' in source
 assert "const INTERMISSION_NPCS = [" in source
@@ -28,13 +28,15 @@ for npc_id in ["npc_stage7_ken", "npc_stage7_mika", "npc_bandit"]:
 assert "limitedNpcCount: INTERMISSION_NPCS.length" in source
 assert "secondRoundBeforeQuestions: true" in source
 assert "fullUnlockAfterQuestions: true" in source
-assert "realArgumentBattleBridgePending: true" in source
+assert "realArgumentBattleBridgePending: false" in source
+assert "stage7_first_real_argument_battle_v1" in source
 assert "Проверка понимания" in source
 assert "Перейти к 6 вопросам" in source
 assert "После вопросов откроется полная игра" in source
 assert "snapshot.onboardingUnlocked = true" in source
 assert "releaseNormalWorldOnce();" in source
-assert "Game.Conflict.incoming" not in source, "real combat bridge belongs to the next atomic PR"
+assert "conflict.incoming(REAL_BATTLE_OPPONENT_ID" in source
+assert "stage7OnboardingBridgeId" in source
 for stale in [
     "FOLLOW_UP_REACTION_DELAY_MS",
     "presentFollowUpReaction",
@@ -49,7 +51,7 @@ for network_primitive in ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"]
 assert "Stage 7.7 locked three-NPC intermission" in css
 assert "stage7IntermissionGrid" in css
 for index in [source_index, docs_index]:
-    assert index.count("stage7_7_preunlock_corridor_20260805a") >= 2
+    assert index.count("stage7_8_real_argument_battle_20260806a") >= 2
 
 subprocess.run(["node", "--check", str(SOURCE)], check=True)
 subprocess.run(["node", "--check", str(DOCS)], check=True)
@@ -108,6 +110,8 @@ global.document = {
 };
 
 let normalWorldStarts = 0;
+let incomingCalls = 0;
+const visibleLines = [];
 const state = {
   me: { id: "me", points: 20 },
   players: {},
@@ -120,12 +124,27 @@ window.Game = {
   Data: { START_POINTS_NPC: 10 },
   __A: { transferRep() { return { ok: true }; } },
   ConflictEconomy: { transferPoints() { return { ok: true }; } },
+  Conflict: {
+    incoming(opponentId) {
+      incomingCalls += 1;
+      const battle = {
+        id: `stage7_real_battle_${incomingCalls}`,
+        opponentId,
+        fromThem: true,
+        status: "pickDefense",
+        attack: { id: "canon_Y1_yn_test", text: "Ты опять уходишь от ответа?", type: "yn", _color: "y" },
+        meta: {},
+      };
+      state.battles.unshift(battle);
+      return { ok: true, battleId: battle.id, battle };
+    },
+  },
   UI: {},
 };
 const UI = {
   S: state,
-  pushSystem() {},
-  pushChat() {},
+  pushSystem(text) { visibleLines.push({ system: true, text }); },
+  pushChat(entry) { visibleLines.push(entry); },
   requestRenderAll() {},
   renderAll() {},
 };
@@ -186,6 +205,15 @@ snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.onboardingUnlocked, true);
 assert.strictEqual(snap.stateId, "main_unlocked");
 assert.strictEqual(normalWorldStarts, 1);
+assert.strictEqual(incomingCalls, 1);
+assert.strictEqual(snap.realBattleBridge.status, "created");
+assert.strictEqual(snap.realBattleBridge.battleId, "stage7_real_battle_1");
+assert.strictEqual(state.battles.length, 1);
+assert.strictEqual(state.battles[0].meta.stage7OnboardingBridgeId, "stage7_first_real_argument_battle_v1");
+assert.strictEqual(state.battles[0].meta.stage7BranchId, "deny");
+assert.strictEqual(state.battles[0].meta.stage7SecondRoundChoiceId, "primary");
+assert(visibleLines.some((line) => line && line.name === "Райхан"), "Rayhan injection missing");
+assert(visibleLines.some((line) => line && line.system === true && String(line.text).includes("баттл")), "battle transition line missing");
 const report = dev.getStage7ObservedEvidenceReport();
 assert(report, "test report missing");
 assert.strictEqual(report.comprehensionScore, 6);
@@ -197,10 +225,23 @@ assert.strictEqual(report.worldAdvanceSettledCount, 1);
 assert.strictEqual(report.secondRoundChoiceId, "primary");
 assert.strictEqual(report.onboardingUnlocked, true);
 
+const storageKey = Array.from(storage.keys()).find((key) => String(key).includes("stage7-7-node"));
+assert(storageKey, "Stage 7 storage key missing");
+const pendingRecovery = JSON.parse(storage.get(storageKey));
+pendingRecovery.realBattleBridge.status = "pending";
+pendingRecovery.realBattleBridge.battleId = null;
+storage.set(storageKey, JSON.stringify(pendingRecovery));
+Game.Stage7FirstExperience.destroy();
+const recovered = Game.Stage7FirstExperience.claimResume(context);
+assert.strictEqual(recovered.claimed, true, "pending real battle bridge was not recovered");
+snap = dev.getStage7FirstExperienceSnapshot();
+assert.strictEqual(snap.realBattleBridge.status, "created");
+assert.strictEqual(snap.realBattleBridge.battleId, "stage7_real_battle_1");
+assert.strictEqual(incomingCalls, 1, "existing bridge battle was duplicated");
 Game.Stage7FirstExperience.destroy();
 const resumed = Game.Stage7FirstExperience.claimResume(context);
-assert.strictEqual(resumed.claimed, false, "completed corridor replayed after refresh");
-assert.strictEqual(normalWorldStarts, 1);
+assert.strictEqual(resumed.claimed, false, "completed corridor replayed after bridge recovery");
+assert.strictEqual(incomingCalls, 1);
 
 Game.__DEV.resetStage7FirstExperience();
 Game.Stage7FirstExperience.claimFreshStart(context);
@@ -213,7 +254,7 @@ snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.npcMemory.npc_bandit.pressureIgnored, 1);
 Game.Stage7FirstExperience.destroy();
 
-console.log("STAGE7_7_PREUNLOCK_CORRIDOR_DYNAMIC_OK");
+console.log("STAGE7_8_REAL_ARGUMENT_BATTLE_DYNAMIC_OK");
 '''
 
 with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=False) as handle:
@@ -221,8 +262,8 @@ with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8", delete=Fal
     harness_path = handle.name
 try:
     completed = subprocess.run(["node", harness_path], check=True, text=True, capture_output=True)
-    assert "STAGE7_7_PREUNLOCK_CORRIDOR_DYNAMIC_OK" in completed.stdout
+    assert "STAGE7_8_REAL_ARGUMENT_BATTLE_DYNAMIC_OK" in completed.stdout
 finally:
     Path(harness_path).unlink(missing_ok=True)
 
-print("STAGE7_7_PREUNLOCK_CORRIDOR_OK")
+print("STAGE7_8_REAL_ARGUMENT_BATTLE_OK")
