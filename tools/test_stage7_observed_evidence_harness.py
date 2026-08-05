@@ -33,6 +33,9 @@ for token in (
     'const COMPLETE_CYCLE_TARGET_MS = 180_000',
     'const COMPREHENSION_PASS_MIN = 4',
     'getStage7ObservedEvidenceReport',
+    'continuationStateValid',
+    'continuationStatePass',
+    'presentedWorldAdvanceId',
     'smokeStage7ObservedEvidenceHarness',
 ):
     require(token in js, f"missing Stage 7.2 contract token: {token}")
@@ -50,6 +53,8 @@ for question in (
 require('settlementAppliedCount === 1' in js, "settlement exactly-once assertion missing")
 require('worldAdvancePresentedCount === 1' in js, "presentation exactly-once assertion missing")
 require('worldAdvanceSettledCount === 1' in js, "world settlement exactly-once assertion missing")
+require('continuationStatePass' in js, "continuation state integrity assertion missing")
+require('evidence.presentedWorldAdvanceId = snapshot.worldAdvanceId' in js, "world advance identity capture missing")
 require('!snapshot.worldAdvancePresented' in js, "return presentation duplicate guard missing")
 require('acknowledgeWorldAdvance({ deferRelease: true })' in js, "report-before-release gate missing")
 require('networkTransmission: false' in js, "local-only evidence declaration missing")
