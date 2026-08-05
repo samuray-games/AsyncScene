@@ -1,0 +1,42 @@
+name: tmp stage7 7 preunlock corridor
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-7-preunlock-corridor-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  implement-and-test:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-7-preunlock-corridor-20260805
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply Stage 7.7 corridor patch
+        run: python tools/tmp_stage7_7_preunlock_corridor_patch.py
+      - name: Run focused regression
+        run: python tools/test_stage7_7_preunlock_corridor.py
+      - name: Validate exact generated scope
+        run: |
+          git diff --check
+          actual="$(git diff --name-only | sort | tr '\n' ' ')"
+          expected="AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.css AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.js "
+          test "$actual" = "$expected"
+      - name: Commit Stage 7.7 runtime
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.css AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.js
+          git commit -m 'feat: add locked Stage 7 pre-unlock corridor'
+          git push
