@@ -15,6 +15,7 @@ window.Game = window.Game || {};
   const STORAGE_KEY = TEST_MODE ? `${STORAGE_KEY_TEST_PREFIX}:${TEST_RUN_TOKEN}` : STORAGE_KEY_NORMAL;
   const SCENARIO_ID = "first_experience_personal_conflict_v1";
   const WORLD_ADVANCE_DELAY_MS = 45_000;
+  const FOLLOW_UP_REACTION_DELAY_MS = TEST_MODE ? 10_000 : 30_000;
   const PRELUDE_MIN_GAP_MS = 800;
   const FIRST_ACTION_TARGET_MS = 30_000;
   const COMPLETE_CYCLE_TARGET_MS = 180_000;
@@ -77,6 +78,16 @@ window.Game = window.Game || {};
       memoryTarget: "npc_stage7_mika",
       primaryMemory: { evidenceShared: 1 },
       secondaryMemory: { evidenceHeld: 1 },
+      primaryReaction: {
+        memoryKey: "evidenceShared",
+        title: "Настя подтвердила доказательство",
+        body: "Настя показала доказательство остальным. Райхан потерял возможность ссылаться только на подозрение.",
+      },
+      secondaryReaction: {
+        memoryKey: "evidenceHeld",
+        title: "Райхан использовал паузу",
+        body: "Ты оставил доказательство при себе. Райхан сказал остальным, что подтверждения твоих слов никто не видел.",
+      },
     },
     accuse_ken: {
       title: "Конфликт не закончился",
@@ -86,6 +97,16 @@ window.Game = window.Game || {};
       memoryTarget: "npc_stage7_ken",
       primaryMemory: { publicRematchAccepted: 1 },
       secondaryMemory: { witnessRequested: 1 },
+      primaryReaction: {
+        memoryKey: "publicRematchAccepted",
+        title: "Райхан объявил реванш",
+        body: "Ты принял реванш. Райхан назначил публичный спор и начал собирать сторонников.",
+      },
+      secondaryReaction: {
+        memoryKey: "witnessRequested",
+        title: "Настя нашла свидетеля",
+        body: "Ты потребовал свидетеля. Настя нашла человека, который видел начало конфликта, и Райхану придётся отвечать при нём.",
+      },
     },
     pay: {
       title: "Оплата не закрыла вопрос",
@@ -95,6 +116,16 @@ window.Game = window.Game || {};
       memoryTarget: "npc_bandit",
       primaryMemory: { receiptDemanded: 1 },
       secondaryMemory: { pressureIgnored: 1 },
+      primaryReaction: {
+        memoryKey: "receiptDemanded",
+        title: "Олег подтвердил оплату",
+        body: "Ты потребовал расписку. Олег подтвердил получение денег и больше не может выдать оплату за признание вины.",
+      },
+      secondaryReaction: {
+        memoryKey: "pressureIgnored",
+        title: "Олег усилил давление",
+        body: "Ты оставил всё как есть. Олег рассказал другим, что подтверждения оплаты нет, и решил давить снова.",
+      },
     },
   };
 
@@ -336,6 +367,12 @@ window.Game = window.Game || {};
       branchFollowUpPending: false,
       followUpChoiceId: null,
       followUpSettled: false,
+      followUpReactionId: null,
+      followUpReactionDueAt: null,
+      followUpReactionPresented: false,
+      followUpReactionPresentationMode: null,
+      followUpReactionPresentedCount: 0,
+      followUpReactionSettled: false,
       lastHiddenAt: null,
       npcMemory: {},
       evidence: defaultEvidence(),
@@ -351,6 +388,9 @@ window.Game = window.Game || {};
     const branchId = RESPONSE_IDS.includes(raw.branchId) ? raw.branchId : null;
     const shown = Array.from(new Set(Array.isArray(raw.shownMessageIds) ? raw.shownMessageIds.map(String) : []));
     const voteStep = Math.max(0, Math.min(5, Number(raw.voteStep) | 0));
+    const hasFollowUpReactionContract = Object.prototype.hasOwnProperty.call(raw, "followUpReactionDueAt")
+      || Object.prototype.hasOwnProperty.call(raw, "followUpReactionSettled")
+      || Object.prototype.hasOwnProperty.call(raw, "followUpReactionId");
     return Object.assign(base, raw, {
       schemaVersion: 1,
       scenarioId: SCENARIO_ID,
@@ -369,6 +409,15 @@ window.Game = window.Game || {};
       followUpChoiceId: ["primary", "secondary"].includes(raw.followUpChoiceId) ? raw.followUpChoiceId : null,
       followUpSettled: raw.followUpSettled === true
         || (raw.worldAdvanceSettled === true && !Object.prototype.hasOwnProperty.call(raw, "branchFollowUpPending")),
+      followUpReactionId: typeof raw.followUpReactionId === "string" && raw.followUpReactionId ? raw.followUpReactionId : null,
+      followUpReactionDueAt: Number.isFinite(Number(raw.followUpReactionDueAt)) ? Number(raw.followUpReactionDueAt) : null,
+      followUpReactionPresented: raw.followUpReactionPresented === true,
+      followUpReactionPresentationMode: ["foreground", "return"].includes(raw.followUpReactionPresentationMode)
+        ? raw.followUpReactionPresentationMode
+        : null,
+      followUpReactionPresentedCount: Math.max(0, Number(raw.followUpReactionPresentedCount) | 0),
+      followUpReactionSettled: raw.followUpReactionSettled === true
+        || (raw.followUpSettled === true && !hasFollowUpReactionContract),
       freedomCardShown: raw.freedomCardShown === true,
       freedomCardDismissed: raw.freedomCardDismissed === true,
       npcMemory: raw.npcMemory && typeof raw.npcMemory === "object" ? raw.npcMemory : {},
@@ -574,6 +623,32 @@ window.Game = window.Game || {};
       </div>`;
   }
 
+  function getFollowUpReaction() {
+    if (!snapshot || !snapshot.followUpSettled || !snapshot.followUpChoiceId) return null;
+    const offer = BRANCH_FOLLOW_UPS[snapshot.branchId];
+    if (!offer) return null;
+    const reaction = snapshot.followUpChoiceId === "primary" ? offer.primaryReaction : offer.secondaryReaction;
+    const memory = snapshot.npcMemory && snapshot.npcMemory[offer.memoryTarget];
+    if (!reaction || !memory || Number(memory[reaction.memoryKey]) < 1) return null;
+    return reaction;
+  }
+
+  function renderFollowUpReaction(panel) {
+    const reaction = getFollowUpReaction();
+    if (!reaction) return;
+    const header = snapshot.followUpReactionPresentationMode === "return"
+      ? "Пока тебя не было..."
+      : "Твой выбор изменил ситуацию";
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp" role="dialog" aria-modal="true" aria-labelledby="stage7FollowUpReactionTitle">
+        <div class="stage7EvidenceBadge">${header}</div>
+        <h2 id="stage7FollowUpReactionTitle">${reaction.title}</h2>
+        <p>${reaction.body}</p>
+        ${actionButton("Продолжить", "ack-follow-up-reaction")}
+        <div class="stage7Support">Это произошло из-за твоего предыдущего выбора.</div>
+      </div>`;
+  }
+
   function render() {
     if (!snapshot) return;
     const panel = ensurePanel();
@@ -611,11 +686,17 @@ window.Game = window.Game || {};
     panel.hidden = false;
     const controlled = snapshot.stateId !== "main_unlocked"
       || !snapshot.freedomCardDismissed
-      || snapshot.branchFollowUpPending;
+      || snapshot.branchFollowUpPending
+      || (snapshot.followUpReactionPresented && !snapshot.followUpReactionSettled);
     setControlledMode(controlled);
 
     if (snapshot.branchFollowUpPending && !snapshot.followUpSettled) {
       renderBranchFollowUp(panel);
+      return;
+    }
+
+    if (snapshot.followUpReactionPresented && !snapshot.followUpReactionSettled) {
+      renderFollowUpReaction(panel);
       return;
     }
 
@@ -795,12 +876,51 @@ window.Game = window.Game || {};
     ensureScenarioPlayers();
   }
 
+  function getFollowUpReactionDue() {
+    return !!(snapshot
+      && snapshot.stateId === "main_unlocked"
+      && snapshot.followUpSettled
+      && !snapshot.followUpReactionSettled
+      && !snapshot.followUpReactionPresented
+      && Number.isFinite(Number(snapshot.followUpReactionDueAt))
+      && Date.now() >= Number(snapshot.followUpReactionDueAt));
+  }
+
+  function presentFollowUpReaction(mode) {
+    if (!getFollowUpReactionDue() || !getFollowUpReaction()) return false;
+    snapshot.followUpReactionPresented = true;
+    snapshot.followUpReactionPresentationMode = mode === "return" ? "return" : "foreground";
+    snapshot.followUpReactionPresentedCount = (snapshot.followUpReactionPresentedCount | 0) + 1;
+    saveSnapshot();
+    telemetry("first_experience.follow_up_reaction_presented", {
+      reactionId: snapshot.followUpReactionId,
+      choiceId: snapshot.followUpChoiceId,
+      mode: snapshot.followUpReactionPresentationMode,
+    });
+    render();
+    return true;
+  }
+
+  function settleFollowUpReaction() {
+    if (!snapshot || !snapshot.followUpReactionPresented || snapshot.followUpReactionSettled) return false;
+    snapshot.followUpReactionPresented = false;
+    snapshot.followUpReactionSettled = true;
+    saveSnapshot();
+    telemetry("first_experience.follow_up_reaction_settled", {
+      reactionId: snapshot.followUpReactionId,
+      choiceId: snapshot.followUpChoiceId,
+    });
+    render();
+    releaseNormalWorldOnce();
+    return true;
+  }
+
   function releaseNormalWorldOnce() {
-    if (normalWorldReleased) return;
-    normalWorldReleased = true;
     setControlledMode(false);
     const panel = document.getElementById("stage7FirstExperiencePanel");
     if (panel) panel.remove();
+    if (normalWorldReleased) return;
+    normalWorldReleased = true;
     if (context && typeof context.startNormalWorld === "function") context.startNormalWorld();
   }
 
@@ -842,11 +962,18 @@ window.Game = window.Game || {};
     snapshot.followUpChoiceId = choiceId;
     snapshot.followUpSettled = true;
     snapshot.branchFollowUpPending = false;
+    snapshot.followUpReactionId = `${snapshot.branchId}:${choiceId}`;
+    snapshot.followUpReactionDueAt = Date.now() + FOLLOW_UP_REACTION_DELAY_MS;
+    snapshot.followUpReactionPresented = false;
+    snapshot.followUpReactionPresentationMode = null;
+    snapshot.followUpReactionPresentedCount = 0;
+    snapshot.followUpReactionSettled = false;
     snapshot.npcMemory[offer.memoryTarget] = Object.assign(
       {},
       snapshot.npcMemory[offer.memoryTarget] || {},
       memory
     );
+    ensureScenarioPlayers();
     saveSnapshot();
     telemetry("first_experience.branch_follow_up_settled", {
       branchId: snapshot.branchId,
@@ -946,6 +1073,8 @@ window.Game = window.Game || {};
       else releaseNormalWorldOnce();
     } else if (action === "resolve-branch-follow-up" && snapshot.branchFollowUpPending && !snapshot.followUpSettled) {
       settleBranchFollowUp(button && button.getAttribute("data-follow-up"));
+    } else if (action === "ack-follow-up-reaction" && snapshot.followUpReactionPresented && !snapshot.followUpReactionSettled) {
+      settleFollowUpReaction();
     } else if (action === "ack-world-advance" && snapshot.worldAdvancePresented && !snapshot.worldAdvanceSettled) {
       acknowledgeWorldAdvance();
     }
@@ -982,6 +1111,7 @@ window.Game = window.Game || {};
       && !snapshot.worldAdvancePresented
       && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
     if (!document.hidden && worldDue && snapshot.freedomCardDismissed) presentWorldAdvance("foreground");
+    if (!document.hidden && getFollowUpReactionDue()) presentFollowUpReaction("foreground");
   }
 
   function startScheduler() {
@@ -1004,6 +1134,8 @@ window.Game = window.Game || {};
           && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
         if (due) {
           presentWorldAdvance("return");
+        } else if (getFollowUpReactionDue()) {
+          presentFollowUpReaction("return");
         } else {
           snapshot.lastHiddenAt = null;
           saveSnapshot();
@@ -1020,11 +1152,18 @@ window.Game = window.Game || {};
     startScheduler();
     if (snapshot && snapshot.stateId === "vote" && snapshot.voteStarted && snapshot.voteStep < 5) scheduleVoteStep();
     render();
+    if (snapshot
+      && snapshot.worldAdvanceSettled
+      && snapshot.followUpSettled
+      && !snapshot.followUpReactionSettled
+      && !snapshot.followUpReactionPresented) {
+      releaseNormalWorldOnce();
+    }
   }
 
   function claimFreshStart(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && !hasPendingEvidenceReport(existing)) {
+    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && existing.followUpReactionSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -1037,7 +1176,7 @@ window.Game = window.Game || {};
 
   function claimResume(nextContext) {
     const existing = loadSnapshot();
-    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && !hasPendingEvidenceReport(existing)) {
+    if (existing && existing.worldAdvanceSettled && existing.followUpSettled && existing.followUpReactionSettled && !hasPendingEvidenceReport(existing)) {
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -1047,10 +1186,15 @@ window.Game = window.Game || {};
       && snapshot.awaitingWorldAdvance
       && !snapshot.worldAdvancePresented
       && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
+    const followUpReactionDueOnReturn = !dueOnReturn && getFollowUpReactionDue();
     if (dueOnReturn) {
       snapshot.worldAdvancePresented = true;
       snapshot.worldAdvancePresentationMode = "return";
       markEvidenceWorldAdvancePresented("return");
+    } else if (followUpReactionDueOnReturn && getFollowUpReaction()) {
+      snapshot.followUpReactionPresented = true;
+      snapshot.followUpReactionPresentationMode = "return";
+      snapshot.followUpReactionPresentedCount = (snapshot.followUpReactionPresentedCount | 0) + 1;
     } else if (snapshot.stateId === "main_unlocked" && snapshot.freedomCardShown && !snapshot.freedomCardDismissed) {
       snapshot.freedomCardDismissed = true;
     }
@@ -1062,6 +1206,11 @@ window.Game = window.Game || {};
       telemetry("first_experience.prelude_started");
     }
     if (dueOnReturn) telemetry("first_experience.world_advance_presented", { mode: "return", worldAdvanceId: snapshot.worldAdvanceId });
+    if (followUpReactionDueOnReturn) telemetry("first_experience.follow_up_reaction_presented", {
+      reactionId: snapshot.followUpReactionId,
+      choiceId: snapshot.followUpChoiceId,
+      mode: "return",
+    });
     return {
       claimed: true,
       mode: migratedLegacySave ? "legacy_resume_migration" : "resume",
@@ -1072,7 +1221,11 @@ window.Game = window.Game || {};
 
   function isPending() {
     const current = snapshot || loadSnapshot();
-    return !!(current && (!current.worldAdvanceSettled || current.branchFollowUpPending));
+    return !!(current && (
+      !current.worldAdvanceSettled
+      || current.branchFollowUpPending
+      || !current.followUpReactionSettled
+    ));
   }
 
   function getSnapshot() {
@@ -1110,6 +1263,14 @@ window.Game = window.Game || {};
     return presentWorldAdvance("foreground");
   }
 
+  function settleFollowUpReactionForDev() {
+    if (!snapshot) snapshot = loadSnapshot();
+    if (!snapshot || snapshot.followUpReactionSettled) return false;
+    snapshot.followUpReactionDueAt = Date.now() - 1;
+    saveSnapshot();
+    return presentFollowUpReaction("foreground");
+  }
+
   function destroy() {
     if (scheduler) clearInterval(scheduler);
     if (voteTimer) clearTimeout(voteTimer);
@@ -1137,6 +1298,7 @@ window.Game = window.Game || {};
   G.__DEV.resetStage7FirstExperience = resetForDev;
   G.__DEV.advanceStage7FirstExperienceForeground = advanceForegroundForDev;
   G.__DEV.settleStage7FirstExperienceWorldAdvance = settleWorldAdvanceForDev;
+  G.__DEV.settleStage7FollowUpReaction = settleFollowUpReactionForDev;
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,
     storageKey: STORAGE_KEY,
@@ -1155,6 +1317,8 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.3",
+    stage: "7.6",
+    followUpReactionDelayMs: FOLLOW_UP_REACTION_DELAY_MS,
+    visibleLaterReaction: true,
   });
 })();
