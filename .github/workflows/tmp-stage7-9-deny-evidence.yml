@@ -38,13 +38,26 @@ jobs:
           git diff --check
       - name: Run focused and Stage 7 regression matrix
         run: |
-          python tools/test_stage7_9_deny_evidence_payoff.py
-          python tools/test_stage7_first_causal_vertical_slice.py
-          python tools/test_stage7_observed_evidence_harness.py
-          python tools/test_stage7_4_personalization.py
-          python tools/test_stage7_essence_modal.py
-          python tools/test_stage7_essence_prestart_overlay.py
-          python tools/test_stage7_7_preunlock_corridor.py
+          for test_file in \
+            tools/test_stage7_9_deny_evidence_payoff.py \
+            tools/test_stage7_first_causal_vertical_slice.py \
+            tools/test_stage7_observed_evidence_harness.py \
+            tools/test_stage7_4_personalization.py \
+            tools/test_stage7_essence_modal.py \
+            tools/test_stage7_essence_prestart_overlay.py \
+            tools/test_stage7_7_preunlock_corridor.py
+          do
+            set +e
+            output="$(python "$test_file" 2>&1)"
+            status=$?
+            set -e
+            echo "$output"
+            if [ "$status" -ne 0 ]; then
+              compact="$(printf '%s' "$output" | tail -c 6000 | tr '\n' ' ')"
+              echo "::error title=$test_file failed::$compact"
+              exit "$status"
+            fi
+          done
       - name: Enforce boundary and exact final scope
         run: |
           ! grep -E '\b(fetch|XMLHttpRequest|sendBeacon|WebSocket)\b' AsyncScene/Web/ui/ui-stage7-first-experience.js
