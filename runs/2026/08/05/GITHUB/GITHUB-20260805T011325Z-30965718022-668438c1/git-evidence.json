@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-first-causal-slice-20260805",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-first-causal-slice-20260805\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "fafb51e50c31e31d817b03f404b3ac747884bd4e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "# branch.oid fafb51e50c31e31d817b03f404b3ac747884bd4e\n# branch.head chatgpt/stage7-first-causal-slice-20260805\n# branch.upstream origin/chatgpt/stage7-first-causal-slice-20260805\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "fafb51e5 (HEAD -> chatgpt/stage7-first-causal-slice-20260805, origin/chatgpt/stage7-first-causal-slice-20260805) ci: retry Stage 7 integration with preserved boot tag\nfd6b3ae3 ci: add temporary Stage 7 runtime patch script\nedf24fe1 ci: replace Stage 7 apply workflow after regression feedback\nf86013f8 ci: normalize mirrors and apply Stage 7 first causal slice\ncc6de6fa ci: replace Stage 7 apply workflow with mirror-normalizing version\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fafb51e50c31e31d817b03f404b3ac747884bd4e\nbranch refs/heads/chatgpt/stage7-first-causal-slice-20260805\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T01:13:25Z",
+      "stderr": "",
+      "stdout": "4b6db2b9b540e8c7fe32e51eda60c4cd784797b6\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fafb51e50c31e31d817b03f404b3ac747884bd4e",
+  "observedAtUtc": "2026-08-05T01:13:25Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
