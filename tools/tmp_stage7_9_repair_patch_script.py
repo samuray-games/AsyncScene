@@ -25,6 +25,21 @@ new_helper = (
     "        raise SystemExit(f\"{label}: expected one match, found {count}\")\n"
     "    return text.replace(old, new, 1)\n"
 )
+old_identity = (
+    "    const bridge = getBridgeState();\n"
+    "    const mode = getDenyEvidencePayoffMode();\n"
+    "    if (!bridge || !battle || !mode) return false;\n"
+)
+new_identity = (
+    "    const bridge = getBridgeState();\n"
+    "    const mode = getDenyEvidencePayoffMode();\n"
+    "    if (!bridge || !battle || !mode) return false;\n"
+    "    const battleId = battle.id || battle.battleId || null;\n"
+    "    const taggedBridgeBattle = !!(battle.meta\n"
+    "      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);\n"
+    "    if (!taggedBridgeBattle || !battleId\n"
+    "      || (bridge.battleId && bridge.battleId !== battleId)) return false;\n"
+)
 old_harness = (
     "try:\n"
     "    completed = subprocess.run([\"node\", harness_path], check=True, text=True, capture_output=True)\n"
@@ -44,6 +59,7 @@ anchors = [
     ("open", old_open, new_open),
     ("close", old_close, new_close),
     ("helper", old_helper, new_helper),
+    ("identity", old_identity, new_identity),
     ("harness", old_harness, new_harness),
 ]
 for label, old, _ in anchors:
