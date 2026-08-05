@@ -7,6 +7,19 @@ CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
 BRIDGE_AUTHORITY_CHECK: `python3 tools/bridge_v4_authority_check.py`
 
+## GitHub-only default workflow
+
+This section supersedes conflicting Codex, local-clone, `local.handoff`, local-worktree and local-validation requirements elsewhere in this file for ordinary non-bridge Asynchronia work. The exact reserved commands `мост 1`, `мост 2`, and `мост 3` retain their dedicated bridge protocol.
+
+- Ordinary implementation uses an isolated remote GitHub branch created from the current fetched `main`.
+- Files may be edited through the authorized GitHub execution surface without a local repository or Codex session.
+- Required validation runs in GitHub Actions. Failed, cancelled or missing required checks block merge.
+- Exact changed-file scope, mirror parity, protected mechanics, settlement traceability and persistence invariants remain mandatory.
+- Direct task writes to `main` remain forbidden. Changes enter `main` only through a reviewed pull request.
+- After merge, GitHub Pages deployment is verified and every user-visible runtime change remains subject to the user-owned Safari acceptance gate.
+- Codex is optional and may be used for unusually deep local debugging or large refactors, but its absence must not block ordinary Asynchronia work.
+- The acting assistant remains responsible for sequencing, implementation coordination, evidence and completion. Work must not be shifted to the user merely because a local execution surface is unavailable.
+
 ## 0. Bridge command aliases
 
 Canonical repository policy is `BRIDGE_PUBLICATION_POLICY.md`; each mailbox policy is its deterministic slot-local rendered copy.
