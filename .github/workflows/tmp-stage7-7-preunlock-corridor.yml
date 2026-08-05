@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  implement-and-test:
+  finalize-and-test:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -23,26 +23,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Repair temporary patcher
-        run: python tools/tmp_fix_stage7_7_patcher.py
-      - name: Apply Stage 7.7 corridor patch
-        run: python tools/tmp_stage7_7_preunlock_corridor_patch.py
-      - name: Clean generated closure
-        run: python tools/tmp_cleanup_stage7_7_generated.py
-      - name: Restore committed patcher
-        run: git checkout -- tools/tmp_stage7_7_preunlock_corridor_patch.py
+      - name: Align visible participant names
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          paths = [
+              Path('AsyncScene/Web/ui/ui-stage7-first-experience.js'),
+              Path('docs/ui/ui-stage7-first-experience.js'),
+          ]
+          replacements = [
+              ('Микой', 'Настей'),
+              ('Мики', 'Насти'),
+              ('Мику', 'Настю'),
+              ('Мика', 'Настя'),
+              ('Кеном', 'Райханом'),
+              ('Кену', 'Райхану'),
+              ('Кена', 'Райхана'),
+              ('Кен', 'Райхан'),
+          ]
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              for old, new in replacements:
+                  text = text.replace(old, new)
+              if 'Кен' in text or 'Мика' in text:
+                  raise SystemExit(f'old visible name remains in {path}')
+              path.write_text(text, encoding='utf-8')
+          print('STAGE7_7_VISIBLE_NAMES_ALIGNED')
+          PY
       - name: Run focused regression
         run: python tools/test_stage7_7_preunlock_corridor.py
-      - name: Validate exact generated scope
+      - name: Validate focused diff
         run: |
           git diff --check
           actual="$(git diff --name-only | sort | tr '\n' ' ')"
-          expected="AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.css AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.js "
+          expected="AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js "
           test "$actual" = "$expected"
-      - name: Commit Stage 7.7 runtime
+      - name: Commit visible name alignment
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.css AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.css docs/ui/ui-stage7-first-experience.js
-          git commit -m 'feat: add locked Stage 7 pre-unlock corridor'
+          git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          git commit -m 'fix: align visible Stage 7 participant names'
           git push
