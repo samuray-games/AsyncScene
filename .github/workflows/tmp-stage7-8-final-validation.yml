@@ -1,0 +1,40 @@
+name: tmp stage7 8 final validation
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-8-real-argument-battle-20260806
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-8-real-argument-battle-20260806
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node syntax and mirror parity
+        run: |
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          cmp AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          cmp AsyncScene/Web/index.html docs/index.html
+      - name: Stage 7 first causal slice
+        run: python tools/test_stage7_first_causal_vertical_slice.py
+      - name: Stage 7 observed evidence harness
+        run: python tools/test_stage7_observed_evidence_harness.py
+      - name: Stage 7 personalization
+        run: python tools/test_stage7_4_personalization.py
+      - name: Stage 7 essence modal
+        run: python tools/test_stage7_essence_modal.py
+      - name: Stage 7 essence prestart
+        run: python tools/test_stage7_essence_prestart_overlay.py
+      - name: Stage 7.8 corridor and real battle bridge
+        run: python tools/test_stage7_7_preunlock_corridor.py
+      - name: Diff hygiene
+        run: git diff --check
