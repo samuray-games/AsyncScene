@@ -31,14 +31,14 @@ boots = {
 
 require('const STATES = ["accusation", "answer", "reaction", "vote", "consequence", "rematch", "completed", "main_unlocked"]' in js, "state order missing")
 require('const RESPONSE_IDS = ["deny", "accuse_ken", "pay"]' in js, "response IDs missing")
-require('const STORAGE_KEY = "AsyncScene_first_experience_v1"' in js, "storage key missing")
+require('const STORAGE_KEY_NORMAL = "AsyncScene_first_experience_v1"' in js, "storage key missing")
 require('const SCENARIO_ID = "first_experience_personal_conflict_v1"' in js, "scenario ID missing")
 require(js.count('const WORLD_ADVANCE_DELAY_MS = 45_000;') == 1, "45-second constant must appear once")
 
 claim_resume_start = js.index("  function claimResume(nextContext) {")
 claim_resume_end = js.index("\n  function isPending()", claim_resume_start)
 claim_resume = js[claim_resume_start:claim_resume_end]
-require('if (existing && existing.worldAdvanceSettled)' in claim_resume, "completed resume gate missing")
+require('if (existing && existing.worldAdvanceSettled && !hasPendingEvidenceReport(existing))' in claim_resume, "completed resume gate with pending-report exception missing")
 require('const migratedLegacySave = !existing;' in claim_resume, "legacy-save migration detection missing")
 require('snapshot = existing || defaultSnapshot();' in claim_resume, "legacy save must bootstrap first-experience snapshot")
 require('mode: migratedLegacySave ? "legacy_resume_migration" : "resume"' in claim_resume, "legacy migration mode missing")
@@ -78,8 +78,8 @@ require('События продолжились' in js, "foreground header miss
 for forbidden in ("window.close", "youtube.com", "location.href ="):
     require(forbidden not in js.lower(), f"forbidden exit/service action: {forbidden}")
 
-css_ref = 'ui/ui-stage7-first-experience.css?v=stage7_first_causal_slice_20260805a'
-js_ref = 'ui/ui-stage7-first-experience.js?v=stage7_first_causal_slice_20260805b'
+css_ref = 'ui/ui-stage7-first-experience.css?v=stage7_observed_evidence_20260805c'
+js_ref = 'ui/ui-stage7-first-experience.js?v=stage7_observed_evidence_20260805c'
 require(css_ref in index, "CSS wiring missing")
 require(js_ref in index, "JS wiring missing")
 require(index.index(css_ref) > index.index('ui/ui-stage7-essence.css'), "first-experience CSS order wrong")
