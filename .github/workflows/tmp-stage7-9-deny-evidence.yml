@@ -23,7 +23,15 @@ jobs:
         with:
           node-version: "22"
       - name: Apply Stage 7.9 implementation
-        run: python tools/tmp_stage7_9_deny_evidence_patch.py
+        run: |
+          set +e
+          output="$(python tools/tmp_stage7_9_deny_evidence_patch.py 2>&1)"
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "::error title=Stage 7.9 patch failed::$output"
+            exit "$status"
+          fi
       - name: Validate runtime mirrors and syntax
         run: |
           node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
