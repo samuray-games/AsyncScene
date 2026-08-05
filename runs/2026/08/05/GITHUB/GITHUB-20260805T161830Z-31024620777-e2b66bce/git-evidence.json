@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:30Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:30Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:30Z",
+      "stderr": "",
+      "stdout": "044fc228a4c4db3dc0150d28fbb7aa507e47ac30\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid 044fc228a4c4db3dc0150d28fbb7aa507e47ac30\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:31Z",
+      "stderr": "",
+      "stdout": "044fc228 (HEAD, pull/293/merge) Merge 1ef2df453c3581d2a469aa9682ad1b1d9e7d3640 into a70bf2f85f79633c4741c40798008232fa1117fe\n1ef2df45 (origin/chatgpt/stage7-8-real-argument-battle-20260806) chore: remove temporary Stage 7.8 validation workflow\n4dce2926 chore: refresh Stage 7.8 validation\n3bf8fa44 test: align Stage 7 personalization names with current canon\ne9976046 test: realign Stage 7 evidence harness with six-question gate\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 044fc228a4c4db3dc0150d28fbb7aa507e47ac30\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T16:18:31Z",
+      "stderr": "",
+      "stdout": "a70bf2f85f79633c4741c40798008232fa1117fe\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "044fc228a4c4db3dc0150d28fbb7aa507e47ac30",
+  "observedAtUtc": "2026-08-05T16:18:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
