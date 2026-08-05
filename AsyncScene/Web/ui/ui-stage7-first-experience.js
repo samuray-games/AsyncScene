@@ -194,6 +194,7 @@ window.Game = window.Game || {};
   const REAL_BATTLE_OPPONENT_ID = "npc_stage7_ken";
   const REAL_BATTLE_RETRY_MS = 250;
   const REAL_BATTLE_MAX_ATTEMPTS = 40;
+  const DENY_EVIDENCE_PAYOFF_ID = "stage7_deny_evidence_reveal_v1";
   const REAL_BATTLE_INJECTIONS = {
     deny: {
       primary: "Настя показала твоё доказательство. Но оно доказывает только то, что ты успел подготовить оправдание. Отвечай публично.",
@@ -437,6 +438,10 @@ window.Game = window.Game || {};
       injectionShownAt: null,
       attemptCount: 0,
       lastAttemptAt: null,
+      evidencePayoffMode: null,
+      evidencePayoffStatus: "not_applicable",
+      evidencePayoffRevealedAt: null,
+      evidencePayoffRevealCount: 0,
       lastFailureReason: null,
     };
   }
@@ -458,6 +463,12 @@ window.Game = window.Game || {};
       injectionShownAt: Number.isFinite(Number(raw.injectionShownAt)) ? Number(raw.injectionShownAt) : null,
       attemptCount: Math.max(0, Number(raw.attemptCount) | 0),
       lastAttemptAt: Number.isFinite(Number(raw.lastAttemptAt)) ? Number(raw.lastAttemptAt) : null,
+      evidencePayoffMode: ["shared", "held"].includes(raw.evidencePayoffMode) ? raw.evidencePayoffMode : null,
+      evidencePayoffStatus: ["not_applicable", "pending", "revealed", "expired"].includes(raw.evidencePayoffStatus)
+        ? raw.evidencePayoffStatus
+        : "not_applicable",
+      evidencePayoffRevealedAt: Number.isFinite(Number(raw.evidencePayoffRevealedAt)) ? Number(raw.evidencePayoffRevealedAt) : null,
+      evidencePayoffRevealCount: Math.max(0, Number(raw.evidencePayoffRevealCount) | 0),
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -1053,6 +1064,17 @@ window.Game = window.Game || {};
     bridge.completedAt = bridge.completedAt || Date.now();
     bridge.outcome = typeof battle.result === "string" && battle.result ? battle.result : null;
     bridge.lastFailureReason = null;
+    if (bridge.evidencePayoffStatus === "pending") {
+      bridge.evidencePayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7DenyEvidencePayoff) {
+        battle.meta.stage7DenyEvidencePayoff.status = "expired";
+      }
+      telemetry("first_experience.deny_evidence_payoff_expired", {
+        payoffId: DENY_EVIDENCE_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.evidencePayoffMode,
+      });
+    }
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_completed", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -1071,6 +1093,109 @@ window.Game = window.Game || {};
       : "Первый спор был разминкой. Теперь отвечай публично - аргументом.";
   }
 
+  function getDenyEvidencePayoffMode() {
+    if (!snapshot || snapshot.branchId !== "deny") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_stage7_mika
+      ? snapshot.npcMemory.npc_stage7_mika
+      : {};
+    if (memory.evidenceShared) return "shared";
+    if (memory.evidenceHeld) return "held";
+    if (snapshot.followUpChoiceId === "primary") return "shared";
+    if (snapshot.followUpChoiceId === "secondary") return "held";
+    return null;
+  }
+
+  function ensureDenyEvidencePayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getDenyEvidencePayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.evidencePayoffMode) bridge.evidencePayoffMode = mode;
+    if (bridge.evidencePayoffMode !== mode
+      && !["revealed", "expired"].includes(bridge.evidencePayoffStatus)) {
+      bridge.evidencePayoffMode = mode;
+    }
+    if (bridge.evidencePayoffStatus === "not_applicable") bridge.evidencePayoffStatus = "pending";
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    battle.meta.stage7DenyEvidencePayoff = Object.assign(
+      {},
+      battle.meta.stage7DenyEvidencePayoff || {},
+      {
+        payoffId: DENY_EVIDENCE_PAYOFF_ID,
+        mode: bridge.evidencePayoffMode,
+        status: bridge.evidencePayoffStatus,
+        revealedAt: bridge.evidencePayoffRevealedAt,
+        revealCount: bridge.evidencePayoffRevealCount,
+      }
+    );
+    return true;
+  }
+
+  function revealDenyEvidencePayoff(battle, trigger) {
+    if (!battle || !ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    const payoff = battle.meta && battle.meta.stage7DenyEvidencePayoff;
+    if (!bridge || !payoff) return false;
+    if (bridge.evidencePayoffStatus === "revealed") return true;
+    if (bridge.evidencePayoffStatus === "expired") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense" || !battle.attack) return false;
+    const trueColor = battle.attack._color || battle.attack.color || null;
+    if (!trueColor) return false;
+
+    battle.attack.color = trueColor;
+    battle.attackHidden = false;
+    battle.revealColor = trueColor;
+    bridge.evidencePayoffStatus = "revealed";
+    bridge.evidencePayoffRevealedAt = bridge.evidencePayoffRevealedAt || Date.now();
+    bridge.evidencePayoffRevealCount = Math.max(1, bridge.evidencePayoffRevealCount + 1);
+    payoff.status = "revealed";
+    payoff.revealedAt = bridge.evidencePayoffRevealedAt;
+    payoff.revealCount = bridge.evidencePayoffRevealCount;
+    payoff.trigger = trigger === "held_manual" ? "held_manual" : "shared_auto";
+    saveSnapshot();
+    telemetry("first_experience.deny_evidence_payoff_revealed", {
+      payoffId: DENY_EVIDENCE_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.evidencePayoffMode,
+      trigger: payoff.trigger,
+      color: trueColor,
+      revealCount: bridge.evidencePayoffRevealCount,
+    });
+    pushLine({
+      system: true,
+      text: bridge.evidencePayoffMode === "held"
+        ? "Ты предъявил сохранённое доказательство. Цвет вброса Райхана раскрыт."
+        : "Настя уже показала доказательство. Цвет вброса Райхана раскрыт.",
+    });
+    return true;
+  }
+
+  function initializeDenyEvidencePayoff(battle) {
+    if (!ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge) return false;
+    saveSnapshot();
+    if (bridge.evidencePayoffMode === "shared" && bridge.evidencePayoffStatus === "pending") {
+      return revealDenyEvidencePayoff(battle, "shared_auto");
+    }
+    return true;
+  }
+
+  function revealHeldDenyEvidence(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.evidencePayoffMode !== "held") return false;
+    return revealDenyEvidencePayoff(battle, "held_manual");
+  }
+
   function adoptRealBattle(battle) {
     const bridge = getBridgeState();
     if (!bridge || !battle) return false;
@@ -1083,6 +1208,7 @@ window.Game = window.Game || {};
     bridge.battleId = battle.id || battle.battleId || bridge.battleId;
     bridge.createdAt = bridge.createdAt || Date.now();
     bridge.lastFailureReason = null;
+    initializeDenyEvidencePayoff(battle);
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_created", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -1458,6 +1584,7 @@ window.Game = window.Game || {};
       if (bridge.status === "created" && resumedBattle) {
         snapshot = Object.assign(existing, { realBattleBridge: bridge });
         attach(nextContext);
+        initializeDenyEvidencePayoff(resumedBattle);
         releaseNormalWorldOnce();
         syncRealArgumentBattleLifecycle();
         return { claimed: true, mode: "battle_bridge_active_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
@@ -1639,6 +1766,7 @@ window.Game = window.Game || {};
     isPending,
     getSnapshot,
     getObservedEvidenceReport,
+    revealHeldDenyEvidence,
     resetForDev,
     advanceForegroundForDev,
     destroy,
@@ -1657,6 +1785,7 @@ window.Game = window.Game || {};
   G.__DEV.answerStage7CurrentQuestionCorrect = answerCurrentQuestionCorrectForDev;
   G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
   G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
+  G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,
@@ -1684,5 +1813,8 @@ window.Game = window.Game || {};
     fullUnlockAfterQuestions: true,
     realArgumentBattleBridgePending: false,
     realArgumentBattleBridgeId: REAL_BATTLE_BRIDGE_ID,
+    denyEvidencePayoffId: DENY_EVIDENCE_PAYOFF_ID,
+    denyEvidenceSharedAutoReveal: true,
+    denyEvidenceHeldManualReveal: true,
   });
 })();

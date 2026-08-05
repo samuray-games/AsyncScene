@@ -79,7 +79,7 @@ require('bridge.status = "completed"' in js, "completed real battle state missin
 for forbidden in ("window.close", "youtube.com", "location.href =", "fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"):
     require(forbidden not in js, f"forbidden onboarding primitive: {forbidden}")
 
-cache_token = "stage7_8_real_argument_battle_20260806a"
+cache_token = "stage7_9_deny_evidence_payoff_20260806a"
 require(index.count(cache_token) == 2, "expected current JS and CSS cache-buster references")
 require(index.index(f'ui/ui-stage7-first-experience.css?v={cache_token}') > index.index('ui/ui-stage7-essence.css'), "first-experience CSS order wrong")
 require(index.index(f'ui/ui-stage7-first-experience.js?v={cache_token}') < index.index('ui/ui-boot.js'), "controller must load before boot")
