@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:24Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:24Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:24Z",
+      "stderr": "",
+      "stdout": "801a2c673106e477c4c80d8ea4a776431d7d3b1d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:25Z",
+      "stderr": "",
+      "stdout": "# branch.oid 801a2c673106e477c4c80d8ea4a776431d7d3b1d\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:25Z",
+      "stderr": "",
+      "stdout": "801a2c67 (HEAD, pull/295/merge) Merge 6d2902c88f79b02a319b09d3a50b3be1cb704d12 into 518ecc8f4a7d58b00bcdd2685cf3b4272417c578\n6d2902c8 (origin/chatgpt/stage7-9-deny-evidence-payoff-20260806) feat: make deny evidence matter in first battle\n04d9d741 fix: include new Stage 7.9 test in scope check\n72e24e7d fix: close Stage 7.9 harness scheduler\na169db1d fix: bind deny evidence payoff to bridge battle\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:25Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 801a2c673106e477c4c80d8ea4a776431d7d3b1d\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:25Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-05T18:32:25Z",
+      "stderr": "",
+      "stdout": "518ecc8f4a7d58b00bcdd2685cf3b4272417c578\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "801a2c673106e477c4c80d8ea4a776431d7d3b1d",
+  "observedAtUtc": "2026-08-05T18:32:25Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
