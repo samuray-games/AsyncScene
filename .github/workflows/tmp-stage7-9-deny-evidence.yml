@@ -64,6 +64,7 @@ jobs:
           rm tools/tmp_stage7_9_deny_evidence_patch.py
           rm tools/tmp_stage7_9_repair_patch_script.py
           rm .github/workflows/tmp-stage7-9-deny-evidence.yml
+          git add -N tools/test_stage7_9_deny_evidence_payoff.py
           git fetch origin main
           actual="$(git diff --name-only origin/main | sort)"
           expected="$(printf '%s\n' \
