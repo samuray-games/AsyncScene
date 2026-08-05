@@ -1,3 +1,11 @@
+## 2026-08-05 — PR287 Stage 7.5 branch-derived follow-up
+- PR #287 merged into `main` as `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f` from `3a33291e5dd0436e18f6396095c5fb89bdec484d`.
+- Exact runtime scope was four files: the two Stage 7 first-experience mirrors and the two entrypoint cache-bust mirrors.
+- After the existing world-advance card is acknowledged, each prior branch presents one compact follow-up choice; the selected choice is persisted in branch-local NPC memory before normal-world release.
+- Actions/forensics run `30993971676` succeeded. GitHub Pages build `30994053777` / run `858` succeeded and served the merged cache-buster.
+- Safari acceptance remains user-owned and pending.
+- NEXT_ACTION: run the Stage 7.5 iPhone Safari private-tab smoke from the published URL and return the exact visible result or concrete defect.
+
 ## 2026-08-05 — Stage 7.2 user evidence and Stage 7.3 continuation-integrity slice
 - User-observed Stage 7.2 run is accepted for the tested foreground path: first meaningful action 22238 ms, complete cycle 64778 ms, causal comprehension 5/5, continuation foreground, exactly-once counts 1/1/1, continuation interest Да.
 - This is one user-run sample; population percentages and return-path coverage remain unestablished. Safari acceptance remains pending for the new Stage 7.3 runtime evidence.

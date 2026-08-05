@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-05-1546-JST
-EXPECTED_REVISION: 2026-08-05-1546-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1546-JST
+MEMORY_REVISION: 2026-08-05-1817-JST
+EXPECTED_REVISION: 2026-08-05-1817-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7 is active as `CORE EXPERIENCE RECONSTRUCTION`. Stage 7.0 and Stage 7.1 are complete and user-accepted through `f00317a022486566293b870f0540db5cbf1ef08c`. The active implementation branch is `codex/stage7-3-core-loop-evidence-20260805`. Stage 7.2 user evidence is accepted for one foreground sample: first action 22238 ms, complete cycle 64778 ms, comprehension 5/5, exactly-once 1/1, continuation interest `Да`. The exact next product action is `IMPLEMENT_STAGE7_3_RETURN_CONTINUITY_EVIDENCE_IN_EXPLICIT_TEST_MODE_ONLY`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.0 and Stage 7.4 are complete and user-accepted. Stage 7.5 is merged at `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`; Pages build `30994053777` is built and served. The exact next product action is `USER_RUN_STAGE7_5_BRANCH_DERIVED_FOLLOW_UP_IN_IPHONE_SAFARI_PRIVATE_TAB_AND_RETURN_EXACT_RESULT`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 

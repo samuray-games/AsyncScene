@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-05-1546-JST
-EXPECTED_REVISION: 2026-08-05-1546-JST
-NOTION_MEMORY_REVISION: 2026-08-05-1546-JST
+MEMORY_REVISION: 2026-08-05-1817-JST
+EXPECTED_REVISION: 2026-08-05-1817-JST
+NOTION_MEMORY_REVISION: 2026-08-05-1817-JST
 
 ## Canon principles
 
@@ -15,6 +15,13 @@ NOTION_MEMORY_REVISION: 2026-08-05-1546-JST
 - The canonical live cross-chat bootstrap is the Notion page `ASYNCHRONIA - PROJECT MEMORY`, which must remain synchronized with accepted remote state when authorized.
 - Every current-state summary must include the exact next action required to advance the project.
 - The assistant uses masculine grammatical self-reference in Asynchronia project communication.
+
+## Accepted Stage 7.5 product slice
+
+- PR #287 is merged at `7a75edea6619d9a55bf2eff8a6d1838cb3edc82f`.
+- The existing Stage 7 branch and worldAdvanceId remain authoritative.
+- A single branch-derived follow-up choice is persisted in NPC memory before normal-world release.
+- GitHub Pages build `30994053777` served the merged entrypoint; Safari acceptance remains pending.
 
 ## Accepted Stage 6 product contract
 
