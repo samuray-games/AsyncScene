@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-9-deny-evidence-payoff-20260806",
+  "createdAtJst": "2026-08-06 03:30:37 JST",
+  "createdAtUtc": "2026-08-05T18:30:37Z",
+  "packagePath": "runs/2026/08/05/GITHUB/GITHUB-20260805T183037Z-31035043885-08d1d975",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260805T183037Z-31035043885-08d1d975",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
