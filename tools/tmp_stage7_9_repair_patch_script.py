@@ -25,12 +25,30 @@ new_helper = (
     "        raise SystemExit(f\"{label}: expected one match, found {count}\")\n"
     "    return text.replace(old, new, 1)\n"
 )
+old_harness = (
+    "try:\n"
+    "    completed = subprocess.run([\"node\", harness_path], check=True, text=True, capture_output=True)\n"
+    "    assert \"STAGE7_9_DENY_EVIDENCE_PAYOFF_DYNAMIC_OK\" in completed.stdout\n"
+    "finally:\n"
+)
+new_harness = (
+    "try:\n"
+    "    completed = subprocess.run([\"node\", harness_path], check=False, text=True, capture_output=True)\n"
+    "    if completed.returncode != 0:\n"
+    "        raise AssertionError(\"node harness failed\\nSTDOUT:\\n\" + completed.stdout + \"\\nSTDERR:\\n\" + completed.stderr)\n"
+    "    assert \"STAGE7_9_DENY_EVIDENCE_PAYOFF_DYNAMIC_OK\" in completed.stdout\n"
+    "finally:\n"
+)
 
-for label, old in [("open", old_open), ("close", old_close), ("helper", old_helper)]:
+anchors = [
+    ("open", old_open, new_open),
+    ("close", old_close, new_close),
+    ("helper", old_helper, new_helper),
+    ("harness", old_harness, new_harness),
+]
+for label, old, _ in anchors:
     if text.count(old) != 1:
         raise SystemExit(f"temporary patch repair {label} anchor changed: {text.count(old)}")
-
-text = text.replace(old_open, new_open, 1)
-text = text.replace(old_close, new_close, 1)
-text = text.replace(old_helper, new_helper, 1)
+for _, old, new in anchors:
+    text = text.replace(old, new, 1)
 path.write_text(text, encoding="utf-8")
