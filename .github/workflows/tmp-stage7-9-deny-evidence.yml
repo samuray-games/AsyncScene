@@ -24,43 +24,8 @@ jobs:
           node-version: "22"
       - name: Apply Stage 7.9 implementation
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("tools/tmp_stage7_9_deny_evidence_patch.py")
-          text = path.read_text(encoding="utf-8")
-          old_open = "TEST = r'''from pathlib"
-          new_open = 'TEST = r"""from pathlib'
-          old_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n\'\'\'\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
-          new_close = 'print("STAGE7_9_DENY_EVIDENCE_PAYOFF_OK")\n"""\nPath("tools/test_stage7_9_deny_evidence_payoff.py")'
-          old_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f"{label}: expected one match, found {count}")
-    return text.replace(old, new, 1)
-'''
-          new_helper = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if label == "controller active resume payoff":
-        if count < 1:
-            raise SystemExit(f"{label}: expected at least one match, found {count}")
-        return text.replace(old, new, 1)
-    if count != 1:
-        raise SystemExit(f"{label}: expected one match, found {count}")
-    return text.replace(old, new, 1)
-'''
-          if text.count(old_open) != 1 or text.count(old_close) != 1 or text.count(old_helper) != 1:
-              raise SystemExit("temporary patch repair anchors changed")
-          text = text.replace(old_open, new_open, 1).replace(old_close, new_close, 1).replace(old_helper, new_helper, 1)
-          path.write_text(text, encoding="utf-8")
-          PY
-          set +e
-          output="$(python tools/tmp_stage7_9_deny_evidence_patch.py 2>&1)"
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            echo "::error title=Stage 7.9 patch failed::$output"
-            exit "$status"
-          fi
+          python tools/tmp_stage7_9_repair_patch_script.py
+          python tools/tmp_stage7_9_deny_evidence_patch.py
       - name: Validate runtime mirrors and syntax
         run: |
           node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
@@ -84,6 +49,7 @@ jobs:
         run: |
           ! grep -E '\b(fetch|XMLHttpRequest|sendBeacon|WebSocket)\b' AsyncScene/Web/ui/ui-stage7-first-experience.js
           rm tools/tmp_stage7_9_deny_evidence_patch.py
+          rm tools/tmp_stage7_9_repair_patch_script.py
           rm .github/workflows/tmp-stage7-9-deny-evidence.yml
           git fetch origin main
           actual="$(git diff --name-only origin/main | sort)"
