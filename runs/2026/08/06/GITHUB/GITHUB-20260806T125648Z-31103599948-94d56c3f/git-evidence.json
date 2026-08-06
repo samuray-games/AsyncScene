@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-13-aftermath-dm-followup-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-13-aftermath-dm-followup-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "0fa99baa2bbffb2f6e0ecca4327b6c235e347470\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "# branch.oid 0fa99baa2bbffb2f6e0ecca4327b6c235e347470\n# branch.head chatgpt/stage7-13-aftermath-dm-followup-20260806\n# branch.upstream origin/chatgpt/stage7-13-aftermath-dm-followup-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "0fa99baa (HEAD -> chatgpt/stage7-13-aftermath-dm-followup-20260806, origin/chatgpt/stage7-13-aftermath-dm-followup-20260806) chore: remove temporary Stage 7.13 workflow\n87be2db3 chore: remove temporary Stage 7.13 patcher\n3c297053 feat: carry first battle aftermath into DM\ncce30f21 fix: include untracked Stage 7.13 test in scope gate\n87c124e0 fix: encode Stage 7.13 cleanup anchor safely\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 0fa99baa2bbffb2f6e0ecca4327b6c235e347470\nbranch refs/heads/chatgpt/stage7-13-aftermath-dm-followup-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:56:48Z",
+      "stderr": "",
+      "stdout": "d6ff16f9d63aab3f0bcac2cd77cbf9743a47e6f5\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "0fa99baa2bbffb2f6e0ecca4327b6c235e347470",
+  "observedAtUtc": "2026-08-06T12:56:48Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
