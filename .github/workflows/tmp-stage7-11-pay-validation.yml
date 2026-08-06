@@ -51,7 +51,7 @@ jobs:
             echo "RUN $f"
             python3 "$f"
           done
-      - name: Enforce exact scope and protected boundary
+      - name: Enforce exact patch-layer scope and protected boundary
         run: |
           python3 - <<'PY'
           import subprocess
@@ -63,7 +63,6 @@ jobs:
             'docs/index.html',
             'docs/ui/ui-battles.js',
             'docs/ui/ui-stage7-first-experience.js',
-            'tools/test_stage7_11_pay_branch_payoffs.py',
             'tools/test_stage7_7_preunlock_corridor.py',
             'tools/test_stage7_9_deny_evidence_payoff.py',
             'tools/test_stage7_10_accuse_ken_payoffs.py',
@@ -71,7 +70,7 @@ jobs:
             'tools/test_stage7_observed_evidence_harness.py',
           }
           if changed != expected:
-            raise SystemExit(f'exact scope mismatch\nchanged={sorted(changed)}\nexpected={sorted(expected)}')
+            raise SystemExit(f'exact patch scope mismatch\nchanged={sorted(changed)}\nexpected={sorted(expected)}')
           forbidden = [
             'AsyncScene/Web/conflict/', 'docs/conflict/',
             'AsyncScene/Web/data.js', 'docs/data.js',
@@ -81,7 +80,7 @@ jobs:
           for path in changed:
             if any(path.startswith(prefix) for prefix in forbidden):
               raise SystemExit(f'protected file changed: {path}')
-          print('STAGE7_11_SCOPE_OK', sorted(changed))
+          print('STAGE7_11_PATCH_SCOPE_OK', sorted(changed))
           PY
           ! git diff -- AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/ui/ui-battles.js docs/ui/ui-battles.js | grep -E 'fetch\(|XMLHttpRequest|WebSocket|sendBeacon'
       - name: Commit validated Stage 7.11 implementation
