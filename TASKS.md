@@ -1,3 +1,13 @@
+## 2026-08-06 - Stage 7.10 accuse_ken payoff Safari acceptance
+- User returned explicit `PASS` for both `accuse_ken` paths in iPhone Safari private sessions.
+- Accepted runtime: PR #297 squash merge `58d79c60f852adf0d8f92b1809d793d43ca484bb`.
+- Accepted public-rematch path: one bridge-only `Сменить ответы` action replaces the visible three canonical defenses once; the exact sanitized replacement objects survive refresh, remain selectable and do not restore the action.
+- Accepted witness path: Настя's witness reveals Райхан's first bridge-battle attack color exactly once and refresh does not duplicate the reveal.
+- Accepted boundary: ordinary battles do not inherit Stage 7.10 behavior.
+- Validation evidence: implementation `31062842850` PASS; persistence repair `31063239777` PASS; PR forensics `31063276985` PASS; post-merge forensics `31063319643` PASS; Pages build `1134900395` built without error.
+- Stage 7.11 selected: `receiptDemanded` marks the matching canonical defense family; `pressureIgnored` exposes one persisted `Разобрать давление` action that marks one visible wrong-family defense as Олег's pressure line.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_11_PAY_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE`.
+
 ## 2026-08-06 - Stage 7.9 deny evidence payoff Safari acceptance
 - User returned explicit `PASS` for both deny-branch paths in iPhone Safari private mode.
 - Accepted runtime: PR #295 squash merge `89561d9c8cb50d72e6f383ed0dcc214c4ed28318`.
