@@ -1,0 +1,10 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "manifest.json": "6eddfcf20fa00aec49a7f4b22bec8df70903d979e72278ac7546e2af644fe0c8",
+    "summary.json": "4b6f07acecbb17be5c557fd7b545456b0fa176c80155e7a8a1e65c9487eb9937",
+    "events.jsonl": "77135be569309d277693ac9444e3f084ed14a94041a8fe965bf74e0ab3fa0aab",
+    "git-evidence.json": "6ea7fa12c092c6ce9b175437bd20a049c09887d3096e04486afc710fcd609d74",
+    "redaction-report.json": "5fae09bf2ad7424431e695c5989a8999f5d68545d377eb542db4fe470b80a521"
+  }
+}
