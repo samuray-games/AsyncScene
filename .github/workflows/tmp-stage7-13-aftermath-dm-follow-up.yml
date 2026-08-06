@@ -41,6 +41,40 @@ jobs:
           path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
           python3 tools/tmp_stage7_13_aftermath_dm_follow_up.py
+          python3 - <<'PY'
+          from pathlib import Path
+          paths = [
+              Path('AsyncScene/Web/ui/ui-stage7-first-experience.js'),
+              Path('docs/ui/ui-stage7-first-experience.js'),
+          ]
+          old = '''    const bridge = getBridgeState();
+    const targetId = String(targetNpcId || "");
+    if (!bridge
+      || bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || bridge.aftermathDmStatus !== "pending"
+      || !targetId
+      || targetId !== bridge.aftermathTargetNpcId) return null;
+    const record = getFirstBattleAftermathRecord();
+    if (!record || record.targetNpcId !== targetId || !record.dmReply) return null;'''
+          new = '''    const targetId = String(targetNpcId || "");
+    const record = getFirstBattleAftermathRecord();
+    const bridge = getBridgeState();
+    if (!bridge
+      || bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || bridge.aftermathDmStatus !== "pending"
+      || !targetId
+      || targetId !== bridge.aftermathTargetNpcId
+      || !record
+      || record.targetNpcId !== targetId
+      || !record.dmReply) return null;'''
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              if text.count(old) != 1:
+                  raise SystemExit(f'active bridge consumption anchor mismatch in {path}: {text.count(old)}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
           git checkout -- tools/tmp_stage7_13_aftermath_dm_follow_up.py
       - name: Validate exact scope and mirrors
         run: |
