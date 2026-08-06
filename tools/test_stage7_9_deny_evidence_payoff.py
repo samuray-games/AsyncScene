@@ -30,7 +30,7 @@ for marker in [
 ]:
     assert marker in battles, marker
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
-    assert text.count("stage7_11_pay_branch_payoffs_20260806a") >= 2
+    assert text.count("stage7_12_first_battle_aftermath_20260806a") >= 2
 
 subprocess.run(["node", "--check", str(CONTROLLER)], check=True)
 subprocess.run(["node", "--check", str(CONTROLLER_DOCS)], check=True)

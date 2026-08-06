@@ -197,6 +197,59 @@ window.Game = window.Game || {};
   const DENY_EVIDENCE_PAYOFF_ID = "stage7_deny_evidence_reveal_v1";
   const ACCUSE_KEN_PAYOFF_ID = "stage7_accuse_ken_tactical_v1";
   const PAY_PAYOFF_ID = "stage7_pay_tactical_v1";
+  const FIRST_BATTLE_AFTERMATH_ID = "stage7_first_real_battle_aftermath_v1";
+  const FIRST_BATTLE_AFTERMATH_TARGETS = Object.freeze({
+    deny: "npc_stage7_mika",
+    accuse_ken: "npc_stage7_ken",
+    pay: "npc_bandit",
+  });
+  const FIRST_BATTLE_AFTERMATH_COPY = Object.freeze({
+    deny: Object.freeze({
+      npcName: "Настя",
+      win: Object.freeze({
+        title: "Настя запомнила исход",
+        body: "Ты отбил обвинение Райхана в настоящем баттле. Настя теперь помнит, что твоя версия выдержала публичную проверку.",
+      }),
+      lose: Object.freeze({
+        title: "Настя запомнила исход",
+        body: "Ты проиграл публичный спор Райхану. Настя запомнила, что подготовленного ответа оказалось недостаточно.",
+      }),
+      interrupted: Object.freeze({
+        title: "Настя считает спор незакрытым",
+        body: "Баттл закончился без ясной победы. Настя запомнила, что обвинение так и не было окончательно проверено.",
+      }),
+    }),
+    accuse_ken: Object.freeze({
+      npcName: "Райхан",
+      win: Object.freeze({
+        title: "Райхан запомнил поражение",
+        body: "Ты победил Райхана в публичном реванше. Он запомнил, что встречное обвинение выдержало настоящий спор.",
+      }),
+      lose: Object.freeze({
+        title: "Райхан вернул инициативу",
+        body: "Райхан выиграл публичный реванш. Он запомнил, что сумел снова навязать комнате свою версию.",
+      }),
+      interrupted: Object.freeze({
+        title: "Райхан считает реванш незавершённым",
+        body: "Баттл закончился без ясной победы. Райхан запомнил конфликт как незакрытый.",
+      }),
+    }),
+    pay: Object.freeze({
+      npcName: "Олег",
+      win: Object.freeze({
+        title: "Олег увидел предел давления",
+        body: "Ты отбил давление в публичном споре. Олег запомнил, что оплата не стала признанием вины.",
+      }),
+      lose: Object.freeze({
+        title: "Олег запомнил, что давление сработало",
+        body: "Ты проиграл спор после оплаты. Олег решил, что этот способ давления можно использовать снова.",
+      }),
+      interrupted: Object.freeze({
+        title: "Олег оставил давление в запасе",
+        body: "Баттл закончился без ясной победы. Олег запомнил, что вопрос об оплате остался открытым.",
+      }),
+    }),
+  });
   const REAL_BATTLE_INJECTIONS = {
     deny: {
       primary: "Настя показала твоё доказательство. Но оно доказывает только то, что ты успел подготовить оправдание. Отвечай публично.",
@@ -499,6 +552,15 @@ window.Game = window.Game || {};
       payPayoffDefenseChoices: [],
       payPayoffMarkedDefenseId: null,
       payPayoffMarkedFingerprint: null,
+      aftermathStatus: "not_applicable",
+      aftermathTargetNpcId: null,
+      aftermathBranchId: null,
+      aftermathSecondRoundChoiceId: null,
+      aftermathOutcomeRaw: null,
+      aftermathOutcomeKind: null,
+      aftermathRecordedAt: null,
+      aftermathAcknowledgedAt: null,
+      aftermathApplyCount: 0,
       lastFailureReason: null,
     };
   }
@@ -553,6 +615,25 @@ window.Game = window.Game || {};
       payPayoffMarkedFingerprint: typeof raw.payPayoffMarkedFingerprint === "string" && raw.payPayoffMarkedFingerprint
         ? raw.payPayoffMarkedFingerprint
         : null,
+      aftermathStatus: ["not_applicable", "pending", "acknowledged"].includes(raw.aftermathStatus)
+        ? raw.aftermathStatus
+        : "not_applicable",
+      aftermathTargetNpcId: Object.values(FIRST_BATTLE_AFTERMATH_TARGETS).includes(raw.aftermathTargetNpcId)
+        ? raw.aftermathTargetNpcId
+        : null,
+      aftermathBranchId: RESPONSE_IDS.includes(raw.aftermathBranchId) ? raw.aftermathBranchId : null,
+      aftermathSecondRoundChoiceId: ["primary", "secondary"].includes(raw.aftermathSecondRoundChoiceId)
+        ? raw.aftermathSecondRoundChoiceId
+        : null,
+      aftermathOutcomeRaw: typeof raw.aftermathOutcomeRaw === "string" && raw.aftermathOutcomeRaw
+        ? raw.aftermathOutcomeRaw
+        : null,
+      aftermathOutcomeKind: ["win", "lose", "interrupted"].includes(raw.aftermathOutcomeKind)
+        ? raw.aftermathOutcomeKind
+        : null,
+      aftermathRecordedAt: Number.isFinite(Number(raw.aftermathRecordedAt)) ? Number(raw.aftermathRecordedAt) : null,
+      aftermathAcknowledgedAt: Number.isFinite(Number(raw.aftermathAcknowledgedAt)) ? Number(raw.aftermathAcknowledgedAt) : null,
+      aftermathApplyCount: Math.max(0, Number(raw.aftermathApplyCount) | 0),
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -880,6 +961,145 @@ window.Game = window.Game || {};
       </div>`;
   }
 
+
+  function normalizeFirstBattleAftermathOutcome(rawOutcome) {
+    const raw = String(rawOutcome || "").trim().toLowerCase();
+    if (raw === "win") return "win";
+    if (raw === "lose" || raw === "cop_penalty") return "lose";
+    return "interrupted";
+  }
+
+  function getFirstBattleAftermathRecord() {
+    const bridge = getBridgeState();
+    if (!bridge || !["pending", "acknowledged"].includes(bridge.aftermathStatus)) return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = branchId ? FIRST_BATTLE_AFTERMATH_COPY[branchId] : null;
+    const copy = copyGroup && copyGroup[outcomeKind] ? copyGroup[outcomeKind] : null;
+    if (!branchId || !copyGroup || !copy) return null;
+    return {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      status: bridge.aftermathStatus,
+      targetNpcId: bridge.aftermathTargetNpcId || FIRST_BATTLE_AFTERMATH_TARGETS[branchId],
+      npcName: copyGroup.npcName,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId: bridge.battleId,
+      outcomeRaw: bridge.aftermathOutcomeRaw || bridge.outcome,
+      outcomeKind,
+      recordedAt: bridge.aftermathRecordedAt,
+      acknowledgedAt: bridge.aftermathAcknowledgedAt,
+      applyCount: bridge.aftermathApplyCount,
+      title: copy.title,
+      body: copy.body,
+    };
+  }
+
+  function recordFirstBattleAftermath(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle || bridge.status !== "completed") return false;
+    if (["pending", "acknowledged"].includes(bridge.aftermathStatus)) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const exactBridgeBattle = !!(battleId
+      && bridge.battleId === battleId
+      && battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!exactBridgeBattle) return false;
+    const branchId = RESPONSE_IDS.includes(bridge.branchId) ? bridge.branchId : snapshot.branchId;
+    const targetNpcId = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    if (!branchId || !targetNpcId) return false;
+    const outcomeRaw = typeof battle.result === "string" && battle.result
+      ? battle.result
+      : (bridge.outcome || "unknown");
+    const outcomeKind = normalizeFirstBattleAftermathOutcome(outcomeRaw);
+    const recordedAt = Date.now();
+    bridge.aftermathStatus = "pending";
+    bridge.aftermathTargetNpcId = targetNpcId;
+    bridge.aftermathBranchId = branchId;
+    bridge.aftermathSecondRoundChoiceId = bridge.secondRoundChoiceId || snapshot.followUpChoiceId || null;
+    bridge.aftermathOutcomeRaw = outcomeRaw;
+    bridge.aftermathOutcomeKind = outcomeKind;
+    bridge.aftermathRecordedAt = recordedAt;
+    bridge.aftermathAcknowledgedAt = null;
+    bridge.aftermathApplyCount = Math.max(1, bridge.aftermathApplyCount + 1);
+
+    const record = {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      status: "pending",
+      targetNpcId,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId,
+      outcomeRaw,
+      outcomeKind,
+      recordedAt,
+      acknowledgedAt: null,
+      applyCount: bridge.aftermathApplyCount,
+    };
+    snapshot.npcMemory[targetNpcId] = Object.assign({}, snapshot.npcMemory[targetNpcId] || {}, {
+      firstRealBattleAftermath: record,
+    });
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_recorded", {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      targetNpcId,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId,
+      outcomeRaw,
+      outcomeKind,
+      applyCount: bridge.aftermathApplyCount,
+    });
+    return true;
+  }
+
+  function renderFirstBattleAftermath(panel) {
+    const record = getFirstBattleAftermathRecord();
+    if (!panel || !record || record.status !== "pending") return false;
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp stage7FirstBattleAftermath" data-testid="stage7-first-battle-aftermath">
+        <div class="stage7EvidenceBadge">После настоящего баттла</div>
+        <h2>${record.title}</h2>
+        <p>${record.body}</p>
+        ${actionButton("Понятно", "acknowledge-first-battle-aftermath")}
+        <div class="stage7Support">Игра уже открыта. Эта реакция не блокирует остальные действия.</div>
+      </div>`;
+    return true;
+  }
+
+  function acknowledgeFirstBattleAftermath() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.aftermathStatus !== "pending") return false;
+    const targetNpcId = bridge.aftermathTargetNpcId;
+    const memory = targetNpcId && snapshot.npcMemory ? snapshot.npcMemory[targetNpcId] : null;
+    const record = memory && memory.firstRealBattleAftermath;
+    const acknowledgedAt = Date.now();
+    bridge.aftermathStatus = "acknowledged";
+    bridge.aftermathAcknowledgedAt = acknowledgedAt;
+    if (record && record.aftermathId === FIRST_BATTLE_AFTERMATH_ID) {
+      record.status = "acknowledged";
+      record.acknowledgedAt = acknowledgedAt;
+    }
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_acknowledged", {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      targetNpcId,
+      branchId: bridge.aftermathBranchId,
+      battleId: bridge.battleId,
+      outcomeRaw: bridge.aftermathOutcomeRaw,
+      outcomeKind: bridge.aftermathOutcomeKind,
+      applyCount: bridge.aftermathApplyCount,
+    });
+    render();
+    return true;
+  }
+
   function render() {
     if (!snapshot) return;
     const panel = ensurePanel();
@@ -888,12 +1108,21 @@ window.Game = window.Game || {};
 
     if (snapshot.onboardingUnlocked) {
       setControlledMode(false);
-      panel.remove();
       const bridge = getBridgeState();
       if (bridge && bridge.status === "pending") {
+        panel.remove();
         releaseNormalWorldOnce();
         if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return;
       }
+      if (bridge && bridge.aftermathStatus === "pending") {
+        releaseNormalWorldOnce({ preservePanel: true });
+        panel.hidden = false;
+        renderFirstBattleAftermath(panel);
+        return;
+      }
+      panel.remove();
+      releaseNormalWorldOnce();
       return;
     }
 
@@ -1138,7 +1367,11 @@ window.Game = window.Game || {};
   function syncRealArgumentBattleLifecycle() {
     const bridge = getBridgeState();
     if (!bridge || bridge.status !== "created") return false;
-    const battle = findExistingRealBattle();
+    const battle = getBridgeBattleList().find((item) => item && (
+      (item.id === bridge.battleId || item.battleId === bridge.battleId)
+      && item.meta
+      && item.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID
+    ));
     if (!battle) return false;
     const completed = battle.resolved === true
       || battle.finished === true
@@ -1181,12 +1414,14 @@ window.Game = window.Game || {};
         mode: bridge.payPayoffMode,
       });
     }
+    recordFirstBattleAftermath(battle);
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_completed", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
       battleId: bridge.battleId,
       outcome: bridge.outcome,
     });
+    render();
     return true;
   }
 
@@ -1742,10 +1977,11 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function releaseNormalWorldOnce() {
+  function releaseNormalWorldOnce(options) {
     setControlledMode(false);
+    const preservePanel = !!(options && options.preservePanel === true);
     const panel = document.getElementById("stage7FirstExperiencePanel");
-    if (panel) panel.remove();
+    if (panel && !preservePanel) panel.remove();
     if (normalWorldReleased) return;
     normalWorldReleased = true;
     if (context && typeof context.startNormalWorld === "function") context.startNormalWorld();
@@ -1923,6 +2159,8 @@ window.Game = window.Game || {};
         button && button.getAttribute("data-evidence-question"),
         button && button.getAttribute("data-evidence-answer")
       );
+    } else if (action === "acknowledge-first-battle-aftermath" && snapshot.onboardingUnlocked) {
+      acknowledgeFirstBattleAftermath();
     }
   }
 
@@ -2045,6 +2283,16 @@ window.Game = window.Game || {};
         if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
         return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
       }
+      if (bridge.status === "completed" && bridge.aftermathStatus === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -2089,6 +2337,16 @@ window.Game = window.Game || {};
         if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
         return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
       }
+      if (bridge.status === "completed" && bridge.aftermathStatus === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -2114,7 +2372,10 @@ window.Game = window.Game || {};
 
   function isPending() {
     const current = snapshot || loadSnapshot();
-    return !!(current && !current.onboardingUnlocked);
+    if (!current) return false;
+    if (!current.onboardingUnlocked) return true;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    return bridge.status === "completed" && bridge.aftermathStatus === "pending";
   }
 
   function getSnapshot() {
@@ -2215,6 +2476,8 @@ window.Game = window.Game || {};
     preparePayDefenseChoices,
     choosePayDefenseChoices,
     usePayPressureAnalysis,
+    acknowledgeFirstBattleAftermath,
+    getFirstBattleAftermathRecord,
     resetForDev,
     advanceForegroundForDev,
     destroy,
@@ -2233,6 +2496,8 @@ window.Game = window.Game || {};
   G.__DEV.answerStage7CurrentQuestionCorrect = answerCurrentQuestionCorrectForDev;
   G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
   G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
+  G.__DEV.getStage7FirstBattleAftermath = getFirstBattleAftermathRecord;
+  G.__DEV.acknowledgeStage7FirstBattleAftermath = acknowledgeFirstBattleAftermath;
   G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
   G.__DEV.useStage7AccuseKenRematchOptions = useAccuseKenRematchOptions;
   G.__DEV.chooseStage7AccuseKenRematchDefenseChoices = chooseAccuseKenRematchDefenseChoices;
@@ -2256,7 +2521,7 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.10",
+    stage: "7.12",
     onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
     intermissionDelayMs: INTERMISSION_DELAY_MS,
     limitedNpcCount: INTERMISSION_NPCS.length,
@@ -2270,5 +2535,9 @@ window.Game = window.Game || {};
     accuseKenPayoffId: ACCUSE_KEN_PAYOFF_ID,
     accuseKenPublicRematchDefenseRefresh: true,
     accuseKenWitnessAutoReveal: true,
+    firstBattleAftermathId: FIRST_BATTLE_AFTERMATH_ID,
+    firstBattleAftermathPersisted: true,
+    firstBattleAftermathNonBlocking: true,
+    firstBattleAftermathExactlyOnce: true,
   });
 })();
