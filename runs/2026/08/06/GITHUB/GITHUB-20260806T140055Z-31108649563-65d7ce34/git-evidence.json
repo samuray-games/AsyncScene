@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/pages-build-type-switch-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "chatgpt/pages-build-type-switch-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "8d7dd2d3a63e44694eef3ace621e1a1715658590\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8d7dd2d3a63e44694eef3ace621e1a1715658590\n# branch.head chatgpt/pages-build-type-switch-20260806\n# branch.upstream origin/chatgpt/pages-build-type-switch-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "8d7dd2d3 (HEAD -> chatgpt/pages-build-type-switch-20260806, origin/chatgpt/pages-build-type-switch-20260806) chore: switch Pages build type through official API\nfeb0d843 (origin/main) chore: add protected Pages recovery workflow (#309)\n35729fbd fix: create clean Stage 7.13 Pages build identity\nc26f29ab chore: retrigger Stage 7.13 Pages deployment (#305)\n69a1137c feat: carry first battle aftermath into DM (#303)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8d7dd2d3a63e44694eef3ace621e1a1715658590\nbranch refs/heads/chatgpt/pages-build-type-switch-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:00:55Z",
+      "stderr": "",
+      "stdout": "feb0d8438af961572aa020514e0729dc2323b3bb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8d7dd2d3a63e44694eef3ace621e1a1715658590",
+  "observedAtUtc": "2026-08-06T14:00:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
