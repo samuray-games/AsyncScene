@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-13-pages-redeploy-c-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:32Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:32Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-13-pages-redeploy-c-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:32Z",
+      "stderr": "",
+      "stdout": "5140a47659bba6cfbaee017607e7856bc014485b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5140a47659bba6cfbaee017607e7856bc014485b\n# branch.head chatgpt/stage7-13-pages-redeploy-c-20260806\n# branch.upstream origin/chatgpt/stage7-13-pages-redeploy-c-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:33Z",
+      "stderr": "",
+      "stdout": "5140a476 (HEAD -> chatgpt/stage7-13-pages-redeploy-c-20260806, origin/chatgpt/stage7-13-pages-redeploy-c-20260806) chore: remove temporary clean Pages redeploy workflow\n2a442e8f fix: create clean Stage 7.13 Pages build identity\n55347f54 chore: add temporary clean Pages redeploy workflow\nc26f29ab (origin/main) chore: retrigger Stage 7.13 Pages deployment (#305)\n69a1137c feat: carry first battle aftermath into DM (#303)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5140a47659bba6cfbaee017607e7856bc014485b\nbranch refs/heads/chatgpt/stage7-13-pages-redeploy-c-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:37:33Z",
+      "stderr": "",
+      "stdout": "c26f29ab42c9215c2c9f2ee05278b8ba0946d036\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5140a47659bba6cfbaee017607e7856bc014485b",
+  "observedAtUtc": "2026-08-06T13:37:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
