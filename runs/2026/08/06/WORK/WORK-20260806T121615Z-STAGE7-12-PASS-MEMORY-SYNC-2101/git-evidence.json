@@ -1,0 +1,27 @@
+{
+  "repository": "samuray-games/AsyncScene",
+  "base_sha": "4e27aa0d690127c7b495c9c690026f7bf58c621a",
+  "branch": "chatgpt/stage7-12-pass-memory-sync-20260806",
+  "branch_head": "648b114d3e9bf6d87e2b42444e25cf5634471a06",
+  "pull_request": 302,
+  "pull_request_state": "merged",
+  "merge_method": "squash",
+  "merge_sha": "d6ff16f9d63aab3f0bcac2cd77cbf9743a47e6f5",
+  "changed_files_count": 5,
+  "changed_files": [
+    ".ai-memory/CANON.md",
+    ".ai-memory/CURRENT.md",
+    ".ai-memory/WORKFLOWS.md",
+    "PROJECT_MEMORY.md",
+    "TASKS.md"
+  ],
+  "additions": 68,
+  "deletions": 33,
+  "checks": {
+    "memory_sync_run": 31100332051,
+    "pr_forensics_run": 31100473904,
+    "post_merge_forensics_run": 31100555545
+  },
+  "runtime_files_changed": false,
+  "main_parent": "4e27aa0d690127c7b495c9c690026f7bf58c621a"
+}
