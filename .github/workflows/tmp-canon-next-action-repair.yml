@@ -1,0 +1,43 @@
+name: canon-next-action-repair
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-11-pass-stage7-12-selection-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-11-pass-stage7-12-selection-20260806
+          fetch-depth: 0
+      - name: Remove stale canonical next action
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.ai-memory/CANON.md')
+          text = path.read_text(encoding='utf-8')
+          old = '- NEXT_ACTION: `IMPLEMENT_STAGE7_11_PAY_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE`.\n\nNEXT_ACTION: IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE'
+          new = '- NEXT_ACTION: `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.'
+          if text.count(old) != 1:
+              raise SystemExit(f'canonical next-action anchor mismatch: {text.count(old)}')
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          assert 'IMPLEMENT_STAGE7_11_PAY_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE' not in text
+          assert text.count('IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE') >= 2
+          PY
+          git diff --check
+          test "$(git diff --name-only)" = ".ai-memory/CANON.md"
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .ai-memory/CANON.md
+          git commit -m 'docs: remove stale Stage 7.11 next action'
+          git push origin HEAD:chatgpt/stage7-11-pass-stage7-12-selection-20260806
