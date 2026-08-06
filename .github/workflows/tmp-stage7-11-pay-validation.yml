@@ -1,0 +1,85 @@
+name: stage7-11-pay-validation
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-11-pay-branch-payoffs-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  implement-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-11-pay-branch-payoffs-20260806
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply Stage 7.11 patch
+        run: python3 tools/tmp_stage7_11_pay_patch.py
+      - name: Validate syntax and mirrors
+        run: |
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          node --check AsyncScene/Web/ui/ui-battles.js
+          node --check docs/ui/ui-battles.js
+          cmp AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js
+          cmp AsyncScene/Web/ui/ui-battles.js docs/ui/ui-battles.js
+          cmp AsyncScene/Web/index.html docs/index.html
+          git diff --check
+      - name: Run focused Stage 7.11 harness
+        run: python3 tools/test_stage7_11_pay_branch_payoffs.py
+      - name: Run Stage 7 regression matrix
+        run: |
+          for f in tools/test_stage7*.py; do
+            echo "RUN $f"
+            python3 "$f"
+          done
+      - name: Enforce exact scope and protected boundary
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          expected = {
+            'AsyncScene/Web/index.html',
+            'AsyncScene/Web/ui/ui-battles.js',
+            'AsyncScene/Web/ui/ui-stage7-first-experience.js',
+            'docs/index.html',
+            'docs/ui/ui-battles.js',
+            'docs/ui/ui-stage7-first-experience.js',
+            'tools/test_stage7_11_pay_branch_payoffs.py',
+            'tools/test_stage7_7_preunlock_corridor.py',
+            'tools/test_stage7_9_deny_evidence_payoff.py',
+            'tools/test_stage7_10_accuse_ken_payoffs.py',
+            'tools/test_stage7_first_causal_vertical_slice.py',
+            'tools/test_stage7_observed_evidence_harness.py',
+          }
+          if changed != expected:
+            raise SystemExit(f'exact scope mismatch\nchanged={sorted(changed)}\nexpected={sorted(expected)}')
+          forbidden = [
+            'AsyncScene/Web/conflict/', 'docs/conflict/',
+            'AsyncScene/Web/data.js', 'docs/data.js',
+            'AsyncScene/Web/system.js', 'docs/system.js',
+            'AsyncScene/Web/state.js', 'docs/state.js',
+          ]
+          for path in changed:
+            if any(path.startswith(prefix) for prefix in forbidden):
+              raise SystemExit(f'protected file changed: {path}')
+          print('STAGE7_11_SCOPE_OK', sorted(changed))
+          PY
+          ! git diff -- AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/ui/ui-battles.js docs/ui/ui-battles.js | grep -E 'fetch\(|XMLHttpRequest|WebSocket|sendBeacon'
+      - name: Commit validated Stage 7.11 implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AsyncScene/Web/index.html AsyncScene/Web/ui/ui-battles.js AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-battles.js docs/ui/ui-stage7-first-experience.js tools/test_stage7_11_pay_branch_payoffs.py tools/test_stage7_7_preunlock_corridor.py tools/test_stage7_9_deny_evidence_payoff.py tools/test_stage7_10_accuse_ken_payoffs.py tools/test_stage7_first_causal_vertical_slice.py tools/test_stage7_observed_evidence_harness.py
+          git commit -m 'feat: make pay preparation matter'
+          git push origin HEAD:chatgpt/stage7-11-pay-branch-payoffs-20260806
