@@ -25,11 +25,22 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           source = Path('tools/tmp_stage7_12_pass_memory_sync.py').read_text(encoding='utf-8')
-          old = '("MEMORY_REV: 2026-08-06-1818-JST", f"MEMORY_REV: {REV}", "current rev"),'
-          new = '("# Current Memory\\n\\nMEMORY_REV: 2026-08-06-1818-JST", f"# Current Memory\\n\\nMEMORY_REV: {REV}", "current rev"),'
+          old = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{label}: expected exactly one anchor, found {count}")
+    return text.replace(old, new, 1)
+'''
+          new = '''def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    if count < 1:
+        raise SystemExit(f"{label}: expected at least one anchor, found {count}")
+    return text.replace(old, new, 1)
+'''
           if source.count(old) != 1:
-              raise SystemExit(f'current revision patch anchor count: {source.count(old)}')
-          Path('/tmp/stage7_12_pass_memory_sync.py').write_text(source.replace(old, new, 1), encoding='utf-8')
+              raise SystemExit(f'replace_once patch anchor count: {source.count(old)}')
+          source = source.replace(old, new, 1)
+          Path('/tmp/stage7_12_pass_memory_sync.py').write_text(source, encoding='utf-8')
           PY
           python3 /tmp/stage7_12_pass_memory_sync.py
       - name: Validate exact documentation scope
@@ -62,6 +73,12 @@ jobs:
           canon = Path('.ai-memory/CANON.md').read_text(encoding='utf-8')
           workflows = Path('.ai-memory/WORKFLOWS.md').read_text(encoding='utf-8')
           tasks = Path('TASKS.md').read_text(encoding='utf-8')
+
+          assert project.startswith('# Current Memory Index\n\nREPO_MEMORY_REV: ' + rev)
+          assert current.startswith('# Current Memory\n\nMEMORY_REV: ' + rev)
+          assert canon.startswith('# Canon\n\nThis file captures stable product canon relevant to memory handling.\n\nMEMORY_REVISION: ' + rev)
+          assert workflows.startswith('# Workflows\n\nThis file documents the minimum workflows for the repo-first memory system.\n\nMEMORY_REVISION: ' + rev)
+          assert tasks.startswith('## 2026-08-06 - Stage 7.12 first real battle aftermath Safari acceptance')
           assert project.count('STAGE7_12_USER_VERDICT: PASS') == 1
           assert current.count('STAGE7_12_USER_VERDICT: PASS') == 1
           assert canon.count('## Accepted Stage 7.12 product slice') == 1
