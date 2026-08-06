@@ -1,0 +1,42 @@
+name: stage7-13-cancel-stale-pages-deployment
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-cancel-stale-pages-deployment-20260806
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  cancel-stale-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel stale Stage 7.13 Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: samuray-games/AsyncScene
+          STALE_DEPLOYMENT: 69a1137c6ab4ede2a0d1e420cde477f29b0b2949
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${REPO}/pages/deployments/${STALE_DEPLOYMENT}/cancel"
+          sleep 5
+          status="$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${REPO}/pages/deployments/${STALE_DEPLOYMENT}" \
+            --jq '.status // .state // "unknown"' 2>/dev/null || true)"
+          echo "STALE_PAGES_DEPLOYMENT_STATUS=${status:-unavailable}"
+          case "${status:-unavailable}" in
+            cancelled|canceled|inactive|unavailable|errored|error|failed)
+              echo "STAGE7_13_STALE_PAGES_DEPLOYMENT_CANCELLED"
+              ;;
+            *)
+              echo "stale Pages deployment still active: ${status}" >&2
+              exit 1
+              ;;
+          esac
