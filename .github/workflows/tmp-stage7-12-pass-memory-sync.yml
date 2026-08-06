@@ -25,6 +25,7 @@ jobs:
           sed -i 's/if count != 1:/if count < 1:/' tools/tmp_stage7_12_pass_memory_sync.py
           sed -i 's/expected exactly one anchor/expected at least one anchor/' tools/tmp_stage7_12_pass_memory_sync.py
           python3 tools/tmp_stage7_12_pass_memory_sync.py
+          git checkout -- tools/tmp_stage7_12_pass_memory_sync.py
       - name: Validate exact documentation scope
         run: |
           git diff --check
