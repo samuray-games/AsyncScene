@@ -43,7 +43,7 @@ jobs:
               'pages_build_version',
               'sha1sum',
               'SECONDS + 1800',
-              'deployment_queued',
+              'deployment_failed|deployment_content_failed|deployment_cancelled|deployment_lost',
               'succeed)',
           ]
           for marker in required:
