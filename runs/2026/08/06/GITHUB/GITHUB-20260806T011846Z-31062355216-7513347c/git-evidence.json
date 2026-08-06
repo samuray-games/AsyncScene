@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-9-acceptance-memory-sync-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-9-acceptance-memory-sync-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "16344b7520be9f3459bf35c29dd0d59426dff925\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "# branch.oid 16344b7520be9f3459bf35c29dd0d59426dff925\n# branch.head chatgpt/stage7-9-acceptance-memory-sync-20260806\n# branch.upstream origin/chatgpt/stage7-9-acceptance-memory-sync-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "16344b75 (HEAD -> chatgpt/stage7-9-acceptance-memory-sync-20260806, origin/chatgpt/stage7-9-acceptance-memory-sync-20260806) chore: run Stage 7.9 acceptance memory sync\n06bb6455 chore: prepare Stage 7.9 acceptance memory sync\n89561d9c (origin/main) feat: make deny evidence matter in first battle (#295)\n518ecc8f docs: record accepted Stage 7.8 onboarding (#294)\n49bb6f28 feat: bridge Stage 7 onboarding into real argument battle (#293)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 16344b7520be9f3459bf35c29dd0d59426dff925\nbranch refs/heads/chatgpt/stage7-9-acceptance-memory-sync-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:18:46Z",
+      "stderr": "",
+      "stdout": "89561d9c8cb50d72e6f383ed0dcc214c4ed28318\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "16344b7520be9f3459bf35c29dd0d59426dff925",
+  "observedAtUtc": "2026-08-06T01:18:46Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
