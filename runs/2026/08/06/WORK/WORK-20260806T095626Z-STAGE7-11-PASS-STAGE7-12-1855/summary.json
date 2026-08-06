@@ -1,0 +1,24 @@
+{
+  "actor": "WORK",
+  "behavior": "The exact first Stage 7 bridge battle terminal result is persisted into the affected existing NPC memory and produces one branch-aware non-blocking aftermath card. Pending aftermath survives refresh, acknowledgement is exactly once, and ordinary battles remain isolated.",
+  "nextAction": "USER_COMPLETE_ONE_FIRST_REAL_BRIDGE_BATTLE_IN_IPHONE_SAFARI_VERIFY_BRANCH_AWARE_NON_BLOCKING_AFTERMATH_REFRESH_PERSISTENCE_EXACTLY_ONCE_ACKNOWLEDGEMENT_NO_REPLAY_AND_ORDINARY_BATTLE_ISOLATION_THEN_RETURN_PASS_OR_CONCRETE_DEFECT",
+  "observedResult": {
+    "cacheBuster": "stage7_12_first_battle_aftermath_20260806a",
+    "implementationRun": 31090336845,
+    "memoryRev": "2026-08-06-1855-JST",
+    "memorySyncMerge": "f3dfaa3de055290e5e5122e53890fee8caab1127",
+    "memorySyncPr": 300,
+    "pagesBuild": 1135514616,
+    "pagesStatus": "built",
+    "postMergeForensicsRun": 31090666029,
+    "prForensicsRun": 31090592343,
+    "runtimeMerge": "4e27aa0d690127c7b495c9c690026f7bf58c621a",
+    "runtimePr": 301,
+    "runtimeScopeFiles": 11,
+    "stage7_11UserVerdict": "PASS"
+  },
+  "runId": "WORK-20260806T095626Z-STAGE7-11-PASS-STAGE7-12-1855",
+  "schemaVersion": "AI_FORENSICS_SUMMARY_V1",
+  "status": "STAGE7_11_ACCEPTED_STAGE7_12_MERGED_DEPLOYED_ACCEPTANCE_PENDING",
+  "taskId": "TASK-STAGE7-11-ACCEPTANCE-STAGE7-12-AFTERMATH-20260806"
+}
