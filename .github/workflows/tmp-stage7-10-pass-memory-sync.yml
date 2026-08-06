@@ -1,0 +1,52 @@
+name: stage7-10-pass-memory-sync
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-10-pass-memory-sync-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-10-pass-memory-sync-20260806
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply memory synchronization
+        run: python3 tools/tmp_stage7_10_pass_memory_sync.py
+      - name: Validate exact memory-only scope
+        run: |
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          allowed = {
+              'TASKS.md',
+              'PROJECT_MEMORY.md',
+              '.ai-memory/CURRENT.md',
+              '.ai-memory/CANON.md',
+              '.ai-memory/WORKFLOWS.md',
+          }
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != allowed:
+              raise SystemExit(f'exact scope mismatch: {sorted(changed)}')
+          for path in allowed:
+              data = open(path, encoding='utf-8').read()
+              if '2026-08-06-1047-JST' not in data:
+                  raise SystemExit(f'missing revision in {path}')
+          print('MEMORY_SCOPE_OK', sorted(changed))
+          PY
+      - name: Commit synchronized memory
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add TASKS.md PROJECT_MEMORY.md .ai-memory/CURRENT.md .ai-memory/CANON.md .ai-memory/WORKFLOWS.md
+          git commit -m 'docs: record accepted Stage 7.10 payoff'
+          git push origin HEAD:chatgpt/stage7-10-pass-memory-sync-20260806
