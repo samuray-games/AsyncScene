@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-11-pass-stage7-12-selection-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-11-pass-stage7-12-selection-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "ade088df4d1918a3f650b802c72c3118bcb2d032\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "# branch.oid ade088df4d1918a3f650b802c72c3118bcb2d032\n# branch.head chatgpt/stage7-11-pass-stage7-12-selection-20260806\n# branch.upstream origin/chatgpt/stage7-11-pass-stage7-12-selection-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "ade088df (HEAD -> chatgpt/stage7-11-pass-stage7-12-selection-20260806, origin/chatgpt/stage7-11-pass-stage7-12-selection-20260806) chore: add temporary canon next-action repair\nbf81ff8d chore: remove temporary memory workflow\n91d8d960 chore: remove temporary memory patcher\n889c6136 docs: record accepted Stage 7.11 payoff\nc30216ab fix: record canonical next action\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ade088df4d1918a3f650b802c72c3118bcb2d032\nbranch refs/heads/chatgpt/stage7-11-pass-stage7-12-selection-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T09:31:02Z",
+      "stderr": "",
+      "stdout": "974794f45855f4d6c982945f8f59b64e9f36494c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ade088df4d1918a3f650b802c72c3118bcb2d032",
+  "observedAtUtc": "2026-08-06T09:31:02Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
