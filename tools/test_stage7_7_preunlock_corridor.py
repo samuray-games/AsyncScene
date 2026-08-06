@@ -54,7 +54,7 @@ for network_primitive in ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"]
 assert "Stage 7.7 locked three-NPC intermission" in css
 assert "stage7IntermissionGrid" in css
 for index in [source_index, docs_index]:
-    assert index.count("stage7_12_first_battle_aftermath_20260806a") >= 2
+    assert index.count("stage7_13_aftermath_dm_follow_up_20260806a") >= 2
 
 subprocess.run(["node", "--check", str(SOURCE)], check=True)
 subprocess.run(["node", "--check", str(DOCS)], check=True)

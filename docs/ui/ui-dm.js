@@ -379,6 +379,21 @@ console.warn("UI_RESPECT_HOOKS_READY", {
   }
   UI.dmPushLine = dmPushLine;
 
+  function consumeStage7AftermathDmOnOpen(playerId) {
+    const id = String(playerId || "");
+    const stage7 = Game.Stage7FirstExperience;
+    if (!id || !stage7 || typeof stage7.consumeFirstBattleAftermathDmReply !== "function") return null;
+    let result = null;
+    try { result = stage7.consumeFirstBattleAftermathDmReply(id); } catch (_) { return null; }
+    if (!result || result.consumed !== true || !result.reply) return null;
+    const S = getS();
+    const target = S && S.players ? S.players[id] : null;
+    dmPushLine(id, target && target.name ? target.name : id, result.reply);
+    return result;
+  }
+  Game.__DEV.consumeStage7AftermathDmOnOpen = consumeStage7AftermathDmOnOpen;
+
+
   function closeDM() {
     const S = getS();
     S.dm.open = false;
@@ -419,6 +434,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     S.dm.activeId = id;
     S.dm.withId = id; // compat alias
     S.dm.open = true;
+    consumeStage7AftermathDmOnOpen(id);
 
     // Ensure the DM becomes a visible tab even before any incoming messages.
     // This enables "open second DM while first stays available" behavior.
