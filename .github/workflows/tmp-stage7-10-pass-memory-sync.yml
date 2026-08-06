@@ -37,10 +37,13 @@ jobs:
           changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
           if changed != allowed:
               raise SystemExit(f'exact scope mismatch: {sorted(changed)}')
-          for path in allowed:
+          for path in allowed - {'TASKS.md'}:
               data = open(path, encoding='utf-8').read()
               if '2026-08-06-1047-JST' not in data:
                   raise SystemExit(f'missing revision in {path}')
+          tasks = open('TASKS.md', encoding='utf-8').read()
+          if 'Stage 7.10 accuse_ken payoff Safari acceptance' not in tasks:
+              raise SystemExit('missing Stage 7.10 task log')
           print('MEMORY_SCOPE_OK', sorted(changed))
           PY
       - name: Commit synchronized memory
