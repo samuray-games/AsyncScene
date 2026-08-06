@@ -2749,7 +2749,7 @@ UI.renderBattles = () => {
               && stage7AccuseKenPayoff.mode === "public_rematch"
               && stage7AccuseKenPayoff.status === "used");
 
-            if (uniq.length < 3 || rematchRefreshUsed) {
+            if (uniq.length < 3) {
               let all = [];
               try {
                 if (Game.Conflict && typeof Game.Conflict.myDefenseOptions === "function") {
@@ -2768,32 +2768,16 @@ UI.renderBattles = () => {
 
             let finalChoices = [];
             if (rematchRefreshUsed) {
-              shuffleInPlace(uniq);
               const stage7 = Game && Game.Stage7FirstExperience;
-              const selectedIds = stage7
-                && typeof stage7.chooseAccuseKenRematchDefenseIds === "function"
-                ? stage7.chooseAccuseKenRematchDefenseIds(b.id, uniq.map((item) => item.id))
+              const restoredChoices = stage7
+                && typeof stage7.chooseAccuseKenRematchDefenseChoices === "function"
+                ? stage7.chooseAccuseKenRematchDefenseChoices(b.id)
                 : null;
-              if (Array.isArray(selectedIds)) {
-                selectedIds.forEach((id) => {
-                  const item = uniq.find((candidate) => candidate && candidate.id === id);
-                  if (item && !finalChoices.includes(item)) finalChoices.push(item);
-                });
+              if (Array.isArray(restoredChoices) && restoredChoices.length === 3) {
+                finalChoices = restoredChoices;
               }
-              if (finalChoices.length < 3) {
-                const previousIds = new Set(Array.isArray(stage7AccuseKenPayoff.previousDefenseIds)
-                  ? stage7AccuseKenPayoff.previousDefenseIds.map(String)
-                  : []);
-                uniq.forEach((item) => {
-                  if (finalChoices.length < 3 && item && !previousIds.has(String(item.id)) && !finalChoices.includes(item)) {
-                    finalChoices.push(item);
-                  }
-                });
-                uniq.forEach((item) => {
-                  if (finalChoices.length < 3 && item && !finalChoices.includes(item)) finalChoices.push(item);
-                });
-              }
-            } else {
+            }
+            if (finalChoices.length !== 3) {
               finalChoices = uniq.slice(0, 3);
               shuffleInPlace(finalChoices);
             }
@@ -2896,13 +2880,29 @@ UI.renderBattles = () => {
             rematchRefreshBtn.onclick = (e) => {
               stop(e);
               _captureBattleFocus(b.id, card);
-              const currentIds = Array.isArray(b._defenseChoices)
-                ? b._defenseChoices.filter((item) => item && !item._pad).map((item) => item.id)
+              const currentChoices = Array.isArray(b._defenseChoices)
+                ? b._defenseChoices.filter((item) => item && !item._pad)
                 : [];
+              const freshCandidates = [];
+              for (let attempt = 0; attempt < 4; attempt += 1) {
+                let batch = [];
+                try {
+                  if (Game.Conflict && typeof Game.Conflict.myDefenseOptions === "function") {
+                    batch = Game.Conflict.myDefenseOptions(b) || [];
+                  } else if (Game._ConflictArguments && typeof Game._ConflictArguments.myDefenseOptions === "function") {
+                    batch = Game._ConflictArguments.myDefenseOptions(b) || [];
+                  }
+                } catch (_) {
+                  batch = [];
+                }
+                (batch || []).forEach((item) => {
+                  if (item && !item._pad) freshCandidates.push(item);
+                });
+              }
               const stage7 = Game && Game.Stage7FirstExperience;
               const used = !!(stage7
                 && typeof stage7.useAccuseKenRematchOptions === "function"
-                && stage7.useAccuseKenRematchOptions(b.id, currentIds));
+                && stage7.useAccuseKenRematchOptions(b.id, currentChoices, freshCandidates));
               if (used) {
                 try { delete b._defenseChoices; } catch (_) {}
                 try {

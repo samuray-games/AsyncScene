@@ -8,17 +8,21 @@ BATTLES = Path("AsyncScene/Web/ui/ui-battles.js")
 BATTLES_DOCS = Path("docs/ui/ui-battles.js")
 INDEX = Path("AsyncScene/Web/index.html")
 INDEX_DOCS = Path("docs/index.html")
+CONFLICT_API = Path("AsyncScene/Web/conflict/conflict-api.js")
 
 controller = CONTROLLER.read_text(encoding="utf-8")
 battles = BATTLES.read_text(encoding="utf-8")
 assert controller == CONTROLLER_DOCS.read_text(encoding="utf-8")
 assert battles == BATTLES_DOCS.read_text(encoding="utf-8")
 assert INDEX.read_text(encoding="utf-8") == INDEX_DOCS.read_text(encoding="utf-8")
+conflict_api = CONFLICT_API.read_text(encoding="utf-8")
+assert "Array.isArray(battle._defenseChoices)" in conflict_api
+assert "this._findArgById(battle._defenseChoices.filter" in conflict_api
 for marker in [
     "stage7_accuse_ken_tactical_v1",
     "accusePayoffStatus",
     "useAccuseKenRematchOptions",
-    "chooseAccuseKenRematchDefenseIds",
+    "chooseAccuseKenRematchDefenseChoices",
     "accuse_ken_payoff_applied",
     "accuse_ken_payoff_expired",
 ]:
@@ -142,37 +146,46 @@ assert.strictEqual(first.snap.realBattleBridge.accusePayoffStatus, "pending");
 assert.strictEqual(first.snap.realBattleBridge.accusePayoffApplyCount, 0);
 assert.strictEqual(first.battle.meta.stage7AccuseKenPayoff.mode, "public_rematch");
 assert.strictEqual(first.battle.meta.stage7AccuseKenPayoff.status, "pending");
-assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, ["d1", "d2", "d3"]), true);
-let selected = Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseIds(
-  first.battle.id,
-  ["d1", "d2", "d3", "d4", "d5", "d6"]
-);
-assert.deepStrictEqual(selected, ["d4", "d5", "d6"]);
+const previousChoices = [
+  { id: "canon_d1", color: "y", group: "yn", type: "yn", text: "Старый ответ один", _canonAId: "old_1" },
+  { id: "canon_d2", color: "y", group: "who", type: "who", text: "Старый ответ два", _canonAId: "old_2" },
+  { id: "canon_d3", color: "y", group: "where", type: "where", text: "Старый ответ три", _canonAId: "old_3" },
+];
+const freshCandidates = [
+  { id: "canon_d4", color: "y", group: "yn", type: "yn", text: "Новый ответ один", _canonAId: "new_1" },
+  { id: "canon_d5", color: "y", group: "about", type: "about", text: "Новый ответ два", _canonAId: "new_2" },
+  { id: "canon_d6", color: "y", group: "who", type: "who", text: "Новый ответ три", _canonAId: "new_3" },
+];
+assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, previousChoices, freshCandidates), true);
+let selected = Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseChoices(first.battle.id);
+assert.deepStrictEqual(selected.map((choice) => choice.id), ["canon_d4", "canon_d5", "canon_d6"]);
 let snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.realBattleBridge.accusePayoffStatus, "used");
 assert.strictEqual(snap.realBattleBridge.accusePayoffApplyCount, 1);
-assert.deepStrictEqual(snap.realBattleBridge.accusePayoffPreviousDefenseIds, ["d1", "d2", "d3"]);
-assert.deepStrictEqual(snap.realBattleBridge.accusePayoffDefenseIds, ["d4", "d5", "d6"]);
-assert.deepStrictEqual(first.battle.meta.stage7AccuseKenPayoff.defenseIds, ["d4", "d5", "d6"]);
-assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, ["d4", "d5", "d6"]), false);
-selected = Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseIds(
-  first.battle.id,
-  ["d6", "d5", "d4", "d3", "d2", "d1"]
-);
-assert.deepStrictEqual(selected, ["d4", "d5", "d6"]);
+assert.deepStrictEqual(snap.realBattleBridge.accusePayoffPreviousDefenseIds, ["canon_d1", "canon_d2", "canon_d3"]);
+assert.deepStrictEqual(snap.realBattleBridge.accusePayoffDefenseIds, ["canon_d4", "canon_d5", "canon_d6"]);
+assert.deepStrictEqual(snap.realBattleBridge.accusePayoffDefenseChoices.map((choice) => choice.text), ["Новый ответ один", "Новый ответ два", "Новый ответ три"]);
+assert.deepStrictEqual(first.battle.meta.stage7AccuseKenPayoff.defenseIds, ["canon_d4", "canon_d5", "canon_d6"]);
+assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, freshCandidates, previousChoices), false);
+selected = Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseChoices(first.battle.id);
+assert.deepStrictEqual(selected.map((choice) => choice.id), ["canon_d4", "canon_d5", "canon_d6"]);
 assert.strictEqual(visibleLines.filter((line) => line.system && String(line.text).includes("сменил варианты ответа")).length, 1);
 Game.Stage7FirstExperience.destroy();
 const activeResume = Game.Stage7FirstExperience.claimResume(context);
 assert.strictEqual(activeResume.claimed, true);
 snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.realBattleBridge.accusePayoffApplyCount, 1);
-assert.deepStrictEqual(snap.realBattleBridge.accusePayoffDefenseIds, ["d4", "d5", "d6"]);
+assert.deepStrictEqual(snap.realBattleBridge.accusePayoffDefenseIds, ["canon_d4", "canon_d5", "canon_d6"]);
+assert.deepStrictEqual(
+  Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseChoices(first.battle.id).map((choice) => choice.text),
+  ["Новый ответ один", "Новый ответ два", "Новый ответ три"]
+);
 assert.strictEqual(visibleLines.filter((line) => line.system && String(line.text).includes("сменил варианты ответа")).length, 1);
 
 const ordinary = { id: "ordinary", status: "pickDefense", attack: { _color: "y" }, meta: {} };
 state.battles.unshift(ordinary);
-assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions("ordinary", ["d1", "d2", "d3"]), false);
-assert.strictEqual(Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseIds("ordinary", ["d1", "d2", "d3"]), null);
+assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions("ordinary", previousChoices, freshCandidates), false);
+assert.strictEqual(Game.Stage7FirstExperience.chooseAccuseKenRematchDefenseChoices("ordinary"), null);
 assert.strictEqual(ordinary.meta.stage7AccuseKenPayoff, undefined);
 state.battles.shift();
 
@@ -202,7 +215,7 @@ assert.strictEqual(dev.syncStage7RealArgumentBattleLifecycle(), true);
 snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.realBattleBridge.accusePayoffStatus, "expired");
 assert.strictEqual(first.battle.meta.stage7AccuseKenPayoff.status, "expired");
-assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, ["d1", "d2", "d3"]), false);
+assert.strictEqual(Game.Stage7FirstExperience.useAccuseKenRematchOptions(first.battle.id, previousChoices, freshCandidates), false);
 
 Game.Stage7FirstExperience.destroy();
 console.log("STAGE7_10_ACCUSE_KEN_PAYOFFS_DYNAMIC_OK");

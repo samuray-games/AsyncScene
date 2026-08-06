@@ -424,6 +424,46 @@ window.Game = window.Game || {};
     return false;
   }
 
+  function sanitizeDefenseChoice(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const id = typeof raw.id === "string" && raw.id.startsWith("canon_") ? raw.id : null;
+    const text = typeof raw.text === "string" && raw.text.trim() ? raw.text : null;
+    if (!id || !text) return null;
+    const type = typeof raw.type === "string" && raw.type ? raw.type : null;
+    const group = typeof raw.group === "string" && raw.group ? raw.group : type;
+    return {
+      id,
+      color: ["y", "o", "r", "k"].includes(raw.color) ? raw.color : null,
+      group,
+      type: type || group,
+      text,
+      displayText: typeof raw.displayText === "string" && raw.displayText ? raw.displayText : text,
+      _canonA: typeof raw._canonA === "string" && raw._canonA ? raw._canonA : null,
+      _canonAId: typeof raw._canonAId === "string" && raw._canonAId ? raw._canonAId : null,
+      _canonTextIndex: Number.isFinite(Number(raw._canonTextIndex)) ? Number(raw._canonTextIndex) : null,
+      _sub: typeof raw._sub === "string" && raw._sub ? raw._sub : null,
+    };
+  }
+
+  function defenseChoiceFingerprint(raw) {
+    const choice = sanitizeDefenseChoice(raw);
+    if (!choice) return null;
+    if (choice._canonAId) return `canon:${choice._canonAId}`;
+    return [choice.group || choice.type || "", choice.color || "", choice.text].join("|");
+  }
+
+  function sanitizeDefenseChoices(raw) {
+    const out = [];
+    const seenIds = new Set();
+    (Array.isArray(raw) ? raw : []).forEach((item) => {
+      const choice = sanitizeDefenseChoice(item);
+      if (!choice || seenIds.has(choice.id)) return;
+      seenIds.add(choice.id);
+      out.push(choice);
+    });
+    return out.slice(0, 12);
+  }
+
   function defaultRealBattleBridge() {
     return {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -449,6 +489,8 @@ window.Game = window.Game || {};
       accusePayoffApplyCount: 0,
       accusePayoffPreviousDefenseIds: [],
       accusePayoffDefenseIds: [],
+      accusePayoffPreviousDefenseChoices: [],
+      accusePayoffDefenseChoices: [],
       lastFailureReason: null,
     };
   }
@@ -488,6 +530,8 @@ window.Game = window.Game || {};
       accusePayoffDefenseIds: Array.from(new Set(Array.isArray(raw.accusePayoffDefenseIds)
         ? raw.accusePayoffDefenseIds.map(String).filter(Boolean).slice(0, 6)
         : [])),
+      accusePayoffPreviousDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffPreviousDefenseChoices).slice(0, 3),
+      accusePayoffDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffDefenseChoices).slice(0, 3),
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -1253,6 +1297,8 @@ window.Game = window.Game || {};
         applyCount: bridge.accusePayoffApplyCount,
         previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
         defenseIds: bridge.accusePayoffDefenseIds.slice(),
+        previousDefenseChoices: clone(bridge.accusePayoffPreviousDefenseChoices) || [],
+        defenseChoices: clone(bridge.accusePayoffDefenseChoices) || [],
       }
     );
     return true;
@@ -1325,7 +1371,7 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function useAccuseKenRematchOptions(battleId, currentDefenseIds) {
+  function useAccuseKenRematchOptions(battleId, currentDefenseChoices, candidateChoices) {
     const battle = getBridgeBattleList().find((item) => item && (
       item.id === battleId || item.battleId === battleId
     ));
@@ -1334,23 +1380,41 @@ window.Game = window.Game || {};
     if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "pending") return false;
     if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
     if (battle.status !== "pickDefense") return false;
-    const previousIds = Array.from(new Set(Array.isArray(currentDefenseIds)
-      ? currentDefenseIds.map(String).filter((id) => id && !id.startsWith("__pad_"))
-      : [])).slice(0, 3);
-    if (previousIds.length !== 3) return false;
+
+    const previousChoices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    const candidates = sanitizeDefenseChoices(candidateChoices);
+    if (previousChoices.length !== 3 || candidates.length < 3) return false;
+    const previousFingerprints = new Set(previousChoices.map(defenseChoiceFingerprint).filter(Boolean));
+    const selected = [];
+    const selectedFingerprints = new Set();
+    const appendChoice = (choice, requireNew) => {
+      if (!choice || selected.length >= 3) return;
+      const fingerprint = defenseChoiceFingerprint(choice);
+      if (!fingerprint || selectedFingerprints.has(fingerprint)) return;
+      if (requireNew && previousFingerprints.has(fingerprint)) return;
+      selected.push(choice);
+      selectedFingerprints.add(fingerprint);
+    };
+    candidates.forEach((choice) => appendChoice(choice, true));
+    candidates.forEach((choice) => appendChoice(choice, false));
+    if (selected.length !== 3) return false;
+    if (!selected.some((choice) => !previousFingerprints.has(defenseChoiceFingerprint(choice)))) return false;
 
     bridge.accusePayoffStatus = "used";
     bridge.accusePayoffAppliedAt = bridge.accusePayoffAppliedAt || Date.now();
     bridge.accusePayoffApplyCount = Math.max(1, bridge.accusePayoffApplyCount + 1);
-    bridge.accusePayoffPreviousDefenseIds = previousIds;
-    bridge.accusePayoffDefenseIds = [];
+    bridge.accusePayoffPreviousDefenseChoices = clone(previousChoices) || [];
+    bridge.accusePayoffDefenseChoices = clone(selected) || [];
+    bridge.accusePayoffPreviousDefenseIds = previousChoices.map((choice) => choice.id);
+    bridge.accusePayoffDefenseIds = selected.map((choice) => choice.id);
     syncAccuseKenPayoffMeta(battle);
     saveSnapshot();
     telemetry("first_experience.accuse_ken_payoff_applied", {
       payoffId: ACCUSE_KEN_PAYOFF_ID,
       battleId: battle.id || battle.battleId || null,
       mode: bridge.accusePayoffMode,
-      previousDefenseIds: previousIds.slice(),
+      previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
+      defenseIds: bridge.accusePayoffDefenseIds.slice(),
       applyCount: bridge.accusePayoffApplyCount,
     });
     pushLine({
@@ -1360,42 +1424,24 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function chooseAccuseKenRematchDefenseIds(battleId, candidateIds) {
+  function chooseAccuseKenRematchDefenseChoices(battleId) {
     const battle = getBridgeBattleList().find((item) => item && (
       item.id === battleId || item.battleId === battleId
     ));
     if (!battle || !ensureAccuseKenPayoff(battle)) return null;
     const bridge = getBridgeState();
     if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "used") return null;
-    const candidates = Array.from(new Set(Array.isArray(candidateIds)
-      ? candidateIds.map(String).filter((id) => id && !id.startsWith("__pad_"))
-      : []));
-    if (candidates.length < 3) return null;
-
-    const saved = bridge.accusePayoffDefenseIds.filter((id) => candidates.includes(id));
-    if (saved.length === 3) {
-      syncAccuseKenPayoffMeta(battle);
-      return saved.slice();
-    }
-
-    const previous = new Set(bridge.accusePayoffPreviousDefenseIds);
-    const selected = [];
-    candidates.forEach((id) => {
-      if (selected.length < 3 && !previous.has(id) && !selected.includes(id)) selected.push(id);
-    });
-    candidates.forEach((id) => {
-      if (selected.length < 3 && !selected.includes(id)) selected.push(id);
-    });
-    if (selected.length !== 3) return null;
-    bridge.accusePayoffDefenseIds = selected.slice();
+    const saved = sanitizeDefenseChoices(bridge.accusePayoffDefenseChoices).slice(0, 3);
+    if (saved.length !== 3) return null;
+    bridge.accusePayoffDefenseChoices = clone(saved) || [];
+    bridge.accusePayoffDefenseIds = saved.map((choice) => choice.id);
     syncAccuseKenPayoffMeta(battle);
-    saveSnapshot();
-    telemetry("first_experience.accuse_ken_rematch_options_selected", {
-      payoffId: ACCUSE_KEN_PAYOFF_ID,
-      battleId: battle.id || battle.battleId || null,
-      defenseIds: selected.slice(),
-    });
-    return selected;
+    return clone(saved);
+  }
+
+  function chooseAccuseKenRematchDefenseIds(battleId) {
+    const choices = chooseAccuseKenRematchDefenseChoices(battleId);
+    return Array.isArray(choices) ? choices.map((choice) => choice.id) : null;
   }
 
   function adoptRealBattle(battle) {
@@ -1971,6 +2017,7 @@ window.Game = window.Game || {};
     getObservedEvidenceReport,
     revealHeldDenyEvidence,
     useAccuseKenRematchOptions,
+    chooseAccuseKenRematchDefenseChoices,
     chooseAccuseKenRematchDefenseIds,
     resetForDev,
     advanceForegroundForDev,
@@ -1992,6 +2039,7 @@ window.Game = window.Game || {};
   G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
   G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
   G.__DEV.useStage7AccuseKenRematchOptions = useAccuseKenRematchOptions;
+  G.__DEV.chooseStage7AccuseKenRematchDefenseChoices = chooseAccuseKenRematchDefenseChoices;
   G.__DEV.chooseStage7AccuseKenRematchDefenseIds = chooseAccuseKenRematchDefenseIds;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
