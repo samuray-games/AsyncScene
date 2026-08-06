@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-13-direct-pages-build-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-13-direct-pages-build-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "1ffa1418356e4b8d328f41252ac16c9288a869b8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1ffa1418356e4b8d328f41252ac16c9288a869b8\n# branch.head chatgpt/stage7-13-direct-pages-build-20260806\n# branch.upstream origin/chatgpt/stage7-13-direct-pages-build-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "1ffa1418 (HEAD -> chatgpt/stage7-13-direct-pages-build-20260806, origin/chatgpt/stage7-13-direct-pages-build-20260806) chore: remove rejected branch Pages recovery workflow\na2138dd4 fix: deploy exact Stage 7.13 docs with extended Pages timeout\n8154a574 chore: trigger direct legacy Pages build\nc26f29ab (origin/chatgpt/pages-recovery-workflow-20260806) chore: retrigger Stage 7.13 Pages deployment (#305)\n69a1137c feat: carry first battle aftermath into DM (#303)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1ffa1418356e4b8d328f41252ac16c9288a869b8\nbranch refs/heads/chatgpt/stage7-13-direct-pages-build-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:39:42Z",
+      "stderr": "",
+      "stdout": "35729fbd7acc18a1fa8068457bbe52ddfe918186\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1ffa1418356e4b8d328f41252ac16c9288a869b8",
+  "observedAtUtc": "2026-08-06T13:39:42Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
