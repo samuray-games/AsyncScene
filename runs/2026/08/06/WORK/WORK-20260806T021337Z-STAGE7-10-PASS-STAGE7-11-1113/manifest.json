@@ -1,0 +1,26 @@
+{
+  "actor": "WORK",
+  "createdAtJst": "2026-08-06T11:13:37+09:00",
+  "createdAtUtc": "2026-08-06T02:13:37Z",
+  "files": [
+    "manifest.json",
+    "events.jsonl",
+    "summary.json",
+    "git-evidence.json",
+    "redaction-report.json",
+    "checksums.json"
+  ],
+  "finalStatus": "STAGE7_10_ACCEPTED_STAGE7_11_MERGED_DEPLOYED_ACCEPTANCE_PENDING",
+  "manifestStatus": "UPLOAD_COMPLETE_INDEX_PENDING",
+  "packagePath": "runs/2026/08/06/WORK/WORK-20260806T021337Z-STAGE7-10-PASS-STAGE7-11-1113",
+  "redactionStatus": "SANITIZED",
+  "repository": "samuray-games/AsyncScene",
+  "resultSha": "974794f45855f4d6c982945f8f59b64e9f36494c",
+  "runId": "WORK-20260806T021337Z-STAGE7-10-PASS-STAGE7-11-1113",
+  "schemaVersion": "AI_FORENSICS_RUN_V1",
+  "sourceBranch": "main",
+  "sourceSha": "58d79c60f852adf0d8f92b1809d793d43ca484bb",
+  "taskId": "TASK-STAGE7-10-PASS-STAGE7-11-20260806",
+  "uploadState": "UPLOAD_COMPLETE_INDEX_PENDING",
+  "workingBranch": "chatgpt/stage7-11-pay-branch-payoffs-20260806"
+}
