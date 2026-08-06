@@ -1,0 +1,46 @@
+name: stage7-13-pages-recovery
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-pages-deployment-recovery-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-cache-marker:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-13-pages-deployment-recovery-20260806
+          fetch-depth: 0
+      - name: Refresh Stage 7.13 Pages cache marker
+        run: |
+          sed -i 's/stage7_13_aftermath_dm_followup_20260806a/stage7_13_aftermath_dm_followup_20260806b/g' AsyncScene/Web/index.html docs/index.html
+      - name: Validate exact two-file recovery scope
+        run: |
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+          expected = {'AsyncScene/Web/index.html', 'docs/index.html'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != expected:
+              raise SystemExit(f'exact scope mismatch: {sorted(changed)}')
+          source = Path('AsyncScene/Web/index.html').read_text(encoding='utf-8')
+          docs = Path('docs/index.html').read_text(encoding='utf-8')
+          assert source == docs
+          assert 'stage7_13_aftermath_dm_followup_20260806a' not in source
+          assert source.count('stage7_13_aftermath_dm_followup_20260806b') == 2
+          print('STAGE7_13_PAGES_RECOVERY_SCOPE_OK')
+          PY
+      - name: Commit recovery marker
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AsyncScene/Web/index.html docs/index.html
+          git commit -m 'fix: refresh Stage 7.13 Pages cache marker'
+          git push origin HEAD:chatgpt/stage7-13-pages-deployment-recovery-20260806
