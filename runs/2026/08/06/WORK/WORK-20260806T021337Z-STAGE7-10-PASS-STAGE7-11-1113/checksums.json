@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "AI_FORENSICS_CHECKSUMS_V1",
+  "algorithm": "sha256",
+  "files": {
+    "manifest.json": "7f1b2b0ee35fef5d3a7d2d2993f84e95f9a32d198dbea2cc8724b0cc7e18ff71",
+    "summary.json": "afb4023feb4a97c057445d401b5b02c0492bd022cb2dc7c6eaf2f7170f8caff1",
+    "git-evidence.json": "2ebc532e15a170fd4838d66d77c0c1ed8704b8cbb54afcea2349b8c6cc11291e",
+    "redaction-report.json": "6b09025f7977b24cf47a27422e6c4ac2030faaaee563e3c2799b1b4e56a9edad",
+    "events.jsonl": "0b4ea6648f2c19a3b60690f12af6b38a7c551909dbe1f99c2df91181ab4df8f7"
+  }
+}
