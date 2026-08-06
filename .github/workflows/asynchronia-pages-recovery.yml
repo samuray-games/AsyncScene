@@ -1,11 +1,17 @@
-name: Asynchronia Pages Recovery
+name: Asynchronia Pages Deploy
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/**
+      - .github/workflows/asynchronia-pages-recovery.yml
   workflow_dispatch:
     inputs:
       source_sha:
-        description: Exact repository SHA whose docs directory must be deployed
-        required: true
+        description: Optional exact repository SHA whose docs directory must be deployed
+        required: false
         type: string
       expected_marker:
         description: Optional marker that must exist in docs/index.html
@@ -18,7 +24,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: asynchronia-pages-recovery
+  group: asynchronia-pages-deploy
   cancel-in-progress: false
 
 jobs:
@@ -31,11 +37,11 @@ jobs:
       - name: Checkout exact source
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: ${{ inputs.source_sha || github.sha }}
       - name: Verify requested artifact
         env:
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          EXPECTED_MARKER: ${{ inputs.expected_marker }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+          EXPECTED_MARKER: ${{ inputs.expected_marker || '' }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
@@ -43,8 +49,8 @@ jobs:
           if [ -n "$EXPECTED_MARKER" ]; then
             grep -Fq "$EXPECTED_MARKER" docs/index.html
           fi
-          echo "PAGES_RECOVERY_SOURCE_SHA=$SOURCE_SHA"
-          echo "PAGES_RECOVERY_EXPECTED_MARKER=${EXPECTED_MARKER:-none}"
+          echo "PAGES_DEPLOY_SOURCE_SHA=$SOURCE_SHA"
+          echo "PAGES_DEPLOY_EXPECTED_MARKER=${EXPECTED_MARKER:-none}"
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload exact docs artifact
