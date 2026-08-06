@@ -64,13 +64,17 @@ jobs:
           PY
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('tools/test_stage7_first_causal_vertical_slice.py')
-          text = path.read_text(encoding='utf-8')
+          paths = [
+              Path('tools/test_stage7_first_causal_vertical_slice.py'),
+              Path('tools/test_stage7_observed_evidence_harness.py'),
+          ]
           old = 'require(index.count(cache_token) == 2, "expected current JS and CSS cache-buster references")'
           new = 'require(index.count(cache_token) == 3, "expected current CSS, controller and DM cache-buster references")\nrequire(f\'ui/ui-dm.js?v={cache_token}\' in index, "DM must share the current Stage 7 cache-buster")'
-          if text.count(old) != 1:
-              raise SystemExit(f'cache ownership count anchor: {text.count(old)}')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              if text.count(old) != 1:
+                  raise SystemExit(f'cache ownership count anchor in {path}: {text.count(old)}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
           git checkout -- tools/tmp_stage7_13_aftermath_dm_follow_up.py
       - name: Validate exact scope and mirrors
