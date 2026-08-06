@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-13-pages-redeploy-d-20260806",
+  "createdAtJst": "2026-08-06 22:43:30 JST",
+  "createdAtUtc": "2026-08-06T13:43:30Z",
+  "packagePath": "runs/2026/08/06/GITHUB/GITHUB-20260806T134330Z-31107225494-219c7b9d",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260806T134330Z-31107225494-219c7b9d",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
