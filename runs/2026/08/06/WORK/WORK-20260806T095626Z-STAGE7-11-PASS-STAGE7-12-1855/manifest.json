@@ -1,0 +1,26 @@
+{
+  "actor": "WORK",
+  "createdAtJst": "2026-08-06T18:56:26+09:00",
+  "createdAtUtc": "2026-08-06T09:56:26Z",
+  "files": [
+    "manifest.json",
+    "events.jsonl",
+    "summary.json",
+    "git-evidence.json",
+    "redaction-report.json",
+    "checksums.json"
+  ],
+  "finalStatus": "STAGE7_11_ACCEPTED_STAGE7_12_MERGED_DEPLOYED_ACCEPTANCE_PENDING",
+  "manifestStatus": "UPLOAD_COMPLETE_INDEXED",
+  "packagePath": "runs/2026/08/06/WORK/WORK-20260806T095626Z-STAGE7-11-PASS-STAGE7-12-1855",
+  "redactionStatus": "SANITIZED",
+  "repository": "samuray-games/AsyncScene",
+  "resultSha": "4e27aa0d690127c7b495c9c690026f7bf58c621a",
+  "runId": "WORK-20260806T095626Z-STAGE7-11-PASS-STAGE7-12-1855",
+  "schemaVersion": "AI_FORENSICS_RUN_V1",
+  "sourceBranch": "main",
+  "sourceSha": "974794f45855f4d6c982945f8f59b64e9f36494c",
+  "taskId": "TASK-STAGE7-11-ACCEPTANCE-STAGE7-12-AFTERMATH-20260806",
+  "uploadState": "UPLOAD_COMPLETE_INDEXED",
+  "workingBranch": "chatgpt/stage7-12-first-real-battle-aftermath-20260806"
+}
