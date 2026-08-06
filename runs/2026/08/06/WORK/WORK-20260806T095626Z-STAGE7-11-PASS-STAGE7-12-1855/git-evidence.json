@@ -1,0 +1,46 @@
+{
+  "memorySync": {
+    "changedFiles": 5,
+    "finalForensicsRun": 31089542780,
+    "headSha": "9a2d2019342380213a0845740351c6c681d9796e",
+    "mergeSha": "f3dfaa3de055290e5e5122e53890fee8caab1127",
+    "pr": 300,
+    "validationRun": 31089162307
+  },
+  "protectedBoundary": {
+    "argumentCanon": "unchanged",
+    "conflictCoreApi": "unchanged",
+    "dataStateSystem": "unchanged",
+    "economy": "unchanged",
+    "networkTransmission": "none added",
+    "ordinaryBattles": "unchanged",
+    "settlement": "unchanged"
+  },
+  "repository": "samuray-games/AsyncScene",
+  "reviewFindings": [
+    {
+      "finding": "stale duplicate Stage 7.11 next action in CANON.md",
+      "fixedBeforeMerge": true
+    },
+    {
+      "finding": "Stage 7.7 completed-bridge refresh assertion was superseded by pending aftermath contract",
+      "fixedBeforeMerge": true
+    }
+  ],
+  "runtime": {
+    "additions": 802,
+    "baseSha": "f3dfaa3de055290e5e5122e53890fee8caab1127",
+    "cacheBuster": "stage7_12_first_battle_aftermath_20260806a",
+    "changedFiles": 11,
+    "deletions": 23,
+    "headSha": "9a75e1134ca7d5df5acf7d5b12250fc7db805bcb",
+    "implementationRun": 31090336845,
+    "mergeSha": "4e27aa0d690127c7b495c9c690026f7bf58c621a",
+    "pagesBuildId": 1135514616,
+    "pagesStatus": "built",
+    "postMergeForensicsRun": 31090666029,
+    "pr": 301,
+    "prForensicsRun": 31090592343
+  },
+  "schemaVersion": "AI_FORENSICS_GIT_EVIDENCE_V1"
+}
