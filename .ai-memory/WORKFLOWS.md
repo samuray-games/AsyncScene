@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-06-1818-JST
-EXPECTED_REVISION: 2026-08-06-1818-JST
-NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
+MEMORY_REVISION: 2026-08-06-2101-JST
+EXPECTED_REVISION: 2026-08-06-2101-JST
+NOTION_MEMORY_REVISION: 2026-08-06-2101-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7.11 `pay` tactical payoffs are merged and user-accepted at `974794f45855f4d6c982945f8f59b64e9f36494c`. Repository memory records the explicit iPhone Safari `PASS`. The exact next action is `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.12 first-real-battle aftermath is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Repository memory records the explicit iPhone Safari `PASS`. No runtime task is active. The exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -81,8 +81,9 @@ After every accepted remote state change:
 13. Stage 7.9 starts with the deny branch: persisted evidence preparation must visibly affect the first real battle exactly once without changing ordinary battles or canonical argument rules. Stage 7.9 is now user-accepted.
 14. Stage 7.10 applies the same narrow-payoff discipline to `accuse_ken`: public rematch gets one persisted canonical defense-option refresh and witness request auto-reveals the first attack color. Stage 7.10 is now user-accepted.
 15. Stage 7.11 applies the discipline to `pay`: receipt marks the matching defense family; ignored pressure exposes one persisted action that marks one wrong-family defense as Олег's pressure line. Both effects are now user-accepted.
-16. Stage 7.12 persists the actual first bridge-battle terminal outcome into the affected existing NPC memory and presents one branch-aware, non-blocking normal-world aftermath reaction. It must survive refresh until one acknowledgement, never replay after acknowledgement and remain isolated from ordinary battles.
-17. Expand receipt, coalition, promise or broader witness systems only after the aftermath consequence is separately accepted.
+16. Stage 7.12 is user-accepted. The actual exact bridge-battle terminal outcome persists one branch-aware NPC-memory aftermath; the non-blocking reaction survives refresh until one acknowledgement, never replays afterward, and remains isolated from ordinary battles.
+17. Stage 7.12 acceptance permits later product consideration but does not itself select a receipt, coalition, promise, witness, or other expansion. A new explicit user instruction is required before another runtime slice begins.
+18. While no runtime task is active, the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`.
 
 ## Local plugin installation and parity workflow
 
