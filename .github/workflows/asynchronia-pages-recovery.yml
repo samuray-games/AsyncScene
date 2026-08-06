@@ -19,6 +19,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -57,10 +58,89 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: docs
-      - name: Deploy exact docs with extended queue tolerance
+      - name: Create and monitor isolated Pages deployment
         id: deployment
-        uses: actions/deploy-pages@v5
-        with:
-          timeout: 1800000
-          reporting_interval: 10000
-          error_count: 50
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          artifact_id=""
+          for attempt in $(seq 1 20); do
+            artifact_id="$(gh api "/repos/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              --jq '.artifacts[] | select(.name == "github-pages") | .id' | head -n 1)"
+            if [ -n "$artifact_id" ]; then
+              break
+            fi
+            sleep 2
+          done
+          test -n "$artifact_id"
+
+          recovery_version="$(printf '%s' "${SOURCE_SHA}:${GITHUB_RUN_ID}:${GITHUB_RUN_ATTEMPT}" | sha1sum | awk '{print $1}')"
+          test "${#recovery_version}" -eq 40
+          echo "PAGES_RECOVERY_VERSION=$recovery_version"
+
+          oidc_response="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}")"
+          oidc_token="$(printf '%s' "$oidc_response" | jq -r '.value // empty')"
+          test -n "$oidc_token"
+
+          sleep 15
+          gh api --method POST \
+            "/repos/${REPOSITORY}/pages/deployments/${GITHUB_SHA}/cancel" >/dev/null 2>&1 || true
+          sleep 3
+
+          payload="$(jq -cn \
+            --argjson artifact_id "$artifact_id" \
+            --arg pages_build_version "$recovery_version" \
+            --arg oidc_token "$oidc_token" \
+            '{artifact_id:$artifact_id,pages_build_version:$pages_build_version,oidc_token:$oidc_token}')"
+
+          create_response=""
+          for attempt in $(seq 1 12); do
+            if create_response="$(printf '%s' "$payload" | gh api --method POST \
+              "/repos/${REPOSITORY}/pages/deployments" --input - 2>/tmp/pages-create-error)"; then
+              break
+            fi
+            cat /tmp/pages-create-error >&2
+            blocker="$(grep -Eo '[0-9a-f]{40}' /tmp/pages-create-error | tail -n 1 || true)"
+            if [ -n "$blocker" ] && [ "$blocker" != "$recovery_version" ]; then
+              gh api --method POST \
+                "/repos/${REPOSITORY}/pages/deployments/${blocker}/cancel" >/dev/null 2>&1 || true
+            fi
+            sleep 5
+          done
+          test -n "$create_response"
+
+          page_url="$(printf '%s' "$create_response" | jq -r '.page_url // empty')"
+          if [ -z "$page_url" ]; then
+            page_url="https://samuray-games.github.io/AsyncScene/"
+          fi
+          echo "page_url=$page_url" >> "$GITHUB_OUTPUT"
+
+          deadline=$((SECONDS + 1800))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            status="$(gh api "/repos/${REPOSITORY}/pages/deployments/${recovery_version}" --jq '.status')"
+            echo "PAGES_RECOVERY_STATUS=$status"
+            case "$status" in
+              succeed)
+                echo "ASYNCHRONIA_PAGES_DEPLOYMENT_SUCCEEDED"
+                exit 0
+                ;;
+              deployment_failed|deployment_content_failed|deployment_cancelled|deployment_lost)
+                echo "Pages recovery deployment reached terminal failure: $status" >&2
+                exit 1
+                ;;
+              *)
+                sleep 10
+                ;;
+            esac
+          done
+
+          echo "Pages recovery deployment exceeded 1800 seconds" >&2
+          gh api --method POST \
+            "/repos/${REPOSITORY}/pages/deployments/${recovery_version}/cancel" >/dev/null 2>&1 || true
+          exit 1
