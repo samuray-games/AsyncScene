@@ -1,0 +1,49 @@
+{
+  "repository": "samuray-games/AsyncScene",
+  "baseRuntimeSha": "58d79c60f852adf0d8f92b1809d793d43ca484bb",
+  "memorySync": {
+    "branch": "chatgpt/stage7-10-pass-memory-sync-20260806",
+    "validationRun": 31064095519,
+    "pullRequest": 298,
+    "prForensicsRun": 31064168052,
+    "mergeSha": "2273980d26c59dd05f98a544e905e4c6fa1efc5f",
+    "scope": [
+      "TASKS.md",
+      "PROJECT_MEMORY.md",
+      ".ai-memory/CURRENT.md",
+      ".ai-memory/CANON.md",
+      ".ai-memory/WORKFLOWS.md"
+    ]
+  },
+  "runtime": {
+    "branch": "chatgpt/stage7-11-pay-branch-payoffs-20260806",
+    "validatedHeadSha": "78fae6299cc8573dcb2325f4d5a6537ef58d2e80",
+    "implementationRun": 31064685194,
+    "pullRequest": 299,
+    "prForensicsRun": 31064904412,
+    "mergeSha": "974794f45855f4d6c982945f8f59b64e9f36494c",
+    "postMergeForensicsRun": 31064952276,
+    "pagesBuild": 1134942356,
+    "pagesStatus": "built",
+    "cacheTag": "stage7_11_pay_branch_payoffs_20260806a",
+    "changedFiles": 12,
+    "protectedModulesChanged": false
+  },
+  "validationNotes": [
+    {
+      "run": 31064566143,
+      "status": "FAILED_EXPECTED_HISTORICAL_SCOPE",
+      "reason": "Broad glob included superseded Stage 7.6 test asserting historical cache marker; no runtime defect."
+    },
+    {
+      "run": 31064621553,
+      "status": "FAILED_GATE_ONLY",
+      "reason": "Patch-layer exact-scope gate counted a test already committed in branch HEAD; current behavior and regression matrix passed."
+    },
+    {
+      "run": 31064685194,
+      "status": "PASS",
+      "reason": "Focused Stage 7.11 harness, current Stage 7.7-7.11 matrix, causal/evidence harness, parity, syntax, exact patch scope and protected boundary passed."
+    }
+  ]
+}
