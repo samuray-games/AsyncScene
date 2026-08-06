@@ -35,6 +35,19 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
           python3 tools/tmp_stage7_13_aftermath_dm_followup.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/test_stage7_13_aftermath_dm_followup.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''assert.strictEqual(prepared.dev.acknowledgeStage7FirstBattleAftermath(), true);
+const entries = Array.from(legacySource.storage.entries());'''
+          new = '''assert.strictEqual(prepared.dev.acknowledgeStage7FirstBattleAftermath(), true);
+prepared.G.Stage7FirstExperience.destroy();
+const entries = Array.from(legacySource.storage.entries());'''
+          if text.count(old) != 1:
+              raise SystemExit('legacy scheduler cleanup anchor changed')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
           git checkout -- tools/tmp_stage7_13_aftermath_dm_followup.py
       - name: Run focused and current Stage 7 regression matrix
         run: |
