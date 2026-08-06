@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-11-pay-branch-payoffs-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:19Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:19Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-11-pay-branch-payoffs-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:19Z",
+      "stderr": "",
+      "stdout": "8d2e9c889d7da56c61982159ec80f0451c4309e8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:20Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8d2e9c889d7da56c61982159ec80f0451c4309e8\n# branch.head chatgpt/stage7-11-pay-branch-payoffs-20260806\n# branch.upstream origin/chatgpt/stage7-11-pay-branch-payoffs-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:20Z",
+      "stderr": "",
+      "stdout": "8d2e9c88 (HEAD -> chatgpt/stage7-11-pay-branch-payoffs-20260806, origin/chatgpt/stage7-11-pay-branch-payoffs-20260806) chore: prepare Stage 7.11 pay payoff patch\n2273980d (origin/main) docs: record accepted Stage 7.10 payoff (#298)\n58d79c60 feat: make accuse_ken preparation matter (#297)\naf45f174 docs: record accepted Stage 7.9 payoff (#296)\n89561d9c feat: make deny evidence matter in first battle (#295)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:20Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8d2e9c889d7da56c61982159ec80f0451c4309e8\nbranch refs/heads/chatgpt/stage7-11-pay-branch-payoffs-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:20Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T02:03:20Z",
+      "stderr": "",
+      "stdout": "2273980d26c59dd05f98a544e905e4c6fa1efc5f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8d2e9c889d7da56c61982159ec80f0451c4309e8",
+  "observedAtUtc": "2026-08-06T02:03:20Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
