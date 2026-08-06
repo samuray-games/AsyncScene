@@ -195,6 +195,7 @@ window.Game = window.Game || {};
   const REAL_BATTLE_RETRY_MS = 250;
   const REAL_BATTLE_MAX_ATTEMPTS = 40;
   const DENY_EVIDENCE_PAYOFF_ID = "stage7_deny_evidence_reveal_v1";
+  const ACCUSE_KEN_PAYOFF_ID = "stage7_accuse_ken_tactical_v1";
   const REAL_BATTLE_INJECTIONS = {
     deny: {
       primary: "Настя показала твоё доказательство. Но оно доказывает только то, что ты успел подготовить оправдание. Отвечай публично.",
@@ -423,6 +424,46 @@ window.Game = window.Game || {};
     return false;
   }
 
+  function sanitizeDefenseChoice(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const id = typeof raw.id === "string" && raw.id.startsWith("canon_") ? raw.id : null;
+    const text = typeof raw.text === "string" && raw.text.trim() ? raw.text : null;
+    if (!id || !text) return null;
+    const type = typeof raw.type === "string" && raw.type ? raw.type : null;
+    const group = typeof raw.group === "string" && raw.group ? raw.group : type;
+    return {
+      id,
+      color: ["y", "o", "r", "k"].includes(raw.color) ? raw.color : null,
+      group,
+      type: type || group,
+      text,
+      displayText: typeof raw.displayText === "string" && raw.displayText ? raw.displayText : text,
+      _canonA: typeof raw._canonA === "string" && raw._canonA ? raw._canonA : null,
+      _canonAId: typeof raw._canonAId === "string" && raw._canonAId ? raw._canonAId : null,
+      _canonTextIndex: Number.isFinite(Number(raw._canonTextIndex)) ? Number(raw._canonTextIndex) : null,
+      _sub: typeof raw._sub === "string" && raw._sub ? raw._sub : null,
+    };
+  }
+
+  function defenseChoiceFingerprint(raw) {
+    const choice = sanitizeDefenseChoice(raw);
+    if (!choice) return null;
+    if (choice._canonAId) return `canon:${choice._canonAId}`;
+    return [choice.group || choice.type || "", choice.color || "", choice.text].join("|");
+  }
+
+  function sanitizeDefenseChoices(raw) {
+    const out = [];
+    const seenIds = new Set();
+    (Array.isArray(raw) ? raw : []).forEach((item) => {
+      const choice = sanitizeDefenseChoice(item);
+      if (!choice || seenIds.has(choice.id)) return;
+      seenIds.add(choice.id);
+      out.push(choice);
+    });
+    return out.slice(0, 12);
+  }
+
   function defaultRealBattleBridge() {
     return {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -442,6 +483,14 @@ window.Game = window.Game || {};
       evidencePayoffStatus: "not_applicable",
       evidencePayoffRevealedAt: null,
       evidencePayoffRevealCount: 0,
+      accusePayoffMode: null,
+      accusePayoffStatus: "not_applicable",
+      accusePayoffAppliedAt: null,
+      accusePayoffApplyCount: 0,
+      accusePayoffPreviousDefenseIds: [],
+      accusePayoffDefenseIds: [],
+      accusePayoffPreviousDefenseChoices: [],
+      accusePayoffDefenseChoices: [],
       lastFailureReason: null,
     };
   }
@@ -469,6 +518,20 @@ window.Game = window.Game || {};
         : "not_applicable",
       evidencePayoffRevealedAt: Number.isFinite(Number(raw.evidencePayoffRevealedAt)) ? Number(raw.evidencePayoffRevealedAt) : null,
       evidencePayoffRevealCount: Math.max(0, Number(raw.evidencePayoffRevealCount) | 0),
+      accusePayoffMode: ["public_rematch", "witness"].includes(raw.accusePayoffMode) ? raw.accusePayoffMode : null,
+      accusePayoffStatus: ["not_applicable", "pending", "used", "revealed", "expired"].includes(raw.accusePayoffStatus)
+        ? raw.accusePayoffStatus
+        : "not_applicable",
+      accusePayoffAppliedAt: Number.isFinite(Number(raw.accusePayoffAppliedAt)) ? Number(raw.accusePayoffAppliedAt) : null,
+      accusePayoffApplyCount: Math.max(0, Number(raw.accusePayoffApplyCount) | 0),
+      accusePayoffPreviousDefenseIds: Array.from(new Set(Array.isArray(raw.accusePayoffPreviousDefenseIds)
+        ? raw.accusePayoffPreviousDefenseIds.map(String).filter(Boolean).slice(0, 6)
+        : [])),
+      accusePayoffDefenseIds: Array.from(new Set(Array.isArray(raw.accusePayoffDefenseIds)
+        ? raw.accusePayoffDefenseIds.map(String).filter(Boolean).slice(0, 6)
+        : [])),
+      accusePayoffPreviousDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffPreviousDefenseChoices).slice(0, 3),
+      accusePayoffDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffDefenseChoices).slice(0, 3),
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -1075,6 +1138,17 @@ window.Game = window.Game || {};
         mode: bridge.evidencePayoffMode,
       });
     }
+    if (bridge.accusePayoffStatus === "pending") {
+      bridge.accusePayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7AccuseKenPayoff) {
+        battle.meta.stage7AccuseKenPayoff.status = "expired";
+      }
+      telemetry("first_experience.accuse_ken_payoff_expired", {
+        payoffId: ACCUSE_KEN_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.accusePayoffMode,
+      });
+    }
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_completed", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -1196,6 +1270,180 @@ window.Game = window.Game || {};
     return revealDenyEvidencePayoff(battle, "held_manual");
   }
 
+
+  function getAccuseKenPayoffMode() {
+    if (!snapshot || snapshot.branchId !== "accuse_ken") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_stage7_ken
+      ? snapshot.npcMemory.npc_stage7_ken
+      : {};
+    if (memory.publicRematchAccepted) return "public_rematch";
+    if (memory.witnessRequested) return "witness";
+    if (snapshot.followUpChoiceId === "primary") return "public_rematch";
+    if (snapshot.followUpChoiceId === "secondary") return "witness";
+    return null;
+  }
+
+  function syncAccuseKenPayoffMeta(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle || !battle.meta) return false;
+    battle.meta.stage7AccuseKenPayoff = Object.assign(
+      {},
+      battle.meta.stage7AccuseKenPayoff || {},
+      {
+        payoffId: ACCUSE_KEN_PAYOFF_ID,
+        mode: bridge.accusePayoffMode,
+        status: bridge.accusePayoffStatus,
+        appliedAt: bridge.accusePayoffAppliedAt,
+        applyCount: bridge.accusePayoffApplyCount,
+        previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
+        defenseIds: bridge.accusePayoffDefenseIds.slice(),
+        previousDefenseChoices: clone(bridge.accusePayoffPreviousDefenseChoices) || [],
+        defenseChoices: clone(bridge.accusePayoffDefenseChoices) || [],
+      }
+    );
+    return true;
+  }
+
+  function ensureAccuseKenPayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getAccuseKenPayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.accusePayoffMode) bridge.accusePayoffMode = mode;
+    if (bridge.accusePayoffMode !== mode
+      && !["used", "revealed", "expired"].includes(bridge.accusePayoffStatus)) {
+      bridge.accusePayoffMode = mode;
+    }
+    if (bridge.accusePayoffStatus === "not_applicable") bridge.accusePayoffStatus = "pending";
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    return syncAccuseKenPayoffMeta(battle);
+  }
+
+  function applyAccuseKenWitnessPayoff(battle) {
+    if (!battle || !ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "witness") return false;
+    if (bridge.accusePayoffStatus === "expired") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense" || !battle.attack) return false;
+    const trueColor = battle.attack._color || battle.attack.color || null;
+    if (!trueColor) return false;
+    if (bridge.accusePayoffStatus === "revealed") {
+      battle.attack.color = trueColor;
+      battle.attackHidden = false;
+      battle.revealColor = trueColor;
+      syncAccuseKenPayoffMeta(battle);
+      return true;
+    }
+
+    battle.attack.color = trueColor;
+    battle.attackHidden = false;
+    battle.revealColor = trueColor;
+    bridge.accusePayoffStatus = "revealed";
+    bridge.accusePayoffAppliedAt = bridge.accusePayoffAppliedAt || Date.now();
+    bridge.accusePayoffApplyCount = Math.max(1, bridge.accusePayoffApplyCount + 1);
+    syncAccuseKenPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.accuse_ken_payoff_applied", {
+      payoffId: ACCUSE_KEN_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.accusePayoffMode,
+      color: trueColor,
+      applyCount: bridge.accusePayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Настя привела свидетеля. Цвет первого вброса Райхана раскрыт.",
+    });
+    return true;
+  }
+
+  function initializeAccuseKenPayoff(battle) {
+    if (!ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge) return false;
+    saveSnapshot();
+    if (bridge.accusePayoffMode === "witness") return applyAccuseKenWitnessPayoff(battle);
+    return true;
+  }
+
+  function useAccuseKenRematchOptions(battleId, currentDefenseChoices, candidateChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "pending") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense") return false;
+
+    const previousChoices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    const candidates = sanitizeDefenseChoices(candidateChoices);
+    if (previousChoices.length !== 3 || candidates.length < 3) return false;
+    const previousFingerprints = new Set(previousChoices.map(defenseChoiceFingerprint).filter(Boolean));
+    const selected = [];
+    const selectedFingerprints = new Set();
+    const appendChoice = (choice, requireNew) => {
+      if (!choice || selected.length >= 3) return;
+      const fingerprint = defenseChoiceFingerprint(choice);
+      if (!fingerprint || selectedFingerprints.has(fingerprint)) return;
+      if (requireNew && previousFingerprints.has(fingerprint)) return;
+      selected.push(choice);
+      selectedFingerprints.add(fingerprint);
+    };
+    candidates.forEach((choice) => appendChoice(choice, true));
+    candidates.forEach((choice) => appendChoice(choice, false));
+    if (selected.length !== 3) return false;
+    if (!selected.some((choice) => !previousFingerprints.has(defenseChoiceFingerprint(choice)))) return false;
+
+    bridge.accusePayoffStatus = "used";
+    bridge.accusePayoffAppliedAt = bridge.accusePayoffAppliedAt || Date.now();
+    bridge.accusePayoffApplyCount = Math.max(1, bridge.accusePayoffApplyCount + 1);
+    bridge.accusePayoffPreviousDefenseChoices = clone(previousChoices) || [];
+    bridge.accusePayoffDefenseChoices = clone(selected) || [];
+    bridge.accusePayoffPreviousDefenseIds = previousChoices.map((choice) => choice.id);
+    bridge.accusePayoffDefenseIds = selected.map((choice) => choice.id);
+    syncAccuseKenPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.accuse_ken_payoff_applied", {
+      payoffId: ACCUSE_KEN_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.accusePayoffMode,
+      previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
+      defenseIds: bridge.accusePayoffDefenseIds.slice(),
+      applyCount: bridge.accusePayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Ты принял публичный реванш и один раз сменил варианты ответа.",
+    });
+    return true;
+  }
+
+  function chooseAccuseKenRematchDefenseChoices(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureAccuseKenPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "used") return null;
+    const saved = sanitizeDefenseChoices(bridge.accusePayoffDefenseChoices).slice(0, 3);
+    if (saved.length !== 3) return null;
+    bridge.accusePayoffDefenseChoices = clone(saved) || [];
+    bridge.accusePayoffDefenseIds = saved.map((choice) => choice.id);
+    syncAccuseKenPayoffMeta(battle);
+    return clone(saved);
+  }
+
+  function chooseAccuseKenRematchDefenseIds(battleId) {
+    const choices = chooseAccuseKenRematchDefenseChoices(battleId);
+    return Array.isArray(choices) ? choices.map((choice) => choice.id) : null;
+  }
+
   function adoptRealBattle(battle) {
     const bridge = getBridgeState();
     if (!bridge || !battle) return false;
@@ -1209,6 +1457,7 @@ window.Game = window.Game || {};
     bridge.createdAt = bridge.createdAt || Date.now();
     bridge.lastFailureReason = null;
     initializeDenyEvidencePayoff(battle);
+    initializeAccuseKenPayoff(battle);
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_created", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -1767,6 +2016,9 @@ window.Game = window.Game || {};
     getSnapshot,
     getObservedEvidenceReport,
     revealHeldDenyEvidence,
+    useAccuseKenRematchOptions,
+    chooseAccuseKenRematchDefenseChoices,
+    chooseAccuseKenRematchDefenseIds,
     resetForDev,
     advanceForegroundForDev,
     destroy,
@@ -1786,6 +2038,9 @@ window.Game = window.Game || {};
   G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
   G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
   G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
+  G.__DEV.useStage7AccuseKenRematchOptions = useAccuseKenRematchOptions;
+  G.__DEV.chooseStage7AccuseKenRematchDefenseChoices = chooseAccuseKenRematchDefenseChoices;
+  G.__DEV.chooseStage7AccuseKenRematchDefenseIds = chooseAccuseKenRematchDefenseIds;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,
@@ -1805,7 +2060,7 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.8",
+    stage: "7.10",
     onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
     intermissionDelayMs: INTERMISSION_DELAY_MS,
     limitedNpcCount: INTERMISSION_NPCS.length,
@@ -1816,5 +2071,8 @@ window.Game = window.Game || {};
     denyEvidencePayoffId: DENY_EVIDENCE_PAYOFF_ID,
     denyEvidenceSharedAutoReveal: true,
     denyEvidenceHeldManualReveal: true,
+    accuseKenPayoffId: ACCUSE_KEN_PAYOFF_ID,
+    accuseKenPublicRematchDefenseRefresh: true,
+    accuseKenWitnessAutoReveal: true,
   });
 })();

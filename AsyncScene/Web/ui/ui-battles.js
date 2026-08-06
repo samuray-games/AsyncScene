@@ -2454,6 +2454,9 @@ UI.renderBattles = () => {
         const stage7DenyEvidencePayoff = b && b.meta && b.meta.stage7DenyEvidencePayoff
           ? b.meta.stage7DenyEvidencePayoff
           : null;
+        const stage7AccuseKenPayoff = b && b.meta && b.meta.stage7AccuseKenPayoff
+          ? b.meta.stage7AccuseKenPayoff
+          : null;
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2471,12 +2474,18 @@ UI.renderBattles = () => {
           const evidenceRevealed = !!(stage7DenyEvidencePayoff
             && stage7DenyEvidencePayoff.status === "revealed"
             && b.attack.color);
-          chip.className = clsForColor(evidenceRevealed ? b.attack.color : null, !evidenceRevealed);
+          const witnessRevealed = !!(stage7AccuseKenPayoff
+            && stage7AccuseKenPayoff.mode === "witness"
+            && stage7AccuseKenPayoff.status === "revealed"
+            && b.attack.color);
+          const stage7ColorRevealed = evidenceRevealed || witnessRevealed;
+          chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Вброс: ${String(argCanonUiText(b.attack, "Q") || "")}`;
-          if (!evidenceRevealed) chip.style.color = "rgba(255,255,255,.92)";
+          if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
           else if (b.attack.color === "k") chip.style.color = "#ddd";
           else chip.style.color = "black";
           chip.dataset.stage7DenyEvidenceRevealed = String(evidenceRevealed);
+          chip.dataset.stage7AccuseWitnessRevealed = String(witnessRevealed);
           // show toast above incoming (grey) attack when clicked
           chip.onclick = (e) => {
             stop(e);
@@ -2501,6 +2510,13 @@ UI.renderBattles = () => {
               ? "Сохранённое доказательство раскрыло цвет вброса."
               : "Публичное доказательство раскрыло цвет вброса.";
             card.appendChild(evidenceNote);
+          }
+          if (witnessRevealed) {
+            const witnessNote = document.createElement("div");
+            witnessNote.className = "noteLine";
+            witnessNote.dataset.testid = "stage7-accuse-witness-revealed";
+            witnessNote.textContent = "Свидетель Насти раскрыл цвет первого вброса.";
+            card.appendChild(witnessNote);
           }
         }
 
@@ -2729,6 +2745,9 @@ UI.renderBattles = () => {
             };
 
             pushUniq(choices);
+            const rematchRefreshUsed = !!(stage7AccuseKenPayoff
+              && stage7AccuseKenPayoff.mode === "public_rematch"
+              && stage7AccuseKenPayoff.status === "used");
 
             if (uniq.length < 3) {
               let all = [];
@@ -2747,8 +2766,21 @@ UI.renderBattles = () => {
               pushUniq(all);
             }
 
-            let finalChoices = uniq.slice(0, 3);
-            shuffleInPlace(finalChoices);
+            let finalChoices = [];
+            if (rematchRefreshUsed) {
+              const stage7 = Game && Game.Stage7FirstExperience;
+              const restoredChoices = stage7
+                && typeof stage7.chooseAccuseKenRematchDefenseChoices === "function"
+                ? stage7.chooseAccuseKenRematchDefenseChoices(b.id)
+                : null;
+              if (Array.isArray(restoredChoices) && restoredChoices.length === 3) {
+                finalChoices = restoredChoices;
+              }
+            }
+            if (finalChoices.length !== 3) {
+              finalChoices = uniq.slice(0, 3);
+              shuffleInPlace(finalChoices);
+            }
 
             while (finalChoices.length < 3) {
               finalChoices.push({ id: `__pad_${finalChoices.length}`, color: null, text: "...", _pad: true });
@@ -2836,6 +2868,55 @@ UI.renderBattles = () => {
        if (b.status === "pickDefense") {
           const actions = document.createElement("div");
           actions.className = "actions";
+
+          if (stage7AccuseKenPayoff
+            && stage7AccuseKenPayoff.mode === "public_rematch"
+            && stage7AccuseKenPayoff.status === "pending") {
+            const rematchRefreshBtn = document.createElement("button");
+            rematchRefreshBtn.className = "btn small";
+            rematchRefreshBtn.type = "button";
+            rematchRefreshBtn.dataset.testid = "stage7-accuse-rematch-refresh";
+            rematchRefreshBtn.textContent = "Сменить ответы";
+            rematchRefreshBtn.onclick = (e) => {
+              stop(e);
+              _captureBattleFocus(b.id, card);
+              const currentChoices = Array.isArray(b._defenseChoices)
+                ? b._defenseChoices.filter((item) => item && !item._pad)
+                : [];
+              const freshCandidates = [];
+              for (let attempt = 0; attempt < 4; attempt += 1) {
+                let batch = [];
+                try {
+                  if (Game.Conflict && typeof Game.Conflict.myDefenseOptions === "function") {
+                    batch = Game.Conflict.myDefenseOptions(b) || [];
+                  } else if (Game._ConflictArguments && typeof Game._ConflictArguments.myDefenseOptions === "function") {
+                    batch = Game._ConflictArguments.myDefenseOptions(b) || [];
+                  }
+                } catch (_) {
+                  batch = [];
+                }
+                (batch || []).forEach((item) => {
+                  if (item && !item._pad) freshCandidates.push(item);
+                });
+              }
+              const stage7 = Game && Game.Stage7FirstExperience;
+              const used = !!(stage7
+                && typeof stage7.useAccuseKenRematchOptions === "function"
+                && stage7.useAccuseKenRematchOptions(b.id, currentChoices, freshCandidates));
+              if (used) {
+                try { delete b._defenseChoices; } catch (_) {}
+                try {
+                  if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
+                    delete UI._battleChoiceCache.defense[String(b.id)];
+                  }
+                } catch (_) {}
+              } else if (UI && typeof UI.showActionToast === "function") {
+                UI.showActionToast(rematchRefreshBtn, "Смена ответов уже недоступна.");
+              }
+              requestAll();
+            };
+            actions.appendChild(rematchRefreshBtn);
+          }
 
           if (stage7DenyEvidencePayoff
             && stage7DenyEvidencePayoff.mode === "held"
@@ -2931,6 +3012,15 @@ UI.renderBattles = () => {
           }
 
           card.appendChild(actions);
+          if (stage7AccuseKenPayoff
+            && stage7AccuseKenPayoff.mode === "public_rematch"
+            && stage7AccuseKenPayoff.status === "used") {
+            const rematchNote = document.createElement("div");
+            rematchNote.className = "noteLine";
+            rematchNote.dataset.testid = "stage7-accuse-rematch-used";
+            rematchNote.textContent = "Ты уже один раз сменил варианты ответа перед публичным реваншем.";
+            card.appendChild(rematchNote);
+          }
         }
 
         if (b.inlineNote) {
