@@ -1,0 +1,12 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "events.jsonl": "22b2f8ee49b379393766f035bbcd94924b758f934cdf1dd7e28073fec3b065d4",
+    "git-evidence.json": "8899e40faacc2fe404a89c863c9292412c6e18af40b8795b9cc230042111631e",
+    "manifest.json": "ee1208303a2599b5b0f4ec2518b463b71464be0ffcb3894b68e90fc88a890789",
+    "redaction-report.json": "c07b5eb594ed38568b47923e65e8c551428b1ddc57c47eaeee5aa9470a30051e",
+    "summary.json": "2e35e40ef11506779805e66f4b027f2fe48fe6fd1544621985e88230bede4209"
+  },
+  "runId": "WORK-20260806T095626Z-STAGE7-11-PASS-STAGE7-12-1855",
+  "schemaVersion": "AI_FORENSICS_CHECKSUMS_V1"
+}
