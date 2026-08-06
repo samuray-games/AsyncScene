@@ -196,6 +196,7 @@ window.Game = window.Game || {};
   const REAL_BATTLE_MAX_ATTEMPTS = 40;
   const DENY_EVIDENCE_PAYOFF_ID = "stage7_deny_evidence_reveal_v1";
   const ACCUSE_KEN_PAYOFF_ID = "stage7_accuse_ken_tactical_v1";
+  const PAY_PAYOFF_ID = "stage7_pay_tactical_v1";
   const REAL_BATTLE_INJECTIONS = {
     deny: {
       primary: "Настя показала твоё доказательство. Но оно доказывает только то, что ты успел подготовить оправдание. Отвечай публично.",
@@ -491,6 +492,13 @@ window.Game = window.Game || {};
       accusePayoffDefenseIds: [],
       accusePayoffPreviousDefenseChoices: [],
       accusePayoffDefenseChoices: [],
+      payPayoffMode: null,
+      payPayoffStatus: "not_applicable",
+      payPayoffAppliedAt: null,
+      payPayoffApplyCount: 0,
+      payPayoffDefenseChoices: [],
+      payPayoffMarkedDefenseId: null,
+      payPayoffMarkedFingerprint: null,
       lastFailureReason: null,
     };
   }
@@ -532,6 +540,19 @@ window.Game = window.Game || {};
         : [])),
       accusePayoffPreviousDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffPreviousDefenseChoices).slice(0, 3),
       accusePayoffDefenseChoices: sanitizeDefenseChoices(raw.accusePayoffDefenseChoices).slice(0, 3),
+      payPayoffMode: ["receipt", "pressure"].includes(raw.payPayoffMode) ? raw.payPayoffMode : null,
+      payPayoffStatus: ["not_applicable", "pending", "marked", "used", "expired"].includes(raw.payPayoffStatus)
+        ? raw.payPayoffStatus
+        : "not_applicable",
+      payPayoffAppliedAt: Number.isFinite(Number(raw.payPayoffAppliedAt)) ? Number(raw.payPayoffAppliedAt) : null,
+      payPayoffApplyCount: Math.max(0, Number(raw.payPayoffApplyCount) | 0),
+      payPayoffDefenseChoices: sanitizeDefenseChoices(raw.payPayoffDefenseChoices).slice(0, 3),
+      payPayoffMarkedDefenseId: typeof raw.payPayoffMarkedDefenseId === "string" && raw.payPayoffMarkedDefenseId
+        ? raw.payPayoffMarkedDefenseId
+        : null,
+      payPayoffMarkedFingerprint: typeof raw.payPayoffMarkedFingerprint === "string" && raw.payPayoffMarkedFingerprint
+        ? raw.payPayoffMarkedFingerprint
+        : null,
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -1149,6 +1170,17 @@ window.Game = window.Game || {};
         mode: bridge.accusePayoffMode,
       });
     }
+    if (bridge.payPayoffStatus === "pending") {
+      bridge.payPayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7PayPayoff) {
+        battle.meta.stage7PayPayoff.status = "expired";
+      }
+      telemetry("first_experience.pay_payoff_expired", {
+        payoffId: PAY_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.payPayoffMode,
+      });
+    }
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_completed", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -1444,6 +1476,166 @@ window.Game = window.Game || {};
     return Array.isArray(choices) ? choices.map((choice) => choice.id) : null;
   }
 
+  function normalizePayArgumentGroup(value) {
+    const raw = value && (value.group || value.type || value.qtype || value.kind || value.questionType);
+    const normalized = String(raw || "").trim().toLowerCase();
+    if (["yesno", "yes-no", "yes_no", "да/нет", "да-нет"].includes(normalized)) return "yn";
+    if (["topic", "о чем", "о-чем", "о_чем"].includes(normalized)) return "about";
+    if (["what", "who/what", "who-what", "кто", "что", "кто/что", "кто-что"].includes(normalized)) return "who";
+    return normalized;
+  }
+
+  function getPayPayoffMode() {
+    if (!snapshot || snapshot.branchId !== "pay") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_bandit
+      ? snapshot.npcMemory.npc_bandit
+      : {};
+    if (memory.receiptDemanded) return "receipt";
+    if (memory.pressureIgnored) return "pressure";
+    if (snapshot.followUpChoiceId === "primary") return "receipt";
+    if (snapshot.followUpChoiceId === "secondary") return "pressure";
+    return null;
+  }
+
+  function syncPayPayoffMeta(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle) return false;
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    battle.meta.stage7PayPayoff = Object.assign({}, battle.meta.stage7PayPayoff || {}, {
+      payoffId: PAY_PAYOFF_ID,
+      mode: bridge.payPayoffMode,
+      status: bridge.payPayoffStatus,
+      appliedAt: bridge.payPayoffAppliedAt,
+      applyCount: bridge.payPayoffApplyCount,
+      defenseChoices: clone(bridge.payPayoffDefenseChoices) || [],
+      markedDefenseId: bridge.payPayoffMarkedDefenseId,
+      markedFingerprint: bridge.payPayoffMarkedFingerprint,
+    });
+    return true;
+  }
+
+  function ensurePayPayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getPayPayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.payPayoffMode) bridge.payPayoffMode = mode;
+    if (bridge.payPayoffMode !== mode
+      && !["marked", "used", "expired"].includes(bridge.payPayoffStatus)) {
+      bridge.payPayoffMode = mode;
+    }
+    if (bridge.payPayoffStatus === "not_applicable") bridge.payPayoffStatus = "pending";
+    return syncPayPayoffMeta(battle);
+  }
+
+  function choosePayDefenseChoices(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || !["receipt", "pressure"].includes(bridge.payPayoffMode)) return null;
+    const saved = sanitizeDefenseChoices(bridge.payPayoffDefenseChoices).slice(0, 3);
+    if (saved.length !== 3) return null;
+    bridge.payPayoffDefenseChoices = clone(saved) || [];
+    syncPayPayoffMeta(battle);
+    return clone(saved);
+  }
+
+  function preparePayDefenseChoices(battleId, currentDefenseChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || battle.status !== "pickDefense"
+      || battle.resolved === true || battle.finished === true) return null;
+
+    const alreadySaved = sanitizeDefenseChoices(bridge.payPayoffDefenseChoices).slice(0, 3);
+    if (alreadySaved.length === 3) {
+      bridge.payPayoffDefenseChoices = clone(alreadySaved) || [];
+      syncPayPayoffMeta(battle);
+      return clone(alreadySaved);
+    }
+
+    const choices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    if (choices.length !== 3) return null;
+    bridge.payPayoffDefenseChoices = clone(choices) || [];
+
+    if (bridge.payPayoffMode === "receipt" && bridge.payPayoffStatus === "pending") {
+      const attackGroup = normalizePayArgumentGroup(battle.attack);
+      const matching = choices.find((choice) => normalizePayArgumentGroup(choice) === attackGroup) || null;
+      if (!matching) return null;
+      bridge.payPayoffStatus = "marked";
+      bridge.payPayoffAppliedAt = bridge.payPayoffAppliedAt || Date.now();
+      bridge.payPayoffApplyCount = Math.max(1, bridge.payPayoffApplyCount + 1);
+      bridge.payPayoffMarkedDefenseId = matching.id;
+      bridge.payPayoffMarkedFingerprint = defenseChoiceFingerprint(matching);
+      telemetry("first_experience.pay_payoff_applied", {
+        payoffId: PAY_PAYOFF_ID,
+        battleId,
+        mode: bridge.payPayoffMode,
+        markedDefenseId: matching.id,
+        applyCount: bridge.payPayoffApplyCount,
+      });
+      pushLine({
+        system: true,
+        text: "Расписка Олега помогла отделить подходящий по типу ответ.",
+      });
+    }
+
+    syncPayPayoffMeta(battle);
+    saveSnapshot();
+    return clone(choices);
+  }
+
+  function usePayPressureAnalysis(battleId, currentDefenseChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.payPayoffMode !== "pressure" || bridge.payPayoffStatus !== "pending") return false;
+    if (battle.status !== "pickDefense" || battle.resolved === true || battle.finished === true) return false;
+
+    const choices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    if (choices.length !== 3) return false;
+    const attackGroup = normalizePayArgumentGroup(battle.attack);
+    const wrong = choices.find((choice) => normalizePayArgumentGroup(choice) !== attackGroup) || null;
+    if (!wrong) return false;
+
+    bridge.payPayoffStatus = "used";
+    bridge.payPayoffAppliedAt = bridge.payPayoffAppliedAt || Date.now();
+    bridge.payPayoffApplyCount = Math.max(1, bridge.payPayoffApplyCount + 1);
+    bridge.payPayoffDefenseChoices = clone(choices) || [];
+    bridge.payPayoffMarkedDefenseId = wrong.id;
+    bridge.payPayoffMarkedFingerprint = defenseChoiceFingerprint(wrong);
+    syncPayPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.pay_payoff_applied", {
+      payoffId: PAY_PAYOFF_ID,
+      battleId,
+      mode: bridge.payPayoffMode,
+      markedDefenseId: wrong.id,
+      applyCount: bridge.payPayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Ты разобрал давление Олега и заметил один ответ, который не подходит к типу вброса.",
+    });
+    return true;
+  }
+
+  function initializePayPayoff(battle) {
+    if (!ensurePayPayoff(battle)) return false;
+    saveSnapshot();
+    return true;
+  }
+
   function adoptRealBattle(battle) {
     const bridge = getBridgeState();
     if (!bridge || !battle) return false;
@@ -1458,6 +1650,7 @@ window.Game = window.Game || {};
     bridge.lastFailureReason = null;
     initializeDenyEvidencePayoff(battle);
     initializeAccuseKenPayoff(battle);
+    initializePayPayoff(battle);
     saveSnapshot();
     telemetry("first_experience.real_argument_battle_created", {
       bridgeId: REAL_BATTLE_BRIDGE_ID,
@@ -2019,6 +2212,9 @@ window.Game = window.Game || {};
     useAccuseKenRematchOptions,
     chooseAccuseKenRematchDefenseChoices,
     chooseAccuseKenRematchDefenseIds,
+    preparePayDefenseChoices,
+    choosePayDefenseChoices,
+    usePayPressureAnalysis,
     resetForDev,
     advanceForegroundForDev,
     destroy,
