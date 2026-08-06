@@ -21,7 +21,21 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply Stage 7.13 patch
-        run: python3 tools/tmp_stage7_13_aftermath_dm_followup.py
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/tmp_stage7_13_aftermath_dm_followup.py')
+          text = path.read_text(encoding='utf-8')
+          old_start = "node_harness = r'''"
+          old_end = "\n'''\n\nwith tempfile.NamedTemporaryFile"
+          if text.count(old_start) != 1 or text.count(old_end) != 1:
+              raise SystemExit('nested harness delimiter anchors changed')
+          text = text.replace(old_start, 'node_harness = r"""', 1)
+          text = text.replace(old_end, '\n"""\n\nwith tempfile.NamedTemporaryFile', 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+          python3 tools/tmp_stage7_13_aftermath_dm_followup.py
+          git checkout -- tools/tmp_stage7_13_aftermath_dm_followup.py
       - name: Run focused and current Stage 7 regression matrix
         run: |
           python3 tools/test_stage7_13_aftermath_dm_followup.py
