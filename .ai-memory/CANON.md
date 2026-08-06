@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-06-1047-JST
-EXPECTED_REVISION: 2026-08-06-1047-JST
-NOTION_MEMORY_REVISION: 2026-08-06-1047-JST
+MEMORY_REVISION: 2026-08-06-1818-JST
+EXPECTED_REVISION: 2026-08-06-1818-JST
+NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
 
 ## Canon principles
 
@@ -41,7 +41,17 @@ NOTION_MEMORY_REVISION: 2026-08-06-1047-JST
 - Both effects require the stable Stage 7 bridge ID and exact bridge battle ID. Ordinary battles, conflict core/API/economy/data/system, settlement and argument canon remain unchanged.
 - Static evidence: implementation `31062842850` PASS; persistence repair `31063239777` PASS; PR forensics `31063276985` PASS; post-merge forensics `31063319643` PASS; Pages build `1134900395` built without error.
 - User evidence: explicit iPhone Safari private-session `PASS` for public-rematch replacement, exact post-refresh restoration and selection, witness reveal and ordinary-battle isolation.
-- Stage 7.11 is selected for the `pay` branch: receipt marks the matching defense family; ignored pressure exposes one persisted action that marks one wrong-family defense as Олег's pressure line. Both remain bridge-only and exactly once.
+- Stage 7.11 is merged and user-accepted at `974794f45855f4d6c982945f8f59b64e9f36494c`. Receipt and ignored-pressure preparation each produce one persisted, exactly-once tactical mark over the exact three canonical defenses and remain isolated from ordinary battles.
+
+## Accepted Stage 7.11 product slice
+
+- PR #299 is merged and user-accepted at `974794f45855f4d6c982945f8f59b64e9f36494c`.
+- In the `pay` branch, `receiptDemanded` stores the exact three sanitized canonical defense objects and automatically marks the one whose normalized family matches the current incoming attack.
+- `pressureIgnored` exposes one bridge-only `Разобрать давление` action that marks one visible wrong-family defense. The action is consumed exactly once and does not return after refresh.
+- Both modes restore the exact selectable defense snapshot through `battle._defenseChoices`, expire unused pending analysis when the bridge battle finishes, and require the stable bridge ID plus exact battle ID.
+- Static evidence: implementation `31064685194` PASS; PR forensics `31064904412` PASS; post-merge forensics `31064952276` PASS; Pages build `1134942356` built without error.
+- User evidence: explicit iPhone Safari private-session `PASS` for receipt mark, pressure action, exact refresh persistence, post-refresh selection and ordinary-battle isolation.
+- Stage 7.12 is selected: persist the actual first bridge-battle terminal outcome into existing NPC memory and present one non-blocking, branch-aware normal-world aftermath reaction exactly once.
 
 ## Superseding Stage 7 onboarding flow
 
@@ -80,7 +90,7 @@ NOTION_MEMORY_REVISION: 2026-08-06-1047-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Latest merged and user-accepted runtime implementation head is `58d79c60f852adf0d8f92b1809d793d43ca484bb`. PR #297 completed the `accuse_ken` tactical payoffs and the iPhone Safari private-session verdict is explicit `PASS`.
+- Latest merged and user-accepted runtime implementation head is `974794f45855f4d6c982945f8f59b64e9f36494c`. PR #299 completed the `pay` tactical payoffs and the iPhone Safari private-session verdict is explicit `PASS`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -102,7 +112,7 @@ NOTION_MEMORY_REVISION: 2026-08-06-1047-JST
 - Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
 - Stage 7.4 user acceptance covers the nickname field, nickname usage, visible names `Райхан` and `Настя`, return copy, and the explanation before the six-question gate.
 - Stage 7.5 user acceptance covers the branch-derived follow-up choice, persistence into target NPC memory, release ordering, and no replay after refresh.
-- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.10 are user-accepted. The active next slice is Stage 7.11 `pay` tactical differentiation inside the first real battle.
+- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.11 are user-accepted. The active next slice is Stage 7.12: one persisted, branch-aware aftermath consequence from the actual first real battle outcome into the normal world.
 
 ## Protected facts
 
@@ -142,4 +152,4 @@ NOTION_MEMORY_REVISION: 2026-08-06-1047-JST
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `IMPLEMENT_STAGE7_11_PAY_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE`.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.

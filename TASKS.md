@@ -1,3 +1,14 @@
+## 2026-08-06 - Stage 7.11 pay payoff Safari acceptance
+- Memory revision: `2026-08-06-1818-JST`.
+- User returned explicit `PASS` for both `pay` paths in iPhone Safari private sessions.
+- Accepted runtime: PR #299 squash merge `974794f45855f4d6c982945f8f59b64e9f36494c`.
+- Accepted receipt path: exactly three canonical defenses persist; the matching-family defense is marked `✓ По расписке`, survives refresh as the same selectable object and does not duplicate.
+- Accepted pressure path: one bridge-only `Разобрать давление` action marks one wrong-family defense as `⚠ Давление Олега`; refresh preserves the mark and does not restore the action.
+- Accepted boundary: ordinary battles do not inherit Stage 7.11 behavior.
+- Validation evidence: implementation `31064685194` PASS; PR forensics `31064904412` PASS; post-merge forensics `31064952276` PASS; Pages build `1134942356` built without error.
+- Stage 7.12 selected: persist the actual first bridge-battle outcome into the affected NPC memory and show one non-blocking normal-world aftermath reaction exactly once. Preserve refresh recovery, ordinary battles, economy, settlement, conflict core/API and argument canon.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.
+
 ## 2026-08-06 - Stage 7.10 accuse_ken payoff Safari acceptance
 - User returned explicit `PASS` for both `accuse_ken` paths in iPhone Safari private sessions.
 - Accepted runtime: PR #297 squash merge `58d79c60f852adf0d8f92b1809d793d43ca484bb`.
