@@ -1,0 +1,60 @@
+name: Asynchronia Pages Recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact repository SHA whose docs directory must be deployed
+        required: true
+        type: string
+      expected_marker:
+        description: Optional marker that must exist in docs/index.html
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: asynchronia-pages-recovery
+  cancel-in-progress: false
+
+jobs:
+  deploy-exact-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - name: Verify requested artifact
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_MARKER: ${{ inputs.expected_marker }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -f docs/index.html
+          if [ -n "$EXPECTED_MARKER" ]; then
+            grep -Fq "$EXPECTED_MARKER" docs/index.html
+          fi
+          echo "PAGES_RECOVERY_SOURCE_SHA=$SOURCE_SHA"
+          echo "PAGES_RECOVERY_EXPECTED_MARKER=${EXPECTED_MARKER:-none}"
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload exact docs artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs
+      - name: Deploy exact docs with extended queue tolerance
+        id: deployment
+        uses: actions/deploy-pages@v5
+        with:
+          timeout: 1800000
+          reporting_interval: 10000
+          error_count: 50
