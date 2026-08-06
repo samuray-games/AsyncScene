@@ -57,18 +57,20 @@ jobs:
                   raise SystemExit(f'unexpected consume ordering in {path}')
               condition = lines[cond:cond_end + 1]
               condition[-1] = '      || targetId !== bridge.aftermathTargetNpcId'
-              condition.extend([
-                  '      || !record',
-                  '      || record.targetNpcId !== targetId',
-                  '      || !record.dmReply) return null;',
-              ])
-              replacement = [
-                  '    const targetId = String(targetNpcId || "");',
-                  '    const record = getFirstBattleAftermathRecord();',
-                  '    const bridge = getBridgeState();',
-              ] + condition
+              condition.extend(['      || !record', '      || record.targetNpcId !== targetId', '      || !record.dmReply) return null;'])
+              replacement = ['    const targetId = String(targetNpcId || "");', '    const record = getFirstBattleAftermathRecord();', '    const bridge = getBridgeState();'] + condition
               lines[bridge:record_guard + 1] = replacement
               path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/test_stage7_first_causal_vertical_slice.py')
+          text = path.read_text(encoding='utf-8')
+          old = 'require(index.count(cache_token) == 2, "expected current JS and CSS cache-buster references")'
+          new = 'require(index.count(cache_token) == 3, "expected current CSS, controller and DM cache-buster references")\nrequire(f\'ui/ui-dm.js?v={cache_token}\' in index, "DM must share the current Stage 7 cache-buster")'
+          if text.count(old) != 1:
+              raise SystemExit(f'cache ownership count anchor: {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
           git checkout -- tools/tmp_stage7_13_aftermath_dm_follow_up.py
       - name: Validate exact scope and mirrors
@@ -81,14 +83,10 @@ jobs:
               'AsyncScene/Web/ui/ui-stage7-first-experience.js', 'docs/ui/ui-stage7-first-experience.js',
               'AsyncScene/Web/ui/ui-dm.js', 'docs/ui/ui-dm.js',
               'AsyncScene/Web/index.html', 'docs/index.html',
-              'tools/test_stage7_13_aftermath_dm_follow_up.py',
-              'tools/test_stage7_12_first_real_battle_aftermath.py',
-              'tools/test_stage7_11_pay_branch_payoffs.py',
-              'tools/test_stage7_10_accuse_ken_payoffs.py',
-              'tools/test_stage7_9_deny_evidence_payoff.py',
-              'tools/test_stage7_7_preunlock_corridor.py',
-              'tools/test_stage7_first_causal_vertical_slice.py',
-              'tools/test_stage7_observed_evidence_harness.py',
+              'tools/test_stage7_13_aftermath_dm_follow_up.py', 'tools/test_stage7_12_first_real_battle_aftermath.py',
+              'tools/test_stage7_11_pay_branch_payoffs.py', 'tools/test_stage7_10_accuse_ken_payoffs.py',
+              'tools/test_stage7_9_deny_evidence_payoff.py', 'tools/test_stage7_7_preunlock_corridor.py',
+              'tools/test_stage7_first_causal_vertical_slice.py', 'tools/test_stage7_observed_evidence_harness.py',
           }
           tracked = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
           untracked = set(subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard'], text=True).splitlines())
