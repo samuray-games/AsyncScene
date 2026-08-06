@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-12-pass-memory-sync-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-12-pass-memory-sync-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "8332908e19831dd4e7f81cd3a69340eaa4e4c954\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8332908e19831dd4e7f81cd3a69340eaa4e4c954\n# branch.head chatgpt/stage7-12-pass-memory-sync-20260806\n# branch.upstream origin/chatgpt/stage7-12-pass-memory-sync-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "8332908e (HEAD -> chatgpt/stage7-12-pass-memory-sync-20260806, origin/chatgpt/stage7-12-pass-memory-sync-20260806) fix: simplify Stage 7.12 memory sync runner\n0eec6e60 fix: patch active memory anchors only\nee9e1bfa fix: target current memory revision uniquely\nf39d4870 chore: add temporary Stage 7.12 memory sync workflow\na3d008f0 chore: add temporary Stage 7.12 memory sync patcher\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8332908e19831dd4e7f81cd3a69340eaa4e4c954\nbranch refs/heads/chatgpt/stage7-12-pass-memory-sync-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T12:10:39Z",
+      "stderr": "",
+      "stdout": "4e27aa0d690127c7b495c9c690026f7bf58c621a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8332908e19831dd4e7f81cd3a69340eaa4e4c954",
+  "observedAtUtc": "2026-08-06T12:10:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
