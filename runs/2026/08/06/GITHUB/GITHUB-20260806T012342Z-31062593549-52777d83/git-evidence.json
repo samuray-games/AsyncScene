@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-10-accuse-ken-payoffs-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-10-accuse-ken-payoffs-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "af45f174366d1cd2744b118f540679ef69e736da\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "# branch.oid af45f174366d1cd2744b118f540679ef69e736da\n# branch.head chatgpt/stage7-10-accuse-ken-payoffs-20260806\n# branch.upstream origin/chatgpt/stage7-10-accuse-ken-payoffs-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "af45f174 (HEAD -> chatgpt/stage7-10-accuse-ken-payoffs-20260806, origin/main, origin/chatgpt/stage7-10-accuse-ken-payoffs-20260806) docs: record accepted Stage 7.9 payoff (#296)\n89561d9c feat: make deny evidence matter in first battle (#295)\n518ecc8f docs: record accepted Stage 7.8 onboarding (#294)\n49bb6f28 feat: bridge Stage 7 onboarding into real argument battle (#293)\na70bf2f8 feat: add locked Stage 7 pre-unlock corridor (#292)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD af45f174366d1cd2744b118f540679ef69e736da\nbranch refs/heads/chatgpt/stage7-10-accuse-ken-payoffs-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:23:42Z",
+      "stderr": "",
+      "stdout": "af45f174366d1cd2744b118f540679ef69e736da\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "af45f174366d1cd2744b118f540679ef69e736da",
+  "observedAtUtc": "2026-08-06T01:23:42Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
