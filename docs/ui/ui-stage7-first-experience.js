@@ -198,6 +198,27 @@ window.Game = window.Game || {};
   const ACCUSE_KEN_PAYOFF_ID = "stage7_accuse_ken_tactical_v1";
   const PAY_PAYOFF_ID = "stage7_pay_tactical_v1";
   const FIRST_BATTLE_AFTERMATH_ID = "stage7_first_real_battle_aftermath_v1";
+  const FIRST_BATTLE_AFTERMATH_DM_ID = "stage7_first_real_battle_dm_followup_v1";
+  const FIRST_BATTLE_AFTERMATH_DM_COPY = Object.freeze({
+    deny: Object.freeze({
+      npcName: "Настя",
+      win: "После баттла я больше не считаю твою версию неподтверждённой. Ты выдержал публичную проверку.",
+      lose: "Публичный спор ты проиграл. Если хочешь, чтобы я поверила твоей версии, в следующий раз одних приготовленных ответов будет мало.",
+      interrupted: "Для меня спор всё ещё не закрыт. Победителя не было, и обвинение осталось без окончательной проверки.",
+    }),
+    accuse_ken: Object.freeze({
+      npcName: "Райхан",
+      win: "Реванш ты выиграл. Я это запомнил. В следующий раз мне придётся заходить сильнее.",
+      lose: "Я вернул инициативу в публичном споре. Теперь комната снова слышит мою версию первой.",
+      interrupted: "Наш спор не закончен. Без ясного исхода я не считаю, что ты опроверг моё обвинение.",
+    }),
+    pay: Object.freeze({
+      npcName: "Олег",
+      win: "Ты заплатил, но потом выиграл публичный спор. Давить на тебя тем же способом второй раз уже не получится.",
+      lose: "Оплата и проигранный баттл сделали мою версию удобнее для остальных. Я это запомнил.",
+      interrupted: "Баттл ничего не закрыл. Пока нет ясного исхода, история с оплатой всё ещё работает против тебя.",
+    }),
+  });
   const FIRST_BATTLE_AFTERMATH_TARGETS = Object.freeze({
     deny: "npc_stage7_mika",
     accuse_ken: "npc_stage7_ken",
@@ -561,6 +582,10 @@ window.Game = window.Game || {};
       aftermathRecordedAt: null,
       aftermathAcknowledgedAt: null,
       aftermathApplyCount: 0,
+      aftermathDmStatus: "not_applicable",
+      aftermathDmLineId: null,
+      aftermathDmDeliveredAt: null,
+      aftermathDmDeliveryCount: 0,
       lastFailureReason: null,
     };
   }
@@ -634,6 +659,18 @@ window.Game = window.Game || {};
       aftermathRecordedAt: Number.isFinite(Number(raw.aftermathRecordedAt)) ? Number(raw.aftermathRecordedAt) : null,
       aftermathAcknowledgedAt: Number.isFinite(Number(raw.aftermathAcknowledgedAt)) ? Number(raw.aftermathAcknowledgedAt) : null,
       aftermathApplyCount: Math.max(0, Number(raw.aftermathApplyCount) | 0),
+      aftermathDmStatus: ["not_applicable", "locked", "pending", "delivered"].includes(raw.aftermathDmStatus)
+        ? raw.aftermathDmStatus
+        : (raw.aftermathStatus === "acknowledged"
+          ? "pending"
+          : (raw.aftermathStatus === "pending" ? "locked" : "not_applicable")),
+      aftermathDmLineId: typeof raw.aftermathDmLineId === "string" && raw.aftermathDmLineId
+        ? raw.aftermathDmLineId
+        : null,
+      aftermathDmDeliveredAt: Number.isFinite(Number(raw.aftermathDmDeliveredAt))
+        ? Number(raw.aftermathDmDeliveredAt)
+        : null,
+      aftermathDmDeliveryCount: Math.max(0, Number(raw.aftermathDmDeliveryCount) | 0),
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -994,6 +1031,10 @@ window.Game = window.Game || {};
       recordedAt: bridge.aftermathRecordedAt,
       acknowledgedAt: bridge.aftermathAcknowledgedAt,
       applyCount: bridge.aftermathApplyCount,
+      dmStatus: bridge.aftermathDmStatus,
+      dmLineId: bridge.aftermathDmLineId,
+      dmDeliveredAt: bridge.aftermathDmDeliveredAt,
+      dmDeliveryCount: bridge.aftermathDmDeliveryCount,
       title: copy.title,
       body: copy.body,
     };
@@ -1026,6 +1067,10 @@ window.Game = window.Game || {};
     bridge.aftermathRecordedAt = recordedAt;
     bridge.aftermathAcknowledgedAt = null;
     bridge.aftermathApplyCount = Math.max(1, bridge.aftermathApplyCount + 1);
+    bridge.aftermathDmStatus = "locked";
+    bridge.aftermathDmLineId = null;
+    bridge.aftermathDmDeliveredAt = null;
+    bridge.aftermathDmDeliveryCount = 0;
 
     const record = {
       aftermathId: FIRST_BATTLE_AFTERMATH_ID,
@@ -1039,6 +1084,10 @@ window.Game = window.Game || {};
       recordedAt,
       acknowledgedAt: null,
       applyCount: bridge.aftermathApplyCount,
+      dmStatus: "locked",
+      dmLineId: null,
+      dmDeliveredAt: null,
+      dmDeliveryCount: 0,
     };
     snapshot.npcMemory[targetNpcId] = Object.assign({}, snapshot.npcMemory[targetNpcId] || {}, {
       firstRealBattleAftermath: record,
@@ -1081,9 +1130,17 @@ window.Game = window.Game || {};
     const acknowledgedAt = Date.now();
     bridge.aftermathStatus = "acknowledged";
     bridge.aftermathAcknowledgedAt = acknowledgedAt;
+    bridge.aftermathDmStatus = "pending";
+    bridge.aftermathDmLineId = null;
+    bridge.aftermathDmDeliveredAt = null;
+    bridge.aftermathDmDeliveryCount = 0;
     if (record && record.aftermathId === FIRST_BATTLE_AFTERMATH_ID) {
       record.status = "acknowledged";
       record.acknowledgedAt = acknowledgedAt;
+      record.dmStatus = "pending";
+      record.dmLineId = null;
+      record.dmDeliveredAt = null;
+      record.dmDeliveryCount = 0;
     }
     ensureScenarioPlayers();
     saveSnapshot();
@@ -1097,6 +1154,141 @@ window.Game = window.Game || {};
       applyCount: bridge.aftermathApplyCount,
     });
     render();
+    return true;
+  }
+
+
+  function getFirstBattleAftermathDmRecord(targetNpcId) {
+    const current = snapshot || loadSnapshot();
+    if (!current || current.onboardingUnlocked !== true) return null;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    if (bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || bridge.aftermathDmStatus !== "pending") return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const expectedTarget = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    const target = bridge.aftermathTargetNpcId || expectedTarget;
+    if (!branchId || !target || target !== expectedTarget) return null;
+    if (targetNpcId != null && String(targetNpcId) !== target) return null;
+    const memory = current.npcMemory && current.npcMemory[target];
+    const saved = memory && memory.firstRealBattleAftermath;
+    if (!saved
+      || saved.aftermathId !== FIRST_BATTLE_AFTERMATH_ID
+      || saved.status !== "acknowledged"
+      || !saved.battleId
+      || saved.battleId !== bridge.battleId
+      || saved.targetNpcId !== target
+      || saved.branchId !== branchId) return null;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = FIRST_BATTLE_AFTERMATH_DM_COPY[branchId];
+    const text = copyGroup && copyGroup[outcomeKind];
+    if (!copyGroup || !text) return null;
+    const lineId = `${FIRST_BATTLE_AFTERMATH_DM_ID}:${bridge.battleId}:${target}`;
+    return {
+      followUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+      lineId,
+      targetNpcId: target,
+      npcName: copyGroup.npcName,
+      battleId: bridge.battleId,
+      branchId,
+      outcomeKind,
+      text,
+    };
+  }
+
+  function getDmLogsForNpc(targetNpcId) {
+    const state = getState();
+    if (!state) return null;
+    state.dm = state.dm && typeof state.dm === "object" ? state.dm : {};
+    state.dm.logs = state.dm.logs && typeof state.dm.logs === "object" ? state.dm.logs : {};
+    const id = String(targetNpcId || "");
+    if (!id) return null;
+    state.dm.logs[id] = Array.isArray(state.dm.logs[id]) ? state.dm.logs[id] : [];
+    return state.dm.logs[id];
+  }
+
+  function deliverFirstBattleAftermathDm(targetNpcId) {
+    const pending = getFirstBattleAftermathDmRecord(targetNpcId);
+    if (!pending) return false;
+    if (!snapshot) snapshot = loadSnapshot();
+    if (!snapshot) return false;
+    ensureScenarioPlayers();
+    const logs = getDmLogsForNpc(pending.targetNpcId);
+    const UI = G.UI;
+    if (!logs || !UI || typeof UI.dmPushLine !== "function") return false;
+    let line = logs.find((item) => item
+      && item.stage7AftermathReplyId === pending.lineId
+      && item.stage7AftermathBattleId === pending.battleId) || null;
+    if (!line) {
+      UI.dmPushLine(pending.targetNpcId, pending.npcName, pending.text);
+      line = logs[logs.length - 1] || null;
+      if (!line) return false;
+      line.stage7AftermathReplyId = pending.lineId;
+      line.stage7AftermathBattleId = pending.battleId;
+      line.stage7AftermathOutcomeKind = pending.outcomeKind;
+    }
+
+    const bridge = getBridgeState();
+    const memory = snapshot.npcMemory && snapshot.npcMemory[pending.targetNpcId];
+    const record = memory && memory.firstRealBattleAftermath;
+    if (!bridge || !record || record.battleId !== pending.battleId) return false;
+    const deliveredAt = Date.now();
+    bridge.aftermathDmStatus = "delivered";
+    bridge.aftermathDmLineId = pending.lineId;
+    bridge.aftermathDmDeliveredAt = bridge.aftermathDmDeliveredAt || deliveredAt;
+    bridge.aftermathDmDeliveryCount = Math.max(1, bridge.aftermathDmDeliveryCount || 0);
+    record.dmStatus = "delivered";
+    record.dmLineId = pending.lineId;
+    record.dmDeliveredAt = record.dmDeliveredAt || bridge.aftermathDmDeliveredAt;
+    record.dmDeliveryCount = Math.max(1, record.dmDeliveryCount || 0);
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_dm_delivered", {
+      followUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+      lineId: pending.lineId,
+      targetNpcId: pending.targetNpcId,
+      branchId: pending.branchId,
+      battleId: pending.battleId,
+      outcomeKind: pending.outcomeKind,
+      deliveryCount: bridge.aftermathDmDeliveryCount,
+    });
+    if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+    else if (typeof UI.renderAll === "function") UI.renderAll();
+    return true;
+  }
+
+  function installFirstBattleAftermathDmHook() {
+    const UI = G.UI;
+    if (!UI || typeof UI.openDM !== "function") return false;
+    if (UI.openDM.__stage7AftermathDmHook === true) return true;
+    const originalOpenDM = UI.openDM;
+    const wrappedOpenDM = function stage7AftermathOpenDM(playerId, ...args) {
+      const pending = getFirstBattleAftermathDmRecord(playerId);
+      if (pending) {
+        if (!snapshot) snapshot = loadSnapshot();
+        ensureScenarioPlayers();
+      }
+      const result = originalOpenDM.apply(this, [playerId, ...args]);
+      if (result !== false) deliverFirstBattleAftermathDm(playerId);
+      return result;
+    };
+    Object.defineProperty(wrappedOpenDM, "__stage7AftermathDmHook", {
+      configurable: false,
+      enumerable: false,
+      value: true,
+      writable: false,
+    });
+    Object.defineProperty(wrappedOpenDM, "__stage7AftermathDmOriginal", {
+      configurable: false,
+      enumerable: false,
+      value: originalOpenDM,
+      writable: false,
+    });
+    UI.openDM = wrappedOpenDM;
     return true;
   }
 
@@ -2478,6 +2670,9 @@ window.Game = window.Game || {};
     usePayPressureAnalysis,
     acknowledgeFirstBattleAftermath,
     getFirstBattleAftermathRecord,
+    getFirstBattleAftermathDmRecord,
+    deliverFirstBattleAftermathDm,
+    installFirstBattleAftermathDmHook,
     resetForDev,
     advanceForegroundForDev,
     destroy,
@@ -2498,11 +2693,15 @@ window.Game = window.Game || {};
   G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
   G.__DEV.getStage7FirstBattleAftermath = getFirstBattleAftermathRecord;
   G.__DEV.acknowledgeStage7FirstBattleAftermath = acknowledgeFirstBattleAftermath;
+  G.__DEV.getStage7FirstBattleAftermathDm = getFirstBattleAftermathDmRecord;
+  G.__DEV.deliverStage7FirstBattleAftermathDm = deliverFirstBattleAftermathDm;
+  G.__DEV.installStage7FirstBattleAftermathDmHook = installFirstBattleAftermathDmHook;
   G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
   G.__DEV.useStage7AccuseKenRematchOptions = useAccuseKenRematchOptions;
   G.__DEV.chooseStage7AccuseKenRematchDefenseChoices = chooseAccuseKenRematchDefenseChoices;
   G.__DEV.chooseStage7AccuseKenRematchDefenseIds = chooseAccuseKenRematchDefenseIds;
   G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
+  installFirstBattleAftermathDmHook();
   G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
     ok: !!G.Stage7FirstExperience,
     storageKey: STORAGE_KEY,
@@ -2521,7 +2720,7 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.12",
+    stage: "7.13",
     onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
     intermissionDelayMs: INTERMISSION_DELAY_MS,
     limitedNpcCount: INTERMISSION_NPCS.length,
@@ -2539,5 +2738,9 @@ window.Game = window.Game || {};
     firstBattleAftermathPersisted: true,
     firstBattleAftermathNonBlocking: true,
     firstBattleAftermathExactlyOnce: true,
+    firstBattleAftermathDmFollowUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+    firstBattleAftermathDmTargetBound: true,
+    firstBattleAftermathDmExactlyOnce: true,
+    firstBattleAftermathDmRefreshSafe: true,
   });
 })();
