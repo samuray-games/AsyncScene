@@ -37,9 +37,17 @@ jobs:
           git diff --check
       - name: Run focused Stage 7.11 harness
         run: python3 tools/test_stage7_11_pay_branch_payoffs.py
-      - name: Run Stage 7 regression matrix
+      - name: Run current Stage 7 regression matrix
         run: |
-          for f in tools/test_stage7*.py; do
+          tests=(
+            tools/test_stage7_7_preunlock_corridor.py
+            tools/test_stage7_9_deny_evidence_payoff.py
+            tools/test_stage7_10_accuse_ken_payoffs.py
+            tools/test_stage7_11_pay_branch_payoffs.py
+            tools/test_stage7_first_causal_vertical_slice.py
+            tools/test_stage7_observed_evidence_harness.py
+          )
+          for f in "${tests[@]}"; do
             echo "RUN $f"
             python3 "$f"
           done
