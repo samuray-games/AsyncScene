@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-06-1818-JST
-EXPECTED_REVISION: 2026-08-06-1818-JST
-NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
+MEMORY_REVISION: 2026-08-06-2101-JST
+EXPECTED_REVISION: 2026-08-06-2101-JST
+NOTION_MEMORY_REVISION: 2026-08-06-2101-JST
 
 ## Canon principles
 
@@ -51,7 +51,20 @@ NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
 - Both modes restore the exact selectable defense snapshot through `battle._defenseChoices`, expire unused pending analysis when the bridge battle finishes, and require the stable bridge ID plus exact battle ID.
 - Static evidence: implementation `31064685194` PASS; PR forensics `31064904412` PASS; post-merge forensics `31064952276` PASS; Pages build `1134942356` built without error.
 - User evidence: explicit iPhone Safari private-session `PASS` for receipt mark, pressure action, exact refresh persistence, post-refresh selection and ordinary-battle isolation.
-- Stage 7.12 is selected: persist the actual first bridge-battle terminal outcome into existing NPC memory and present one non-blocking, branch-aware normal-world aftermath reaction exactly once.
+- Stage 7.12 is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`.
+
+## Accepted Stage 7.12 product slice
+
+- PR #301 is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`.
+- The exact first Stage 7 bridge battle preserves its raw terminal `battle.result` and normalizes presentation to `win`, `lose`, or `interrupted`.
+- One branch-aware aftermath record is written exactly once into existing NPC memory: Настя for `deny`, Райхан for `accuse_ken`, or Олег for `pay`.
+- One normal-world aftermath card is non-blocking, survives refresh while pending, acknowledges once through `Понятно`, and never replays after acknowledgement.
+- Lifecycle and recording require both stable bridge ID `stage7_first_real_argument_battle_v1` and the exact persisted bridge battle ID. Ordinary battles and protected mechanics remain unchanged.
+- Static evidence: implementation `31090336845` PASS; PR forensics `31090592343` PASS; post-merge forensics `31090666029` PASS; Pages build `1135514616` built without error.
+- User evidence: explicit iPhone Safari `PASS` for branch-aware reaction, non-blocking normal-world access, refresh persistence, exactly-once acknowledgement, no replay, and ordinary-battle isolation.
+- No later runtime slice is canonically selected by this acceptance.
+
+CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE
 
 ## Superseding Stage 7 onboarding flow
 
@@ -90,7 +103,7 @@ NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Latest merged and user-accepted runtime implementation head is `974794f45855f4d6c982945f8f59b64e9f36494c`. PR #299 completed the `pay` tactical payoffs and the iPhone Safari private-session verdict is explicit `PASS`.
+- Latest merged and user-accepted runtime implementation head is `4e27aa0d690127c7b495c9c690026f7bf58c621a`. PR #301 completed the first-real-battle aftermath consequence and the iPhone Safari verdict is explicit `PASS`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -112,7 +125,7 @@ NOTION_MEMORY_REVISION: 2026-08-06-1818-JST
 - Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
 - Stage 7.4 user acceptance covers the nickname field, nickname usage, visible names `Райхан` and `Настя`, return copy, and the explanation before the six-question gate.
 - Stage 7.5 user acceptance covers the branch-derived follow-up choice, persistence into target NPC memory, release ordering, and no replay after refresh.
-- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.11 are user-accepted. The active next slice is Stage 7.12: one persisted, branch-aware aftermath consequence from the actual first real battle outcome into the normal world.
+- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.12 are user-accepted. No later runtime slice is active; selection requires a new explicit user instruction.
 
 ## Protected facts
 

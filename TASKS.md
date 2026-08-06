@@ -1,3 +1,15 @@
+## 2026-08-06 - Stage 7.12 first real battle aftermath Safari acceptance
+- Memory revision: `2026-08-06-2101-JST`.
+- User returned explicit `PASS` for the Stage 7.12 iPhone Safari acceptance gate.
+- Accepted runtime: PR #301 squash merge `4e27aa0d690127c7b495c9c690026f7bf58c621a`.
+- Accepted consequence: the actual terminal result of the exact first Stage 7 bridge battle is persisted and normalized for presentation as `win`, `lose`, or `interrupted`.
+- Accepted NPC memory: the branch-aware aftermath is written once to Настя for `deny`, Райхан for `accuse_ken`, or Олег for `pay`.
+- Accepted presentation: one non-blocking normal-world aftermath card survives refresh until `Понятно`, acknowledges exactly once, and never replays afterward.
+- Accepted boundary: the effect requires the stable bridge ID plus exact bridge battle ID; ordinary battles, economy, settlement, conflict core/API, argument canon, data, state, and system remain unchanged.
+- Validation evidence: implementation `31090336845` PASS; PR forensics `31090592343` PASS; post-merge forensics `31090666029` PASS; Pages build `1135514616` built without error from the exact merge SHA.
+- No next runtime slice is selected by this acceptance-only synchronization.
+- NEXT_ACTION: `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`.
+
 ## 2026-08-06 - Stage 7.11 pay payoff Safari acceptance
 - Memory revision: `2026-08-06-1818-JST`.
 - User returned explicit `PASS` for both `pay` paths in iPhone Safari private sessions.
