@@ -1,0 +1,12 @@
+{"at":"2026-08-06T01:47:00Z","type":"user_verdict","detail":"User returned explicit PASS for Stage 7.10 iPhone Safari acceptance."}
+{"at":"2026-08-06T01:47:20Z","type":"memory_bootstrap","detail":"Fetched canonical Notion memory at MEMORY_REV 2026-08-06-1039-JST and active handoff."}
+{"at":"2026-08-06T01:47:40Z","type":"decision","detail":"Selected Stage 7.11 pay-branch tactical payoffs: receipt matching-family mark and one-time pressure wrong-family mark."}
+{"at":"2026-08-06T01:58:00Z","type":"memory_sync","detail":"PR #298 merged as 2273980d26c59dd05f98a544e905e4c6fa1efc5f after validation and PR forensics."}
+{"at":"2026-08-06T02:06:00Z","type":"validation_adjustment","detail":"Excluded superseded Stage 7.6 historical cache assertion from current Stage 7.7-7.11 matrix without changing historical test."}
+{"at":"2026-08-06T02:08:00Z","type":"runtime_validation","detail":"Run 31064685194 passed focused dynamic harness, current regression matrix, source/docs parity, syntax and protected boundary."}
+{"at":"2026-08-06T02:11:30Z","type":"pull_request","detail":"Opened PR #299 with exact 12-file scope at head 78fae6299cc8573dcb2325f4d5a6537ef58d2e80."}
+{"at":"2026-08-06T02:12:00Z","type":"pr_forensics","detail":"Run 31064904412 passed; PR #299 mergeable_state clean."}
+{"at":"2026-08-06T02:12:32Z","type":"merge","detail":"PR #299 squash-merged as 974794f45855f4d6c982945f8f59b64e9f36494c."}
+{"at":"2026-08-06T02:12:50Z","type":"deployment","detail":"Pages build 1134942356 built without error from exact merge SHA."}
+{"at":"2026-08-06T02:13:00Z","type":"postmerge_forensics","detail":"Run 31064952276 passed from exact merge SHA."}
+{"at":"2026-08-06T02:13:37Z","type":"memory_update","detail":"Canonical Notion memory updated to MEMORY_REV 2026-08-06-1113-JST; Safari acceptance pending."}
