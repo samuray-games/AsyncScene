@@ -1,0 +1,10 @@
+{
+  "credentialsIncluded": false,
+  "notes": "Package contains repository identifiers, public GitHub run/PR/build IDs, implementation outcomes and project memory revision only.",
+  "personalDataIncluded": false,
+  "runId": "WORK-20260806T095626Z-STAGE7-11-PASS-STAGE7-12-1855",
+  "schemaVersion": "AI_FORENSICS_REDACTION_REPORT_V1",
+  "secretsIncluded": false,
+  "sensitiveSourceIncluded": false,
+  "status": "SANITIZED"
+}
