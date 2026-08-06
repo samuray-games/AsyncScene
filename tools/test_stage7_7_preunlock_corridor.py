@@ -54,7 +54,7 @@ for network_primitive in ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"]
 assert "Stage 7.7 locked three-NPC intermission" in css
 assert "stage7IntermissionGrid" in css
 for index in [source_index, docs_index]:
-    assert index.count("stage7_11_pay_branch_payoffs_20260806a") >= 2
+    assert index.count("stage7_12_first_battle_aftermath_20260806a") >= 2
 
 subprocess.run(["node", "--check", str(SOURCE)], check=True)
 subprocess.run(["node", "--check", str(DOCS)], check=True)
@@ -276,8 +276,16 @@ assert.strictEqual(snap.realBattleBridge.status, "completed");
 assert.strictEqual(snap.realBattleBridge.outcome, "win");
 state.battles.length = 0;
 Game.Stage7FirstExperience.destroy();
+const aftermathResume = Game.Stage7FirstExperience.claimResume(context);
+assert.strictEqual(aftermathResume.claimed, true, "pending aftermath was not restored after refresh");
+assert.strictEqual(aftermathResume.mode, "battle_aftermath_resume");
+snap = dev.getStage7FirstExperienceSnapshot();
+assert.strictEqual(snap.realBattleBridge.aftermathStatus, "pending");
+assert.strictEqual(snap.realBattleBridge.aftermathApplyCount, 1);
+assert.strictEqual(dev.acknowledgeStage7FirstBattleAftermath(), true);
+Game.Stage7FirstExperience.destroy();
 const resumed = Game.Stage7FirstExperience.claimResume(context);
-assert.strictEqual(resumed.claimed, false, "completed real battle replayed after refresh");
+assert.strictEqual(resumed.claimed, false, "acknowledged aftermath replayed after refresh");
 assert.strictEqual(incomingCalls, 2);
 
 Game.__DEV.resetStage7FirstExperience();
