@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "AI_FORENSICS_REDACTION_V1",
+  "status": "SANITIZED",
+  "secretsDetected": 0,
+  "secretsIncluded": 0,
+  "personalDataIncluded": false,
+  "notes": [
+    "Contains repository identifiers, public commit SHAs, workflow run IDs, PR numbers and product-state summaries only.",
+    "No credentials, tokens, email bodies, local filesystem secrets or user private data included."
+  ]
+}
