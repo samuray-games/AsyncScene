@@ -2457,6 +2457,9 @@ UI.renderBattles = () => {
         const stage7AccuseKenPayoff = b && b.meta && b.meta.stage7AccuseKenPayoff
           ? b.meta.stage7AccuseKenPayoff
           : null;
+        const stage7PayPayoff = b && b.meta && b.meta.stage7PayPayoff
+          ? b.meta.stage7PayPayoff
+          : null;
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2789,7 +2792,32 @@ UI.renderBattles = () => {
             return finalChoices;
           };
 
-          const choices = _getOrBuildChoices(b, "_defenseChoices", buildDefenseChoices);
+          let choices = null;
+          const stage7Controller = Game && Game.Stage7FirstExperience;
+          const restoredPayChoices = stage7Controller
+            && typeof stage7Controller.choosePayDefenseChoices === "function"
+            ? stage7Controller.choosePayDefenseChoices(b.id)
+            : null;
+          if (Array.isArray(restoredPayChoices) && restoredPayChoices.length === 3) {
+            choices = restoredPayChoices;
+            b._defenseChoices = restoredPayChoices;
+            if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
+              UI._battleChoiceCache.defense[String(b.id)] = restoredPayChoices;
+            }
+          } else {
+            choices = _getOrBuildChoices(b, "_defenseChoices", buildDefenseChoices);
+            const preparedPayChoices = stage7Controller
+              && typeof stage7Controller.preparePayDefenseChoices === "function"
+              ? stage7Controller.preparePayDefenseChoices(b.id, choices)
+              : null;
+            if (Array.isArray(preparedPayChoices) && preparedPayChoices.length === 3) {
+              choices = preparedPayChoices;
+              b._defenseChoices = preparedPayChoices;
+              if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
+                UI._battleChoiceCache.defense[String(b.id)] = preparedPayChoices;
+              }
+            }
+          }
 
           const pickDefenseFn = (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
             ? Game.Conflict.pickDefense
@@ -2827,6 +2855,24 @@ UI.renderBattles = () => {
 
             chip.className = clsForColor(p.color);
             chip.textContent = argCanonUiText(p, "A");
+            const livePayPayoff = b && b.meta && b.meta.stage7PayPayoff
+              ? b.meta.stage7PayPayoff
+              : null;
+            const payMarked = !!(livePayPayoff
+              && livePayPayoff.markedDefenseId
+              && String(livePayPayoff.markedDefenseId) === String(p.id));
+            if (payMarked) {
+              const originalDefenseText = chip.textContent;
+              chip.textContent = livePayPayoff.mode === "receipt"
+                ? `✓ По расписке: ${originalDefenseText}`
+                : `⚠ Давление Олега: ${originalDefenseText}`;
+              chip.dataset.stage7PayMarked = "true";
+              chip.dataset.testid = livePayPayoff.mode === "receipt"
+                ? "stage7-pay-receipt-marked-defense"
+                : "stage7-pay-pressure-marked-defense";
+              chip.style.outline = "2px solid currentColor";
+              chip.style.outlineOffset = "2px";
+            }
 
             // Counter-arguments: hover hints disabled
             try { chip.removeAttribute("title"); } catch (_) {}
@@ -2862,12 +2908,57 @@ UI.renderBattles = () => {
           });
 
           card.appendChild(row);
+          const livePayNote = b && b.meta && b.meta.stage7PayPayoff
+            ? b.meta.stage7PayPayoff
+            : null;
+          if (livePayNote && livePayNote.mode === "receipt" && livePayNote.status === "marked") {
+            const note = document.createElement("div");
+            note.className = "noteLine";
+            note.dataset.testid = "stage7-pay-receipt-note";
+            note.textContent = "Расписка подтверждает: отмеченный ответ подходит к типу вброса.";
+            card.appendChild(note);
+          } else if (livePayNote && livePayNote.mode === "pressure" && livePayNote.status === "used") {
+            const note = document.createElement("div");
+            note.className = "noteLine";
+            note.dataset.testid = "stage7-pay-pressure-note";
+            note.textContent = "Ты разобрал давление Олега: отмеченный ответ не подходит к типу вброса.";
+            card.appendChild(note);
+          }
         }
 
        // Per-battle actions (only while picking defense)
        if (b.status === "pickDefense") {
           const actions = document.createElement("div");
           actions.className = "actions";
+
+          const livePayAction = b && b.meta && b.meta.stage7PayPayoff
+            ? b.meta.stage7PayPayoff
+            : stage7PayPayoff;
+          if (livePayAction
+            && livePayAction.mode === "pressure"
+            && livePayAction.status === "pending") {
+            const pressureBtn = document.createElement("button");
+            pressureBtn.className = "btn small";
+            pressureBtn.type = "button";
+            pressureBtn.dataset.testid = "stage7-pay-pressure-analyze";
+            pressureBtn.textContent = "Разобрать давление";
+            pressureBtn.onclick = (e) => {
+              stop(e);
+              _captureBattleFocus(b.id, card);
+              const currentChoices = Array.isArray(b._defenseChoices)
+                ? b._defenseChoices.filter((item) => item && !item._pad)
+                : [];
+              const stage7 = Game && Game.Stage7FirstExperience;
+              const used = !!(stage7
+                && typeof stage7.usePayPressureAnalysis === "function"
+                && stage7.usePayPressureAnalysis(b.id, currentChoices));
+              if (!used && UI && typeof UI.showActionToast === "function") {
+                UI.showActionToast(pressureBtn, "Разбор давления уже недоступен.");
+              }
+              requestAll();
+            };
+            actions.appendChild(pressureBtn);
+          }
 
           if (stage7AccuseKenPayoff
             && stage7AccuseKenPayoff.mode === "public_rematch"
