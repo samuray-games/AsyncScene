@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-13-pages-deployment-recovery-20260806",
+  "createdAtJst": "2026-08-06 22:18:59 JST",
+  "createdAtUtc": "2026-08-06T13:18:59Z",
+  "packagePath": "runs/2026/08/06/GITHUB/GITHUB-20260806T131859Z-31105315777-c418f42c",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260806T131859Z-31105315777-c418f42c",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
