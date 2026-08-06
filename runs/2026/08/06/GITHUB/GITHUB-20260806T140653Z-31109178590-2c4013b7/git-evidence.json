@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/pages-workflow-mode-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:53Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:53Z",
+      "stderr": "",
+      "stdout": "chatgpt/pages-workflow-mode-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:53Z",
+      "stderr": "",
+      "stdout": "1b438527eb6a083a0e6d4686d2d700c592c62593\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1b438527eb6a083a0e6d4686d2d700c592c62593\n# branch.head chatgpt/pages-workflow-mode-20260806\n# branch.upstream origin/chatgpt/pages-workflow-mode-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:54Z",
+      "stderr": "",
+      "stdout": "1b438527 (HEAD -> chatgpt/pages-workflow-mode-20260806, origin/chatgpt/pages-workflow-mode-20260806) fix: validate terminal Pages states instead of queue literal\n1fcc69c9 chore: validate Pages overlay workflow\na4e00863 fix: use isolated Pages recovery deployment version\n5e582311 fix: make protected Pages workflow canonical\nfeb0d843 (origin/main) chore: add protected Pages recovery workflow (#309)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1b438527eb6a083a0e6d4686d2d700c592c62593\nbranch refs/heads/chatgpt/pages-workflow-mode-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T14:06:54Z",
+      "stderr": "",
+      "stdout": "feb0d8438af961572aa020514e0729dc2323b3bb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1b438527eb6a083a0e6d4686d2d700c592c62593",
+  "observedAtUtc": "2026-08-06T14:06:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
