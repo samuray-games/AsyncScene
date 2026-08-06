@@ -1,0 +1,50 @@
+name: stage7-9-acceptance-memory-sync
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-9-acceptance-memory-sync-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-9-acceptance-memory-sync-20260806
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply accepted runtime memory state
+        run: python tools/tmp_stage7_9_acceptance_memory_sync.py
+      - name: Validate memory revision and exact scope
+        run: |
+          grep -F 'REPO_MEMORY_REV: 2026-08-06-1011-JST' PROJECT_MEMORY.md
+          grep -F 'MEMORY_REV: 2026-08-06-1011-JST' .ai-memory/CURRENT.md
+          grep -F 'MEMORY_REVISION: 2026-08-06-1011-JST' .ai-memory/CANON.md
+          grep -F 'MEMORY_REVISION: 2026-08-06-1011-JST' .ai-memory/WORKFLOWS.md
+          grep -F 'IMPLEMENT_STAGE7_10_ACCUSE_KEN_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE' TASKS.md PROJECT_MEMORY.md .ai-memory/CURRENT.md .ai-memory/CANON.md .ai-memory/WORKFLOWS.md
+          rm tools/tmp_stage7_9_acceptance_memory_sync.py
+          rm .github/workflows/tmp-stage7-9-acceptance-memory-sync.yml
+          git fetch origin main
+          actual="$(git diff --name-only origin/main | sort)"
+          expected="$(printf '%s\n' \
+            '.ai-memory/CANON.md' \
+            '.ai-memory/CURRENT.md' \
+            '.ai-memory/WORKFLOWS.md' \
+            'PROJECT_MEMORY.md' \
+            'TASKS.md' | sort)"
+          test "$actual" = "$expected"
+          test "$(printf '%s\n' "$actual" | grep -E '^(AsyncScene/Web|docs/|tools/|\.github/)' || true)" = ""
+          git diff --check
+      - name: Commit synchronized memory
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "docs: record accepted Stage 7.9 payoff"
+          git push origin HEAD:chatgpt/stage7-9-acceptance-memory-sync-20260806
