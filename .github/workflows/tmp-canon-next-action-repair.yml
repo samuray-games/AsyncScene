@@ -30,7 +30,7 @@ jobs:
           text = text.replace(old, new, 1)
           path.write_text(text, encoding='utf-8')
           assert 'IMPLEMENT_STAGE7_11_PAY_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE' not in text
-          assert text.count('IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE') >= 2
+          assert text.count('IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE') == 1
           PY
           git diff --check
           test "$(git diff --name-only)" = ".ai-memory/CANON.md"
