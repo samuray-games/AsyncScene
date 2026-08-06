@@ -1,0 +1,57 @@
+name: stage7-13-pages-redeploy
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-pages-redeploy-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  bump-cache-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-13-pages-redeploy-20260806
+          fetch-depth: 0
+      - name: Bump Stage 7.13 cache token
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          old = 'stage7_13_aftermath_dm_followup_20260806a'
+          new = 'stage7_13_aftermath_dm_followup_20260806b'
+          for path in (Path('AsyncScene/Web/index.html'), Path('docs/index.html')):
+              text = path.read_text(encoding='utf-8')
+              if text.count(old) != 2:
+                  raise SystemExit(f'{path}: expected two old cache markers, found {text.count(old)}')
+              path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+      - name: Validate exact two-file deployment repair
+        run: |
+          cmp AsyncScene/Web/index.html docs/index.html
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+          expected = {'AsyncScene/Web/index.html', 'docs/index.html'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != expected:
+              raise SystemExit(f'exact scope mismatch: {sorted(changed)}')
+          for path in expected:
+              text = Path(path).read_text(encoding='utf-8')
+              if text.count('stage7_13_aftermath_dm_followup_20260806b') != 2:
+                  raise SystemExit(f'{path}: new cache marker count mismatch')
+              if 'stage7_13_aftermath_dm_followup_20260806a' in text:
+                  raise SystemExit(f'{path}: stale cache marker remains')
+          print('STAGE7_13_PAGES_REDEPLOY_SCOPE_OK')
+          PY
+      - name: Commit deployment repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AsyncScene/Web/index.html docs/index.html
+          git commit -m 'chore: retrigger Stage 7.13 Pages deployment'
+          git push origin HEAD:chatgpt/stage7-13-pages-redeploy-20260806
