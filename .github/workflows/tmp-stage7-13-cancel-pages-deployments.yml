@@ -1,0 +1,36 @@
+name: stage7-13-cancel-pages-deployments
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-cancel-stale-pages-deployments-20260806
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  cancel-stale-pages-deployments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel stale Stage 7.13 Pages deployments
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for deployment in \
+            69a1137c6ab4ede2a0d1e420cde477f29b0b2949 \
+            c26f29ab42c9215c2c9f2ee05278b8ba0946d036
+          do
+            code=$(curl -sS -o "/tmp/pages-cancel-${deployment}.out" -w '%{http_code}' \
+              -X POST \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2026-03-10' \
+              "https://api.github.com/repos/samuray-games/AsyncScene/pages/deployments/${deployment}/cancel")
+            echo "${deployment}: HTTP ${code}"
+            cat "/tmp/pages-cancel-${deployment}.out" || true
+            if [ "${code}" != '204' ] && [ "${code}" != '404' ]; then
+              exit 1
+            fi
+          done
