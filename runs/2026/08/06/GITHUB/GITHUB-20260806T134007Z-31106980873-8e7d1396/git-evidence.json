@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/pages-recovery-workflow-20260806",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "chatgpt/pages-recovery-workflow-20260806\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "fbc825e9a85028e46c8edbb89a6d9be2e1eb18fc\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid fbc825e9a85028e46c8edbb89a6d9be2e1eb18fc\n# branch.head chatgpt/pages-recovery-workflow-20260806\n# branch.upstream origin/chatgpt/pages-recovery-workflow-20260806\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "fbc825e9 (HEAD -> chatgpt/pages-recovery-workflow-20260806, origin/chatgpt/pages-recovery-workflow-20260806) chore: add protected Pages recovery workflow\nc26f29ab chore: retrigger Stage 7.13 Pages deployment (#305)\n69a1137c feat: carry first battle aftermath into DM (#303)\nd6ff16f9 docs: record accepted Stage 7.12 aftermath (#302)\n4e27aa0d feat: persist first real battle aftermath (#301)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fbc825e9a85028e46c8edbb89a6d9be2e1eb18fc\nbranch refs/heads/chatgpt/pages-recovery-workflow-20260806\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T13:40:07Z",
+      "stderr": "",
+      "stdout": "35729fbd7acc18a1fa8068457bbe52ddfe918186\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fbc825e9a85028e46c8edbb89a6d9be2e1eb18fc",
+  "observedAtUtc": "2026-08-06T13:40:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
