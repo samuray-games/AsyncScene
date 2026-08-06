@@ -26,11 +26,16 @@ jobs:
           from pathlib import Path
           path = Path('tools/tmp_stage7_11_pass_memory_patch.py')
           source = path.read_text(encoding='utf-8')
-          anchor = "section = f'''## 2026-08-06 - Stage 7.11 pay payoff Safari acceptance\n"
-          replacement = anchor + "- Memory revision: `{REV}`.\n"
-          if source.count(anchor) != 1:
+          task_anchor = "section = f'''## 2026-08-06 - Stage 7.11 pay payoff Safari acceptance\n"
+          task_replacement = task_anchor + "- Memory revision: `{REV}`.\n"
+          if source.count(task_anchor) != 1:
               raise SystemExit('task revision injection anchor mismatch')
-          source = source.replace(anchor, replacement, 1)
+          source = source.replace(task_anchor, task_replacement, 1)
+          canon_anchor = 'write(path, text)\n\n# .ai-memory/WORKFLOWS.md'
+          canon_replacement = 'text += f"\\nNEXT_ACTION: {NEXT}\\n"\nwrite(path, text)\n\n# .ai-memory/WORKFLOWS.md'
+          if source.count(canon_anchor) != 1:
+              raise SystemExit('canon next-action injection anchor mismatch')
+          source = source.replace(canon_anchor, canon_replacement, 1)
           exec(compile(source, str(path), 'exec'), {'__name__': '__main__'})
           PY
       - name: Validate exact five-file scope
