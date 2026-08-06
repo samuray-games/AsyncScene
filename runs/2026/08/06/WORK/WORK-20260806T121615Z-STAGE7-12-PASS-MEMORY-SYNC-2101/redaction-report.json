@@ -1,0 +1,17 @@
+{
+  "status": "PASS_NO_SENSITIVE_SOURCE_INCLUDED",
+  "included_categories": [
+    "public repository metadata",
+    "workflow run identifiers",
+    "Notion page revision",
+    "user verdict"
+  ],
+  "excluded_categories": [
+    "credentials",
+    "tokens",
+    "private messages",
+    "local filesystem contents",
+    "raw connector authentication data"
+  ],
+  "notes": "Package contains only task-scoped project state and public repository evidence."
+}
