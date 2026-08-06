@@ -21,7 +21,27 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply Stage 7.13 implementation
-        run: python3 tools/tmp_stage7_13_aftermath_dm_follow_up.py
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/tmp_stage7_13_aftermath_dm_follow_up.py')
+          lines = path.read_text(encoding='utf-8').splitlines()
+          opener = "    return r'''from pathlib import Path"
+          opener_hits = [i for i, line in enumerate(lines) if line == opener]
+          if len(opener_hits) != 1:
+              raise SystemExit(f'outer test opener count: {len(opener_hits)}')
+          lines[opener_hits[0]] = '    return r"""from pathlib import Path'
+          print_hits = [i for i, line in enumerate(lines) if line == 'print("STAGE7_13_AFTERMATH_DM_FOLLOW_UP_OK")']
+          if len(print_hits) != 1:
+              raise SystemExit(f'test terminal marker count: {len(print_hits)}')
+          close_index = print_hits[0] + 1
+          if close_index >= len(lines) or lines[close_index] != "'''":
+              raise SystemExit('outer test closer not found after terminal marker')
+          lines[close_index] = '"""'
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+          python3 tools/tmp_stage7_13_aftermath_dm_follow_up.py
+          git checkout -- tools/tmp_stage7_13_aftermath_dm_follow_up.py
       - name: Validate exact scope and mirrors
         run: |
           git diff --check
