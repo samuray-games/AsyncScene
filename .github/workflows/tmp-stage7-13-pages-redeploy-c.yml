@@ -1,0 +1,46 @@
+name: stage7-13-pages-redeploy-c
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-pages-redeploy-c-20260806
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-cache-marker:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-13-pages-redeploy-c-20260806
+          fetch-depth: 0
+      - name: Refresh cache marker after explicit deployment cancellation
+        run: |
+          sed -i 's/stage7_13_aftermath_dm_followup_20260806b/stage7_13_aftermath_dm_followup_20260806c/g' AsyncScene/Web/index.html docs/index.html
+      - name: Validate exact recovery scope
+        run: |
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+          expected = {'AsyncScene/Web/index.html', 'docs/index.html'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines())
+          if changed != expected:
+              raise SystemExit(f'exact scope mismatch: {sorted(changed)}')
+          source = Path('AsyncScene/Web/index.html').read_text(encoding='utf-8')
+          docs = Path('docs/index.html').read_text(encoding='utf-8')
+          assert source == docs
+          assert 'stage7_13_aftermath_dm_followup_20260806b' not in source
+          assert source.count('stage7_13_aftermath_dm_followup_20260806c') == 2
+          print('STAGE7_13_PAGES_REDEPLOY_C_SCOPE_OK')
+          PY
+      - name: Commit clean Pages build identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AsyncScene/Web/index.html docs/index.html
+          git commit -m 'fix: create clean Stage 7.13 Pages build identity'
+          git push origin HEAD:chatgpt/stage7-13-pages-redeploy-c-20260806
