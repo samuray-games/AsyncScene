@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-13-cancel-stale-pages-deployment-20260806",
+  "createdAtJst": "2026-08-06 22:19:51 JST",
+  "createdAtUtc": "2026-08-06T13:19:51Z",
+  "packagePath": "runs/2026/08/06/GITHUB/GITHUB-20260806T131951Z-31105390147-ec67477b",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260806T131951Z-31105390147-ec67477b",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
