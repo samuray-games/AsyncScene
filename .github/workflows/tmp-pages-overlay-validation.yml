@@ -1,0 +1,63 @@
+name: pages-overlay-validation
+
+on:
+  push:
+    branches:
+      - chatgpt/pages-workflow-mode-20260806
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/pages-workflow-mode-20260806
+      - name: Parse workflow and validate embedded shell
+        run: |
+          ruby - <<'RUBY'
+          require 'yaml'
+          path = '.github/workflows/asynchronia-pages-recovery.yml'
+          data = YAML.load_file(path, aliases: true)
+          jobs = data.fetch('jobs')
+          steps = jobs.fetch('deploy-exact-docs').fetch('steps')
+          target = steps.find { |step| step['name'] == 'Create and monitor isolated Pages deployment' }
+          raise 'deployment step missing' unless target
+          File.write('/tmp/asynchronia-pages-deploy.sh', target.fetch('run'))
+          puts 'ASYNCHRONIA_PAGES_WORKFLOW_YAML_OK'
+          RUBY
+          bash -n /tmp/asynchronia-pages-deploy.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('.github/workflows/asynchronia-pages-recovery.yml').read_text(encoding='utf-8')
+          required = [
+              'push:',
+              'workflow_dispatch:',
+              'actions: read',
+              'pages: write',
+              'id-token: write',
+              'actions/upload-pages-artifact@v4',
+              'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
+              'pages_build_version',
+              'sha1sum',
+              'SECONDS + 1800',
+              'deployment_queued',
+              'succeed)',
+          ]
+          for marker in required:
+              if marker not in text:
+                  raise SystemExit(f'missing workflow marker: {marker}')
+          forbidden = [
+              'build_type=workflow',
+              '/settings/',
+              'environment protection',
+              'admin: write',
+              'contents: write',
+          ]
+          for marker in forbidden:
+              if marker in text:
+                  raise SystemExit(f'forbidden workflow marker: {marker}')
+          print('ASYNCHRONIA_PAGES_OVERLAY_STATIC_VALIDATION_OK')
+          PY
