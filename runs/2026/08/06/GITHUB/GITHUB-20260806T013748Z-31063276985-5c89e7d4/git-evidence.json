@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "4f9e74d58e96ba34bf964fb85c267f14ed318018\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "# branch.oid 4f9e74d58e96ba34bf964fb85c267f14ed318018\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "4f9e74d5 (HEAD, pull/297/merge) Merge 716edd6431cba72c0d0f3e454fb7c4df5606b3c0 into af45f174366d1cd2744b118f540679ef69e736da\n716edd64 (origin/chatgpt/stage7-10-accuse-ken-payoffs-20260806) fix: persist rematch defense choices across refresh\n5c5371b6 fix: validate persisted defense snapshot repair\n13b439b0 fix: prepare persisted defense snapshot repair\n631015fd feat: make accuse_ken preparation matter\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 4f9e74d58e96ba34bf964fb85c267f14ed318018\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-06T01:37:48Z",
+      "stderr": "",
+      "stdout": "af45f174366d1cd2744b118f540679ef69e736da\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "4f9e74d58e96ba34bf964fb85c267f14ed318018",
+  "observedAtUtc": "2026-08-06T01:37:48Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
