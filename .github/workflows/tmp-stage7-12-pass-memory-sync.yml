@@ -21,7 +21,17 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply accepted Stage 7.12 memory sync
-        run: python3 tools/tmp_stage7_12_pass_memory_sync.py
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('tools/tmp_stage7_12_pass_memory_sync.py').read_text(encoding='utf-8')
+          old = '("MEMORY_REV: 2026-08-06-1818-JST", f"MEMORY_REV: {REV}", "current rev"),'
+          new = '("# Current Memory\\n\\nMEMORY_REV: 2026-08-06-1818-JST", f"# Current Memory\\n\\nMEMORY_REV: {REV}", "current rev"),'
+          if source.count(old) != 1:
+              raise SystemExit(f'current revision patch anchor count: {source.count(old)}')
+          Path('/tmp/stage7_12_pass_memory_sync.py').write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+          python3 /tmp/stage7_12_pass_memory_sync.py
       - name: Validate exact documentation scope
         run: |
           git diff --check
