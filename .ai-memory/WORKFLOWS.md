@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-06-0259-JST
-EXPECTED_REVISION: 2026-08-06-0259-JST
-NOTION_MEMORY_REVISION: 2026-08-06-0259-JST
+MEMORY_REVISION: 2026-08-06-1011-JST
+EXPECTED_REVISION: 2026-08-06-1011-JST
+NOTION_MEMORY_REVISION: 2026-08-06-1011-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. The redesigned Stage 7 onboarding through the first real argument battle is merged and user-accepted at `49bb6f2802052d6783aaee608891e7c687858806`. Repository memory is synchronized to the explicit iPhone Safari `PASS`. The exact next action is `IMPLEMENT_STAGE7_9_DENY_BRANCH_EVIDENCE_PAYOFF_IN_FIRST_REAL_BATTLE`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.9 deny-branch tactical payoff is merged and user-accepted at `89561d9c8cb50d72e6f383ed0dcc214c4ed28318`. Repository memory records the explicit iPhone Safari `PASS`. The exact next action is `IMPLEMENT_STAGE7_10_ACCUSE_KEN_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -78,8 +78,9 @@ After every accepted remote state change:
 10. Preserve first-round branchId, worldAdvanceId, persistence, exactly-once settlement, foreground/return continuity, and old-save migration.
 11. Deliver in atomic GitHub-only PRs with focused regressions, source/docs parity, forensics, Pages verification, and iPhone Safari acceptance.
 12. After the complete redesigned onboarding receives user PASS, begin strategic depth with the smallest branch-specific mechanical payoff.
-13. Stage 7.9 starts with the deny branch: persisted evidence preparation must visibly affect the first real battle exactly once without changing ordinary battles or canonical argument rules.
-14. Expand evidence, witness, receipt, coalition or promise systems only after each narrow payoff is separately accepted.
+13. Stage 7.9 starts with the deny branch: persisted evidence preparation must visibly affect the first real battle exactly once without changing ordinary battles or canonical argument rules. Stage 7.9 is now user-accepted.
+14. Stage 7.10 applies the same narrow-payoff discipline to `accuse_ken`: public rematch gets one persisted canonical defense-option refresh and witness request auto-reveals the first attack color.
+15. Expand receipt, coalition, promise or broader witness systems only after each narrow payoff is separately accepted.
 
 ## Local plugin installation and parity workflow
 
@@ -179,4 +180,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: IMPLEMENT_STAGE7_9_DENY_BRANCH_EVIDENCE_PAYOFF_IN_FIRST_REAL_BATTLE
+NEXT_ACTION: IMPLEMENT_STAGE7_10_ACCUSE_KEN_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE

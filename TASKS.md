@@ -1,3 +1,12 @@
+## 2026-08-06 - Stage 7.9 deny evidence payoff Safari acceptance
+- User returned explicit `PASS` for both deny-branch paths in iPhone Safari private mode.
+- Accepted runtime: PR #295 squash merge `89561d9c8cb50d72e6f383ed0dcc214c4ed28318`.
+- Accepted shared path: evidence shown to Настя reveals Райхан's first real-battle attack color automatically.
+- Accepted held path: one exactly-once `Показать доказательство` action reveals the color manually; refresh preserves the reveal and does not restore the action.
+- Accepted boundary: ordinary battles do not inherit Stage 7 evidence behavior.
+- Validation evidence: implementation run `31035128757` PASS; PR forensics `31035185978` PASS; post-merge forensics `31035264535` PASS; Pages build `1134342833` built without error.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_10_ACCUSE_KEN_BRANCH_TACTICAL_PAYOFFS_IN_FIRST_REAL_BATTLE`.
+
 ## 2026-08-06 - Stage 7.8 full onboarding Safari acceptance
 - User returned explicit `PASS` for the complete redesigned onboarding on iPhone Safari private mode.
 - Accepted runtime: PR #293 squash merge `49bb6f2802052d6783aaee608891e7c687858806` on top of PR #292.
