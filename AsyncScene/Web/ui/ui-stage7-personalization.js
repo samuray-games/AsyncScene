@@ -9,7 +9,7 @@ window.Game = window.Game || {};
 
   const ANTAGONIST_NAME = "Райхан";
   const MEDIATOR_NAME = "Настя";
-  const QUESTIONNAIRE_INTRO = "Чтобы открыть полную игру, ответь на 6 простых, но важных вопросов. Они нужны, чтобы проверить, понятно ли, как твой выбор изменил мир.";
+  const QUESTIONNAIRE_INTRO = "Ответь на 6 вопросов о том, что произошло.";
   const TEXT_REPLACEMENTS = [
     ["Тест Stage 7.3", "Тест Stage 7.4"],
     ["Кеном", "Райханом"],

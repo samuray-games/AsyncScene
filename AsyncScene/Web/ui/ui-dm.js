@@ -309,11 +309,21 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
   const RESERVED_SYSTEM_DM_IDS = new Set(["security_owner"]);
 
+  function devInfluencePill(p) {
+    if (!p || !UI || typeof UI.isDevBalanceEnabled !== "function" || !UI.isDevBalanceEnabled()) return "";
+    return ` <span class="pill">[${escapeHtml(String(p.influence || 0))}]</span>`;
+  }
+
+  function isHiddenSystemDmId(rawId) {
+    return RESERVED_SYSTEM_DM_IDS.has(String(rawId || ""))
+      && (!UI || typeof UI.isDevBalanceEnabled !== "function" || !UI.isDevBalanceEnabled());
+  }
+
   function isInteractiveDmThread(S, rawId) {
     if (!S || !S.dm) return false;
     const id = String(rawId || "");
     if (!id) return false;
-    if (RESERVED_SYSTEM_DM_IDS.has(id)) return false;
+    if (isHiddenSystemDmId(id)) return false;
     const logs = (S.dm.logs && Array.isArray(S.dm.logs[id])) ? S.dm.logs[id] : [];
     if (!logs.length) return true;
     for (const line of logs) {
@@ -407,7 +417,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
   UI.openDM = (playerId) => {
     const S = getS();
     const myId = (S && S.me && S.me.id) ? S.me.id : "me";
-    if (!playerId || playerId === myId || playerId === "me") return false;
+    if (!playerId || playerId === myId || playerId === "me" || isHiddenSystemDmId(playerId)) return false;
     if (!getS().players[playerId]) return false;
     S.dm = S.dm || { open:false, withId:null, openIds:[], activeId:null, logs:{}, inviteOpen:false };
     if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
@@ -663,9 +673,18 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     // compat alias
     if (S.dm.activeId && !S.dm.withId) S.dm.withId = S.dm.activeId;
     if (S.dm.withId && !S.dm.activeId) S.dm.activeId = S.dm.withId;
+    S.dm.openIds = S.dm.openIds.filter((id) => !isHiddenSystemDmId(id));
 
     // Source of truth: activeId
     const withId = S.dm.activeId;
+    if (isHiddenSystemDmId(withId)) {
+      S.dm.open = false;
+      S.dm.activeId = null;
+      S.dm.withId = null;
+      const hiddenDmBlock = $("dmBlock");
+      if (hiddenDmBlock) hiddenDmBlock.classList.add("hidden");
+      return;
+    }
     if (withId) {
       S.dm.unread = S.dm.unread || {};
       S.dm.unread[String(withId)] = 0;
@@ -931,7 +950,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const dmTitle = $("dmTitle");
     if (dmTitle) {
       const tname = (UI.displayName ? UI.displayName(target) : target.name);
-      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)} <span class="pill">[${escapeHtml(String(target.influence || 0))}]</span>`;
+      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)}${devInfluencePill(target)}`;
     }
 
     const listWrap = $("dmList") || document.createElement("div");
@@ -953,7 +972,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const fromName = (l && (l.from || l.name)) ? String(l.from || l.name) : "???";
       const fromP = getPlayerByNameSafe(fromName);
       const fromLabel = fromP
-        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)} <span class="pill">[${escapeHtml(String(fromP.influence || 0))}]</span>`
+        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)}${devInfluencePill(fromP)}`
         : escapeHtml(fromName);
 
       const textHtml = renderMentions(String(l.text || ""), { speakerName: fromName });

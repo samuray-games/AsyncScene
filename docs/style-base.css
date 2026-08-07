@@ -126,6 +126,8 @@
   pointer-events: auto;
   cursor: pointer;
 }
+html:not(.dev-balance-visible) #balance [data-profile-stat="influence"] { display: none !important; }
+html.dev-balance-visible #balance [data-profile-stat="influence"] { display: inline-flex !important; }
 /* style.css */
 :root{
   --bg:#070a12;

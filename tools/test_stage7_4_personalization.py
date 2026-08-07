@@ -7,7 +7,7 @@ DOCS_JS = ROOT / "docs/ui/ui-stage7-personalization.js"
 SRC_INDEX = ROOT / "AsyncScene/Web/index.html"
 DOCS_INDEX = ROOT / "docs/index.html"
 CONTROLLER = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
-MARKER = '<script defer src="ui/ui-stage7-personalization.js?v=stage7_4_personalization_20260805a"></script>'
+MARKER = '<script defer src="ui/ui-stage7-personalization.js?v=stage7_cosmetic_cleanup_20260808a"></script>'
 
 source = SRC_JS.read_text(encoding="utf-8")
 deployed = DOCS_JS.read_text(encoding="utf-8")
@@ -27,7 +27,7 @@ required = [
     'players.npc_stage7_ken.name = ANTAGONIST_NAME',
     'players.npc_stage7_mika.name = MEDIATOR_NAME',
     'button[data-stage7-action="open-evidence-questionnaire"]',
-    'Чтобы открыть полную игру, ответь на 6 простых, но важных вопросов.',
+    'Ответь на 6 вопросов о том, что произошло.',
     'Тест Stage 7.4',
 ]
 for token in required:
