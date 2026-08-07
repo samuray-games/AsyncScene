@@ -1041,8 +1041,8 @@ window.Game = window.Game || {};
       };
 
         const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-        const aLabel = useLabels ? ne.voteLabels.a : `${aName} [${ne.a.influence}]`;
-        const bLabel = useLabels ? ne.voteLabels.b : `${bName} [${ne.b.influence}]`;
+        const aLabel = useLabels ? ne.voteLabels.a : aName;
+        const bLabel = useLabels ? ne.voteLabels.b : bName;
 
         row.appendChild(mkSideBtn("a", aLabel, aVotes));
         row.appendChild(mkSideBtn("b", bLabel, bVotes));
