@@ -8,7 +8,7 @@ MEMORY_REV: 2026-08-08-0030-JST
 - No later Stage 7 product slice is selected. Await explicit user direction; any future runtime-visible change requires fresh user Safari acceptance.
 
 ## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
-- Memory revision: `2026-08-07-1414-JST`.
+- Memory revision: `2026-08-08-0030-JST`.
 - User returned explicit `PASS` for the corrected Stage 7.13 iPhone Safari gate.
 - Accepted runtime: PR #303 squash merge `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
 - Accepted behavior: after Stage 7.12 aftermath acknowledgement, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once; wrong-NPC opening does not consume it; reopen before refresh does not duplicate it; ordinary DMs remain isolated.
