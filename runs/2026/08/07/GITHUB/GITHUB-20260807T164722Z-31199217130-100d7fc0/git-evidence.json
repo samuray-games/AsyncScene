@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "1551a1001e23207db8bb50865c39b7b07db8f4f2\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1551a1001e23207db8bb50865c39b7b07db8f4f2\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "1551a100 (HEAD -> main, origin/main) Merge pull request #318 from samuray-games/codex/stage7-cosmetic-runtime-cleanup-20260808\ne6874310 (origin/codex/stage7-cosmetic-runtime-cleanup-20260808) fix: polish Stage 7 runtime presentation\n17c81827 docs: record Stage 7.14 Safari acceptance\nffbab69c fix: point Pages recovery at Stage 7.14 marker (#316)\n46bbfc29 feat: keep aftermath DM contact across refresh (#315)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1551a1001e23207db8bb50865c39b7b07db8f4f2\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T16:47:22Z",
+      "stderr": "",
+      "stdout": "1551a1001e23207db8bb50865c39b7b07db8f4f2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1551a1001e23207db8bb50865c39b7b07db8f4f2",
+  "observedAtUtc": "2026-08-07T16:47:22Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
