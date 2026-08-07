@@ -953,7 +953,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const fromName = (l && (l.from || l.name)) ? String(l.from || l.name) : "???";
       const fromP = getPlayerByNameSafe(fromName);
       const fromLabel = fromP
-        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)} <span class="pill">[${escapeHtml(String(fromP.influence || 0))}]</span>`
+        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)}${(typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true || (location.search || "").includes("dev=1"))) ? ` <span class="pill">[${escapeHtml(String(fromP.influence || 0))}]</span>` : ""}`
         : escapeHtml(fromName);
 
       const textHtml = renderMentions(String(l.text || ""), { speakerName: fromName });
