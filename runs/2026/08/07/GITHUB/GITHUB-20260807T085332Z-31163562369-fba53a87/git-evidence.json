@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-14-durable-aftermath-dm-contact-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-14-durable-aftermath-dm-contact-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "805319ba97219aec0737b5085aa608fc04a82d89\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "# branch.oid 805319ba97219aec0737b5085aa608fc04a82d89\n# branch.head chatgpt/stage7-14-durable-aftermath-dm-contact-20260807\n# branch.upstream origin/chatgpt/stage7-14-durable-aftermath-dm-contact-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "805319ba (HEAD -> chatgpt/stage7-14-durable-aftermath-dm-contact-20260807, origin/chatgpt/stage7-14-durable-aftermath-dm-contact-20260807) chore: validate full Stage 7.14 regression matrix\na9d8e190 chore: add Stage 7 cache marker realignment\n7b9a503a chore: bound Stage 7.14 validation and teardown\n49000c78 chore: add Stage 7.14 test teardown fix\n1518b763 chore: include Stage 7.12 regression realignment\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 805319ba97219aec0737b5085aa608fc04a82d89\nbranch refs/heads/chatgpt/stage7-14-durable-aftermath-dm-contact-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:53:32Z",
+      "stderr": "",
+      "stdout": "91000f5ed55a212230d213dd3059bd381704a1e4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "805319ba97219aec0737b5085aa608fc04a82d89",
+  "observedAtUtc": "2026-08-07T08:53:32Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
