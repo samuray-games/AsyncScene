@@ -994,8 +994,8 @@ window.Game = window.Game || {};
         <div class="stage7EvidenceBadge">Второй раунд завершён</div>
         <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
         <p>${result.body}</p>
-        ${actionButton("Перейти к 6 вопросам", "open-onboarding-questionnaire")}
         <div class="stage7Support">После вопросов откроется полная игра.</div>
+        ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
       </div>`;
   }
 
