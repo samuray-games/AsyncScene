@@ -1,4 +1,4 @@
-name: Asynchronia Pages Deploy
+name: Asynchronia Pages Legacy Recovery
 
 on:
   push:
@@ -10,137 +10,127 @@ on:
   workflow_dispatch:
     inputs:
       source_sha:
-        description: Optional exact repository SHA whose docs directory must be deployed
+        description: Optional exact repository SHA whose docs directory must be published
         required: false
         type: string
       expected_marker:
-        description: Optional marker that must exist in docs/index.html
+        description: Optional marker that must exist in docs/index.html and the published page
         required: false
         type: string
 
 permissions:
-  actions: read
   contents: read
   pages: write
-  id-token: write
 
 concurrency:
-  group: asynchronia-pages-deploy
+  group: asynchronia-pages-legacy-recovery
   cancel-in-progress: false
 
 jobs:
-  deploy-exact-docs:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  recover-legacy-pages:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout exact source
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_sha || github.sha }}
+
       - name: Verify requested artifact
         env:
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
-          EXPECTED_MARKER: ${{ inputs.expected_marker || '' }}
+          EXPECTED_MARKER: ${{ inputs.expected_marker || 'stage7_13_aftermath_dm_followup_20260806c' }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           test -f docs/index.html
-          if [ -n "$EXPECTED_MARKER" ]; then
-            grep -Fq "$EXPECTED_MARKER" docs/index.html
-          fi
-          echo "PAGES_DEPLOY_SOURCE_SHA=$SOURCE_SHA"
-          echo "PAGES_DEPLOY_EXPECTED_MARKER=${EXPECTED_MARKER:-none}"
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload exact docs artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: docs
-      - name: Create and monitor isolated Pages deployment
-        id: deployment
+          grep -Fq "$EXPECTED_MARKER" docs/index.html
+          echo "PAGES_SOURCE_SHA=$SOURCE_SHA"
+          echo "PAGES_EXPECTED_MARKER=$EXPECTED_MARKER"
+
+      - name: Recover legacy Pages build
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+          EXPECTED_MARKER: ${{ inputs.expected_marker || 'stage7_13_aftermath_dm_followup_20260806c' }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          artifact_id=""
-          for attempt in $(seq 1 20); do
-            artifact_id="$(gh api "/repos/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-              --jq '.artifacts[] | select(.name == "github-pages") | .id' | head -n 1)"
-            if [ -n "$artifact_id" ]; then
-              break
+          pages_json="$(gh api "/repos/${REPOSITORY}/pages")"
+          build_type="$(printf '%s' "$pages_json" | jq -r '.build_type')"
+          source_branch="$(printf '%s' "$pages_json" | jq -r '.source.branch')"
+          source_path="$(printf '%s' "$pages_json" | jq -r '.source.path')"
+          page_url="$(printf '%s' "$pages_json" | jq -r '.html_url')"
+
+          echo "PAGES_BUILD_TYPE=$build_type"
+          echo "PAGES_SOURCE_BRANCH=$source_branch"
+          echo "PAGES_SOURCE_PATH=$source_path"
+          test "$build_type" = "legacy"
+          test "$source_branch" = "main"
+          test "$source_path" = "/docs"
+
+          # These are the three provider-side deployment versions left stuck by the
+          # Stage 7.13 recovery attempts. Cancelling them is best-effort because the
+          # legacy Pages source remains main:/docs and is authoritative.
+          stale_versions=(
+            "69a1137c6ab4ede2a0d1e420cde477f29b0b2949"
+            "5ecc52af429be01ec08aa2ef3c8b73213176e8e1"
+            "55147a9fa895233865d5cc4533a1d784d61576e6"
+          )
+
+          for version in "${stale_versions[@]}"; do
+            status="$(gh api "/repos/${REPOSITORY}/pages/deployments/${version}" --jq '.status' 2>/dev/null || true)"
+            echo "STALE_DEPLOYMENT_BEFORE_CANCEL ${version} ${status:-missing}"
+            if [ "$status" = "deployment_in_progress" ]; then
+              gh api --method POST "/repos/${REPOSITORY}/pages/deployments/${version}/cancel" >/dev/null 2>&1 || true
             fi
-            sleep 2
           done
-          test -n "$artifact_id"
-
-          recovery_version="$(printf '%s' "${SOURCE_SHA}:${GITHUB_RUN_ID}:${GITHUB_RUN_ATTEMPT}" | sha1sum | awk '{print $1}')"
-          test "${#recovery_version}" -eq 40
-          echo "PAGES_RECOVERY_VERSION=$recovery_version"
-
-          oidc_response="$(curl --fail --silent --show-error \
-            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}")"
-          oidc_token="$(printf '%s' "$oidc_response" | jq -r '.value // empty')"
-          test -n "$oidc_token"
 
           sleep 15
-          gh api --method POST \
-            "/repos/${REPOSITORY}/pages/deployments/${GITHUB_SHA}/cancel" >/dev/null 2>&1 || true
-          sleep 3
 
-          payload="$(jq -cn \
-            --argjson artifact_id "$artifact_id" \
-            --arg pages_build_version "$recovery_version" \
-            --arg oidc_token "$oidc_token" \
-            '{artifact_id:$artifact_id,pages_build_version:$pages_build_version,oidc_token:$oidc_token}')"
+          latest_json="$(gh api "/repos/${REPOSITORY}/pages/builds/latest")"
+          latest_commit="$(printf '%s' "$latest_json" | jq -r '.commit // empty')"
+          latest_status="$(printf '%s' "$latest_json" | jq -r '.status // empty')"
+          echo "LATEST_BUILD_BEFORE_RECOVERY_COMMIT=${latest_commit:-none}"
+          echo "LATEST_BUILD_BEFORE_RECOVERY_STATUS=${latest_status:-none}"
 
-          create_response=""
-          for attempt in $(seq 1 12); do
-            if create_response="$(printf '%s' "$payload" | gh api --method POST \
-              "/repos/${REPOSITORY}/pages/deployments" --input - 2>/tmp/pages-create-error)"; then
-              break
-            fi
-            cat /tmp/pages-create-error >&2
-            blocker="$(grep -Eo '[0-9a-f]{40}' /tmp/pages-create-error | tail -n 1 || true)"
-            if [ -n "$blocker" ] && [ "$blocker" != "$recovery_version" ]; then
-              gh api --method POST \
-                "/repos/${REPOSITORY}/pages/deployments/${blocker}/cancel" >/dev/null 2>&1 || true
-            fi
-            sleep 5
-          done
-          test -n "$create_response"
-
-          page_url="$(printf '%s' "$create_response" | jq -r '.page_url // empty')"
-          if [ -z "$page_url" ]; then
-            page_url="https://samuray-games.github.io/AsyncScene/"
+          if [ "$latest_commit" != "$SOURCE_SHA" ] || [ "$latest_status" = "errored" ]; then
+            echo "REQUESTING_LEGACY_PAGES_BUILD"
+            gh api --method POST "/repos/${REPOSITORY}/pages/builds" >/tmp/pages-build-request.json
+            cat /tmp/pages-build-request.json
           fi
-          echo "page_url=$page_url" >> "$GITHUB_OUTPUT"
 
-          deadline=$((SECONDS + 1800))
+          deadline=$((SECONDS + 600))
           while [ "$SECONDS" -lt "$deadline" ]; do
-            status="$(gh api "/repos/${REPOSITORY}/pages/deployments/${recovery_version}" --jq '.status')"
-            echo "PAGES_RECOVERY_STATUS=$status"
-            case "$status" in
-              succeed)
-                echo "ASYNCHRONIA_PAGES_DEPLOYMENT_SUCCEEDED"
-                exit 0
+            latest_json="$(gh api "/repos/${REPOSITORY}/pages/builds/latest")"
+            latest_commit="$(printf '%s' "$latest_json" | jq -r '.commit // empty')"
+            latest_status="$(printf '%s' "$latest_json" | jq -r '.status // empty')"
+            echo "LEGACY_PAGES_BUILD_STATUS commit=${latest_commit:-none} status=${latest_status:-none}"
+
+            if [ "$latest_commit" != "$SOURCE_SHA" ]; then
+              sleep 5
+              continue
+            fi
+
+            case "$latest_status" in
+              built)
+                break
                 ;;
-              deployment_failed|deployment_content_failed|deployment_cancelled|deployment_lost)
-                echo "Pages recovery deployment reached terminal failure: $status" >&2
+              errored)
+                printf '%s\n' "$latest_json" >&2
                 exit 1
                 ;;
               *)
-                sleep 10
+                sleep 5
                 ;;
             esac
           done
 
-          echo "Pages recovery deployment exceeded 1800 seconds" >&2
-          gh api --method POST \
-            "/repos/${REPOSITORY}/pages/deployments/${recovery_version}/cancel" >/dev/null 2>&1 || true
-          exit 1
+          latest_json="$(gh api "/repos/${REPOSITORY}/pages/builds/latest")"
+          test "$(printf '%s' "$latest_json" | jq -r '.commit')" = "$SOURCE_SHA"
+          test "$(printf '%s' "$latest_json" | jq -r '.status')" = "built"
+
+          curl -fsSL "${page_url}?asynchronia_pages_recovery=${SOURCE_SHA}" -o /tmp/published-index.html
+          grep -Fq "$EXPECTED_MARKER" /tmp/published-index.html
+          echo "ASYNCHRONIA_LEGACY_PAGES_RECOVERY_SUCCEEDED"
