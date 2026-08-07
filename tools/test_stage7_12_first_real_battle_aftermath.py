@@ -26,7 +26,7 @@ for marker in [
     assert marker in controller, marker
 
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
-    assert text.count("stage7_13_aftermath_dm_followup_20260806a") >= 2
+    assert text.count("stage7_14_durable_aftermath_dm_contact_20260807a") >= 2
 
 for path in [CONTROLLER, CONTROLLER_DOCS]:
     subprocess.run(["node", "--check", str(path)], check=True)
@@ -201,10 +201,15 @@ snap = dev.getStage7FirstExperienceSnapshot();
 assert.strictEqual(snap.realBattleBridge.aftermathStatus, "acknowledged");
 assert.strictEqual(snap.realBattleBridge.aftermathApplyCount, 1);
 assert.strictEqual(snap.npcMemory.npc_stage7_mika.firstRealBattleAftermath.status, "acknowledged");
-assert.strictEqual(document.getElementById("stage7FirstExperiencePanel"), null);
+const contactPanel = document.getElementById("stage7FirstExperiencePanel");
+assert(contactPanel);
+assert(contactPanel.innerHTML.includes("Личный контакт"));
+assert(contactPanel.innerHTML.includes("Настя"));
 assert.strictEqual(dev.acknowledgeStage7FirstBattleAftermath(), false);
 Game.Stage7FirstExperience.destroy();
-assert.strictEqual(Game.Stage7FirstExperience.claimResume(context).claimed, false);
+const contactResume = Game.Stage7FirstExperience.claimResume(context);
+assert.strictEqual(contactResume.claimed, true);
+assert.strictEqual(contactResume.mode, "battle_aftermath_dm_contact_resume");
 
 // Branch and actual-result mapping.
 let run = assertAftermath("accuse_ken", "secondary", "lose", "lose", "npc_stage7_ken");

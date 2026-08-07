@@ -37,7 +37,7 @@ for copy in [
     assert copy in controller, copy
 
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
-    assert text.count("stage7_13_aftermath_dm_followup_20260806a") >= 2
+    assert text.count("stage7_14_durable_aftermath_dm_contact_20260807a") >= 2
 
 for path in [CONTROLLER, CONTROLLER_DOCS]:
     subprocess.run(["node", "--check", str(path)], check=True)
@@ -178,9 +178,12 @@ function runCase(token, branchId, choiceId, result, targetNpcId, wrongNpcId, exp
   assert.strictEqual((rt.state.dm.logs[targetNpcId] || []).length, 1);
   assert.strictEqual(run.dev.deliverStage7FirstBattleAftermathDm(targetNpcId), false);
   run.G.Stage7FirstExperience.destroy();
-  assert.strictEqual(run.G.Stage7FirstExperience.claimResume(rt.context).claimed, false);
+  const resumedClaim = run.G.Stage7FirstExperience.claimResume(rt.context);
+  assert.strictEqual(resumedClaim.claimed, true);
+  assert.strictEqual(resumedClaim.mode, "battle_aftermath_dm_contact_resume");
   assert.strictEqual(rt.UI.openDM(targetNpcId), `opened:${targetNpcId}`);
   assert.strictEqual((rt.state.dm.logs[targetNpcId] || []).length, 1);
+  run.G.Stage7FirstExperience.destroy();
   return rt;
 }
 
