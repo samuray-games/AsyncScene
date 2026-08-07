@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-14-live-pages-verify-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-14-live-pages-verify-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "c68456c63c55ee239b8e7579547ce0354b3a87a1\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "# branch.oid c68456c63c55ee239b8e7579547ce0354b3a87a1\n# branch.head chatgpt/stage7-14-live-pages-verify-20260807\n# branch.upstream origin/chatgpt/stage7-14-live-pages-verify-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "c68456c6 (HEAD -> chatgpt/stage7-14-live-pages-verify-20260807, origin/chatgpt/stage7-14-live-pages-verify-20260807) chore: remove temporary Stage 7.14 live Pages verifier\n1e138c55 chore: verify Stage 7.14 live Pages marker\nffbab69c (origin/main) fix: point Pages recovery at Stage 7.14 marker (#316)\n46bbfc29 feat: keep aftermath DM contact across refresh (#315)\n91000f5e docs: record accepted Stage 7.13 and select 7.14\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c68456c63c55ee239b8e7579547ce0354b3a87a1\nbranch refs/heads/chatgpt/stage7-14-live-pages-verify-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T09:08:37Z",
+      "stderr": "",
+      "stdout": "ffbab69c564c3d582d558008061e52ba0b151757\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c68456c63c55ee239b8e7579547ce0354b3a87a1",
+  "observedAtUtc": "2026-08-07T09:08:37Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
