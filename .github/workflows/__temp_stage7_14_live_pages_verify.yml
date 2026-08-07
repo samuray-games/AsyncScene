@@ -1,0 +1,26 @@
+name: TEMP Stage7.14 live Pages verify
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-14-live-pages-verify-20260807
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify published Stage 7.14 marker
+        env:
+          PAGE_URL: https://samuray-games.github.io/AsyncScene/
+          EXPECTED_MARKER: stage7_14_durable_aftermath_dm_contact_20260807a
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 2 "${PAGE_URL}?stage714_live_verify=${GITHUB_SHA}" -o /tmp/live-index.html
+          grep -Fq "$EXPECTED_MARKER" /tmp/live-index.html
+          echo "LIVE_PAGE_URL=$PAGE_URL"
+          echo "LIVE_EXPECTED_MARKER=$EXPECTED_MARKER"
+          echo "STAGE7_14_LIVE_PAGES_MARKER_VERIFIED"
