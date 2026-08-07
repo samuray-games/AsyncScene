@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/pages-legacy-recovery-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:30Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:30Z",
+      "stderr": "",
+      "stdout": "chatgpt/pages-legacy-recovery-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:30Z",
+      "stderr": "",
+      "stdout": "2c682876d36551e6a3396581d7d7edeb0a3be4bf\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2c682876d36551e6a3396581d7d7edeb0a3be4bf\n# branch.head chatgpt/pages-legacy-recovery-20260807\n# branch.upstream origin/chatgpt/pages-legacy-recovery-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:31Z",
+      "stderr": "",
+      "stdout": "2c682876 (HEAD -> chatgpt/pages-legacy-recovery-20260807, origin/main, origin/chatgpt/pages-legacy-recovery-20260807) fix: add isolated Pages queue recovery (#311)\nfeb0d843 chore: add protected Pages recovery workflow (#309)\n35729fbd fix: create clean Stage 7.13 Pages build identity\nc26f29ab chore: retrigger Stage 7.13 Pages deployment (#305)\n69a1137c feat: carry first battle aftermath into DM (#303)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2c682876d36551e6a3396581d7d7edeb0a3be4bf\nbranch refs/heads/chatgpt/pages-legacy-recovery-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:53:31Z",
+      "stderr": "",
+      "stdout": "2c682876d36551e6a3396581d7d7edeb0a3be4bf\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2c682876d36551e6a3396581d7d7edeb0a3be4bf",
+  "observedAtUtc": "2026-08-07T04:53:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
