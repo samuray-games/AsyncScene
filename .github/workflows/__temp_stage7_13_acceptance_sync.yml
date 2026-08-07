@@ -16,161 +16,20 @@ jobs:
         with:
           ref: chatgpt/stage7-13-acceptance-sync-20260807
           fetch-depth: 0
-      - name: Synchronize memory
+      - name: Synchronize accepted memory
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+          printf '%s' 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAppbXBvcnQgcmUKClJFViA9ICIyMDI2LTA4LTA3LTE0MTQtSlNUIgpCQVNFID0gImZlNWJlYmE2NzIxYTU0MmFkNmM4Y2RlZTgzNDc0MzJjOWQyZjc1MGIiClJVTlRJTUUgPSAiNjlhMTEzN2M2YWI0ZWRlMmEwZDFlNDIwY2RlNDc3ZjI5YjBiMjk0OSIKTkVYVCA9ICJJTVBMRU1FTlRfU1RBR0U3XzE0X0RVUkFCTEVfQUZURVJNQVRIX0RNX0NPTlRBQ1QiCgpkZWYgbG9hZChwYXRoKToKICAgIHJldHVybiBQYXRoKHBhdGgpLnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKQoKZGVmIHNhdmUocGF0aCwgdGV4dCk6CiAgICBQYXRoKHBhdGgpLndyaXRlX3RleHQodGV4dCwgZW5jb2Rpbmc9InV0Zi04IikKCmRlZiBzdWIocGF0dGVybiwgcmVwbCwgdGV4dCwgZmxhZ3M9MCk6CiAgICBvdXQsIG4gPSByZS5zdWJuKHBhdHRlcm4sIHJlcGwsIHRleHQsIGNvdW50PTEsIGZsYWdzPWZsYWdzKQogICAgaWYgbiAhPSAxOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZiJyZXBsYWNlbWVudCBmYWlsZWQ6IHtwYXR0ZXJufSAtPiB7bn0iKQogICAgcmV0dXJuIG91dAoKIyBUQVNLUy5tZApwID0gIlRBU0tTLm1kIgp0ID0gbG9hZChwKQpzZWN0aW9uID0gIiIiIyMgMjAyNi0wOC0wNyAtIFN0YWdlIDcuMTMgYWZ0ZXJtYXRoIERNIFNhZmFyaSBhY2NlcHRhbmNlIGFuZCBTdGFnZSA3LjE0IHNlbGVjdGlvbgotIE1lbW9yeSByZXZpc2lvbjogYDIwMjYtMDgtMDctMTQxNC1KU1RgLgotIFVzZXIgcmV0dXJuZWQgZXhwbGljaXQgYFBBU1NgIGZvciB0aGUgY29ycmVjdGVkIFN0YWdlIDcuMTMgaVBob25lIFNhZmFyaSBnYXRlLgotIEFjY2VwdGVkIHJ1bnRpbWU6IFBSICMzMDMgc3F1YXNoIG1lcmdlIGA2OWExMTM3YzZhYjRlZGUyYTBkMWU0MjBjZGU0NzdmMjliMGIyOTQ5YC4KLSBBY2NlcHRlZCBiZWhhdmlvcjogYWZ0ZXIgU3RhZ2UgNy4xMiBhZnRlcm1hdGggYWNrbm93bGVkZ2VtZW50LCB0aGUgZXhhY3QgYWZmZWN0ZWQgTlBDIHJlY2VpdmVzIG9uZSBicmFuY2gtYXdhcmUgYW5kIG91dGNvbWUtYXdhcmUgRE0gcmVwbHkgZXhhY3RseSBvbmNlOyB3cm9uZy1OUEMgb3BlbmluZyBkb2VzIG5vdCBjb25zdW1lIGl0OyByZW9wZW4gYmVmb3JlIHJlZnJlc2ggZG9lcyBub3QgZHVwbGljYXRlIGl0OyBvcmRpbmFyeSERNcyByZW1haW4gaXNvbGF0ZWQuCi0gQWNjZXB0YW5jZSBjbGFyaWZpY2F0aW9uOiBhZnRlciByZWZyZXNoIHRoZSBTdGFnZSA3IE5QQ3MgYXJlIG5vdCBndWFyYW50ZWVkIHRvIHJlbWFpbiB1c2VyLXJlYWNoYWJsZSB0aHJvdWdoIHRoZSBub3JtYWwgRE0gVUkuIFRoYXQgcmVhY2hhYmlsaXR5IGdhcCBpcyBub3QgcmV0cm9hY3RpdmVseSBhIFN0YWdlIDcuMTMgZmFpbHVyZSBhbmQgaXMgdGhlIGV4cGxpY2l0IFN0YWdlIDcuMTQgcHJvZHVjdCB0YXJnZXQuCi0gUHVibGlzaGVkIGV2aWRlbmNlOiBsZWdhY3kgUGFnZXMgYnVpbGQgYDExMzY4NzI5MTJgIGlzIGBidWlsdGAgd2l0aCBubyBlcnJvciBmcm9tIGBtYWluQGVhZjZmMzQ0YjgzYzk2MWYyOWI4NGY2Mjc2ZjQ4ZTA5ZmU3MjA5OWJgOyByZWNvdmVyeSB3b3JrZmxvdyBgMzExNDg5NDI3MzNgIFBBU1MgdmVyaWZpZXMgbWFya2VyIGBzdGFnZTdfMTNfYWZ0ZXJtYXRoX2RtX2ZvbGxvd3VwXzIwMjYwODA2Y2A7IHBvc3QtbWVyZ2UgZm9yZW5zaWNzIGAzMTE0ODk0MjgwN2AgUEFTUy4KLSBTdGFnZSA3LjE0IHNlbGVjdGVkOiBrZWVwIHRoZSBleGFjdCBhZmZlY3RlZCBOUEMgYWZ0ZXJtYXRoIERNIGNvbnRhY3QvdGhyZWFkIHJlYWNoYWJsZSBhY3Jvc3Mgc2FtZS10YWIgcmVmcmVzaCB3aGlsZSBwcmVzZXJ2aW5nIHRoZSBTdGFnZSA3LjEzIGV4YWN0bHktb25jZSByZXBseS4KLSBTdGFnZSA3LjE0IGJvdW5kYXJ5OiBubyBETSBhdXRvLW9wZW4gb24gcmVmcmVzaCwgbm8gZHVwbGljYXRlIGFmdGVybWF0aCBsaW5lLCBubyB3cm9uZy1OUEMgcGlubmluZywgbm8gb3JkaW5hcnkgRE0gYmVoYXZpb3IgY2hhbmdlLiBQZW5kaW5nIHJlcGx5IHJlbWFpbnMgY29uc3VtYWJsZSBleGFjdGx5IG9uY2UgYWZ0ZXIgcmVmcmVzaDsgZGVsaXZlcmVkIHJlcGx5IHJlbWFpbnMgaGlzdG9yeSBvbmx5LgotIFByZWZlciBTdGFnZSA3IGNvbnRyb2xsZXIvc291cmNlLWRvYyBtaXJyb3IgY2hhbmdlcyBwbHVzIGZvY3VzZWQgcmVncmVzc2lvbi4gSWYgZ2VuZXJpYyBgdWktZG0uanNgIGJlaGF2aW9yIGlzIHJlcXVpcmVkLCBzdG9wIGFuZCByZS1zY29wZSByYXRoZXIgdGhhbiBzaWxlbnRseSB3aWRlbmluZy4KLSBORVhUX0FDVElPTjogYElNUExFTUVOVF9TVEFHRTdfMTRfRFVSQUJMRV9BRlRFUk1BVEhfRE1fQ09OVEFDVGAuCgoiIiIKaWYgIlN0YWdlIDcuMTMgYWZ0ZXJtYXRoIERNIFNhZmFyaSBhY2NlcHRhbmNlIGFuZCBTdGFnZSA3LjE0IHNlbGVjdGlvbiIgbm90IGluIHQ6CiAgICB0ID0gc2VjdGlvbiArIHQKc2F2ZShwLCB0KQoKIyBQUk9KRUNUX01FTU9SWS5tZApwID0gIlBST0pFQ1RfTUVNT1JZLm1kIgp0ID0gbG9hZChwKQp0ID0gc3ViKHIiUkVQT19NRU1PUllfUkVWOiAuKiIsIGYiUkVQT19NRU1PUllfUkVWOiB7UkVWfSIsIHQpCnQgPSBzdWIociJOT1RJT05fTUVNT1JZX1JFVjogLioiLCBmIk5PVElPTl9NRU1PUllfUkVWOiB7UkVWfSIsIHQpCnQgPSBzdWIociJDVVJSRU5UX01BSU5fU0hBX0FUX01FTU9SWV9TWU5DX0JBU0VMSU5FOiAuKiIsIGYiQ1VSUkVOVF9NQUlOX1NIQV9BVF9NRU1PUllfU1lOQ19CQVNFTElORToge0JBU0V9IiwgdCkKdCA9IHN1YihyIkNVUlJFTlRfTUFJTl9TSEFfQVRfUlVOVElNRV9BQ0NFUFRBTkNFOiAuKiIsIGYiQ1VSUkVOVF9NQUlOX1NIQV9BVF9SVU5USU1FX0FDQ0VQVEFOQ0U6IHtSVU5USU1FfSIsIHQpCnQgPSBzdWIociJBQ0NFUFRFRF9SVU5USU1FX0lNUExFTUVOVEFUSU9OX0hFQUQ6IC4qIiwgZiJBQ0NFUFRFRF9SVU5USU1FX0lNUExFTUVOVEFUSU9OX0hFQUQ6IHtSVU5USU1FfSIsIHQpCnQgPSBzdWIociJMQVRFU1RfTUVSR0VEX1JVTlRJTUVfSEVBRDogLioiLCBmIkxBVEVTVF9NRVJHRURfUlVOVElNRV9IRUFEOiB7UlVOVElNRX0iLCB0KQp0ID0gc3ViKHIiQ1VSUkVOVF9TVEFUVVM6IC4qIiwgIkNVUlJFTlRfU1RBVFVTOiBTVEFHRTdfQUNUSVZFIC8gU1RBR0U3XzEzX1VTRVJfQUNDRVBURUQgLyBTVEFHRTdfMTRfU0VMRUNURUQiLCB0KQppZiAiU1RBR0VfN18xMzoiIG5vdCBpbiB0OgogICAgYW5jaG9yID0gIlNUQUdFXzdfMTI6IENPTVBMRVRFIC8gRklSU1RfUkVBTF9CQVRUTEVfQUZURVJNQVRIX1VTRVJfQUNDRVBURURcbiIKICAgIGJsb2NrID0gIiIiU1RBR0VfN18xMzogQ09NUExFVEUgLyBBRlRFUk1BVEhfRE1fVVNFUl9TQUZBUklfQUNDRVBUQU5DRV9QQVNTClNUQUdFN18xM19SVU5USU1FX01FUkdFX1NIQTogNjlhMTEzN2M2YWI0ZWRlMmEwZDFlNDIwY2RlNDc3ZjI5YjBiMjk0OQpTVEFHRTdfMTNfUFVCTElTSEVEX01BSU5fU0hBOiBlYWY2ZjM0NGI4M2M5NjFmMjliODRmNjI3NmY0OGUwOWZlNzIwOTliClNUQUdFN18xM19WQUxJREFUSU9OOiBpbXBsZW1lbnRhdGlvbiAzMTEwMzUwNTY2NyBQQVNTIC8gUFIgMzExMDM3NDMwNDcgUEFTUyAvIHJ1bnRpbWUgcG9zdG1lcmdlIDMxMTAzOTI1ODM4IFBBU1MgLyBQYWdlcyByZWNvdmVyeSAzMTE0ODk0MjczMyBQQVNTIC8gcmVjb3ZlcnkgcG9zdG1lcmdlIDMxMTQ4OTQyODA3IFBBU1MKU1RBR0U3XzEzX1BBR0VTX0JVSUxEOiAxMTM2ODcyOTEyIC8gYnVpbHQgLyBubyBlcnJvcgpTVEFHRTdfMTNfVVNFUl9WRVJESUNUOiBQQVNTIC8gSVBIT05FX1NBRkFSSQpTVEFHRV83XzE0OiBTRUxFQ1RFREQgLyBEVVJBQkxFX0FGVEVSTUFUSF9ETV9DT05UQUNUCiIiIgogICAgaWYgYW5jaG9yIG5vdCBpbiB0OgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoIlBST0pFQ1RfTUVNT1JZIHN0YWdlMTIgYW5jaG9yIG1pc3NpbmciKQogICAgdCA9IHQucmVwbGFjZShhbmNob3IsIGFuY2hvciArIGJsb2NrLCAxKQp0ID0gc3ViKHIiTkVYVF9BQ1RJT046IC4qIiwgZiJORVhUX0FDVElPTjoge05FWFR9IiwgdCkKb2xkID0gIiIiUmVwb3NpdG9yeSBpbXBsZW1lbnRhdGlvbiBhbmQgdXNlciBhY2NlcHRhbmNlIGFyZSBjdXJyZW50IHRocm91Z2ggbWVyZ2VkIHJ1bnRpbWUgYDRlMjdhYTBkNjkwMTI3YzdiNDk1YzljNjkwMDI2ZjdiZjU4YzYyMWFgLiBTdGFnZSA3LjEyIGlzIGFjY2VwdGVkIG9uIGlQaG9uZSBTYWZhcmk6IHRoZSBhY3R1YWwgdGVybWluYWwgcmVzdWx0IG9mIHRoZSBleGFjdCBmaXJzdCBicmlkZ2UgYmF0dGxlIGNyZWF0ZXMgb25lIGJyYW5jaC1hd2FyZSBOUEMtbWVtb3J5IGFmdGVybWF0aCwgb25lIG5vbi1ibG9ja2luZyBjYXJkIHN1cnZpdmVzIHJlZnJlc2ggdW50aWwgYSBzaW5nbGUgYWNrbm93bGVkZ2VtZW50LCBhbmQgYWNrbm93bGVkZ2VkIGFmdGVybWF0aCBuZXZlciByZXBsYXlzLiBPcmRpbmFyeSBiYXR0bGVzIGFuZCBwcm90ZWN0ZWQgbWVjaGFuaWNzIHJlbWFpbiBpc29sYXRlZC4KCk5vIGxhdGVyIHJ1bnRpbWUgc2xpY2UgaXMgYWN0aXZlLiBUaGUgbmV4dCBwcm9kdWN0IGRlY2lzaW9uIHJlcXVpcmVzIGEgbmV3IGV4cGxpY2l0IHVzZXIgaW5zdHJ1Y3Rpb247IHRoaXMgYWNjZXB0YW5jZS1vbmx5IHN5bmNocm9uaXphdGlvbiBkb2VzIG5vdCBpbmZlciBvciBzdGFydCBTdGFnZSA3LjEzLiIiIgpuZXcgPSAiIiJSZXBvc2l0b3J5IGltcGxlbWVudGF0aW9uIGFuZCB1c2VyIGFjY2VwdGFuY2UgYXJlIGN1cnJlbnQgdGhyb3VnaCBTdGFnZSA3LjEzIHJ1bnRpbWUgYDY5YTExMzdjNmFiNGVkZTJhMGQxZTQyMGNkZTQ3N2YyOWIwYjI5NDlgLCBwdWJsaXNoZWQgdGhyb3VnaCBsZWdhY3kgUGFnZXMgYnVpbGQgYDExMzY4NzI5MTJgIGZyb20gYG1haW5AZWFmNmYzNDRiODNjOTYxZjI5Yjg0ZjYyNzZmNDhlMDlmZTcyMDk5YmAuIFRoZSBleGFjdCBhZmZlY3RlZCBOUEMgYWZ0ZXJtYXRoIERNIHJlcGx5IGlzIHVzZXItYWNjZXB0ZWQgYXMgZXhhY3RseSBvbmNlLCBicmFuY2gvb3V0Y29tZS1hd2FyZSwgd3JvbmctTlBDIG5vbi1jb25zdW1pbmcgYW5kIGlzb2xhdGVkIGZyb20gb3JkaW5hcnkgRE1zLiBUaGUgY29ycmVjdGVkIGFjY2VwdGFuY2UgZXhwb3NlZCB0aGF0IHRoZSBTdGFnZSA3IE5QQyB0aHJlYWQgaXMgbm90IG5vcm1hbGx5IHVzZXItcmVhY2hhYmxlIGFmdGVyIHJlZnJlc2guCgpUaGUgdXNlcidzIGV4cGxpY2l0IDIwMjYtMDgtMDcgY29udGludWF0aW9uIGluc3RydWN0aW9uIHNlbGVjdHMgU3RhZ2UgNy4xNDogcHJlc2VydmUgdGhlIGV4YWN0IGFmZmVjdGVkIE5QQyBhcyBhIHJlYWNoYWJsZSBhZnRlcm1hdGggRE0gY29udGFjdC90aHJlYWQgYWNyb3NzIHNhbWUtdGFiIHJlZnJlc2ggd2l0aG91dCBhdXRvLW9wZW5pbmcgaXQsIGR1cGxpY2F0aW5nIHRoZSBTdGFnZSA3LjEzIHJlcGx5LCBwaW5uaW5nIHdyb25nIE5QQ3Mgb3IgY2hhbmdpbmcgb3JkaW5hcnkgRE1zLiIiIgppZiBvbGQgbm90IGluIHQ6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJQUk9KRUNUX01FTU9SWSBzdW1tYXJ5IG1pc3NpbmciKQp0ID0gdC5yZXBsYWNlKG9sZCwgbmV3LCAxKQpzYXZlKHAsIHQpCgojIENVUlJFTlQubWQKcCA9ICIuYWktbWVtb3J5L0NVUlJFTlQubWQiCnQgPSBsb2FkKHApCnQgPSBzdWIociJNRU1PUllfUkVWOiAuKiIsIGYiTUVNT1JZX1JFVjoge1JFVn0iLCB0KQp0ID0gc3ViKHIiTk9USU9OX01FTU9SWV9SRVY6IC4qIiwgZiJOT1RJT05fTUVNT1JZX1JFVjoge1JFVn0iLCB0KQp0ID0gc3ViKHIiQ1VSUkVOVF9TVEFUVVM6IC4qIiwgIkNVUlJFTlRfU1RBVFVTOiBTVEFHRTdfQUNUSVZFIC8gU1RBR0U3XzEzX1VTRVJfQUNDRVBURUQgLyBTVEFHRTdfMTRfU0VMRUNURUQiLCB0KQp0ID0gc3ViKHIiQUNUSVZFX1RBU0s6IC4qIiwgIkFDVElWRV9UQVNLOiBTVEFHRTdfMTRfRFVSQUJMRV9BRlRFUk1BVEhfRE1fQ09OVEFDVCIsIHQpCnQgPSBzdWIociJDVVJSRU5UX01BSU5fU0hBX0FUX01FTU9SWV9TWU5DX0JBU0VMSU5FOiAuKiIsIGYiQ1VSUkVOVF9NQUlOX1NIQV9BVF9NRU1PUllfU1lOQ19CQVNFTElORToge0JBU0V9IiwgdCkKdCA9IHN1YihyIkNVUlJFTlRfTUFJTl9TSEFfQVRfUlVOVElNRV9BQ0NFUFRBTkNFOiAuKiIsIGYiQ1VSUkVOVF9NQUlOX1NIQV9BVF9SVU5USU1FX0FDQ0VQVEFOQ0U6IHtSVU5USU1FfSIsIHQpCnQgPSBzdWIociJBQ0NFUFRFRF9SVU5USU1FX0lNUExFTUVOVEFUSU9OX0hFQUQ6IC4qIiwgZiJBQ0NFUFRFRF9SVU5USU1FX0lNUExFTUVOVEFUSU9OX0hFQUQ6IHtSVU5USU1FfSIsIHQpCnQgPSBzdWIociJMQVRFU1RfTUVSR0VEX1JVTlRJTUVfSEVBRDogLioiLCBmIkxBVEVTVF9NRVJHRURfUlVOVElNRV9IRUFEOiB7UlVOVElNRX0iLCB0KQppZiAiU1RBR0VfN18xMzoiIG5vdCBpbiB0OgogICAgYW5jaG9yID0gIlNUQUdFXzdfMTI6IENPTVBMRVRFIC8gVVNFUl9TQUZBUklfQUNDRVB...snip...' | base64 -d > /tmp/sync.py
+          python3 /tmp/sync.py
 
-          REV = "2026-08-07-1414-JST"
-          BASE = "fe5beba6721a542ad6c8cdee8347432c9d2f750b"
-          RUNTIME = "69a1137c6ab4ede2a0d1e420cde477f29b0b2949"
-          PUBLISHED = "eaf6f344b83c961f29b84f6276f48e09fe72099b"
-          NEXT = "IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT"
-
-          def load(path): return Path(path).read_text(encoding="utf-8")
-          def save(path, text): Path(path).write_text(text, encoding="utf-8")
-          def sub(pattern, repl, text, flags=0):
-              out, n = re.subn(pattern, repl, text, count=1, flags=flags)
-              if n != 1: raise SystemExit(f"replacement failed: {pattern} -> {n}")
-              return out
-
-          # TASKS.md
-          p = "TASKS.md"
-          t = load(p)
-          section = """## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
-- Memory revision: `2026-08-07-1414-JST`.
-- User returned explicit `PASS` for the corrected Stage 7.13 iPhone Safari gate.
-- Accepted runtime: PR #303 squash merge `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
-- Accepted behavior: after Stage 7.12 aftermath acknowledgement, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once; wrong-NPC opening does not consume it; reopen before refresh does not duplicate it; ordinary DMs remain isolated.
-- Acceptance clarification: after refresh the Stage 7 NPCs are not guaranteed to remain user-reachable through the normal DM UI. That reachability gap is not retroactively a Stage 7.13 failure and is the explicit Stage 7.14 product target.
-- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; post-merge forensics `31148942807` PASS.
-- Stage 7.14 selected: keep the exact affected NPC aftermath DM contact/thread reachable across same-tab refresh while preserving the Stage 7.13 exactly-once reply.
-- Stage 7.14 boundary: no DM auto-open on refresh, no duplicate aftermath line, no wrong-NPC pinning, no ordinary-DM behavior change. Pending reply remains consumable exactly once after refresh; delivered reply remains history only.
-- Prefer Stage 7 controller/source-doc mirror changes plus focused regression. If generic `ui-dm.js` behavior is required, stop and re-scope rather than silently widening.
-- NEXT_ACTION: `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
-
-"""
-          if "Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection" not in t:
-              t = section + t
-          save(p, t)
-
-          # PROJECT_MEMORY.md
-          p = "PROJECT_MEMORY.md"; t = load(p)
-          t = sub(r"REPO_MEMORY_REV: .*", f"REPO_MEMORY_REV: {REV}", t)
-          t = sub(r"NOTION_MEMORY_REV: .*", f"NOTION_MEMORY_REV: {REV}", t)
-          t = sub(r"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: .*", f"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: {BASE}", t)
-          t = sub(r"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: .*", f"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: {RUNTIME}", t)
-          t = sub(r"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: .*", f"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: {RUNTIME}", t)
-          t = sub(r"LATEST_MERGED_RUNTIME_HEAD: .*", f"LATEST_MERGED_RUNTIME_HEAD: {RUNTIME}", t)
-          t = sub(r"CURRENT_STATUS: .*", "CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_13_USER_ACCEPTED / STAGE7_14_SELECTED", t)
-          if "STAGE_7_13:" not in t:
-              anchor = "STAGE_7_12: COMPLETE / FIRST_REAL_BATTLE_AFTERMATH_USER_ACCEPTED\n"
-              block = """STAGE_7_13: COMPLETE / AFTERMATH_DM_USER_SAFARI_ACCEPTANCE_PASS
-STAGE7_13_RUNTIME_MERGE_SHA: 69a1137c6ab4ede2a0d1e420cde477f29b0b2949
-STAGE7_13_PUBLISHED_MAIN_SHA: eaf6f344b83c961f29b84f6276f48e09fe72099b
-STAGE7_13_VALIDATION: implementation 31103505667 PASS / PR 31103743047 PASS / runtime postmerge 31103925838 PASS / Pages recovery 31148942733 PASS / recovery postmerge 31148942807 PASS
-STAGE7_13_PAGES_BUILD: 1136872912 / built / no error
-STAGE7_13_USER_VERDICT: PASS / IPHONE_SAFARI
-STAGE_7_14: SELECTED / DURABLE_AFTERMATH_DM_CONTACT
-"""
-              if anchor not in t: raise SystemExit("PROJECT_MEMORY stage12 anchor missing")
-              t = t.replace(anchor, anchor + block, 1)
-          t = sub(r"NEXT_ACTION: .*", f"NEXT_ACTION: {NEXT}", t)
-          old = "Repository implementation and user acceptance are current through merged runtime `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Stage 7.12 is accepted on iPhone Safari: the actual terminal result of the exact first bridge battle creates one branch-aware NPC-memory aftermath, one non-blocking card survives refresh until a single acknowledgement, and acknowledged aftermath never replays. Ordinary battles and protected mechanics remain isolated.\n\nNo later runtime slice is active. The next product decision requires a new explicit user instruction; this acceptance-only synchronization does not infer or start Stage 7.13."
-          new = "Repository implementation and user acceptance are current through Stage 7.13 runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`, published through legacy Pages build `1136872912` from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`. The exact affected NPC aftermath DM reply is user-accepted as exactly once, branch/outcome-aware, wrong-NPC non-consuming and isolated from ordinary DMs. The corrected acceptance exposed that the Stage 7 NPC thread is not normally user-reachable after refresh.\n\nThe user's explicit 2026-08-07 continuation instruction selects Stage 7.14: preserve the exact affected NPC as a reachable aftermath DM contact/thread across same-tab refresh without auto-opening it, duplicating the Stage 7.13 reply, pinning wrong NPCs or changing ordinary DMs."
-          if old not in t: raise SystemExit("PROJECT_MEMORY summary missing")
-          t = t.replace(old, new, 1)
-          save(p, t)
-
-          # CURRENT.md
-          p = ".ai-memory/CURRENT.md"; t = load(p)
-          t = sub(r"MEMORY_REV: .*", f"MEMORY_REV: {REV}", t)
-          t = sub(r"NOTION_MEMORY_REV: .*", f"NOTION_MEMORY_REV: {REV}", t)
-          t = sub(r"CURRENT_STATUS: .*", "CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_13_USER_ACCEPTED / STAGE7_14_SELECTED", t)
-          t = sub(r"ACTIVE_TASK: .*", "ACTIVE_TASK: STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT", t)
-          t = sub(r"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: .*", f"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: {BASE}", t)
-          t = sub(r"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: .*", f"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: {RUNTIME}", t)
-          t = sub(r"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: .*", f"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: {RUNTIME}", t)
-          t = sub(r"LATEST_MERGED_RUNTIME_HEAD: .*", f"LATEST_MERGED_RUNTIME_HEAD: {RUNTIME}", t)
-          if "STAGE_7_13:" not in t:
-              anchor = "STAGE_7_12: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS\n"
-              block = """STAGE_7_13: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
-STAGE7_13_PAGES_BUILD: 1136872912 / built / no error
-STAGE7_13_USER_VERDICT: PASS / IPHONE_SAFARI
-STAGE7_13_RUNTIME_MERGE_SHA: 69a1137c6ab4ede2a0d1e420cde477f29b0b2949
-STAGE_7_14: SELECTED / DURABLE_AFTERMATH_DM_CONTACT
-"""
-              if anchor not in t: raise SystemExit("CURRENT stage12 anchor missing")
-              t = t.replace(anchor, anchor + block, 1)
-          t = sub(r"NEXT_ACTION: .*", f"NEXT_ACTION: {NEXT}", t)
-          old = "Stage 7.12 is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. The actual terminal result of the exact first bridge battle persists one branch-aware aftermath in Настя, Райхан, or Олег memory; one non-blocking reaction survives refresh until a single `Понятно`, and acknowledged aftermath never replays. Exact bridge and battle IDs isolate the effect from ordinary battles.\n\nNo runtime task is active. A later Stage 7 slice may be selected only after a new explicit user instruction."
-          new = "Stage 7.13 is merged and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`, published through legacy Pages build `1136872912`. The exact affected NPC receives one branch/outcome-aware DM reply exactly once; wrong NPC opening does not consume it and ordinary DMs remain isolated.\n\nStage 7.14 is selected from the user-observed refresh reachability gap: keep the exact affected NPC aftermath DM contact/thread reachable after same-tab refresh without auto-open, duplicate reply, wrong-NPC pinning or ordinary-DM drift."
-          if old not in t: raise SystemExit("CURRENT summary missing")
-          t = t.replace(old, new, 1)
-          save(p, t)
-
-          # CANON.md
-          p = ".ai-memory/CANON.md"; t = load(p)
-          t = sub(r"MEMORY_REVISION: .*", f"MEMORY_REVISION: {REV}", t)
-          t = sub(r"EXPECTED_REVISION: .*", f"EXPECTED_REVISION: {REV}", t)
-          t = sub(r"NOTION_MEMORY_REVISION: .*", f"NOTION_MEMORY_REVISION: {REV}", t)
-          old = "- No later runtime slice is canonically selected by this acceptance.\n\nCURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE"
-          replacement = """- Stage 7.13 is now merged, published and user-accepted; its stable facts are recorded below.
-
-## Accepted Stage 7.13 product slice
-
-- PR #303 is merged and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
-- After the Stage 7.12 aftermath is acknowledged, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once: Настя for `deny`, Райхан for `accuse_ken`, Олег for `pay`; copy distinguishes `win`, `lose`, and `interrupted`.
-- Opening another NPC first does not consume the reply. Reopening the affected NPC before refresh does not duplicate it. Accepted Stage 7.12 saves migrate to one pending reply. Ordinary DM behavior remains isolated.
-- Static evidence: implementation `31103505667` PASS; PR forensics `31103743047` PASS; runtime post-merge `31103925838` PASS.
-- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; recovery post-merge forensics `31148942807` PASS.
-- User evidence: explicit iPhone Safari `PASS` for wrong-NPC non-consumption, exact target delivery, no duplicate on reopen and ordinary-DM isolation. The current UI does not guarantee that the Stage 7 NPC thread remains user-reachable after refresh; that reachability gap is not retroactively part of Stage 7.13 acceptance.
-
-## Selected Stage 7.14 product slice
-
-- Stage 7.14 is `DURABLE_AFTERMATH_DM_CONTACT`, explicitly authorized by the user's 2026-08-07 instruction to continue Stage 7.
-- The exact affected NPC must remain reachable as an aftermath DM contact/thread after same-tab refresh both while the Stage 7.13 reply is pending and after it is delivered.
-- Refresh must never auto-open the DM, create a second Stage 7.13 reply, pin a wrong NPC, or change ordinary DM behavior.
-- Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
-- Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
-
-CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT"""
-          if old not in t: raise SystemExit("CANON stage12 tail missing")
-          t = t.replace(old, replacement, 1)
-          t = t.replace("- Latest merged and user-accepted runtime implementation head is `4e27aa0d690127c7b495c9c690026f7bf58c621a`. PR #301 completed the first-real-battle aftermath consequence and the iPhone Safari verdict is explicit `PASS`.", "- Latest merged and user-accepted runtime implementation head is `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`. PR #303 completed the outcome-aware affected-NPC aftermath DM follow-up and the iPhone Safari verdict is explicit `PASS`.", 1)
-          t = t.replace("- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.12 are user-accepted. No later runtime slice is active; selection requires a new explicit user instruction.", "- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.13 are user-accepted. Stage 7.14 durable aftermath DM contact is selected by the user's explicit continuation instruction.", 1)
-          save(p, t)
-
-          # WORKFLOWS.md
-          p = ".ai-memory/WORKFLOWS.md"; t = load(p)
-          t = sub(r"MEMORY_REVISION: .*", f"MEMORY_REVISION: {REV}", t)
-          t = sub(r"EXPECTED_REVISION: .*", f"EXPECTED_REVISION: {REV}", t)
-          t = sub(r"NOTION_MEMORY_REVISION: .*", f"NOTION_MEMORY_REVISION: {REV}", t)
-          old = "Current execution handoff: Stage 6 is complete and accepted. Stage 7.12 first-real-battle aftermath is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Repository memory records the explicit iPhone Safari `PASS`. No runtime task is active. The exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`."
-          new = "Current execution handoff: Stage 6 is complete and accepted. Stage 7.13 aftermath DM follow-up is merged, published and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`; published main is `eaf6f344b83c961f29b84f6276f48e09fe72099b`. Stage 7.14 durable aftermath DM contact is selected. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`."
-          if old not in t: raise SystemExit("WORKFLOWS handoff missing")
-          t = t.replace(old, new, 1)
-          old = "17. Stage 7.12 acceptance permits later product consideration but does not itself select a receipt, coalition, promise, witness, or other expansion. A new explicit user instruction is required before another runtime slice begins.\n18. While no runtime task is active, the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`."
-          new = "17. Stage 7.13 is user-accepted. The acknowledged Stage 7.12 aftermath produces one exact affected-NPC, branch/outcome-aware DM reply exactly once; wrong NPCs do not consume it and ordinary DMs remain isolated.\n18. The user's explicit 2026-08-07 continuation instruction authorizes the next Stage 7 runtime slice and selects Stage 7.14 durable aftermath DM contact.\n19. Stage 7.14 must keep the exact affected NPC reachable after same-tab refresh while the Stage 7.13 reply is pending or delivered, without auto-opening DM, duplicating the reply, pinning wrong NPCs or changing ordinary DMs.\n20. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`."
-          if old not in t: raise SystemExit("WORKFLOWS Stage7 tail missing")
-          t = t.replace(old, new, 1)
-          save(p, t)
-
-          Path(".github/workflows/__temp_stage7_13_acceptance_sync.yml").unlink()
-          PY
-
-          expected='.ai-memory/CANON.md .ai-memory/CURRENT.md .ai-memory/WORKFLOWS.md PROJECT_MEMORY.md TASKS.md'
-          actual="$(git status --short | awk '{print $2}' | sort | tr '\n' ' ' | sed 's/ $//')"
-          expected_sorted="$(printf '%s\n' $expected | sort | tr '\n' ' ' | sed 's/ $//')"
-          echo "changed=$actual"
-          test "$actual" = "$expected_sorted"
-          grep -Fq 'STAGE_7_13: COMPLETE' PROJECT_MEMORY.md
-          grep -Fq 'STAGE_7_14: SELECTED' PROJECT_MEMORY.md
-          grep -Fq 'CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT' .ai-memory/CANON.md
-          grep -Fq 'NEXT_ACTION: `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`' TASKS.md
+          test "$(git status --short | wc -l | tr -d ' ')" = "6"
+          git status --short | grep -Fq ' M .ai-memory/CANON.md'
+          git status --short | grep -Fq ' M .ai-memory/CURRENT.md'
+          git status --short | grep -Fq ' M .ai-memory/WORKFLOWS.md'
+          git status --short | grep -Fq ' M PROJECT_MEMORY.md'
+          git status --short | grep -Fq ' M TASKS.md'
+          git status --short | grep -Fq ' D .github/workflows/__temp_stage7_13_acceptance_sync.yml'
 
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
