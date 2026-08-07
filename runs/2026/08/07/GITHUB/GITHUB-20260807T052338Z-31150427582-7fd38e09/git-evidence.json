@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "fbe71045017c4be2f8d4040a3420f22aabe24655\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "# branch.oid fbe71045017c4be2f8d4040a3420f22aabe24655\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "fbe71045 (HEAD, pull/313/merge) Merge 94a343ed62bc31904ec0943b82430e9ac5bc6e2f into f44e8179ad1d9c28b8c050da6e933bc4a7a92e74\n94a343ed (origin/chatgpt/recover-direct-main-placeholder-20260807) fix: remove accidental workflow placeholder\nf44e8179 (origin/main) chore: placeholder\neaf6f344 fix: recover legacy Pages from stale deployments (#312)\n2c682876 fix: add isolated Pages queue recovery (#311)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fbe71045017c4be2f8d4040a3420f22aabe24655\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:38Z",
+      "stderr": "",
+      "stdout": "f44e8179ad1d9c28b8c050da6e933bc4a7a92e74\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fbe71045017c4be2f8d4040a3420f22aabe24655",
+  "observedAtUtc": "2026-08-07T05:23:38Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
