@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "eaf6f344b83c961f29b84f6276f48e09fe72099b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "# branch.oid eaf6f344b83c961f29b84f6276f48e09fe72099b\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "eaf6f344 (HEAD -> main, origin/main) fix: recover legacy Pages from stale deployments (#312)\n2c682876 fix: add isolated Pages queue recovery (#311)\nfeb0d843 chore: add protected Pages recovery workflow (#309)\n35729fbd fix: create clean Stage 7.13 Pages build identity\nc26f29ab chore: retrigger Stage 7.13 Pages deployment (#305)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD eaf6f344b83c961f29b84f6276f48e09fe72099b\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T04:55:53Z",
+      "stderr": "",
+      "stdout": "eaf6f344b83c961f29b84f6276f48e09fe72099b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "eaf6f344b83c961f29b84f6276f48e09fe72099b",
+  "observedAtUtc": "2026-08-07T04:55:53Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
