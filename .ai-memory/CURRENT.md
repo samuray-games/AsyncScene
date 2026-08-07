@@ -1,3 +1,12 @@
+MEMORY_REV: 2026-08-08-0030-JST
+
+## CURRENT_PROJECT_STATE
+- Stage 7.14 is user-accepted on iPhone Safari.
+- Accepted runtime: PR #315 merge `46bbfc290dfb75a57f5f5f3ac82f223c8121f225`; current Pages/recovery main is `ffbab69c564c3d582d558008061e52ba0b151757`.
+- Accepted contract: the exact aftermath NPC remains reachable across same-tab refresh; refresh never auto-opens DM; pending reply is consumed exactly once on explicit correct-NPC open; delivered reply restores as history without duplication; wrong NPC and ordinary DMs remain isolated.
+- Validation/publication: implementation, PR, post-merge, recovery and independent live-marker evidence are recorded in live Notion; Safari acceptance is complete for Stage 7.14.
+- No later Stage 7 product slice is selected. Await explicit user direction; any future runtime-visible change requires fresh user Safari acceptance.
+
 # Current Memory
 
 MEMORY_REV: 2026-08-07-1414-JST
