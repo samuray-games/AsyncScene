@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-13-acceptance-sync-20260807",
+  "createdAtJst": "2026-08-07 14:26:37 JST",
+  "createdAtUtc": "2026-08-07T05:26:37Z",
+  "packagePath": "runs/2026/08/07/GITHUB/GITHUB-20260807T052637Z-31150585054-396d284f",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260807T052637Z-31150585054-396d284f",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
