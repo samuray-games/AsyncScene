@@ -19,34 +19,43 @@ jobs:
       - name: Apply guarded Stage 7.14 patch
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py
+          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py
           python3 tools/__temp_apply_stage7_14.py
           python3 tools/__temp_realign_stage7_12_for_7_14.py
           python3 tools/__temp_fix_stage7_14_test_teardown.py
+          python3 tools/__temp_realign_stage7_cache_markers.py
       - name: Validate Stage 7.14 and regressions
         run: |
           set -euo pipefail
-          echo '[1/7] node source'
+          echo '[1/11] node source'
           node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
-          echo '[2/7] node docs'
+          echo '[2/11] node docs'
           node --check docs/ui/ui-stage7-first-experience.js
-          echo '[3/7] stage7.12'
+          echo '[3/11] stage7.7'
+          timeout 60s python3 tools/test_stage7_7_preunlock_corridor.py
+          echo '[4/11] stage7.9'
+          timeout 60s python3 tools/test_stage7_9_deny_evidence_payoff.py
+          echo '[5/11] stage7.10'
+          timeout 60s python3 tools/test_stage7_10_accuse_ken_payoffs.py
+          echo '[6/11] stage7.11'
+          timeout 60s python3 tools/test_stage7_11_pay_branch_payoffs.py
+          echo '[7/11] stage7.12'
           timeout 60s python3 tools/test_stage7_12_first_real_battle_aftermath.py
-          echo '[4/7] stage7.13'
+          echo '[8/11] stage7.13'
           timeout 60s python3 tools/test_stage7_13_aftermath_dm_followup.py
-          echo '[5/7] stage7.14'
+          echo '[9/11] stage7.14'
           timeout 60s python3 tools/test_stage7_14_durable_aftermath_dm_contact.py
-          echo '[6/7] causal'
+          echo '[10/11] causal'
           timeout 60s python3 tools/test_stage7_first_causal_vertical_slice.py
-          echo '[7/7] observed'
+          echo '[11/11] observed'
           timeout 60s python3 tools/test_stage7_observed_evidence_harness.py
       - name: Publish validated branch only
         run: |
           set -euo pipefail
           git config user.name "samuray-games"
           git config user.email "raykhalit@icloud.com"
-          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py
-          git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/index.html docs/index.html tools/test_stage7_12_first_real_battle_aftermath.py tools/test_stage7_13_aftermath_dm_followup.py tools/test_stage7_14_durable_aftermath_dm_contact.py
+          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py
+          git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/index.html docs/index.html tools/test_stage7_7_preunlock_corridor.py tools/test_stage7_9_deny_evidence_payoff.py tools/test_stage7_10_accuse_ken_payoffs.py tools/test_stage7_11_pay_branch_payoffs.py tools/test_stage7_12_first_real_battle_aftermath.py tools/test_stage7_13_aftermath_dm_followup.py tools/test_stage7_14_durable_aftermath_dm_contact.py tools/test_stage7_first_causal_vertical_slice.py tools/test_stage7_observed_evidence_harness.py
           git diff --cached --check
           git commit -m "feat: keep aftermath DM contact across refresh"
           git push origin HEAD:chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
