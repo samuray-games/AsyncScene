@@ -1,0 +1,106 @@
+{
+  "branch": "docs/stage7-14-acceptance-memory-sync-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "docs/stage7-14-acceptance-memory-sync-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "bc93ba42b2a040a31f4d3de73d17f78e97c899df\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid bc93ba42b2a040a31f4d3de73d17f78e97c899df\n# branch.head docs/stage7-14-acceptance-memory-sync-20260808\n# branch.upstream origin/docs/stage7-14-acceptance-memory-sync-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "bc93ba42 (HEAD -> docs/stage7-14-acceptance-memory-sync-20260808, origin/docs/stage7-14-acceptance-memory-sync-20260808) docs: record Stage 7.14 Safari acceptance\n242f250c docs: record Stage 7.14 Safari acceptance\ne5c9a1d1 docs: record Stage 7.14 Safari acceptance\n2d462c94 docs: record Stage 7.14 Safari acceptance\n27cfeaac docs: record Stage 7.14 Safari acceptance\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bc93ba42b2a040a31f4d3de73d17f78e97c899df\nbranch refs/heads/docs/stage7-14-acceptance-memory-sync-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:31:54Z",
+      "stderr": "",
+      "stdout": "ffbab69c564c3d582d558008061e52ba0b151757\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bc93ba42b2a040a31f4d3de73d17f78e97c899df",
+  "observedAtUtc": "2026-08-07T15:31:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
