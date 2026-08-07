@@ -1,3 +1,15 @@
+## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
+- Memory revision: `2026-08-07-1414-JST`.
+- User returned explicit `PASS` for the corrected Stage 7.13 iPhone Safari gate.
+- Accepted runtime: PR #303 squash merge `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
+- Accepted behavior: after Stage 7.12 aftermath acknowledgement, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once; wrong-NPC opening does not consume it; reopen before refresh does not duplicate it; ordinary DMs remain isolated.
+- Acceptance clarification: after refresh the Stage 7 NPCs are not guaranteed to remain user-reachable through the normal DM UI. That reachability gap is not retroactively a Stage 7.13 failure and is the explicit Stage 7.14 product target.
+- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; post-merge forensics `31148942807` PASS.
+- Stage 7.14 selected: keep the exact affected NPC aftermath DM contact/thread reachable across same-tab refresh while preserving the Stage 7.13 exactly-once reply.
+- Stage 7.14 boundary: no DM auto-open on refresh, no duplicate aftermath line, no wrong-NPC pinning, no ordinary-DM behavior change. Pending reply remains consumable exactly once after refresh; delivered reply remains history only.
+- Prefer Stage 7 controller/source-doc mirror changes plus focused regression. If generic `ui-dm.js` behavior is required, stop and re-scope rather than silently widening.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
+
 ## 2026-08-06 - Stage 7.12 first real battle aftermath Safari acceptance
 - Memory revision: `2026-08-06-2101-JST`.
 - User returned explicit `PASS` for the Stage 7.12 iPhone Safari acceptance gate.
