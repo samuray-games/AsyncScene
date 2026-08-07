@@ -1,0 +1,179 @@
+name: TEMP Stage7.13 acceptance memory sync
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-13-acceptance-sync-20260807
+
+permissions:
+  contents: write
+
+jobs:
+  sync-memory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-13-acceptance-sync-20260807
+          fetch-depth: 0
+      - name: Synchronize memory
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          REV = "2026-08-07-1414-JST"
+          BASE = "fe5beba6721a542ad6c8cdee8347432c9d2f750b"
+          RUNTIME = "69a1137c6ab4ede2a0d1e420cde477f29b0b2949"
+          PUBLISHED = "eaf6f344b83c961f29b84f6276f48e09fe72099b"
+          NEXT = "IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT"
+
+          def load(path): return Path(path).read_text(encoding="utf-8")
+          def save(path, text): Path(path).write_text(text, encoding="utf-8")
+          def sub(pattern, repl, text, flags=0):
+              out, n = re.subn(pattern, repl, text, count=1, flags=flags)
+              if n != 1: raise SystemExit(f"replacement failed: {pattern} -> {n}")
+              return out
+
+          # TASKS.md
+          p = "TASKS.md"
+          t = load(p)
+          section = """## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
+- Memory revision: `2026-08-07-1414-JST`.
+- User returned explicit `PASS` for the corrected Stage 7.13 iPhone Safari gate.
+- Accepted runtime: PR #303 squash merge `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
+- Accepted behavior: after Stage 7.12 aftermath acknowledgement, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once; wrong-NPC opening does not consume it; reopen before refresh does not duplicate it; ordinary DMs remain isolated.
+- Acceptance clarification: after refresh the Stage 7 NPCs are not guaranteed to remain user-reachable through the normal DM UI. That reachability gap is not retroactively a Stage 7.13 failure and is the explicit Stage 7.14 product target.
+- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; post-merge forensics `31148942807` PASS.
+- Stage 7.14 selected: keep the exact affected NPC aftermath DM contact/thread reachable across same-tab refresh while preserving the Stage 7.13 exactly-once reply.
+- Stage 7.14 boundary: no DM auto-open on refresh, no duplicate aftermath line, no wrong-NPC pinning, no ordinary-DM behavior change. Pending reply remains consumable exactly once after refresh; delivered reply remains history only.
+- Prefer Stage 7 controller/source-doc mirror changes plus focused regression. If generic `ui-dm.js` behavior is required, stop and re-scope rather than silently widening.
+- NEXT_ACTION: `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
+
+"""
+          if "Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection" not in t:
+              t = section + t
+          save(p, t)
+
+          # PROJECT_MEMORY.md
+          p = "PROJECT_MEMORY.md"; t = load(p)
+          t = sub(r"REPO_MEMORY_REV: .*", f"REPO_MEMORY_REV: {REV}", t)
+          t = sub(r"NOTION_MEMORY_REV: .*", f"NOTION_MEMORY_REV: {REV}", t)
+          t = sub(r"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: .*", f"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: {BASE}", t)
+          t = sub(r"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: .*", f"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: {RUNTIME}", t)
+          t = sub(r"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: .*", f"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: {RUNTIME}", t)
+          t = sub(r"LATEST_MERGED_RUNTIME_HEAD: .*", f"LATEST_MERGED_RUNTIME_HEAD: {RUNTIME}", t)
+          t = sub(r"CURRENT_STATUS: .*", "CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_13_USER_ACCEPTED / STAGE7_14_SELECTED", t)
+          if "STAGE_7_13:" not in t:
+              anchor = "STAGE_7_12: COMPLETE / FIRST_REAL_BATTLE_AFTERMATH_USER_ACCEPTED\n"
+              block = """STAGE_7_13: COMPLETE / AFTERMATH_DM_USER_SAFARI_ACCEPTANCE_PASS
+STAGE7_13_RUNTIME_MERGE_SHA: 69a1137c6ab4ede2a0d1e420cde477f29b0b2949
+STAGE7_13_PUBLISHED_MAIN_SHA: eaf6f344b83c961f29b84f6276f48e09fe72099b
+STAGE7_13_VALIDATION: implementation 31103505667 PASS / PR 31103743047 PASS / runtime postmerge 31103925838 PASS / Pages recovery 31148942733 PASS / recovery postmerge 31148942807 PASS
+STAGE7_13_PAGES_BUILD: 1136872912 / built / no error
+STAGE7_13_USER_VERDICT: PASS / IPHONE_SAFARI
+STAGE_7_14: SELECTED / DURABLE_AFTERMATH_DM_CONTACT
+"""
+              if anchor not in t: raise SystemExit("PROJECT_MEMORY stage12 anchor missing")
+              t = t.replace(anchor, anchor + block, 1)
+          t = sub(r"NEXT_ACTION: .*", f"NEXT_ACTION: {NEXT}", t)
+          old = "Repository implementation and user acceptance are current through merged runtime `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Stage 7.12 is accepted on iPhone Safari: the actual terminal result of the exact first bridge battle creates one branch-aware NPC-memory aftermath, one non-blocking card survives refresh until a single acknowledgement, and acknowledged aftermath never replays. Ordinary battles and protected mechanics remain isolated.\n\nNo later runtime slice is active. The next product decision requires a new explicit user instruction; this acceptance-only synchronization does not infer or start Stage 7.13."
+          new = "Repository implementation and user acceptance are current through Stage 7.13 runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`, published through legacy Pages build `1136872912` from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`. The exact affected NPC aftermath DM reply is user-accepted as exactly once, branch/outcome-aware, wrong-NPC non-consuming and isolated from ordinary DMs. The corrected acceptance exposed that the Stage 7 NPC thread is not normally user-reachable after refresh.\n\nThe user's explicit 2026-08-07 continuation instruction selects Stage 7.14: preserve the exact affected NPC as a reachable aftermath DM contact/thread across same-tab refresh without auto-opening it, duplicating the Stage 7.13 reply, pinning wrong NPCs or changing ordinary DMs."
+          if old not in t: raise SystemExit("PROJECT_MEMORY summary missing")
+          t = t.replace(old, new, 1)
+          save(p, t)
+
+          # CURRENT.md
+          p = ".ai-memory/CURRENT.md"; t = load(p)
+          t = sub(r"MEMORY_REV: .*", f"MEMORY_REV: {REV}", t)
+          t = sub(r"NOTION_MEMORY_REV: .*", f"NOTION_MEMORY_REV: {REV}", t)
+          t = sub(r"CURRENT_STATUS: .*", "CURRENT_STATUS: STAGE7_ACTIVE / STAGE7_13_USER_ACCEPTED / STAGE7_14_SELECTED", t)
+          t = sub(r"ACTIVE_TASK: .*", "ACTIVE_TASK: STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT", t)
+          t = sub(r"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: .*", f"CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: {BASE}", t)
+          t = sub(r"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: .*", f"CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: {RUNTIME}", t)
+          t = sub(r"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: .*", f"ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: {RUNTIME}", t)
+          t = sub(r"LATEST_MERGED_RUNTIME_HEAD: .*", f"LATEST_MERGED_RUNTIME_HEAD: {RUNTIME}", t)
+          if "STAGE_7_13:" not in t:
+              anchor = "STAGE_7_12: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS\n"
+              block = """STAGE_7_13: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
+STAGE7_13_PAGES_BUILD: 1136872912 / built / no error
+STAGE7_13_USER_VERDICT: PASS / IPHONE_SAFARI
+STAGE7_13_RUNTIME_MERGE_SHA: 69a1137c6ab4ede2a0d1e420cde477f29b0b2949
+STAGE_7_14: SELECTED / DURABLE_AFTERMATH_DM_CONTACT
+"""
+              if anchor not in t: raise SystemExit("CURRENT stage12 anchor missing")
+              t = t.replace(anchor, anchor + block, 1)
+          t = sub(r"NEXT_ACTION: .*", f"NEXT_ACTION: {NEXT}", t)
+          old = "Stage 7.12 is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. The actual terminal result of the exact first bridge battle persists one branch-aware aftermath in Настя, Райхан, or Олег memory; one non-blocking reaction survives refresh until a single `Понятно`, and acknowledged aftermath never replays. Exact bridge and battle IDs isolate the effect from ordinary battles.\n\nNo runtime task is active. A later Stage 7 slice may be selected only after a new explicit user instruction."
+          new = "Stage 7.13 is merged and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`, published through legacy Pages build `1136872912`. The exact affected NPC receives one branch/outcome-aware DM reply exactly once; wrong NPC opening does not consume it and ordinary DMs remain isolated.\n\nStage 7.14 is selected from the user-observed refresh reachability gap: keep the exact affected NPC aftermath DM contact/thread reachable after same-tab refresh without auto-open, duplicate reply, wrong-NPC pinning or ordinary-DM drift."
+          if old not in t: raise SystemExit("CURRENT summary missing")
+          t = t.replace(old, new, 1)
+          save(p, t)
+
+          # CANON.md
+          p = ".ai-memory/CANON.md"; t = load(p)
+          t = sub(r"MEMORY_REVISION: .*", f"MEMORY_REVISION: {REV}", t)
+          t = sub(r"EXPECTED_REVISION: .*", f"EXPECTED_REVISION: {REV}", t)
+          t = sub(r"NOTION_MEMORY_REVISION: .*", f"NOTION_MEMORY_REVISION: {REV}", t)
+          old = "- No later runtime slice is canonically selected by this acceptance.\n\nCURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE"
+          replacement = """- Stage 7.13 is now merged, published and user-accepted; its stable facts are recorded below.
+
+## Accepted Stage 7.13 product slice
+
+- PR #303 is merged and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
+- After the Stage 7.12 aftermath is acknowledged, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once: Настя for `deny`, Райхан for `accuse_ken`, Олег for `pay`; copy distinguishes `win`, `lose`, and `interrupted`.
+- Opening another NPC first does not consume the reply. Reopening the affected NPC before refresh does not duplicate it. Accepted Stage 7.12 saves migrate to one pending reply. Ordinary DM behavior remains isolated.
+- Static evidence: implementation `31103505667` PASS; PR forensics `31103743047` PASS; runtime post-merge `31103925838` PASS.
+- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; recovery post-merge forensics `31148942807` PASS.
+- User evidence: explicit iPhone Safari `PASS` for wrong-NPC non-consumption, exact target delivery, no duplicate on reopen and ordinary-DM isolation. The current UI does not guarantee that the Stage 7 NPC thread remains user-reachable after refresh; that reachability gap is not retroactively part of Stage 7.13 acceptance.
+
+## Selected Stage 7.14 product slice
+
+- Stage 7.14 is `DURABLE_AFTERMATH_DM_CONTACT`, explicitly authorized by the user's 2026-08-07 instruction to continue Stage 7.
+- The exact affected NPC must remain reachable as an aftermath DM contact/thread after same-tab refresh both while the Stage 7.13 reply is pending and after it is delivered.
+- Refresh must never auto-open the DM, create a second Stage 7.13 reply, pin a wrong NPC, or change ordinary DM behavior.
+- Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
+- Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
+
+CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT"""
+          if old not in t: raise SystemExit("CANON stage12 tail missing")
+          t = t.replace(old, replacement, 1)
+          t = t.replace("- Latest merged and user-accepted runtime implementation head is `4e27aa0d690127c7b495c9c690026f7bf58c621a`. PR #301 completed the first-real-battle aftermath consequence and the iPhone Safari verdict is explicit `PASS`.", "- Latest merged and user-accepted runtime implementation head is `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`. PR #303 completed the outcome-aware affected-NPC aftermath DM follow-up and the iPhone Safari verdict is explicit `PASS`.", 1)
+          t = t.replace("- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.12 are user-accepted. No later runtime slice is active; selection requires a new explicit user instruction.", "- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.13 are user-accepted. Stage 7.14 durable aftermath DM contact is selected by the user's explicit continuation instruction.", 1)
+          save(p, t)
+
+          # WORKFLOWS.md
+          p = ".ai-memory/WORKFLOWS.md"; t = load(p)
+          t = sub(r"MEMORY_REVISION: .*", f"MEMORY_REVISION: {REV}", t)
+          t = sub(r"EXPECTED_REVISION: .*", f"EXPECTED_REVISION: {REV}", t)
+          t = sub(r"NOTION_MEMORY_REVISION: .*", f"NOTION_MEMORY_REVISION: {REV}", t)
+          old = "Current execution handoff: Stage 6 is complete and accepted. Stage 7.12 first-real-battle aftermath is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Repository memory records the explicit iPhone Safari `PASS`. No runtime task is active. The exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`."
+          new = "Current execution handoff: Stage 6 is complete and accepted. Stage 7.13 aftermath DM follow-up is merged, published and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`; published main is `eaf6f344b83c961f29b84f6276f48e09fe72099b`. Stage 7.14 durable aftermath DM contact is selected. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`."
+          if old not in t: raise SystemExit("WORKFLOWS handoff missing")
+          t = t.replace(old, new, 1)
+          old = "17. Stage 7.12 acceptance permits later product consideration but does not itself select a receipt, coalition, promise, witness, or other expansion. A new explicit user instruction is required before another runtime slice begins.\n18. While no runtime task is active, the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`."
+          new = "17. Stage 7.13 is user-accepted. The acknowledged Stage 7.12 aftermath produces one exact affected-NPC, branch/outcome-aware DM reply exactly once; wrong NPCs do not consume it and ordinary DMs remain isolated.\n18. The user's explicit 2026-08-07 continuation instruction authorizes the next Stage 7 runtime slice and selects Stage 7.14 durable aftermath DM contact.\n19. Stage 7.14 must keep the exact affected NPC reachable after same-tab refresh while the Stage 7.13 reply is pending or delivered, without auto-opening DM, duplicating the reply, pinning wrong NPCs or changing ordinary DMs.\n20. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`."
+          if old not in t: raise SystemExit("WORKFLOWS Stage7 tail missing")
+          t = t.replace(old, new, 1)
+          save(p, t)
+
+          Path(".github/workflows/__temp_stage7_13_acceptance_sync.yml").unlink()
+          PY
+
+          expected='.ai-memory/CANON.md .ai-memory/CURRENT.md .ai-memory/WORKFLOWS.md PROJECT_MEMORY.md TASKS.md'
+          actual="$(git status --short | awk '{print $2}' | sort | tr '\n' ' ' | sed 's/ $//')"
+          expected_sorted="$(printf '%s\n' $expected | sort | tr '\n' ' ' | sed 's/ $//')"
+          echo "changed=$actual"
+          test "$actual" = "$expected_sorted"
+          grep -Fq 'STAGE_7_13: COMPLETE' PROJECT_MEMORY.md
+          grep -Fq 'STAGE_7_14: SELECTED' PROJECT_MEMORY.md
+          grep -Fq 'CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT' .ai-memory/CANON.md
+          grep -Fq 'NEXT_ACTION: `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`' TASKS.md
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'docs: record accepted Stage 7.13 and select 7.14'
+          git push origin HEAD:chatgpt/stage7-13-acceptance-sync-20260807
