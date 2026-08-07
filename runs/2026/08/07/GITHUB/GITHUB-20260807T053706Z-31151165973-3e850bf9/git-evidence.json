@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-13-acceptance-sync-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-13-acceptance-sync-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "bf91e395bb5a0ea7bf9c755cf1cb8006e777007a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "# branch.oid bf91e395bb5a0ea7bf9c755cf1cb8006e777007a\n# branch.head chatgpt/stage7-13-acceptance-sync-20260807\n# branch.upstream origin/chatgpt/stage7-13-acceptance-sync-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "bf91e395 (HEAD -> chatgpt/stage7-13-acceptance-sync-20260807, origin/chatgpt/stage7-13-acceptance-sync-20260807) fix: compress Stage 7.13 memory sync payload\n12135ef0 fix: make Stage 7.13 memory sync workflow parse safely\ncb2eebd8 chore: stage Stage 7.13 acceptance memory sync\nfe5beba6 (origin/main) fix: remove accidental workflow placeholder\nf44e8179 chore: placeholder\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bf91e395bb5a0ea7bf9c755cf1cb8006e777007a\nbranch refs/heads/chatgpt/stage7-13-acceptance-sync-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:37:06Z",
+      "stderr": "",
+      "stdout": "fe5beba6721a542ad6c8cdee8347432c9d2f750b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bf91e395bb5a0ea7bf9c755cf1cb8006e777007a",
+  "observedAtUtc": "2026-08-07T05:37:06Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
