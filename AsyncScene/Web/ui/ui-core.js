@@ -913,6 +913,15 @@ window.Game = window.Game || {};
       const title = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
       if (icon) icon.setAttribute("title", title);
     });
+    while (pendingStatDeltas.length) {
+      const pending = pendingStatDeltas.shift();
+      showDeltaToastInstant(pending.kind, pending.delta, pending.opts);
+    }
+    if (!UI.__initialStatNameToastsShown) {
+      UI.__initialStatNameToastsShown = true;
+      UI.showStatToast("rep", "Репутация");
+      setTimeout(() => UI.showStatToast("points", "Баланс"), 350);
+    }
   }
   UI.syncTopbarStatTitles = syncTopbarStatTitles;
 
@@ -954,6 +963,7 @@ window.Game = window.Game || {};
   }
 
   const activeDeltaToasts = {};
+  const pendingStatDeltas = [];
 
   function dismissDeltaToast(kind){
     const prev = activeDeltaToasts[kind];
@@ -967,7 +977,10 @@ window.Game = window.Game || {};
     const d = (delta | 0);
     if (!kind || !d) return null;
     const anchor = statAnchor(kind);
-    if (!anchor) return null;
+    if (!anchor) {
+      pendingStatDeltas.push({ kind, delta: d, opts: opts || null });
+      return null;
+    }
 
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     const icon = icons[kind] || "";
@@ -1007,7 +1020,7 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
 
-  activeDeltaToasts[`${kind}:${toast.id}`] = { el: toast, value: d };
+  activeDeltaToasts[kind] = { el: toast, value: d };
   try {
     const tape = Game && Game.__DEV ? (Game.__DEV.__toastTape__ || []) : [];
       tape.push({
