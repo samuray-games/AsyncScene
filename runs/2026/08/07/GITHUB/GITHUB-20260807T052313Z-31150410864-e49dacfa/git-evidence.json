@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/recover-direct-main-placeholder-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:13Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:13Z",
+      "stderr": "",
+      "stdout": "chatgpt/recover-direct-main-placeholder-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:13Z",
+      "stderr": "",
+      "stdout": "94a343ed62bc31904ec0943b82430e9ac5bc6e2f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:14Z",
+      "stderr": "",
+      "stdout": "# branch.oid 94a343ed62bc31904ec0943b82430e9ac5bc6e2f\n# branch.head chatgpt/recover-direct-main-placeholder-20260807\n# branch.upstream origin/chatgpt/recover-direct-main-placeholder-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:14Z",
+      "stderr": "",
+      "stdout": "94a343ed (HEAD -> chatgpt/recover-direct-main-placeholder-20260807, origin/chatgpt/recover-direct-main-placeholder-20260807) fix: remove accidental workflow placeholder\nf44e8179 (origin/main) chore: placeholder\neaf6f344 fix: recover legacy Pages from stale deployments (#312)\n2c682876 fix: add isolated Pages queue recovery (#311)\nfeb0d843 chore: add protected Pages recovery workflow (#309)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:14Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 94a343ed62bc31904ec0943b82430e9ac5bc6e2f\nbranch refs/heads/chatgpt/recover-direct-main-placeholder-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:14Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T05:23:14Z",
+      "stderr": "",
+      "stdout": "f44e8179ad1d9c28b8c050da6e933bc4a7a92e74\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "94a343ed62bc31904ec0943b82430e9ac5bc6e2f",
+  "observedAtUtc": "2026-08-07T05:23:14Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
