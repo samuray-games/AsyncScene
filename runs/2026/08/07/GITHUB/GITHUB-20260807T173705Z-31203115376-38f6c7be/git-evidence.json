@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-three-cosmetic-fixes-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "codex/stage7-three-cosmetic-fixes-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "55164ca8152f690622c9b08858bf5608d2d9c12d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "# branch.oid 55164ca8152f690622c9b08858bf5608d2d9c12d\n# branch.head codex/stage7-three-cosmetic-fixes-20260808\n# branch.upstream origin/codex/stage7-three-cosmetic-fixes-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "55164ca8 (HEAD -> codex/stage7-three-cosmetic-fixes-20260808, origin/codex/stage7-three-cosmetic-fixes-20260808) fix: queue and dismiss profile delta toasts\n815d73cc fix: complete three Stage 7 cosmetic corrections\n17c81827 docs: record Stage 7.14 Safari acceptance\nffbab69c fix: point Pages recovery at Stage 7.14 marker (#316)\n46bbfc29 feat: keep aftermath DM contact across refresh (#315)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 55164ca8152f690622c9b08858bf5608d2d9c12d\nbranch refs/heads/codex/stage7-three-cosmetic-fixes-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T17:37:05Z",
+      "stderr": "",
+      "stdout": "119b32faad6b4acf50e674ba8d5bec808544664d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "55164ca8152f690622c9b08858bf5608d2d9c12d",
+  "observedAtUtc": "2026-08-07T17:37:05Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
