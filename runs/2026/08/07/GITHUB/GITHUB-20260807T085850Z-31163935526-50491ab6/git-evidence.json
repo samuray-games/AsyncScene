@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/stage7-14-pages-marker-recovery-20260807",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "chatgpt/stage7-14-pages-marker-recovery-20260807\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "46bbfc290dfb75a57f5f5f3ac82f223c8121f225\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "# branch.oid 46bbfc290dfb75a57f5f5f3ac82f223c8121f225\n# branch.head chatgpt/stage7-14-pages-marker-recovery-20260807\n# branch.upstream origin/chatgpt/stage7-14-pages-marker-recovery-20260807\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "46bbfc29 (HEAD -> chatgpt/stage7-14-pages-marker-recovery-20260807, origin/main, origin/chatgpt/stage7-14-pages-marker-recovery-20260807) feat: keep aftermath DM contact across refresh (#315)\n91000f5e docs: record accepted Stage 7.13 and select 7.14\nfe5beba6 fix: remove accidental workflow placeholder\nf44e8179 chore: placeholder\neaf6f344 fix: recover legacy Pages from stale deployments (#312)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 46bbfc290dfb75a57f5f5f3ac82f223c8121f225\nbranch refs/heads/chatgpt/stage7-14-pages-marker-recovery-20260807\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T08:58:50Z",
+      "stderr": "",
+      "stdout": "46bbfc290dfb75a57f5f5f3ac82f223c8121f225\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "46bbfc290dfb75a57f5f5f3ac82f223c8121f225",
+  "observedAtUtc": "2026-08-07T08:58:50Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
