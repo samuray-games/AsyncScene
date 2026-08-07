@@ -19,25 +19,33 @@ jobs:
       - name: Apply guarded Stage 7.14 patch
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py
+          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py
           python3 tools/__temp_apply_stage7_14.py
           python3 tools/__temp_realign_stage7_12_for_7_14.py
+          python3 tools/__temp_fix_stage7_14_test_teardown.py
       - name: Validate Stage 7.14 and regressions
         run: |
           set -euo pipefail
+          echo '[1/7] node source'
           node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          echo '[2/7] node docs'
           node --check docs/ui/ui-stage7-first-experience.js
-          python3 tools/test_stage7_12_first_real_battle_aftermath.py
-          python3 tools/test_stage7_13_aftermath_dm_followup.py
-          python3 tools/test_stage7_14_durable_aftermath_dm_contact.py
-          python3 tools/test_stage7_first_causal_vertical_slice.py
-          python3 tools/test_stage7_observed_evidence_harness.py
+          echo '[3/7] stage7.12'
+          timeout 60s python3 tools/test_stage7_12_first_real_battle_aftermath.py
+          echo '[4/7] stage7.13'
+          timeout 60s python3 tools/test_stage7_13_aftermath_dm_followup.py
+          echo '[5/7] stage7.14'
+          timeout 60s python3 tools/test_stage7_14_durable_aftermath_dm_contact.py
+          echo '[6/7] causal'
+          timeout 60s python3 tools/test_stage7_first_causal_vertical_slice.py
+          echo '[7/7] observed'
+          timeout 60s python3 tools/test_stage7_observed_evidence_harness.py
       - name: Publish validated branch only
         run: |
           set -euo pipefail
           git config user.name "samuray-games"
           git config user.email "raykhalit@icloud.com"
-          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py
+          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py
           git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/index.html docs/index.html tools/test_stage7_12_first_real_battle_aftermath.py tools/test_stage7_13_aftermath_dm_followup.py tools/test_stage7_14_durable_aftermath_dm_contact.py
           git diff --cached --check
           git commit -m "feat: keep aftermath DM contact across refresh"
