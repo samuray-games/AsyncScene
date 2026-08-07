@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:56Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:56Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:56Z",
+      "stderr": "",
+      "stdout": "4b00bbe44e8196d3541cb53b0ed9021d880543ce\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:57Z",
+      "stderr": "",
+      "stdout": "# branch.oid 4b00bbe44e8196d3541cb53b0ed9021d880543ce\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:57Z",
+      "stderr": "",
+      "stdout": "4b00bbe4 (HEAD, pull/317/merge) Merge f66318143eea053a6bae9d0bf9acb8960fcdae3c into ffbab69c564c3d582d558008061e52ba0b151757\nf6631814 (origin/docs/stage7-14-acceptance-memory-sync-20260808) docs: normalize Stage 7.14 memory revision\na65e7eb2 docs: normalize Stage 7.14 memory revision\nac199259 docs: normalize Stage 7.14 memory revision\nbac827a6 docs: normalize Stage 7.14 memory revision\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:57Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 4b00bbe44e8196d3541cb53b0ed9021d880543ce\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:57Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-07T15:32:57Z",
+      "stderr": "",
+      "stdout": "17c818273b8ec83d8440d6680491162bc251e3e8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "4b00bbe44e8196d3541cb53b0ed9021d880543ce",
+  "observedAtUtc": "2026-08-07T15:32:57Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
