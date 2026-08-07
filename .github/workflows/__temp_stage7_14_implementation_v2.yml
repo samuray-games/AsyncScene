@@ -1,0 +1,55 @@
+name: TEMP Stage7.14 implementation v2
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
+
+permissions:
+  contents: write
+
+jobs:
+  implement-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
+          fetch-depth: 0
+      - name: Patch Stage 7.14
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' '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' | base64 -d | gzip -d > /tmp/stage714_patch.py
+          python3 /tmp/stage714_patch.py
+      - name: Validate Stage 7.14
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          python3 tools/test_stage7_7_preunlock_corridor.py
+          python3 tools/test_stage7_9_deny_evidence_payoff.py
+          python3 tools/test_stage7_10_accuse_ken_payoffs.py
+          python3 tools/test_stage7_11_pay_branch_payoffs.py
+          python3 tools/test_stage7_12_first_real_battle_aftermath.py
+          python3 tools/test_stage7_13_aftermath_dm_followup.py
+          python3 tools/test_stage7_14_durable_aftermath_dm_contact.py
+          python3 tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_observed_evidence_harness.py
+      - name: Commit validated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/__temp_stage7_14_implementation.yml
+          rm .github/workflows/__temp_stage7_14_implementation_v2.yml
+          expected='AsyncScene/Web/index.html AsyncScene/Web/ui/ui-stage7-first-experience.js docs/index.html docs/ui/ui-stage7-first-experience.js tools/test_stage7_14_durable_aftermath_dm_contact.py .github/workflows/__temp_stage7_14_implementation.yml .github/workflows/__temp_stage7_14_implementation_v2.yml'
+          for path in $expected; do
+            git status --short -- "$path" | grep -q .
+          done
+          test "$(git status --short | wc -l | tr -d ' ')" = "7"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'feat: keep aftermath DM contact across refresh'
+          git push origin HEAD:chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
