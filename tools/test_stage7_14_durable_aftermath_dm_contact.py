@@ -46,6 +46,10 @@ for node in module.body:
     if node_harness is not None:
         break
 assert isinstance(node_harness, str) and "function makeRuntime" in node_harness
+split_marker = '\nrunCase("deny-win"'
+assert split_marker in node_harness
+node_harness = node_harness.split(split_marker, 1)[0]
+assert "function prepareAcknowledged" in node_harness
 
 extra = r'''
 
@@ -92,6 +96,7 @@ function storageEntries(rt) {
   assert.strictEqual((resumed.state.dm.logs.npc_stage7_mika || []).length, 1);
   snap = resumed.sandbox.Game.__DEV.getStage7FirstExperienceSnapshot();
   assert.strictEqual(snap.realBattleBridge.aftermathDmDeliveryCount, 1);
+  resumed.sandbox.Game.Stage7FirstExperience.destroy();
 }
 
 // A previously delivered reply also survives reload as history. Generic DM
@@ -133,6 +138,7 @@ function storageEntries(rt) {
   assert.strictEqual((resumed.state.dm.logs.npc_bandit || []).length, 1);
   snap = resumed.sandbox.Game.__DEV.getStage7FirstExperienceSnapshot();
   assert.strictEqual(snap.realBattleBridge.aftermathDmDeliveryCount, 1);
+  resumed.sandbox.Game.Stage7FirstExperience.destroy();
 }
 
 // No aftermath means no durable contact and no ordinary-DM side effect.

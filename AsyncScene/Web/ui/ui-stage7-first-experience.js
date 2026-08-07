@@ -199,6 +199,7 @@ window.Game = window.Game || {};
   const PAY_PAYOFF_ID = "stage7_pay_tactical_v1";
   const FIRST_BATTLE_AFTERMATH_ID = "stage7_first_real_battle_aftermath_v1";
   const FIRST_BATTLE_AFTERMATH_DM_ID = "stage7_first_real_battle_dm_followup_v1";
+  const FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID = "stage7_first_real_battle_dm_contact_v1";
   const FIRST_BATTLE_AFTERMATH_DM_COPY = Object.freeze({
     deny: Object.freeze({
       npcName: "Настя",
@@ -1158,6 +1159,108 @@ window.Game = window.Game || {};
   }
 
 
+  function getFirstBattleAftermathDmContactRecord() {
+    const current = snapshot || loadSnapshot();
+    if (!current || current.onboardingUnlocked !== true) return null;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    if (bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || !["pending", "delivered"].includes(bridge.aftermathDmStatus)) return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const expectedTarget = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    const target = bridge.aftermathTargetNpcId || expectedTarget;
+    if (!branchId || !target || target !== expectedTarget) return null;
+    const memory = current.npcMemory && current.npcMemory[target];
+    const saved = memory && memory.firstRealBattleAftermath;
+    if (!saved
+      || saved.aftermathId !== FIRST_BATTLE_AFTERMATH_ID
+      || saved.status !== "acknowledged"
+      || !saved.battleId
+      || saved.battleId !== bridge.battleId
+      || saved.targetNpcId !== target
+      || saved.branchId !== branchId) return null;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = FIRST_BATTLE_AFTERMATH_DM_COPY[branchId];
+    const text = copyGroup && copyGroup[outcomeKind];
+    if (!copyGroup || !text) return null;
+    const lineId = bridge.aftermathDmLineId
+      || `${FIRST_BATTLE_AFTERMATH_DM_ID}:${bridge.battleId}:${target}`;
+    return {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      lineId,
+      targetNpcId: target,
+      npcName: copyGroup.npcName,
+      battleId: bridge.battleId,
+      branchId,
+      outcomeKind,
+      dmStatus: bridge.aftermathDmStatus,
+      text,
+    };
+  }
+
+  function restoreFirstBattleAftermathDmHistory(contact) {
+    if (!contact || contact.dmStatus !== "delivered") return false;
+    ensureScenarioPlayers();
+    const logs = getDmLogsForNpc(contact.targetNpcId);
+    const UI = G.UI;
+    if (!logs || !UI || typeof UI.dmPushLine !== "function") return false;
+    const existing = logs.find((item) => item
+      && item.stage7AftermathReplyId === contact.lineId
+      && item.stage7AftermathBattleId === contact.battleId);
+    if (existing) return true;
+    UI.dmPushLine(contact.targetNpcId, contact.npcName, contact.text);
+    const line = logs[logs.length - 1] || null;
+    if (!line) return false;
+    line.stage7AftermathReplyId = contact.lineId;
+    line.stage7AftermathBattleId = contact.battleId;
+    line.stage7AftermathOutcomeKind = contact.outcomeKind;
+    line.stage7AftermathHistoryRestored = true;
+    return true;
+  }
+
+  function renderFirstBattleAftermathDmContact(panel) {
+    const contact = getFirstBattleAftermathDmContactRecord();
+    if (!panel || !contact) return false;
+    const statusText = contact.dmStatus === "pending"
+      ? "После баттла у тебя осталось личное сообщение."
+      : "Переписка после баттла сохранена.";
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp stage7AftermathDmContact" data-testid="stage7-aftermath-dm-contact">
+        <div class="stage7EvidenceBadge">Личный контакт</div>
+        <h2>${contact.npcName}</h2>
+        <p>${statusText}</p>
+        ${actionButton(`Открыть личку: ${contact.npcName}`, "open-aftermath-dm-contact")}
+        <div class="stage7Support">Игра открыта. Личка не откроется сама после обновления страницы.</div>
+      </div>`;
+    return true;
+  }
+
+  function openFirstBattleAftermathDmContact() {
+    const contact = getFirstBattleAftermathDmContactRecord();
+    const UI = G.UI;
+    if (!contact || !UI || typeof UI.openDM !== "function") return false;
+    ensureScenarioPlayers();
+    if (contact.dmStatus === "delivered") restoreFirstBattleAftermathDmHistory(contact);
+    const result = UI.openDM(contact.targetNpcId);
+    if (result === false) return false;
+    if (contact.dmStatus === "delivered") restoreFirstBattleAftermathDmHistory(contact);
+    telemetry("first_experience.first_real_battle_aftermath_dm_contact_opened", {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      targetNpcId: contact.targetNpcId,
+      branchId: contact.branchId,
+      battleId: contact.battleId,
+      outcomeKind: contact.outcomeKind,
+      dmStatus: contact.dmStatus,
+    });
+    render();
+    return true;
+  }
+
+
   function getFirstBattleAftermathDmRecord(targetNpcId) {
     const current = snapshot || loadSnapshot();
     if (!current || current.onboardingUnlocked !== true) return null;
@@ -1312,6 +1415,14 @@ window.Game = window.Game || {};
         panel.hidden = false;
         renderFirstBattleAftermath(panel);
         return;
+      }
+      if (bridge
+        && bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        releaseNormalWorldOnce({ preservePanel: true });
+        panel.hidden = false;
+        if (renderFirstBattleAftermathDmContact(panel)) return;
       }
       panel.remove();
       releaseNormalWorldOnce();
@@ -2353,6 +2464,8 @@ window.Game = window.Game || {};
       );
     } else if (action === "acknowledge-first-battle-aftermath" && snapshot.onboardingUnlocked) {
       acknowledgeFirstBattleAftermath();
+    } else if (action === "open-aftermath-dm-contact" && snapshot.onboardingUnlocked) {
+      openFirstBattleAftermathDmContact();
     }
   }
 
@@ -2485,6 +2598,18 @@ window.Game = window.Game || {};
           releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
         };
       }
+      if (bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_dm_contact_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     snapshot = existing || defaultSnapshot();
@@ -2539,6 +2664,18 @@ window.Game = window.Game || {};
           releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
         };
       }
+      if (bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_dm_contact_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
       return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
     }
     const migratedLegacySave = !existing;
@@ -2567,7 +2704,11 @@ window.Game = window.Game || {};
     if (!current) return false;
     if (!current.onboardingUnlocked) return true;
     const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
-    return bridge.status === "completed" && bridge.aftermathStatus === "pending";
+    return bridge.status === "completed" && (
+      bridge.aftermathStatus === "pending"
+      || (bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus))
+    );
   }
 
   function getSnapshot() {
@@ -2671,6 +2812,9 @@ window.Game = window.Game || {};
     acknowledgeFirstBattleAftermath,
     getFirstBattleAftermathRecord,
     getFirstBattleAftermathDmRecord,
+    getFirstBattleAftermathDmContactRecord,
+    openFirstBattleAftermathDmContact,
+    restoreFirstBattleAftermathDmHistory,
     deliverFirstBattleAftermathDm,
     installFirstBattleAftermathDmHook,
     resetForDev,
@@ -2694,6 +2838,9 @@ window.Game = window.Game || {};
   G.__DEV.getStage7FirstBattleAftermath = getFirstBattleAftermathRecord;
   G.__DEV.acknowledgeStage7FirstBattleAftermath = acknowledgeFirstBattleAftermath;
   G.__DEV.getStage7FirstBattleAftermathDm = getFirstBattleAftermathDmRecord;
+  G.__DEV.getStage7FirstBattleAftermathDmContact = getFirstBattleAftermathDmContactRecord;
+  G.__DEV.openStage7FirstBattleAftermathDmContact = openFirstBattleAftermathDmContact;
+  G.__DEV.restoreStage7FirstBattleAftermathDmHistory = restoreFirstBattleAftermathDmHistory;
   G.__DEV.deliverStage7FirstBattleAftermathDm = deliverFirstBattleAftermathDm;
   G.__DEV.installStage7FirstBattleAftermathDmHook = installFirstBattleAftermathDmHook;
   G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
@@ -2720,7 +2867,7 @@ window.Game = window.Game || {};
     comprehensionPassMin: COMPREHENSION_PASS_MIN,
     networkTransmission: false,
     continuationStateEvidence: true,
-    stage: "7.13",
+    stage: "7.14",
     onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
     intermissionDelayMs: INTERMISSION_DELAY_MS,
     limitedNpcCount: INTERMISSION_NPCS.length,
@@ -2742,5 +2889,9 @@ window.Game = window.Game || {};
     firstBattleAftermathDmTargetBound: true,
     firstBattleAftermathDmExactlyOnce: true,
     firstBattleAftermathDmRefreshSafe: true,
+    firstBattleAftermathDmContactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+    firstBattleAftermathDmContactDurable: true,
+    firstBattleAftermathDmContactNoAutoOpen: true,
+    firstBattleAftermathDmHistoryRestoredOnDemand: true,
   });
 })();
