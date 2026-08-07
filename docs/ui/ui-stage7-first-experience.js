@@ -48,7 +48,7 @@ window.Game = window.Game || {};
       id: "accuse_ken",
       label: "Обвинить Райхана",
       player: "Это Райхан пытается свалить кражу на меня.",
-      reaction: "Теперь вы обвиняете друг друга. Остальные должны решить, кому верить.",
+      reaction: "Теперь ты с Райханом обвиняете друг друга. Остальные должны решить, кому верить.",
       result: "Большинство встало на твою сторону.",
       consequence: "Репутация выросла. Конфликт обострился.",
       vote: [0, 1, 1, 0, 1],
@@ -245,7 +245,7 @@ window.Game = window.Game || {};
       npcName: "Райхан",
       win: Object.freeze({
         title: "Райхан запомнил поражение",
-        body: "Ты победил Райхана в публичном реванше. Он запомнил, что встречное обвинение выдержало настоящий спор.",
+        body: "Ты победил Райхана в публичном реванше. Теперь ему придётся считаться с твоей версией.",
       }),
       lose: Object.freeze({
         title: "Райхан вернул инициативу",
@@ -1113,7 +1113,6 @@ window.Game = window.Game || {};
     if (!panel || !record || record.status !== "pending") return false;
     panel.innerHTML = `
       <div class="stage7BranchFollowUp stage7FirstBattleAftermath" data-testid="stage7-first-battle-aftermath">
-        <div class="stage7EvidenceBadge">После настоящего баттла</div>
         <h2>${record.title}</h2>
         <p>${record.body}</p>
         ${actionButton("Понятно", "acknowledge-first-battle-aftermath")}
