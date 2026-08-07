@@ -2,9 +2,9 @@
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-06-2101-JST
-EXPECTED_REVISION: 2026-08-06-2101-JST
-NOTION_MEMORY_REVISION: 2026-08-06-2101-JST
+MEMORY_REVISION: 2026-08-07-1414-JST
+EXPECTED_REVISION: 2026-08-07-1414-JST
+NOTION_MEMORY_REVISION: 2026-08-07-1414-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -20,7 +20,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7.12 first-real-battle aftermath is merged and user-accepted at `4e27aa0d690127c7b495c9c690026f7bf58c621a`. Repository memory records the explicit iPhone Safari `PASS`. No runtime task is active. The exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`.
+Current execution handoff: Stage 6 is complete and accepted. Stage 7.13 aftermath DM follow-up is merged, published and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`; published main is `eaf6f344b83c961f29b84f6276f48e09fe72099b`. Stage 7.14 durable aftermath DM contact is selected. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -82,8 +82,10 @@ After every accepted remote state change:
 14. Stage 7.10 applies the same narrow-payoff discipline to `accuse_ken`: public rematch gets one persisted canonical defense-option refresh and witness request auto-reveals the first attack color. Stage 7.10 is now user-accepted.
 15. Stage 7.11 applies the discipline to `pay`: receipt marks the matching defense family; ignored pressure exposes one persisted action that marks one wrong-family defense as Олег's pressure line. Both effects are now user-accepted.
 16. Stage 7.12 is user-accepted. The actual exact bridge-battle terminal outcome persists one branch-aware NPC-memory aftermath; the non-blocking reaction survives refresh until one acknowledgement, never replays afterward, and remains isolated from ordinary battles.
-17. Stage 7.12 acceptance permits later product consideration but does not itself select a receipt, coalition, promise, witness, or other expansion. A new explicit user instruction is required before another runtime slice begins.
-18. While no runtime task is active, the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE`.
+17. Stage 7.13 is user-accepted. The acknowledged Stage 7.12 aftermath produces one exact affected-NPC, branch/outcome-aware DM reply exactly once; wrong NPCs do not consume it and ordinary DMs remain isolated.
+18. The user's explicit 2026-08-07 continuation instruction authorizes the next Stage 7 runtime slice and selects Stage 7.14 durable aftermath DM contact.
+19. Stage 7.14 must keep the exact affected NPC reachable after same-tab refresh while the Stage 7.13 reply is pending or delivered, without auto-opening DM, duplicating the reply, pinning wrong NPCs or changing ordinary DMs.
+20. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
 
 ## Local plugin installation and parity workflow
 

@@ -2,9 +2,9 @@
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-06-2101-JST
-EXPECTED_REVISION: 2026-08-06-2101-JST
-NOTION_MEMORY_REVISION: 2026-08-06-2101-JST
+MEMORY_REVISION: 2026-08-07-1414-JST
+EXPECTED_REVISION: 2026-08-07-1414-JST
+NOTION_MEMORY_REVISION: 2026-08-07-1414-JST
 
 ## Canon principles
 
@@ -62,9 +62,26 @@ NOTION_MEMORY_REVISION: 2026-08-06-2101-JST
 - Lifecycle and recording require both stable bridge ID `stage7_first_real_argument_battle_v1` and the exact persisted bridge battle ID. Ordinary battles and protected mechanics remain unchanged.
 - Static evidence: implementation `31090336845` PASS; PR forensics `31090592343` PASS; post-merge forensics `31090666029` PASS; Pages build `1135514616` built without error.
 - User evidence: explicit iPhone Safari `PASS` for branch-aware reaction, non-blocking normal-world access, refresh persistence, exactly-once acknowledgement, no replay, and ordinary-battle isolation.
-- No later runtime slice is canonically selected by this acceptance.
+- Stage 7.13 is now merged, published and user-accepted; its stable facts are recorded below.
 
-CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE
+## Accepted Stage 7.13 product slice
+
+- PR #303 is merged and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`.
+- After the Stage 7.12 aftermath is acknowledged, the exact affected NPC receives one branch-aware and outcome-aware DM reply exactly once: Настя for `deny`, Райхан for `accuse_ken`, Олег for `pay`; copy distinguishes `win`, `lose`, and `interrupted`.
+- Opening another NPC first does not consume the reply. Reopening the affected NPC before refresh does not duplicate it. Accepted Stage 7.12 saves migrate to one pending reply. Ordinary DM behavior remains isolated.
+- Static evidence: implementation `31103505667` PASS; PR forensics `31103743047` PASS; runtime post-merge `31103925838` PASS.
+- Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; recovery post-merge forensics `31148942807` PASS.
+- User evidence: explicit iPhone Safari `PASS` for wrong-NPC non-consumption, exact target delivery, no duplicate on reopen and ordinary-DM isolation. The current UI does not guarantee that the Stage 7 NPC thread remains user-reachable after refresh; that reachability gap is not retroactively part of Stage 7.13 acceptance.
+
+## Selected Stage 7.14 product slice
+
+- Stage 7.14 is `DURABLE_AFTERMATH_DM_CONTACT`, explicitly authorized by the user's 2026-08-07 instruction to continue Stage 7.
+- The exact affected NPC must remain reachable as an aftermath DM contact/thread after same-tab refresh both while the Stage 7.13 reply is pending and after it is delivered.
+- Refresh must never auto-open the DM, create a second Stage 7.13 reply, pin a wrong NPC, or change ordinary DM behavior.
+- Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
+- Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
+
+CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT
 
 ## Superseding Stage 7 onboarding flow
 
@@ -103,7 +120,7 @@ CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE
 - Stage 7 is defined as `CORE EXPERIENCE RECONSTRUCTION`, not presentation expansion or cleanup.
 - The assistant owns reversible day-to-day sequencing and atomic product/technical decisions. The user retains final ownership, veto, user-visible runtime acceptance, and approval of destructive, irreversible, security-sensitive, externally costly, genre-changing, or business-model-changing decisions.
 - Stage 7.0 is complete and accepted. PR #277 merged the five-profile essence modal as `bf54de857e20ea7ac838f6c14e17bfa5cd7b69a3`. PR #278 merged the pre-start stacking repair as `e54390fe6164f601caeaf2819e2ea56ed25c8eb0`.
-- Latest merged and user-accepted runtime implementation head is `4e27aa0d690127c7b495c9c690026f7bf58c621a`. PR #301 completed the first-real-battle aftermath consequence and the iPhone Safari verdict is explicit `PASS`.
+- Latest merged and user-accepted runtime implementation head is `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`. PR #303 completed the outcome-aware affected-NPC aftermath DM follow-up and the iPhone Safari verdict is explicit `PASS`.
 - Product freeze: no new theme, profile, currency, NPC category, location, cosmetic subsystem, or broad secondary-system expansion until observed evidence proves the causal core loop.
 - The core loop is `change -> cause -> decision -> action -> consequence -> world advance`.
 - Stage 7.1 is complete and user-accepted. It delivers one isolated personal conflict with first meaningful action within 30 seconds, exactly three responses, no pre-action tutorial, and only Money and Reputation visible before normal-world release.
@@ -125,7 +142,7 @@ CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_STAGE7_PRODUCT_SLICE
 - Stage 7.3 adds explicit-test-mode evidence that the selected branch and world-advance identity remain causally stable through continuation presentation.
 - Stage 7.4 user acceptance covers the nickname field, nickname usage, visible names `Райхан` and `Настя`, return copy, and the explanation before the six-question gate.
 - Stage 7.5 user acceptance covers the branch-derived follow-up choice, persistence into target NPC memory, release ordering, and no replay after refresh.
-- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.12 are user-accepted. No later runtime slice is active; selection requires a new explicit user instruction.
+- Stage 7.6 later-reaction implementation is historical merged evidence only. Stage 7.7 through Stage 7.13 are user-accepted. Stage 7.14 durable aftermath DM contact is selected by the user's explicit continuation instruction.
 
 ## Protected facts
 
