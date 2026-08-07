@@ -19,11 +19,12 @@ jobs:
       - name: Apply guarded Stage 7.14 patch
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py
+          python3 -m py_compile tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py tools/__temp_realign_stage7_7_for_7_14.py
           python3 tools/__temp_apply_stage7_14.py
           python3 tools/__temp_realign_stage7_12_for_7_14.py
           python3 tools/__temp_fix_stage7_14_test_teardown.py
           python3 tools/__temp_realign_stage7_cache_markers.py
+          python3 tools/__temp_realign_stage7_7_for_7_14.py
       - name: Validate Stage 7.14 and regressions
         run: |
           set -euo pipefail
@@ -54,7 +55,7 @@ jobs:
           set -euo pipefail
           git config user.name "samuray-games"
           git config user.email "raykhalit@icloud.com"
-          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py
+          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py tools/__temp_realign_stage7_12_for_7_14.py tools/__temp_fix_stage7_14_test_teardown.py tools/__temp_realign_stage7_cache_markers.py tools/__temp_realign_stage7_7_for_7_14.py
           git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/index.html docs/index.html tools/test_stage7_7_preunlock_corridor.py tools/test_stage7_9_deny_evidence_payoff.py tools/test_stage7_10_accuse_ken_payoffs.py tools/test_stage7_11_pay_branch_payoffs.py tools/test_stage7_12_first_real_battle_aftermath.py tools/test_stage7_13_aftermath_dm_followup.py tools/test_stage7_14_durable_aftermath_dm_contact.py tools/test_stage7_first_causal_vertical_slice.py tools/test_stage7_observed_evidence_harness.py
           git diff --cached --check
           git commit -m "feat: keep aftermath DM contact across refresh"
