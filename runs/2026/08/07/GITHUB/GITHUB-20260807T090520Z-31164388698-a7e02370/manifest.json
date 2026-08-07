@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/stage7-14-live-pages-verify-20260807",
+  "createdAtJst": "2026-08-07 18:05:20 JST",
+  "createdAtUtc": "2026-08-07T09:05:20Z",
+  "packagePath": "runs/2026/08/07/GITHUB/GITHUB-20260807T090520Z-31164388698-a7e02370",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260807T090520Z-31164388698-a7e02370",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
