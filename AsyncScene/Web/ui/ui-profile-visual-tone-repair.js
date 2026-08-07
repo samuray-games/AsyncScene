@@ -810,6 +810,14 @@ window.Game = window.Game || {};
     return n > 0 ? `+${n}` : String(n);
   }
 
+  function deltaName(kind) {
+    return ({ points: "Баланс", rep: "Репутация", influence: "Влияние", wins: "Победы" })[String(kind || "")] || "Изменение";
+  }
+
+  function namedDeltaText(kind, delta) {
+    return `${deltaName(kind)}: ${signedDelta(delta)}`;
+  }
+
   function deltaAnchor(kind) {
     if (UI && typeof UI.getStatAnchor === "function") return UI.getStatAnchor(kind);
     const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
@@ -852,14 +860,56 @@ window.Game = window.Game || {};
       el.className = "statToast statToast--delta statToast--stage6-delta";
       el.dataset.deltaKey = entry.key;
       el.dataset.deltaResource = entry.key;
-      el.onclick = () => resetDeltaToast(entry.key);
+      el.onclick = (event) => {
+        if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+        showNamedDeltaToast(entry.key, state.total);
+      };
       document.body.appendChild(el);
       state.el = el;
     }
-    el.textContent = signedDelta(state.total);
+    el.textContent = namedDeltaText(entry.key, state.total);
     positionDeltaToast(entry.key, el);
     el.style.display = "block";
     el.style.opacity = "1";
+  }
+
+  function showNamedDeltaToast(kind, delta) {
+    const anchor = deltaAnchor(kind);
+    if (!anchor) return;
+    const id = `stage6DeltaNameToast_${kind}`;
+    let el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement("div");
+      el.id = id;
+      el.className = "statToast statToast--delta statToast--stage6-delta-name";
+      el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
+      document.body.appendChild(el);
+    }
+    el.textContent = delta ? namedDeltaText(kind, delta) : deltaName(kind);
+    positionDeltaToast(kind, el);
+    el.style.display = "block";
+    el.style.opacity = "1";
+  }
+
+  function bindDeltaChipTaps() {
+    ["rep", "points"].forEach((kind) => {
+      const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
+      if (!chip || chip.__stage7DeltaTapBound) return;
+      chip.__stage7DeltaTapBound = true;
+      chip.setAttribute("role", "button");
+      chip.setAttribute("tabindex", "0");
+      const show = () => {
+        const state = getDeltaToastState(kind).state;
+        showNamedDeltaToast(kind, state.total || state.pending || 0);
+      };
+      chip.addEventListener("click", show);
+      chip.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          show();
+        }
+      });
+    });
   }
 
   function flushDeltaToast(kind) {
@@ -1087,6 +1137,7 @@ window.Game = window.Game || {};
 
   function installUnifiedToastOwner() {
     neutralizeLegacyStatToasts();
+    bindDeltaChipTaps();
 
     const show = function stage6UnifiedShowStatToastV4(kind, text) {
       const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
@@ -1116,6 +1167,7 @@ window.Game = window.Game || {};
         if (state && state.el && state.el.style.display !== "none") positionDeltaToast(kind, state.el);
       });
     });
+    window.addEventListener("load", bindDeltaChipTaps, { once: true });
   }
 
   const LABEL_VARIANTS = Object.freeze({

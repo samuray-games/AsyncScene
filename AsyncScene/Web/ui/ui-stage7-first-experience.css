@@ -5,6 +5,7 @@
   background: var(--panel, rgba(20,22,28,.94));
 }
 .stage7FirstExperiencePanel[hidden] { display: none !important; }
+.stage7FirstExperiencePanel { padding: 16px; }
 .stage7FirstExperiencePanel .panelBody,
 .stage7FirstExperiencePanel { color: var(--text, inherit); }
 .stage7FirstExperiencePanel h2 { margin: 0 0 10px; font-size: 1.15rem; }
@@ -49,10 +50,13 @@ html.stage7-first-experience-active #chatInputRow,
 html.stage7-first-experience-active #locPill,
 html.stage7-first-experience-active #locDropdown { display: none !important; }
 html.stage7-first-experience-active #stage7FirstExperiencePanel { display: block !important; }
+html.stage7-first-experience-active #chatLog .bubble { margin-bottom: 6px; }
 @media (max-width: 760px) {
   .stage7VoteRow { grid-template-columns: repeat(5, 1fr); gap: 4px; }
   .stage7VoteMarker { min-height: 34px; font-size: .68rem; }
 }
+html:not(.dev-balance-visible) #balance [data-profile-stat="influence"] { display: none !important; }
+html.dev-balance-visible #balance [data-profile-stat="influence"] { display: inline-flex !important; }
 
 
 /* Stage 7.2 explicit observed-evidence test mode */

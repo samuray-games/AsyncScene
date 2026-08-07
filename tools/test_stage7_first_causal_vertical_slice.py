@@ -36,21 +36,21 @@ require('const STORAGE_KEY_NORMAL = "AsyncScene_first_experience_v1"' in js, "st
 require('const SCENARIO_ID = "first_experience_personal_conflict_v1"' in js, "scenario ID missing")
 require(js.count('const WORLD_ADVANCE_DELAY_MS = 45_000;') == 1, "45-second constant must appear once")
 require('const INTERMISSION_NPCS = [' in js, "three-NPC intermission missing")
-require(js.count('role: "обвинитель"') == 1, "Rayhan intermission NPC missing")
-require(js.count('role: "свидетель"') == 1, "Nastya intermission NPC missing")
-require(js.count('role: "наблюдатель"') == 1, "Oleg intermission NPC missing")
+require(js.count('role: "хозяин магазина"') == 1, "Rayhan intermission NPC missing")
+require(js.count('role: "кассирша"') == 1, "Nastya intermission NPC missing")
+require(js.count('role: "покупатель"') == 1, "Oleg intermission NPC missing")
 
 for label in ("Отрицать", "Обвинить Райхана", "Заплатить"):
     require(label in js, f"missing response label {label}")
-for cta in ("Ответить", "Посмотреть реакцию", "Увидеть голосование", "Принять последствие", "Осмотреться", "Перейти к 6 вопросам"):
+for cta in ("Ответить", "Посмотреть реакцию", "Увидеть голосование", "Продолжить", "Осмотреться", "Перейти к вопросам"):
     require(cta in js, f"missing CTA {cta}")
 for line in (
     "Ты вошёл в комнату.",
-    "Из общей кассы пропали деньги.",
-    "Пропажу заметили ещё до появления новичка?",
-    "Новичок пришёл - и деньги исчезли. Странное совпадение.",
-    "Без доказательств никого не обвиняем.",
-    "Это сделал ты. Деньги пропали после твоего появления.",
+    "Из общей кассы пропали деньги!!!",
+    "Пропажу заметили ещё до появления новичка!",
+    "Новичок пришёл - и деньги исчезли, странное совпадение",
+    "Без доказательств никого не обвиняем!",
+    "это сделал ты!!! деньги пропали после твоего появления!",
 ):
     require(line in js, f"missing prelude line: {line}")
 
@@ -79,8 +79,8 @@ require('bridge.status = "completed"' in js, "completed real battle state missin
 for forbidden in ("window.close", "youtube.com", "location.href =", "fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"):
     require(forbidden not in js, f"forbidden onboarding primitive: {forbidden}")
 
-cache_token = "stage7_14_durable_aftermath_dm_contact_20260807a"
-require(index.count(cache_token) == 2, "expected current JS and CSS cache-buster references")
+cache_token = "stage7_cosmetic_cleanup_20260808a"
+require(index.count(cache_token) >= 2, "expected current JS and CSS cache-buster references")
 require(index.index(f'ui/ui-stage7-first-experience.css?v={cache_token}') > index.index('ui/ui-stage7-essence.css'), "first-experience CSS order wrong")
 require(index.index(f'ui/ui-stage7-first-experience.js?v={cache_token}') < index.index('ui/ui-boot.js'), "controller must load before boot")
 

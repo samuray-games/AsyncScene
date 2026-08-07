@@ -227,6 +227,7 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = displayName(p);
     const inf = influenceOfPlayer(p);
+    if (!isDevBalanceEnabled()) return n;
     if (!n) return `[${inf}]`;
     return `${n} [${inf}]`;
   }
@@ -236,6 +237,7 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = escapeHtml(displayName(p));
     const inf = influenceOfPlayer(p);
+    if (!isDevBalanceEnabled()) return n;
     return `${n} <span class="badge">[${inf}]</span>`;
   }
 
@@ -906,6 +908,10 @@ window.Game = window.Game || {};
   function syncTopbarStatTitles(){
     const bal = $("balance");
     if (!bal) return;
+    const root = document.documentElement;
+    if (root) root.classList.toggle("dev-balance-visible", isDevBalanceEnabled());
+    const influenceChip = bal.querySelector('[data-profile-stat="influence"]');
+    if (influenceChip) influenceChip.hidden = !isDevBalanceEnabled();
     const titles = resolveTopbarStatTitles();
     ["influence", "rep", "points", "wins"].forEach((kind) => {
       const chip = bal.querySelector(`[data-profile-stat="${kind}"]`);
@@ -915,6 +921,7 @@ window.Game = window.Game || {};
     });
   }
   UI.syncTopbarStatTitles = syncTopbarStatTitles;
+  UI.isDevBalanceEnabled = isDevBalanceEnabled;
 
   function statAnchor(kind){
     const bal = $("balance");
