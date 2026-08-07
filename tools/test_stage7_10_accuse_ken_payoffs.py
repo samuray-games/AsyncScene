@@ -13,6 +13,10 @@ CONFLICT_API = Path("AsyncScene/Web/conflict/conflict-api.js")
 controller = CONTROLLER.read_text(encoding="utf-8")
 battles = BATTLES.read_text(encoding="utf-8")
 assert controller == CONTROLLER_DOCS.read_text(encoding="utf-8")
+assert "Теперь ты с Райханом обвиняете друг друга. Остальные должны решить, кому верить." in controller
+assert "После настоящего баттла" not in controller
+assert "Ты победил Райхана в публичном реванше. Теперь ему придётся считаться с твоей версией." in controller
+assert "встречное обвинение выдержало настоящий спор" not in controller
 assert battles == BATTLES_DOCS.read_text(encoding="utf-8")
 assert INDEX.read_text(encoding="utf-8") == INDEX_DOCS.read_text(encoding="utf-8")
 conflict_api = CONFLICT_API.read_text(encoding="utf-8")
