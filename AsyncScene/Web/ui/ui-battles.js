@@ -3226,7 +3226,7 @@ UI.renderBattles = () => {
                const name = p.name || playerId;
                const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
                const inf = Number.isFinite(p.influence) ? (p.influence | 0) : 0;
-               return `${name} 💰${pts} [${inf}]`;
+               return `${name} 💰${pts}`;
              };
              
             const raw = getRawCountsFromVoters(c);
