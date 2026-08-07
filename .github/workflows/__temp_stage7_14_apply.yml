@@ -1,0 +1,43 @@
+name: TEMP Stage7.14 apply
+
+on:
+  push:
+    branches:
+      - chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
+
+permissions:
+  contents: write
+
+jobs:
+  apply-validate-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
+          fetch-depth: 0
+      - name: Apply guarded Stage 7.14 patch
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/__temp_apply_stage7_14.py
+          python3 tools/__temp_apply_stage7_14.py
+      - name: Validate Stage 7.14 and regressions
+        run: |
+          set -euo pipefail
+          node --check AsyncScene/Web/ui/ui-stage7-first-experience.js
+          node --check docs/ui/ui-stage7-first-experience.js
+          python3 tools/test_stage7_12_first_real_battle_aftermath.py
+          python3 tools/test_stage7_13_aftermath_dm_followup.py
+          python3 tools/test_stage7_14_durable_aftermath_dm_contact.py
+          python3 tools/test_stage7_first_causal_vertical_slice.py
+          python3 tools/test_stage7_observed_evidence_harness.py
+      - name: Publish validated branch only
+        run: |
+          set -euo pipefail
+          git config user.name "samuray-games"
+          git config user.email "raykhalit@icloud.com"
+          git rm .github/workflows/__temp_stage7_14_apply.yml tools/__temp_apply_stage7_14.py
+          git add AsyncScene/Web/ui/ui-stage7-first-experience.js docs/ui/ui-stage7-first-experience.js AsyncScene/Web/index.html docs/index.html tools/test_stage7_13_aftermath_dm_followup.py tools/test_stage7_14_durable_aftermath_dm_contact.py
+          git diff --cached --check
+          git commit -m "feat: keep aftermath DM contact across refresh"
+          git push origin HEAD:chatgpt/stage7-14-durable-aftermath-dm-contact-20260807
