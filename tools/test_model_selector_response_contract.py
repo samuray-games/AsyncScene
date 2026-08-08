@@ -69,10 +69,12 @@ class ResponseRelayContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
             start = start_preflight(task(), "relay-thread", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(validate_visible_selector_response(start.output, start.output), [])
+            start_cli_output = f"state directory: {state_dir}\n{start.output}"
+            self.assertEqual(validate_visible_selector_response(start_cli_output, start_cli_output), [])
 
             waiting = record_inventory_ok("relay-thread", task(), "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(validate_visible_selector_response(waiting.output, waiting.output), [])
+            waiting_cli_output = f"state directory: {state_dir}\n{waiting.output}"
+            self.assertEqual(validate_visible_selector_response(waiting_cli_output, waiting_cli_output), [])
 
     def test_truncated_or_reconstructed_visible_responses_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -110,6 +112,30 @@ class ResponseRelayContractTests(unittest.TestCase):
             generated_prose = "status: WAITING_FOR_INVENTORY_CONFIRMATION\nrecommended pair: 5.4 / High\nSwitch the model in the UI and continue."
             failures = validate_visible_selector_response(waiting.output, generated_prose)
             self.assertIn("selector output is not relayed as an ordered visible subsequence", failures)
+
+    def test_malformed_phase_payloads_fail_closed_before_relay(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            start = start_preflight(task(), "relay-malformed", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            missing_inventory = "\n".join(line for line in start.output.splitlines() if not line.startswith("- "))
+            self.assertIn(
+                "selector inventory does not contain every model exactly once",
+                validate_visible_selector_response(missing_inventory, missing_inventory),
+            )
+            leaked_recommendation = start.output + "\nrecommended pair: 5.6 Luna / Light"
+            self.assertIn(
+                "inventory stop leaks forbidden selector block: recommended pair:",
+                validate_visible_selector_response(leaked_recommendation, leaked_recommendation),
+            )
+
+            waiting = record_inventory_ok("relay-malformed", task(), "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            missing_recommendation = "\n".join(
+                line for line in waiting.output.splitlines() if not line.startswith("recommended pair:")
+            )
+            self.assertIn(
+                "selector output missing required line: recommended pair:",
+                validate_visible_selector_response(missing_recommendation, missing_recommendation),
+            )
 
 
 if __name__ == "__main__":

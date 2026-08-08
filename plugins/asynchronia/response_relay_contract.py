@@ -10,6 +10,7 @@ PROMPT_REQUIRED_LINES = (
     "At WAITING_FOR_INVENTORY_CONFIRMATION, relay the complete authoritative inventory with every model and supported effort plus revision, hashes, source, current status, and exact next response; do not print evaluation or recommendation.",
     "At WAITING_FOR_MODEL_SELECTION, relay state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
     "Do not summarize, truncate, omit evaluated pairs, duplicate evaluated pairs, reconstruct different values, or replace executable selector evidence with prose.",
+    "Reject the phase and do not advance state when the first stop lacks the complete inventory block or the second stop lacks the complete recommendation block.",
     "When preflight, transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.",
 )
 
@@ -19,6 +20,7 @@ SKILL_REQUIRED_LINES = (
     "every evaluated model-effort pair exactly once",
     "truncate the executable output",
     "replace executable evidence with an assistant-generated approximation",
+    "binds hashes of both mandatory relay blocks",
 )
 
 ROUTER_REQUIRED_LINES = (
@@ -81,7 +83,9 @@ def validate_visible_selector_response(selector_output: str, visible_response: s
         "model-effort pair count:",
         "exact next response:",
     )
-    is_evaluation = "evaluation matrix:" in selector_lines
+    status_line = _line_with_prefix(selector_lines, "status:")
+    is_inventory = status_line == "status: WAITING_FOR_INVENTORY_CONFIRMATION"
+    is_evaluation = status_line == "status: WAITING_FOR_MODEL_SELECTION"
     if is_evaluation:
         required_lines += (
             "evaluated pair count:",
@@ -90,14 +94,15 @@ def validate_visible_selector_response(selector_output: str, visible_response: s
             "recommended pair:",
             "next more capable plausible pair:",
         )
-    else:
+    elif is_inventory:
         required_lines += ("source artifact blob sha:", "complete authoritative inventory:")
     for prefix in required_lines:
         expected = _line_with_prefix(selector_lines, prefix)
-        if expected is not None and expected not in visible_lines:
+        if expected is None:
+            failures.append(f"selector output missing required line: {prefix}")
+        elif expected not in visible_lines:
             failures.append(f"missing selector line: {expected}")
 
-    status_line = _line_with_prefix(selector_lines, "status:")
     if status_line and status_line not in visible_lines:
         failures.append("relay omits current state line")
 
@@ -111,11 +116,38 @@ def validate_visible_selector_response(selector_output: str, visible_response: s
     if actual_matrix != expected_matrix:
         failures.append("relay matrix lines differ from selector output")
 
+    if is_inventory:
+        forbidden_prefixes = (
+            "evaluated pair count:", "required capability score:", "evaluation matrix:",
+            "cheapest rejected pair:", "recommended pair:", "next more capable plausible pair:",
+        )
+        for prefix in forbidden_prefixes:
+            if _line_with_prefix(selector_lines, prefix) is not None:
+                failures.append(f"inventory stop leaks forbidden selector block: {prefix}")
+        model_count_line = _line_with_prefix(selector_lines, "model count:")
+        if model_count_line is not None:
+            try:
+                expected_models = int(model_count_line.split(":", 1)[1].strip())
+            except ValueError:
+                failures.append("selector model count is malformed")
+            else:
+                if len(expected_matrix) != expected_models:
+                    failures.append("selector inventory does not contain every model exactly once")
+
     if is_evaluation:
         expected_count_line = _line_with_prefix(selector_lines, "evaluated pair count:")
         actual_count_line = _line_with_prefix(actual_window_lines, "evaluated pair count:")
         if expected_count_line != actual_count_line:
             failures.append("relay evaluated-pair count differs from selector output")
+        if expected_count_line is not None:
+            try:
+                evaluated, total = expected_count_line.split(":", 1)[1].strip().split("/", 1)
+                evaluated_count, total_count = int(evaluated), int(total)
+            except ValueError:
+                failures.append("selector evaluated-pair count is malformed")
+            else:
+                if evaluated_count != total_count or len(expected_matrix) != total_count:
+                    failures.append("selector recommendation block does not contain every evaluated pair exactly once")
 
     if window is None:
         failures.append("selector output is not relayed as an ordered visible subsequence")

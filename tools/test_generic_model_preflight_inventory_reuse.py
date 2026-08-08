@@ -69,8 +69,8 @@ def run_cli(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
-    def test_generic_start_reuses_validated_canonical_inventory(self) -> None:
+class GenericModelPreflightHandshakeTests(unittest.TestCase):
+    def test_real_generic_entrypoint_requires_full_two_phase_handshake(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             repo = attached_repo(root)
@@ -78,7 +78,7 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
             state_dir = root / "state"
             task_file.write_text(json.dumps(preflight_repair_task()), encoding="utf-8")
 
-            result = run_cli(
+            start = run_cli(
                 repo,
                 "start",
                 "--thread-id",
@@ -91,11 +91,18 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
                 str(state_dir),
             )
 
-            self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
-            self.assertIn("inventory confirmation: AUTO_REUSED_CANONICAL_SNAPSHOT", result.stdout)
-            self.assertIn("status: WAITING_FOR_MODEL_SELECTION", result.stdout)
-            self.assertIn("exact next response: CONTINUE", result.stdout)
-            self.assertNotIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.stdout)
+            self.assertEqual(start.returncode, 0, start.stderr or start.stdout)
+            self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
+            self.assertIn("complete authoritative inventory:", start.stdout)
+            self.assertEqual(sum(line.startswith("- ") for line in start.stdout.splitlines()), 6)
+            self.assertIn("model count: 6", start.stdout)
+            self.assertIn("model-effort pair count: 29", start.stdout)
+            for forbidden in (
+                "evaluated pair count:", "evaluation matrix:", "required capability score:",
+                "cheapest rejected pair:", "recommended pair:", "next more capable plausible pair:",
+            ):
+                self.assertNotIn(forbidden, start.stdout)
+            self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", start.stdout)
 
             inspected = run_cli(
                 repo,
@@ -107,11 +114,37 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
             )
             self.assertEqual(inspected.returncode, 0, inspected.stderr or inspected.stdout)
             payload = json.loads(inspected.stdout.split("\n", 1)[1])
-            self.assertEqual(payload["state"], "WAITING_FOR_MODEL_SELECTION")
-            self.assertIsNotNone(payload["inventoryConfirmedAt"])
-            self.assertIn("INVENTORY_CONFIRMED", payload["stateHistory"])
+            self.assertEqual(payload["state"], "WAITING_FOR_INVENTORY_CONFIRMATION")
+            self.assertIsNone(payload["inventoryConfirmedAt"])
+            for forbidden in ("completeMatrixHash", "recommendation", "requiredCapabilityScore", "evaluatedPairCount"):
+                self.assertNotIn(forbidden, payload)
 
-    def test_changed_or_invalid_snapshot_never_auto_reuses_inventory(self) -> None:
+            common = [
+                "--thread-id", "generic-inventory-reuse",
+                "--task-file", str(task_file),
+                "--baseline", "a" * 40,
+                "--state-dir", str(state_dir),
+            ]
+            early_continue = run_cli(repo, "continue", *common, "--token", "CONTINUE")
+            self.assertNotEqual(early_continue.returncode, 0)
+            self.assertIn("BLOCKED_MODEL_PREFLIGHT", early_continue.stderr)
+
+            inventory_ok = run_cli(repo, "inventory-ok", *common)
+            self.assertEqual(inventory_ok.returncode, 0, inventory_ok.stderr or inventory_ok.stdout)
+            self.assertIn("status: WAITING_FOR_MODEL_SELECTION", inventory_ok.stdout)
+            self.assertIn("evaluated pair count: 29/29", inventory_ok.stdout)
+            self.assertEqual(sum(line.startswith("- ") for line in inventory_ok.stdout.splitlines()), 29)
+            for required in (
+                "required capability score:", "cheapest rejected pair:", "recommended pair:",
+                "next more capable plausible pair:", "exact next response: CONTINUE",
+            ):
+                self.assertIn(required, inventory_ok.stdout)
+
+            allowed = run_cli(repo, "continue", *common, "--token", "CONTINUE")
+            self.assertEqual(allowed.returncode, 0, allowed.stderr or allowed.stdout)
+            self.assertIn("status: IMPLEMENTATION_ALLOWED", allowed.stdout)
+
+    def test_changed_or_invalid_snapshot_fails_closed_before_inventory_pause(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             repo = attached_repo(root)

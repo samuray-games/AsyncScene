@@ -52,6 +52,10 @@ def main() -> int:
         '"IMPLEMENTATION_ALLOWED"',
         "taskDescriptionHash",
         "completeMatrixHash",
+        "inventoryRelayOutputHash",
+        "recommendationRelayOutputHash",
+        "_validate_inventory_phase_output",
+        "_validate_recommendation_phase_output",
         "recommended pair:",
     )
     for needle in required_selector:
@@ -77,8 +81,10 @@ def main() -> int:
             failures.append(f"CLI missing {command}")
     if "reserved bridge tasks must use bridge-start" not in cli:
         failures.append("generic CLI does not reject fabricated bridge task input")
-    if "AUTO_REUSED_CANONICAL_SNAPSHOT" not in cli:
-        failures.append("generic CLI does not reuse validated canonical inventory")
+    if "AUTO_REUSED_CANONICAL_SNAPSHOT" in cli:
+        failures.append("generic CLI still bypasses exact same-thread INVENTORY_OK")
+    if "validate_visible_selector_response" not in cli or "invalid mandatory selector relay payload" not in cli:
+        failures.append("executable CLI does not fail closed on malformed relay payloads")
 
     required_policy = (
         "bridge-start",
@@ -135,8 +141,9 @@ def main() -> int:
                 "bridgeAuthorityAdapter": "PASS",
                 "deterministicBridgeClassification": "PASS",
                 "gitPrivateDurableState": "PASS",
-                "genericCanonicalInventoryReuse": "PASS",
-                "bridgeInventoryConfirmationGate": "PASS",
+                "genericAndBridgeInventoryConfirmationGate": "PASS",
+                "twoPhaseRelayPayloadGate": "PASS",
+                "genericEntrypointE2E": "PASS",
                 "sameThreadContinueGate": "PASS",
                 "mailboxMovementInvalidation": "PASS",
                 "fabricatedBridgeTaskRejection": "PASS",

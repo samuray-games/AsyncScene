@@ -66,10 +66,16 @@ The only inventory authority is `plugins/asynchronia/model-selector-authority.js
 
 Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
 
-Mutation output prints:
+The first mutation stop prints:
 
-- task identity, descriptor hash, exact read/write scopes;
 - snapshot revision/hash and complete inventory;
+- all six models and every supported effort;
+- model and model-effort pair counts;
+- exact next response `INVENTORY_OK or INVENTORY_CHANGED`;
+- no evaluation, required score, rejected frontier, recommendation, or next capable pair.
+
+After exact same-thread `INVENTORY_OK`, the second mutation stop prints:
+
 - evaluated `N/N` matrix;
 - required capability score;
 - rejected frontier and reason;
@@ -81,7 +87,7 @@ Mutation output prints:
 
 At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout. The first stop contains only the complete authoritative inventory and no evaluation or recommendation; the second contains the complete evaluation matrix and recommendation.
 
-Required visible relay fields:
+Required at both visible stops:
 
 - `state directory`
 - `status`
@@ -91,6 +97,15 @@ Required visible relay fields:
 - `source artifact`
 - `model count`
 - `model-effort pair count`
+
+Required only at `WAITING_FOR_INVENTORY_CONFIRMATION`:
+
+- source artifact blob SHA;
+- complete authoritative inventory with all six models and all supported efforts;
+- exact next response `INVENTORY_OK or INVENTORY_CHANGED`.
+
+Required only at `WAITING_FOR_MODEL_SELECTION`:
+
 - `evaluated pair count`
 - `required capability score`
 - cost authority revision/hash, pricing basis, and official source artifact
@@ -101,7 +116,9 @@ Required visible relay fields:
 - `cheapest rejected pair` and its reason
 - `recommended pair`
 - `next more capable plausible pair`
-- `exact next response`
+- exact next response `CONTINUE`
+
+The executable state machine binds hashes of both mandatory relay blocks. A missing, truncated, malformed, or tampered block must fail closed before `INVENTORY_OK` or `CONTINUE` can advance the state.
 
 Forbidden relay behavior:
 

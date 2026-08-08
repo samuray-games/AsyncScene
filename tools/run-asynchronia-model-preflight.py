@@ -31,6 +31,7 @@ from plugins.asynchronia.model_selector_runtime import (  # noqa: E402
     resolve_default_state_dir,
     start_preflight,
 )
+from plugins.asynchronia.response_relay_contract import validate_visible_selector_response  # noqa: E402
 
 
 def _state_options(parser: argparse.ArgumentParser) -> None:
@@ -119,6 +120,15 @@ def _bridge(args: argparse.Namespace):
     return descriptor
 
 
+def _emit_result(state_dir: Path, result) -> None:
+    payload = f"state directory: {state_dir}\n{result.output}"
+    if result.status in {"WAITING_FOR_INVENTORY_CONFIRMATION", "WAITING_FOR_MODEL_SELECTION"}:
+        failures = validate_visible_selector_response(payload, payload)
+        if failures:
+            raise AuthorizationError("invalid mandatory selector relay payload: " + "; ".join(failures))
+    print(payload)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
@@ -135,22 +145,7 @@ def main(argv: list[str] | None = None) -> int:
                 path=_snapshot(args),
                 plugin_root=args.plugin_root,
             )
-            # Generic non-bridge work already uses the canonical repository snapshot.
-            # start_preflight/load_snapshot fail closed if that authority is stale or changed,
-            # so a second human INVENTORY_OK round-trip adds no safety here. Preserve the
-            # explicit inventory handshake for bridge-start, where repository policy requires it.
-            if result.status == "WAITING_FOR_INVENTORY_CONFIRMATION":
-                result = record_inventory_ok(
-                    args.thread_id,
-                    task,
-                    args.baseline,
-                    branch=selected_branch,
-                    state_dir=state_dir,
-                    path=_snapshot(args),
-                )
-                print("inventory confirmation: AUTO_REUSED_CANONICAL_SNAPSHOT")
-            print(f"state directory: {state_dir}")
-            print(result.output)
+            _emit_result(state_dir, result)
         elif args.command == "inventory-ok":
             task = _generic_task(args)
             result = record_inventory_ok(
@@ -161,8 +156,7 @@ def main(argv: list[str] | None = None) -> int:
                 state_dir=state_dir,
                 path=_snapshot(args),
             )
-            print(f"state directory: {state_dir}")
-            print(result.output)
+            _emit_result(state_dir, result)
         elif args.command == "inventory-changed":
             print(f"state directory: {state_dir}")
             print(record_inventory_changed(args.thread_id, state_dir=state_dir))
@@ -190,8 +184,7 @@ def main(argv: list[str] | None = None) -> int:
                 state_dir=state_dir,
                 path=_snapshot(args),
             )
-            print(f"state directory: {state_dir}")
-            print(result.output)
+            _emit_result(state_dir, result)
         elif args.command == "bridge-inventory-ok":
             descriptor = _bridge(args)
             result = record_inventory_ok(
@@ -202,8 +195,7 @@ def main(argv: list[str] | None = None) -> int:
                 state_dir=state_dir,
                 path=_snapshot(args),
             )
-            print(f"state directory: {state_dir}")
-            print(result.output)
+            _emit_result(state_dir, result)
         elif args.command == "bridge-continue":
             descriptor = _bridge(args)
             print(f"state directory: {state_dir}")

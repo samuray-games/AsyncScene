@@ -47,6 +47,7 @@
       "At WAITING_FOR_INVENTORY_CONFIRMATION, relay the complete authoritative inventory with every model and supported effort plus revision, hashes, source, current status, and exact next response; do not print evaluation or recommendation.",
       "At WAITING_FOR_MODEL_SELECTION, relay state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
       "Do not summarize, truncate, omit evaluated pairs, duplicate evaluated pairs, reconstruct different values, or replace executable selector evidence with prose.",
+      "Reject the phase and do not advance state when the first stop lacks the complete inventory block or the second stop lacks the complete recommendation block.",
       "When preflight, transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.",
       "Report exact selector CLI command, exit status, stdout, stderr, branch, worktree path, state directory, and task descriptor provenance when preflight evidence is requested."
     ]

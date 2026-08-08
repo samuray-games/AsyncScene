@@ -757,6 +757,66 @@ def _inventory_output(snapshot: Mapping[str, object], next_response: str) -> str
     return "\n".join(lines)
 
 
+def _validate_inventory_phase_output(snapshot: Mapping[str, object], output: str) -> None:
+    lines = output.splitlines()
+    required = (
+        "status: WAITING_FOR_INVENTORY_CONFIRMATION",
+        "authorization path: MUTATION_PREFLIGHT_REQUIRED",
+        f"snapshot revision: {snapshot['snapshotRevision']}",
+        f"snapshot hash: {snapshot['canonicalContentHash']}",
+        f"source artifact: {snapshot['sourceArtifact']['path']}",
+        f"source artifact blob sha: {snapshot['sourceArtifact']['blobSha']}",
+        f"model count: {snapshot['completeModelCount']}",
+        f"model-effort pair count: {snapshot['completeModelEffortPairCount']}",
+        "complete authoritative inventory:",
+        "exact next response: INVENTORY_OK or INVENTORY_CHANGED",
+    )
+    missing = [line for line in required if line not in lines]
+    inventory_lines = [line for line in lines if line.startswith("- ")]
+    expected_inventory = [
+        f"- {model['modelLabel']} ({model['modelIdentifier']}): efforts="
+        + ", ".join(effort["effortLabel"] for effort in model["supportedEfforts"])
+        for model in snapshot["models"]
+    ]
+    forbidden = (
+        "evaluated pair count:", "required capability score:", "evaluation matrix:",
+        "cheapest rejected pair:", "recommended pair:", "next more capable plausible pair:",
+    )
+    leaked = [prefix for prefix in forbidden if any(line.startswith(prefix) for line in lines)]
+    if missing or inventory_lines != expected_inventory or leaked:
+        raise AuthorizationError(
+            "invalid WAITING_FOR_INVENTORY_CONFIRMATION relay block: "
+            f"missing={missing}; inventory_match={inventory_lines == expected_inventory}; leaked={leaked}"
+        )
+
+
+def _validate_recommendation_phase_output(snapshot: Mapping[str, object], report: EvaluationReport, output: str) -> None:
+    lines = output.splitlines()
+    required_prefixes = (
+        "status: WAITING_FOR_MODEL_SELECTION",
+        "authorization path: MUTATION_PREFLIGHT_REQUIRED",
+        "snapshot revision:", "snapshot hash:", "source artifact:",
+        "cost authority revision:", "cost authority hash:", "pricing basis:",
+        "official cost source artifact:", "ordered cost tiers:",
+        "recommendation selection policy:", "model count:", "model-effort pair count:",
+        "evaluated pair count:", "required capability score:", "evaluation matrix:",
+        "cheapest rejected pair:", "recommended pair:",
+        "next more capable plausible pair:", "exact next response: CONTINUE",
+    )
+    missing = [prefix for prefix in required_prefixes if not any(line.startswith(prefix) for line in lines)]
+    matrix_lines = [line for line in lines if line.startswith("- ")]
+    matrix_pairs = [f"- {item.modelLabel} / {item.effortLabel}:" for item in report.evaluations]
+    matrix_match = len(matrix_lines) == snapshot["completeModelEffortPairCount"] and all(
+        line.startswith(prefix) for line, prefix in zip(matrix_lines, matrix_pairs)
+    )
+    recommendation_line = f"recommended pair: {report.recommendation.modelLabel} / {report.recommendation.effortLabel}"
+    if missing or not matrix_match or recommendation_line not in lines:
+        raise AuthorizationError(
+            "invalid WAITING_FOR_MODEL_SELECTION relay block: "
+            f"missing={missing}; matrix_match={matrix_match}; recommendation_match={recommendation_line in lines}"
+        )
+
+
 def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str, plugin_root: Path | None) -> str:
     evidence = _read_plugin_runtime_evidence(plugin_root)
     authority = _cost_authority(snapshot)
@@ -788,11 +848,14 @@ def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *
     if _is_read_only_task(valid_task):
         output = _read_only_output(valid_task, snapshot, baseline, plugin_root)
         return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
+    output = _inventory_output(snapshot, "INVENTORY_OK or INVENTORY_CHANGED")
+    _validate_inventory_phase_output(snapshot, output)
     state = _preliminary_identity(valid_task, snapshot, thread_id, selected_branch, baseline)
+    state["inventoryRelayOutputHash"] = _sha256(output)
     state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, None, _inventory_output(snapshot, "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, None, output, thread_id)
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
@@ -805,14 +868,21 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     _assert_preliminary_identity(state, valid_task, snapshot, thread_id, selected_branch, baseline)
     if state["state"] != "WAITING_FOR_INVENTORY_CONFIRMATION":
         raise AuthorizationError("INVENTORY_OK is invalid in the current state")
+    inventory_output = _inventory_output(snapshot, "INVENTORY_OK or INVENTORY_CHANGED")
+    _validate_inventory_phase_output(snapshot, inventory_output)
+    if state.get("inventoryRelayOutputHash") != _sha256(inventory_output):
+        raise AuthorizationError("INVENTORY_OK requires the complete inventory relay block")
     report = evaluate_task(snapshot, valid_task)
+    output = _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE")
+    _validate_recommendation_phase_output(snapshot, report, output)
     state.update(_identity(valid_task, snapshot, report, thread_id, selected_branch, baseline))
+    state["recommendationRelayOutputHash"] = _sha256(output)
     state["stateHistory"].append("INVENTORY_CONFIRMED")
     state["state"] = "WAITING_FOR_MODEL_SELECTION"
     state["stateHistory"].append("WAITING_FOR_MODEL_SELECTION")
     state["inventoryConfirmedAt"] = _now()
     _write_state(state, state_dir)
-    return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, build_candidate_matrix(snapshot), report, _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE"), thread_id)
+    return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, build_candidate_matrix(snapshot), report, output, thread_id)
 
 
 def _authority_report(snapshot: Mapping[str, object], updated_snapshot: Mapping[str, object]) -> str:
@@ -857,6 +927,10 @@ def record_continue(thread_id: str, token: str, task: Mapping[str, object], base
     _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
     if state["state"] != "WAITING_FOR_MODEL_SELECTION" or not state.get("inventoryConfirmedAt"):
         raise AuthorizationError("inventory confirmation is required before CONTINUE")
+    recommendation_output = _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE")
+    _validate_recommendation_phase_output(snapshot, report, recommendation_output)
+    if state.get("recommendationRelayOutputHash") != _sha256(recommendation_output):
+        raise AuthorizationError("CONTINUE requires the complete recommendation relay block")
     state["state"] = "CONTINUE_RECEIVED"
     state["stateHistory"].append("CONTINUE_RECEIVED")
     state["continueReceivedAt"] = _now()
