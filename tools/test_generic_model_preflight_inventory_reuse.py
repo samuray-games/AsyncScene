@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -8,8 +9,6 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CLI = ROOT / "tools/run-asynchronia-model-preflight.py"
-SNAPSHOT = ROOT / "plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json"
 
 
 def preflight_repair_task() -> dict[str, object]:
@@ -32,10 +31,38 @@ def preflight_repair_task() -> dict[str, object]:
     }
 
 
-def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, str(CLI), *args],
+def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=check)
+
+
+def attached_repo(root: Path) -> Path:
+    repo = root / "repo"
+    repo.mkdir()
+    tracked_and_untracked = run(
+        "git",
+        "ls-files",
+        "-co",
+        "--exclude-standard",
         cwd=ROOT,
+    ).stdout.splitlines()
+    for relative in tracked_and_untracked:
+        source = ROOT / relative
+        target = repo / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    run("git", "init", "-q", cwd=repo)
+    run("git", "config", "user.name", "Generic Preflight Regression", cwd=repo)
+    run("git", "config", "user.email", "generic-preflight-regression@local.invalid", cwd=repo)
+    run("git", "add", ".", cwd=repo)
+    run("git", "commit", "-qm", "generic preflight regression fixture", cwd=repo)
+    run("git", "branch", "-M", "test/generic-preflight-inventory-reuse", cwd=repo)
+    return repo
+
+
+def run_cli(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(repo / "tools/run-asynchronia-model-preflight.py"), *args],
+        cwd=repo,
         capture_output=True,
         text=True,
         check=False,
@@ -46,11 +73,13 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
     def test_generic_start_reuses_validated_canonical_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            repo = attached_repo(root)
             task_file = root / "task.json"
             state_dir = root / "state"
             task_file.write_text(json.dumps(preflight_repair_task()), encoding="utf-8")
 
             result = run_cli(
+                repo,
                 "start",
                 "--thread-id",
                 "generic-inventory-reuse",
@@ -69,6 +98,7 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
             self.assertNotIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.stdout)
 
             inspected = run_cli(
+                repo,
                 "inspect",
                 "--thread-id",
                 "generic-inventory-reuse",
@@ -84,16 +114,19 @@ class GenericModelPreflightInventoryReuseTests(unittest.TestCase):
     def test_changed_or_invalid_snapshot_never_auto_reuses_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            repo = attached_repo(root)
             task_file = root / "task.json"
             state_dir = root / "state"
             bad_snapshot = root / "snapshot.json"
             task_file.write_text(json.dumps(preflight_repair_task()), encoding="utf-8")
 
-            snapshot = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+            snapshot_path = repo / "plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json"
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
             snapshot["canonicalContentHash"] = "sha256:" + ("0" * 64)
             bad_snapshot.write_text(json.dumps(snapshot), encoding="utf-8")
 
             result = run_cli(
+                repo,
                 "start",
                 "--thread-id",
                 "generic-invalid-inventory",
