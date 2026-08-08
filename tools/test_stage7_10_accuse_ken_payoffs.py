@@ -11,6 +11,44 @@ INDEX_DOCS = Path("docs/index.html")
 CONFLICT_API = Path("AsyncScene/Web/conflict/conflict-api.js")
 
 controller = CONTROLLER.read_text(encoding="utf-8")
+CORE = Path("AsyncScene/Web/ui/ui-core.js")
+DM = Path("AsyncScene/Web/ui/ui-dm.js")
+EVENTS = Path("AsyncScene/Web/ui/ui-events.js")
+BATTLES = Path("AsyncScene/Web/ui/ui-battles.js")
+assert "showStatNameToast" in CORE.read_text(encoding="utf-8")
+assert "bindStatNameToastInteractions" in CORE.read_text(encoding="utf-8")
+assert "toast.onclick = () => dismissDeltaToast(kind);" in CORE.read_text(encoding="utf-8")
+assert "Действие недоступно." in DM.read_text(encoding="utf-8")
+assert "isDevCrowdMode" in EVENTS.read_text(encoding="utf-8")
+assert "isDevCrowdMode" in BATTLES.read_text(encoding="utf-8")
+
+CORE_DOCS = Path("docs/ui/ui-core.js")
+DM_DOCS = Path("docs/ui/ui-dm.js")
+EVENTS_DOCS = Path("docs/ui/ui-events.js")
+BATTLES_DOCS_UI = Path("docs/ui/ui-battles.js")
+core = CORE.read_text(encoding="utf-8")
+dm = DM.read_text(encoding="utf-8")
+events = EVENTS.read_text(encoding="utf-8")
+battles_text = BATTLES.read_text(encoding="utf-8")
+for source, mirror in [
+    (CORE, CORE_DOCS),
+    (DM, DM_DOCS),
+    (EVENTS, EVENTS_DOCS),
+    (BATTLES, BATTLES_DOCS_UI),
+]:
+    assert source.read_bytes() == mirror.read_bytes(), (source, mirror)
+assert 'showStatNameToast("rep", "Репутация")' in core
+assert 'setTimeout(() => showStatNameToast("points", "Баланс"), 350);' in core
+assert 'chip.addEventListener("click"' in core
+assert 'toast.onclick = () => dismissDeltaToast(kind);' in core
+assert 'const securityMessage = isDevUi()' in dm
+assert 'dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.' not in dm
+assert 'return isDevCrowdMode ? `${n} [${inf}]` : n;' in battles_text
+assert 'Служба безопасности блокирует баттл.' in battles_text
+assert 'Действие недоступно.' in battles_text
+assert "stage7Transition" in controller
+assert "Пока Райхан собирает сторонников" in controller
+assert "хочет обсудить, чем закончился спор" in controller
 battles = BATTLES.read_text(encoding="utf-8")
 assert controller == CONTROLLER_DOCS.read_text(encoding="utf-8")
 assert "Теперь ты с Райханом обвиняете друг друга. Остальные должны решить, кому верить." in controller
@@ -39,7 +77,7 @@ for marker in [
 ]:
     assert marker in battles, marker
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
-    assert text.count("stage7_14_durable_aftermath_dm_contact_20260807a") >= 2
+    assert text.count("stage7_cosmetic_cleanup_20260808a") >= 2
 
 subprocess.run(["node", "--check", str(CONTROLLER)], check=True)
 subprocess.run(["node", "--check", str(CONTROLLER_DOCS)], check=True)

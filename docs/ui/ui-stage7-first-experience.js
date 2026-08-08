@@ -27,7 +27,7 @@ window.Game = window.Game || {};
     { id: "room_entered", at: 1000, name: "System", text: "Ты вошёл в комнату.", system: true },
     { id: "mika_missing_money", at: 3500, name: "Настя", text: "Из общей кассы пропали деньги." },
     { id: "oleg_context", at: 6500, name: "Олег", text: "Пропажу заметили ещё до появления новичка?" },
-    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл - и деньги исчезли. Странное совпадение." },
+    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл — и деньги исчезли. Странное совпадение." },
     { id: "mika_brake", at: 12500, name: "Настя", text: "Без доказательств никого не обвиняем." },
     { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты. Деньги пропали после твоего появления." },
   ];
@@ -867,7 +867,12 @@ window.Game = window.Game || {};
       snapshot.stateId = "accusation";
     }
     saveSnapshot();
-    pushLine(entry);
+    const renderedEntry = entry.id === "ken_accusation"
+      ? Object.assign({}, entry, {
+        text: `@${context.playerName || (getState() && getState().me && getState().me.name) || "Игрок"}, это ты. Деньги пропали после твоего появления.`,
+      })
+      : entry;
+    pushLine(renderedEntry);
     telemetry("first_experience.prelude_message_shown", { messageId: entry.id });
     if (entry.id === "room_entered") telemetry("first_experience.room_entered");
     if (entry.id === "ken_accusation") telemetry("first_experience.accusation_triggered");
@@ -994,8 +999,9 @@ window.Game = window.Game || {};
         <div class="stage7EvidenceBadge">Второй раунд завершён</div>
         <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
         <p>${result.body}</p>
-        ${actionButton("Перейти к 6 вопросам", "open-onboarding-questionnaire")}
         <div class="stage7Support">После вопросов откроется полная игра.</div>
+        <p class="stage7Transition">Пока Райхан собирает сторонников, ответь на 6 простых вопросов — так ты поймёшь, как работает игра.</p>
+        ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
       </div>`;
   }
 
@@ -1225,15 +1231,15 @@ window.Game = window.Game || {};
     const contact = getFirstBattleAftermathDmContactRecord();
     if (!panel || !contact) return false;
     const statusText = contact.dmStatus === "pending"
-      ? "После баттла у тебя осталось личное сообщение."
-      : "Переписка после баттла сохранена.";
+      ? `${contact.npcName} хочет обсудить, чем закончился спор. Открой личку, когда будешь готов.`
+      : `Сообщение от ${contact.npcName} уже в переписке. Открой личку, чтобы перечитать его.`;
     panel.innerHTML = `
       <div class="stage7BranchFollowUp stage7AftermathDmContact" data-testid="stage7-aftermath-dm-contact">
         <div class="stage7EvidenceBadge">Личный контакт</div>
         <h2>${contact.npcName}</h2>
         <p>${statusText}</p>
         ${actionButton(`Открыть личку: ${contact.npcName}`, "open-aftermath-dm-contact")}
-        <div class="stage7Support">Игра открыта. Личка не откроется сама после обновления страницы.</div>
+        <div class="stage7Support">Открой личку, когда будешь готов. После обновления страницы она сама не откроется.</div>
       </div>`;
     return true;
   }

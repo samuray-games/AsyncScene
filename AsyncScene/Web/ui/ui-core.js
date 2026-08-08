@@ -227,8 +227,8 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = displayName(p);
     const inf = influenceOfPlayer(p);
-    if (!n) return `[${inf}]`;
-    return `${n} [${inf}]`;
+    if (!n) return isDevBalanceEnabled() ? `[${inf}]` : "";
+    return isDevBalanceEnabled() ? `${n} [${inf}]` : n;
   }
 
   // Returns HTML for meta header usage: name + pill span
@@ -236,6 +236,7 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = escapeHtml(displayName(p));
     const inf = influenceOfPlayer(p);
+    if (!isDevBalanceEnabled()) return n;
     return `${n} <span class="badge">[${inf}]</span>`;
   }
 
@@ -903,6 +904,43 @@ window.Game = window.Game || {};
     return TOPBAR_STAT_TITLES[resolveTopbarProfileKey()] || TOPBAR_STAT_TITLES.default;
   }
 
+  function showStatNameToast(kind, text){
+    const anchor = statAnchor(kind);
+    if (!anchor || !anchor.getBoundingClientRect) return null;
+    const id = `statToast_name_${kind}`;
+    let toast = document.getElementById(id);
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = id;
+      toast.className = "statToast statToast--name";
+      toast.dataset.statName = kind;
+      toast.onclick = () => { try { toast.remove(); } catch (_) { toast.style.display = "none"; } };
+      document.body.appendChild(toast);
+    }
+    toast.textContent = String(text || "");
+    const r = anchor.getBoundingClientRect();
+    toast.style.left = `${Math.round(r.left + (r.width / 2))}px`;
+    toast.style.top = `${Math.round(r.top - 8)}px`;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    toast.style.transform = "translate(-50%, -100%)";
+    return toast;
+  }
+
+  function bindStatNameToastInteractions(){
+    const titles = resolveTopbarStatTitles();
+    ["rep", "points", "wins"].forEach((kind) => {
+      const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
+      if (!chip || chip.dataset.statNameToastBound === "1") return;
+      chip.dataset.statNameToastBound = "1";
+      chip.addEventListener("click", () => {
+        showStatNameToast(kind, titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || kind);
+      });
+    });
+  }
+
+  UI.showStatNameToast = showStatNameToast;
+
   function syncTopbarStatTitles(){
     const bal = $("balance");
     if (!bal) return;
@@ -913,6 +951,16 @@ window.Game = window.Game || {};
       const title = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
       if (icon) icon.setAttribute("title", title);
     });
+    bindStatNameToastInteractions();
+    while (pendingStatDeltas.length) {
+      const pending = pendingStatDeltas.shift();
+      showDeltaToastInstant(pending.kind, pending.delta, pending.opts);
+    }
+    if (!UI.__initialStatNameToastsShown) {
+      UI.__initialStatNameToastsShown = true;
+      showStatNameToast("rep", "Репутация");
+      setTimeout(() => showStatNameToast("points", "Баланс"), 350);
+    }
   }
   UI.syncTopbarStatTitles = syncTopbarStatTitles;
 
@@ -954,6 +1002,7 @@ window.Game = window.Game || {};
   }
 
   const activeDeltaToasts = {};
+  const pendingStatDeltas = [];
 
   function dismissDeltaToast(kind){
     const prev = activeDeltaToasts[kind];
@@ -967,7 +1016,10 @@ window.Game = window.Game || {};
     const d = (delta | 0);
     if (!kind || !d) return null;
     const anchor = statAnchor(kind);
-    if (!anchor) return null;
+    if (!anchor) {
+      pendingStatDeltas.push({ kind, delta: d, opts: opts || null });
+      return null;
+    }
 
     const icons = { influence: "⚡", rep: "⭐", points: "💰", wins: "🏆" };
     const icon = icons[kind] || "";
@@ -997,7 +1049,7 @@ window.Game = window.Game || {};
     const proof = opts && opts.__moneyLogRef ? opts.__moneyLogRef : null;
     if (proof && proof.txId) toast.dataset.txId = String(proof.txId);
     if (proof && Number.isFinite(proof.logIndex)) toast.dataset.logIndex = String(proof.logIndex);
-    toast.onclick = () => { try { toast.remove(); } catch (_) { toast.style.display = "none"; } };
+    toast.onclick = () => dismissDeltaToast(kind);
     document.body.appendChild(toast);
 
     toast.textContent = text;
@@ -1007,7 +1059,7 @@ window.Game = window.Game || {};
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%)";
 
-  activeDeltaToasts[`${kind}:${toast.id}`] = { el: toast, value: d };
+  activeDeltaToasts[kind] = { el: toast, value: d };
   try {
     const tape = Game && Game.__DEV ? (Game.__DEV.__toastTape__ || []) : [];
       tape.push({
