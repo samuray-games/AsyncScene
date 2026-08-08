@@ -1,6 +1,6 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.18 model preflight using official Codex-credit authority, cheapest-sufficient selection, canonical generic inventory reuse, bridge-authority-derived task descriptions, sandbox-safe durable state, bridge INVENTORY_OK, and exact same-thread CONTINUE.
+description: Run Asynchronia 1.0.18 model preflight using official Codex-credit authority, cheapest-sufficient selection, authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
 ---
 
 # Model Selector 1.0.18
@@ -16,29 +16,17 @@ Run `tools/run-asynchronia-model-preflight.py`. Do not simulate the selector in 
 - `READ_ONLY_ALLOWED` applies only when write scope is empty or exactly `NONE_READ_ONLY`. It performs no matrix evaluation, emits no recommendation, writes no state, and requests neither `INVENTORY_OK` nor `CONTINUE`.
 - `MUTATION_PREFLIGHT_REQUIRED` applies to every mutation-capable task.
 
-Generic non-bridge mutation flow:
+The mutation state machine is exactly:
 
-1. `start` validates the canonical repository snapshot and its bound inventory authority.
-2. If that authority is unchanged and valid, the CLI records the existing canonical inventory as reused automatically. It must not ask the user for another `INVENTORY_OK` round-trip.
-3. `WAITING_FOR_MODEL_SELECTION`.
-4. The user selects the printed model and effort in the Codex UI.
-5. Exact same-thread `CONTINUE`.
-6. `SCOPE_REVALIDATED`.
-7. `IMPLEMENTATION_ALLOWED`.
+1. `WAITING_FOR_INVENTORY_CONFIRMATION`
+2. exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`
+3. `WAITING_FOR_MODEL_SELECTION`
+4. user selects the printed model and effort in the Codex UI
+5. exact same-thread `CONTINUE`
+6. `SCOPE_REVALIDATED`
+7. `IMPLEMENTATION_ALLOWED`
 
-If the canonical snapshot, authority artifact, revision, blob binding, counts, or hash are stale or invalid, generic auto-reuse is forbidden and the selector fails closed. It must never silently bless changed or unknown inventory.
-
-Exact numbered bridge mutation flow remains deliberately stricter:
-
-1. `WAITING_FOR_INVENTORY_CONFIRMATION`.
-2. Exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`.
-3. `WAITING_FOR_MODEL_SELECTION`.
-4. The user selects the printed model and effort in the Codex UI.
-5. Exact same-thread `CONTINUE`.
-6. `SCOPE_REVALIDATED`.
-7. `IMPLEMENTATION_ALLOWED`.
-
-No repository or external-state mutation is allowed before `IMPLEMENTATION_ALLOWED`. Selector state transitions themselves are preflight bookkeeping and remain allowed.
+No mutation is allowed before `IMPLEMENTATION_ALLOWED`.
 
 ## Authoritative bridge task adapter
 
@@ -70,13 +58,11 @@ The default selector state directory is resolved with:
 
 This keeps state in Git-private, sandbox-writable storage shared by linked worktrees. The default must never use the legacy user-home directory and must never write under `.ai-bridge/**`. `ASYNCHRONIA_SELECTOR_STATE_DIR` is accepted only as an explicit absolute override.
 
-State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, official cost-authority revision/hash, pricing basis, timestamps, state history, and expiry. Any mismatch or stale state fails closed. For fresh generic non-bridge `start`, a valid canonical inventory is recorded into that thread state automatically; for bridges, inventory confirmation remains explicit and same-thread.
+State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, official cost-authority revision/hash, pricing basis, timestamps, state history, and expiry. Any mismatch or stale state fails closed.
 
 ## Inventory and recommendation
 
 The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
-
-For generic non-bridge work, successful authority validation is sufficient to reuse the already confirmed canonical inventory without asking the user to reconfirm identical inventory. Any authority mismatch fails closed. For exact numbered bridge work, repository policy still requires the explicit `INVENTORY_OK` / `INVENTORY_CHANGED` handshake.
 
 Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
 
@@ -93,7 +79,7 @@ Mutation output prints:
 
 ## Visible response relay
 
-At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout.
+At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout. The first stop contains only the complete authoritative inventory and no evaluation or recommendation; the second contains the complete evaluation matrix and recommendation.
 
 Required visible relay fields:
 
@@ -111,7 +97,7 @@ Required visible relay fields:
 - exact credits and `TIER_N` / `cost-tier=N` on every matrix row
 - ordered cost tiers and the cheapest-sufficient selection policy
 - the complete ordered evaluation matrix
-- every evaluated model-effort pair exactly once
+- every evaluated model-effort pair exactly once at `WAITING_FOR_MODEL_SELECTION`
 - `cheapest rejected pair` and its reason
 - `recommended pair`
 - `next more capable plausible pair`
@@ -135,9 +121,9 @@ The user chooses the actual model in the Codex interface. Codex self-report abou
 
 Generic non-bridge task commands:
 
-- `start --task-file ... --thread-id ... --baseline ...` validates and automatically reuses unchanged canonical inventory, then stops at `WAITING_FOR_MODEL_SELECTION`.
-- `continue --task-file ... --thread-id ... --baseline ... --token CONTINUE`.
-- `inventory-ok --task-file ... --thread-id ... --baseline ...` remains only for compatibility with an already-created legacy generic state that is still waiting for inventory confirmation; a fresh generic `start` must not require it.
+- `start --task-file ... --thread-id ... --baseline ...`
+- `inventory-ok --task-file ... --thread-id ... --baseline ...`
+- `continue --task-file ... --thread-id ... --baseline ... --token CONTINUE`
 
 Bridge commands:
 
