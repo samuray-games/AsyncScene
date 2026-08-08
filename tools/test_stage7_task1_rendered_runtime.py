@@ -28,6 +28,8 @@ for filename in MIRRORS:
 core = (SOURCE / "ui-core.js").read_text(encoding="utf-8")
 chat = (SOURCE / "ui-chat.js").read_text(encoding="utf-8")
 profile = (SOURCE / "ui-profile-visual-tone-repair.js").read_text(encoding="utf-8")
+boot = (SOURCE / "ui-boot.js").read_text(encoding="utf-8")
+docs_boot = (DOCS / "ui-boot.js").read_text(encoding="utf-8")
 stage7 = (SOURCE / "ui-stage7-first-experience.js").read_text(encoding="utf-8")
 
 for line in (
@@ -46,12 +48,34 @@ require("preserveText=false" in core, "ui-core pushChat has no preserveText para
 require("system || preserveText ? String(text || \"\")" in core, "ui-core still normalizes authored text")
 require("m.preserveText !== true" in chat, "ui-chat has no explicit authored-text gate")
 require("hasMentions" not in chat, "ui-chat still uses mentions as a normalization bypass")
-require("STARTUP_NAME_VISIBLE_MS" in profile and "STARTUP_NAME_GAP_MS" in profile, "startup lifecycle constants missing")
-require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v2" in profile, "versioned startup session key missing")
-require("requestStartupNameToasts" in profile and "STARTUP_NAME_MAX_RETRIES" in profile, "readiness-aware startup retry missing")
+require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v3" in profile, "click-only startup session key missing")
+require("requestStartupNameToasts" in profile and "stage7:player-entered-game" in profile, "authoritative game-enter transition missing")
+require("STARTUP_NAME_VISIBLE_MS" not in profile and "STARTUP_NAME_GAP_MS" not in profile, "startup still has auto-dismiss timing")
+require("setTimeout(requestStartupNameToasts" not in profile, "startup still starts from a timer")
 require("stage6StartupNameToast" in profile, "dedicated startup toast node missing")
 require("positionStartupNameToast" in profile, "startup toast is not anchored to stat chips")
-require("cancelStartupNameToastLifecycle();" in profile, "manual stat tap does not cancel startup lifecycle")
+require("pointerEvents = \"auto\"" in profile, "startup toast is not user-dismissible")
+require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in boot, "boot does not publish authoritative game-enter transition")
+require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in docs_boot, "docs boot mirror lacks authoritative game-enter transition")
+
+active_toast_files = {
+    "battles": (SOURCE / "ui-battles.js").read_text(encoding="utf-8"),
+    "events": (SOURCE / "ui-events.js").read_text(encoding="utf-8"),
+    "menu": (SOURCE / "ui-menu.js").read_text(encoding="utf-8"),
+}
+active_toast_contracts = [
+    (profile, "function showStartupNameToast"), (profile, "function showNamedDeltaToast"), (profile, "function ensureUnifiedToast"),
+    (core, "function showDeltaToastInstant"), (core, "UI.showStatToast = (kind, text) =>"), (core, "UI.showActionToast ="),
+    (active_toast_files["battles"], "function showBtnToastRight"), (active_toast_files["battles"], "function showChipToastAbove"),
+    (active_toast_files["events"], "function showVoteBtnToast"), (active_toast_files["menu"], "function showLotteryToast"),
+]
+for source_text, marker in active_toast_contracts:
+    start = source_text.find(marker)
+    require(start >= 0, f"active toast implementation missing: {marker}")
+    end = source_text.find("\n  function ", start + len(marker))
+    body = source_text[start:end if end >= 0 else start + 2600]
+    require("onclick" in body, f"{marker} has no explicit click/tap dismissal")
+    require("setTimeout" not in body, f"{marker} has timer-based disappearance")
 
 
 node_harness = r"""
@@ -150,29 +174,28 @@ function runStartupLifecycleRegression(options = {}) {
   pointsChip.rect = { left: 210, top: 18, right: 250, bottom: 42, width: 40, height: 24 };
   const repAnchor = makeNode("span"); repAnchor.rect = { left: 24, top: 18, right: 64, bottom: 42, width: 40, height: 24 };
   const pointsAnchor = makeNode("span"); pointsAnchor.rect = { left: 210, top: 18, right: 250, bottom: 42, width: 40, height: 24 };
-  const selector = { rep: repChip, points: pointsChip };
-  const anchorsReady = { value: options.delayedAnchors !== true };
+  const anchorsReady = { value: true };
+  const startScreenVisible = { value: true };
   const children = [];
   const timers = [];
   let timerSeq = 0;
-  const storage = new Map(options.staleSession === true ? [["stage7_startup_stat_name_toasts", "1"]] : []);
+  const storage = new Map(options.staleSession === true ? [
+    ["stage7_startup_stat_name_toasts", "1"],
+    ["stage7_startup_stat_name_toasts_v2", "completed"],
+  ] : []);
   const body = makeNode("body");
+  const startScreen = makeNode("div", "startScreen");
+  startScreen.classList.contains = (name) => name === "hidden" && !startScreenVisible.value;
   body.appendChild = (child) => { children.push(child); child._parent = body; if (child.id) nodes[child.id] = child; return child; };
   body._onRemove = (child) => { const index = children.indexOf(child); if (index >= 0) children.splice(index, 1); if (child.id) delete nodes[child.id]; };
   function setTimer(fn, delay) { const item = { id: ++timerSeq, fn, delay: Number(delay) || 0, cleared: false, ran: false }; timers.push(item); return item.id; }
   function clearTimer(id) { const item = timers.find((entry) => entry.id === id); if (item) item.cleared = true; }
-  function runTimer(delay) {
-    const item = timers.find((entry) => !entry.cleared && !entry.ran && entry.delay === delay);
-    assert(item, `timer ${delay} not scheduled`);
-    item.ran = true; item.fn();
-  }
   const document = {
     body,
     documentElement: { clientWidth: 390, clientHeight: 844, classList: { toggle() {} } },
     createElement: (tag) => makeNode(tag),
-    getElementById: (id) => nodes[id] || null,
+    getElementById: (id) => id === "startScreen" ? startScreen : (nodes[id] || null),
     querySelector: (selectorText) => {
-      if (!anchorsReady.value && (selectorText === '[data-profile-stat="rep"]' || selectorText === '[data-profile-stat="points"]')) return null;
       if (selectorText === '[data-profile-stat="rep"]') return repChip;
       if (selectorText === '[data-profile-stat="points"]') return pointsChip;
       return null;
@@ -206,44 +229,42 @@ function runStartupLifecycleRegression(options = {}) {
   sandbox.window.innerWidth = 390; sandbox.window.innerHeight = 844;
   sandbox.window.listeners = {};
   sandbox.window.addEventListener = (name, fn) => { sandbox.window.listeners[name] = fn; };
+  sandbox.window.dispatchEvent = (event) => {
+    const listener = sandbox.window.listeners[event.type];
+    if (listener) listener(event);
+  };
+  sandbox.Event = function Event(type) { this.type = type; };
   sandbox.window.sessionStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, String(value)) };
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: "ui-profile-visual-tone-repair.js" });
-  runTimer(0);
-  if (options.delayedAnchors === true) {
-    assert.strictEqual(children.length, 0, "startup must wait while stat anchors are absent");
-    runTimer(250);
-    assert.strictEqual(children.length, 0, "bounded retry must not show before anchors exist");
-    anchorsReady.value = true;
-    runTimer(250);
-  }
+  assert.strictEqual(children.length, 0, "startup must not run while start screen is visible");
+  sandbox.window.dispatchEvent(new sandbox.Event("stage7:player-entered-game"));
+  assert.strictEqual(children.length, 0, "visible start screen must block startup hints");
+  startScreenVisible.value = false;
+  sandbox.window.dispatchEvent(new sandbox.Event("stage7:player-entered-game"));
   assert.strictEqual(children.length, 1);
   assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Репутация");
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) < 150);
   assert(nodes.stage6StartupNameToast.style.top.includes("48"));
-  runTimer(850);
-  assert.strictEqual(children.length, 0);
-  runTimer(160);
+  assert.strictEqual(timers.filter((item) => !item.cleared && !item.ran).length, 0, "startup must not schedule auto-dismiss timers");
+  for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Репутация disappeared without user action");
+  nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
   assert.strictEqual(children.length, 1);
   assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Баланс");
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) > 150);
-  runTimer(850);
-  assert.strictEqual(children.length, 0);
-  assert.strictEqual(storage.get("stage7_startup_stat_name_toasts_v2"), "completed");
-  if (options.delayedAnchors !== true) {
-    assert(repChip.listeners.click);
-    repChip.listeners.click();
-    assert(nodes.stage6DeltaNameToast_rep);
-    assert.strictEqual(nodes.stage6StartupNameToast, undefined);
-  }
-  if (sandbox.document.listeners.DOMContentLoaded) sandbox.document.listeners.DOMContentLoaded();
-  if (sandbox.window.listeners.load) sandbox.window.listeners.load();
-  assert.strictEqual(nodes.stage6StartupNameToast, undefined, "completed startup session must not replay after readiness events");
+  for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Баланс disappeared without user action");
+  nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
+  assert.strictEqual(nodes.stage6StartupNameToast, undefined);
+  assert.strictEqual(storage.get("stage7_startup_stat_name_toasts_v3"), "completed");
+  assert(repChip.listeners.click);
+  repChip.listeners.click();
+  assert(nodes.stage6DeltaNameToast_rep, "manual stat tap no longer shows its name");
+  sandbox.window.dispatchEvent(new sandbox.Event("stage7:player-entered-game"));
+  assert.strictEqual(nodes.stage6StartupNameToast, undefined, "completed startup session must not replay");
 }
 
 runChatRenderRegression();
 runStartupLifecycleRegression();
-runStartupLifecycleRegression({ delayedAnchors: true });
 runStartupLifecycleRegression({ staleSession: true });
 console.log("PASS_STAGE7_TASK1_RENDERED_RUNTIME");
 """
