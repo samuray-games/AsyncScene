@@ -7,20 +7,22 @@ from dataclasses import dataclass
 
 PROMPT_REQUIRED_LINES = (
     "At WAITING_FOR_INVENTORY_CONFIRMATION and WAITING_FOR_MODEL_SELECTION, faithfully relay the complete executable selector stdout to the user-visible response.",
-    "The visible mutation preflight response must include state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
+    "At WAITING_FOR_INVENTORY_CONFIRMATION, relay the complete authoritative inventory with every model and supported effort plus revision, hashes, source, current status, and exact next response; do not print evaluation or recommendation.",
+    "At WAITING_FOR_MODEL_SELECTION, relay state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
     "Do not summarize, truncate, omit evaluated pairs, duplicate evaluated pairs, reconstruct different values, or replace executable selector evidence with prose.",
     "When preflight, transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.",
 )
 
 SKILL_REQUIRED_LINES = (
     "At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout.",
+    "complete authoritative inventory",
     "every evaluated model-effort pair exactly once",
     "truncate the executable output",
     "replace executable evidence with an assistant-generated approximation",
 )
 
 ROUTER_REQUIRED_LINES = (
-    "The router must carry the selector's exact output forward unchanged at `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, including every evaluated pair, the current state, and the exact next response.",
+    "The router must carry the selector's exact output forward unchanged at `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, including the complete inventory or every evaluated pair as appropriate, the current state, and the exact next response.",
     "The router must preserve the exact same-thread fenced `CONTINUE` token when current policy requires the pause.",
 )
 
@@ -77,13 +79,19 @@ def validate_visible_selector_response(selector_output: str, visible_response: s
         "source artifact:",
         "model count:",
         "model-effort pair count:",
-        "evaluated pair count:",
-        "required capability score:",
-        "cheapest rejected pair:",
-        "recommended pair:",
-        "next more capable plausible pair:",
         "exact next response:",
     )
+    is_evaluation = "evaluation matrix:" in selector_lines
+    if is_evaluation:
+        required_lines += (
+            "evaluated pair count:",
+            "required capability score:",
+            "cheapest rejected pair:",
+            "recommended pair:",
+            "next more capable plausible pair:",
+        )
+    else:
+        required_lines += ("source artifact blob sha:", "complete authoritative inventory:")
     for prefix in required_lines:
         expected = _line_with_prefix(selector_lines, prefix)
         if expected is not None and expected not in visible_lines:
@@ -103,10 +111,11 @@ def validate_visible_selector_response(selector_output: str, visible_response: s
     if actual_matrix != expected_matrix:
         failures.append("relay matrix lines differ from selector output")
 
-    expected_count_line = _line_with_prefix(selector_lines, "evaluated pair count:")
-    actual_count_line = _line_with_prefix(actual_window_lines, "evaluated pair count:")
-    if expected_count_line != actual_count_line:
-        failures.append("relay evaluated-pair count differs from selector output")
+    if is_evaluation:
+        expected_count_line = _line_with_prefix(selector_lines, "evaluated pair count:")
+        actual_count_line = _line_with_prefix(actual_window_lines, "evaluated pair count:")
+        if expected_count_line != actual_count_line:
+            failures.append("relay evaluated-pair count differs from selector output")
 
     if window is None:
         failures.append("selector output is not relayed as an ordered visible subsequence")
