@@ -27,7 +27,7 @@ window.Game = window.Game || {};
   const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
-  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v3";
+  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v4";
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -799,6 +799,7 @@ window.Game = window.Game || {};
   const deltaToastStates = Object.create(null);
   let startupNameLifecycleStarted = false;
   let startupNameLayoutCleanup = null;
+  let startupNameLayoutFrame = null;
 
   function getDeltaToastState(kind) {
     const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
@@ -860,14 +861,22 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function removeStartupNameToast() {
-    if (startupNameLayoutCleanup) {
-      startupNameLayoutCleanup();
-      startupNameLayoutCleanup = null;
-    }
-    const el = document.getElementById("stage6StartupNameToast");
+  function startupNameToastId(kind) {
+    return `stage6StartupNameToast_${kind}`;
+  }
+
+  function removeStartupNameToast(kind) {
+    const el = document.getElementById(startupNameToastId(kind));
     if (el) {
       try { el.remove(); } catch (_) { el.style.display = "none"; }
+    }
+    const anyVisible = ["rep", "points"].some((key) => {
+      const node = document.getElementById(startupNameToastId(key));
+      return node && node.style.display !== "none";
+    });
+    if (!anyVisible && startupNameLayoutCleanup) {
+      startupNameLayoutCleanup();
+      startupNameLayoutCleanup = null;
     }
   }
 
@@ -881,8 +890,8 @@ window.Game = window.Game || {};
     const height = Math.max(28, Number(el.offsetHeight || 28));
     const top = Math.max(8, r.top - height - 6);
     const center = Math.min(
-      viewportWidth - (width / 2) - 8,
-      Math.max((width / 2) + 8, r.left + (r.width / 2))
+      viewportWidth - (width / 2),
+      Math.max(width / 2, r.left + (r.width / 2))
     );
     el.style.left = `${Math.round(center)}px`;
     el.style.top = `${Math.round(top)}px`;
@@ -892,8 +901,19 @@ window.Game = window.Game || {};
   }
 
   function repositionVisibleStartupNameToast() {
-    const el = document.getElementById("stage6StartupNameToast");
-    if (el && el.style.display !== "none") positionStartupNameToast(el.dataset.statKind, el);
+    ["rep", "points"].forEach((kind) => {
+      const el = document.getElementById(startupNameToastId(kind));
+      if (el && el.style.display !== "none") positionStartupNameToast(kind, el);
+    });
+  }
+
+  function queueStartupNameReposition() {
+    repositionVisibleStartupNameToast();
+    if (startupNameLayoutFrame !== null || typeof requestAnimationFrame !== "function") return;
+    startupNameLayoutFrame = requestAnimationFrame(() => {
+      startupNameLayoutFrame = null;
+      repositionVisibleStartupNameToast();
+    });
   }
 
   function trackStartupNameToastLayout() {
@@ -901,7 +921,7 @@ window.Game = window.Game || {};
     const disposers = [];
     const topbar = document.getElementById("topBar") || document.getElementById("balance");
     if (typeof MutationObserver === "function" && topbar) {
-      const observer = new MutationObserver(repositionVisibleStartupNameToast);
+      const observer = new MutationObserver(queueStartupNameReposition);
       observer.observe(topbar, {
         attributes: true,
         attributeFilter: ["class", "style", "hidden"],
@@ -912,55 +932,95 @@ window.Game = window.Game || {};
       disposers.push(() => observer.disconnect());
     }
     if (typeof ResizeObserver === "function") {
-      const observer = new ResizeObserver(repositionVisibleStartupNameToast);
+      const observer = new ResizeObserver(queueStartupNameReposition);
       if (topbar) observer.observe(topbar);
-      const target = startupStatValueAnchor(document.getElementById("stage6StartupNameToast")?.dataset.statKind);
-      if (target) observer.observe(target);
+      ["rep", "points"].forEach((kind) => {
+        const target = startupStatValueAnchor(kind);
+        if (target) observer.observe(target);
+      });
       disposers.push(() => observer.disconnect());
     }
-    const originalRenderAll = UI && UI.renderAll;
-    if (typeof originalRenderAll === "function") {
-      const wrappedRenderAll = function stage7StartupToastAwareRenderAll(...args) {
-        const result = originalRenderAll.apply(this, args);
-        repositionVisibleStartupNameToast();
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready
+      && typeof document.fonts.ready.then === "function") {
+      let active = true;
+      document.fonts.ready.then(() => {
+        if (active && startupNameLayoutCleanup) queueStartupNameReposition();
+      });
+      disposers.push(() => { active = false; });
+    }
+    ["renderAll", "updateArgStrengthPills", "updateMeNamePill"].forEach((hookName) => {
+      const originalHook = UI && UI[hookName];
+      if (typeof originalHook !== "function") return;
+      const wrappedHook = function stage7StartupToastAwareLayoutHook(...args) {
+        const result = originalHook.apply(this, args);
+        queueStartupNameReposition();
         return result;
       };
-      UI.renderAll = wrappedRenderAll;
+      UI[hookName] = wrappedHook;
       disposers.push(() => {
-        if (UI.renderAll === wrappedRenderAll) UI.renderAll = originalRenderAll;
+        if (UI[hookName] === wrappedHook) UI[hookName] = originalHook;
       });
-    }
-    startupNameLayoutCleanup = () => disposers.splice(0).forEach((dispose) => dispose());
+    });
+    startupNameLayoutCleanup = () => {
+      disposers.splice(0).forEach((dispose) => dispose());
+      if (startupNameLayoutFrame !== null && typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(startupNameLayoutFrame);
+      }
+      startupNameLayoutFrame = null;
+    };
   }
 
   function showStartupNameToast(kind) {
-    removeStartupNameToast();
-    if (!startupStatValueAnchor(kind)) return false;
+    const key = String(kind || "");
+    if (!(["rep", "points"].includes(key))) return false;
+    const existing = document.getElementById(startupNameToastId(key));
+    if (existing) {
+      positionStartupNameToast(key, existing);
+      return true;
+    }
+    if (!startupStatValueAnchor(key)) return false;
     const el = document.createElement("div");
-    el.id = "stage6StartupNameToast";
+    el.id = startupNameToastId(key);
     el.className = "statToast statToast--startup-name";
-    el.dataset.statKind = kind;
-    el.textContent = deltaName(kind);
+    el.dataset.statKind = key;
+    const label = document.createElement("span");
+    label.className = "statToast__label";
+    label.textContent = deltaName(key);
+    el.appendChild(label);
+    if (key === "rep") {
+      const hint = document.createElement("span");
+      hint.className = "statToast__hint";
+      hint.textContent = "нажми, чтобы закрыть";
+      hint.style.fontSize = "9px";
+      hint.style.fontWeight = "600";
+      hint.style.color = "rgba(255,255,255,.68)";
+      el.appendChild(hint);
+    }
     el.style.padding = "5px 9px";
     el.style.fontSize = "12px";
+    el.style.display = "flex";
+    el.style.flexDirection = "column";
+    el.style.alignItems = "center";
+    el.style.gap = "2px";
     el.style.whiteSpace = "nowrap";
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
-    el.setAttribute("aria-label", `${deltaName(kind)}. Нажмите, чтобы закрыть.`);
+    el.setAttribute("aria-label", `${deltaName(key)}. нажми, чтобы закрыть.`);
     el.onclick = (event) => {
       if (event && typeof event.stopPropagation === "function") event.stopPropagation();
-      advanceStartupNameToast(kind);
+      advanceStartupNameToast(key);
     };
     document.body.appendChild(el);
-    if (!positionStartupNameToast(kind, el)) {
-      removeStartupNameToast();
+    if (!positionStartupNameToast(key, el)) {
+      removeStartupNameToast(key);
       return false;
     }
     el.style.display = "block";
     el.style.opacity = "1";
     trackStartupNameToastLayout();
+    queueStartupNameReposition();
     return true;
   }
 
@@ -1033,14 +1093,35 @@ window.Game = window.Game || {};
   }
 
   function startupNameLifecycleCompleted() {
+    return startupNameSessionState().completed === true;
+  }
+
+  function startupNameSessionState() {
     try {
-      return window.sessionStorage && window.sessionStorage.getItem(STARTUP_NAME_STORAGE_KEY) === "completed";
-    } catch (_) {}
-    return false;
+      const raw = window.sessionStorage && window.sessionStorage.getItem(STARTUP_NAME_STORAGE_KEY);
+      if (raw === "completed") return { repDismissed: true, pointsDismissed: true, completed: true };
+      const parsed = raw ? JSON.parse(raw) : {};
+      return {
+        repDismissed: parsed && parsed.repDismissed === true,
+        pointsDismissed: parsed && parsed.pointsDismissed === true,
+        completed: parsed && parsed.completed === true
+      };
+    } catch (_) {
+      return { repDismissed: false, pointsDismissed: false, completed: false };
+    }
+  }
+
+  function startupNameDismissed(kind) {
+    const state = startupNameSessionState();
+    return kind === "rep" ? state.repDismissed : state.pointsDismissed;
+  }
+
+  function persistStartupNameSessionState(state) {
+    try { window.sessionStorage.setItem(STARTUP_NAME_STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
   }
 
   function completeStartupNameToastLifecycle() {
-    try { window.sessionStorage.setItem(STARTUP_NAME_STORAGE_KEY, "completed"); } catch (_) {}
+    persistStartupNameSessionState({ repDismissed: true, pointsDismissed: true, completed: true });
     startupNameLifecycleStarted = false;
   }
 
@@ -1048,17 +1129,20 @@ window.Game = window.Game || {};
     if (startupNameLifecycleStarted || startupNameLifecycleCompleted()) return;
     if (!startupStatValueAnchor("rep") || !startupStatValueAnchor("points")) return;
     startupNameLifecycleStarted = true;
-    if (!showStartupNameToast("rep")) startupNameLifecycleStarted = false;
+    const state = startupNameSessionState();
+    const repShown = state.repDismissed || showStartupNameToast("rep");
+    const pointsShown = state.pointsDismissed || showStartupNameToast("points");
+    if (!repShown || !pointsShown) startupNameLifecycleStarted = false;
   }
 
   function advanceStartupNameToast(kind) {
     if (!startupNameLifecycleStarted) return;
-    removeStartupNameToast();
-    if (kind === "rep") {
-      if (!showStartupNameToast("points")) startupNameLifecycleStarted = false;
-      return;
-    }
-    if (kind === "points") completeStartupNameToastLifecycle();
+    if (kind !== "rep" && kind !== "points") return;
+    const state = startupNameSessionState();
+    state[`${kind}Dismissed`] = true;
+    removeStartupNameToast(kind);
+    if (state.repDismissed && state.pointsDismissed) completeStartupNameToastLifecycle();
+    else persistStartupNameSessionState(state);
   }
 
   function requestStartupNameToasts() {

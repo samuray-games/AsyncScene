@@ -52,7 +52,7 @@ require("preserveText=false" in core, "ui-core pushChat has no preserveText para
 require("system || preserveText ? String(text || \"\")" in core, "ui-core still normalizes authored text")
 require("m.preserveText !== true" in chat, "ui-chat has no explicit authored-text gate")
 require("hasMentions" not in chat, "ui-chat still uses mentions as a normalization bypass")
-require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v3" in profile, "click-only startup session key missing")
+require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v4" in profile, "simultaneous startup session key missing")
 require("requestStartupNameToasts" in profile and "stage7:player-entered-game" in profile, "authoritative game-enter transition missing")
 require("STARTUP_NAME_VISIBLE_MS" not in profile and "STARTUP_NAME_GAP_MS" not in profile, "startup still has auto-dismiss timing")
 require("setTimeout(requestStartupNameToasts" not in profile, "startup still starts from a timer")
@@ -61,6 +61,9 @@ require("positionStartupNameToast" in profile, "startup toast positioning functi
 require("startupStatValueAnchor" in profile, "startup toast is not anchored to visible stat values")
 require("r.top - height - 6" in profile, "startup toast is not positioned above the visible stat value")
 require("pointerEvents = \"auto\"" in profile, "startup toast is not user-dismissible")
+require("startupNameToastId" in profile and "stage6StartupNameToast_${kind}" in profile, "startup toasts are not independently keyed")
+require("нажми, чтобы закрыть" in profile, "reputation onboarding hint missing")
+require("repDismissed" in profile and "pointsDismissed" in profile, "startup partial-dismiss state missing")
 require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in boot, "boot does not publish authoritative game-enter transition")
 require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in docs_boot, "docs boot mirror lacks authoritative game-enter transition")
 
@@ -87,7 +90,7 @@ require("document.body.appendChild(el)" in active_toast_files["battles"], "battl
 require("document.body.appendChild(el)" in active_toast_files["events"], "event/vote toast is not body-owned")
 require("style.transition" not in active_toast_files["battles"], "battle toast still uses a CSS transition lifecycle")
 require("style.transition" not in active_toast_files["events"], "event/vote toast still uses a CSS transition lifecycle")
-require("stage7StartupToastAwareRenderAll" in profile, "startup toast is not attached to the authoritative render hook")
+require("stage7StartupToastAwareLayoutHook" in profile, "startup toast is not attached to the authoritative layout hooks")
 require("MutationObserver" in profile and "ResizeObserver" in profile, "startup toast has no event-driven layout tracking")
 require("showNamedDeltaToast(entry.key, shownTotal)" not in profile, "numeric delta dismissal still creates a replacement toast")
 require("Свидетель Насти раскрыл цвет первого аргумента." in (SOURCE / "ui-battles.js").read_text(encoding="utf-8"), "neutral witness copy missing")
@@ -266,42 +269,43 @@ function runStartupLifecycleRegression(options = {}) {
   assert.strictEqual(children.length, 0, "visible start screen must block startup hints");
   startScreenVisible.value = false;
   sandbox.window.dispatchEvent(new sandbox.Event("stage7:player-entered-game"));
-  assert.strictEqual(children.length, 1);
-  assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Репутация");
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) < 150);
-  assert(nodes.stage6StartupNameToast.style.top.includes("48"));
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < repValue.rect.top);
-  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((repValue.rect.left + repValue.rect.right) / 2)) <= 1);
+  assert.strictEqual(children.length, 2);
+  assert(nodes.stage6StartupNameToast_rep && nodes.stage6StartupNameToast_points, "both startup toasts must appear together");
+  assert.strictEqual(nodes.stage6StartupNameToast_rep.children[0].textContent, "Репутация");
+  assert.strictEqual(nodes.stage6StartupNameToast_rep.children[1].textContent, "нажми, чтобы закрыть");
+  assert.strictEqual(nodes.stage6StartupNameToast_points.children.length, 1, "balance toast must not duplicate the onboarding hint");
   const repInitial = { ...repValue.rect };
-  repValue.rect = { left: 92, top: 124, right: 104, bottom: 148, width: 12, height: 24 };
-  UI.renderAll();
-  assert(repValue.rect.left !== repInitial.left || repValue.rect.top !== repInitial.top, "reflow fixture did not move reputation target");
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < repValue.rect.top, "reputation toast did not follow moved target");
-  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((repValue.rect.left + repValue.rect.right) / 2)) <= 1, "reputation toast did not recenter after reflow");
-  assert.strictEqual(timers.filter((item) => !item.cleared && !item.ran).length, 0, "startup must not schedule auto-dismiss timers");
-  for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Репутация disappeared without user action");
-  nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
-  assert.strictEqual(children.length, 1);
-  assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Баланс");
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) > 150);
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < pointsValue.rect.top);
-  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((pointsValue.rect.left + pointsValue.rect.right) / 2)) <= 1);
   const pointsInitial = { ...pointsValue.rect };
+  repValue.rect = { left: 92, top: 124, right: 104, bottom: 148, width: 12, height: 24 };
   pointsValue.rect = { left: 156, top: 136, right: 168, bottom: 160, width: 12, height: 24 };
   UI.renderAll();
+  assert(repValue.rect.left !== repInitial.left || repValue.rect.top !== repInitial.top, "reflow fixture did not move reputation target");
   assert(pointsValue.rect.left !== pointsInitial.left || pointsValue.rect.top !== pointsInitial.top, "reflow fixture did not move balance target");
-  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < pointsValue.rect.top, "balance toast did not follow moved target");
-  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((pointsValue.rect.left + pointsValue.rect.right) / 2)) <= 1, "balance toast did not recenter after reflow");
-  for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Баланс disappeared without user action");
-  nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
-  assert.strictEqual(nodes.stage6StartupNameToast, undefined);
-  assert.strictEqual(storage.get("stage7_startup_stat_name_toasts_v3"), "completed");
+  ["rep", "points"].forEach((kind) => {
+    const node = nodes[`stage6StartupNameToast_${kind}`];
+    const target = kind === "rep" ? repValue : pointsValue;
+    assert(Number.parseInt(node.style.top, 10) + node.offsetHeight < target.rect.top, `${kind} toast did not follow moved target`);
+    assert(Math.abs(Number.parseInt(node.style.left, 10) - ((target.rect.left + target.rect.right) / 2)) <= 1, `${kind} toast did not recenter after reflow`);
+  });
+  assert.strictEqual(timers.filter((item) => !item.cleared && !item.ran).length, 0, "startup must not schedule auto-dismiss timers");
+  for (let i = 0; i < 30; i += 1) {
+    assert(nodes.stage6StartupNameToast_rep.isConnected, "Репутация disappeared without user action");
+    assert(nodes.stage6StartupNameToast_points.isConnected, "Баланс disappeared without user action");
+  }
+  nodes.stage6StartupNameToast_rep.onclick({ stopPropagation() {} });
+  assert.strictEqual(nodes.stage6StartupNameToast_rep, undefined, "reputation toast did not dismiss independently");
+  assert(nodes.stage6StartupNameToast_points, "balance toast was affected by reputation dismissal");
+  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v4")).completed, false);
+  nodes.stage6StartupNameToast_points.onclick({ stopPropagation() {} });
+  assert.strictEqual(nodes.stage6StartupNameToast_points, undefined);
+  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v4")).completed, true);
   assert.strictEqual(UI.renderAll, originalRenderAll, "startup layout hook leaked after completion");
   assert(repChip.listeners.click);
   repChip.listeners.click();
   assert(nodes.stage6DeltaNameToast_rep, "manual stat tap no longer shows its name");
   sandbox.window.dispatchEvent(new sandbox.Event("stage7:player-entered-game"));
-  assert.strictEqual(nodes.stage6StartupNameToast, undefined, "completed startup session must not replay");
+  assert.strictEqual(nodes.stage6StartupNameToast_rep, undefined, "completed startup session must not replay reputation");
+  assert.strictEqual(nodes.stage6StartupNameToast_points, undefined, "completed startup session must not replay balance");
 }
 
 function runProfileVocabularyRegression() {

@@ -66,7 +66,7 @@ require("Игра открыта. Личка не откроется сама п
 require("deltaName" in tone and "namedDeltaText" in tone, "verbal delta labels missing")
 require("Баланс" in tone and "Репутация" in tone, "balance/rep delta names missing")
 require("bindDeltaChipTaps" in tone, "mobile delta tap binding missing")
-require("requestStartupNameToasts" in tone and "stage7_startup_stat_name_toasts_v3" in tone, "startup name-toast click-only path missing")
+require("requestStartupNameToasts" in tone and "stage7_startup_stat_name_toasts_v4" in tone, "simultaneous startup name-toast path missing")
 require("stage7:player-entered-game" in tone and "stage7:player-entered-game" in boot, "startup is not bound to the authoritative game-enter transition")
 require('"Репутация"' in tone and '"Баланс"' in tone, "startup stat names missing")
 require('[data-profile-stat="${kind}"]' in tone and '"rep", "points"' in tone, "rep/points tap targets missing")
