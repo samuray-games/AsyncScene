@@ -433,7 +433,9 @@ window.Game = window.Game || {};
 
     const resolved = !!e?.resolved;
 
-    const titleFallback = `${aName} [${aInf}] vs ${bName} [${bInf}]`;
+    const titleFallback = UI.isDevBalanceEnabled && UI.isDevBalanceEnabled()
+      ? `${aName} [${aInf}] vs ${bName} [${bInf}]`
+      : `${aName} vs ${bName}`;
     let safeTitle = (e?.title && String(e.title).trim().length)
       ? String(e.title)
       : titleFallback;
