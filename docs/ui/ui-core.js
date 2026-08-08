@@ -785,7 +785,7 @@ window.Game = window.Game || {};
     return t;
   }
 
-  function pushChat({ name, text, system=false, id=null, action=null, battleId=null, speakerId=null, sourceTag=null }) {
+  function pushChat({ name, text, system=false, id=null, action=null, battleId=null, speakerId=null, sourceTag=null, preserveText=false }) {
     let msgName = name;
     if (system) {
       const n = String(msgName || "").trim().toLowerCase();
@@ -801,7 +801,8 @@ window.Game = window.Game || {};
       action: action || null,
       battleId: battleId || null,
       sourceTag: sourceTag || null,
-      text: system ? String(text || "") : (isCopSpeaker(name) ? String(text || "") : normalizePublic(text)),
+      preserveText: !!preserveText,
+      text: system || preserveText ? String(text || "") : (isCopSpeaker(name) ? String(text || "") : normalizePublic(text)),
     };
     // Attach resolved speakerId for reliable influence pill rendering
     const speaker = getPlayerByName(name);
