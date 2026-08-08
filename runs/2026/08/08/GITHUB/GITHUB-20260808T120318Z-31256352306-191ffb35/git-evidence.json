@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "7d8fd5d8af57f496298a5090992c778bdd08852d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7d8fd5d8af57f496298a5090992c778bdd08852d\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "7d8fd5d8 (HEAD, pull/330/merge) Merge b7ac56fb79e4af359fdf61661f226d7208161ebc into cd1d5dc8a37fedb3fe11d598926a0ef31cf77788\nb7ac56fb (origin/codex/stage7-task1-toast-click-only-20260808) chore: restore unrelated launcher archives\nb978374e fix: make Task 1 toasts click-only after game entry\ncd1d5dc8 (origin/main) fix: make startup stat hints readiness aware\n57cf9b49 fix: preserve Stage 7 opening copy and refine startup stat hints\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7d8fd5d8af57f496298a5090992c778bdd08852d\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:03:18Z",
+      "stderr": "",
+      "stdout": "cd1d5dc8a37fedb3fe11d598926a0ef31cf77788\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7d8fd5d8af57f496298a5090992c778bdd08852d",
+  "observedAtUtc": "2026-08-08T12:03:18Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
