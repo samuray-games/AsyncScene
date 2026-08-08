@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-task1-corrective-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "codex/stage7-task1-corrective-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "59d795d80c20e56ed5de387330881078e24173ec\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "# branch.oid 59d795d80c20e56ed5de387330881078e24173ec\n# branch.head codex/stage7-task1-corrective-20260808\n# branch.upstream origin/codex/stage7-task1-corrective-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "59d795d8 (HEAD -> codex/stage7-task1-corrective-20260808, origin/codex/stage7-task1-corrective-20260808) fix: complete Stage 7 Task 1 corrective copy\nd44ebe69 (origin/main) fix: stop generic preflight from re-asking INVENTORY_OK\n119b32fa fix: complete three missed Stage 7 cosmetic requirements\n1551a100 Merge pull request #318 from samuray-games/codex/stage7-cosmetic-runtime-cleanup-20260808\ne6874310 (origin/codex/stage7-cosmetic-runtime-cleanup-20260808) fix: polish Stage 7 runtime presentation\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 59d795d80c20e56ed5de387330881078e24173ec\nbranch refs/heads/codex/stage7-task1-corrective-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T08:12:52Z",
+      "stderr": "",
+      "stdout": "d44ebe6916fe597df16c81a8b8b9ec0945f173d8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "59d795d80c20e56ed5de387330881078e24173ec",
+  "observedAtUtc": "2026-08-08T08:12:52Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
