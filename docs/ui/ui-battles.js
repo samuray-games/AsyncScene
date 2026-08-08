@@ -1710,7 +1710,9 @@ UI.renderBattles = () => {
           if (res && res.ok === false) {
             if (res.reason === "security_blocked") {
               const blockerText = res.blocker || "security_flag";
-              const msg = `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`;
+              const msg = isDevCrowdMode
+                ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`
+                : "Действие недоступно.";
               if (UI && typeof UI.showStatToast === "function") UI.showStatToast("points", msg);
               try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
               return;
@@ -1955,8 +1957,11 @@ UI.renderBattles = () => {
 
       const top = document.createElement("div");
       top.className = "battleTop";
+      const oppInfluenceLabel = isDevCrowdMode
+        ? ` <span class="badge">[${escapeHtml(String(oppInfluence(opp)))}]</span>`
+        : "";
       top.innerHTML = `
-        <div class="kpill"><strong>${escapeHtml(oppName)}</strong> <span class="badge">[${escapeHtml(String(oppInfluence(opp)))}]</span></div>
+        <div class="kpill"><strong>${escapeHtml(oppName)}</strong>${oppInfluenceLabel}</div>
       `;
       card.appendChild(top);
 
@@ -2299,12 +2304,12 @@ UI.renderBattles = () => {
              if (!id || id === "me") {
                const n = (UI.displayName ? UI.displayName(me) : me.name) || "Ты";
                const inf = Number.isFinite(me.influence) ? me.influence : 0;
-               return `${n} [${inf}]`;
+               return isDevCrowdMode ? `${n} [${inf}]` : n;
              }
              const p = S.players ? S.players[id] : null;
              const n = (p && (UI.displayName ? UI.displayName(p) : p.name)) ? (UI.displayName ? UI.displayName(p) : p.name) : "Игрок";
              const inf = (p && Number.isFinite(p.influence)) ? p.influence : 0;
-             return `${n} [${inf}]`;
+             return isDevCrowdMode ? `${n} [${inf}]` : n;
            };
 
           const mkVoteBtn = (label, votes) => {
@@ -3226,7 +3231,7 @@ UI.renderBattles = () => {
                const name = p.name || playerId;
                const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
                const inf = Number.isFinite(p.influence) ? (p.influence | 0) : 0;
-               return `${name} 💰${pts} [${inf}]`;
+               return `${name} 💰${pts}`;
              };
              
             const raw = getRawCountsFromVoters(c);

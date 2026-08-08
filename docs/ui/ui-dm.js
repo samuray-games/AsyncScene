@@ -11,6 +11,12 @@ window.Game = window.Game || {};
 console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
 if (!Game.__DEV) Game.__DEV = {};
 const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
+const isDevUi = () => {
+  try {
+    return (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true))
+      || (typeof location !== "undefined" && new URLSearchParams(location.search || "").get("dev") === "1");
+  } catch (_) { return false; }
+};
 const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
   ? Game.Data.t(key, vars)
   : String(key || "");
@@ -309,21 +315,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
   const RESERVED_SYSTEM_DM_IDS = new Set(["security_owner"]);
 
-  function devInfluencePill(p) {
-    if (!p || !UI || typeof UI.isDevBalanceEnabled !== "function" || !UI.isDevBalanceEnabled()) return "";
-    return ` <span class="pill">[${escapeHtml(String(p.influence || 0))}]</span>`;
-  }
-
-  function isHiddenSystemDmId(rawId) {
-    return RESERVED_SYSTEM_DM_IDS.has(String(rawId || ""))
-      && (!UI || typeof UI.isDevBalanceEnabled !== "function" || !UI.isDevBalanceEnabled());
-  }
-
   function isInteractiveDmThread(S, rawId) {
     if (!S || !S.dm) return false;
     const id = String(rawId || "");
     if (!id) return false;
-    if (isHiddenSystemDmId(id)) return false;
+    if (RESERVED_SYSTEM_DM_IDS.has(id)) return false;
     const logs = (S.dm.logs && Array.isArray(S.dm.logs[id])) ? S.dm.logs[id] : [];
     if (!logs.length) return true;
     for (const line of logs) {
@@ -417,7 +413,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
   UI.openDM = (playerId) => {
     const S = getS();
     const myId = (S && S.me && S.me.id) ? S.me.id : "me";
-    if (!playerId || playerId === myId || playerId === "me" || isHiddenSystemDmId(playerId)) return false;
+    if (!playerId || playerId === myId || playerId === "me") return false;
     if (!getS().players[playerId]) return false;
     S.dm = S.dm || { open:false, withId:null, openIds:[], activeId:null, logs:{}, inviteOpen:false };
     if (!Array.isArray(S.dm.openIds)) S.dm.openIds = [];
@@ -673,18 +669,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     // compat alias
     if (S.dm.activeId && !S.dm.withId) S.dm.withId = S.dm.activeId;
     if (S.dm.withId && !S.dm.activeId) S.dm.activeId = S.dm.withId;
-    S.dm.openIds = S.dm.openIds.filter((id) => !isHiddenSystemDmId(id));
 
     // Source of truth: activeId
     const withId = S.dm.activeId;
-    if (isHiddenSystemDmId(withId)) {
-      S.dm.open = false;
-      S.dm.activeId = null;
-      S.dm.withId = null;
-      const hiddenDmBlock = $("dmBlock");
-      if (hiddenDmBlock) hiddenDmBlock.classList.add("hidden");
-      return;
-    }
     if (withId) {
       S.dm.unread = S.dm.unread || {};
       S.dm.unread[String(withId)] = 0;
@@ -950,7 +937,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const dmTitle = $("dmTitle");
     if (dmTitle) {
       const tname = (UI.displayName ? UI.displayName(target) : target.name);
-      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)}${devInfluencePill(target)}`;
+      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)}${isDevUi() ? ` <span class="pill">[${escapeHtml(String(target.influence || 0))}]</span>` : ""}`;
     }
 
     const listWrap = $("dmList") || document.createElement("div");
@@ -972,7 +959,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const fromName = (l && (l.from || l.name)) ? String(l.from || l.name) : "???";
       const fromP = getPlayerByNameSafe(fromName);
       const fromLabel = fromP
-        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)}${devInfluencePill(fromP)}`
+        ? `${escapeHtml(UI.displayName ? UI.displayName(fromP) : fromP.name)}${(typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true || (location.search || "").includes("dev=1"))) ? ` <span class="pill">[${escapeHtml(String(fromP.influence || 0))}]</span>` : ""}`
         : escapeHtml(fromName);
 
       const textHtml = renderMentions(String(l.text || ""), { speakerName: fromName });
@@ -1009,7 +996,10 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (!res || !res.ok) {
           if (res && res.reason === "security_blocked") {
             const blockerText = res.blocker || "security_flag";
-            dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+            const securityMessage = isDevUi()
+              ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`
+              : "Действие недоступно.";
+            dmPushLine(withId, "Система", securityMessage);
             try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
             UI.renderDM();
             return;
@@ -1043,7 +1033,10 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       if (!res.ok) {
         if (res.reason === "security_blocked") {
           const blockerText = res.blocker || "security_flag";
-          dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+          const securityMessage = isDevUi()
+            ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`
+            : "Действие недоступно.";
+          dmPushLine(withId, "Система", securityMessage);
           try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
           UI.renderDM();
           return;
