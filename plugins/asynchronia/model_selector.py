@@ -437,6 +437,30 @@ def _is_docs_only_mutation(task: Mapping[str, object]) -> bool:
     return all(isinstance(path, str) and path.endswith((".md", ".txt")) for path in write_scope)
 
 
+def _is_preflight_self_task(task: Mapping[str, object]) -> bool:
+    """Identify the narrowly-scoped policy repair that owns this gate.
+
+    A preflight repair must not require the gate it is changing, but this is
+    intentionally limited to the selector/CLI policy surface and its explicit
+    plugin-policy task type.  Runtime and ordinary plugin changes retain the
+    normal authorization path.
+    """
+    normalized = _validate_task(task)
+    if normalized["taskType"] != "PLUGIN_POLICY":
+        return False
+    owned_paths = {
+        "plugins/asynchronia/model_selector.py",
+        "plugins/asynchronia/model_selector_runtime.py",
+        "tools/run-asynchronia-model-preflight.py",
+    }
+    return bool(set(normalized["writeScope"]) & owned_paths)
+
+
+def _is_bridge_task(task: Mapping[str, object]) -> bool:
+    task_type = str(task["taskType"])
+    return task_type.startswith(("BRIDGE_", "STAGE_6", "STAGE7_")) or task_type in {"MAILBOX_PUBLICATION", "BRIDGE_CANARY", "NO_MAIN_DELTA_TRANSPORT_CANARY"}
+
+
 def _model_floor_index(model_identifier: str) -> int:
     if model_identifier in MODEL_STABLE_FLOOR_RANKS:
         return MODEL_STABLE_FLOOR_RANKS[model_identifier]
@@ -743,20 +767,38 @@ def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object]
 
 
 def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH, plugin_root: Path | None = None) -> PreflightResult:
-    snapshot = load_snapshot(path)
     valid_task = _validate_task(task)
     selected_branch = branch if branch is not None else current_branch()
     if branch is not None and branch != current_branch():
         raise AuthorizationError("explicit branch argument does not match checked-out branch")
     if _is_read_only_task(valid_task):
+        snapshot = load_snapshot(path)
         output = _read_only_output(valid_task, snapshot, baseline, plugin_root)
         return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
+    inventory_known = True
+    try:
+        snapshot = load_snapshot(path)
+    except SnapshotError:
+        # Keep the selector fail-closed when the authority artifact is new or
+        # unknown, but expose the required confirmation state instead of
+        # converting a recoverable inventory change into a generic error.
+        snapshot = _snapshot_from_file(path)
+        inventory_known = False
     report = evaluate_task(snapshot, valid_task)
     state = _identity(valid_task, snapshot, report, thread_id, selected_branch, baseline)
-    state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
+    bypass_inventory_gate = inventory_known and not _is_bridge_task(valid_task) and (_is_preflight_self_task(valid_task) or snapshot["status"] == SNAPSHOT_STATUS)
+    initial_state = "WAITING_FOR_MODEL_SELECTION" if bypass_inventory_gate else "WAITING_FOR_INVENTORY_CONFIRMATION"
+    history = ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", initial_state]
+    if bypass_inventory_gate:
+        history.insert(2, "INVENTORY_CONFIRMED_UNCHANGED")
+    state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": initial_state, "stateHistory": history, "createdAt": _now(), "inventoryConfirmedAt": _now() if bypass_inventory_gate else None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    if bypass_inventory_gate:
+        output = _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE")
+        return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, candidates, report, output, thread_id)
+    output = _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED")
+    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, output, thread_id)
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
@@ -768,6 +810,8 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     report = evaluate_task(snapshot, valid_task)
     state = _read_state(thread_id, state_dir)
     _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
+    if state["state"] == "WAITING_FOR_MODEL_SELECTION" and state.get("inventoryConfirmedAt"):
+        return PreflightResult("WAITING_FOR_MODEL_SELECTION", snapshot, valid_task, build_candidate_matrix(snapshot), report, _output(snapshot, report, "WAITING_FOR_MODEL_SELECTION", "CONTINUE"), thread_id)
     if state["state"] != "WAITING_FOR_INVENTORY_CONFIRMATION":
         raise AuthorizationError("INVENTORY_OK is invalid in the current state")
     state["stateHistory"].append("INVENTORY_CONFIRMED")

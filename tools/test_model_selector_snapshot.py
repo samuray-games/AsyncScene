@@ -109,9 +109,9 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 branch=CHECKED_OUT_BRANCH,
                 state_dir=Path(directory) / "state",
             )
-        self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
-        self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", result.output)
-        self.assertNotIn("WAITING_FOR_MODEL_SELECTION", result.output)
+        self.assertEqual(result.status, "WAITING_FOR_MODEL_SELECTION")
+        self.assertIn("exact next response: CONTINUE", result.output)
+        self.assertNotIn("WAITING_FOR_INVENTORY_CONFIRMATION", result.output)
 
     def test_read_only_canary_short_circuits_without_mutation_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -229,17 +229,17 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             self.assertIn("authorization path: MUTATION_PREFLIGHT_REQUIRED", start.stdout)
-            self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
+            self.assertIn("status: WAITING_FOR_MODEL_SELECTION", start.stdout)
             snapshot = load_snapshot()
             expected_pairs = snapshot["completeModelEffortPairCount"]
             self.assertIn(f"evaluated pair count: {expected_pairs}/{expected_pairs}", start.stdout)
             self.assertNotIn("READ_ONLY_ALLOWED", start.stdout)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(inspect.returncode, 0)
-            self.assertIn('"state": "WAITING_FOR_INVENTORY_CONFIRMATION"', inspect.stdout)
+            self.assertIn('"state": "WAITING_FOR_MODEL_SELECTION"', inspect.stdout)
             self.assertIn('"stateHistory": [', inspect.stdout)
             self.assertIn('"MUTATION_PREFLIGHT_REQUIRED"', inspect.stdout)
-            self.assertIn('"WAITING_FOR_INVENTORY_CONFIRMATION"', inspect.stdout)
+            self.assertIn('"INVENTORY_CONFIRMED_UNCHANGED"', inspect.stdout)
 
     def test_inventory_changed_resolves_authority_and_differs_from_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -428,8 +428,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             original_manifest = selector.AUTHORITY_MANIFEST_PATH
             try:
                 selector.AUTHORITY_MANIFEST_PATH = manifest_path
-                with self.assertRaises(SnapshotError):
-                    start_preflight(task(), "thread-bind", "baseline-bind", branch=CHECKED_OUT_BRANCH, state_dir=temp_dir / "state")
+                result = start_preflight(task(), "thread-bind", "baseline-bind", branch=CHECKED_OUT_BRANCH, state_dir=temp_dir / "state")
+                self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
             finally:
                 selector.AUTHORITY_MANIFEST_PATH = original_manifest
 
@@ -474,7 +474,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             start = subprocess.run(command + ["start", *common], capture_output=True, text=True, check=False)
             self.assertEqual(start.returncode, 0)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
-            self.assertIn("WAITING_FOR_INVENTORY_CONFIRMATION", inspect.stdout)
+            self.assertIn("WAITING_FOR_MODEL_SELECTION", inspect.stdout)
             self.assertIn("MUTATION_PREFLIGHT_REQUIRED", inspect.stdout)
             ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)
             self.assertEqual(ok.returncode, 0)
@@ -489,7 +489,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             task_file.write_text(json.dumps(task()), encoding="utf-8")
             read_only_task_file = Path(directory) / "readonly-task.json"
             read_only_task_file.write_text(json.dumps(read_only_task()), encoding="utf-8")
-            self.assertEqual(start_preflight(task(), "guard-thread", "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir).status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+            self.assertEqual(start_preflight(task(), "guard-thread", "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir).status, "WAITING_FOR_MODEL_SELECTION")
             with self.assertRaises(AuthorizationError):
                 mutation_authorization_guard("guard-thread", read_only_task(), "baseline-guard", branch=CHECKED_OUT_BRANCH, state_dir=state_dir)
             with self.assertRaises(AuthorizationError):

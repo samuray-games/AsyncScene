@@ -127,20 +127,41 @@ class ModelSelectorTests(unittest.TestCase):
             state_dir = Path(directory) / "state"
             selected = task()
             start = start_preflight(selected, "thread-state", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(start.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+            self.assertEqual(start.status, "WAITING_FOR_MODEL_SELECTION")
             self.assertIn("recommended pair:", start.output)
-            self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", start.output)
-            with self.assertRaises(AuthorizationError):
-                record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            waiting = record_inventory_ok("thread-state", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(waiting.status, "WAITING_FOR_MODEL_SELECTION")
-            self.assertIn("exact next response: CONTINUE", waiting.output)
+            self.assertIn("exact next response: CONTINUE", start.output)
             result = record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertIn("IMPLEMENTATION_ALLOWED", result)
             state = inspect_state("thread-state", state_dir=state_dir)
             self.assertEqual(state["state"], "IMPLEMENTATION_ALLOWED")
             guarded = mutation_authorization_guard("thread-state", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(guarded["taskDescriptionHash"], task_hash(selected))
+
+    def test_known_unchanged_inventory_does_not_wait_for_inventory_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result = start_preflight(task(), "thread-known", "baseline", branch=TEST_BRANCH, state_dir=Path(directory))
+            self.assertEqual(result.status, "WAITING_FOR_MODEL_SELECTION")
+            self.assertNotIn("WAITING_FOR_INVENTORY_CONFIRMATION", result.output)
+
+    def test_changed_or_unknown_inventory_requires_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(selector_core, "_validate_authority_binding", side_effect=selector_core.SnapshotError("authority artifact changed")):
+                result = start_preflight(task(), "thread-changed", "baseline", branch=TEST_BRANCH, state_dir=Path(directory))
+            self.assertEqual(result.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
+            self.assertIn("INVENTORY_OK or INVENTORY_CHANGED", result.output)
+
+    def test_preflight_self_edit_skips_circular_inventory_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self_edit = task(
+                taskType="PLUGIN_POLICY",
+                writeScope=["plugins/asynchronia/model_selector.py"],
+                affectedSystems=["selector"],
+            )
+            result = start_preflight(self_edit, "thread-self", "baseline", branch=TEST_BRANCH, state_dir=Path(directory))
+            self.assertEqual(result.status, "WAITING_FOR_MODEL_SELECTION")
+            self.assertNotIn("INVENTORY_OK or INVENTORY_CHANGED", result.output)
+            authorized = record_continue("thread-self", "CONTINUE", self_edit, "baseline", branch=TEST_BRANCH, state_dir=Path(directory))
+            self.assertIn("IMPLEMENTATION_ALLOWED", authorized)
 
     def test_task_identity_drift_invalidates_authorization(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
