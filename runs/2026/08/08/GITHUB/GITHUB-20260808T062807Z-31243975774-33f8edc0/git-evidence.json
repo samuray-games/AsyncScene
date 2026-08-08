@@ -1,0 +1,106 @@
+{
+  "branch": "fix/model-preflight-cheapest-sufficient-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "fix/model-preflight-cheapest-sufficient-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "5b39b9a56c3f947d14faea84f309c593b8c241cd\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5b39b9a56c3f947d14faea84f309c593b8c241cd\n# branch.head fix/model-preflight-cheapest-sufficient-20260808\n# branch.upstream origin/fix/model-preflight-cheapest-sufficient-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "5b39b9a5 (HEAD -> fix/model-preflight-cheapest-sufficient-20260808, origin/fix/model-preflight-cheapest-sufficient-20260808) fix: restore confirmed inventory relay contract\n6dc72431 fix: restore confirmed inventory handshake and cheapest sufficient selection\n3be44f83 fix: restore confirmed inventory handshake and cheapest sufficient selection\nbd15d4a0 fix: restore confirmed inventory handshake and cheapest sufficient selection\n494cbf75 fix: restore confirmed inventory handshake and cheapest sufficient selection\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5b39b9a56c3f947d14faea84f309c593b8c241cd\nbranch refs/heads/fix/model-preflight-cheapest-sufficient-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T06:28:07Z",
+      "stderr": "",
+      "stdout": "d44ebe6916fe597df16c81a8b8b9ec0945f173d8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5b39b9a56c3f947d14faea84f309c593b8c241cd",
+  "observedAtUtc": "2026-08-08T06:28:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
