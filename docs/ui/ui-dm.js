@@ -1033,7 +1033,10 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       if (!res.ok) {
         if (res.reason === "security_blocked") {
           const blockerText = res.blocker || "security_flag";
-          const securityMessage = isDevUi()\n            ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`\n            : "Действие недоступно.";\n          dmPushLine(withId, "Система", securityMessage);
+          const securityMessage = isDevUi()
+            ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`
+            : "Действие недоступно.";
+          dmPushLine(withId, "Система", securityMessage);
           try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
           UI.renderDM();
           return;
