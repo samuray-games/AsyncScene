@@ -43,8 +43,12 @@ const assertPersistsThroughRenders = async (selector, label, show) => {
 
 try {
   await page.route("**/AsyncScene/**", (route) => {
-    const rewritten = route.request().url().replace("/AsyncScene/", "/");
-    return route.continue({ url: rewritten });
+    const requestUrl = new URL(route.request().url());
+    if (requestUrl.hostname === "127.0.0.1") {
+      const rewritten = requestUrl.toString().replace("/AsyncScene/", "/");
+      return route.continue({ url: rewritten });
+    }
+    return route.continue();
   });
   await page.goto(url, { waitUntil: "networkidle" });
   await page.locator("#btnStart").click({ force: true });
