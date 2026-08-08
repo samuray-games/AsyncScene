@@ -386,10 +386,10 @@ class ClickPersistentStatToastTests(unittest.TestCase):
             self.assertEqual(result["afterLongWait"]["repDisplay"], "block")
             self.assertEqual(result["afterPointsClick"]["pointsDisplay"], "none")
             self.assertEqual(result["afterPointsClick"]["repDisplay"], "block")
-            self.assertEqual(result["afterPointsClick"]["pointsNameText"], "Баланс: +5")
+            self.assertEqual(result["afterPointsClick"]["pointsNameText"], "")
             self.assertEqual(result["afterRepClick"]["pointsDisplay"], "none")
             self.assertEqual(result["afterRepClick"]["repDisplay"], "none")
-            self.assertEqual(result["afterRepClick"]["repNameText"], "Репутация: +1")
+            self.assertEqual(result["afterRepClick"]["repNameText"], "")
 
 
 if __name__ == "__main__":

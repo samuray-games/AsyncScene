@@ -2488,7 +2488,7 @@ UI.renderBattles = () => {
             && b.attack.color);
           const stage7ColorRevealed = evidenceRevealed || witnessRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
-          chip.textContent = `Вброс: ${String(argCanonUiText(b.attack, "Q") || "")}`;
+          chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
           else if (b.attack.color === "k") chip.style.color = "#ddd";
           else chip.style.color = "black";
@@ -2515,15 +2515,15 @@ UI.renderBattles = () => {
             evidenceNote.className = "noteLine";
             evidenceNote.dataset.testid = "stage7-deny-evidence-revealed";
             evidenceNote.textContent = stage7DenyEvidencePayoff.mode === "held"
-              ? "Сохранённое доказательство раскрыло цвет вброса."
-              : "Публичное доказательство раскрыло цвет вброса.";
+              ? "Сохранённое доказательство раскрыло цвет аргумента."
+              : "Публичное доказательство раскрыло цвет аргумента.";
             card.appendChild(evidenceNote);
           }
           if (witnessRevealed) {
             const witnessNote = document.createElement("div");
             witnessNote.className = "noteLine";
             witnessNote.dataset.testid = "stage7-accuse-witness-revealed";
-            witnessNote.textContent = "Свидетель Насти раскрыл цвет первого вброса.";
+            witnessNote.textContent = "Свидетель Насти раскрыл цвет первого аргумента.";
             card.appendChild(witnessNote);
           }
         }
@@ -2920,13 +2920,13 @@ UI.renderBattles = () => {
             const note = document.createElement("div");
             note.className = "noteLine";
             note.dataset.testid = "stage7-pay-receipt-note";
-            note.textContent = "Расписка подтверждает: отмеченный ответ подходит к типу вброса.";
+            note.textContent = "Расписка подтверждает: отмеченный ответ подходит к типу аргумента.";
             card.appendChild(note);
           } else if (livePayNote && livePayNote.mode === "pressure" && livePayNote.status === "used") {
             const note = document.createElement("div");
             note.className = "noteLine";
             note.dataset.testid = "stage7-pay-pressure-note";
-            note.textContent = "Ты разобрал давление Олега: отмеченный ответ не подходит к типу вброса.";
+            note.textContent = "Ты разобрал давление Олега: отмеченный ответ не подходит к типу аргумента.";
             card.appendChild(note);
           }
         }
