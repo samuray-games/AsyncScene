@@ -80,9 +80,13 @@ try {
   await page.waitForTimeout(220);
   await page.clock.install();
 
-  const startup = page.locator("#stage6StartupNameToast");
-  await waitVisible("#stage6StartupNameToast", "startup reputation toast");
-  const startupGeometry = await startup.evaluate((toast) => {
+  const repStartup = page.locator("#stage6StartupNameToast_rep");
+  const pointsStartup = page.locator("#stage6StartupNameToast_points");
+  await waitVisible("#stage6StartupNameToast_rep", "startup reputation toast");
+  await waitVisible("#stage6StartupNameToast_points", "startup balance toast");
+  assert.equal(await repStartup.locator(".statToast__hint").textContent(), "нажми, чтобы закрыть");
+  assert.equal(await pointsStartup.locator(".statToast__hint").count(), 0, "balance toast must not duplicate the onboarding hint");
+  const startupGeometry = await repStartup.evaluate((toast) => {
     const kind = toast.dataset.statKind;
     const target = document.querySelector(kind === "rep" ? "#meRep" : "#mePoints");
     const tr = toast.getBoundingClientRect();
@@ -101,7 +105,7 @@ try {
   assert(repReflow.initial && repReflow.current, "startup reflow evidence is missing");
   assert(Math.abs(repReflow.initial.left - repReflow.current.left) > 1 || Math.abs(repReflow.initial.top - repReflow.current.top) > 1,
     "real post-start render did not move the reputation target");
-  const repAfterReflow = await startup.evaluate((toast) => {
+  const repAfterReflow = await repStartup.evaluate((toast) => {
     const target = document.querySelector("#meRep");
     const tr = toast.getBoundingClientRect();
     const rr = target.getBoundingClientRect();
@@ -110,11 +114,24 @@ try {
   assert(repAfterReflow.toast.bottom < repAfterReflow.target.top, "repositioned reputation toast is not above the moved target");
   assert(repAfterReflow.centerDelta <= 2, "repositioned reputation toast is not centered over the moved target");
   await page.clock.fastForward(30000);
-  assert(await visible("#stage6StartupNameToast"), "startup reputation toast disappeared before user dismissal");
-  await page.locator("#stage6StartupNameToast").click({ force: true });
-  await waitVisible("#stage6StartupNameToast", "startup balance toast");
-  assert.equal(await page.locator("#stage6StartupNameToast").getAttribute("data-stat-kind"), "points");
-  const balanceGeometry = await page.locator("#stage6StartupNameToast").evaluate((toast) => {
+  assert(await visible("#stage6StartupNameToast_rep"), "startup reputation toast disappeared before user dismissal");
+  assert(await visible("#stage6StartupNameToast_points"), "balance toast disappeared when reputation toast was dismissed");
+  await page.locator("#stage6StartupNameToast_rep").click({ force: true });
+  await waitGone("#stage6StartupNameToast_rep", "startup reputation toast");
+  assert(await visible("#stage6StartupNameToast_points"), "balance toast was affected by reputation dismissal");
+  const partialState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  assert.equal(partialState.repDismissed, true);
+  assert.equal(partialState.pointsDismissed, false);
+  assert.equal(partialState.completed, false);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator("#btnStart").click({ force: true });
+  await page.waitForFunction(() => {
+    const node = document.getElementById("startScreen");
+    return node && (node.hidden || node.classList.contains("hidden") || getComputedStyle(node).display === "none");
+  }, null, { timeout: 5000 });
+  await waitVisible("#stage6StartupNameToast_points", "balance toast after partial reload");
+  assert(!(await visible("#stage6StartupNameToast_rep")), "dismissed reputation toast returned after partial reload");
+  const balanceGeometry = await page.locator("#stage6StartupNameToast_points").evaluate((toast) => {
     const target = document.querySelector("#mePoints");
     const tr = toast.getBoundingClientRect();
     const rr = target.getBoundingClientRect();
@@ -134,7 +151,7 @@ try {
   assert(pointsReflow.initial && pointsReflow.current, "balance reflow evidence is missing");
   assert(Math.abs(pointsReflow.initial.left - pointsReflow.current.left) > 1 || Math.abs(pointsReflow.initial.top - pointsReflow.current.top) > 1,
     "real post-start render did not move the balance target");
-  const pointsAfterReflow = await page.locator("#stage6StartupNameToast").evaluate((toast) => {
+  const pointsAfterReflow = await page.locator("#stage6StartupNameToast_points").evaluate((toast) => {
     const target = document.querySelector("#mePoints");
     const tr = toast.getBoundingClientRect();
     const rr = target.getBoundingClientRect();
@@ -143,8 +160,25 @@ try {
   assert(pointsAfterReflow.toast.bottom < pointsAfterReflow.target.top, "repositioned balance toast is not above the moved target");
   assert(pointsAfterReflow.centerDelta <= 2, "repositioned balance toast is not centered over the moved target");
   await page.clock.fastForward(30000);
-  assert(await visible("#stage6StartupNameToast"), "startup balance toast disappeared before user dismissal");
-  await clickAndDismiss("#stage6StartupNameToast", "startup balance toast");
+  assert(await visible("#stage6StartupNameToast_points"), "startup balance toast disappeared before user dismissal");
+  await clickAndDismiss("#stage6StartupNameToast_points", "startup balance toast");
+  const completedState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  assert.equal(completedState.completed, true, "startup lifecycle completed before both independent dismissals");
+
+  await page.evaluate(() => {
+    window.sessionStorage.removeItem("stage7_startup_stat_name_toasts_v4");
+    window.dispatchEvent(new Event("stage7:player-entered-game"));
+  });
+  await waitVisible("#stage6StartupNameToast_rep", "reverse-order reputation toast");
+  await waitVisible("#stage6StartupNameToast_points", "reverse-order balance toast");
+  await page.locator("#stage6StartupNameToast_points").click({ force: true });
+  await waitGone("#stage6StartupNameToast_points", "reverse-order balance toast");
+  assert(await visible("#stage6StartupNameToast_rep"), "reputation toast was affected by reverse-order balance dismissal");
+  const reversePartial = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  assert.equal(reversePartial.completed, false);
+  await clickAndDismiss("#stage6StartupNameToast_rep", "reverse-order reputation toast");
+  const reverseCompleted = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  assert.equal(reverseCompleted.completed, true, "reverse-order dismissal did not complete startup lifecycle");
 
   await assertPersistsThroughRenders("#stage6DeltaNameToast_rep", "manual stat-tap name toast", async () => {
     await page.locator('[data-profile-stat="rep"]').dispatchEvent("click");
