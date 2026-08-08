@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Asynchronia 1.0.18 bridge-derived model-preflight contract."""
+"""Validate the Asynchronia 1.0.18 generic and bridge model-preflight contract."""
 
 from __future__ import annotations
 
@@ -77,6 +77,8 @@ def main() -> int:
             failures.append(f"CLI missing {command}")
     if "reserved bridge tasks must use bridge-start" not in cli:
         failures.append("generic CLI does not reject fabricated bridge task input")
+    if "AUTO_REUSED_CANONICAL_SNAPSHOT" not in cli:
+        failures.append("generic CLI does not reuse validated canonical inventory")
 
     required_policy = (
         "bridge-start",
@@ -112,6 +114,7 @@ def main() -> int:
             "tools.test_bridge_model_preflight",
             "tools.test_model_selector_full_regression",
             "tools.test_model_selector_response_contract",
+            "tools.test_generic_model_preflight_inventory_reuse",
         ],
         cwd=ROOT,
         capture_output=True,
@@ -132,7 +135,8 @@ def main() -> int:
                 "bridgeAuthorityAdapter": "PASS",
                 "deterministicBridgeClassification": "PASS",
                 "gitPrivateDurableState": "PASS",
-                "inventoryConfirmationGate": "PASS",
+                "genericCanonicalInventoryReuse": "PASS",
+                "bridgeInventoryConfirmationGate": "PASS",
                 "sameThreadContinueGate": "PASS",
                 "mailboxMovementInvalidation": "PASS",
                 "fabricatedBridgeTaskRejection": "PASS",

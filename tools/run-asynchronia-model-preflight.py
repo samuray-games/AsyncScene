@@ -125,15 +125,30 @@ def main(argv: list[str] | None = None) -> int:
         state_dir = _state_dir(args)
         if args.command == "start":
             task = _generic_task(args)
+            selected_branch = args.branch or current_branch()
             result = start_preflight(
                 task,
                 args.thread_id,
                 args.baseline,
-                branch=args.branch or current_branch(),
+                branch=selected_branch,
                 state_dir=state_dir,
                 path=_snapshot(args),
                 plugin_root=args.plugin_root,
             )
+            # Generic non-bridge work already uses the canonical repository snapshot.
+            # start_preflight/load_snapshot fail closed if that authority is stale or changed,
+            # so a second human INVENTORY_OK round-trip adds no safety here. Preserve the
+            # explicit inventory handshake for bridge-start, where repository policy requires it.
+            if result.status == "WAITING_FOR_INVENTORY_CONFIRMATION":
+                result = record_inventory_ok(
+                    args.thread_id,
+                    task,
+                    args.baseline,
+                    branch=selected_branch,
+                    state_dir=state_dir,
+                    path=_snapshot(args),
+                )
+                print("inventory confirmation: AUTO_REUSED_CANONICAL_SNAPSHOT")
             print(f"state directory: {state_dir}")
             print(result.output)
         elif args.command == "inventory-ok":

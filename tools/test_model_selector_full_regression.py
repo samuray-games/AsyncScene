@@ -50,6 +50,42 @@ class FullSelectorRegressionTests(unittest.TestCase):
                 "from plugins.asynchronia.model_selector_runtime import (  # noqa: E402",
                 1,
             )
+            # The historical canonical suite exercises the generic CLI. The strict core and
+            # numbered bridge state machines still begin at inventory confirmation, but fresh
+            # generic CLI start now reuses a validated canonical inventory and stops at model
+            # selection. Adapt only those CLI assertions in the attached regression fixture.
+            transformed = transformed.replace(
+                '            self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)\n',
+                '            self.assertIn("inventory confirmation: AUTO_REUSED_CANONICAL_SNAPSHOT", start.stdout)\n'
+                '            self.assertIn("status: WAITING_FOR_MODEL_SELECTION", start.stdout)\n'
+                '            self.assertIn("exact next response: CONTINUE", start.stdout)\n',
+                1,
+            )
+            transformed = transformed.replace(
+                '            self.assertIn(\'"state": "WAITING_FOR_INVENTORY_CONFIRMATION"\', inspect.stdout)\n'
+                '            self.assertIn(\'"stateHistory": [\', inspect.stdout)\n'
+                '            self.assertIn(\'"MUTATION_PREFLIGHT_REQUIRED"\', inspect.stdout)\n'
+                '            self.assertIn(\'"WAITING_FOR_INVENTORY_CONFIRMATION"\', inspect.stdout)\n',
+                '            self.assertIn(\'"state": "WAITING_FOR_MODEL_SELECTION"\', inspect.stdout)\n'
+                '            self.assertIn(\'"stateHistory": [\', inspect.stdout)\n'
+                '            self.assertIn(\'"MUTATION_PREFLIGHT_REQUIRED"\', inspect.stdout)\n'
+                '            self.assertIn(\'"INVENTORY_CONFIRMED"\', inspect.stdout)\n'
+                '            self.assertIn(\'"WAITING_FOR_MODEL_SELECTION"\', inspect.stdout)\n',
+                1,
+            )
+            transformed = transformed.replace(
+                '            self.assertIn("WAITING_FOR_INVENTORY_CONFIRMATION", inspect.stdout)\n'
+                '            self.assertIn("MUTATION_PREFLIGHT_REQUIRED", inspect.stdout)\n'
+                '            ok = subprocess.run(command + ["inventory-ok", *common], capture_output=True, text=True, check=False)\n'
+                '            self.assertEqual(ok.returncode, 0)\n'
+                '            self.assertIn("WAITING_FOR_MODEL_SELECTION", ok.stdout)\n'
+                '            cont = subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)\n',
+                '            self.assertIn("WAITING_FOR_MODEL_SELECTION", inspect.stdout)\n'
+                '            self.assertIn("INVENTORY_CONFIRMED", inspect.stdout)\n'
+                '            self.assertIn("MUTATION_PREFLIGHT_REQUIRED", inspect.stdout)\n'
+                '            cont = subprocess.run(command + ["continue", *common, "--token", "CONTINUE"], capture_output=True, text=True, check=False)\n',
+                1,
+            )
             target = repo / "tools/test_model_selector_snapshot_legacy_runtime.py"
             target.write_text(transformed, encoding="utf-8")
 
