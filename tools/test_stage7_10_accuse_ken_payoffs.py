@@ -11,6 +11,19 @@ INDEX_DOCS = Path("docs/index.html")
 CONFLICT_API = Path("AsyncScene/Web/conflict/conflict-api.js")
 
 controller = CONTROLLER.read_text(encoding="utf-8")
+CORE = Path("AsyncScene/Web/ui/ui-core.js")
+DM = Path("AsyncScene/Web/ui/ui-dm.js")
+EVENTS = Path("AsyncScene/Web/ui/ui-events.js")
+BATTLES = Path("AsyncScene/Web/ui/ui-battles.js")
+assert "showStatNameToast" in CORE.read_text(encoding="utf-8")
+assert "bindStatNameToastInteractions" in CORE.read_text(encoding="utf-8")
+assert "toast.onclick = () => dismissDeltaToast(kind);" in CORE.read_text(encoding="utf-8")
+assert "Действие недоступно." in DM.read_text(encoding="utf-8")
+assert "isDevCrowdMode" in EVENTS.read_text(encoding="utf-8")
+assert "isDevCrowdMode" in BATTLES.read_text(encoding="utf-8")
+assert "stage7Transition" in controller
+assert "Пока Райхан собирает сторонников" in controller
+assert "хочет обсудить, чем закончился спор" in controller
 battles = BATTLES.read_text(encoding="utf-8")
 assert controller == CONTROLLER_DOCS.read_text(encoding="utf-8")
 assert "Теперь ты с Райханом обвиняете друг друга. Остальные должны решить, кому верить." in controller
