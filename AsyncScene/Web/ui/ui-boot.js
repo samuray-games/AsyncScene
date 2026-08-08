@@ -923,6 +923,11 @@ window.Game = window.Game || {};
 
     // Also stop clicks from being swallowed by the overlay in case CSS keeps it on top
     st.style.pointerEvents = "none";
+    try {
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        window.dispatchEvent(new Event("stage7:player-entered-game"));
+      }
+    } catch (_) {}
     return st;
   }
 

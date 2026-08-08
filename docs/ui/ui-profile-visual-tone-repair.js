@@ -27,11 +27,7 @@ window.Game = window.Game || {};
   const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
-  const STARTUP_NAME_VISIBLE_MS = 850;
-  const STARTUP_NAME_GAP_MS = 160;
-  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v2";
-  const STARTUP_NAME_RETRY_MS = 250;
-  const STARTUP_NAME_MAX_RETRIES = 20;
+  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v3";
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -801,12 +797,7 @@ window.Game = window.Game || {};
   };
 
   const deltaToastStates = Object.create(null);
-  let startupNameToastTimer = null;
-  let startupNameToastHideTimer = null;
-  let startupNameReadinessTimer = null;
-  let startupNameRetryCount = 0;
   let startupNameLifecycleStarted = false;
-  let startupNameLifecycleCancelled = false;
 
   function getDeltaToastState(kind) {
     const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
@@ -865,17 +856,6 @@ window.Game = window.Game || {};
     }
   }
 
-  function cancelStartupNameToastLifecycle() {
-    if (startupNameToastTimer) clearTimeout(startupNameToastTimer);
-    if (startupNameToastHideTimer) clearTimeout(startupNameToastHideTimer);
-    if (startupNameReadinessTimer) clearTimeout(startupNameReadinessTimer);
-    startupNameToastTimer = null;
-    startupNameToastHideTimer = null;
-    startupNameReadinessTimer = null;
-    startupNameLifecycleCancelled = true;
-    removeStartupNameToast();
-  }
-
   function positionStartupNameToast(kind, el) {
     const anchor = deltaAnchor(kind);
     if (!anchor || !anchor.getBoundingClientRect || !el) return false;
@@ -912,7 +892,15 @@ window.Game = window.Game || {};
     el.style.padding = "5px 9px";
     el.style.fontSize = "12px";
     el.style.whiteSpace = "nowrap";
-    el.style.pointerEvents = "none";
+    el.style.pointerEvents = "auto";
+    el.style.cursor = "pointer";
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("aria-label", `${deltaName(kind)}. Нажмите, чтобы закрыть.`);
+    el.onclick = (event) => {
+      if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+      advanceStartupNameToast(kind);
+    };
     document.body.appendChild(el);
     if (!positionStartupNameToast(kind, el)) {
       removeStartupNameToast();
@@ -950,7 +938,6 @@ window.Game = window.Game || {};
   }
 
   function showNamedDeltaToast(kind, delta) {
-    cancelStartupNameToastLifecycle();
     const anchor = deltaAnchor(kind);
     if (!anchor) return;
     const id = `stage6DeltaNameToast_${kind}`;
@@ -1002,43 +989,27 @@ window.Game = window.Game || {};
   }
 
   function startStartupNameToastLifecycle() {
-    if (startupNameLifecycleStarted || startupNameLifecycleCancelled || startupNameLifecycleCompleted()) return;
+    if (startupNameLifecycleStarted || startupNameLifecycleCompleted()) return;
     if (!deltaAnchor("rep") || !deltaAnchor("points")) return;
     startupNameLifecycleStarted = true;
-    const kinds = ["rep", "points"];
-    let index = 0;
-    const showNext = () => {
-      const kind = kinds[index++];
-      if (!kind || !showStartupNameToast(kind)) {
-        startupNameLifecycleStarted = false;
-        return;
-      }
-      startupNameToastHideTimer = setTimeout(() => {
-        startupNameToastHideTimer = null;
-        removeStartupNameToast();
-        if (index >= kinds.length) {
-          completeStartupNameToastLifecycle();
-          return;
-        }
-        startupNameToastTimer = setTimeout(showNext, STARTUP_NAME_GAP_MS);
-      }, STARTUP_NAME_VISIBLE_MS);
-    };
-    showNext();
+    if (!showStartupNameToast("rep")) startupNameLifecycleStarted = false;
+  }
+
+  function advanceStartupNameToast(kind) {
+    if (!startupNameLifecycleStarted) return;
+    removeStartupNameToast();
+    if (kind === "rep") {
+      if (!showStartupNameToast("points")) startupNameLifecycleStarted = false;
+      return;
+    }
+    if (kind === "points") completeStartupNameToastLifecycle();
   }
 
   function requestStartupNameToasts() {
-    if (startupNameLifecycleStarted || startupNameLifecycleCancelled || startupNameLifecycleCompleted()) return;
-    if (deltaAnchor("rep") && deltaAnchor("points")) {
-      startupNameRetryCount = 0;
-      startStartupNameToastLifecycle();
-      return;
-    }
-    if (startupNameRetryCount >= STARTUP_NAME_MAX_RETRIES) return;
-    startupNameRetryCount += 1;
-    startupNameReadinessTimer = setTimeout(() => {
-      startupNameReadinessTimer = null;
-      requestStartupNameToasts();
-    }, STARTUP_NAME_RETRY_MS);
+    if (startupNameLifecycleStarted || startupNameLifecycleCompleted()) return;
+    const startScreen = document.getElementById("startScreen");
+    if (startScreen && !startScreen.hidden && !startScreen.classList.contains("hidden")) return;
+    startStartupNameToastLifecycle();
   }
 
   function flushDeltaToast(kind) {
@@ -1267,9 +1238,7 @@ window.Game = window.Game || {};
   function installUnifiedToastOwner() {
     neutralizeLegacyStatToasts();
     bindDeltaChipTaps();
-    window.setTimeout(requestStartupNameToasts, 0);
-    document.addEventListener("DOMContentLoaded", requestStartupNameToasts, { once: true });
-    window.addEventListener("load", requestStartupNameToasts, { once: true });
+    window.addEventListener("stage7:player-entered-game", requestStartupNameToasts);
 
     const show = function stage6UnifiedShowStatToastV4(kind, text) {
       const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
