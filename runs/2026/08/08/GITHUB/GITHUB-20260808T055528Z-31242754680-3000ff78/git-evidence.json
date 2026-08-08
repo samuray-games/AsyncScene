@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/fix-generic-preflight-inventory-reuse-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "chatgpt/fix-generic-preflight-inventory-reuse-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "bafd96c491227b2852b57d8099d9df5beed69ed7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "# branch.oid bafd96c491227b2852b57d8099d9df5beed69ed7\n# branch.head chatgpt/fix-generic-preflight-inventory-reuse-20260808\n# branch.upstream origin/chatgpt/fix-generic-preflight-inventory-reuse-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "bafd96c4 (HEAD -> chatgpt/fix-generic-preflight-inventory-reuse-20260808, origin/chatgpt/fix-generic-preflight-inventory-reuse-20260808) test: run generic preflight on attached branch in CI\n695be2e0 test: adapt canonical regression to generic inventory reuse\n5f0e1dd7 docs: stop generic preflight from requesting INVENTORY_OK\n9f08cbe1 docs: distinguish generic and bridge inventory gates\n5df30e04 test: validate generic inventory reuse path\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bafd96c491227b2852b57d8099d9df5beed69ed7\nbranch refs/heads/chatgpt/fix-generic-preflight-inventory-reuse-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T05:55:28Z",
+      "stderr": "",
+      "stdout": "119b32faad6b4acf50e674ba8d5bec808544664d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bafd96c491227b2852b57d8099d9df5beed69ed7",
+  "observedAtUtc": "2026-08-08T05:55:28Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
