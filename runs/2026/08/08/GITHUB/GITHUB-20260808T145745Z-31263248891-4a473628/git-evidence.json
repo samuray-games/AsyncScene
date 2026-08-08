@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-task1-geometry-toast-vocabulary-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "codex/stage7-task1-geometry-toast-vocabulary-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "5b31c175bf4c0e0154b4710eac80698fe43584ac\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5b31c175bf4c0e0154b4710eac80698fe43584ac\n# branch.head codex/stage7-task1-geometry-toast-vocabulary-20260808\n# branch.upstream origin/codex/stage7-task1-geometry-toast-vocabulary-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "5b31c175 (HEAD -> codex/stage7-task1-geometry-toast-vocabulary-20260808, origin/codex/stage7-task1-geometry-toast-vocabulary-20260808) fix(stage7): follow startup toast reflow and neutralize copy\nd92a02ee (origin/main) test(stage7): keep toast harness live-safe\n03980bd0 fix(stage7): keep player toasts until click and anchor startup hints\nae4a00ed fix: make Task 1 toasts click-only after game entry\ncd1d5dc8 fix: make startup stat hints readiness aware\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5b31c175bf4c0e0154b4710eac80698fe43584ac\nbranch refs/heads/codex/stage7-task1-geometry-toast-vocabulary-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T14:57:45Z",
+      "stderr": "",
+      "stdout": "d92a02eec2201c49cc10c815644c7b9d2d808ab0\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5b31c175bf4c0e0154b4710eac80698fe43584ac",
+  "observedAtUtc": "2026-08-08T14:57:45Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
