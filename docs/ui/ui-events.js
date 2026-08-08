@@ -4,11 +4,6 @@ window.Game = window.Game || {};
 (() => {
   const UI = Game.UI;
   const S = UI.S;
-  const influenceLabel = (player) => (
-    UI && typeof UI.isDevBalanceEnabled === "function" && UI.isDevBalanceEnabled()
-      ? ` [${Number(player && player.influence || 0) | 0}]`
-      : ""
-  );
   const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
     ? Game.Data.t(key, vars)
     : String(key || "");
@@ -433,7 +428,9 @@ window.Game = window.Game || {};
 
     const resolved = !!e?.resolved;
 
-    const titleFallback = `${aName} [${aInf}] vs ${bName} [${bInf}]`;
+    const titleFallback = isDevCrowdMode
+      ? `${aName} [${aInf}] vs ${bName} [${bInf}]`
+      : `${aName} vs ${bName}`;
     let safeTitle = (e?.title && String(e.title).trim().length)
       ? String(e.title)
       : titleFallback;
@@ -881,7 +878,9 @@ window.Game = window.Game || {};
       if (ne.voteLabels && ne.a && ne.b) {
         const who = document.createElement("div");
         who.className = "pill";
-        who.textContent = `${aName}${influenceLabel(ne.a)} vs ${bName}${influenceLabel(ne.b)}`;
+        who.textContent = isDevCrowdMode
+          ? `${aName} [${ne.a.influence}] vs ${bName} [${ne.b.influence}]`
+          : `${aName} vs ${bName}`;
         card.appendChild(who);
       }
 
@@ -1046,8 +1045,8 @@ window.Game = window.Game || {};
       };
 
         const useLabels = !!(ne.voteLabels && ne.voteLabels.a && ne.voteLabels.b);
-        const aLabel = useLabels ? ne.voteLabels.a : `${aName}${influenceLabel(ne.a)}`;
-        const bLabel = useLabels ? ne.voteLabels.b : `${bName}${influenceLabel(ne.b)}`;
+        const aLabel = useLabels ? ne.voteLabels.a : aName;
+        const bLabel = useLabels ? ne.voteLabels.b : bName;
 
         row.appendChild(mkSideBtn("a", aLabel, aVotes));
         row.appendChild(mkSideBtn("b", bLabel, bVotes));
