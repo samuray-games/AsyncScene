@@ -227,8 +227,8 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = displayName(p);
     const inf = influenceOfPlayer(p);
-    if (!n) return `[${inf}]`;
-    return `${n} [${inf}]`;
+    if (!n) return isDevBalanceEnabled() ? `[${inf}]` : "";
+    return isDevBalanceEnabled() ? `${n} [${inf}]` : n;
   }
 
   // Returns HTML for meta header usage: name + pill span
@@ -236,6 +236,7 @@ window.Game = window.Game || {};
     const p = (typeof pOrId === "string") ? getPlayerById(pOrId) : pOrId;
     const n = escapeHtml(displayName(p));
     const inf = influenceOfPlayer(p);
+    if (!isDevBalanceEnabled()) return n;
     return `${n} <span class="badge">[${inf}]</span>`;
   }
 
