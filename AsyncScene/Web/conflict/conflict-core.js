@@ -1174,7 +1174,7 @@
       const name = getName(opponentId) || "Коп";
       const pen = (penalty|0) || 5;
       const dmTextRaw = `Вы попытались забатлить ${name}. Это нарушение порядка. Штраф -${pen} 💰.`;
-      const chatTextRaw = `Нарушение порядка. За попытку вброса списан штраф -${pen} 💰.`;
+      const chatTextRaw = `Нарушение порядка. За атаку списан штраф -${pen} 💰.`;
 
       const N = (Game && Game.NPC) ? Game.NPC : null;
       const dmText = (N && typeof N.normalizeCopLine === "function") ? N.normalizeCopLine(dmTextRaw) : dmTextRaw;
@@ -3586,7 +3586,7 @@
           } catch (_) {}
 
           // outcome: "win" | "lose" | "draw" (relative to ME), or "escaped"
-          // Cop rule (agreed): штраф -5 только если ты нажал "вброс" (то есть совершил действие в батле),
+          // Cop rule (agreed): штраф -5 только если ты нажал кнопку атаки (то есть совершил действие в батле),
           // а не при самом старте батла. Поэтому применяем штраф здесь, в finalize.
           const devBattle = isDevBattle(b);
           const devLogMode = isDevModeFlag();

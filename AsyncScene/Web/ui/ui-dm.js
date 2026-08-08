@@ -541,7 +541,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const chip = document.createElement("div");
       const c = clsMap[p._code || p.color] || "y";
       chip.className = `chip ${c}`;
-      chip.innerHTML = `${escapeHtml(p.text)} <span class="badge">${p.kind === "attack" ? "Вброс" : "Ответка"}</span>`;
+      chip.innerHTML = `${escapeHtml(p.text)} <span class="badge">${p.kind === "attack" ? "Аргумент" : "Ответка"}</span>`;
 
       chip.onclick = () => {
         const to = getS().players[targetId];
@@ -1004,7 +1004,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       }
       if (isCop) {
         // Cop can be battled. No penalty here.
-        // Penalty (-5) must apply ONLY when player presses an attack (вброс) in conflict-core.js.
+        // Penalty (-5) must apply ONLY when player presses an attack in conflict-core.js.
         const res = Game.Conflict.startWith(withId);
         if (!res || !res.ok) {
           if (res && res.reason === "security_blocked") {

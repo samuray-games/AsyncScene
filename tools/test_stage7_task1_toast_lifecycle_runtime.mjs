@@ -40,6 +40,20 @@ const assertPersistsThroughRenders = async (selector, label, show) => {
   assert(await visible(selector), `${label} disappeared without user interaction`);
   await clickAndDismiss(selector, label);
 };
+const assertOneClickFullyDismissesDelta = async (kind) => {
+  const deltaSelector = `#stage6DeltaToast_${kind}`;
+  const nameSelector = `#stage6DeltaNameToast_${kind}`;
+  await page.evaluate((key) => window.Game.UI.emitStatDelta(key, 1), kind);
+  await waitVisible(deltaSelector, `${kind} numeric delta toast`);
+  await page.locator(deltaSelector).click({ force: true });
+  await waitGone(deltaSelector, `${kind} numeric delta toast`);
+  assert(!(await visible(nameSelector)), `${kind} delta dismissal created a replacement name toast`);
+  await page.evaluate(() => window.Game?.UI?.renderAll?.());
+  await page.evaluate(() => window.Game?.UI?.requestRenderAll?.());
+  await page.waitForTimeout(1200);
+  await page.clock.fastForward(30000);
+  assert(!(await visible(nameSelector)), `${kind} replacement name toast appeared after rerender`);
+};
 
 try {
   await page.route("**/AsyncScene/**", (route) => {
@@ -51,6 +65,13 @@ try {
     return route.continue();
   });
   await page.goto(url, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    window.__stage7StartupLayoutEvidence = [];
+    window.addEventListener("stage7:player-entered-game", () => {
+      const target = document.querySelector("#meRep");
+      if (target) window.__stage7StartupLayoutEvidence.push(target.getBoundingClientRect().toJSON());
+    });
+  });
   await page.locator("#btnStart").click({ force: true });
   await page.waitForFunction(() => {
     const node = document.getElementById("startScreen");
@@ -71,6 +92,23 @@ try {
   assert.equal(startupGeometry.kind, "rep");
   assert(startupGeometry.toast.bottom < startupGeometry.target.top, "startup reputation toast is not above its visible stat value");
   assert(startupGeometry.centerDelta <= 2, "startup reputation toast is not centered over its visible stat value");
+  const repReflow = await page.evaluate(() => {
+    const evidence = window.__stage7StartupLayoutEvidence || [];
+    const target = document.querySelector("#meRep");
+    const current = target ? target.getBoundingClientRect().toJSON() : null;
+    return { initial: evidence[0] || null, current };
+  });
+  assert(repReflow.initial && repReflow.current, "startup reflow evidence is missing");
+  assert(Math.abs(repReflow.initial.left - repReflow.current.left) > 1 || Math.abs(repReflow.initial.top - repReflow.current.top) > 1,
+    "real post-start render did not move the reputation target");
+  const repAfterReflow = await startup.evaluate((toast) => {
+    const target = document.querySelector("#meRep");
+    const tr = toast.getBoundingClientRect();
+    const rr = target.getBoundingClientRect();
+    return { toast: tr.toJSON(), target: rr.toJSON(), centerDelta: Math.abs((tr.left + tr.width / 2) - (rr.left + rr.width / 2)) };
+  });
+  assert(repAfterReflow.toast.bottom < repAfterReflow.target.top, "repositioned reputation toast is not above the moved target");
+  assert(repAfterReflow.centerDelta <= 2, "repositioned reputation toast is not centered over the moved target");
   await page.clock.fastForward(30000);
   assert(await visible("#stage6StartupNameToast"), "startup reputation toast disappeared before user dismissal");
   await page.locator("#stage6StartupNameToast").click({ force: true });
@@ -84,6 +122,26 @@ try {
   });
   assert(balanceGeometry.toast.bottom < balanceGeometry.target.top, "startup balance toast is not above its visible stat value");
   assert(balanceGeometry.centerDelta <= 2, "startup balance toast is not centered over its visible stat value");
+  const pointsReflow = await page.evaluate(() => {
+    const target = document.querySelector("#mePoints");
+    const initial = target ? target.getBoundingClientRect().toJSON() : null;
+    const state = window.Game?.__S;
+    if (state?.me) state.me.name = "РайханИгрокСОченьДлиннымИменемДляПроверкиПерестройки";
+    window.Game?.UI?.renderAll?.();
+    const current = target ? target.getBoundingClientRect().toJSON() : null;
+    return { initial, current };
+  });
+  assert(pointsReflow.initial && pointsReflow.current, "balance reflow evidence is missing");
+  assert(Math.abs(pointsReflow.initial.left - pointsReflow.current.left) > 1 || Math.abs(pointsReflow.initial.top - pointsReflow.current.top) > 1,
+    "real post-start render did not move the balance target");
+  const pointsAfterReflow = await page.locator("#stage6StartupNameToast").evaluate((toast) => {
+    const target = document.querySelector("#mePoints");
+    const tr = toast.getBoundingClientRect();
+    const rr = target.getBoundingClientRect();
+    return { toast: tr.toJSON(), target: rr.toJSON(), centerDelta: Math.abs((tr.left + tr.width / 2) - (rr.left + rr.width / 2)) };
+  });
+  assert(pointsAfterReflow.toast.bottom < pointsAfterReflow.target.top, "repositioned balance toast is not above the moved target");
+  assert(pointsAfterReflow.centerDelta <= 2, "repositioned balance toast is not centered over the moved target");
   await page.clock.fastForward(30000);
   assert(await visible("#stage6StartupNameToast"), "startup balance toast disappeared before user dismissal");
   await clickAndDismiss("#stage6StartupNameToast", "startup balance toast");
@@ -91,9 +149,7 @@ try {
   await assertPersistsThroughRenders("#stage6DeltaNameToast_rep", "manual stat-tap name toast", async () => {
     await page.locator('[data-profile-stat="rep"]').dispatchEvent("click");
   });
-  await assertPersistsThroughRenders("#stage6DeltaToast_rep", "stat delta toast", async () => {
-    await page.evaluate(() => window.Game.UI.emitStatDelta("rep", 1));
-  });
+  await assertOneClickFullyDismissesDelta("rep");
   await assertPersistsThroughRenders("#stage6UnifiedStatToast", "unified stat toast", async () => {
     await page.evaluate(() => window.Game.UI.showStatToast("points", "Проверка unified toast"));
   });

@@ -23,6 +23,8 @@ MIRRORS = [
     "ui-stage7-first-experience.js",
     "ui-battles.js",
     "ui-events.js",
+    "ui-dm.js",
+    "../conflict/conflict-core.js",
 ]
 for filename in MIRRORS:
     require((SOURCE / filename).read_bytes() == (DOCS / filename).read_bytes(), f"source/docs mirror mismatch: {filename}")
@@ -85,6 +87,14 @@ require("document.body.appendChild(el)" in active_toast_files["battles"], "battl
 require("document.body.appendChild(el)" in active_toast_files["events"], "event/vote toast is not body-owned")
 require("style.transition" not in active_toast_files["battles"], "battle toast still uses a CSS transition lifecycle")
 require("style.transition" not in active_toast_files["events"], "event/vote toast still uses a CSS transition lifecycle")
+require("stage7StartupToastAwareRenderAll" in profile, "startup toast is not attached to the authoritative render hook")
+require("MutationObserver" in profile and "ResizeObserver" in profile, "startup toast has no event-driven layout tracking")
+require("showNamedDeltaToast(entry.key, shownTotal)" not in profile, "numeric delta dismissal still creates a replacement toast")
+require("Свидетель Насти раскрыл цвет первого аргумента." in (SOURCE / "ui-battles.js").read_text(encoding="utf-8"), "neutral witness copy missing")
+for forbidden in ("вброс", "вкинули"):
+    require(forbidden not in (SOURCE / "ui-battles.js").read_text(encoding="utf-8").lower(), f"battle UI still exposes forbidden vocabulary: {forbidden}")
+    require(forbidden not in (SOURCE / "ui-stage7-first-experience.js").read_text(encoding="utf-8").lower(), f"Stage 7 UI still exposes forbidden vocabulary: {forbidden}")
+    require(forbidden not in (ROOT / "AsyncScene/Web/conflict/conflict-core.js").read_text(encoding="utf-8").lower().split("// cop rule")[0], f"conflict player copy still exposes forbidden vocabulary: {forbidden}")
 
 
 node_harness = r"""
@@ -141,7 +151,7 @@ function runChatRenderRegression() {
       getElementById: (id) => nodes[id] || null,
       addEventListener() {},
     },
-    console, setTimeout, clearTimeout, setInterval, clearInterval, Math, Date, JSON, Object, Array, String, Number, Boolean, RegExp,
+    console, setTimeout, clearTimeout, setInterval: () => 1, clearInterval: () => {}, Math, Date, JSON, Object, Array, String, Number, Boolean, RegExp,
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
@@ -224,6 +234,7 @@ function runStartupLifecycleRegression(options = {}) {
     showStatToast() {},
     requestRenderAll() {}, renderAll() {},
   };
+  const originalRenderAll = UI.renderAll;
   const Data = {
     TEXTS: {}, START_SCREEN_PROFILE_TEXTS: {},
     getUiProfile: () => "millennial", normalizeUiProfile: (value) => value || "millennial",
@@ -261,6 +272,12 @@ function runStartupLifecycleRegression(options = {}) {
   assert(nodes.stage6StartupNameToast.style.top.includes("48"));
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < repValue.rect.top);
   assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((repValue.rect.left + repValue.rect.right) / 2)) <= 1);
+  const repInitial = { ...repValue.rect };
+  repValue.rect = { left: 92, top: 124, right: 104, bottom: 148, width: 12, height: 24 };
+  UI.renderAll();
+  assert(repValue.rect.left !== repInitial.left || repValue.rect.top !== repInitial.top, "reflow fixture did not move reputation target");
+  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < repValue.rect.top, "reputation toast did not follow moved target");
+  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((repValue.rect.left + repValue.rect.right) / 2)) <= 1, "reputation toast did not recenter after reflow");
   assert.strictEqual(timers.filter((item) => !item.cleared && !item.ran).length, 0, "startup must not schedule auto-dismiss timers");
   for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Репутация disappeared without user action");
   nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
@@ -269,10 +286,17 @@ function runStartupLifecycleRegression(options = {}) {
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) > 150);
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < pointsValue.rect.top);
   assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((pointsValue.rect.left + pointsValue.rect.right) / 2)) <= 1);
+  const pointsInitial = { ...pointsValue.rect };
+  pointsValue.rect = { left: 156, top: 136, right: 168, bottom: 160, width: 12, height: 24 };
+  UI.renderAll();
+  assert(pointsValue.rect.left !== pointsInitial.left || pointsValue.rect.top !== pointsInitial.top, "reflow fixture did not move balance target");
+  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < pointsValue.rect.top, "balance toast did not follow moved target");
+  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((pointsValue.rect.left + pointsValue.rect.right) / 2)) <= 1, "balance toast did not recenter after reflow");
   for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Баланс disappeared without user action");
   nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
   assert.strictEqual(nodes.stage6StartupNameToast, undefined);
   assert.strictEqual(storage.get("stage7_startup_stat_name_toasts_v3"), "completed");
+  assert.strictEqual(UI.renderAll, originalRenderAll, "startup layout hook leaked after completion");
   assert(repChip.listeners.click);
   repChip.listeners.click();
   assert(nodes.stage6DeltaNameToast_rep, "manual stat tap no longer shows its name");
@@ -280,9 +304,51 @@ function runStartupLifecycleRegression(options = {}) {
   assert.strictEqual(nodes.stage6StartupNameToast, undefined, "completed startup session must not replay");
 }
 
+function runProfileVocabularyRegression() {
+  const source = fs.readFileSync("AsyncScene/Web/ui/ui-profile-visual-tone-repair.js", "utf8");
+  const forbidden = /вброс|вкинули/i;
+  const sandbox = {
+    window: null,
+    Game: {
+      UI: { S: { me: { name: "РайханИгрок" } }, renderAll() {}, requestRenderAll() {}, showStatToast() {} },
+      Data: { TEXTS: {}, START_SCREEN_PROFILE_TEXTS: {}, getUiProfile: () => "millennial", normalizeUiProfile: (value) => value || "millennial", setUiProfile() {}, t: () => "" },
+      System: { say: () => "", profileText: () => "", deliveryPolicy: () => ({}) },
+      __S: { me: { name: "РайханИгрок" } }, __DEV: {}
+    },
+    document: {
+      body: makeNode("body"), documentElement: { clientWidth: 390, classList: { toggle() {} } },
+      createElement: (tag) => makeNode(tag), getElementById: () => null, querySelector: () => null,
+      querySelectorAll: () => [], addEventListener() {},
+    },
+    console, setTimeout, clearTimeout, setInterval: () => 1, clearInterval: () => {}, Math, Date, JSON, Object, Array, String, Number, Boolean, RegExp,
+    MutationObserver: undefined, ResizeObserver: undefined,
+  };
+  sandbox.window = sandbox;
+  sandbox.window.addEventListener = () => {};
+  sandbox.window.sessionStorage = { getItem: () => null, setItem() {} };
+  sandbox.Event = function Event(type) { this.type = type; };
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox, { filename: "ui-profile-visual-tone-repair.js" });
+  ["boomer", "genX", "millennial", "zoomer", "alpha"].forEach((profile) => {
+    const preview = sandbox.Game.__DEV.previewStage6FinalProfileV4(profile);
+    const resolved = JSON.stringify(preview.controls);
+    assert(!forbidden.test(resolved), `${profile} resolved profile battle controls expose forbidden vocabulary`);
+  });
+  [
+    "AsyncScene/Web/ui/ui-battles.js",
+    "AsyncScene/Web/ui/ui-stage7-first-experience.js",
+    "AsyncScene/Web/conflict/conflict-core.js",
+    "AsyncScene/Web/ui/ui-dm.js",
+  ].forEach((path) => {
+    const text = fs.readFileSync(path, "utf8");
+    assert(!forbidden.test(text.replace(/\/\/[^\n]*/g, "")), `${path} active resolved copy exposes forbidden vocabulary`);
+  });
+}
+
 runChatRenderRegression();
 runStartupLifecycleRegression();
 runStartupLifecycleRegression({ staleSession: true });
+runProfileVocabularyRegression();
 console.log("PASS_STAGE7_TASK1_RENDERED_RUNTIME");
 """
 
