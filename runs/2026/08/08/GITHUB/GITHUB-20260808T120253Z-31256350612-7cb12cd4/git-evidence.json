@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-task1-toast-click-only-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "codex/stage7-task1-toast-click-only-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "b7ac56fb79e4af359fdf61661f226d7208161ebc\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "# branch.oid b7ac56fb79e4af359fdf61661f226d7208161ebc\n# branch.head codex/stage7-task1-toast-click-only-20260808\n# branch.upstream origin/codex/stage7-task1-toast-click-only-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "b7ac56fb (HEAD -> codex/stage7-task1-toast-click-only-20260808, origin/codex/stage7-task1-toast-click-only-20260808) chore: restore unrelated launcher archives\nb978374e fix: make Task 1 toasts click-only after game entry\ncd1d5dc8 (origin/main) fix: make startup stat hints readiness aware\n57cf9b49 fix: preserve Stage 7 opening copy and refine startup stat hints\nb9c05a65 fix: dismiss stage7 personal contact prompt\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b7ac56fb79e4af359fdf61661f226d7208161ebc\nbranch refs/heads/codex/stage7-task1-toast-click-only-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T12:02:53Z",
+      "stderr": "",
+      "stdout": "cd1d5dc8a37fedb3fe11d598926a0ef31cf77788\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b7ac56fb79e4af359fdf61661f226d7208161ebc",
+  "observedAtUtc": "2026-08-08T12:02:53Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
