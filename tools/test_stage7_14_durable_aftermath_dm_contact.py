@@ -23,12 +23,17 @@ for marker in [
     "battle_aftermath_dm_contact_resume",
     "open-aftermath-dm-contact",
     "stage7AftermathHistoryRestored",
+    "aftermathDmContactPromptDismissed",
+    "first_real_battle_aftermath_dm_contact_prompt_dismissed",
     'stage: "7.14"',
 ]:
     assert marker in controller, marker
 
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
     assert text.count("stage7_cosmetic_cleanup_20260808a") >= 2
+
+assert '<div class="stage7EvidenceBadge">Первый раунд завершён.</div>' in controller
+assert '<p>До второго раунда можно осмотреться и узнать об участниках.</p>' in controller
 
 for path in [CONTROLLER, CONTROLLER_DOCS]:
     subprocess.run(["node", "--check", str(path)], check=True)
@@ -91,6 +96,9 @@ function storageEntries(rt) {
   snap = resumed.sandbox.Game.__DEV.getStage7FirstExperienceSnapshot();
   assert.strictEqual(snap.realBattleBridge.aftermathDmStatus, "delivered");
   assert.strictEqual(snap.realBattleBridge.aftermathDmDeliveryCount, 1);
+  assert.strictEqual(snap.realBattleBridge.aftermathDmContactPromptDismissed, true);
+  assert.strictEqual(resumed.sandbox.document.getElementById("stage7FirstExperiencePanel"), null,
+    "Personal Contact prompt must be removed after its contact action completes");
 
   assert.strictEqual(resumed.sandbox.Game.__DEV.openStage7FirstBattleAftermathDmContact(), true);
   assert.strictEqual((resumed.state.dm.logs.npc_stage7_mika || []).length, 1);
@@ -124,8 +132,13 @@ function storageEntries(rt) {
   const contact = resumed.sandbox.Game.__DEV.getStage7FirstBattleAftermathDmContact();
   assert.strictEqual(contact.targetNpcId, "npc_bandit");
   assert.strictEqual(contact.dmStatus, "delivered");
+  assert.strictEqual(resumed.UI.openDM("npc_bandit"), "opened:npc_bandit");
+  snap = resumed.sandbox.Game.__DEV.getStage7FirstExperienceSnapshot();
+  assert.strictEqual(snap.realBattleBridge.aftermathDmContactPromptDismissed, true);
+  assert.strictEqual(resumed.sandbox.document.getElementById("stage7FirstExperiencePanel"), null,
+    "ordinary DM-list opening must also dismiss the delivered Personal Contact prompt");
   assert.strictEqual(resumed.sandbox.Game.__DEV.openStage7FirstBattleAftermathDmContact(), true);
-  assert.deepStrictEqual(Array.from(resumed.openCalls), ["npc_bandit"]);
+  assert.deepStrictEqual(Array.from(resumed.openCalls), ["npc_bandit", "npc_bandit"]);
   const logs = resumed.state.dm.logs.npc_bandit || [];
   assert.strictEqual(logs.length, 1);
   assert(logs[0].text.includes("Баттл ничего не закрыл"));
@@ -133,6 +146,9 @@ function storageEntries(rt) {
   snap = resumed.sandbox.Game.__DEV.getStage7FirstExperienceSnapshot();
   assert.strictEqual(snap.realBattleBridge.aftermathDmStatus, "delivered");
   assert.strictEqual(snap.realBattleBridge.aftermathDmDeliveryCount, 1);
+  assert.strictEqual(snap.realBattleBridge.aftermathDmContactPromptDismissed, true);
+  assert.strictEqual(resumed.sandbox.document.getElementById("stage7FirstExperiencePanel"), null,
+    "delivered Personal Contact prompt must not remain above battles");
 
   assert.strictEqual(resumed.sandbox.Game.__DEV.openStage7FirstBattleAftermathDmContact(), true);
   assert.strictEqual((resumed.state.dm.logs.npc_bandit || []).length, 1);
