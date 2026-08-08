@@ -47,6 +47,8 @@ require("system || preserveText ? String(text || \"\")" in core, "ui-core still 
 require("m.preserveText !== true" in chat, "ui-chat has no explicit authored-text gate")
 require("hasMentions" not in chat, "ui-chat still uses mentions as a normalization bypass")
 require("STARTUP_NAME_VISIBLE_MS" in profile and "STARTUP_NAME_GAP_MS" in profile, "startup lifecycle constants missing")
+require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v2" in profile, "versioned startup session key missing")
+require("requestStartupNameToasts" in profile and "STARTUP_NAME_MAX_RETRIES" in profile, "readiness-aware startup retry missing")
 require("stage6StartupNameToast" in profile, "dedicated startup toast node missing")
 require("positionStartupNameToast" in profile, "startup toast is not anchored to stat chips")
 require("cancelStartupNameToastLifecycle();" in profile, "manual stat tap does not cancel startup lifecycle")
@@ -139,7 +141,7 @@ function runChatRenderRegression() {
   assert(visible[0].includes("!!!") && visible[1].endsWith("!"));
 }
 
-function runStartupLifecycleRegression() {
+function runStartupLifecycleRegression(options = {}) {
   const source = fs.readFileSync("AsyncScene/Web/ui/ui-profile-visual-tone-repair.js", "utf8");
   const nodes = {};
   const repChip = makeNode("button", "repChip");
@@ -149,10 +151,11 @@ function runStartupLifecycleRegression() {
   const repAnchor = makeNode("span"); repAnchor.rect = { left: 24, top: 18, right: 64, bottom: 42, width: 40, height: 24 };
   const pointsAnchor = makeNode("span"); pointsAnchor.rect = { left: 210, top: 18, right: 250, bottom: 42, width: 40, height: 24 };
   const selector = { rep: repChip, points: pointsChip };
+  const anchorsReady = { value: options.delayedAnchors !== true };
   const children = [];
   const timers = [];
   let timerSeq = 0;
-  const storage = new Map();
+  const storage = new Map(options.staleSession === true ? [["stage7_startup_stat_name_toasts", "1"]] : []);
   const body = makeNode("body");
   body.appendChild = (child) => { children.push(child); child._parent = body; if (child.id) nodes[child.id] = child; return child; };
   body._onRemove = (child) => { const index = children.indexOf(child); if (index >= 0) children.splice(index, 1); if (child.id) delete nodes[child.id]; };
@@ -169,16 +172,18 @@ function runStartupLifecycleRegression() {
     createElement: (tag) => makeNode(tag),
     getElementById: (id) => nodes[id] || null,
     querySelector: (selectorText) => {
+      if (!anchorsReady.value && (selectorText === '[data-profile-stat="rep"]' || selectorText === '[data-profile-stat="points"]')) return null;
       if (selectorText === '[data-profile-stat="rep"]') return repChip;
       if (selectorText === '[data-profile-stat="points"]') return pointsChip;
       return null;
     },
     querySelectorAll: () => [],
-    addEventListener() {},
+    listeners: {},
+    addEventListener(name, fn) { this.listeners[name] = fn; },
   };
   const UI = {
     S: { me: { name: "РайханИгрок" } },
-    getStatAnchor: (kind) => kind === "rep" ? repAnchor : pointsAnchor,
+    getStatAnchor: (kind) => !anchorsReady.value ? null : (kind === "rep" ? repAnchor : pointsAnchor),
     isDevBalanceEnabled: () => false,
     showStatToast() {},
     requestRenderAll() {}, renderAll() {},
@@ -199,11 +204,19 @@ function runStartupLifecycleRegression() {
   };
   sandbox.window = sandbox;
   sandbox.window.innerWidth = 390; sandbox.window.innerHeight = 844;
-  sandbox.window.addEventListener = () => {};
+  sandbox.window.listeners = {};
+  sandbox.window.addEventListener = (name, fn) => { sandbox.window.listeners[name] = fn; };
   sandbox.window.sessionStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, String(value)) };
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: "ui-profile-visual-tone-repair.js" });
   runTimer(0);
+  if (options.delayedAnchors === true) {
+    assert.strictEqual(children.length, 0, "startup must wait while stat anchors are absent");
+    runTimer(250);
+    assert.strictEqual(children.length, 0, "bounded retry must not show before anchors exist");
+    anchorsReady.value = true;
+    runTimer(250);
+  }
   assert.strictEqual(children.length, 1);
   assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Репутация");
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) < 150);
@@ -216,15 +229,22 @@ function runStartupLifecycleRegression() {
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) > 150);
   runTimer(850);
   assert.strictEqual(children.length, 0);
-  assert.strictEqual(storage.get("stage7_startup_stat_name_toasts"), "1");
-  assert(repChip.listeners.click);
-  repChip.listeners.click();
-  assert(nodes.stage6DeltaNameToast_rep);
-  assert.strictEqual(nodes.stage6StartupNameToast, undefined);
+  assert.strictEqual(storage.get("stage7_startup_stat_name_toasts_v2"), "completed");
+  if (options.delayedAnchors !== true) {
+    assert(repChip.listeners.click);
+    repChip.listeners.click();
+    assert(nodes.stage6DeltaNameToast_rep);
+    assert.strictEqual(nodes.stage6StartupNameToast, undefined);
+  }
+  if (sandbox.document.listeners.DOMContentLoaded) sandbox.document.listeners.DOMContentLoaded();
+  if (sandbox.window.listeners.load) sandbox.window.listeners.load();
+  assert.strictEqual(nodes.stage6StartupNameToast, undefined, "completed startup session must not replay after readiness events");
 }
 
 runChatRenderRegression();
 runStartupLifecycleRegression();
+runStartupLifecycleRegression({ delayedAnchors: true });
+runStartupLifecycleRegression({ staleSession: true });
 console.log("PASS_STAGE7_TASK1_RENDERED_RUNTIME");
 """
 
