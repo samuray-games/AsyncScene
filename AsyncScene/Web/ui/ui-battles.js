@@ -2309,7 +2309,7 @@ UI.renderBattles = () => {
              const p = S.players ? S.players[id] : null;
              const n = (p && (UI.displayName ? UI.displayName(p) : p.name)) ? (UI.displayName ? UI.displayName(p) : p.name) : "Игрок";
              const inf = (p && Number.isFinite(p.influence)) ? p.influence : 0;
-             return `${n} [${inf}]`;
+             return isDevCrowdMode ? `${n} [${inf}]` : n;
            };
 
           const mkVoteBtn = (label, votes) => {
