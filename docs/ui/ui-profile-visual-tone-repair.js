@@ -826,6 +826,16 @@ window.Game = window.Game || {};
     return chip ? (chip.querySelector(".statIcon") || chip) : null;
   }
 
+  function startupStatValueAnchor(kind) {
+    const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
+    if (!chip) return null;
+    const id = kind === "points" ? "mePoints" : kind === "rep" ? "meRep" : "";
+    const target = (id && chip.querySelector(`#${id}`)) || chip.querySelector(".pointsValue") || chip.querySelector(".statValue");
+    if (!target || !target.getBoundingClientRect) return null;
+    const r = target.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 ? target : null;
+  }
+
   function resetDeltaToast(kind) {
     const entry = getDeltaToastState(kind);
     const state = entry.state;
@@ -857,18 +867,14 @@ window.Game = window.Game || {};
   }
 
   function positionStartupNameToast(kind, el) {
-    const anchor = deltaAnchor(kind);
-    if (!anchor || !anchor.getBoundingClientRect || !el) return false;
-    const r = anchor.getBoundingClientRect();
+    const target = startupStatValueAnchor(kind);
+    if (!target || !el) return false;
+    const r = target.getBoundingClientRect();
     const viewportWidth = Math.max(240, Number(window.innerWidth || document.documentElement.clientWidth || 320));
-    const viewportHeight = Math.max(240, Number(window.innerHeight || document.documentElement.clientHeight || 640));
     const measuredWidth = Number(el.offsetWidth) || Math.min(160, Math.max(48, String(el.textContent || "").length * 8 + 18));
     const width = Math.min(measuredWidth, viewportWidth - 16);
     const height = Math.max(28, Number(el.offsetHeight || 28));
-    const below = r.bottom + 6;
-    const top = below + height <= viewportHeight - 8
-      ? below
-      : Math.max(8, r.top - height - 6);
+    const top = Math.max(8, r.top - height - 6);
     const center = Math.min(
       viewportWidth - (width / 2) - 8,
       Math.max((width / 2) + 8, r.left + (r.width / 2))
@@ -882,8 +888,7 @@ window.Game = window.Game || {};
 
   function showStartupNameToast(kind) {
     removeStartupNameToast();
-    const anchor = deltaAnchor(kind);
-    if (!anchor) return false;
+    if (!startupStatValueAnchor(kind)) return false;
     const el = document.createElement("div");
     el.id = "stage6StartupNameToast";
     el.className = "statToast statToast--startup-name";
@@ -926,7 +931,12 @@ window.Game = window.Game || {};
       el.dataset.deltaResource = entry.key;
       el.onclick = (event) => {
         if (event && typeof event.stopPropagation === "function") event.stopPropagation();
-        showNamedDeltaToast(entry.key, state.total);
+        const shownTotal = state.total;
+        state.total = 0;
+        state.pending = 0;
+        state.el = null;
+        try { el.remove(); } catch (_) { el.style.display = "none"; }
+        showNamedDeltaToast(entry.key, shownTotal);
       };
       document.body.appendChild(el);
       state.el = el;
@@ -990,7 +1000,7 @@ window.Game = window.Game || {};
 
   function startStartupNameToastLifecycle() {
     if (startupNameLifecycleStarted || startupNameLifecycleCompleted()) return;
-    if (!deltaAnchor("rep") || !deltaAnchor("points")) return;
+    if (!startupStatValueAnchor("rep") || !startupStatValueAnchor("points")) return;
     startupNameLifecycleStarted = true;
     if (!showStartupNameToast("rep")) startupNameLifecycleStarted = false;
   }
@@ -1057,6 +1067,7 @@ window.Game = window.Game || {};
     try {
       document.querySelectorAll('.statToast--delta, [id^="statToast_"]').forEach((el) => {
         if (el && el.id === "stage6UnifiedStatToast") return;
+        if (el && el.style && el.style.display !== "none") return;
         try { el.remove(); } catch (_) { try { el.style.display = "none"; } catch (_) {} }
       });
     } catch (_) {}

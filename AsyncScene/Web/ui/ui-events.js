@@ -228,8 +228,7 @@ window.Game = window.Game || {};
         el.style.pointerEvents = "auto";
         el.style.cursor = "pointer";
         el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
-        el.style.transition = "opacity 120ms ease";
-        el.style.opacity = "0";
+        el.style.opacity = "1";
         try { document.body.appendChild(el); } catch (_) {}
       }
       el.textContent = msg;
@@ -241,7 +240,6 @@ window.Game = window.Game || {};
         el.style.top = String(Math.round(top)) + "px";
         el.style.transform = "translateY(-50%)";
         el.style.display = "block";
-        requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
       } catch (_) {}
     } catch (_) {}
   }

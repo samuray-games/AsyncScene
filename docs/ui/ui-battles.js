@@ -166,8 +166,7 @@
       el.style.pointerEvents = "auto";
       el.style.cursor = "pointer";
       el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
-      el.style.transition = "opacity 120ms ease";
-      el.style.opacity = "0";
+      el.style.opacity = "1";
       try { document.body.appendChild(el); } catch (_) {}
     }
     el.textContent = msg;
@@ -180,7 +179,6 @@
       el.style.transform = "translateY(-50%)";
       el.style.display = "block";
       // show
-      requestAnimationFrame(() => { try { el.style.opacity = "1"; } catch(_) {} });
     } catch (_) {}
   }
 
@@ -189,14 +187,14 @@
     const msg = String(text || "").trim();
     if (!msg) return;
     try { chip.style.position = "relative"; } catch (_) {}
-    let el = chip.querySelector ? chip.querySelector(".chipToast") : null;
+    const battleId = chip.dataset && chip.dataset.battleId ? String(chip.dataset.battleId) : "";
+    let el = Array.from(document.querySelectorAll(".chipToast")).find((node) => String(node.dataset && node.dataset.forBattleId || "") === battleId);
     if (!el) {
       el = document.createElement("div");
       el.className = "chipToast";
+      el.dataset.forBattleId = battleId;
       el.style.position = "absolute";
       el.style.left = "50%";
-      el.style.bottom = "100%";
-      el.style.marginBottom = "6px";
       el.style.transform = "translateX(-50%)";
       el.style.padding = "4px 8px";
       el.style.borderRadius = "8px";
@@ -209,10 +207,17 @@
       el.style.pointerEvents = "auto";
       el.style.cursor = "pointer";
       el.onclick = () => { try { el.remove(); } catch (_) { el.style.display = "none"; } };
-      try { chip.appendChild(el); } catch (_) {}
+      try { document.body.appendChild(el); } catch (_) {}
     }
     el.textContent = msg;
+    try {
+      const r = chip.getBoundingClientRect();
+      el.style.left = `${Math.round(r.left + (r.width / 2) + (window.pageXOffset || document.documentElement.scrollLeft || 0))}px`;
+      el.style.top = `${Math.round(r.top + (window.pageYOffset || document.documentElement.scrollTop || 0) - 6)}px`;
+      el.style.transform = "translate(-50%, -100%)";
+    } catch (_) {}
     el.style.display = "block";
+    el.style.opacity = "1";
   }
 
   const UI_CROWD_TIMER_WARMUP_MS = 60000;
