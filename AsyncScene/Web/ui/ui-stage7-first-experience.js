@@ -25,11 +25,11 @@ window.Game = window.Game || {};
   const RESPONSE_IDS = ["deny", "accuse_ken", "pay"];
   const PRELUDE = [
     { id: "room_entered", at: 1000, name: "System", text: "Ты вошёл в комнату.", system: true },
-    { id: "mika_missing_money", at: 3500, name: "Настя", text: "из общей кассы пропали деньги!!!" },
-    { id: "oleg_context", at: 6500, name: "Олег", text: "пропажу заметили ещё до появления новичка!" },
-    { id: "ken_hint", at: 9500, name: "Райхан", text: "новичок пришёл - и деньги исчезли, странное совпадение" },
-    { id: "mika_brake", at: 12500, name: "Настя", text: "без доказательств никого не обвиняем!" },
-    { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты!!! Деньги пропали после твоего появления!" },
+    { id: "mika_missing_money", at: 3500, name: "Настя", text: "из общей кассы пропали деньги!!!", preserveText: true },
+    { id: "oleg_context", at: 6500, name: "Олег", text: "пропажу заметили ещё до появления новичка!", preserveText: true },
+    { id: "ken_hint", at: 9500, name: "Райхан", text: "новичок пришёл - и деньги исчезли, странное совпадение", preserveText: true },
+    { id: "mika_brake", at: 12500, name: "Настя", text: "без доказательств никого не обвиняем!", preserveText: true },
+    { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты!!! Деньги пропали после твоего появления!", preserveText: true },
   ];
   const BRANCHES = {
     deny: {
@@ -856,7 +856,7 @@ window.Game = window.Game || {};
     if (!entry || !context || !context.UI) return;
     const UI = context.UI;
     if (entry.system && typeof UI.pushSystem === "function") UI.pushSystem(entry.text);
-    else if (typeof UI.pushChat === "function") UI.pushChat({ name: entry.name, text: entry.text, system: false });
+    else if (typeof UI.pushChat === "function") UI.pushChat({ name: entry.name, text: entry.text, system: false, preserveText: entry.preserveText === true });
     if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
     else if (typeof UI.renderAll === "function") UI.renderAll();
   }
@@ -869,9 +869,16 @@ window.Game = window.Game || {};
       snapshot.stateId = "accusation";
     }
     saveSnapshot();
+    const state = getState();
+    const playerName = String(
+      state && state.me && state.me.name
+      || context && context.playerName
+      || "игрок"
+    ).trim() || "игрок";
     const nextEntry = entry.id === "ken_accusation"
       ? Object.assign({}, entry, {
-        text: `[mention игрока], это сделал ты!!! деньги пропали после твоего появления!`,
+        text: `@${playerName}, это сделал ты!!! деньги пропали после твоего появления!`,
+        preserveText: true,
       })
       : entry;
     pushLine(nextEntry);

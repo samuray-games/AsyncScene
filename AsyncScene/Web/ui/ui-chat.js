@@ -489,11 +489,8 @@ window.Game = window.Game || {};
       }
       // Enforce NPC chat style at render-time (safety net)
       // Cop and Mafioso messages must keep perfect punctuation and casing.
-      if (isNpcSpeaker(m) && !isCopSpeaker(m) && !isMafiaSpeaker(m)) {
-        const hasMentions = Array.isArray(m.mentions) && m.mentions.length > 0;
-        if (!hasMentions) {
-          expanded = normalizeNpcChatText(expanded);
-        }
+      if (isNpcSpeaker(m) && !isCopSpeaker(m) && !isMafiaSpeaker(m) && m.preserveText !== true) {
+        expanded = normalizeNpcChatText(expanded);
       }
       let rendered = renderMentionsLocal(expanded, { speakerName: m.name });
       // Cop messages: do NOT prefix text with "Name:" — name is shown in meta.
