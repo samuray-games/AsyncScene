@@ -17,6 +17,8 @@ MIRROR_FILES = [
     "style-base.css",
     "ui/ui-core.js",
     "ui/ui-dm.js",
+    "ui/ui-chat.js",
+    "ui/ui-battles.js",
     "ui/ui-events.js",
     "ui/ui-profile-visual-tone-repair.js",
     "ui/ui-stage7-first-experience.css",
@@ -34,6 +36,8 @@ tone = (SOURCE / "ui/ui-profile-visual-tone-repair.js").read_text(encoding="utf-
 core = (SOURCE / "ui/ui-core.js").read_text(encoding="utf-8")
 dm = (SOURCE / "ui/ui-dm.js").read_text(encoding="utf-8")
 events = (SOURCE / "ui/ui-events.js").read_text(encoding="utf-8")
+chat = (SOURCE / "ui/ui-chat.js").read_text(encoding="utf-8")
+battles = (SOURCE / "ui/ui-battles.js").read_text(encoding="utf-8")
 css = (SOURCE / "style-base.css").read_text(encoding="utf-8")
 index = (SOURCE / "index.html").read_text(encoding="utf-8")
 
@@ -61,12 +65,17 @@ require("Игра открыта. Личка не откроется сама п
 require("deltaName" in tone and "namedDeltaText" in tone, "verbal delta labels missing")
 require("Баланс" in tone and "Репутация" in tone, "balance/rep delta names missing")
 require("bindDeltaChipTaps" in tone, "mobile delta tap binding missing")
+require("showStartupNameToasts" in tone and 'sessionStorage.getItem("stage7_startup_stat_name_toasts")' in tone, "startup name-toast path missing")
+require('"Репутация"' in tone and '"Баланс"' in tone, "startup stat names missing")
 require('[data-profile-stat="${kind}"]' in tone and '"rep", "points"' in tone, "rep/points tap targets missing")
 require("UI.isDevBalanceEnabled = isDevBalanceEnabled" in core, "devmode visibility hook missing")
 require("dev-balance-visible" in core and "dev-balance-visible" in css, "devmode influence visibility class missing")
 require('RESERVED_SYSTEM_DM_IDS = new Set(["security_owner"])' in dm, "security service reservation missing")
 require("isHiddenSystemDmId" in dm and "!UI.isDevBalanceEnabled()" in dm, "security service devmode gate missing")
 require("devInfluencePill" in dm and "influenceLabel" in events, "influence labels are not devmode-gated")
+require("devInfluenceEnabled" in chat and "isDevBalanceEnabled" in battles, "direct chat/battle influence renderers are not gated")
+require("expanded.replace(/\\s*\\[\\d+\\]/g, \"\")" in chat, "chat influence labels are not stripped in normal mode")
+require("titleFallback = UI.isDevBalanceEnabled" in events, "event influence title is not gated")
 
 require(index.count("stage7_cosmetic_cleanup_20260808a") >= 2, "cosmetic cache-buster missing")
 print("PASS_STAGE7_COSMETIC_CLEANUP")

@@ -1956,7 +1956,7 @@ UI.renderBattles = () => {
       const top = document.createElement("div");
       top.className = "battleTop";
       top.innerHTML = `
-        <div class="kpill"><strong>${escapeHtml(oppName)}</strong> <span class="badge">[${escapeHtml(String(oppInfluence(opp)))}]</span></div>
+        <div class="kpill"><strong>${escapeHtml(oppName)}</strong>${UI.isDevBalanceEnabled && UI.isDevBalanceEnabled() ? ` <span class="badge">[${escapeHtml(String(oppInfluence(opp)))}]</span>` : ""}</div>
       `;
       card.appendChild(top);
 
@@ -2299,12 +2299,12 @@ UI.renderBattles = () => {
              if (!id || id === "me") {
                const n = (UI.displayName ? UI.displayName(me) : me.name) || "Ты";
                const inf = Number.isFinite(me.influence) ? me.influence : 0;
-               return `${n} [${inf}]`;
+               return UI.isDevBalanceEnabled && UI.isDevBalanceEnabled() ? `${n} [${inf}]` : n;
              }
              const p = S.players ? S.players[id] : null;
              const n = (p && (UI.displayName ? UI.displayName(p) : p.name)) ? (UI.displayName ? UI.displayName(p) : p.name) : "Игрок";
              const inf = (p && Number.isFinite(p.influence)) ? p.influence : 0;
-             return `${n} [${inf}]`;
+               return UI.isDevBalanceEnabled && UI.isDevBalanceEnabled() ? `${n} [${inf}]` : n;
            };
 
           const mkVoteBtn = (label, votes) => {
@@ -3226,7 +3226,7 @@ UI.renderBattles = () => {
                const name = p.name || playerId;
                const pts = Number.isFinite(p.points) ? (p.points | 0) : 0;
                const inf = Number.isFinite(p.influence) ? (p.influence | 0) : 0;
-               return `${name} 💰${pts} [${inf}]`;
+               return UI.isDevBalanceEnabled && UI.isDevBalanceEnabled() ? `${name} 💰${pts} [${inf}]` : `${name} 💰${pts}`;
              };
              
             const raw = getRawCountsFromVoters(c);

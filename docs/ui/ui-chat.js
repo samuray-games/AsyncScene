@@ -24,6 +24,7 @@ window.Game = window.Game || {};
   const $ = UI.$;
   const escapeHtml = UI.escapeHtml;
   const nameHTMLWithPill = UI.nameHTMLWithPill;
+  const devInfluenceEnabled = () => !UI.isDevBalanceEnabled || UI.isDevBalanceEnabled();
 
   const escapeRe = (s) => String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -397,8 +398,7 @@ window.Game = window.Game || {};
     // Prefer shared helper (keeps format identical across chat/battles/events/dm)
     if (p && typeof nameHTMLWithPill === "function") return nameHTMLWithPill(p);
 
-    const inf = p ? (p.influence || 0) : 0;
-    return `${escapeHtml(msgName)} <span class="badge">[${escapeHtml(String(inf))}]</span>`;
+    return `${escapeHtml(msgName)}`;
   };
 
   // ---- System text helpers (used by conflict/events/UI to build correctly punctuated lines) ----
@@ -422,8 +422,7 @@ window.Game = window.Game || {};
     const n = p
       ? (UI.displayName ? UI.displayName(p) : (p.name || ""))
       : String(playerOrIdOrName || "");
-    const inf = p ? (p.influence || 0) : 0;
-    return `${n} [${inf}]`;
+    return devInfluenceEnabled() && p ? `${n} [${p.influence || 0}]` : n;
   };
 
   // Public helpers for other modules
@@ -485,6 +484,9 @@ window.Game = window.Game || {};
       if (m.eventId) el.dataset.eventId = m.eventId;
 
       let expanded = expandTemplates(m.text);
+      if (!UI.isDevBalanceEnabled || !UI.isDevBalanceEnabled()) {
+        expanded = expanded.replace(/\s*\[\d+\]/g, "");
+      }
       // Enforce NPC chat style at render-time (safety net)
       // Cop and Mafioso messages must keep perfect punctuation and casing.
       if (isNpcSpeaker(m) && !isCopSpeaker(m) && !isMafiaSpeaker(m)) {

@@ -912,6 +912,17 @@ window.Game = window.Game || {};
     });
   }
 
+  function showStartupNameToasts() {
+    let shown = false;
+    try {
+      shown = window.sessionStorage && window.sessionStorage.getItem("stage7_startup_stat_name_toasts") === "1";
+    } catch (_) {}
+    if (shown) return;
+    if (!deltaAnchor("rep") || !deltaAnchor("points")) return;
+    ["rep", "points"].forEach((kind) => showNamedDeltaToast(kind, 0));
+    try { window.sessionStorage.setItem("stage7_startup_stat_name_toasts", "1"); } catch (_) {}
+  }
+
   function flushDeltaToast(kind) {
     const entry = getDeltaToastState(kind);
     const state = entry.state;
@@ -1138,6 +1149,7 @@ window.Game = window.Game || {};
   function installUnifiedToastOwner() {
     neutralizeLegacyStatToasts();
     bindDeltaChipTaps();
+    window.setTimeout(showStartupNameToasts, 0);
 
     const show = function stage6UnifiedShowStatToastV4(kind, text) {
       const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
