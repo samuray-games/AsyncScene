@@ -11,6 +11,12 @@ window.Game = window.Game || {};
 console.warn("UI_DM_V1_LOADED", { ts: Date.now() });
 if (!Game.__DEV) Game.__DEV = {};
 const systemSay = (kind, code, ctx) => (Game.System && typeof Game.System.say === "function") ? Game.System.say(kind, code, ctx) : "";
+const isDevUi = () => {
+  try {
+    return (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true))
+      || (typeof location !== "undefined" && new URLSearchParams(location.search || "").get("dev") === "1");
+  } catch (_) { return false; }
+};
 const t = (key, vars) => (Game.Data && typeof Game.Data.t === "function")
   ? Game.Data.t(key, vars)
   : String(key || "");
@@ -931,7 +937,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const dmTitle = $("dmTitle");
     if (dmTitle) {
       const tname = (UI.displayName ? UI.displayName(target) : target.name);
-      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)} <span class="pill">[${escapeHtml(String(target.influence || 0))}]</span>`;
+      dmTitle.innerHTML = `Личка: ${escapeHtml(tname)}${isDevUi() ? ` <span class="pill">[${escapeHtml(String(target.influence || 0))}]</span>` : ""}`;
     }
 
     const listWrap = $("dmList") || document.createElement("div");
@@ -990,7 +996,10 @@ console.warn("UI_RESPECT_HOOKS_READY", {
         if (!res || !res.ok) {
           if (res && res.reason === "security_blocked") {
             const blockerText = res.blocker || "security_flag";
-            dmPushLine(withId, "Система", `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`);
+            const securityMessage = isDevUi()
+              ? `Служба безопасности блокирует баттл.${blockerText ? ` Причина: ${blockerText}` : ""}`
+              : "Действие недоступно.";
+            dmPushLine(withId, "Система", securityMessage);
             try { console.log(`[UX_AUDIT] action-disabled-hint action=call reason=${blockerText}`); } catch (_) {}
             UI.renderDM();
             return;
