@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:29Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:29Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:29Z",
+      "stderr": "",
+      "stdout": "44ae0cda1f0917af04b1aac73a00a50b913abd73\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:30Z",
+      "stderr": "",
+      "stdout": "# branch.oid 44ae0cda1f0917af04b1aac73a00a50b913abd73\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:30Z",
+      "stderr": "",
+      "stdout": "44ae0cda (HEAD, pull/326/merge) Merge b79639a76879bf5b7c7eea5d9ad01336e19c3b06 into f795e60885c731a6c6619488fac20645537fc12d\nb79639a7 (origin/codex/stage7-task1-runtime-corrections-20260808) fix: restore startup stat names and hide influence labels\nf795e608 (origin/main) fix: restore inventory confirmation and cheapest sufficient model selection (#324)\n49b903b6 fix: complete Stage 7 Task 1 corrective runtime slice\nd44ebe69 fix: stop generic preflight from re-asking INVENTORY_OK\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:30Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 44ae0cda1f0917af04b1aac73a00a50b913abd73\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:30Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T09:22:30Z",
+      "stderr": "",
+      "stdout": "f795e60885c731a6c6619488fac20645537fc12d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "44ae0cda1f0917af04b1aac73a00a50b913abd73",
+  "observedAtUtc": "2026-08-08T09:22:30Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
