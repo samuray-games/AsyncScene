@@ -459,7 +459,10 @@ def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str 
         return ("gpt-5.6-luna", "light")
     if required_score < 10 or required_score > 39:
         raise TaskDescriptionError("required score must be between 10 and 39")
-    model_floor = "gpt-5.6-luna"
+    # Generic mutation work has no family floor.  Capability and the
+    # authoritative cost tiers decide the cheapest sufficient pair.  Family
+    # floors below are reserved for explicit safety/complexity gates.
+    model_floor = "gpt-5.4-mini"
     if required_score <= 19:
         effort_floor = "light"
     elif required_score <= 29:
@@ -664,6 +667,21 @@ def _identity(task: Mapping[str, object], snapshot: Mapping[str, object], report
     }
 
 
+def _preliminary_identity(task: Mapping[str, object], snapshot: Mapping[str, object], thread_id: str, branch: str, baseline: str) -> dict[str, object]:
+    return {
+        "taskId": task["taskId"], "threadId": thread_id, "branch": branch, "baselineSha": baseline,
+        "snapshotRevision": snapshot["snapshotRevision"], "snapshotHash": snapshot["canonicalContentHash"],
+        "taskDescriptionHash": task_hash(task),
+    }
+
+
+def _assert_preliminary_identity(state: Mapping[str, object], task: Mapping[str, object], snapshot: Mapping[str, object], thread_id: str, branch: str, baseline: str) -> None:
+    expected = _preliminary_identity(task, snapshot, thread_id, branch, baseline)
+    for field, value in expected.items():
+        if state.get(field) != value:
+            raise AuthorizationError(f"stale authorization: {field} differs")
+
+
 def _assert_identity(state: Mapping[str, object], task: Mapping[str, object], snapshot: Mapping[str, object], report: EvaluationReport, thread_id: str, branch: str, baseline: str) -> None:
     expected = _identity(task, snapshot, report, thread_id, branch, baseline)
     for field, value in expected.items():
@@ -720,6 +738,25 @@ def _output(snapshot: Mapping[str, object], report: EvaluationReport, status: st
     return "\n".join(lines)
 
 
+def _inventory_output(snapshot: Mapping[str, object], next_response: str) -> str:
+    lines = [
+        "status: WAITING_FOR_INVENTORY_CONFIRMATION",
+        "authorization path: MUTATION_PREFLIGHT_REQUIRED",
+        f"snapshot revision: {snapshot['snapshotRevision']}",
+        f"snapshot hash: {snapshot['canonicalContentHash']}",
+        f"source artifact: {snapshot['sourceArtifact']['path']}",
+        f"source artifact blob sha: {snapshot['sourceArtifact']['blobSha']}",
+        f"model count: {snapshot['completeModelCount']}",
+        f"model-effort pair count: {snapshot['completeModelEffortPairCount']}",
+        "complete authoritative inventory:",
+    ]
+    for model in snapshot["models"]:
+        efforts = ", ".join(effort["effortLabel"] for effort in model["supportedEfforts"])
+        lines.append(f"- {model['modelLabel']} ({model['modelIdentifier']}): efforts={efforts}")
+    lines.append(f"exact next response: {next_response}")
+    return "\n".join(lines)
+
+
 def _read_only_output(task: Mapping[str, object], snapshot: Mapping[str, object], baseline: str, plugin_root: Path | None) -> str:
     evidence = _read_plugin_runtime_evidence(plugin_root)
     authority = _cost_authority(snapshot)
@@ -751,12 +788,11 @@ def start_preflight(task: Mapping[str, object], thread_id: str, baseline: str, *
     if _is_read_only_task(valid_task):
         output = _read_only_output(valid_task, snapshot, baseline, plugin_root)
         return PreflightResult("READ_ONLY_ALLOWED", snapshot, valid_task, tuple(), None, output, thread_id)
-    report = evaluate_task(snapshot, valid_task)
-    state = _identity(valid_task, snapshot, report, thread_id, selected_branch, baseline)
+    state = _preliminary_identity(valid_task, snapshot, thread_id, selected_branch, baseline)
     state.update({"authorizationPath": "MUTATION_PREFLIGHT_REQUIRED", "state": "WAITING_FOR_INVENTORY_CONFIRMATION", "stateHistory": ["PREFLIGHT_REQUIRED", "MUTATION_PREFLIGHT_REQUIRED", "WAITING_FOR_INVENTORY_CONFIRMATION"], "createdAt": _now(), "inventoryConfirmedAt": None, "expiresAfterSeconds": STATE_TTL_SECONDS})
     _write_state(state, state_dir)
     candidates = build_candidate_matrix(snapshot)
-    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, report, _output(snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
+    return PreflightResult("WAITING_FOR_INVENTORY_CONFIRMATION", snapshot, valid_task, candidates, None, _inventory_output(snapshot, "INVENTORY_OK or INVENTORY_CHANGED"), thread_id)
 
 
 def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: str, *, branch: str | None = None, state_dir: Path = DEFAULT_STATE_DIR, path: Path = SNAPSHOT_PATH) -> PreflightResult:
@@ -765,11 +801,12 @@ def record_inventory_ok(thread_id: str, task: Mapping[str, object], baseline: st
     selected_branch = branch if branch is not None else current_branch()
     if branch is not None and branch != current_branch():
         raise AuthorizationError("explicit branch argument does not match checked-out branch")
-    report = evaluate_task(snapshot, valid_task)
     state = _read_state(thread_id, state_dir)
-    _assert_identity(state, valid_task, snapshot, report, thread_id, selected_branch, baseline)
+    _assert_preliminary_identity(state, valid_task, snapshot, thread_id, selected_branch, baseline)
     if state["state"] != "WAITING_FOR_INVENTORY_CONFIRMATION":
         raise AuthorizationError("INVENTORY_OK is invalid in the current state")
+    report = evaluate_task(snapshot, valid_task)
+    state.update(_identity(valid_task, snapshot, report, thread_id, selected_branch, baseline))
     state["stateHistory"].append("INVENTORY_CONFIRMED")
     state["state"] = "WAITING_FOR_MODEL_SELECTION"
     state["stateHistory"].append("WAITING_FOR_MODEL_SELECTION")
