@@ -339,7 +339,8 @@ class BridgeCliEndToEndTests(unittest.TestCase):
         self.assertEqual(start.returncode, 0, start.stderr)
         self.assertIn("task descriptor source: BRIDGE_AUTHORITY_DERIVED", start.stdout)
         self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
-        self.assertIn("recommended pair:", start.stdout)
+        self.assertIn("complete authoritative inventory:", start.stdout)
+        self.assertNotIn("recommended pair:", start.stdout)
         self.assertIn(str(self.repo / ".git/asynchronia/model-selector-state"), start.stdout)
         ok = self._cli("bridge-inventory-ok")
         self.assertEqual(ok.returncode, 0, ok.stderr)
@@ -354,7 +355,8 @@ class BridgeCliEndToEndTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("task descriptor source: BRIDGE_AUTHORITY_DERIVED", result.stdout)
         self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", result.stdout)
-        self.assertIn("recommended pair:", result.stdout)
+        self.assertIn("complete authoritative inventory:", result.stdout)
+        self.assertNotIn("recommended pair:", result.stdout)
 
     def test_empty_stage6_write_scope_cannot_reach_read_only_allowed(self) -> None:
         self._publish_mailbox(profile="stage6", stage6_write_scope="[]")
