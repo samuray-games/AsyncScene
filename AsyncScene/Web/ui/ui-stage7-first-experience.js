@@ -25,10 +25,10 @@ window.Game = window.Game || {};
   const RESPONSE_IDS = ["deny", "accuse_ken", "pay"];
   const PRELUDE = [
     { id: "room_entered", at: 1000, name: "System", text: "Ты вошёл в комнату.", system: true },
-    { id: "mika_missing_money", at: 3500, name: "Настя", text: "Из общей кассы пропали деньги!!!" },
-    { id: "oleg_context", at: 6500, name: "Олег", text: "Пропажу заметили ещё до появления новичка!" },
-    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл - и деньги исчезли, странное совпадение" },
-    { id: "mika_brake", at: 12500, name: "Настя", text: "Без доказательств никого не обвиняем!" },
+    { id: "mika_missing_money", at: 3500, name: "Настя", text: "из общей кассы пропали деньги!!!" },
+    { id: "oleg_context", at: 6500, name: "Олег", text: "пропажу заметили ещё до появления новичка!" },
+    { id: "ken_hint", at: 9500, name: "Райхан", text: "новичок пришёл - и деньги исчезли, странное совпадение" },
+    { id: "mika_brake", at: 12500, name: "Настя", text: "без доказательств никого не обвиняем!" },
     { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты!!! Деньги пропали после твоего появления!" },
   ];
   const BRANCHES = {
@@ -869,7 +869,7 @@ window.Game = window.Game || {};
     saveSnapshot();
     const nextEntry = entry.id === "ken_accusation"
       ? Object.assign({}, entry, {
-        text: `@${String(getState() && getState().me && getState().me.name || "игрок")}, это сделал ты!!! деньги пропали после твоего появления!`,
+        text: `[mention игрока], это сделал ты!!! деньги пропали после твоего появления!`,
       })
       : entry;
     pushLine(nextEntry);
@@ -924,7 +924,7 @@ window.Game = window.Game || {};
       <div class="stage7Intermission">
         <div class="stage7EvidenceBadge">Первый раунд завершён</div>
         <h2>В комнате остались трое</h2>
-        <p>Можно узнать об участниках, подождать Райхана или отлучиться по своим делам.</p>
+        <p>До второго раунда можно осмотреться и узнать об участниках.</p>
         <div class="stage7IntermissionGrid" aria-label="Три доступных персонажа">${cards}</div>
         ${message ? `<div class="stage7NpcReply"><strong>${message.name}</strong><p>${message.text}</p></div>` : ""}
         <div class="stage7Support">Полная игра пока закрыта. Если уйдёшь, второй раунд встретит тебя после возвращения. Всё сохранено.</div>
@@ -971,7 +971,7 @@ window.Game = window.Game || {};
     )).join("");
     panel.innerHTML = `
       <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle">
-        <div class="stage7EvidenceBadge">Вопросы по ситуации · ${evidence.questionIndex + 1}/${questions.length}</div>
+        <div class="stage7EvidenceBadge">Вопрос · ${evidence.questionIndex + 1}/${questions.length}</div>
         <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
         <div class="stage7EvidenceOptions">${options}</div>
       </div>`;
@@ -996,6 +996,7 @@ window.Game = window.Game || {};
         <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
         <p>${result.body}</p>
         ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
+        <div class="stage7Support">После вопросов откроется полная игра.</div>
       </div>`;
   }
 
@@ -1116,7 +1117,6 @@ window.Game = window.Game || {};
         <h2>${record.title}</h2>
         <p>${record.body}</p>
         ${actionButton("Понятно", "acknowledge-first-battle-aftermath")}
-        <div class="stage7Support">Игра уже открыта. Эта реакция не блокирует остальные действия.</div>
       </div>`;
     return true;
   }
@@ -1482,10 +1482,10 @@ window.Game = window.Game || {};
     }
     if (snapshot.stateId === "vote") {
       const complete = snapshot.voteStep >= 5;
-      panel.innerHTML = `<h2>Реакция комнаты</h2><p>${branch.reaction}</p>
+      panel.innerHTML = `<h2>Реакция Насти</h2><p>${branch.reaction}</p>
         ${renderVotes(branch)}
         ${complete
-          ? `<p class="stage7Result">${branch.result}</p>${actionButton("Продолжить", "accept-consequence")}`
+          ? `<p class="stage7Result">${branch.result}</p>${actionButton("Понятно", "accept-consequence")}`
           : (snapshot.voteStarted
             ? `<div class="stage7Support">Голоса появляются по очереди.</div>`
             : actionButton("Увидеть голосование", "start-vote"))}`;

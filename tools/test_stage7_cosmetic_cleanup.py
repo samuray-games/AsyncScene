@@ -38,23 +38,23 @@ css = (SOURCE / "style-base.css").read_text(encoding="utf-8")
 index = (SOURCE / "index.html").read_text(encoding="utf-8")
 
 for line in (
-    "Из общей кассы пропали деньги!!!",
-    "Пропажу заметили ещё до появления новичка!",
-    "Новичок пришёл - и деньги исчезли, странное совпадение",
-    "Без доказательств никого не обвиняем!",
+    "из общей кассы пропали деньги!!!",
+    "пропажу заметили ещё до появления новичка!",
+    "новичок пришёл - и деньги исчезли, странное совпадение",
+    "без доказательств никого не обвиняем!",
     "это сделал ты!!! деньги пропали после твоего появления!",
 ):
     require(line in stage7, f"punctuation copy missing: {line}")
 
-require("Реакция комнаты" in stage7, "room reaction heading missing")
-require("Продолжить" in stage7, "natural consequence CTA missing")
+require("Реакция Насти" in stage7, "Nastya reaction heading missing")
+require('actionButton("Понятно", "accept-consequence")' in stage7, "consequence CTA missing")
 require("До второго раунда можно осмотреться и узнать об участниках." in stage7, "pre-round copy missing")
-require("Можно узнать об участниках, подождать Райхана или отлучиться по своим делам." in stage7, "intermission copy missing")
+require("До второго раунда примерно" not in stage7, "countdown copy remains")
 require("До второго раунда примерно 32 сек." not in stage7, "countdown copy remains")
 require("Это второй и последний учебный раунд перед проверкой понимания." not in stage7, "AI-ish round copy remains")
-require("Вопросы по ситуации" in stage7, "comprehension heading missing")
+require("Вопрос · ${evidence.questionIndex + 1}/${questions.length}" in stage7, "question heading missing")
 require("Перейти к вопросам" in stage7, "question CTA missing")
-require("После вопросов откроется полная игра" not in stage7, "post-question support copy remains")
+require("После вопросов откроется полная игра" in stage7, "post-question support copy missing")
 require("Ответ не останавливает прохождение" not in stage7, "questionnaire support copy remains")
 require("Игра открыта. Личка не откроется сама после обновления страницы." not in stage7, "post-battle DM support copy remains")
 
