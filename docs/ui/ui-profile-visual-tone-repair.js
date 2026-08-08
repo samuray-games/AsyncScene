@@ -29,6 +29,9 @@ window.Game = window.Game || {};
   const COALESCE_MS = 90;
   const STARTUP_NAME_VISIBLE_MS = 850;
   const STARTUP_NAME_GAP_MS = 160;
+  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v2";
+  const STARTUP_NAME_RETRY_MS = 250;
+  const STARTUP_NAME_MAX_RETRIES = 20;
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -800,6 +803,10 @@ window.Game = window.Game || {};
   const deltaToastStates = Object.create(null);
   let startupNameToastTimer = null;
   let startupNameToastHideTimer = null;
+  let startupNameReadinessTimer = null;
+  let startupNameRetryCount = 0;
+  let startupNameLifecycleStarted = false;
+  let startupNameLifecycleCancelled = false;
 
   function getDeltaToastState(kind) {
     const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";
@@ -861,8 +868,11 @@ window.Game = window.Game || {};
   function cancelStartupNameToastLifecycle() {
     if (startupNameToastTimer) clearTimeout(startupNameToastTimer);
     if (startupNameToastHideTimer) clearTimeout(startupNameToastHideTimer);
+    if (startupNameReadinessTimer) clearTimeout(startupNameReadinessTimer);
     startupNameToastTimer = null;
     startupNameToastHideTimer = null;
+    startupNameReadinessTimer = null;
+    startupNameLifecycleCancelled = true;
     removeStartupNameToast();
   }
 
@@ -904,7 +914,10 @@ window.Game = window.Game || {};
     el.style.whiteSpace = "nowrap";
     el.style.pointerEvents = "none";
     document.body.appendChild(el);
-    positionStartupNameToast(kind, el);
+    if (!positionStartupNameToast(kind, el)) {
+      removeStartupNameToast();
+      return false;
+    }
     el.style.display = "block";
     el.style.opacity = "1";
     return true;
@@ -976,26 +989,56 @@ window.Game = window.Game || {};
     });
   }
 
-  function showStartupNameToasts() {
-    let shown = false;
+  function startupNameLifecycleCompleted() {
     try {
-      shown = window.sessionStorage && window.sessionStorage.getItem("stage7_startup_stat_name_toasts") === "1";
+      return window.sessionStorage && window.sessionStorage.getItem(STARTUP_NAME_STORAGE_KEY) === "completed";
     } catch (_) {}
-    if (shown) return;
+    return false;
+  }
+
+  function completeStartupNameToastLifecycle() {
+    try { window.sessionStorage.setItem(STARTUP_NAME_STORAGE_KEY, "completed"); } catch (_) {}
+    startupNameLifecycleStarted = false;
+  }
+
+  function startStartupNameToastLifecycle() {
+    if (startupNameLifecycleStarted || startupNameLifecycleCancelled || startupNameLifecycleCompleted()) return;
     if (!deltaAnchor("rep") || !deltaAnchor("points")) return;
-    try { window.sessionStorage.setItem("stage7_startup_stat_name_toasts", "1"); } catch (_) {}
+    startupNameLifecycleStarted = true;
     const kinds = ["rep", "points"];
     let index = 0;
     const showNext = () => {
       const kind = kinds[index++];
-      if (!kind || !showStartupNameToast(kind)) return;
+      if (!kind || !showStartupNameToast(kind)) {
+        startupNameLifecycleStarted = false;
+        return;
+      }
       startupNameToastHideTimer = setTimeout(() => {
         startupNameToastHideTimer = null;
         removeStartupNameToast();
+        if (index >= kinds.length) {
+          completeStartupNameToastLifecycle();
+          return;
+        }
         startupNameToastTimer = setTimeout(showNext, STARTUP_NAME_GAP_MS);
       }, STARTUP_NAME_VISIBLE_MS);
     };
     showNext();
+  }
+
+  function requestStartupNameToasts() {
+    if (startupNameLifecycleStarted || startupNameLifecycleCancelled || startupNameLifecycleCompleted()) return;
+    if (deltaAnchor("rep") && deltaAnchor("points")) {
+      startupNameRetryCount = 0;
+      startStartupNameToastLifecycle();
+      return;
+    }
+    if (startupNameRetryCount >= STARTUP_NAME_MAX_RETRIES) return;
+    startupNameRetryCount += 1;
+    startupNameReadinessTimer = setTimeout(() => {
+      startupNameReadinessTimer = null;
+      requestStartupNameToasts();
+    }, STARTUP_NAME_RETRY_MS);
   }
 
   function flushDeltaToast(kind) {
@@ -1224,7 +1267,9 @@ window.Game = window.Game || {};
   function installUnifiedToastOwner() {
     neutralizeLegacyStatToasts();
     bindDeltaChipTaps();
-    window.setTimeout(showStartupNameToasts, 0);
+    window.setTimeout(requestStartupNameToasts, 0);
+    document.addEventListener("DOMContentLoaded", requestStartupNameToasts, { once: true });
+    window.addEventListener("load", requestStartupNameToasts, { once: true });
 
     const show = function stage6UnifiedShowStatToastV4(kind, text) {
       const key = STAT_KINDS.includes(String(kind || "")) ? String(kind) : "points";

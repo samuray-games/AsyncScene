@@ -65,7 +65,7 @@ require("Игра открыта. Личка не откроется сама п
 require("deltaName" in tone and "namedDeltaText" in tone, "verbal delta labels missing")
 require("Баланс" in tone and "Репутация" in tone, "balance/rep delta names missing")
 require("bindDeltaChipTaps" in tone, "mobile delta tap binding missing")
-require("showStartupNameToasts" in tone and 'sessionStorage.getItem("stage7_startup_stat_name_toasts")' in tone, "startup name-toast path missing")
+require("requestStartupNameToasts" in tone and "stage7_startup_stat_name_toasts_v2" in tone, "startup name-toast readiness path missing")
 require('"Репутация"' in tone and '"Баланс"' in tone, "startup stat names missing")
 require('[data-profile-stat="${kind}"]' in tone and '"rep", "points"' in tone, "rep/points tap targets missing")
 require("UI.isDevBalanceEnabled = isDevBalanceEnabled" in core, "devmode visibility hook missing")
