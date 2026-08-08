@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-task1-toast-geometry-lifecycle-20260808",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:34Z",
+      "stderr": "",
+      "stdout": "codex/stage7-task1-toast-geometry-lifecycle-20260808\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:34Z",
+      "stderr": "",
+      "stdout": "e2d04a0d4d479df4c40fceb1798597efa0eedf4b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:35Z",
+      "stderr": "",
+      "stdout": "# branch.oid e2d04a0d4d479df4c40fceb1798597efa0eedf4b\n# branch.head codex/stage7-task1-toast-geometry-lifecycle-20260808\n# branch.upstream origin/codex/stage7-task1-toast-geometry-lifecycle-20260808\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:35Z",
+      "stderr": "",
+      "stdout": "e2d04a0d (HEAD -> codex/stage7-task1-toast-geometry-lifecycle-20260808, origin/codex/stage7-task1-toast-geometry-lifecycle-20260808) fix(stage7): keep player toasts until click and anchor startup hints\nae4a00ed (origin/main) fix: make Task 1 toasts click-only after game entry\ncd1d5dc8 fix: make startup stat hints readiness aware\n57cf9b49 fix: preserve Stage 7 opening copy and refine startup stat hints\nb9c05a65 fix: dismiss stage7 personal contact prompt\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:35Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e2d04a0d4d479df4c40fceb1798597efa0eedf4b\nbranch refs/heads/codex/stage7-task1-toast-geometry-lifecycle-20260808\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:35Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-08T13:36:35Z",
+      "stderr": "",
+      "stdout": "ae4a00edec59243673a9af608b73db14af6e2267\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e2d04a0d4d479df4c40fceb1798597efa0eedf4b",
+  "observedAtUtc": "2026-08-08T13:36:35Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
