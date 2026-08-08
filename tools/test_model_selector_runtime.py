@@ -128,7 +128,11 @@ class ModelSelectorTests(unittest.TestCase):
             selected = task()
             start = start_preflight(selected, "thread-state", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(start.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
-            self.assertIn("recommended pair:", start.output)
+            self.assertIn("complete authoritative inventory:", start.output)
+            self.assertIn("5.6 Sol", start.output)
+            self.assertIn("efforts=Light, Medium, High, Extra High, Max, Ultra", start.output)
+            self.assertNotIn("evaluation matrix:", start.output)
+            self.assertNotIn("recommended pair:", start.output)
             self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", start.output)
             with self.assertRaises(AuthorizationError):
                 record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
@@ -194,12 +198,18 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
         self.assertEqual(report.recommendation.effortLabel, "Light")
 
-    def test_luna_floor_rejects_lower_family_models(self) -> None:
+    def test_generic_tasks_have_no_unconditional_luna_floor(self) -> None:
         self.assertLess(selector_core._model_floor_index("gpt-5.4-mini"), selector_core._model_floor_index("gpt-5.6-luna"))
-        self.assertLess(selector_core._model_floor_index("gpt-5.4"), selector_core._model_floor_index("gpt-5.6-luna"))
-        self.assertLess(selector_core._model_floor_index("gpt-5.5"), selector_core._model_floor_index("gpt-5.6-luna"))
+        low_task = task(
+            runtimeSensitivity="low", architectureImpact="low", securityImpact="low", economyImpact="low",
+            releaseImpact="low", validationComplexity="low", expectedImplementationSize="small",
+            ambiguityNovelty="low", concurrencyBranchRisk="low", affectedSystems=["UI"],
+        )
+        report = evaluate_task(load_snapshot(), low_task)
+        self.assertNotEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertNotEqual(report.recommendation.effortLabel, "High")
 
-    def test_luna_floor_rejects_lower_family_models_behaviorally(self) -> None:
+    def test_low_narrow_ui_copy_task_uses_cheapest_sufficient_pair(self) -> None:
         task_for_score_10 = task(
             securityImpact="low",
             runtimeSensitivity="low",
@@ -212,12 +222,36 @@ class ModelSelectorTests(unittest.TestCase):
         )
         with patch.object(selector_core, "_required_score", return_value=10):
             report = evaluate_task(load_snapshot(), task_for_score_10)
-        rejected = [evaluation for evaluation in report.evaluations if evaluation.modelIdentifier in {"gpt-5.4-mini", "gpt-5.4", "gpt-5.5"}]
-        self.assertEqual(len(rejected), 12)
-        for evaluation in rejected:
-            self.assertNotEqual(evaluation.verdict, "SUITABLE")
-            self.assertIsNotNone(evaluation.rejectionReason)
-            self.assertIn("policy floors require at least gpt-5.6-luna / Light", evaluation.rejectionReason)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_plugin_policy_self_edit_completes_handshake_without_circular_block(self) -> None:
+        self_edit = task(
+            objective="repair selector policy and its regression tests",
+            readScope=["plugins/asynchronia/model_selector.py", "tools/test_model_selector_runtime.py"],
+            writeScope=["plugins/asynchronia/model_selector.py", "tools/test_model_selector_runtime.py"],
+            affectedSystems=["selector", "preflight"],
+            runtimeSensitivity="low", architectureImpact="low", securityImpact="low", economyImpact="low",
+            releaseImpact="medium", validationComplexity="medium", expectedImplementationSize="medium",
+            ambiguityNovelty="low", concurrencyBranchRisk="low",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            start = start_preflight(self_edit, "thread-self-edit", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            self.assertNotIn("recommended pair:", start.output)
+            selected = record_inventory_ok("thread-self-edit", self_edit, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            self.assertIn("recommended pair:", selected.output)
+            self.assertIn("IMPLEMENTATION_ALLOWED", record_continue("thread-self-edit", "CONTINUE", self_edit, "baseline", branch=TEST_BRANCH, state_dir=state_dir))
+
+    def test_medium_runtime_task_uses_non_maximum_sufficient_effort(self) -> None:
+        runtime_task = task(
+            runtimeSensitivity="medium", architectureImpact="medium", securityImpact="low", economyImpact="low",
+            releaseImpact="medium", validationComplexity="medium", expectedImplementationSize="medium",
+            ambiguityNovelty="low", concurrencyBranchRisk="medium",
+        )
+        report = evaluate_task(load_snapshot(), runtime_task)
+        self.assertNotEqual(report.recommendation.effortLabel, "Max")
+        self.assertNotEqual(report.recommendation.modelLabel, "5.6 Sol")
 
     def test_unknown_model_and_effort_identities_fail_closed(self) -> None:
         with self.assertRaises(TaskDescriptionError):
