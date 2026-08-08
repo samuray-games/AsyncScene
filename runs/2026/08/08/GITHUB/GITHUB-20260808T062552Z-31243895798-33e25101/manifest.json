@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "fix/model-preflight-cheapest-sufficient-20260808",
+  "createdAtJst": "2026-08-08 15:25:52 JST",
+  "createdAtUtc": "2026-08-08T06:25:52Z",
+  "packagePath": "runs/2026/08/08/GITHUB/GITHUB-20260808T062552Z-31243895798-33e25101",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260808T062552Z-31243895798-33e25101",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
