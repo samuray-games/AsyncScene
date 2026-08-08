@@ -904,6 +904,43 @@ window.Game = window.Game || {};
     return TOPBAR_STAT_TITLES[resolveTopbarProfileKey()] || TOPBAR_STAT_TITLES.default;
   }
 
+  function showStatNameToast(kind, text){
+    const anchor = statAnchor(kind);
+    if (!anchor || !anchor.getBoundingClientRect) return null;
+    const id = `statToast_name_${kind}`;
+    let toast = document.getElementById(id);
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = id;
+      toast.className = "statToast statToast--name";
+      toast.dataset.statName = kind;
+      toast.onclick = () => { try { toast.remove(); } catch (_) { toast.style.display = "none"; } };
+      document.body.appendChild(toast);
+    }
+    toast.textContent = String(text || "");
+    const r = anchor.getBoundingClientRect();
+    toast.style.left = `${Math.round(r.left + (r.width / 2))}px`;
+    toast.style.top = `${Math.round(r.top - 8)}px`;
+    toast.style.display = "block";
+    toast.style.opacity = "1";
+    toast.style.transform = "translate(-50%, -100%)";
+    return toast;
+  }
+
+  function bindStatNameToastInteractions(){
+    const titles = resolveTopbarStatTitles();
+    ["rep", "points", "wins"].forEach((kind) => {
+      const chip = document.querySelector(`[data-profile-stat="${kind}"]`);
+      if (!chip || chip.dataset.statNameToastBound === "1") return;
+      chip.dataset.statNameToastBound = "1";
+      chip.addEventListener("click", () => {
+        showStatNameToast(kind, titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || kind);
+      });
+    });
+  }
+
+  UI.showStatNameToast = showStatNameToast;
+
   function syncTopbarStatTitles(){
     const bal = $("balance");
     if (!bal) return;
@@ -914,14 +951,15 @@ window.Game = window.Game || {};
       const title = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
       if (icon) icon.setAttribute("title", title);
     });
+    bindStatNameToastInteractions();
     while (pendingStatDeltas.length) {
       const pending = pendingStatDeltas.shift();
       showDeltaToastInstant(pending.kind, pending.delta, pending.opts);
     }
     if (!UI.__initialStatNameToastsShown) {
       UI.__initialStatNameToastsShown = true;
-      UI.showStatToast("rep", "Репутация");
-      setTimeout(() => UI.showStatToast("points", "Баланс"), 350);
+      showStatNameToast("rep", "Репутация");
+      setTimeout(() => showStatNameToast("points", "Баланс"), 350);
     }
   }
   UI.syncTopbarStatTitles = syncTopbarStatTitles;
@@ -1011,7 +1049,7 @@ window.Game = window.Game || {};
     const proof = opts && opts.__moneyLogRef ? opts.__moneyLogRef : null;
     if (proof && proof.txId) toast.dataset.txId = String(proof.txId);
     if (proof && Number.isFinite(proof.logIndex)) toast.dataset.logIndex = String(proof.logIndex);
-    toast.onclick = () => { try { toast.remove(); } catch (_) { toast.style.display = "none"; } };
+    toast.onclick = () => dismissDeltaToast(kind);
     document.body.appendChild(toast);
 
     toast.textContent = text;
