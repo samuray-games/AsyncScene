@@ -1,7 +1,7 @@
 {
   "name": "asynchronia",
   "version": "1.0.18",
-  "description": "Project-specific automatic routing with official Codex-credit authority, cheapest-sufficient selection, canonical generic inventory reuse, bridge-derived preflight, scope checks, and evidence workflows.",
+  "description": "Project-specific automatic routing with official Codex-credit authority, cheapest-sufficient selection, bridge-derived preflight, scope checks, and evidence workflows.",
   "author": {
     "name": "Asynchronia Project"
   },
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Asynchronia",
     "shortDescription": "Select the cheapest sufficient verified Codex model using exact credit evidence.",
-    "longDescription": "Provides mandatory routing, deterministic bridge task classification, confirmed-snapshot model inventory, canonical generic inventory reuse, complete model-effort evaluation, official Standard-speed Codex-credit authority, exact cost-tier evidence, cost-authority identity binding, durable same-thread authorization in Git-private storage, scope isolation, deployment verification, and acceptance evidence rules. Capability semantics are calibrated in 1.0.18 through scope-aware policy gates before security work resumes.",
+    "longDescription": "Provides mandatory routing, deterministic bridge task classification, confirmed-snapshot model inventory, complete model-effort evaluation, official Standard-speed Codex-credit authority, exact cost-tier evidence, cost-authority identity binding, durable same-thread authorization in Git-private storage, scope isolation, deployment verification, and acceptance evidence rules. Capability semantics are calibrated in 1.0.18 through scope-aware policy gates before security work resumes.",
     "developerName": "Asynchronia Project",
     "category": "Developer Tools",
     "capabilities": [
@@ -17,11 +17,10 @@
       "Bridge-authority-derived task descriptions",
       "Deterministic versioned risk classification",
       "Confirmed repository Markdown inventory authority",
-      "Canonical generic inventory reuse",
       "Complete model-effort pair evaluation",
       "Retry-adjusted cost recommendation",
       "Mandatory blocking model preflight",
-      "Bridge same-thread INVENTORY_OK and universal CONTINUE authorization",
+      "Same-thread INVENTORY_OK and CONTINUE authorization",
       "Sandbox-safe Git-private durable state",
       "Repository scope checks",
       "Workflow routing",
@@ -35,20 +34,20 @@
       "Use plugins/asynchronia/model-selector-cost-authority.json as the official Standard-speed Codex-credit authority; bind its revision, canonical hash, pricing basis, and source artifact blob to selector identity.",
       "Recommend the cheapest sufficient candidate by neutral component-wise dominance cost tiers, exact decimal credits, lowest sufficient effort, retry risk, escalation risk, capability margin, and stable candidate ordinal.",
       "Capability semantics are calibrated in 1.0.18; the selector now applies scope-aware floors and gates before the blocked security task resumes.",
-      "For generic non-bridge mutation start, validate and automatically reuse the unchanged canonical repository inventory, then enter WAITING_FOR_MODEL_SELECTION; do not ask the user for INVENTORY_OK when the canonical authority binding already passes.",
       "For exact numbered bridge commands, use bridge-start, bridge-inventory-ok, and bridge-continue. Never invent or hand-author bridge task risk fields.",
-      "For exact numbered bridge mutation start, the first mutation selector status remains WAITING_FOR_INVENTORY_CONFIRMATION and the only next response is INVENTORY_OK or INVENTORY_CHANGED.",
       "Derive bridge task identity, frozen scope, and classification only from current slot-local STATE, inbox, claim, mailbox head, task branch, and the versioned bridge task profile.",
       "Unknown bridge claim types or incomplete bridge authority must fail closed.",
       "Store durable selector state in the repository Git-private path resolved by git rev-parse --git-path asynchronia/model-selector-state, never under the user home or .ai-bridge.",
-      "For generic non-bridge mutation start, successful canonical authority validation records inventory confirmation automatically and the only next response is CONTINUE after the recommendation is printed.",
-      "For exact numbered bridge mutation start, only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and request exact same-thread CONTINUE.",
+      "The first mutation selector status is WAITING_FOR_INVENTORY_CONFIRMATION and the only next response is INVENTORY_OK or INVENTORY_CHANGED.",
+      "Only after exact same-thread INVENTORY_OK may the selector enter WAITING_FOR_MODEL_SELECTION and request exact same-thread CONTINUE.",
       "Before IMPLEMENTATION_ALLOWED, do not edit files, refs, locks, cache, publication state, project memory, or external state.",
       "Read-only tasks with empty or NONE_READ_ONLY write scope short-circuit to READ_ONLY_ALLOWED with no matrix evaluation, recommendation, INVENTORY_OK, or CONTINUE.",
       "Use plugins/asynchronia/model-selector-authority.json and its bound snapshot as the only active inventory authority.",
       "At WAITING_FOR_INVENTORY_CONFIRMATION and WAITING_FOR_MODEL_SELECTION, faithfully relay the complete executable selector stdout to the user-visible response.",
-      "The visible mutation preflight response must include state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
+      "At WAITING_FOR_INVENTORY_CONFIRMATION, relay the complete authoritative inventory with every model and supported effort plus revision, hashes, source, current status, and exact next response; do not print evaluation or recommendation.",
+      "At WAITING_FOR_MODEL_SELECTION, relay state directory, current status, authorization path, snapshot revision, snapshot hash, source artifact, model count, model-effort pair count, evaluated pair count, required capability score, the complete ordered evaluation matrix, cheapest rejected pair and reason, recommended pair, next more capable plausible pair, and exact next response.",
       "Do not summarize, truncate, omit evaluated pairs, duplicate evaluated pairs, reconstruct different values, or replace executable selector evidence with prose.",
+      "Reject the phase and do not advance state when the first stop lacks the complete inventory block or the second stop lacks the complete recommendation block.",
       "When preflight, transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.",
       "Report exact selector CLI command, exit status, stdout, stderr, branch, worktree path, state directory, and task descriptor provenance when preflight evidence is requested."
     ]

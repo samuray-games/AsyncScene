@@ -69,46 +69,73 @@ class ResponseRelayContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
             start = start_preflight(task(), "relay-thread", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(validate_visible_selector_response(start.output, start.output), [])
+            start_cli_output = f"state directory: {state_dir}\n{start.output}"
+            self.assertEqual(validate_visible_selector_response(start_cli_output, start_cli_output), [])
 
             waiting = record_inventory_ok("relay-thread", task(), "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            self.assertEqual(validate_visible_selector_response(waiting.output, waiting.output), [])
+            waiting_cli_output = f"state directory: {state_dir}\n{waiting.output}"
+            self.assertEqual(validate_visible_selector_response(waiting_cli_output, waiting_cli_output), [])
 
     def test_truncated_or_reconstructed_visible_responses_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             state_dir = Path(directory) / "state"
             start = start_preflight(task(), "relay-thread", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
-            lines = start.output.splitlines()
+            waiting = record_inventory_ok("relay-thread", task(), "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            lines = waiting.output.splitlines()
             matrix_lines = [line for line in lines if line.startswith("- ")]
             self.assertGreater(len(matrix_lines), 2)
 
             recommendation_only = "\n".join(
                 line for line in lines if line.startswith("status:") or line.startswith("recommended pair:")
             )
-            failures = validate_visible_selector_response(start.output, recommendation_only)
+            failures = validate_visible_selector_response(waiting.output, recommendation_only)
             self.assertTrue(any(item.startswith("missing selector line: authorization path:") for item in failures))
 
             omitted_pair = "\n".join(line for line in lines if line != matrix_lines[1])
-            self.assertIn("relay matrix lines differ from selector output", validate_visible_selector_response(start.output, omitted_pair))
+            self.assertIn("relay matrix lines differ from selector output", validate_visible_selector_response(waiting.output, omitted_pair))
 
             duplicated_pair_lines = list(lines)
             duplicated_pair_lines.insert(duplicated_pair_lines.index(matrix_lines[1]) + 1, matrix_lines[1])
             duplicated_pair = "\n".join(duplicated_pair_lines)
-            self.assertIn("relay matrix lines differ from selector output", validate_visible_selector_response(start.output, duplicated_pair))
+            self.assertIn("relay matrix lines differ from selector output", validate_visible_selector_response(waiting.output, duplicated_pair))
 
             expected_count_line = next(line for line in lines if line.startswith("evaluated pair count:"))
-            wrong_count = start.output.replace(expected_count_line, "evaluated pair count: 0/0")
-            self.assertIn("relay evaluated-pair count differs from selector output", validate_visible_selector_response(start.output, wrong_count))
+            wrong_count = waiting.output.replace(expected_count_line, "evaluated pair count: 0/0")
+            self.assertIn("relay evaluated-pair count differs from selector output", validate_visible_selector_response(waiting.output, wrong_count))
 
             without_state = "\n".join(line for line in lines if not line.startswith("status:"))
-            self.assertIn("relay omits current state line", validate_visible_selector_response(start.output, without_state))
+            self.assertIn("relay omits current state line", validate_visible_selector_response(waiting.output, without_state))
 
             without_next = "\n".join(line for line in lines if not line.startswith("exact next response:"))
-            self.assertIn("relay omits exact next response line", validate_visible_selector_response(start.output, without_next))
+            self.assertIn("relay omits exact next response line", validate_visible_selector_response(waiting.output, without_next))
 
             generated_prose = "status: WAITING_FOR_INVENTORY_CONFIRMATION\nrecommended pair: 5.4 / High\nSwitch the model in the UI and continue."
-            failures = validate_visible_selector_response(start.output, generated_prose)
+            failures = validate_visible_selector_response(waiting.output, generated_prose)
             self.assertIn("selector output is not relayed as an ordered visible subsequence", failures)
+
+    def test_malformed_phase_payloads_fail_closed_before_relay(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            start = start_preflight(task(), "relay-malformed", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            missing_inventory = "\n".join(line for line in start.output.splitlines() if not line.startswith("- "))
+            self.assertIn(
+                "selector inventory does not contain every model exactly once",
+                validate_visible_selector_response(missing_inventory, missing_inventory),
+            )
+            leaked_recommendation = start.output + "\nrecommended pair: 5.6 Luna / Light"
+            self.assertIn(
+                "inventory stop leaks forbidden selector block: recommended pair:",
+                validate_visible_selector_response(leaked_recommendation, leaked_recommendation),
+            )
+
+            waiting = record_inventory_ok("relay-malformed", task(), "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            missing_recommendation = "\n".join(
+                line for line in waiting.output.splitlines() if not line.startswith("recommended pair:")
+            )
+            self.assertIn(
+                "selector output missing required line: recommended pair:",
+                validate_visible_selector_response(missing_recommendation, missing_recommendation),
+            )
 
 
 if __name__ == "__main__":

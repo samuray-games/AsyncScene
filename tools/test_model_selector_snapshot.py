@@ -232,7 +232,11 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
             snapshot = load_snapshot()
             expected_pairs = snapshot["completeModelEffortPairCount"]
-            self.assertIn(f"evaluated pair count: {expected_pairs}/{expected_pairs}", start.stdout)
+            self.assertIn("complete authoritative inventory:", start.stdout)
+            self.assertIn("5.6 Luna (gpt-5.6-luna): efforts=Light, Medium, High, Extra High, Max", start.stdout)
+            self.assertIn("5.6 Sol (gpt-5.6-sol): efforts=Light, Medium, High, Extra High, Max, Ultra", start.stdout)
+            self.assertNotIn("evaluation matrix:", start.stdout)
+            self.assertNotIn("recommended pair:", start.stdout)
             self.assertNotIn("READ_ONLY_ALLOWED", start.stdout)
             inspect = subprocess.run(command + ["inspect", "--thread-id", "thread-a", "--state-dir", str(state_dir)], capture_output=True, text=True, check=False)
             self.assertEqual(inspect.returncode, 0)
@@ -319,9 +323,9 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertNotIn("gpt-5.6-terra-sol", {model["modelIdentifier"] for model in snapshot["models"]})
         self.assertEqual({model["modelIdentifier"] for model in snapshot["models"] if model["modelIdentifier"].startswith("gpt-5.6-")}, {"gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"})
         relay = start_preflight(task(), "thread-complete-relay", "baseline", branch=CHECKED_OUT_BRANCH, state_dir=Path(tempfile.mkdtemp()))
-        matrix = [line for line in relay.output.splitlines() if line.startswith("- ")]
-        self.assertEqual(len(matrix), 29)
-        self.assertEqual(len(set(matrix)), 29)
+        inventory = [line for line in relay.output.splitlines() if line.startswith("- ")]
+        self.assertEqual(len(inventory), 6)
+        self.assertEqual(len(set(inventory)), 6)
         self.assertNotIn("5.6 Terra/Sol", relay.output)
 
     def test_authority_binding_rejects_mismatched_source_path(self) -> None:
@@ -587,7 +591,9 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), (expected.modelIdentifier, expected.effortIdentifier))
         with tempfile.TemporaryDirectory() as directory:
             result = start_preflight(selected_task, "thread-render", "baseline-render", branch=CHECKED_OUT_BRANCH, state_dir=Path(directory))
-            self.assertIn(f"cheapest rejected pair: {expected.modelLabel} / {expected.effortLabel}", result.output)
+            self.assertNotIn("cheapest rejected pair:", result.output)
+            waiting = record_inventory_ok("thread-render", selected_task, "baseline-render", branch=CHECKED_OUT_BRANCH, state_dir=Path(directory))
+            self.assertIn(f"cheapest rejected pair: {expected.modelLabel} / {expected.effortLabel}", waiting.output)
 
     def test_every_candidate_evaluated_once_and_no_unconditional_fallback(self) -> None:
         snapshot = load_snapshot()
@@ -641,7 +647,7 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
             self.assertIn("READ_ONLY_ALLOWED", read_result.stdout)
             self.assertIn("MUTATION_PREFLIGHT_REQUIRED", write_result.stdout)
             self.assertNotIn("recommended pair:", read_result.stdout)
-            self.assertIn("recommended pair:", write_result.stdout)
+            self.assertNotIn("recommended pair:", write_result.stdout)
             self.assertNotIn(str(REPOSITORY_MANIFEST_PATH), read_result.stdout)
 
 

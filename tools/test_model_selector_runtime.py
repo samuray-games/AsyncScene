@@ -128,13 +128,25 @@ class ModelSelectorTests(unittest.TestCase):
             selected = task()
             start = start_preflight(selected, "thread-state", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(start.status, "WAITING_FOR_INVENTORY_CONFIRMATION")
-            self.assertIn("recommended pair:", start.output)
+            self.assertIn("complete authoritative inventory:", start.output)
+            self.assertIn("5.6 Sol", start.output)
+            self.assertIn("efforts=Light, Medium, High, Extra High, Max, Ultra", start.output)
+            self.assertNotIn("evaluation matrix:", start.output)
+            self.assertNotIn("recommended pair:", start.output)
             self.assertIn("exact next response: INVENTORY_OK or INVENTORY_CHANGED", start.output)
+            start_state = inspect_state("thread-state", state_dir=state_dir)
+            self.assertIn("inventoryRelayOutputHash", start_state)
+            for forbidden in ("completeMatrixHash", "recommendation", "recommendationRelayOutputHash"):
+                self.assertNotIn(forbidden, start_state)
             with self.assertRaises(AuthorizationError):
                 record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             waiting = record_inventory_ok("thread-state", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertEqual(waiting.status, "WAITING_FOR_MODEL_SELECTION")
             self.assertIn("exact next response: CONTINUE", waiting.output)
+            waiting_state = inspect_state("thread-state", state_dir=state_dir)
+            self.assertIn("completeMatrixHash", waiting_state)
+            self.assertIn("recommendation", waiting_state)
+            self.assertIn("recommendationRelayOutputHash", waiting_state)
             result = record_continue("thread-state", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
             self.assertIn("IMPLEMENTATION_ALLOWED", result)
             state = inspect_state("thread-state", state_dir=state_dir)
@@ -194,12 +206,18 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
         self.assertEqual(report.recommendation.effortLabel, "Light")
 
-    def test_luna_floor_rejects_lower_family_models(self) -> None:
+    def test_generic_tasks_have_no_unconditional_luna_floor(self) -> None:
         self.assertLess(selector_core._model_floor_index("gpt-5.4-mini"), selector_core._model_floor_index("gpt-5.6-luna"))
-        self.assertLess(selector_core._model_floor_index("gpt-5.4"), selector_core._model_floor_index("gpt-5.6-luna"))
-        self.assertLess(selector_core._model_floor_index("gpt-5.5"), selector_core._model_floor_index("gpt-5.6-luna"))
+        low_task = task(
+            runtimeSensitivity="low", architectureImpact="low", securityImpact="low", economyImpact="low",
+            releaseImpact="low", validationComplexity="low", expectedImplementationSize="small",
+            ambiguityNovelty="low", concurrencyBranchRisk="low", affectedSystems=["UI"],
+        )
+        report = evaluate_task(load_snapshot(), low_task)
+        self.assertNotEqual(report.recommendation.modelLabel, "5.6 Sol")
+        self.assertNotEqual(report.recommendation.effortLabel, "High")
 
-    def test_luna_floor_rejects_lower_family_models_behaviorally(self) -> None:
+    def test_low_narrow_ui_copy_task_uses_cheapest_sufficient_pair(self) -> None:
         task_for_score_10 = task(
             securityImpact="low",
             runtimeSensitivity="low",
@@ -212,12 +230,99 @@ class ModelSelectorTests(unittest.TestCase):
         )
         with patch.object(selector_core, "_required_score", return_value=10):
             report = evaluate_task(load_snapshot(), task_for_score_10)
-        rejected = [evaluation for evaluation in report.evaluations if evaluation.modelIdentifier in {"gpt-5.4-mini", "gpt-5.4", "gpt-5.5"}]
-        self.assertEqual(len(rejected), 12)
-        for evaluation in rejected:
-            self.assertNotEqual(evaluation.verdict, "SUITABLE")
-            self.assertIsNotNone(evaluation.rejectionReason)
-            self.assertIn("policy floors require at least gpt-5.6-luna / Light", evaluation.rejectionReason)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_plugin_policy_self_edit_completes_handshake_without_circular_block(self) -> None:
+        self_edit = task(
+            objective="repair selector policy and its regression tests",
+            readScope=["plugins/asynchronia/model_selector.py", "tools/test_model_selector_runtime.py"],
+            writeScope=["plugins/asynchronia/model_selector.py", "tools/test_model_selector_runtime.py"],
+            affectedSystems=["selector", "preflight"],
+            runtimeSensitivity="low", architectureImpact="low", securityImpact="low", economyImpact="low",
+            releaseImpact="medium", validationComplexity="medium", expectedImplementationSize="medium",
+            ambiguityNovelty="low", concurrencyBranchRisk="low",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            start = start_preflight(self_edit, "thread-self-edit", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            self.assertNotIn("recommended pair:", start.output)
+            selected = record_inventory_ok("thread-self-edit", self_edit, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            self.assertIn("recommended pair:", selected.output)
+            self.assertIn("IMPLEMENTATION_ALLOWED", record_continue("thread-self-edit", "CONTINUE", self_edit, "baseline", branch=TEST_BRANCH, state_dir=state_dir))
+
+    def test_missing_mandatory_relay_blocks_fail_closed(self) -> None:
+        selected = task()
+        with tempfile.TemporaryDirectory() as directory:
+            inventory_state = Path(directory) / "inventory-state"
+            with patch.object(selector_core, "_inventory_output", return_value="status: WAITING_FOR_INVENTORY_CONFIRMATION"):
+                with self.assertRaisesRegex(AuthorizationError, "invalid WAITING_FOR_INVENTORY_CONFIRMATION relay block"):
+                    start_preflight(selected, "thread-bad-inventory-relay", "baseline", branch=TEST_BRANCH, state_dir=inventory_state)
+            self.assertEqual(list(inventory_state.glob("*.json")), [])
+
+            recommendation_state = Path(directory) / "recommendation-state"
+            start_preflight(selected, "thread-bad-recommendation-relay", "baseline", branch=TEST_BRANCH, state_dir=recommendation_state)
+            with patch.object(selector_core, "_output", return_value="status: WAITING_FOR_MODEL_SELECTION"):
+                with self.assertRaisesRegex(AuthorizationError, "invalid WAITING_FOR_MODEL_SELECTION relay block"):
+                    record_inventory_ok(
+                        "thread-bad-recommendation-relay", selected, "baseline",
+                        branch=TEST_BRANCH, state_dir=recommendation_state,
+                    )
+            state = inspect_state("thread-bad-recommendation-relay", state_dir=recommendation_state)
+            self.assertEqual(state["state"], "WAITING_FOR_INVENTORY_CONFIRMATION")
+
+    def test_tampered_relay_hashes_block_state_transitions(self) -> None:
+        selected = task()
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = Path(directory) / "state"
+            start_preflight(selected, "thread-relay-hash", "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+            state_path = next(state_dir.glob("*.json"))
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["inventoryRelayOutputHash"] = "sha256:tampered"
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            with self.assertRaisesRegex(AuthorizationError, "complete inventory relay block"):
+                record_inventory_ok("thread-relay-hash", selected, "baseline", branch=TEST_BRANCH, state_dir=state_dir)
+
+            clean_state = Path(directory) / "clean-state"
+            start_preflight(selected, "thread-recommendation-hash", "baseline", branch=TEST_BRANCH, state_dir=clean_state)
+            record_inventory_ok("thread-recommendation-hash", selected, "baseline", branch=TEST_BRANCH, state_dir=clean_state)
+            state_path = next(clean_state.glob("*.json"))
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["recommendationRelayOutputHash"] = "sha256:tampered"
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            with self.assertRaisesRegex(AuthorizationError, "complete recommendation relay block"):
+                record_continue("thread-recommendation-hash", "CONTINUE", selected, "baseline", branch=TEST_BRANCH, state_dir=clean_state)
+
+    def test_medium_runtime_task_uses_non_maximum_sufficient_effort(self) -> None:
+        runtime_task = task(
+            objective="coordinate a medium-risk runtime state transition with mirrored validation",
+            readScope=["AsyncScene/Web/js/runtime-controller.js", "docs/js/runtime-controller.js"],
+            writeScope=["AsyncScene/Web/js/runtime-controller.js", "docs/js/runtime-controller.js"],
+            affectedSystems=["runtime controller", "state persistence"],
+            runtimeSensitivity="medium", architectureImpact="medium", securityImpact="low", economyImpact="low",
+            releaseImpact="medium", validationComplexity="medium", expectedImplementationSize="medium",
+            ambiguityNovelty="low", concurrencyBranchRisk="medium",
+        )
+        report = evaluate_task(load_snapshot(), runtime_task)
+        self.assertEqual(report.requiredScore, 17)
+        self.assertEqual(report.recommendation.modelLabel, "5.6 Luna")
+        self.assertEqual(report.recommendation.effortLabel, "Light")
+
+    def test_sol_high_requires_every_broad_cross_cutting_predicate(self) -> None:
+        base = dict(
+            architectureImpact="high", securityImpact="high", economyImpact="low", releaseImpact="high",
+            validationComplexity="medium", concurrencyBranchRisk="medium", runtimeSensitivity="low",
+            ambiguityNovelty="low", expectedImplementationSize="large", affectedSystems=["a", "b", "c"],
+        )
+        variants = (
+            dict(base, expectedImplementationSize="medium"),
+            dict(base, affectedSystems=["a", "b"]),
+            dict(base, releaseImpact="medium"),
+        )
+        for fields in variants:
+            with self.subTest(fields=fields):
+                report = evaluate_task(load_snapshot(), task(**fields))
+                self.assertNotEqual((report.recommendation.modelLabel, report.recommendation.effortLabel), ("5.6 Sol", "High"))
 
     def test_unknown_model_and_effort_identities_fail_closed(self) -> None:
         with self.assertRaises(TaskDescriptionError):
