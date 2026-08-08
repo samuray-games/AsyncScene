@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "chatgpt/fix-generic-preflight-inventory-reuse-20260808",
+  "createdAtJst": "2026-08-08 14:50:57 JST",
+  "createdAtUtc": "2026-08-08T05:50:57Z",
+  "packagePath": "runs/2026/08/08/GITHUB/GITHUB-20260808T055057Z-31242587489-6056fdae",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260808T055057Z-31242587489-6056fdae",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
