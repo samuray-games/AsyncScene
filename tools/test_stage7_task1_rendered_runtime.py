@@ -21,6 +21,8 @@ MIRRORS = [
     "ui-chat.js",
     "ui-profile-visual-tone-repair.js",
     "ui-stage7-first-experience.js",
+    "ui-battles.js",
+    "ui-events.js",
 ]
 for filename in MIRRORS:
     require((SOURCE / filename).read_bytes() == (DOCS / filename).read_bytes(), f"source/docs mirror mismatch: {filename}")
@@ -53,7 +55,9 @@ require("requestStartupNameToasts" in profile and "stage7:player-entered-game" i
 require("STARTUP_NAME_VISIBLE_MS" not in profile and "STARTUP_NAME_GAP_MS" not in profile, "startup still has auto-dismiss timing")
 require("setTimeout(requestStartupNameToasts" not in profile, "startup still starts from a timer")
 require("stage6StartupNameToast" in profile, "dedicated startup toast node missing")
-require("positionStartupNameToast" in profile, "startup toast is not anchored to stat chips")
+require("positionStartupNameToast" in profile, "startup toast positioning function missing")
+require("startupStatValueAnchor" in profile, "startup toast is not anchored to visible stat values")
+require("r.top - height - 6" in profile, "startup toast is not positioned above the visible stat value")
 require("pointerEvents = \"auto\"" in profile, "startup toast is not user-dismissible")
 require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in boot, "boot does not publish authoritative game-enter transition")
 require("dispatchEvent(new Event(\"stage7:player-entered-game\"))" in docs_boot, "docs boot mirror lacks authoritative game-enter transition")
@@ -76,6 +80,11 @@ for source_text, marker in active_toast_contracts:
     body = source_text[start:end if end >= 0 else start + 2600]
     require("onclick" in body, f"{marker} has no explicit click/tap dismissal")
     require("setTimeout" not in body, f"{marker} has timer-based disappearance")
+
+require("document.body.appendChild(el)" in active_toast_files["battles"], "battle toast is not body-owned")
+require("document.body.appendChild(el)" in active_toast_files["events"], "event/vote toast is not body-owned")
+require("style.transition" not in active_toast_files["battles"], "battle toast still uses a CSS transition lifecycle")
+require("style.transition" not in active_toast_files["events"], "event/vote toast still uses a CSS transition lifecycle")
 
 
 node_harness = r"""
@@ -174,6 +183,10 @@ function runStartupLifecycleRegression(options = {}) {
   pointsChip.rect = { left: 210, top: 18, right: 250, bottom: 42, width: 40, height: 24 };
   const repAnchor = makeNode("span"); repAnchor.rect = { left: 24, top: 18, right: 64, bottom: 42, width: 40, height: 24 };
   const pointsAnchor = makeNode("span"); pointsAnchor.rect = { left: 210, top: 18, right: 250, bottom: 42, width: 40, height: 24 };
+  const repValue = makeNode("span", "meRep"); repValue.rect = { left: 58, top: 82, right: 70, bottom: 106, width: 12, height: 24 };
+  const pointsValue = makeNode("span", "mePoints"); pointsValue.rect = { left: 224, top: 82, right: 236, bottom: 106, width: 12, height: 24 };
+  repChip.querySelector = (selector) => selector === "#meRep" || selector === ".statValue" ? repValue : null;
+  pointsChip.querySelector = (selector) => selector === "#mePoints" || selector === ".pointsValue" ? pointsValue : null;
   const anchorsReady = { value: true };
   const startScreenVisible = { value: true };
   const children = [];
@@ -246,12 +259,16 @@ function runStartupLifecycleRegression(options = {}) {
   assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Репутация");
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) < 150);
   assert(nodes.stage6StartupNameToast.style.top.includes("48"));
+  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < repValue.rect.top);
+  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((repValue.rect.left + repValue.rect.right) / 2)) <= 1);
   assert.strictEqual(timers.filter((item) => !item.cleared && !item.ran).length, 0, "startup must not schedule auto-dismiss timers");
   for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Репутация disappeared without user action");
   nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
   assert.strictEqual(children.length, 1);
   assert.strictEqual(nodes.stage6StartupNameToast.textContent, "Баланс");
   assert(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) > 150);
+  assert(Number.parseInt(nodes.stage6StartupNameToast.style.top, 10) + nodes.stage6StartupNameToast.offsetHeight < pointsValue.rect.top);
+  assert(Math.abs(Number.parseInt(nodes.stage6StartupNameToast.style.left, 10) - ((pointsValue.rect.left + pointsValue.rect.right) / 2)) <= 1);
   for (let i = 0; i < 30; i += 1) assert(nodes.stage6StartupNameToast.isConnected, "Баланс disappeared without user action");
   nodes.stage6StartupNameToast.onclick({ stopPropagation() {} });
   assert.strictEqual(nodes.stage6StartupNameToast, undefined);
