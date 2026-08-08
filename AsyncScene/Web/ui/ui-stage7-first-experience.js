@@ -587,6 +587,7 @@ window.Game = window.Game || {};
       aftermathDmLineId: null,
       aftermathDmDeliveredAt: null,
       aftermathDmDeliveryCount: 0,
+      aftermathDmContactPromptDismissed: false,
       lastFailureReason: null,
     };
   }
@@ -672,6 +673,7 @@ window.Game = window.Game || {};
         ? Number(raw.aftermathDmDeliveredAt)
         : null,
       aftermathDmDeliveryCount: Math.max(0, Number(raw.aftermathDmDeliveryCount) | 0),
+      aftermathDmContactPromptDismissed: raw.aftermathDmContactPromptDismissed === true,
       lastFailureReason: typeof raw.lastFailureReason === "string" && raw.lastFailureReason ? raw.lastFailureReason : null,
     });
   }
@@ -922,7 +924,7 @@ window.Game = window.Game || {};
       </button>`).join("");
     panel.innerHTML = `
       <div class="stage7Intermission">
-        <div class="stage7EvidenceBadge">Первый раунд завершён</div>
+        <div class="stage7EvidenceBadge">Первый раунд завершён.</div>
         <h2>В комнате остались трое</h2>
         <p>До второго раунда можно осмотреться и узнать об участниках.</p>
         <div class="stage7IntermissionGrid" aria-label="Три доступных персонажа">${cards}</div>
@@ -1223,13 +1225,30 @@ window.Game = window.Game || {};
 
   function renderFirstBattleAftermathDmContact(panel) {
     const contact = getFirstBattleAftermathDmContactRecord();
-    if (!panel || !contact) return false;
+    const bridge = getBridgeState();
+    if (!panel || !contact || (bridge && bridge.aftermathDmContactPromptDismissed)) return false;
     panel.innerHTML = `
       <div class="stage7BranchFollowUp stage7AftermathDmContact" data-testid="stage7-aftermath-dm-contact">
         <div class="stage7EvidenceBadge">Личный контакт</div>
         <h2>${contact.npcName}</h2>
         ${actionButton(`Открыть личку: ${contact.npcName}`, "open-aftermath-dm-contact")}
       </div>`;
+    return true;
+  }
+
+  function dismissFirstBattleAftermathDmContactPrompt() {
+    if (!snapshot) snapshot = loadSnapshot();
+    const bridge = getBridgeState();
+    if (!bridge || !["pending", "delivered"].includes(bridge.aftermathDmStatus)) return false;
+    if (bridge.aftermathDmContactPromptDismissed) return true;
+    bridge.aftermathDmContactPromptDismissed = true;
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_dm_contact_prompt_dismissed", {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      targetNpcId: bridge.aftermathTargetNpcId,
+      branchId: bridge.aftermathBranchId,
+      battleId: bridge.battleId,
+    });
     return true;
   }
 
@@ -1242,6 +1261,7 @@ window.Game = window.Game || {};
     const result = UI.openDM(contact.targetNpcId);
     if (result === false) return false;
     if (contact.dmStatus === "delivered") restoreFirstBattleAftermathDmHistory(contact);
+    dismissFirstBattleAftermathDmContactPrompt();
     telemetry("first_experience.first_real_battle_aftermath_dm_contact_opened", {
       contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
       targetNpcId: contact.targetNpcId,
@@ -1364,13 +1384,19 @@ window.Game = window.Game || {};
     if (UI.openDM.__stage7AftermathDmHook === true) return true;
     const originalOpenDM = UI.openDM;
     const wrappedOpenDM = function stage7AftermathOpenDM(playerId, ...args) {
+      const contact = getFirstBattleAftermathDmContactRecord();
       const pending = getFirstBattleAftermathDmRecord(playerId);
       if (pending) {
         if (!snapshot) snapshot = loadSnapshot();
         ensureScenarioPlayers();
       }
       const result = originalOpenDM.apply(this, [playerId, ...args]);
-      if (result !== false) deliverFirstBattleAftermathDm(playerId);
+      if (result !== false && pending && deliverFirstBattleAftermathDm(playerId)) {
+        dismissFirstBattleAftermathDmContactPrompt();
+      }
+      if (result !== false && contact && contact.targetNpcId === String(playerId)) {
+        dismissFirstBattleAftermathDmContactPrompt();
+      }
       return result;
     };
     Object.defineProperty(wrappedOpenDM, "__stage7AftermathDmHook", {
