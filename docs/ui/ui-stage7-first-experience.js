@@ -25,11 +25,11 @@ window.Game = window.Game || {};
   const RESPONSE_IDS = ["deny", "accuse_ken", "pay"];
   const PRELUDE = [
     { id: "room_entered", at: 1000, name: "System", text: "Ты вошёл в комнату.", system: true },
-    { id: "mika_missing_money", at: 3500, name: "Настя", text: "Из общей кассы пропали деньги!!!" },
-    { id: "oleg_context", at: 6500, name: "Олег", text: "Пропажу заметили ещё до появления новичка!" },
-    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл - и деньги исчезли, странное совпадение" },
-    { id: "mika_brake", at: 12500, name: "Настя", text: "Без доказательств никого не обвиняем!" },
-    { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты!!! Деньги пропали после твоего появления!" },
+    { id: "mika_missing_money", at: 3500, name: "Настя", text: "Из общей кассы пропали деньги." },
+    { id: "oleg_context", at: 6500, name: "Олег", text: "Пропажу заметили ещё до появления новичка?" },
+    { id: "ken_hint", at: 9500, name: "Райхан", text: "Новичок пришёл — и деньги исчезли. Странное совпадение." },
+    { id: "mika_brake", at: 12500, name: "Настя", text: "Без доказательств никого не обвиняем." },
+    { id: "ken_accusation", at: 15000, name: "Райхан", text: "Это сделал ты. Деньги пропали после твоего появления." },
   ];
   const BRANCHES = {
     deny: {
@@ -134,7 +134,7 @@ window.Game = window.Game || {};
     {
       id: "npc_stage7_ken",
       name: "Райхан",
-      role: "хозяин магазина",
+      role: "обвинитель",
       lines: {
         deny: [
           "Я найду того, кто подтвердит мою версию. Второй раунд всё решит.",
@@ -153,7 +153,7 @@ window.Game = window.Game || {};
     {
       id: "npc_stage7_mika",
       name: "Настя",
-      role: "кассирша",
+      role: "свидетель",
       lines: {
         deny: [
           "Если у тебя есть доказательство, реши, когда его показать.",
@@ -172,7 +172,7 @@ window.Game = window.Game || {};
     {
       id: "npc_bandit",
       name: "Олег",
-      role: "покупатель",
+      role: "наблюдатель",
       lines: {
         deny: [
           "Райхан уже ищет поддержку. Пауза играет на того, кто громче.",
@@ -867,12 +867,12 @@ window.Game = window.Game || {};
       snapshot.stateId = "accusation";
     }
     saveSnapshot();
-    const nextEntry = entry.id === "ken_accusation"
+    const renderedEntry = entry.id === "ken_accusation"
       ? Object.assign({}, entry, {
-        text: `@${String(getState() && getState().me && getState().me.name || "игрок")}, это сделал ты!!! деньги пропали после твоего появления!`,
+        text: `@${context.playerName || (getState() && getState().me && getState().me.name) || "Игрок"}, это ты. Деньги пропали после твоего появления.`,
       })
       : entry;
-    pushLine(nextEntry);
+    pushLine(renderedEntry);
     telemetry("first_experience.prelude_message_shown", { messageId: entry.id });
     if (entry.id === "room_entered") telemetry("first_experience.room_entered");
     if (entry.id === "ken_accusation") telemetry("first_experience.accusation_triggered");
@@ -915,6 +915,8 @@ window.Game = window.Game || {};
   }
 
   function renderIntermission(panel) {
+    const remainingMs = Math.max(0, Number(snapshot.worldAdvanceDueAt || 0) - Date.now());
+    const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
     const message = snapshot.intermissionNpcMessage;
     const cards = INTERMISSION_NPCS.map((npc) => `
       <button class="btn stage7NpcAction" type="button" data-stage7-action="talk-intermission-npc" data-intermission-npc="${npc.id}">
@@ -924,7 +926,7 @@ window.Game = window.Game || {};
       <div class="stage7Intermission">
         <div class="stage7EvidenceBadge">Первый раунд завершён</div>
         <h2>В комнате остались трое</h2>
-        <p>Можно узнать об участниках, подождать Райхана или отлучиться по своим делам.</p>
+        <p>До второго раунда ${remainingSeconds > 0 ? `примерно ${remainingSeconds} сек.` : "считанные секунды"} Можно поговорить с участниками, подождать или отлучиться.</p>
         <div class="stage7IntermissionGrid" aria-label="Три доступных персонажа">${cards}</div>
         ${message ? `<div class="stage7NpcReply"><strong>${message.name}</strong><p>${message.text}</p></div>` : ""}
         <div class="stage7Support">Полная игра пока закрыта. Если уйдёшь, второй раунд встретит тебя после возвращения. Всё сохранено.</div>
@@ -956,6 +958,7 @@ window.Game = window.Game || {};
           ${actionButton(offer.primaryLabel, "resolve-branch-follow-up", 'data-follow-up="primary"')}
           ${actionButton(offer.secondaryLabel, "resolve-branch-follow-up", 'data-follow-up="secondary"')}
         </div>
+        <div class="stage7Support">Это второй и последний учебный раунд перед проверкой понимания.</div>
       </div>`;
   }
 
@@ -971,9 +974,10 @@ window.Game = window.Game || {};
     )).join("");
     panel.innerHTML = `
       <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle">
-        <div class="stage7EvidenceBadge">Вопросы по ситуации · ${evidence.questionIndex + 1}/${questions.length}</div>
+        <div class="stage7EvidenceBadge">Проверка понимания · ${evidence.questionIndex + 1}/${questions.length}</div>
         <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
         <div class="stage7EvidenceOptions">${options}</div>
+        <div class="stage7Support">Ответ не останавливает прохождение. Важно закончить все шесть вопросов.</div>
       </div>`;
   }
 
@@ -995,6 +999,8 @@ window.Game = window.Game || {};
         <div class="stage7EvidenceBadge">Второй раунд завершён</div>
         <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
         <p>${result.body}</p>
+        <div class="stage7Support">После вопросов откроется полная игра.</div>
+        <p class="stage7Transition">Пока Райхан собирает сторонников, ответь на 6 простых вопросов — так ты поймёшь, как работает игра.</p>
         ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
       </div>`;
   }
@@ -1224,11 +1230,16 @@ window.Game = window.Game || {};
   function renderFirstBattleAftermathDmContact(panel) {
     const contact = getFirstBattleAftermathDmContactRecord();
     if (!panel || !contact) return false;
+    const statusText = contact.dmStatus === "pending"
+      ? `${contact.npcName} хочет обсудить, чем закончился спор. Открой личку, когда будешь готов.`
+      : `Сообщение от ${contact.npcName} уже в переписке. Открой личку, чтобы перечитать его.`;
     panel.innerHTML = `
       <div class="stage7BranchFollowUp stage7AftermathDmContact" data-testid="stage7-aftermath-dm-contact">
         <div class="stage7EvidenceBadge">Личный контакт</div>
         <h2>${contact.npcName}</h2>
+        <p>${statusText}</p>
         ${actionButton(`Открыть личку: ${contact.npcName}`, "open-aftermath-dm-contact")}
+        <div class="stage7Support">Открой личку, когда будешь готов. После обновления страницы она сама не откроется.</div>
       </div>`;
     return true;
   }
@@ -1482,10 +1493,10 @@ window.Game = window.Game || {};
     }
     if (snapshot.stateId === "vote") {
       const complete = snapshot.voteStep >= 5;
-      panel.innerHTML = `<h2>Реакция комнаты</h2><p>${branch.reaction}</p>
+      panel.innerHTML = `<h2>Реакция Насти</h2><p>${branch.reaction}</p>
         ${renderVotes(branch)}
         ${complete
-          ? `<p class="stage7Result">${branch.result}</p>${actionButton("Продолжить", "accept-consequence")}`
+          ? `<p class="stage7Result">${branch.result}</p>${actionButton("Принять последствие", "accept-consequence")}`
           : (snapshot.voteStarted
             ? `<div class="stage7Support">Голоса появляются по очереди.</div>`
             : actionButton("Увидеть голосование", "start-vote"))}`;
@@ -1496,7 +1507,7 @@ window.Game = window.Game || {};
       return;
     }
     if (snapshot.stateId === "rematch") {
-      panel.innerHTML = `<h2>Первый раунд завершён.</h2><p>До второго раунда можно осмотреться и узнать об участниках.</p>${actionButton("Осмотреться", "explore-world")}`;
+      panel.innerHTML = `<h2>Первый раунд завершён.</h2><p>До второго раунда можно осмотреться и поговорить с тремя участниками.</p>${actionButton("Осмотреться", "explore-world")}`;
     }
   }
 

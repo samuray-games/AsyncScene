@@ -66,8 +66,8 @@ for forbidden in ("fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket"):
     require(forbidden not in js, f"network transmission primitive forbidden: {forbidden}")
 
 require("Stage 7.2 explicit observed-evidence test mode" in css, "observed-evidence CSS contract missing")
-cache_token = "stage7_cosmetic_cleanup_20260808a"
-require(index.count(cache_token) >= 2, "expected current JS and CSS cache-buster references")
+cache_token = "stage7_14_durable_aftermath_dm_contact_20260807a"
+require(index.count(cache_token) == 2, "expected current JS and CSS cache-buster references")
 require(not re.search(r"\bS\.me\.points\s*=", js), "direct point mutation forbidden")
 require(not re.search(r"\bS\.rep\s*=", js), "direct reputation mutation forbidden")
 

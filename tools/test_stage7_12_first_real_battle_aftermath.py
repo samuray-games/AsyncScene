@@ -26,7 +26,7 @@ for marker in [
     assert marker in controller, marker
 
 for text in [INDEX.read_text(encoding="utf-8"), INDEX_DOCS.read_text(encoding="utf-8")]:
-    assert text.count("stage7_cosmetic_cleanup_20260808a") >= 2
+    assert text.count("stage7_14_durable_aftermath_dm_contact_20260807a") >= 2
 
 for path in [CONTROLLER, CONTROLLER_DOCS]:
     subprocess.run(["node", "--check", str(path)], check=True)

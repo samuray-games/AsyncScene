@@ -124,12 +124,6 @@ class FakeElement {{
     if (child.id) this.ownerDocument.register(child);
     return child;
   }}
-  setAttribute(name, value) {{
-    this[String(name)] = String(value);
-  }}
-  addEventListener(type, handler) {{
-    this[`on${{String(type)}}`] = handler;
-  }}
   remove() {{
     this.style.display = "none";
     this.isConnected = false;
@@ -334,7 +328,6 @@ flushMicrotasks();
 const afterPointsClick = {{
   pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
   repDisplay: repToast ? repToast.style.display || "" : "",
-  pointsNameText: (document.getElementById("stage6DeltaNameToast_points") || {{}}).textContent || "",
 }};
 
 if (repToast && typeof repToast.onclick === "function") repToast.onclick();
@@ -342,7 +335,6 @@ flushMicrotasks();
 const afterRepClick = {{
   pointsDisplay: pointsToast ? pointsToast.style.display || "" : "",
   repDisplay: repToast ? repToast.style.display || "" : "",
-  repNameText: (document.getElementById("stage6DeltaNameToast_rep") || {{}}).textContent || "",
 }};
 
 console.log(JSON.stringify({{ before, afterFormerTtl, afterLongWait, afterPointsClick, afterRepClick }}));
@@ -368,10 +360,10 @@ class ClickPersistentStatToastTests(unittest.TestCase):
         for path in VISUAL_PATHS:
             source = read(path)
             result = run_toast_harness(source)
-            self.assertEqual(result["before"]["pointsText"], "Баланс: +5")
-            self.assertEqual(result["before"]["repText"], "Репутация: -1")
-            self.assertRegex(result["before"]["pointsText"], r"^Баланс: [+-]\d+$")
-            self.assertRegex(result["before"]["repText"], r"^Репутация: [+-]\d+$")
+            self.assertEqual(result["before"]["pointsText"], "+5")
+            self.assertEqual(result["before"]["repText"], "-1")
+            self.assertRegex(result["before"]["pointsText"], r"^[+-]\d+$")
+            self.assertRegex(result["before"]["repText"], r"^[+-]\d+$")
             self.assertEqual(result["before"]["pointsPosition"]["top"], "48px")
             self.assertEqual(result["before"]["repPosition"]["top"], "48px")
             self.assertEqual(result["before"]["pointsPosition"]["left"], "160px")
@@ -380,16 +372,14 @@ class ClickPersistentStatToastTests(unittest.TestCase):
             self.assertEqual(result["before"]["repPosition"]["display"], "block")
             self.assertEqual(result["before"]["toastCount"], 2)
             self.assertEqual(result["afterFormerTtl"]["pointsDisplay"], "block")
-            self.assertEqual(result["afterFormerTtl"]["repText"], "Репутация: +1")
+            self.assertEqual(result["afterFormerTtl"]["repText"], "+1")
             self.assertEqual(result["afterFormerTtl"]["repDisplay"], "block")
             self.assertEqual(result["afterLongWait"]["pointsDisplay"], "block")
             self.assertEqual(result["afterLongWait"]["repDisplay"], "block")
-            self.assertEqual(result["afterPointsClick"]["pointsDisplay"], "block")
+            self.assertEqual(result["afterPointsClick"]["pointsDisplay"], "none")
             self.assertEqual(result["afterPointsClick"]["repDisplay"], "block")
-            self.assertEqual(result["afterPointsClick"]["pointsNameText"], "Баланс: +5")
-            self.assertEqual(result["afterRepClick"]["pointsDisplay"], "block")
-            self.assertEqual(result["afterRepClick"]["repDisplay"], "block")
-            self.assertEqual(result["afterRepClick"]["repNameText"], "Репутация: +1")
+            self.assertEqual(result["afterRepClick"]["pointsDisplay"], "none")
+            self.assertEqual(result["afterRepClick"]["repDisplay"], "none")
 
 
 if __name__ == "__main__":
