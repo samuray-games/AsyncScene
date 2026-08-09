@@ -1,19 +1,19 @@
-MEMORY_REV: 2026-08-08-0030-JST
+MEMORY_REV: 2026-08-09-2338-JST
 
 ## CURRENT_PROJECT_STATE
-- Stage 7.14 is user-accepted on iPhone Safari.
-- Accepted runtime: PR #315 merge `46bbfc290dfb75a57f5f5f3ac82f223c8121f225`; current Pages/recovery main is `ffbab69c564c3d582d558008061e52ba0b151757`.
-- Accepted contract: the exact aftermath NPC remains reachable across same-tab refresh; refresh never auto-opens DM; pending reply is consumed exactly once on explicit correct-NPC open; delivered reply restores as history without duplication; wrong NPC and ordinary DMs remain isolated.
-- Validation/publication: implementation, PR, post-merge, recovery and independent live-marker evidence are recorded in live Notion; Safari acceptance is complete for Stage 7.14.
-- No later Stage 7 product slice is selected. Await explicit user direction; any future runtime-visible change requires fresh user Safari acceptance.
+- Task 1 is CLOSED after user Safari PASS.
+- Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
+- Accepted current main: `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`.
+- No pending Safari acceptance or active implementation task remains.
+- No Task 3 is authorized; await explicit user direction.
 
 # Workflows
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-08-0030-JST
-EXPECTED_REVISION: 2026-08-08-0030-JST
-NOTION_MEMORY_REVISION: 2026-08-08-0030-JST
+MEMORY_REVISION: 2026-08-09-2338-JST
+EXPECTED_REVISION: 2026-08-09-2338-JST
+NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -29,7 +29,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Stage 6 is complete and accepted. Stage 7.13 aftermath DM follow-up is merged, published and user-accepted at runtime `69a1137c6ab4ede2a0d1e420cde477f29b0b2949`; published main is `eaf6f344b83c961f29b84f6276f48e09fe72099b`. Stage 7.14 durable aftermath DM contact is selected. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
+Current execution handoff: Task 1 and Task 2 are closed and user-accepted. Current main is `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`. No active implementation task or pending Safari gate exists. The exact next action is `WAITING_FOR_NEXT_USER_TASK`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -194,4 +194,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE
+NEXT_ACTION: WAITING_FOR_NEXT_USER_TASK

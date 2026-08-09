@@ -1,19 +1,19 @@
-MEMORY_REV: 2026-08-08-0030-JST
+MEMORY_REV: 2026-08-09-2338-JST
 
 ## CURRENT_PROJECT_STATE
-- Stage 7.14 is user-accepted on iPhone Safari.
-- Accepted runtime: PR #315 merge `46bbfc290dfb75a57f5f5f3ac82f223c8121f225`; current Pages/recovery main is `ffbab69c564c3d582d558008061e52ba0b151757`.
-- Accepted contract: the exact aftermath NPC remains reachable across same-tab refresh; refresh never auto-opens DM; pending reply is consumed exactly once on explicit correct-NPC open; delivered reply restores as history without duplication; wrong NPC and ordinary DMs remain isolated.
-- Validation/publication: implementation, PR, post-merge, recovery and independent live-marker evidence are recorded in live Notion; Safari acceptance is complete for Stage 7.14.
-- No later Stage 7 product slice is selected. Await explicit user direction; any future runtime-visible change requires fresh user Safari acceptance.
+- Task 1 is CLOSED after user Safari PASS.
+- Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
+- Accepted current main: `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`.
+- No pending Safari acceptance or active implementation task remains.
+- No Task 3 is authorized; await explicit user direction.
 
 # Canon
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-08-0030-JST
-EXPECTED_REVISION: 2026-08-08-0030-JST
-NOTION_MEMORY_REVISION: 2026-08-08-0030-JST
+MEMORY_REVISION: 2026-08-09-2338-JST
+EXPECTED_REVISION: 2026-08-09-2338-JST
+NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
 
 ## Canon principles
 
@@ -82,7 +82,7 @@ NOTION_MEMORY_REVISION: 2026-08-08-0030-JST
 - Published evidence: legacy Pages build `1136872912` is `built` with no error from `main@eaf6f344b83c961f29b84f6276f48e09fe72099b`; recovery workflow `31148942733` PASS verifies marker `stage7_13_aftermath_dm_followup_20260806c`; recovery post-merge forensics `31148942807` PASS.
 - User evidence: explicit iPhone Safari `PASS` for wrong-NPC non-consumption, exact target delivery, no duplicate on reopen and ordinary-DM isolation. The current UI does not guarantee that the Stage 7 NPC thread remains user-reachable after refresh; that reachability gap is not retroactively part of Stage 7.13 acceptance.
 
-## Selected Stage 7.14 product slice
+## Historical Stage 7.14 product slice (completed)
 
 - Stage 7.14 is `DURABLE_AFTERMATH_DM_CONTACT`, explicitly authorized by the user's 2026-08-07 instruction to continue Stage 7.
 - The exact affected NPC must remain reachable as an aftermath DM contact/thread after same-tab refresh both while the Stage 7.13 reply is pending and after it is delivered.
@@ -90,7 +90,7 @@ NOTION_MEMORY_REVISION: 2026-08-08-0030-JST
 - Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
 - Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
 
-CURRENT_NEXT_ACTION: IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT
+CURRENT_NEXT_ACTION: WAITING_FOR_NEXT_USER_TASK
 
 ## Superseding Stage 7 onboarding flow
 
