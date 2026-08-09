@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-task1-startup-flex-v5-20260809",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "codex/stage7-task1-startup-flex-v5-20260809\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "8b94504b8cfef6f760aea7e217cea6ebd5079d5d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8b94504b8cfef6f760aea7e217cea6ebd5079d5d\n# branch.head codex/stage7-task1-startup-flex-v5-20260809\n# branch.upstream origin/codex/stage7-task1-startup-flex-v5-20260809\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "8b94504b (HEAD -> codex/stage7-task1-startup-flex-v5-20260809, origin/codex/stage7-task1-startup-flex-v5-20260809) fix(stage7): stack startup reputation hint\n54e4e63f (origin/main) fix(stage7): show startup stat hints together\n63b4d0f4 fix(stage7): follow startup toast reflow and neutralize copy\nd92a02ee test(stage7): keep toast harness live-safe\n03980bd0 fix(stage7): keep player toasts until click and anchor startup hints\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8b94504b8cfef6f760aea7e217cea6ebd5079d5d\nbranch refs/heads/codex/stage7-task1-startup-flex-v5-20260809\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T10:41:43Z",
+      "stderr": "",
+      "stdout": "54e4e63fbddc42b4e5ecc204b1247ee278429d2b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8b94504b8cfef6f760aea7e217cea6ebd5079d5d",
+  "observedAtUtc": "2026-08-09T10:41:43Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
