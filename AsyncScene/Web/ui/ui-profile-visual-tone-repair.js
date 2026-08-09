@@ -27,7 +27,7 @@ window.Game = window.Game || {};
   const STAT_KINDS = Object.freeze(["points", "rep", "influence", "wins"]);
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
-  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v4";
+  const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v5";
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -885,7 +885,8 @@ window.Game = window.Game || {};
     if (!target || !el) return false;
     const r = target.getBoundingClientRect();
     const viewportWidth = Math.max(240, Number(window.innerWidth || document.documentElement.clientWidth || 320));
-    const measuredWidth = Number(el.offsetWidth) || Math.min(160, Math.max(48, String(el.textContent || "").length * 8 + 18));
+    const measuredWidth = Math.max(Number(el.offsetWidth) || 0, Number(el.scrollWidth) || 0)
+      || Math.min(160, Math.max(48, String(el.textContent || "").length * 8 + 18));
     const width = Math.min(measuredWidth, viewportWidth - 16);
     const height = Math.max(28, Number(el.offsetHeight || 28));
     const top = Math.max(8, r.top - height - 6);
@@ -998,11 +999,20 @@ window.Game = window.Game || {};
     }
     el.style.padding = "5px 9px";
     el.style.fontSize = "12px";
-    el.style.display = "flex";
+    el.style.display = "inline-flex";
     el.style.flexDirection = "column";
     el.style.alignItems = "center";
     el.style.gap = "2px";
-    el.style.whiteSpace = "nowrap";
+    el.style.whiteSpace = "normal";
+    label.style.display = "block";
+    label.style.whiteSpace = "nowrap";
+    if (key === "rep") {
+      const hint = el.querySelector(".statToast__hint");
+      if (hint) {
+        hint.style.display = "block";
+        hint.style.whiteSpace = "nowrap";
+      }
+    }
     el.style.pointerEvents = "auto";
     el.style.cursor = "pointer";
     el.setAttribute("role", "button");
@@ -1017,7 +1027,7 @@ window.Game = window.Game || {};
       removeStartupNameToast(key);
       return false;
     }
-    el.style.display = "block";
+    el.style.display = "inline-flex";
     el.style.opacity = "1";
     trackStartupNameToastLayout();
     queueStartupNameReposition();

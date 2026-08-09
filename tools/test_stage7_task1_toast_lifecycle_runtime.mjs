@@ -66,6 +66,9 @@ try {
   });
   await page.goto(url, { waitUntil: "networkidle" });
   await page.evaluate(() => {
+    window.sessionStorage.setItem("stage7_startup_stat_name_toasts_v4", JSON.stringify({ repDismissed: true, pointsDismissed: true, completed: true }));
+  });
+  await page.evaluate(() => {
     window.__stage7StartupLayoutEvidence = [];
     window.addEventListener("stage7:player-entered-game", () => {
       const target = document.querySelector("#meRep");
@@ -86,6 +89,42 @@ try {
   await waitVisible("#stage6StartupNameToast_points", "startup balance toast");
   assert.equal(await repStartup.locator(".statToast__hint").textContent(), "нажми, чтобы закрыть");
   assert.equal(await pointsStartup.locator(".statToast__hint").count(), 0, "balance toast must not duplicate the onboarding hint");
+  const repLayout = await repStartup.evaluate((toast) => {
+    const label = toast.querySelector(".statToast__label");
+    const hint = toast.querySelector(".statToast__hint");
+    const tr = toast.getBoundingClientRect();
+    const lr = label.getBoundingClientRect();
+    const hr = hint.getBoundingClientRect();
+    const style = getComputedStyle(toast);
+    return {
+      display: style.display,
+      flexDirection: style.flexDirection,
+      toast: tr.toJSON(),
+      label: lr.toJSON(),
+      hint: hr.toJSON(),
+      hintClientWidth: hint.clientWidth,
+      hintScrollWidth: hint.scrollWidth,
+      clientWidth: toast.clientWidth,
+      scrollWidth: toast.scrollWidth
+    };
+  });
+  assert(["flex", "inline-flex"].includes(repLayout.display), "reputation startup toast must remain a flex surface");
+  assert.equal(repLayout.flexDirection, "column", "reputation startup toast must stack label and hint vertically");
+  assert(repLayout.hint.top >= repLayout.label.bottom, "startup hint is not below the reputation label");
+  assert(repLayout.hint.left >= repLayout.toast.left && repLayout.hint.right <= repLayout.toast.right,
+    "startup hint is clipped or outside the reputation toast");
+  assert(repLayout.label.left >= repLayout.toast.left && repLayout.label.right <= repLayout.toast.right,
+    "reputation label is clipped or outside its toast");
+  assert(repLayout.hintScrollWidth <= repLayout.hintClientWidth, "startup hint text is clipped");
+  assert(repLayout.scrollWidth <= repLayout.clientWidth, "reputation startup toast has horizontal overflow");
+  const balanceLayout = await pointsStartup.evaluate((toast) => {
+    const style = getComputedStyle(toast);
+    const tr = toast.getBoundingClientRect();
+    return { display: style.display, flexDirection: style.flexDirection, children: toast.children.length, toast: tr.toJSON() };
+  });
+  assert(["flex", "inline-flex"].includes(balanceLayout.display), "balance startup toast must remain a flex surface");
+  assert.equal(balanceLayout.flexDirection, "column");
+  assert.equal(balanceLayout.children, 1, "balance startup toast must remain compact and single-line");
   const startupGeometry = await repStartup.evaluate((toast) => {
     const kind = toast.dataset.statKind;
     const target = document.querySelector(kind === "rep" ? "#meRep" : "#mePoints");
@@ -119,7 +158,7 @@ try {
   await page.locator("#stage6StartupNameToast_rep").click({ force: true });
   await waitGone("#stage6StartupNameToast_rep", "startup reputation toast");
   assert(await visible("#stage6StartupNameToast_points"), "balance toast was affected by reputation dismissal");
-  const partialState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  const partialState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v5")));
   assert.equal(partialState.repDismissed, true);
   assert.equal(partialState.pointsDismissed, false);
   assert.equal(partialState.completed, false);
@@ -162,11 +201,11 @@ try {
   await page.clock.fastForward(30000);
   assert(await visible("#stage6StartupNameToast_points"), "startup balance toast disappeared before user dismissal");
   await clickAndDismiss("#stage6StartupNameToast_points", "startup balance toast");
-  const completedState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  const completedState = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v5")));
   assert.equal(completedState.completed, true, "startup lifecycle completed before both independent dismissals");
 
   await page.evaluate(() => {
-    window.sessionStorage.removeItem("stage7_startup_stat_name_toasts_v4");
+    window.sessionStorage.removeItem("stage7_startup_stat_name_toasts_v5");
     window.dispatchEvent(new Event("stage7:player-entered-game"));
   });
   await waitVisible("#stage6StartupNameToast_rep", "reverse-order reputation toast");
@@ -174,10 +213,10 @@ try {
   await page.locator("#stage6StartupNameToast_points").click({ force: true });
   await waitGone("#stage6StartupNameToast_points", "reverse-order balance toast");
   assert(await visible("#stage6StartupNameToast_rep"), "reputation toast was affected by reverse-order balance dismissal");
-  const reversePartial = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  const reversePartial = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v5")));
   assert.equal(reversePartial.completed, false);
   await clickAndDismiss("#stage6StartupNameToast_rep", "reverse-order reputation toast");
-  const reverseCompleted = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v4")));
+  const reverseCompleted = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("stage7_startup_stat_name_toasts_v5")));
   assert.equal(reverseCompleted.completed, true, "reverse-order dismissal did not complete startup lifecycle");
 
   await assertPersistsThroughRenders("#stage6DeltaNameToast_rep", "manual stat-tap name toast", async () => {
