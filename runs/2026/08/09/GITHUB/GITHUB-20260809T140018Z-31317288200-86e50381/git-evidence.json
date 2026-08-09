@@ -1,0 +1,106 @@
+{
+  "branch": "task/task2-ui-boot-fallback-parity-20260809",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:18Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:18Z",
+      "stderr": "",
+      "stdout": "task/task2-ui-boot-fallback-parity-20260809\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:18Z",
+      "stderr": "",
+      "stdout": "c5e97fad1215a434bad7331fe28c26684355a4c2\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:19Z",
+      "stderr": "",
+      "stdout": "# branch.oid c5e97fad1215a434bad7331fe28c26684355a4c2\n# branch.head task/task2-ui-boot-fallback-parity-20260809\n# branch.upstream origin/task/task2-ui-boot-fallback-parity-20260809\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:19Z",
+      "stderr": "",
+      "stdout": "c5e97fad (HEAD -> task/task2-ui-boot-fallback-parity-20260809, origin/task/task2-ui-boot-fallback-parity-20260809, origin/main) Merge PR #336: clarify player-facing profile onboarding copy\n2199763d (origin/task/task2-player-facing-copy-20260809) fix(task2): clarify profile onboarding copy\nce2d37ce fix(stage7): stack startup reputation hint\n54e4e63f fix(stage7): show startup stat hints together\n63b4d0f4 fix(stage7): follow startup toast reflow and neutralize copy\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:19Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c5e97fad1215a434bad7331fe28c26684355a4c2\nbranch refs/heads/task/task2-ui-boot-fallback-parity-20260809\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:19Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:00:19Z",
+      "stderr": "",
+      "stdout": "c5e97fad1215a434bad7331fe28c26684355a4c2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c5e97fad1215a434bad7331fe28c26684355a4c2",
+  "observedAtUtc": "2026-08-09T14:00:19Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
