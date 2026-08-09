@@ -52,7 +52,7 @@ require("preserveText=false" in core, "ui-core pushChat has no preserveText para
 require("system || preserveText ? String(text || \"\")" in core, "ui-core still normalizes authored text")
 require("m.preserveText !== true" in chat, "ui-chat has no explicit authored-text gate")
 require("hasMentions" not in chat, "ui-chat still uses mentions as a normalization bypass")
-require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v4" in profile, "simultaneous startup session key missing")
+require("STARTUP_NAME_STORAGE_KEY" in profile and "stage7_startup_stat_name_toasts_v5" in profile, "simultaneous startup session key missing")
 require("requestStartupNameToasts" in profile and "stage7:player-entered-game" in profile, "authoritative game-enter transition missing")
 require("STARTUP_NAME_VISIBLE_MS" not in profile and "STARTUP_NAME_GAP_MS" not in profile, "startup still has auto-dismiss timing")
 require("setTimeout(requestStartupNameToasts" not in profile, "startup still starts from a timer")
@@ -295,10 +295,10 @@ function runStartupLifecycleRegression(options = {}) {
   nodes.stage6StartupNameToast_rep.onclick({ stopPropagation() {} });
   assert.strictEqual(nodes.stage6StartupNameToast_rep, undefined, "reputation toast did not dismiss independently");
   assert(nodes.stage6StartupNameToast_points, "balance toast was affected by reputation dismissal");
-  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v4")).completed, false);
+  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v5")).completed, false);
   nodes.stage6StartupNameToast_points.onclick({ stopPropagation() {} });
   assert.strictEqual(nodes.stage6StartupNameToast_points, undefined);
-  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v4")).completed, true);
+  assert.strictEqual(JSON.parse(storage.get("stage7_startup_stat_name_toasts_v5")).completed, true);
   assert.strictEqual(UI.renderAll, originalRenderAll, "startup layout hook leaked after completion");
   assert(repChip.listeners.click);
   repChip.listeners.click();
