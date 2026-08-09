@@ -1,0 +1,106 @@
+{
+  "branch": "task/post-task2-memory-sync-20260809",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:30Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:30Z",
+      "stderr": "",
+      "stdout": "task/post-task2-memory-sync-20260809\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:30Z",
+      "stderr": "",
+      "stdout": "cdf6d5890145edd5cf4b73a068621472e513a665\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid cdf6d5890145edd5cf4b73a068621472e513a665\n# branch.head task/post-task2-memory-sync-20260809\n# branch.upstream origin/task/post-task2-memory-sync-20260809\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:31Z",
+      "stderr": "",
+      "stdout": "cdf6d589 (HEAD -> task/post-task2-memory-sync-20260809, origin/task/post-task2-memory-sync-20260809) docs: close task 2 repository memory sync\nf44c5ace (origin/main) Merge PR #337: sync ui-boot fallback profile copy\n99d6d939 (origin/task/task2-ui-boot-fallback-parity-20260809) fix(task2): sync ui boot fallback copy\nc5e97fad Merge PR #336: clarify player-facing profile onboarding copy\n2199763d (origin/task/task2-player-facing-copy-20260809) fix(task2): clarify profile onboarding copy\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cdf6d5890145edd5cf4b73a068621472e513a665\nbranch refs/heads/task/post-task2-memory-sync-20260809\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-09T14:41:31Z",
+      "stderr": "",
+      "stdout": "f44c5acef1fa04773da20bc6e9324dbbe7cb884a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cdf6d5890145edd5cf4b73a068621472e513a665",
+  "observedAtUtc": "2026-08-09T14:41:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
