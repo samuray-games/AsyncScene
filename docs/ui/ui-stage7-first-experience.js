@@ -1004,6 +1004,7 @@ window.Game = window.Game || {};
         <div class="stage7EvidenceBadge">Второй раунд завершён</div>
         <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
         <p>${result.body}</p>
+        <p>Пока Райхан ищет свидетеля, ответьте на 6 простых, но очень важных для разраба вопросов.</p>
         ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
         <div class="stage7Support">После вопросов откроется полная игра.</div>
       </div>`;
