@@ -299,6 +299,7 @@ window.Game = window.Game || {};
   let lastIntermissionSecond = null;
   let realBattleBridgeTimer = null;
   let realBattleBridgeInFlight = false;
+  let productionStateId = null;
 
   function clone(value) {
     try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
@@ -824,6 +825,23 @@ window.Game = window.Game || {};
     snapshot.telemetry.push({ seq: snapshot.telemetrySeq, name, at: Date.now(), meta: meta || null });
     if (snapshot.telemetry.length > 80) snapshot.telemetry.splice(0, snapshot.telemetry.length - 80);
     saveSnapshot();
+    if (G.Telemetry && typeof G.Telemetry.action === "function") {
+      G.Telemetry.action(name, meta || {});
+    }
+  }
+
+  function syncProductionTelemetry(panel) {
+    if (!snapshot || !panel) return;
+    const stateId = snapshot.stateId || "unknown";
+    panel.setAttribute("data-telemetry-screen", `stage7.${stateId}`);
+    if (productionStateId !== stateId && G.Telemetry && typeof G.Telemetry.stateChanged === "function") {
+      G.Telemetry.stateChanged({
+        flowId: SCENARIO_ID,
+        fromStateId: productionStateId || "entry",
+        toStateId: stateId,
+      });
+    }
+    productionStateId = stateId;
   }
 
   function getState() {
@@ -898,6 +916,7 @@ window.Game = window.Game || {};
     panel.id = "stage7FirstExperiencePanel";
     panel.className = "block panel stage7FirstExperiencePanel";
     panel.setAttribute("aria-live", "polite");
+    panel.setAttribute("data-telemetry-screen", "stage7.entry");
     panel.addEventListener("click", onPanelClick);
     blocks.insertBefore(panel, blocks.firstChild || null);
     return panel;
@@ -979,11 +998,14 @@ window.Game = window.Game || {};
       `data-evidence-question="${question.id}" data-evidence-answer="${option.id}"`
     )).join("");
     panel.innerHTML = `
-      <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle">
+      <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle" data-telemetry-question="${question.id}">
         <div class="stage7EvidenceBadge">Вопрос · ${evidence.questionIndex + 1}/${questions.length}</div>
         <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
         <div class="stage7EvidenceOptions">${options}</div>
       </div>`;
+    if (G.Telemetry && typeof G.Telemetry.questionShown === "function") {
+      G.Telemetry.questionShown({ flowId: SCENARIO_ID, questionId: question.id });
+    }
   }
 
   function getRoundTwoResult() {
@@ -1427,6 +1449,7 @@ window.Game = window.Game || {};
     if (!snapshot) return;
     const panel = ensurePanel();
     if (!panel) return;
+    syncProductionTelemetry(panel);
     const branch = snapshot.branchId ? BRANCHES[snapshot.branchId] : null;
 
     if (snapshot.onboardingUnlocked) {
@@ -1638,6 +1661,9 @@ window.Game = window.Game || {};
       dueAt: snapshot.worldAdvanceDueAt,
       npcCount: INTERMISSION_NPCS.length,
     });
+    if (G.Telemetry && typeof G.Telemetry.completeCycle === "function") {
+      G.Telemetry.completeCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_one", outcomeId: snapshot.branchId });
+    }
     render();
   }
 
@@ -1658,6 +1684,9 @@ window.Game = window.Game || {};
       worldAdvanceId: snapshot.worldAdvanceId,
       branchId: snapshot.branchId,
     });
+    if (G.Telemetry && typeof G.Telemetry.startCycle === "function") {
+      G.Telemetry.startCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_two" });
+    }
     render();
     return true;
   }
@@ -2347,6 +2376,13 @@ window.Game = window.Game || {};
       choiceId,
       worldAdvanceId: snapshot.worldAdvanceId,
     });
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "round_two",
+        choiceId: `follow_up.${choiceId}`,
+      });
+    }
     render();
     return true;
   }
@@ -2366,6 +2402,13 @@ window.Game = window.Game || {};
       visit: snapshot.intermissionNpcVisits[npc.id],
       branchId: snapshot.branchId,
     });
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "intermission",
+        choiceId: `npc.${npc.id}`,
+      });
+    }
     render();
     return true;
   }
@@ -2393,6 +2436,17 @@ window.Game = window.Game || {};
     const questions = evidenceQuestions();
     const question = questions[snapshot.evidence.questionIndex];
     if (!question || question.id !== questionId || !question.options.some((option) => option.id === answerId)) return false;
+    if (G.Telemetry && typeof G.Telemetry.questionAnswered === "function") {
+      G.Telemetry.questionAnswered({ flowId: SCENARIO_ID, questionId, answerId });
+    }
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "questionnaire",
+        questionId,
+        choiceId: answerId,
+      });
+    }
     snapshot.evidence.answers[question.id] = answerId;
     snapshot.evidence.questionIndex += 1;
     if (snapshot.evidence.questionIndex < questions.length) {
@@ -2429,6 +2483,13 @@ window.Game = window.Game || {};
       branchId: snapshot.branchId,
       secondRoundChoiceId: snapshot.followUpChoiceId,
     });
+    if (G.Telemetry && typeof G.Telemetry.completeCycle === "function") {
+      G.Telemetry.completeCycle({
+        flowId: SCENARIO_ID,
+        cycleId: "stage7.round_two",
+        outcomeId: "questionnaire_completed",
+      });
+    }
     telemetry("first_experience.full_game_unlocked", { branchId: snapshot.branchId });
     releaseNormalWorldOnce();
     if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
@@ -2453,6 +2514,9 @@ window.Game = window.Game || {};
       saveSnapshot();
       pushLine({ name: context && context.playerName || "Игрок", text: BRANCHES[branchId].player });
       telemetry("first_experience.answer_selected", { branchId });
+      if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+        G.Telemetry.choiceSelected({ flowId: SCENARIO_ID, stateId: "answer", choiceId: branchId });
+      }
       render();
     } else if (action === "show-reaction" && snapshot.stateId === "reaction") {
       pushLine({ name: "Настя", text: BRANCHES[snapshot.branchId].reaction });
@@ -2642,6 +2706,9 @@ window.Game = window.Game || {};
     }
     snapshot = existing || defaultSnapshot();
     attach(nextContext);
+    if (!existing && G.Telemetry && typeof G.Telemetry.startCycle === "function") {
+      G.Telemetry.startCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_one" });
+    }
     telemetry("first_experience.entry_opened", { mode: existing ? "fresh_resume" : "fresh" });
     telemetry("first_experience.year_submitted");
     if (!snapshot.preludeComplete) telemetry("first_experience.prelude_started");
