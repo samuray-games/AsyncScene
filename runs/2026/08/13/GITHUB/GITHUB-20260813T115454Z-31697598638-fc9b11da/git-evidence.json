@@ -1,0 +1,106 @@
+{
+  "branch": "task/behavioral-telemetry-v1-20260813",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "task/behavioral-telemetry-v1-20260813\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "6b86ca7c582660af74a75a77b1a5ad5fdd133230\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6b86ca7c582660af74a75a77b1a5ad5fdd133230\n# branch.head task/behavioral-telemetry-v1-20260813\n# branch.upstream origin/task/behavioral-telemetry-v1-20260813\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "6b86ca7c (HEAD -> task/behavioral-telemetry-v1-20260813, origin/task/behavioral-telemetry-v1-20260813) Add privacy-safe behavioral telemetry v1\nb997be32 (origin/main) fix: clarify Stage 7 witness copy and toast contrast\n3dc41046 (origin/task/stage7-copy-tooltip-20260813) fix: clarify stage 7 witness copy and toast contrast\n2375755c (origin/chatgpt/parser-hardening-memory-sync-20260813) Merge pull request #340 from samuray-games/task/parser-hardening-sweep-20260813\n5d2c25eb (origin/task/parser-hardening-sweep-20260813) refactor: harden runtime parsing boundaries\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6b86ca7c582660af74a75a77b1a5ad5fdd133230\nbranch refs/heads/task/behavioral-telemetry-v1-20260813\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T11:54:54Z",
+      "stderr": "",
+      "stdout": "b997be32bf4e4eb40eae305349e41717196133c9\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6b86ca7c582660af74a75a77b1a5ad5fdd133230",
+  "observedAtUtc": "2026-08-13T11:54:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
