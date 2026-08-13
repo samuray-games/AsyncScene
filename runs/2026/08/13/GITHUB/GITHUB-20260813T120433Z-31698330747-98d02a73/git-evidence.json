@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "31eba9fe59e4bf14793cddd42f04c611c342d981\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid 31eba9fe59e4bf14793cddd42f04c611c342d981\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "31eba9fe (HEAD, pull/343/merge) Merge 3af0b0b7a875ef9e448b1fd724929e7ec4674cd3 into 31edf9f1c0bed7508befbc7140fb15d091ac9ade\n3af0b0b7 (origin/task/behavioral-telemetry-v1-20260813) Sync behavioral telemetry v1 memory\n31edf9f1 (origin/main) Merge pull request #342 from samuray-games/task/behavioral-telemetry-v1-20260813\n6b86ca7c Add privacy-safe behavioral telemetry v1\nb997be32 fix: clarify Stage 7 witness copy and toast contrast\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 31eba9fe59e4bf14793cddd42f04c611c342d981\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T12:04:33Z",
+      "stderr": "",
+      "stdout": "31edf9f1c0bed7508befbc7140fb15d091ac9ade\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "31eba9fe59e4bf14793cddd42f04c611c342d981",
+  "observedAtUtc": "2026-08-13T12:04:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
