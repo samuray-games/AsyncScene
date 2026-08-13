@@ -13,6 +13,57 @@ window.Game = window.Game || {};
   const Game = window.Game;
 
   const Util = {};
+  const INVALID_PARSE_VALUE = Symbol("invalid_parse_value");
+
+  Util.isPlainObject = (value) => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  };
+
+  Util.parseJson = (value, fallback = null) => {
+    if (typeof value !== "string" || !value.trim()) return fallback;
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return fallback;
+    }
+  };
+
+  Util.parseJsonObject = (value, fallback = null) => {
+    const parsed = Util.parseJson(value, INVALID_PARSE_VALUE);
+    return Util.isPlainObject(parsed) ? parsed : fallback;
+  };
+
+  Util.parseFiniteNumber = (value, fallback = null) => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+    if (typeof value !== "string") return fallback;
+    const normalized = value.trim();
+    if (!normalized || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalized)) return fallback;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  Util.parseInteger = (value, fallback = null) => {
+    if (typeof value === "string" && !/^[+-]?\d+$/.test(value.trim())) return fallback;
+    const parsed = Util.parseFiniteNumber(value, INVALID_PARSE_VALUE);
+    return Number.isSafeInteger(parsed) ? parsed : fallback;
+  };
+
+  Util.parseSearchFlag = (search, key, acceptedTrueValues = null) => {
+    if (typeof search !== "string" || typeof key !== "string" || !key) return false;
+    try {
+      const raw = new URLSearchParams(search).get(key);
+      if (raw === null) return false;
+      if (acceptedTrueValues !== null) {
+        if (!Array.isArray(acceptedTrueValues)) return false;
+        return acceptedTrueValues.includes(raw);
+      }
+      return raw === "1" || raw === "true";
+    } catch (_) {
+      return false;
+    }
+  };
 
   Util.nowHHMM = () => {
     const d = new Date();

@@ -9,6 +9,11 @@
 // conflict/conflict-core.js
 (function () {
   const C = {};
+  const parseSearchFlag = (search, key, accepted) => {
+    const U = (typeof Game !== "undefined" && Game && Game.Util) ? Game.Util : null;
+    if (U && typeof U.parseSearchFlag === "function") return U.parseSearchFlag(search, key, accepted);
+    try { return accepted.includes(new URLSearchParams(search).get(key)); } catch (_) { return false; }
+  };
   const CONFLICT_RESULT_KEYS = Object.freeze({
     conflict_win: true,
     conflict_loss: true,
@@ -801,12 +806,7 @@
     if (typeof location === "undefined" || !location) return false;
     const search = (typeof location.search === "string") ? location.search : "";
     if (!search) return false;
-    try {
-      const params = new URLSearchParams(search);
-      return params.get("dev") === "1";
-    } catch (_) {
-      return false;
-    }
+    return parseSearchFlag(search, "dev", ["1"]);
   }
   function isDevModeFlag() {
     if (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) return true;
@@ -4249,10 +4249,7 @@
     if (typeof window === "undefined") return "prod";
     const w = window;
     if (w.__DEV__ === true || w.DEV === true) return "dev";
-    try {
-      const params = new URLSearchParams(w.location && w.location.search ? w.location.search : "");
-      if (params.get("dev") === "1") return "dev";
-    } catch (_) {}
+    if (parseSearchFlag(w.location && w.location.search ? w.location.search : "", "dev", ["1"])) return "dev";
     return "prod";
   })();
 
