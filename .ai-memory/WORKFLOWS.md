@@ -1,19 +1,19 @@
-MEMORY_REV: 2026-08-09-2338-JST
+MEMORY_REV: 2026-08-13-2100-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Accepted current main: `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`.
-- No pending Safari acceptance or active implementation task remains.
-- No Task 3 is authorized; await explicit user direction.
+- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
+- Public Pages serves the exact merged telemetry bytes; user Safari acceptance remains pending.
+- Parser hardening PR #340 remains separate from behavioral telemetry.
 
 # Workflows
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-09-2338-JST
-EXPECTED_REVISION: 2026-08-09-2338-JST
-NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
+MEMORY_REVISION: 2026-08-13-2100-JST
+EXPECTED_REVISION: 2026-08-13-2100-JST
+NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -29,7 +29,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: Task 1 and Task 2 are closed and user-accepted. Current main is `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`. No active implementation task or pending Safari gate exists. The exact next action is `WAITING_FOR_NEXT_USER_TASK`.
+Current execution handoff: behavioral telemetry v1 is merged and deployed at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`. Public Chromium runtime evidence passed; user Safari acceptance is pending. The exact next action is `USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -194,4 +194,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: WAITING_FOR_NEXT_USER_TASK
+NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE

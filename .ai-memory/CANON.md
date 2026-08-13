@@ -1,19 +1,19 @@
-MEMORY_REV: 2026-08-09-2338-JST
+MEMORY_REV: 2026-08-13-2100-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Accepted current main: `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`.
-- No pending Safari acceptance or active implementation task remains.
-- No Task 3 is authorized; await explicit user direction.
+- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
+- Public Pages serves the exact merged telemetry bytes; user Safari acceptance remains pending.
+- Parser hardening PR #340 remains separate from behavioral telemetry.
 
 # Canon
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-09-2338-JST
-EXPECTED_REVISION: 2026-08-09-2338-JST
-NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
+MEMORY_REVISION: 2026-08-13-2100-JST
+EXPECTED_REVISION: 2026-08-13-2100-JST
+NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
 
 ## Canon principles
 
@@ -24,6 +24,16 @@ NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
 - The canonical live cross-chat bootstrap is the Notion page `ASYNCHRONIA - PROJECT MEMORY`, which must remain synchronized with accepted remote state when authorized.
 - Every current-state summary must include the exact next action required to advance the project.
 - The assistant uses masculine grammatical self-reference in Asynchronia project communication.
+
+## Behavioral telemetry v1
+
+- `Game.Telemetry` schema v1 is merged through PR #342 at `31edf9f1c0bed7508befbc7140fb15d091ac9ade` and is separate from parser hardening.
+- Events use random pseudonymous anonymous/session/page-view IDs and stable runtime IDs only. Player-authored text, inputs, profile fields, DOM snapshots, secrets, URLs, query strings, and hashes are forbidden.
+- The local queue is bounded to 1000 events and 30 days. Export, readback, summary, and identity rotation are public runtime APIs.
+- Network transmission is off by default. Enabling it requires explicit consent configuration, a same-origin HTTPS receiver, credential omission, bounded 50-event batches, offline persistence, and bounded retry.
+- Foreground dwell pauses while the page is hidden. Abandonment and clean session-end evidence retain only stable screen/question/cycle context.
+- Shared clicks require stable action/data IDs; game choices, state transitions, questions, and cycles are emitted by their owning controllers.
+- Public Pages deployment and Chromium runtime evidence are accepted. User Safari acceptance remains pending for the exact merged artifact.
 
 ## Accepted redesigned onboarding runtime
 
@@ -90,7 +100,7 @@ NOTION_MEMORY_REVISION: 2026-08-09-2324-JST
 - Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
 - Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
 
-CURRENT_NEXT_ACTION: WAITING_FOR_NEXT_USER_TASK
+CURRENT_NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
 
 ## Superseding Stage 7 onboarding flow
 

@@ -1,14 +1,23 @@
-MEMORY_REV: 2026-08-09-2338-JST
+MEMORY_REV: 2026-08-13-2100-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Accepted current main: `f44c5acef1fa04773da20bc6e9324dbbe7cb884a`.
-- No pending Safari acceptance or active implementation task remains.
-- No Task 3 is authorized; await explicit user direction.
+- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
+- Public Pages serves the exact merged telemetry bytes and public Chromium runtime evidence passed.
+- User Safari acceptance for telemetry v1 remains pending; parser hardening PR #340 remains separate.
 
-CURRENT_STATUS: TASK1_CLOSED / TASK2_CLOSED / READY_FOR_NEXT_USER_DIRECTED_TASK
-NEXT_ACTION: WAITING_FOR_NEXT_USER_TASK
+CURRENT_STATUS: BEHAVIORAL_TELEMETRY_V1_MERGED_DEPLOYED / SAFARI_PENDING_USER
+NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+
+## 2026-08-13 - Behavioral telemetry v1
+- Status: runtime implementation, PR review, merge, Pages publication, and public Chromium smoke complete; user Safari acceptance pending.
+- PR #342 merged reviewed head `6b86ca7c582660af74a75a77b1a5ad5fdd133230` as `31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
+- `Game.Telemetry` records ordered privacy-safe events, foreground dwell, visibility, abandonment/return, screens, modals, stable-ID clicks, game choices, state transitions, questions, and cycles.
+- Local persistence is capped at 1000 events and 30 days. Network transmission is disabled by default and requires explicit consent plus a same-origin HTTPS receiver.
+- Focused contract/runtime, Stage 7 regressions, syntax, mirror parity, diff, production-equivalent browser, and public Pages checks passed.
+- Four legacy Stage 7 tests fail identically on clean pre-change `origin/main`; they are baseline drift, not telemetry regressions.
+- NEXT_ACTION: `USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE`.
 
 ## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
 - Memory revision: `2026-08-08-0030-JST`.
