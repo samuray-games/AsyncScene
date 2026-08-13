@@ -1,0 +1,12 @@
+{
+  "actor": "WORK",
+  "branch": "task/behavioral-telemetry-v1-20260813",
+  "createdAtJst": "2026-08-13 21:07:54 JST",
+  "createdAtUtc": "2026-08-13T12:07:54Z",
+  "packagePath": "runs/2026/08/13/WORK/WORK-20260813T120754Z-behavioral-telemetry-v1-bfc70402",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "WORK-20260813T120754Z-behavioral-telemetry-v1-bfc70402",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": "behavioral-telemetry-v1-20260813"
+}

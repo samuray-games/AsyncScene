@@ -1,0 +1,15 @@
+{
+  "baselineDrift": "four legacy Stage 7 tests reproduce on clean pre-change main",
+  "nextAction": "USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE",
+  "privacy": "no player-authored text profile data secrets URLs queries or hashes; network disabled by default",
+  "result": "behavioral telemetry v1 merged deployed and memory synchronized",
+  "status": "SAFARI_PENDING_USER",
+  "validation": [
+    "focused contract and runtime PASS",
+    "source docs parity PASS",
+    "Stage 7 focused regressions PASS",
+    "production-equivalent Chromium PASS",
+    "public Pages Chromium PASS",
+    "post-merge CI and Pages PASS"
+  ]
+}
