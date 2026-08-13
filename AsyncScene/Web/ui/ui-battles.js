@@ -2523,7 +2523,7 @@ UI.renderBattles = () => {
             const witnessNote = document.createElement("div");
             witnessNote.className = "noteLine";
             witnessNote.dataset.testid = "stage7-accuse-witness-revealed";
-            witnessNote.textContent = "Свидетель Насти раскрыл цвет первого аргумента.";
+            witnessNote.textContent = "Свидетель Насти раскрыл цвет аргумента.";
             card.appendChild(witnessNote);
           }
         }

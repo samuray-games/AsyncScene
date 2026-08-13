@@ -93,7 +93,12 @@ require("style.transition" not in active_toast_files["events"], "event/vote toas
 require("stage7StartupToastAwareLayoutHook" in profile, "startup toast is not attached to the authoritative layout hooks")
 require("MutationObserver" in profile and "ResizeObserver" in profile, "startup toast has no event-driven layout tracking")
 require("showNamedDeltaToast(entry.key, shownTotal)" not in profile, "numeric delta dismissal still creates a replacement toast")
-require("Свидетель Насти раскрыл цвет первого аргумента." in (SOURCE / "ui-battles.js").read_text(encoding="utf-8"), "neutral witness copy missing")
+require("Свидетель Насти раскрыл цвет аргумента." in (SOURCE / "ui-battles.js").read_text(encoding="utf-8"), "neutral witness copy missing")
+require("первого аргумента" not in (SOURCE / "ui-battles.js").read_text(encoding="utf-8"), "ordinal remains in witness battle copy")
+require("Цвет аргумента Райхана раскрыт." in stage7, "Stage 7 witness copy missing")
+require("Цвет первого аргумента Райхана раскрыт." not in stage7, "ordinal remains in Stage 7 witness copy")
+require('hint.style.color = "var(--muted)"' in profile, "startup reputation hint is not theme-aware")
+require('hint.style.color = "rgba(255,255,255,.68)"' not in profile, "startup reputation hint still forces white text")
 for forbidden in ("вброс", "вкинули"):
     require(forbidden not in (SOURCE / "ui-battles.js").read_text(encoding="utf-8").lower(), f"battle UI still exposes forbidden vocabulary: {forbidden}")
     require(forbidden not in (SOURCE / "ui-stage7-first-experience.js").read_text(encoding="utf-8").lower(), f"Stage 7 UI still exposes forbidden vocabulary: {forbidden}")
