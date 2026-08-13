@@ -6,6 +6,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "AsyncScene/Web/telemetry.js"
 MIRROR = ROOT / "docs/telemetry.js"
+CONFIG = ROOT / "AsyncScene/Web/telemetry-config.js"
+CONFIG_MIRROR = ROOT / "docs/telemetry-config.js"
 CONTRACT = ROOT / "AsyncScene/Web/TELEMETRY.md"
 CONTRACT_MIRROR = ROOT / "docs/TELEMETRY.md"
 INDEX = ROOT / "AsyncScene/Web/index.html"
@@ -25,6 +27,7 @@ def require(condition, message):
 
 for left, right, label in (
     (SOURCE, MIRROR, "telemetry runtime"),
+    (CONFIG, CONFIG_MIRROR, "telemetry config"),
     (CONTRACT, CONTRACT_MIRROR, "telemetry contract"),
     (INDEX, INDEX_MIRROR, "index"),
     (STAGE7, STAGE7_MIRROR, "Stage 7 controller"),
@@ -34,6 +37,7 @@ for left, right, label in (
     require(left.read_bytes() == right.read_bytes(), f"{label} mirrors differ")
 
 source = SOURCE.read_text(encoding="utf-8")
+config = CONFIG.read_text(encoding="utf-8")
 contract = CONTRACT.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 stage7 = STAGE7.read_text(encoding="utf-8")
@@ -55,7 +59,8 @@ for token in (
     'const MAX_EVENT_AGE_MS = 30 * 24 * 60 * 60 * 1000',
     'const BATCH_SIZE = 50',
     'networkTransmissionDefault: false',
-    'sameOriginTransportOnly: true',
+    'privateFriendsAlphaTransportOnly: true',
+    'credentialsOrCookies: false',
     'credentials: "omit"',
     'Game.Telemetry = Object.freeze',
     'export: exportData',
@@ -65,16 +70,33 @@ for token in (
 ):
     require(token in source, f"missing telemetry contract token: {token}")
 
-require('src="telemetry.js?v=behavioral_telemetry_v1_20260813a"' in index, "telemetry entrypoint missing")
-require(index.index('src="util.js?v=2"') < index.index('src="telemetry.js?v=behavioral_telemetry_v1_20260813a"') < index.index('src="state.js?'), "telemetry load order invalid")
+require('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"' in index, "telemetry config entrypoint missing")
+require('src="telemetry.js?v=behavioral_telemetry_receiver_20260813a"' in index, "telemetry entrypoint missing")
+require(index.index('src="util.js?v=2"') < index.index('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="telemetry.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="state.js?'), "telemetry load order invalid")
 
 for forbidden_read in (".value", ".innerText", ".textContent", "location.search", "location.hash", "document.cookie"):
     require(forbidden_read not in source, f"privacy boundary reads forbidden data: {forbidden_read}")
 
-require('config.enabled !== true || config.consent !== true' in source, "explicit transport consent gate missing")
-require('endpoint.origin !== window.location.origin' in source, "same-origin transport gate missing")
+require('config.enabled !== true || config.mode !== "private_friends_alpha"' in source, "private alpha transport gate missing")
+require('endpoint.origin !== String(config.endpointOrigin || "")' in source, "exact endpoint-origin gate missing")
 require('endpoint.protocol !== "https:"' in source, "HTTPS transport gate missing")
+require('endpoint.pathname !== "/v1/events"' in source, "exact receiver route gate missing")
 require('if (!transportConfig() || flushTimer || document.hidden) return' in source, "default-disabled transport scheduling missing")
+require('contractVersion: 1' in source, "receiver contract version missing")
+require('store.pendingBatches.push(batch)' in source, "durable pending batch missing")
+require('latest.pendingBatches = latest.pendingBatches.filter' in source, "successful batch cleanup missing")
+
+for token in (
+    'enabled: false',
+    'mode: "private_friends_alpha"',
+    'cohortId: "private_friends_alpha_2026_08"',
+    'endpoint: ""',
+    'endpointOrigin: ""',
+):
+    require(token in config, f"safe pre-provision config missing: {token}")
+
+for forbidden_ui in ("opt-out", "consent dialog", "cookie banner", "refusal control"):
+    require(forbidden_ui not in config.lower(), f"player-facing refusal UI leaked into config: {forbidden_ui}")
 
 for token in (
     "G.Telemetry.stateChanged",
@@ -97,9 +119,11 @@ require('Game.Telemetry.clearModal("user_close")' in essence, "essence modal clo
 for privacy_statement in (
     "does not record player-authored text",
     "Network transmission is disabled by default",
-    "same-origin HTTPS",
+    "exact `/v1/events`",
     "bounded exponential delays",
     "Game.Telemetry.export()",
+    "Owner-only readback",
+    "GET /v1/admin/sessions",
 ):
     require(privacy_statement in contract, f"telemetry documentation missing: {privacy_statement}")
 

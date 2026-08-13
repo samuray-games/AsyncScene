@@ -1,0 +1,8 @@
+{
+  "name": "asynchronia-telemetry-receiver",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/worker.js && node --test test/worker.test.mjs"
+  }
+}

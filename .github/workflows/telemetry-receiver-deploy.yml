@@ -1,0 +1,48 @@
+name: telemetry-receiver-deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telemetry-receiver-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: telemetry-private-alpha
+    env:
+      WRANGLER_SEND_METRICS: "false"
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+      TELEMETRY_OWNER_TOKEN: ${{ secrets.TELEMETRY_OWNER_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate required deployment configuration
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$D1_DATABASE_ID"
+          test -n "$TELEMETRY_OWNER_TOKEN"
+      - name: Render deploy-only configuration
+        working-directory: telemetry-receiver
+        run: |
+          set -euo pipefail
+          node -e 'const fs=require("fs"); const input=fs.readFileSync("wrangler.template.jsonc","utf8"); const id=process.env.D1_DATABASE_ID; if(!/^[0-9a-f-]{36}$/.test(id)) throw new Error("invalid D1 database UUID"); fs.writeFileSync("wrangler.generated.jsonc", input.replace("__D1_DATABASE_ID__", id));'
+          node -e 'const fs=require("fs"); fs.writeFileSync("/tmp/telemetry-receiver-secrets.json", JSON.stringify({OWNER_TOKEN:process.env.TELEMETRY_OWNER_TOKEN}));'
+      - name: Validate receiver
+        run: npm --prefix telemetry-receiver run check
+      - name: Apply D1 migrations
+        working-directory: telemetry-receiver
+        run: npx --yes wrangler@4.122.0 d1 migrations apply DB --remote --config wrangler.generated.jsonc
+      - name: Deploy receiver with owner secret
+        working-directory: telemetry-receiver
+        run: npx --yes wrangler@4.122.0 deploy --config wrangler.generated.jsonc --secrets-file /tmp/telemetry-receiver-secrets.json

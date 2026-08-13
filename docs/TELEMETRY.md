@@ -28,20 +28,25 @@ Every event context carries the active screen plus active modal, question, and c
 
 Events are persisted locally under `AsyncScene_behavioral_telemetry_v1`. Network transmission is disabled by default. The published GitHub Pages runtime therefore does not transmit telemetry anywhere.
 
-An operator may enable transmission only by supplying an explicit runtime configuration before `telemetry.js` runs:
+The private-friends alpha uses a separate, immutable `telemetry-config.js` loaded before `telemetry.js`. It contains no secret and remains disabled until the reviewed receiver has a verified production HTTPS endpoint:
 
 ```js
-window.__ASYNCHRONIA_TELEMETRY_TRANSPORT__ = {
-  enabled: true,
-  consent: true,
-  consentVersion: "privacy-v1",
-  endpoint: "/telemetry/v1/events"
-};
+window.__ASYNCHRONIA_TELEMETRY_TRANSPORT__ = Object.freeze({
+  enabled: false,
+  mode: "private_friends_alpha",
+  cohortId: "private_friends_alpha_2026_08",
+  endpoint: "",
+  endpointOrigin: ""
+});
 ```
 
-The endpoint must be same-origin HTTPS (localhost is allowed for development). Requests omit credentials and send at most 50 events. Offline events remain in local persistence. Failed requests retry with bounded exponential delays up to six attempts; later events or an `online` event can resume flushing. A successful event receives local `transmittedAt` metadata and remains available until ordinary retention pruning, so export/readback is auditable.
+Activation sets `enabled`, `endpoint`, and the exact matching `endpointOrigin` after deployment verification. The endpoint must be HTTPS (localhost is allowed for development), use the exact `/v1/events` path, and contain no credentials, query, or hash. Requests omit credentials and cookies and send at most 50 events. Offline events remain in local persistence. Each pending batch keeps one stable batch ID across retries; failed requests retry with bounded exponential delays up to six attempts, and later events or an `online` event can resume flushing. A successful event receives local `transmittedAt` metadata and remains available until ordinary retention pruning, so export/readback is auditable.
 
-Remote retention and access policy belong to the configured receiver and must be approved before transport is enabled. This repository does not configure a receiver in v1.
+The receiver contract is version 1. It accepts only the private-alpha mode/cohort and an exact allowlist of event, context, and payload fields. It enforces an exact browser Origin allowlist, 64 KiB request and 50-event batch limits, pseudonymous-ID rate limiting, D1 uniqueness for batch/event idempotency, and 30-day deletion. It stores no IP address, user agent, referrer, URL, cookie, profile field, player-authored text, or secret.
+
+Owner-only readback is available at `GET /v1/admin/summary`, `GET /v1/admin/sessions`, and `GET /v1/admin/export`. All require `Authorization: Bearer <OWNER_TOKEN>`; that secret exists only as a Worker secret and is never shipped in the game. Summary returns event counts, pseudonymous/session counts, screen/question dwell, actions, choices, exit points, a simple funnel, and recent session paths. Session readback lists recent pseudonymous sessions and returns one ordered event sequence when given `sessionId`. Export returns bounded NDJSON for local analysis.
+
+Receiver source, migration, deployment template, and operational instructions live in `telemetry-receiver/`. Transport activation is a separate exact-endpoint change after receiver health, CORS, ingest, deduplication, summary, and export are verified in production.
 
 ## Export and analysis
 
