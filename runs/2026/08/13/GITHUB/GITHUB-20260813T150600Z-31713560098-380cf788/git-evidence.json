@@ -1,0 +1,106 @@
+{
+  "branch": "task/behavioral-telemetry-receiver-20260813",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:00Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:00Z",
+      "stderr": "",
+      "stdout": "task/behavioral-telemetry-receiver-20260813\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:00Z",
+      "stderr": "",
+      "stdout": "5adf53fbbe61acaf201555fb12afa2f1f1ad585d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:01Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5adf53fbbe61acaf201555fb12afa2f1f1ad585d\n# branch.head task/behavioral-telemetry-receiver-20260813\n# branch.upstream origin/task/behavioral-telemetry-receiver-20260813\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:01Z",
+      "stderr": "",
+      "stdout": "5adf53fb (HEAD -> task/behavioral-telemetry-receiver-20260813, origin/task/behavioral-telemetry-receiver-20260813) Add private-alpha telemetry receiver\n4df921c4 (origin/main) Merge pull request #343 from samuray-games/task/behavioral-telemetry-v1-20260813\n3af0b0b7 (origin/task/behavioral-telemetry-v1-20260813) Sync behavioral telemetry v1 memory\n31edf9f1 Merge pull request #342 from samuray-games/task/behavioral-telemetry-v1-20260813\n6b86ca7c Add privacy-safe behavioral telemetry v1\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:01Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5adf53fbbe61acaf201555fb12afa2f1f1ad585d\nbranch refs/heads/task/behavioral-telemetry-receiver-20260813\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:01Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T15:06:01Z",
+      "stderr": "",
+      "stdout": "4df921c458fca4c3295585dc13ef4904d91ed49c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5adf53fbbe61acaf201555fb12afa2f1f1ad585d",
+  "observedAtUtc": "2026-08-13T15:06:01Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
