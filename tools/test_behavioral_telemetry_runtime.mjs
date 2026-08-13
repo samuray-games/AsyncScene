@@ -41,6 +41,8 @@ const document = {
 };
 
 let fetchCalls = 0;
+const fetchBodies = [];
+let failNextFetch = false;
 const localStorage = new MemoryStorage();
 const sessionStorage = new MemoryStorage();
 sessionStorage.setItem("AsyncScene_behavioral_telemetry_session_v1", JSON.stringify({
@@ -88,7 +90,15 @@ const sandbox = {
   sessionStorage,
   location: { origin: "https://samuray-games.github.io" },
   getComputedStyle: () => ({ display: "block", visibility: "visible", opacity: "1" }),
-  fetch: async () => { fetchCalls += 1; return { ok: true, status: 200 }; },
+  fetch: async (_url, options) => {
+    fetchCalls += 1;
+    fetchBodies.push(JSON.parse(options.body));
+    if (failNextFetch) {
+      failNextFetch = false;
+      return { ok: false, status: 503 };
+    }
+    return { ok: true, status: 202 };
+  },
 };
 sandbox.window = sandbox;
 sandbox.window.Game = {};
@@ -179,9 +189,10 @@ require(telemetry.export().events.length === 0, "identity rotation did not clear
 
 sandbox.__ASYNCHRONIA_TELEMETRY_TRANSPORT__ = {
   enabled: true,
-  consent: true,
-  consentVersion: "privacy-v1",
-  endpoint: "/telemetry/v1/events",
+  mode: "private_friends_alpha",
+  cohortId: "private_friends_alpha_2026_08",
+  endpoint: "https://receiver.test/v1/events",
+  endpointOrigin: "https://receiver.test",
 };
 for (let index = 0; index < 55; index += 1) telemetry.action(`batch.${index}`);
 const firstFlush = telemetry.flush();
@@ -189,8 +200,21 @@ const concurrentFlush = telemetry.flush();
 require(firstFlush === concurrentFlush, "concurrent flushes were not deduplicated");
 const firstBatch = await firstFlush;
 require(firstBatch.ok === true && firstBatch.sent === 50 && fetchCalls === 1, "first bounded batch failed");
+require(fetchBodies[0].contractVersion === 1, "receiver contract version missing");
+require(fetchBodies[0].mode === "private_friends_alpha", "private alpha mode missing");
+require(fetchBodies[0].cohortId === "private_friends_alpha_2026_08", "cohort id missing");
+require(fetchBodies[0].events.length === 50, "first receiver batch was not bounded");
 const secondBatch = await telemetry.flush();
 require(secondBatch.ok === true && secondBatch.sent === 5 && fetchCalls === 2, "second bounded batch failed");
+
+telemetry.action("batch.retry");
+failNextFetch = true;
+const failedBatch = await telemetry.flush();
+require(failedBatch.ok === false && failedBatch.retryAttempt === 1, "failed batch did not enter bounded retry");
+const failedBatchId = fetchBodies[2].batchId;
+const retriedBatch = await telemetry.flush();
+require(retriedBatch.ok === true && retriedBatch.sent === 1, "failed batch did not recover");
+require(fetchBodies[3].batchId === failedBatchId, "retry changed the durable batch id");
 
 telemetry.setScreen("stage7.questionnaire", "test");
 telemetry.questionShown({ flowId: "stage7", questionId: "q-terminal" });

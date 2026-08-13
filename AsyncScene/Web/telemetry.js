@@ -483,15 +483,43 @@ window.Game = window.Game || {};
 
   function transportConfig() {
     const config = window.__ASYNCHRONIA_TELEMETRY_TRANSPORT__;
-    if (!config || config.enabled !== true || config.consent !== true) return null;
+    if (!config || config.enabled !== true || config.mode !== "private_friends_alpha") return null;
     try {
       const endpoint = new URL(String(config.endpoint || ""), window.location.origin);
-      if (endpoint.origin !== window.location.origin) return null;
       if (endpoint.protocol !== "https:" && endpoint.hostname !== "localhost" && endpoint.hostname !== "127.0.0.1") return null;
-      return { endpoint: endpoint.href, consentVersion: stableId(config.consentVersion) || "unspecified" };
+      if (endpoint.origin !== String(config.endpointOrigin || "")) return null;
+      if (endpoint.pathname !== "/v1/events" || endpoint.search || endpoint.hash || endpoint.username || endpoint.password) return null;
+      const cohortId = stableId(config.cohortId);
+      if (!cohortId) return null;
+      return { endpoint: endpoint.href, cohortId, mode: config.mode };
     } catch (_) {
       return null;
     }
+  }
+
+  function pendingBatch(store) {
+    const unsent = new Map(store.events.filter((event) => !event.transmittedAt)
+      .map((event) => [event.eventId, event]));
+    store.pendingBatches = store.pendingBatches.filter((batch) => batch
+      && stableId(batch.batchId)
+      && Array.isArray(batch.eventIds)
+      && batch.eventIds.length > 0
+      && batch.eventIds.length <= BATCH_SIZE
+      && batch.eventIds.every((eventId) => unsent.has(eventId)));
+    if (store.pendingBatches.length) {
+      const batch = store.pendingBatches[0];
+      return { batch, events: batch.eventIds.map((eventId) => unsent.get(eventId)) };
+    }
+    const events = Array.from(unsent).map((entry) => entry[1]).slice(0, BATCH_SIZE);
+    if (!events.length) return { batch: null, events: [] };
+    const batch = {
+      batchId: makeId("batch"),
+      eventIds: events.map((event) => event.eventId),
+      createdAt: Date.now(),
+    };
+    store.pendingBatches.push(batch);
+    saveStore(store);
+    return { batch, events };
   }
 
   function scheduleFlush(delay) {
@@ -506,9 +534,10 @@ window.Game = window.Game || {};
     const config = transportConfig();
     if (!config || !navigator.onLine || typeof window.fetch !== "function") return { ok: false, reason: "transport_disabled_or_offline" };
     const store = loadStore();
-    const events = store.events.filter((event) => !event.transmittedAt).slice(0, BATCH_SIZE);
+    const selected = pendingBatch(store);
+    const events = selected.events;
     if (!events.length) return { ok: true, sent: 0 };
-    const batchId = makeId("batch");
+    const batchId = selected.batch.batchId;
     try {
       const response = await window.fetch(config.endpoint, {
         method: "POST",
@@ -517,9 +546,11 @@ window.Game = window.Game || {};
         keepalive: true,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          contractVersion: 1,
           schemaVersion: SCHEMA_VERSION,
           batchId,
-          consentVersion: config.consentVersion,
+          mode: config.mode,
+          cohortId: config.cohortId,
           events,
         }),
       });
@@ -529,6 +560,7 @@ window.Game = window.Game || {};
       latest.events.forEach((event) => {
         if (sentIds.has(event.eventId)) event.transmittedAt = Date.now();
       });
+      latest.pendingBatches = latest.pendingBatches.filter((batch) => batch.batchId !== batchId);
       saveStore(latest);
       retryAttempt = 0;
       if (latest.events.some((event) => !event.transmittedAt)) scheduleFlush(0);
@@ -679,7 +711,8 @@ window.Game = window.Game || {};
       networkTransmissionDefault: false,
       playerAuthoredText: false,
       profileData: false,
-      sameOriginTransportOnly: true,
+      privateFriendsAlphaTransportOnly: true,
+      credentialsOrCookies: false,
     }),
     install,
     action,

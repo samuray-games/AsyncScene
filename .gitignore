@@ -6,6 +6,12 @@ __pycache__/
 *.py[cod]
 *.pyo
 
+# Cloudflare telemetry receiver local/generated state and secrets
+telemetry-receiver/.wrangler/
+telemetry-receiver/wrangler.generated.jsonc
+telemetry-receiver/.dev.vars
+telemetry-receiver/.env*
+
 # Local backup of nested git history (kept intentionally, not part of repo)
 AsyncScene/.git.backup/
 

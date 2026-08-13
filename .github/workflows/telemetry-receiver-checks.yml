@@ -1,0 +1,65 @@
+name: telemetry-receiver-checks
+
+on:
+  pull_request:
+    paths:
+      - AsyncScene/Web/telemetry.js
+      - AsyncScene/Web/telemetry-config.js
+      - AsyncScene/Web/TELEMETRY.md
+      - AsyncScene/Web/index.html
+      - docs/telemetry.js
+      - docs/telemetry-config.js
+      - docs/TELEMETRY.md
+      - docs/index.html
+      - telemetry-receiver/**
+      - tools/test_behavioral_telemetry.py
+      - tools/test_behavioral_telemetry_runtime.mjs
+      - .github/workflows/telemetry-receiver-checks.yml
+      - .github/workflows/telemetry-receiver-deploy.yml
+  push:
+    branches:
+      - main
+    paths:
+      - AsyncScene/Web/telemetry.js
+      - AsyncScene/Web/telemetry-config.js
+      - AsyncScene/Web/TELEMETRY.md
+      - AsyncScene/Web/index.html
+      - docs/telemetry.js
+      - docs/telemetry-config.js
+      - docs/TELEMETRY.md
+      - docs/index.html
+      - telemetry-receiver/**
+      - tools/test_behavioral_telemetry.py
+      - tools/test_behavioral_telemetry_runtime.mjs
+      - .github/workflows/telemetry-receiver-checks.yml
+      - .github/workflows/telemetry-receiver-deploy.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate receiver and client transport
+        run: |
+          set -euo pipefail
+          python3 tools/test_behavioral_telemetry.py
+          node tools/test_behavioral_telemetry_runtime.mjs
+          ALLOW_NETWORK_SMOKE=1 npm --prefix telemetry-receiver run check
+          git diff --check
+      - name: Validate Cloudflare deployment bundle
+        working-directory: telemetry-receiver
+        run: |
+          set -euo pipefail
+          sed 's/__D1_DATABASE_ID__/00000000-0000-0000-0000-000000000001/' wrangler.template.jsonc > wrangler.generated.jsonc
+          npx --yes wrangler@4.122.0 deploy --dry-run --config wrangler.generated.jsonc --outdir /tmp/asynchronia-telemetry-dryrun
