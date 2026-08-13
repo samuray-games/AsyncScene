@@ -399,6 +399,18 @@
    return false;
  };
 
+ function trackBattleChoice(action, argId, battleId, result) {
+   if (result === false || (result && result.ok === false)) return;
+   if (Game.Telemetry && typeof Game.Telemetry.choiceSelected === "function") {
+     Game.Telemetry.choiceSelected({
+       flowId: "argument_battle",
+       stateId: action,
+       choiceId: argId,
+       battleId,
+     });
+   }
+ }
+
  function bindBattleArgClicks() {
    const body = $("battlesBody");
    if (!body || body.__argClicksBound) return;
@@ -426,7 +438,8 @@
              : null;
        if (fn) {
          stop(e);
-         fn.call(Game.Conflict, battleId, argId);
+         const result = fn.call(Game.Conflict, battleId, argId);
+         trackBattleChoice(action, argId, battleId, result);
        }
        return;
      }
@@ -441,7 +454,8 @@
              : null;
        if (fn) {
          stop(e);
-         fn.call(Game.Conflict, battleId, argId);
+         const result = fn.call(Game.Conflict, battleId, argId);
+         trackBattleChoice(action, argId, battleId, result);
        }
      }
    }, false);
@@ -2658,7 +2672,8 @@ UI.renderBattles = () => {
               chip.onclick = (e) => {
                 stop(e);
                 _captureBattleFocus(b.id, card);
-                pickAttackFn.call(Game.Conflict, b.id, p.id);
+                const result = pickAttackFn.call(Game.Conflict, b.id, p.id);
+                trackBattleChoice("pickAttack", chip.dataset.argId, chip.dataset.battleId, result);
                 // Clear cached choices after pick to keep result stable
                 try { delete b._attackChoices; } catch (_) {}
                 try {
@@ -2886,7 +2901,8 @@ UI.renderBattles = () => {
               chip.onclick = (e) => {
                 stop(e);
                 _captureBattleFocus(b.id, card);
-                pickDefenseFn.call(Game.Conflict, b.id, p.id);
+                const result = pickDefenseFn.call(Game.Conflict, b.id, p.id);
+                trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
                 // Clear cached choices after pick to keep result stable
                 try { delete b._defenseChoices; } catch (_) {}
                 try {

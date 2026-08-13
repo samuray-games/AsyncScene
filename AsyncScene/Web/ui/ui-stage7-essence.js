@@ -180,6 +180,9 @@ window.Game = window.Game || {};
     if (!root || root.hidden) return;
     root.hidden = true;
     document.body.classList.remove("stage7EssenceOpen");
+    if (Game.Telemetry && typeof Game.Telemetry.clearModal === "function") {
+      Game.Telemetry.clearModal("user_close");
+    }
     const restore = lastFocus;
     lastFocus = null;
     if (restore && typeof restore.focus === "function" && document.contains(restore)) {
@@ -218,7 +221,7 @@ window.Game = window.Game || {};
     root.className = "stage7EssenceModal";
     root.hidden = true;
     root.innerHTML = `
-      <section class="stage7EssenceDialog" role="dialog" aria-modal="true" aria-labelledby="stage7EssenceTitle" aria-describedby="stage7EssenceLead">
+      <section class="stage7EssenceDialog" role="dialog" aria-modal="true" aria-labelledby="stage7EssenceTitle" aria-describedby="stage7EssenceLead" data-telemetry-modal="stage7.essence">
         <button class="stage7EssenceX" type="button" data-stage7-essence-close aria-label="Закрыть">×</button>
         <div class="stage7EssenceEyebrow"></div>
         <h2 id="stage7EssenceTitle" class="stage7EssenceTitle"></h2>
@@ -276,6 +279,9 @@ window.Game = window.Game || {};
     lastFocus = document.activeElement;
     root.hidden = false;
     document.body.classList.add("stage7EssenceOpen");
+    if (Game.Telemetry && typeof Game.Telemetry.setModal === "function") {
+      Game.Telemetry.setModal("stage7.essence");
+    }
     const focusTarget = root.querySelector(".stage7EssenceX") || root.querySelector(".stage7EssenceDialog");
     const focus = () => {
       if (focusTarget && typeof focusTarget.focus === "function") focusTarget.focus({ preventScroll: true });
