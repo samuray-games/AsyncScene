@@ -1,0 +1,106 @@
+{
+  "branch": "chatgpt/parser-hardening-memory-sync-20260813",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "chatgpt/parser-hardening-memory-sync-20260813\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "2375755c716846e9d438006068bce47fe48f114f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2375755c716846e9d438006068bce47fe48f114f\n# branch.head chatgpt/parser-hardening-memory-sync-20260813\n# branch.upstream origin/chatgpt/parser-hardening-memory-sync-20260813\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "2375755c (HEAD -> chatgpt/parser-hardening-memory-sync-20260813, origin/main, origin/chatgpt/parser-hardening-memory-sync-20260813) Merge pull request #340 from samuray-games/task/parser-hardening-sweep-20260813\n5d2c25eb (origin/task/parser-hardening-sweep-20260813) refactor: harden runtime parsing boundaries\n7a97df96 Merge PR #339: restore Stage 7 questionnaire bridge copy\n758ece70 (origin/task/stage7-questionnaire-bridge-copy-20260813) fix(stage7): restore questionnaire bridge copy\n487d612d Merge PR #338: close Task 2 repository memory sync\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2375755c716846e9d438006068bce47fe48f114f\nbranch refs/heads/chatgpt/parser-hardening-memory-sync-20260813\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-13T05:06:01Z",
+      "stderr": "",
+      "stdout": "2375755c716846e9d438006068bce47fe48f114f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2375755c716846e9d438006068bce47fe48f114f",
+  "observedAtUtc": "2026-08-13T05:06:01Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
