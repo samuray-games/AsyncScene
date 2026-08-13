@@ -1000,7 +1000,7 @@ window.Game = window.Game || {};
       hint.textContent = "нажми, чтобы закрыть";
       hint.style.fontSize = "9px";
       hint.style.fontWeight = "600";
-      hint.style.color = "rgba(255,255,255,.68)";
+      hint.style.color = "var(--muted)";
       el.appendChild(hint);
     }
     el.style.padding = "5px 9px";
