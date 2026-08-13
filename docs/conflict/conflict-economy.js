@@ -1,6 +1,11 @@
 // Web/conflict/conflict-economy.js
 (function () {
   const E = {};
+  const parseSearchFlag = (search, key, accepted) => {
+    const U = (typeof Game !== "undefined" && Game && Game.Util) ? Game.Util : null;
+    if (U && typeof U.parseSearchFlag === "function") return U.parseSearchFlag(search, key, accepted);
+    try { return accepted.includes(new URLSearchParams(search).get(key)); } catch (_) { return false; }
+  };
   const BANK_ACCOUNT_ID = "bank";
   const WORLD_BANK_ID = "worldBank";
   const WORLD_BANK_SOFT_CAP = 20;
@@ -762,10 +767,7 @@
       if (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) return true;
     } catch (_) {}
     try {
-      if (typeof location !== "undefined" && location && location.search) {
-        const params = new URLSearchParams(location.search);
-        return params.get("dev") === "1";
-      }
+      if (typeof location !== "undefined" && location && location.search) return parseSearchFlag(location.search, "dev", ["1"]);
     } catch (_) {}
     return false;
   }

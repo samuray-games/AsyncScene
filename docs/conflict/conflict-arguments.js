@@ -9,6 +9,11 @@
 // conflict/conflict-arguments.js
 (function () {
   const A = {};
+  const parseSearchFlag = (search, key, accepted) => {
+    const U = (typeof Game !== "undefined" && Game && Game.Util) ? Game.Util : null;
+    if (U && typeof U.parseSearchFlag === "function") return U.parseSearchFlag(search, key, accepted);
+    try { return accepted.includes(new URLSearchParams(search).get(key)); } catch (_) { return false; }
+  };
   const _argsCtxMissingOnce = new Set();
   try {
     console.warn("CONFLICT_ARGUMENTS_PARSE_OK_V1", {
@@ -224,12 +229,7 @@
     if (typeof location === "undefined" || !location) return false;
     const search = location.search;
     if (!search) return false;
-    try {
-      const params = new URLSearchParams(search);
-      return params.get("dev") === "1";
-    } catch (_) {
-      return false;
-    }
+    return parseSearchFlag(search, "dev", ["1"]);
   }
 
   function isDevFlag() {
@@ -609,7 +609,7 @@
       return "y";
     };
 
-    if (typeof window !== "undefined" && window.location && String(window.location.search || "").includes("dev=1")) {
+    if (typeof window !== "undefined" && window.location && parseSearchFlag(String(window.location.search || ""), "dev", ["1"])) {
       try {
         console.warn("ARGS_FINGERPRINT_V3", "buildDefenseOptions_battle_fix_1", { ts: Date.now(), hasBattleCtx: !!battleCtx, battleId: battleCtx && battleCtx.id });
       } catch (_) {}
@@ -841,7 +841,7 @@
       } catch (_) {}
     }
     const devBattleMatch = battleCtx && String(battleCtx.id || "").startsWith("dev_smoke_");
-    const devFlagMatch = (typeof window !== "undefined" && window.location && String(window.location.search || "").includes("dev=1"));
+    const devFlagMatch = !!(typeof window !== "undefined" && window.location && parseSearchFlag(String(window.location.search || ""), "dev", ["1"]));
     if (devBattleMatch || devFlagMatch) {
       try {
         console.warn("ARGS_FINGERPRINT_V1", "line768_fix_1", { ts: Date.now() });

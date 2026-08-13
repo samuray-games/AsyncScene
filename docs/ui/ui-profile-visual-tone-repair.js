@@ -8,6 +8,7 @@ window.Game = window.Game || {};
   const Data = Game.Data;
   const UI = Game.UI;
   const OriginalSystem = Game.System;
+  const Util = Game.Util || {};
 
   if (!Data || !UI || !OriginalSystem) {
     console.error("STAGE6_FINAL_PRESENTATION_V4_INSTALL_FAILED", {
@@ -28,6 +29,11 @@ window.Game = window.Game || {};
   const STAT_ICONS = Object.freeze({ points: "💰", rep: "⭐", influence: "⚡", wins: "🏆" });
   const COALESCE_MS = 90;
   const STARTUP_NAME_STORAGE_KEY = "stage7_startup_stat_name_toasts_v5";
+  const parseInteger = (value, fallback = null) => {
+    if (typeof Util.parseInteger === "function") return Util.parseInteger(value, fallback);
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) ? parsed : fallback;
+  };
 
   const CONTROL_COPY = Object.freeze({
     millennial: Object.freeze({
@@ -774,12 +780,12 @@ window.Game = window.Game || {};
     if (containsTargetReference(cleaned)) return null;
     const signed = cleaned.match(/([+-])\s*(\d+)/);
     if (signed) {
-      const n = parseInt(signed[2], 10);
+      const n = parseInteger(signed[2], null);
       if (Number.isFinite(n) && n > 0) return signed[1] === "-" ? -n : n;
     }
     const unsigned = cleaned.match(/\b(\d+)\b/);
     if (!unsigned) return null;
-    const n = parseInt(unsigned[1], 10);
+    const n = parseInteger(unsigned[1], null);
     if (!Number.isFinite(n) || n <= 0) return null;
     if (/(потрат|списан|уменьш|сниз|расход|штраф|оплат|стоим|минус|ушл)/i.test(cleaned)) return -n;
     if (/(получ|увелич|вырос|рост|доход|возврат|награ|плюс|пришл)/i.test(cleaned)) return n;
@@ -1110,7 +1116,17 @@ window.Game = window.Game || {};
     try {
       const raw = window.sessionStorage && window.sessionStorage.getItem(STARTUP_NAME_STORAGE_KEY);
       if (raw === "completed") return { repDismissed: true, pointsDismissed: true, completed: true };
-      const parsed = raw ? JSON.parse(raw) : {};
+      const parsed = typeof Util.parseJsonObject === "function"
+        ? Util.parseJsonObject(raw, {})
+        : (() => {
+            if (typeof raw !== "string" || !raw.trim()) return {};
+            try {
+              const value = JSON.parse(raw);
+              return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+            } catch (_) {
+              return {};
+            }
+          })();
       return {
         repDismissed: parsed && parsed.repDismissed === true,
         pointsDismissed: parsed && parsed.pointsDismissed === true,
@@ -1366,7 +1382,7 @@ window.Game = window.Game || {};
 
     if (kind === "rep" && containsTargetReference(value)) {
       const amountMatch = value.replace(/−/g, "-").match(/\+\s*(\d+)/);
-      if (amountMatch) return targetRepMessage(profile, parseInt(amountMatch[1], 10));
+      if (amountMatch) return targetRepMessage(profile, parseInteger(amountMatch[1], 0));
     }
 
     value = canonicalizeLegacySystemPhrase(profile, value);

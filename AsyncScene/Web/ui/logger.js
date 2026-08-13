@@ -9,15 +9,19 @@ window.Game = window.Game || {};
   const STATUS = { CONNECTED: "connected", DISCONNECTED: "disconnected", UNKNOWN: "unknown" };
   const LOG_SINK_QUERY_FLAGS = ["enableLogSink", "logSink", "enableLogSinkDev"];
   const LOG_SINK_DISABLE_MARKER = "DEV_LOG_SINK_DISABLED";
+  const parseSearchFlag = (search, key, accepted) => {
+    const U = Game.Util || null;
+    if (U && typeof U.parseSearchFlag === "function") return U.parseSearchFlag(search, key, accepted);
+    try { return accepted.includes(new URLSearchParams(search).get(key)); } catch (_) { return false; }
+  };
 
   const hasLogSinkFlag = () => {
     try {
       if (Game && Game.__D && Game.__D.ENABLE_LOGGER === true) return true;
       if (typeof window !== "undefined" && window.__ENABLE_LOG_SINK__ === true) return true;
       if (typeof location !== "undefined") {
-        const params = new URLSearchParams(location.search || "");
         for (const key of LOG_SINK_QUERY_FLAGS) {
-          if (params.get(key) === "1" || params.get(key) === "true") return true;
+          if (parseSearchFlag(location.search || "", key, ["1", "true"])) return true;
         }
       }
     } catch (_) {}
