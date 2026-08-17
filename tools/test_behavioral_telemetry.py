@@ -87,13 +87,13 @@ require('store.pendingBatches.push(batch)' in source, "durable pending batch mis
 require('latest.pendingBatches = latest.pendingBatches.filter' in source, "successful batch cleanup missing")
 
 for token in (
-    'enabled: false',
+    'enabled: true',
     'mode: "private_friends_alpha"',
     'cohortId: "private_friends_alpha_2026_08"',
-    'endpoint: ""',
-    'endpointOrigin: ""',
+    'endpoint: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events"',
+    'endpointOrigin: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev"',
 ):
-    require(token in config, f"safe pre-provision config missing: {token}")
+    require(token in config, f"active production config missing: {token}")
 
 for forbidden_ui in ("opt-out", "consent dialog", "cookie banner", "refusal control"):
     require(forbidden_ui not in config.lower(), f"player-facing refusal UI leaked into config: {forbidden_ui}")
