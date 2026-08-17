@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/memory-sync-telemetry-20260817",
+  "createdAtJst": "2026-08-17 23:22:20 JST",
+  "createdAtUtc": "2026-08-17T14:22:20Z",
+  "packagePath": "runs/2026/08/17/GITHUB/GITHUB-20260817T142220Z-32038794294-0315b1a2",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260817T142220Z-32038794294-0315b1a2",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}

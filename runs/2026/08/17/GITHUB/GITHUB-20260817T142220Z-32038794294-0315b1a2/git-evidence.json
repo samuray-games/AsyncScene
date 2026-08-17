@@ -1,0 +1,106 @@
+{
+  "branch": "task/memory-sync-telemetry-20260817",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "task/memory-sync-telemetry-20260817\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "474b0aa0487f4a905c872b6503cfa758209a752e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "# branch.oid 474b0aa0487f4a905c872b6503cfa758209a752e\n# branch.head task/memory-sync-telemetry-20260817\n# branch.upstream origin/task/memory-sync-telemetry-20260817\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "474b0aa0 (HEAD -> task/memory-sync-telemetry-20260817, origin/task/memory-sync-telemetry-20260817) docs: sync telemetry production memory\nce6c6cd1 (origin/main) Fix Pages recovery artifact verification (#346)\n98f4e6f2 feat: enable private-friends telemetry transport\n7ee0d69a Merge pull request #344 from task/behavioral-telemetry-receiver-20260813\n5adf53fb (origin/task/behavioral-telemetry-receiver-20260813) Add private-alpha telemetry receiver\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 474b0aa0487f4a905c872b6503cfa758209a752e\nbranch refs/heads/task/memory-sync-telemetry-20260817\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:22:20Z",
+      "stderr": "",
+      "stdout": "ce6c6cd16346120c630452d25e46e2368d87fab7\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "474b0aa0487f4a905c872b6503cfa758209a752e",
+  "observedAtUtc": "2026-08-17T14:22:20Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
