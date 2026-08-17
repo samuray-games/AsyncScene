@@ -18,6 +18,8 @@ BATTLES = ROOT / "AsyncScene/Web/ui/ui-battles.js"
 BATTLES_MIRROR = ROOT / "docs/ui/ui-battles.js"
 ESSENCE = ROOT / "AsyncScene/Web/ui/ui-stage7-essence.js"
 ESSENCE_MIRROR = ROOT / "docs/ui/ui-stage7-essence.js"
+BOOT = ROOT / "AsyncScene/Web/ui/ui-boot.js"
+BOOT_MIRROR = ROOT / "docs/ui/ui-boot.js"
 
 
 def require(condition, message):
@@ -61,6 +63,8 @@ for token in (
     'networkTransmissionDefault: false',
     'privateFriendsAlphaTransportOnly: true',
     'credentialsOrCookies: false',
+    'freeFormPlayerAuthoredText: false',
+    'voluntaryGameplayNicknameOnly: true',
     'credentials: "omit"',
     'Game.Telemetry = Object.freeze',
     'export: exportData',
@@ -71,8 +75,9 @@ for token in (
     require(token in source, f"missing telemetry contract token: {token}")
 
 require('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"' in index, "telemetry config entrypoint missing")
-require('src="telemetry.js?v=behavioral_telemetry_receiver_20260813a"' in index, "telemetry entrypoint missing")
-require(index.index('src="util.js?v=2"') < index.index('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="telemetry.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="state.js?'), "telemetry load order invalid")
+require('src="telemetry.js?v=behavioral_telemetry_session_metadata_20260818a"' in index, "telemetry entrypoint missing")
+require('src="ui/ui-boot.js?v=telemetry_gameplay_nickname_20260818a"' in index, "boot entrypoint missing")
+require(index.index('src="util.js?v=2"') < index.index('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="telemetry.js?v=behavioral_telemetry_session_metadata_20260818a"') < index.index('src="state.js?'), "telemetry load order invalid")
 
 for forbidden_read in (".value", ".innerText", ".textContent", "location.search", "location.hash", "document.cookie"):
     require(forbidden_read not in source, f"privacy boundary reads forbidden data: {forbidden_read}")
@@ -85,6 +90,12 @@ require('if (!transportConfig() || flushTimer || document.hidden) return' in sou
 require('contractVersion: 1' in source, "receiver contract version missing")
 require('store.pendingBatches.push(batch)' in source, "durable pending batch missing")
 require('latest.pendingBatches = latest.pendingBatches.filter' in source, "successful batch cleanup missing")
+require('setGameplayNickname' in source, "explicit gameplay nickname capture missing")
+require('sessionMetadata' in source, "session metadata envelope missing")
+boot_source = BOOT.read_text(encoding="utf-8")
+boot_mirror = BOOT_MIRROR.read_text(encoding="utf-8")
+require(boot_source.count('setGameplayNickname(S.me.name)') == 2, "source boot nickname wiring is incomplete")
+require(boot_mirror.count('setGameplayNickname(S.me.name)') == 2, "published boot nickname wiring is incomplete")
 
 for token in (
     'enabled: true',
@@ -117,7 +128,8 @@ require('Game.Telemetry.setModal("stage7.essence")' in essence, "essence modal o
 require('Game.Telemetry.clearModal("user_close")' in essence, "essence modal close instrumentation missing")
 
 for privacy_statement in (
-    "does not record player-authored text",
+    "does not record free-form player-authored text",
+    "voluntary gameplay nickname",
     "Network transmission is disabled by default",
     "exact `/v1/events`",
     "bounded exponential delays",

@@ -7,6 +7,9 @@ const MAX_EXPORT_ROWS = 10000;
 const MAX_CLOCK_SKEW_FUTURE_MS = 5 * 60 * 1000;
 const MAX_EVENT_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const SAFE_ID = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,159}$/;
+const GAMEPLAY_NICKNAME = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,23}$/u;
+const MAX_SESSION_METADATA = 50;
+const MAX_CITY_LENGTH = 120;
 
 const EVENT_TYPES = new Set([
   "session_start", "session_end",
@@ -55,7 +58,7 @@ const EVENT_KEYS = new Set([
   "anonymousId", "sessionId", "pageViewId", "context", "payload",
 ]);
 const ENVELOPE_KEYS = new Set([
-  "contractVersion", "schemaVersion", "batchId", "mode", "cohortId", "events",
+  "contractVersion", "schemaVersion", "batchId", "mode", "cohortId", "events", "sessionMetadata",
 ]);
 const BOOLEAN_FIELDS = new Set(["returnVisit", "transportEnabled"]);
 const NUMBER_FIELDS = new Set([
@@ -71,6 +74,39 @@ function exactKeys(value, allowed) {
 
 function safeId(value) {
   return typeof value === "string" && SAFE_ID.test(value);
+}
+
+function gameplayNickname(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return GAMEPLAY_NICKNAME.test(normalized) ? normalized : null;
+}
+
+function cloudflareCity(request) {
+  const value = request && request.cf && request.cf.city;
+  if (typeof value !== "string") return null;
+  const city = value.trim();
+  return city && city.length <= MAX_CITY_LENGTH && !/[\u0000-\u001f\u007f]/.test(city) ? city : null;
+}
+
+function validateSessionMetadata(value, sessionIds) {
+  if (value === undefined) return { ok: true, metadata: [] };
+  if (!Array.isArray(value) || value.length > MAX_SESSION_METADATA) {
+    return { ok: false, error: "invalid_session_metadata" };
+  }
+  const seen = new Set();
+  const metadata = [];
+  for (const item of value) {
+    if (!exactKeys(item, new Set(["sessionId", "nickname"])) || !safeId(item.sessionId)
+      || !sessionIds.has(item.sessionId) || seen.has(item.sessionId)) {
+      return { ok: false, error: "invalid_session_metadata" };
+    }
+    const nickname = gameplayNickname(item.nickname);
+    if (!nickname) return { ok: false, error: "invalid_session_metadata" };
+    seen.add(item.sessionId);
+    metadata.push({ sessionId: item.sessionId, nickname });
+  }
+  return { ok: true, metadata };
 }
 
 function safeField(key, value) {
@@ -99,6 +135,7 @@ export function validateEnvelope(input, expectedCohort, now = Date.now()) {
 
   let anonymousId = null;
   const eventIds = new Set();
+  const sessionIds = new Set();
   for (const event of input.events) {
     if (!exactKeys(event, EVENT_KEYS)) return { ok: false, error: "invalid_event_keys" };
     if (event.schemaVersion !== EVENT_SCHEMA_VERSION || !EVENT_TYPES.has(event.type)) {
@@ -109,6 +146,7 @@ export function validateEnvelope(input, expectedCohort, now = Date.now()) {
     }
     if (eventIds.has(event.eventId)) return { ok: false, error: "duplicate_event_id_in_batch" };
     eventIds.add(event.eventId);
+    sessionIds.add(event.sessionId);
     if (anonymousId === null) anonymousId = event.anonymousId;
     if (event.anonymousId !== anonymousId) return { ok: false, error: "mixed_anonymous_ids" };
     if (!Number.isSafeInteger(event.sequence) || event.sequence < 1) return { ok: false, error: "invalid_sequence" };
@@ -123,7 +161,9 @@ export function validateEnvelope(input, expectedCohort, now = Date.now()) {
     if (!validateBag(event.context, CONTEXT_KEYS)) return { ok: false, error: "invalid_context" };
     if (!validateBag(event.payload, PAYLOAD_KEYS[event.type])) return { ok: false, error: "invalid_payload" };
   }
-  return { ok: true, anonymousId };
+  const metadata = validateSessionMetadata(input.sessionMetadata, sessionIds);
+  if (!metadata.ok) return metadata;
+  return { ok: true, anonymousId, sessionMetadata: metadata.metadata };
 }
 
 function securityHeaders(extra = {}) {
@@ -257,6 +297,16 @@ async function ingest(request, env) {
 
   const eventStatements = input.events.map((event) => env.DB.prepare(insertEventSql)
     .bind(...normalizedEvent(event, input.batchId, receivedAt)));
+  const city = cloudflareCity(request);
+  const nicknamesBySession = new Map(validated.sessionMetadata.map(({ sessionId, nickname }) => [sessionId, nickname]));
+  const sessionStatements = Array.from(new Set(input.events.map((event) => event.sessionId))).map((sessionId) => env.DB.prepare(`INSERT INTO telemetry_sessions (
+    session_id, anonymous_id, nickname, city, first_received_at, last_received_at
+  ) VALUES (?, ?, ?, ?, ?, ?)
+  ON CONFLICT(session_id) DO UPDATE SET
+    nickname = COALESCE(excluded.nickname, telemetry_sessions.nickname),
+    city = COALESCE(telemetry_sessions.city, excluded.city),
+    last_received_at = excluded.last_received_at`)
+    .bind(sessionId, validated.anonymousId, nicknamesBySession.get(sessionId) || null, city, receivedAt, receivedAt));
   const batchStatement = env.DB.prepare(`INSERT INTO telemetry_batches (
     batch_id, contract_version, schema_version, cohort_id, anonymous_id,
     received_at, submitted_event_count, inserted_event_count
@@ -265,7 +315,7 @@ async function ingest(request, env) {
       validated.anonymousId, receivedAt, input.events.length, insertedEventCount);
 
   try {
-    await env.DB.batch([batchStatement, ...eventStatements]);
+    await env.DB.batch([batchStatement, ...eventStatements, ...sessionStatements]);
   } catch (_) {
     return json({ ok: false, error: "storage_unavailable" }, 503, { ...cors, "retry-after": "10" });
   }
@@ -305,9 +355,11 @@ async function adminSummary(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'cycle_completed' THEN session_id END) AS sessions_with_completed_cycle,
       COUNT(DISTINCT CASE WHEN event_type = 'return' THEN session_id END) AS returning_sessions
       FROM telemetry_events WHERE received_at >= ?`).bind(since),
-    env.DB.prepare(`SELECT session_id, occurred_at, sequence, event_type FROM (
-      SELECT session_id, occurred_at, sequence, event_type, received_at, event_id
-      FROM telemetry_events WHERE received_at >= ?
+    env.DB.prepare(`SELECT session_id, occurred_at, sequence, event_type, nickname, city FROM (
+      SELECT e.session_id, e.occurred_at, e.sequence, e.event_type, e.received_at, e.event_id,
+        s.nickname, s.city
+      FROM telemetry_events e LEFT JOIN telemetry_sessions s ON s.session_id = e.session_id
+      WHERE e.received_at >= ?
       ORDER BY received_at DESC, event_id DESC LIMIT 5000
     ) ORDER BY session_id, occurred_at, sequence`).bind(since),
   ]);
@@ -319,6 +371,8 @@ async function adminSummary(request, env) {
       ended_at: row.occurred_at,
       event_count: 0,
       path: [],
+      nickname: row.nickname || null,
+      city: row.city || null,
     };
     item.started_at = Math.min(item.started_at, row.occurred_at);
     item.ended_at = Math.max(item.ended_at, row.occurred_at);
@@ -355,31 +409,39 @@ async function adminSessions(request, env) {
   const sessionId = url.searchParams.get("sessionId") || "";
   if (sessionId) {
     if (!safeId(sessionId)) return json({ ok: false, error: "invalid_session_id" }, 400);
-    const result = await env.DB.prepare(`SELECT event_id, event_type, occurred_at, sequence,
+    const [result, session] = await Promise.all([
+      env.DB.prepare(`SELECT event_id, event_type, occurred_at, sequence,
       monotonic_ms, screen_id, modal_id, question_id, cycle_id, action_id, choice_id,
       flow_id, state_id, from_state_id, to_state_id, battle_id, answer_id, outcome_id,
       reason_id, foreground_dwell_ms, context_json, payload_json
       FROM telemetry_events WHERE session_id = ? AND received_at >= ?
-      ORDER BY occurred_at, sequence, event_id LIMIT 2000`).bind(sessionId, since).all();
+      ORDER BY occurred_at, sequence, event_id LIMIT 2000`).bind(sessionId, since).all(),
+      env.DB.prepare(`SELECT session_id, anonymous_id, nickname, city, first_received_at, last_received_at
+        FROM telemetry_sessions WHERE session_id = ?`).bind(sessionId).first(),
+    ]);
     return json({
       ok: true,
       contractVersion: CONTRACT_VERSION,
       generatedAt: Date.now(),
       windowDays: days,
       sessionId,
+      session: session || null,
       events: result.results || [],
     });
   }
   const requestedLimit = Number.parseInt(url.searchParams.get("limit") || "100", 10);
   const limit = Math.min(200, Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 100));
-  const result = await env.DB.prepare(`SELECT session_id, anonymous_id,
+  const result = await env.DB.prepare(`SELECT e.session_id, e.anonymous_id,
     MIN(occurred_at) AS started_at, MAX(occurred_at) AS ended_at,
     COUNT(*) AS event_count,
     SUM(CASE WHEN event_type = 'return' THEN 1 ELSE 0 END) AS return_count,
     SUM(CASE WHEN event_type = 'choice_selected' THEN 1 ELSE 0 END) AS choice_count,
-    SUM(CASE WHEN event_type = 'button_click' THEN 1 ELSE 0 END) AS click_count
-    FROM telemetry_events WHERE received_at >= ?
-    GROUP BY session_id, anonymous_id ORDER BY started_at DESC LIMIT ?`).bind(since, limit).all();
+    SUM(CASE WHEN event_type = 'button_click' THEN 1 ELSE 0 END) AS click_count,
+    s.nickname, s.city
+    FROM telemetry_events e LEFT JOIN telemetry_sessions s ON s.session_id = e.session_id
+    WHERE e.received_at >= ?
+    GROUP BY e.session_id, e.anonymous_id, s.nickname, s.city
+    ORDER BY started_at DESC LIMIT ?`).bind(since, limit).all();
   return json({
     ok: true,
     contractVersion: CONTRACT_VERSION,
@@ -402,7 +464,18 @@ async function adminExport(request, env) {
     WHERE received_at >= ? AND (received_at > ? OR (received_at = ? AND event_id > ?))
     ORDER BY received_at, event_id LIMIT ?`).bind(since, cursor, cursor, afterEventId, limit).all();
   const rows = result.results || [];
-  const body = rows.map((row) => JSON.stringify(row)).join("\n") + (rows.length ? "\n" : "");
+  const sessionIds = Array.from(new Set(rows.map((row) => row.session_id)));
+  const sessionResult = sessionIds.length
+    ? await env.DB.prepare(`SELECT session_id, anonymous_id, nickname, city, first_received_at, last_received_at
+      FROM telemetry_sessions WHERE session_id IN (${sessionIds.map(() => "?").join(", ")})
+      ORDER BY session_id`).bind(...sessionIds).all()
+    : { results: [] };
+  const metadataRows = (sessionResult.results || []).map((session) => JSON.stringify({
+    recordType: "session_metadata",
+    session,
+  }));
+  const eventRows = rows.map((event) => JSON.stringify({ recordType: "event", event }));
+  const body = [...metadataRows, ...eventRows].join("\n") + (metadataRows.length || eventRows.length ? "\n" : "");
   return new Response(body, {
     status: 200,
     headers: securityHeaders({
@@ -420,6 +493,7 @@ async function removeExpired(env) {
   await env.DB.batch([
     env.DB.prepare("DELETE FROM telemetry_events WHERE received_at < ?").bind(cutoff),
     env.DB.prepare("DELETE FROM telemetry_batches WHERE received_at < ?").bind(cutoff),
+    env.DB.prepare("DELETE FROM telemetry_sessions WHERE last_received_at < ?").bind(cutoff),
   ]);
 }
 

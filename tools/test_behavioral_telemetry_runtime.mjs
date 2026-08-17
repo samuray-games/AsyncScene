@@ -194,6 +194,8 @@ sandbox.__ASYNCHRONIA_TELEMETRY_TRANSPORT__ = {
   endpoint: "https://receiver.test/v1/events",
   endpointOrigin: "https://receiver.test",
 };
+require(telemetry.setGameplayNickname("Райхан_7") === true, "visible gameplay nickname was not accepted");
+require(telemetry.setGameplayNickname("player@example.com") === false, "email-like nickname was accepted");
 for (let index = 0; index < 55; index += 1) telemetry.action(`batch.${index}`);
 const firstFlush = telemetry.flush();
 const concurrentFlush = telemetry.flush();
@@ -204,8 +206,12 @@ require(fetchBodies[0].contractVersion === 1, "receiver contract version missing
 require(fetchBodies[0].mode === "private_friends_alpha", "private alpha mode missing");
 require(fetchBodies[0].cohortId === "private_friends_alpha_2026_08", "cohort id missing");
 require(fetchBodies[0].events.length === 50, "first receiver batch was not bounded");
+require(JSON.stringify(fetchBodies[0].sessionMetadata) === JSON.stringify([{
+  sessionId: telemetry.inspect().sessionId,
+  nickname: "Райхан_7",
+}]), "nickname was not sent once as session metadata");
 const secondBatch = await telemetry.flush();
-require(secondBatch.ok === true && secondBatch.sent === 5 && fetchCalls === 2, "second bounded batch failed");
+require(secondBatch.ok === true && secondBatch.sent === 6 && fetchCalls === 2, "second bounded batch failed");
 
 telemetry.action("batch.retry");
 failNextFetch = true;
