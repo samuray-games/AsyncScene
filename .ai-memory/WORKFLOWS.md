@@ -1,19 +1,19 @@
-MEMORY_REV: 2026-08-13-2100-JST
+MEMORY_REV: 2026-08-17-2319-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
-- Public Pages serves the exact merged telemetry bytes; user Safari acceptance remains pending.
+- Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
+- Pages publication and public served config are verified; Safari public-network transmission and owner readback passed. Central private-friends-alpha friend-session collection is ACTIVE with 30-day retention.
 - Parser hardening PR #340 remains separate from behavioral telemetry.
 
 # Workflows
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-13-2100-JST
-EXPECTED_REVISION: 2026-08-13-2100-JST
-NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
+MEMORY_REVISION: 2026-08-17-2319-JST
+EXPECTED_REVISION: 2026-08-17-2319-JST
+NOTION_MEMORY_REVISION: 2026-08-17-2308-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -29,7 +29,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: behavioral telemetry v1 is merged and deployed at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`. Public Chromium runtime evidence passed; user Safari acceptance is pending. The exact next action is `USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE`.
+Current execution handoff: repository memory synchronization is the active task from `main@ce6c6cd16346120c630452d25e46e2368d87fab7`. Runtime telemetry activation is complete: PR #345 and PR #346 are merged, Pages/public config is verified, Safari transmission and owner readback passed, and central private-friends-alpha collection is ACTIVE. The exact next action is `MEMORY_SYNC_PR_REVIEW_AND_MERGE`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -194,4 +194,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE

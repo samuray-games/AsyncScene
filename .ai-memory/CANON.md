@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-13-2100-JST
+MEMORY_REV: 2026-08-17-2319-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -11,9 +11,9 @@ MEMORY_REV: 2026-08-13-2100-JST
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-13-2100-JST
-EXPECTED_REVISION: 2026-08-13-2100-JST
-NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
+MEMORY_REVISION: 2026-08-17-2319-JST
+EXPECTED_REVISION: 2026-08-17-2319-JST
+NOTION_MEMORY_REVISION: 2026-08-17-2308-JST
 
 ## Canon principles
 
@@ -27,13 +27,13 @@ NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
 
 ## Behavioral telemetry v1
 
-- `Game.Telemetry` schema v1 is merged through PR #342 at `31edf9f1c0bed7508befbc7140fb15d091ac9ade` and is separate from parser hardening.
+- `Game.Telemetry` schema v1 is historical PR #342 base; PR #345 enabled the exact production endpoint and PR #346 fixed Pages recovery verification. The receiver, public served config, Safari network transmission, and owner readback are accepted.
 - Events use random pseudonymous anonymous/session/page-view IDs and stable runtime IDs only. Player-authored text, inputs, profile fields, DOM snapshots, secrets, URLs, query strings, and hashes are forbidden.
 - The local queue is bounded to 1000 events and 30 days. Export, readback, summary, and identity rotation are public runtime APIs.
 - Network transmission is off by default. Enabling it requires explicit consent configuration, a same-origin HTTPS receiver, credential omission, bounded 50-event batches, offline persistence, and bounded retry.
 - Foreground dwell pauses while the page is hidden. Abandonment and clean session-end evidence retain only stable screen/question/cycle context.
 - Shared clicks require stable action/data IDs; game choices, state transitions, questions, and cycles are emitted by their owning controllers.
-- Public Pages deployment and Chromium runtime evidence are accepted. User Safari acceptance remains pending for the exact merged artifact.
+- Public Pages deployment and served config are verified. Safari public-network transmission and owner readback are accepted for fresh batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` (`accepted:7`, `duplicate:false`, `MATCHES 7`). Central private-friends-alpha friend-session collection is ACTIVE at endpoint `https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events` for public origin `https://samuray-games.github.io`, cohort `private_friends_alpha_2026_08`, with 30-day retention. No secret belongs in repository memory.
 
 ## Accepted redesigned onboarding runtime
 
@@ -100,7 +100,7 @@ NOTION_MEMORY_REVISION: 2026-08-13-2100-JST
 - Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
 - Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
 
-CURRENT_NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+CURRENT_NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
 
 ## Superseding Stage 7 onboarding flow
 

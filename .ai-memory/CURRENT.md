@@ -1,23 +1,23 @@
-MEMORY_REV: 2026-08-13-2100-JST
+MEMORY_REV: 2026-08-17-2319-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
-- Public Pages serves the exact merged telemetry bytes and a live Chromium smoke passed with transport disabled and zero non-GET requests.
-- User Safari acceptance for telemetry v1 is pending; parser hardening PR #340 remains separate.
+- Receiver production acceptance is complete; PR #345 enabled endpoint config and PR #346 fixed Pages recovery verification.
+- Pages publication, public served config, Safari public-network transmission, and owner readback are verified for batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` (`accepted:7`, `duplicate:false`, `MATCHES 7`).
+- Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are recorded.
 
 # Current Memory
 
-MEMORY_REV: 2026-08-13-2100-JST
-NOTION_MEMORY_REV: 2026-08-13-2100-JST
-CURRENT_STATUS: BEHAVIORAL_TELEMETRY_V1_MERGED_DEPLOYED / SAFARI_PENDING_USER
-ACTIVE_TASK: BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+MEMORY_REV: 2026-08-17-2319-JST
+NOTION_MEMORY_REV: 2026-08-17-2308-JST
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+ACTIVE_TASK: REPOSITORY_MEMORY_SYNC
 CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: 31edf9f1c0bed7508befbc7140fb15d091ac9ade
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: 31edf9f1c0bed7508befbc7140fb15d091ac9ade
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: 31edf9f1c0bed7508befbc7140fb15d091ac9ade
-LATEST_MERGED_RUNTIME_HEAD: 31edf9f1c0bed7508befbc7140fb15d091ac9ade
+CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: ce6c6cd16346120c630452d25e46e2368d87fab7
+CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: ce6c6cd16346120c630452d25e46e2368d87fab7
+ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: ce6c6cd16346120c630452d25e46e2368d87fab7
+LATEST_MERGED_RUNTIME_HEAD: ce6c6cd16346120c630452d25e46e2368d87fab7
 STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
 STAGE_7: CLOSED / ACCEPTED_HISTORICAL_RUNTIME
 STAGE_7_7: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
@@ -39,14 +39,18 @@ STAGE7_11_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_SESSIONS
 STAGE7_10_PAGES_BUILD: 1134900395 / built / no error
 STAGE7_10_USER_VERDICT: PASS / IPHONE_SAFARI_PRIVATE_SESSIONS
 PRODUCT_FREEZE: ACTIVE
-BEHAVIORAL_TELEMETRY_V1: PR_342_MERGED / PAGES_CURRENT / PUBLIC_CHROMIUM_PASS / SAFARI_PENDING_USER
+BEHAVIORAL_TELEMETRY_V1: PR_342_HISTORICAL_BASE / PR_345_MERGED / PR_346_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
 TELEMETRY_PRIVACY: RANDOM_PSEUDONYMOUS_IDS / NO_PLAYER_TEXT_OR_PROFILE_DATA / NETWORK_OFF_BY_DEFAULT
 TELEMETRY_STORAGE: LOCAL_1000_EVENTS_30_DAYS / EXPORT_READBACK_SUMMARY_AVAILABLE
-RUNTIME: PUBLISHED / USER_SAFARI_ACCEPTANCE_PENDING_FOR_TELEMETRY_V1
-NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+TELEMETRY_PRODUCTION_ENDPOINT: https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events
+TELEMETRY_PUBLIC_ORIGIN: https://samuray-games.github.io
+TELEMETRY_COHORT: private_friends_alpha_2026_08
+TELEMETRY_RETENTION_DAYS: 30
+RUNTIME: PUBLISHED / PUBLIC_SERVED_CONFIG_VERIFIED / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
-Current runtime authority is `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`. PR #342 adds production `Game.Telemetry` schema v1 with privacy-safe ordered events, foreground dwell, bounded local persistence, export/readback, explicit Stage 7 and argument-battle instrumentation, and default-disabled opt-in network transport. GitHub Pages serves byte-identical telemetry runtime and a public Chromium smoke passed. User Safari acceptance remains pending for this exact artifact.
+Current runtime authority is `main@ce6c6cd16346120c630452d25e46e2368d87fab7`. PR #342 is the historical telemetry base; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification. Public served config, Safari transmission, and owner readback are verified; central private-friends-alpha collection is active.
 
 Parser hardening PR #340 is separate defensive parsing work and must not be conflated with real-player behavioral telemetry.
