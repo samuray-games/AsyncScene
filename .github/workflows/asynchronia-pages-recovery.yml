@@ -13,10 +13,6 @@ on:
         description: Optional exact repository SHA whose docs directory must be published
         required: false
         type: string
-      expected_marker:
-        description: Optional marker that must exist in docs/index.html and the published page
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -39,20 +35,22 @@ jobs:
       - name: Verify requested artifact
         env:
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
-          EXPECTED_MARKER: ${{ inputs.expected_marker || 'stage7_14_durable_aftermath_dm_contact_20260807a' }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           test -f docs/index.html
-          grep -Fq "$EXPECTED_MARKER" docs/index.html
+          test -f docs/telemetry-config.js
+          grep -Fq 'enabled: true' docs/telemetry-config.js
+          grep -Fq 'endpoint: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events"' docs/telemetry-config.js
+          grep -Fq 'endpointOrigin: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev"' docs/telemetry-config.js
+          grep -Fq 'mode: "private_friends_alpha"' docs/telemetry-config.js
+          grep -Fq 'cohortId: "private_friends_alpha_2026_08"' docs/telemetry-config.js
           echo "PAGES_SOURCE_SHA=$SOURCE_SHA"
-          echo "PAGES_EXPECTED_MARKER=$EXPECTED_MARKER"
 
       - name: Recover legacy Pages build
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
-          EXPECTED_MARKER: ${{ inputs.expected_marker || 'stage7_14_durable_aftermath_dm_contact_20260807a' }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -131,6 +129,12 @@ jobs:
           test "$(printf '%s' "$latest_json" | jq -r '.commit')" = "$SOURCE_SHA"
           test "$(printf '%s' "$latest_json" | jq -r '.status')" = "built"
 
-          curl -fsSL "${page_url}?asynchronia_pages_recovery=${SOURCE_SHA}" -o /tmp/published-index.html
-          grep -Fq "$EXPECTED_MARKER" /tmp/published-index.html
+          page_root="${page_url%/}/"
+          curl -fsSL "${page_root}?asynchronia_pages_recovery=${SOURCE_SHA}" -o /tmp/published-index.html
+          curl -fsSL "${page_root}telemetry-config.js?asynchronia_pages_recovery=${SOURCE_SHA}" -o /tmp/published-telemetry-config.js
+          grep -Fq 'enabled: true' /tmp/published-telemetry-config.js
+          grep -Fq 'endpoint: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events"' /tmp/published-telemetry-config.js
+          grep -Fq 'endpointOrigin: "https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev"' /tmp/published-telemetry-config.js
+          grep -Fq 'mode: "private_friends_alpha"' /tmp/published-telemetry-config.js
+          grep -Fq 'cohortId: "private_friends_alpha_2026_08"' /tmp/published-telemetry-config.js
           echo "ASYNCHRONIA_LEGACY_PAGES_RECOVERY_SUCCEEDED"
