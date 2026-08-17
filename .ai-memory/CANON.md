@@ -3,8 +3,8 @@ MEMORY_REV: 2026-08-17-2319-JST
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
-- Public Pages serves the exact merged telemetry bytes; user Safari acceptance remains pending.
+- Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
+- Pages publication and public served config are verified; Safari public-network transmission and owner readback passed. Central private-friends-alpha friend-session collection is ACTIVE.
 - Parser hardening PR #340 remains separate from behavioral telemetry.
 
 # Canon
@@ -100,7 +100,7 @@ NOTION_MEMORY_REVISION: 2026-08-17-2308-JST
 - Opening the restored target while pending consumes the same Stage 7.13 reply exactly once. After delivery, refresh/reopen exposes history only and adds no duplicate.
 - Prefer Stage 7 controller/source-doc mirror changes and focused regression. Generic DM subsystem changes require explicit re-scope rather than silent widening.
 
-CURRENT_NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
+CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
 
 ## Superseding Stage 7 onboarding flow
 

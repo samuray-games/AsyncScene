@@ -47,7 +47,7 @@ TELEMETRY_PUBLIC_ORIGIN: https://samuray-games.github.io
 TELEMETRY_COHORT: private_friends_alpha_2026_08
 TELEMETRY_RETENTION_DAYS: 30
 RUNTIME: PUBLISHED / PUBLIC_SERVED_CONFIG_VERIFIED / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
+NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
 
 Canonical bootstrap: fetch the live Notion page `ASYNCHRONIA - PROJECT MEMORY`, page ID `3a0815ae-752f-8139-945e-e38dfefbb111`, URL https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111. Report the exact top-level `MEMORY_REV`, then fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF` and current repository primary evidence. The former Google Drive document remains a deprecated migration stub.
 
