@@ -1,23 +1,30 @@
-MEMORY_REV: 2026-08-13-2100-JST
+MEMORY_REV: 2026-08-17-2319-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Behavioral telemetry v1 is merged through PR #342 at `main@31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
-- Public Pages serves the exact merged telemetry bytes and public Chromium runtime evidence passed.
-- User Safari acceptance for telemetry v1 remains pending; parser hardening PR #340 remains separate.
+- Behavioral telemetry receiver acceptance is complete; PR #345 enabled the exact production client endpoint and PR #346 fixed Pages recovery artifact verification.
+- Pages build and public served config are verified; user-owned Safari public-network transmission passed and owner readback passed for fresh batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` (`accepted:7`, `duplicate:false`, `MATCHES 7`, one session, seven event IDs).
+- Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
-CURRENT_STATUS: BEHAVIORAL_TELEMETRY_V1_MERGED_DEPLOYED / SAFARI_PENDING_USER
-NEXT_ACTION: USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
+
+## 2026-08-17 - Private-friends telemetry activation and repository-memory synchronization
+- Status: receiver production acceptance, PR #345 endpoint enablement, PR #346 Pages recovery repair, Pages publication, public served-config verification, Safari public-network transmission, and owner readback are complete.
+- Fresh batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` returned `duplicate:false`, `accepted:7`; owner readback returned `MATCHES 7`, one session `session:9f522845-15c1-4fe0-bf1e-5b35a7302c6b`, and seven distinct event IDs.
+- Production endpoint: `https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events`; public origin: `https://samuray-games.github.io`; cohort: `private_friends_alpha_2026_08`; retention: 30 days.
+- Central private-friends-alpha friend-session collection is ACTIVE. The old stale-marker blocker and Safari-pending blocker are closed. This dedicated PR changes repository memory/task/canon files only; runtime files are unchanged.
+- NEXT_ACTION: `MEMORY_SYNC_PR_REVIEW_AND_MERGE`.
 
 ## 2026-08-13 - Behavioral telemetry v1
-- Status: runtime implementation, PR review, merge, Pages publication, and public Chromium smoke complete; user Safari acceptance pending.
+- Status: runtime implementation, PR review, merge, Pages publication, and public Chromium smoke complete; later production activation and acceptance are recorded above.
 - PR #342 merged reviewed head `6b86ca7c582660af74a75a77b1a5ad5fdd133230` as `31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
 - `Game.Telemetry` records ordered privacy-safe events, foreground dwell, visibility, abandonment/return, screens, modals, stable-ID clicks, game choices, state transitions, questions, and cycles.
 - Local persistence is capped at 1000 events and 30 days. Network transmission is disabled by default and requires explicit consent plus a same-origin HTTPS receiver.
 - Focused contract/runtime, Stage 7 regressions, syntax, mirror parity, diff, production-equivalent browser, and public Pages checks passed.
 - Four legacy Stage 7 tests fail identically on clean pre-change `origin/main`; they are baseline drift, not telemetry regressions.
-- NEXT_ACTION: `USER_RUN_BEHAVIORAL_TELEMETRY_V1_SAFARI_ACCEPTANCE`.
+- NEXT_ACTION: historical record superseded by the 2026-08-17 activation record above.
 
 ## 2026-08-07 - Stage 7.13 aftermath DM Safari acceptance and Stage 7.14 selection
 - Memory revision: `2026-08-08-0030-JST`.
