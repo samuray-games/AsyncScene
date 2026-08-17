@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/telemetry-private-friends-alpha-endpoint-20260817",
+  "createdAtJst": "2026-08-17 17:02:38 JST",
+  "createdAtUtc": "2026-08-17T08:02:38Z",
+  "packagePath": "runs/2026/08/17/GITHUB/GITHUB-20260817T080238Z-32008473491-4c522b9b",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260817T080238Z-32008473491-4c522b9b",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}

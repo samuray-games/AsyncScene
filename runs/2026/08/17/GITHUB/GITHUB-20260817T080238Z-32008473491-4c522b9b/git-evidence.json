@@ -1,0 +1,106 @@
+{
+  "branch": "task/telemetry-private-friends-alpha-endpoint-20260817",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:38Z",
+      "stderr": "",
+      "stdout": "task/telemetry-private-friends-alpha-endpoint-20260817\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:38Z",
+      "stderr": "",
+      "stdout": "5429e85289554ef5a33d1ab977a674c092767150\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5429e85289554ef5a33d1ab977a674c092767150\n# branch.head task/telemetry-private-friends-alpha-endpoint-20260817\n# branch.upstream origin/task/telemetry-private-friends-alpha-endpoint-20260817\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:39Z",
+      "stderr": "",
+      "stdout": "5429e852 (HEAD -> task/telemetry-private-friends-alpha-endpoint-20260817, origin/task/telemetry-private-friends-alpha-endpoint-20260817) feat: enable private friends telemetry transport\n7ee0d69a (origin/main) Merge pull request #344 from task/behavioral-telemetry-receiver-20260813\n5adf53fb (origin/task/behavioral-telemetry-receiver-20260813) Add private-alpha telemetry receiver\n4df921c4 Merge pull request #343 from samuray-games/task/behavioral-telemetry-v1-20260813\n3af0b0b7 (origin/task/behavioral-telemetry-v1-20260813) Sync behavioral telemetry v1 memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5429e85289554ef5a33d1ab977a674c092767150\nbranch refs/heads/task/telemetry-private-friends-alpha-endpoint-20260817\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T08:02:39Z",
+      "stderr": "",
+      "stdout": "7ee0d69ac9c6636a3ab1b0e2fbbd94a277c27517\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5429e85289554ef5a33d1ab977a674c092767150",
+  "observedAtUtc": "2026-08-17T08:02:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
