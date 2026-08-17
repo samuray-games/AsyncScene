@@ -1,5 +1,6 @@
 // Privacy-safe behavioral telemetry for real player sessions.
-// No player-authored text, DOM snapshots, URL/query values, or game profile data are collected.
+// No DOM input, free-form player text, URL/query values, or hidden profile data are collected.
+// The sole text exception is the short gameplay nickname explicitly accepted on the visible start screen.
 window.Game = window.Game || {};
 
 (() => {
@@ -17,6 +18,7 @@ window.Game = window.Game || {};
   const MAX_EVENTS = 1000;
   const MAX_EVENT_AGE_MS = 30 * 24 * 60 * 60 * 1000;
   const BATCH_SIZE = 50;
+  const MAX_SESSION_METADATA = 50;
   const MAX_RETRY_ATTEMPTS = 6;
   const RETRY_BASE_MS = 2000;
   const ALLOWED_TYPES = new Set([
@@ -32,6 +34,7 @@ window.Game = window.Game || {};
   ]);
   const BLOCKED_KEY = /(text|message|content|input|secret|token|password|email|phone|url|href|name|birth|age|query|search|hash)/i;
   const SAFE_ID = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$/;
+  const GAMEPLAY_NICKNAME = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,23}$/u;
 
   const local = safeStorage("localStorage");
   const session = safeStorage("sessionStorage");
@@ -128,7 +131,7 @@ window.Game = window.Game || {};
   }
 
   function emptyStore() {
-    return { storeVersion: STORE_VERSION, schemaVersion: SCHEMA_VERSION, events: [], pendingBatches: [] };
+    return { storeVersion: STORE_VERSION, schemaVersion: SCHEMA_VERSION, events: [], pendingBatches: [], sessionMetadata: {} };
   }
 
   function loadStore() {
@@ -137,12 +140,18 @@ window.Game = window.Game || {};
     const cutoff = Date.now() - MAX_EVENT_AGE_MS;
     raw.events = raw.events.filter((event) => event && Number(event.occurredAt) >= cutoff).slice(-MAX_EVENTS);
     raw.pendingBatches = Array.isArray(raw.pendingBatches) ? raw.pendingBatches.slice(-40) : [];
+    raw.sessionMetadata = raw.sessionMetadata && typeof raw.sessionMetadata === "object" && !Array.isArray(raw.sessionMetadata)
+      ? raw.sessionMetadata
+      : {};
     return raw;
   }
 
   function saveStore(store) {
     store.events = Array.isArray(store.events) ? store.events.slice(-MAX_EVENTS) : [];
     store.pendingBatches = Array.isArray(store.pendingBatches) ? store.pendingBatches.slice(-40) : [];
+    store.sessionMetadata = store.sessionMetadata && typeof store.sessionMetadata === "object" && !Array.isArray(store.sessionMetadata)
+      ? store.sessionMetadata
+      : {};
     return writeJson(local, STORAGE_KEY, store);
   }
 
@@ -161,6 +170,28 @@ window.Game = window.Game || {};
   function stableId(value) {
     const normalized = String(value || "").trim().slice(0, 120);
     return SAFE_ID.test(normalized) ? normalized : null;
+  }
+
+  function gameplayNickname(value) {
+    const nickname = String(value || "").trim().replace(/\s+/g, " ");
+    return GAMEPLAY_NICKNAME.test(nickname) ? nickname : null;
+  }
+
+  function sessionMetadataFor(events, store) {
+    const bySession = store && store.sessionMetadata && typeof store.sessionMetadata === "object"
+      ? store.sessionMetadata
+      : {};
+    const seen = new Set();
+    const rows = [];
+    for (const event of events) {
+      const sessionId = stableId(event && event.sessionId);
+      if (!sessionId || seen.has(sessionId)) continue;
+      seen.add(sessionId);
+      const nickname = gameplayNickname(bySession[sessionId] && bySession[sessionId].nickname);
+      if (nickname) rows.push({ sessionId, nickname });
+      if (rows.length >= MAX_SESSION_METADATA) break;
+    }
+    return rows;
   }
 
   function safeValue(value) {
@@ -515,6 +546,7 @@ window.Game = window.Game || {};
     const batch = {
       batchId: makeId("batch"),
       eventIds: events.map((event) => event.eventId),
+      sessionMetadata: sessionMetadataFor(events, store),
       createdAt: Date.now(),
     };
     store.pendingBatches.push(batch);
@@ -551,6 +583,7 @@ window.Game = window.Game || {};
           batchId,
           mode: config.mode,
           cohortId: config.cohortId,
+          sessionMetadata: Array.isArray(selected.batch.sessionMetadata) ? selected.batch.sessionMetadata : [],
           events,
         }),
       });
@@ -588,13 +621,15 @@ window.Game = window.Game || {};
       schemaVersion: SCHEMA_VERSION,
       exportedAt: Date.now(),
       privacy: {
-        playerAuthoredText: false,
+        freeFormPlayerAuthoredText: false,
+        voluntaryGameplayNicknameOnly: true,
         profileData: false,
         urlsOrQuery: false,
         networkTransmissionEnabled: !!transportConfig(),
         retentionDays: 30,
         maxEvents: MAX_EVENTS,
       },
+      sessionMetadata: sessionMetadataFor(store.events, store),
       events: store.events.map((event) => JSON.parse(JSON.stringify(event))),
     };
   }
@@ -653,6 +688,18 @@ window.Game = window.Game || {};
     if (transportConfig()) flush();
   }
 
+  function setGameplayNickname(value) {
+    const nickname = gameplayNickname(value);
+    if (!nickname) return false;
+    const store = loadStore();
+    const previous = gameplayNickname(store.sessionMetadata[sessionId] && store.sessionMetadata[sessionId].nickname);
+    if (previous === nickname) return true;
+    store.sessionMetadata[sessionId] = { nickname, updatedAt: Date.now() };
+    saveStore(store);
+    append("action", { actionId: "player_nickname_set" });
+    return true;
+  }
+
   function install() {
     if (installed) return;
     installed = true;
@@ -709,7 +756,8 @@ window.Game = window.Game || {};
       retentionDays: 30,
       batchSize: BATCH_SIZE,
       networkTransmissionDefault: false,
-      playerAuthoredText: false,
+      freeFormPlayerAuthoredText: false,
+      voluntaryGameplayNicknameOnly: true,
       profileData: false,
       privateFriendsAlphaTransportOnly: true,
       credentialsOrCookies: false,
@@ -722,6 +770,7 @@ window.Game = window.Game || {};
     questionAnswered,
     startCycle,
     completeCycle,
+    setGameplayNickname,
     setScreen,
     clearScreen,
     setModal,

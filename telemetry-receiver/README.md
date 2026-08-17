@@ -18,7 +18,7 @@ This Cloudflare Worker is the central receiver for the invited private-friends a
 - owner export: `GET /v1/admin/export?days=30&limit=10000`
 - retention: 30 days, deleted daily by cron
 
-The receiver stores only the event's random anonymous/session/page-view identifiers, stable runtime IDs, event ordering/timing, allowlisted context/payload JSON, and receiver timestamps. It does not persist request IPs, country/region, user agent, referrer, cookies, URLs, profile fields, player-authored text, or secrets. Worker observability is disabled so application request logs are not retained by this deployment configuration. CORS is a browser boundary rather than sender authentication; payload validation, size limits, anonymous-ID rate limiting, hourly event limits, and idempotency remain mandatory even when the `Origin` header is forged by a non-browser client.
+The receiver stores only the event's random anonymous/session/page-view identifiers, stable runtime IDs, event ordering/timing, allowlisted context/payload JSON, receiver timestamps, and session metadata. Session metadata is restricted to the voluntary gameplay nickname from the visible game UI and approximate city from Cloudflare runtime metadata (`request.cf.city`); the browser cannot submit city. It does not persist request IPs, country/region, user agent, referrer, cookies, URLs, profile fields, free-form player-authored text, precise coordinates, device fingerprints, hidden account identifiers, or secrets. Missing Cloudflare city is stored as `null`, never guessed. Worker observability is disabled so application request logs are not retained by this deployment configuration. CORS is a browser boundary rather than sender authentication; payload validation, size limits, anonymous-ID rate limiting, hourly event limits, and idempotency remain mandatory even when the `Origin` header is forged by a non-browser client.
 
 ## Provisioning boundary
 
@@ -51,7 +51,7 @@ curl -fsS -H "Authorization: Bearer $TELEMETRY_OWNER_TOKEN" "https://WORKER_HOST
 curl -fsS -H "Authorization: Bearer $TELEMETRY_OWNER_TOKEN" "https://WORKER_HOST/v1/admin/export?days=30&limit=10000" -o asynchronia-telemetry.ndjson
 ```
 
-`WORKER_HOST` here means the exact host returned by the deployment, not a guessed account subdomain.
+`WORKER_HOST` here means the exact host returned by the deployment, not a guessed account subdomain. Session list/detail and summary paths include `nickname` and `city` when available. Export is NDJSON with one `session_metadata` record per session followed by `event` records, avoiding repeated metadata in every event.
 
 Only after production health, rejected-origin, accepted-ingest, duplicate-ingest, summary, and export checks pass should the mirrored `telemetry-config.js` files change to:
 

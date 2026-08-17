@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import worker, { validateEnvelope } from "../src/worker.js";
 
 const NOW = Date.now();
@@ -41,19 +44,44 @@ class Statement {
   bind(...args) { this.args = args; return this; }
   async first() {
     if (this.sql.includes("FROM telemetry_batches")) return this.db.batches.get(this.args[0]) || null;
+    if (this.sql.includes("FROM telemetry_sessions") && this.sql.includes("WHERE session_id = ?")) {
+      return this.db.sessions.get(this.args[0]) || null;
+    }
     if (this.sql.includes("COUNT(*) AS count") && this.sql.includes("event_id IN")) {
       return { count: this.args.filter((id) => this.db.eventIds.has(id)).length };
     }
     if (this.sql.includes("COUNT(*) AS count") && this.sql.includes("anonymous_id = ?")) return { count: this.db.recentVolume };
     return null;
   }
-  async all() { return { results: [] }; }
+  async all() {
+    if (this.sql.includes("FROM telemetry_sessions")) {
+      const requested = this.args.length ? new Set(this.args) : null;
+      return { results: Array.from(this.db.sessions.values()).filter((row) => !requested || requested.has(row.session_id)) };
+    }
+    if (this.sql.includes("GROUP BY e.session_id")) {
+      return { results: Array.from(this.db.sessions.values()).map((session) => ({
+        ...session,
+        started_at: NOW,
+        ended_at: NOW,
+        event_count: this.db.events.filter((eventRow) => eventRow.session_id === session.session_id).length,
+        return_count: 0,
+        choice_count: 0,
+        click_count: 0,
+      })) };
+    }
+    if (this.sql.includes("FROM telemetry_events")) {
+      const rows = this.db.events.filter((row) => !this.sql.includes("WHERE session_id = ?") || row.session_id === this.args[0]);
+      return { results: rows };
+    }
+    return { results: [] };
+  }
 }
 
 class FakeDB {
-  constructor() { this.batches = new Map(); this.eventIds = new Set(); this.recentVolume = 0; }
+  constructor() { this.batches = new Map(); this.eventIds = new Set(); this.events = []; this.sessions = new Map(); this.recentVolume = 0; }
   prepare(sql) { return new Statement(this, sql); }
   async batch(statements) {
+    const results = [];
     for (const statement of statements) {
       if (statement.sql.includes("INSERT INTO telemetry_batches")) {
         this.batches.set(statement.args[0], {
@@ -63,9 +91,38 @@ class FakeDB {
         });
       } else if (statement.sql.includes("INSERT OR IGNORE INTO telemetry_events")) {
         this.eventIds.add(statement.args[0]);
+        this.events.push({
+          event_id: statement.args[0],
+          batch_id: statement.args[1],
+          event_type: statement.args[3],
+          occurred_at: statement.args[4],
+          received_at: statement.args[5],
+          sequence: statement.args[6],
+          anonymous_id: statement.args[8],
+          session_id: statement.args[9],
+        });
+      } else if (statement.sql.includes("INSERT INTO telemetry_sessions")) {
+        const [session_id, anonymous_id, nickname, city, first_received_at, last_received_at] = statement.args;
+        const existing = this.sessions.get(session_id);
+        this.sessions.set(session_id, {
+          session_id,
+          anonymous_id,
+          nickname: nickname || existing?.nickname || null,
+          city: existing?.city || city || null,
+          first_received_at: existing?.first_received_at || first_received_at,
+          last_received_at,
+        });
+      }
+      if (statement.sql.includes("nickname, city FROM (")) {
+        results.push({ success: true, results: this.events.map((eventRow) => {
+          const session = this.sessions.get(eventRow.session_id);
+          return { ...eventRow, nickname: session?.nickname || null, city: session?.city || null };
+        }) });
+      } else {
+        results.push({ success: true, results: [] });
       }
     }
-    return statements.map(() => ({ success: true, results: [] }));
+    return results;
   }
 }
 
@@ -84,7 +141,17 @@ test("accepts the exact minimized contract", () => {
   assert.deepEqual(validateEnvelope(envelope(), COHORT, NOW), {
     ok: true,
     anonymousId: event().anonymousId,
+    sessionMetadata: [],
   });
+});
+
+test("accepts only a short voluntary gameplay nickname as session metadata", () => {
+  const accepted = validateEnvelope(envelope({ sessionMetadata: [{ sessionId: event().sessionId, nickname: "Райхан_7" }] }), COHORT, NOW);
+  assert.deepEqual(accepted.sessionMetadata, [{ sessionId: event().sessionId, nickname: "Райхан_7" }]);
+  assert.equal(validateEnvelope(envelope({ sessionMetadata: [{ sessionId: event().sessionId, nickname: "player@example.com" }] }), COHORT, NOW).error, "invalid_session_metadata");
+  assert.equal(validateEnvelope(envelope({ sessionMetadata: [{ sessionId: "session:not-in-events", nickname: "Ray" }] }), COHORT, NOW).error, "invalid_session_metadata");
+  assert.equal(validateEnvelope(envelope({ city: "Tokyo" }), COHORT, NOW).error, "invalid_envelope_keys");
+  assert.equal(validateEnvelope(envelope({ ip: "203.0.113.9" }), COHORT, NOW).error, "invalid_envelope_keys");
 });
 
 test("rejects forbidden event fields and payload keys", () => {
@@ -177,6 +244,41 @@ test("fails closed when rate limiting is unavailable and enforces volume limits"
   assert.equal((await overVolume.json()).error, "hourly_event_limit");
 });
 
+function requestWithCloudflareCity(body, city) {
+  const request = new Request("https://receiver.test/v1/events", {
+    method: "POST",
+    headers: { origin: ORIGIN, "content-type": "application/json", "cf-connecting-ip": "203.0.113.9" },
+    body: JSON.stringify(body),
+  });
+  if (city !== undefined) Object.defineProperty(request, "cf", { value: { city } });
+  return request;
+}
+
+test("derives city only from Cloudflare metadata and persists no IP", async () => {
+  const runtime = env();
+  const body = envelope({ sessionMetadata: [{ sessionId: event().sessionId, nickname: "Ray_7" }] });
+  const accepted = await worker.fetch(requestWithCloudflareCity(body, "Tokyo"), runtime);
+  assert.equal(accepted.status, 202);
+  const stored = runtime.DB.sessions.get(event().sessionId);
+  assert.deepEqual(stored.nickname, "Ray_7");
+  assert.deepEqual(stored.city, "Tokyo");
+  assert.equal(JSON.stringify(stored).includes("203.0.113.9"), false);
+  assert.equal(Object.keys(stored).some((key) => /ip|address|geo|coordinate/i.test(key)), false);
+
+  const missingCity = env();
+  const missing = await worker.fetch(requestWithCloudflareCity(envelope(), undefined), missingCity);
+  assert.equal(missing.status, 202);
+  assert.equal(missingCity.DB.sessions.get(event().sessionId).city, null);
+});
+
+test("additive migration creates session metadata without changing event storage", () => {
+  const migration = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../migrations/0002_session_metadata.sql"), "utf8");
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS telemetry_sessions/);
+  assert.match(migration, /nickname TEXT/);
+  assert.match(migration, /city TEXT/);
+  assert.equal(/\bDROP\b|ALTER TABLE telemetry_events/i.test(migration), false);
+});
+
 test("network smoke keeps health public and admin data private", {
   skip: process.env.ALLOW_NETWORK_SMOKE !== "1",
 }, async (t) => {
@@ -220,9 +322,37 @@ test("owner readback exposes bounded summary, session list, detail and export", 
 
   const detail = await worker.fetch(new Request(`https://receiver.test/v1/admin/sessions?sessionId=${encodeURIComponent(event().sessionId)}`, { headers: authorization }), runtime);
   assert.equal(detail.status, 200);
-  assert(Array.isArray((await detail.json()).events));
+  const detailBody = await detail.json();
+  assert(Array.isArray(detailBody.events));
+  assert.equal(detailBody.session, null);
 
   const exported = await worker.fetch(new Request("https://receiver.test/v1/admin/export?limit=10", { headers: authorization }), runtime);
   assert.equal(exported.status, 200);
   assert.equal(exported.headers.get("content-type"), "application/x-ndjson; charset=utf-8");
+});
+
+test("owner session list, detail and export read session metadata once", async () => {
+  const runtime = env();
+  const body = envelope({ sessionMetadata: [{ sessionId: event().sessionId, nickname: "Ray_7" }] });
+  await worker.fetch(requestWithCloudflareCity(body, "Tokyo"), runtime);
+  const headers = { authorization: "Bearer owner-test-token" };
+  const summary = await worker.fetch(new Request("https://receiver.test/v1/admin/summary?days=30", { headers }), runtime);
+  const path = (await summary.json()).recentSessionPaths[0];
+  assert.equal(path.nickname, "Ray_7");
+  assert.equal(path.city, "Tokyo");
+  const sessions = await worker.fetch(new Request("https://receiver.test/v1/admin/sessions?limit=10", { headers }), runtime);
+  const sessionList = (await sessions.json()).sessions;
+  assert.equal(sessionList[0].nickname, "Ray_7");
+  assert.equal(sessionList[0].city, "Tokyo");
+
+  const detail = await worker.fetch(new Request(`https://receiver.test/v1/admin/sessions?sessionId=${encodeURIComponent(event().sessionId)}`, { headers }), runtime);
+  const detailBody = await detail.json();
+  assert.equal(detailBody.session.nickname, "Ray_7");
+  assert.equal(detailBody.session.city, "Tokyo");
+
+  const exported = await worker.fetch(new Request("https://receiver.test/v1/admin/export?limit=10", { headers }), runtime);
+  const records = (await exported.text()).trim().split("\n").map(JSON.parse);
+  assert.deepEqual(records[0], { recordType: "session_metadata", session: runtime.DB.sessions.get(event().sessionId) });
+  assert.equal(records.filter((record) => record.recordType === "event").length, 1);
+  assert.equal(JSON.stringify(records).includes("203.0.113.9"), false);
 });

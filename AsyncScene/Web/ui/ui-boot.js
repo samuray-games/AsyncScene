@@ -1378,6 +1378,9 @@ window.Game = window.Game || {};
         });
         if (!S.me) S.me = { id: "me" };
         if (!S.me.name) S.me.name = name;
+        if (G.Telemetry && typeof G.Telemetry.setGameplayNickname === "function") {
+          G.Telemetry.setGameplayNickname(S.me.name);
+        }
         ensureStartScreenHidden(UI);
         startHidden = true;
         if (!S.players || Object.keys(S.players).length === 0) {
@@ -1433,6 +1436,9 @@ window.Game = window.Game || {};
 
       // Reset player state
       S.me.name = name;
+      if (G.Telemetry && typeof G.Telemetry.setGameplayNickname === "function") {
+        G.Telemetry.setGameplayNickname(S.me.name);
+      }
 
       // Hide as soon as the start input is accepted so later optional UI work cannot keep the overlay open.
       markBootDiag("START_HIDE_ATTEMPT");
