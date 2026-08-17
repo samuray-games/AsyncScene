@@ -29,7 +29,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Current execution handoff: repository memory synchronization is the active task from `main@ce6c6cd16346120c630452d25e46e2368d87fab7`. Runtime telemetry activation is complete: PR #345 and PR #346 are merged, Pages/public config is verified, Safari transmission and owner readback passed, and central private-friends-alpha collection is ACTIVE. The exact next action is `MEMORY_SYNC_PR_REVIEW_AND_MERGE`.
+Repository memory synchronization is complete on `main@b3accc6f48ac2e8977e9850a5e033e5ff224ff3a`. Runtime telemetry activation is complete: PR #345 and PR #346 are merged, Pages/public config is verified, Safari transmission and owner readback passed, and central private-friends-alpha collection is ACTIVE. No implementation task is selected; the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK`.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -194,4 +194,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
+NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK

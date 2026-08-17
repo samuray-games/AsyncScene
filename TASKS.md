@@ -8,14 +8,14 @@ MEMORY_REV: 2026-08-17-2319-JST
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: MEMORY_SYNC_PR_REVIEW_AND_MERGE
+NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
 
 ## 2026-08-17 - Private-friends telemetry activation and repository-memory synchronization
 - Status: receiver production acceptance, PR #345 endpoint enablement, PR #346 Pages recovery repair, Pages publication, public served-config verification, Safari public-network transmission, and owner readback are complete.
 - Fresh batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` returned `duplicate:false`, `accepted:7`; owner readback returned `MATCHES 7`, one session `session:9f522845-15c1-4fe0-bf1e-5b35a7302c6b`, and seven distinct event IDs.
 - Production endpoint: `https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events`; public origin: `https://samuray-games.github.io`; cohort: `private_friends_alpha_2026_08`; retention: 30 days.
 - Central private-friends-alpha friend-session collection is ACTIVE. The old stale-marker blocker and Safari-pending blocker are closed. This dedicated PR changes repository memory/task/canon files only; runtime files are unchanged.
-- NEXT_ACTION: `MEMORY_SYNC_PR_REVIEW_AND_MERGE`.
+- NEXT_ACTION: `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK`.
 
 ## 2026-08-13 - Behavioral telemetry v1
 - Status: runtime implementation, PR review, merge, Pages publication, and public Chromium smoke complete; later production activation and acceptance are recorded above.
