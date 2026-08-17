@@ -1,0 +1,106 @@
+{
+  "branch": "task/memory-closure-20260817",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:06Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:06Z",
+      "stderr": "",
+      "stdout": "task/memory-closure-20260817\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:06Z",
+      "stderr": "",
+      "stdout": "7971202af572473133a1d246249bcf73febdc317\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7971202af572473133a1d246249bcf73febdc317\n# branch.head task/memory-closure-20260817\n# branch.upstream origin/task/memory-closure-20260817\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:07Z",
+      "stderr": "",
+      "stdout": "7971202a (HEAD -> task/memory-closure-20260817, origin/task/memory-closure-20260817) docs: close repository memory sync\nb3accc6f (origin/main) docs: sync telemetry production memory (#347)\nce6c6cd1 Fix Pages recovery artifact verification (#346)\n98f4e6f2 feat: enable private-friends telemetry transport\n7ee0d69a Merge pull request #344 from task/behavioral-telemetry-receiver-20260813\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7971202af572473133a1d246249bcf73febdc317\nbranch refs/heads/task/memory-closure-20260817\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-17T14:26:07Z",
+      "stderr": "",
+      "stdout": "b3accc6f48ac2e8977e9850a5e033e5ff224ff3a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7971202af572473133a1d246249bcf73febdc317",
+  "observedAtUtc": "2026-08-17T14:26:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
