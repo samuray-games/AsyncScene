@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/remove-preflight-file-20260819",
+  "createdAtJst": "2026-08-19 22:15:04 JST",
+  "createdAtUtc": "2026-08-19T13:15:04Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T131504Z-32257002196-4460f066",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T131504Z-32257002196-4460f066",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
