@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "8e1a72fc12fc1750e38b0a9b93620171b1264021\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8e1a72fc12fc1750e38b0a9b93620171b1264021\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "8e1a72fc (HEAD, pull/358/merge) Merge b1ed9e897da22be030b04bbdc7c02563029f5fd0 into f8d7f098af7bc4e5c957cd1a6bdcbae521e4a5dd\nb1ed9e89 (origin/cleanup/remove-temporary-telemetry-analyzer-20260820) Remove temporary telemetry analyzer\n26b2b53d Remove temporary telemetry analysis workflow\nf8d7f098 (origin/main) Fix temporary telemetry analyzer endpoint parsing\n4097d223 Temporary reviewed telemetry analysis workflow\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8e1a72fc12fc1750e38b0a9b93620171b1264021\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:09:16Z",
+      "stderr": "",
+      "stdout": "f8d7f098af7bc4e5c957cd1a6bdcbae521e4a5dd\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8e1a72fc12fc1750e38b0a9b93620171b1264021",
+  "observedAtUtc": "2026-08-19T17:09:16Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
