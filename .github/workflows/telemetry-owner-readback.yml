@@ -1,0 +1,103 @@
+name: telemetry-owner-readback
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telemetry-owner-readback
+  cancel-in-progress: false
+
+jobs:
+  readback:
+    runs-on: ubuntu-latest
+    environment: telemetry-private-alpha
+    env:
+      TELEMETRY_OWNER_TOKEN: ${{ secrets.TELEMETRY_OWNER_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Read only the required production records
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$TELEMETRY_OWNER_TOKEN"
+          RUN_DIR="$RUNNER_TEMP/telemetry-owner-readback"
+          mkdir -p "$RUN_DIR"
+          AUTH_HEADER="$RUN_DIR/authorization-header"
+          SUMMARY="$RUN_DIR/summary.json"
+          SESSIONS="$RUN_DIR/sessions.json"
+          EXPORT="$RUN_DIR/export.ndjson"
+          trap 'rm -f "$AUTH_HEADER" "$SUMMARY" "$SESSIONS" "$EXPORT"' EXIT
+          printf 'Authorization: Bearer %s\n' "$TELEMETRY_OWNER_TOKEN" > "$AUTH_HEADER"
+          ORIGIN="$(node -e 'const fs=require("fs"); const text=fs.readFileSync("docs/telemetry-config.js","utf8"); const match=text.match(/endpointOrigin:\s*"(https:\/\/[^"/]+)"/); if (!match) process.exit(1); const url=new URL(match[1]); if (url.protocol !== "https:" || url.pathname !== "/") process.exit(1); process.stdout.write(url.origin);')"
+          curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/summary?days=30" --output "$SUMMARY"
+          curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/sessions?days=30&limit=200" --output "$SESSIONS"
+          curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/export?days=30&limit=10000" --output "$EXPORT"
+          node - "$SUMMARY" "$SESSIONS" "$EXPORT" <<'NODE'
+          const [summaryPath, sessionsPath, exportPath] = process.argv.slice(2);
+          const fs = require("fs");
+          const nickname = "Safari2234";
+          const fail = (code) => { console.error(`OWNER_READBACK_FAIL:${code}`); process.exit(1); };
+          try {
+            const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+            const sessionsResponse = JSON.parse(fs.readFileSync(sessionsPath, "utf8"));
+            if (!summary.ok || !sessionsResponse.ok || !Array.isArray(sessionsResponse.sessions)) fail("ADMIN_RESPONSE_CONTRACT");
+            const matches = sessionsResponse.sessions.filter((session) => session && session.nickname === nickname);
+            if (matches.length !== 1) fail("SAFARI2234_SESSION_COUNT");
+            const session = matches[0];
+            if (!session.session_id || !Object.hasOwn(session, "city") || (session.city !== null && typeof session.city !== "string") || !Number.isSafeInteger(session.event_count) || session.event_count < 1) fail("SESSION_LIST_CONTRACT");
+            const lines = fs.readFileSync(exportPath, "utf8").trim().split("\n").filter(Boolean);
+            const records = lines.map((line) => JSON.parse(line));
+            const sessionKeySet = new Set(["session_id", "anonymous_id", "nickname", "city", "first_received_at", "last_received_at"]);
+            const eventKeySet = new Set(["event_id", "batch_id", "schema_version", "event_type", "occurred_at", "received_at", "sequence", "monotonic_ms", "anonymous_id", "session_id", "page_view_id", "screen_id", "modal_id", "question_id", "cycle_id", "action_id", "choice_id", "flow_id", "state_id", "from_state_id", "to_state_id", "battle_id", "answer_id", "outcome_id", "reason_id", "foreground_dwell_ms", "context_json", "payload_json"]);
+            const contextKeySet = new Set(["screenId", "modalId", "questionId", "cycleId"]);
+            const payloadKeySets = {
+              session_start: new Set(["returnVisit", "transportEnabled"]), session_end: new Set(["reason", "durationMs", "foregroundDwellMs", "screenId", "modalId", "questionId", "cycleId"]),
+              screen_enter: new Set(["screenId", "reason"]), screen_exit: new Set(["screenId", "foregroundDwellMs", "reason"]), modal_open: new Set(["modalId"]), modal_close: new Set(["modalId", "foregroundDwellMs", "reason"]),
+              button_click: new Set(["actionId", "elementId", "firstActionMs"]), action: new Set(["actionId", "aftermathId", "targetNpcId", "branchId", "secondRoundChoiceId", "battleId", "outcomeRaw", "outcomeKind", "applyCount", "contactId", "dmStatus", "followUpId", "lineId", "deliveryCount", "settlementId", "dueAt", "npcCount", "mode", "worldAdvanceId", "payoffId", "markedDefenseId", "attemptCount", "reason", "choiceId", "npcId", "visit", "score", "total", "bridgeId", "status", "revealedAttackColorId", "payoffStatus", "firstActionMs", "foregroundDwellMs", "color", "outcome", "revealCount", "trigger"]),
+              choice_selected: new Set(["flowId", "stateId", "choiceId", "questionId", "battleId"]), state_changed: new Set(["flowId", "fromStateId", "toStateId"]), question_shown: new Set(["flowId", "questionId"]), question_answered: new Set(["flowId", "questionId", "answerId", "foregroundDwellMs"]),
+              visibility_hidden: new Set(["foregroundElapsedMs"]), visibility_visible: new Set(["hiddenMs", "foregroundElapsedMs"]), abandon: new Set(["priorSessionId", "screenId", "questionId", "cycleId", "elapsedMs"]), return: new Set(["priorSessionId", "elapsedMs", "reason"]), cycle_started: new Set(["flowId", "cycleId"]), cycle_completed: new Set(["flowId", "cycleId", "foregroundDwellMs", "outcomeId"]),
+            };
+            const hasOnly = (value, allowed) => value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).every((key) => allowed.has(key));
+            const forbiddenKey = /(^|_)(ip|ip_address|latitude|longitude|coordinates|geo|geolocation|gps|user_agent|device|fingerprint|email|phone|real_name|account|profile|cookie|referrer|url|text|message)(_|$)/i;
+            const metadata = records.filter((record) => record.recordType === "session_metadata" && record.session && record.session.session_id === session.session_id);
+            const events = records.filter((record) => record.recordType === "event" && record.event && record.event.session_id === session.session_id).map((record) => record.event);
+            if (metadata.length !== 1 || events.length !== session.event_count) fail("EXPORT_SESSION_CONSISTENCY");
+            const meta = metadata[0].session;
+            if (!hasOnly(meta, sessionKeySet) || meta.nickname !== nickname || meta.city !== session.city) fail("SESSION_METADATA_CONSISTENCY");
+            const eventIds = new Set();
+            const batchIds = new Set();
+            for (const record of records) {
+              if (record.recordType === "session_metadata") {
+                if (!record.session || !hasOnly(record.session, sessionKeySet) || Object.keys(record.session).some((key) => forbiddenKey.test(key))) fail("FORBIDDEN_PII_OR_SCHEMA");
+              } else if (record.recordType === "event") {
+                const event = record.event;
+                if (!event || !hasOnly(event, eventKeySet) || Object.keys(event).some((key) => forbiddenKey.test(key))) fail("FORBIDDEN_PII_OR_SCHEMA");
+                const context = JSON.parse(event.context_json);
+                const payload = JSON.parse(event.payload_json);
+                if (!hasOnly(context, contextKeySet) || !payloadKeySets[event.event_type] || !hasOnly(payload, payloadKeySets[event.event_type])) fail("FORBIDDEN_PII_OR_SCHEMA");
+              } else {
+                fail("EXPORT_RECORD_TYPE");
+              }
+            }
+            for (const event of events) {
+              if (Object.prototype.hasOwnProperty.call(event, "nickname") || Object.prototype.hasOwnProperty.call(event, "city")) fail("METADATA_COPIED_TO_EVENT");
+              if (eventIds.has(event.event_id)) fail("DUPLICATE_EVENT_ID");
+              eventIds.add(event.event_id);
+              batchIds.add(event.batch_id);
+            }
+            if (batchIds.size < 1) fail("BATCH_EVIDENCE_MISSING");
+            const summaryMatches = (summary.recentSessionPaths || []).filter((item) => item && item.session_id === session.session_id && item.nickname === nickname);
+            if (summaryMatches.length !== 1 || summaryMatches[0].city !== session.city || summaryMatches[0].event_count !== session.event_count) fail("SUMMARY_SESSION_CONSISTENCY");
+            const sessionHash = require("crypto").createHash("sha256").update(session.session_id).digest("hex").slice(0, 16);
+            console.log(JSON.stringify({ status: "PASS", nickname, city: session.city, sessionHash, eventCount: events.length, batchCount: batchIds.size, duplicateEventIds: false, metadataPlacement: "session_only", forbiddenPII: "absent", endpointsConsistent: true }));
+          } catch (_) {
+            fail("UNEXPECTED_PARSE_OR_CONTRACT_ERROR");
+          }
+          NODE
