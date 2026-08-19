@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/telemetry-behavior-readback-20260819",
+  "createdAtJst": "2026-08-20 00:01:55 JST",
+  "createdAtUtc": "2026-08-19T15:01:55Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T150155Z-32267560526-d3e393ee",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T150155Z-32267560526-d3e393ee",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}

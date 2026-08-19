@@ -1,0 +1,106 @@
+{
+  "branch": "task/telemetry-behavior-readback-20260819",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "task/telemetry-behavior-readback-20260819\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "de11670b2caa20b5187ca5fafbd211b8990d7987\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid de11670b2caa20b5187ca5fafbd211b8990d7987\n# branch.head task/telemetry-behavior-readback-20260819\n# branch.upstream origin/task/telemetry-behavior-readback-20260819\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "de11670b (HEAD -> task/telemetry-behavior-readback-20260819, origin/task/telemetry-behavior-readback-20260819) Add one-off Safari2234 behavior readback\n0c922d73 (origin/main) Sync Safari2234 owner-readback acceptance memory\ncbcaf9c0 Add sanitized production telemetry owner readback\n207b1add chore: trigger fresh Pages publication (#351)\nbdee3dd9 chore: remove accidental preflight task file (#350)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD de11670b2caa20b5187ca5fafbd211b8990d7987\nbranch refs/heads/task/telemetry-behavior-readback-20260819\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:01:55Z",
+      "stderr": "",
+      "stdout": "0c922d73d37351b9bd5be0a0f4b298097abba40f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "de11670b2caa20b5187ca5fafbd211b8990d7987",
+  "observedAtUtc": "2026-08-19T15:01:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
