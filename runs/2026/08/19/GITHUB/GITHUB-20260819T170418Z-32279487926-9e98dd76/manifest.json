@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/fix-telemetry-analysis-workflow-20260820",
+  "createdAtJst": "2026-08-20 02:04:18 JST",
+  "createdAtUtc": "2026-08-19T17:04:18Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T170418Z-32279487926-9e98dd76",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T170418Z-32279487926-9e98dd76",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
