@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/telemetry-owner-readback-memory-sync-20260819",
+  "createdAtJst": "2026-08-19 23:41:12 JST",
+  "createdAtUtc": "2026-08-19T14:41:12Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T144112Z-32265477200-2812935f",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T144112Z-32265477200-2812935f",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
