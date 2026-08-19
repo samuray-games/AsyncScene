@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "91058a8c396914b2963ac961714852f915f7358e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 91058a8c396914b2963ac961714852f915f7358e\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "91058a8c (HEAD, pull/350/merge) Merge 58ca49900eafb0229252bd5b91910623f4395cb4 into 93c0ff9db3bea322fd7776f6c9c18ed466976c8d\n58ca4990 (origin/task/remove-preflight-file-20260819) chore: remove accidental preflight task file\n93c0ff9d (origin/main) Create pages-recovery-preflight-task.json\n8037eb19 feat: capture gameplay nickname and Cloudflare city in telemetry (#349)\nd4b9ccc5 docs: close repository memory sync (#348)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 91058a8c396914b2963ac961714852f915f7358e\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T13:15:39Z",
+      "stderr": "",
+      "stdout": "93c0ff9db3bea322fd7776f6c9c18ed466976c8d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "91058a8c396914b2963ac961714852f915f7358e",
+  "observedAtUtc": "2026-08-19T13:15:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
