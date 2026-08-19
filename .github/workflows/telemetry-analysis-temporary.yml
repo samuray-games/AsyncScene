@@ -1,0 +1,55 @@
+name: temporary telemetry analysis
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: temporary-telemetry-analysis
+  cancel-in-progress: false
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    environment: telemetry-private-alpha
+    env:
+      TELEMETRY_OWNER_TOKEN: ${{ secrets.TELEMETRY_OWNER_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read, sanitize, and analyze production telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$TELEMETRY_OWNER_TOKEN"
+          RUN_DIR="$RUNNER_TEMP/temporary-telemetry-analysis"
+          mkdir -p "$RUN_DIR"
+          SUMMARY="$RUN_DIR/summary.json"
+          SESSIONS="$RUN_DIR/sessions.json"
+          EXPORT="$RUN_DIR/export.ndjson"
+          AUTH_HEADER="$RUN_DIR/authorization-header"
+          trap 'rm -f "$SUMMARY" "$SESSIONS" "$EXPORT" "$AUTH_HEADER" "$RUN_DIR"/export-page-*.ndjson "$RUN_DIR"/headers-*' EXIT
+          printf 'Authorization: Bearer %s\n' "$TELEMETRY_OWNER_TOKEN" > "$AUTH_HEADER"
+          ORIGIN="$(node -e 'const fs=require("fs"); const t=fs.readFileSync("docs/telemetry-config.js","utf8"); const m=t.match(/endpointOrigin:\s*"(https:\\/\\/[^"/]+)"/); if(!m) process.exit(1); const u=new URL(m[1]); if(u.protocol!=="https:"||u.pathname!=="/") process.exit(1); process.stdout.write(u.origin);')"
+          curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/summary?days=30" --output "$SUMMARY"
+          curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/sessions?days=30&limit=200" --output "$SESSIONS"
+          : > "$EXPORT"
+          after_received_at=0
+          after_event_id=""
+          page=0
+          while :; do
+            page=$((page + 1))
+            headers="$RUN_DIR/headers-$page"
+            page_file="$RUN_DIR/export-page-$page.ndjson"
+            curl --fail --silent --show-error --dump-header "$headers" --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/export?days=30&limit=10000&afterReceivedAt=$after_received_at&afterEventId=$after_event_id" --output "$page_file"
+            cat "$page_file" >> "$EXPORT"
+            rows="$(grep -c '^{' "$page_file" || true)"
+            next_received_at="$(awk 'BEGIN{IGNORECASE=1} /^x-next-received-at:/{gsub("\\r",""); print $2}' "$headers" | tail -1)"
+            next_event_id="$(awk 'BEGIN{IGNORECASE=1} /^x-next-event-id:/{gsub("\\r",""); print $2}' "$headers" | tail -1)"
+            if [ "$rows" -lt 10000 ] || [ -z "$next_received_at" ] || { [ "$next_received_at" = "$after_received_at" ] && [ "$next_event_id" = "$after_event_id" ]; }; then break; fi
+            after_received_at="$next_received_at"
+            after_event_id="$next_event_id"
+            if [ "$page" -ge 100 ]; then echo 'TELEMETRY_ANALYSIS_FAIL:EXPORT_PAGINATION_GUARD' >&2; exit 1; fi
+          done
+          node tools/telemetry-analysis-report.mjs "$SUMMARY" "$SESSIONS" "$EXPORT"
