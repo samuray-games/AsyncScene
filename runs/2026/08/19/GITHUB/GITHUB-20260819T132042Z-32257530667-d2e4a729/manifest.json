@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "task/pages-fresh-build-trigger-20260819",
+  "createdAtJst": "2026-08-19 22:20:42 JST",
+  "createdAtUtc": "2026-08-19T13:20:42Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T132042Z-32257530667-d2e4a729",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T132042Z-32257530667-d2e4a729",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
