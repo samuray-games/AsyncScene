@@ -1,14 +1,21 @@
-MEMORY_REV: 2026-08-17-2319-JST
+MEMORY_REV: 2026-08-19-2337-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
-- Behavioral telemetry receiver acceptance is complete; PR #345 enabled the exact production client endpoint and PR #346 fixed Pages recovery artifact verification.
-- Pages build and public served config are verified; user-owned Safari public-network transmission passed and owner readback passed for fresh batch `batch:81a39bb1-f1bb-4172-830e-4f8b2a869317` (`accepted:7`, `duplicate:false`, `MATCHES 7`, one session, seven event IDs).
+- Behavioral telemetry receiver acceptance is complete; PR #345 enabled the exact production client endpoint, PR #346 fixed Pages recovery artifact verification, and PR #352 added the reviewed read-only owner-readback workflow.
+- Owner-authenticated run `32264675135` passed on merged `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f`: exactly one `Safari2234` session, stored city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and internally consistent summary/sessions/export.
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
-CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+NEXT_ACTION: COMPLETE_REPOSITORY_MEMORY_SYNC_AND_UPDATE_LIVE_NOTION
+
+## 2026-08-19 - Safari2234 production owner-readback closure
+- Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.
+- Owner-readback workflow run `32264675135` completed success on the merged main SHA. It found exactly one `Safari2234` session with server-derived city `Tachikawa`; 146 events across 38 observed batch IDs had no duplicate event IDs.
+- The readback verified session-only nickname/city metadata, forbidden PII absence, and internal consistency across `/v1/admin/summary`, `/v1/admin/sessions`, and `/v1/admin/export`. No token or raw production records were stored in repository memory.
+- Repository memory sync is the current serialized follow-up; runtime, deployment, and telemetry implementation remain unchanged.
+- NEXT_ACTION: `COMPLETE_REPOSITORY_MEMORY_SYNC_AND_UPDATE_LIVE_NOTION`
 
 ## 2026-08-17 - Private-friends telemetry activation and repository-memory synchronization
 - Status: receiver production acceptance, PR #345 endpoint enablement, PR #346 Pages recovery repair, Pages publication, public served-config verification, Safari public-network transmission, and owner readback are complete.
