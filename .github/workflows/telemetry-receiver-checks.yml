@@ -16,6 +16,7 @@ on:
       - tools/test_behavioral_telemetry_runtime.mjs
       - .github/workflows/telemetry-receiver-checks.yml
       - .github/workflows/telemetry-receiver-deploy.yml
+      - .github/workflows/temporary-telemetry-analysis.yml
   push:
     branches:
       - main
