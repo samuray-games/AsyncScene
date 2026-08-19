@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "# branch.oid cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "cbcaf9c0 (HEAD -> main, origin/main) Add sanitized production telemetry owner readback\n207b1add chore: trigger fresh Pages publication (#351)\nbdee3dd9 chore: remove accidental preflight task file (#350)\n93c0ff9d Create pages-recovery-preflight-task.json\n8037eb19 feat: capture gameplay nickname and Cloudflare city in telemetry (#349)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T14:32:32Z",
+      "stderr": "",
+      "stdout": "cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f",
+  "observedAtUtc": "2026-08-19T14:32:32Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
