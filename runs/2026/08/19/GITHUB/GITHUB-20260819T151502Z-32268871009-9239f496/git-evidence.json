@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:02Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:02Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:02Z",
+      "stderr": "",
+      "stdout": "40b11bc1e8d2737d92217dd72e0f6a5ce1946405\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:03Z",
+      "stderr": "",
+      "stdout": "# branch.oid 40b11bc1e8d2737d92217dd72e0f6a5ce1946405\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:03Z",
+      "stderr": "",
+      "stdout": "40b11bc1 (HEAD, pull/355/merge) Merge 4eff334a6462613c38611db34b7301b59c81b35e into c3fb3532b7b44577a8b48ac8bea41befe46350b4\n4eff334a (origin/task/remove-telemetry-behavior-readback-20260820) Remove one-off Safari2234 behavior readback\nc3fb3532 (origin/main) Add one-off Safari2234 behavior readback (#354)\n0c922d73 Sync Safari2234 owner-readback acceptance memory\ncbcaf9c0 Add sanitized production telemetry owner readback\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:03Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 40b11bc1e8d2737d92217dd72e0f6a5ce1946405\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:03Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T15:15:03Z",
+      "stderr": "",
+      "stdout": "c3fb3532b7b44577a8b48ac8bea41befe46350b4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "40b11bc1e8d2737d92217dd72e0f6a5ce1946405",
+  "observedAtUtc": "2026-08-19T15:15:03Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
