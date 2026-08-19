@@ -52,6 +52,7 @@ jobs:
             }
           };
           const clean = (value) => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== null && item !== undefined));
+          const behaviorOnly = (value) => Object.fromEntries(Object.entries(value).filter(([key]) => key !== "priorSessionId"));
           try {
             const sessionsResponse = JSON.parse(fs.readFileSync(sessionsPath, "utf8"));
             if (!sessionsResponse.ok || !Array.isArray(sessionsResponse.sessions)) fail("SESSIONS_CONTRACT");
@@ -119,7 +120,7 @@ jobs:
               }
 
               if (["session_start", "session_end", "visibility_hidden", "visibility_visible", "abandon", "return", "modal_open", "modal_close"].includes(event.event_type)) {
-                lifecycle.push(clean({ at, offsetMs, type: event.event_type, screenId, modalId: event.modal_id || payload.modalId || event.context.modalId, details: payload }));
+                lifecycle.push(clean({ at, offsetMs, type: event.event_type, screenId, modalId: event.modal_id || payload.modalId || event.context.modalId, details: behaviorOnly(payload) }));
               }
               if (event.event_type === "session_end") {
                 if (Number.isSafeInteger(payload.durationMs)) explicitSessionDurationMs = payload.durationMs;
@@ -156,7 +157,7 @@ jobs:
                 actionId: last.action_id || last.payload.actionId,
                 choiceId: last.choice_id || last.payload.choiceId,
                 reason: last.payload.reason,
-                details: last.payload
+                details: behaviorOnly(last.payload)
               })
             };
             console.log(`SAFARI2234_BEHAVIOR=${JSON.stringify(report)}`);
