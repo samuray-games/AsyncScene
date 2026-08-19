@@ -31,7 +31,7 @@ jobs:
           AUTH_HEADER="$RUN_DIR/authorization-header"
           trap 'rm -f "$SUMMARY" "$SESSIONS" "$EXPORT" "$AUTH_HEADER" "$RUN_DIR"/export-page-*.ndjson "$RUN_DIR"/headers-*' EXIT
           printf 'Authorization: Bearer %s\n' "$TELEMETRY_OWNER_TOKEN" > "$AUTH_HEADER"
-          ORIGIN="$(node -e 'const fs=require("fs"); const t=fs.readFileSync("docs/telemetry-config.js","utf8"); const m=t.match(/endpointOrigin:\s*"(https:\\/\\/[^"/]+)"/); if(!m) process.exit(1); const u=new URL(m[1]); if(u.protocol!=="https:"||u.pathname!=="/") process.exit(1); process.stdout.write(u.origin);')"
+          ORIGIN="$(node -e 'const fs=require("fs"); const t=fs.readFileSync("docs/telemetry-config.js","utf8"); const marker="endpointOrigin:"; const i=t.indexOf(marker); if(i<0) process.exit(1); const q=t.slice(i + marker.length).match(/"([^"]+)"/); if(!q) process.exit(1); const u=new URL(q[1]); if(u.protocol!=="https:"||u.pathname!=="/") process.exit(1); process.stdout.write(u.origin);')"
           curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/summary?days=30" --output "$SUMMARY"
           curl --fail --silent --show-error --header "@$AUTH_HEADER" "$ORIGIN/v1/admin/sessions?days=30&limit=200" --output "$SESSIONS"
           : > "$EXPORT"
