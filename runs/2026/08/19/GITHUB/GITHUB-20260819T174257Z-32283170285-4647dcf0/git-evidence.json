@@ -1,0 +1,106 @@
+{
+  "branch": "cleanup/remove-temporary-telemetry-analyzer-20260820",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "cleanup/remove-temporary-telemetry-analyzer-20260820\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "35d0cb851207cf8ee8a51b695abd59f41446a81e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "# branch.oid 35d0cb851207cf8ee8a51b695abd59f41446a81e\n# branch.head cleanup/remove-temporary-telemetry-analyzer-20260820\n# branch.upstream origin/cleanup/remove-temporary-telemetry-analyzer-20260820\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "35d0cb85 (HEAD -> cleanup/remove-temporary-telemetry-analyzer-20260820, origin/cleanup/remove-temporary-telemetry-analyzer-20260820) Run telemetry check for cleanup-only analyzer deletion\nb1ed9e89 Remove temporary telemetry analyzer\n26b2b53d Remove temporary telemetry analysis workflow\nf8d7f098 Fix temporary telemetry analyzer endpoint parsing\n4097d223 Temporary reviewed telemetry analysis workflow\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 35d0cb851207cf8ee8a51b695abd59f41446a81e\nbranch refs/heads/cleanup/remove-temporary-telemetry-analyzer-20260820\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-19T17:42:57Z",
+      "stderr": "",
+      "stdout": "8623b71a22d530e7546c8c1f819529d36360476a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "35d0cb851207cf8ee8a51b695abd59f41446a81e",
+  "observedAtUtc": "2026-08-19T17:42:57Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
