@@ -1,4 +1,5 @@
 name: Asynchronia Pages Legacy Recovery
+# Reviewed workflow touchpoint for a fresh Pages publication trigger; execution is unchanged.
 
 on:
   push:
