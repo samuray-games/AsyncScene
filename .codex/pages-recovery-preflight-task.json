@@ -1,0 +1,17 @@
+{
+  "taskId": "pages-recovery-fresh-build-20260819",
+  "taskType": "RELEASE_ACCEPTANCE",
+  "objective": "Create the least-invasive policy-compliant reviewed PR from current main that produces a genuinely new GitHub Pages build without changing application behavior; validate, merge through required review, verify a new Pages build and served artifact identity, and stop with exact evidence if the new build sticks or fails.",
+  "readScope": ["AGENTS.override.md", "AGENTS.md", "BRIDGE_PUBLICATION_POLICY.md", "TASKS.md", "PROJECT_MEMORY.md", ".ai-memory/CURRENT.md", ".ai-memory/CANON.md", ".ai-memory/WORKFLOWS.md", ".github/workflows/asynchronia-pages-recovery.yml", "GitHub PR/check/build/public artifact state"],
+  "writeScope": ["one minimal publication-trigger file selected only after authority review", "required PR metadata"],
+  "affectedSystems": ["GitHub repository", "GitHub Pages"],
+  "runtimeSensitivity": "medium",
+  "architectureImpact": "low",
+  "securityImpact": "low",
+  "economyImpact": "low",
+  "releaseImpact": "high",
+  "validationComplexity": "high",
+  "expectedImplementationSize": "small",
+  "ambiguityNovelty": "medium",
+  "concurrencyBranchRisk": "high"
+}
