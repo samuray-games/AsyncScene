@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "repair/telemetry-check-trigger-for-cleanup-20260820",
+  "createdAtJst": "2026-08-20 02:37:09 JST",
+  "createdAtUtc": "2026-08-19T17:37:09Z",
+  "packagePath": "runs/2026/08/19/GITHUB/GITHUB-20260819T173709Z-32282620380-a5994ca8",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260819T173709Z-32282620380-a5994ca8",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
