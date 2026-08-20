@@ -2560,6 +2560,22 @@
     return !!(b && b.escapeVote && !b.escapeVote.decided);
   }
 
+  function applyScriptedEscapeVote(b, v){
+    const scripted = v && v.scriptedVotes;
+    if (!scripted || v._scriptedVotesApplied) return false;
+    const votesA = Number(scripted.a) | 0;
+    const votesB = Number(scripted.b) | 0;
+    if (votesA < 0 || votesB < 0 || (votesA + votesB) <= 0) return false;
+    v.voters = {};
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    v.cap = votesA + votesB;
+    v._scriptedVotesApplied = true;
+    return true;
+  }
+
   function finalizeEscapeVote(b){
     if (!isEscapeVote(b)) return;
     const v = b.escapeVote;
@@ -2693,6 +2709,12 @@
     const v = b.escapeVote;
     if (!v || v.decided) return { ok: false, reason: "decided" };
     ensureBattleCrowdCap(v, b);
+
+    if (applyScriptedEscapeVote(b, v)) {
+      const totalVotes = getCrowdTotalVotes(v);
+      finalizeEscapeVote(b);
+      return { ok: true, decided: true, totalVotes };
+    }
 
     try {
       if (Game.NPC && typeof Game.NPC.voteInDraw === "function") {

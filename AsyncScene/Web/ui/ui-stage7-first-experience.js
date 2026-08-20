@@ -3015,9 +3015,13 @@ window.Game = window.Game || {};
   ]);
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
   const OLEG_DM_ID = "npc_bandit";
   const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
   const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
+  const OLEG_ESCAPE_FAILED_DM_LINE = "слыш трусишка, кудааа, не так быстро! ладно, можешь ещё разок попробовать.";
+  const OLEG_ESCAPE_SUCCESS_DM_LINE = "трусишек не уважают, поэтому репутация понизилась, но ничего, уверен ты всё наверстаешь, а это был неприятный, но полезный урок. без обид?";
+  const OLEG_ESCAPE_SUCCESS_RESULT = "У тебя получилось уйти от конфликта за взятку, все довольны.";
   const NASTYA_ORANGE_INFLUENCE = 8;
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
@@ -3033,6 +3037,7 @@ window.Game = window.Game || {};
   let silenceTimer = null;
   let introTimers = [];
   let battleWatchTimer = null;
+  let escapeWatchTimer = null;
 
   function queryEnabled() {
     try {
@@ -3059,6 +3064,8 @@ window.Game = window.Game || {};
     silenceTimer = null;
     if (battleWatchTimer) clearInterval(battleWatchTimer);
     battleWatchTimer = null;
+    if (escapeWatchTimer) clearInterval(escapeWatchTimer);
+    escapeWatchTimer = null;
   }
 
   function saveState() {
@@ -3084,6 +3091,8 @@ window.Game = window.Game || {};
       "nastya_prompt",
       "nastya_battle",
       "oleg_dm",
+      "oleg_escape_ready",
+      "oleg_escape_vote",
       "next_scripted_flow",
     ].includes(saved) ? saved : "intro";
   }
@@ -3157,10 +3166,11 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     if (state.flags.stage715OlegDmReplied === true) return true;
     state.flags.stage715OlegDmReplied = true;
-    phase = "next_scripted_flow";
+    phase = "oleg_escape_ready";
     saveState();
     telemetry("stage715_oleg_dm_replied");
     telemetry("stage715_escape_option_unlocked");
+    unlockOlegEscapeBattle();
     render();
     return true;
   }
@@ -3255,6 +3265,13 @@ window.Game = window.Game || {};
     const state = stateFor();
     const battles = state && Array.isArray(state.battles) ? state.battles : [];
     return battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === id) || null;
+  }
+
+  function isOlegEscapeBattle(battle) {
+    return !!(battle
+      && battle.meta
+      && battle.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
+      && battle.meta.stage715OlegEscape === true);
   }
 
   function resolveIncomingBattle(state, started, opponentId) {
@@ -3353,6 +3370,149 @@ window.Game = window.Game || {};
     telemetry("stage715_nastya_battle_started");
     render();
     watchNastyaBattle();
+    return true;
+  }
+
+  function unlockOlegEscapeBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    if (existing) {
+      phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
+      saveState();
+      if (existing.escapeVote) watchOlegEscape();
+      return true;
+    }
+    const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
+    if (!battle || !battle.id) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: OLEG_ESCAPE_BATTLE_ID,
+      stage715OlegEscape: true,
+      stage715Escape: { attempt: 0, status: "ready" },
+      demoId: "stage7_15_oleg_escape",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    phase = "oleg_escape_ready";
+    saveState();
+    render();
+    return true;
+  }
+
+  function settleOlegEscapeRep(battle, attempt) {
+    const escape = battle && battle.meta && battle.meta.stage715Escape;
+    if (!escape || escape.repSettled === true) return false;
+    const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
+    const settled = transferRep
+      ? transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id, {
+        actionId: `stage715_escape_${attempt}`,
+        context: "stage715_escape_bribe",
+      })
+      : { ok: false, reason: "transfer_rep_unavailable" };
+    if (!settled || settled.ok !== true) return false;
+    escape.repSettled = true;
+    return true;
+  }
+
+  function pushOlegEscapeDm(text, flag) {
+    const state = stateFor();
+    if (!state || !flag || state.flags && state.flags[flag] === true) return false;
+    if (!G.__A || typeof G.__A.pushDm !== "function") return false;
+    G.__A.pushDm(OLEG_DM_ID, "Олег", text, { isSystem: false, playerId: OLEG_DM_ID });
+    state.flags = state.flags || {};
+    state.flags[flag] = true;
+    return true;
+  }
+
+  function pushOlegEscapeSystem(text, flag) {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || !flag || state.flags && state.flags[flag] === true) return false;
+    if (typeof UI.pushSystem !== "function") return false;
+    UI.pushSystem(text);
+    state.flags = state.flags || {};
+    state.flags[flag] = true;
+    return true;
+  }
+
+  function settleOlegEscapeOutcome(battle) {
+    if (!isOlegEscapeBattle(battle)) return false;
+    const escape = battle.meta.stage715Escape || {};
+    if (escape.status !== "voting" || escape.outcomeHandled === true) return false;
+    const state = stateFor();
+    const attempt = escape.attempt | 0;
+    const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
+    const succeeded = battle.resolved === true && battle.result === "escaped";
+    if (!succeeded && battle.escapeVote) return false;
+    if (!settleOlegEscapeRep(battle, attempt)) return false;
+    escape.outcomeHandled = true;
+    if (succeeded) {
+      escape.status = "success";
+      battle.resultLine = OLEG_ESCAPE_SUCCESS_RESULT;
+      pushOlegEscapeSystem(`У ${playerName} получилось уйти от Олега!`, "stage715OlegEscapeSuccessSystemShown");
+      pushOlegEscapeDm(OLEG_ESCAPE_SUCCESS_DM_LINE, "stage715OlegEscapeSuccessDmSent");
+      telemetry("stage715_escape_success");
+      openNextScriptedFlow("escape_success");
+    } else {
+      escape.status = "failed";
+      battle.inlineNote = "Не получилось уйти. Можно попробовать ещё раз.";
+      pushOlegEscapeSystem(`У ${playerName} не получилось уйти от Олега!`, "stage715OlegEscapeFailedSystemShown");
+      pushOlegEscapeDm(OLEG_ESCAPE_FAILED_DM_LINE, "stage715OlegEscapeFailedDmSent");
+      telemetry("stage715_escape_failed");
+      phase = "oleg_escape_ready";
+      saveState();
+    }
+    render();
+    return true;
+  }
+
+  function watchOlegEscape() {
+    if (escapeWatchTimer) return;
+    escapeWatchTimer = setInterval(() => {
+      const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+      if (!battle || !isOlegEscapeBattle(battle)) {
+        clearInterval(escapeWatchTimer);
+        escapeWatchTimer = null;
+        return;
+      }
+      settleOlegEscapeOutcome(battle);
+      const escape = battle.meta && battle.meta.stage715Escape;
+      if (escape && escape.outcomeHandled === true) {
+        clearInterval(escapeWatchTimer);
+        escapeWatchTimer = null;
+      }
+    }, 100);
+  }
+
+  function startOlegEscape(battleId) {
+    const state = stateFor();
+    const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    if (!state || !battle || String(battle.id) !== String(battleId) || !isOlegEscapeBattle(battle)) return false;
+    const previous = battle.meta.stage715Escape || {};
+    if (previous.status === "voting" || previous.status === "success") return true;
+    const attempt = Number.isFinite(previous.attempt) ? (previous.attempt | 0) + 1 : 1;
+    const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 };
+    const Core = G._ConflictCore || G.ConflictCore;
+    if (!Core || typeof Core.escape !== "function") return false;
+    const started = Core.escape(battle.id, { mode: "smyt", cost: 1 });
+    if (!started || started.ok !== true || !battle.escapeVote) return false;
+    battle.escapeVote.scriptedVotes = scriptedVotes;
+    battle.escapeVote.cap = 5;
+    battle.meta.stage715Escape = Object.assign({}, previous, {
+      attempt,
+      status: "voting",
+      outcomeHandled: false,
+      repSettled: false,
+      scriptedVotes,
+    });
+    state.flags = state.flags || {};
+    state.flags.stage715OlegEscapeAttempts = attempt;
+    phase = "oleg_escape_vote";
+    saveState();
+    telemetry("stage715_escape_started");
+    watchOlegEscape();
+    render();
     return true;
   }
 
@@ -3455,6 +3615,9 @@ window.Game = window.Game || {};
     if (phase === "oleg_dm") {
       openOlegDmAfterLoss();
     }
+    if (phase === "oleg_escape_ready" || phase === "oleg_escape_vote") {
+      unlockOlegEscapeBattle();
+    }
     return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
   }
 
@@ -3550,6 +3713,8 @@ window.Game = window.Game || {};
     handlePlayerMessage,
     handleOlegDmReply,
     isOlegDmRestrictedThread,
+    isOlegEscapeBattle,
+    startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG }),
   };

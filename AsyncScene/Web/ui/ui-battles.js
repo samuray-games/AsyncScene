@@ -138,6 +138,13 @@
       || battle.sourceTag === "stage7_15_demo";
   }
 
+  function isStage715OlegEscapeBattle(battle) {
+    const demo = Game && Game.Stage715Demo;
+    return !!(demo
+      && typeof demo.isOlegEscapeBattle === "function"
+      && demo.isOlegEscapeBattle(battle));
+  }
+
   function shouldHideStage715BattleBlock() {
     const demo = Game && Game.Stage715Demo;
     if (!demo || typeof demo.isActive !== "function") return false;
@@ -2080,7 +2087,8 @@ UI.renderBattles = () => {
       if (isEscapeVote(b)) {
           const v = b.escapeVote || {};
           const isOff = v.mode === "off";
-          const voteLabelA = isOff ? "Отвали" : "Свалить";
+          const isStage715Escape = isStage715OlegEscapeBattle(b);
+          const voteLabelA = isOff ? "Отвали" : (isStage715Escape ? "Уйти" : "Свалить");
           const voteLabelB = isOff ? "Останься" : "Остаться";
           const escapeWrap = document.createElement("div");
           escapeWrap.className = "eventCard";
@@ -3104,6 +3112,7 @@ UI.renderBattles = () => {
           }
 
           const isMafiaBattle = !!(opp && opp.role === "mafia");
+          const isStage715Escape = isStage715OlegEscapeBattle(b);
 
           const sm = document.createElement("button");
           sm.className = "btn small";
@@ -3118,16 +3127,26 @@ UI.renderBattles = () => {
             }
           } catch (_) {}
 
-         sm.textContent = t("escape_button_label", { X: oneCost });
-          sm.title = "−1⭐, при успехе +1⭐";
+         sm.textContent = isStage715Escape ? "Уйти" : t("escape_button_label", { X: oneCost });
+          sm.title = isStage715Escape ? "−1⭐, −1💰" : "−1⭐, при успехе +1⭐";
           sm.onclick = (e) => {
             stop(e);
             _captureBattleFocus(b.id, card);
+            if (isStage715Escape) {
+              const demo = Game && Game.Stage715Demo;
+              const started = !!(demo
+                && typeof demo.startOlegEscape === "function"
+                && demo.startOlegEscape(b.id));
+              if (!started && UI && typeof UI.showActionToast === "function") {
+                UI.showActionToast(sm, "Попробуй ещё раз.");
+              }
+              return;
+            }
             tryEscapeBattle(b.id, "smyt", sm);
           };
           actions.appendChild(sm);
 
-          if (!isMafiaBattle) {
+          if (!isMafiaBattle && !isStage715Escape) {
             const off = document.createElement("button");
             off.className = "btn small";
             off.textContent = "Отвали";
