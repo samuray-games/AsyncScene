@@ -127,6 +127,31 @@
     } catch (_) {}
   };
 
+  function isStage715DemoBattle(battle) {
+    if (!battle || typeof battle !== "object") return false;
+    const meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    return meta.stage715DemoBattle === true
+      || meta.stage7_15_demo_battle === true
+      || meta.demoId === "stage7_15_first_battle"
+      || meta.sourceTag === "stage7_15_demo"
+      || battle.sourceTag === "stage7_15_demo";
+  }
+
+  function shouldHideStage715BattleBlock() {
+    const demo = Game && Game.Stage715Demo;
+    if (!demo || typeof demo.isActive !== "function") return false;
+    let active = false;
+    try { active = !!demo.isActive({ state: S, UI }); } catch (_) { active = false; }
+    if (!active) return false;
+
+    if (typeof demo.shouldRevealBattleBlock === "function") {
+      try { return !demo.shouldRevealBattleBlock({ state: S, UI }); } catch (_) {}
+    }
+
+    const battles = S && Array.isArray(S.battles) ? S.battles : [];
+    return !battles.some(isStage715DemoBattle);
+  }
+
   function getRawCountsFromVoters(c) {
     if (!c || !c.voters || typeof c.voters !== "object") {
       const a = Number.isFinite(c && c.votesA) ? (c.votesA | 0) : (Number.isFinite(c && c.aVotes) ? (c.aVotes | 0) : 0);
@@ -1437,6 +1462,16 @@ UI.renderBattles = () => {
     countWrapper.appendChild(document.createTextNode(")"));
   }
   if (!body || !countEl) return;
+  const battlesBlock = $("battlesBlock") || document.getElementById("battlesBlock");
+  const hideStage715BattleBlock = shouldHideStage715BattleBlock();
+  if (battlesBlock && battlesBlock.classList) {
+    battlesBlock.classList.toggle("hidden", hideStage715BattleBlock);
+  }
+  if (hideStage715BattleBlock) {
+    countEl.textContent = "0";
+    body.classList.add("hidden");
+    return;
+  }
   body.classList.remove("hidden");
   bindBattleArgClicks();
 
