@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "808c993fbb18143485fbcb0c4aa1e4d1375bbae3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "# branch.oid 808c993fbb18143485fbcb0c4aa1e4d1375bbae3\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "808c993f (HEAD, pull/360/merge) Merge 5ea696c5ee4d2bda8d94ecf5d17e59645e271b38 into d5ca0869541069039d0d77a8178924db7a6ef7f3\n5ea696c5 (origin/codex/task-7-15-10-pr) chore: sync Stage 7.15 runtime mirrors\n9de0184b feat: add Stage 7.15 entry chat demo\nd5ca0869 (origin/main) Remove temporary telemetry analyzer (#358)\n8623b71a Fix telemetry check trigger for cleanup-only deletions (#359)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 808c993fbb18143485fbcb0c4aa1e4d1375bbae3\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T12:29:24Z",
+      "stderr": "",
+      "stdout": "d5ca0869541069039d0d77a8178924db7a6ef7f3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "808c993fbb18143485fbcb0c4aa1e4d1375bbae3",
+  "observedAtUtc": "2026-08-20T12:29:24Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
