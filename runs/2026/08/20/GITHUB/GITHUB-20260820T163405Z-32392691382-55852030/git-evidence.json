@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "edad9020395129ce92448bc39e31729de3df944d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "# branch.oid edad9020395129ce92448bc39e31729de3df944d\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "edad9020 (HEAD, pull/365/merge) Merge 6cd58c34de84e299d4f2be3d1addf21ad159090d into 98528f76a97a8303eab9406b434720d9ce71ac64\n6cd58c34 (origin/codex/stage7-15-31-escape) feat(stage7): add Oleg escape bribe flow\n98528f76 (origin/main) Stage 7.15.30: Oleg first DM (#364)\nd7ca11af feat: add Stage 7.15 Nastya scripted conflict (#363)\n9fd27884 feat: unlock stage 7.15 tone first battle (#362)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD edad9020395129ce92448bc39e31729de3df944d\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:34:05Z",
+      "stderr": "",
+      "stdout": "98528f76a97a8303eab9406b434720d9ce71ac64\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "edad9020395129ce92448bc39e31729de3df944d",
+  "observedAtUtc": "2026-08-20T16:34:05Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
