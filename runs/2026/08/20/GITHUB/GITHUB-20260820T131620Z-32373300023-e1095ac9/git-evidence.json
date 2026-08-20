@@ -1,0 +1,106 @@
+{
+  "branch": "codex/task-7-15-10-pr",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "codex/task-7-15-10-pr\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "92297760eef50e1a2e44e6ab635ae01aa1cf11ba\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "# branch.oid 92297760eef50e1a2e44e6ab635ae01aa1cf11ba\n# branch.head codex/task-7-15-10-pr\n# branch.upstream origin/codex/task-7-15-10-pr\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "92297760 (HEAD -> codex/task-7-15-10-pr, origin/codex/task-7-15-10-pr) fix: allow underscores in telemetry IDs\n5ea696c5 chore: sync Stage 7.15 runtime mirrors\n9de0184b feat: add Stage 7.15 entry chat demo\nd5ca0869 (origin/main) Remove temporary telemetry analyzer (#358)\n8623b71a Fix telemetry check trigger for cleanup-only deletions (#359)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 92297760eef50e1a2e44e6ab635ae01aa1cf11ba\nbranch refs/heads/codex/task-7-15-10-pr\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:16:20Z",
+      "stderr": "",
+      "stdout": "d5ca0869541069039d0d77a8178924db7a6ef7f3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "92297760eef50e1a2e44e6ab635ae01aa1cf11ba",
+  "observedAtUtc": "2026-08-20T13:16:20Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
