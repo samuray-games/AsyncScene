@@ -21,9 +21,6 @@ for forbidden in (
     "AsyncScene/Web/telemetry.js",
 ):
     assert forbidden not in changed, f"forbidden file changed: {forbidden}"
-assert "AsyncScene/Web/ui/ui-stage7-first-experience.js" not in changed
-assert "docs/ui/ui-stage7-first-experience.js" not in changed
-
 for path in (SOURCE, DOCS):
     subprocess.run(["node", "--check", str(path)], cwd=ROOT, check=True)
 

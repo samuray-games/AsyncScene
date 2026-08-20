@@ -3005,6 +3005,8 @@ window.Game = window.Game || {};
   ]);
   const SILENCE_TEXT = "эээ, ты чо молчишь? я ващета с тобой разговариваю!";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
+  const TONE_ACK = "ага, вижу. значит ты вот такой. интересно...";
+  const TONE_BATTLE_INVITE = "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш";
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
   const NPCS = Object.freeze([
@@ -3050,6 +3052,15 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     state.flags[DEMO_STATE_FLAG] = true;
     state.flags.stage715DemoPhase = phase;
+  }
+
+  function restorePhase(nextContext, mode) {
+    if (mode !== "resume") return "intro";
+    const state = stateFor(nextContext);
+    const saved = state && state.flags && state.flags.stage715DemoPhase;
+    return ["intro", "awaiting_first", "awaiting_first_after_nudge", "awaiting_second", "tone_prompted", "battle_unlocked"].includes(saved)
+      ? saved
+      : "intro";
   }
 
   function telemetry(actionId) {
@@ -3144,16 +3155,48 @@ window.Game = window.Game || {};
     });
   }
 
+  function unlockFirstBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    state.players = state.players || {};
+    if (!state.players.npc_stage7_ken) return false;
+    const existing = Array.isArray(state.battles)
+      ? state.battles.find((battle) => battle && battle.meta && battle.meta.stage715DemoBattle === true)
+      : null;
+    if (existing) {
+      phase = "battle_unlocked";
+      saveState();
+      return true;
+    }
+    const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });
+    if (!battleId) return false;
+    const battle = Array.isArray(state.battles)
+      ? state.battles.find((entry) => entry && entry.id === battleId)
+      : null;
+    if (!battle) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      demoId: "stage7_15_first_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    phase = "battle_unlocked";
+    saveState();
+    telemetry("stage715_battle_unlocked");
+    render();
+    return true;
+  }
+
   function start(nextContext, mode) {
     clearTimers();
     context = nextContext || {};
     active = true;
-    phase = "intro";
+    phase = restorePhase(context, mode);
     const state = stateFor(context);
     ensurePlayers(state);
     saveState();
     telemetry("demo_enter_chat");
-    playIntro();
+    if (phase === "intro") playIntro();
     return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
   }
 
@@ -3182,8 +3225,17 @@ window.Game = window.Game || {};
     if (phase === "awaiting_second") {
       phase = "tone_prompted";
       saveState();
-      telemetry("demo_tone_prompt_sent");
+      telemetry("stage715_tone_seen");
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_PROMPT });
+      return true;
+    }
+    if (phase === "tone_prompted") {
+      phase = "tone_answered";
+      saveState();
+      telemetry("stage715_tone_answered");
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_ACK });
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_BATTLE_INVITE });
+      unlockFirstBattle();
       return true;
     }
     return true;
