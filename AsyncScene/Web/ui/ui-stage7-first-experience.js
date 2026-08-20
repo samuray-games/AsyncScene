@@ -2990,3 +2990,240 @@ window.Game = window.Game || {};
     firstBattleAftermathDmHistoryRestoredOnDemand: true,
   });
 })();
+
+// Stage 7.15 zero-tutorial demo: entry chat and first two player replies.
+// This controller is opt-in and never starts or changes the ordinary world loops.
+(() => {
+  const G = window.Game || (window.Game = {});
+  const DEMO_QUERY = "stage715demo";
+  const DEMO_STATE_FLAG = "stage715Demo";
+  const DEMO_SOURCE_TAG = "stage7_15_demo";
+  const INTRO_LINES = Object.freeze([
+    Object.freeze({ id: "rayhan_greeting", speakerId: "npc_stage7_ken", name: "Райхан", text: "всем привет в этом чатике!" }),
+    Object.freeze({ id: "nastya_greeting", speakerId: "npc_stage7_mika", name: "Настя", text: "Приветик!" }),
+    Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "Здарова" }),
+  ]);
+  const SILENCE_TEXT = "эээ, ты чо молчишь? я ващета с тобой разговариваю!";
+  const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
+  const SILENCE_DELAY_MS = 10_000;
+  const INTRO_STEP_DELAY_MS = 350;
+  const NPCS = Object.freeze([
+    Object.freeze({ id: "npc_stage7_ken", name: "Райхан", role: "crowd" }),
+    Object.freeze({ id: "npc_stage7_mika", name: "Настя", role: "crowd" }),
+    Object.freeze({ id: "npc_bandit", name: "Олег", role: "bandit" }),
+  ]);
+
+  let context = null;
+  let active = false;
+  let phase = "idle";
+  let silenceTimer = null;
+  let introTimers = [];
+
+  function queryEnabled() {
+    try {
+      return new URLSearchParams(window.location.search || "").get(DEMO_QUERY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function stateFor(nextContext) {
+    const ctx = nextContext || context || {};
+    return ctx.state || G.__S || (G.UI && G.UI.S) || G.State || null;
+  }
+
+  function isActive(nextContext) {
+    const state = stateFor(nextContext);
+    return queryEnabled() || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
+  }
+
+  function clearTimers() {
+    introTimers.forEach((timer) => clearTimeout(timer));
+    introTimers = [];
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = null;
+  }
+
+  function saveState() {
+    const state = stateFor();
+    if (!state) return;
+    state.flags = state.flags || {};
+    state.flags[DEMO_STATE_FLAG] = true;
+    state.flags.stage715DemoPhase = phase;
+  }
+
+  function telemetry(actionId) {
+    if (G.Telemetry && typeof G.Telemetry.action === "function") {
+      G.Telemetry.action(actionId, { flowId: "stage7_15_zero_tutorial_demo_v1", phase });
+    }
+  }
+
+  function ensurePlayers(state) {
+    if (!state) return;
+    state.players = state.players || {};
+    const npcPoints = G.Data && Number.isFinite(G.Data.START_POINTS_NPC) ? (G.Data.START_POINTS_NPC | 0) : 10;
+    NPCS.forEach((npc) => {
+      const player = state.players[npc.id] || {
+        id: npc.id,
+        name: npc.name,
+        role: npc.role,
+        npc: true,
+        points: npcPoints,
+        meta: {},
+      };
+      player.name = npc.name;
+      player.role = npc.role;
+      player.npc = true;
+      player.meta = player.meta && typeof player.meta === "object" ? player.meta : {};
+      state.players[npc.id] = player;
+    });
+  }
+
+  function render() {
+    const UI = context && context.UI;
+    if (!UI) return;
+    if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+    else if (typeof UI.renderAll === "function") UI.renderAll();
+  }
+
+  function pushNpc(entry) {
+    const UI = context && context.UI;
+    if (!UI || typeof UI.pushChat !== "function") return;
+    UI.pushChat({
+      name: entry.name,
+      text: entry.text,
+      system: false,
+      speakerId: entry.speakerId,
+      sourceTag: DEMO_SOURCE_TAG,
+      preserveText: true,
+    });
+    render();
+  }
+
+  function pushPlayer(text) {
+    const UI = context && context.UI;
+    const state = stateFor();
+    if (!UI || !state || typeof UI.pushChat !== "function") return;
+    const playerName = String(state.me && state.me.name || context.playerName || "игрок").trim() || "игрок";
+    UI.pushChat({
+      name: playerName,
+      text,
+      system: false,
+      playerId: state.me && state.me.id || "me",
+      isMe: true,
+      sourceTag: DEMO_SOURCE_TAG,
+      preserveText: true,
+    });
+    render();
+  }
+
+  function sendSilencePrompt() {
+    if (!active || phase !== "awaiting_first") return;
+    phase = "awaiting_first_after_nudge";
+    saveState();
+    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: SILENCE_TEXT });
+  }
+
+  function scheduleSilencePrompt() {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(sendSilencePrompt, SILENCE_DELAY_MS);
+  }
+
+  function playIntro() {
+    INTRO_LINES.forEach((entry, index) => {
+      const timer = setTimeout(() => {
+        if (!active || phase === "tone_prompted") return;
+        pushNpc(entry);
+        if (index === INTRO_LINES.length - 1 && phase === "intro") {
+          phase = "awaiting_first";
+          saveState();
+          scheduleSilencePrompt();
+        }
+      }, index * INTRO_STEP_DELAY_MS);
+      introTimers.push(timer);
+    });
+  }
+
+  function start(nextContext, mode) {
+    clearTimers();
+    context = nextContext || {};
+    active = true;
+    phase = "intro";
+    const state = stateFor(context);
+    ensurePlayers(state);
+    saveState();
+    telemetry("demo_enter_chat");
+    playIntro();
+    return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
+  }
+
+  function claimFreshStart(nextContext) {
+    return isActive(nextContext) ? start(nextContext, "fresh") : { claimed: false };
+  }
+
+  function claimResume(nextContext) {
+    return isActive(nextContext) ? start(nextContext, "resume") : { claimed: false };
+  }
+
+  function handlePlayerMessage(text) {
+    if (!active || !String(text || "").trim()) return false;
+    pushPlayer(String(text).trim());
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = null;
+    if (phase === "awaiting_first" || phase === "awaiting_first_after_nudge") {
+      phase = "awaiting_second";
+      saveState();
+      telemetry("demo_first_player_message");
+      const state = stateFor();
+      const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `привет, ${playerName}` });
+      return true;
+    }
+    if (phase === "awaiting_second") {
+      phase = "tone_prompted";
+      saveState();
+      telemetry("demo_tone_prompt_sent");
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_PROMPT });
+      return true;
+    }
+    return true;
+  }
+
+  function installChatHook() {
+    const UI = G.UI;
+    if (!UI || typeof UI.sendChat !== "function" || UI.sendChat.__stage715DemoWrapped) return;
+    const original = UI.sendChat;
+    const wrapped = function (...args) {
+      if (active) {
+        const input = document.getElementById("chatInput");
+        const text = input ? String(input.value || "").trim() : "";
+        if (!text) return;
+        if (input) input.value = "";
+        handlePlayerMessage(text);
+        return;
+      }
+      return original.apply(this, args);
+    };
+    wrapped.__stage715DemoWrapped = true;
+    UI.sendChat = wrapped;
+  }
+
+  function destroy() {
+    clearTimers();
+    active = false;
+    phase = "idle";
+    context = null;
+  }
+
+  installChatHook();
+  G.Stage715Demo = {
+    isActive,
+    claimFreshStart,
+    claimResume,
+    handlePlayerMessage,
+    destroy,
+    getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG }),
+  };
+  if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
+  G.__DEV.getStage715DemoState = () => ({ active, phase, enabled: isActive() });
+})();

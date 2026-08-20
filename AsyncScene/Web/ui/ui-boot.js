@@ -1396,6 +1396,18 @@ window.Game = window.Game || {};
           if (UI.startLoops) UI.startLoops();
           UI.renderAll && UI.renderAll();
         };
+        const stage715Demo = G.Stage715Demo;
+        if (stage715Demo
+          && typeof stage715Demo.isActive === "function"
+          && stage715Demo.isActive({ UI, state: S })
+          && typeof stage715Demo.claimResume === "function") {
+          const claim = stage715Demo.claimResume({ UI, state: S, playerName: name, startNormalWorld });
+          if (claim && claim.claimed === true) {
+            UI.renderAll && UI.renderAll();
+            ensureStartScreenHidden(UI);
+            return;
+          }
+        }
         const firstExperience = G.Stage7FirstExperience;
         if (firstExperience && typeof firstExperience.claimResume === "function") {
           const claim = firstExperience.claimResume({ UI, state: S, playerName: name, startNormalWorld });
@@ -1526,6 +1538,18 @@ window.Game = window.Game || {};
         if (UI.startLoops) UI.startLoops();
         UI.renderAll && UI.renderAll();
       };
+      const stage715Demo = G.Stage715Demo;
+      if (stage715Demo
+        && typeof stage715Demo.isActive === "function"
+        && stage715Demo.isActive({ UI, state: S })
+        && typeof stage715Demo.claimFreshStart === "function") {
+        const claim = stage715Demo.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
+        if (claim && claim.claimed === true) {
+          UI.renderAll && UI.renderAll();
+          ensureStartScreenHidden(UI);
+          return;
+        }
+      }
       const firstExperience = G.Stage7FirstExperience;
       if (firstExperience && typeof firstExperience.claimFreshStart === "function") {
         const claim = firstExperience.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
