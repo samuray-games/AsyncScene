@@ -50,6 +50,7 @@
 
   function argCanonUiText(arg, side) {
     const p = arg || {};
+    if (p.stage715DisplayText) return String(p.stage715DisplayText);
     const D = Game && Game.Data ? Game.Data : null;
     const sideU = String(side || "").toUpperCase() === "A" ? "A" : "Q";
     const classic = String(p.text || "");
@@ -2514,6 +2515,9 @@ UI.renderBattles = () => {
         const stage7PayPayoff = b && b.meta && b.meta.stage7PayPayoff
           ? b.meta.stage7PayPayoff
           : null;
+        const stage715NastyaPayoff = b && b.meta && b.meta.stage715NastyaPayoff
+          ? b.meta.stage715NastyaPayoff
+          : null;
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2535,7 +2539,10 @@ UI.renderBattles = () => {
             && stage7AccuseKenPayoff.mode === "witness"
             && stage7AccuseKenPayoff.status === "revealed"
             && b.attack.color);
-          const stage7ColorRevealed = evidenceRevealed || witnessRevealed;
+          const nastyaRevealed = !!(stage715NastyaPayoff
+            && stage715NastyaPayoff.status === "revealed"
+            && b.attack.color);
+          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
@@ -2543,6 +2550,7 @@ UI.renderBattles = () => {
           else chip.style.color = "black";
           chip.dataset.stage7DenyEvidenceRevealed = String(evidenceRevealed);
           chip.dataset.stage7AccuseWitnessRevealed = String(witnessRevealed);
+          chip.dataset.stage715NastyaRevealed = String(nastyaRevealed);
           // show toast above incoming (grey) attack when clicked
           chip.onclick = (e) => {
             stop(e);
@@ -2574,6 +2582,13 @@ UI.renderBattles = () => {
             witnessNote.dataset.testid = "stage7-accuse-witness-revealed";
             witnessNote.textContent = "Свидетель Насти раскрыл цвет аргумента.";
             card.appendChild(witnessNote);
+          }
+          if (nastyaRevealed) {
+            const nastyaNote = document.createElement("div");
+            nastyaNote.className = "noteLine";
+            nastyaNote.dataset.testid = "stage715-nastya-tone-revealed";
+            nastyaNote.textContent = "Оранжевый аргумент Насти сильнее жёлтых ответов игрока.";
+            card.appendChild(nastyaNote);
           }
         }
 
