@@ -1,0 +1,106 @@
+{
+  "branch": "codex/task-7-15-20-pr360",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "codex/task-7-15-20-pr360\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "0dfabbdd5461ce630cefce8afee5ed78ce40dc10\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "# branch.oid 0dfabbdd5461ce630cefce8afee5ed78ce40dc10\n# branch.head codex/task-7-15-20-pr360\n# branch.upstream origin/codex/task-7-15-20-pr360\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "0dfabbdd (HEAD -> codex/task-7-15-20-pr360, origin/codex/task-7-15-20-pr360) feat: gate Stage 7.15 first battle UI\n90e3f6ac (origin/main) feat: add Stage 7.15 entry chat demo (#360)\nd5ca0869 Remove temporary telemetry analyzer (#358)\n8623b71a Fix telemetry check trigger for cleanup-only deletions (#359)\nf8d7f098 Fix temporary telemetry analyzer endpoint parsing\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 0dfabbdd5461ce630cefce8afee5ed78ce40dc10\nbranch refs/heads/codex/task-7-15-20-pr360\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T13:42:34Z",
+      "stderr": "",
+      "stdout": "90e3f6ace5838ff412bfb1cb9f941ae45507caa6\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "0dfabbdd5461ce630cefce8afee5ed78ce40dc10",
+  "observedAtUtc": "2026-08-20T13:42:34Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
