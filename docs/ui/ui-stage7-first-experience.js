@@ -3005,6 +3005,17 @@ window.Game = window.Game || {};
   ]);
   const SILENCE_TEXT = "эээ, ты чо молчишь? я ващета с тобой разговариваю!";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
+  const TONE_ACK = "ага, вижу. значит ты вот такой. интересно...";
+  const TONE_BATTLE_INVITE = "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш";
+  const NASTYA_PROMPT = "Ты на проблемы нарываешься?";
+  const NASTYA_CHOICES = Object.freeze([
+    Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
+    Object.freeze({ id: "who_oleg", type: "who", text: "Думаю, Олег, но это не точно…" }),
+    Object.freeze({ id: "where_america", type: "where", text: "Похоже, там, где Америка…" }),
+  ]);
+  const FIRST_BATTLE_ID = "stage7_15_first_battle";
+  const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const NASTYA_ORANGE_INFLUENCE = 8;
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
   const NPCS = Object.freeze([
@@ -3018,6 +3029,7 @@ window.Game = window.Game || {};
   let phase = "idle";
   let silenceTimer = null;
   let introTimers = [];
+  let battleWatchTimer = null;
 
   function queryEnabled() {
     try {
@@ -3042,6 +3054,8 @@ window.Game = window.Game || {};
     introTimers = [];
     if (silenceTimer) clearTimeout(silenceTimer);
     silenceTimer = null;
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = null;
   }
 
   function saveState() {
@@ -3050,6 +3064,23 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     state.flags[DEMO_STATE_FLAG] = true;
     state.flags.stage715DemoPhase = phase;
+  }
+
+  function restorePhase(nextContext, mode) {
+    if (mode !== "resume") return "intro";
+    const state = stateFor(nextContext);
+    const saved = state && state.flags && state.flags.stage715DemoPhase;
+    return [
+      "intro",
+      "awaiting_first",
+      "awaiting_first_after_nudge",
+      "awaiting_second",
+      "tone_prompted",
+      "first_battle",
+      "nastya_prompt",
+      "nastya_battle",
+      "next_scripted_flow",
+    ].includes(saved) ? saved : "intro";
   }
 
   function telemetry(actionId) {
@@ -3077,6 +3108,12 @@ window.Game = window.Game || {};
       player.meta = player.meta && typeof player.meta === "object" ? player.meta : {};
       state.players[npc.id] = player;
     });
+    if (state.players.npc_stage7_ken && !Number.isFinite(state.players.npc_stage7_ken.influence)) {
+      state.players.npc_stage7_ken.influence = 1;
+    }
+    if (state.players.npc_stage7_mika && !Number.isFinite(state.players.npc_stage7_mika.influence)) {
+      state.players.npc_stage7_mika.influence = NASTYA_ORANGE_INFLUENCE;
+    }
   }
 
   function render() {
@@ -3129,6 +3166,188 @@ window.Game = window.Game || {};
     silenceTimer = setTimeout(sendSilencePrompt, SILENCE_DELAY_MS);
   }
 
+  function battleOutcome(battle) {
+    if (!battle) return null;
+    const raw = battle.result != null ? battle.result : battle.outcome;
+    const normalized = String(raw == null ? "" : raw).trim().toLowerCase();
+    if (["win", "lose", "draw"].includes(normalized)) return normalized;
+    if (battle.status === "finished" && battle.resolved === true) return normalized || null;
+    return null;
+  }
+
+  function stage715BattleById(id) {
+    const state = stateFor();
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    return battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === id) || null;
+  }
+
+  function resolveIncomingBattle(state, started, opponentId) {
+    const direct = started && started.battle && typeof started.battle === "object" ? started.battle : started;
+    if (direct && direct.id) return direct;
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    return battles.find((battle) => battle && battle.opponentId === opponentId && battle.status === "pickDefense") || null;
+  }
+
+  function isChoiceText(text, choice) {
+    const value = String(text || "").trim().toLowerCase();
+    return value === String(choice.id).toLowerCase()
+      || value === String(choice.text).trim().toLowerCase()
+      || value.startsWith(`${choice.id}:`)
+      || value.startsWith(`${choice.id}.`);
+  }
+
+  function selectedNastyaChoice(text) {
+    const value = String(text || "").trim().toLowerCase();
+    const numeric = /^([1-3])(?:[.)]|\s|$)/.exec(value);
+    if (numeric) return NASTYA_CHOICES[Number(numeric[1]) - 1] || null;
+    return NASTYA_CHOICES.find((choice) => isChoiceText(value, choice)) || null;
+  }
+
+  function prepareNastyaDefenseChoices(battle) {
+    if (!battle || !G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
+    let options = [];
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
+      const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+      if (types.has("yn") && types.has("who") && types.has("where")) break;
+    }
+    const normalizedType = (entry) => {
+      const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
+      return raw === "yesno" ? "yn" : raw;
+    };
+    const choices = NASTYA_CHOICES.map((wanted) => {
+      const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
+      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
+    });
+    if (choices.some((choice) => !choice)) return false;
+    battle._defenseChoices = choices;
+    battle._choicesForStatus = battle.status;
+    battle.meta = Object.assign({}, battle.meta || {}, { stage715DefenseChoiceIds: choices.map((choice) => choice.id) });
+    return true;
+  }
+
+  function startFirstBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(FIRST_BATTLE_ID);
+    if (existing) {
+      phase = battleOutcome(existing) ? phase : "first_battle";
+      saveState();
+      return true;
+    }
+    const battle = resolveIncomingBattle(state, conflict.incoming("npc_stage7_ken", { pinned: true }), "npc_stage7_ken");
+    if (!battle || !battle.id) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: FIRST_BATTLE_ID,
+      demoId: "stage7_15_first_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    phase = "first_battle";
+    saveState();
+    telemetry("stage715_battle_unlocked");
+    render();
+    return true;
+  }
+
+  function startNastyaBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(NASTYA_BATTLE_ID);
+    if (existing) {
+      phase = "nastya_battle";
+      saveState();
+      return true;
+    }
+    const battle = resolveIncomingBattle(state, conflict.incoming("npc_stage7_mika", { pinned: true }), "npc_stage7_mika");
+    if (!battle || !battle.id) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: NASTYA_BATTLE_ID,
+      stage715NastyaBattle: true,
+      demoId: "stage7_15_nastya_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    prepareNastyaDefenseChoices(battle);
+    phase = "nastya_battle";
+    saveState();
+    telemetry("stage715_nastya_battle_started");
+    render();
+    watchNastyaBattle();
+    return true;
+  }
+
+  function openNextScriptedFlow(reason) {
+    phase = "next_scripted_flow";
+    const state = stateFor();
+    if (state) {
+      state.flags = state.flags || {};
+      state.flags.stage715NextScriptedFlowReady = true;
+      state.flags.stage715NextScriptedFlowReason = reason || "loss";
+    }
+    saveState();
+    if (context && typeof context.openNextScriptedFlow === "function") {
+      try { context.openNextScriptedFlow({ reason: reason || "loss" }); } catch (_) {}
+    }
+    render();
+  }
+
+  function revealNastyaBattle(battle, outcome) {
+    if (!battle || !battle.attack) return false;
+    const trueColor = battle.attack._color || battle.attack.color || "o";
+    battle.attack.color = trueColor;
+    battle.attackHidden = false;
+    battle.revealColor = trueColor;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715NastyaPayoff: {
+        status: "revealed",
+        color: trueColor,
+        outcome: outcome || null,
+      },
+    });
+    pushNpc({
+      speakerId: "npc_stage7_mika",
+      name: "Настя",
+      text: "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние...",
+    });
+    if (G.Conflict && typeof G.Conflict.startCrowdVote === "function") {
+      try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}
+    }
+    telemetry("stage715_nastya_battle_result", {
+      battleId: battle.id,
+      outcome: outcome || null,
+      color: trueColor,
+      voteStarted: outcome === "draw",
+    });
+    phase = "next_scripted_flow";
+    saveState();
+    render();
+    return true;
+  }
+
+  function syncNastyaBattleOutcome() {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    const outcome = battleOutcome(battle);
+    if (!battle || !outcome) return false;
+    if (battle.meta && battle.meta.stage715NastyaPayoff && battle.meta.stage715NastyaPayoff.status === "revealed") return true;
+    if (battle.meta && battle.meta.stage715NastyaResultRecorded === true) return true;
+    if (outcome === "win" || outcome === "draw") return revealNastyaBattle(battle, outcome);
+    battle.meta = Object.assign({}, battle.meta || {}, { stage715NastyaResultRecorded: true });
+    telemetry("stage715_nastya_battle_result", { battleId: battle.id, outcome, nextFlow: "scripted" });
+    openNextScriptedFlow("loss");
+    return true;
+  }
+
+  function watchNastyaBattle() {
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = setInterval(() => {
+      if (phase !== "nastya_battle" && phase !== "next_scripted_flow") return;
+      syncNastyaBattleOutcome();
+    }, 250);
+  }
+
   function playIntro() {
     INTRO_LINES.forEach((entry, index) => {
       const timer = setTimeout(() => {
@@ -3148,12 +3367,13 @@ window.Game = window.Game || {};
     clearTimers();
     context = nextContext || {};
     active = true;
-    phase = "intro";
+    phase = restorePhase(context, mode);
     const state = stateFor(context);
     ensurePlayers(state);
     saveState();
     telemetry("demo_enter_chat");
-    playIntro();
+    if (phase === "intro") playIntro();
+    if (phase === "nastya_battle") watchNastyaBattle();
     return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
   }
 
@@ -3182,8 +3402,34 @@ window.Game = window.Game || {};
     if (phase === "awaiting_second") {
       phase = "tone_prompted";
       saveState();
-      telemetry("demo_tone_prompt_sent");
+      telemetry("stage715_tone_seen");
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_PROMPT });
+      return true;
+    }
+    if (phase === "tone_prompted") {
+      phase = "tone_answered";
+      saveState();
+      telemetry("stage715_tone_answered");
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_ACK });
+      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_BATTLE_INVITE });
+      startFirstBattle();
+      return true;
+    }
+    if (phase === "first_battle") {
+      const firstBattle = stage715BattleById(FIRST_BATTLE_ID);
+      if (battleOutcome(firstBattle) === "win") {
+        phase = "nastya_prompt";
+        saveState();
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?" });
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: `${NASTYA_PROMPT}\n1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
+        return true;
+      }
+      return true;
+    }
+    if (phase === "nastya_prompt") {
+      const choice = selectedNastyaChoice(text);
+      if (!choice) return true;
+      startNastyaBattle();
       return true;
     }
     return true;
