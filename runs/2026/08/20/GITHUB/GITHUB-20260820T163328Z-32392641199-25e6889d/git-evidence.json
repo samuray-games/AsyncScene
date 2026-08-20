@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-31-escape",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-31-escape\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "6cd58c34de84e299d4f2be3d1addf21ad159090d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6cd58c34de84e299d4f2be3d1addf21ad159090d\n# branch.head codex/stage7-15-31-escape\n# branch.upstream origin/codex/stage7-15-31-escape\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "6cd58c34 (HEAD -> codex/stage7-15-31-escape, origin/codex/stage7-15-31-escape) feat(stage7): add Oleg escape bribe flow\n98528f76 (origin/main) Stage 7.15.30: Oleg first DM (#364)\nd7ca11af feat: add Stage 7.15 Nastya scripted conflict (#363)\n9fd27884 feat: unlock stage 7.15 tone first battle (#362)\n40ca9645 feat: gate Stage 7.15 first battle UI (#361)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6cd58c34de84e299d4f2be3d1addf21ad159090d\nbranch refs/heads/codex/stage7-15-31-escape\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T16:33:28Z",
+      "stderr": "",
+      "stdout": "98528f76a97a8303eab9406b434720d9ce71ac64\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6cd58c34de84e299d4f2be3d1addf21ad159090d",
+  "observedAtUtc": "2026-08-20T16:33:28Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
