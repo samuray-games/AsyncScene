@@ -3077,6 +3077,7 @@ window.Game = window.Game || {};
       "awaiting_second",
       "tone_prompted",
       "first_battle",
+      "battle_unlocked",
       "nastya_prompt",
       "nastya_battle",
       "next_scripted_flow",
@@ -3226,17 +3227,18 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function startFirstBattle() {
+  function unlockFirstBattle() {
     const state = stateFor();
     const conflict = G.Conflict;
     if (!state || !conflict || typeof conflict.incoming !== "function") return false;
     const existing = stage715BattleById(FIRST_BATTLE_ID);
     if (existing) {
-      phase = battleOutcome(existing) ? phase : "first_battle";
+      phase = battleOutcome(existing) ? phase : "battle_unlocked";
       saveState();
       return true;
     }
-    const battle = resolveIncomingBattle(state, conflict.incoming("npc_stage7_ken", { pinned: true }), "npc_stage7_ken");
+    const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });
+    const battle = resolveIncomingBattle(state, battleId, "npc_stage7_ken");
     if (!battle || !battle.id) return false;
     battle.meta = Object.assign({}, battle.meta || {}, {
       stage715DemoBattle: true,
@@ -3244,7 +3246,7 @@ window.Game = window.Game || {};
       demoId: "stage7_15_first_battle",
       sourceTag: DEMO_SOURCE_TAG,
     });
-    phase = "first_battle";
+    phase = "battle_unlocked";
     saveState();
     telemetry("stage715_battle_unlocked");
     render();
@@ -3412,10 +3414,10 @@ window.Game = window.Game || {};
       telemetry("stage715_tone_answered");
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_ACK });
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_BATTLE_INVITE });
-      startFirstBattle();
+      unlockFirstBattle();
       return true;
     }
-    if (phase === "first_battle") {
+    if (phase === "first_battle" || phase === "battle_unlocked") {
       const firstBattle = stage715BattleById(FIRST_BATTLE_ID);
       if (battleOutcome(firstBattle) === "win") {
         phase = "nastya_prompt";
