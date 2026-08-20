@@ -345,6 +345,16 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     return count;
   }
 
+  function isStage715OlegDmRestricted(S, id) {
+    const demo = Game && Game.Stage715Demo;
+    return !!(demo
+      && typeof demo.isOlegDmRestrictedThread === "function"
+      && demo.isOlegDmRestrictedThread(id)
+      && S
+      && S.flags
+      && S.flags.stage715OlegDmActive === true);
+  }
+
   function getEscapeCostForRole(role){
     const D = (Game && Game.Data) ? Game.Data : null;
     const r = String(role || "").toLowerCase();
@@ -984,6 +994,34 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     const actions = $("dmActions");
     if (!actions) return;
     actions.innerHTML = "";
+
+    if (isStage715OlegDmRestricted(S, withId)) {
+      const extra = $("dmExtraRow");
+      if (extra) extra.classList.add("hidden");
+      const dmInput = $("dmInput");
+      const dmSend = $("dmSend");
+      if (dmInput && dmSend) {
+        dmSend.onclick = () => {
+          const text = String(dmInput.value || "").trim();
+          if (!text) return;
+          dmPushLine(withId, getS().me.name, text);
+          dmInput.value = "";
+          const demo = Game && Game.Stage715Demo;
+          if (demo && typeof demo.handleOlegDmReply === "function") demo.handleOlegDmReply(text);
+          UI.renderDM();
+          requestAll();
+        };
+        if (!dmInput.__stage715OlegDmEnterHooked) {
+          dmInput.__stage715OlegDmEnterHooked = true;
+          dmInput.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" || !isStage715OlegDmRestricted(getS(), withId)) return;
+            const button = $("dmSend");
+            if (button) button.click();
+          });
+        }
+      }
+      return;
+    }
 
     const isCop = target.role === "cop";
     const isBad = target.role === "bandit" || target.role === "toxic";

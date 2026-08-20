@@ -3015,6 +3015,9 @@ window.Game = window.Game || {};
   ]);
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const OLEG_DM_ID = "npc_bandit";
+  const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
+  const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
   const NASTYA_ORANGE_INFLUENCE = 8;
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
@@ -3080,6 +3083,7 @@ window.Game = window.Game || {};
       "battle_unlocked",
       "nastya_prompt",
       "nastya_battle",
+      "oleg_dm",
       "next_scripted_flow",
     ].includes(saved) ? saved : "intro";
   }
@@ -3088,6 +3092,97 @@ window.Game = window.Game || {};
     if (G.Telemetry && typeof G.Telemetry.action === "function") {
       G.Telemetry.action(actionId, { flowId: "stage7_15_zero_tutorial_demo_v1", phase });
     }
+  }
+
+  function isOlegDmRestrictedThread(targetId) {
+    const state = stateFor();
+    return active
+      && String(targetId || "") === OLEG_DM_ID
+      && !!(state && state.flags && state.flags.stage715OlegDmActive === true);
+  }
+
+  function isEscapeOptionUnlocked() {
+    const state = stateFor();
+    return !!(state && state.flags && state.flags.stage715EscapeOptionUnlocked === true);
+  }
+
+  function shouldRevealBattleBlock() {
+    const state = stateFor();
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    if (isEscapeOptionUnlocked()) return true;
+    return battles.some((battle) => battle
+      && battle.meta
+      && battle.meta.stage715DemoBattle === true
+      && battle.resolved !== true
+      && battle.finished !== true
+      && battle.status !== "finished");
+  }
+
+  function focusOlegDmLine() {
+    try {
+      const box = document.getElementById("dmLog");
+      if (!box) return;
+      const lines = Array.from(box.querySelectorAll(".dmLine"));
+      const hit = lines.slice().reverse().find((line) => String(line.textContent || "").includes(OLEG_DM_LINE));
+      if (!hit) return;
+      hit.classList.remove("focusFlash");
+      hit.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      hit.classList.add("focusFlash");
+      setTimeout(() => { try { hit.classList.remove("focusFlash"); } catch (_) {} }, 1200);
+    } catch (_) {}
+  }
+
+  function openOlegDmAfterLoss() {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI) return false;
+    ensurePlayers(state);
+    state.flags = state.flags || {};
+    const alreadyOpened = state.flags.stage715OlegDmOpened === true;
+    state.flags.stage715OlegDmActive = true;
+    state.flags.stage715OlegDmOpened = true;
+    if (!alreadyOpened) {
+      state.flags.stage715OlegDmReplied = false;
+      state.flags.stage715EscapeOptionUnlocked = false;
+    }
+    phase = state.flags.stage715OlegDmReplied === true ? "next_scripted_flow" : "oleg_dm";
+    if (!state.flags.stage715OlegPublicLossLineShown) {
+      pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_PUBLIC_LOSS_LINE });
+      state.flags.stage715OlegPublicLossLineShown = true;
+    }
+    if (G.__A && typeof G.__A.pushDm === "function" && !state.flags.stage715OlegDmLineSent) {
+      G.__A.pushDm(OLEG_DM_ID, "Олег", OLEG_DM_LINE, { isSystem: false, playerId: OLEG_DM_ID });
+      state.flags.stage715OlegDmLineSent = true;
+    }
+    state.dm = state.dm && typeof state.dm === "object" ? state.dm : {};
+    state.dm.openIds = [OLEG_DM_ID];
+    state.dm.activeId = OLEG_DM_ID;
+    state.dm.withId = OLEG_DM_ID;
+    state.dm.open = true;
+    saveState();
+    if (typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);
+    if (typeof UI.renderDM === "function") UI.renderDM();
+    focusOlegDmLine();
+    if (!alreadyOpened) telemetry("stage715_oleg_dm_opened");
+    render();
+    return true;
+  }
+
+  function handleOlegDmReply(text) {
+    if (!isOlegDmRestrictedThread(OLEG_DM_ID) || !String(text || "").trim()) return false;
+    const state = stateFor();
+    if (!state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715OlegDmReplied === true) return true;
+    state.flags.stage715OlegDmReplied = true;
+    state.flags.stage715EscapeOptionUnlocked = true;
+    state.flags.stage715BattleChipUnlocked = true;
+    phase = "next_scripted_flow";
+    saveState();
+    telemetry("stage715_oleg_dm_replied");
+    telemetry("stage715_escape_option_unlocked");
+    render();
+    return true;
   }
 
   function ensurePlayers(state) {
@@ -3339,6 +3434,7 @@ window.Game = window.Game || {};
     battle.meta = Object.assign({}, battle.meta || {}, { stage715NastyaResultRecorded: true });
     telemetry("stage715_nastya_battle_result", { battleId: battle.id, outcome, nextFlow: "scripted" });
     openNextScriptedFlow("loss");
+    openOlegDmAfterLoss();
     return true;
   }
 
@@ -3376,6 +3472,9 @@ window.Game = window.Game || {};
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();
+    if (phase === "oleg_dm") {
+      openOlegDmAfterLoss();
+    }
     return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
   }
 
@@ -3469,6 +3568,10 @@ window.Game = window.Game || {};
     claimFreshStart,
     claimResume,
     handlePlayerMessage,
+    handleOlegDmReply,
+    isOlegDmRestrictedThread,
+    isEscapeOptionUnlocked,
+    shouldRevealBattleBlock,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG }),
   };
