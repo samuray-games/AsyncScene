@@ -35,7 +35,7 @@ window.Game = window.Game || {};
   const BLOCKED_KEY = /(text|message|content|input|secret|token|password|email|phone|url|href|name|birth|age|query|search|hash)/i;
   // Stable event IDs may use underscores because gameplay event names are
   // deliberately readable (for example, demo_first_player_message).
-  const SAFE_ID = /^[a-zA-Z0-9][-a-zA-Z0-9._:]{0,119}$/;
+  const SAFE_ID = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$/;
   const GAMEPLAY_NICKNAME = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,23}$/u;
 
   const local = safeStorage("localStorage");
