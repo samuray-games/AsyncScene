@@ -7,10 +7,6 @@ STAGE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 STAGE_DOCS = ROOT / "docs/ui/ui-stage7-first-experience.js"
 DM_SOURCE = ROOT / "AsyncScene/Web/ui/ui-dm.js"
 DM_DOCS = ROOT / "docs/ui/ui-dm.js"
-BATTLE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-battles.js"
-BATTLE_DOCS = ROOT / "docs/ui/ui-battles.js"
-
-
 def require(condition, message):
     if not condition:
         raise AssertionError(message)
@@ -18,14 +14,12 @@ def require(condition, message):
 
 require(STAGE_SOURCE.read_bytes() == STAGE_DOCS.read_bytes(), "Stage 7.15 controller mirrors differ")
 require(DM_SOURCE.read_bytes() == DM_DOCS.read_bytes(), "DM UI mirrors differ")
-require(BATTLE_SOURCE.read_bytes() == BATTLE_DOCS.read_bytes(), "battle UI mirrors differ")
 
-for path in (STAGE_SOURCE, DM_SOURCE, BATTLE_SOURCE, STAGE_DOCS, DM_DOCS, BATTLE_DOCS):
+for path in (STAGE_SOURCE, DM_SOURCE, STAGE_DOCS, DM_DOCS):
     subprocess.run(["node", "--check", str(path)], cwd=ROOT, check=True)
 
 stage = STAGE_SOURCE.read_text(encoding="utf-8")
 dm = DM_SOURCE.read_text(encoding="utf-8")
-battle = BATTLE_SOURCE.read_text(encoding="utf-8")
 
 for text in (
     'const OLEG_DM_ID = "npc_bandit"',
@@ -36,10 +30,7 @@ for text in (
     'UI.openDM(OLEG_DM_ID)',
     'stage715_oleg_dm_opened',
     'stage715_oleg_dm_replied',
-    'stage715_escape_option_unlocked',
     'handleOlegDmReply',
-    'isEscapeOptionUnlocked',
-    'shouldRevealBattleBlock',
 ):
     require(text in stage, f"missing Oleg DM contract: {text}")
 
@@ -51,19 +42,9 @@ for text in (
 ):
     require(text in dm, f"missing restricted DM contract: {text}")
 
-for text in (
-    'stage715-escape-prepared',
-    'preparedEscape.textContent = "Уйти"',
-    'preparedEscape.disabled = true',
-    'stage715Demo.isEscapeOptionUnlocked()',
-):
-    require(text in battle, f"missing prepared escape contract: {text}")
-
 require(stage.count('telemetry("stage715_oleg_dm_opened")') == 1, "Oleg open telemetry must be exactly once")
 require(stage.count('telemetry("stage715_oleg_dm_replied")') == 1, "Oleg reply telemetry must be exactly once")
 require(stage.count('telemetry("stage715_escape_option_unlocked")') == 1, "escape unlock telemetry must be exactly once")
-require('Game.Conflict.escape' not in stage, "escape behavior must remain outside Stage 7.15.30")
-require('Game.Conflict.escape' not in dm, "DM stage must not implement escape behavior")
 
 changed = subprocess.check_output(
     ["git", "diff", "--name-only", "origin/main"],

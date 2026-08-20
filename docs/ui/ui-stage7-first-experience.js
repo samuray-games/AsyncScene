@@ -3101,23 +3101,6 @@ window.Game = window.Game || {};
       && !!(state && state.flags && state.flags.stage715OlegDmActive === true);
   }
 
-  function isEscapeOptionUnlocked() {
-    const state = stateFor();
-    return !!(state && state.flags && state.flags.stage715EscapeOptionUnlocked === true);
-  }
-
-  function shouldRevealBattleBlock() {
-    const state = stateFor();
-    const battles = state && Array.isArray(state.battles) ? state.battles : [];
-    if (isEscapeOptionUnlocked()) return true;
-    return battles.some((battle) => battle
-      && battle.meta
-      && battle.meta.stage715DemoBattle === true
-      && battle.resolved !== true
-      && battle.finished !== true
-      && battle.status !== "finished");
-  }
-
   function focusOlegDmLine() {
     try {
       const box = document.getElementById("dmLog");
@@ -3143,7 +3126,6 @@ window.Game = window.Game || {};
     state.flags.stage715OlegDmOpened = true;
     if (!alreadyOpened) {
       state.flags.stage715OlegDmReplied = false;
-      state.flags.stage715EscapeOptionUnlocked = false;
     }
     phase = state.flags.stage715OlegDmReplied === true ? "next_scripted_flow" : "oleg_dm";
     if (!state.flags.stage715OlegPublicLossLineShown) {
@@ -3175,8 +3157,6 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     if (state.flags.stage715OlegDmReplied === true) return true;
     state.flags.stage715OlegDmReplied = true;
-    state.flags.stage715EscapeOptionUnlocked = true;
-    state.flags.stage715BattleChipUnlocked = true;
     phase = "next_scripted_flow";
     saveState();
     telemetry("stage715_oleg_dm_replied");
@@ -3570,8 +3550,6 @@ window.Game = window.Game || {};
     handlePlayerMessage,
     handleOlegDmReply,
     isOlegDmRestrictedThread,
-    isEscapeOptionUnlocked,
-    shouldRevealBattleBlock,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG }),
   };

@@ -3230,22 +3230,6 @@ UI.renderBattles = () => {
         };
         closeRow.appendChild(closeBtn);
 
-        const stage715Demo = Game && Game.Stage715Demo;
-        if (isStage715DemoBattle(b)
-          && stage715Demo
-          && typeof stage715Demo.isEscapeOptionUnlocked === "function"
-          && stage715Demo.isEscapeOptionUnlocked()) {
-          const preparedEscape = document.createElement("button");
-          preparedEscape.type = "button";
-          preparedEscape.className = "btn small is-disabled";
-          preparedEscape.textContent = "Уйти";
-          preparedEscape.disabled = true;
-          preparedEscape.setAttribute("aria-disabled", "true");
-          preparedEscape.dataset.testid = "stage715-escape-prepared";
-          preparedEscape.title = "Доступно на следующем шаге.";
-          closeRow.appendChild(preparedEscape);
-        }
-
         card.appendChild(closeRow);
 
         finalLogMode = finalMode;
