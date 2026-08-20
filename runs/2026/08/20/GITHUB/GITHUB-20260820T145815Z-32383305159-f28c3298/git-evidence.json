@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-21-nastya-battle",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-21-nastya-battle\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "f7745631c49035f9375c897dd5f5f0c956da6dc0\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "# branch.oid f7745631c49035f9375c897dd5f5f0c956da6dc0\n# branch.head codex/stage7-15-21-nastya-battle\n# branch.upstream origin/codex/stage7-15-21-nastya-battle\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "f7745631 (HEAD -> codex/stage7-15-21-nastya-battle, origin/codex/stage7-15-21-nastya-battle) merge: resolve Stage 7.15 tone and Nastya flows\n9fd27884 (origin/main) feat: unlock stage 7.15 tone first battle (#362)\n1c85ae0b feat: add Stage 7.15 Nastya scripted conflict\n40ca9645 feat: gate Stage 7.15 first battle UI (#361)\n90e3f6ac feat: add Stage 7.15 entry chat demo (#360)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f7745631c49035f9375c897dd5f5f0c956da6dc0\nbranch refs/heads/codex/stage7-15-21-nastya-battle\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-20T14:58:15Z",
+      "stderr": "",
+      "stdout": "9fd27884904d5c972a2a670fa74e0d954b297d90\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f7745631c49035f9375c897dd5f5f0c956da6dc0",
+  "observedAtUtc": "2026-08-20T14:58:15Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
