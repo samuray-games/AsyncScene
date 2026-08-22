@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "0fe5b4d1f58084697c9f4e75ee69f28fa23aba00\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "# branch.oid 0fe5b4d1f58084697c9f4e75ee69f28fa23aba00\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "0fe5b4d1 (HEAD -> main, origin/main) Merge pull request #368 from samuray-games/codex/stage7-15-safari-corridor-repair\n0ecfd0b7 (origin/codex/stage7-15-safari-corridor-repair) fix(stage7): repair scripted Safari corridor\n2900f323 Merge pull request #367 from samuray-games/codex/task-7-15-50\nec7bbece (origin/codex/task-7-15-50) feat(stage7): add progressive panel disclosure\n5ca7dae2 feat(stage7): add Oleg red battle flow\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 0fe5b4d1f58084697c9f4e75ee69f28fa23aba00\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T14:41:29Z",
+      "stderr": "",
+      "stdout": "0fe5b4d1f58084697c9f4e75ee69f28fa23aba00\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "0fe5b4d1f58084697c9f4e75ee69f28fa23aba00",
+  "observedAtUtc": "2026-08-22T14:41:29Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
