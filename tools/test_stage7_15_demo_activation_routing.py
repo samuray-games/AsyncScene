@@ -24,6 +24,9 @@ resume = boot[boot.index("if (resumeMode"):boot.index("if (S.flags.started")]
 docs_fresh = docs_boot[docs_boot.index("// Stage 7.15 demo is the public fresh-start entry"):]
 helper_start = boot.index("  function claimStage715FreshStart")
 helper_end = boot.index("\n\n  function startGame", helper_start)
+fresh_route_start = boot.index("const STAGE715_DEMO_FRESH_START_ENABLED")
+fresh_route_end = boot.index("// Welcome", fresh_route_start)
+fresh_route = boot[fresh_route_start:fresh_route_end]
 
 require("const STAGE715_DEMO_FRESH_START_ENABLED = true;" in fresh, "fresh-start rollout switch missing")
 require("S.flags.stage715Demo = true;" in fresh, "fresh-start activation flag missing")
@@ -31,6 +34,8 @@ require(fresh.index("S.flags.stage715Demo = true;") < fresh.index("claimStage715
 require("S.flags.stage715Demo = true;" not in resume, "resume must not implicitly activate demo")
 require("S.flags.stage715Demo = true;" in docs_fresh, "docs fresh-start activation flag missing")
 require("firstExperience.claimResume" in boot, "legacy resume fallback must remain")
+require("Stage7FirstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
+require("firstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
 
 docs_helper_start = docs_boot.index("  function claimStage715FreshStart")
 docs_helper_end = docs_boot.index("\n\n  function startGame", docs_helper_start)
