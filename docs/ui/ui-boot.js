@@ -1542,6 +1542,12 @@ window.Game = window.Game || {};
         if (UI.startLoops) UI.startLoops();
         UI.renderAll && UI.renderAll();
       };
+      // Stage 7.15 demo is the public fresh-start entry while this rollout
+      // switch remains enabled. Resume never receives this flag implicitly.
+      const STAGE715_DEMO_FRESH_START_ENABLED = true;
+      if (STAGE715_DEMO_FRESH_START_ENABLED) {
+        S.flags.stage715Demo = true;
+      }
       const stage715Demo = G.Stage715Demo;
       if (stage715Demo
         && typeof stage715Demo.isActive === "function"
