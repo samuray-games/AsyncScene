@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-demo-corridor-isolation-20260823",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-demo-corridor-isolation-20260823\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "ddf3bd5fefdaad6f17c139c70770a33d5c4cb485\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "# branch.oid ddf3bd5fefdaad6f17c139c70770a33d5c4cb485\n# branch.head codex/stage7-15-demo-corridor-isolation-20260823\n# branch.upstream origin/codex/stage7-15-demo-corridor-isolation-20260823\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "ddf3bd5f (HEAD -> codex/stage7-15-demo-corridor-isolation-20260823, origin/codex/stage7-15-demo-corridor-isolation-20260823) fix(stage7): isolate scripted demo corridor\n242d6b5d (origin/main) Merge pull request #372 from samuray-games/codex/stage715-fresh-start-classification-fix\nf6f84908 (origin/codex/stage715-fresh-start-classification-fix) fix: classify Stage7.15 fresh starts before persistence\n89daa35c Merge pull request #371 from samuray-games/codex/stage715-runtime-routing-fix-20260823\n656594a8 (origin/codex/stage715-runtime-routing-fix-20260823) test(stage7): forbid legacy fresh-start routing fallback\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ddf3bd5fefdaad6f17c139c70770a33d5c4cb485\nbranch refs/heads/codex/stage7-15-demo-corridor-isolation-20260823\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T17:33:29Z",
+      "stderr": "",
+      "stdout": "242d6b5d9573424052377184e4ec3997417c82ae\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ddf3bd5fefdaad6f17c139c70770a33d5c4cb485",
+  "observedAtUtc": "2026-08-22T17:33:29Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
