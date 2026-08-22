@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-runtime-routing-fix-20260823",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:31Z",
+      "stderr": "",
+      "stdout": "codex/stage715-runtime-routing-fix-20260823\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:31Z",
+      "stderr": "",
+      "stdout": "656594a87b952752111b47f2ddefd088b3f80778\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:32Z",
+      "stderr": "",
+      "stdout": "# branch.oid 656594a87b952752111b47f2ddefd088b3f80778\n# branch.head codex/stage715-runtime-routing-fix-20260823\n# branch.upstream origin/codex/stage715-runtime-routing-fix-20260823\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:32Z",
+      "stderr": "",
+      "stdout": "656594a8 (HEAD -> codex/stage715-runtime-routing-fix-20260823, origin/codex/stage715-runtime-routing-fix-20260823) test(stage7): forbid legacy fresh-start routing fallback\n43b1ab51 fix(stage7): prevent legacy fresh-start prelude fallback\n01b5b84c (origin/main) Merge pull request #370 from samuray-games/codex/stage715-demo-activation-routing-fix\n64395038 (origin/codex/stage715-demo-activation-routing-fix) fix: route fresh Stage 7.15 entry to demo\n7c13117b Merge pull request #369 from samuray-games/codex/stage715-pages-cache-refresh-20260822\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:32Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 656594a87b952752111b47f2ddefd088b3f80778\nbranch refs/heads/codex/stage715-runtime-routing-fix-20260823\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:32Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:01:32Z",
+      "stderr": "",
+      "stdout": "01b5b84c933d762bab4278864618a535e88e25c3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "656594a87b952752111b47f2ddefd088b3f80778",
+  "observedAtUtc": "2026-08-22T16:01:32Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
