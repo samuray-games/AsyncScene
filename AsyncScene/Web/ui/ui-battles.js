@@ -145,6 +145,16 @@
       && demo.isOlegEscapeBattle(battle));
   }
 
+  function isStage715RayhanScriptedBattle(battle) {
+    return !!(battle && battle.meta && battle.meta.stage715RayhanScripted === true);
+  }
+
+  function stage715BattleBlockName() {
+    const title = document.querySelector("#battlesHeader .battleTitleText");
+    const raw = title && title.textContent ? title.textContent.trim() : "Баттлы";
+    return raw.replace(/^[^А-Яа-яA-Za-zЁё]+|[^А-Яа-яA-Za-zЁё]+$/g, "").toLowerCase() || "баттлы";
+  }
+
   function shouldHideStage715BattleBlock() {
     const demo = Game && Game.Stage715Demo;
     if (!demo || typeof demo.isActive !== "function") return false;
@@ -1541,7 +1551,7 @@ UI.renderBattles = () => {
       const battlesCount = Array.isArray(S.battles) ? S.battles.length : 0;
       const displayCount = Math.max(collapsedCount, battlesCount);
       const battleTitle = header.querySelector(".battleTitleText");
-      if (battleTitle) battleTitle.textContent = t("battle_invite_title");
+      if (battleTitle) battleTitle.textContent = stage715BattleBlockName();
       const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
       if (countWrapper) countWrapper.style.display = (displayCount || showZeroCount) ? "" : "none";
       countEl.textContent = String(displayCount);
@@ -1659,7 +1669,7 @@ UI.renderBattles = () => {
         // Show button for opening the invite flow.
         const inviteBtn = document.createElement("button");
         inviteBtn.className = "btn";
-        inviteBtn.textContent = t("battle_invite_title");
+        inviteBtn.textContent = `пошли в ${stage715BattleBlockName()}`;
         inviteBtn.onclick = (e) => {
           stop(e);
           UI._battleInvite = UI._battleInvite || {};
@@ -3116,7 +3126,9 @@ UI.renderBattles = () => {
 
           const isMafiaBattle = !!(opp && opp.role === "mafia");
           const isStage715Escape = isStage715OlegEscapeBattle(b);
+          const isStage715Rayhan = isStage715RayhanScriptedBattle(b);
 
+          if (!isStage715Rayhan) {
           const sm = document.createElement("button");
           sm.className = "btn small";
 
@@ -3193,6 +3205,7 @@ UI.renderBattles = () => {
             actions.appendChild(offWrap);
             
             // Removed "Недоступно." pill - now showing toast on button click instead
+          }
           }
 
           card.appendChild(actions);
