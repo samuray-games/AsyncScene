@@ -3018,6 +3018,10 @@ window.Game = window.Game || {};
   const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
   const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
   const OLEG_DM_ID = "npc_bandit";
+  const STAGE715_PROGRESSIVE_INIT_FLAG = "stage715ProgressiveDisclosureInitialized";
+  const STAGE715_BATTLES_REVEALED_FLAG = "stage715BattlesPanelRevealed";
+  const STAGE715_DM_REVEALED_FLAG = "stage715DmPanelRevealed";
+  const STAGE715_EVENTS_REVEALED_FLAG = "stage715EventsPanelRevealed";
   const OLEG_BATTLE_LINE = "слыш ты, совсем нюх потерялся да? надо тебя на место поставить.";
   const OLEG_BATTLE_PROMPT = "Где будем разбираться?";
   const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?";
@@ -3039,6 +3043,16 @@ window.Game = window.Game || {};
     Object.freeze({ id: "npc_stage7_mika", name: "Настя", role: "crowd" }),
     Object.freeze({ id: "npc_bandit", name: "Олег", role: "bandit" }),
   ]);
+
+  function isStage715DemoBattle(battle) {
+    if (!battle || typeof battle !== "object") return false;
+    const meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    return meta.stage715DemoBattle === true
+      || meta.stage7_15_demo_battle === true
+      || meta.demoId === "stage7_15_first_battle"
+      || meta.sourceTag === DEMO_SOURCE_TAG
+      || battle.sourceTag === DEMO_SOURCE_TAG;
+  }
 
   let context = null;
   let active = false;
@@ -3120,6 +3134,57 @@ window.Game = window.Game || {};
       && !!(state && state.flags && state.flags.stage715OlegDmActive === true);
   }
 
+  function revealPanelOnce(panelKey, stateFlag, telemetryId) {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || !state.flags) return false;
+    if (state.flags[stateFlag] === true) return false;
+    state.flags[stateFlag] = true;
+    if (panelKey === "events" && typeof UI.ensureEventsExpanded === "function") {
+      if (typeof UI.setPanelSize === "function") UI.setPanelSize("events", "medium");
+      UI.ensureEventsExpanded();
+    } else if (typeof UI.ensurePanelExpanded === "function") {
+      UI.ensurePanelExpanded(panelKey);
+    } else if (typeof UI.setPanelSize === "function") {
+      UI.setPanelSize(panelKey, "medium");
+    }
+    saveState();
+    if (telemetryId) telemetry(telemetryId);
+    return true;
+  }
+
+  function initializeProgressiveDisclosure(mode) {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || mode !== "fresh") return false;
+    state.flags = state.flags || {};
+    if (state.flags[STAGE715_PROGRESSIVE_INIT_FLAG] === true) return false;
+    if (typeof UI.setPanelSize === "function") {
+      UI.setPanelSize("battles", "collapsed");
+      UI.setPanelSize("dm", "collapsed");
+      UI.setPanelSize("events", "collapsed");
+    }
+    if (typeof UI.setEventsCollapsed === "function") UI.setEventsCollapsed(true);
+    state.flags[STAGE715_PROGRESSIVE_INIT_FLAG] = true;
+    saveState();
+    return true;
+  }
+
+  function revealBattlesPanel() {
+    return revealPanelOnce("battles", STAGE715_BATTLES_REVEALED_FLAG, "stage715_battles_panel_revealed");
+  }
+
+  function revealEventsPanel() {
+    return revealPanelOnce("events", STAGE715_EVENTS_REVEALED_FLAG, "stage715_events_panel_revealed");
+  }
+
+  function shouldRevealBattleBlock() {
+    const state = stateFor();
+    if (!state || !state.flags) return false;
+    if (state.flags[STAGE715_BATTLES_REVEALED_FLAG] === true) return true;
+    return (state.battles || []).some((battle) => isStage715DemoBattle(battle));
+  }
+
   function focusOlegDmLine() {
     try {
       const box = document.getElementById("dmLog");
@@ -3156,14 +3221,19 @@ window.Game = window.Game || {};
       state.flags.stage715OlegDmLineSent = true;
     }
     state.dm = state.dm && typeof state.dm === "object" ? state.dm : {};
-    state.dm.openIds = [OLEG_DM_ID];
-    state.dm.activeId = OLEG_DM_ID;
-    state.dm.withId = OLEG_DM_ID;
-    state.dm.open = true;
+    if (!alreadyOpened) {
+      revealPanelOnce("dm", STAGE715_DM_REVEALED_FLAG, "stage715_dm_panel_revealed");
+      state.dm.openIds = [OLEG_DM_ID];
+      state.dm.activeId = OLEG_DM_ID;
+      state.dm.withId = OLEG_DM_ID;
+      state.dm.open = true;
+    }
     saveState();
-    if (typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);
-    if (typeof UI.renderDM === "function") UI.renderDM();
-    focusOlegDmLine();
+    if (!alreadyOpened && typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);
+    if (state.dm.open && typeof UI.renderDM === "function") {
+      UI.renderDM();
+      if (!alreadyOpened) focusOlegDmLine();
+    }
     if (!alreadyOpened) telemetry("stage715_oleg_dm_opened");
     render();
     return true;
@@ -3335,6 +3405,7 @@ window.Game = window.Game || {};
     if (!state || !conflict || typeof conflict.incoming !== "function") return false;
     const existing = stage715BattleById(FIRST_BATTLE_ID);
     if (existing) {
+      revealBattlesPanel();
       phase = battleOutcome(existing) ? phase : "battle_unlocked";
       saveState();
       return true;
@@ -3349,6 +3420,7 @@ window.Game = window.Game || {};
       sourceTag: DEMO_SOURCE_TAG,
     });
     phase = "battle_unlocked";
+    revealBattlesPanel();
     saveState();
     telemetry("stage715_battle_unlocked");
     render();
@@ -3690,6 +3762,7 @@ window.Game = window.Game || {};
     const state = stateFor(context);
     ensurePlayers(state);
     saveState();
+    initializeProgressiveDisclosure(mode);
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();
@@ -3799,6 +3872,9 @@ window.Game = window.Game || {};
     claimResume,
     handlePlayerMessage,
     handleOlegDmReply,
+    revealBattlesPanel,
+    revealEventsPanel,
+    shouldRevealBattleBlock,
     isOlegDmRestrictedThread,
     isOlegEscapeBattle,
     startOlegEscape,

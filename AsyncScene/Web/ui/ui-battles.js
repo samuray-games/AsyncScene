@@ -1557,7 +1557,10 @@ UI.renderBattles = () => {
    if (!S.flags.battlesSize) S.flags.battlesSize = "medium";
 
    const keepMobileDefaultCollapsed = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
-   if (!keepMobileDefaultCollapsed && !UI._battlesInitExpanded) {
+   const stage715Progressive = Game && Game.Stage715Demo
+     && typeof Game.Stage715Demo.isActive === "function"
+     && Game.Stage715Demo.isActive({ state: S, UI });
+   if (!keepMobileDefaultCollapsed && !stage715Progressive && !UI._battlesInitExpanded) {
      UI._battlesInitExpanded = true;
      try {
        if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");
