@@ -44,7 +44,15 @@ baseline_boot = subprocess.check_output(
     ["git", "show", "origin/main:AsyncScene/Web/ui/ui-boot.js"], cwd=ROOT, text=True
 )
 baseline_resume = baseline_boot[baseline_boot.index("if (resumeMode"):baseline_boot.index("if (S.flags.started")]
-require(resume == baseline_resume, "resume routing changed")
+require(resume.replace("        persistFirstUiProfileSelection(UI, uiProfile);\n", "") == baseline_resume, "resume routing changed")
+
+run_start = boot[boot.index("  function startGame(UI)"):boot.index("\n\n  function installOnboardingDevHooks", boot.index("  function startGame(UI)"))]
+run_start_handler = boot[boot.index("    const runStart = (source, e) =>"):boot.index("\n\n    // Bind only direct button handlers", boot.index("    const runStart = (source, e) =>"))]
+require("persistFirstUiProfileSelection(UI, uiProfile);" not in run_start_handler, "start handler persists profile before classification")
+require(run_start.index("const resumeMode = getOnboardingSeen(UI);") < run_start.index("if (resumeMode"), "resume mode must be classified before routing")
+require(run_start.index("if (resumeMode") < run_start.index("persistFirstUiProfileSelection(UI, uiProfile);"), "resume persistence must follow classification")
+require("onboardingSeen: false" in run_start, "fresh reset must keep onboardingSeen false before routing")
+require(run_start.index("claimStage715FreshStart(G, UI, S, name, startNormalWorld)") < run_start.index("persistFirstUiProfileSelection(UI, uiProfile);", run_start.index("claimStage715FreshStart(G, UI, S, name, startNormalWorld)")), "fresh persistence must follow routing")
 
 helper_source = boot[helper_start:helper_end]
 
@@ -65,6 +73,59 @@ runtime_harness = textwrap.dedent(f"""
 """)
 
 subprocess.run(["node", "-e", runtime_harness], cwd=ROOT, check=True)
+
+start_source = run_start
+start_runtime_harness = textwrap.dedent(f"""
+  const events = [];
+  function markBootDiag() {{}}
+  function getStartName() {{ return "Test"; }}
+  function getAuthorizedStateTargets(UI) {{ return [UI.S]; }}
+  function getOnboardingSeen(UI) {{ return UI.S.progress.onboardingSeen === true; }}
+  function setOnboardingSeen(UI, value) {{ UI.S.progress.onboardingSeen = value === true; events.push("setOnboardingSeen:" + value); }}
+  function applyUiProfileBeforeEnter() {{ return "zoomer"; }}
+  function readUiProfileResolverValue() {{ return "zoomer"; }}
+  function persistFirstUiProfileSelection(UI) {{ events.push("persist:" + UI.S.progress.onboardingSeen); UI.S.progress.onboardingSeen = true; }}
+  function ensureStartScreenHidden() {{}}
+  function claimStage715FreshStart(G, UI, S, name, startNormalWorld) {{
+    const demo = G.Stage715Demo;
+    if (demo && demo.isActive({{ UI, state: S }}) && typeof demo.claimFreshStart === "function") {{
+      const claim = demo.claimFreshStart({{ UI, state: S, playerName: name, startNormalWorld }});
+      return !!(claim && claim.claimed === true);
+    }}
+    return false;
+  }}
+  const window = {{ Game: {{ Data: {{ START_POINTS_PLAYER: 0 }}, Stage715Demo: {{}}, Stage7FirstExperience: {{}} }} }};
+  const document = {{ getElementById: () => ({{ textContent: "", style: {{}} }}) }};
+  function makeUI(onboardingSeen) {{
+    const S = {{ flags: {{}}, progress: {{ onboardingSeen }}, me: {{}}, players: {{}} }};
+    return {{ S, $: () => ({{ textContent: "", style: {{}} }}), buildPlayers() {{}}, renderAll() {{}}, startLoops() {{}}, applyMobilePanelDefaults() {{}}, closeDM() {{}}, pushSystem() {{}}, pushChat() {{}} }};
+  }}
+  {start_source}
+
+  let UI = makeUI(false);
+  window.Game.Stage715Demo = {{
+    isActive: () => true,
+    claimFreshStart: () => {{
+      events.push("demo.claimFreshStart:" + UI.S.progress.onboardingSeen);
+      return {{ claimed: true }};
+    }}
+  }};
+  window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume"); return {{ claimed: true }}; }} }};
+  startGame(UI);
+  if (events.indexOf("demo.claimFreshStart:false") < 0) throw new Error("fresh demo did not see onboardingSeen=false: " + events.join(","));
+  if (events.indexOf("legacy.claimResume") >= 0) throw new Error("fresh path called legacy resume: " + events.join(","));
+  if (UI.S.progress.onboardingSeen !== true) throw new Error("fresh profile was not persisted after routing");
+
+  events.length = 0;
+  UI = makeUI(true);
+  window.Game.Stage715Demo = {{ isActive: () => false }};
+  window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume:" + UI.S.progress.onboardingSeen); return {{ claimed: true }}; }} }};
+  startGame(UI);
+  if (events.join(",") !== "persist:true,legacy.claimResume:true") throw new Error("existing resume path changed: " + events.join(","));
+  console.log("PASS_STAGE7_15_START_CLASSIFICATION");
+""")
+
+subprocess.run(["node", "-e", start_runtime_harness], cwd=ROOT, check=True)
 
 changed = set(subprocess.check_output(
     ["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True

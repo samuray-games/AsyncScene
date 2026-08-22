@@ -1248,7 +1248,6 @@ window.Game = window.Game || {};
       } catch (_) {}
       try {
         const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
-        persistFirstUiProfileSelection(UI, uiProfile);
         if (UI && UI.S) {
           UI.S.flags = UI.S.flags || {};
           UI.S.flags.uiProfile = uiProfile;
@@ -1385,10 +1384,10 @@ window.Game = window.Game || {};
         G.__DEV.__uiProfileAppliedBeforeEnter = false;
       }
       const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
-      persistFirstUiProfileSelection(UI, uiProfile);
       markBootDiag(`UI_PROFILE_RESOLVED:${uiProfile}`);
 
       if (resumeMode && !(S.flags.started || S.isStarted === true)) {
+        persistFirstUiProfileSelection(UI, uiProfile);
         markBootDiag("START_RESUME_MODE");
         stateTargets.forEach((state) => {
           state.flags = state.flags || {};
@@ -1455,7 +1454,6 @@ window.Game = window.Game || {};
       }
 
       markBootDiag("START_STEP_2");
-      setOnboardingSeen(UI, true);
       stateTargets.forEach((state) => {
         state.flags = state.flags || {};
         state.flags.started = true;
@@ -1490,7 +1488,7 @@ window.Game = window.Game || {};
         S.me.oneShots = [];
         S.rep = 0;
         S.influence = 0;
-        S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0, onboardingSeen: true };
+        S.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0, onboardingSeen: false };
       };
       if (typeof G._withPointsWrite === "function") {
         G._withPointsWrite(resetPlayerState);
@@ -1564,9 +1562,13 @@ window.Game = window.Game || {};
         S.flags.stage715Demo = true;
       }
       if (claimStage715FreshStart(G, UI, S, name, startNormalWorld)) {
+        persistFirstUiProfileSelection(UI, uiProfile);
+        setOnboardingSeen(UI, true);
         ensureStartScreenHidden(UI);
         return;
       }
+      persistFirstUiProfileSelection(UI, uiProfile);
+      setOnboardingSeen(UI, true);
       // Welcome
       if (G.Data && G.Data.SYS && G.Data.SYS.joined) UI.pushSystem && UI.pushSystem(G.Data.SYS.joined(name));
       else UI.pushSystem && UI.pushSystem(`${name} пришел(а) на площадь.`);
