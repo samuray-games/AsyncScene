@@ -26,6 +26,8 @@ battles = BATTLES.read_text(encoding="utf-8")
 
 for marker in (
     'const NPC_MESSAGE_GAP_MS = 900',
+    'const NPC_TYPING_MIN_MS = 1100',
+    'function npcTypingDelayMs(text)',
     'let npcQueue = []',
     'function drainNpcQueue()',
     'stage715RayhanScripted: true',
@@ -36,12 +38,12 @@ for marker in (
 ):
     require(marker in stage, f"missing Safari corridor contract: {marker}")
 
-require('const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });' in stage,
-        "controller must retain canonical battle creation entrypoint")
+require('function scriptedRayhanBattle(state)' in stage and 'function handleRayhanDefenseChoice' in stage,
+        "controller must own deterministic Rayhan battle creation and choice routing")
 require('stage715RayhanScripted' in battles and 'if (!isStage715Rayhan)' in battles,
         "scripted Rayhan battle must suppress ordinary battle controls")
-require('`пошли в ${stage715BattleBlockName()}`' in battles,
-        "battle invite text must derive from the current block title")
+require('stage715DemoActive ? "Вызвать"' in battles,
+        "Stage 7.15 challenge button must use the scripted label")
 require('speakerId: null' in stage,
         "Stage 7.15 scripted bubbles must not carry DM speaker identity")
 

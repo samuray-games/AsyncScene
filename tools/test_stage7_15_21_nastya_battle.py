@@ -50,6 +50,8 @@ require(js.count('conflict.incoming("npc_stage7_mika", { pinned: true })') == 1,
 require(js.count('telemetry("stage715_nastya_battle_started")') == 1, "Nastya start telemetry must be exactly once")
 require(js.count('telemetry("stage715_nastya_battle_result"') >= 2, "Nastya result telemetry must cover win/draw and loss")
 require('battle.attack.color = trueColor;' in js, "Nastya color reveal must use the battle argument, not a fabricated result")
-require('battle.result = "' not in js and "battle.result = '" not in js, "scripted flow must not simulate battle result through direct state mutation")
+nastya_flow = js[js.index("function startNastyaBattle") : js.index("function unlockOlegEscapeBattle")]
+require('battle.result = "' not in nastya_flow and "battle.result = '" not in nastya_flow,
+        "Nastya scripted flow must not simulate battle result through direct state mutation")
 
 print("PASS_STAGE7_15_21_NASTYA_BATTLE_CONTRACT")

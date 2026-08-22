@@ -25,13 +25,15 @@ for text in (
     'telemetry("stage715_tone_answered")',
     'telemetry("stage715_battle_unlocked")',
     'phase === "tone_prompted"',
-    'const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });',
+    'function scriptedRayhanBattle(state)',
+    'function handleRayhanDefenseChoice',
     'stage715DemoBattle: true',
     'demoId: "stage7_15_first_battle"',
 ):
     require(text in js, f"missing Stage 7.15 contract: {text}")
 
-require(js.count('conflict.incoming("npc_stage7_ken", { pinned: true })') == 1, "demo must create one incoming first battle")
+require('conflict.incoming("npc_stage7_ken", { pinned: true })' not in js, "demo must not create Rayhan battle through normal conflict engine")
+require('const RAYHAN_BATTLE_CHOICES = Object.freeze([' in js, "demo must own deterministic Rayhan choices")
 require('if (phase === "intro") playIntro();' in js, "resume must not replay intro after a later phase")
 
 print("PASS_STAGE7_15_TONE_FIRST_BATTLE_CONTRACT")

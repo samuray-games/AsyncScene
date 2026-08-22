@@ -1656,8 +1656,26 @@ UI.renderBattles = () => {
       }, 0);
     } catch (_) {}
 
-    // Invite to battle button → input with dropdown when clicked
+    // Invite to battle button → input with dropdown when clicked.
+    // Stage715Demo exposes this control only after the scripted Oleg flow.
     {
+      const stage715Demo = Game && Game.Stage715Demo;
+      const stage715DemoActive = !!(stage715Demo
+        && typeof stage715Demo.isActive === "function"
+        && stage715Demo.isActive({ state: S, UI }));
+      const stage715InviteAvailable = !stage715DemoActive
+        || typeof stage715Demo.isChallengeButtonAvailable !== "function"
+        || stage715Demo.isChallengeButtonAvailable({ state: S, UI });
+      if (!stage715InviteAvailable) {
+        if (!Array.isArray(S.battles) || S.battles.length === 0) {
+          const hint = document.createElement("div");
+          hint.className = "hint";
+          hint.textContent = t("battles_empty");
+          body.appendChild(hint);
+        }
+        try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
+        return;
+      }
       const inviteRow = document.createElement("div");
       inviteRow.className = "actions";
       inviteRow.style.position = "relative";
@@ -1669,7 +1687,7 @@ UI.renderBattles = () => {
         // Show button for opening the invite flow.
         const inviteBtn = document.createElement("button");
         inviteBtn.className = "btn";
-        inviteBtn.textContent = `пошли в ${stage715BattleBlockName()}`;
+        inviteBtn.textContent = stage715DemoActive ? "Вызвать" : `пошли в ${stage715BattleBlockName()}`;
         inviteBtn.onclick = (e) => {
           stop(e);
           UI._battleInvite = UI._battleInvite || {};
@@ -1734,7 +1752,7 @@ UI.renderBattles = () => {
 
         const battleBtn = document.createElement("button");
         battleBtn.className = "btn small";
-        battleBtn.textContent = t("battle_action_attack");
+        battleBtn.textContent = stage715DemoActive ? "Вызвать" : t("battle_action_attack");
         battleBtn.onclick = (e) => {
           stop(e);
           // Start battle from input value
@@ -2885,6 +2903,8 @@ UI.renderBattles = () => {
 
           let choices = null;
           const stage7Controller = Game && Game.Stage7FirstExperience;
+          const stage715DemoController = Game && Game.Stage715Demo;
+          const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
           const restoredPayChoices = stage7Controller
             && typeof stage7Controller.choosePayDefenseChoices === "function"
             ? stage7Controller.choosePayDefenseChoices(b.id)
@@ -2895,6 +2915,8 @@ UI.renderBattles = () => {
             if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
               UI._battleChoiceCache.defense[String(b.id)] = restoredPayChoices;
             }
+          } else if (stage715RayhanDemo && Array.isArray(b._defenseChoices)) {
+            choices = b._defenseChoices.slice(0, 3);
           } else {
             choices = _getOrBuildChoices(b, "_defenseChoices", buildDefenseChoices);
             const preparedPayChoices = stage7Controller
@@ -2910,7 +2932,11 @@ UI.renderBattles = () => {
             }
           }
 
-          const pickDefenseFn = (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
+          const pickDefenseFn = stage715RayhanDemo
+            && stage715DemoController
+            && typeof stage715DemoController.handleRayhanDefenseChoice === "function"
+            ? stage715DemoController.handleRayhanDefenseChoice
+            : (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
             ? Game.Conflict.pickDefense
             : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")
               ? Game.Conflict.chooseDefense
