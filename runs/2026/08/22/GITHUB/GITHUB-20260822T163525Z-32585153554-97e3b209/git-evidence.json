@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-fresh-start-classification-fix",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "codex/stage715-fresh-start-classification-fix\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "f6f849089bd2179b7878636d85af8f34ba48a569\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "# branch.oid f6f849089bd2179b7878636d85af8f34ba48a569\n# branch.head codex/stage715-fresh-start-classification-fix\n# branch.upstream origin/codex/stage715-fresh-start-classification-fix\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "f6f84908 (HEAD -> codex/stage715-fresh-start-classification-fix, origin/codex/stage715-fresh-start-classification-fix) fix: classify Stage7.15 fresh starts before persistence\n89daa35c (origin/main) Merge pull request #371 from samuray-games/codex/stage715-runtime-routing-fix-20260823\n656594a8 (origin/codex/stage715-runtime-routing-fix-20260823) test(stage7): forbid legacy fresh-start routing fallback\n43b1ab51 fix(stage7): prevent legacy fresh-start prelude fallback\n01b5b84c Merge pull request #370 from samuray-games/codex/stage715-demo-activation-routing-fix\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f6f849089bd2179b7878636d85af8f34ba48a569\nbranch refs/heads/codex/stage715-fresh-start-classification-fix\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-22T16:35:25Z",
+      "stderr": "",
+      "stdout": "89daa35cb13687ee665a6e63b3079a6305a34ae3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f6f849089bd2179b7878636d85af8f34ba48a569",
+  "observedAtUtc": "2026-08-22T16:35:25Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
