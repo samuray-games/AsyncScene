@@ -3039,6 +3039,14 @@ window.Game = window.Game || {};
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
   const NPC_MESSAGE_GAP_MS = 900;
+  const NPC_TYPING_MIN_MS = 1100;
+  const NPC_TYPING_MAX_MS = 2800;
+  const NPC_TYPING_CHARS_MS = 24;
+  const RAYHAN_BATTLE_CHOICES = Object.freeze([
+    Object.freeze({ id: "stage715_rayhan_answer_1", type: "yn", group: "yn", text: "Похоже, ты…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_2", type: "yn", group: "yn", text: "Кажется, прямо тут…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_3", type: "yn", group: "yn", text: "Наверное, да…" }),
+  ]);
   const NPCS = Object.freeze([
     Object.freeze({ id: "npc_stage7_ken", name: "Райхан", role: "crowd" }),
     Object.freeze({ id: "npc_stage7_mika", name: "Настя", role: "crowd" }),
@@ -3064,6 +3072,7 @@ window.Game = window.Game || {};
   let escapeWatchTimer = null;
   let npcQueue = [];
   let npcQueueTimer = null;
+  let npcTyping = null;
   let firstBattleWatchTimer = null;
 
   function queryEnabled() {
@@ -3096,6 +3105,7 @@ window.Game = window.Game || {};
     if (npcQueueTimer) clearTimeout(npcQueueTimer);
     npcQueueTimer = null;
     npcQueue = [];
+    npcTyping = null;
     if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
     firstBattleWatchTimer = null;
   }
@@ -3217,6 +3227,7 @@ window.Game = window.Game || {};
     const alreadyOpened = state.flags.stage715OlegDmOpened === true;
     state.flags.stage715OlegDmActive = true;
     state.flags.stage715OlegDmOpened = true;
+    state.flags.stage715OlegFlowComplete = true;
     if (!alreadyOpened) {
       state.flags.stage715OlegDmReplied = false;
     }
@@ -3304,24 +3315,52 @@ window.Game = window.Game || {};
     drainNpcQueue();
   }
 
+  function npcTypingDelayMs(text) {
+    const length = String(text || "").trim().length;
+    return Math.max(NPC_TYPING_MIN_MS, Math.min(NPC_TYPING_MAX_MS, length * NPC_TYPING_CHARS_MS));
+  }
+
+  function setNpcTyping(entry) {
+    npcTyping = entry ? { name: entry.name, text: entry.text } : null;
+    if (context && typeof context.onTyping === "function") {
+      try { context.onTyping(npcTyping); } catch (_) {}
+    }
+  }
+
   function drainNpcQueue() {
     if (npcQueueTimer || !npcQueue.length) return;
     const entry = npcQueue.shift();
     const UI = context && context.UI;
     if (!UI || typeof UI.pushChat !== "function") return;
-    UI.pushChat({
-      name: entry.name,
-      text: entry.text,
-      system: false,
-      speakerId: null,
-      sourceTag: DEMO_SOURCE_TAG,
-      preserveText: true,
-    });
-    render();
+    setNpcTyping(entry);
     npcQueueTimer = setTimeout(() => {
       npcQueueTimer = null;
-      drainNpcQueue();
-    }, Math.max(NPC_MESSAGE_GAP_MS, Math.min(2200, String(entry.text || "").length * 28)));
+      setNpcTyping(null);
+      UI.pushChat({
+        name: entry.name,
+        text: entry.text,
+        system: false,
+        speakerId: null,
+        sourceTag: DEMO_SOURCE_TAG,
+        preserveText: true,
+      });
+      render();
+      npcQueueTimer = setTimeout(() => {
+        npcQueueTimer = null;
+        drainNpcQueue();
+      }, NPC_MESSAGE_GAP_MS);
+    }, npcTypingDelayMs(entry.text));
+  }
+
+  function withDemoChatIsolation(callback) {
+    const npc = G.NPC;
+    const reaction = npc && npc.generateReactionToMe;
+    if (npc && typeof reaction === "function") npc.generateReactionToMe = null;
+    try {
+      return callback();
+    } finally {
+      if (npc && typeof reaction === "function") npc.generateReactionToMe = reaction;
+    }
   }
 
   function pushPlayer(text) {
@@ -3329,7 +3368,7 @@ window.Game = window.Game || {};
     const state = stateFor();
     if (!UI || !state || typeof UI.pushChat !== "function") return;
     const playerName = String(state.me && state.me.name || context.playerName || "игрок").trim() || "игрок";
-    UI.pushChat({
+    withDemoChatIsolation(() => UI.pushChat({
       name: playerName,
       text,
       system: false,
@@ -3337,7 +3376,7 @@ window.Game = window.Game || {};
       isMe: true,
       sourceTag: DEMO_SOURCE_TAG,
       preserveText: true,
-    });
+    }));
     render();
   }
 
@@ -3384,6 +3423,73 @@ window.Game = window.Game || {};
     return battles.find((battle) => battle && battle.opponentId === opponentId && battle.status === "pickDefense") || null;
   }
 
+  function scriptedRayhanBattle(state) {
+    if (!state) return null;
+    state.battles = Array.isArray(state.battles) ? state.battles : [];
+    const existing = stage715BattleById(FIRST_BATTLE_ID);
+    if (existing) return existing;
+    const choices = RAYHAN_BATTLE_CHOICES.map((choice) => Object.assign({}, choice, {
+      displayText: choice.text,
+      color: null,
+    }));
+    const battle = {
+      id: FIRST_BATTLE_ID,
+      battleId: FIRST_BATTLE_ID,
+      opponentId: "npc_stage7_ken",
+      attackerId: "npc_stage7_ken",
+      defenderId: state.me && state.me.id || "me",
+      status: "pickDefense",
+      resolved: false,
+      finished: false,
+      result: null,
+      attackHidden: true,
+      attack: {
+        id: "stage7_15_rayhan_yellow_call",
+        text: "Извините, кто тут дерзкий??",
+        displayText: "Извините, кто тут дерзкий??",
+        color: "y",
+        _color: "y",
+        type: "yn",
+        qtype: "yn",
+        group: "yn",
+      },
+      _defenseChoices: choices,
+      _choicesForStatus: "pickDefense",
+      meta: {
+        stage715DemoBattle: true,
+        stage715BattleId: FIRST_BATTLE_ID,
+        demoId: "stage7_15_first_battle",
+        sourceTag: DEMO_SOURCE_TAG,
+        stage715RayhanScripted: true,
+      },
+    };
+    state.battles.push(battle);
+    return battle;
+  }
+
+  function handleRayhanDefenseChoice(battleId, choiceId) {
+    const battle = stage715BattleById(FIRST_BATTLE_ID);
+    if (!battle || String(battle.id) !== String(battleId)
+      || !battle.meta || battle.meta.stage715RayhanScripted !== true
+      || battle.status !== "pickDefense") return false;
+    const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
+    if (!choice) return false;
+    battle.defense = Object.assign({}, choice);
+    battle.status = "finished";
+    battle.resolved = true;
+    battle.finished = true;
+    battle.result = "win";
+    battle.outcome = "win";
+    battle.resultLine = "Ты ответил Райхану.";
+    const state = stateFor();
+    state.flags = state.flags || {};
+    state.flags.stage715RayhanChoiceId = choice.id;
+    saveState();
+    telemetry("stage715_rayhan_scripted_choice");
+    render();
+    return true;
+  }
+
   function isChoiceText(text, choice) {
     const value = String(text || "").trim().toLowerCase();
     return value === String(choice.id).toLowerCase()
@@ -3424,8 +3530,7 @@ window.Game = window.Game || {};
 
   function unlockFirstBattle() {
     const state = stateFor();
-    const conflict = G.Conflict;
-    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    if (!state) return false;
     const existing = stage715BattleById(FIRST_BATTLE_ID);
     if (existing) {
       revealBattlesPanel();
@@ -3433,35 +3538,12 @@ window.Game = window.Game || {};
       saveState();
       return true;
     }
-    const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });
-    const battle = resolveIncomingBattle(state, battleId, "npc_stage7_ken");
+    const battle = scriptedRayhanBattle(state);
     if (!battle || !battle.id) return false;
-    battle.id = FIRST_BATTLE_ID;
-    battle.battleId = FIRST_BATTLE_ID;
-    battle.attack = {
-      id: "stage7_15_rayhan_yellow_call",
-      text: "Извините, кто тут дерзкий??",
-      displayText: "Извините, кто тут дерзкий??",
-      color: "y",
-      _color: "y",
-      type: "yn",
-      group: "yn",
-    };
-    battle.attackHidden = true;
-    if (!prepareNastyaDefenseChoices(battle)) return false;
-    battle.meta = Object.assign({}, battle.meta || {}, {
-      stage715DemoBattle: true,
-      stage715BattleId: FIRST_BATTLE_ID,
-      demoId: "stage7_15_first_battle",
-      sourceTag: DEMO_SOURCE_TAG,
-      stage715RayhanScripted: true,
-    });
     phase = "battle_unlocked";
     revealBattlesPanel();
     saveState();
     telemetry("stage715_battle_unlocked");
-    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: "Извините, кто тут дерзкий??" });
-    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
     watchFirstBattle();
     render();
     return true;
@@ -3848,18 +3930,10 @@ window.Game = window.Game || {};
     pushPlayer(String(text).trim());
     if (silenceTimer) clearTimeout(silenceTimer);
     silenceTimer = null;
-    if (phase === "awaiting_first" || phase === "awaiting_first_after_nudge") {
-      phase = "awaiting_second";
-      saveState();
-      telemetry("demo_first_player_message");
-      const state = stateFor();
-      const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
-      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `привет, ${playerName}` });
-      return true;
-    }
-    if (phase === "awaiting_second") {
+    if (phase === "awaiting_first" || phase === "awaiting_first_after_nudge" || phase === "awaiting_second") {
       phase = "tone_prompted";
       saveState();
+      telemetry("demo_first_player_message");
       telemetry("stage715_tone_seen");
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_PROMPT });
       return true;
@@ -3917,6 +3991,36 @@ window.Game = window.Game || {};
     UI.sendChat = wrapped;
   }
 
+  function installDemoInteractionGuards() {
+    const input = document.getElementById("chatInput");
+    if (input && !input.__stage715DemoInteractionGuard) {
+      const blockMentionInteraction = (event) => {
+        if (!active) return;
+        const mentionList = document.getElementById("mentionList");
+        if (mentionList) mentionList.remove();
+        try { event.stopImmediatePropagation(); } catch (_) {}
+      };
+      ["focus", "click", "input"].forEach((type) => input.addEventListener(type, blockMentionInteraction, true));
+      input.addEventListener("keydown", (event) => {
+        if (!active) return;
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          try { event.stopImmediatePropagation(); } catch (_) {}
+        }
+      }, true);
+      input.__stage715DemoInteractionGuard = true;
+    }
+    const chatLog = document.getElementById("chatLog");
+    if (chatLog && !chatLog.__stage715DemoInteractionGuard) {
+      chatLog.addEventListener("click", (event) => {
+        if (!active) return;
+        const bubble = event.target && event.target.closest ? event.target.closest(".bubble") : null;
+        if (!bubble) return;
+        try { event.preventDefault(); event.stopImmediatePropagation(); } catch (_) {}
+      }, true);
+      chatLog.__stage715DemoInteractionGuard = true;
+    }
+  }
+
   function destroy() {
     clearTimers();
     active = false;
@@ -3925,20 +4029,27 @@ window.Game = window.Game || {};
   }
 
   installChatHook();
+  installDemoInteractionGuards();
   G.Stage715Demo = {
     isActive,
     claimFreshStart,
     claimResume,
     handlePlayerMessage,
+    handleRayhanDefenseChoice,
     handleOlegDmReply,
     revealBattlesPanel,
     revealEventsPanel,
     shouldRevealBattleBlock,
     isOlegDmRestrictedThread,
     isOlegEscapeBattle,
+    isChallengeButtonAvailable: () => {
+      if (!active) return true;
+      const state = stateFor();
+      return !!(state && state.flags && state.flags.stage715OlegFlowComplete === true);
+    },
     startOlegEscape,
     destroy,
-    getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG }),
+    getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),
   };
   if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
   G.__DEV.getStage715DemoState = () => ({ active, phase, enabled: isActive() });

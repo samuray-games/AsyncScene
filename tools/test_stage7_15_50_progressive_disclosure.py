@@ -31,6 +31,13 @@ allowed = {
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-battles.js",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_safari_corridor.py",
+    "tools/test_stage7_15_tone_first_battle.py",
+    "tools/test_stage7_15_21_nastya_battle.py",
+    "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_30_oleg_dm.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 
