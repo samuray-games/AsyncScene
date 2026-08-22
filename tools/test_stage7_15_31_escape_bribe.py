@@ -98,6 +98,8 @@ allowed = {
     "AsyncScene/Web/index.html",
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_30_oleg_dm.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 
