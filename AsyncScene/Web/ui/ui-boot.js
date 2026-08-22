@@ -1344,6 +1344,21 @@ window.Game = window.Game || {};
       });
   }
 
+  function claimStage715FreshStart(G, UI, S, name, startNormalWorld) {
+    const stage715Demo = G.Stage715Demo;
+    if (stage715Demo
+      && typeof stage715Demo.isActive === "function"
+      && stage715Demo.isActive({ UI, state: S })
+      && typeof stage715Demo.claimFreshStart === "function") {
+      const claim = stage715Demo.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
+      if (claim && claim.claimed === true) {
+        UI.renderAll && UI.renderAll();
+        return true;
+      }
+    }
+    return false;
+  }
+
   function startGame(UI) {
     let startHidden = false;
     try {
@@ -1544,28 +1559,10 @@ window.Game = window.Game || {};
       if (STAGE715_DEMO_FRESH_START_ENABLED) {
         S.flags.stage715Demo = true;
       }
-      const stage715Demo = G.Stage715Demo;
-      if (stage715Demo
-        && typeof stage715Demo.isActive === "function"
-        && stage715Demo.isActive({ UI, state: S })
-        && typeof stage715Demo.claimFreshStart === "function") {
-        const claim = stage715Demo.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
-        if (claim && claim.claimed === true) {
-          UI.renderAll && UI.renderAll();
-          ensureStartScreenHidden(UI);
-          return;
-        }
+      if (claimStage715FreshStart(G, UI, S, name, startNormalWorld)) {
+        ensureStartScreenHidden(UI);
+        return;
       }
-      const firstExperience = G.Stage7FirstExperience;
-      if (firstExperience && typeof firstExperience.claimFreshStart === "function") {
-        const claim = firstExperience.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
-        if (claim && claim.claimed === true) {
-          UI.renderAll && UI.renderAll();
-          ensureStartScreenHidden(UI);
-          return;
-        }
-      }
-
       // Welcome
       if (G.Data && G.Data.SYS && G.Data.SYS.joined) UI.pushSystem && UI.pushSystem(G.Data.SYS.joined(name));
       else UI.pushSystem && UI.pushSystem(`${name} пришел(а) на площадь.`);
