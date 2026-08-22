@@ -3003,7 +3003,7 @@ window.Game = window.Game || {};
     Object.freeze({ id: "nastya_greeting", speakerId: "npc_stage7_mika", name: "Настя", text: "Приветик!" }),
     Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "Здарова" }),
   ]);
-  const SILENCE_TEXT = "эээ, ты чо молчишь? я ващета с тобой разговариваю!";
+  const SILENCE_TEXT = "[ник игрока] слыш а ты чо не здороваешься!?";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
   const TONE_ACK = "ага, вижу. значит ты вот такой. интересно...";
   const TONE_BATTLE_INVITE = "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш";
@@ -3038,6 +3038,7 @@ window.Game = window.Game || {};
   const NASTYA_ORANGE_INFLUENCE = 8;
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
+  const NPC_MESSAGE_GAP_MS = 900;
   const NPCS = Object.freeze([
     Object.freeze({ id: "npc_stage7_ken", name: "Райхан", role: "crowd" }),
     Object.freeze({ id: "npc_stage7_mika", name: "Настя", role: "crowd" }),
@@ -3061,6 +3062,9 @@ window.Game = window.Game || {};
   let introTimers = [];
   let battleWatchTimer = null;
   let escapeWatchTimer = null;
+  let npcQueue = [];
+  let npcQueueTimer = null;
+  let firstBattleWatchTimer = null;
 
   function queryEnabled() {
     try {
@@ -3089,6 +3093,11 @@ window.Game = window.Game || {};
     battleWatchTimer = null;
     if (escapeWatchTimer) clearInterval(escapeWatchTimer);
     escapeWatchTimer = null;
+    if (npcQueueTimer) clearTimeout(npcQueueTimer);
+    npcQueueTimer = null;
+    npcQueue = [];
+    if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
+    firstBattleWatchTimer = null;
   }
 
   function saveState() {
@@ -3290,17 +3299,29 @@ window.Game = window.Game || {};
   }
 
   function pushNpc(entry) {
+    if (!entry || !String(entry.text || "").trim()) return;
+    npcQueue.push(Object.assign({}, entry));
+    drainNpcQueue();
+  }
+
+  function drainNpcQueue() {
+    if (npcQueueTimer || !npcQueue.length) return;
+    const entry = npcQueue.shift();
     const UI = context && context.UI;
     if (!UI || typeof UI.pushChat !== "function") return;
     UI.pushChat({
       name: entry.name,
       text: entry.text,
       system: false,
-      speakerId: entry.speakerId,
+      speakerId: null,
       sourceTag: DEMO_SOURCE_TAG,
       preserveText: true,
     });
     render();
+    npcQueueTimer = setTimeout(() => {
+      npcQueueTimer = null;
+      drainNpcQueue();
+    }, Math.max(NPC_MESSAGE_GAP_MS, Math.min(2200, String(entry.text || "").length * 28)));
   }
 
   function pushPlayer(text) {
@@ -3324,7 +3345,9 @@ window.Game = window.Game || {};
     if (!active || phase !== "awaiting_first") return;
     phase = "awaiting_first_after_nudge";
     saveState();
-    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: SILENCE_TEXT });
+    const state = stateFor();
+    const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
+    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `${playerName} слыш а ты чо не здороваешься!?` });
   }
 
   function scheduleSilencePrompt() {
@@ -3413,18 +3436,54 @@ window.Game = window.Game || {};
     const battleId = conflict.incoming("npc_stage7_ken", { pinned: true });
     const battle = resolveIncomingBattle(state, battleId, "npc_stage7_ken");
     if (!battle || !battle.id) return false;
+    battle.id = FIRST_BATTLE_ID;
+    battle.battleId = FIRST_BATTLE_ID;
+    battle.attack = {
+      id: "stage7_15_rayhan_yellow_call",
+      text: "Извините, кто тут дерзкий??",
+      displayText: "Извините, кто тут дерзкий??",
+      color: "y",
+      _color: "y",
+      type: "yn",
+      group: "yn",
+    };
+    battle.attackHidden = true;
+    if (!prepareNastyaDefenseChoices(battle)) return false;
     battle.meta = Object.assign({}, battle.meta || {}, {
       stage715DemoBattle: true,
       stage715BattleId: FIRST_BATTLE_ID,
       demoId: "stage7_15_first_battle",
       sourceTag: DEMO_SOURCE_TAG,
+      stage715RayhanScripted: true,
     });
     phase = "battle_unlocked";
     revealBattlesPanel();
     saveState();
     telemetry("stage715_battle_unlocked");
+    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: "Извините, кто тут дерзкий??" });
+    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
+    watchFirstBattle();
     render();
     return true;
+  }
+
+  function watchFirstBattle() {
+    if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
+    firstBattleWatchTimer = setInterval(() => {
+      const battle = stage715BattleById(FIRST_BATTLE_ID);
+      const outcome = battleOutcome(battle);
+      if (!battle || !outcome || (stateFor().flags && stateFor().flags.stage715RayhanOutcomeHandled === true)) return;
+      if (outcome !== "win") return;
+      const state = stateFor();
+      state.flags = state.flags || {};
+      state.flags.stage715RayhanOutcomeHandled = true;
+      phase = "nastya_prompt";
+      saveState();
+      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?" });
+      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: `${NASTYA_PROMPT}\n1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
+      clearInterval(firstBattleWatchTimer);
+      firstBattleWatchTimer = null;
+    }, 150);
   }
 
   function startNastyaBattle() {
@@ -3816,7 +3875,7 @@ window.Game = window.Game || {};
     }
     if (phase === "first_battle" || phase === "battle_unlocked") {
       const firstBattle = stage715BattleById(FIRST_BATTLE_ID);
-      if (battleOutcome(firstBattle) === "win") {
+      if (battleOutcome(firstBattle) === "win" && phase !== "nastya_prompt") {
         phase = "nastya_prompt";
         saveState();
         pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?" });
