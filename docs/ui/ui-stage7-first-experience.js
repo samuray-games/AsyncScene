@@ -3015,8 +3015,17 @@ window.Game = window.Game || {};
   ]);
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
   const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
   const OLEG_DM_ID = "npc_bandit";
+  const OLEG_BATTLE_LINE = "слыш ты, совсем нюх потерялся да? надо тебя на место поставить.";
+  const OLEG_BATTLE_PROMPT = "Где будем разбираться?";
+  const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?";
+  const OLEG_BATTLE_CHOICES = Object.freeze([
+    Object.freeze({ id: "where_backyard", type: "where", text: "Возможно, там, где Подворотня…" }),
+    Object.freeze({ id: "who_rayhan", type: "who", text: "Думаю, Райхан…" }),
+    Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
+  ]);
   const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
   const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
   const OLEG_ESCAPE_FAILED_DM_LINE = "слыш трусишка, кудааа, не так быстро! ладно, можешь ещё разок попробовать.";
@@ -3090,6 +3099,7 @@ window.Game = window.Game || {};
       "battle_unlocked",
       "nastya_prompt",
       "nastya_battle",
+      "oleg_battle",
       "oleg_dm",
       "oleg_escape_ready",
       "oleg_escape_vote",
@@ -3400,6 +3410,77 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function prepareOlegDefenseChoices(battle) {
+    if (!battle || !G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
+    let options = [];
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
+      const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+      if (types.has("yn") && types.has("who") && types.has("where")) break;
+    }
+    const normalizedType = (entry) => {
+      const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
+      return raw === "yesno" ? "yn" : raw;
+    };
+    const choices = OLEG_BATTLE_CHOICES.map((wanted) => {
+      const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
+      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
+    });
+    if (choices.some((choice) => !choice)) return false;
+    battle._defenseChoices = choices;
+    battle._choicesForStatus = battle.status;
+    battle.meta = Object.assign({}, battle.meta || {}, { stage715DefenseChoiceIds: choices.map((choice) => choice.id) });
+    return true;
+  }
+
+  function startOlegBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(OLEG_BATTLE_ID);
+    if (existing) { phase = "oleg_battle"; saveState(); watchOlegBattle(); return true; }
+    const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
+    if (!battle || !battle.id) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: OLEG_BATTLE_ID,
+      stage715OlegBattle: true,
+      stage715OlegScriptedLoss: true,
+      demoId: "stage7_15_oleg_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    prepareOlegDefenseChoices(battle);
+    phase = "oleg_battle";
+    saveState();
+    telemetry("stage715_oleg_battle_started");
+    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_BATTLE_LINE });
+    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: `${OLEG_BATTLE_PROMPT}\n1. ${OLEG_BATTLE_CHOICES[0].text}\n2. ${OLEG_BATTLE_CHOICES[1].text}\n3. ${OLEG_BATTLE_CHOICES[2].text}` });
+    render();
+    watchOlegBattle();
+    return true;
+  }
+
+  function watchOlegBattle() {
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = setInterval(() => {
+      const state = stateFor();
+      const battle = stage715BattleById(OLEG_BATTLE_ID);
+      if (!battle) return;
+      const attempts = Math.max(0, Number(battle.rematchRequestCount) | 0);
+      if (attempts >= 3 && state && state.flags && state.flags.stage715OlegRematchLineShown !== true) {
+        pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_REMATCH_LINE });
+        state.flags.stage715OlegRematchLineShown = true;
+        saveState();
+        telemetry("stage715_oleg_rematch_line_shown");
+      }
+      if (battleOutcome(battle) !== "lose") return;
+      if (battle.meta && battle.meta.stage715OlegResultRecorded === true) return;
+      battle.meta = Object.assign({}, battle.meta || {}, { stage715OlegResultRecorded: true });
+      telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
+      openOlegDmAfterLoss();
+    }, 250);
+  }
+
   function settleOlegEscapeRep(battle, attempt) {
     const escape = battle && battle.meta && battle.meta.stage715Escape;
     if (!escape || escape.repSettled === true) return false;
@@ -3612,6 +3693,7 @@ window.Game = window.Game || {};
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();
+    if (phase === "oleg_battle") watchOlegBattle();
     if (phase === "oleg_dm") {
       openOlegDmAfterLoss();
     }
@@ -3674,6 +3756,11 @@ window.Game = window.Game || {};
       const choice = selectedNastyaChoice(text);
       if (!choice) return true;
       startNastyaBattle();
+      return true;
+    }
+    if (phase === "next_scripted_flow") {
+      const nastya = stage715BattleById(NASTYA_BATTLE_ID);
+      if (battleOutcome(nastya) === "win" && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
       return true;
     }
     return true;

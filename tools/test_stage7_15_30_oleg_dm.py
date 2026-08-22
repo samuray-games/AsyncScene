@@ -53,11 +53,16 @@ changed = subprocess.check_output(
 ).splitlines()
 allowed = {
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
+    # TASK 7.15.22 and its focused regressions are part of this Stage 7.15 PR.
+    "AsyncScene/Web/conflict/conflict-core.js",
     "docs/ui/ui-stage7-first-experience.js",
+    "docs/conflict/conflict-core.js",
     "AsyncScene/Web/ui/ui-dm.js",
     "docs/ui/ui-dm.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-battles.js",
+    "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_30_oleg_dm.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")

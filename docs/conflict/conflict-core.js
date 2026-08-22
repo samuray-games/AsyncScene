@@ -3338,6 +3338,8 @@
   C.finalize = function (battleId, outcome) {
     const b = Game.__S.battles.find(x => x.id === battleId);
     if (!b || b.resolved) return;
+    const stage715Oleg = !!(b.meta && b.meta.stage715OlegScriptedLoss === true);
+    if (stage715Oleg) outcome = "lose";
     const clearCanonGuardHint = () => {
       if (b && b._canonGuardActive) {
         try {
@@ -3908,7 +3910,21 @@
             b.resultLine = (outcome === "win") ? "Победа" : (outcome === "escaped" ? escapedText : "Поражение");
           }
 
-          if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
+          if (stage715Oleg) {
+            if (!b.stage715OlegEconomyApplied) {
+              b.stage715OlegEconomyApplied = true;
+              econTransfer("me", "crowd_pool", 2, "stage715_oleg_scripted_loss", {
+                battleId: b.id || b.battleId || null,
+                context: "stage7_15_22_oleg_battle",
+                amount: 2,
+              });
+              try {
+                if (Game.__A && typeof Game.__A.transferRep === "function") {
+                  Game.__A.transferRep("me", "crowd_pool", 2, "rep_stage715_oleg_scripted_loss", b.id || b.battleId || null);
+                }
+              } catch (_) {}
+            }
+          } else if (outcome !== "escaped") applyEconomyForOutcome(outcome, b);
 
           // Keep me mirror clean
           try {
@@ -4222,6 +4238,14 @@
     const fromThem = (loserId !== "me");
     const nb = createBattle({ opponentId: b.opponentId, fromThem });
     nb.rematchOf = b.id;
+    if (b.meta && b.meta.stage715OlegScriptedLoss === true) {
+      nb.meta = Object.assign({}, nb.meta || {}, {
+        stage715DemoBattle: true,
+        stage715BattleId: b.meta.stage715BattleId || "stage7_15_oleg_battle",
+        stage715OlegBattle: true,
+        stage715OlegScriptedLoss: true,
+      });
+    }
     nb.pinned = true;
     // INVARIANT: rematch counter persists across battles (each loss against same opponent costs +1💰)
     nb.rematchRequestCount = b.rematchRequestCount || 0;
