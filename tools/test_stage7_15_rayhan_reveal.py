@@ -38,8 +38,20 @@ for marker in (
     'const stage715RayhanDemo = isStage715RayhanScriptedBattle(b)',
     'stage715DemoController.handleRayhanDefenseChoice',
     'if (!isStage715Rayhan)',
+    'traceStage715RayhanDom("render-start"',
+    'document.querySelector("#battlesBody")',
+    'battlesBodyInnerHTMLLength',
+    'battlesBodyChildrenLength',
+    'traceStage715RayhanDom("card-appended"',
+    'traceStage715RayhanDom("render-complete"',
 ):
     require(marker in battles, f"missing Rayhan scripted battle UI guard: {marker}")
+
+invite_guard = battles.split('if (!stage715InviteAvailable)', 1)[1].split('const inviteRow', 1)[0]
+require('S.battles.length === 0' in invite_guard, "invite guard does not distinguish empty and populated battle lists")
+require('traceStage715RayhanDom("invite-guard-with-battles"' in invite_guard, "populated battle list does not continue past invite guard")
+require('return;' in invite_guard, "empty invite guard no longer exits after rendering the empty hint")
+require('sortedBattles().forEach(b =>' in battles, "battle card loop missing after invite guard")
 
 node_test = r'''
 const fs = require("fs");
@@ -59,6 +71,12 @@ let renderBattlesOutputCards = 0;
 const pipelineTrace = [];
 let npcReactionCalls = 0;
 const chatMessages = [];
+const battleBody = {
+  innerHTML: "",
+  children: [],
+  classList: { add() {}, remove() {} },
+  appendChild(node) { this.children.push(node); this.innerHTML += node.textContent || ""; return node; },
+};
 const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
 const UI = {
   S: state,
@@ -71,12 +89,22 @@ const UI = {
   renderAll() {},
   renderBattles() {
     panelCalls.push("renderBattles");
+    const queriedBody = document.querySelector("#battlesBody");
+    queriedBody.innerHTML = "";
+    queriedBody.children = [];
     const input = Array.isArray(game.__S.battles) ? game.__S.battles : [];
     const active = input.filter((battle) => battle && (battle.resolved !== true || (battle.crowd && battle.crowd.decided !== true)));
     renderBattlesInputCount = input.length;
     renderedCards = active.map((battle) => battle.attack && battle.attack.text).filter(Boolean);
     renderBattlesOutputCards = renderedCards.length;
-    pipelineTrace.push({ stage: "renderBattles", stateBattles: this.S.battles.length, activeBattles: active.length, inputCount: renderBattlesInputCount, outputCards: renderBattlesOutputCards, selector: "#battlesBody" });
+    active.forEach((battle) => queriedBody.appendChild({
+      className: "battleCard",
+      textContent: battle.attack && battle.attack.text,
+      style: { display: "flex", visibility: "visible" },
+      hidden: false,
+      isConnected: true,
+    }));
+    pipelineTrace.push({ stage: "renderBattles", stateBattles: this.S.battles.length, activeBattles: active.length, inputCount: renderBattlesInputCount, outputCards: renderBattlesOutputCards, selector: "#battlesBody", battlesBodyExists: !!queriedBody, battlesBodyInnerHTMLLength: queriedBody.innerHTML.length, battlesBodyChildrenLength: queriedBody.children.length, createdCardsVisible: queriedBody.children.every((card) => card.style.display !== "none" && card.style.visibility !== "hidden") });
   },
   ensurePanelExpanded(key) { panelCalls.push(["ensurePanelExpanded", key]); },
   setPanelSize() {},
@@ -87,7 +115,10 @@ game.UI = UI;
 const element = () => ({ addEventListener() {}, classList: { remove() {}, add() {} } });
 const document = {
   getElementById(id) { return ["chatInput", "chatLog"].includes(id) ? element() : null; },
-  querySelector(selector) { return selector === "#battlesHeader .battleTitleText" ? { textContent: "Споры" } : null; },
+  querySelector(selector) {
+    if (selector === "#battlesBody") return battleBody;
+    return selector === "#battlesHeader .battleTitleText" ? { textContent: "Споры" } : null;
+  },
 };
 const context = {
   window: { Game: game, document, location: { search: "" }, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval },
@@ -126,7 +157,7 @@ if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was no
 if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
 if (renderBattlesInputCount !== 1) throw new Error(`renderBattles input count mismatch: ${renderBattlesInputCount}`);
 if (renderBattlesOutputCards !== 1) throw new Error(`renderBattles output card count mismatch: ${renderBattlesOutputCards}`);
-if (!pipelineTrace.some((entry) => entry.selector === "#battlesBody" && entry.activeBattles === 1 && entry.outputCards === 1)) throw new Error(`Rayhan render pipeline trace mismatch: ${JSON.stringify(pipelineTrace)}`);
+if (!pipelineTrace.some((entry) => entry.selector === "#battlesBody" && entry.activeBattles === 1 && entry.outputCards === 1 && entry.battlesBodyExists && entry.battlesBodyInnerHTMLLength > 0 && entry.battlesBodyChildrenLength === 1 && entry.createdCardsVisible)) throw new Error(`Rayhan DOM render pipeline trace mismatch: ${JSON.stringify(pipelineTrace)}`);
 console.log("STAGE715_RAYHAN_PIPELINE_TRACE", JSON.stringify(pipelineTrace));
 if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
 if (shadowState.battles.length !== 0) throw new Error("challenge was stored in context shadow state");
