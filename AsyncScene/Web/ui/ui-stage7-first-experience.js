@@ -3003,7 +3003,7 @@ window.Game = window.Game || {};
     Object.freeze({ id: "nastya_greeting", speakerId: "npc_stage7_mika", name: "Настя", text: "Приветик!" }),
     Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "Здарова" }),
   ]);
-  const SILENCE_TEXT = "[ник игрока] слыш а ты чо не здороваешься!?";
+  const SILENCE_TEXT = "слыш а ты чо не здороваешься!?";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
   const TONE_ACK = "ага, вижу. значит ты вот такой. интересно...";
   const NASTYA_PROMPT = "Ты на проблемы нарываешься?";
@@ -3013,6 +3013,9 @@ window.Game = window.Game || {};
     Object.freeze({ id: "where_america", type: "where", text: "Похоже, там, где Америка…" }),
   ]);
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
+  const RAYHAN_ID = "npc_stage7_ken";
+  const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, ну думаю это очевидно. или нет?";
+  const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
   const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
   const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
@@ -3156,6 +3159,7 @@ window.Game = window.Game || {};
       "awaiting_first_after_nudge",
       "awaiting_second",
       "tone_prompted",
+      "rayhan_win_waiting_reply",
       "first_battle",
       "battle_unlocked",
       "nastya_prompt",
@@ -3440,6 +3444,160 @@ window.Game = window.Game || {};
     return null;
   }
 
+  function rayhanRewardBaseline(battle) {
+    const state = stateFor();
+    const me = state && state.me ? state.me : {};
+    const rayhan = state && state.players ? state.players[RAYHAN_ID] : null;
+    const existing = battle && battle.meta && battle.meta.stage715RayhanRewardBaseline;
+    if (existing && typeof existing === "object") return existing;
+    const baseline = {
+      rep: Number(state && state.rep || 0) | 0,
+      points: Number(me.points || 0) | 0,
+      wins: Number(me.wins || 0) | 0,
+      rayhanPoints: Number(rayhan && rayhan.points || 0) | 0,
+    };
+    if (battle) {
+      battle.meta = Object.assign({}, battle.meta || {}, { stage715RayhanRewardBaseline: baseline });
+    }
+    return baseline;
+  }
+
+  function currentPlayerStat(state, key) {
+    const me = state && state.me ? state.me : {};
+    if (key === "rep") return Number(state && state.rep || 0) | 0;
+    return Number(me[key] || 0) | 0;
+  }
+
+  function hasRewardToast(kind, battleId, delta) {
+    const log = G.__D && Array.isArray(G.__D.toastLog) ? G.__D.toastLog : [];
+    return log.some((entry) => entry
+      && String(entry.kind || "") === String(kind)
+      && Number(entry.delta || 0) === Number(delta)
+      && String(entry.battleId || "") === String(battleId || ""));
+  }
+
+  function rayhanMoneyTransferred(battleId) {
+    const log = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    return log.reduce((total, entry) => {
+      if (!entry || String(entry.sourceId || "") !== RAYHAN_ID || String(entry.targetId || "") !== "me") return total;
+      if (String(entry.battleId || (entry.meta && entry.meta.battleId) || "") !== String(battleId || "")) return total;
+      if (entry.currency && String(entry.currency).toLowerCase() !== "points") return total;
+      return total + Math.max(0, Number(entry.amount || 0) | 0);
+    }, 0);
+  }
+
+  function ensureRayhanRewardToast(kind, delta, battleId) {
+    if (hasRewardToast(kind, battleId, delta)) return;
+    const API = G.__A;
+    if (API && typeof API.emitStatDelta === "function") {
+      API.emitStatDelta(kind, delta, { reason: RAYHAN_REWARD_REASON, battleId });
+      return;
+    }
+    const UI = context && context.UI;
+    if (UI && typeof UI.showStatToast === "function") {
+      const icons = { rep: "⭐", points: "💰", wins: "🏆" };
+      UI.showStatToast(kind, `${icons[kind] || ""} +${delta}`.trim());
+    }
+  }
+
+  function settleRayhanWinRewards(battle) {
+    const state = stateFor();
+    if (!battle || !state || !state.me) return false;
+    battle.meta = battle.meta || {};
+    if (battle.meta.stage715RayhanRewardApplied === true) return true;
+    const baseline = rayhanRewardBaseline(battle);
+    const battleId = battle.id || battle.battleId || FIRST_BATTLE_ID;
+    const economy = G.ConflictEconomy || G._ConflictEconomy;
+    const pointsAlreadyTransferred = rayhanMoneyTransferred(battleId);
+    const pointsNeeded = Math.max(0, 2 - pointsAlreadyTransferred);
+    if (pointsNeeded > 0) {
+      if (!economy || typeof economy.transferPoints !== "function") return false;
+      const transfer = economy.transferPoints(RAYHAN_ID, "me", pointsNeeded, RAYHAN_REWARD_REASON, {
+        battleId,
+        context: "stage7_15_rayhan_post_win",
+        opponentId: RAYHAN_ID,
+      });
+      if (!transfer || transfer.ok !== true) return false;
+    }
+
+    const repNeeded = Math.max(0, 1 - (currentPlayerStat(state, "rep") - baseline.rep));
+    if (repNeeded > 0) {
+      if (!G.__A || typeof G.__A.transferRep !== "function") return false;
+      const transfer = G.__A.transferRep("crowd_pool", "me", repNeeded, RAYHAN_REWARD_REASON, battleId, {
+        context: "stage7_15_rayhan_post_win",
+      });
+      if (!transfer || transfer.ok !== true) return false;
+    }
+
+    const winsNeeded = Math.max(0, 1 - (currentPlayerStat(state, "wins") - baseline.wins));
+    if (winsNeeded > 0) {
+      state.me.wins = (state.me.wins | 0) + winsNeeded;
+      if (G.__A && typeof G.__A.emitStatDelta === "function") {
+        G.__A.emitStatDelta("wins", winsNeeded, { reason: RAYHAN_REWARD_REASON, battleId });
+      }
+    }
+    if (G.__A && typeof G.__A.syncMeToPlayers === "function") G.__A.syncMeToPlayers();
+    ensureRayhanRewardToast("rep", 1, battleId);
+    ensureRayhanRewardToast("points", 2, battleId);
+    ensureRayhanRewardToast("wins", 1, battleId);
+    battle.meta.stage715RayhanRewardApplied = true;
+    battle.meta.stage715RayhanReward = { reputation: 1, money: 2, wins: 1, opponentId: RAYHAN_ID };
+    phase = "rayhan_win_waiting_reply";
+    saveState();
+    if (state.flags.stage715RayhanRewardChatShown !== true) {
+      pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WIN_CHAT });
+      state.flags.stage715RayhanRewardChatShown = true;
+    }
+    telemetry("stage715_rayhan_win_rewards");
+    render();
+    return true;
+  }
+
+  function currentBattleBlockLabel() {
+    try {
+      const node = document.querySelector("#battlesBlock .battleTitleText, #battlesHeader .battleTitleText");
+      const visible = String(node && node.textContent || "").trim();
+      if (visible) return visible;
+    } catch (_) {}
+    try {
+      const resolved = G.Data && typeof G.Data.t === "function" ? G.Data.t("battle_invite_title") : "";
+      if (resolved) return String(resolved).trim();
+    } catch (_) {}
+    return "";
+  }
+
+  function playerNickname() {
+    const state = stateFor();
+    const UI = context && context.UI;
+    const me = state && state.me ? state.me : null;
+    if (UI && typeof UI.displayNameByIdOrName === "function") {
+      const resolved = UI.displayNameByIdOrName(me && (me.id || "me"));
+      if (String(resolved || "").trim()) return String(resolved).trim();
+    }
+    return String(me && me.name || context && context.playerName || "игрок").trim() || "игрок";
+  }
+
+  function showNastyaAfterRayhanReply() {
+    const state = stateFor();
+    if (!state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715NastyaReactionShown !== true) {
+      const label = currentBattleBlockLabel();
+      pushNpc({
+        speakerId: "npc_stage7_mika",
+        name: "Настя",
+        text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, ты проблем захотел? Бегом в ${label}!`,
+      });
+      state.flags.stage715NastyaReactionShown = true;
+      telemetry("stage715_nastya_reaction_after_rayhan");
+    }
+    phase = "nastya_prompt";
+    saveState();
+    const started = startNastyaBattle();
+    if (!started) render();
+    return started;
+  }
+
   function stage715BattleById(id) {
     const state = id === FIRST_BATTLE_ID ? rayhanBattleState() : stateFor();
     const battles = state && Array.isArray(state.battles) ? state.battles : [];
@@ -3586,37 +3744,36 @@ window.Game = window.Game || {};
     if (existing) {
       revealBattlesPanel();
       phase = battleOutcome(existing) ? phase : "battle_unlocked";
+      rayhanRewardBaseline(existing);
       saveState();
+      if (!battleOutcome(existing)) watchRayhanBattle();
       return true;
     }
     const battle = scriptedRayhanBattle(state);
     if (!battle || !battle.id) return false;
+    rayhanRewardBaseline(battle);
     phase = "battle_unlocked";
     revealBattlesPanel();
     saveState();
     telemetry("stage715_battle_unlocked");
     watchFirstBattle();
     render();
+    watchRayhanBattle();
     return true;
   }
 
-  function watchFirstBattle() {
-    if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
-    firstBattleWatchTimer = setInterval(() => {
+  function watchRayhanBattle() {
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = setInterval(() => {
       const battle = stage715BattleById(FIRST_BATTLE_ID);
-      const outcome = battleOutcome(battle);
-      if (!battle || !outcome || (stateFor().flags && stateFor().flags.stage715RayhanOutcomeHandled === true)) return;
-      if (outcome !== "win") return;
-      const state = stateFor();
-      state.flags = state.flags || {};
-      state.flags.stage715RayhanOutcomeHandled = true;
-      phase = "nastya_prompt";
-      saveState();
-      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?" });
-      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: `${NASTYA_PROMPT}\n1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
-      clearInterval(firstBattleWatchTimer);
-      firstBattleWatchTimer = null;
-    }, 150);
+      if (!battle || battleOutcome(battle) !== "win") return;
+      if (battle.meta && battle.meta.stage715RayhanRewardApplied === true) {
+        clearInterval(battleWatchTimer);
+        battleWatchTimer = null;
+        return;
+      }
+      settleRayhanWinRewards(battle);
+    }, 100);
   }
 
   function startNastyaBattle() {
@@ -3958,6 +4115,7 @@ window.Game = window.Game || {};
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();
+    if (phase === "battle_unlocked" || phase === "first_battle") watchRayhanBattle();
     if (phase === "oleg_battle") watchOlegBattle();
     if (phase === "oleg_dm") {
       openOlegDmAfterLoss();
@@ -4002,14 +4160,14 @@ window.Game = window.Game || {};
       });
       return true;
     }
+    if (phase === "rayhan_win_waiting_reply") {
+      showNastyaAfterRayhanReply();
+      return true;
+    }
     if (phase === "first_battle" || phase === "battle_unlocked") {
       const firstBattle = stage715BattleById(FIRST_BATTLE_ID);
-      if (battleOutcome(firstBattle) === "win" && phase !== "nastya_prompt") {
-        phase = "nastya_prompt";
-        saveState();
-        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?" });
-        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: `${NASTYA_PROMPT}\n1. ${NASTYA_CHOICES[0].text}\n2. ${NASTYA_CHOICES[1].text}\n3. ${NASTYA_CHOICES[2].text}` });
-        return true;
+      if (battleOutcome(firstBattle) === "win") {
+        settleRayhanWinRewards(firstBattle);
       }
       return true;
     }
