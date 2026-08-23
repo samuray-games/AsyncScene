@@ -181,7 +181,10 @@ allowed = {
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
     "docs/ui/ui-battles.js",
+    "AsyncScene/Web/style-base.css",
+    "docs/style-base.css",
     "tools/test_stage7_15_rayhan_reveal.py",
+    "tools/test_stage7_15_rayhan_light_theme.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

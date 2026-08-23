@@ -1264,6 +1264,11 @@ button:disabled{opacity:.55; cursor:not-allowed}
   color:var(--hiddenText);
 }
 
+/* Incoming battle arguments set a reveal-safe inline color; keep the light-theme token authoritative. */
+.battleCard .chip.hiddenPower{
+  color:var(--hiddenText) !important;
+}
+
 /* Explicit readable text for hidden-power argument label */
 .hiddenText{
   color:var(--hiddenText);
