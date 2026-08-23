@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-rayhan-schema-render-20260823",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-rayhan-schema-render-20260823\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "374c3c3723a51b7f5fdcbcdabdaad3e113835c7f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "# branch.oid 374c3c3723a51b7f5fdcbcdabdaad3e113835c7f\n# branch.head codex/stage7-15-rayhan-schema-render-20260823\n# branch.upstream origin/codex/stage7-15-rayhan-schema-render-20260823\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "374c3c37 (HEAD -> codex/stage7-15-rayhan-schema-render-20260823, origin/codex/stage7-15-rayhan-schema-render-20260823) fix(stage715): normalize Rayhan battle schema\nfd8cfe7a (origin/main) Merge pull request #378 from samuray-games/codex/stage7-15-demo-wording-20260823\n0e34448f (origin/codex/stage7-15-demo-wording-20260823) fix(stage715): use current battles label in demo text\n37189f75 Merge pull request #377 from samuray-games/codex/stage7-15-rayhan-state-render-20260823\n239377ce (origin/codex/stage7-15-rayhan-state-render-20260823) fix(stage715): use canonical Rayhan battle state\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 374c3c3723a51b7f5fdcbcdabdaad3e113835c7f\nbranch refs/heads/codex/stage7-15-rayhan-schema-render-20260823\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T06:59:22Z",
+      "stderr": "",
+      "stdout": "fd8cfe7ae3693ce61641e792531492bb1e13b472\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "374c3c3723a51b7f5fdcbcdabdaad3e113835c7f",
+  "observedAtUtc": "2026-08-23T06:59:22Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
