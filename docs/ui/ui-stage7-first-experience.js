@@ -3092,6 +3092,16 @@ window.Game = window.Game || {};
     return (UI && UI.S) || stateFor();
   }
 
+  function mirrorRayhanBattleToRenderState(battle) {
+    const state = rayhanBattleState();
+    const renderState = G.__S;
+    if (!battle || !renderState || renderState === state) return;
+    renderState.battles = Array.isArray(renderState.battles) ? renderState.battles : [];
+    if (!renderState.battles.some((entry) => entry && entry.id === battle.id)) {
+      renderState.battles.push(battle);
+    }
+  }
+
   function currentBattlesPanelLabel() {
     try {
       const title = document.querySelector("#battlesHeader .battleTitleText");
@@ -3457,7 +3467,10 @@ window.Game = window.Game || {};
     const existing = battleState && Array.isArray(battleState.battles)
       ? battleState.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID)
       : null;
-    if (existing) return existing;
+    if (existing) {
+      mirrorRayhanBattleToRenderState(existing);
+      return existing;
+    }
     const choices = RAYHAN_BATTLE_CHOICES.map((choice) => Object.assign({}, choice, {
       displayText: choice.text,
       color: null,
@@ -3501,6 +3514,7 @@ window.Game = window.Game || {};
       },
     };
     battleState.battles.push(battle);
+    mirrorRayhanBattleToRenderState(battle);
     return battle;
   }
 

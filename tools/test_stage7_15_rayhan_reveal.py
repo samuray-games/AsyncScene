@@ -51,10 +51,12 @@ const state = {
 };
 const scriptState = JSON.parse(JSON.stringify(state));
 const shadowState = JSON.parse(JSON.stringify(state));
+const renderState = JSON.parse(JSON.stringify(state));
 const panelCalls = [];
 let renderedCards = [];
 let renderBattlesInputCount = 0;
 let renderBattlesOutputCards = 0;
+const pipelineTrace = [];
 let npcReactionCalls = 0;
 const chatMessages = [];
 const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
@@ -69,14 +71,18 @@ const UI = {
   renderAll() {},
   renderBattles() {
     panelCalls.push("renderBattles");
-    renderBattlesInputCount = Array.isArray(this.S.battles) ? this.S.battles.length : 0;
-    renderedCards = (this.S.battles || []).map((battle) => battle.attack && battle.attack.text).filter(Boolean);
+    const input = Array.isArray(game.__S.battles) ? game.__S.battles : [];
+    const active = input.filter((battle) => battle && (battle.resolved !== true || (battle.crowd && battle.crowd.decided !== true)));
+    renderBattlesInputCount = input.length;
+    renderedCards = active.map((battle) => battle.attack && battle.attack.text).filter(Boolean);
     renderBattlesOutputCards = renderedCards.length;
+    pipelineTrace.push({ stage: "renderBattles", stateBattles: this.S.battles.length, activeBattles: active.length, inputCount: renderBattlesInputCount, outputCards: renderBattlesOutputCards, selector: "#battlesBody" });
   },
   ensurePanelExpanded(key) { panelCalls.push(["ensurePanelExpanded", key]); },
   setPanelSize() {},
 };
 const contextUI = Object.assign({}, UI, { S: shadowState });
+game.__S = renderState;
 game.UI = UI;
 const element = () => ({ addEventListener() {}, classList: { remove() {}, add() {} } });
 const document = {
@@ -107,6 +113,7 @@ waitFor(() => chatMessages.some((message) => message.text === "нефиг дер
   .then(() => {
 const battle = UI.S.battles[0];
 if (UI.S.battles.length !== 1) throw new Error("Battles list does not contain exactly one scripted challenge");
+if (game.__S.battles.length !== 1) throw new Error("render state does not contain exactly one scripted challenge");
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
 if (battle.fromThem !== true || battle.draw !== false || battle.crowd !== null || battle.pinned !== false || battle.defense !== null) throw new Error("Rayhan challenge schema is not canonical incoming shape");
 if (battle.attack.text !== "Извините, кто тут дерзкий??") throw new Error("challenge text mismatch");
@@ -119,6 +126,8 @@ if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was no
 if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
 if (renderBattlesInputCount !== 1) throw new Error(`renderBattles input count mismatch: ${renderBattlesInputCount}`);
 if (renderBattlesOutputCards !== 1) throw new Error(`renderBattles output card count mismatch: ${renderBattlesOutputCards}`);
+if (!pipelineTrace.some((entry) => entry.selector === "#battlesBody" && entry.activeBattles === 1 && entry.outputCards === 1)) throw new Error(`Rayhan render pipeline trace mismatch: ${JSON.stringify(pipelineTrace)}`);
+console.log("STAGE715_RAYHAN_PIPELINE_TRACE", JSON.stringify(pipelineTrace));
 if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
 if (shadowState.battles.length !== 0) throw new Error("challenge was stored in context shadow state");
 if (JSON.stringify(battle).match(/Kai|Sen|Кай|Сен|Уйти -1|Отойти/)) throw new Error("random conflict payload leaked");
