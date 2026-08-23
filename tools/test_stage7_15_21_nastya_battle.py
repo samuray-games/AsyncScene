@@ -24,7 +24,7 @@ battle_js = battle_source.decode("utf-8")
 
 for text in (
     'const NASTYA_PROMPT = "Ты на проблемы нарываешься?"',
-    '"Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?"',
+    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, ты проблем захотел? Бегом в ${label}!`',
     '"Кажется, нет…"',
     '"Думаю, Олег, но это не точно…"',
     '"Похоже, там, где Америка…"',
@@ -47,6 +47,7 @@ for text in (
     require(text in battle_js, f"missing Nastya battle UI contract: {text}")
 
 require(js.count('conflict.incoming("npc_stage7_mika", { pinned: true })') == 1, "Nastya battle must use one Conflict API start")
+require("[ник]" not in js, "Nastya runtime must not contain placeholder nickname")
 require(js.count('telemetry("stage715_nastya_battle_started")') == 1, "Nastya start telemetry must be exactly once")
 require(js.count('telemetry("stage715_nastya_battle_result"') >= 2, "Nastya result telemetry must cover win/draw and loss")
 require('battle.attack.color = trueColor;' in js, "Nastya color reveal must use the battle argument, not a fabricated result")
