@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:40Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:40Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:40Z",
+      "stderr": "",
+      "stdout": "eb759b060f9e99f4bf3f1bb35ad29ada4f23fbff\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:41Z",
+      "stderr": "",
+      "stdout": "# branch.oid eb759b060f9e99f4bf3f1bb35ad29ada4f23fbff\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:41Z",
+      "stderr": "",
+      "stdout": "eb759b06 (HEAD, pull/380/merge) Merge 184403b00621c4a54e42f2e2bfc9523ef60ba017 into f906633d8c72455bf80631d51839358756091f10\n184403b0 (origin/codex/stage7-15-rayhan-runtime-trace-20260823) fix(stage715): sync Rayhan battle to render state\nf906633d (origin/main) Merge pull request #379 from samuray-games/codex/stage7-15-rayhan-schema-render-20260823\n374c3c37 (origin/codex/stage7-15-rayhan-schema-render-20260823) fix(stage715): normalize Rayhan battle schema\nfd8cfe7a Merge pull request #378 from samuray-games/codex/stage7-15-demo-wording-20260823\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:41Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD eb759b060f9e99f4bf3f1bb35ad29ada4f23fbff\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:41Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-23T07:19:41Z",
+      "stderr": "",
+      "stdout": "f906633d8c72455bf80631d51839358756091f10\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "eb759b060f9e99f4bf3f1bb35ad29ada4f23fbff",
+  "observedAtUtc": "2026-08-23T07:19:41Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
