@@ -53,6 +53,8 @@ const scriptState = JSON.parse(JSON.stringify(state));
 const shadowState = JSON.parse(JSON.stringify(state));
 const panelCalls = [];
 let renderedCards = [];
+let renderBattlesInputCount = 0;
+let renderBattlesOutputCards = 0;
 let npcReactionCalls = 0;
 const chatMessages = [];
 const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
@@ -67,7 +69,9 @@ const UI = {
   renderAll() {},
   renderBattles() {
     panelCalls.push("renderBattles");
+    renderBattlesInputCount = Array.isArray(this.S.battles) ? this.S.battles.length : 0;
     renderedCards = (this.S.battles || []).map((battle) => battle.attack && battle.attack.text).filter(Boolean);
+    renderBattlesOutputCards = renderedCards.length;
   },
   ensurePanelExpanded(key) { panelCalls.push(["ensurePanelExpanded", key]); },
   setPanelSize() {},
@@ -104,6 +108,7 @@ waitFor(() => chatMessages.some((message) => message.text === "нефиг дер
 const battle = UI.S.battles[0];
 if (UI.S.battles.length !== 1) throw new Error("Battles list does not contain exactly one scripted challenge");
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
+if (battle.fromThem !== true || battle.draw !== false || battle.crowd !== null || battle.pinned !== false || battle.defense !== null) throw new Error("Rayhan challenge schema is not canonical incoming shape");
 if (battle.attack.text !== "Извините, кто тут дерзкий??") throw new Error("challenge text mismatch");
 const answerTexts = battle._defenseChoices.map((choice) => choice.text);
 if (JSON.stringify(answerTexts) !== JSON.stringify(["Похоже, ты…", "Кажется, прямо тут…", "Наверное, да…"])) throw new Error("Rayhan answers mismatch");
@@ -112,6 +117,8 @@ if (state.chat.some((message) => message.text === "Извините, кто ту
 if (!panelCalls.some((entry) => Array.isArray(entry) && entry[0] === "ensurePanelExpanded" && entry[1] === "battles")) throw new Error("Battles panel was not expanded");
 if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was not rendered");
 if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
+if (renderBattlesInputCount !== 1) throw new Error(`renderBattles input count mismatch: ${renderBattlesInputCount}`);
+if (renderBattlesOutputCards !== 1) throw new Error(`renderBattles output card count mismatch: ${renderBattlesOutputCards}`);
 if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
 if (shadowState.battles.length !== 0) throw new Error("challenge was stored in context shadow state");
 if (JSON.stringify(battle).match(/Kai|Sen|Кай|Сен|Уйти -1|Отойти/)) throw new Error("random conflict payload leaked");
