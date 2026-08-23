@@ -490,6 +490,14 @@ window.Game = window.Game || {};
     const el = getMenuBlock();
     if (!el) return;
 
+    if (UI.isStage7TutorialBlocksActive
+      && UI.isStage7TutorialBlocksActive()
+      && UI.isStage7TutorialBlockUnlocked
+      && !UI.isStage7TutorialBlockUnlocked("menu")) {
+      UI.hideMenu();
+      return false;
+    }
+
     S.flags = S.flags || {};
     S.flags.menuOpen = true;
 
@@ -529,6 +537,7 @@ window.Game = window.Game || {};
 
     const inp = document.getElementById("lotteryBet");
     if (inp) inp.dispatchEvent(new Event("input"));
+    return true;
   };
 
   UI.hideMenu = () => {

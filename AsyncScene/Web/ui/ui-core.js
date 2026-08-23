@@ -110,6 +110,106 @@ window.Game = window.Game || {};
   if (!("eventsCollapsed" in S.flags)) S.flags.eventsCollapsed = false;
   if (!("menuOpen" in S.flags)) S.flags.menuOpen = false;
   if (!("collapsedCounters" in S.flags)) S.flags.collapsedCounters = {};
+  const STAGE7_TUTORIAL_BLOCK_KEYS = ["chat", "battles", "events", "menu", "dm", "locations"];
+  const STAGE7_TUTORIAL_PANEL_KEYS = { battles: "battles", events: "events", dm: "dm", locations: "locations" };
+  const STAGE7_TUTORIAL_DEFAULTS = {
+    chat: { unlocked: true, collapsed: false },
+    battles: { unlocked: false, collapsed: true },
+    events: { unlocked: false, collapsed: true },
+    menu: { unlocked: false, collapsed: true },
+    dm: { unlocked: false, collapsed: true },
+    locations: { unlocked: false, collapsed: true },
+  };
+
+  function normalizeStage7TutorialBlocks(raw){
+    const source = raw && typeof raw === "object" ? raw : {};
+    const out = {};
+    STAGE7_TUTORIAL_BLOCK_KEYS.forEach((key) => {
+      const entry = source[key] && typeof source[key] === "object" ? source[key] : {};
+      const fallback = STAGE7_TUTORIAL_DEFAULTS[key];
+      out[key] = {
+        unlocked: key === "chat" || entry.unlocked === true || fallback.unlocked,
+        collapsed: entry.collapsed === true || fallback.collapsed,
+      };
+    });
+    return out;
+  }
+
+  function stage7TutorialBlocks(){
+    if (Game.__A && typeof Game.__A.getStage7TutorialBlocks === "function") {
+      try { return Game.__A.getStage7TutorialBlocks(); } catch (_) {}
+    }
+    S.flags.stage7TutorialBlocks = normalizeStage7TutorialBlocks(S.flags.stage7TutorialBlocks);
+    return S.flags.stage7TutorialBlocks;
+  }
+
+  UI.isStage7TutorialBlocksActive = function(){
+    const demo = Game && Game.Stage715Demo;
+    if (!demo || typeof demo.isActive !== "function") return false;
+    try { return !!demo.isActive({ state: S, UI }); } catch (_) { return false; }
+  };
+
+  UI.getStage7TutorialBlocks = function(){
+    return normalizeStage7TutorialBlocks(stage7TutorialBlocks());
+  };
+
+  UI.isStage7TutorialBlockUnlocked = function(key){
+    const normalizedKey = String(key || "").trim().toLowerCase();
+    const blocks = UI.getStage7TutorialBlocks();
+    return !!(blocks[normalizedKey] && blocks[normalizedKey].unlocked === true);
+  };
+
+  UI.setStage7TutorialBlockState = function(key, patch){
+    const normalizedKey = String(key || "").trim().toLowerCase();
+    if (!STAGE7_TUTORIAL_BLOCK_KEYS.includes(normalizedKey)) return null;
+    const next = patch && typeof patch === "object" ? patch : {};
+    let result = null;
+    if (Game.__A && typeof Game.__A.setStage7TutorialBlock === "function") {
+      try { result = Game.__A.setStage7TutorialBlock(normalizedKey, next); } catch (_) {}
+    }
+    if (!result) {
+      S.flags.stage7TutorialBlocks = normalizeStage7TutorialBlocks(S.flags.stage7TutorialBlocks);
+      const current = S.flags.stage7TutorialBlocks[normalizedKey];
+      result = S.flags.stage7TutorialBlocks[normalizedKey] = {
+        unlocked: normalizedKey === "chat" || next.unlocked === true || current.unlocked === true,
+        collapsed: next.collapsed === true,
+      };
+    }
+    return result;
+  };
+
+  UI.unlockStage7TutorialBlock = function(key, options){
+    const normalizedKey = String(key || "").trim().toLowerCase();
+    if (!STAGE7_TUTORIAL_BLOCK_KEYS.includes(normalizedKey)) return false;
+    const opts = options && typeof options === "object" ? options : {};
+    const open = opts.open !== false;
+    UI.setStage7TutorialBlockState(normalizedKey, { unlocked: true, collapsed: !open });
+    return true;
+  };
+
+  UI.applyStage7TutorialBlocks = function(){
+    if (!UI.isStage7TutorialBlocksActive()) return false;
+    const blocks = UI.getStage7TutorialBlocks();
+    Object.keys(STAGE7_TUTORIAL_PANEL_KEYS).forEach((key) => {
+      const panelKey = STAGE7_TUTORIAL_PANEL_KEYS[key];
+      const state = blocks[key];
+      if (!state || state.unlocked !== true) {
+        __writePanelSizeDirect(panelKey, "collapsed");
+      } else if (state.collapsed === true) {
+        __writePanelSizeDirect(panelKey, "collapsed");
+      }
+      const id = { battles: "battlesBlock", events: "eventsBlock", dm: "dmBlock", locations: "locationsBlock" }[key];
+      const el = id ? document.getElementById(id) : null;
+      if (!el) return;
+      if (key === "dm" && state.unlocked !== true) el.classList.add("hidden");
+      if (state.unlocked === true && key === "dm" && S.dm && S.dm.open) el.classList.remove("hidden");
+      if (typeof UI.applyPanelSizeClasses === "function") UI.applyPanelSizeClasses(el, panelKey);
+      const body = el.querySelector(".panelBody, .blockBody");
+      if (body && (state.unlocked !== true || state.collapsed === true)) body.classList.add("hidden");
+    });
+    if (blocks.menu && blocks.menu.unlocked !== true) S.flags.menuOpen = false;
+    return true;
+  };
 
   // Дефолты DM
   if (!("dm" in S) || !S.dm) S.dm = {};
@@ -1359,7 +1459,9 @@ window.Game = window.Game || {};
     const el = getMenuBlockEl();
     if (!el) return;
 
-    const open = !!(S.flags && S.flags.menuOpen);
+    const open = !!(S.flags && S.flags.menuOpen)
+      && (!UI.isStage7TutorialBlocksActive() || UI.isStage7TutorialBlockUnlocked("menu"));
+    if (!open && S.flags) S.flags.menuOpen = false;
     // Toggle menu-open class on document.body
     if (open) {
       document.body.classList.add("menu-open");
@@ -1834,6 +1936,7 @@ window.Game = window.Game || {};
       // Menu is a block (not an overlay). Render it early so layout can flow.
       if (UI.renderMenu) UI.renderMenu();
       applyMenuOpenState();
+      try { if (UI.applyStage7TutorialBlocks) UI.applyStage7TutorialBlocks(); } catch (_) {}
 
       // Render order matters. These calls are allowed to rebuild DOM,
       // but state must remain stable. Scroll anchoring for battles is handled inside ui-battles.js.
@@ -1947,6 +2050,20 @@ window.Game = window.Game || {};
     const k = String(key || "").toLowerCase();
     const s = __normalizePanelSize(size);
 
+    if (UI.isStage7TutorialBlocksActive()
+      && Object.prototype.hasOwnProperty.call(STAGE7_TUTORIAL_PANEL_KEYS, k)
+      && !UI.isStage7TutorialBlockUnlocked(k)
+      && s !== "collapsed") return false;
+    if (UI.isStage7TutorialBlocksActive()
+      && Object.prototype.hasOwnProperty.call(STAGE7_TUTORIAL_PANEL_KEYS, k)
+      && UI.isStage7TutorialBlockUnlocked(k)) {
+      UI.setStage7TutorialBlockState(k, { collapsed: s === "collapsed" });
+      try {
+        const demo = Game && Game.Stage715Demo;
+        if (demo && typeof demo.persistTutorialBlocks === "function") demo.persistTutorialBlocks();
+      } catch (_) {}
+    }
+
     const applyNow = () => {
       try {
         const map = { dm: "dmBlock", battles: "battlesBlock", events: "eventsBlock", locations: "locationsBlock" };
@@ -1979,6 +2096,7 @@ window.Game = window.Game || {};
     } catch (_) {}
     applyNow();
     UI.requestRenderAll();
+    return true;
   };
 
   UI.cyclePanelSize = function(key){

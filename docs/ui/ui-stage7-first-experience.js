@@ -3015,7 +3015,20 @@ window.Game = window.Game || {};
   ]);
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
   const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
+  const OLEG_BATTLE_PROMPT = "нефига лезть на взрослых дядек...";
+  const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?";
+  const DEMO_STORAGE_KEY = "AsyncScene_stage7_15_zero_tutorial_v1";
+  const TUTORIAL_BLOCK_KEYS = Object.freeze(["chat", "battles", "events", "menu", "dm", "locations"]);
+  const TUTORIAL_BLOCK_DEFAULTS = Object.freeze({
+    chat: Object.freeze({ unlocked: true, collapsed: false }),
+    battles: Object.freeze({ unlocked: false, collapsed: true }),
+    events: Object.freeze({ unlocked: false, collapsed: true }),
+    menu: Object.freeze({ unlocked: false, collapsed: true }),
+    dm: Object.freeze({ unlocked: false, collapsed: true }),
+    locations: Object.freeze({ unlocked: false, collapsed: true }),
+  });
   const OLEG_DM_ID = "npc_bandit";
   const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
   const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
@@ -3039,6 +3052,88 @@ window.Game = window.Game || {};
   let battleWatchTimer = null;
   let escapeWatchTimer = null;
 
+  function cloneTutorialBlocks(raw){
+    const source = raw && typeof raw === "object" ? raw : {};
+    const out = {};
+    TUTORIAL_BLOCK_KEYS.forEach((key) => {
+      const entry = source[key] && typeof source[key] === "object" ? source[key] : {};
+      const fallback = TUTORIAL_BLOCK_DEFAULTS[key];
+      out[key] = {
+        unlocked: key === "chat" || entry.unlocked === true || fallback.unlocked,
+        collapsed: entry.collapsed === true || fallback.collapsed,
+      };
+    });
+    return out;
+  }
+
+  function readDemoSnapshot(){
+    try {
+      if (!window.localStorage) return null;
+      const raw = window.localStorage.getItem(DEMO_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function persistTutorialBlocks(){
+    const state = stateFor();
+    const UI = context && context.UI;
+    const blocks = UI && typeof UI.getStage7TutorialBlocks === "function"
+      ? UI.getStage7TutorialBlocks()
+      : cloneTutorialBlocks(state && state.flags && state.flags.stage7TutorialBlocks);
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify({
+          version: 1,
+          active: true,
+          phase,
+          blocks: cloneTutorialBlocks(blocks),
+        }));
+      }
+    } catch (_) {}
+    return blocks;
+  }
+
+  function applyTutorialBlocks(raw){
+    const state = stateFor();
+    const UI = context && context.UI;
+    const blocks = cloneTutorialBlocks(raw);
+    if (state) {
+      state.flags = state.flags || {};
+      state.flags.stage7TutorialBlocks = blocks;
+    }
+    if (UI && typeof UI.setStage7TutorialBlockState === "function") {
+      TUTORIAL_BLOCK_KEYS.forEach((key) => UI.setStage7TutorialBlockState(key, blocks[key]));
+    }
+    return blocks;
+  }
+
+  function unlockTutorialBlock(key, options){
+    const normalizedKey = String(key || "").trim().toLowerCase();
+    if (!TUTORIAL_BLOCK_KEYS.includes(normalizedKey)) return false;
+    const UI = context && context.UI;
+    if (!UI || typeof UI.unlockStage7TutorialBlock !== "function") return false;
+    UI.unlockStage7TutorialBlock(normalizedKey, options);
+    persistTutorialBlocks();
+    render();
+    telemetry(`stage715_block_unlocked_${normalizedKey}`);
+    return true;
+  }
+
+  function syncTutorialBlocksFromGameplay(){
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || typeof UI.isStage7TutorialBlockUnlocked !== "function") return false;
+    let changed = false;
+    if (Array.isArray(state.events) && state.events.length > 0 && !UI.isStage7TutorialBlockUnlocked("events")) {
+      UI.unlockStage7TutorialBlock("events", { open: true });
+      changed = true;
+      telemetry("stage715_block_unlocked_events");
+    }
+    return changed;
+  }
+
   function queryEnabled() {
     try {
       return new URLSearchParams(window.location.search || "").get(DEMO_QUERY) === "1";
@@ -3054,7 +3149,10 @@ window.Game = window.Game || {};
 
   function isActive(nextContext) {
     const state = stateFor(nextContext);
-    return queryEnabled() || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
+    const persisted = readDemoSnapshot();
+    return queryEnabled()
+      || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true)
+      || !!(persisted && persisted.active === true);
   }
 
   function clearTimers() {
@@ -3074,12 +3172,18 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     state.flags[DEMO_STATE_FLAG] = true;
     state.flags.stage715DemoPhase = phase;
+    if (!state.flags.stage7TutorialBlocks) state.flags.stage7TutorialBlocks = cloneTutorialBlocks();
+    syncTutorialBlocksFromGameplay();
+    persistTutorialBlocks();
   }
 
   function restorePhase(nextContext, mode) {
     if (mode !== "resume") return "intro";
     const state = stateFor(nextContext);
-    const saved = state && state.flags && state.flags.stage715DemoPhase;
+    const persisted = readDemoSnapshot();
+    const saved = state && state.flags && state.flags.stage715DemoPhase
+      ? state.flags.stage715DemoPhase
+      : persisted && persisted.phase;
     return [
       "intro",
       "awaiting_first",
@@ -3090,6 +3194,7 @@ window.Game = window.Game || {};
       "battle_unlocked",
       "nastya_prompt",
       "nastya_battle",
+      "oleg_battle",
       "oleg_dm",
       "oleg_escape_ready",
       "oleg_escape_vote",
@@ -3150,6 +3255,7 @@ window.Game = window.Game || {};
     state.dm.activeId = OLEG_DM_ID;
     state.dm.withId = OLEG_DM_ID;
     state.dm.open = true;
+    unlockTutorialBlock("dm");
     saveState();
     if (typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);
     if (typeof UI.renderDM === "function") UI.renderDM();
@@ -3340,6 +3446,7 @@ window.Game = window.Game || {};
     });
     phase = "battle_unlocked";
     saveState();
+    unlockTutorialBlock("battles");
     telemetry("stage715_battle_unlocked");
     render();
     return true;
@@ -3398,6 +3505,56 @@ window.Game = window.Game || {};
     saveState();
     render();
     return true;
+  }
+
+  function startOlegBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(OLEG_BATTLE_ID);
+    if (existing) { phase = "oleg_battle"; saveState(); watchOlegBattle(); return true; }
+    const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
+    if (!battle || !battle.id) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: OLEG_BATTLE_ID,
+      stage715OlegBattle: true,
+      stage715OlegScriptedLoss: true,
+      demoId: "stage7_15_oleg_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    phase = "oleg_battle";
+    saveState();
+    telemetry("stage715_oleg_battle_started");
+    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_BATTLE_PROMPT });
+    render();
+    watchOlegBattle();
+    return true;
+  }
+
+  function watchOlegBattle() {
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = setInterval(() => {
+      const battle = stage715BattleById(OLEG_BATTLE_ID);
+      if (!battle || battleOutcome(battle) !== "lose") return;
+      if (battle.meta && battle.meta.stage715OlegResultRecorded === true) return;
+      battle.meta = Object.assign({}, battle.meta || {}, { stage715OlegResultRecorded: true });
+      telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
+      phase = "next_scripted_flow";
+      saveState();
+      render();
+    }, 250);
+  }
+
+  function maybeShowOlegRematchLine() {
+    const state = stateFor();
+    const battle = stage715BattleById(OLEG_BATTLE_ID);
+    const attempts = state && state.flags ? (state.flags.stage715OlegRematchAttempts | 0) : 0;
+    if (!battle || attempts < 3 || (state.flags && state.flags.stage715OlegRematchLineShown === true)) return;
+    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_REMATCH_LINE });
+    state.flags.stage715OlegRematchLineShown = true;
+    saveState();
+    telemetry("stage715_oleg_rematch_line_shown");
   }
 
   function settleOlegEscapeRep(battle, attempt) {
@@ -3525,6 +3682,8 @@ window.Game = window.Game || {};
       state.flags.stage715NextScriptedFlowReason = reason || "loss";
     }
     saveState();
+    unlockTutorialBlock("menu");
+    unlockTutorialBlock("locations");
     if (context && typeof context.openNextScriptedFlow === "function") {
       try { context.openNextScriptedFlow({ reason: reason || "loss" }); } catch (_) {}
     }
@@ -3605,6 +3764,9 @@ window.Game = window.Game || {};
     clearTimers();
     context = nextContext || {};
     active = true;
+    const persisted = readDemoSnapshot();
+    if (mode === "resume" && persisted && persisted.blocks) applyTutorialBlocks(persisted.blocks);
+    else applyTutorialBlocks();
     phase = restorePhase(context, mode);
     const state = stateFor(context);
     ensurePlayers(state);
@@ -3612,6 +3774,7 @@ window.Game = window.Game || {};
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();
+    if (phase === "oleg_battle") watchOlegBattle();
     if (phase === "oleg_dm") {
       openOlegDmAfterLoss();
     }
@@ -3676,6 +3839,12 @@ window.Game = window.Game || {};
       startNastyaBattle();
       return true;
     }
+    if (phase === "next_scripted_flow") {
+      const nastya = stage715BattleById(NASTYA_BATTLE_ID);
+      if (battleOutcome(nastya) === "win" && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
+      maybeShowOlegRematchLine();
+      return true;
+    }
     return true;
   }
 
@@ -3708,6 +3877,8 @@ window.Game = window.Game || {};
   installChatHook();
   G.Stage715Demo = {
     isActive,
+    persistTutorialBlocks,
+    unlockTutorialBlock,
     claimFreshStart,
     claimResume,
     handlePlayerMessage,

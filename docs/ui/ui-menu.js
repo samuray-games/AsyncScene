@@ -224,6 +224,7 @@ window.Game = window.Game || {};
     };
 
     const btn = document.createElement("button");
+    btn.id = "consolePanelButton";
     btn.type = "button";
     btn.className = "btn small";
     btn.textContent = isDevModeActive() ? "Disable Dev Mode" : "Enable Dev Mode";
@@ -306,7 +307,6 @@ window.Game = window.Game || {};
     wrap.innerHTML = "";
 
     const btn = document.createElement("button");
-    btn.id = "consolePanelButton";
     btn.type = "button";
     btn.className = "btn small";
     btn.textContent = "Console Panel";
@@ -529,6 +529,14 @@ window.Game = window.Game || {};
     const el = getMenuBlock();
     if (!el) return;
 
+    if (UI.isStage7TutorialBlocksActive
+      && UI.isStage7TutorialBlocksActive()
+      && UI.isStage7TutorialBlockUnlocked
+      && !UI.isStage7TutorialBlockUnlocked("menu")) {
+      UI.hideMenu();
+      return false;
+    }
+
     S.flags = S.flags || {};
     S.flags.menuOpen = true;
 
@@ -568,6 +576,7 @@ window.Game = window.Game || {};
 
     const inp = document.getElementById("lotteryBet");
     if (inp) inp.dispatchEvent(new Event("input"));
+    return true;
   };
 
   UI.hideMenu = () => {

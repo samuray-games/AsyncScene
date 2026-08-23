@@ -2164,6 +2164,36 @@ window.Game = window.Game || {};
     return next;
   }
 
+  const STAGE7_TUTORIAL_BLOCK_KEYS = Object.freeze(["chat", "battles", "events", "menu", "dm", "locations"]);
+
+  function buildStage7TutorialBlocks(raw){
+    const source = (raw && typeof raw === "object") ? raw : {};
+    const defaults = {
+      chat: { unlocked: true, collapsed: false },
+      battles: { unlocked: false, collapsed: true },
+      events: { unlocked: false, collapsed: true },
+      menu: { unlocked: false, collapsed: true },
+      dm: { unlocked: false, collapsed: true },
+      locations: { unlocked: false, collapsed: true },
+    };
+    const out = {};
+    STAGE7_TUTORIAL_BLOCK_KEYS.forEach((key) => {
+      const entry = source[key] && typeof source[key] === "object" ? source[key] : {};
+      out[key] = {
+        unlocked: key === "chat" || entry.unlocked === true || defaults[key].unlocked,
+        collapsed: entry.collapsed === true || defaults[key].collapsed,
+      };
+    });
+    return out;
+  }
+
+  function ensureStage7TutorialBlocks(target){
+    const owner = target && typeof target === "object" ? target : State;
+    if (!owner.flags || typeof owner.flags !== "object") owner.flags = {};
+    owner.flags.stage7TutorialBlocks = buildStage7TutorialBlocks(owner.flags.stage7TutorialBlocks);
+    return owner.flags.stage7TutorialBlocks;
+  }
+
   const State = {
     isStarted: false,
 
@@ -2279,6 +2309,9 @@ window.Game = window.Game || {};
       dmHidden: false,
       battlesHidden: false,
       eventsHidden: false,
+
+      // Stage 7.15 zero-tutorial progressive disclosure state.
+      stage7TutorialBlocks: buildStage7TutorialBlocks(),
     },
 
     // Optional cache for Events panel selection when S.events is an array
@@ -2406,6 +2439,8 @@ window.Game = window.Game || {};
       dmHidden: false,
       battlesHidden: false,
       eventsHidden: false,
+
+      stage7TutorialBlocks: buildStage7TutorialBlocks(),
     };
     State.vote = {
       active: false,
@@ -4910,6 +4945,23 @@ window.Game = window.Game || {};
       if (key === "battles") State.flags.battlesHidden = b;
       if (key === "events") State.flags.eventsHidden = b;
       if (key === "locations") State.flags.locationsHidden = b;
+    },
+    getStage7TutorialBlocks: () => ensureStage7TutorialBlocks(State),
+    setStage7TutorialBlock: (key, patch) => {
+      const normalizedKey = String(key || "").trim().toLowerCase();
+      if (!STAGE7_TUTORIAL_BLOCK_KEYS.includes(normalizedKey)) return null;
+      const blocks = ensureStage7TutorialBlocks(State);
+      const next = patch && typeof patch === "object" ? patch : {};
+      blocks[normalizedKey] = {
+        unlocked: normalizedKey === "chat" || next.unlocked === true || blocks[normalizedKey].unlocked === true,
+        collapsed: next.collapsed === true,
+      };
+      return blocks[normalizedKey];
+    },
+    unlockStage7TutorialBlock: (key, open = true) => {
+      const normalizedKey = String(key || "").trim().toLowerCase();
+      if (!STAGE7_TUTORIAL_BLOCK_KEYS.includes(normalizedKey)) return null;
+      return StateAPI.setStage7TutorialBlock(normalizedKey, { unlocked: true, collapsed: !open });
     },
 
     // Lottery state (UI-only convenience, economy is handled elsewhere)

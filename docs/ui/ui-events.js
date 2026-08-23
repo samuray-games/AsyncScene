@@ -189,6 +189,10 @@ window.Game = window.Game || {};
   }
 
   function setEventsSize(next){
+    if (UI && typeof UI.setPanelSize === "function") {
+      UI.setPanelSize("events", next);
+      return;
+    }
     S.flags = S.flags || {};
     S.flags.eventsSize = next;
   }
