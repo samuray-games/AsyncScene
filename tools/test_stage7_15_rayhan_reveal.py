@@ -48,6 +48,7 @@ const state = {
   players: {}, battles: [], chat: [], me: { id: "me", name: "Тест" },
 };
 const scriptState = JSON.parse(JSON.stringify(state));
+const shadowState = JSON.parse(JSON.stringify(state));
 const panelCalls = [];
 let renderedCards = [];
 let npcReactionCalls = 0;
@@ -69,6 +70,7 @@ const UI = {
   ensurePanelExpanded(key) { panelCalls.push(["ensurePanelExpanded", key]); },
   setPanelSize() {},
 };
+const contextUI = Object.assign({}, UI, { S: shadowState });
 game.UI = UI;
 const element = () => ({ addEventListener() {}, classList: { remove() {}, add() {} } });
 const document = { getElementById(id) { return ["chatInput", "chatLog"].includes(id) ? element() : null; } };
@@ -79,7 +81,7 @@ const context = {
 context.window.window = context.window;
 vm.runInNewContext(source, context);
 const demo = game.Stage715Demo;
-demo.claimResume({ UI, state: scriptState, playerName: state.me.name });
+demo.claimResume({ UI: contextUI, state: scriptState, playerName: state.me.name });
 demo.handlePlayerMessage("ответ игрока");
 if (UI.S.battles.length !== 0) throw new Error("challenge was created before final Rayhan message completed");
 const waitFor = (predicate, label) => new Promise((resolve, reject) => {
@@ -106,6 +108,7 @@ if (!panelCalls.some((entry) => Array.isArray(entry) && entry[0] === "ensurePane
 if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was not rendered");
 if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
 if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
+if (shadowState.battles.length !== 0) throw new Error("challenge was stored in context shadow state");
 if (JSON.stringify(battle).match(/Kai|Sen|Кай|Сен|Уйти -1|Отойти/)) throw new Error("random conflict payload leaked");
 if (npcReactionCalls !== 0) throw new Error("normal NPC reaction leaked into demo transition");
 demo.destroy();
