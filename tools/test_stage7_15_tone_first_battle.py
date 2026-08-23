@@ -20,7 +20,8 @@ js = source.decode("utf-8")
 for text in (
     'const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона"',
     'const TONE_ACK = "ага, вижу. значит ты вот такой. интересно..."',
-    'const TONE_BATTLE_INVITE = "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш"',
+    'function currentBattlesPanelLabel()',
+    'rayhanBattleInviteText()',
     'telemetry("stage715_tone_seen")',
     'telemetry("stage715_tone_answered")',
     'telemetry("stage715_battle_unlocked")',
