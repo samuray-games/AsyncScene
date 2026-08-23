@@ -27,6 +27,8 @@ for marker in (
     'if (typeof UI.renderBattles === "function") UI.renderBattles()',
     'const battle = scriptedRayhanBattle(state)',
     'onComplete: unlockFirstBattle',
+    'function currentBattlesPanelLabel()',
+    'rayhanBattleInviteText()',
     'stage715RayhanScripted: true',
     'Извините, кто тут дерзкий??',
 ):
@@ -73,7 +75,10 @@ const UI = {
 const contextUI = Object.assign({}, UI, { S: shadowState });
 game.UI = UI;
 const element = () => ({ addEventListener() {}, classList: { remove() {}, add() {} } });
-const document = { getElementById(id) { return ["chatInput", "chatLog"].includes(id) ? element() : null; } };
+const document = {
+  getElementById(id) { return ["chatInput", "chatLog"].includes(id) ? element() : null; },
+  querySelector(selector) { return selector === "#battlesHeader .battleTitleText" ? { textContent: "Споры" } : null; },
+};
 const context = {
   window: { Game: game, document, location: { search: "" }, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval },
   document, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval, console,
@@ -93,7 +98,7 @@ const waitFor = (predicate, label) => new Promise((resolve, reject) => {
   };
   poll();
 });
-waitFor(() => chatMessages.some((message) => message.text === "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш"), "Rayhan final chat message")
+waitFor(() => chatMessages.some((message) => message.text === "нефиг дерзить тут сопляк, пошли в споры, пообщаемся 1на1 коль не ссыш"), "Rayhan final chat message")
   .then(() => waitFor(() => UI.S.battles.length === 1, "Rayhan scripted challenge"))
   .then(() => {
 const battle = UI.S.battles[0];
@@ -124,6 +129,7 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_tone_first_battle.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",

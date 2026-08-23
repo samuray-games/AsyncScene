@@ -3006,7 +3006,6 @@ window.Game = window.Game || {};
   const SILENCE_TEXT = "[ник игрока] слыш а ты чо не здороваешься!?";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
   const TONE_ACK = "ага, вижу. значит ты вот такой. интересно...";
-  const TONE_BATTLE_INVITE = "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш";
   const NASTYA_PROMPT = "Ты на проблемы нарываешься?";
   const NASTYA_CHOICES = Object.freeze([
     Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
@@ -3091,6 +3090,20 @@ window.Game = window.Game || {};
   function rayhanBattleState() {
     const UI = G.UI || (context && context.UI);
     return (UI && UI.S) || stateFor();
+  }
+
+  function currentBattlesPanelLabel() {
+    try {
+      const title = document.querySelector("#battlesHeader .battleTitleText");
+      const label = String(title && title.textContent || "").trim();
+      return label || "Споры";
+    } catch (_) {
+      return "Споры";
+    }
+  }
+
+  function rayhanBattleInviteText() {
+    return `нефиг дерзить тут сопляк, пошли в ${currentBattlesPanelLabel().toLowerCase()}, пообщаемся 1на1 коль не ссыш`;
   }
 
   function isActive(nextContext) {
@@ -3963,7 +3976,7 @@ window.Game = window.Game || {};
       pushNpc({
         speakerId: "npc_stage7_ken",
         name: "Райхан",
-        text: TONE_BATTLE_INVITE,
+        text: rayhanBattleInviteText(),
         onComplete: unlockFirstBattle,
       });
       return true;
