@@ -52,6 +52,10 @@ changed = subprocess.check_output(
     text=True,
 ).splitlines()
 allowed = {
+    "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     # TASK 7.15.22 and its focused regressions are part of this Stage 7.15 PR.
     "AsyncScene/Web/conflict/conflict-core.js",
