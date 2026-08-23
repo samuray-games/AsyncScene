@@ -3088,6 +3088,11 @@ window.Game = window.Game || {};
     return ctx.state || G.__S || (G.UI && G.UI.S) || G.State || null;
   }
 
+  function rayhanBattleState() {
+    const UI = (context && context.UI) || G.UI;
+    return (UI && UI.S) || stateFor();
+  }
+
   function isActive(nextContext) {
     const state = stateFor(nextContext);
     return queryEnabled() || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
@@ -3204,7 +3209,7 @@ window.Game = window.Game || {};
   }
 
   function shouldRevealBattleBlock() {
-    const state = stateFor();
+    const state = rayhanBattleState();
     if (!state || !state.flags) return false;
     if (state.flags[STAGE715_BATTLES_REVEALED_FLAG] === true) return true;
     return (state.battles || []).some((battle) => isStage715DemoBattle(battle));
@@ -3410,7 +3415,7 @@ window.Game = window.Game || {};
   }
 
   function stage715BattleById(id) {
-    const state = stateFor();
+    const state = id === FIRST_BATTLE_ID ? rayhanBattleState() : stateFor();
     const battles = state && Array.isArray(state.battles) ? state.battles : [];
     return battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === id) || null;
   }
@@ -3432,7 +3437,10 @@ window.Game = window.Game || {};
   function scriptedRayhanBattle(state) {
     if (!state) return null;
     state.battles = Array.isArray(state.battles) ? state.battles : [];
-    const existing = stage715BattleById(FIRST_BATTLE_ID);
+    const battleState = rayhanBattleState();
+    const existing = battleState && Array.isArray(battleState.battles)
+      ? battleState.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID)
+      : null;
     if (existing) return existing;
     const choices = RAYHAN_BATTLE_CHOICES.map((choice) => Object.assign({}, choice, {
       displayText: choice.text,
@@ -3535,9 +3543,9 @@ window.Game = window.Game || {};
   }
 
   function unlockFirstBattle() {
-    const state = stateFor();
+    const state = rayhanBattleState();
     if (!state) return false;
-    const existing = stage715BattleById(FIRST_BATTLE_ID);
+    const existing = state.battles && state.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID);
     if (existing) {
       revealBattlesPanel();
       phase = battleOutcome(existing) ? phase : "battle_unlocked";

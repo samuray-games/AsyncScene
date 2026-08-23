@@ -26,6 +26,10 @@ changed = set(subprocess.check_output(
     ["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True
 ).splitlines())
 allowed = {
+    "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_30_oleg_dm.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "docs/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-battles.js",

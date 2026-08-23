@@ -46,7 +46,9 @@ const state = {
   flags: { stage715Demo: true, stage715DemoPhase: "tone_prompted", stage715ProgressiveDisclosureInitialized: true },
   players: {}, battles: [], chat: [], me: { id: "me", name: "Тест" },
 };
+const scriptState = JSON.parse(JSON.stringify(state));
 const panelCalls = [];
+let renderedCards = [];
 let npcReactionCalls = 0;
 const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
 const UI = {
@@ -57,7 +59,10 @@ const UI = {
   },
   requestRenderAll() {},
   renderAll() {},
-  renderBattles() { panelCalls.push("renderBattles"); },
+  renderBattles() {
+    panelCalls.push("renderBattles");
+    renderedCards = (this.S.battles || []).map((battle) => battle.attack && battle.attack.text).filter(Boolean);
+  },
   ensurePanelExpanded(key) { panelCalls.push(["ensurePanelExpanded", key]); },
   setPanelSize() {},
 };
@@ -71,9 +76,10 @@ const context = {
 context.window.window = context.window;
 vm.runInNewContext(source, context);
 const demo = game.Stage715Demo;
-demo.claimResume({ UI, state, playerName: state.me.name });
+demo.claimResume({ UI, state: scriptState, playerName: state.me.name });
 demo.handlePlayerMessage("ответ игрока");
-const battle = state.battles[0];
+const battle = UI.S.battles[0];
+if (UI.S.battles.length !== 1) throw new Error("Battles list does not contain exactly one scripted challenge");
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
 if (battle.attack.text !== "Извините, кто тут дерзкий??") throw new Error("challenge text mismatch");
 const answerTexts = battle._defenseChoices.map((choice) => choice.text);
@@ -82,6 +88,9 @@ if (answerTexts.some((text) => /Kai|Sen|Кай|Сен/.test(text))) throw new Er
 if (state.chat.some((message) => message.text === "Извините, кто тут дерзкий??")) throw new Error("challenge duplicated in chat");
 if (!panelCalls.some((entry) => Array.isArray(entry) && entry[0] === "ensurePanelExpanded" && entry[1] === "battles")) throw new Error("Battles panel was not expanded");
 if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was not rendered");
+if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
+if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
+if (JSON.stringify(battle).match(/Kai|Sen|Кай|Сен|Уйти -1|Отойти/)) throw new Error("random conflict payload leaked");
 if (npcReactionCalls !== 0) throw new Error("normal NPC reaction leaked into demo transition");
 demo.destroy();
 console.log("PASS_STAGE7_15_RAYHAN_REVEAL_RUNTIME");
@@ -90,6 +99,10 @@ subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
 
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
 allowed = {
+    "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_30_oleg_dm.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_50_progressive_disclosure.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
