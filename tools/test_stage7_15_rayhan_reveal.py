@@ -26,6 +26,7 @@ for marker in (
     'if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles")',
     'if (typeof UI.renderBattles === "function") UI.renderBattles()',
     'const battle = scriptedRayhanBattle(state)',
+    'onComplete: unlockFirstBattle',
     'stage715RayhanScripted: true',
     'Извините, кто тут дерзкий??',
 ):
@@ -50,12 +51,14 @@ const scriptState = JSON.parse(JSON.stringify(state));
 const panelCalls = [];
 let renderedCards = [];
 let npcReactionCalls = 0;
+const chatMessages = [];
 const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
 const UI = {
   S: state,
   pushChat(message) {
     if (typeof game.NPC.generateReactionToMe === "function" && message && message.isMe) npcReactionCalls += 1;
     state.chat.push(message);
+    chatMessages.push(message);
   },
   requestRenderAll() {},
   renderAll() {},
@@ -78,6 +81,19 @@ vm.runInNewContext(source, context);
 const demo = game.Stage715Demo;
 demo.claimResume({ UI, state: scriptState, playerName: state.me.name });
 demo.handlePlayerMessage("ответ игрока");
+if (UI.S.battles.length !== 0) throw new Error("challenge was created before final Rayhan message completed");
+const waitFor = (predicate, label) => new Promise((resolve, reject) => {
+  const started = Date.now();
+  const poll = () => {
+    if (predicate()) return resolve();
+    if (Date.now() - started > 7000) return reject(new Error(`timed out waiting for ${label}`));
+    setTimeout(poll, 25);
+  };
+  poll();
+});
+waitFor(() => chatMessages.some((message) => message.text === "нефиг дерзить тут сопляк, пошли в баттлы, пообщаемся 1на1 коль не ссыш"), "Rayhan final chat message")
+  .then(() => waitFor(() => UI.S.battles.length === 1, "Rayhan scripted challenge"))
+  .then(() => {
 const battle = UI.S.battles[0];
 if (UI.S.battles.length !== 1) throw new Error("Battles list does not contain exactly one scripted challenge");
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
@@ -94,6 +110,8 @@ if (JSON.stringify(battle).match(/Kai|Sen|Кай|Сен|Уйти -1|Отойти
 if (npcReactionCalls !== 0) throw new Error("normal NPC reaction leaked into demo transition");
 demo.destroy();
 console.log("PASS_STAGE7_15_RAYHAN_REVEAL_RUNTIME");
+  })
+  .catch((error) => { console.error(error); process.exitCode = 1; });
 '''
 subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
 

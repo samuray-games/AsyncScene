@@ -3356,6 +3356,9 @@ window.Game = window.Game || {};
         preserveText: true,
       });
       render();
+      if (typeof entry.onComplete === "function") {
+        try { entry.onComplete(); } catch (_) {}
+      }
       npcQueueTimer = setTimeout(() => {
         npcQueueTimer = null;
         drainNpcQueue();
@@ -3957,8 +3960,12 @@ window.Game = window.Game || {};
       saveState();
       telemetry("stage715_tone_answered");
       pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_ACK });
-      pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: TONE_BATTLE_INVITE });
-      unlockFirstBattle();
+      pushNpc({
+        speakerId: "npc_stage7_ken",
+        name: "Райхан",
+        text: TONE_BATTLE_INVITE,
+        onComplete: unlockFirstBattle,
+      });
       return true;
     }
     if (phase === "first_battle" || phase === "battle_unlocked") {
