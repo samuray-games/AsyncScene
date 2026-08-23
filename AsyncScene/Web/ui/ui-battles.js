@@ -149,6 +149,52 @@
     return !!(battle && battle.meta && battle.meta.stage715RayhanScripted === true);
   }
 
+  function stage715RayhanDomElementInfo(element) {
+    if (!element) return null;
+    let computed = null;
+    try {
+      computed = window.getComputedStyle ? window.getComputedStyle(element) : null;
+    } catch (_) {}
+    return {
+      tag: element.tagName || null,
+      id: element.id || null,
+      className: element.className || null,
+      hidden: !!element.hidden,
+      inlineDisplay: element.style ? (element.style.display || null) : null,
+      inlineVisibility: element.style ? (element.style.visibility || null) : null,
+      display: computed ? computed.display : null,
+      visibility: computed ? computed.visibility : null,
+      isConnected: element.isConnected !== false,
+      text: String(element.textContent || "").slice(0, 160)
+    };
+  }
+
+  function traceStage715RayhanDom(stage, rendererBody, activeBattle, extra) {
+    try {
+      const devTrace = !!(Game && Game.__DEV && Game.__DEV.stage715RayhanDomTrace === true);
+      const sourceBattles = [];
+      if (S && Array.isArray(S.battles)) sourceBattles.push(...S.battles);
+      if (Game && Game.__S && Array.isArray(Game.__S.battles)) sourceBattles.push(...Game.__S.battles);
+      const rayhanBattle = activeBattle || sourceBattles.find(isStage715RayhanScriptedBattle) || null;
+      if (!devTrace && !rayhanBattle) return;
+
+      const queriedBody = document.querySelector("#battlesBody");
+      const body = queriedBody || rendererBody || null;
+      const payload = Object.assign({
+        stage,
+        selector: "#battlesBody",
+        battlesBodyExists: !!queriedBody,
+        rendererBodyMatchesQuery: !!(rendererBody && queriedBody && rendererBody === queriedBody),
+        battlesBodyInnerHTMLLength: body ? body.innerHTML.length : 0,
+        battlesBodyChildrenLength: body ? body.children.length : 0,
+        activeBattle: rayhanBattle,
+        body: stage715RayhanDomElementInfo(body),
+        children: body ? Array.from(body.children).map(stage715RayhanDomElementInfo) : []
+      }, extra || {});
+      console.log("STAGE715_RAYHAN_DOM_TRACE", payload);
+    } catch (_) {}
+  }
+
   function stage715BattleBlockName() {
     const title = document.querySelector("#battlesHeader .battleTitleText");
     const raw = title && title.textContent ? title.textContent.trim() : "Баттлы";
@@ -1468,6 +1514,10 @@
 UI.renderBattles = () => {
   UI._lastBattleCardBranchLog = null;
   const body = $("battlesBody");
+  traceStage715RayhanDom("render-start", body, null, {
+    stateBattles: S && Array.isArray(S.battles) ? S.battles.length : 0,
+    canonicalBattles: Game && Game.__S && Array.isArray(Game.__S.battles) ? Game.__S.battles.length : 0
+  });
   let countEl = $("battleCount");
   const countWrapper = $("battleCountWrapper");
   if (countWrapper && !countEl) {
@@ -1479,7 +1529,12 @@ UI.renderBattles = () => {
     countWrapper.appendChild(countEl);
     countWrapper.appendChild(document.createTextNode(")"));
   }
-  if (!body || !countEl) return;
+  if (!body || !countEl) {
+    traceStage715RayhanDom("render-missing-dom", body, null, {
+      countExists: !!countEl
+    });
+    return;
+  }
   const battlesBlock = $("battlesBlock") || document.getElementById("battlesBlock");
   const hideStage715BattleBlock = shouldHideStage715BattleBlock();
   if (battlesBlock && battlesBlock.classList) {
@@ -1488,6 +1543,7 @@ UI.renderBattles = () => {
   if (hideStage715BattleBlock) {
     countEl.textContent = "0";
     body.classList.add("hidden");
+    traceStage715RayhanDom("render-hidden", body, null);
     return;
   }
   body.classList.remove("hidden");
@@ -1638,6 +1694,7 @@ UI.renderBattles = () => {
     } catch (_) { _anchor = null; }
 
     body.innerHTML = "";
+    traceStage715RayhanDom("after-clear", body, null);
     // Schedule a deferred restore so the anchor's visual position stays stable
     // after the synchronous DOM build completes.
     try {
@@ -1672,16 +1729,22 @@ UI.renderBattles = () => {
           hint.className = "hint";
           hint.textContent = t("battles_empty");
           body.appendChild(hint);
+          traceStage715RayhanDom("invite-guard-empty", body, null);
+          try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
+          return;
         }
-        try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
-        return;
+        traceStage715RayhanDom("invite-guard-with-battles", body, null, {
+          inviteAvailable: false,
+          battlesCount: S.battles.length
+        });
       }
-      const inviteRow = document.createElement("div");
-      inviteRow.className = "actions";
-      inviteRow.style.position = "relative";
-      inviteRow.style.display = "flex";
-      inviteRow.style.gap = "8px";
-      inviteRow.style.alignItems = "center";
+      if (stage715InviteAvailable) {
+        const inviteRow = document.createElement("div");
+        inviteRow.className = "actions";
+        inviteRow.style.position = "relative";
+        inviteRow.style.display = "flex";
+        inviteRow.style.gap = "8px";
+        inviteRow.style.alignItems = "center";
 
       if (!UI._battleInvite || !UI._battleInvite.open) {
         // Show button for opening the invite flow.
@@ -2004,6 +2067,7 @@ UI.renderBattles = () => {
             document.addEventListener("click", handleClickOutside, true);
           }, 200);
         } catch (_) {}
+      }
       }
       // header toggle is bound near header creation (always on)
     }
@@ -3308,6 +3372,9 @@ UI.renderBattles = () => {
         } catch (_) {}
       }
       body.appendChild(card);
+      traceStage715RayhanDom("card-appended", body, b, {
+        createdCard: stage715RayhanDomElementInfo(card)
+      });
     });
 
     // Move dropdown to end of body AFTER all battle cards to ensure it's on top
@@ -3323,6 +3390,7 @@ UI.renderBattles = () => {
      });
    }
    try { if (UI && typeof UI.updateRightScroll === "function") UI.updateRightScroll(); } catch (_) {}
+   traceStage715RayhanDom("render-complete", body, null);
  };
 
  // Update crowd vote counters for a specific battle (fixes DUM-030)
