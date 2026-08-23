@@ -3089,7 +3089,7 @@ window.Game = window.Game || {};
   }
 
   function rayhanBattleState() {
-    const UI = (context && context.UI) || G.UI;
+    const UI = G.UI || (context && context.UI);
     return (UI && UI.S) || stateFor();
   }
 
@@ -3196,7 +3196,7 @@ window.Game = window.Game || {};
 
   function revealBattlesPanel() {
     const revealed = revealPanelOnce("battles", STAGE715_BATTLES_REVEALED_FLAG, "stage715_battles_panel_revealed");
-    const UI = context && context.UI;
+    const UI = G.UI || (context && context.UI);
     if (UI) {
       if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");
       if (typeof UI.renderBattles === "function") UI.renderBattles();
@@ -3438,9 +3438,9 @@ window.Game = window.Game || {};
   }
 
   function scriptedRayhanBattle(state) {
-    if (!state) return null;
-    state.battles = Array.isArray(state.battles) ? state.battles : [];
     const battleState = rayhanBattleState();
+    if (!battleState) return null;
+    battleState.battles = Array.isArray(battleState.battles) ? battleState.battles : [];
     const existing = battleState && Array.isArray(battleState.battles)
       ? battleState.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID)
       : null;
@@ -3454,7 +3454,7 @@ window.Game = window.Game || {};
       battleId: FIRST_BATTLE_ID,
       opponentId: "npc_stage7_ken",
       attackerId: "npc_stage7_ken",
-      defenderId: state.me && state.me.id || "me",
+      defenderId: battleState.me && battleState.me.id || "me",
       status: "pickDefense",
       resolved: false,
       finished: false,
@@ -3480,7 +3480,7 @@ window.Game = window.Game || {};
         stage715RayhanScripted: true,
       },
     };
-    state.battles.push(battle);
+    battleState.battles.push(battle);
     return battle;
   }
 
