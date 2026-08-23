@@ -3190,7 +3190,13 @@ window.Game = window.Game || {};
   }
 
   function revealBattlesPanel() {
-    return revealPanelOnce("battles", STAGE715_BATTLES_REVEALED_FLAG, "stage715_battles_panel_revealed");
+    const revealed = revealPanelOnce("battles", STAGE715_BATTLES_REVEALED_FLAG, "stage715_battles_panel_revealed");
+    const UI = context && context.UI;
+    if (UI) {
+      if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");
+      if (typeof UI.renderBattles === "function") UI.renderBattles();
+    }
+    return revealed;
   }
 
   function revealEventsPanel() {
