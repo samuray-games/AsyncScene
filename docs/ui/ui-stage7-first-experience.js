@@ -3605,7 +3605,7 @@ window.Game = window.Game || {};
     if (!state) return false;
     state.flags = state.flags || {};
     if (state.flags.stage715NastyaReactionShown !== true) {
-      const label = currentBattleBlockLabel();
+      const label = currentBattleBlockLabel() || "споры";
       pushNpc({
         speakerId: "npc_stage7_mika",
         name: "Настя",
@@ -3719,6 +3719,8 @@ window.Game = window.Game || {};
       || battle.status !== "pickDefense") return false;
     const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
     if (!choice) return false;
+    battle.meta = battle.meta || {};
+    if (battle.meta.stage715RayhanAnswerPending === true) return false;
     const state = stateFor();
     state.flags = state.flags || {};
     state.flags.stage715RayhanChoiceId = choice.id;
@@ -3726,16 +3728,27 @@ window.Game = window.Game || {};
     telemetry("stage715_rayhan_scripted_choice");
     const conflict = G.Conflict;
     if (!conflict || typeof conflict.pickDefense !== "function") return false;
-    const result = conflict.pickDefense(battle.id, choice.id);
-    const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
-    if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
-      const continueWithEventVote = () => startRayhanEventVote(battle);
+    const resolveChoice = () => {
+      battle.meta.stage715RayhanAnswerPending = false;
+      const result = conflict.pickDefense(battle.id, choice.id);
+      const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
+      if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
+        startRayhanEventVote(battle);
+      }
+    };
+    const attackType = String(battle.attack && (battle.attack.group || battle.attack.type || battle.attack.qtype || "") || "").toLowerCase();
+    const defenseType = String(choice.group || choice.type || choice.qtype || "").toLowerCase();
+    const isWrongAnswer = !attackType || !defenseType || attackType !== defenseType;
+    if (isWrongAnswer) {
+      battle.meta.stage715RayhanAnswerPending = true;
       if (state.flags.stage715RayhanWrongChatShown !== true) {
-        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT, onComplete: continueWithEventVote });
+        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT, onComplete: resolveChoice });
         state.flags.stage715RayhanWrongChatShown = true;
       } else {
-        continueWithEventVote();
+        resolveChoice();
       }
+    } else {
+      resolveChoice();
     }
     render();
     return true;
@@ -3815,7 +3828,7 @@ window.Game = window.Game || {};
       stage715RayhanEventVotePending: false,
       stage715RayhanEventResolved: true,
     });
-    phase = "battle_unlocked";
+    phase = settleRayhanWinRewards(battle) ? "rayhan_win_waiting_reply" : "battle_unlocked";
     saveState();
     render();
     return !!finalized || battleOutcome(battle) === "win";
@@ -3860,16 +3873,23 @@ window.Game = window.Game || {};
 
   function startRayhanEventVote(battle) {
     if (!battle || battle.resolved) return false;
+    battle.meta = battle.meta || {};
     const state = rayhanBattleState();
     const events = state && Array.isArray(state.events) ? state.events : [];
     const existing = events.find((event) => event && event.stage715RayhanEvent === true && !event.resolved);
     if (existing) {
+      battle.meta.stage715RayhanEventStartSequence = true;
       revealEventsPanel();
       scheduleRayhanEventVotes(existing);
       return true;
     }
+    if (battle.meta.stage715RayhanEventStartSequence === true) return false;
+    battle.meta.stage715RayhanEventStartSequence = true;
     const voterIds = rayhanEventVoterIds();
-    if (voterIds.length < RAYHAN_EVENT_VOTE_COUNT || !G.Events || typeof G.Events.addEvent !== "function") return false;
+    if (voterIds.length < RAYHAN_EVENT_VOTE_COUNT || !G.Events || typeof G.Events.addEvent !== "function") {
+      battle.meta.stage715RayhanEventStartSequence = false;
+      return false;
+    }
     revealEventsPanel();
     const playerName = playerNickname();
     const player = state && state.me ? state.me : { id: "me", name: playerName };
@@ -3890,7 +3910,6 @@ window.Game = window.Game || {};
       bId: RAYHAN_ID,
       bName: "Райхан",
       bInf: Number((state.players && state.players[RAYHAN_ID] && state.players[RAYHAN_ID].influence) || 0),
-      voteLabels: { a: "за тебя", b: "за Райхана" },
       votesA: 0,
       votesB: 0,
       aVotes: 0,
@@ -3941,9 +3960,10 @@ window.Game = window.Game || {};
     let eventAdded = false;
     try {
       G.Events.addEvent(event);
-      eventAdded = true;
+      eventAdded = events.includes(event) || (state.events || []).includes(event);
     } finally {
       if (!eventAdded) {
+        battle.meta.stage715RayhanEventStartSequence = false;
         if (previousSyntheticPlayer) players[RAYHAN_EVENT_PLAYER_ID] = previousSyntheticPlayer;
         else delete players[RAYHAN_EVENT_PLAYER_ID];
       }
@@ -3957,7 +3977,6 @@ window.Game = window.Game || {};
     state.flags.stage715RayhanEventStarted = true;
     phase = "rayhan_event_vote";
     saveState();
-    if (G.UI && typeof G.UI.pushSystem === "function") G.UI.pushSystem("Толпа решает.");
     scheduleRayhanEventVotes(event);
     render();
     return true;
@@ -4062,6 +4081,17 @@ window.Game = window.Game || {};
     }
     const battle = resolveIncomingBattle(state, conflict.incoming("npc_stage7_mika", { pinned: true }), "npc_stage7_mika");
     if (!battle || !battle.id) return false;
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: "stage7_15_nastya_orange_call",
+      text: NASTYA_PROMPT,
+      displayText: NASTYA_PROMPT,
+      color: "o",
+      _color: "o",
+      type: "yn",
+      qtype: "yn",
+      group: "yn",
+    });
+    battle.attackHidden = true;
     battle.meta = Object.assign({}, battle.meta || {}, {
       stage715DemoBattle: true,
       stage715BattleId: NASTYA_BATTLE_ID,
@@ -4323,7 +4353,7 @@ window.Game = window.Game || {};
     pushNpc({
       speakerId: "npc_stage7_mika",
       name: "Настя",
-      text: "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние...",
+      text: "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?",
     });
     if (G.Conflict && typeof G.Conflict.startCrowdVote === "function") {
       try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}

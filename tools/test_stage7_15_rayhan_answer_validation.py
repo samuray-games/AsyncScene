@@ -53,6 +53,7 @@ function runScenario(choiceId) {
     finished: false,
     result: null,
     fromThem: true,
+    attack: { id: "rayhan_attack", text: "Извините, кто тут дерзкий??", type: "yn", group: "yn", color: "y", _color: "y" },
     meta: { stage715DemoBattle: true, stage715BattleId: "stage7_15_first_battle", stage715RayhanScripted: true },
     _defenseChoices: [
       { id: "canon_who", group: "who", type: "who", color: "y", stage715DisplayText: "Похоже, ты…" },
@@ -65,6 +66,7 @@ function runScenario(choiceId) {
   const system = [];
   const timeline = [];
   const eventUnlocks = [];
+  let eventAdds = 0;
   const Game = {
     __S: state,
     __D: { toastLog: [], moneyLog: [] },
@@ -92,7 +94,7 @@ function runScenario(choiceId) {
       syncMeToPlayers() {},
     },
     Events: {
-      addEvent(event) { state.events.unshift(event); },
+      addEvent(event) { eventAdds += 1; state.events.unshift(event); },
       finalizeOpenEventNow(event) {
         const crowd = event.crowd;
         event.resolved = true;
@@ -118,6 +120,7 @@ function runScenario(choiceId) {
         battle.result = null;
         battle.draw = true;
         battle.crowd = { voters: {}, votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, decided: false };
+        Game.UI.pushChat({ name: "Система", text: "Толпа решает.", system: true });
         return { ok: true, outcome: "draw" };
       },
       finalizeCrowdVote(battleId) {
@@ -133,11 +136,27 @@ function runScenario(choiceId) {
         battle.result = "win";
         return { outcome: "B_WIN" };
       },
+      incoming(opponentId) {
+        const nastya = {
+          id: "stage7_15_nastya_battle",
+          opponentId,
+          status: "pickDefense",
+          resolved: false,
+          finished: false,
+          result: null,
+          fromThem: true,
+          attack: { id: "incoming_attack", text: "incoming", type: "yn", group: "yn", color: "o", _color: "o" },
+          meta: {},
+          _defenseChoices: [],
+        };
+        state.battles.push(nastya);
+        return nastya;
+      },
       myDefenseOptions() { return battle._defenseChoices; },
     },
     UI: {
       S: state,
-      pushChat(entry) { chat.push(entry); timeline.push(["chat", entry.text]); },
+      pushChat(entry) { chat.push(entry); timeline.push([entry.system ? "system" : "chat", entry.text]); },
       pushSystem(text) { system.push(text); timeline.push(["system", text]); },
       requestRenderAll() {},
       renderAll() {},
@@ -166,8 +185,7 @@ function runScenario(choiceId) {
     setTimeout(() => {
       try {
         const event = state.events.find((entry) => entry && entry.stage715RayhanEvent === true);
-        resolve({ state, battle, event, chat, system, timeline, eventUnlocks, immediateResult, game: Game });
-        Game.Stage715Demo.destroy();
+        resolve({ state, battle, event, chat, system, timeline, eventUnlocks, immediateResult, eventAdds, game: Game });
       } catch (error) { reject(error); }
     }, choiceId === "canon_yn" ? 500 : 8200);
   });
@@ -178,9 +196,11 @@ function runScenario(choiceId) {
   assert.notStrictEqual(wrong.immediateResult, "win", "wrong answer must not win immediately");
   assert.strictEqual(wrong.battle.result, "win", "event vote must resolve in player's favour");
   assert(wrong.event, "wrong answer must create a scripted event card");
+  assert.strictEqual(wrong.eventAdds, 1, "wrong answer must start exactly one event sequence");
   assert.strictEqual(wrong.event.title, "Райхан против Тестер", "event card title must use player nickname");
-  assert.strictEqual(wrong.event.voteLabels.a, "за тебя");
-  assert.strictEqual(wrong.event.voteLabels.b, "за Райхана");
+  assert(!String(wrong.event.title).includes("stage715_"), "event title must not expose a Stage 7.15 id");
+  assert(![wrong.event.title, wrong.event.meta, wrong.event.aName, wrong.event.bName].some((value) => String(value || "").includes("stage715_")), "event display fields must not expose internal ids");
+  assert.strictEqual(wrong.event.voteLabels, undefined, "scripted event must use the standard single-title card");
   assert.strictEqual(wrong.event.crowd.alreadyVotedCount, 5, "event must contain five votes");
   assert.strictEqual(wrong.event.crowd.aVotes, 3, "player must receive three event votes");
   assert.strictEqual(wrong.event.crowd.bVotes, 2, "Rayhan must receive two event votes");
@@ -188,12 +208,20 @@ function runScenario(choiceId) {
   assert(wrong.event.crowd.scriptedVoteAt.every((at, index, list) => index === 0 || at - list[index - 1] <= 3000), "event vote delays must be at most three seconds");
   assert(wrong.chat.some((entry) => entry.text === "хааа ответ мимо! ща толпа решит кто из нас прав!"), "wrong-answer chat line missing");
   assert.strictEqual(wrong.chat.filter((entry) => entry.text === "хааа ответ мимо! ща толпа решит кто из нас прав!").length, 1, "wrong-answer chat line duplicated");
-  assert.strictEqual(wrong.system.filter((text) => text === "Толпа решает.").length, 1, "system line duplicated or missing");
+  assert.strictEqual(wrong.timeline.filter((entry) => entry[0] === "system" && entry[1] === "Толпа решает.").length, 1, "system line duplicated or missing");
   assert(wrong.timeline.findIndex((entry) => entry[0] === "chat" && entry[1] === "хааа ответ мимо! ща толпа решит кто из нас прав!") < wrong.timeline.findIndex((entry) => entry[0] === "system" && entry[1] === "Толпа решает."), "system line must follow Rayhan chat line");
   assert(wrong.eventUnlocks.includes("expanded"), "events panel must unlock and expand");
   assert.strictEqual(wrong.state.me.points, 2, "Rayhan must transfer exactly two points after event win");
   assert.strictEqual(wrong.state.players.npc_stage7_ken.points, 8, "Rayhan must fund the two-point reward");
   assert.deepStrictEqual(wrong.game.__D.toastLog.map((entry) => [entry.kind, entry.delta]).sort(), [["points", 2], ["rep", 1], ["wins", 1]].sort());
+  assert.strictEqual(wrong.event.resolved, true, "Rayhan event must resolve");
+  assert.strictEqual(wrong.state.flags.stage715DemoPhase, "rayhan_win_waiting_reply", "event resolution must not leave the demo stuck");
+  assert.strictEqual(wrong.game.Stage715Demo.handlePlayerMessage("готово"), true, "Rayhan post-win reply must advance the corridor");
+  assert.strictEqual(wrong.state.flags.stage715DemoPhase, "nastya_battle", "Nastya battle must start after the Rayhan event");
+  await new Promise((resolve) => setTimeout(resolve, 6500));
+  assert.strictEqual(wrong.chat.filter((entry) => entry.text === "Так, я не поняла, это что за беспредел тут?? Тестер, ты проблем захотел? Бегом в Споры!").length, 1, "Nastya trigger must be emitted once with the current battle label");
+  assert.strictEqual(wrong.battle.meta.stage715RayhanEventStartSequence, true, "Rayhan event start sequence must remain single-shot");
+  wrong.game.Stage715Demo.destroy();
 
   const correct = await runScenario("canon_yn");
   assert.strictEqual(correct.battle.result, "win", "correct answer must resolve directly");
@@ -202,6 +230,7 @@ function runScenario(choiceId) {
   assert.strictEqual(correct.state.me.points, 2, "direct win must reward exactly two points");
   assert.strictEqual(correct.state.players.npc_stage7_ken.points, 8, "direct win must debit Rayhan");
   assert(!correct.chat.some((entry) => entry.text === "хааа ответ мимо! ща толпа решит кто из нас прав!"), "correct answer must not emit wrong-answer chat");
+  correct.game.Stage715Demo.destroy();
   console.log("PASS_STAGE7_15_RAYHAN_EVENTS_FIRST");
 })().catch((error) => { console.error(error); process.exitCode = 1; });
 '''
