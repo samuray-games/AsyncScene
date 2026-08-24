@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-rayhan-events-first",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-rayhan-events-first\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "8bb6d87152e9f1a21bfc4cd177054a5e74647c1c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8bb6d87152e9f1a21bfc4cd177054a5e74647c1c\n# branch.head codex/stage7-15-rayhan-events-first\n# branch.upstream origin/codex/stage7-15-rayhan-events-first\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "8bb6d871 (HEAD -> codex/stage7-15-rayhan-events-first, origin/codex/stage7-15-rayhan-events-first) fix: route Rayhan wrong answer through events tutorial\nb8659ded (origin/main) Merge pull request #385 from samuray-games/codex/stage7-15-rayhan-yellow-result-fix\n6f3fa341 (origin/codex/stage7-15-rayhan-yellow-result-fix) fix: validate Rayhan Stage 7.15 battle answers\n6ed17c4d Merge pull request #384 from samuray-games/codex/stage7-15-rayhan-corridor-fix\ndbe0be5a (origin/codex/stage7-15-rayhan-corridor-fix) fix(stage7): narrow Rayhan post-win corridor\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8bb6d87152e9f1a21bfc4cd177054a5e74647c1c\nbranch refs/heads/codex/stage7-15-rayhan-events-first\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-24T14:21:19Z",
+      "stderr": "",
+      "stdout": "b8659ded1583f6ccd74a9d2a543b546ddc46c020\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8bb6d87152e9f1a21bfc4cd177054a5e74647c1c",
+  "observedAtUtc": "2026-08-24T14:21:19Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
