@@ -3015,6 +3015,7 @@ window.Game = window.Game || {};
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const RAYHAN_ID = "npc_stage7_ken";
   const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, ну думаю это очевидно. или нет?";
+  const RAYHAN_WRONG_CHAT = "хааа ответ мимо! ща толпа решит кто из нас прав!";
   const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
   const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
@@ -3045,8 +3046,8 @@ window.Game = window.Game || {};
   const NPC_TYPING_MAX_MS = 2800;
   const NPC_TYPING_CHARS_MS = 24;
   const RAYHAN_BATTLE_CHOICES = Object.freeze([
-    Object.freeze({ id: "stage715_rayhan_answer_1", type: "yn", group: "yn", text: "Похоже, ты…" }),
-    Object.freeze({ id: "stage715_rayhan_answer_2", type: "yn", group: "yn", text: "Кажется, прямо тут…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_1", type: "who", group: "who", text: "Похоже, ты…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_2", type: "where", group: "where", text: "Кажется, прямо тут…" }),
     Object.freeze({ id: "stage715_rayhan_answer_3", type: "yn", group: "yn", text: "Наверное, да…" }),
   ]);
   const NPCS = Object.freeze([
@@ -3476,13 +3477,15 @@ window.Game = window.Game || {};
       && String(entry.battleId || "") === String(battleId || ""));
   }
 
-  function rayhanMoneyTransferred(battleId) {
+  function rayhanMoneyNet(battleId) {
     const log = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
     return log.reduce((total, entry) => {
-      if (!entry || String(entry.sourceId || "") !== RAYHAN_ID || String(entry.targetId || "") !== "me") return total;
-      if (String(entry.battleId || (entry.meta && entry.meta.battleId) || "") !== String(battleId || "")) return total;
+      if (!entry || String(entry.battleId || (entry.meta && entry.meta.battleId) || "") !== String(battleId || "")) return total;
       if (entry.currency && String(entry.currency).toLowerCase() !== "points") return total;
-      return total + Math.max(0, Number(entry.amount || 0) | 0);
+      const amount = Math.max(0, Number(entry.amount || 0) | 0);
+      if (String(entry.sourceId || "") === RAYHAN_ID && String(entry.targetId || "") === "me") return total + amount;
+      if (String(entry.sourceId || "") === "me" && String(entry.targetId || "") === RAYHAN_ID) return total - amount;
+      return total;
     }, 0);
   }
 
@@ -3508,7 +3511,7 @@ window.Game = window.Game || {};
     const baseline = rayhanRewardBaseline(battle);
     const battleId = battle.id || battle.battleId || FIRST_BATTLE_ID;
     const economy = G.ConflictEconomy || G._ConflictEconomy;
-    const pointsAlreadyTransferred = rayhanMoneyTransferred(battleId);
+    const pointsAlreadyTransferred = rayhanMoneyNet(battleId);
     const pointsNeeded = Math.max(0, 2 - pointsAlreadyTransferred);
     if (pointsNeeded > 0) {
       if (!economy || typeof economy.transferPoints !== "function") return false;
@@ -3518,6 +3521,18 @@ window.Game = window.Game || {};
         opponentId: RAYHAN_ID,
       });
       if (!transfer || transfer.ok !== true) return false;
+    }
+
+    const netMoney = rayhanMoneyNet(battleId);
+    if (netMoney > 2) {
+      const rebalance = economy && typeof economy.transferPoints === "function"
+        ? economy.transferPoints("me", RAYHAN_ID, netMoney - 2, RAYHAN_REWARD_REASON, {
+          battleId,
+          context: "stage7_15_rayhan_post_win_rebalance",
+          opponentId: RAYHAN_ID,
+        })
+        : null;
+      if (!rebalance || rebalance.ok !== true) return false;
     }
 
     const repNeeded = Math.max(0, 1 - (currentPlayerStat(state, "rep") - baseline.rep));
@@ -3629,10 +3644,6 @@ window.Game = window.Game || {};
       mirrorRayhanBattleToRenderState(existing);
       return existing;
     }
-    const choices = RAYHAN_BATTLE_CHOICES.map((choice) => Object.assign({}, choice, {
-      displayText: choice.text,
-      color: null,
-    }));
     const battle = {
       id: FIRST_BATTLE_ID,
       battleId: FIRST_BATTLE_ID,
@@ -3661,7 +3672,7 @@ window.Game = window.Game || {};
         qtype: "yn",
         group: "yn",
       },
-      _defenseChoices: choices,
+      _defenseChoices: [],
       _choicesForStatus: "pickDefense",
       meta: {
         stage715DemoBattle: true,
@@ -3671,6 +3682,23 @@ window.Game = window.Game || {};
         stage715RayhanScripted: true,
       },
     };
+    const canonicalChoices = G.Conflict && typeof G.Conflict.myDefenseOptions === "function"
+      ? G.Conflict.myDefenseOptions(battle)
+      : RAYHAN_BATTLE_CHOICES.map((wanted) => ({
+        id: `canon_stage715_${wanted.group}`,
+        group: wanted.group,
+        type: wanted.type,
+        color: "y",
+        text: wanted.text,
+      }));
+    const choices = RAYHAN_BATTLE_CHOICES.map((wanted) => {
+      const canonical = canonicalChoices.find((entry) => String(entry && (entry.group || entry.type) || "").toLowerCase() === wanted.group);
+      return canonical
+        ? Object.assign({}, canonical, { stage715DisplayText: wanted.text })
+        : null;
+    }).filter(Boolean);
+    if (choices.length !== RAYHAN_BATTLE_CHOICES.length) return null;
+    battle._defenseChoices = choices;
     battleState.battles.push(battle);
     mirrorRayhanBattleToRenderState(battle);
     return battle;
@@ -3683,20 +3711,60 @@ window.Game = window.Game || {};
       || battle.status !== "pickDefense") return false;
     const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
     if (!choice) return false;
-    battle.defense = Object.assign({}, choice);
-    battle.status = "finished";
-    battle.resolved = true;
-    battle.finished = true;
-    battle.result = "win";
-    battle.outcome = "win";
-    battle.resultLine = "Ты ответил Райхану.";
     const state = stateFor();
     state.flags = state.flags || {};
     state.flags.stage715RayhanChoiceId = choice.id;
     saveState();
     telemetry("stage715_rayhan_scripted_choice");
+    const conflict = G.Conflict;
+    if (!conflict || typeof conflict.pickDefense !== "function") return false;
+    const result = conflict.pickDefense(battle.id, choice.id);
+    const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
+    if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
+      if (state.flags.stage715RayhanWrongChatShown !== true) {
+        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT });
+        state.flags.stage715RayhanWrongChatShown = true;
+      }
+      battle.meta = Object.assign({}, battle.meta || {}, { stage715RayhanVotePending: true });
+      saveState();
+      setTimeout(() => settleRayhanCrowdVote(battle), 350);
+    }
     render();
     return true;
+  }
+
+  function settleRayhanCrowdVote(battle) {
+    if (!battle || !battle.crowd || battle.crowd.decided || battle.resolved) return false;
+    const state = rayhanBattleState();
+    const voters = Object.values(state && state.players || {}).filter((player) => {
+      const id = String(player && player.id || "");
+      const role = String(player && player.role || "").toLowerCase();
+      return player && player.npc === true && id && id !== RAYHAN_ID && id !== "me"
+        && role !== "cop" && role !== "police" && Number(player.points || 0) > 0;
+    }).slice(0, 5);
+    if (voters.length < 5 || !G.NPC || typeof G.NPC.voteInDraw !== "function") return false;
+    const originalVoteInDraw = G.NPC.voteInDraw;
+    let index = 0;
+    G.NPC.voteInDraw = () => {
+      const voter = voters[index++];
+      return voter
+        ? { voterId: voter.id, voterName: voter.name, side: index <= 3 ? "defender" : "attacker", weight: 1 }
+        : { voterId: null, side: null, weight: 0 };
+    };
+    try {
+      battle.crowd.cap = 5;
+      battle.crowd.totalPlayers = 5;
+      for (let i = 0; i < 5 && !battle.resolved; i += 1) {
+        if (G.Conflict && typeof G.Conflict.applyCrowdVote === "function") G.Conflict.applyCrowdVote(battle.id);
+      }
+      if (battle.crowd && !battle.crowd.decided && G.Conflict && typeof G.Conflict.finalizeCrowdVote === "function") {
+        G.Conflict.finalizeCrowdVote(battle.id);
+      }
+    } finally {
+      G.NPC.voteInDraw = originalVoteInDraw;
+    }
+    render();
+    return !!(battle.crowd && battle.crowd.decided) || battleOutcome(battle) === "win";
   }
 
   function isChoiceText(text, choice) {
