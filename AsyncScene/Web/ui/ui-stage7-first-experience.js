@@ -4050,7 +4050,6 @@ window.Game = window.Game || {};
     revealBattlesPanel();
     saveState();
     telemetry("stage715_battle_unlocked");
-    watchFirstBattle();
     render();
     watchRayhanBattle();
     return true;
