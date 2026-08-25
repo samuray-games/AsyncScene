@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "78476b5659b24e188eb8b9bf04451287d932335a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "# branch.oid 78476b5659b24e188eb8b9bf04451287d932335a\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "78476b56 (HEAD -> main, origin/main) Fix Stage 7.15 Rayhan challenge and scripted event flow\n88c34ce6 (origin/codex/stage7-15-rayhan-option-accumulation) Fix scripted Rayhan event chat suppression\nde56431c Preserve Rayhan choice for delayed resolution\n2a689b44 Make Rayhan unlock failures observable\nbc8782b4 Make incomplete Rayhan options fail explicit\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 78476b5659b24e188eb8b9bf04451287d932335a\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T12:07:17Z",
+      "stderr": "",
+      "stdout": "78476b5659b24e188eb8b9bf04451287d932335a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "78476b5659b24e188eb8b9bf04451287d932335a",
+  "observedAtUtc": "2026-08-25T12:07:17Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
