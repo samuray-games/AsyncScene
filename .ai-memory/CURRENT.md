@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-19-2337-JST
+MEMORY_REV: 2026-08-25-2219-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,6 +8,14 @@ MEMORY_REV: 2026-08-19-2337-JST
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are recorded.
 
 # Current Memory
+
+## Stage 7.15 current state
+
+CURRENT_MAIN_SHA: `78476b5659b24e188eb8b9bf04451287d932335a`.
+PR #389 is merged and public acceptance passed: wrong branch had one `Толпа решает.`, five delayed votes, 3:2 player result, clean Events card, no technical IDs, post-win and Nastya battle; correct branch had direct win, post-win and Nastya battle.
+Accepted flags: `suppressCrowdSystemChat`, `skipSys`, `hideResolvedParticipantLine`; ordinary unflagged behavior is preserved.
+TASK 7.15.03 is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS` through current demo isolation/progressive disclosure/controller/UI paths and PR #389 evidence. Oleg and later general-world slices have implementation/static evidence but are not separately accepted here.
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
 
 MEMORY_REV: 2026-08-19-2337-JST
 NOTION_MEMORY_REV: 2026-08-19-2317-JST

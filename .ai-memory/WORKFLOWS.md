@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-17-2319-JST
+MEMORY_REV: 2026-08-25-2219-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -9,11 +9,15 @@ MEMORY_REV: 2026-08-17-2319-JST
 
 # Workflows
 
+## Stage 7.15 reconciliation checkpoint
+
+Repository authority is `main@78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. The exact next action is `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`; this memory PR contains no runtime changes.
+
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-17-2319-JST
-EXPECTED_REVISION: 2026-08-17-2319-JST
-NOTION_MEMORY_REVISION: 2026-08-17-2308-JST
+MEMORY_REVISION: 2026-08-25-2219-JST
+EXPECTED_REVISION: 2026-08-25-2219-JST
+NOTION_MEMORY_REVISION: 2026-08-25-2115-JST
 
 Authoritative order for memory and workflow facts:
 

@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-17-2319-JST
+MEMORY_REV: 2026-08-25-2219-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -9,11 +9,19 @@ MEMORY_REV: 2026-08-17-2319-JST
 
 # Canon
 
+## Accepted Stage 7.15 canon after PR #389
+
+- Main is accepted at `78476b5659b24e188eb8b9bf04451287d932335a`.
+- PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong/correct flows passed through visible Nastya battle.
+- Scripted Rayhan uses canonical incremental defense options (`who`, `where`, `yn`). Generic opt-in flags are `suppressCrowdSystemChat` on battles, `skipSys` on events, and `hideResolvedParticipantLine` on event presentation. Ordinary unflagged behavior remains unchanged.
+- TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
+- The next canonical implementation slice is existing `TASK 7.15.32 First independent battle`; this reconciliation does not implement it.
+
 This file captures stable product canon relevant to memory handling.
 
 MEMORY_REVISION: 2026-08-17-2319-JST
-EXPECTED_REVISION: 2026-08-17-2319-JST
-NOTION_MEMORY_REVISION: 2026-08-17-2308-JST
+EXPECTED_REVISION: 2026-08-25-2219-JST
+NOTION_MEMORY_REVISION: 2026-08-25-2115-JST
 
 ## Canon principles
 

@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-19-2337-JST
+MEMORY_REV: 2026-08-25-2219-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,7 +8,19 @@ MEMORY_REV: 2026-08-19-2337-JST
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are stored in repository memory.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: COMPLETE_REPOSITORY_MEMORY_SYNC_AND_UPDATE_LIVE_NOTION
+NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
+
+## 2026-08-25 - Accepted Stage 7.15 state after PR #389
+
+CURRENT_MAIN_SHA: `78476b5659b24e188eb8b9bf04451287d932335a`.
+
+PR #389 is merged and publicly accepted. Pages run `32845848909` succeeded on the same SHA. Wrong branch passed with exactly one `Толпа решает.`, five delayed votes, 3:2 player result, clean resolved Events card, no `stage715_` leakage, post-win and Nastya handoff/battle. Correct branch passed direct win, post-win and Nastya handoff/battle.
+
+Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; `suppressCrowdSystemChat`; `skipSys`; `hideResolvedParticipantLine`; ordinary unflagged behavior unchanged.
+
+`TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`, evidenced by current opt-in/isolation/progressive-disclosure/controller/UI paths and PR #389 public acceptance. Oleg slices and static progressive-disclosure contracts are implemented but not separately accepted here. The first unaccepted existing slice is `TASK 7.15.32 First independent battle`.
+
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
 
 # Current Memory Index
 
