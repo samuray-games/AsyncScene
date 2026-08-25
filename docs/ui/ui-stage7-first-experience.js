@@ -3718,12 +3718,8 @@ window.Game = window.Game || {};
         : null;
     }).filter(Boolean);
     if (choices.length !== RAYHAN_BATTLE_CHOICES.length) {
-      console.error("STAGE715_RAYHAN_DEFENSE_OPTIONS_INCOMPLETE", {
-        attempts: 12,
-        groups: canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()),
-        choices: choices.length,
-      });
-      return null;
+      const groups = canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase());
+      throw new Error(`Stage 7.15 Rayhan defense options incomplete after 12 attempts: groups=${groups.join(",")}; choices=${choices.length}`);
     }
     battle._defenseChoices = choices;
     battleState.battles.push(battle);
