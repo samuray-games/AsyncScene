@@ -878,7 +878,7 @@ window.Game = window.Game || {};
         </div>
       `;
 
-      if (ne.voteLabels && ne.a && ne.b) {
+      if (ne.voteLabels && ne.a && ne.b && !e.stage715RayhanEvent) {
         const who = document.createElement("div");
         who.className = "pill";
         who.textContent = `${aName}${influenceLabel(ne.a)} vs ${bName}${influenceLabel(ne.b)}`;
