@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-25-2219-JST
+MEMORY_REV: 2026-08-25-2235-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -6,18 +6,19 @@ MEMORY_REV: 2026-08-25-2219-JST
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
 - Pages publication and public served config are verified; Safari public-network transmission and owner readback passed. Central private-friends-alpha friend-session collection is ACTIVE with 30-day retention.
 - Parser hardening PR #340 remains separate from behavioral telemetry.
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
 
 # Workflows
 
 ## Stage 7.15 reconciliation checkpoint
 
-Repository authority is `main@78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. The exact next action is `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`; this memory PR contains no runtime changes.
+Repository authority is `main@78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. The selected task is `TASK 7.15.32 - First independent battle`, restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`; this memory PR contains no runtime changes.
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-25-2219-JST
-EXPECTED_REVISION: 2026-08-25-2219-JST
-NOTION_MEMORY_REVISION: 2026-08-25-2115-JST
+MEMORY_REVISION: 2026-08-25-2235-JST
+EXPECTED_REVISION: 2026-08-25-2235-JST
+NOTION_MEMORY_REVISION: 2026-08-25-2224-JST
 
 Authoritative order for memory and workflow facts:
 
@@ -33,7 +34,7 @@ Authoritative order for memory and workflow facts:
 10. Canonical Notion page `ASYNCHRONIA - PROJECT MEMORY`
 11. `.ai-memory/archive/`
 
-Repository memory synchronization is complete on `main@b3accc6f48ac2e8977e9850a5e033e5ff224ff3a`. Runtime telemetry activation is complete: PR #345 and PR #346 are merged, Pages/public config is verified, Safari transmission and owner readback passed, and central private-friends-alpha collection is ACTIVE. No implementation task is selected; the exact next action is `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK`.
+Historical workflow state: repository memory synchronization was complete on `main@b3accc6f48ac2e8977e9850a5e033e5ff224ff3a`. Runtime telemetry activation and its validation are historical records; this paragraph is not a current task selector.
 
 Conversational slot shorthand: interpret `мост 1`, `мост 2`, and `мост 3` as Slot 1, Slot 2, and Slot 3 references. Do not route them as the retired literal short command interface unless the user explicitly says they are issuing a command.
 
@@ -98,7 +99,7 @@ After every accepted remote state change:
 17. Stage 7.13 is user-accepted. The acknowledged Stage 7.12 aftermath produces one exact affected-NPC, branch/outcome-aware DM reply exactly once; wrong NPCs do not consume it and ordinary DMs remain isolated.
 18. The user's explicit 2026-08-07 continuation instruction authorizes the next Stage 7 runtime slice and selects Stage 7.14 durable aftermath DM contact.
 19. Stage 7.14 must keep the exact affected NPC reachable after same-tab refresh while the Stage 7.13 reply is pending or delivered, without auto-opening DM, duplicating the reply, pinning wrong NPCs or changing ordinary DMs.
-20. The exact next action is `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
+20. Historical workflow rule: the exact next action was `IMPLEMENT_STAGE7_14_DURABLE_AFTERMATH_DM_CONTACT`.
 
 ## Local plugin installation and parity workflow
 
@@ -198,4 +199,4 @@ When the user writes exactly `лог`, ChatGPT must:
 
 If there are no new valid forensic records after the latest cursor, report exactly that and do not fabricate an incident.
 
-NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
+HISTORICAL_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK

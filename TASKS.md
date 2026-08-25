@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-25-2219-JST
+MEMORY_REV: 2026-08-25-2235-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -17,7 +17,8 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
 - Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; battle `suppressCrowdSystemChat`; event `skipSys`; event presentation `hideResolvedParticipantLine`; ordinary unflagged battles/events unchanged.
 - `TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`: current controller/UI paths cover opt-in demo routing, scripted actors, reply and public-chat isolation, progressive disclosure, and deterministic Rayhan/Nastya flow; PR #389 public evidence covers the guided corridor.
 - Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented, but separate public acceptance is not recorded in this reconciliation. `TASK 7.15.32 First independent battle`, `TASK 7.15.40 Events` beyond the scripted tutorial event, `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
-- NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
+- Task identity provenance: `TASK 7.15.32 - First independent battle` was restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`, which predates PR #390 and lists the Wave 4 task explicitly.
+- Task pointer: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
 
 ## 2026-08-19 - Safari2234 production owner-readback closure
 - Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.
