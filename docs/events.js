@@ -1914,10 +1914,11 @@ window.Game ||= {};
     crowd.endedBy = decisionReason;
     crowd.lastTickWhy = decisionReason;
 
-    if (!e._broadcastResolved) {
+    if (!e._broadcastResolved && e.skipSys !== true) {
       e._broadcastResolved = true;
       pushSystem(finalLine);
     }
+    if (e.skipSys === true) e._broadcastResolved = true;
 
     applyEventCrowdEconomy(e, res);
     applyCrowdVoteOutcomeRep(e, res, opts);
@@ -2176,7 +2177,7 @@ window.Game ||= {};
     capEvents();
 
     // SYS call-to-action in chat (skip if battle already announced)
-    if (!battle.sysAnnounced && !battle.uiAnnounced) {
+    if (!battle.sysAnnounced && !battle.uiAnnounced && battle.skipSys !== true) {
       pushSystem(sysNpcDrawStartLine(aName, aInf, bName, bInf));
     }
 

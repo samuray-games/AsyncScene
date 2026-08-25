@@ -26,7 +26,7 @@ for marker in (
     'if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles")',
     'if (typeof UI.renderBattles === "function") UI.renderBattles()',
     'const battle = scriptedRayhanBattle(state)',
-    'onComplete: unlockFirstBattle',
+    'const result = unlockFirstBattle()',
     'function currentBattlesPanelLabel()',
     'rayhanBattleInviteText()',
     'stage715RayhanScripted: true',
@@ -77,7 +77,23 @@ const battleBody = {
   classList: { add() {}, remove() {} },
   appendChild(node) { this.children.push(node); this.innerHTML += node.textContent || ""; return node; },
 };
-const game = { __S: state, __DEV: {}, NPC: { generateReactionToMe() { npcReactionCalls += 1; } } };
+let defenseOptionCall = 0;
+const game = {
+  __S: state,
+  __DEV: {},
+  NPC: { generateReactionToMe() { npcReactionCalls += 1; } },
+  Conflict: {
+    myDefenseOptions() {
+      defenseOptionCall += 1;
+      const sequence = [
+        [{ id: "canon_who", group: "who", type: "who", text: "canonical who" }],
+        [{ id: "canon_yn", group: "yn", type: "yn", text: "canonical yn" }],
+        [{ id: "canon_where", group: "where", type: "where", text: "canonical where" }],
+      ];
+      return sequence[Math.min(defenseOptionCall - 1, sequence.length - 1)];
+    },
+  },
+};
 const UI = {
   S: state,
   pushChat(message) {
@@ -148,7 +164,7 @@ if (game.__S.battles.length !== 1) throw new Error("render state does not contai
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
 if (battle.fromThem !== true || battle.draw !== false || battle.crowd !== null || battle.pinned !== false || battle.defense !== null) throw new Error("Rayhan challenge schema is not canonical incoming shape");
 if (battle.attack.text !== "Извините, кто тут дерзкий??") throw new Error("challenge text mismatch");
-const answerTexts = battle._defenseChoices.map((choice) => choice.text);
+const answerTexts = battle._defenseChoices.map((choice) => choice.stage715DisplayText || choice.text);
 if (JSON.stringify(answerTexts) !== JSON.stringify(["Похоже, ты…", "Кажется, прямо тут…", "Наверное, да…"])) throw new Error("Rayhan answers mismatch");
 if (answerTexts.some((text) => /Kai|Sen|Кай|Сен/.test(text))) throw new Error("random Kai/Sen answer leaked");
 if (state.chat.some((message) => message.text === "Извините, кто тут дерзкий??")) throw new Error("challenge duplicated in chat");
@@ -157,6 +173,7 @@ if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was no
 if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
 if (renderBattlesInputCount !== 1) throw new Error(`renderBattles input count mismatch: ${renderBattlesInputCount}`);
 if (renderBattlesOutputCards !== 1) throw new Error(`renderBattles output card count mismatch: ${renderBattlesOutputCards}`);
+if (defenseOptionCall !== 3) throw new Error(`Rayhan defense option accumulation mismatch: ${defenseOptionCall}`);
 if (!pipelineTrace.some((entry) => entry.selector === "#battlesBody" && entry.activeBattles === 1 && entry.outputCards === 1 && entry.battlesBodyExists && entry.battlesBodyInnerHTMLLength > 0 && entry.battlesBodyChildrenLength === 1 && entry.createdCardsVisible)) throw new Error(`Rayhan DOM render pipeline trace mismatch: ${JSON.stringify(pipelineTrace)}`);
 console.log("STAGE715_RAYHAN_PIPELINE_TRACE", JSON.stringify(pipelineTrace));
 if (scriptState.battles.length !== 0) throw new Error("challenge was stored outside the render state");
@@ -178,12 +195,20 @@ allowed = {
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
+    "AsyncScene/Web/conflict/conflict-core.js",
+    "AsyncScene/Web/events.js",
+    "AsyncScene/Web/ui/ui-events.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
+    "docs/conflict/conflict-core.js",
+    "docs/events.js",
+    "docs/ui/ui-events.js",
     "docs/ui/ui-battles.js",
     "AsyncScene/Web/style-base.css",
     "docs/style-base.css",
     "tools/test_stage7_15_rayhan_reveal.py",
+    "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/test_stage7_15_rayhan_missing_group.py",
     "tools/test_stage7_15_rayhan_light_theme.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")

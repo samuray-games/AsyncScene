@@ -1139,10 +1139,12 @@ window.Game = window.Game || {};
               else if (winnerSide === "b") resLine = `${aName} не победил ${bName}`;
               else resLine = `${aName} не победил ${bName}`;
             }
-            const rowRes = document.createElement("div");
-            rowRes.textContent = resLine;
-            info.appendChild(rowRes);
-            try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+            if (e.hideResolvedParticipantLine !== true) {
+              const rowRes = document.createElement("div");
+              rowRes.textContent = resLine;
+              info.appendChild(rowRes);
+              try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
+            }
 
             // Line 2: player's choice (if any)
             try {

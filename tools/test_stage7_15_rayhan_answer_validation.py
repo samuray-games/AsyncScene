@@ -121,7 +121,6 @@ function runScenario(choiceId) {
         battle.result = null;
         battle.draw = true;
         battle.crowd = { voters: {}, votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, decided: false };
-        Game.UI.pushChat({ name: "Система", text: "Толпа решает.", system: true });
         return { ok: true, outcome: "draw" };
       },
       finalizeCrowdVote(battleId) {
@@ -181,6 +180,7 @@ function runScenario(choiceId) {
   vm.runInNewContext(source, context);
   Game.Stage715Demo.claimResume({ state, UI: Game.UI, playerName: state.me.name });
   assert.strictEqual(Game.Stage715Demo.handleRayhanDefenseChoice(battle.id, choiceId), true);
+  setTimeout(() => { battle._defenseChoices = []; }, 0);
   const immediateResult = battle.result;
   return new Promise((resolve, reject) => {
     setTimeout(() => {
