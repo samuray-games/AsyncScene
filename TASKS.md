@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-19-2337-JST
+MEMORY_REV: 2026-08-26-0900-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,7 +8,17 @@ MEMORY_REV: 2026-08-19-2337-JST
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: COMPLETE_REPOSITORY_MEMORY_SYNC_AND_UPDATE_LIVE_NOTION
+NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
+
+## 2026-08-25 - Stage 7.15 canon reconciliation after PR #389
+
+- Accepted Stage 7.15 runtime baseline: `78476b5659b24e188eb8b9bf04451287d932335a`.
+- PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong and correct branches passed through Nastya handoff and visible Nastya battle.
+- Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; battle `suppressCrowdSystemChat`; event `skipSys`; event presentation `hideResolvedParticipantLine`; ordinary unflagged battles/events unchanged.
+- `TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`: current controller/UI paths cover opt-in demo routing, scripted actors, reply and public-chat isolation, progressive disclosure, and deterministic Rayhan/Nastya flow; PR #389 public evidence covers the guided corridor.
+- Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented, but separate public acceptance is not recorded in this reconciliation. `TASK 7.15.32 First independent battle`, `TASK 7.15.40 Events` beyond the scripted tutorial event, `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
+- Task identity provenance: `TASK 7.15.32 - First independent battle` was restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`, which predates PR #390 and lists the Wave 4 task explicitly.
+- Task pointer: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
 
 ## 2026-08-19 - Safari2234 production owner-readback closure
 - Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.

@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-19-2337-JST
+MEMORY_REV: 2026-08-26-0900-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,21 +8,34 @@ MEMORY_REV: 2026-08-19-2337-JST
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are stored in repository memory.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: COMPLETE_REPOSITORY_MEMORY_SYNC_AND_UPDATE_LIVE_NOTION
+NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
+NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
-# Current Memory Index
+## 2026-08-25 - Accepted Stage 7.15 state after PR #389
 
-REPO_MEMORY_REV: 2026-08-19-2337-JST
-NOTION_MEMORY_REV: 2026-08-19-2317-JST
-CURRENT_MAIN_REF: origin/main
-CURRENT_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
-CURRENT_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
-ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
-LATEST_MERGED_RUNTIME_HEAD: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
+ACCEPTED_RUNTIME_BASELINE_SHA: `78476b5659b24e188eb8b9bf04451287d932335a`.
+
+PR #389 is merged and publicly accepted. Pages run `32845848909` succeeded on the same SHA. Wrong branch passed with exactly one `Толпа решает.`, five delayed votes, 3:2 player result, clean resolved Events card, no `stage715_` leakage, post-win and Nastya handoff/battle. Correct branch passed direct win, post-win and Nastya handoff/battle.
+
+Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; `suppressCrowdSystemChat`; `skipSys`; `hideResolvedParticipantLine`; ordinary unflagged behavior unchanged.
+
+`TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`, evidenced by current opt-in/isolation/progressive-disclosure/controller/UI paths and PR #389 public acceptance. Oleg slices and static progressive-disclosure contracts are implemented but not separately accepted here. The first unaccepted existing slice is `TASK 7.15.32 First independent battle`.
+
+Task pointer: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
+
+# Historical Memory Index
+
+HISTORICAL_REPO_MEMORY_REV: 2026-08-19-2337-JST
+HISTORICAL_NOTION_MEMORY_REV: 2026-08-19-2317-JST
+HISTORICAL_MAIN_REF: origin/main
+HISTORICAL_MAIN_SHA_AT_MEMORY_SYNC_BASELINE: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
+HISTORICAL_MAIN_SHA_AT_RUNTIME_ACCEPTANCE: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
+HISTORICAL_ACCEPTED_RUNTIME_IMPLEMENTATION_HEAD: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
+HISTORICAL_LATEST_MERGED_RUNTIME_HEAD: cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f
 ROOT_STATUS: TASK1_CLOSED / TASK2_CLOSED
-CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+HISTORICAL_CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
 STAGE_6: COMPLETE / AUTOMATIC_AND_HUMAN_RUNTIME_ACCEPTANCE_PASS
-STAGE_7: CLOSED / ACCEPTED_HISTORICAL_RUNTIME
+HISTORICAL_STAGE_7: CLOSED / ACCEPTED_HISTORICAL_RUNTIME
 STAGE_7_0: COMPLETE / ESSENCE_MODAL_ACCEPTED
 STAGE_7_1: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
 STAGE_7_5: COMPLETE / USER_SAFARI_ACCEPTANCE_PASS
@@ -60,8 +73,8 @@ TELEMETRY_PRODUCTION_ENDPOINT: https://asynchronia-telemetry-private-alpha.raykh
 TELEMETRY_PUBLIC_ORIGIN: https://samuray-games.github.io
 TELEMETRY_COHORT: private_friends_alpha_2026_08
 TELEMETRY_RETENTION_DAYS: 30
-RUNTIME: PUBLISHED / PUBLIC_SERVED_CONFIG_VERIFIED / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
+HISTORICAL_RUNTIME: PUBLISHED / PUBLIC_SERVED_CONFIG_VERIFIED / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+HISTORICAL_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK
 
 ## Canonical cross-chat bootstrap
 
@@ -71,7 +84,7 @@ URL: https://app.notion.com/p/3a0815ae752f8139945ee38dfefbb111
 Report its exact top-level `MEMORY_REV`, fetch the existing `ASYNCHRONIA - ACTIVE HANDOFF`, then verify current repository primary evidence.
 The former Google Drive document is a deprecated migration stub only, not the live authority.
 
-Current runtime authority is `main@ce6c6cd16346120c630452d25e46e2368d87fab7`. PR #342 remains historical telemetry implementation; PR #345 enabled the exact private-friends endpoint and PR #346 repaired Pages recovery verification. The public served config, Safari network transmission, and owner readback are verified; central private-friends-alpha collection is active. The exact endpoint is `https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events`, public origin is `https://samuray-games.github.io`, cohort is `private_friends_alpha_2026_08`, and retention is 30 days.
+Historical telemetry-era runtime authority was `main@ce6c6cd16346120c630452d25e46e2368d87fab7`. PR #342 remains historical telemetry implementation; PR #345 enabled the exact private-friends endpoint and PR #346 repaired Pages recovery verification. The public served config, Safari network transmission, and owner readback are verified; central private-friends-alpha collection is active. The exact endpoint is `https://asynchronia-telemetry-private-alpha.raykhalit.workers.dev/v1/events`, public origin is `https://samuray-games.github.io`, cohort is `private_friends_alpha_2026_08`, and retention is 30 days.
 
 Parser hardening PR #340 is separate defensive parsing work and must not be conflated with real-player behavioral telemetry.
 
