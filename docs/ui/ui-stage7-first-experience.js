@@ -3747,6 +3747,7 @@ window.Game = window.Game || {};
     if (!conflict || typeof conflict.pickDefense !== "function") return false;
     const resolveChoice = () => {
       battle.meta.stage715RayhanAnswerPending = false;
+      battle.suppressCrowdSystemChat = true;
       battle._defenseChoices = [choice];
       const result = conflict.pickDefense(battle.id, choice.id);
       const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
@@ -3909,6 +3910,7 @@ window.Game = window.Game || {};
       return false;
     }
     revealEventsPanel();
+    if (G.UI && typeof G.UI.pushSystem === "function") G.UI.pushSystem("Толпа решает.");
     const playerName = playerNickname();
     const player = state && state.me ? state.me : { id: "me", name: playerName };
     const nowMs = Date.now();
@@ -3940,6 +3942,7 @@ window.Game = window.Game || {};
       state: "open",
       resolved: false,
       skipSys: true,
+      hideResolvedParticipantLine: true,
       stage715RayhanEvent: true,
       relatedBattleId: battle.id,
       refId: `stage715_rayhan_event_${battle.id}`,

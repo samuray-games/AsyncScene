@@ -1027,6 +1027,10 @@
   function announceBattleResult(b){
     try {
       if (!b || b.chatResultAnnounced) return;
+      if (b.suppressCrowdSystemChat === true) {
+        b.chatResultAnnounced = true;
+        return;
+      }
       const oppName = getName(b.opponentId) || "Оппонент";
       const text = battleResultText(b);
       if (!text) return;
@@ -3847,7 +3851,7 @@
             // Push a SYS chat line about draw with links to battleId and eventId.
             try {
               const UI = (Game && Game.UI) ? Game.UI : null;
-              if (UI && typeof UI.pushChat === "function") {
+              if (UI && typeof UI.pushChat === "function" && b.suppressCrowdSystemChat !== true) {
                 const sysText = (Game && Game.Data && Game.Data.SYS && typeof Game.Data.SYS.drawCrowd === "string" && Game.Data.SYS.drawCrowd.trim())
                   ? Game.Data.SYS.drawCrowd.trim()
                   : "Толпа решает.";

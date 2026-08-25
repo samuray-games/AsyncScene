@@ -121,7 +121,6 @@ function runScenario(choiceId) {
         battle.result = null;
         battle.draw = true;
         battle.crowd = { voters: {}, votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, decided: false };
-        Game.UI.pushChat({ name: "Система", text: "Толпа решает.", system: true });
         return { ok: true, outcome: "draw" };
       },
       finalizeCrowdVote(battleId) {
