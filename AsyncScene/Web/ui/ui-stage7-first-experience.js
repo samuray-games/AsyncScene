@@ -3747,6 +3747,7 @@ window.Game = window.Game || {};
     if (!conflict || typeof conflict.pickDefense !== "function") return false;
     const resolveChoice = () => {
       battle.meta.stage715RayhanAnswerPending = false;
+      battle._defenseChoices = [choice];
       const result = conflict.pickDefense(battle.id, choice.id);
       const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
       if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {

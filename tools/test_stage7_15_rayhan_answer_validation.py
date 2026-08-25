@@ -181,6 +181,7 @@ function runScenario(choiceId) {
   vm.runInNewContext(source, context);
   Game.Stage715Demo.claimResume({ state, UI: Game.UI, playerName: state.me.name });
   assert.strictEqual(Game.Stage715Demo.handleRayhanDefenseChoice(battle.id, choiceId), true);
+  setTimeout(() => { battle._defenseChoices = []; }, 0);
   const immediateResult = battle.result;
   return new Promise((resolve, reject) => {
     setTimeout(() => {
