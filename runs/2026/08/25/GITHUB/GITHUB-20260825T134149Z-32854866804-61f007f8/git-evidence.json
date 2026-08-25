@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-canon-reconciliation",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:49Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-canon-reconciliation\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:49Z",
+      "stderr": "",
+      "stdout": "7a121b4d6de938eda8c6efadde8471ca9cc4bc07\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:50Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7a121b4d6de938eda8c6efadde8471ca9cc4bc07\n# branch.head codex/stage7-15-canon-reconciliation\n# branch.upstream origin/codex/stage7-15-canon-reconciliation\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:50Z",
+      "stderr": "",
+      "stdout": "7a121b4d (HEAD -> codex/stage7-15-canon-reconciliation, origin/codex/stage7-15-canon-reconciliation) Align canon current action selector\ne09e1c7c Reconcile Stage 7.15 canon selectors\na4deb4a0 Reconcile Stage 7.15 repository canon\n78476b56 (origin/main) Fix Stage 7.15 Rayhan challenge and scripted event flow\n88c34ce6 (origin/codex/stage7-15-rayhan-option-accumulation) Fix scripted Rayhan event chat suppression\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:50Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7a121b4d6de938eda8c6efadde8471ca9cc4bc07\nbranch refs/heads/codex/stage7-15-canon-reconciliation\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:50Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T13:41:50Z",
+      "stderr": "",
+      "stdout": "78476b5659b24e188eb8b9bf04451287d932335a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7a121b4d6de938eda8c6efadde8471ca9cc4bc07",
+  "observedAtUtc": "2026-08-25T13:41:50Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
