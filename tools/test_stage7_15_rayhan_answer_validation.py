@@ -22,6 +22,7 @@ require('battle.result = "win"' not in handler, "Rayhan handler must not force a
 require("G.Events.addEvent" in source_text, "wrong answer must create the standard event card")
 require("G.Events.finalizeOpenEventNow" in source_text, "event must resolve through the existing event resolver")
 require("RAYHAN_EVENT_MIN_DELAY_MS" in source_text and "RAYHAN_EVENT_MAX_DELAY_MS" in source_text, "event votes need a 1-3 second schedule")
+require("watchFirstBattle()" not in source_text, "first Rayhan unlock must not call a removed watcher before render")
 
 node_test = r'''
 const fs = require("fs");
