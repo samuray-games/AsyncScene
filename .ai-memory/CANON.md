@@ -1,6 +1,7 @@
 MEMORY_REV: 2026-08-25-2235-JST
 
 ## CURRENT_PROJECT_STATE
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
@@ -209,4 +210,4 @@ HISTORICAL_CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENT
 - Fetch the existing active handoff immediately afterward.
 - The former Google Drive document is a deprecated migration stub only.
 - Use the archive only when the current state needs historical context.
-- NEXT_ACTION: `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.
+- Historical workflow next action: `IMPLEMENT_STAGE7_12_FIRST_REAL_BATTLE_AFTERMATH_CONSEQUENCE`.
