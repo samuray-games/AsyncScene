@@ -3910,6 +3910,7 @@ window.Game = window.Game || {};
       bId: RAYHAN_ID,
       bName: "Райхан",
       bInf: Number((state.players && state.players[RAYHAN_ID] && state.players[RAYHAN_ID].influence) || 0),
+      voteLabels: { a: "за тебя", b: "за Райхана" },
       votesA: 0,
       votesB: 0,
       aVotes: 0,

@@ -200,7 +200,8 @@ function runScenario(choiceId) {
   assert.strictEqual(wrong.event.title, "Райхан против Тестер", "event card title must use player nickname");
   assert(!String(wrong.event.title).includes("stage715_"), "event title must not expose a Stage 7.15 id");
   assert(![wrong.event.title, wrong.event.meta, wrong.event.aName, wrong.event.bName].some((value) => String(value || "").includes("stage715_")), "event display fields must not expose internal ids");
-  assert.strictEqual(wrong.event.voteLabels, undefined, "scripted event must use the standard single-title card");
+  assert.strictEqual(wrong.event.voteLabels.a, "за тебя", "standard player vote label must remain unchanged");
+  assert.strictEqual(wrong.event.voteLabels.b, "за Райхана", "standard Rayhan vote label must remain unchanged");
   assert.strictEqual(wrong.event.crowd.alreadyVotedCount, 5, "event must contain five votes");
   assert.strictEqual(wrong.event.crowd.aVotes, 3, "player must receive three event votes");
   assert.strictEqual(wrong.event.crowd.bVotes, 2, "Rayhan must receive two event votes");
