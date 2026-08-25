@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-rayhan-option-accumulation",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-rayhan-option-accumulation\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "88c34ce68333c99cd6a987c9130b61b342b11330\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid 88c34ce68333c99cd6a987c9130b61b342b11330\n# branch.head codex/stage7-15-rayhan-option-accumulation\n# branch.upstream origin/codex/stage7-15-rayhan-option-accumulation\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "88c34ce6 (HEAD -> codex/stage7-15-rayhan-option-accumulation, origin/codex/stage7-15-rayhan-option-accumulation) Fix scripted Rayhan event chat suppression\nde56431c Preserve Rayhan choice for delayed resolution\n2a689b44 Make Rayhan unlock failures observable\nbc8782b4 Make incomplete Rayhan options fail explicit\nb5b91f60 Fix Rayhan challenge option accumulation\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 88c34ce68333c99cd6a987c9130b61b342b11330\nbranch refs/heads/codex/stage7-15-rayhan-option-accumulation\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-25T09:15:33Z",
+      "stderr": "",
+      "stdout": "6a2187a5ea3231d713e476b8b111bae2bfcf8cba\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "88c34ce68333c99cd6a987c9130b61b342b11330",
+  "observedAtUtc": "2026-08-25T09:15:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
