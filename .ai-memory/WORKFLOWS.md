@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-25-2235-JST
+MEMORY_REV: 2026-08-25-2250-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -12,13 +12,13 @@ NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
 
 ## Stage 7.15 reconciliation checkpoint
 
-Repository authority is `main@78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. The selected task is `TASK 7.15.32 - First independent battle`, restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`; this memory PR contains no runtime changes.
+Accepted Stage 7.15 runtime baseline is `78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. The selected task is `TASK 7.15.32 - First independent battle`, restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`; this memory PR contains no runtime changes.
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-25-2235-JST
-EXPECTED_REVISION: 2026-08-25-2235-JST
-NOTION_MEMORY_REVISION: 2026-08-25-2224-JST
+MEMORY_REVISION: 2026-08-25-2250-JST
+EXPECTED_REVISION: 2026-08-25-2250-JST
+NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
 Authoritative order for memory and workflow facts:
 

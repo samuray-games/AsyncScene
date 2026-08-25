@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-25-2235-JST
+MEMORY_REV: 2026-08-25-2250-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -12,7 +12,7 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
 
 ## 2026-08-25 - Stage 7.15 canon reconciliation after PR #389
 
-- Current main: `78476b5659b24e188eb8b9bf04451287d932335a`.
+- Accepted Stage 7.15 runtime baseline: `78476b5659b24e188eb8b9bf04451287d932335a`.
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong and correct branches passed through Nastya handoff and visible Nastya battle.
 - Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; battle `suppressCrowdSystemChat`; event `skipSys`; event presentation `hideResolvedParticipantLine`; ordinary unflagged battles/events unchanged.
 - `TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`: current controller/UI paths cover opt-in demo routing, scripted actors, reply and public-chat isolation, progressive disclosure, and deterministic Rayhan/Nastya flow; PR #389 public evidence covers the guided corridor.
