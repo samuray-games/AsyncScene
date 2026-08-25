@@ -26,7 +26,7 @@ for marker in (
     'if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles")',
     'if (typeof UI.renderBattles === "function") UI.renderBattles()',
     'const battle = scriptedRayhanBattle(state)',
-    'onComplete: unlockFirstBattle',
+    'const result = unlockFirstBattle()',
     'function currentBattlesPanelLabel()',
     'rayhanBattleInviteText()',
     'stage715RayhanScripted: true',

@@ -3082,6 +3082,7 @@ window.Game = window.Game || {};
   let npcQueueTimer = null;
   let npcTyping = null;
   let firstBattleWatchTimer = null;
+  let lastRayhanFailure = null;
 
   function queryEnabled() {
     try {
@@ -3718,8 +3719,9 @@ window.Game = window.Game || {};
         : null;
     }).filter(Boolean);
     if (choices.length !== RAYHAN_BATTLE_CHOICES.length) {
-      const groups = canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase());
-      throw new Error(`Stage 7.15 Rayhan defense options incomplete after 12 attempts: groups=${groups.join(",")}; choices=${choices.length}`);
+      const groups = new Set(canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+      const missing = RAYHAN_BATTLE_CHOICES.map((wanted) => wanted.group).filter((group) => !groups.has(group));
+      return { ok: false, reason: `missing canonical defense group: ${missing.join(", ")}` };
     }
     battle._defenseChoices = choices;
     battleState.battles.push(battle);
@@ -4047,8 +4049,9 @@ window.Game = window.Game || {};
   }
 
   function unlockFirstBattle() {
+    lastRayhanFailure = null;
     const state = rayhanBattleState();
-    if (!state) return false;
+    if (!state) return { ok: false, reason: "missing battle state" };
     const existing = state.battles && state.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID);
     if (existing) {
       revealBattlesPanel();
@@ -4056,10 +4059,15 @@ window.Game = window.Game || {};
       rayhanRewardBaseline(existing);
       saveState();
       if (!battleOutcome(existing)) watchRayhanBattle();
-      return true;
+      return { ok: true, battle: existing };
     }
     const battle = scriptedRayhanBattle(state);
-    if (!battle || !battle.id) return false;
+    if (!battle || battle.ok === false) {
+      lastRayhanFailure = battle && battle.reason
+        ? { ok: false, reason: battle.reason }
+        : { ok: false, reason: "unable to create scripted Rayhan battle" };
+      return lastRayhanFailure;
+    }
     rayhanRewardBaseline(battle);
     phase = "battle_unlocked";
     revealBattlesPanel();
@@ -4067,7 +4075,7 @@ window.Game = window.Game || {};
     telemetry("stage715_battle_unlocked");
     render();
     watchRayhanBattle();
-    return true;
+    return { ok: true, battle };
   }
 
   function watchRayhanBattle() {
@@ -4479,7 +4487,13 @@ window.Game = window.Game || {};
         speakerId: "npc_stage7_ken",
         name: "Райхан",
         text: rayhanBattleInviteText(),
-        onComplete: unlockFirstBattle,
+        onComplete: () => {
+          const result = unlockFirstBattle();
+          if (!result || result.ok !== true) {
+            lastRayhanFailure = result || { ok: false, reason: "Rayhan challenge unlock failed" };
+          }
+          return result;
+        },
       });
       return true;
     }
@@ -4587,6 +4601,7 @@ window.Game = window.Game || {};
     startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),
+    getLastFailure: () => (lastRayhanFailure ? Object.assign({}, lastRayhanFailure) : null),
   };
   if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
   G.__DEV.getStage715DemoState = () => ({ active, phase, enabled: isActive() });
