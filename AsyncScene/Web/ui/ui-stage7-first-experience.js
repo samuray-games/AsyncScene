@@ -3690,22 +3690,41 @@ window.Game = window.Game || {};
         stage715RayhanScripted: true,
       },
     };
-    const canonicalChoices = G.Conflict && typeof G.Conflict.myDefenseOptions === "function"
-      ? G.Conflict.myDefenseOptions(battle)
-      : RAYHAN_BATTLE_CHOICES.map((wanted) => ({
+    const canonicalChoices = [];
+    if (G.Conflict && typeof G.Conflict.myDefenseOptions === "function") {
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        let options = [];
+        try { options = G.Conflict.myDefenseOptions(battle) || []; } catch (_) {}
+        options.forEach((entry) => {
+          if (!entry || canonicalChoices.some((existing) => existing && existing.id === entry.id)) return;
+          canonicalChoices.push(entry);
+        });
+        const groups = new Set(canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+        if (groups.has("who") && groups.has("where") && groups.has("yn")) break;
+      }
+    } else {
+      RAYHAN_BATTLE_CHOICES.forEach((wanted) => canonicalChoices.push({
         id: `canon_stage715_${wanted.group}`,
         group: wanted.group,
         type: wanted.type,
         color: "y",
         text: wanted.text,
       }));
+    }
     const choices = RAYHAN_BATTLE_CHOICES.map((wanted) => {
       const canonical = canonicalChoices.find((entry) => String(entry && (entry.group || entry.type) || "").toLowerCase() === wanted.group);
       return canonical
         ? Object.assign({}, canonical, { stage715DisplayText: wanted.text })
         : null;
     }).filter(Boolean);
-    if (choices.length !== RAYHAN_BATTLE_CHOICES.length) return null;
+    if (choices.length !== RAYHAN_BATTLE_CHOICES.length) {
+      console.error("STAGE715_RAYHAN_DEFENSE_OPTIONS_INCOMPLETE", {
+        attempts: 12,
+        groups: canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()),
+        choices: choices.length,
+      });
+      return null;
+    }
     battle._defenseChoices = choices;
     battleState.battles.push(battle);
     mirrorRayhanBattleToRenderState(battle);
