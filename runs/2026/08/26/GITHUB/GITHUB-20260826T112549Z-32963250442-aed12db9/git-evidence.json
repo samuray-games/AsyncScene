@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage7-15-32-first-independent-battle",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "codex/stage7-15-32-first-independent-battle\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "13ee92382653dbfe8f40b69e37c8429166699a1c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid 13ee92382653dbfe8f40b69e37c8429166699a1c\n# branch.head codex/stage7-15-32-first-independent-battle\n# branch.upstream origin/codex/stage7-15-32-first-independent-battle\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "13ee9238 (HEAD -> codex/stage7-15-32-first-independent-battle, origin/codex/stage7-15-32-first-independent-battle) Implement Stage 7.15 first independent battle\n522112d9 (origin/main) Merge pull request #390 from samuray-games/codex/stage7-15-canon-reconciliation\nc9b07f5a (origin/codex/stage7-15-canon-reconciliation) Historicalize stale memory index selectors\n05d84609 Clarify canon baseline semantics\n7a121b4d Align canon current action selector\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 13ee92382653dbfe8f40b69e37c8429166699a1c\nbranch refs/heads/codex/stage7-15-32-first-independent-battle\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-26T11:25:49Z",
+      "stderr": "",
+      "stdout": "522112d91f77d8f65ed8bba0c8d2aabae3d5eb21\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "13ee92382653dbfe8f40b69e37c8429166699a1c",
+  "observedAtUtc": "2026-08-26T11:25:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
