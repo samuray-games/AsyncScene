@@ -24,7 +24,7 @@ battle_js = battle_source.decode("utf-8")
 
 for text in (
     'const NASTYA_PROMPT = "Ты на проблемы нарываешься?"',
-    '"Так, я не поняла, это что за беспредел тут?? [ник], ты проблем захотел?"',
+    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, ты проблем захотел? Бегом в ${label}!`',
     '"Кажется, нет…"',
     '"Думаю, Олег, но это не точно…"',
     '"Похоже, там, где Америка…"',
@@ -34,6 +34,9 @@ for text in (
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
     'G.Conflict.startCrowdVote',
     'stage715NastyaPayoff',
+    'stage715NastyaWon = true',
+    'const nastyaWon = battleOutcome(nastya) === "win"',
+    'state.flags.stage715NastyaWon === true',
     'openNextScriptedFlow("loss")',
     'stage715NastyaResultRecorded',
 ):

@@ -1857,10 +1857,16 @@ UI.renderBattles = () => {
 
           let res = null;
           try {
+            const startOptions = stage715Demo && typeof stage715Demo.firstIndependentBattleStartOptions === "function"
+              ? stage715Demo.firstIndependentBattleStartOptions({ opponentId: cid, state: S, UI })
+              : null;
             if (Game.Conflict && typeof Game.Conflict.start === "function") {
-              res = Game.Conflict.start(cid);
+              res = Game.Conflict.start(cid, startOptions || undefined);
             } else if (Game.Conflict && typeof Game.Conflict.startWith === "function") {
-              res = Game.Conflict.startWith(cid);
+              res = Game.Conflict.startWith(cid, startOptions || undefined);
+            }
+            if (res && res.ok === true && stage715Demo && typeof stage715Demo.firstIndependentBattleStarted === "function") {
+              stage715Demo.firstIndependentBattleStarted({ opponentId: cid, battle: res.battle || null, state: S, UI });
             }
           } catch (_) {}
           if (res && res.ok === false) {

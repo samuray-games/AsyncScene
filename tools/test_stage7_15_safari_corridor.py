@@ -32,8 +32,9 @@ for marker in (
     'function drainNpcQueue()',
     'stage715RayhanScripted: true',
     'Извините, кто тут дерзкий??',
-    'const SILENCE_TEXT = "[ник игрока] слыш а ты чо не здороваешься!?"',
-    'function watchFirstBattle()',
+    'const SILENCE_TEXT = "слыш а ты чо не здороваешься!?"',
+    'text: `${playerName} слыш а ты чо не здороваешься!?`',
+    'function watchRayhanBattle()',
     'phase = "nastya_prompt"',
 ):
     require(marker in stage, f"missing Safari corridor contract: {marker}")

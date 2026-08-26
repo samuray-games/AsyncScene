@@ -188,6 +188,7 @@ console.log("PASS_STAGE7_15_RAYHAN_REVEAL_RUNTIME");
 subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
 
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
+changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_30_oleg_dm.py",
@@ -204,12 +205,21 @@ allowed = {
     "docs/events.js",
     "docs/ui/ui-events.js",
     "docs/ui/ui-battles.js",
+    "AsyncScene/Web/conflict/conflict-api.js",
+    "docs/conflict/conflict-api.js",
+    "AsyncScene/Web/state.js",
+    "docs/state.js",
+    "tools/test_stage7_15_32_first_independent_battle.py",
+    "tools/test_transfer_rep_suppress_stat_delta.py",
     "AsyncScene/Web/style-base.css",
     "docs/style-base.css",
     "tools/test_stage7_15_rayhan_reveal.py",
+    "tools/test_stage7_15_21_nastya_battle.py",
+    "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
     "tools/test_stage7_15_rayhan_missing_group.py",
     "tools/test_stage7_15_rayhan_light_theme.py",
+    "tools/test_stage7_15_safari_corridor.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

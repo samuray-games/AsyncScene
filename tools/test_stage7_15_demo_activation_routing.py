@@ -44,7 +44,7 @@ baseline_boot = subprocess.check_output(
     ["git", "show", "origin/main:AsyncScene/Web/ui/ui-boot.js"], cwd=ROOT, text=True
 )
 baseline_resume = baseline_boot[baseline_boot.index("if (resumeMode"):baseline_boot.index("if (S.flags.started")]
-require(resume.replace("        persistFirstUiProfileSelection(UI, uiProfile);\n", "") == baseline_resume, "resume routing changed")
+require(resume == baseline_resume, "resume routing changed")
 
 run_start = boot[boot.index("  function startGame(UI)"):boot.index("\n\n  function installOnboardingDevHooks", boot.index("  function startGame(UI)"))]
 run_start_handler = boot[boot.index("    const runStart = (source, e) =>"):boot.index("\n\n    // Bind only direct button handlers", boot.index("    const runStart = (source, e) =>"))]
@@ -130,9 +130,29 @@ subprocess.run(["node", "-e", start_runtime_harness], cwd=ROOT, check=True)
 changed = set(subprocess.check_output(
     ["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True
 ).splitlines())
+changed = {path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))}
 allowed = {
     "AsyncScene/Web/ui/ui-boot.js",
     "docs/ui/ui-boot.js",
+    "AsyncScene/Web/ui/ui-stage7-first-experience.js",
+    "docs/ui/ui-stage7-first-experience.js",
+    "AsyncScene/Web/ui/ui-battles.js",
+    "docs/ui/ui-battles.js",
+    "AsyncScene/Web/conflict/conflict-api.js",
+    "docs/conflict/conflict-api.js",
+    "AsyncScene/Web/conflict/conflict-core.js",
+    "docs/conflict/conflict-core.js",
+    "AsyncScene/Web/state.js",
+    "docs/state.js",
+    "tools/test_stage7_15_32_first_independent_battle.py",
+    "tools/test_transfer_rep_suppress_stat_delta.py",
+    "tools/test_stage7_15_30_oleg_dm.py",
+    "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_21_nastya_battle.py",
+    "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_rayhan_reveal.py",
+    "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")

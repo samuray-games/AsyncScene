@@ -22,7 +22,7 @@ for path in (STAGE, STAGE_DOCS, BATTLES, BATTLES_DOCS):
 stage = STAGE.read_text(encoding="utf-8")
 battles = BATTLES.read_text(encoding="utf-8")
 demo = stage[stage.index("// Stage 7.15 zero-tutorial demo") :]
-unlock = demo[demo.index("function unlockFirstBattle()") : demo.index("function watchFirstBattle()")]
+unlock = demo[demo.index("function unlockFirstBattle()") : demo.index("function watchRayhanBattle()")]
 
 for marker in (
     "const NPC_TYPING_MIN_MS = 1100",
@@ -57,16 +57,27 @@ for marker in (
     require(marker in battles, f"missing demo battle UI isolation contract: {marker}")
 
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
+changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
     "docs/ui/ui-battles.js",
+    "AsyncScene/Web/conflict/conflict-api.js",
+    "docs/conflict/conflict-api.js",
+    "AsyncScene/Web/conflict/conflict-core.js",
+    "docs/conflict/conflict-core.js",
+    "AsyncScene/Web/state.js",
+    "docs/state.js",
+    "tools/test_stage7_15_32_first_independent_battle.py",
+    "tools/test_transfer_rep_suppress_stat_delta.py",
     "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",

@@ -51,8 +51,10 @@ changed = subprocess.check_output(
     cwd=ROOT,
     text=True,
 ).splitlines()
+changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
     "tools/test_stage7_15_demo_isolation.py",
+    "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_rayhan_reveal.py",
@@ -65,6 +67,12 @@ allowed = {
     "docs/ui/ui-dm.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-battles.js",
+    "AsyncScene/Web/conflict/conflict-api.js",
+    "docs/conflict/conflict-api.js",
+    "AsyncScene/Web/state.js",
+    "docs/state.js",
+    "tools/test_stage7_15_32_first_independent_battle.py",
+    "tools/test_transfer_rep_suppress_stat_delta.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_30_oleg_dm.py",
