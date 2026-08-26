@@ -1629,6 +1629,9 @@
         economyApplied: false,
         id: b.id || b.battleId || null,
         status: b.status || null,
+        // Settlement depends on the resolved argument colours for its tone delta.
+        attack: b.attack || null,
+        defense: b.defense || null,
       };
 
       Econ.applyResult(battleLike);

@@ -3042,6 +3042,10 @@ window.Game = window.Game || {};
   const OLEG_ESCAPE_FAILED_DM_LINE = "слыш трусишка, кудааа, не так быстро! ладно, можешь ещё разок попробовать.";
   const OLEG_ESCAPE_SUCCESS_DM_LINE = "трусишек не уважают, поэтому репутация понизилась, но ничего, уверен ты всё наверстаешь, а это был неприятный, но полезный урок. без обид?";
   const OLEG_ESCAPE_SUCCESS_RESULT = "У тебя получилось уйти от конфликта за взятку, все довольны.";
+  const STAGE715_INITIAL_REP_BASELINE = 1;
+  const STAGE715_INITIAL_REP_BASELINE_ID = "stage7_15_initial_rep_baseline";
+  const FIRST_INDEPENDENT_BATTLE_TARGET_ID = "npc_weak";
+  const OLEG_FIRST_INDEPENDENT_BATTLE_LINE = "ладно я сегодня добрый, теперь попробуй наверстать свои потери за счёт одного из моих шавок, иди в {battlePanel} и нажми «Вызвать», там выбери самого слабого и кинь ему вызов. победишь его - вернешь себе репутацию. не благодари.";
   const NASTYA_ORANGE_INFLUENCE = 8;
   const SILENCE_DELAY_MS = 10_000;
   const INTRO_STEP_DELAY_MS = 350;
@@ -3082,6 +3086,7 @@ window.Game = window.Game || {};
   let npcQueueTimer = null;
   let npcTyping = null;
   let firstBattleWatchTimer = null;
+  let firstIndependentBattleWatchTimer = null;
   let lastRayhanFailure = null;
 
   function queryEnabled() {
@@ -3148,6 +3153,8 @@ window.Game = window.Game || {};
     npcTyping = null;
     if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
     firstBattleWatchTimer = null;
+    if (firstIndependentBattleWatchTimer) clearInterval(firstIndependentBattleWatchTimer);
+    firstIndependentBattleWatchTimer = null;
   }
 
   function saveState() {
@@ -3156,6 +3163,29 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     state.flags[DEMO_STATE_FLAG] = true;
     state.flags.stage715DemoPhase = phase;
+  }
+
+  function initializeStage715InitialRepBaseline(state, mode) {
+    if (mode !== "fresh" || !state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715InitialRepBaselineApplied === true) return true;
+    const currentRep = Number.isFinite(state.rep) ? (state.rep | 0) : 0;
+    if (currentRep >= STAGE715_INITIAL_REP_BASELINE) {
+      state.flags.stage715InitialRepBaselineApplied = true;
+      return true;
+    }
+    const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
+    const transferred = transferRep
+      ? transferRep("crowd_pool", "me", STAGE715_INITIAL_REP_BASELINE - currentRep,
+        "rep_stage715_initial_baseline", STAGE715_INITIAL_REP_BASELINE_ID, {
+          actionId: STAGE715_INITIAL_REP_BASELINE_ID,
+          context: "stage715_initial_rep_baseline",
+          suppressStatDelta: true,
+        })
+      : { ok: false, reason: "transfer_rep_unavailable" };
+    if (!transferred || transferred.ok !== true) return false;
+    state.flags.stage715InitialRepBaselineApplied = true;
+    return true;
   }
 
   function restorePhase(nextContext, mode) {
@@ -3178,6 +3208,7 @@ window.Game = window.Game || {};
       "oleg_dm",
       "oleg_escape_ready",
       "oleg_escape_vote",
+      "first_independent_battle",
       "next_scripted_flow",
     ].includes(saved) ? saved : "intro";
   }
@@ -3312,15 +3343,102 @@ window.Game = window.Game || {};
     const state = stateFor();
     if (!state) return false;
     state.flags = state.flags || {};
-    if (state.flags.stage715OlegDmReplied === true) return true;
-    state.flags.stage715OlegDmReplied = true;
-    phase = "oleg_escape_ready";
-    saveState();
-    telemetry("stage715_oleg_dm_replied");
-    telemetry("stage715_escape_option_unlocked");
-    unlockOlegEscapeBattle();
+    if (state.flags.stage715OlegDmReplied !== true) {
+      state.flags.stage715OlegDmReplied = true;
+      phase = "oleg_escape_ready";
+      saveState();
+      telemetry("stage715_oleg_dm_replied");
+      telemetry("stage715_escape_option_unlocked");
+      unlockOlegEscapeBattle();
+      render();
+      return true;
+    }
+    if (state.flags.stage715OlegEscapeSuccessDmSent === true
+      && state.flags.stage715FirstIndependentBattleInstructionSent !== true) {
+      const label = currentBattlesPanelLabel().toLowerCase();
+      const instruction = OLEG_FIRST_INDEPENDENT_BATTLE_LINE.replace("{battlePanel}", label);
+      if (pushOlegEscapeDm(instruction, "stage715FirstIndependentBattleInstructionSent")) {
+        phase = "first_independent_battle";
+        saveState();
+        telemetry("stage715_first_independent_battle_instruction");
+      }
+    }
     render();
     return true;
+  }
+
+  function isFirstIndependentBattleReady(state) {
+    const flags = state && state.flags;
+    return !!(active
+      && flags
+      && flags.stage715FirstIndependentBattleInstructionSent === true
+      && flags.stage715FirstIndependentBattleComplete !== true);
+  }
+
+  function firstIndependentBattleStartOptions({ opponentId } = {}) {
+    const state = stateFor();
+    const flags = state && state.flags || {};
+    if (!isFirstIndependentBattleReady(state)
+      || flags.stage715FirstIndependentBattleStarted === true
+      || String(opponentId || "") !== FIRST_INDEPENDENT_BATTLE_TARGET_ID) return null;
+    return {
+      battleMeta: {
+        stage715FirstIndependentBattle: true,
+        stage715FirstIndependentRecovery: true,
+        safeArgumentRelation: {
+          attackColor: "r",
+          defenseColor: "y",
+        },
+      },
+    };
+  }
+
+  function firstIndependentBattleStarted({ opponentId, battle } = {}) {
+    const state = stateFor();
+    if (!state || !battle || !battle.meta || battle.meta.stage715FirstIndependentBattle !== true
+      || String(opponentId || battle.opponentId || "") !== FIRST_INDEPENDENT_BATTLE_TARGET_ID) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715FirstIndependentBattleStarted === true) return true;
+    state.flags.stage715FirstIndependentBattleStarted = true;
+    state.flags.stage715FirstIndependentBattleId = battle.id || battle.battleId || null;
+    phase = "first_independent_battle";
+    saveState();
+    watchFirstIndependentBattle();
+    return true;
+  }
+
+  function firstIndependentBattleFromState() {
+    const state = stateFor();
+    const flags = state && state.flags || {};
+    const battleId = flags.stage715FirstIndependentBattleId;
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    return battles.find((battle) => battle && battle.meta
+      && battle.meta.stage715FirstIndependentBattle === true
+      && (!battleId || String(battle.id || battle.battleId || "") === String(battleId))) || null;
+  }
+
+  function settleFirstIndependentBattleCompletion() {
+    const state = stateFor();
+    const battle = firstIndependentBattleFromState();
+    if (!state || !battle || battleOutcome(battle) !== "win") return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715FirstIndependentBattleComplete === true) return true;
+    battle.meta.stage715FirstIndependentBattleComplete = true;
+    state.flags.stage715FirstIndependentBattleComplete = true;
+    saveState();
+    telemetry("stage715_first_independent_battle_complete", { battleId: battle.id || battle.battleId || null });
+    render();
+    return true;
+  }
+
+  function watchFirstIndependentBattle() {
+    if (firstIndependentBattleWatchTimer) return;
+    firstIndependentBattleWatchTimer = setInterval(() => {
+      if (settleFirstIndependentBattleCompletion()) {
+        clearInterval(firstIndependentBattleWatchTimer);
+        firstIndependentBattleWatchTimer = null;
+      }
+    }, 100);
   }
 
   function ensurePlayers(state) {
@@ -4146,6 +4264,8 @@ window.Game = window.Game || {};
       if (existing.escapeVote) watchOlegEscape();
       return true;
     }
+    const cooldowns = state.battleCooldowns || (state.battleCooldowns = {});
+    delete cooldowns[OLEG_DM_ID];
     const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
     if (!battle || !battle.id) return false;
     battle.meta = Object.assign({}, battle.meta || {}, {
@@ -4366,6 +4486,14 @@ window.Game = window.Game || {};
 
   function revealNastyaBattle(battle, outcome) {
     if (!battle || !battle.attack) return false;
+    const state = stateFor();
+    if (state) {
+      state.flags = state.flags || {};
+      // The generic Battles UI may remove a closed finished card before the
+      // player's next chat reply. Keep the scripted handoff semantic, not the
+      // transient card, as the source of truth for starting Oleg.
+      if (outcome === "win") state.flags.stage715NastyaWon = true;
+    }
     const trueColor = battle.attack._color || battle.attack.color || "o";
     battle.attack.color = trueColor;
     battle.attackHidden = false;
@@ -4441,6 +4569,7 @@ window.Game = window.Game || {};
     phase = restorePhase(context, mode);
     const state = stateFor(context);
     ensurePlayers(state);
+    initializeStage715InitialRepBaseline(state, mode);
     saveState();
     initializeProgressiveDisclosure(mode);
     telemetry("demo_enter_chat");
@@ -4458,6 +4587,7 @@ window.Game = window.Game || {};
     if (phase === "oleg_escape_ready" || phase === "oleg_escape_vote") {
       unlockOlegEscapeBattle();
     }
+    if (phase === "first_independent_battle") watchFirstIndependentBattle();
     return { claimed: true, mode, stateId: "stage7_15_demo_chat", releaseNormalWorld: () => {} };
   }
 
@@ -4520,8 +4650,11 @@ window.Game = window.Game || {};
       return true;
     }
     if (phase === "next_scripted_flow") {
+      const state = stateFor();
       const nastya = stage715BattleById(NASTYA_BATTLE_ID);
-      if (battleOutcome(nastya) === "win" && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
+      const nastyaWon = battleOutcome(nastya) === "win"
+        || !!(state && state.flags && state.flags.stage715NastyaWon === true);
+      if (nastyaWon && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
       return true;
     }
     return true;
@@ -4600,8 +4733,10 @@ window.Game = window.Game || {};
     isChallengeButtonAvailable: () => {
       if (!active) return true;
       const state = stateFor();
-      return !!(state && state.flags && state.flags.stage715OlegFlowComplete === true);
+      return isFirstIndependentBattleReady(state);
     },
+    firstIndependentBattleStartOptions,
+    firstIndependentBattleStarted,
     startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),

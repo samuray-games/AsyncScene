@@ -1214,8 +1214,10 @@ window.Game = window.Game || {};
         currency: "rep",
         before: { from: beforeFrom, to: beforeTo }
       });
-      emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
-      emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
+      if (!(meta && meta.suppressStatDelta === true)) {
+        emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
+        emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
+      }
       success = true;
       return { ok: true, amount: amt };
     } finally {

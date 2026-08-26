@@ -91,6 +91,28 @@
     return fallbackText || "";
   }
 
+  function normalizeSafeTone(value) {
+    const tone = String(value || "").toLowerCase();
+    if (tone === "yellow" || tone === "y") return "y";
+    if (tone === "orange" || tone === "o") return "o";
+    if (tone === "red" || tone === "r") return "r";
+    if (tone === "black" || tone === "k") return "k";
+    return null;
+  }
+
+  function safeArgumentRelation(battle) {
+    const relation = battle && battle.meta && battle.meta.safeArgumentRelation;
+    if (!relation || typeof relation !== "object") return null;
+    const attackColor = normalizeSafeTone(relation.attackColor);
+    const defenseColor = normalizeSafeTone(relation.defenseColor);
+    return attackColor && defenseColor ? { attackColor, defenseColor } : null;
+  }
+
+  function withSafeTone(argument, tone) {
+    if (!argument || !tone) return argument;
+    return Object.assign({}, argument, { color: tone, _color: tone });
+  }
+
   function logEmptyArgs(kind, reason, extra) {
     const key = `${kind}:${reason}`;
     if (_argWarned[key]) return;
@@ -618,7 +640,7 @@
      __ready: true,
 
      // Public wrappers (core owns state + economy)
-  startWith(opponentId) {
+  startWith(opponentId, opts) {
     // Ensure opponent role is resolved and cached before delegating to Core
     let resolvedOpponentRole = null;
        if (Game.__S && Game.__S.players && opponentId) {
@@ -639,6 +661,8 @@
        // Ensure opponentRole is set on the battle object
        if (res && res.battle) {
          const b = res.battle;
+         const battleMeta = opts && opts.battleMeta && typeof opts.battleMeta === "object" ? opts.battleMeta : null;
+         if (battleMeta) b.meta = Object.assign({}, b.meta || {}, battleMeta);
          if (!b.opponentRole) {
            const opp = (Game.__S && Game.__S.players && b.opponentId) ? Game.__S.players[b.opponentId] : null;
            if (opp && opp.role) b.opponentRole = opp.role;
@@ -967,9 +991,11 @@
 
        // Persist chosen attack. Keep power/color for logic, but UI should hide it until resolved.
        battle.attack = picked ? { ...picked } : picked;
+       const safeRelation = safeArgumentRelation(battle);
+       if (safeRelation) battle.attack = withSafeTone(battle.attack, safeRelation.attackColor);
        battle.attackId = picked.id;
        battle.attackType = picked.type || battle.attackType || null;
-      battle.attackColor = picked.color || battle.attackColor || null;
+      battle.attackColor = (battle.attack && battle.attack.color) || battle.attackColor || null;
       battle.attackHidden = false; // Outgoing battle: player sees the color of their own throw
 
        // IMPORTANT: Outgoing battle must NOT enter pickDefense.
@@ -1057,7 +1083,11 @@
           const wantType = useCorrect ? normType : pickOne(otherTypes);
 
           const candidates = usable.filter(it => String(it && (it.type || it.group) || "").toLowerCase() === String(wantType || "").toLowerCase());
-          let defensePicked = pickOne(candidates) || pickOne(usable);
+          const safeRelation = safeArgumentRelation(b);
+          const safeCandidates = safeRelation
+            ? usable.filter((entry) => normalizeSafeTone(entry && (entry.color || entry._color)) === safeRelation.defenseColor)
+            : [];
+          let defensePicked = pickOne(safeCandidates) || pickOne(candidates) || pickOne(usable);
           if (!defensePicked || !String(defensePicked.id || "").startsWith("canon_")) {
             try { console.warn("[CANON] npc picked non-canon defense → draw", { battleId: b.id }); } catch (_) {}
             if (typeof Core.finalize === "function") Core.finalize(b.id, "draw");
