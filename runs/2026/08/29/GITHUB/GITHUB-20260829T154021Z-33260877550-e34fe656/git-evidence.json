@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid aba86b16557e7dd35b462c7c3fedec920d2630e1\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "aba86b16 (HEAD -> main, origin/main) Ignore and remove local Playwright artifacts\n67edbd71 Merge pull request #391 from samuray-games/codex/stage7-15-32-first-independent-battle\n13ee9238 (origin/codex/stage7-15-32-first-independent-battle) Implement Stage 7.15 first independent battle\n522112d9 Merge pull request #390 from samuray-games/codex/stage7-15-canon-reconciliation\nc9b07f5a (origin/codex/stage7-15-canon-reconciliation) Historicalize stale memory index selectors\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD aba86b16557e7dd35b462c7c3fedec920d2630e1\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-08-29T15:40:21Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "aba86b16557e7dd35b462c7c3fedec920d2630e1",
+  "observedAtUtc": "2026-08-29T15:40:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
