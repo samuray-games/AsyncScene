@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-resume-routing-repair-20260907",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "codex/stage715-resume-routing-repair-20260907\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "b477325225c8c2aef628f9f3c4a2462f23a041a4\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "# branch.oid b477325225c8c2aef628f9f3c4a2462f23a041a4\n# branch.head codex/stage715-resume-routing-repair-20260907\n# branch.upstream origin/codex/stage715-resume-routing-repair-20260907\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "b4773252 (HEAD -> codex/stage715-resume-routing-repair-20260907, origin/codex/stage715-resume-routing-repair-20260907) fix Stage 7.15 resume routing\n5975c744 Update selector inventory to 5 models and 27 pairs\naba86b16 (origin/main) Ignore and remove local Playwright artifacts\n67edbd71 Merge pull request #391 from samuray-games/codex/stage7-15-32-first-independent-battle\n13ee9238 (origin/codex/stage7-15-32-first-independent-battle) Implement Stage 7.15 first independent battle\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b477325225c8c2aef628f9f3c4a2462f23a041a4\nbranch refs/heads/codex/stage715-resume-routing-repair-20260907\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-07T10:13:40Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b477325225c8c2aef628f9f3c4a2462f23a041a4",
+  "observedAtUtc": "2026-09-07T10:13:40Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
