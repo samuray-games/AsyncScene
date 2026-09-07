@@ -26,12 +26,12 @@ class CostAuthorityTests(unittest.TestCase):
         self.assertEqual(self.authority.schemaVersion, "1.0.0")
         self.assertEqual(self.authority.authorityRevision, "20260801.1")
         self.assertEqual(self.authority.pricingBasis, "CODEX_CREDITS_PER_1M_TOKENS_STANDARD_SPEED")
-        self.assertEqual(self.authority.sourceArtifactBlobSha, "d308a4a7d0ec19305c4db6b4e67951ee8b83fc77")
+        self.assertEqual(self.authority.sourceArtifactBlobSha, "94d7b87c539b008a409e715213b2e310a09d33d8")
         self.assertEqual(self.authority.canonicalContentHash, canonical_hash(json.loads(AUTHORITY_PATH.read_text())))
         self.assertEqual(self.authority.models["gpt-5.6-luna"].outputCredits, "30")
         self.assertEqual([tier.modelIdentifiers for tier in self.authority.tiers], [
-            ("gpt-5.6-luna",), ("gpt-5.4-mini",), ("gpt-5.6-terra",),
-            ("gpt-5.4",), ("gpt-5.5", "gpt-5.6-sol"),
+            ("gpt-5.6-luna",), ("gpt-5.6-terra",),
+            ("gpt-5.6-sol",), ("gpt-5.5",), ("gpt-6-astra",),
         ])
 
     def test_exact_schema_and_provenance_validation_fail_closed(self) -> None:
@@ -59,7 +59,7 @@ class CostAuthorityTests(unittest.TestCase):
     def test_decimal_safe_comparison_and_incomparable_fail_closed(self) -> None:
         vectors = {
             "a": self.authority.models["gpt-5.6-luna"],
-            "b": self.authority.models["gpt-5.4-mini"],
+            "b": self.authority.models["gpt-5.6-terra"],
         }
         self.assertEqual(build_cost_tiers(vectors)[0].modelIdentifiers, ("a",))
         with self.assertRaises(CostAuthorityError):
@@ -92,7 +92,7 @@ class CostAuthorityTests(unittest.TestCase):
         with self.assertRaises(selector.AuthorizationError):
             selector._assert_identity(stale, task(), self.snapshot, report, "cost-thread", "branch", "baseline")
 
-    def test_29_pair_order_capability_math_recommendations_and_cost_evidence(self) -> None:
+    def test_27_pair_order_capability_math_recommendations_and_cost_evidence(self) -> None:
         policy_task = {
             "taskId": "TASK-LOW-RISK",
             "taskType": "PLUGIN_POLICY",
@@ -112,20 +112,26 @@ class CostAuthorityTests(unittest.TestCase):
         }
         expected_pairs = {
             range(10, 20): ("gpt-5.6-luna", "light"),
-            range(20, 30): ("gpt-5.6-luna", "medium"),
-            range(30, 38): ("gpt-5.6-luna", "high"),
-            range(38, 40): ("gpt-5.6-luna", "max"),
+            range(20, 23): ("gpt-5.6-luna", "medium"),
+            range(23, 25): ("gpt-5.6-luna", "high"),
+            range(25, 27): ("gpt-5.6-luna", "extra-high"),
+            range(27, 29): ("gpt-5.6-luna", "max"),
+            range(29, 30): ("gpt-5.6-terra", "medium"),
+            range(30, 35): ("gpt-5.6-terra", "high"),
+            range(35, 37): ("gpt-5.6-terra", "extra-high"),
+            range(37, 39): ("gpt-5.6-terra", "max"),
+            range(39, 40): ("gpt-5.6-terra", "ultra"),
         }
         for required in range(10, 40):
             with patch.object(selector, "_required_score", return_value=required):
                 report = selector.evaluate_task(self.snapshot, policy_task)
             expected = next(pair for band, pair in expected_pairs.items() if required in band)
             self.assertEqual((report.recommendation.modelIdentifier, report.recommendation.effortIdentifier), expected)
-            self.assertEqual(len(report.evaluations), 29)
-            self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 29)
-            self.assertEqual(report.evaluations[12].capabilityScore, 40)
-            self.assertEqual(report.evaluations[12].costTierIndex, 1)
-            self.assertEqual(report.evaluations[12].costVector, ("5", "0.5", "30"))
+            self.assertEqual(len(report.evaluations), 27)
+            self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 27)
+            self.assertEqual(report.evaluations[12].capabilityScore, 36)
+            self.assertEqual(report.evaluations[12].costTierIndex, 2)
+            self.assertEqual(report.evaluations[12].costVector, ("50", "5", "300"))
 
     def test_cheapest_rejected_and_next_more_capable_are_cost_aware(self) -> None:
         policy_task = {
@@ -148,9 +154,9 @@ class CostAuthorityTests(unittest.TestCase):
         with patch.object(selector, "_required_score", return_value=24):
             report = selector.evaluate_task(self.snapshot, policy_task)
         self.assertEqual((report.cheapestRejected.modelIdentifier, report.cheapestRejected.effortIdentifier), ("gpt-5.6-luna", "light"))
-        self.assertEqual((report.nextMoreCapable.modelIdentifier, report.nextMoreCapable.effortIdentifier), ("gpt-5.6-luna", "high"))
+        self.assertEqual((report.nextMoreCapable.modelIdentifier, report.nextMoreCapable.effortIdentifier), ("gpt-5.6-luna", "extra-high"))
         rendered = selector._output(self.snapshot, report, "WAITING_FOR_INVENTORY_CONFIRMATION", "INVENTORY_OK")
-        self.assertEqual(sum("credits=" in line for line in rendered.splitlines()), 29)
+        self.assertEqual(sum("credits=" in line for line in rendered.splitlines()), 27)
         self.assertIn("cost=TIER_1; cost-tier=1; credits=5/0.5/30", rendered)
 
     def test_read_only_still_skips_matrix_and_recommendation(self) -> None:
@@ -169,7 +175,7 @@ class CostAuthorityTests(unittest.TestCase):
 
 def load_cost_authority_from_mapping(value: dict[str, object]):
     from plugins.asynchronia.model_selector_costs import validate_authority
-    return validate_authority(value, repository_root=ROOT, inventory_model_ids=["gpt-5.4-mini", "gpt-5.4", "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"])
+    return validate_authority(value, repository_root=ROOT, inventory_model_ids=["gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol", "gpt-6-astra"])
 
 
 if __name__ == "__main__":

@@ -71,14 +71,12 @@ class ModelSelectorTests(unittest.TestCase):
         self.assertEqual(snapshot["snapshotRevision"], "20260801.1")
         self.assertEqual(snapshot["confirmedTimestamp"], "2026-08-01T05:31:00Z")
         self.assertEqual(len(candidates), snapshot["completeModelEffortPairCount"])
-        self.assertEqual(snapshot["completeModelCount"], 6)
-        self.assertEqual(snapshot["completeModelEffortPairCount"], 29)
-        self.assertEqual(len(candidates), 29)
+        self.assertEqual(snapshot["completeModelCount"], 5)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 27)
+        self.assertEqual(len(candidates), 27)
         self.assertEqual(
             [(candidate.modelLabel, candidate.effortLabel) for candidate in candidates],
             [
-                ("5.4 Mini", "Light"), ("5.4 Mini", "Medium"), ("5.4 Mini", "High"), ("5.4 Mini", "Extra High"),
-                ("5.4", "Light"), ("5.4", "Medium"), ("5.4", "High"), ("5.4", "Extra High"),
                 ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
                 ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
                 ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
@@ -86,12 +84,14 @@ class ModelSelectorTests(unittest.TestCase):
                 ("5.6 Terra", "Extra High"), ("5.6 Terra", "Max"), ("5.6 Terra", "Ultra"),
                 ("5.6 Sol", "Light"), ("5.6 Sol", "Medium"), ("5.6 Sol", "High"),
                 ("5.6 Sol", "Extra High"), ("5.6 Sol", "Max"), ("5.6 Sol", "Ultra"),
+                ("6 Astra", "Light"), ("6 Astra", "Medium"), ("6 Astra", "High"),
+                ("6 Astra", "Extra High"), ("6 Astra", "Max"), ("6 Astra", "Ultra"),
             ],
         )
         report = evaluate_task(snapshot, task())
-        self.assertEqual(len(report.evaluations), 29)
+        self.assertEqual(len(report.evaluations), 27)
         self.assertTrue(report.recommendation.modelLabel)
-        self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 29)
+        self.assertEqual(len({(item.modelIdentifier, item.effortIdentifier) for item in report.evaluations}), 27)
         self.assertNotIn("gpt-5.6-terra-sol", {item.modelIdentifier for item in report.evaluations})
 
     def test_default_state_is_git_private_and_not_legacy_home_path(self) -> None:

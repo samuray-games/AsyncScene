@@ -41,6 +41,7 @@ MODEL_STABLE_FLOOR_RANKS = {
     "gpt-5.6-luna": 0,
     "gpt-5.6-terra": 1,
     "gpt-5.6-sol": 2,
+    "gpt-6-astra": 3,
 }
 EFFORT_FLOOR_ORDER = ("light", "medium", "high", "extra-high", "max", "ultra")
 EFFORT_FLOOR_RENDER = {
