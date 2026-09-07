@@ -7,6 +7,8 @@ import textwrap
 ROOT = Path(__file__).resolve().parents[1]
 WEB_BOOT = ROOT / "AsyncScene/Web/ui/ui-boot.js"
 DOCS_BOOT = ROOT / "docs/ui/ui-boot.js"
+STAGE715 = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
+STAGE715_DOCS = ROOT / "docs/ui/ui-stage7-first-experience.js"
 
 
 def require(condition, message):
@@ -19,6 +21,8 @@ for path in (WEB_BOOT, DOCS_BOOT):
 
 boot = WEB_BOOT.read_text(encoding="utf-8")
 docs_boot = DOCS_BOOT.read_text(encoding="utf-8")
+stage715 = STAGE715.read_text(encoding="utf-8")
+stage715_docs = STAGE715_DOCS.read_text(encoding="utf-8")
 fresh = boot[boot.index("// Stage 7.15 demo is the public fresh-start entry"):]
 resume = boot[boot.index("if (resumeMode"):boot.index("if (S.flags.started")]
 docs_fresh = docs_boot[docs_boot.index("// Stage 7.15 demo is the public fresh-start entry"):]
@@ -31,8 +35,12 @@ fresh_route = boot[fresh_route_start:fresh_route_end]
 require("const STAGE715_DEMO_FRESH_START_ENABLED = true;" in fresh, "fresh-start rollout switch missing")
 require("S.flags.stage715Demo = true;" in fresh, "fresh-start activation flag missing")
 require(fresh.index("S.flags.stage715Demo = true;") < fresh.index("claimStage715FreshStart(G, UI, S, name, startNormalWorld)"), "activation must precede fresh routing")
-require("S.flags.stage715Demo = true;" not in resume, "resume must not implicitly activate demo")
+require("claimStage715Resume(G, UI, S, name, startNormalWorld)" in resume, "resume must claim the canonical Stage 7.15 corridor first")
+require("flags.stage715Demo = true;" in boot[boot.index("  function claimStage715Resume"):helper_end], "resume activation must restore the existing activation flag")
+require("stage715FirstIndependentBattleComplete === true" in resume, "resume must preserve Stage 7.15 completion semantics")
 require("S.flags.stage715Demo = true;" in docs_fresh, "docs fresh-start activation flag missing")
+require("queryEnabled()" in stage715 and "DEMO_QUERY = \"stage715demo\"" in stage715, "query activation behavior must remain available")
+require(stage715 == stage715_docs, "Stage 7.15 controller mirror differs")
 require("firstExperience.claimResume" in boot, "legacy resume fallback must remain")
 require("Stage7FirstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
 require("firstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
@@ -44,7 +52,7 @@ baseline_boot = subprocess.check_output(
     ["git", "show", "origin/main:AsyncScene/Web/ui/ui-boot.js"], cwd=ROOT, text=True
 )
 baseline_resume = baseline_boot[baseline_boot.index("if (resumeMode"):baseline_boot.index("if (S.flags.started")]
-require(resume == baseline_resume, "resume routing changed")
+require(resume != baseline_resume, "resume routing was not repaired")
 
 run_start = boot[boot.index("  function startGame(UI)"):boot.index("\n\n  function installOnboardingDevHooks", boot.index("  function startGame(UI)"))]
 run_start_handler = boot[boot.index("    const runStart = (source, e) =>"):boot.index("\n\n    // Bind only direct button handlers", boot.index("    const runStart = (source, e) =>"))]
@@ -100,6 +108,7 @@ start_runtime_harness = textwrap.dedent(f"""
     const S = {{ flags: {{}}, progress: {{ onboardingSeen }}, me: {{}}, players: {{}} }};
     return {{ S, $: () => ({{ textContent: "", style: {{}} }}), buildPlayers() {{}}, renderAll() {{}}, startLoops() {{}}, applyMobilePanelDefaults() {{}}, closeDM() {{}}, pushSystem() {{}}, pushChat() {{}} }};
   }}
+  {helper_source}
   {start_source}
 
   let UI = makeUI(false);
@@ -118,41 +127,55 @@ start_runtime_harness = textwrap.dedent(f"""
 
   events.length = 0;
   UI = makeUI(true);
+  window.Game.Stage715Demo = {{
+    isActive: () => false,
+    claimResume: () => {{ events.push("demo.claimResume:" + UI.S.flags.stage715Demo); return {{ claimed: true }}; }}
+  }};
+  window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume:" + UI.S.progress.onboardingSeen); return {{ claimed: true }}; }} }};
+  startGame(UI);
+  if (events.join(",") !== "persist:true,demo.claimResume:true") throw new Error("unfinished resume did not claim Stage 7.15: " + events.join(","));
+  if (UI.S.flags.stage715Demo !== true) throw new Error("unfinished resume did not restore the Stage 7.15 activation flag");
+
+  events.length = 0;
+  UI = makeUI(true);
+  UI.S.flags.stage715Demo = true;
+  window.Game.Stage715Demo = {{
+    isActive: () => true,
+    claimResume: () => {{ events.push("demo.claimResume.active"); return {{ claimed: true }}; }}
+  }};
+  window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume"); return {{ claimed: true }}; }} }};
+  startGame(UI);
+  if (events.join(",") !== "persist:true,demo.claimResume.active") throw new Error("active Stage 7.15 was not resumed exactly once: " + events.join(","));
+
+  events.length = 0;
+  UI = makeUI(true);
+  UI.S.flags.stage715FirstIndependentBattleComplete = true;
+  window.Game.Stage715Demo = {{
+    isActive: () => true,
+    claimResume: () => {{ events.push("demo.claimResume.completed"); return {{ claimed: true }}; }}
+  }};
+  window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume.completed"); return {{ claimed: true }}; }} }};
+  startGame(UI);
+  if (events.join(",") !== "persist:true") throw new Error("completed Stage 7.15 restarted or fell into legacy onboarding: " + events.join(","));
+
+  events.length = 0;
+  UI = makeUI(true);
   window.Game.Stage715Demo = {{ isActive: () => false }};
   window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume:" + UI.S.progress.onboardingSeen); return {{ claimed: true }}; }} }};
   startGame(UI);
-  if (events.join(",") !== "persist:true,legacy.claimResume:true") throw new Error("existing resume path changed: " + events.join(","));
+  if (events.join(",") !== "persist:true,legacy.claimResume:true") throw new Error("legitimate legacy resume fallback changed: " + events.join(","));
   console.log("PASS_STAGE7_15_START_CLASSIFICATION");
 """)
 
 subprocess.run(["node", "-e", start_runtime_harness], cwd=ROOT, check=True)
 
 changed = set(subprocess.check_output(
-    ["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True
+    ["git", "diff", "--name-only", "HEAD"], cwd=ROOT, text=True
 ).splitlines())
 changed = {path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))}
 allowed = {
     "AsyncScene/Web/ui/ui-boot.js",
     "docs/ui/ui-boot.js",
-    "AsyncScene/Web/ui/ui-stage7-first-experience.js",
-    "docs/ui/ui-stage7-first-experience.js",
-    "AsyncScene/Web/ui/ui-battles.js",
-    "docs/ui/ui-battles.js",
-    "AsyncScene/Web/conflict/conflict-api.js",
-    "docs/conflict/conflict-api.js",
-    "AsyncScene/Web/conflict/conflict-core.js",
-    "docs/conflict/conflict-core.js",
-    "AsyncScene/Web/state.js",
-    "docs/state.js",
-    "tools/test_stage7_15_32_first_independent_battle.py",
-    "tools/test_transfer_rep_suppress_stat_delta.py",
-    "tools/test_stage7_15_30_oleg_dm.py",
-    "tools/test_stage7_15_31_escape_bribe.py",
-    "tools/test_stage7_15_21_nastya_battle.py",
-    "tools/test_stage7_15_50_progressive_disclosure.py",
-    "tools/test_stage7_15_demo_isolation.py",
-    "tools/test_stage7_15_rayhan_reveal.py",
-    "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
