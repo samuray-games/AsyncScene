@@ -1,7 +1,18 @@
 # Project-scoped role registry. The 0.137.0 project-config schema treats
 # [agents] as named roles; global concurrency settings belong to user config.
+default_permissions = "stage715-read-only-loopback"
+
 [features]
 multi_agent = true
+network_proxy = true
+
+[permissions.stage715-read-only-loopback]
+extends = ":read-only"
+
+[permissions.stage715-read-only-loopback.network]
+enabled = true
+mode = "limited"
+allow_local_binding = true
 
 [agents.explorer]
 config_file = "agents/explorer.toml"
