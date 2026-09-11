@@ -313,6 +313,18 @@ Only the Asynchronia plugin `model-selector` may originate, rank, or name the re
 - Scope-isolation and collision decisions take precedence over parallel planning.
 - A lane may not merge, rebase or absorb another lane's work unless a dedicated integration task authorizes it.
 
+## 8.1.1 Parent Codex orchestration
+
+- The primary Codex thread is the parent orchestrator for non-trivial tasks; the user is not a courier between agents.
+- Delegate independent read-heavy work in parallel when the task has separable scopes, then wait for the required child threads.
+- `explorer` performs read-only codebase investigation and execution-path tracing.
+- `tester` runs tests or reproductions and designs validation, but does not modify product code without explicit parent authorization.
+- `researcher` verifies repository authority, canon, configuration and primary documentation.
+- `reviewer` independently performs the adversarial final review, checks evidence, regressions and assumption leaks.
+- The parent resolves contradictions, preserves provenance, and returns one consolidated verdict with evidence.
+- Parallel source mutation is forbidden unless the current task explicitly authorizes it and scope isolation proves it safe.
+- Stage 7.15 work remains subject to the current authority order and mutation-authorization gate; orchestration does not grant product or runtime authorization.
+
 ## 8.2 Routing policy
 
 - Runtime safety has precedence over routing convenience.

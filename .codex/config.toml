@@ -1,0 +1,16 @@
+# Project-scoped role registry. The 0.137.0 project-config schema treats
+# [agents] as named roles; global concurrency settings belong to user config.
+[features]
+multi_agent = true
+
+[agents.explorer]
+config_file = "agents/explorer.toml"
+
+[agents.tester]
+config_file = "agents/tester.toml"
+
+[agents.researcher]
+config_file = "agents/researcher.toml"
+
+[agents.reviewer]
+config_file = "agents/reviewer.toml"
