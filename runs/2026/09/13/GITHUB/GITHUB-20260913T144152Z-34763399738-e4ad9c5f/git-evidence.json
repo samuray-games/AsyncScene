@@ -1,0 +1,106 @@
+{
+  "branch": "codex/infra-codex-subagents-20260911",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:52Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:52Z",
+      "stderr": "",
+      "stdout": "codex/infra-codex-subagents-20260911\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:52Z",
+      "stderr": "",
+      "stdout": "2185411f23e9e4ce47e90c9c12e750215d701302\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2185411f23e9e4ce47e90c9c12e750215d701302\n# branch.head codex/infra-codex-subagents-20260911\n# branch.upstream origin/codex/infra-codex-subagents-20260911\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "2185411f (HEAD -> codex/infra-codex-subagents-20260911, origin/codex/infra-codex-subagents-20260911) Retire user-operated model selector workflow\n63bcaf78 fix: permit read-only loopback timing probes\n50d8c632 chore: configure project subagent orchestration\n5975c744 Update selector inventory to 5 models and 27 pairs\naba86b16 (origin/main) Ignore and remove local Playwright artifacts\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2185411f23e9e4ce47e90c9c12e750215d701302\nbranch refs/heads/codex/infra-codex-subagents-20260911\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2185411f23e9e4ce47e90c9c12e750215d701302",
+  "observedAtUtc": "2026-09-13T14:41:53Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}

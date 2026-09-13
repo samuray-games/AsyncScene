@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/infra-codex-subagents-20260911",
+  "createdAtJst": "2026-09-13 23:41:52 JST",
+  "createdAtUtc": "2026-09-13T14:41:52Z",
+  "packagePath": "runs/2026/09/13/GITHUB/GITHUB-20260913T144152Z-34763399738-e4ad9c5f",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260913T144152Z-34763399738-e4ad9c5f",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
