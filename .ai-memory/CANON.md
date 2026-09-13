@@ -1,7 +1,7 @@
-MEMORY_REV: 2026-08-26-0900-JST
+MEMORY_REV: 2026-09-13-2038-JST
 
 ## CURRENT_PROJECT_STATE
-NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.40_EVENTS`
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
@@ -16,7 +16,7 @@ NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong/correct flows passed through visible Nastya battle.
 - Scripted Rayhan uses canonical incremental defense options (`who`, `where`, `yn`). Generic opt-in flags are `suppressCrowdSystemChat` on battles, `skipSys` on events, and `hideResolvedParticipantLine` on event presentation. Ordinary unflagged behavior remains unchanged.
 - TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
-- The next canonical implementation slice is `TASK 7.15.32 - First independent battle`, restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`; this reconciliation does not implement it.
+- `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. The next canonical implementation slice is `TASK 7.15.40 - Events` beyond the scripted tutorial event.
 
 This file captures stable product canon relevant to memory handling.
 
