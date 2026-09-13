@@ -269,9 +269,25 @@ Never classify a collision-free lane as blocked merely because a file is mechani
 - Runtime synchronization remains subject to scope isolation, mirror ownership and user-owned Safari acceptance when runtime evidence is required.
 - Deployed acceptance remains user-controlled through Safari smoke.
 
-## 8. Model selection rule
+## 8. Ordinary Codex model and agent-team routing
 
-Selector 1.0.10 uses the canonical Asynchronia-owned USER_CONFIRMED snapshot at
+Ordinary Asynchronia Codex engineering tasks use the configured Codex
+agent-team and model/effort policy automatically. Model selection or internal
+preflight may occur without user-operated bookkeeping, but it must never
+require `INVENTORY_OK`, a model/effort selection handshake, same-thread
+`CONTINUE`, `WAITING_FOR_MODEL_SELECTION`, or `IMPLEMENTATION_ALLOWED` as a
+prerequisite for ordinary mutation.
+
+The `@Asynchronia` plugin is not required solely for Codex model or role
+routing. The configured `.codex/agents/*.toml` files and current Codex
+configuration are the ordinary orchestration mechanism.
+
+The following numbered-bridge selector procedure is retained as historical
+bridge documentation only. It is non-authoritative for ordinary Codex work.
+
+### 8.1 Historical numbered-bridge selector procedure
+
+Selector 1.0.10 used the canonical Asynchronia-owned USER_CONFIRMED snapshot at
 `plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json` as the normal
 preflight source. It validates the snapshot, prints its complete inventory, and
 asks only for exact `INVENTORY_OK` or `INVENTORY_CHANGED`. It must not attempt
@@ -282,14 +298,14 @@ rewrite the inventory. The existing exhaustive evaluation, recommendation,
 same-thread authorization, exact `CONTINUE`, and stale-authorization contracts
 remain required.
 
-The complete evaluation must cover every snapshot pair, even when a pair appears
+The complete evaluation covered every snapshot pair, even when a pair appeared
 weak, expensive, redundant, old, new, default, or unfamiliar. Each production
 preflight receives a complete structured task description and fails closed when
 task identity, scope, risk, size, novelty, validation, or branch information is
 missing. The analyzer evaluates every pair exactly once and recommends the
 lowest-cost pair satisfying the task-specific reliability constraint.
 
-The durable state binds task ID, thread ID, branch, baseline SHA, snapshot
+The historical durable state bound task ID, thread ID, branch, baseline SHA, snapshot
 revision/hash, task-description hash, complete matrix hash, recommendation, and
 expiry. `INVENTORY_OK` and exact same-thread `CONTINUE` are required before
 mutation; task, scope, branch, baseline, snapshot, matrix, recommendation, and
@@ -297,7 +313,9 @@ freshness are revalidated after `CONTINUE`.
 
 The optimization objective is `MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`.
 
-Only the Asynchronia plugin `model-selector` may originate, rank, or name the recommendation. The repository preflight contract requires `PLUGIN_AUTO_ROUTING: REQUIRED`, `MODEL_PREFLIGHT_PAUSE: REQUIRED`, `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and the repository skill source under `plugins/asynchronia/skills/` as the mandatory fallback. Codex must perform no implementation or mutable command before exact same-thread `CONTINUE`.
+Only the historical Asynchronia plugin `model-selector` procedure originated,
+ranked, or named that recommendation. Its pause and continuation contract is
+retired for ordinary Codex execution and cannot block ordinary implementation.
 
 ## 8.1 Parallel work policy
 
