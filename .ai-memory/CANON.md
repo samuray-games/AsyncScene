@@ -18,6 +18,13 @@ NEXT_ACTION: `IMPLEMENT_TASK_7.15.40_EVENTS`
 - TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
 - `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. The next canonical implementation slice is `TASK 7.15.40 - Events` beyond the scripted tutorial event.
 
+### TASK 7.15.40 contract
+
+- `TASK 7.15.40` is an infrastructure/generalization checkpoint. It defines a source-controlled generic non-tutorial event path using existing Events primitives where equivalent ones exist: stable ID/type, display payload, generic actions/choices, deterministic resolution, completion state, deduplication identity, and existing persistence compatibility.
+- It must not add the canonical First Event narrative, lore, choices, rewards, penalties, economy, REP, or wins. Test/internal fixtures must be invisible canonical gameplay and economically inert.
+- Rayhan/Nastya scripted behavior remains unchanged; later trigger/UI/resolution/completion/reload milestones are not consumed here. Future acceptance requires deterministic generic tests, deduplication semantics, persistence compatibility, and tutorial regressions green.
+- First Event milestones 81%-85% remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.
+
 This file captures stable product canon relevant to memory handling.
 
 MEMORY_REVISION: 2026-08-26-0900-JST

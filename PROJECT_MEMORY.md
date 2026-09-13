@@ -23,6 +23,8 @@ Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; `suppressC
 
 Task pointer: `IMPLEMENT_TASK_7.15.40_EVENTS`.
 
+`TASK 7.15.40` now has an executable repository contract in `TASKS.md`: infrastructure/generalization only; no First Event narrative, economy, REP, wins, rewards, or penalties; preserve Rayhan/Nastya behavior; use generic source-defined event primitives with deterministic resolution, identity/deduplication, and existing persistence compatibility. Later First Event milestones 81%-85% remain separate and unconsumed. Stage 7.15 remains 75%.
+
 ## Stage 7.15 accepted runtime update - 2026-09-13
 
 `TASK 7.15.32 First independent battle` runtime acceptance = PASS. Dedicated runner JS SHA `1dc8731d371d2b7bebbb8118c6314091c3819018c429cea3360ca33871c74815`, shell SHA `01fb901a953308e9750425dc6b8b689a4a891c5c38cf8cd75c62a9c473841382`, repaired controller SHA `a161810d7f70c89b6692dc712ba6ba6c07445203d7cfada8d223531fb288c790`. Fresh state, visible `Вызвать`, target `Слабак`, real independent battle start/completion, and zero page/console/unhandled-rejection errors were reported; no product/repository mutation occurred. Stage 7.15 progress is 75%. Next incomplete checkpoint is `TASK 7.15.40 Events` beyond the scripted tutorial event.
