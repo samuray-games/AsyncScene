@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-persistence-20260910",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:43Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:43Z",
+      "stderr": "",
+      "stdout": "codex/stage715-persistence-20260910\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:43Z",
+      "stderr": "",
+      "stdout": "db6cf2d3815ec08e39cd452bc00c4c64ae24f3aa\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:44Z",
+      "stderr": "",
+      "stdout": "# branch.oid db6cf2d3815ec08e39cd452bc00c4c64ae24f3aa\n# branch.head codex/stage715-persistence-20260910\n# branch.upstream origin/codex/stage715-persistence-20260910\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:44Z",
+      "stderr": "",
+      "stdout": "db6cf2d3 (HEAD -> codex/stage715-persistence-20260910, origin/codex/stage715-persistence-20260910) docs: record Stage 7.15.32 acceptance\ne63e8da2 Fix Stage 7.15 chat hook readiness race\n5975c744 Update selector inventory to 5 models and 27 pairs\naba86b16 (origin/main) Ignore and remove local Playwright artifacts\n67edbd71 Merge pull request #391 from samuray-games/codex/stage7-15-32-first-independent-battle\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:44Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD db6cf2d3815ec08e39cd452bc00c4c64ae24f3aa\nbranch refs/heads/codex/stage715-persistence-20260910\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:44Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T14:02:44Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "db6cf2d3815ec08e39cd452bc00c4c64ae24f3aa",
+  "observedAtUtc": "2026-09-13T14:02:44Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
