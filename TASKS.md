@@ -28,6 +28,29 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
 - Fresh state was valid (`REP=1`, `money=10`, `wins=0`, Continue absent). Visible UI-only flow reached `npc_weak` / `Слабак`, started and completed the first independent battle; page errors, console errors and unhandled rejections were all 0. No product or repository mutation occurred during acceptance.
 - Stage 7.15 progress is now 75% under the runtime-acceptance progress rule. Next incomplete slice: `TASK 7.15.40 Events` beyond the scripted tutorial event.
 
+## 2026-09-14 - TASK 7.15.40 contract recorded
+
+`TASK 7.15.40 - Events beyond the scripted tutorial event` is an infrastructure/generalization checkpoint, not the First Event narrative checkpoint. Stage 7.15 remains 75%; recording this contract does not authorize a progress bump.
+
+### Authoritative contract
+
+- A source-controlled generic non-tutorial event definition must be representable without event-specific behavior in the Rayhan/Nastya scripted tutorial state machine. Reuse existing Events primitives where equivalent ones exist.
+- The definition must provide a stable event ID, tutorial-versus-ordinary category/type, display payload, one or more generic actions/choices, deterministic action-to-resolution mapping, completion/resolution state, stable identity or deduplication key, and compatibility with the existing save/state namespace.
+- The checkpoint must not add canonical First Event copy, lore, rewards, penalties, REP, money, wins, or canonical gameplay choices. A deterministic internal/test fixture is allowed only when it is not visible canonical gameplay content and has zero economic or progression side effects.
+- Existing Rayhan/Nastya scripted behavior and externally observable tutorial behavior remain unchanged. Any adapter/generalization layer must preserve that behavior exactly.
+- The generic path must be able to support later trigger -> event instance creation -> visible Events entry -> visible actions/choices -> resolution -> completion -> persistence without a new event-specific hardcoded branch. TASK 7.15.40 itself need not expose that full user flow.
+- For the same canonical state and definition, availability and instantiation are deterministic unless existing architecture explicitly defines randomness. Later instances must be protected from duplicate creation/replay by defined identity/deduplication semantics.
+- The structure must fit the existing persistence/save model; no second persistence system is permitted. End-to-end reload/Continue acceptance remains a later checkpoint.
+- No economy, REP, wins, rewards, or penalties are introduced by this checkpoint.
+
+### Future implementation acceptance
+
+Deterministic tests must prove that an independent non-tutorial definition can be instantiated and processed through the generic Events architecture; choices/actions and resolution are generic; identity/deduplication semantics exist; the structure fits existing persistence; tutorial regressions remain green; and no canonical First Event narrative has been introduced prematurely.
+
+Later First Event milestones remain distinct and unconsumed: 81% unlock condition, 82% visible entry/control, 83% canonical content/choices rendered, 84% visible resolution, and 85% completion plus persistence accepted.
+
+`TASK 7.15.40` classification after this recording: `READY_FOR_IMPLEMENTATION`.
+
 ## 2026-08-19 - Safari2234 production owner-readback closure
 - Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.
 - Owner-readback workflow run `32264675135` completed success on the merged main SHA. It found exactly one `Safari2234` session with server-derived city `Tachikawa`; 146 events across 38 observed batch IDs had no duplicate event IDs.
