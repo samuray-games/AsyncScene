@@ -48,7 +48,14 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 
 ## Codex execution
 
-On `мост N`, Codex must before any terminal response:
+The selector handshake below is historical numbered-bridge procedure only. It
+does not govern ordinary Codex tasks. Ordinary tasks use the configured Codex
+agent-team/model policy automatically and do not require user-operated
+`INVENTORY_OK`, model selection, same-thread `CONTINUE`,
+`WAITING_FOR_MODEL_SELECTION`, or `IMPLEMENTATION_ALLOWED`.
+
+For the specialized numbered bridge command `мост N`, Codex must before any
+terminal response:
 
 1. fetch main and mailbox;
 2. read current remote authority, STATE, inbox and claim;

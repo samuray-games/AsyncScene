@@ -111,7 +111,12 @@ A global memory index may link to them but must not replace one slot snapshot wh
 
 Updating Slot N memory must preserve byte-identical Slot M memory files.
 
-## 8. Fresh execution and model preflight
+## 8. Historical numbered-bridge execution and model preflight
+
+This section governs only the specialized numbered bridge commands `мост 1`,
+`мост 2`, and `мост 3`. It is historical/non-authoritative for ordinary
+Codex engineering tasks, which use automatic configured Codex agent-team/model
+routing and never require the user-operated selector handshake.
 
 Every exact `мост N` is a fresh attempt for the slot-local execution epoch currently named by mailbox ref N.
 
