@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-40-implementation",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "codex/stage715-40-implementation\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "8ba1149f1b0535c4962ec9301ee079f119a383a0\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8ba1149f1b0535c4962ec9301ee079f119a383a0\n# branch.head codex/stage715-40-implementation\n# branch.upstream origin/codex/stage715-40-implementation\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "8ba1149f (HEAD -> codex/stage715-40-implementation, origin/codex/stage715-40-implementation) Implement generic source-defined events for task 7.15.40\nc751c5e5 (origin/codex/stage715-persistence-20260910) docs: record TASK 7.15.40 generic Events contract\ndb6cf2d3 docs: record Stage 7.15.32 acceptance\ne63e8da2 Fix Stage 7.15 chat hook readiness race\n5975c744 Update selector inventory to 5 models and 27 pairs\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8ba1149f1b0535c4962ec9301ee079f119a383a0\nbranch refs/heads/codex/stage715-40-implementation\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-13T17:15:14Z",
+      "stderr": "",
+      "stdout": "aba86b16557e7dd35b462c7c3fedec920d2630e1\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8ba1149f1b0535c4962ec9301ee079f119a383a0",
+  "observedAtUtc": "2026-09-13T17:15:14Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
