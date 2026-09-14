@@ -6,54 +6,10 @@
   "applicationSurface": "CODEX_DESKTOP_APP",
   "sourceArtifact": {
     "path": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md",
-    "blobSha": "dba335f701f704a3e38cd2318cd59a0a964852af",
+    "blobSha": "ee88e0e9ced54bf578fa7e9c84e1e05312fb732c",
     "provenanceType": "repository-markdown"
   },
   "models": [
-    {
-      "modelLabel": "5.4 Mini",
-      "modelIdentifier": "gpt-5.4-mini",
-      "supportedEfforts": [
-        {
-          "effortLabel": "Light",
-          "effortIdentifier": "light"
-        },
-        {
-          "effortLabel": "Medium",
-          "effortIdentifier": "medium"
-        },
-        {
-          "effortLabel": "High",
-          "effortIdentifier": "high"
-        },
-        {
-          "effortLabel": "Extra High",
-          "effortIdentifier": "extra-high"
-        }
-      ]
-    },
-    {
-      "modelLabel": "5.4",
-      "modelIdentifier": "gpt-5.4",
-      "supportedEfforts": [
-        {
-          "effortLabel": "Light",
-          "effortIdentifier": "light"
-        },
-        {
-          "effortLabel": "Medium",
-          "effortIdentifier": "medium"
-        },
-        {
-          "effortLabel": "High",
-          "effortIdentifier": "high"
-        },
-        {
-          "effortLabel": "Extra High",
-          "effortIdentifier": "extra-high"
-        }
-      ]
-    },
     {
       "modelLabel": "5.5",
       "modelIdentifier": "gpt-5.5",
@@ -161,11 +117,41 @@
           "effortIdentifier": "ultra"
         }
       ]
+    },
+    {
+      "modelLabel": "6 Astra",
+      "modelIdentifier": "gpt-6-astra",
+      "supportedEfforts": [
+        {
+          "effortLabel": "Light",
+          "effortIdentifier": "light"
+        },
+        {
+          "effortLabel": "Medium",
+          "effortIdentifier": "medium"
+        },
+        {
+          "effortLabel": "High",
+          "effortIdentifier": "high"
+        },
+        {
+          "effortLabel": "Extra High",
+          "effortIdentifier": "extra-high"
+        },
+        {
+          "effortLabel": "Max",
+          "effortIdentifier": "max"
+        },
+        {
+          "effortLabel": "Ultra",
+          "effortIdentifier": "ultra"
+        }
+      ]
     }
   ],
-  "completeModelCount": 6,
-  "completeModelEffortPairCount": 29,
-  "canonicalContentHash": "sha256:4693ceb1e7c5a386be8b9586492e0940fe543fb8b91ae5988c8d52236d4b1dbf",
+  "completeModelCount": 5,
+  "completeModelEffortPairCount": 27,
+  "canonicalContentHash": "sha256:ec703e419a1d916d12ad642f33c76182014d93dbcc12208b3d8a5448cc1284b2",
   "status": "PENDING_CONFIRMATION",
   "supersedes": "20260722.1",
   "notes": [

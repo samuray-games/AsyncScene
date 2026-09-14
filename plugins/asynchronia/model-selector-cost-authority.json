@@ -6,22 +6,56 @@
   "confirmedTimestamp": "2026-08-01T07:34:14Z",
   "officialSourceUrl": "https://help.openai.com/en/articles/20001106-codex-rate-card",
   "sourceArtifactPath": ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md",
-  "sourceArtifactBlobSha": "d308a4a7d0ec19305c4db6b4e67951ee8b83fc77",
+  "sourceArtifactBlobSha": "94d7b87c539b008a409e715213b2e310a09d33d8",
   "models": [
-    {"modelIdentifier": "gpt-5.6-luna", "inputCredits": "5", "cachedInputCredits": "0.5", "outputCredits": "30"},
-    {"modelIdentifier": "gpt-5.4-mini", "inputCredits": "18.75", "cachedInputCredits": "1.875", "outputCredits": "113"},
-    {"modelIdentifier": "gpt-5.6-terra", "inputCredits": "50", "cachedInputCredits": "5", "outputCredits": "300"},
-    {"modelIdentifier": "gpt-5.4", "inputCredits": "62.50", "cachedInputCredits": "6.250", "outputCredits": "375"},
-    {"modelIdentifier": "gpt-5.5", "inputCredits": "125", "cachedInputCredits": "12.50", "outputCredits": "750"},
-    {"modelIdentifier": "gpt-5.6-sol", "inputCredits": "125", "cachedInputCredits": "12.50", "outputCredits": "750"}
+    {
+      "modelIdentifier": "gpt-5.6-luna",
+      "inputCredits": "5",
+      "cachedInputCredits": "0.5",
+      "outputCredits": "30"
+    },
+    {
+      "modelIdentifier": "gpt-5.6-terra",
+      "inputCredits": "50",
+      "cachedInputCredits": "5",
+      "outputCredits": "300"
+    },
+    {
+      "modelIdentifier": "gpt-5.5",
+      "inputCredits": "125",
+      "cachedInputCredits": "12.50",
+      "outputCredits": "750"
+    },
+    {
+      "modelIdentifier": "gpt-5.6-sol",
+      "inputCredits": "100",
+      "cachedInputCredits": "10",
+      "outputCredits": "500"
+    },
+    {
+      "modelIdentifier": "gpt-6-astra",
+      "inputCredits": "250",
+      "cachedInputCredits": "25",
+      "outputCredits": "1250"
+    }
   ],
   "derivedCostTiers": [
-    ["gpt-5.6-luna"],
-    ["gpt-5.4-mini"],
-    ["gpt-5.6-terra"],
-    ["gpt-5.4"],
-    ["gpt-5.5", "gpt-5.6-sol"]
+    [
+      "gpt-5.6-luna"
+    ],
+    [
+      "gpt-5.6-terra"
+    ],
+    [
+      "gpt-5.6-sol"
+    ],
+    [
+      "gpt-5.5"
+    ],
+    [
+      "gpt-6-astra"
+    ]
   ],
   "status": "ACTIVE",
-  "canonicalContentHash": "sha256:d6fc42593b993e46f5727bc0f5be681e3a01be4d19c28bfffc20c9c3e694522e"
+  "canonicalContentHash": "sha256:33a4663b6c5989c63143acd0f9a4f8e019851a903293255225aaf4be2132a7a0"
 }

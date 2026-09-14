@@ -94,9 +94,9 @@ class GenericModelPreflightHandshakeTests(unittest.TestCase):
             self.assertEqual(start.returncode, 0, start.stderr or start.stdout)
             self.assertIn("status: WAITING_FOR_INVENTORY_CONFIRMATION", start.stdout)
             self.assertIn("complete authoritative inventory:", start.stdout)
-            self.assertEqual(sum(line.startswith("- ") for line in start.stdout.splitlines()), 6)
-            self.assertIn("model count: 6", start.stdout)
-            self.assertIn("model-effort pair count: 29", start.stdout)
+            self.assertEqual(sum(line.startswith("- ") for line in start.stdout.splitlines()), 5)
+            self.assertIn("model count: 5", start.stdout)
+            self.assertIn("model-effort pair count: 27", start.stdout)
             for forbidden in (
                 "evaluated pair count:", "evaluation matrix:", "required capability score:",
                 "cheapest rejected pair:", "recommended pair:", "next more capable plausible pair:",
@@ -132,8 +132,8 @@ class GenericModelPreflightHandshakeTests(unittest.TestCase):
             inventory_ok = run_cli(repo, "inventory-ok", *common)
             self.assertEqual(inventory_ok.returncode, 0, inventory_ok.stderr or inventory_ok.stdout)
             self.assertIn("status: WAITING_FOR_MODEL_SELECTION", inventory_ok.stdout)
-            self.assertIn("evaluated pair count: 29/29", inventory_ok.stdout)
-            self.assertEqual(sum(line.startswith("- ") for line in inventory_ok.stdout.splitlines()), 29)
+            self.assertIn("evaluated pair count: 27/27", inventory_ok.stdout)
+            self.assertEqual(sum(line.startswith("- ") for line in inventory_ok.stdout.splitlines()), 27)
             for required in (
                 "required capability score:", "cheapest rejected pair:", "recommended pair:",
                 "next more capable plausible pair:", "exact next response: CONTINUE",

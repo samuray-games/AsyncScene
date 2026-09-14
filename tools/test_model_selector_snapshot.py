@@ -150,17 +150,18 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         actual_blob_sha = subprocess.run(["git", "hash-object", str(ROOT / manifest["inventoryArtifactPath"])], check=True, capture_output=True, text=True).stdout.strip()
         self.assertEqual(manifest["lastAcceptedBlobSha"], actual_blob_sha)
         self.assertEqual(manifest["currentSnapshotRevision"], "20260801.1")
-        self.assertEqual(parsed.model_count, 6)
-        self.assertEqual(parsed.pair_count, 29)
-        self.assertEqual([model["modelLabel"] for model in parsed.models], ["5.4 Mini", "5.4", "5.5", "5.6 Luna", "5.6 Terra", "5.6 Sol"])
-        self.assertEqual([model["modelIdentifier"] for model in parsed.models], ["gpt-5.4-mini", "gpt-5.4", "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"])
-        self.assertIn("5.4 Mini", [model["modelLabel"] for model in parsed.models])
-        self.assertIn("5.4", [model["modelLabel"] for model in parsed.models])
+        self.assertEqual(parsed.model_count, 5)
+        self.assertEqual(parsed.pair_count, 27)
+        self.assertEqual([model["modelLabel"] for model in parsed.models], ["5.5", "5.6 Luna", "5.6 Terra", "5.6 Sol", "6 Astra"])
+        self.assertEqual([model["modelIdentifier"] for model in parsed.models], ["gpt-5.5", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol", "gpt-6-astra"])
+        labels = [model["modelLabel"] for model in parsed.models]
+        self.assertIn("6 Astra", labels)
+        self.assertNotIn("5.4 Mini", labels)
+        self.assertNotIn("5.4", labels)
+        self.assertNotIn("5.6 Astra", labels)
         self.assertEqual(
             [(model["modelLabel"], effort["effortLabel"]) for model in parsed.models for effort in model["supportedEfforts"]],
             [
-                ("5.4 Mini", "Light"), ("5.4 Mini", "Medium"), ("5.4 Mini", "High"), ("5.4 Mini", "Extra High"),
-                ("5.4", "Light"), ("5.4", "Medium"), ("5.4", "High"), ("5.4", "Extra High"),
                 ("5.5", "Light"), ("5.5", "Medium"), ("5.5", "High"), ("5.5", "Extra High"),
                 ("5.6 Luna", "Light"), ("5.6 Luna", "Medium"), ("5.6 Luna", "High"),
                 ("5.6 Luna", "Extra High"), ("5.6 Luna", "Max"),
@@ -168,6 +169,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
                 ("5.6 Terra", "Extra High"), ("5.6 Terra", "Max"), ("5.6 Terra", "Ultra"),
                 ("5.6 Sol", "Light"), ("5.6 Sol", "Medium"), ("5.6 Sol", "High"),
                 ("5.6 Sol", "Extra High"), ("5.6 Sol", "Max"), ("5.6 Sol", "Ultra"),
+                ("6 Astra", "Light"), ("6 Astra", "Medium"), ("6 Astra", "High"),
+                ("6 Astra", "Extra High"), ("6 Astra", "Max"), ("6 Astra", "Ultra"),
             ],
         )
 
@@ -187,8 +190,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual(snapshot["status"], "PENDING_CONFIRMATION")
         self.assertEqual(snapshot["confirmedTimestamp"], "2026-08-01T05:31:00Z")
         self.assertEqual(snapshot["applicationSurface"], "CODEX_DESKTOP_APP")
-        self.assertEqual(snapshot["completeModelCount"], 6)
-        self.assertEqual(snapshot["completeModelEffortPairCount"], 29)
+        self.assertEqual(snapshot["completeModelCount"], 5)
+        self.assertEqual(snapshot["completeModelEffortPairCount"], 27)
         self.assertEqual(snapshot["supersedes"], "20260722.1")
         self.assertEqual(snapshot["canonicalContentHash"], canonical_hash(snapshot))
 
@@ -324,8 +327,8 @@ class ModelSelectorAuthorityTests(unittest.TestCase):
         self.assertEqual({model["modelIdentifier"] for model in snapshot["models"] if model["modelIdentifier"].startswith("gpt-5.6-")}, {"gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"})
         relay = start_preflight(task(), "thread-complete-relay", "baseline", branch=CHECKED_OUT_BRANCH, state_dir=Path(tempfile.mkdtemp()))
         inventory = [line for line in relay.output.splitlines() if line.startswith("- ")]
-        self.assertEqual(len(inventory), 6)
-        self.assertEqual(len(set(inventory)), 6)
+        self.assertEqual(len(inventory), 5)
+        self.assertEqual(len(set(inventory)), 5)
         self.assertNotIn("5.6 Terra/Sol", relay.output)
 
     def test_authority_binding_rejects_mismatched_source_path(self) -> None:

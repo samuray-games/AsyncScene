@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-26-0900-JST
+MEMORY_REV: 2026-09-13-2038-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,7 +8,7 @@ MEMORY_REV: 2026-08-26-0900-JST
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
+NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
 
 ## 2026-08-25 - Stage 7.15 canon reconciliation after PR #389
 
@@ -16,9 +16,40 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong and correct branches passed through Nastya handoff and visible Nastya battle.
 - Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; battle `suppressCrowdSystemChat`; event `skipSys`; event presentation `hideResolvedParticipantLine`; ordinary unflagged battles/events unchanged.
 - `TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`: current controller/UI paths cover opt-in demo routing, scripted actors, reply and public-chat isolation, progressive disclosure, and deterministic Rayhan/Nastya flow; PR #389 public evidence covers the guided corridor.
-- Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented, but separate public acceptance is not recorded in this reconciliation. `TASK 7.15.32 First independent battle`, `TASK 7.15.40 Events` beyond the scripted tutorial event, `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
+- Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented. `TASK 7.15.32 First independent battle` is accepted by user-owned runtime evidence recorded on 2026-09-13; `TASK 7.15.40 Events` beyond the scripted tutorial event, `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
 - Task identity provenance: `TASK 7.15.32 - First independent battle` was restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`, which predates PR #390 and lists the Wave 4 task explicitly.
-- Task pointer: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`.
+- Task pointer: `IMPLEMENT_TASK_7.15.40_EVENTS`.
+
+## 2026-09-13 - TASK 7.15.32 runtime acceptance recorded
+
+- `TASK 7.15.32 First independent battle`: PASS from one user-owned standalone Terminal run using the dedicated acceptance runner.
+- Runner JS SHA: `1dc8731d371d2b7bebbb8118c6314091c3819018c429cea3360ca33871c74815`; shell SHA: `01fb901a953308e9750425dc6b8b689a4a891c5c38cf8cd75c62a9c473841382`.
+- Repaired controller SHA: `a161810d7f70c89b6692dc712ba6ba6c07445203d7cfada8d223531fb288c790`; all reported product byte gates matched.
+- Fresh state was valid (`REP=1`, `money=10`, `wins=0`, Continue absent). Visible UI-only flow reached `npc_weak` / `Слабак`, started and completed the first independent battle; page errors, console errors and unhandled rejections were all 0. No product or repository mutation occurred during acceptance.
+- Stage 7.15 progress is now 75% under the runtime-acceptance progress rule. Next incomplete slice: `TASK 7.15.40 Events` beyond the scripted tutorial event.
+
+## 2026-09-14 - TASK 7.15.40 contract recorded
+
+`TASK 7.15.40 - Events beyond the scripted tutorial event` is an infrastructure/generalization checkpoint, not the First Event narrative checkpoint. Stage 7.15 remains 75%; recording this contract does not authorize a progress bump.
+
+### Authoritative contract
+
+- A source-controlled generic non-tutorial event definition must be representable without event-specific behavior in the Rayhan/Nastya scripted tutorial state machine. Reuse existing Events primitives where equivalent ones exist.
+- The definition must provide a stable event ID, tutorial-versus-ordinary category/type, display payload, one or more generic actions/choices, deterministic action-to-resolution mapping, completion/resolution state, stable identity or deduplication key, and compatibility with the existing save/state namespace.
+- The checkpoint must not add canonical First Event copy, lore, rewards, penalties, REP, money, wins, or canonical gameplay choices. A deterministic internal/test fixture is allowed only when it is not visible canonical gameplay content and has zero economic or progression side effects.
+- Existing Rayhan/Nastya scripted behavior and externally observable tutorial behavior remain unchanged. Any adapter/generalization layer must preserve that behavior exactly.
+- The generic path must be able to support later trigger -> event instance creation -> visible Events entry -> visible actions/choices -> resolution -> completion -> persistence without a new event-specific hardcoded branch. TASK 7.15.40 itself need not expose that full user flow.
+- For the same canonical state and definition, availability and instantiation are deterministic unless existing architecture explicitly defines randomness. Later instances must be protected from duplicate creation/replay by defined identity/deduplication semantics.
+- The structure must fit the existing persistence/save model; no second persistence system is permitted. End-to-end reload/Continue acceptance remains a later checkpoint.
+- No economy, REP, wins, rewards, or penalties are introduced by this checkpoint.
+
+### Future implementation acceptance
+
+Deterministic tests must prove that an independent non-tutorial definition can be instantiated and processed through the generic Events architecture; choices/actions and resolution are generic; identity/deduplication semantics exist; the structure fits existing persistence; tutorial regressions remain green; and no canonical First Event narrative has been introduced prematurely.
+
+Later First Event milestones remain distinct and unconsumed: 81% unlock condition, 82% visible entry/control, 83% canonical content/choices rendered, 84% visible resolution, and 85% completion plus persistence accepted.
+
+`TASK 7.15.40` classification after this recording: `READY_FOR_IMPLEMENTATION`.
 
 ## 2026-08-19 - Safari2234 production owner-readback closure
 - Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.
