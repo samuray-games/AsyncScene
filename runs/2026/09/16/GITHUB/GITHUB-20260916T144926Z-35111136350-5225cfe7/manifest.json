@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/policy218-postmerge-memory-sync-20260916",
+  "createdAtJst": "2026-09-16 23:49:26 JST",
+  "createdAtUtc": "2026-09-16T14:49:26Z",
+  "packagePath": "runs/2026/09/16/GITHUB/GITHUB-20260916T144926Z-35111136350-5225cfe7",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20260916T144926Z-35111136350-5225cfe7",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}

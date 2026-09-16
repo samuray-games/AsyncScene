@@ -1,0 +1,106 @@
+{
+  "branch": "codex/policy218-postmerge-memory-sync-20260916",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "codex/policy218-postmerge-memory-sync-20260916\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "4865a26c9c0fd253ed09a2a28f911512545421bb\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "# branch.oid 4865a26c9c0fd253ed09a2a28f911512545421bb\n# branch.head codex/policy218-postmerge-memory-sync-20260916\n# branch.upstream origin/codex/policy218-postmerge-memory-sync-20260916\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "4865a26c (HEAD -> codex/policy218-postmerge-memory-sync-20260916, origin/codex/policy218-postmerge-memory-sync-20260916) Sync repository memory after policy PR 395\n5c73460d (origin/main) Retire user-operated model selector workflow (#395)\ne38b1ca0 Record post-merge TASK 7.15.40 integration state (#394)\n18f3062c Reconstruct generic source-defined events integration for task 7.15.40\naba86b16 Ignore and remove local Playwright artifacts\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 4865a26c9c0fd253ed09a2a28f911512545421bb\nbranch refs/heads/codex/policy218-postmerge-memory-sync-20260916\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T14:49:26Z",
+      "stderr": "",
+      "stdout": "5c73460d0b5422ecff10efee878b4aede466e727\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "4865a26c9c0fd253ed09a2a28f911512545421bb",
+  "observedAtUtc": "2026-09-16T14:49:26Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
