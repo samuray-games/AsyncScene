@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-m81-postmerge-memory-sync-20260917",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:11Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:11Z",
+      "stderr": "",
+      "stdout": "codex/stage715-m81-postmerge-memory-sync-20260917\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:11Z",
+      "stderr": "",
+      "stdout": "cbf94f5363d3b4d773b3805fae355636eabd2705\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:12Z",
+      "stderr": "",
+      "stdout": "# branch.oid cbf94f5363d3b4d773b3805fae355636eabd2705\n# branch.head codex/stage715-m81-postmerge-memory-sync-20260917\n# branch.upstream origin/codex/stage715-m81-postmerge-memory-sync-20260917\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:12Z",
+      "stderr": "",
+      "stdout": "cbf94f53 (HEAD -> codex/stage715-m81-postmerge-memory-sync-20260917, origin/codex/stage715-m81-postmerge-memory-sync-20260917) Sync repository memory after Stage 7.15 M81 merge\n2174580b (origin/main) Stage 7.15 M81: derive First Event eligibility from first battle completion (#397)\ne0543ffc Sync repository memory after policy PR 395 (#396)\n5c73460d Retire user-operated model selector workflow (#395)\ne38b1ca0 Record post-merge TASK 7.15.40 integration state (#394)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:12Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cbf94f5363d3b4d773b3805fae355636eabd2705\nbranch refs/heads/codex/stage715-m81-postmerge-memory-sync-20260917\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:12Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T18:25:12Z",
+      "stderr": "",
+      "stdout": "2174580b5a864052404afca7622953bdff52098f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cbf94f5363d3b4d773b3805fae355636eabd2705",
+  "observedAtUtc": "2026-09-16T18:25:12Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
