@@ -7,8 +7,16 @@ MEMORY_REV: 2026-09-16-1928-JST
 - Owner-authenticated run `32264675135` passed on merged `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f`: exactly one `Safari2234` session, stored city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and internally consistent summary/sessions/export.
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
-CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PR_393_MERGED / PR_392_SUPERSEDED_CLOSED / PR_395_MERGED / POLICY_2185411_INTEGRATED / TASK_7_15_40_INTEGRATED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PR_393_MERGED / PR_392_SUPERSEDED_CLOSED / PR_395_MERGED / POLICY_2185411_INTEGRATED / TASK_7_15_40_INTEGRATED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE / PR_397_MERGED / MILESTONE_81_INTEGRATED_AND_STATICALLY_VALIDATED
+NEXT_ACTION: M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL
+## 2026-09-17 - Stage 7.15 Milestone 81 integration closure
+
+- PR #397 was squash-merged into `main` as `2174580b5a864052404afca7622953bdff52098f`, with parent `e0543ffc1a83a6e590750ae672001c3f53bc86fe`.
+- M81 is `INTEGRATED_AND_STATICALLY_VALIDATED`. First Event eligibility derives from the existing authoritative `stage715FirstIndependentBattleComplete`; no redundant persisted truth was introduced.
+- The exact first independent battle WIN completion unlocks eligibility. Unrelated battles, losses, interrupted or incomplete battles, mere start, and scripted/tutorial paths do not unlock; the query is deterministic and idempotent.
+- No visible First Event entry/control, card, narrative, content, choices, resolution UI, completion persistence, economy, REP, money, wins, reward, refund, or penalty behavior was added.
+- Stage 7.15 remains 75%; no progress bump is authorized by M81 integration. M82 remains `NOT_STARTED`; the next product checkpoint is M82 visible First Event entry/control, followed by M83 canonical content/choices, M84 visible resolution, and M85 completion plus persistence.
+- Repository-memory synchronization is complete on this merged main after this five-file reconciliation. NEXT_ACTION: `RETURN_TO_CHATGPT_FOR_M82_VISIBLE_FIRST_EVENT_ENTRY_ROUTING`
 
 ## 2026-08-25 - Stage 7.15 canon reconciliation after PR #389
 
