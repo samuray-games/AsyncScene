@@ -25,7 +25,7 @@ NEXT_ACTION: `M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL`
 - `TASK 7.15.40` is the integrated infrastructure/generalization checkpoint from PR #393. It defines a source-controlled generic non-tutorial event path using existing Events primitives where equivalent ones exist: stable ID/type, display payload, generic actions/choices, deterministic resolution, completion state, deduplication identity, and existing persistence compatibility.
 - It must not add the canonical First Event narrative, lore, choices, rewards, penalties, economy, REP, or wins. Test/internal fixtures must be invisible canonical gameplay and economically inert.
 - Rayhan/Nastya scripted behavior remains unchanged; later trigger/UI/resolution/completion/reload milestones are not consumed here. Future acceptance requires deterministic generic tests, deduplication semantics, persistence compatibility, and tutorial regressions green.
-- First Event milestones 81%-85% remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.
+- M81 is integrated and statically validated; M82 remains NOT_STARTED and M83-M85 remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.
 
 This file captures stable product canon relevant to memory handling.
 
