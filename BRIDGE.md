@@ -16,7 +16,14 @@ Each command selects exactly one control plane. Previous conversation state and 
 
 ## 2. Mandatory first actions
 
-For `мост N`, before any terminal response Codex must:
+The user-operated model-selector handshake in this numbered-bridge section is
+retired and historical. It is not authoritative for ordinary Codex tasks.
+Ordinary tasks use configured Codex agent-team/model routing automatically and
+must not ask the user for `INVENTORY_OK`, model/effort selection, or same-thread
+`CONTINUE`.
+
+For the specialized numbered bridge command `мост N`, before any terminal
+response Codex must:
 
 1. read current root authority;
 2. fetch `origin/main` and only `origin/coordination/chatgpt-codex-bridge-N`;
