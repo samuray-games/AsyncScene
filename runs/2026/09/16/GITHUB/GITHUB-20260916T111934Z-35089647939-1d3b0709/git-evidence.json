@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:34Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:34Z",
+      "stderr": "",
+      "stdout": "bdc9564418fb2b8edfb63897418e03cdad0f5a70\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:35Z",
+      "stderr": "",
+      "stdout": "# branch.oid bdc9564418fb2b8edfb63897418e03cdad0f5a70\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:35Z",
+      "stderr": "",
+      "stdout": "bdc95644 (HEAD, pull/394/merge) Merge 324a1a3d0af3db7af9d8517f2fcaed50b8aa4703 into 18f3062c692bce24690c678f802a6468494ccc68\n324a1a3d (origin/codex/stage715-40-postmerge-memory-sync-20260916) docs: align memory revision metadata\nb3935a0a docs: record post-merge TASK 7.15.40 state\n18f3062c (origin/main) Reconstruct generic source-defined events integration for task 7.15.40\naba86b16 Ignore and remove local Playwright artifacts\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:35Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bdc9564418fb2b8edfb63897418e03cdad0f5a70\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:35Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T11:19:35Z",
+      "stderr": "",
+      "stdout": "18f3062c692bce24690c678f802a6468494ccc68\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bdc9564418fb2b8edfb63897418e03cdad0f5a70",
+  "observedAtUtc": "2026-09-16T11:19:35Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
