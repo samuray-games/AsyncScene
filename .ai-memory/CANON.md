@@ -17,6 +17,7 @@ NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
 - Scripted Rayhan uses canonical incremental defense options (`who`, `where`, `yn`). Generic opt-in flags are `suppressCrowdSystemChat` on battles, `skipSys` on events, and `hideResolvedParticipantLine` on event presentation. Ordinary unflagged behavior remains unchanged.
 - TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
 - `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. `TASK 7.15.40 - Events` generic infrastructure is integrated by PR #393; the next canonical checkpoint is milestone 81, which remains not started.
+- Policy PR #395 is integrated at `main@5c73460d0b5422ecff10efee878b4aede466e727` with expected parent `e38b1ca0f504beb778d0466bb40bf5f0658995a4`. Ordinary user-operated model-selector handshake is retired; configured Codex routing is ordinary, while the selector procedure remains historical/specialized for numbered bridge commands `мост 1`, `мост 2`, and `мост 3`.
 
 ### TASK 7.15.40 contract
 
