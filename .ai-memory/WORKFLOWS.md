@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-09-16-1651-JST-R2
+MEMORY_REV: 2026-09-16-1928-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -16,8 +16,8 @@ Accepted Stage 7.15 runtime baseline is `78476b5659b24e188eb8b9bf04451287d932335
 
 This file documents the minimum workflows for the repo-first memory system.
 
-MEMORY_REVISION: 2026-08-26-0900-JST
-EXPECTED_REVISION: 2026-08-26-0900-JST
+MEMORY_REVISION: 2026-09-16-1928-JST
+EXPECTED_REVISION: 2026-09-16-1928-JST
 NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
 Authoritative order for memory and workflow facts:
