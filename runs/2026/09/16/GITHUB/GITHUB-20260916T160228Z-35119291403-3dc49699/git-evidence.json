@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-m81-first-event-unlock-20260917",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "codex/stage715-m81-first-event-unlock-20260917\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "07c824f8eaaee05a08165195332ea964b5e735ff\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "# branch.oid 07c824f8eaaee05a08165195332ea964b5e735ff\n# branch.head codex/stage715-m81-first-event-unlock-20260917\n# branch.upstream origin/codex/stage715-m81-first-event-unlock-20260917\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "07c824f8 (HEAD -> codex/stage715-m81-first-event-unlock-20260917, origin/codex/stage715-m81-first-event-unlock-20260917) Fix M81 eligibility to derive from first battle completion\na4a87e8c Implement Stage 7.15 first event unlock condition\ne0543ffc (origin/main) Sync repository memory after policy PR 395 (#396)\n5c73460d Retire user-operated model selector workflow (#395)\ne38b1ca0 Record post-merge TASK 7.15.40 integration state (#394)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 07c824f8eaaee05a08165195332ea964b5e735ff\nbranch refs/heads/codex/stage715-m81-first-event-unlock-20260917\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:02:28Z",
+      "stderr": "",
+      "stdout": "e0543ffc1a83a6e590750ae672001c3f53bc86fe\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "07c824f8eaaee05a08165195332ea964b5e735ff",
+  "observedAtUtc": "2026-09-16T16:02:28Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
