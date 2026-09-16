@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-09-13-2038-JST
+MEMORY_REV: 2026-09-16-1651-JST-R2
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -7,8 +7,8 @@ MEMORY_REV: 2026-09-13-2038-JST
 - Owner-authenticated GitHub Actions run `32264675135` on merged `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` passed the exact `Safari2234` readback: stored city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and summary/sessions/export consistent.
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are stored in repository memory.
 
-CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PR_393_MERGED / PR_392_SUPERSEDED_CLOSED / TASK_7_15_40_INTEGRATED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+NEXT_ACTION: MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION
 NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
 ## 2026-08-25 - Accepted Stage 7.15 state after PR #389
@@ -19,15 +19,15 @@ PR #389 is merged and publicly accepted. Pages run `32845848909` succeeded on th
 
 Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; `suppressCrowdSystemChat`; `skipSys`; `hideResolvedParticipantLine`; ordinary unflagged behavior unchanged.
 
-`TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`, evidenced by current opt-in/isolation/progressive-disclosure/controller/UI paths and PR #389 public acceptance. Oleg slices and static progressive-disclosure contracts are implemented. `TASK 7.15.32 First independent battle` is accepted by user-owned runtime evidence; the next unaccepted existing slice is `TASK 7.15.40 Events` beyond the scripted tutorial event.
+`TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`, evidenced by current opt-in/isolation/progressive-disclosure/controller/UI paths and PR #389 public acceptance. Oleg slices and static progressive-disclosure contracts are implemented. `TASK 7.15.32 First independent battle` is accepted by user-owned runtime evidence. Generic `TASK 7.15.40 Events` infrastructure is integrated by PR #393; the next incomplete product checkpoint is milestone 81, which remains not started.
 
-Task pointer: `IMPLEMENT_TASK_7.15.40_EVENTS`.
+Task pointer: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`.
 
-`TASK 7.15.40` now has an executable repository contract in `TASKS.md`: infrastructure/generalization only; no First Event narrative, economy, REP, wins, rewards, or penalties; preserve Rayhan/Nastya behavior; use generic source-defined event primitives with deterministic resolution, identity/deduplication, and existing persistence compatibility. Later First Event milestones 81%-85% remain separate and unconsumed. Stage 7.15 remains 75%.
+`TASK 7.15.40` is integrated and statically validated by PR #393 squash merge `18f3062c692bce24690c678f802a6468494ccc68`: infrastructure/generalization only; no First Event narrative, economy, REP, wins, rewards, or penalties; preserve Rayhan/Nastya behavior; use generic source-defined event primitives with deterministic resolution, identity/deduplication, and existing persistence compatibility. Later First Event milestones 81%-85% remain separate and unconsumed. Stage 7.15 remains 75%; integration did not authorize a progress bump or milestone 81.
 
 ## Stage 7.15 accepted runtime update - 2026-09-13
 
-`TASK 7.15.32 First independent battle` runtime acceptance = PASS. Dedicated runner JS SHA `1dc8731d371d2b7bebbb8118c6314091c3819018c429cea3360ca33871c74815`, shell SHA `01fb901a953308e9750425dc6b8b689a4a891c5c38cf8cd75c62a9c473841382`, repaired controller SHA `a161810d7f70c89b6692dc712ba6ba6c07445203d7cfada8d223531fb288c790`. Fresh state, visible `Вызвать`, target `Слабак`, real independent battle start/completion, and zero page/console/unhandled-rejection errors were reported; no product/repository mutation occurred. Stage 7.15 progress is 75%. Next incomplete checkpoint is `TASK 7.15.40 Events` beyond the scripted tutorial event.
+`TASK 7.15.32 First independent battle` runtime acceptance = PASS. Dedicated runner JS SHA `1dc8731d371d2b7bebbb8118c6314091c3819018c429cea3360ca33871c74815`, shell SHA `01fb901a953308e9750425dc6b8b689a4a891c5c38cf8cd75c62a9c473841382`, repaired controller SHA `a161810d7f70c89b6692dc712ba6ba6c07445203d7cfada8d223531fb288c790`. Fresh state, visible `Вызвать`, target `Слабак`, real independent battle start/completion, and zero page/console/unhandled-rejection errors were reported; no product/repository mutation occurred. Stage 7.15 progress is 75%. Generic `TASK 7.15.40 Events` infrastructure is integrated; the next incomplete checkpoint is milestone 81, not started.
 
 # Historical Memory Index
 
