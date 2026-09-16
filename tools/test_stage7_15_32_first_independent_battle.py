@@ -157,6 +157,120 @@ console.log("PASS_CORE_ECONOMY_CONTEXT_PROPAGATION");
 '''
 subprocess.run(["node", "-e", node], cwd=ROOT, check=True)
 
+for text in (
+    "function isFirstEventEligible(state = stateFor())",
+    "state.flags.stage715FirstIndependentBattleComplete === true",
+    "isFirstEventEligible,",
+):
+    require(text in stage, f"missing M81 unlock contract: {text}")
+for forbidden in (
+    "stage715FirstEventUnlocked",
+    "stage715FirstEventUnlockBattleId",
+    "stage715_first_event_unlocked",
+):
+    require(forbidden not in stage, f"M81 added redundant persisted truth: {forbidden}")
+
+m81_node = r'''
+const assert = require("assert");
+const source = process.env.M81_SOURCE;
+
+function extractFunction(sourceText, marker) {
+  const start = sourceText.indexOf(marker);
+  assert(start >= 0, `${marker} not found`);
+  const brace = sourceText.indexOf("{", start);
+  let depth = 0;
+  for (let index = brace; index < sourceText.length; index += 1) {
+    if (sourceText[index] === "{") depth += 1;
+    if (sourceText[index] === "}" && --depth === 0) return sourceText.slice(start, index + 1);
+  }
+  throw new Error(`unterminated function: ${marker}`);
+}
+
+const state = {
+  flags: { stage715FirstIndependentBattleStarted: true, stage715FirstIndependentBattleId: "first-win" },
+  battles: [],
+  events: [{ id: "existing-event" }],
+  cards: [{ id: "existing-card" }],
+  content: ["existing-content"],
+  me: { money: 10, rep: 1, wins: 0 },
+};
+const battleOutcome = Function(`return (${extractFunction(source, "function battleOutcome(battle)")});`)();
+let saves = 0;
+let renders = 0;
+const telemetry = [];
+const stateFor = () => state;
+const saveState = () => { saves += 1; };
+const render = () => { renders += 1; };
+const firstIndependentBattleFromState = Function(
+  "stateFor",
+  `return (${extractFunction(source, "function firstIndependentBattleFromState()")});`,
+)(stateFor);
+const settle = Function(
+  "stateFor",
+  "firstIndependentBattleFromState",
+  "battleOutcome",
+  "saveState",
+  "telemetry",
+  "render",
+  `return (${extractFunction(source, "function settleFirstIndependentBattleCompletion()")});`,
+)(stateFor, firstIndependentBattleFromState, battleOutcome, saveState, (type, payload) => telemetry.push({ type, payload }), render);
+const eligible = Function(
+  "stateFor",
+  `return (${extractFunction(source, "function isFirstEventEligible(state = stateFor())")});`,
+)(stateFor);
+
+function resetBattle(battle) {
+  state.flags = { stage715FirstIndependentBattleStarted: true, stage715FirstIndependentBattleId: battle && battle.id || "first-win" };
+  state.battles = battle ? [battle] : [];
+  saves = 0;
+  renders = 0;
+  telemetry.length = 0;
+}
+
+resetBattle({ id: "started", meta: { stage715FirstIndependentBattle: true }, status: "active" });
+assert.strictEqual(eligible(), false, "starting the independent battle must remain locked");
+assert.strictEqual(settle(), false, "incomplete battle must not unlock");
+assert.strictEqual(saves, 0, "incomplete battle must not save completion");
+
+for (const battle of [
+  { id: "loss", meta: { stage715FirstIndependentBattle: true }, result: "lose" },
+  { id: "interrupted", meta: { stage715FirstIndependentBattle: true }, result: "interrupted" },
+  { id: "unfinished", meta: { stage715FirstIndependentBattle: true }, status: "finished", resolved: false },
+  { id: "scripted", meta: { stage715DemoBattle: true }, result: "win" },
+  { id: "unrelated", meta: { otherBattle: true }, result: "win" },
+]) {
+  resetBattle(battle);
+  assert.strictEqual(eligible(), false, `${battle.id} must remain locked`);
+  assert.strictEqual(settle(), false, `${battle.id} must not unlock`);
+  assert.strictEqual(saves, 0, `${battle.id} must not save completion`);
+}
+
+resetBattle({ id: "first-win", meta: { stage715FirstIndependentBattle: true }, result: "win" });
+const beforeProtected = JSON.stringify({ events: state.events, cards: state.cards, content: state.content, me: state.me });
+assert.strictEqual(eligible(), false, "First Event must be locked before the qualifying win");
+assert.strictEqual(settle(), true, "qualifying first-independent WIN must complete");
+assert.strictEqual(eligible(), true, "qualifying first-independent WIN must make First Event eligible");
+assert.strictEqual(state.flags.stage715FirstIndependentBattleComplete, true, "authoritative completion flag missing");
+assert.strictEqual(state.battles[0].meta.stage715FirstIndependentBattleComplete, true, "battle completion marker missing");
+assert.strictEqual(saves, 1, "qualifying completion must persist once");
+assert.strictEqual(JSON.stringify({ events: state.events, cards: state.cards, content: state.content, me: state.me }), beforeProtected, "M81 changed event/content/economy state");
+assert.strictEqual(telemetry.length, 1, "qualifying completion telemetry must be exactly once");
+const afterFirstCheck = JSON.stringify(state);
+assert.strictEqual(settle(), true, "completion re-check must be idempotent");
+assert.strictEqual(JSON.stringify(state), afterFirstCheck, "completion re-check mutated state");
+assert.strictEqual(saves, 1, "completion re-check must not save again");
+assert.strictEqual(renders, 1, "completion re-check must not render again");
+assert.strictEqual(telemetry.length, 1, "completion re-check must not emit telemetry again");
+assert.strictEqual(eligible(), true, "eligibility query must remain deterministic");
+console.log("PASS_STAGE7_15_81_FIRST_EVENT_UNLOCK_BEHAVIOR");
+'''
+subprocess.run(
+    ["node", "-e", m81_node],
+    cwd=ROOT,
+    env={**__import__("os").environ, "M81_SOURCE": stage},
+    check=True,
+)
+
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
 for forbidden in (
     "AsyncScene/Web/conflict/conflict-economy.js",
