@@ -1,7 +1,7 @@
-MEMORY_REV: 2026-09-13-2038-JST
+MEMORY_REV: 2026-09-16-1928-JST
 
 ## CURRENT_PROJECT_STATE
-NEXT_ACTION: `IMPLEMENT_TASK_7.15.40_EVENTS`
+NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
@@ -16,11 +16,11 @@ NEXT_ACTION: `IMPLEMENT_TASK_7.15.40_EVENTS`
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong/correct flows passed through visible Nastya battle.
 - Scripted Rayhan uses canonical incremental defense options (`who`, `where`, `yn`). Generic opt-in flags are `suppressCrowdSystemChat` on battles, `skipSys` on events, and `hideResolvedParticipantLine` on event presentation. Ordinary unflagged behavior remains unchanged.
 - TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
-- `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. The next canonical implementation slice is `TASK 7.15.40 - Events` beyond the scripted tutorial event.
+- `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. `TASK 7.15.40 - Events` generic infrastructure is integrated by PR #393; the next canonical checkpoint is milestone 81, which remains not started.
 
 ### TASK 7.15.40 contract
 
-- `TASK 7.15.40` is an infrastructure/generalization checkpoint. It defines a source-controlled generic non-tutorial event path using existing Events primitives where equivalent ones exist: stable ID/type, display payload, generic actions/choices, deterministic resolution, completion state, deduplication identity, and existing persistence compatibility.
+- `TASK 7.15.40` is the integrated infrastructure/generalization checkpoint from PR #393. It defines a source-controlled generic non-tutorial event path using existing Events primitives where equivalent ones exist: stable ID/type, display payload, generic actions/choices, deterministic resolution, completion state, deduplication identity, and existing persistence compatibility.
 - It must not add the canonical First Event narrative, lore, choices, rewards, penalties, economy, REP, or wins. Test/internal fixtures must be invisible canonical gameplay and economically inert.
 - Rayhan/Nastya scripted behavior remains unchanged; later trigger/UI/resolution/completion/reload milestones are not consumed here. Future acceptance requires deterministic generic tests, deduplication semantics, persistence compatibility, and tutorial regressions green.
 - First Event milestones 81%-85% remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.

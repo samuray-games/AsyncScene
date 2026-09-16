@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-09-13-2038-JST
+MEMORY_REV: 2026-09-16-1928-JST
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -7,8 +7,8 @@ MEMORY_REV: 2026-09-13-2038-JST
 - Owner-authenticated run `32264675135` passed on merged `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f`: exactly one `Safari2234` session, stored city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and internally consistent summary/sessions/export.
 - Central private-friends-alpha friend-session collection is ACTIVE for cohort `private_friends_alpha_2026_08`; retention is 30 days. No owner credential or secret is stored here.
 
-CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
-NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
+CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PR_393_MERGED / PR_392_SUPERSEDED_CLOSED / TASK_7_15_40_INTEGRATED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE
+NEXT_ACTION: MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION
 
 ## 2026-08-25 - Stage 7.15 canon reconciliation after PR #389
 
@@ -16,9 +16,9 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong and correct branches passed through Nastya handoff and visible Nastya battle.
 - Accepted contracts: canonical Rayhan `who`/`where`/`yn` accumulation; battle `suppressCrowdSystemChat`; event `skipSys`; event presentation `hideResolvedParticipantLine`; ordinary unflagged battles/events unchanged.
 - `TASK 7.15.03 Demo isolation = SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`: current controller/UI paths cover opt-in demo routing, scripted actors, reply and public-chat isolation, progressive disclosure, and deterministic Rayhan/Nastya flow; PR #389 public evidence covers the guided corridor.
-- Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented. `TASK 7.15.32 First independent battle` is accepted by user-owned runtime evidence recorded on 2026-09-13; `TASK 7.15.40 Events` beyond the scripted tutorial event, `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
+- Oleg battle/DM/escape-bribe and progressive-disclosure contracts are implemented. `TASK 7.15.32 First independent battle` is accepted by user-owned runtime evidence recorded on 2026-09-13. `TASK 7.15.40 Events` generic infrastructure is integrated by PR #393; `TASK 7.15.51 Menu layer`, `TASK 7.15.41 First NPC`, `TASK 7.15.42 Police intro`, and `TASK 7.15.02 Telemetry schema` remain unimplemented or unaccepted Stage 7.15 slices.
 - Task identity provenance: `TASK 7.15.32 - First independent battle` was restored from the canonical Notion project-memory section `STAGE7_15_CANONICAL_TASK_PLAN_ADDED`, which predates PR #390 and lists the Wave 4 task explicitly.
-- Task pointer: `IMPLEMENT_TASK_7.15.40_EVENTS`.
+- Task pointer: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`.
 
 ## 2026-09-13 - TASK 7.15.32 runtime acceptance recorded
 
@@ -26,7 +26,7 @@ NEXT_ACTION: IMPLEMENT_TASK_7.15.40_EVENTS
 - Runner JS SHA: `1dc8731d371d2b7bebbb8118c6314091c3819018c429cea3360ca33871c74815`; shell SHA: `01fb901a953308e9750425dc6b8b689a4a891c5c38cf8cd75c62a9c473841382`.
 - Repaired controller SHA: `a161810d7f70c89b6692dc712ba6ba6c07445203d7cfada8d223531fb288c790`; all reported product byte gates matched.
 - Fresh state was valid (`REP=1`, `money=10`, `wins=0`, Continue absent). Visible UI-only flow reached `npc_weak` / `Слабак`, started and completed the first independent battle; page errors, console errors and unhandled rejections were all 0. No product or repository mutation occurred during acceptance.
-- Stage 7.15 progress is now 75% under the runtime-acceptance progress rule. Next incomplete slice: `TASK 7.15.40 Events` beyond the scripted tutorial event.
+- Stage 7.15 progress is now 75% under the runtime-acceptance progress rule. Next incomplete product checkpoint: milestone 81, `First Event unlock condition`; milestone 81 is not started by this integration.
 
 ## 2026-09-14 - TASK 7.15.40 contract recorded
 
@@ -49,7 +49,15 @@ Deterministic tests must prove that an independent non-tutorial definition can b
 
 Later First Event milestones remain distinct and unconsumed: 81% unlock condition, 82% visible entry/control, 83% canonical content/choices rendered, 84% visible resolution, and 85% completion plus persistence accepted.
 
-`TASK 7.15.40` classification after this recording: `READY_FOR_IMPLEMENTATION`.
+`TASK 7.15.40` post-merge classification: `INTEGRATED_AND_STATICALLY_VALIDATED` via PR #393 squash merge `18f3062c692bce24690c678f802a6468494ccc68`; focused tests 2/2, source/docs parity, and required checks passed. This integration does not imply user Safari acceptance or authorize milestone 81.
+
+## 2026-09-16 - TASK 7.15.40 integration closure
+
+- PR #393 merged into `main` as `18f3062c692bce24690c678f802a6468494ccc68` from reconstructed head `efca95b2ea3f8ff404a252c5225725aea2efa2d6`.
+- The aggregate remains exactly seven allowed files; rejected selector/UI ancestors `5975c744...` and `e63e8da...` are absent. Policy commit `2185411f...` remains a separate lane.
+- Focused TASK 7.15.40 tests passed 2/2; Pages build `1218725427` and recovery run `35077554420` completed successfully for the merged SHA.
+- PR #392 was closed as superseded and remains unmerged at head `8ba1149f...`; its branch was not deleted or rewritten.
+- Stage 7.15 remains 75%; no progress bump; milestones 81-85 remain unconsumed. Next incomplete product checkpoint is milestone 81, which is not started here.
 
 ## 2026-08-19 - Safari2234 production owner-readback closure
 - Status: complete. PR #352 was reviewed and squash-merged as `cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` from exact head `948d1dc79062d3c522fb614815d6aa02a8927f05`.
