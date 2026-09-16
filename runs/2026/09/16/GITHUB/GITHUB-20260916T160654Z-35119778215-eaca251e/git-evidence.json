@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "e92d2f23e7a42720d41f880189e60170868722d6\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid e92d2f23e7a42720d41f880189e60170868722d6\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "e92d2f23 (HEAD, pull/397/merge) Merge 07c824f8eaaee05a08165195332ea964b5e735ff into e0543ffc1a83a6e590750ae672001c3f53bc86fe\n07c824f8 (origin/codex/stage715-m81-first-event-unlock-20260917) Fix M81 eligibility to derive from first battle completion\na4a87e8c Implement Stage 7.15 first event unlock condition\ne0543ffc (origin/main) Sync repository memory after policy PR 395 (#396)\n5c73460d Retire user-operated model selector workflow (#395)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e92d2f23e7a42720d41f880189e60170868722d6\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-16T16:06:54Z",
+      "stderr": "",
+      "stdout": "e0543ffc1a83a6e590750ae672001c3f53bc86fe\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e92d2f23e7a42720d41f880189e60170868722d6",
+  "observedAtUtc": "2026-09-16T16:06:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
