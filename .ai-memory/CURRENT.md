@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-08-26-0900-JST
+MEMORY_REV: 2026-09-13-2038-JST
 NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
 ## CURRENT_PROJECT_STATE
@@ -16,7 +16,12 @@ ACCEPTED_RUNTIME_BASELINE_SHA: `78476b5659b24e188eb8b9bf04451287d932335a`.
 PR #389 is merged and public acceptance passed: wrong branch had one `Толпа решает.`, five delayed votes, 3:2 player result, clean Events card, no technical IDs, post-win and Nastya battle; correct branch had direct win, post-win and Nastya battle.
 Accepted flags: `suppressCrowdSystemChat`, `skipSys`, `hideResolvedParticipantLine`; ordinary unflagged behavior is preserved.
 TASK 7.15.03 is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS` through current demo isolation/progressive disclosure/controller/UI paths and PR #389 evidence. Oleg and later general-world slices have implementation/static evidence but are not separately accepted here.
-NEXT_ACTION: `IMPLEMENT_TASK_7.15.32_FIRST_INDEPENDENT_BATTLE`
+STAGE715_PROGRESS: 75%
+TASK_7_15_32_RUNTIME_ACCEPTANCE: PASS
+NEXT_ACTION: `IMPLEMENT_TASK_7.15.40_EVENTS`
+TASK_7_15_40_CONTRACT: `READY_FOR_IMPLEMENTATION`
+TASK_7_15_40_SCOPE: `GENERIC_NON_TUTORIAL_EVENT_INFRASTRUCTURE_ONLY; NO_FIRST_EVENT_NARRATIVE_OR_ECONOMY_EFFECTS; EXISTING_PERSISTENCE_AND_DEDUPLICATION`
+FIRST_EVENT_MILESTONES_81_TO_85: `PRESERVED_AND_UNCONSUMED`
 
 ## HISTORICAL_SNAPSHOT
 

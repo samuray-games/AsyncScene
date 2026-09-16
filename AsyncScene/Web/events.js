@@ -1049,6 +1049,116 @@ window.Game ||= {};
     requestRender();
   }
 
+  // Source-defined ordinary events use the same State.events collection as
+  // crowd events. This adapter is deliberately data-driven: it does not know
+  // any tutorial character, narrative, or economy rule.
+  function normalizeGenericDefinition(definition){
+    if (!definition || typeof definition !== "object") return null;
+    const definitionId = String(definition.id || definition.definitionId || "").trim();
+    const category = String(definition.category || definition.type || "").trim();
+    const actions = Array.isArray(definition.actions || definition.choices) ? (definition.actions || definition.choices) : [];
+    if (!definitionId || category !== "ordinary" || !actions.length) return null;
+    const normalizedActions = actions.map((action) => {
+      if (!action || typeof action !== "object") return null;
+      const id = String(action.id || "").trim();
+      if (!id) return null;
+      const resolution = action.resolution && typeof action.resolution === "object"
+        ? Object.assign({}, action.resolution)
+        : { outcome: String(action.outcome || id) };
+      return { id, label: action.label == null ? "" : String(action.label), resolution };
+    });
+    if (normalizedActions.some((action) => !action)) return null;
+    const actionIds = normalizedActions.map((action) => action.id);
+    if (new Set(actionIds).size !== actionIds.length) return null;
+    const forbiddenResolutionKeys = new Set(["money", "rep", "wins", "reward", "penalty"]);
+    if (normalizedActions.some((action) => Object.keys(action.resolution).some((key) => forbiddenResolutionKeys.has(key)))) return null;
+    return {
+      id: definitionId,
+      category: "ordinary",
+      type: "ordinary",
+      display: definition.display && typeof definition.display === "object" ? Object.assign({}, definition.display) : {},
+      actions: normalizedActions,
+    };
+  }
+
+  function genericEventId(definitionId, instanceKey){
+    const encode = (value) => Array.from(String(value)).map((char) => char.codePointAt(0).toString(16)).join("_");
+    return `ordinary_${encode(definitionId)}__${encode(instanceKey)}`;
+  }
+
+  function isGenericEvent(e){
+    return !!(e && e.category === "ordinary" && e.type === "ordinary"
+      && e.definitionId && e.instanceKey && e.identityKey
+      && e.identityKey === `${String(e.definitionId).length}:${e.definitionId}:${String(e.instanceKey).length}:${e.instanceKey}`
+      && e.id === genericEventId(e.definitionId, e.instanceKey));
+  }
+
+  function createGenericEvent(definition, instanceKey){
+    const normalized = normalizeGenericDefinition(definition);
+    const key = String(instanceKey || "").trim();
+    if (!normalized || !key) return null;
+    const identityKey = `${normalized.id.length}:${normalized.id}:${key.length}:${key}`;
+    return {
+      id: genericEventId(normalized.id, key),
+      definitionId: normalized.id,
+      category: normalized.category,
+      type: normalized.type,
+      display: normalized.display,
+      actions: normalized.actions,
+      instanceKey: key,
+      identityKey,
+      state: "open",
+      resolved: false,
+      completed: false,
+      selectedActionId: null,
+      resolution: null,
+      skipSys: true,
+    };
+  }
+
+  function instantiateGenericEvent(definition, instanceKey){
+    const event = createGenericEvent(definition, instanceKey);
+    if (!event) return null;
+    ensureState();
+    const existing = Game.__S.events.find((entry) => entry && entry.identityKey === event.identityKey);
+    if (existing) return existing;
+    addEvent(event);
+    return Game.__S.events.find((entry) => entry && entry.id === event.id) || null;
+  }
+
+  function resolveGenericAction(eventId, actionId){
+    ensureState();
+    const event = Game.__S.events.find((entry) => entry && entry.id === eventId);
+    if (!isGenericEvent(event) || event.state !== "open") return null;
+    const action = event.actions.find((entry) => entry && entry.id === String(actionId || ""));
+    if (!action) return null;
+    event.selectedActionId = action.id;
+    event.resolution = Object.assign({}, action.resolution);
+    event.state = "resolved";
+    event.resolved = true;
+    event.completed = true;
+    requestRender();
+    return event;
+  }
+
+  function serializeGenericEvent(event){
+    return isGenericEvent(event) ? JSON.parse(JSON.stringify(event)) : null;
+  }
+
+  function restoreGenericEvent(serialized){
+    if (!serialized || typeof serialized !== "object" || !isGenericEvent(serialized)) return null;
+    const restored = Object.assign({}, serialized, {
+      actions: Array.isArray(serialized.actions) ? serialized.actions.map((action) => Object.assign({}, action, {
+        resolution: action && action.resolution && typeof action.resolution === "object" ? Object.assign({}, action.resolution) : {}
+      })) : [],
+    });
+    ensureState();
+    const existing = Game.__S.events.find((entry) => entry && entry.identityKey === restored.identityKey);
+    if (existing) return existing;
+    addEvent(restored);
+    return Game.__S.events.find((entry) => entry && entry.id === restored.id) || null;
+  }
+
   // ------------------------------
   // NPC vs NPC event generator
   // ------------------------------
@@ -1245,6 +1355,18 @@ window.Game ||= {};
     ensureState();
 
     if (!e) return;
+
+    if (isGenericEvent(e)) {
+      if (!Array.isArray(e.actions) || !e.actions.length || !e.display || typeof e.display !== "object") return;
+      if (Game.__S.events.some((entry) => entry && (entry.id === e.id || entry.identityKey === e.identityKey))) return;
+      const stateApi = Game.__A || Game.StateAPI;
+      const stored = stateApi && typeof stateApi.upsertEvent === "function" ? stateApi.upsertEvent(e) : e;
+      if (!Game.__S.events.includes(stored)) Game.__S.events.unshift(stored);
+      capEvents();
+      bumpEventBadgeIfCollapsed();
+      requestRender();
+      return;
+    }
 
     // Events = only foreign NPC-NPC draws. Never include me.
     const kind = e.kind || e.type;
@@ -2204,6 +2326,12 @@ window.Game ||= {};
     pruneResolved();
   };
   Events.addDrawEventFromBattle = addDrawEventFromBattle;
+  Events.normalizeGenericDefinition = normalizeGenericDefinition;
+  Events.createGenericEvent = createGenericEvent;
+  Events.instantiateGenericEvent = instantiateGenericEvent;
+  Events.resolveGenericAction = resolveGenericAction;
+  Events.serializeGenericEvent = serializeGenericEvent;
+  Events.restoreGenericEvent = restoreGenericEvent;
 
   Events.getAll = () => {
     ensureState();
