@@ -3431,6 +3431,10 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function isFirstEventEligible(state = stateFor()) {
+    return !!(state && state.flags && state.flags.stage715FirstIndependentBattleComplete === true);
+  }
+
   function watchFirstIndependentBattle() {
     if (firstIndependentBattleWatchTimer) return;
     firstIndependentBattleWatchTimer = setInterval(() => {
@@ -4737,6 +4741,7 @@ window.Game = window.Game || {};
     },
     firstIndependentBattleStartOptions,
     firstIndependentBattleStarted,
+    isFirstEventEligible,
     startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),
