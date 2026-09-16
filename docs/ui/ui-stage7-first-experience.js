@@ -3425,10 +3425,29 @@ window.Game = window.Game || {};
     if (state.flags.stage715FirstIndependentBattleComplete === true) return true;
     battle.meta.stage715FirstIndependentBattleComplete = true;
     state.flags.stage715FirstIndependentBattleComplete = true;
+    unlockFirstEventAfterIndependentBattle(state, battle);
     saveState();
     telemetry("stage715_first_independent_battle_complete", { battleId: battle.id || battle.battleId || null });
     render();
     return true;
+  }
+
+  function unlockFirstEventAfterIndependentBattle(state, battle) {
+    if (!state || !battle || !battle.meta
+      || battle.meta.stage715FirstIndependentBattle !== true
+      || state.flags?.stage715FirstIndependentBattleComplete !== true) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715FirstEventUnlocked === true) return true;
+    state.flags.stage715FirstEventUnlocked = true;
+    state.flags.stage715FirstEventUnlockBattleId = battle.id || battle.battleId || null;
+    telemetry("stage715_first_event_unlocked", {
+      battleId: state.flags.stage715FirstEventUnlockBattleId,
+    });
+    return true;
+  }
+
+  function isFirstEventUnlocked(state = stateFor()) {
+    return !!(state && state.flags && state.flags.stage715FirstEventUnlocked === true);
   }
 
   function watchFirstIndependentBattle() {
@@ -4737,6 +4756,7 @@ window.Game = window.Game || {};
     },
     firstIndependentBattleStartOptions,
     firstIndependentBattleStarted,
+    isFirstEventUnlocked,
     startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),
