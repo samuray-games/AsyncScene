@@ -6,13 +6,14 @@ MEMORY_REV: 2026-09-16-1928-JST
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
 - Pages publication and public served config are verified; Safari public-network transmission and owner readback passed. Central private-friends-alpha friend-session collection is ACTIVE with 30-day retention.
 - Parser hardening PR #340 remains separate from behavioral telemetry.
+- PR #395 policy integration is merged at `main@5c73460d0b5422ecff10efee878b4aede466e727` with expected parent `e38b1ca0f504beb778d0466bb40bf5f0658995a4`; ordinary user-operated selector handshake is retired, while numbered-bridge selector procedure remains historical/specialized.
 NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
 
 # Workflows
 
 ## Stage 7.15 reconciliation checkpoint
 
-Accepted Stage 7.15 runtime baseline is `78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. TASK 7.15.32 is accepted, and generic TASK 7.15.40 infrastructure is integrated by PR #393 squash merge `18f3062c692bce24690c678f802a6468494ccc68`; milestone 81 is the next incomplete product checkpoint and remains not started. This memory-sync PR contains no runtime changes.
+Accepted Stage 7.15 runtime baseline is `78476b5659b24e188eb8b9bf04451287d932335a`. PR #389 is merged and public acceptance passed on Pages run `32845848909`. TASK 7.15.03 is subsumed by later merged demo-isolation/progressive-disclosure/Rayhan corridor repairs. TASK 7.15.32 is accepted, and generic TASK 7.15.40 infrastructure is integrated by PR #393 squash merge `18f3062c692bce24690c678f802a6468494ccc68`. Policy PR #395 is integrated by squash merge `5c73460d0b5422ecff10efee878b4aede466e727`; this repository-memory sync contains no runtime changes. Milestone 81 is the next incomplete product checkpoint and remains not started.
 
 This file documents the minimum workflows for the repo-first memory system.
 
