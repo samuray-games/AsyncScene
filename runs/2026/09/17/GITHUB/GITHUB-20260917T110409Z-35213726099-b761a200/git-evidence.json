@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-m82-visible-first-event-entry-20260917",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "codex/stage715-m82-visible-first-event-entry-20260917\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "b39e0d87938aa502cfe84ae2c7864f826e4eac66\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "# branch.oid b39e0d87938aa502cfe84ae2c7864f826e4eac66\n# branch.head codex/stage715-m82-visible-first-event-entry-20260917\n# branch.upstream origin/codex/stage715-m82-visible-first-event-entry-20260917\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "b39e0d87 (HEAD -> codex/stage715-m82-visible-first-event-entry-20260917, origin/codex/stage715-m82-visible-first-event-entry-20260917) fix: add derived M82 First Event entry to existing Events UI\nba14475e test: cover M82 first Event entry reveal\nedb6ba32 Stage 7.15 M82: reveal Events after first independent win\nd3978eca Stage 7.15 M82: reveal Events after first independent win\n4fc76c7c Stage 7.15 M82: reveal Events after first independent win\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b39e0d87938aa502cfe84ae2c7864f826e4eac66\nbranch refs/heads/codex/stage715-m82-visible-first-event-entry-20260917\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T11:04:09Z",
+      "stderr": "",
+      "stdout": "c948897407604fe25298c14744d3946dcdbea583\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b39e0d87938aa502cfe84ae2c7864f826e4eac66",
+  "observedAtUtc": "2026-09-17T11:04:09Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
