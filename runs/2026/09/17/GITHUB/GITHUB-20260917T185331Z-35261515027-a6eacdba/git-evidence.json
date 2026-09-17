@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "36d47fe7bb28163546f87eaba7d1f2b57514e9d5\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid 36d47fe7bb28163546f87eaba7d1f2b57514e9d5\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "36d47fe7 (HEAD, pull/401/merge) Merge 1c73fdeefaa7f8222f185eda05e2c5a270091c4c into ff9ea4945fba79b24c00d8341d3c36771c0a6854\n1c73fdee (origin/codex/control-plane-sanitize-20260918) Remove reintroduced retired bridge guard\n1b14b948 Retire legacy Git bridge docs and restore optional worktrees\n87eedb29 Retire legacy mailbox bridge control plane\n102e338c Restore repository-native bridge authority guard\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 36d47fe7bb28163546f87eaba7d1f2b57514e9d5\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:53:31Z",
+      "stderr": "",
+      "stdout": "ff9ea4945fba79b24c00d8341d3c36771c0a6854\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "36d47fe7bb28163546f87eaba7d1f2b57514e9d5",
+  "observedAtUtc": "2026-09-17T18:53:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
