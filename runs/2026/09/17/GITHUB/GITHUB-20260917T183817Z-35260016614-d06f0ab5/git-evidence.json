@@ -1,0 +1,106 @@
+{
+  "branch": "codex/control-plane-sanitize-20260918",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "codex/control-plane-sanitize-20260918\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "1b14b9488d1c1d0bb20494e40dfbc2dd3af7fa31\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1b14b9488d1c1d0bb20494e40dfbc2dd3af7fa31\n# branch.head codex/control-plane-sanitize-20260918\n# branch.upstream origin/codex/control-plane-sanitize-20260918\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "1b14b948 (HEAD -> codex/control-plane-sanitize-20260918, origin/codex/control-plane-sanitize-20260918) Retire legacy Git bridge docs and restore optional worktrees\n87eedb29 Retire legacy mailbox bridge control plane\n102e338c Restore repository-native bridge authority guard\n924c554c Sanitize repository control plane from retired external routing\nff9ea494 (origin/main) Stage 7.15 M82: reveal First Event entry after first independent win\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1b14b9488d1c1d0bb20494e40dfbc2dd3af7fa31\nbranch refs/heads/codex/control-plane-sanitize-20260918\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T18:38:17Z",
+      "stderr": "",
+      "stdout": "ff9ea4945fba79b24c00d8341d3c36771c0a6854\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1b14b9488d1c1d0bb20494e40dfbc2dd3af7fa31",
+  "observedAtUtc": "2026-09-17T18:38:17Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
