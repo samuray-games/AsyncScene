@@ -30,7 +30,7 @@ response Codex must:
 3. read that ref's `.ai-bridge/PUBLICATION_POLICY.md` and `.ai-bridge/STATE.md`;
 4. read only the current Slot N inbox and claim named by that STATE;
 5. validate the route and task branch with `tools/bridge_v4_contract.py`;
-6. perform mandatory plugin preflight and pause for same-thread `CONTINUE`;
+6. perform the mandatory repository-owned preflight and pause for same-thread `CONTINUE`; do not invoke an external plugin package;
 7. execute from a clean worktree on `bridge/N/<thread-id>`;
 8. validate and publish only to the task branch and mailbox ref N;
 9. refetch and prove both destinations;

@@ -59,7 +59,7 @@ SOURCE_REVISION: infra/model-snapshot-maintenance-20260801@3e9602903ab124658319a
 
 ### Codex prompt strategy
 
-Use @asynchronia plugin context for task routing and scope isolation. Normal executable selector preflight is explicitly not mutation authorization for this maintenance task.
+HISTORICAL_NON_AUTHORITATIVE: This plan's former plugin-context wording is retained for traceability only. Normal executable selector preflight is explicitly not mutation authorization for this maintenance task.
 
 ### Blockers
 

@@ -15,7 +15,6 @@ class PipelineValidatorTests(unittest.TestCase):
             for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
         )
         return (
-            "Use @asynchronia plugin.\n"
             "TASK_ID: TASK-1\n"
             "PIPELINE_VERSION: 1.0.0\n"
             "PHASE: CODEX_TASK\n"
@@ -47,7 +46,7 @@ class PipelineValidatorTests(unittest.TestCase):
         self.assertIn(".ai-bridge/STATE.md", validator.BRIDGE_FORBIDDEN_PATHS)
         self.assertIn(".ai-bridge/outbox/", validator.BRIDGE_FORBIDDEN_PATHS)
 
-    def test_exact_plugin_invocation_is_accepted_for_active_codex_artifact(self) -> None:
+    def test_active_codex_artifact_does_not_require_external_plugin_invocation(self) -> None:
         text = self._codex_task_text()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "03-codex-task.md"
@@ -59,22 +58,8 @@ class PipelineValidatorTests(unittest.TestCase):
             )
         self.assertEqual(errors, [])
 
-    def test_active_codex_prompt_rejects_non_first_content_invocation(self) -> None:
-        text = (
-            "TASK_ID: TASK-1\n"
-            "PIPELINE_VERSION: 1.0.0\n"
-            "PHASE: CODEX_TASK\n"
-            "STATUS: READY_FOR_CODEX\n"
-            "CREATED_AT: 2026-07-12T00:00:00Z\n"
-            "AUTHOR_ROLE: WORK\n"
-            "SOURCE_REVISION: test\n"
-            "Use @asynchronia plugin.\n"
-            + "\n".join(
-                f"### {section}\nvalue"
-                for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
-            )
-            + "\n"
-        )
+    def test_active_codex_prompt_rejects_retired_plugin_directive(self) -> None:
+        text = self._codex_task_text("Use @asynchronia plugin.")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "03-codex-task.md"
             path.write_text(text, encoding="utf-8")
@@ -84,27 +69,11 @@ class PipelineValidatorTests(unittest.TestCase):
                 enforce_active_codex_rules=True,
             )
         self.assertTrue(
-            any("active executable Codex prompt must start" in error for error in errors)
+            any("retired external-plugin directive" in error for error in errors)
         )
 
-    def test_leading_whitespace_or_blank_line_before_plugin_invocation_is_rejected(self) -> None:
-        for prefix in ("\n", "   "):
-            with self.subTest(prefix=prefix):
-                text = prefix + self._codex_task_text("Use @asynchronia task-router.")
-                with tempfile.TemporaryDirectory() as directory:
-                    path = Path(directory) / "03-codex-task.md"
-                    path.write_text(text, encoding="utf-8")
-                    errors = validator.validate_file(
-                        path,
-                        "TASK-1",
-                        enforce_active_codex_rules=True,
-                    )
-                self.assertTrue(
-                    any("active executable Codex prompt must start" in error for error in errors)
-                )
-
-    def test_task_router_skill_reference_remains_valid_for_active_codex_artifact(self) -> None:
-        text = self._codex_task_text("Use @asynchronia task-router.")
+    def test_active_codex_artifact_accepts_repository_native_routing_text(self) -> None:
+        text = self._codex_task_text("Use repository-owned task and scope checks.")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "03-codex-task.md"
             path.write_text(text, encoding="utf-8")

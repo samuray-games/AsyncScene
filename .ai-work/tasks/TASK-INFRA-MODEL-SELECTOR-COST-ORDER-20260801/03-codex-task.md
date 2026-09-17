@@ -1,4 +1,4 @@
-Use @asynchronia plugin.
+HISTORICAL_NON_AUTHORITATIVE: Former external plugin invocation directive; do not execute.
 
 TASK_ID: TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801
 PIPELINE_VERSION: 1.0.17

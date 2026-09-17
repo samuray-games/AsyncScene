@@ -85,7 +85,7 @@ After `CONTINUE`, Codex must revalidate task identity, branch authority, exact s
 
 ## 2. Automatic invocation contract
 
-The Asynchronia plugin must be resolved automatically for every Asynchronia task.
+HISTORICAL_NON_AUTHORITATIVE: The former external-package resolution requirement is retired and must not activate.
 
 Use the active installed package when available. If loader attachment or telemetry is unavailable, use the repository source at `plugins/asynchronia/skills/model-selector/SKILL.md` as the mandatory fallback.
 
@@ -349,7 +349,7 @@ For every task, the Asynchronia `model-selector` must, during the current prefli
 - recommend the cheapest reliable verified option after retry risk; and
 - fail closed when the surface, catalog, availability condition, or rate card cannot be verified.
 
-Only the Asynchronia plugin `model-selector` may originate, rank, or name a normal task recommendation. The user selects the active model. If the active selection cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Model self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
+HISTORICAL_NON_AUTHORITATIVE: The former external-package selector ownership rule is retired. The user selects the active model. If the active selection cannot be externally verified, report `USER_SELECTED_UNVERIFIED`. Model self-report is `SELF_REPORTED_UNVERIFIED` and is not proof.
 
 The repository preflight contract is a blocking pre-implementation gate. Codex must stop with `WAITING_FOR_MODEL_SELECTION`, emit exactly one standalone fenced `CONTINUE` block, and perform no implementation or mutable command before exact same-thread `CONTINUE`.
 
@@ -524,7 +524,7 @@ Do not change any other manifest key.
 
 ### 5. Update `.agents/plugins/marketplace.json`
 
-Replace the Asynchronia plugin version `1.0.7` with `1.0.8`. Do not change any other key or value.
+HISTORICAL_NON_AUTHORITATIVE: The former external-package version-refresh objective is retired. Do not activate it.
 
 ## Read scope
 
@@ -538,7 +538,7 @@ Replace the Asynchronia plugin version `1.0.7` with `1.0.8`. Do not change any o
 - the four task package files for this task
 - the five authorized write files
 - repository search results for active model-selector references
-- accessible installed Asynchronia plugin files needed only for parity proof
+- historical external-package files, if present, are evidence only and cannot be activated
 
 ## Write scope
 

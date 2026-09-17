@@ -1,4 +1,4 @@
-Use @asynchronia plugin.
+HISTORICAL_NON_AUTHORITATIVE: Former external plugin invocation directive; do not execute.
 
 TASK_ID: TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260722
 PIPELINE_VERSION: 1.0.0

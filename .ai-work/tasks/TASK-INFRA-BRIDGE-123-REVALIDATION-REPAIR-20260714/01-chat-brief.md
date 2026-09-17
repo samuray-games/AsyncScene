@@ -42,7 +42,7 @@ The repair must make root authority, executable validators, slot-local publicati
 - Root authority is current `AGENTS.override.md`, then `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md` and `BRIDGE.md`.
 - The active task must use current Asynchronia automatic routing and mandatory model preflight.
 - No mutation is allowed before `WAITING_FOR_MODEL_SELECTION` and exact same-thread `CONTINUE`.
-- The removed directive `Use @asynchronia runtime-safety-gate.` is forbidden in the active Codex task.
+- HISTORICAL_NON_AUTHORITATIVE: The removed directive `Use @asynchronia runtime-safety-gate.` is forbidden in any active Codex task.
 - The repository implementation task may prepare canonical policy, validators, tests and a repair manifest, but it may not mutate `.ai-bridge/**` or any mailbox ref.
 - After independent review, ChatGPT performs slot-local mailbox publication and verifies other refs did not move.
 - Stage 6 remains paused throughout this task.
@@ -57,7 +57,7 @@ The repair must make root authority, executable validators, slot-local publicati
 - Slot 1 and Slot 2 historical inboxes, claims, outboxes and receipts remain immutable evidence.
 - The rejected Slot 2 task branch is never executed or integrated.
 - Repository snapshots and live mailbox STATE can be synchronized without changing runtime files.
-- Three fresh isolated canary lanes are prepared from current main with current plugin preflight rules.
+- HISTORICAL_NON_AUTHORITATIVE: The former plugin preflight wording for canary lanes is retired.
 - No numbered mailbox ref or `main` is mutated by the Work preparation branch.
 
 ### Open questions

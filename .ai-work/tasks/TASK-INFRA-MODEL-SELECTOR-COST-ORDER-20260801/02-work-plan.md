@@ -64,7 +64,7 @@ SOURCE_REVISION: infra/model-selector-cost-order-20260801@7d886cbc597937dc570a35
 
 ### Codex prompt strategy
 
-Use @asynchronia plugin context; this is an explicit selector self-repair exception and does not use executable selector authorization.
+HISTORICAL_NON_AUTHORITATIVE: This former plugin-context selector self-repair exception is retired and must not activate.
 
 ### Blockers
 

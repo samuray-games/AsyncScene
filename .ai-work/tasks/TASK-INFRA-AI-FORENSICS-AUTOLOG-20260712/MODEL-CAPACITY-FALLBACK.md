@@ -23,8 +23,8 @@ Model capacity failure is a material availability change. Under the repository m
 In the same Codex thread:
 
 1. Do not mutate repository files, create a worktree, validate implementation, publish forensic packages, enable hooks, commit, or push.
-2. Resolve the Asynchronia plugin. If the installed attachment is unavailable, use `plugins/asynchronia/skills/model-selector/SKILL.md` from the exact remote launch head.
-3. Treat `Use @asynchronia plugin.` as the supported plugin-level invocation token for the refreshed preflight.
+2. HISTORICAL_NON_AUTHORITATIVE: The former plugin-resolution step is retired; do not resolve an external package or use its skill files.
+3. Historical note only: the former external plugin-level invocation token is retired and must not be used for refreshed preflight.
 4. Run a fresh live inventory through `codex app-server` and `model/list`.
 5. Analyze the exact r3 task in `03-codex-task-r3.md`.
 6. Record `gpt-5.4 high` as unavailable for this execution attempt due to the observed capacity error. Do not silently recommend it again unless the current interface proves availability during the new preflight.

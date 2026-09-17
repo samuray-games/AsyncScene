@@ -5,7 +5,7 @@ BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
-PLUGIN_AUTO_ROUTING: REQUIRED
+PLUGIN_AUTO_ROUTING: DISABLED_UNTIL_FURTHER_USER_INSTRUCTION
 MODEL_PREFLIGHT_PAUSE: REQUIRED
 CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
@@ -125,7 +125,7 @@ Before implementation Codex must:
 1. read root authority;
 2. fetch `origin/main` and only mailbox ref N;
 3. read slot-local STATE, inbox and claim;
-4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and executable `model-selector`;
+4. run the repository-owned task router, scope-isolation check, and executable model preflight; do not invoke an external plugin package;
 5. use `tools/run-asynchronia-model-preflight.py bridge-start` so the structured task is deterministically derived from current bridge authority;
 6. never search historical task folders, select an unrelated task file, hand-author bridge task JSON, or invent qualitative risk fields;
 7. store durable selector state only in the Git-private path resolved by `git rev-parse --git-path asynchronia/model-selector-state`, unless an explicit absolute override is supplied;
@@ -135,7 +135,7 @@ Before implementation Codex must:
 11. accept only exact same-thread `CONTINUE` through `bridge-continue`;
 12. after `CONTINUE`, re-derive and revalidate slot identity, mailbox head, task branch, baseline, scope, task hash, matrix hash and recommendation before entering `IMPLEMENTATION_ALLOWED`.
 
-The Asynchronia plugin alone owns bridge task classification and recommendation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, profile movement, fabricated generic bridge task input, or identity drift fail closed.
+The repository-owned routing and preflight controls own bridge task classification and recommendation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, profile movement, fabricated generic bridge task input, or identity drift fail closed.
 
 Another slot moving must not invalidate this continuation authorization unless the current task explicitly binds that other slot as a stable-read dependency.
 

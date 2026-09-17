@@ -64,4 +64,4 @@ The selector 1.0.9 source is accepted for serialized fast-forward integration. D
 
 ### Exact next action
 
-Execute `07-codex-integration-task.md` from the exact source branch head supplied in the launch prompt. Fast-forward `main` only if `main` still equals `d449d00200e8b40f6448b49892e954b9f4f00f14` and the source branch is a strict descendant. Then refresh the installed Asynchronia plugin to 1.0.9, remove the stale duplicate entry, restart Codex, and verify installed/source parity before unblocking AI Forensics r4.
+HISTORICAL_NON_AUTHORITATIVE: The former integration instruction to refresh an external package is retired and must not activate.
