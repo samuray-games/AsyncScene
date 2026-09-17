@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-m82-visible-first-event-entry-20260917",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:48Z",
+      "stderr": "",
+      "stdout": "codex/stage715-m82-visible-first-event-entry-20260917\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:48Z",
+      "stderr": "",
+      "stdout": "c948897407604fe25298c14744d3946dcdbea583\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid c948897407604fe25298c14744d3946dcdbea583\n# branch.head codex/stage715-m82-visible-first-event-entry-20260917\n# branch.upstream origin/codex/stage715-m82-visible-first-event-entry-20260917\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:49Z",
+      "stderr": "",
+      "stdout": "c9488974 (HEAD -> codex/stage715-m82-visible-first-event-entry-20260917, origin/main, origin/codex/stage715-m82-visible-first-event-entry-20260917) Sync repository memory after Stage 7.15 M81 merge (#398)\n2174580b Stage 7.15 M81: derive First Event eligibility from first battle completion (#397)\ne0543ffc Sync repository memory after policy PR 395 (#396)\n5c73460d Retire user-operated model selector workflow (#395)\ne38b1ca0 Record post-merge TASK 7.15.40 integration state (#394)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c948897407604fe25298c14744d3946dcdbea583\nbranch refs/heads/codex/stage715-m82-visible-first-event-entry-20260917\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T03:26:49Z",
+      "stderr": "",
+      "stdout": "c948897407604fe25298c14744d3946dcdbea583\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c948897407604fe25298c14744d3946dcdbea583",
+  "observedAtUtc": "2026-09-17T03:26:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
