@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the Chat -> Work -> Codex -> Review task packages.
 
-Documentation/process-only validator. It never reads or writes .ai-bridge state.
+Documentation/process-only validator for task artifacts.
 """
 
 from __future__ import annotations
@@ -117,16 +117,7 @@ REQUIRED_SECTIONS = {
     ),
 }
 
-BRIDGE_FORBIDDEN_PATHS = (
-    ".ai-bridge/STATE.md",
-    ".ai-bridge/inbox/",
-    ".ai-bridge/outbox/",
-    ".ai-bridge/receipts/",
-)
-
-SUPPORTED_SKILLS_ROOT = ROOT / "plugins" / "asynchronia" / "skills"
-PLUGIN_INVOCATION = "Use @asynchronia plugin."
-SKILL_REFERENCE_RE = re.compile(r"Use @asynchronia ([A-Za-z0-9-]+)\.")
+RETIRED_EXTERNAL_ROUTING_RE = re.compile(r"@asynchronia|@Asynchronia|Use\s+Asynchronia\s+(?:plugin|task-router|scope-isolation-check|model-selector)", re.IGNORECASE)
 MERGE_MARKERS = ("<<<<<<<", "=======", ">>>>>>>")
 
 
@@ -151,14 +142,6 @@ def duplicate_header_keys(text: str) -> list[str]:
 
 def contains_merge_markers(text: str) -> bool:
     return any(marker in text for marker in MERGE_MARKERS)
-
-
-def supported_skill_names() -> set[str]:
-    return {
-        path.name
-        for path in SUPPORTED_SKILLS_ROOT.iterdir()
-        if path.is_dir() and (path / "SKILL.md").exists()
-    }
 
 
 def validate_file(
@@ -188,18 +171,8 @@ def validate_file(
             errors.append(f"{path}: missing section {section!r}")
 
     if schema_name == "03-codex-task.md" and enforce_active_codex_rules:
-        lines = text.splitlines()
-        if not lines or lines[0] != PLUGIN_INVOCATION:
-            errors.append(f"{path}: active executable Codex prompt must start with {PLUGIN_INVOCATION!r}")
-            return errors
-
-        for skill_name in SKILL_REFERENCE_RE.findall("\n".join(lines[1:])):
-            if skill_name not in supported_skill_names():
-                errors.append(f"{path}: unsupported skill reference in active task: {skill_name}")
-        write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
-        for forbidden in BRIDGE_FORBIDDEN_PATHS:
-            if forbidden in write_section:
-                errors.append(f"{path}: bridge path appears in allowed writes: {forbidden}")
+        if RETIRED_EXTERNAL_ROUTING_RE.search(text):
+            errors.append(f"{path}: retired external routing directive is forbidden in an active executable task")
     return errors
 
 

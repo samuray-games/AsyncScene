@@ -68,7 +68,7 @@ CREATED_AT: <ISO-8601>
 AUTHOR_ROLE: WORK
 SOURCE_REVISION: <repo SHA>
 
-Current routing, scope isolation, model preflight, branch safety, and acceptance rules come from current repository authority. Do not invoke removed or nonexistent skills.
+Current routing, scope ownership, branch safety, and acceptance rules come from current repository authority. Do not invoke removed or nonexistent external routing mechanisms.
 
 ### Atomic goal
 

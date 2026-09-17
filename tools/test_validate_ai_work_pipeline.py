@@ -15,7 +15,6 @@ class PipelineValidatorTests(unittest.TestCase):
             for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
         )
         return (
-            "Use @asynchronia plugin.\n"
             "TASK_ID: TASK-1\n"
             "PIPELINE_VERSION: 1.0.0\n"
             "PHASE: CODEX_TASK\n"
@@ -43,11 +42,10 @@ class PipelineValidatorTests(unittest.TestCase):
             validator.HISTORICAL_TERMINAL_STATUSES,
         )
 
-    def test_bridge_paths_are_forbidden_in_codex_write_scope(self) -> None:
-        self.assertIn(".ai-bridge/STATE.md", validator.BRIDGE_FORBIDDEN_PATHS)
-        self.assertIn(".ai-bridge/outbox/", validator.BRIDGE_FORBIDDEN_PATHS)
+    def test_repository_native_pipeline_has_no_transport_scope(self) -> None:
+        self.assertFalse(hasattr(validator, "BRIDGE_FORBIDDEN_PATHS"))
 
-    def test_exact_plugin_invocation_is_accepted_for_active_codex_artifact(self) -> None:
+    def test_repository_native_active_codex_artifact_is_accepted(self) -> None:
         text = self._codex_task_text()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "03-codex-task.md"
@@ -68,7 +66,7 @@ class PipelineValidatorTests(unittest.TestCase):
             "CREATED_AT: 2026-07-12T00:00:00Z\n"
             "AUTHOR_ROLE: WORK\n"
             "SOURCE_REVISION: test\n"
-            "Use @asynchronia plugin.\n"
+            "Use @asynchronia task-router.\n"
             + "\n".join(
                 f"### {section}\nvalue"
                 for section in validator.REQUIRED_SECTIONS["03-codex-task.md"]
@@ -84,7 +82,7 @@ class PipelineValidatorTests(unittest.TestCase):
                 enforce_active_codex_rules=True,
             )
         self.assertTrue(
-            any("active executable Codex prompt must start" in error for error in errors)
+            any("retired external routing directive" in error for error in errors)
         )
 
     def test_leading_whitespace_or_blank_line_before_plugin_invocation_is_rejected(self) -> None:
@@ -100,10 +98,10 @@ class PipelineValidatorTests(unittest.TestCase):
                         enforce_active_codex_rules=True,
                     )
                 self.assertTrue(
-                    any("active executable Codex prompt must start" in error for error in errors)
+                    any("retired external routing directive" in error for error in errors)
                 )
 
-    def test_task_router_skill_reference_remains_valid_for_active_codex_artifact(self) -> None:
+    def test_retired_task_router_reference_is_rejected_for_active_codex_artifact(self) -> None:
         text = self._codex_task_text("Use @asynchronia task-router.")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "03-codex-task.md"
@@ -113,7 +111,7 @@ class PipelineValidatorTests(unittest.TestCase):
                 "TASK-1",
                 enforce_active_codex_rules=True,
             )
-        self.assertEqual(errors, [])
+        self.assertTrue(any("retired external routing directive" in error for error in errors))
 
     def test_terminal_historical_task_is_not_revalidated_against_new_phase_schema(self) -> None:
         state = (

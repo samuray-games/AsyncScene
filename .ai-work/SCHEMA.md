@@ -14,9 +14,8 @@ Every phase artifact must begin with these exact keys:
 - `AUTHOR_ROLE`
 - `SOURCE_REVISION`
 
-Optional execution keys become required only after bridge allocation:
+Optional execution keys become required only after task authorization:
 
-- `BRIDGE_SLOT`
 - `EXECUTION_THREAD`
 - `IMPLEMENTATION_BRANCH`
 - `BASELINE_SHA`
@@ -55,9 +54,9 @@ Work must not claim implementation or user acceptance.
 
 ## 03 Codex task
 
-The first line of an active executable Codex prompt must be exactly `Use @asynchronia plugin.`.
-
-Active Codex tasks may invoke only currently installed and supported skill identifiers. Skill references such as `Use @asynchronia task-router.` remain valid where skill references are allowed. Historical artifacts may preserve obsolete directive wording only as immutable evidence when the active corrected artifact is named by `STATE.md`.
+Active executable Codex prompts must use the current repository authority and
+must not contain retired external routing directives. Historical artifacts are
+evidence-only and cannot authorize execution.
 
 Required sections:
 
@@ -128,4 +127,4 @@ Explicit immutable terminal statuses from an earlier schema epoch may remain val
 - The next role must re-read current repository authority before acting.
 - Accepted phase artifacts are immutable.
 - Corrections use suffixes such as `03-codex-task-r2.md` and update `STATE.md`.
-- No artifact may redefine or modify bridge protocol, bridge state, or mailbox ownership.
+- No artifact may redefine repository authority or claim runtime acceptance.

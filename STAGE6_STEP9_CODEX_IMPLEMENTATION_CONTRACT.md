@@ -24,7 +24,7 @@ Codex must not implement this package until all of the following exist:
 3. `stage6_step9_five_profile_copy_frozen.json`;
 4. exact SHA-256 of the frozen JSON bytes (`6aa42c46c4bc594d234894dd92f57fd31292cce31953dab78343b653cfbdd45f`);
 5. exact implementation branch/scope from then-current main;
-6. required repository model preflight for the actual Codex task.
+6. required repository-owned authority and scope validation for the actual Codex task.
 
 No draft artifact is implementation authority.
 
