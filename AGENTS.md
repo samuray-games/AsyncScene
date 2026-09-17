@@ -3,11 +3,12 @@
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
-WORKTREE_LIFECYCLE: REQUIRED
+LOCAL_WORKTREE_SAFETY: CONDITIONAL
 
 ## GitHub-only workflow
 
-- Ordinary work starts from the current fetched `main` on a dedicated branch.
+- Ordinary work starts from the current fetched `main` on an isolated remote GitHub branch.
+- A local/Codex worktree is optional execution infrastructure and is not required for ordinary work.
 - Changes enter `main` only through a reviewed pull request.
 - Required GitHub checks must pass before merge.
 - Preserve unrelated or concurrent work; never reset, clean, stash, force-push or rewrite history without explicit authorization.
@@ -27,7 +28,7 @@ Before planning or editing, read `AGENTS.md`, `TASKS.md`, `PROJECT_MEMORY.md`, i
 
 ## Scope isolation
 
-Every task has one atomic goal, baseline, branch/worktree, read scope, write scope, stable-read dependencies, validation commands and stop conditions. Overlapping writes, runtime mirrors and shared wiring require serialization. Do not mix UI, logic or unrelated cleanup.
+Every task has one atomic goal, baseline, branch, read scope, write scope, stable-read dependencies, validation commands and stop conditions. If local execution is used, it additionally has one disclosed worktree. Overlapping writes, runtime mirrors and shared wiring require serialization. Do not mix UI, logic or unrelated cleanup.
 
 ## Canonical mechanics
 

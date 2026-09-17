@@ -7,11 +7,11 @@ NO_OP_COMPLETION: FORBIDDEN
 
 ## Canonical loop
 
-`user scope -> current main -> isolated branch/worktree -> implement -> validate -> reviewed pull request -> deployment verification -> user acceptance when runtime applies`
+`user scope -> current main -> isolated remote GitHub branch -> implement -> GitHub Actions -> reviewed pull request -> deployment verification -> user acceptance when runtime applies`
 
 ## Execution
 
-Every task records its baseline, branch, exact read/write scope, stable-read dependencies, validation commands and stop conditions. Ordinary work uses configured Codex routing and does not require a user-operated selector or continuation handshake.
+Every task records its baseline, branch, exact read/write scope, stable-read dependencies, validation commands and stop conditions. Ordinary work uses configured Codex routing and does not require a local worktree, user-operated selector or continuation handshake. A local/Codex worktree may be used only when the execution surface needs one, subject to conditional dirty-work safety.
 
 ## Completion modes
 

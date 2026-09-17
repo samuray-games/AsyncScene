@@ -1,21 +1,20 @@
 # Asynchronia Repository Execution Override
 
-OVERRIDE_VERSION: REPOSITORY_NATIVE_WORKTREE_1
+OVERRIDE_VERSION: REPOSITORY_NATIVE_EXECUTION_2
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
-WORKTREE_LIFECYCLE: REQUIRED
-WORKTREE_DISCLOSURE: IMMEDIATE_AND_CLIENT_INDEPENDENT
+LOCAL_WORKTREE_SAFETY: CONDITIONAL
+WORKTREE_DISCLOSURE: REQUIRED_WHEN_USED
 
 Read root `AGENTS.md` fully. Explicit user instructions have precedence over this file.
 
-## Branch and worktree safety
+## Branch and optional local-worktree safety
 
-- Before branch reuse, checkout or worktree creation, inspect canonical worktree occupancy.
-- Use one exact branch and one exact task per worktree.
-- Disclose the exact branch and absolute path immediately after creating or discovering a worktree.
+- Ordinary work uses an isolated remote GitHub branch from current `main`; no local worktree is a prerequisite.
+- When local execution is used, inspect occupancy before reuse or creation, use one exact branch and one exact task per worktree, and disclose the exact branch and absolute path.
 - Preserve dirty or unknown work. Never use force removal, reset, clean, checkout-over-dirty or history rewriting without explicit authorization.
-- Before completion, inspect worktree status, preserve or publish authorized commits, remove only a clean disposable worktree, prune safely and verify branch availability from the canonical checkout.
+- When local execution is used, inspect status before completion, preserve or publish authorized commits, and remove only a clean disposable worktree. Never require local cleanup to complete ordinary work.
 
 ## Publication
 
