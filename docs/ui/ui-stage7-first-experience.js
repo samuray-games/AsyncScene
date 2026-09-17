@@ -3426,7 +3426,7 @@ window.Game = window.Game || {};
     battle.meta.stage715FirstIndependentBattleComplete = true;
     state.flags.stage715FirstIndependentBattleComplete = true;
     telemetry("stage715_first_independent_battle_complete", { battleId: battle.id || battle.battleId || null });
-    if (!revealEventsPanel()) saveState();
+    saveState();
     render();
     return true;
   }
