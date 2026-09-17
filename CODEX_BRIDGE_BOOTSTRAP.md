@@ -9,7 +9,7 @@ NO_OP_COMPLETION: FORBIDDEN
 
 An already installed remote-first block remains usable only when it fetches current remote policy and does not contradict the current repository bridge contract.
 
-When an older block names an older protocol version, the version declared by current remote authority wins only if the local block still permits the current numbered-command behavior, including same-thread `CONTINUE`, repository fallback for Asynchronia skills, and detached mailbox worktrees.
+When an older block names an older protocol version, the version declared by current remote authority wins only if the local block still permits the current numbered-command behavior, including same-thread `CONTINUE`, repository-owned authority checks, and detached mailbox worktrees.
 
 Install or migrate when the user-level bridge block is absent, malformed, does not fetch current remote policy, or contradicts same-thread continuation safety.
 
@@ -52,7 +52,7 @@ The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` are rese
 5. Current remote policy always overrides hardcoded protocol text in older managed blocks.
 6. Local dirty or stale bridge files are not sources and do not block the command.
 7. Use only the requested slot.
-8. Resolve current repository bridge authority from the fetched source. No external loader or package is required.
+8. Resolve current bridge authority from the fetched repository and mailbox sources. No external loader or package fallback is permitted.
 9. Run the repository-owned ordered authority, identity and scope checks before any implementation or mutable command.
 10. When current bridge authority requires continuation, stop and end with exactly one standalone fenced code block whose only content is `CONTINUE`.
 11. A blocked response contains no `CONTINUE`.

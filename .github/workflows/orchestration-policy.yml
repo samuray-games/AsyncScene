@@ -16,6 +16,8 @@ on:
       - tools/validate-orchestration-policy.py
       - tools/closed_loop_contract.py
       - tools/test_closed_loop_contract.py
+      - tools/repository_bridge_authority.py
+      - tools/test_repository_bridge_authority.py
       - .github/workflows/orchestration-policy.yml
       - CLOSED_LOOP_PROTOCOL.md
   pull_request:
@@ -33,6 +35,8 @@ on:
       - tools/validate-orchestration-policy.py
       - tools/closed_loop_contract.py
       - tools/test_closed_loop_contract.py
+      - tools/repository_bridge_authority.py
+      - tools/test_repository_bridge_authority.py
       - .github/workflows/orchestration-policy.yml
       - CLOSED_LOOP_PROTOCOL.md
   workflow_dispatch:
@@ -51,9 +55,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile closed-loop policy scripts
-        run: python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/validate-orchestration-policy.py
+        run: python3 -m py_compile tools/closed_loop_contract.py tools/test_closed_loop_contract.py tools/repository_bridge_authority.py tools/test_repository_bridge_authority.py tools/validate-orchestration-policy.py
       - name: Run closed-loop contract unit tests
-        run: python3 -m unittest tools.test_closed_loop_contract
+        run: python3 -m unittest tools.test_closed_loop_contract tools.test_repository_bridge_authority tools.test_bridge_v4_contract tools.test_validate_ai_work_pipeline
       - name: Determine historical validator applicability
         id: applicability
         shell: bash
@@ -74,7 +78,7 @@ jobs:
           CHANGED="$(git diff --name-only "$BASE"...HEAD)"
           printf '%s\n' "$CHANGED"
 
-          if printf '%s\n' "$CHANGED" | grep -Eq '^(tools/closed_loop_contract.py|tools/test_closed_loop_contract.py|tools/validate-orchestration-policy.py|CLOSED_LOOP_PROTOCOL.md)$'; then
+          if printf '%s\n' "$CHANGED" | grep -Eq '^(tools/closed_loop_contract.py|tools/test_closed_loop_contract.py|tools/repository_bridge_authority.py|tools/test_repository_bridge_authority.py|tools/test_bridge_v4_contract.py|tools/test_validate_ai_work_pipeline.py|tools/validate-orchestration-policy.py|CLOSED_LOOP_PROTOCOL.md)$'; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
