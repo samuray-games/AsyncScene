@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate the Chat -> Work -> Codex -> Review task packages.
 
-Documentation/process-only validator. It never reads or writes .ai-bridge state.
+Documentation/process-only validator for task artifacts.
 """
 
 from __future__ import annotations
@@ -117,13 +117,6 @@ REQUIRED_SECTIONS = {
     ),
 }
 
-BRIDGE_FORBIDDEN_PATHS = (
-    ".ai-bridge/STATE.md",
-    ".ai-bridge/inbox/",
-    ".ai-bridge/outbox/",
-    ".ai-bridge/receipts/",
-)
-
 RETIRED_EXTERNAL_ROUTING_RE = re.compile(r"@asynchronia|@Asynchronia|Use\s+Asynchronia\s+(?:plugin|task-router|scope-isolation-check|model-selector)", re.IGNORECASE)
 MERGE_MARKERS = ("<<<<<<<", "=======", ">>>>>>>")
 
@@ -180,10 +173,6 @@ def validate_file(
     if schema_name == "03-codex-task.md" and enforce_active_codex_rules:
         if RETIRED_EXTERNAL_ROUTING_RE.search(text):
             errors.append(f"{path}: retired external routing directive is forbidden in an active executable task")
-        write_section = text.split("### Allowed writes", 1)[-1].split("### Forbidden changes", 1)[0]
-        for forbidden in BRIDGE_FORBIDDEN_PATHS:
-            if forbidden in write_section:
-                errors.append(f"{path}: bridge path appears in allowed writes: {forbidden}")
     return errors
 
 

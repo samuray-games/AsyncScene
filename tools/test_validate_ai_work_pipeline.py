@@ -42,9 +42,8 @@ class PipelineValidatorTests(unittest.TestCase):
             validator.HISTORICAL_TERMINAL_STATUSES,
         )
 
-    def test_bridge_paths_are_forbidden_in_codex_write_scope(self) -> None:
-        self.assertIn(".ai-bridge/STATE.md", validator.BRIDGE_FORBIDDEN_PATHS)
-        self.assertIn(".ai-bridge/outbox/", validator.BRIDGE_FORBIDDEN_PATHS)
+    def test_repository_native_pipeline_has_no_transport_scope(self) -> None:
+        self.assertFalse(hasattr(validator, "BRIDGE_FORBIDDEN_PATHS"))
 
     def test_repository_native_active_codex_artifact_is_accepted(self) -> None:
         text = self._codex_task_text()

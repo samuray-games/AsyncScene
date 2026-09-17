@@ -2,15 +2,15 @@
 
 PIPELINE_VERSION: 1.0.0
 STATUS: IMPLEMENTED_FOR_REVIEW
-BRIDGE_SCOPE: UNCHANGED
+EXECUTION_SCOPE: REPOSITORY_NATIVE
 
-This directory defines the durable task handoff layer for Asynchronia. It is separate from `.ai-bridge/**` and does not own bridge routing, slot state, claims, inboxes, outboxes, receipts, mailbox refs, or task-lane publication.
+This directory defines the durable task handoff layer for Asynchronia. It does not publish code or replace repository authority.
 
 ## Roles
 
 - Chat decides product intent, architecture, constraints, and acceptance criteria.
 - Work performs repository research, dependency analysis, risk analysis, task decomposition, and Codex prompt preparation.
-- Codex implements one approved atomic task using the existing repository and bridge safety rules.
+- Codex implements one approved atomic task using the existing repository and worktree safety rules.
 - Review independently verifies implementation evidence and records ACCEPTED, CORRECTION_REQUIRED, or BLOCKED.
 
 ## Durable unit
@@ -68,20 +68,13 @@ Each artifact must contain only:
 
 Do not copy brainstorming, discarded options, repeated history, or narrative summaries unless needed to explain a current decision.
 
-## Bridge separation
+## Execution separation
 
-This pipeline may reference a bridge slot only after a task reaches `READY_FOR_CODEX`.
+Task artifacts record execution identity only after authorization. They must not:
 
-It must not:
-
-- edit `.ai-bridge/**`;
-- select or rotate a numbered bridge;
-- overwrite a bridge state;
-- publish bridge artifacts;
+- select or publish through an external transport;
 - merge implementation directly to `main`;
-- bypass runtime safety, model preflight, scope isolation, mirror ownership, or Safari acceptance.
-
-Bridge allocation remains an execution concern governed by the current repository bridge authority. A task record stores only the assigned execution identity after allocation.
+- bypass runtime safety, scope isolation, mirror ownership, or Safari acceptance.
 
 ## Review split
 
@@ -95,4 +88,4 @@ Run:
 
 `python3 tools/validate_ai_work_pipeline.py`
 
-The validator checks structure, state transitions, required fields, immutable phase order, and bridge separation.
+The validator checks structure, state transitions, required fields, immutable phase order, and execution separation.

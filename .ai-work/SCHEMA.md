@@ -14,9 +14,8 @@ Every phase artifact must begin with these exact keys:
 - `AUTHOR_ROLE`
 - `SOURCE_REVISION`
 
-Optional execution keys become required only after bridge allocation:
+Optional execution keys become required only after task authorization:
 
-- `BRIDGE_SLOT`
 - `EXECUTION_THREAD`
 - `IMPLEMENTATION_BRANCH`
 - `BASELINE_SHA`
@@ -128,4 +127,4 @@ Explicit immutable terminal statuses from an earlier schema epoch may remain val
 - The next role must re-read current repository authority before acting.
 - Accepted phase artifacts are immutable.
 - Corrections use suffixes such as `03-codex-task-r2.md` and update `STATE.md`.
-- No artifact may redefine or modify bridge protocol, bridge state, or mailbox ownership.
+- No artifact may redefine repository authority or claim runtime acceptance.
