@@ -28,6 +28,7 @@ RETIRED_PATHS = (
     "tools/closed_loop_contract.py",
     "GIT_PULL.md",
     "GIT_PUSH.md",
+    "tools/repository_bridge_authority.py",
     "plugins/asynchronia/bridge_task_descriptor.py",
 )
 RETIRED_ALIASES = ("мост 1", "мост 2", "мост 3", "chatgpt-codex-bridge")

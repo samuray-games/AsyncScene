@@ -11,8 +11,6 @@ on:
       - tools/validate_ai_work_pipeline.py
       - tools/test_validate_ai_work_pipeline.py
       - tools/test_validate_orchestration_policy.py
-      - tools/repository_bridge_authority.py
-      - tools/test_repository_bridge_authority.py
       - .github/workflows/orchestration-policy.yml
   pull_request:
     paths:
@@ -24,8 +22,6 @@ on:
       - tools/validate_ai_work_pipeline.py
       - tools/test_validate_ai_work_pipeline.py
       - tools/test_validate_orchestration_policy.py
-      - tools/repository_bridge_authority.py
-      - tools/test_repository_bridge_authority.py
       - .github/workflows/orchestration-policy.yml
   workflow_dispatch:
 
@@ -43,6 +39,6 @@ jobs:
       - name: Validate repository policy
         run: python3 tools/validate-orchestration-policy.py
       - name: Validate task artifact pipeline
-        run: python3 -m unittest tools.test_validate_ai_work_pipeline tools.test_validate_orchestration_policy tools.test_repository_bridge_authority
+        run: python3 -m unittest tools.test_validate_ai_work_pipeline tools.test_validate_orchestration_policy
       - name: Check patch whitespace
         run: git diff --check

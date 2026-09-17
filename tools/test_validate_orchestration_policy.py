@@ -11,6 +11,7 @@ class OrchestrationPolicyRetirementTests(unittest.TestCase):
     def test_retired_git_protocol_documents_are_fail_closed(self):
         self.assertIn("GIT_PULL.md", policy.RETIRED_PATHS)
         self.assertIn("GIT_PUSH.md", policy.RETIRED_PATHS)
+        self.assertIn("tools/repository_bridge_authority.py", policy.RETIRED_PATHS)
 
     def test_current_policy_surface_has_no_retired_bridge_aliases(self):
         for path in policy.active_text_files():
