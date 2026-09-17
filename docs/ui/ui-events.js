@@ -648,6 +648,37 @@ window.Game = window.Game || {};
     return scrollToEventCard(ne.id);
   };
 
+  function renderFirstEventEntry(body, state, ui, expandEvents, rerender) {
+    const eligible = !!(Game.Stage715Demo
+      && typeof Game.Stage715Demo.isFirstEventEligible === "function"
+      && Game.Stage715Demo.isFirstEventEligible(state));
+    if (!eligible || !body) return false;
+    const entry = document.createElement("div");
+    entry.className = "eventCard stage715FirstEventEntry";
+    entry.dataset.entryId = "stage715-first-event-entry";
+    const title = document.createElement("div");
+    title.className = "eventTop";
+    title.innerHTML = '<div class="title">Первое событие</div><div class="meta">Доступно</div>';
+    entry.appendChild(title);
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "miniBtn";
+    action.dataset.action = "open-first-event-entry";
+    action.textContent = "Открыть";
+    action.onclick = (ev) => {
+      stop(ev);
+      state.flags = state.flags || {};
+      state.flags.eventsOpen = true;
+      state.flags.eventsCollapsed = false;
+      if (ui && typeof ui.setPanelSize === "function") ui.setPanelSize("events", "medium");
+      expandEvents();
+      rerender();
+    };
+    entry.appendChild(action);
+    body.appendChild(entry);
+    return true;
+  }
+
   UI.renderEvents = () => {
     const body = $("eventsBody");
     const header = $("eventsHeader");
@@ -802,6 +833,8 @@ window.Game = window.Game || {};
     // Close / clear workflow (dynamic: active vs resolved vs empty)
     const activeCount = open.filter(e => e && !e.resolved).length;
     const resolvedCount = open.filter(e => e && e.resolved).length;
+
+    renderFirstEventEntry(body, S, UI, ensureEventsExpanded, rerenderEventsOnly);
 
     if (activeCount > 0) {
       const topRow = document.createElement("div");
