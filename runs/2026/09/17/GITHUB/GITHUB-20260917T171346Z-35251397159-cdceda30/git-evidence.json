@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "03bbb94773759f9c7f03f6dd19e0fa776eed8ff7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "# branch.oid 03bbb94773759f9c7f03f6dd19e0fa776eed8ff7\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "03bbb947 (HEAD, pull/401/merge) Merge 924c554c9c6e13470ca53e62a66d6566e2f3781e into ff9ea4945fba79b24c00d8341d3c36771c0a6854\n924c554c (origin/codex/control-plane-sanitize-20260918) Sanitize repository control plane from retired external routing\nff9ea494 (origin/main) Stage 7.15 M82: reveal First Event entry after first independent win\nc9488974 Sync repository memory after Stage 7.15 M81 merge (#398)\n2174580b Stage 7.15 M81: derive First Event eligibility from first battle completion (#397)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 03bbb94773759f9c7f03f6dd19e0fa776eed8ff7\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-17T17:13:46Z",
+      "stderr": "",
+      "stdout": "ff9ea4945fba79b24c00d8341d3c36771c0a6854\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "03bbb94773759f9c7f03f6dd19e0fa776eed8ff7",
+  "observedAtUtc": "2026-09-17T17:13:46Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
