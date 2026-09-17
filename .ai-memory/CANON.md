@@ -1,7 +1,8 @@
 MEMORY_REV: 2026-09-16-1928-JST
 
 ## CURRENT_PROJECT_STATE
-NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
+NEXT_ACTION: `M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL`
+- M81 merge: `2174580b5a864052404afca7622953bdff52098f`; unlock source: `stage715FirstIndependentBattleComplete`; no visible First Event behavior or economy effects were added; M82 remains `NOT_STARTED`.
 - Task 1 is CLOSED after user Safari PASS.
 - Task 2 is CLOSED after PR #336 and PR #337 merge, live convergence, and user Safari PASS.
 - Receiver production acceptance is complete; PR #345 enabled the exact endpoint and PR #346 fixed Pages recovery verification.
@@ -16,7 +17,7 @@ NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
 - PR #389 is merged; Pages run `32845848909` succeeded on the same SHA; public wrong/correct flows passed through visible Nastya battle.
 - Scripted Rayhan uses canonical incremental defense options (`who`, `where`, `yn`). Generic opt-in flags are `suppressCrowdSystemChat` on battles, `skipSys` on events, and `hideResolvedParticipantLine` on event presentation. Ordinary unflagged behavior remains unchanged.
 - TASK 7.15.03 Demo isolation is `SUBSUMED / SATISFIED BY LATER MERGED REPAIRS`; do not reassign it. The accepted guided corridor includes opt-in routing, scripted actor isolation, reply/public-chat isolation, progressive disclosure, Rayhan first challenge, correct/wrong result paths, Events-first vote resolution, and Nastya handoff.
-- `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. `TASK 7.15.40 - Events` generic infrastructure is integrated by PR #393; the next canonical checkpoint is milestone 81, which remains not started.
+- `TASK 7.15.32 - First independent battle` is accepted by user-owned runtime evidence: visible `Вызвать` -> target `Слабак` -> real battle -> visible completion, with fresh state and zero page/console/unhandled-rejection errors. `TASK 7.15.40 - Events` generic infrastructure is integrated by PR #393; milestone 81 is integrated and statically validated from PR #397; the next canonical checkpoint is M82 visible First Event entry/control. M83 is canonical content/choices, M84 is visible resolution, and M85 is completion plus persistence.
 - Policy PR #395 is integrated at `main@5c73460d0b5422ecff10efee878b4aede466e727` with expected parent `e38b1ca0f504beb778d0466bb40bf5f0658995a4`. Ordinary user-operated model-selector handshake is retired; configured Codex routing is ordinary, while the selector procedure remains historical/specialized for numbered bridge commands `мост 1`, `мост 2`, and `мост 3`.
 
 ### TASK 7.15.40 contract
@@ -24,12 +25,12 @@ NEXT_ACTION: `MILESTONE_81_FIRST_EVENT_UNLOCK_CONDITION`
 - `TASK 7.15.40` is the integrated infrastructure/generalization checkpoint from PR #393. It defines a source-controlled generic non-tutorial event path using existing Events primitives where equivalent ones exist: stable ID/type, display payload, generic actions/choices, deterministic resolution, completion state, deduplication identity, and existing persistence compatibility.
 - It must not add the canonical First Event narrative, lore, choices, rewards, penalties, economy, REP, or wins. Test/internal fixtures must be invisible canonical gameplay and economically inert.
 - Rayhan/Nastya scripted behavior remains unchanged; later trigger/UI/resolution/completion/reload milestones are not consumed here. Future acceptance requires deterministic generic tests, deduplication semantics, persistence compatibility, and tutorial regressions green.
-- First Event milestones 81%-85% remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.
+- M81 is integrated and statically validated; M82 remains NOT_STARTED and M83-M85 remain distinct and unconsumed. Stage 7.15 remains 75%. The executable contract is recorded in `TASKS.md`.
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-08-26-0900-JST
-EXPECTED_REVISION: 2026-08-26-0900-JST
+MEMORY_REVISION: 2026-09-16-1928-JST
+EXPECTED_REVISION: 2026-09-16-1928-JST
 NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 
 ## Canon principles
