@@ -55,9 +55,9 @@ Work must not claim implementation or user acceptance.
 
 ## 03 Codex task
 
-The first line of an active executable Codex prompt must be exactly `Use @asynchronia plugin.`.
-
-Active Codex tasks may invoke only currently installed and supported skill identifiers. Skill references such as `Use @asynchronia task-router.` remain valid where skill references are allowed. Historical artifacts may preserve obsolete directive wording only as immutable evidence when the active corrected artifact is named by `STATE.md`.
+Active executable Codex prompts must use the current repository authority and
+must not contain retired external routing directives. Historical artifacts are
+evidence-only and cannot authorize execution.
 
 Required sections:
 

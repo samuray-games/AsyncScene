@@ -7,11 +7,11 @@ NO_OP_COMPLETION: FORBIDDEN
 
 ## Forward compatibility
 
-An already installed remote-first block remains usable only when it fetches current remote policy and does not contradict the mandatory automatic model preflight contract.
+An already installed remote-first block remains usable only when it fetches current remote policy and does not contradict the current repository bridge contract.
 
 When an older block names an older protocol version, the version declared by current remote authority wins only if the local block still permits the current numbered-command behavior, including same-thread `CONTINUE`, repository fallback for Asynchronia skills, and detached mailbox worktrees.
 
-Install or migrate when the user-level bridge block is absent, malformed, does not fetch current remote policy, or still contradicts mandatory automatic model preflight and same-thread resume.
+Install or migrate when the user-level bridge block is absent, malformed, does not fetch current remote policy, or contradicts same-thread continuation safety.
 
 ## Scope
 
@@ -52,9 +52,9 @@ The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` are rese
 5. Current remote policy always overrides hardcoded protocol text in older managed blocks.
 6. Local dirty or stale bridge files are not sources and do not block the command.
 7. Use only the requested slot.
-8. Resolve Asynchronia skills from installed cache or repository fallback. Plugin-loader telemetry is never required.
-9. Run the mandatory ordered preflight `task-router`, `scope-isolation-check`, `model-selector` before any implementation or mutable command.
-10. When current authority requires automatic model preflight, stop with `WAITING_FOR_MODEL_SELECTION` and end with exactly one standalone fenced code block whose only content is `CONTINUE`.
+8. Resolve current repository bridge authority from the fetched source. No external loader or package is required.
+9. Run the repository-owned ordered authority, identity and scope checks before any implementation or mutable command.
+10. When current bridge authority requires continuation, stop and end with exactly one standalone fenced code block whose only content is `CONTINUE`.
 11. A blocked response contains no `CONTINUE`.
 12. After exact same-thread `CONTINUE`, refetch and verify unchanged thread, task, claim, baseline and scope before mutation.
 13. Use the resilient detached-worktree mailbox guard when an existing mailbox worktree is stale.
@@ -67,18 +67,18 @@ The exact trimmed commands `мост 1`, `мост 2`, and `мост 3` are rese
 ## Migration
 
 1. Back up the selected user-level file once.
-2. Replace exactly one complete older Asynchronia bridge block with the V2.4 block.
+2. Replace exactly one complete older numbered bridge block with the V2.4 block.
 3. If no block exists, append the V2.4 block.
 4. If markers are incomplete or duplicated, return `BLOCKED_MALFORMED_EXISTING_ALIAS`.
 5. Preserve all unrelated instructions and file permissions.
 
 Successful installation status: `PASS_BRIDGE_ALIAS_V2_4_INSTALLED`.
 
-Again: a valid installed block does not require migration only when it is remote-first and already compatible with the current preflight and same-thread resume contract.
+Again: a valid installed block does not require migration only when it is remote-first and already compatible with the current authority and same-thread resume contract.
 
-## Bridge 062 plugin-independent closed-loop correction
+## Bridge 062 closed-loop correction
 
 BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
 The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
-This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+This lane uses bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion.
 Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.

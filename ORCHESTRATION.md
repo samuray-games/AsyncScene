@@ -20,7 +20,7 @@ canonical policy source for their deterministic slot-local renders.
 
 Use current remote `AGENTS.override.md`, `AGENTS.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, Git policies, mailbox publication policy, STATE, current inbox and current claim. Historical artifacts are audit-only.
 
-Exact scope ownership and collision checks are handled by `scope-isolation-check`.
+Exact scope ownership and collision checks are handled by the repository-owned bridge and task-scope contracts.
 
 Scope collisions return `BLOCKED_SCOPE_COLLISION`.
 
@@ -43,15 +43,14 @@ When STATE says `THREAD_ROTATION_REQUIRED: true`:
 - the prior Codex conversation is superseded;
 - a fresh Codex conversation adopts the replacement claim named by STATE;
 - logical bridge thread id remains unchanged for audit history;
-- execution starts on the first matching numbered command with read-only discovery and mandatory automatic model preflight;
-- implementation begins only after exact same-thread `CONTINUE` when current authority requires the preflight pause.
+- execution starts on the first matching numbered command with read-only discovery;
+- implementation begins only after exact same-thread `CONTINUE` when the current bridge claim explicitly requires continuation.
 
 ## Codex execution
 
-The selector handshake below is historical numbered-bridge procedure only. It
-does not govern ordinary Codex tasks. Ordinary tasks use the configured Codex
-agent-team/model policy automatically and do not require user-operated
-`INVENTORY_OK`, model selection, same-thread `CONTINUE`,
+The retired selector handshake is not part of the current execution contract.
+Ordinary tasks use the configured Codex agent-team/model policy automatically and do not require user-operated
+`INVENTORY_OK`, model selection,
 `WAITING_FOR_MODEL_SELECTION`, or `IMPLEMENTATION_ALLOWED`.
 
 For the specialized numbered bridge command `мост N`, Codex must before any
@@ -60,8 +59,8 @@ terminal response:
 1. fetch main and mailbox;
 2. read current remote authority, STATE, inbox and claim;
 3. verify epoch, slot, task, phase, baseline, scope and expected outbox;
-4. run the ordered read-only preflight `task-router -> scope-isolation-check -> model-selector`;
-5. when current authority requires model preflight, return `WAITING_FOR_MODEL_SELECTION` and end with exactly one standalone fenced `CONTINUE` block;
+4. run the ordered repository-owned read-only authority, identity and scope checks;
+5. when the current bridge claim requires continuation, end with exactly one standalone fenced `CONTINUE` block;
 6. after exact same-thread `CONTINUE`, refetch authority and verify unchanged thread, task, claim, baseline and scope before any mutation;
 7. use clean implementation and mailbox worktrees;
 8. execute and validate;
@@ -133,9 +132,9 @@ A reusable process defect must be fixed in every affected authority, validator, 
 
 Remote publication, verified-no-delta evidence, static acceptance, deployment readiness and user Safari acceptance are separate tiers. Git publication is not Safari PASS.
 
-## Bridge 062 plugin-independent closed-loop correction
+## Bridge 062 closed-loop correction
 
 BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
 The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
-This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+This lane uses bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion.
 Active STATE, inbox, claim, outbox, and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.

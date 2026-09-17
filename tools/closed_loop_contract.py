@@ -48,7 +48,7 @@ AUTHORIZED_PATHS: Final[tuple[str, ...]] = (
 )
 ABSENT_ON_MAIN_PATHS: Final[tuple[str, ...]] = (".ai-bridge/STATE.md",)
 ABSENT_ON_MAIN_PREFIXES: Final[tuple[str, ...]] = (".ai-bridge/inbox/", ".ai-bridge/claims/", ".ai-bridge/outbox/", ".ai-bridge/receipts/")
-ILLEGAL_PRIMARY_REQUIRED_STATUSES: Final[frozenset[str]] = frozenset({"BLOCKED_NO_REMOTE_OUTBOX", "BLOCKED_NO_SOURCE_DELTA", "BLOCKED_PLUGIN_UNAVAILABLE"})
+ILLEGAL_PRIMARY_REQUIRED_STATUSES: Final[frozenset[str]] = frozenset({"BLOCKED_NO_REMOTE_OUTBOX", "BLOCKED_NO_SOURCE_DELTA"})
 LEGAL_STATES: Final[tuple[str, ...]] = (
     "CLOSED", "PREPARING", "READY_FOR_CODEX", "EXECUTING", "PRIMARY_PUBLISHED", "OUTBOX_PUBLISHING",
     "AWAITING_CHATGPT_VERIFICATION", "ACCEPTED", "CORRECTION_REQUIRED", "RECOVERY_REQUIRED", "BLOCKED_EXTERNAL", "SUPERSEDED",

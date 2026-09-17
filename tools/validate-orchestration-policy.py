@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate plugin-independent bridge 062 closed-loop policy."""
+"""Validate bridge 062 closed-loop policy."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ REQUIRED_MARKERS = (
     "BRIDGE-20260710-062",
     "CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST",
     "OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND",
-    "plugin-independent bridge transport",
+    "bridge transport",
     "source implementation acceptance",
     "separate canary acceptance",
 )
@@ -136,8 +136,8 @@ def main() -> int:
         CONTRACT.validate_outbox(_sample_outbox("PASS_VERIFIED_NO_DELTA"))
     except ValueError as exc:
         failures.append(f"verified-no-delta empty changed paths rejected: {exc}")
-    if not CONTRACT.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}):
-        failures.append("plugin package state still gates source+canary acceptance")
+    if not CONTRACT.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True}):
+        failures.append("source+canary acceptance contract rejected valid input")
     try:
         CONTRACT.ensure_frozen_base_evidence_available()
         main_paths = _git_lines("ls-tree", "-r", "--name-only", CONTRACT.BASE_COMMIT)

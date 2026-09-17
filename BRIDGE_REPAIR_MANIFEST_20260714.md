@@ -23,7 +23,7 @@ SAFARI_STATUS: N/A
 ## Fresh Read-Only Canaries
 
 These identities are new, immutable manifest definitions.  They do not resume
-Stage 6 and must each receive a fresh model preflight and same-thread CONTINUE.
+Stage 6 and must each receive fresh repository-owned authority validation and same-thread CONTINUE when required by the bridge claim.
 
 | Slot | Generation | Thread | Task branch | Execution epoch |
 | --- | --- | --- | --- | --- |

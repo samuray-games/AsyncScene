@@ -16,8 +16,8 @@ Each command selects exactly one control plane. Previous conversation state and 
 
 ## 2. Mandatory first actions
 
-The user-operated model-selector handshake in this numbered-bridge section is
-retired and historical. It is not authoritative for ordinary Codex tasks.
+The former user-operated selector handshake in this numbered-bridge section is
+retired and has no execution authority. It is not part of ordinary Codex tasks.
 Ordinary tasks use configured Codex agent-team/model routing automatically and
 must not ask the user for `INVENTORY_OK`, model/effort selection, or same-thread
 `CONTINUE`.
@@ -30,7 +30,7 @@ response Codex must:
 3. read that ref's `.ai-bridge/PUBLICATION_POLICY.md` and `.ai-bridge/STATE.md`;
 4. read only the current Slot N inbox and claim named by that STATE;
 5. validate the route and task branch with `tools/bridge_v4_contract.py`;
-6. perform mandatory plugin preflight and pause for same-thread `CONTINUE`;
+6. perform the repository-owned read-only bridge validation and preserve any same-thread continuation required by the current claim;
 7. execute from a clean worktree on `bridge/N/<thread-id>`;
 8. validate and publish only to the task branch and mailbox ref N;
 9. refetch and prove both destinations;

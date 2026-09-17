@@ -17,9 +17,7 @@ on:
       - tools/closed_loop_contract.py
       - tools/test_closed_loop_contract.py
       - .github/workflows/orchestration-policy.yml
-      - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md
-      - plugins/asynchronia/skills/**/*.md
   pull_request:
     paths:
       - AGENTS.md
@@ -36,9 +34,7 @@ on:
       - tools/closed_loop_contract.py
       - tools/test_closed_loop_contract.py
       - .github/workflows/orchestration-policy.yml
-      - plugins/asynchronia/.codex-plugin/plugin.json
       - CLOSED_LOOP_PROTOCOL.md
-      - plugins/asynchronia/skills/**/*.md
   workflow_dispatch:
 
 permissions:

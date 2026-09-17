@@ -5,8 +5,8 @@ BRIDGE_PROTOCOL: 4.0
 ROOT_CAUSE_SYNC: REQUIRED
 NO_OP_COMPLETION: FORBIDDEN
 VERIFIED_NO_DELTA: ALLOWED_WITH_EVIDENCE
-PLUGIN_AUTO_ROUTING: REQUIRED
-MODEL_PREFLIGHT_PAUSE: REQUIRED
+REPOSITORY_NATIVE_ROUTING: REQUIRED
+MODEL_PREFLIGHT_PAUSE: NOT_REQUIRED
 CROSS_SLOT_BLINDNESS: REQUIRED
 DIRECT_TASK_WRITES_TO_MAIN: FORBIDDEN
 WORKTREE_LIFECYCLE: REQUIRED
@@ -111,12 +111,11 @@ A global memory index may link to them but must not replace one slot snapshot wh
 
 Updating Slot N memory must preserve byte-identical Slot M memory files.
 
-## 8. Historical numbered-bridge execution and model preflight
+## 8. Numbered-bridge execution
 
 This section governs only the specialized numbered bridge commands `мост 1`,
-`мост 2`, and `мост 3`. It is historical/non-authoritative for ordinary
-Codex engineering tasks, which use automatic configured Codex agent-team/model
-routing and never require the user-operated selector handshake.
+`мост 2`, and `мост 3`. Ordinary Codex engineering tasks use the current
+repository authority and configured execution surface.
 
 Every exact `мост N` is a fresh attempt for the slot-local execution epoch currently named by mailbox ref N.
 
@@ -125,17 +124,13 @@ Before implementation Codex must:
 1. read root authority;
 2. fetch `origin/main` and only mailbox ref N;
 3. read slot-local STATE, inbox and claim;
-4. invoke the Asynchronia plugin `task-router`, `scope-isolation-check` and executable `model-selector`;
-5. use `tools/run-asynchronia-model-preflight.py bridge-start` so the structured task is deterministically derived from current bridge authority;
-6. never search historical task folders, select an unrelated task file, hand-author bridge task JSON, or invent qualitative risk fields;
-7. store durable selector state only in the Git-private path resolved by `git rev-parse --git-path asynchronia/model-selector-state`, unless an explicit absolute override is supplied;
-8. perform no repository, ref, lock, cache, publication, project-memory or external-state mutation during preflight;
-9. pause first at `WAITING_FOR_INVENTORY_CONFIRMATION` and accept only exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`;
-10. after exact `INVENTORY_OK`, re-derive the same bridge task with `bridge-inventory-ok`, print the recommendation, enter `WAITING_FOR_MODEL_SELECTION`, and wait for the user to select that model and effort in the Codex UI;
-11. accept only exact same-thread `CONTINUE` through `bridge-continue`;
-12. after `CONTINUE`, re-derive and revalidate slot identity, mailbox head, task branch, baseline, scope, task hash, matrix hash and recommendation before entering `IMPLEMENTATION_ALLOWED`.
+4. derive the task only from current bridge authority and validate slot identity, mailbox head, task branch, baseline and write scope;
+5. never search historical task folders, select an unrelated task file, hand-author bridge task JSON, or invent qualitative risk fields;
+6. perform no repository, ref, lock, cache, publication, project-memory or external-state mutation during read-only discovery;
+7. preserve exact same-thread continuation semantics whenever the current bridge claim requires a continuation;
+8. before implementation, revalidate slot identity, mailbox head, task branch, baseline and scope before entering `IMPLEMENTATION_ALLOWED`.
 
-The Asynchronia plugin alone owns bridge task classification and recommendation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, profile movement, fabricated generic bridge task input, or identity drift fail closed.
+The repository bridge contract owns task classification and route validation. Unknown bridge claim types, incomplete authority, mailbox movement, task-branch movement, fabricated generic bridge task input, or identity drift fail closed.
 
 Another slot moving must not invalidate this continuation authorization unless the current task explicitly binds that other slot as a stable-read dependency.
 
@@ -158,11 +153,6 @@ The old `coordination/chatgpt-codex-bridge` ref is legacy read-only after all th
 Migration must not activate work by rewriting the old shared STATE. Existing active evidence is copied to the appropriate numbered ref and verified before cutover.
 
 ## 11. Mandatory validators
-
-Before accepting selector or plugin changes, run:
-
-- `python3 -m unittest tools.test_model_selector_snapshot tools.test_bridge_model_preflight`
-- `python3 tools/validate-asynchronia-auto-model-preflight.py`
 
 Before accepting any bridge publication, run:
 

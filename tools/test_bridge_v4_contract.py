@@ -34,7 +34,7 @@ class BridgeV4ContractTests(unittest.TestCase):
                 "TASK_ID: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
                 "PIPELINE_VERSION: 1.0.3",
                 f"SLOT: {slot}",
-                "STATUS: READY_FOR_MODEL_PREFLIGHT",
+                "STATUS: READY_FOR_CODEX",
                 f"THREAD: {thread}",
                 "GENERATION: 2",
                 "TASK: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
@@ -46,7 +46,6 @@ class BridgeV4ContractTests(unittest.TestCase):
                 f"CLAIM: .ai-bridge/claims/{thread}-claim-v1-codex.md",
                 f"EXPECTED_OUTBOX: .ai-bridge/outbox/{thread}-01-codex.md",
                 f"EXPECTED_RECEIPT: .ai-bridge/receipts/{thread}-01-receipt.md",
-                "MODEL_PREFLIGHT_STATUS: REQUIRED",
                 "CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED",
                 "SAFARI_STATUS: N/A",
             ]
@@ -109,7 +108,7 @@ class BridgeV4ContractTests(unittest.TestCase):
                 "TASK_ID: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
                 "PIPELINE_VERSION: 1.0.3",
                 "SLOT: 1",
-                "STATUS: READY_FOR_MODEL_PREFLIGHT",
+                "STATUS: READY_FOR_CODEX",
                 "THREAD: BRIDGE-20260714-123-101",
                 "GENERATION: 2",
                 "TASK: TASK-INFRA-BRIDGE-123-REVALIDATION-REPAIR-20260714",
@@ -121,7 +120,6 @@ class BridgeV4ContractTests(unittest.TestCase):
                 "CLAIM: .ai-bridge/claims/BRIDGE-20260714-123-101-claim-v1-codex.md",
                 "EXPECTED_OUTBOX: .ai-bridge/outbox/BRIDGE-20260714-123-101-01-codex.md",
                 "EXPECTED_RECEIPT: .ai-bridge/receipts/BRIDGE-20260714-123-101-01-receipt.md",
-                "MODEL_PREFLIGHT_STATUS: REQUIRED",
                 "CONTINUATION_STATUS: SAME_THREAD_CONTINUE_REQUIRED",
                 "SAFARI_STATUS: N/A",
             )

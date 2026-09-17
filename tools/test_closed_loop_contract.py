@@ -111,11 +111,10 @@ class ClosedLoopContractTest(unittest.TestCase):
         self.assert_rejects(c.validate_main_absence, [".ai-bridge/claims/BRIDGE-20260710-062-claim-v1-codex.md"])
         self.assert_rejects(c.validate_main_absence, [], main_tree_paths=[".ai-bridge/STATE.md"], main_commit=c.BASE_COMMIT)
 
-    def test_acceptance_requires_source_and_canary_not_plugin(self):
+    def test_acceptance_requires_source_and_canary(self):
         self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": False}))
         self.assertFalse(c.accept_closed_loop_source({"sourceImplementationAccepted": False, "canaryAccepted": True}))
-        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": True}))
-        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True, "pluginPackageAccepted": False}))
+        self.assertTrue(c.accept_closed_loop_source({"sourceImplementationAccepted": True, "canaryAccepted": True}))
 
     def test_unknown_controls_fail_closed(self):
         self.assert_rejects(c.evaluate_control, "unknown", {})

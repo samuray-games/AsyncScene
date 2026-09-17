@@ -41,7 +41,7 @@ For `мост N`, Codex must, before any terminal response:
 3. read current remote `AGENTS.override.md`, `PROCESS_ROOT_SYNC.md`, `ORCHESTRATION.md`, `BRIDGE.md`, the selected mailbox `.ai-bridge/PUBLICATION_POLICY.md` and its `.ai-bridge/STATE.md`;
 4. read only the current Slot N inbox and claim named by that STATE;
 5. validate slot, mailbox ref, task branch, thread id, task id, execution epoch, phase and write scope;
-6. perform mandatory model preflight and pause for same-thread `CONTINUE`;
+6. perform repository-owned read-only authority and scope validation;
 7. execute from a clean task-owned worktree on `bridge/N/<thread-id>`;
 8. validate and publish implementation only to that task branch and bridge artifacts only to mailbox ref N;
 9. refetch and prove both destinations;
@@ -58,7 +58,7 @@ The former bare command `мост` and older command phrases are inactive.
 - STATE N may name only Slot N identity, task branch, thread, generation, task, epoch, inbox, claim, expected outbox, expected receipt, preflight state, continuation state, acceptance state and next action.
 - Superseded Slot N claims and inboxes are historical only for Slot N.
 - Rotating Slot N must preserve byte-identical state and memory snapshots for Slots M.
-- Another slot moving must not invalidate Slot N model preflight or same-thread `CONTINUE` authorization.
+- Another slot moving must not invalidate Slot N continuation authorization.
 - If the selected slot is closed or unavailable, return `BRIDGE_SLOT_UNAVAILABLE`.
 - If a non-superseded current claim is genuinely owned by another active thread in the same slot, return `BRIDGE_SLOT_ALREADY_CLAIMED`.
 
@@ -129,7 +129,7 @@ When the user writes exactly `запуль`, Codex must read root `GIT_PULL.md` 
 
 When the user writes exactly `запушь`, Codex must read root `GIT_PUSH.md` and follow it exactly. It may publish only the current task's already authorized changes or commits and must never force-push, rewrite history, absorb unrelated changes, bypass scope isolation or claim deployment/runtime acceptance from a Git push.
 
-These aliases do not bypass native permission prompts, scope-isolation-check, exact task scope, Git safety checks or user-owned Safari acceptance.
+These aliases do not bypass native permission prompts, repository-owned scope checks, exact task scope, Git safety checks or user-owned Safari acceptance.
 
 ## 1. Project identity
 
@@ -278,19 +278,17 @@ require `INVENTORY_OK`, a model/effort selection handshake, same-thread
 `CONTINUE`, `WAITING_FOR_MODEL_SELECTION`, or `IMPLEMENTATION_ALLOWED` as a
 prerequisite for ordinary mutation.
 
-The `@Asynchronia` plugin is not required solely for Codex model or role
-routing. The configured `.codex/agents/*.toml` files and current Codex
-configuration are the ordinary orchestration mechanism.
+The configured `.codex/agents/*.toml` files and current Codex configuration are
+the ordinary orchestration mechanism.
 
 The following numbered-bridge selector procedure is retained as historical
 bridge documentation only. It is non-authoritative for ordinary Codex work.
 
-### 8.1 Historical numbered-bridge selector procedure
+### 8.1 Retired numbered-bridge selector procedure
 
-Selector 1.0.10 used the canonical Asynchronia-owned USER_CONFIRMED snapshot at
-`plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json` as the normal
-preflight source. It validates the snapshot, prints its complete inventory, and
-asks only for exact `INVENTORY_OK` or `INVENTORY_CHANGED`. It must not attempt
+An earlier selector procedure used a user-confirmed model/effort snapshot as a
+preflight source. That procedure is retired and has no execution authority. It
+must not attempt
 Desktop private sockets, renderer injection, AppleScript JavaScript execution,
 Accessibility scraping, OCR, or live app-server inventory. `INVENTORY_CHANGED`
 routes to the dedicated snapshot-maintenance task without asking the user to
@@ -313,9 +311,9 @@ freshness are revalidated after `CONTINUE`.
 
 The optimization objective is `MINIMIZE_EXPECTED_TOTAL_CREDITS_WITH_RETRY_RISK`.
 
-Only the historical Asynchronia plugin `model-selector` procedure originated,
-ranked, or named that recommendation. Its pause and continuation contract is
-retired for ordinary Codex execution and cannot block ordinary implementation.
+That historical selector procedure originated, ranked, or named that
+recommendation. Its pause and continuation contract is retired for ordinary
+Codex execution and cannot block ordinary implementation.
 
 ## 8.1 Parallel work policy
 
@@ -328,16 +326,16 @@ retired for ordinary Codex execution and cannot block ordinary implementation.
 - Source and deployed mirrors share one ownership lane.
 - `dev-checks.js`, smoke registries, exports, globals, boot wiring and aggregate smoke are serialized singleton lanes.
 - One final documentation owner updates shared `TASKS.md` and `PROJECT_MEMORY.md` per wave.
-- Scope-isolation and collision decisions take precedence over parallel planning.
+- Repository-owned scope and collision decisions take precedence over parallel planning.
 - A lane may not merge, rebase or absorb another lane's work unless a dedicated integration task authorizes it.
 
 ## 8.2 Routing policy
 
 - Runtime safety has precedence over routing convenience.
 
-## Bridge 062 plugin-independent closed-loop correction
+## Bridge 062 closed-loop correction
 
 BRIDGE-20260710-062 uses execution epoch CLOSED-LOOP-CLOUD-PR-R1-20260710-1348JST and baseline 32513f02daf5943c41f24328e1ae251d6bc85ccc.
 The terminal success action code is exactly OPEN_FRESH_CHATGPT_VERIFIER_AND_SEND_SAME_BRIDGE_COMMAND.
-This lane uses plugin-independent bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion; plugin installation and plugin package acceptance are outside this gate.
+This lane uses bridge transport: source implementation acceptance and separate canary acceptance are required before closed-loop completion.
 Active STATE, inbox, claim, outbox and receipt artifacts remain absent from main; ChatGPT publishes mailbox artifacts after independent PR verification and merge.
