@@ -210,10 +210,11 @@ const settle = Function(
   "firstIndependentBattleFromState",
   "battleOutcome",
   "saveState",
+  "revealEventsPanel",
   "telemetry",
   "render",
   `return (${extractFunction(source, "function settleFirstIndependentBattleCompletion()")});`,
-)(stateFor, firstIndependentBattleFromState, battleOutcome, saveState, (type, payload) => telemetry.push({ type, payload }), render);
+)(stateFor, firstIndependentBattleFromState, battleOutcome, saveState, () => false, (type, payload) => telemetry.push({ type, payload }), render);
 const eligible = Function(
   "stateFor",
   `return (${extractFunction(source, "function isFirstEventEligible(state = stateFor())")});`,
