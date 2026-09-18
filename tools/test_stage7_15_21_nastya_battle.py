@@ -32,7 +32,7 @@ for text in (
     'stage715_nastya_battle_started',
     'stage715_nastya_battle_result',
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
-    'G.Conflict.startCrowdVote',
+    'stage715NastyaVote = { a: 2, b: 3, cap: 5 }',
     'stage715NastyaPayoff',
     'stage715NastyaWon = true',
     'const nastyaWon = battleOutcome(nastya) === "win"',
