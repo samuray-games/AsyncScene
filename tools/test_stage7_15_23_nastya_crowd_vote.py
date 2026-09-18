@@ -65,7 +65,8 @@ require('v.stage715VoteOwner = "stage715_nastya"' in core_js,
         "scripted Nastya vote must record deterministic ownership")
 ui_js = battles_ui.decode("utf-8")
 require('battle.opponentId === "npc_stage7_mika"' in ui_js and
-        'battle.attack.id === "stage7_15_nastya_orange_call"' in ui_js,
+        'battle.attack.id === "stage7_15_nastya_orange_call"' in ui_js and
+        'battle.attack.text === "Ты на проблемы нарываешься?"' in ui_js,
         "Nastya render clones must remain on the scripted controller path")
 
 print("PASS_STAGE7_15_23_NASTYA_CROWD_VOTE_CONTRACT")
