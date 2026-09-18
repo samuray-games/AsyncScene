@@ -3962,7 +3962,9 @@ window.Game = window.Game || {};
 
   function handleNastyaDefenseChoice(battleId, choiceId) {
     const battle = stage715BattleById(NASTYA_BATTLE_ID);
-    if (!battle || String(battle.id) !== String(battleId)
+    if (!battle || (String(battle.id) !== String(battleId)
+      && String(battle.battleId || "") !== String(battleId)
+      && String(battleId) !== NASTYA_BATTLE_ID)
       || !battle.meta || battle.meta.stage715NastyaBattle !== true
       || battle.status !== "pickDefense") return false;
     const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));

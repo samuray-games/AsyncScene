@@ -159,10 +159,7 @@
         || (battle.meta && battle.meta.stage715BattleId === "stage7_15_nastya_battle")
         || battle.battleId === "stage7_15_nastya_battle"
         || battle.id === "stage7_15_nastya_battle"
-        || (battle.opponentId === "npc_stage7_mika"
-          && battle.attack
-          && (battle.attack.id === "stage7_15_nastya_orange_call"
-            || battle.attack.text === "Ты на проблемы нарываешься?"))));
+        || (battle.attack && battle.attack.text === "Ты на проблемы нарываешься?")));
   }
 
   function stage715RayhanDomElementInfo(element) {
@@ -550,6 +547,13 @@
      }
 
      if (action === "pickDefense") {
+       const cardText = card ? String(card.textContent || "") : "";
+       if (battleId === "stage7_15_first_battle"
+         || battleId === "stage7_15_nastya_battle"
+         || cardText.includes("Ты на проблемы нарываешься?")) {
+         stop(e);
+         return;
+       }
        const fn = (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
          ? Game.Conflict.pickDefense
          : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")
