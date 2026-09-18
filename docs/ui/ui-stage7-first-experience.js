@@ -4603,11 +4603,6 @@ window.Game = window.Game || {};
       name: "Настя",
       text: "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?",
     });
-    const crowdActive = battle.crowd && !battle.crowd.decided
-      && (battle.status === "draw" || battle.status === "crowd");
-    if (!crowdActive && G.Conflict && typeof G.Conflict.startCrowdVote === "function") {
-      try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}
-    }
     telemetry("stage715_nastya_battle_result", {
       battleId: battle.id,
       outcome: outcome || null,

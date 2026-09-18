@@ -49,7 +49,6 @@ for text in (
     "function handleNastyaDefenseChoice(battleId, choiceId)",
     "battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 }",
     'capSource = "stage715_nastya"',
-    "const crowdActive = battle.crowd && !battle.crowd.decided",
 ):
     require(text in core_js or text in controller_js, f"missing scripted Nastya vote contract: {text}")
 
@@ -69,6 +68,9 @@ require('battle.attack.text === "Ты на проблемы нарываешьс
 require('cardText.includes("Ты на проблемы нарываешься?")' in ui_js and
         'battleId === "stage7_15_nastya_battle"' in ui_js,
         "generic delegated defense clicks must not re-enter the Nastya vote")
+require('function revealNastyaBattle' in controller_js and
+        'try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}' not in controller_js,
+        "Nastya reveal must not recreate an already-owned crowd vote")
 require('addEventListener("click", (e) =>' in ui_js and
         '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
         '}, true);' in ui_js,
