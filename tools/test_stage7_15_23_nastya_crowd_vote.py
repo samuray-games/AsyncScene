@@ -71,6 +71,9 @@ require('cardText.includes("Ты на проблемы нарываешься?")
 require('function revealNastyaBattle' in controller_js and
         'try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}' not in controller_js,
         "Nastya reveal must not recreate an already-owned crowd vote")
+require('b.sysAnnounced !== true' in core_js and
+        'b.sysAnnounced !== true' in CORE_DEPLOYED.read_text(encoding="utf-8"),
+        "crowd system announcement must be idempotent across repeated ownership checks")
 require('addEventListener("click", (e) =>' in ui_js and
         '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
         '}, true);' in ui_js,

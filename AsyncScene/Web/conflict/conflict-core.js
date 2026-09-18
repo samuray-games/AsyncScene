@@ -3875,7 +3875,9 @@
             // Push a SYS chat line about draw with links to battleId and eventId.
             try {
               const UI = (Game && Game.UI) ? Game.UI : null;
-              if (UI && typeof UI.pushChat === "function" && b.suppressCrowdSystemChat !== true) {
+              if (UI && typeof UI.pushChat === "function"
+                && b.suppressCrowdSystemChat !== true
+                && b.sysAnnounced !== true) {
                 const sysText = (Game && Game.Data && Game.Data.SYS && typeof Game.Data.SYS.drawCrowd === "string" && Game.Data.SYS.drawCrowd.trim())
                   ? Game.Data.SYS.drawCrowd.trim()
                   : "Толпа решает.";
