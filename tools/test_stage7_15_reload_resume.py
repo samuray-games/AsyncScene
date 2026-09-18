@@ -102,6 +102,103 @@ assert.strictEqual(reloadedState.battles[0].status, "pickDefense", "defense-wait
 assert.strictEqual(reloadedState.chat.length, 1, "reload duplicated NPC chat");
 
 console.log("PASS_STAGE7_15_RELOAD_RESUME_AND_PRELUDE_GUARD");
+process.exit(0);
 '''
 subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
+
+integration_test = r'''
+const fs = require("fs");
+const vm = require("vm");
+const assert = require("assert");
+const stageSource = fs.readFileSync("AsyncScene/Web/ui/ui-stage7-first-experience.js", "utf8");
+const bootSource = fs.readFileSync("AsyncScene/Web/ui/ui-boot.js", "utf8");
+const storage = new Map();
+
+function element(value = "") {
+  return {
+    value, textContent: "", innerHTML: "", dataset: {}, style: { removeProperty() {} }, hidden: false,
+    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
+    addEventListener() {}, appendChild() {}, removeChild() {}, remove() {}, setAttribute() {}, removeAttribute() {}, getAttribute() { return null; },
+    querySelector() { return null; }, querySelectorAll() { return []; }, focus() {}, click() {},
+  };
+}
+
+function bootRuntime(state) {
+  const elements = new Map();
+  const getElementById = (id) => {
+    if (!elements.has(id)) elements.set(id, element(id === "nameInput" ? "Тестер" : ""));
+    return elements.get(id);
+  };
+  const document = {
+    readyState: "complete", body: element(), documentElement: element(),
+    getElementById, querySelector() { return null; }, querySelectorAll() { return []; },
+    createElement: () => element(), addEventListener() {},
+  };
+  let loops = 0;
+  let freshReset = 0;
+  const UI = {
+    S: state, $: getElementById,
+    renderAll() {}, renderAllMinimal() {}, requestRenderAll() {}, renderEvents() {}, renderBattles() {},
+    buildPlayers() {}, applyMobilePanelDefaults() {}, startLoops() { loops += 1; },
+    ensurePanelExpanded() {}, ensureEventsExpanded() {}, setPanelSize() {},
+    pushChat(entry) { state.chat = state.chat || []; state.chat.push(entry); },
+    pushSystem() {}, sendChat() {},
+  };
+  const localStorage = {
+    getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+    setItem(key, value) { storage.set(key, String(value)); }, removeItem(key) { storage.delete(key); },
+  };
+  const Game = {
+    __S: state, UI,
+    Data: { START_POINTS_NPC: 10, START_POINTS_PLAYER: 0, t: () => "Споры", RANDOM_NAMES: ["Тестер"], pick: (x) => x[0] },
+    Telemetry: { action() {}, setGameplayNickname() {} }, __A: { syncMeToPlayers() {}, seedPlayers() {} },
+  };
+  const window = { Game, localStorage, document, location: { search: "" }, URLSearchParams,
+    setTimeout, clearTimeout, setInterval, clearInterval, addEventListener() {}, removeEventListener() {} };
+  window.window = window;
+  const context = { window, document, URLSearchParams, location: window.location, navigator: {},
+    setTimeout, clearTimeout, setInterval, clearInterval, console, Date, Event: function Event() {} };
+  vm.runInNewContext(stageSource, context);
+  const originalClaimResume = Game.Stage715Demo.claimResume;
+  let claimResumeCalls = 0;
+  Game.Stage715Demo.claimResume = (nextContext) => {
+    claimResumeCalls += 1;
+    return originalClaimResume(nextContext);
+  };
+  vm.runInNewContext(bootSource, context);
+  return { state, UI, Game, claimResumeCalls: () => claimResumeCalls, loops: () => loops, freshReset: () => freshReset };
+}
+
+storage.set("AsyncScene_stage715_gameplay_v1", JSON.stringify({ version: 1, state: {
+  flags: { stage715Demo: true, stage715DemoPhase: "battle_unlocked", started: true }, isStarted: true,
+  me: { id: "me", name: "Тестер", points: 0, wins: 0 }, rep: 1,
+  players: { npc_stage7_ken: { id: "npc_stage7_ken", name: "Райхан", npc: true, role: "crowd", points: 10 } },
+  battles: [{ id: "stage7_15_first_battle", status: "pickDefense", resolved: false, finished: false,
+    opponentId: "npc_stage7_ken", meta: { stage715BattleId: "stage7_15_first_battle", stage715RayhanScripted: true },
+    attack: { text: "Извините, кто тут дерзкий?? Выберите ответ быстренько!", group: "who" },
+    _defenseChoices: [{ id: "canon_who", group: "who", stage715DisplayText: "Похоже, ты…" }] }],
+  events: [], chat: [{ name: "Райхан", text: "всем привет в этом чатике!" }],
+} }));
+const persisted = JSON.parse(storage.get("AsyncScene_stage715_gameplay_v1"));
+assert.strictEqual(persisted.state.flags.started, true, "fixture must persist started=true");
+assert.strictEqual(persisted.state.isStarted, true, "fixture must persist isStarted=true");
+const reloaded = { flags: {}, me: {}, players: {}, battles: [], events: [], chat: [] };
+const booted = bootRuntime(reloaded);
+assert.strictEqual(booted.claimResumeCalls(), 1, "real boot/startGame did not call Stage715 claimResume");
+assert.strictEqual(booted.state.flags.stage715DemoPhase, "battle_unlocked", "production reload changed phase");
+assert.strictEqual(booted.state.battles.length, 1, "production reload duplicated or lost battle");
+assert.strictEqual(booted.state.battles[0].status, "pickDefense", "production reload lost defense wait");
+assert.strictEqual(booted.state.chat.length, 1, "production reload duplicated NPC chat");
+assert.strictEqual(booted.state.me.points, 0, "production reload executed a fresh-start reset");
+assert.strictEqual(booted.Game.Stage715Demo.isActive({ state: booted.state, UI: booted.UI }), true, "Stage 7.15 controller is not active after production reload");
+booted.UI.returnToStartScreen();
+booted.UI.$("btnStart").onclick({ preventDefault() {}, stopPropagation() {} });
+assert.strictEqual(booted.claimResumeCalls(), 2, "explicit start -> Continue did not resume Stage 7.15");
+assert.strictEqual(booted.state.flags.stage715DemoPhase, "battle_unlocked", "explicit Continue changed phase");
+assert.strictEqual(booted.state.battles.length, 1, "explicit Continue duplicated or lost battle");
+assert.strictEqual(booted.state.chat.length, 1, "explicit Continue duplicated NPC chat");
+console.log("PASS_STAGE7_15_ACTUAL_BOOT_STARTGAME_RELOAD");
+process.exit(0);
+'''
+subprocess.run(["node", "-e", integration_test], cwd=ROOT, check=True)
 print("PASS_STAGE7_15_RELOAD_RESUME_CONTRACT")

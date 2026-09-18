@@ -190,6 +190,7 @@ subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
 changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
+    "tools/test_stage7_15_reload_resume.py",
     "AsyncScene/Web/data.js",
     "docs/data.js",
     "AsyncScene/Web/ui/ui-boot.js",

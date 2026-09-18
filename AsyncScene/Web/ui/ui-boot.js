@@ -1382,7 +1382,10 @@ window.Game = window.Game || {};
       const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
       markBootDiag(`UI_PROFILE_RESOLVED:${uiProfile}`);
 
-      if (resumeMode && !(S.flags.started || S.isStarted === true)) {
+      const stage715ActiveForResume = G.Stage715Demo
+        && typeof G.Stage715Demo.isActive === "function"
+        && G.Stage715Demo.isActive({ UI, state: S });
+      if (resumeMode && (!(S.flags.started || S.isStarted === true) || stage715ActiveForResume)) {
         persistFirstUiProfileSelection(UI, uiProfile);
         markBootDiag("START_RESUME_MODE");
         stateTargets.forEach((state) => {

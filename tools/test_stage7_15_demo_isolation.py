@@ -59,6 +59,7 @@ for marker in (
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
 changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
+    "tools/test_stage7_15_reload_resume.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_21_nastya_battle.py",
