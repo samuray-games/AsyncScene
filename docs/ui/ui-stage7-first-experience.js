@@ -4573,6 +4573,7 @@ window.Game = window.Game || {};
         color: trueColor,
         outcome: outcome || null,
       },
+      stage715NastyaVote: { a: 2, b: 3, cap: 5 },
     });
     pushNpc({
       speakerId: "npc_stage7_mika",

@@ -60,6 +60,8 @@ allowed = {
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 

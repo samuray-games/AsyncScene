@@ -2300,6 +2300,7 @@
     }
     if (b && b.crowd) {
       ensureBattleCrowdCap(b.crowd, b);
+      applyScriptedNastyaVote(b, b.crowd);
       const nowMsValue = now();
       let diagContext = buildDiagContext(nowMsValue);
       const timerState = ensureCrowdTimerFields(b.crowd, nowMsValue);
@@ -2580,6 +2581,23 @@
     v.bVotes = votesB;
     v.cap = votesA + votesB;
     v._scriptedVotesApplied = true;
+    return true;
+  }
+
+  function applyScriptedNastyaVote(b, v){
+    const scripted = b && b.meta && b.meta.stage715NastyaVote;
+    if (!scripted || !v || v._stage715NastyaVoteApplied) return false;
+    const votesA = Number(scripted.a) | 0;
+    const votesB = Number(scripted.b) | 0;
+    if (votesA < 0 || votesB < 0 || (votesA + votesB) <= 0 || votesA === votesB) return false;
+    v.voters = {};
+    v.votesA = votesA;
+    v.votesB = votesB;
+    v.aVotes = votesA;
+    v.bVotes = votesB;
+    v.cap = votesA + votesB;
+    v._stage715NastyaVoteApplied = true;
+    v.stage715VoteOwner = "stage715_nastya";
     return true;
   }
 

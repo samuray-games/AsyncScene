@@ -89,6 +89,8 @@ allowed = {
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 
