@@ -153,6 +153,14 @@
         || battle.id === "stage7_15_first_battle"));
   }
 
+  function isStage715NastyaScriptedBattle(battle) {
+    return !!(battle
+      && ((battle.meta && battle.meta.stage715NastyaBattle === true)
+        || (battle.meta && battle.meta.stage715BattleId === "stage7_15_nastya_battle")
+        || battle.battleId === "stage7_15_nastya_battle"
+        || battle.id === "stage7_15_nastya_battle"));
+  }
+
   function stage715RayhanDomElementInfo(element) {
     if (!element) return null;
     let computed = null;
@@ -3011,10 +3019,15 @@ UI.renderBattles = () => {
             }
           }
 
+          const stage715NastyaDemo = isStage715NastyaScriptedBattle(b);
           const pickDefenseFn = stage715RayhanDemo
             && stage715DemoController
             && typeof stage715DemoController.handleRayhanDefenseChoice === "function"
             ? stage715DemoController.handleRayhanDefenseChoice
+            : stage715NastyaDemo
+              && stage715DemoController
+              && typeof stage715DemoController.handleNastyaDefenseChoice === "function"
+              ? stage715DemoController.handleNastyaDefenseChoice
             : (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
             ? Game.Conflict.pickDefense
             : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")

@@ -3960,6 +3960,27 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function handleNastyaDefenseChoice(battleId, choiceId) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || String(battle.id) !== String(battleId)
+      || !battle.meta || battle.meta.stage715NastyaBattle !== true
+      || battle.status !== "pickDefense") return false;
+    const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
+    if (!choice) return false;
+    battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 };
+    battle._defenseChoices = [choice];
+    if (choice.stage715DisplayText) {
+      battle.meta.stage715SelectedDefenseText = choice.stage715DisplayText;
+      battle.defense = Object.assign({}, battle.defense || {}, { stage715DisplayText: choice.stage715DisplayText });
+    }
+    const conflict = G.Conflict;
+    if (!conflict || typeof conflict.pickDefense !== "function") return false;
+    const result = conflict.pickDefense(battle.id, choice.id);
+    saveState();
+    render();
+    return result || true;
+  }
+
   function rayhanEventById(eventId) {
     const state = rayhanBattleState();
     return (state && Array.isArray(state.events) ? state.events : [])
@@ -4580,7 +4601,9 @@ window.Game = window.Game || {};
       name: "Настя",
       text: "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?",
     });
-    if (G.Conflict && typeof G.Conflict.startCrowdVote === "function") {
+    const crowdActive = battle.crowd && !battle.crowd.decided
+      && (battle.status === "draw" || battle.status === "crowd");
+    if (!crowdActive && G.Conflict && typeof G.Conflict.startCrowdVote === "function") {
       try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}
     }
     telemetry("stage715_nastya_battle_result", {
@@ -4818,6 +4841,7 @@ window.Game = window.Game || {};
     claimResume,
     handlePlayerMessage,
     handleRayhanDefenseChoice,
+    handleNastyaDefenseChoice,
     handleOlegDmReply,
     revealBattlesPanel,
     revealEventsPanel,

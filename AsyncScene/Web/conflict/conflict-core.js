@@ -3825,7 +3825,10 @@
             const drawFallbackForced = !!(b.meta && b.meta.drawFallback);
             let capValue;
             let capSource;
-            if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
+            if (b.meta && b.meta.stage715NastyaVote) {
+              capValue = Number(b.meta.stage715NastyaVote.cap) | 0;
+              capSource = "stage715_nastya";
+            } else if (stageD2Enabled && computedCap > 0 && !drawFallbackForced) {
               capValue = computedCap;
               capSource = "eligible";
             } else if (drawFallbackForced) {
