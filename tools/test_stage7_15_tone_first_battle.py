@@ -18,7 +18,7 @@ require(source == deployed, "Stage 7.15 controller mirrors differ")
 js = source.decode("utf-8")
 
 for text in (
-    'const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона"',
+    'const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона, посмотрим насколько ты дерзкий!"',
     'const TONE_ACK = "ага, вижу. значит ты вот такой. интересно..."',
     'function currentBattlesPanelLabel()',
     'rayhanBattleInviteText()',

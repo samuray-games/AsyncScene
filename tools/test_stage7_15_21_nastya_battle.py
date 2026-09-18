@@ -46,6 +46,9 @@ for text in (
     'if (p.stage715DisplayText) return String(p.stage715DisplayText);',
     'stage715NastyaPayoff',
     'stage715-nastya-tone-revealed',
+    'b.meta.stage715NastyaBattle === true && p.stage715DisplayText',
+    'b.meta.stage715SelectedDefenseText = p.stage715DisplayText',
+    'stage715SelectedDefenseText',
 ):
     require(text in battle_js, f"missing Nastya battle UI contract: {text}")
 

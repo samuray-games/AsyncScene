@@ -1067,7 +1067,9 @@
       dRow.className = "choiceRow";
       const d = document.createElement("div");
       d.className = clsForColor(battle.defense.color);
-      d.textContent = argCanonUiText(battle.defense, "A");
+      d.textContent = battle.meta && battle.meta.stage715SelectedDefenseText
+        ? String(battle.meta.stage715SelectedDefenseText)
+        : argCanonUiText(battle.defense, "A");
       if (!battle.defense.color) {
         d.className = clsForColor(null, true);
         d.style.color = "rgba(255,255,255,.92)";
@@ -3073,6 +3075,10 @@ UI.renderBattles = () => {
                 _captureBattleFocus(b.id, card);
                 const result = pickDefenseFn.call(Game.Conflict, b.id, p.id);
                 trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
+                if (b.meta && b.meta.stage715NastyaBattle === true && p.stage715DisplayText) {
+                  b.defense = Object.assign({}, b.defense || {}, { stage715DisplayText: p.stage715DisplayText });
+                  b.meta.stage715SelectedDefenseText = p.stage715DisplayText;
+                }
                 // Stage 7.15 owns scripted choices through its waiting-for-reply phase.
                 if (!stage715RayhanDemo) {
                   try { delete b._defenseChoices; } catch (_) {}
