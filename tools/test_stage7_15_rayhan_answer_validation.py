@@ -34,6 +34,7 @@ require("stage715RayhanAnswerPending" in handler, "wrong Rayhan answer must ente
 require("if (!stage715RayhanDemo)" in battles_text and "Stage 7.15 owns scripted choices through its waiting-for-reply phase." in battles_text,
         "generic battle choice-cache cleanup must not overwrite scripted Rayhan choices")
 require('battle.meta && battle.meta.stage715BattleId === "stage7_15_first_battle"' in battles_text
+        and 'battle.battleId === "stage7_15_first_battle"' in battles_text
         and 'battle.id === "stage7_15_first_battle"' in battles_text,
         "Rayhan render clones must remain on the scripted controller path")
 require("stage715RayhanArgumentRevealed" in battles_text, "battle UI must render the revealed scripted Rayhan color")

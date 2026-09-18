@@ -149,6 +149,7 @@
     return !!(battle
       && ((battle.meta && battle.meta.stage715RayhanScripted === true)
         || (battle.meta && battle.meta.stage715BattleId === "stage7_15_first_battle")
+        || battle.battleId === "stage7_15_first_battle"
         || battle.id === "stage7_15_first_battle"));
   }
 
