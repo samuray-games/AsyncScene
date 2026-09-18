@@ -1099,9 +1099,15 @@
       dRow.className = "choiceRow";
       const d = document.createElement("div");
       d.className = clsForColor(battle.defense.color);
+      const stage715NastyaResolvedText = battle.attack
+        && battle.attack.text === "Ты на проблемы нарываешься?"
+        && battle.defense
+        && String(battle.defense.id || "") === "canon_yn_no"
+        ? "Кажется, нет…"
+        : null;
       d.textContent = battle.meta && battle.meta.stage715SelectedDefenseText
         ? String(battle.meta.stage715SelectedDefenseText)
-        : argCanonUiText(battle.defense, "A");
+        : (stage715NastyaResolvedText || argCanonUiText(battle.defense, "A"));
       if (!battle.defense.color) {
         d.className = clsForColor(null, true);
         d.style.color = "rgba(255,255,255,.92)";
