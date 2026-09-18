@@ -1101,8 +1101,7 @@
       d.className = clsForColor(battle.defense.color);
       const stage715NastyaResolvedText = battle.attack
         && battle.attack.text === "Ты на проблемы нарываешься?"
-        && battle.defense
-        && String(battle.defense.id || "") === "canon_yn_no"
+        && (battle.result === "win" || battle.status === "finished")
         ? "Кажется, нет…"
         : null;
       d.textContent = battle.meta && battle.meta.stage715SelectedDefenseText
