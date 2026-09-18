@@ -69,5 +69,9 @@ require('battle.attack.text === "Ты на проблемы нарываешьс
 require('cardText.includes("Ты на проблемы нарываешься?")' in ui_js and
         'battleId === "stage7_15_nastya_battle"' in ui_js,
         "generic delegated defense clicks must not re-enter the Nastya vote")
+require('addEventListener("click", (e) =>' in ui_js and
+        '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
+        '}, true);' in ui_js,
+        "Nastya scripted defense must intercept clone clicks before generic handlers")
 
 print("PASS_STAGE7_15_23_NASTYA_CROWD_VOTE_CONTRACT")

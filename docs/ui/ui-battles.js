@@ -519,6 +519,18 @@
    body.__argClicksBound = true;
    body.addEventListener("click", (e) => {
      const chip = e && e.target && e.target.closest
+       ? e.target.closest(".chip[data-action='pickDefense'][data-arg-id]")
+       : null;
+     const card = chip && chip.closest ? chip.closest(".battleCard") : null;
+     if (!chip || !card || !String(card.textContent || "").includes("Ты на проблемы нарываешься?")) return;
+     const controller = Game && Game.Stage715Demo;
+     if (!controller || typeof controller.handleNastyaDefenseChoice !== "function") return;
+     stop(e);
+     const result = controller.handleNastyaDefenseChoice(chip.dataset.battleId, chip.dataset.argId);
+     trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
+   }, true);
+   body.addEventListener("click", (e) => {
+     const chip = e && e.target && e.target.closest
        ? e.target.closest(".chip[data-action][data-arg-id]")
        : null;
      if (!chip || !body.contains(chip)) return;
