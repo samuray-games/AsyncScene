@@ -1,0 +1,106 @@
+{
+  "branch": "stage715-runtime-repair-20260918",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "stage715-runtime-repair-20260918\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "d4effa4d8edc01874bb1b901302d48f5c7ab7d70\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "# branch.oid d4effa4d8edc01874bb1b901302d48f5c7ab7d70\n# branch.head stage715-runtime-repair-20260918\n# branch.upstream origin/stage715-runtime-repair-20260918\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "d4effa4d (HEAD -> stage715-runtime-repair-20260918, origin/stage715-runtime-repair-20260918) fix(stage715): keep Rayhan render clones scripted\n9c603fbc fix(stage715): make Nastya crowd vote deterministic\nb7250ed9 fix(stage715): preserve canonical Nastya display text\n496ba971 Repair Stage 7.15 Events and Rayhan wrong-counter flow\nb2de3447 (origin/main) Restore canonical Stage 7.15 contracts for M82 Safari re-run\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD d4effa4d8edc01874bb1b901302d48f5c7ab7d70\nbranch refs/heads/stage715-runtime-repair-20260918\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T14:25:22Z",
+      "stderr": "",
+      "stdout": "b2de34475ed72fb53ddf7f1383a54564c4588686\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "d4effa4d8edc01874bb1b901302d48f5c7ab7d70",
+  "observedAtUtc": "2026-09-18T14:25:22Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
