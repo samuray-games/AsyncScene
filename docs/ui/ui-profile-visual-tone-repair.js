@@ -295,7 +295,7 @@ window.Game = window.Game || {};
 
   const START_PROFILE_OVERRIDES = Object.freeze({
     boomer: Object.freeze({
-      title: "Asynchronia",
+      title: "Асинхрония",
       birth_digits_label: "Последние две цифры года рождения",
       profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
       async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
@@ -306,7 +306,7 @@ window.Game = window.Game || {};
       start_action: "Начать игру"
     }),
     genX: Object.freeze({
-      title: "Asynchronia",
+      title: "Асинхрония",
       birth_digits_label: "Две последние цифры года рождения",
       profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
       async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
@@ -317,7 +317,7 @@ window.Game = window.Game || {};
       start_action: "Поехали"
     }),
     millennial: Object.freeze({
-      title: "Asynchronia",
+      title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
@@ -328,7 +328,7 @@ window.Game = window.Game || {};
       start_action: "Старт"
     }),
     zoomer: Object.freeze({
-      title: "Asynchronia",
+      title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
       async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
@@ -339,7 +339,7 @@ window.Game = window.Game || {};
       start_action: "В игру"
     }),
     alpha: Object.freeze({
-      title: "Asynchronia",
+      title: "Асинхрония",
       birth_digits_label: "2 цифры года рождения",
       profile_helper: "только стиль. год не сохраняем. сменить можно.",
       async_value: "асинхронная игра · играй когда хочешь",

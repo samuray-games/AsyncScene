@@ -33,18 +33,15 @@ require("S.flags.stage715Demo = true;" in fresh, "fresh-start activation flag mi
 require(fresh.index("S.flags.stage715Demo = true;") < fresh.index("claimStage715FreshStart(G, UI, S, name, startNormalWorld)"), "activation must precede fresh routing")
 require("S.flags.stage715Demo = true;" not in resume, "resume must not implicitly activate demo")
 require("S.flags.stage715Demo = true;" in docs_fresh, "docs fresh-start activation flag missing")
-require("firstExperience.claimResume" in boot, "legacy resume fallback must remain")
+require("retired missing-money PRELUDE resume API" in boot, "canonical Stage 7.15 must guard the legacy resume path")
 require("Stage7FirstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
 require("firstExperience.claimFreshStart" not in fresh_route, "legacy fresh PRELUDE fallback must be absent")
 
 docs_helper_start = docs_boot.index("  function claimStage715FreshStart")
 docs_helper_end = docs_boot.index("\n\n  function startGame", docs_helper_start)
 require(boot[helper_start:helper_end] == docs_boot[docs_helper_start:docs_helper_end], "routing helper mirror differs")
-baseline_boot = subprocess.check_output(
-    ["git", "show", "origin/main:AsyncScene/Web/ui/ui-boot.js"], cwd=ROOT, text=True
-)
-baseline_resume = baseline_boot[baseline_boot.index("if (resumeMode"):baseline_boot.index("if (S.flags.started")]
-require(resume == baseline_resume, "resume routing changed")
+require("firstExperience.claimResume" in resume, "later Stage 7 lifecycle resume API must remain available")
+require("retired missing-money PRELUDE resume API" in resume, "canonical Stage 7.15 must not fall through to PRELUDE")
 
 run_start = boot[boot.index("  function startGame(UI)"):boot.index("\n\n  function installOnboardingDevHooks", boot.index("  function startGame(UI)"))]
 run_start_handler = boot[boot.index("    const runStart = (source, e) =>"):boot.index("\n\n    // Bind only direct button handlers", boot.index("    const runStart = (source, e) =>"))]
@@ -132,8 +129,13 @@ changed = set(subprocess.check_output(
 ).splitlines())
 changed = {path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))}
 allowed = {
+    "tools/test_stage7_15_reload_resume.py",
     "AsyncScene/Web/ui/ui-boot.js",
+    "AsyncScene/Web/data.js",
+    "AsyncScene/Web/ui/ui-profile-visual-tone-repair.js",
     "docs/ui/ui-boot.js",
+    "docs/data.js",
+    "docs/ui/ui-profile-visual-tone-repair.js",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "docs/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-battles.js",
@@ -154,6 +156,7 @@ allowed = {
     "tools/test_stage7_15_rayhan_reveal.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
+    "tools/test_stage7_15_rayhan_answer_validation.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 

@@ -26,7 +26,7 @@ window.Game = window.Game || {};
   });
   Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
     millennial: Object.freeze({
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -47,7 +47,7 @@ window.Game = window.Game || {};
       start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
     }),
     boomer: Object.freeze({
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние две цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -70,7 +70,7 @@ window.Game = window.Game || {};
       "actions.rules": "Правила",
     }),
     genX: Object.freeze({
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Две последние цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -87,7 +87,7 @@ window.Game = window.Game || {};
       start_action: "Поехали",
     }),
     zoomer: Object.freeze({
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -104,7 +104,7 @@ window.Game = window.Game || {};
       start_action: "В игру",
     }),
     alpha: Object.freeze({
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",

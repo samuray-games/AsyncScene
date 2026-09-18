@@ -125,7 +125,7 @@ window.Game = window.Game || {};
     const low = raw.toLowerCase();
     const mode = low === "genx" ? "genX" : (low === "boomer" || low === "millennial" || low === "zoomer" || low === "alpha" ? low : "millennial");
     const millennial = {
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -142,7 +142,7 @@ window.Game = window.Game || {};
       start_action: "Старт",
     };
     const boomer = {
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние две цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -159,7 +159,7 @@ window.Game = window.Game || {};
       start_action: "Начать игру",
     };
     const genX = {
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Две последние цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -176,7 +176,7 @@ window.Game = window.Game || {};
       start_action: "Поехали",
     };
     const zoomer = {
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -193,7 +193,7 @@ window.Game = window.Game || {};
       start_action: "В игру",
     };
     const alpha = {
-      start_title: "Asynchronia",
+      start_title: "Асинхрония",
       birth_digits_label: "2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
@@ -1382,7 +1382,10 @@ window.Game = window.Game || {};
       const uiProfile = applyUiProfileBeforeEnter(UI, readUiProfileResolverValue());
       markBootDiag(`UI_PROFILE_RESOLVED:${uiProfile}`);
 
-      if (resumeMode && !(S.flags.started || S.isStarted === true)) {
+      const stage715ActiveForResume = G.Stage715Demo
+        && typeof G.Stage715Demo.isActive === "function"
+        && G.Stage715Demo.isActive({ UI, state: S });
+      if (resumeMode && (!(S.flags.started || S.isStarted === true) || stage715ActiveForResume)) {
         persistFirstUiProfileSelection(UI, uiProfile);
         markBootDiag("START_RESUME_MODE");
         stateTargets.forEach((state) => {
@@ -1421,6 +1424,15 @@ window.Game = window.Game || {};
             ensureStartScreenHidden(UI);
             return;
           }
+        }
+        if (stage715Demo
+          && typeof stage715Demo.isActive === "function"
+          && stage715Demo.isActive({ UI, state: S })) {
+          // A canonical Stage 7.15 checkpoint must never fall through to the
+          // retired missing-money PRELUDE resume API.
+          startNormalWorld();
+          ensureStartScreenHidden(UI);
+          return;
         }
         const firstExperience = G.Stage7FirstExperience;
         if (firstExperience && typeof firstExperience.claimResume === "function") {
@@ -8128,12 +8140,24 @@ window.Game = window.Game || {};
     bindBlockHeaderToggles(UI);
     if (UI.applyMobilePanelDefaults) UI.applyMobilePanelDefaults();
 
+    const stage715Demo = G.Stage715Demo;
+    const autoResumeStage715 = !!(stage715Demo
+      && typeof stage715Demo.hasPersistedCheckpoint === "function"
+      && stage715Demo.hasPersistedCheckpoint());
+    if (autoResumeStage715) {
+      if (typeof stage715Demo.restorePersistedCheckpoint === "function") {
+        stage715Demo.restorePersistedCheckpoint({ UI, state: UI.S });
+      }
+      setOnboardingSeen(UI, true);
+      startGame(UI);
+    }
+
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();
 
     // Fresh/clean state must leave the existing start screen visible even if
     // earlier boot work or stale DOM attributes hid it before content binding.
-    keepFreshStartScreenVisible(UI);
+    if (!autoResumeStage715) keepFreshStartScreenVisible(UI);
     captureInitialStartScreenRender(UI);
 
     try {

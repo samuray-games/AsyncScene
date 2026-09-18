@@ -2997,11 +2997,12 @@ window.Game = window.Game || {};
   const G = window.Game || (window.Game = {});
   const DEMO_QUERY = "stage715demo";
   const DEMO_STATE_FLAG = "stage715Demo";
+  const STAGE715_STORAGE_KEY = "AsyncScene_stage715_gameplay_v1";
   const DEMO_SOURCE_TAG = "stage7_15_demo";
   const INTRO_LINES = Object.freeze([
     Object.freeze({ id: "rayhan_greeting", speakerId: "npc_stage7_ken", name: "Райхан", text: "всем привет в этом чатике!" }),
     Object.freeze({ id: "nastya_greeting", speakerId: "npc_stage7_mika", name: "Настя", text: "Приветик!" }),
-    Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "Здарова" }),
+    Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "здарова)" }),
   ]);
   const SILENCE_TEXT = "слыш а ты чо не здороваешься!?";
   const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона";
@@ -3016,10 +3017,10 @@ window.Game = window.Game || {};
   const RAYHAN_ID = "npc_stage7_ken";
   const RAYHAN_EVENT_PLAYER_ID = "stage715_rayhan_event_player";
   const RAYHAN_EVENT_VOTE_COUNT = 5;
-  const RAYHAN_EVENT_MIN_DELAY_MS = 1_000;
-  const RAYHAN_EVENT_MAX_DELAY_MS = 3_000;
+  const RAYHAN_EVENT_MIN_DELAY_MS = 3_000;
+  const RAYHAN_EVENT_MAX_DELAY_MS = 4_000;
   const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, ну думаю это очевидно. или нет?";
-  const RAYHAN_WRONG_CHAT = "хааа ответ мимо! ща толпа решит кто из нас прав!";
+  const RAYHAN_WRONG_CHAT = "хааа ответ мимо! ща толпа решит кто из нас прав! готов?";
   const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
   const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
@@ -3089,6 +3090,50 @@ window.Game = window.Game || {};
   let firstIndependentBattleWatchTimer = null;
   let lastRayhanFailure = null;
 
+  function stage715Storage() {
+    try {
+      return typeof window !== "undefined" && window.localStorage ? window.localStorage : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function readPersistedStage715State() {
+    const storage = stage715Storage();
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(STAGE715_STORAGE_KEY);
+      if (!raw) return null;
+      const envelope = JSON.parse(raw);
+      return envelope && envelope.version === 1 && envelope.state && typeof envelope.state === "object"
+        ? envelope.state
+        : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function hasPersistedCheckpoint() {
+    const state = readPersistedStage715State();
+    return !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
+  }
+
+  function restorePersistedStage715State(nextContext) {
+    const restored = readPersistedStage715State();
+    if (!restored) return false;
+    const state = stateFor(nextContext);
+    if (!state) return false;
+    Object.keys(restored).forEach((key) => {
+      state[key] = restored[key];
+    });
+    const UI = nextContext && nextContext.UI ? nextContext.UI : G.UI;
+    if (UI && UI.S && UI.S !== state) Object.keys(restored).forEach((key) => { UI.S[key] = restored[key]; });
+    if (G.__S && G.__S !== state && G.__S !== (UI && UI.S)) {
+      Object.keys(restored).forEach((key) => { G.__S[key] = restored[key]; });
+    }
+    return true;
+  }
+
   function queryEnabled() {
     try {
       return new URLSearchParams(window.location.search || "").get(DEMO_QUERY) === "1";
@@ -3133,7 +3178,9 @@ window.Game = window.Game || {};
 
   function isActive(nextContext) {
     const state = stateFor(nextContext);
-    return queryEnabled() || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
+    return queryEnabled()
+      || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true)
+      || hasPersistedCheckpoint();
   }
 
   function clearTimers() {
@@ -3163,6 +3210,11 @@ window.Game = window.Game || {};
     state.flags = state.flags || {};
     state.flags[DEMO_STATE_FLAG] = true;
     state.flags.stage715DemoPhase = phase;
+    const storage = stage715Storage();
+    if (!storage) return;
+    try {
+      storage.setItem(STAGE715_STORAGE_KEY, JSON.stringify({ version: 1, state }));
+    } catch (_) {}
   }
 
   function initializeStage715InitialRepBaseline(state, mode) {
@@ -3199,6 +3251,7 @@ window.Game = window.Game || {};
       "awaiting_second",
       "tone_prompted",
       "rayhan_event_vote",
+      "rayhan_wrong_waiting_reply",
       "rayhan_win_waiting_reply",
       "first_battle",
       "battle_unlocked",
@@ -3795,13 +3848,13 @@ window.Game = window.Game || {};
       attackHidden: true,
       attack: {
         id: "stage7_15_rayhan_yellow_call",
-        text: "Извините, кто тут дерзкий??",
-        displayText: "Извините, кто тут дерзкий??",
+        text: "Извините, кто тут дерзкий?? Выберите ответ быстренько!",
+        displayText: "Извините, кто тут дерзкий?? Выберите ответ быстренько!",
         color: "y",
         _color: "y",
-        type: "yn",
-        qtype: "yn",
-        group: "yn",
+        type: "who",
+        qtype: "who",
+        group: "who",
       },
       _defenseChoices: [],
       _choicesForStatus: "pickDefense",
@@ -3882,15 +3935,16 @@ window.Game = window.Game || {};
     const isWrongAnswer = !attackType || !defenseType || attackType !== defenseType;
     if (isWrongAnswer) {
       battle.meta.stage715RayhanAnswerPending = true;
+      battle.meta.stage715RayhanPendingChoiceId = choice.id;
+      phase = "rayhan_wrong_waiting_reply";
       if (state.flags.stage715RayhanWrongChatShown !== true) {
-        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT, onComplete: resolveChoice });
+        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT });
         state.flags.stage715RayhanWrongChatShown = true;
-      } else {
-        resolveChoice();
       }
     } else {
       resolveChoice();
     }
+    saveState();
     render();
     return true;
   }
@@ -4600,6 +4654,7 @@ window.Game = window.Game || {};
   }
 
   function claimResume(nextContext) {
+    restorePersistedStage715State(nextContext);
     return isActive(nextContext) ? start(nextContext, "resume") : { claimed: false };
   }
 
@@ -4637,6 +4692,26 @@ window.Game = window.Game || {};
     }
     if (phase === "rayhan_win_waiting_reply") {
       showNastyaAfterRayhanReply();
+      return true;
+    }
+    if (phase === "rayhan_wrong_waiting_reply") {
+      const battle = stage715BattleById(FIRST_BATTLE_ID);
+      const pendingChoiceId = battle && battle.meta && battle.meta.stage715RayhanPendingChoiceId;
+      const choice = battle && (battle._defenseChoices || []).find((item) => String(item.id) === String(pendingChoiceId));
+      if (battle && choice) {
+        battle.meta.stage715RayhanPendingChoiceId = null;
+        battle.meta.stage715RayhanAnswerPending = false;
+        battle.suppressCrowdSystemChat = true;
+        battle._defenseChoices = [choice];
+        const result = G.Conflict && typeof G.Conflict.pickDefense === "function"
+          ? G.Conflict.pickDefense(battle.id, choice.id)
+          : null;
+        const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
+        if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
+          startRayhanEventVote(battle);
+        }
+        saveState();
+      }
       return true;
     }
     if (phase === "first_battle" || phase === "battle_unlocked") {
@@ -4724,6 +4799,8 @@ window.Game = window.Game || {};
   installDemoInteractionGuards();
   G.Stage715Demo = {
     isActive,
+    hasPersistedCheckpoint,
+    restorePersistedCheckpoint: restorePersistedStage715State,
     claimFreshStart,
     claimResume,
     handlePlayerMessage,
