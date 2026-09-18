@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-m82-canon-restore-20260918",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "codex/stage715-m82-canon-restore-20260918\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "52e380f0c4d6d6f0146fda23336c36ef75aedfde\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "# branch.oid 52e380f0c4d6d6f0146fda23336c36ef75aedfde\n# branch.head codex/stage715-m82-canon-restore-20260918\n# branch.upstream origin/codex/stage715-m82-canon-restore-20260918\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "52e380f0 (HEAD -> codex/stage715-m82-canon-restore-20260918, origin/codex/stage715-m82-canon-restore-20260918) Restore Stage 7.15 M82 canon contracts\nc501dde7 Restore Stage 7.15 M82 canon contracts\n87b4dfde (origin/main) Sanitize control plane from retired bridge machinery\nff9ea494 Stage 7.15 M82: reveal First Event entry after first independent win\nc9488974 Sync repository memory after Stage 7.15 M81 merge (#398)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 52e380f0c4d6d6f0146fda23336c36ef75aedfde\nbranch refs/heads/codex/stage715-m82-canon-restore-20260918\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-18T04:01:05Z",
+      "stderr": "",
+      "stdout": "87b4dfdecebb42ea42644aa510981a5097c6225d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "52e380f0c4d6d6f0146fda23336c36ef75aedfde",
+  "observedAtUtc": "2026-09-18T04:01:05Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
