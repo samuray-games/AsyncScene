@@ -8,6 +8,8 @@ API = ROOT / "AsyncScene/Web/conflict/conflict-api.js"
 API_DEPLOYED = ROOT / "docs/conflict/conflict-api.js"
 CONTROLLER = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 CONTROLLER_DEPLOYED = ROOT / "docs/ui/ui-stage7-first-experience.js"
+BATTLES_UI = ROOT / "AsyncScene/Web/ui/ui-battles.js"
+BATTLES_UI_DEPLOYED = ROOT / "docs/ui/ui-battles.js"
 
 
 def require(condition, message):
@@ -21,6 +23,8 @@ api = API.read_bytes()
 api_deployed = API_DEPLOYED.read_bytes()
 controller = CONTROLLER.read_bytes()
 controller_deployed = CONTROLLER_DEPLOYED.read_bytes()
+battles_ui = BATTLES_UI.read_bytes()
+battles_ui_deployed = BATTLES_UI_DEPLOYED.read_bytes()
 
 require("function applyScriptedNastyaVote(b, v)" in core.decode("utf-8") and
         "function applyScriptedNastyaVote(b, v)" in core_deployed.decode("utf-8"),
@@ -29,6 +33,7 @@ require('if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api.de
         'if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api_deployed.decode("utf-8"),
         "crowd API scripted vote guard is not mirrored")
 require(controller == controller_deployed, "Stage 7.15 controller mirrors differ")
+require(battles_ui == battles_ui_deployed, "battle UI mirrors differ")
 
 core_js = core.decode("utf-8")
 api_js = api.decode("utf-8")
@@ -58,5 +63,9 @@ require('v.cap = votesA + votesB;' in core_js,
         "scripted Nastya vote must use its canonical five-vote cap")
 require('v.stage715VoteOwner = "stage715_nastya"' in core_js,
         "scripted Nastya vote must record deterministic ownership")
+ui_js = battles_ui.decode("utf-8")
+require('battle.opponentId === "npc_stage7_mika"' in ui_js and
+        'battle.attack.id === "stage7_15_nastya_orange_call"' in ui_js,
+        "Nastya render clones must remain on the scripted controller path")
 
 print("PASS_STAGE7_15_23_NASTYA_CROWD_VOTE_CONTRACT")

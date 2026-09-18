@@ -158,7 +158,9 @@
       && ((battle.meta && battle.meta.stage715NastyaBattle === true)
         || (battle.meta && battle.meta.stage715BattleId === "stage7_15_nastya_battle")
         || battle.battleId === "stage7_15_nastya_battle"
-        || battle.id === "stage7_15_nastya_battle"));
+        || battle.id === "stage7_15_nastya_battle"
+        || (battle.opponentId === "npc_stage7_mika"
+          && battle.attack && battle.attack.id === "stage7_15_nastya_orange_call")));
   }
 
   function stage715RayhanDomElementInfo(element) {
