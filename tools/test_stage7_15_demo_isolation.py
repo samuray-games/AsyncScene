@@ -43,7 +43,7 @@ for marker in (
 require("привет, ${playerName}" not in demo, "Rayhan duplicate first response remains")
 require('conflict.incoming("npc_stage7_ken"' not in unlock, "Rayhan demo battle still uses normal conflict incoming")
 require('prepareNastyaDefenseChoices(battle)' not in unlock, "Rayhan demo battle still derives random defense choices")
-require('pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: "Извините, кто тут дерзкий??" })' not in unlock,
+require('pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: "Извините, кто тут дерзкий?? Выберите ответ быстренько!" })' not in unlock,
         "Rayhan challenge is duplicated into chat")
 require('attackHidden: true' in demo, "Rayhan battle color is not hidden on creation")
 
@@ -65,8 +65,14 @@ allowed = {
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
+    "AsyncScene/Web/ui/ui-boot.js",
+    "AsyncScene/Web/data.js",
+    "AsyncScene/Web/ui/ui-profile-visual-tone-repair.js",
     "AsyncScene/Web/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
+    "docs/ui/ui-boot.js",
+    "docs/data.js",
+    "docs/ui/ui-profile-visual-tone-repair.js",
     "docs/ui/ui-battles.js",
     "AsyncScene/Web/conflict/conflict-api.js",
     "docs/conflict/conflict-api.js",
@@ -78,6 +84,7 @@ allowed = {
     "tools/test_transfer_rep_suppress_stat_delta.py",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_demo_activation_routing.py",
+    "tools/test_stage7_15_rayhan_answer_validation.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",

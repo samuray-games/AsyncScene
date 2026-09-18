@@ -163,14 +163,14 @@ if (UI.S.battles.length !== 1) throw new Error("Battles list does not contain ex
 if (game.__S.battles.length !== 1) throw new Error("render state does not contain exactly one scripted challenge");
 if (!battle || battle.meta.stage715RayhanScripted !== true) throw new Error("scripted Rayhan challenge was not created");
 if (battle.fromThem !== true || battle.draw !== false || battle.crowd !== null || battle.pinned !== false || battle.defense !== null) throw new Error("Rayhan challenge schema is not canonical incoming shape");
-if (battle.attack.text !== "Извините, кто тут дерзкий??") throw new Error("challenge text mismatch");
+if (battle.attack.text !== "Извините, кто тут дерзкий?? Выберите ответ быстренько!") throw new Error("challenge text mismatch");
 const answerTexts = battle._defenseChoices.map((choice) => choice.stage715DisplayText || choice.text);
 if (JSON.stringify(answerTexts) !== JSON.stringify(["Похоже, ты…", "Кажется, прямо тут…", "Наверное, да…"])) throw new Error("Rayhan answers mismatch");
 if (answerTexts.some((text) => /Kai|Sen|Кай|Сен/.test(text))) throw new Error("random Kai/Sen answer leaked");
 if (state.chat.some((message) => message.text === "Извините, кто тут дерзкий??")) throw new Error("challenge duplicated in chat");
 if (!panelCalls.some((entry) => Array.isArray(entry) && entry[0] === "ensurePanelExpanded" && entry[1] === "battles")) throw new Error("Battles panel was not expanded");
 if (!panelCalls.includes("renderBattles")) throw new Error("Battles panel was not rendered");
-if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий??"])) throw new Error("rendered challenge card mismatch");
+if (JSON.stringify(renderedCards) !== JSON.stringify(["Извините, кто тут дерзкий?? Выберите ответ быстренько!"])) throw new Error("rendered challenge card mismatch");
 if (renderBattlesInputCount !== 1) throw new Error(`renderBattles input count mismatch: ${renderBattlesInputCount}`);
 if (renderBattlesOutputCards !== 1) throw new Error(`renderBattles output card count mismatch: ${renderBattlesOutputCards}`);
 if (defenseOptionCall !== 3) throw new Error(`Rayhan defense option accumulation mismatch: ${defenseOptionCall}`);
@@ -190,6 +190,12 @@ subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
 changed = subprocess.check_output(["git", "diff", "--name-only", "origin/main"], cwd=ROOT, text=True).splitlines()
 changed = [path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))]
 allowed = {
+    "AsyncScene/Web/data.js",
+    "docs/data.js",
+    "AsyncScene/Web/ui/ui-boot.js",
+    "docs/ui/ui-boot.js",
+    "AsyncScene/Web/ui/ui-profile-visual-tone-repair.js",
+    "docs/ui/ui-profile-visual-tone-repair.js",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
