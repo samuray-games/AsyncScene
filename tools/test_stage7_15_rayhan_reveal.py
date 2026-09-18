@@ -155,7 +155,7 @@ const waitFor = (predicate, label) => new Promise((resolve, reject) => {
   };
   poll();
 });
-waitFor(() => chatMessages.some((message) => message.text === "нефиг дерзить тут сопляк, пошли в споры, пообщаемся 1на1 коль не ссыш"), "Rayhan final chat message")
+waitFor(() => chatMessages.some((message) => message.text === "нефиг дерзить тут сопля, пошли в споры, пообщаемся 1на1 коль не ссыш"), "Rayhan final chat message")
   .then(() => waitFor(() => UI.S.battles.length === 1, "Rayhan scripted challenge"))
   .then(() => {
 const battle = UI.S.battles[0];

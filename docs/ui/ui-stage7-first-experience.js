@@ -3173,7 +3173,7 @@ window.Game = window.Game || {};
   }
 
   function rayhanBattleInviteText() {
-    return `нефиг дерзить тут сопляк, пошли в ${currentBattlesPanelLabel().toLowerCase()}, пообщаемся 1на1 коль не ссыш`;
+    return `нефиг дерзить тут сопля, пошли в ${currentBattlesPanelLabel().toLowerCase()}, пообщаемся 1на1 коль не ссыш`;
   }
 
   function isActive(nextContext) {
@@ -3285,6 +3285,7 @@ window.Game = window.Game || {};
     if (!state || !UI || !state.flags) return false;
     if (state.flags[stateFlag] === true) return false;
     state.flags[stateFlag] = true;
+    if (panelKey === "events") setStage715EventsPanelVisible(true);
     if (panelKey === "events" && typeof UI.ensureEventsExpanded === "function") {
       if (typeof UI.setPanelSize === "function") UI.setPanelSize("events", "medium");
       UI.ensureEventsExpanded();
@@ -3296,6 +3297,13 @@ window.Game = window.Game || {};
     saveState();
     if (telemetryId) telemetry(telemetryId);
     return true;
+  }
+
+  function setStage715EventsPanelVisible(visible) {
+    const panel = document.getElementById("eventsBlock");
+    if (!panel) return;
+    panel.hidden = !visible;
+    panel.setAttribute("aria-hidden", visible ? "false" : "true");
   }
 
   function initializeProgressiveDisclosure(mode) {
@@ -3310,6 +3318,7 @@ window.Game = window.Game || {};
       UI.setPanelSize("events", "collapsed");
     }
     if (typeof UI.setEventsCollapsed === "function") UI.setEventsCollapsed(true);
+    setStage715EventsPanelVisible(false);
     state.flags[STAGE715_PROGRESSIVE_INIT_FLAG] = true;
     saveState();
     return true;
@@ -3936,6 +3945,8 @@ window.Game = window.Game || {};
     if (isWrongAnswer) {
       battle.meta.stage715RayhanAnswerPending = true;
       battle.meta.stage715RayhanPendingChoiceId = choice.id;
+      battle.meta.stage715RayhanArgumentRevealed = true;
+      battle._defenseChoices = [choice];
       phase = "rayhan_wrong_waiting_reply";
       if (state.flags.stage715RayhanWrongChatShown !== true) {
         pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT });
@@ -4630,6 +4641,7 @@ window.Game = window.Game || {};
     initializeStage715InitialRepBaseline(state, mode);
     saveState();
     initializeProgressiveDisclosure(mode);
+    setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true));
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle") watchNastyaBattle();

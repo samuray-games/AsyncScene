@@ -2627,6 +2627,7 @@ UI.renderBattles = () => {
         const stage715NastyaPayoff = b && b.meta && b.meta.stage715NastyaPayoff
           ? b.meta.stage715NastyaPayoff
           : null;
+        const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2651,7 +2652,10 @@ UI.renderBattles = () => {
           const nastyaRevealed = !!(stage715NastyaPayoff
             && stage715NastyaPayoff.status === "revealed"
             && b.attack.color);
-          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed;
+          const stage715RayhanRevealed = !!(stage715RayhanDemo
+            && b.meta
+            && b.meta.stage715RayhanArgumentRevealed === true);
+          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
@@ -2974,7 +2978,6 @@ UI.renderBattles = () => {
           let choices = null;
           const stage7Controller = Game && Game.Stage7FirstExperience;
           const stage715DemoController = Game && Game.Stage715Demo;
-          const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
           const restoredPayChoices = stage7Controller
             && typeof stage7Controller.choosePayDefenseChoices === "function"
             ? stage7Controller.choosePayDefenseChoices(b.id)
@@ -3070,13 +3073,15 @@ UI.renderBattles = () => {
                 _captureBattleFocus(b.id, card);
                 const result = pickDefenseFn.call(Game.Conflict, b.id, p.id);
                 trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
-                // Clear cached choices after pick to keep result stable
-                try { delete b._defenseChoices; } catch (_) {}
-                try {
-                  if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
-                    delete UI._battleChoiceCache.defense[String(b.id)];
-                  }
-                } catch (_) {}
+                // Stage 7.15 owns scripted choices through its waiting-for-reply phase.
+                if (!stage715RayhanDemo) {
+                  try { delete b._defenseChoices; } catch (_) {}
+                  try {
+                    if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
+                      delete UI._battleChoiceCache.defense[String(b.id)];
+                    }
+                  } catch (_) {}
+                }
               };
             }
            if (p && p.id != null) {

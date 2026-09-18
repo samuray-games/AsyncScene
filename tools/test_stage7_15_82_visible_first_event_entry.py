@@ -24,6 +24,11 @@ assert 'M83' not in source
 assert 'function renderFirstEventEntry(' in events
 assert 'stage715FirstEventEntry' in events
 assert 'id="eventsHeader"' in index and 'id="eventsBody"' in index
+assert 'function setStage715EventsPanelVisible(visible)' in source
+assert 'setStage715EventsPanelVisible(false)' in source
+assert 'setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true))' in source
+reveal_body = source[source.index('function revealPanelOnce'):source.index('function setStage715EventsPanelVisible')]
+assert 'if (panelKey === "events") setStage715EventsPanelVisible(true);' in reveal_body
 
 node_test = r'''
 const fs = require("fs");
