@@ -201,6 +201,8 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/conflict/conflict-core.js",
