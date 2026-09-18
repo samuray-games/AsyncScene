@@ -74,6 +74,8 @@ require('function revealNastyaBattle' in controller_js and
 require('b.sysAnnounced !== true' in core_js and
         'b.sysAnnounced !== true' in CORE_DEPLOYED.read_text(encoding="utf-8"),
         "crowd system announcement must be idempotent across repeated ownership checks")
+require(controller_js.count('battle.defense = Object.assign({}, battle.defense || {}, { stage715DisplayText: choice.stage715DisplayText });') >= 2,
+        "Nastya canonical selected text must survive core resolve rehydration")
 require('addEventListener("click", (e) =>' in ui_js and
         '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
         '}, true);' in ui_js,

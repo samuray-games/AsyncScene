@@ -3978,6 +3978,10 @@ window.Game = window.Game || {};
     const conflict = G.Conflict;
     if (!conflict || typeof conflict.pickDefense !== "function") return false;
     const result = conflict.pickDefense(battle.id, choice.id);
+    if (choice.stage715DisplayText) {
+      battle.meta.stage715SelectedDefenseText = choice.stage715DisplayText;
+      battle.defense = Object.assign({}, battle.defense || {}, { stage715DisplayText: choice.stage715DisplayText });
+    }
     saveState();
     render();
     return result || true;
