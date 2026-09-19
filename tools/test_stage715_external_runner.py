@@ -19,6 +19,13 @@ require('REMOTE_SHA="$(git rev-parse FETCH_HEAD^{commit})"')
 require('git worktree add --detach "$WORKTREE" "$REMOTE_SHA"')
 require('[[ "$(git -C "$WORKTREE" rev-parse HEAD)" == "$REMOTE_SHA" ]]')
 require('[[ -z "$(git -C "$WORKTREE" status --porcelain)" ]]')
+require('PORT="${STAGE715_PORT:-}"')
+require('s.bind(("127.0.0.1", 0))')
+require('exec python3 -u dev/dev-server.py "$PORT"')
+require('if ! kill -0 "$SERVER_PID"')
+require('wait "$SERVER_PID"')
+require('lsof -nP -iTCP:"$PORT" -sTCP:LISTEN')
+require('curl -fsS --max-time 2')
 if 'invoking checkout is not PR #403 candidate head' in SCRIPT:
     raise SystemExit("FAIL: launcher still requires invoking checkout to equal candidate")
 if 'EXPECTED_SHA="30a52505e95aff36dacad201ce35dbf07ddefbda"' in SCRIPT:

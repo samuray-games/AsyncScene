@@ -9,8 +9,9 @@ EVIDENCE_ROOT="${STAGE715_EVIDENCE_ROOT:-$ROOT/output/stage715-external-acceptan
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 EVIDENCE_DIR="$EVIDENCE_ROOT/$RUN_ID"
 WORKTREE="$(mktemp -d "${TMPDIR:-/tmp}/asyncscene-stage715-candidate.XXXXXX")"
-PORT="${STAGE715_PORT:-8097}"
+PORT="${STAGE715_PORT:-}"
 SERVER_PID=""
+SERVER_EXIT_STATUS="unknown"
 
 cleanup() {
   set +e
@@ -69,13 +70,45 @@ CRITICAL=(
   printf '}}\n'
 } > "$EVIDENCE_DIR/candidate-hashes.json"
 
-(cd "$WORKTREE/AsyncScene/Web" && python3 dev/dev-server.py "$PORT") > "$EVIDENCE_DIR/server.log" 2>&1 &
+if [[ -z "$PORT" ]]; then
+  PORT="$(python3 -c 'import socket; s=socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()')"
+fi
+[[ "$PORT" =~ ^[1-9][0-9]{1,4}$ ]] || { echo "FAIL: selected server port is invalid: $PORT" >&2; exit 26; }
+printf '%s\n' "$PORT" > "$EVIDENCE_DIR/server.requested-port"
+
+(cd "$WORKTREE/AsyncScene/Web" && exec python3 -u dev/dev-server.py "$PORT") > "$EVIDENCE_DIR/server.log" 2>&1 &
 SERVER_PID=$!
-for _ in $(seq 1 60); do
-  if curl -fsS "http://127.0.0.1:$PORT/index.html" >/dev/null 2>&1; then break; fi
+printf '%s\n' "$SERVER_PID" > "$EVIDENCE_DIR/server.pid"
+printf '%s\n' "(cd $WORKTREE/AsyncScene/Web && exec python3 -u dev/dev-server.py $PORT)" > "$EVIDENCE_DIR/server.command"
+READY=0
+for _ in $(seq 1 100); do
+  if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    set +e
+    wait "$SERVER_PID"
+    SERVER_EXIT_STATUS=$?
+    set -e
+    break
+  fi
+  if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/index.html" -o "$EVIDENCE_DIR/readiness-index.html" 2>"$EVIDENCE_DIR/readiness-curl.last-error"; then
+    READY=1
+    break
+  fi
   sleep 0.2
 done
-curl -fsS "http://127.0.0.1:$PORT/index.html" >/dev/null || { echo "FAIL: local HTTP server did not become ready" >&2; exit 26; }
+printf '%s\n' "$PORT" > "$EVIDENCE_DIR/server.port"
+if [[ "$READY" != "1" ]]; then
+  set +e
+  if [[ "$SERVER_EXIT_STATUS" == "unknown" ]] && ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    wait "$SERVER_PID"
+    SERVER_EXIT_STATUS=$?
+  fi
+  ps -o pid=,ppid=,stat=,command= -p "$SERVER_PID" > "$EVIDENCE_DIR/server.process-state.txt" 2>&1
+  lsof -nP -iTCP:"$PORT" -sTCP:LISTEN > "$EVIDENCE_DIR/server.port-state.txt" 2>&1
+  printf '%s\n' "$SERVER_EXIT_STATUS" > "$EVIDENCE_DIR/server.exit-status"
+  set -e
+  echo "FAIL: local HTTP server did not become ready (pid=$SERVER_PID port=$PORT exit=$SERVER_EXIT_STATUS)" >&2
+  exit 26
+fi
 
 for rel in "${CRITICAL[@]}"; do
   served="$EVIDENCE_DIR/served-${rel//\//_}"
