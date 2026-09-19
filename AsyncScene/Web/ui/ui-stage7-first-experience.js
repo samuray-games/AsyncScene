@@ -3217,6 +3217,25 @@ window.Game = window.Game || {};
     } catch (_) {}
   }
 
+  function resetStage715FreshState(nextContext) {
+    const storage = stage715Storage();
+    if (storage) {
+      try { storage.removeItem(STAGE715_STORAGE_KEY); } catch (_) {}
+    }
+    const states = [stateFor(nextContext), G.__S, G.UI && G.UI.S];
+    states.forEach((state) => {
+      if (!state || typeof state !== "object") return;
+      if (state.flags && typeof state.flags === "object") {
+        Object.keys(state.flags).forEach((key) => {
+          if (key === DEMO_STATE_FLAG || key.startsWith("stage715")) delete state.flags[key];
+        });
+      }
+      if (Array.isArray(state.battles)) {
+        state.battles = state.battles.filter((battle) => !(battle && battle.meta && battle.meta.stage715DemoBattle === true));
+      }
+    });
+  }
+
   function initializeStage715InitialRepBaseline(state, mode) {
     if (mode !== "fresh" || !state) return false;
     state.flags = state.flags || {};
@@ -4727,7 +4746,9 @@ window.Game = window.Game || {};
   }
 
   function claimFreshStart(nextContext) {
-    return isActive(nextContext) ? start(nextContext, "fresh") : { claimed: false };
+    if (!isActive(nextContext)) return { claimed: false };
+    resetStage715FreshState(nextContext);
+    return start(nextContext, "fresh");
   }
 
   function claimResume(nextContext) {

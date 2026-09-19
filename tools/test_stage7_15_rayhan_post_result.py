@@ -23,4 +23,8 @@ require(source.count('phase = "rayhan_win_waiting_reply";') == 1, "Rayhan victor
 require(source.count('state.flags.stage715RayhanRewardChatShown !== true') == 1, "post-result chat must be exactly-once guarded")
 require('if (battleOutcome(battle) === "win") return battle;' in source, "win result must be read from the rendered battle mirror")
 require('stage715RayhanRewardChatShown' in source and 'showNastyaAfterRayhanReply();' in source, "Nastya handoff must remain reply-gated")
+require('function resetStage715FreshState(nextContext)' in source, "Fresh Start must clear persisted Stage 7.15 state")
+require('storage.removeItem(STAGE715_STORAGE_KEY)' in source, "Fresh Start must remove the persisted Stage 7.15 snapshot")
+require('key === DEMO_STATE_FLAG || key.startsWith("stage715")' in source, "Fresh Start must clear stale Stage 7.15 flags")
+require('resetStage715FreshState(nextContext);' in source, "Fresh Start reset must run before the new intro")
 print("PASS_STAGE7_15_RAYHAN_POST_RESULT_CONTRACT")
