@@ -4364,6 +4364,17 @@ window.Game = window.Game || {};
     delete cooldowns[OLEG_DM_ID];
     const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
     if (!battle || !battle.id) return false;
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: "stage7_15_oleg_red_call",
+      text: OLEG_BATTLE_PROMPT,
+      displayText: OLEG_BATTLE_PROMPT,
+      color: "r",
+      _color: "r",
+      type: "where",
+      qtype: "where",
+      group: "where",
+    });
+    battle.attackHidden = true;
     battle.meta = Object.assign({}, battle.meta || {}, {
       stage715DemoBattle: true,
       stage715BattleId: OLEG_ESCAPE_BATTLE_ID,
