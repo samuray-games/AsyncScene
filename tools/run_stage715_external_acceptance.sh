@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-EXPECTED_SHA="30a52505e95aff36dacad201ce35dbf07ddefbda"
 ROOT="$(git rev-parse --show-toplevel)"
+REMOTE_NAME="${STAGE715_REMOTE_NAME:-origin}"
+PR_NUMBER="403"
+PR_REF="refs/pull/${PR_NUMBER}/head"
 EVIDENCE_ROOT="${STAGE715_EVIDENCE_ROOT:-$ROOT/output/stage715-external-acceptance}"
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 EVIDENCE_DIR="$EVIDENCE_ROOT/$RUN_ID"
@@ -18,12 +20,17 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 mkdir -p "$EVIDENCE_DIR"
-printf '%s\n' "candidate=$EXPECTED_SHA" "root=$ROOT" "worktree=$WORKTREE" "evidence=$EVIDENCE_DIR" > "$EVIDENCE_DIR/runner-start.txt"
+INVOKING_SHA="$(git rev-parse HEAD)"
+git fetch --no-tags "$REMOTE_NAME" "$PR_REF" > "$EVIDENCE_DIR/fetch.log" 2>&1 || {
+  echo "FAIL: unable to fetch current PR #$PR_NUMBER head from $REMOTE_NAME" >&2
+  exit 20
+}
+REMOTE_SHA="$(git rev-parse FETCH_HEAD^{commit})"
+[[ "$REMOTE_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "FAIL: fetched PR #$PR_NUMBER head is not a full commit SHA" >&2; exit 21; }
+printf '%s\n' "pr=$PR_NUMBER" "remote=$REMOTE_NAME" "remoteRef=$PR_REF" "invokingCheckout=$INVOKING_SHA" "candidate=$REMOTE_SHA" "root=$ROOT" "worktree=$WORKTREE" "evidence=$EVIDENCE_DIR" > "$EVIDENCE_DIR/runner-start.txt"
 
-[[ "$(git rev-parse HEAD)" == "$EXPECTED_SHA" ]] || { echo "FAIL: invoking checkout is not PR #403 candidate head" >&2; exit 20; }
-
-git worktree add --detach "$WORKTREE" "$EXPECTED_SHA" >/dev/null
-[[ "$(git -C "$WORKTREE" rev-parse HEAD)" == "$EXPECTED_SHA" ]] || { echo "FAIL: isolated checkout SHA mismatch" >&2; exit 22; }
+git worktree add --detach "$WORKTREE" "$REMOTE_SHA" >/dev/null
+[[ "$(git -C "$WORKTREE" rev-parse HEAD)" == "$REMOTE_SHA" ]] || { echo "FAIL: isolated checkout SHA mismatch" >&2; exit 22; }
 [[ -z "$(git -C "$WORKTREE" status --porcelain)" ]] || { echo "FAIL: isolated checkout is dirty" >&2; exit 23; }
 [[ -d "$WORKTREE/AsyncScene/Web" && -f "$WORKTREE/AsyncScene/Web/index.html" ]] || { echo "FAIL: wrong AsyncScene document root" >&2; exit 24; }
 
@@ -51,7 +58,7 @@ CRITICAL=(
   "AsyncScene/Web/conflict/conflict-api.js"
 )
 {
-  printf '{"candidateCommit":"%s","documentRoot":"%s","files":{' "$EXPECTED_SHA" "$WORKTREE/AsyncScene/Web"
+  printf '{"candidateCommit":"%s","documentRoot":"%s","files":{' "$REMOTE_SHA" "$WORKTREE/AsyncScene/Web"
   first=1
   for rel in "${CRITICAL[@]}"; do
     [[ $first -eq 1 ]] || printf ','
@@ -77,7 +84,7 @@ for rel in "${CRITICAL[@]}"; do
 done
 
 {
-  printf '{"candidateCommit":"%s","files":{' "$EXPECTED_SHA"
+  printf '{"candidateCommit":"%s","files":{' "$REMOTE_SHA"
   first=1
   for rel in "${CRITICAL[@]}"; do
     [[ $first -eq 1 ]] || printf ','
@@ -89,7 +96,7 @@ done
   printf '}}\n'
 } > "$EVIDENCE_DIR/served-hashes.json"
 
-export STAGE715_CANDIDATE_SHA="$EXPECTED_SHA"
+export STAGE715_CANDIDATE_SHA="$REMOTE_SHA"
 export STAGE715_CANDIDATE_ROOT="$WORKTREE/AsyncScene/Web"
 export STAGE715_EVIDENCE_DIR="$EVIDENCE_DIR"
 export STAGE715_START_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

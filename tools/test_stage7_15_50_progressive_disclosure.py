@@ -62,6 +62,10 @@ allowed = {
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_82_visible_first_event_entry.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/run_stage715_external_acceptance.sh",
+    "tools/run_stage715_external_acceptance.mjs",
+    "tools/test_stage715_external_runner.py",
+    "tools/test_stage7_15_boot_mirror_contract.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 

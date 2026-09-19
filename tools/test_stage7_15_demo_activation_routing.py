@@ -160,6 +160,10 @@ allowed = {
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/run_stage715_external_acceptance.sh",
+    "tools/run_stage715_external_acceptance.mjs",
+    "tools/test_stage715_external_runner.py",
+    "tools/test_stage7_15_boot_mirror_contract.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 
