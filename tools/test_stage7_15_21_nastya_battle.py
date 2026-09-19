@@ -32,7 +32,7 @@ for text in (
     'stage715_nastya_battle_started',
     'stage715_nastya_battle_result',
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
-    'G.Conflict.startCrowdVote',
+    'stage715NastyaVote = { a: 2, b: 3, cap: 5 }',
     'stage715NastyaPayoff',
     'stage715NastyaWon = true',
     'const nastyaWon = battleOutcome(nastya) === "win"',
@@ -46,6 +46,9 @@ for text in (
     'if (p.stage715DisplayText) return String(p.stage715DisplayText);',
     'stage715NastyaPayoff',
     'stage715-nastya-tone-revealed',
+    'b.meta.stage715NastyaBattle === true && p.stage715DisplayText',
+    'b.meta.stage715SelectedDefenseText = p.stage715DisplayText',
+    'stage715SelectedDefenseText',
 ):
     require(text in battle_js, f"missing Nastya battle UI contract: {text}")
 

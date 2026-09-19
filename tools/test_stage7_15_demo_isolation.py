@@ -64,6 +64,8 @@ allowed = {
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
     "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "AsyncScene/Web/ui/ui-boot.js",
@@ -92,6 +94,16 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
+    "tools/run_stage715_external_acceptance.sh",
+    "tools/run_stage715_external_acceptance.mjs",
+    "tools/test_stage715_external_runner.py",
+    "tools/test_stage7_15_boot_mirror_contract.py",
+    "tools/stage715_external_server.py",
+    "tools/test_stage7_15_initial_greeting_corridor.py",
+    "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

@@ -21,16 +21,23 @@ for path in (STAGE, STAGE_DOCS, CORE, CORE_DOCS):
 
 stage = STAGE.read_text(encoding="utf-8")
 core = CORE.read_text(encoding="utf-8")
+require(stage.count('id: "stage7_15_oleg_red_call"') >= 2, "Oleg battle and escape must install the canonical attack prompt")
 for text in (
     'const OLEG_BATTLE_ID = "stage7_15_oleg_battle"',
     'const OLEG_BATTLE_LINE = "слыш ты, совсем нюх потерялся да? надо тебя на место поставить."',
     'const OLEG_BATTLE_PROMPT = "Где будем разбираться?"',
+    'id: "stage7_15_oleg_red_call"',
+    'text: OLEG_BATTLE_PROMPT',
+    'color: "r"',
+    'group: "where"',
     'Возможно, там, где Подворотня…',
     'Думаю, Райхан…',
     'Кажется, нет…',
     'const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?"',
     'stage715OlegScriptedLoss: true',
     'conflict.incoming(OLEG_DM_ID, { pinned: true })',
+    'battle.attack = Object.assign({}, battle.attack || {}, {',
+    'battle.attackHidden = true;',
     'openOlegDmAfterLoss();',
     'stage715_oleg_battle_started',
     'stage715_oleg_battle_result',

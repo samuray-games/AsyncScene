@@ -207,6 +207,7 @@
   function applyNpcVotesToBattle(battle) {
     try {
        if (!isDrawWithCrowd(battle)) return 0;
+       if (battle.meta && battle.meta.stage715NastyaVote) return 0;
       if (!Game.NPC || typeof Game.NPC.getAll !== "function" || typeof Game.NPC.voteInDraw !== "function") return 0;
       const Econ = getEcon();
       if (!Econ || typeof Econ.transferPoints !== "function") return 0;

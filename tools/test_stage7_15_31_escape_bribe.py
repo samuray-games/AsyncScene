@@ -47,6 +47,10 @@ for text in (
     'stage715OlegEscape: true',
     'Core.escape(battle.id, { mode: "smyt", cost: 1 })',
     'const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 }',
+    'const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;',
+    'const mirroredVoteBattles = [battle, activeBattle]',
+    'entry.escapeVote.scriptedVotes = scriptedVotes;',
+    'entry.escapeVote.cap = 5;',
     'transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id',
     'stage715_escape_started',
     'stage715_escape_failed',
@@ -64,6 +68,21 @@ require(stage.count('telemetry("stage715_escape_failed")') == 1, "escape failed 
 require(stage.count('telemetry("stage715_escape_success")') == 1, "escape success telemetry must be controller-owned once")
 require('stage715OlegEscapeAttempts = attempt' in stage, "escape attempt count must persist in scenario state")
 require('openNextScriptedFlow("escape_success")' in stage, "success must release the next scripted flow")
+require('const states = id === FIRST_BATTLE_ID' in stage and '[G.__S, stateFor(), G.UI && G.UI.S]' in stage,
+        "Stage 7.15 battle lookup must cover the runtime render state")
+require('if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;' in stage,
+        "escape watcher must select the live battle carrying the active vote")
+require('flatMap((store) => Array.isArray(store && store.battles)' in stage,
+        "escape scripted vote must mirror every runtime battle store")
+require('if (previous.status === "failed")' in stage,
+        "failed escape must reset the mirrored battle before retry")
+for text in (
+    'entry.resolved = false;',
+    'entry.status = "pickDefense";',
+    'entry.escapeVote = null;',
+    'entry.attackHidden = true;',
+):
+    require(text in stage, f"escape retry reset missing: {text}")
 
 for text in (
     'function applyScriptedEscapeVote(b, v)',
@@ -120,12 +139,22 @@ allowed = {
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/run_stage715_external_acceptance.sh",
+    "tools/run_stage715_external_acceptance.mjs",
+    "tools/test_stage715_external_runner.py",
+    "tools/test_stage7_15_boot_mirror_contract.py",
+    "tools/stage715_external_server.py",
+    "tools/test_stage7_15_initial_greeting_corridor.py",
+    "tools/test_stage7_15_22_oleg_battle.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

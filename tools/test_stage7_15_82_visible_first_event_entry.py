@@ -19,11 +19,17 @@ index = INDEX.read_text(encoding="utf-8")
 assert 'function settleFirstIndependentBattleCompletion()' in source
 assert 'stage715FirstIndependentBattleComplete' in source
 settle_body = source[source.index('function settleFirstIndependentBattleCompletion'):source.index('function watchFirstIndependentBattle')]
-assert 'revealEventsPanel' not in settle_body, "M82 must not treat panel reveal as the entry"
+assert 'revealEventsPanel();' in settle_body, "first independent victory must reveal the M82 Events surface"
+assert 'У нас тут стычка!!! Выбери за кого ты в событиях.' in settle_body, "first event eligibility message must be canonical"
 assert 'M83' not in source
 assert 'function renderFirstEventEntry(' in events
 assert 'stage715FirstEventEntry' in events
 assert 'id="eventsHeader"' in index and 'id="eventsBody"' in index
+assert 'function setStage715EventsPanelVisible(visible)' in source
+assert 'setStage715EventsPanelVisible(false)' in source
+assert 'setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true))' in source
+reveal_body = source[source.index('function revealPanelOnce'):source.index('function setStage715EventsPanelVisible')]
+assert 'if (panelKey === "events") setStage715EventsPanelVisible(true);' in reveal_body
 
 node_test = r'''
 const fs = require("fs");

@@ -146,7 +146,20 @@
   }
 
   function isStage715RayhanScriptedBattle(battle) {
-    return !!(battle && battle.meta && battle.meta.stage715RayhanScripted === true);
+    return !!(battle
+      && ((battle.meta && battle.meta.stage715RayhanScripted === true)
+        || (battle.meta && battle.meta.stage715BattleId === "stage7_15_first_battle")
+        || battle.battleId === "stage7_15_first_battle"
+        || battle.id === "stage7_15_first_battle"));
+  }
+
+  function isStage715NastyaScriptedBattle(battle) {
+    return !!(battle
+      && ((battle.meta && battle.meta.stage715NastyaBattle === true)
+        || (battle.meta && battle.meta.stage715BattleId === "stage7_15_nastya_battle")
+        || battle.battleId === "stage7_15_nastya_battle"
+        || battle.id === "stage7_15_nastya_battle"
+        || (battle.attack && battle.attack.text === "Ты на проблемы нарываешься?")));
   }
 
   function stage715RayhanDomElementInfo(element) {
@@ -506,6 +519,18 @@
    body.__argClicksBound = true;
    body.addEventListener("click", (e) => {
      const chip = e && e.target && e.target.closest
+       ? e.target.closest(".chip[data-action='pickDefense'][data-arg-id]")
+       : null;
+     const card = chip && chip.closest ? chip.closest(".battleCard") : null;
+     if (!chip || !card || !String(card.textContent || "").includes("Ты на проблемы нарываешься?")) return;
+     const controller = Game && Game.Stage715Demo;
+     if (!controller || typeof controller.handleNastyaDefenseChoice !== "function") return;
+     stop(e);
+     const result = controller.handleNastyaDefenseChoice(chip.dataset.battleId, chip.dataset.argId);
+     trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
+   }, true);
+   body.addEventListener("click", (e) => {
+     const chip = e && e.target && e.target.closest
        ? e.target.closest(".chip[data-action][data-arg-id]")
        : null;
      if (!chip || !body.contains(chip)) return;
@@ -534,6 +559,13 @@
      }
 
      if (action === "pickDefense") {
+       const cardText = card ? String(card.textContent || "") : "";
+       if (battleId === "stage7_15_first_battle"
+         || battleId === "stage7_15_nastya_battle"
+         || cardText.includes("Ты на проблемы нарываешься?")) {
+         stop(e);
+         return;
+       }
        const fn = (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
          ? Game.Conflict.pickDefense
          : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")
@@ -1067,7 +1099,14 @@
       dRow.className = "choiceRow";
       const d = document.createElement("div");
       d.className = clsForColor(battle.defense.color);
-      d.textContent = argCanonUiText(battle.defense, "A");
+      const stage715NastyaResolvedText = battle.attack
+        && battle.attack.text === "Ты на проблемы нарываешься?"
+        && (battle.result === "win" || battle.status === "finished")
+        ? "Кажется, нет…"
+        : null;
+      d.textContent = battle.meta && battle.meta.stage715SelectedDefenseText
+        ? String(battle.meta.stage715SelectedDefenseText)
+        : (stage715NastyaResolvedText || argCanonUiText(battle.defense, "A"));
       if (!battle.defense.color) {
         d.className = clsForColor(null, true);
         d.style.color = "rgba(255,255,255,.92)";
@@ -2627,6 +2666,7 @@ UI.renderBattles = () => {
         const stage715NastyaPayoff = b && b.meta && b.meta.stage715NastyaPayoff
           ? b.meta.stage715NastyaPayoff
           : null;
+        const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
 
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
@@ -2651,7 +2691,10 @@ UI.renderBattles = () => {
           const nastyaRevealed = !!(stage715NastyaPayoff
             && stage715NastyaPayoff.status === "revealed"
             && b.attack.color);
-          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed;
+          const stage715RayhanRevealed = !!(stage715RayhanDemo
+            && b.meta
+            && b.meta.stage715RayhanArgumentRevealed === true);
+          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
@@ -2974,7 +3017,6 @@ UI.renderBattles = () => {
           let choices = null;
           const stage7Controller = Game && Game.Stage7FirstExperience;
           const stage715DemoController = Game && Game.Stage715Demo;
-          const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
           const restoredPayChoices = stage7Controller
             && typeof stage7Controller.choosePayDefenseChoices === "function"
             ? stage7Controller.choosePayDefenseChoices(b.id)
@@ -3002,10 +3044,15 @@ UI.renderBattles = () => {
             }
           }
 
+          const stage715NastyaDemo = isStage715NastyaScriptedBattle(b);
           const pickDefenseFn = stage715RayhanDemo
             && stage715DemoController
             && typeof stage715DemoController.handleRayhanDefenseChoice === "function"
             ? stage715DemoController.handleRayhanDefenseChoice
+            : stage715NastyaDemo
+              && stage715DemoController
+              && typeof stage715DemoController.handleNastyaDefenseChoice === "function"
+              ? stage715DemoController.handleNastyaDefenseChoice
             : (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
             ? Game.Conflict.pickDefense
             : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")
@@ -3070,13 +3117,19 @@ UI.renderBattles = () => {
                 _captureBattleFocus(b.id, card);
                 const result = pickDefenseFn.call(Game.Conflict, b.id, p.id);
                 trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
-                // Clear cached choices after pick to keep result stable
-                try { delete b._defenseChoices; } catch (_) {}
-                try {
-                  if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
-                    delete UI._battleChoiceCache.defense[String(b.id)];
-                  }
-                } catch (_) {}
+                if (b.meta && b.meta.stage715NastyaBattle === true && p.stage715DisplayText) {
+                  b.defense = Object.assign({}, b.defense || {}, { stage715DisplayText: p.stage715DisplayText });
+                  b.meta.stage715SelectedDefenseText = p.stage715DisplayText;
+                }
+                // Stage 7.15 owns scripted choices through its waiting-for-reply phase.
+                if (!stage715RayhanDemo) {
+                  try { delete b._defenseChoices; } catch (_) {}
+                  try {
+                    if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
+                      delete UI._battleChoiceCache.defense[String(b.id)];
+                    }
+                  } catch (_) {}
+                }
               };
             }
            if (p && p.id != null) {

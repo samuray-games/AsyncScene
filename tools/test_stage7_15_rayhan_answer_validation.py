@@ -5,6 +5,8 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 DEPLOYED = ROOT / "docs/ui/ui-stage7-first-experience.js"
+BATTLES = ROOT / "AsyncScene/Web/ui/ui-battles.js"
+BATTLES_DOCS = ROOT / "docs/ui/ui-battles.js"
 
 
 def require(condition, message):
@@ -13,8 +15,11 @@ def require(condition, message):
 
 
 require(SOURCE.read_bytes() == DEPLOYED.read_bytes(), "Stage 7.15 controller mirrors differ")
+require(BATTLES.read_bytes() == BATTLES_DOCS.read_bytes(), "Battle UI mirrors differ")
 subprocess.run(["node", "--check", str(SOURCE)], cwd=ROOT, check=True)
+subprocess.run(["node", "--check", str(BATTLES)], cwd=ROOT, check=True)
 source_text = SOURCE.read_text(encoding="utf-8")
+battles_text = BATTLES.read_text(encoding="utf-8")
 handler = source_text[source_text.index("function handleRayhanDefenseChoice") : source_text.index("function isChoiceText")]
 require("conflict.pickDefense" in handler, "Rayhan choice must use the existing defense resolver")
 require('battle.status = "finished"' not in handler, "Rayhan handler must not force-finish every answer")
@@ -22,6 +27,17 @@ require('battle.result = "win"' not in handler, "Rayhan handler must not force a
 require("G.Events.addEvent" in source_text, "wrong answer must create the standard event card")
 require("G.Events.finalizeOpenEventNow" in source_text, "event must resolve through the existing event resolver")
 require("RAYHAN_EVENT_MIN_DELAY_MS" in source_text and "RAYHAN_EVENT_MAX_DELAY_MS" in source_text, "event votes need a 3-4 second schedule")
+require("battle.meta.stage715RayhanArgumentRevealed = true" in handler, "wrong Rayhan answer must reveal the scripted argument color")
+wrong_handler = handler[handler.index("if (isWrongAnswer)"):handler.index("} else {", handler.index("if (isWrongAnswer)"))]
+require("battle._defenseChoices = [choice]" in wrong_handler, "wrong Rayhan answer must retain only the selected scripted choice")
+require("stage715RayhanAnswerPending" in handler, "wrong Rayhan answer must enter the waiting-for-reply state")
+require("if (!stage715RayhanDemo)" in battles_text and "Stage 7.15 owns scripted choices through its waiting-for-reply phase." in battles_text,
+        "generic battle choice-cache cleanup must not overwrite scripted Rayhan choices")
+require('battle.meta && battle.meta.stage715BattleId === "stage7_15_first_battle"' in battles_text
+        and 'battle.battleId === "stage7_15_first_battle"' in battles_text
+        and 'battle.id === "stage7_15_first_battle"' in battles_text,
+        "Rayhan render clones must remain on the scripted controller path")
+require("stage715RayhanArgumentRevealed" in battles_text, "battle UI must render the revealed scripted Rayhan color")
 require("watchFirstBattle()" not in source_text, "first Rayhan unlock must not call a removed watcher before render")
 
 node_test = r'''

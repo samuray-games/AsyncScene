@@ -1,0 +1,88 @@
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CORE = ROOT / "AsyncScene/Web/conflict/conflict-core.js"
+CORE_DEPLOYED = ROOT / "docs/conflict/conflict-core.js"
+API = ROOT / "AsyncScene/Web/conflict/conflict-api.js"
+API_DEPLOYED = ROOT / "docs/conflict/conflict-api.js"
+CONTROLLER = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
+CONTROLLER_DEPLOYED = ROOT / "docs/ui/ui-stage7-first-experience.js"
+BATTLES_UI = ROOT / "AsyncScene/Web/ui/ui-battles.js"
+BATTLES_UI_DEPLOYED = ROOT / "docs/ui/ui-battles.js"
+
+
+def require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+core = CORE.read_bytes()
+core_deployed = CORE_DEPLOYED.read_bytes()
+api = API.read_bytes()
+api_deployed = API_DEPLOYED.read_bytes()
+controller = CONTROLLER.read_bytes()
+controller_deployed = CONTROLLER_DEPLOYED.read_bytes()
+battles_ui = BATTLES_UI.read_bytes()
+battles_ui_deployed = BATTLES_UI_DEPLOYED.read_bytes()
+
+require("function applyScriptedNastyaVote(b, v)" in core.decode("utf-8") and
+        "function applyScriptedNastyaVote(b, v)" in core_deployed.decode("utf-8"),
+        "crowd core scripted vote wiring is not mirrored")
+require('if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api.decode("utf-8") and
+        'if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api_deployed.decode("utf-8"),
+        "crowd API scripted vote guard is not mirrored")
+require(controller == controller_deployed, "Stage 7.15 controller mirrors differ")
+require(battles_ui == battles_ui_deployed, "battle UI mirrors differ")
+
+core_js = core.decode("utf-8")
+api_js = api.decode("utf-8")
+controller_js = controller.decode("utf-8")
+
+for text in (
+    "function applyScriptedNastyaVote(b, v)",
+    "b.meta.stage715NastyaVote",
+    "v._stage715NastyaVoteApplied",
+    'v.stage715VoteOwner = "stage715_nastya"',
+    "applyScriptedNastyaVote(b, b.crowd)",
+    "stage715NastyaVote: { a: 2, b: 3, cap: 5 }",
+    "function handleNastyaDefenseChoice(battleId, choiceId)",
+    "battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 }",
+    'capSource = "stage715_nastya"',
+):
+    require(text in core_js or text in controller_js, f"missing scripted Nastya vote contract: {text}")
+
+require('if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api_js,
+        "generic NPC vote generator must not own the scripted Nastya vote")
+require(core_js.count("v._stage715NastyaVoteApplied = true;") == 1,
+        "scripted Nastya votes must apply exactly once")
+require('v.votesA = votesA;' in core_js and 'v.votesB = votesB;' in core_js,
+        "scripted Nastya tally must remain stable across renders")
+require('v.cap = votesA + votesB;' in core_js,
+        "scripted Nastya vote must use its canonical five-vote cap")
+require('v.stage715VoteOwner = "stage715_nastya"' in core_js,
+        "scripted Nastya vote must record deterministic ownership")
+ui_js = battles_ui.decode("utf-8")
+require('battle.attack.text === "Ты на проблемы нарываешься?"' in ui_js,
+        "Nastya render clones must remain on the scripted controller path")
+require('cardText.includes("Ты на проблемы нарываешься?")' in ui_js and
+        'battleId === "stage7_15_nastya_battle"' in ui_js,
+        "generic delegated defense clicks must not re-enter the Nastya vote")
+require('function revealNastyaBattle' in controller_js and
+        'try { G.Conflict.startCrowdVote(battle.id); } catch (_) {}' not in controller_js,
+        "Nastya reveal must not recreate an already-owned crowd vote")
+require('b.sysAnnounced !== true' in core_js and
+        'b.sysAnnounced !== true' in CORE_DEPLOYED.read_text(encoding="utf-8"),
+        "crowd system announcement must be idempotent across repeated ownership checks")
+require(controller_js.count('battle.defense = Object.assign({}, battle.defense || {}, { stage715DisplayText: choice.stage715DisplayText });') >= 2,
+        "Nastya canonical selected text must survive core resolve rehydration")
+require('stage715NastyaResolvedText' in ui_js and
+        '(battle.result === "win" || battle.status === "finished")' in ui_js and
+        'Кажется, нет…' in ui_js,
+        "Nastya resolved UI must preserve the canonical visible answer")
+require('addEventListener("click", (e) =>' in ui_js and
+        '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
+        '}, true);' in ui_js,
+        "Nastya scripted defense must intercept clone clicks before generic handlers")
+
+print("PASS_STAGE7_15_23_NASTYA_CROWD_VOTE_CONTRACT")

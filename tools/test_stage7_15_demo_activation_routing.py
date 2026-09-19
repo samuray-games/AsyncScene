@@ -152,11 +152,22 @@ allowed = {
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
+    "tools/test_stage7_15_tone_first_battle.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
+    "tools/test_stage7_15_82_visible_first_event_entry.py",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_rayhan_reveal.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/run_stage715_external_acceptance.sh",
+    "tools/run_stage715_external_acceptance.mjs",
+    "tools/test_stage715_external_runner.py",
+    "tools/test_stage7_15_boot_mirror_contract.py",
+    "tools/stage715_external_server.py",
+    "tools/test_stage7_15_initial_greeting_corridor.py",
+    "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 
