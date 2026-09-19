@@ -4603,6 +4603,26 @@ window.Game = window.Game || {};
     if (previous.status === "voting" || previous.status === "success") return true;
     const attempt = Number.isFinite(previous.attempt) ? (previous.attempt | 0) + 1 : 1;
     const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 };
+    const mirroredBattles = [battle]
+      .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
+      .filter((entry, index, all) => entry
+        && entry.meta
+        && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
+        && all.indexOf(entry) === index);
+    if (previous.status === "failed") {
+      mirroredBattles.forEach((entry) => {
+        entry.resolved = false;
+        entry.finished = false;
+        entry.status = "pickDefense";
+        entry.result = null;
+        entry.resultLine = null;
+        entry.note = null;
+        entry.inlineNote = null;
+        entry.draw = false;
+        entry.escapeVote = null;
+        entry.attackHidden = true;
+      });
+    }
     const Core = G._ConflictCore || G.ConflictCore;
     if (!Core || typeof Core.escape !== "function") return false;
     const started = Core.escape(battle.id, { mode: "smyt", cost: 1 });
@@ -4616,13 +4636,13 @@ window.Game = window.Game || {};
       repSettled: false,
       scriptedVotes,
     };
-    const mirroredBattles = [battle, activeBattle]
+    const mirroredVoteBattles = [battle, activeBattle]
       .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
       .filter((entry, index, all) => entry
         && entry.meta
         && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
         && all.indexOf(entry) === index);
-    mirroredBattles.forEach((entry) => {
+    mirroredVoteBattles.forEach((entry) => {
       if (entry.escapeVote) {
         entry.escapeVote.scriptedVotes = scriptedVotes;
         entry.escapeVote.cap = 5;
