@@ -4718,6 +4718,7 @@ window.Game = window.Game || {};
   function start(nextContext, mode) {
     clearTimers();
     context = nextContext || {};
+    if (mode === "fresh") resetStage715FreshState(context);
     active = true;
     phase = restorePhase(context, mode);
     const state = stateFor(context);
