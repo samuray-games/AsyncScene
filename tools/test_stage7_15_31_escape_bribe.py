@@ -47,6 +47,10 @@ for text in (
     'stage715OlegEscape: true',
     'Core.escape(battle.id, { mode: "smyt", cost: 1 })',
     'const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 }',
+    'const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;',
+    'const mirroredBattles = [battle, activeBattle].filter',
+    'entry.escapeVote.scriptedVotes = scriptedVotes;',
+    'entry.escapeVote.cap = 5;',
     'transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id',
     'stage715_escape_started',
     'stage715_escape_failed',
@@ -64,6 +68,10 @@ require(stage.count('telemetry("stage715_escape_failed")') == 1, "escape failed 
 require(stage.count('telemetry("stage715_escape_success")') == 1, "escape success telemetry must be controller-owned once")
 require('stage715OlegEscapeAttempts = attempt' in stage, "escape attempt count must persist in scenario state")
 require('openNextScriptedFlow("escape_success")' in stage, "success must release the next scripted flow")
+require('const states = id === FIRST_BATTLE_ID' in stage and '[G.__S, stateFor(), G.UI && G.UI.S]' in stage,
+        "Stage 7.15 battle lookup must cover the runtime render state")
+require('if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;' in stage,
+        "escape watcher must select the live battle carrying the active vote")
 
 for text in (
     'function applyScriptedEscapeVote(b, v)',

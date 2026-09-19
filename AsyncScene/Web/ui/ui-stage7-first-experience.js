@@ -3831,13 +3831,17 @@ window.Game = window.Game || {};
   }
 
   function stage715BattleById(id) {
-    const states = id === FIRST_BATTLE_ID ? [rayhanBattleState(), G.__S, stateFor()] : [stateFor()];
+    const states = id === FIRST_BATTLE_ID
+      ? [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S]
+      : [G.__S, stateFor(), G.UI && G.UI.S];
     let fallback = null;
     for (const state of states) {
+      if (!state || states.indexOf(state) !== states.findIndex((candidate) => candidate === state)) continue;
       const battles = state && Array.isArray(state.battles) ? state.battles : [];
       const battle = battles.find((entry) => entry && entry.meta && entry.meta.stage715BattleId === id) || null;
       if (!battle) continue;
       if (!fallback) fallback = battle;
+      if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;
       if (battleOutcome(battle) === "win") return battle;
     }
     return fallback;
@@ -4598,15 +4602,23 @@ window.Game = window.Game || {};
     const Core = G._ConflictCore || G.ConflictCore;
     if (!Core || typeof Core.escape !== "function") return false;
     const started = Core.escape(battle.id, { mode: "smyt", cost: 1 });
-    if (!started || started.ok !== true || !battle.escapeVote) return false;
-    battle.escapeVote.scriptedVotes = scriptedVotes;
-    battle.escapeVote.cap = 5;
-    battle.meta.stage715Escape = Object.assign({}, previous, {
+    if (!started || started.ok !== true) return false;
+    const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;
+    if (!activeBattle.escapeVote) return false;
+    const escapeMetadata = {
       attempt,
       status: "voting",
       outcomeHandled: false,
       repSettled: false,
       scriptedVotes,
+    };
+    const mirroredBattles = [battle, activeBattle].filter((entry, index, all) => entry && all.indexOf(entry) === index);
+    mirroredBattles.forEach((entry) => {
+      if (entry.escapeVote) {
+        entry.escapeVote.scriptedVotes = scriptedVotes;
+        entry.escapeVote.cap = 5;
+      }
+      entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, previous, escapeMetadata) });
     });
     state.flags = state.flags || {};
     state.flags.stage715OlegEscapeAttempts = attempt;
