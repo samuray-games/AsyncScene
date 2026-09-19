@@ -198,6 +198,7 @@ const battleOutcome = Function(`return (${extractFunction(source, "function batt
 let saves = 0;
 let renders = 0;
 let systemMessages = [];
+let renderedChat = [];
 let eventReveals = 0;
 const telemetry = [];
 const stateFor = () => state;
@@ -218,7 +219,14 @@ const settle = Function(
   "render",
   `return (${extractFunction(source, "function settleFirstIndependentBattleCompletion()")});`,
 )(
-  { UI: { pushSystem: (message) => systemMessages.push(message) } },
+  { UI: {
+      pushChat: (message) => {
+        assert.strictEqual(message.name, "Система", "First Event message speaker must be System");
+        assert.strictEqual(message.system, true, "First Event message must be a system chat entry");
+        renderedChat.push(message);
+        systemMessages.push(message.text);
+      }
+    } },
   stateFor,
   firstIndependentBattleFromState,
   battleOutcome,
@@ -240,6 +248,7 @@ function resetBattle(battle) {
   systemMessages = [];
   eventReveals = 0;
   telemetry.length = 0;
+  renderedChat = [];
 }
 
 resetBattle({ id: "started", meta: { stage715FirstIndependentBattle: true }, status: "active" });
@@ -269,6 +278,8 @@ assert.strictEqual(state.flags.stage715FirstIndependentBattleComplete, true, "au
 assert.strictEqual(state.battles[0].meta.stage715FirstIndependentBattleComplete, true, "battle completion marker missing");
 assert.strictEqual(saves, 1, "qualifying completion must persist once");
 assert.deepStrictEqual(systemMessages, ["У нас тут стычка!!! Выбери за кого ты в событиях. Участие стоит 1💰 плюс репутация за смелость."], "qualifying completion must announce First Event canonically");
+assert.strictEqual(renderedChat.length, 1, "qualifying completion must render exactly one First Event chat entry");
+assert.strictEqual(renderedChat[0].sourceTag, "stage715_first_event", "First Event chat source tag missing");
 assert.strictEqual(eventReveals, 1, "qualifying completion must reveal Events once");
 assert.strictEqual(JSON.stringify({ events: state.events, cards: state.cards, content: state.content, me: state.me }), beforeProtected, "M81 changed event/content/economy state");
 assert.strictEqual(telemetry.length, 1, "qualifying completion telemetry must be exactly once");
@@ -279,6 +290,7 @@ assert.strictEqual(saves, 1, "completion re-check must not save again");
 assert.strictEqual(renders, 1, "completion re-check must not render again");
 assert.strictEqual(eventReveals, 1, "completion re-check must not reveal Events again");
 assert.strictEqual(telemetry.length, 1, "completion re-check must not emit telemetry again");
+assert.strictEqual(renderedChat.length, 1, "completion re-check must not render a duplicate chat entry");
 assert.strictEqual(eligible(), true, "eligibility query must remain deterministic");
 console.log("PASS_STAGE7_15_81_FIRST_EVENT_UNLOCK_BEHAVIOR");
 '''

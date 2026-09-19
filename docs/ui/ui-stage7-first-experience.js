@@ -3507,8 +3507,13 @@ window.Game = window.Game || {};
     battle.meta.stage715FirstIndependentBattleComplete = true;
     state.flags.stage715FirstIndependentBattleComplete = true;
     telemetry("stage715_first_independent_battle_complete", { battleId: battle.id || battle.battleId || null });
-    if (G.UI && typeof G.UI.pushSystem === "function") {
-      G.UI.pushSystem("У нас тут стычка!!! Выбери за кого ты в событиях. Участие стоит 1💰 плюс репутация за смелость.");
+    if (G.UI && typeof G.UI.pushChat === "function") {
+      G.UI.pushChat({
+        name: "Система",
+        text: "У нас тут стычка!!! Выбери за кого ты в событиях. Участие стоит 1💰 плюс репутация за смелость.",
+        system: true,
+        sourceTag: "stage715_first_event"
+      });
     }
     revealEventsPanel();
     saveState();
