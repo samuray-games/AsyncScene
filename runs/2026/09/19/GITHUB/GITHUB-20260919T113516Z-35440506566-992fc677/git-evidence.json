@@ -1,0 +1,106 @@
+{
+  "branch": "stage715-runtime-repair-20260918",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "stage715-runtime-repair-20260918\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "bac338363d949ed7272afaf57806c3ad7e877d4e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "# branch.oid bac338363d949ed7272afaf57806c3ad7e877d4e\n# branch.head stage715-runtime-repair-20260918\n# branch.upstream origin/stage715-runtime-repair-20260918\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "bac33836 (HEAD -> stage715-runtime-repair-20260918, origin/stage715-runtime-repair-20260918) fix(stage715): restore Rayhan post-result handoff\n7f1c47c8 fix(stage715): install canonical Oleg battle attack\n8eacb5cc fix(stage715): install canonical Oleg attack prompt\n23db6f29 fix(stage715): complete canonical intro greeting\nf6f78cc6 fix(stage715): serve external runner under AsyncScene base path\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bac338363d949ed7272afaf57806c3ad7e877d4e\nbranch refs/heads/stage715-runtime-repair-20260918\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-19T11:35:16Z",
+      "stderr": "",
+      "stdout": "b2de34475ed72fb53ddf7f1383a54564c4588686\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bac338363d949ed7272afaf57806c3ad7e877d4e",
+  "observedAtUtc": "2026-09-19T11:35:16Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
