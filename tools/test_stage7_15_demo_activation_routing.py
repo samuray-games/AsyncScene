@@ -167,6 +167,7 @@ allowed = {
     "tools/stage715_external_server.py",
     "tools/test_stage7_15_initial_greeting_corridor.py",
     "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 

@@ -58,6 +58,7 @@ allowed = {
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_82_visible_first_event_entry.py",

@@ -3019,7 +3019,7 @@ window.Game = window.Game || {};
   const RAYHAN_EVENT_VOTE_COUNT = 5;
   const RAYHAN_EVENT_MIN_DELAY_MS = 3_000;
   const RAYHAN_EVENT_MAX_DELAY_MS = 4_000;
-  const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, ну думаю это очевидно. или нет?";
+  const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, заодно посмотри чо там в меню и дай знать когда закончишь";
   const RAYHAN_WRONG_CHAT = "хааа ответ мимо! ща толпа решит кто из нас прав! готов?";
   const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward";
   const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
@@ -3750,6 +3750,11 @@ window.Game = window.Game || {};
     ensureRayhanRewardToast("wins", 1, battleId);
     battle.meta.stage715RayhanRewardApplied = true;
     battle.meta.stage715RayhanReward = { reputation: 1, money: 2, wins: 1, opponentId: RAYHAN_ID };
+    [rayhanBattleState(), stateFor()].forEach((candidate) => {
+      if (!candidate || !Array.isArray(candidate.battles)) return;
+      const mirror = candidate.battles.find((entry) => entry && entry.id === battle.id);
+      if (mirror && mirror !== battle) mirror.meta = Object.assign({}, mirror.meta || {}, battle.meta);
+    });
     phase = "rayhan_win_waiting_reply";
     saveState();
     if (state.flags.stage715RayhanRewardChatShown !== true) {
@@ -3807,9 +3812,16 @@ window.Game = window.Game || {};
   }
 
   function stage715BattleById(id) {
-    const state = id === FIRST_BATTLE_ID ? rayhanBattleState() : stateFor();
-    const battles = state && Array.isArray(state.battles) ? state.battles : [];
-    return battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === id) || null;
+    const states = id === FIRST_BATTLE_ID ? [rayhanBattleState(), G.__S, stateFor()] : [stateFor()];
+    let fallback = null;
+    for (const state of states) {
+      const battles = state && Array.isArray(state.battles) ? state.battles : [];
+      const battle = battles.find((entry) => entry && entry.meta && entry.meta.stage715BattleId === id) || null;
+      if (!battle) continue;
+      if (!fallback) fallback = battle;
+      if (battleOutcome(battle) === "win") return battle;
+    }
+    return fallback;
   }
 
   function isOlegEscapeBattle(battle) {

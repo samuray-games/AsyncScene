@@ -120,6 +120,7 @@ allowed = {
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_22_oleg_battle.py",
+    "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_safari_corridor.py",
