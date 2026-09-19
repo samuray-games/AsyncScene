@@ -76,10 +76,10 @@ fi
 [[ "$PORT" =~ ^[1-9][0-9]{1,4}$ ]] || { echo "FAIL: selected server port is invalid: $PORT" >&2; exit 26; }
 printf '%s\n' "$PORT" > "$EVIDENCE_DIR/server.requested-port"
 
-(cd "$WORKTREE/AsyncScene/Web" && exec python3 -u dev/dev-server.py "$PORT") > "$EVIDENCE_DIR/server.log" 2>&1 &
+(exec python3 -u "$ROOT/tools/stage715_external_server.py" "$WORKTREE/AsyncScene/Web" "$PORT") > "$EVIDENCE_DIR/server.log" 2>&1 &
 SERVER_PID=$!
 printf '%s\n' "$SERVER_PID" > "$EVIDENCE_DIR/server.pid"
-printf '%s\n' "(cd $WORKTREE/AsyncScene/Web && exec python3 -u dev/dev-server.py $PORT)" > "$EVIDENCE_DIR/server.command"
+printf '%s\n' "(exec python3 -u $ROOT/tools/stage715_external_server.py $WORKTREE/AsyncScene/Web $PORT)" > "$EVIDENCE_DIR/server.command"
 READY=0
 for _ in $(seq 1 100); do
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then

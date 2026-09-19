@@ -33,6 +33,35 @@ async function bodyText() {
   return page.evaluate(() => document.body?.innerText || "");
 }
 
+async function inspectCanonicalFreshStart() {
+  return page.evaluate(() => {
+    const root = document.querySelector("#startScreen");
+    const button = root && root.querySelector("#btnStart");
+    const style = button ? getComputedStyle(button) : null;
+    const rect = button ? button.getBoundingClientRect() : null;
+    const visible = Boolean(button && style && !button.hidden && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0 && rect && rect.width > 0 && rect.height > 0);
+    const inViewport = Boolean(rect && rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth);
+    const center = rect ? [rect.left + rect.width / 2, rect.top + rect.height / 2] : null;
+    const hit = center ? document.elementFromPoint(center[0], center[1]) : null;
+    const notCovered = Boolean(button && hit && (hit === button || button.contains(hit)));
+    return {
+      rootPresent: Boolean(root),
+      rootVisible: Boolean(root && getComputedStyle(root).display !== "none" && getComputedStyle(root).visibility !== "hidden"),
+      tag: button ? button.tagName : null,
+      text: button ? String(button.textContent || "").trim() : null,
+      id: button ? button.id : null,
+      className: button ? button.className : null,
+      ariaLabel: button ? button.getAttribute("aria-label") : null,
+      disabled: Boolean(button && button.disabled),
+      visible,
+      inViewport,
+      notCovered,
+      rect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
+      bodyText: document.body?.innerText || "",
+    };
+  });
+}
+
 async function capture(label) {
   const safe = label.replace(/[^a-zA-Z0-9_-]+/g, "_");
   const screenshotPath = path.join(evidenceDir, `${String(checkpoints.length + 1).padStart(2, "0")}-${safe}.png`);
@@ -125,7 +154,10 @@ async function chooseBattle(label, exactText = null) {
 }
 
 async function runCorridor() {
-  await checkpoint("fresh_start", "normal fresh Start screen", () => page.locator("#startScreen").isVisible());
+  await checkpoint("fresh_start", "visible canonical Start control", async () => {
+    const start = await inspectCanonicalFreshStart();
+    return start.text === "Старт" && start.visible && start.inViewport && start.notCovered && !start.disabled;
+  });
   await clickText("Старт", "fresh_start_click");
   await checkpoint("rayhan_greeting", expected.rayhan, (t) => t.includes(expected.rayhan));
   await checkpoint("nastya_greeting", expected.nastya, (t) => t.includes(expected.nastya));
@@ -187,6 +219,20 @@ async function main() {
   page.on("console", (message) => consoleMessages.push({ type: message.type(), text: message.text() }));
   page.on("pageerror", (error) => pageErrors.push({ message: error.message, stack: error.stack || null }));
   await page.goto(url, { waitUntil: "load", timeout: 45000 });
+  await page.evaluate(async () => {
+    try { localStorage.clear(); } catch (_) {}
+    try { sessionStorage.clear(); } catch (_) {}
+    try {
+      if (indexedDB && typeof indexedDB.databases === "function") {
+        const databases = await indexedDB.databases();
+        await Promise.all(databases.map((db) => db && db.name ? new Promise((resolve) => {
+          const request = indexedDB.deleteDatabase(db.name);
+          request.onsuccess = request.onerror = request.onblocked = () => resolve();
+        }) : Promise.resolve()));
+      }
+    } catch (_) {}
+  });
+  await page.reload({ waitUntil: "load", timeout: 45000 });
   await runCorridor();
 }
 
