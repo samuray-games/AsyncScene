@@ -4642,15 +4642,21 @@ window.Game = window.Game || {};
   }
 
   function playIntro() {
-    INTRO_LINES.forEach((entry, index) => {
+    const introEntries = INTRO_LINES.concat([
+      Object.freeze({ id: "rayhan_directed_greeting", speakerId: "npc_stage7_ken", name: "Райхан", text: `привет, ${playerNickname()}` }),
+    ]);
+    introEntries.forEach((entry, index) => {
       const timer = setTimeout(() => {
         if (!active || phase === "tone_prompted") return;
-        pushNpc(entry);
-        if (index === INTRO_LINES.length - 1 && phase === "intro") {
-          phase = "awaiting_first";
-          saveState();
-          scheduleSilencePrompt();
-        }
+        const isLastIntroEntry = index === introEntries.length - 1;
+        pushNpc(isLastIntroEntry ? Object.assign({}, entry, {
+          onComplete: () => {
+            if (!active || phase !== "intro") return;
+            phase = "awaiting_first";
+            saveState();
+            scheduleSilencePrompt();
+          },
+        }) : entry);
       }, index * INTRO_STEP_DELAY_MS);
       introTimers.push(timer);
     });

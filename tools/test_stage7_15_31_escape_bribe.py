@@ -133,6 +133,7 @@ allowed = {
     "tools/test_stage715_external_runner.py",
     "tools/test_stage7_15_boot_mirror_contract.py",
     "tools/stage715_external_server.py",
+    "tools/test_stage7_15_initial_greeting_corridor.py",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 
