@@ -4612,7 +4612,12 @@ window.Game = window.Game || {};
       repSettled: false,
       scriptedVotes,
     };
-    const mirroredBattles = [battle, activeBattle].filter((entry, index, all) => entry && all.indexOf(entry) === index);
+    const mirroredBattles = [battle, activeBattle]
+      .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
+      .filter((entry, index, all) => entry
+        && entry.meta
+        && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
+        && all.indexOf(entry) === index);
     mirroredBattles.forEach((entry) => {
       if (entry.escapeVote) {
         entry.escapeVote.scriptedVotes = scriptedVotes;
