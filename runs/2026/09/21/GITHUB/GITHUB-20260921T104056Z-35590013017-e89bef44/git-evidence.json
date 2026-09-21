@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-canonical-corridor-repair-20260920",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "codex/stage715-canonical-corridor-repair-20260920\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "607fe1a9769474a31c17506fcc4779e7207774a2\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "# branch.oid 607fe1a9769474a31c17506fcc4779e7207774a2\n# branch.head codex/stage715-canonical-corridor-repair-20260920\n# branch.upstream origin/codex/stage715-canonical-corridor-repair-20260920\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "607fe1a9 (HEAD -> codex/stage715-canonical-corridor-repair-20260920, origin/codex/stage715-canonical-corridor-repair-20260920) test: tolerate telemetry boot cache token bumps\ncd8bf887 Repair Stage 7.15 canonical corridor through M82\n1ab75c31 (origin/main) Repair Stage 7.15 Events visibility and Rayhan wrong-counter flow (#403)\nb2de3447 Restore canonical Stage 7.15 contracts for M82 Safari re-run\n87b4dfde Sanitize control plane from retired bridge machinery\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 607fe1a9769474a31c17506fcc4779e7207774a2\nbranch refs/heads/codex/stage715-canonical-corridor-repair-20260920\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:40:56Z",
+      "stderr": "",
+      "stdout": "1ab75c312e87662af0d5b262968eb25ce9331403\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "607fe1a9769474a31c17506fcc4779e7207774a2",
+  "observedAtUtc": "2026-09-21T10:40:56Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
