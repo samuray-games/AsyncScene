@@ -76,7 +76,10 @@ for token in (
 
 require('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"' in index, "telemetry config entrypoint missing")
 require('src="telemetry.js?v=behavioral_telemetry_session_metadata_20260818a"' in index, "telemetry entrypoint missing")
-require('src="ui/ui-boot.js?v=telemetry_gameplay_nickname_20260818a"' in index, "boot entrypoint missing")
+require(
+    re.search(r'src="ui/ui-boot\.js\?v=([^"\s]+)"', index),
+    "boot entrypoint missing",
+)
 require(index.index('src="util.js?v=2"') < index.index('src="telemetry-config.js?v=behavioral_telemetry_receiver_20260813a"') < index.index('src="telemetry.js?v=behavioral_telemetry_session_metadata_20260818a"') < index.index('src="state.js?'), "telemetry load order invalid")
 
 for forbidden_read in (".value", ".innerText", ".textContent", "location.search", "location.hash", "document.cookie"):
