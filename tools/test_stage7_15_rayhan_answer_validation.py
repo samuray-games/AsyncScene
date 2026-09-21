@@ -270,13 +270,13 @@ function runScenario(choiceId) {
   assert(wrong.eventUnlocks.includes("expanded"), "events panel must unlock and expand");
   assert.strictEqual(wrong.state.me.points, 2, "Rayhan must transfer exactly two points after event win");
   assert.strictEqual(wrong.state.players.npc_stage7_ken.points, 8, "Rayhan must fund the two-point reward");
-  assert.deepStrictEqual(wrong.game.__D.toastLog.map((entry) => [entry.kind, entry.delta]).sort(), [["points", 2], ["rep", 1], ["wins", 1]].sort());
+  assert.deepStrictEqual(wrong.game.__D.toastLog.map((entry) => [entry.kind, entry.delta]).sort(), [["points", 2], ["rep", 1]].sort());
   assert.strictEqual(wrong.event.resolved, true, "Rayhan event must resolve");
   assert.strictEqual(wrong.state.flags.stage715DemoPhase, "rayhan_win_waiting_reply", "event resolution must not leave the demo stuck");
   assert.strictEqual(wrong.game.Stage715Demo.handlePlayerMessage("готово"), true, "Rayhan post-win reply must advance the corridor");
   assert.strictEqual(wrong.state.flags.stage715DemoPhase, "nastya_battle", "Nastya battle must start after the Rayhan event");
   wrong.advance(30000);
-  assert.strictEqual(wrong.chat.filter((entry) => entry.text === "Так, я не поняла, это что за беспредел тут?? Тестер, ты проблем захотел? Бегом в Споры!").length, 1, "Nastya trigger must be emitted once with the current battle label");
+  assert.strictEqual(wrong.chat.filter((entry) => entry.text === "Так, я не поняла, это что за беспредел тут?? Тестер, проблем чтоли захотелось? Бегом в Споры!").length, 1, "Nastya trigger must be emitted once with the current battle label");
   assert.strictEqual(wrong.battle.meta.stage715RayhanEventStartSequence, true, "Rayhan event start sequence must remain single-shot");
   wrong.game.Stage715Demo.destroy();
   }

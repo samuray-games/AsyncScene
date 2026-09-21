@@ -34,9 +34,9 @@ index = INDEX_SOURCE.read_text(encoding="utf-8")
 
 require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors differ")
 for text in (
-    "conflict/conflict-core.js?v=stage7_15_31_escape_bribe_20260821a",
-    "ui/ui-battles.js?v=stage7_15_safari_corridor_repair_20260822a",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_safari_corridor_repair_20260822a",
+    "conflict/conflict-core.js?v=stage7_15_canonical_corridor_repair_20260921",
+    "ui/ui-battles.js?v=stage7_15_canonical_corridor_repair_20260921",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_canonical_corridor_repair_20260921",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
@@ -135,11 +135,20 @@ allowed = {
     "docs/conflict/conflict-core.js",
     "docs/ui/ui-battles.js",
     "docs/ui/ui-stage7-first-experience.js",
+    "AsyncScene/Web/ui/ui-core.js",
+    "docs/ui/ui-core.js",
+    "AsyncScene/Web/ui/ui-menu.js",
+    "docs/ui/ui-menu.js",
     "AsyncScene/Web/index.html",
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
+    "tools/test_stage7_15_rayhan_post_win.py",
+    "tools/test_stage7_15_tone_hud.py",
+    "tools/test_stage7_15_menu_inline.py",
+    "tools/test_stage7_15_canonical_corridor.py",
+    "tools/test_stage7_15_first_battle.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_safari_corridor.py",

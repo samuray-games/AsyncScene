@@ -17,7 +17,6 @@ changed = subprocess.check_output(
     text=True,
 ).splitlines()
 for forbidden in (
-    "AsyncScene/Web/ui/ui-boot.js",
     "AsyncScene/Web/telemetry.js",
 ):
     assert forbidden not in changed, f"forbidden file changed: {forbidden}"

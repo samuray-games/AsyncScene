@@ -18,8 +18,8 @@ require(source == deployed, "Stage 7.15 controller mirrors differ")
 js = source.decode("utf-8")
 
 for text in (
-    'const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона, посмотрим насколько ты дерзкий!"',
-    'const TONE_ACK = "ага, вижу. значит ты вот такой. интересно..."',
+    'const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона, посмотрим насколько имеешь право дерзить!"',
+    'const TONE_ACK = "ага, вижу. вот значит кто ты такое. интересно..."',
     'function currentBattlesPanelLabel()',
     'rayhanBattleInviteText()',
     'telemetry("stage715_tone_seen")',

@@ -24,7 +24,7 @@ battle_js = battle_source.decode("utf-8")
 
 for text in (
     'const NASTYA_PROMPT = "Ты на проблемы нарываешься?"',
-    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, ты проблем захотел? Бегом в ${label}!`',
+    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`',
     '"Кажется, нет…"',
     '"Думаю, Олег, но это не точно…"',
     '"Похоже, там, где Америка…"',
@@ -34,6 +34,12 @@ for text in (
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
     'stage715NastyaVote = { a: 2, b: 3, cap: 5 }',
     'stage715NastyaPayoff',
+    'const NASTYA_EXPLANATION = "Видишь, у меня аргумент оранжевый',
+    'const NASTYA_RESOLVED_COUNTERARGUMENT = "Ну… да, наверное."',
+    'phase = "nastya_waiting_chat_reply"',
+    'function startNastyaCrowdVote()',
+    'phase = "nastya_crowd_vote"',
+    'battle.status = "stage715_resolved_answer"',
     'stage715NastyaWon = true',
     'const nastyaWon = battleOutcome(nastya) === "win"',
     'state.flags.stage715NastyaWon === true',
@@ -46,9 +52,12 @@ for text in (
     'if (p.stage715DisplayText) return String(p.stage715DisplayText);',
     'stage715NastyaPayoff',
     'stage715-nastya-tone-revealed',
-    'b.meta.stage715NastyaBattle === true && p.stage715DisplayText',
+    'b.meta.stage715DemoBattle === true && p.stage715DisplayText',
     'b.meta.stage715SelectedDefenseText = p.stage715DisplayText',
     'stage715SelectedDefenseText',
+    'suppressOutcome: stage715NastyaIntermediate',
+    'helperCtx.labels = { opponent: "Аргумент", mine: "Твой контраргумент" }',
+    'if (stage715NastyaIntermediate)',
 ):
     require(text in battle_js, f"missing Nastya battle UI contract: {text}")
 

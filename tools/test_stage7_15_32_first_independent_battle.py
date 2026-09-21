@@ -58,14 +58,21 @@ for text in (
     'pushOlegEscapeDm(instruction, "stage715FirstIndependentBattleInstructionSent")',
     'function isFirstIndependentBattleReady(state)',
     'function firstIndependentBattleStartOptions',
+    'state: suppliedState',
+    'const canonicalState = stateFor()',
+    'stage715FirstIndependentBattleInstructionSent === true',
+    'safeArgumentRelation: { attackColor: "r", defenseColor: "y" }',
+    'battle.fromThem = false',
     'function firstIndependentBattleStarted',
     'function settleFirstIndependentBattleCompletion()',
     'stage715FirstIndependentBattleComplete = true',
     'safeArgumentRelation: {',
     'attackColor: "r"',
     'defenseColor: "y"',
+    'isPendingCanonicalCall = flags.stage715FirstIndependentBattleInstructionSent === true',
     'const STAGE715_INITIAL_REP_BASELINE = 1',
     'function initializeStage715InitialRepBaseline(state, mode)',
+    "document.querySelectorAll('.statToast, [id^=\"stage6StartupNameToast_\"]')",
     'state.flags.stage715InitialRepBaselineApplied === true',
     'transferRep("crowd_pool", "me", STAGE715_INITIAL_REP_BASELINE - currentRep',
     '"rep_stage715_initial_baseline", STAGE715_INITIAL_REP_BASELINE_ID',
@@ -86,7 +93,7 @@ for text in (
     'firstIndependentBattleStartOptions({ opponentId: cid, state: S, UI })',
     'Game.Conflict.start(cid, startOptions || undefined)',
     'Game.Conflict.startWith(cid, startOptions || undefined)',
-    'firstIndependentBattleStarted({ opponentId: cid, battle: res.battle || null, state: S, UI })',
+    'opponentId: (res.battle && res.battle.opponentId) || cid',
     'it.textContent = (UI.displayName ? UI.displayName(p) : String(p.name || ""))',
 ):
     require(text in battles, f"missing Battles UI metadata/stat-free picker contract: {text}")
@@ -307,8 +314,6 @@ for forbidden in (
     "docs/conflict/conflict-economy.js",
     "AsyncScene/Web/npcs.js",
     "docs/npcs.js",
-    "AsyncScene/Web/ui/ui-core.js",
-    "docs/ui/ui-core.js",
 ):
     require(forbidden not in changed, f"out-of-scope mutation: {forbidden}")
 

@@ -74,12 +74,20 @@ require('function revealNastyaBattle' in controller_js and
 require('b.sysAnnounced !== true' in core_js and
         'b.sysAnnounced !== true' in CORE_DEPLOYED.read_text(encoding="utf-8"),
         "crowd system announcement must be idempotent across repeated ownership checks")
-require(controller_js.count('battle.defense = Object.assign({}, battle.defense || {}, { stage715DisplayText: choice.stage715DisplayText });') >= 2,
+require(controller_js.count('preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID') >= 3,
         "Nastya canonical selected text must survive core resolve rehydration")
 require('stage715NastyaResolvedText' in ui_js and
         '(battle.result === "win" || battle.status === "finished")' in ui_js and
         'Кажется, нет…' in ui_js,
         "Nastya resolved UI must preserve the canonical visible answer")
+require('NASTYA_RESOLVED_COUNTERARGUMENT' in controller_js and
+        'stage715NastyaChatReplyPending' in controller_js and
+        'startNastyaCrowdVote()' in controller_js,
+        "Nastya correct answer must wait for chat before crowd vote")
+require('suppressOutcome: stage715NastyaIntermediate' in ui_js and
+        'labels = { opponent: "Аргумент", mine: "Твой контраргумент" }' in ui_js and
+        'if (stage715NastyaIntermediate)' in ui_js,
+        "Nastya intermediate card must suppress terminal outcome and escape actions")
 require('addEventListener("click", (e) =>' in ui_js and
         '".chip[data-action=\'pickDefense\'][data-arg-id]"' in ui_js and
         '}, true);' in ui_js,

@@ -1385,6 +1385,19 @@ window.Game = window.Game || {};
       const stage715ActiveForResume = G.Stage715Demo
         && typeof G.Stage715Demo.isActive === "function"
         && G.Stage715Demo.isActive({ UI, state: S });
+      const stage715PersistedCheckpoint = G.Stage715Demo
+        && typeof G.Stage715Demo.hasPersistedCheckpoint === "function"
+        && G.Stage715Demo.hasPersistedCheckpoint();
+      if (resumeMode && stage715PersistedCheckpoint && stage715ActiveForResume
+        && typeof G.Stage715Demo.claimResume === "function") {
+        ensureStartScreenHidden(UI);
+        const directStage715Resume = G.Stage715Demo.claimResume({ UI, state: S, playerName: name });
+        if (directStage715Resume && directStage715Resume.claimed === true) {
+          UI.renderAll && UI.renderAll();
+          ensureStartScreenHidden(UI);
+          return;
+        }
+      }
       if (resumeMode && (!(S.flags.started || S.isStarted === true) || stage715ActiveForResume)) {
         persistFirstUiProfileSelection(UI, uiProfile);
         markBootDiag("START_RESUME_MODE");
@@ -1448,7 +1461,10 @@ window.Game = window.Game || {};
         return;
       }
 
-      if (S.flags.started || S.isStarted === true) {
+      // A deliberate return to the start screen clears onboardingSeen so the
+      // next Start is a real fresh-start transaction, even if the preserved
+      // Stage 7.15 checkpoint still has started=true.
+      if ((S.flags.started || S.isStarted === true) && resumeMode) {
         stateTargets.forEach((state) => {
           state.flags = state.flags || {};
           state.flags.started = true;
@@ -8149,11 +8165,28 @@ window.Game = window.Game || {};
         stage715Demo.restorePersistedCheckpoint({ UI, state: UI.S });
       }
       setOnboardingSeen(UI, true);
-      startGame(UI);
+      const resumeClaim = typeof stage715Demo.claimResume === "function"
+        ? stage715Demo.claimResume({
+          UI,
+          state: UI.S,
+          playerName: UI.S && UI.S.me ? UI.S.me.name : "",
+          startNormalWorld: () => startGame(UI),
+        })
+        : null;
+      if (!resumeClaim || resumeClaim.claimed !== true) startGame(UI);
+      else ensureStartScreenHidden(UI);
     }
 
     // Render minimal UI only
     UI.renderAllMinimal && UI.renderAllMinimal();
+    // The minimal boot render can run after Stage 7.15 has restored its
+    // checkpoint and would otherwise leave the visible surface at the empty
+    // pre-start snapshot until the next interaction. Re-render the restored
+    // production state immediately, while keeping the start overlay hidden.
+    if (autoResumeStage715) {
+      UI.renderAll && UI.renderAll();
+      ensureStartScreenHidden(UI);
+    }
 
     // Fresh/clean state must leave the existing start screen visible even if
     // earlier boot work or stale DOM attributes hid it before content binding.

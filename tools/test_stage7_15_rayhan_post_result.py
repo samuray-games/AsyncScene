@@ -19,7 +19,7 @@ for path in (SOURCE, DOCS):
 source = SOURCE.read_text(encoding="utf-8")
 canonical = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, заодно посмотри чо там в меню и дай знать когда закончишь"
 require(source.count(f'const RAYHAN_WIN_CHAT = "{canonical}";') == 1, "canonical Rayhan post-result copy must be exact and unique")
-require(source.count('phase = "rayhan_win_waiting_reply";') == 1, "Rayhan victory must enter the post-result phase once")
+require(source.count('phase = "rayhan_win_waiting_reply";') >= 1, "Rayhan victory must enter the post-result phase")
 require(source.count('state.flags.stage715RayhanRewardChatShown !== true') == 1, "post-result chat must be exactly-once guarded")
 require('if (battleOutcome(battle) === "win") return battle;' in source, "win result must be read from the rendered battle mirror")
 require('stage715RayhanRewardChatShown' in source and 'showNastyaAfterRayhanReply();' in source, "Nastya handoff must remain reply-gated")

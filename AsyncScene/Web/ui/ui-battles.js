@@ -162,6 +162,10 @@
         || (battle.attack && battle.attack.text === "Ты на проблемы нарываешься?")));
   }
 
+  function isStage715OlegScriptedBattle(battle) {
+    return !!(battle && battle.meta && battle.meta.stage715OlegBattle === true);
+  }
+
   function stage715RayhanDomElementInfo(element) {
     if (!element) return null;
     let computed = null;
@@ -858,7 +862,12 @@
       battle.log && battle.log.attack
     ]) || normalizeArgText(battle.opponentArgText || battle.opponentArg);
 
-    const mine = findFirstArgText([
+    const scriptedMine = battle.meta && battle.meta.stage715SelectedDefenseText
+      ? normalizeArgText(battle.meta.stage715SelectedDefenseText)
+      : (battle.defense && battle.defense.stage715DisplayText
+        ? normalizeArgText(battle.defense.stage715DisplayText)
+        : null);
+    const mine = scriptedMine || findFirstArgText([
       battle.defense,
       battle.battleCtx && battle.battleCtx.defense,
       battle.ctx && battle.ctx.defense,
@@ -954,7 +963,8 @@
       rematchHandler: null,
       outcomeLabel: null,
       showResolvedChoices: true,
-      canRematch: false
+      canRematch: false,
+      suppressOutcome: false
     }, opts || {});
 
     const argumentTexts = ctx.argumentTexts || getBattleArgumentTexts(battle);
@@ -1119,9 +1129,12 @@
       card.appendChild(dRow);
     }
 
-    const outcomeLabel = (ctx.outcomeLabel && String(ctx.outcomeLabel).trim())
+    const outcomeLabel = ctx.suppressOutcome
+      ? ""
+      : (ctx.outcomeLabel && String(ctx.outcomeLabel).trim())
       ? String(ctx.outcomeLabel).trim()
       : (getBattleOutcomeLabel(battle) || _normalizeResultText(battle));
+    if (ctx.suppressOutcome) return result;
     const res = document.createElement("div");
     res.className = "battleTop";
     res.dataset.testid = "battle-result-pill";
@@ -1905,7 +1918,12 @@ UI.renderBattles = () => {
               res = Game.Conflict.startWith(cid, startOptions || undefined);
             }
             if (res && res.ok === true && stage715Demo && typeof stage715Demo.firstIndependentBattleStarted === "function") {
-              stage715Demo.firstIndependentBattleStarted({ opponentId: cid, battle: res.battle || null, state: S, UI });
+              stage715Demo.firstIndependentBattleStarted({
+                opponentId: (res.battle && res.battle.opponentId) || cid,
+                battle: res.battle || null,
+                state: S,
+                UI,
+              });
             }
           } catch (_) {}
           if (res && res.ok === false) {
@@ -2168,6 +2186,10 @@ UI.renderBattles = () => {
       const isEscape = isEscapeVote(b);
       const isDraw = isDrawBattle(b);
       const uiThinksResolved = isBattleResolved(b);
+      const stage715NastyaIntermediate = !!(b.meta
+        && b.meta.stage715NastyaResolvedAnswer === true
+        && b.meta.stage715NastyaPayoff
+        && b.meta.stage715NastyaPayoff.status === "intermediate");
       const uiThinksCrowd = !!(isEscape || isDraw);
       const directionInfo = getBattleDirectionInfo(b);
       const isOutgoingCard = directionInfo.isOutgoing;
@@ -2205,7 +2227,8 @@ UI.renderBattles = () => {
       const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved, playerLost);
         logBattleCardBranch(payload);
       }
-      const shouldRenderResolvedCard = uiThinksResolved && !isEscape && !isDraw;
+      const shouldRenderResolvedCard = (uiThinksResolved || stage715NastyaIntermediate) && !isEscape && !isDraw;
+      if (stage715NastyaIntermediate) line.textContent = "";
 
       if (!uiThinksResolved) {
        if (b.status === "pickDefense") line.textContent = resolveProfileCopy("argument.select.defense", isBoomerUiMode() ? "Выберите контраргумент." : "Выбери контраргумент.");
@@ -2645,6 +2668,14 @@ UI.renderBattles = () => {
           return;
         }
 
+      const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
+      const stage715NastyaDemo = isStage715NastyaScriptedBattle(b)
+        || String(b.attack && (b.attack.text || b.attack.displayText) || "") === "Ты на проблемы нарываешься?"
+        || String(b.opponentId || "") === "npc_stage7_mika"
+        || (Array.isArray(b._defenseChoices)
+          && b._defenseChoices.some((choice) => choice && choice.stage715DisplayText === "Кажется, нет…"));
+      const stage715OlegDemo = isStage715OlegScriptedBattle(b);
+
       // UNRESOLVED
       if (!shouldRenderResolvedCard) {
         finalLogMode = nextMode;
@@ -2666,8 +2697,6 @@ UI.renderBattles = () => {
         const stage715NastyaPayoff = b && b.meta && b.meta.stage715NastyaPayoff
           ? b.meta.stage715NastyaPayoff
           : null;
-        const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
-
         const tactRow = document.createElement("div");
         tactRow.className = "actions";
 
@@ -2694,7 +2723,7 @@ UI.renderBattles = () => {
           const stage715RayhanRevealed = !!(stage715RayhanDemo
             && b.meta
             && b.meta.stage715RayhanArgumentRevealed === true);
-          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed;
+        const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
@@ -3044,7 +3073,6 @@ UI.renderBattles = () => {
             }
           }
 
-          const stage715NastyaDemo = isStage715NastyaScriptedBattle(b);
           const pickDefenseFn = stage715RayhanDemo
             && stage715DemoController
             && typeof stage715DemoController.handleRayhanDefenseChoice === "function"
@@ -3053,6 +3081,10 @@ UI.renderBattles = () => {
               && stage715DemoController
               && typeof stage715DemoController.handleNastyaDefenseChoice === "function"
               ? stage715DemoController.handleNastyaDefenseChoice
+            : stage715OlegDemo
+              && stage715DemoController
+              && typeof stage715DemoController.handleOlegDefenseChoice === "function"
+              ? stage715DemoController.handleOlegDefenseChoice
             : (Game.Conflict && typeof Game.Conflict.pickDefense === "function")
             ? Game.Conflict.pickDefense
             : (Game.Conflict && typeof Game.Conflict.chooseDefense === "function")
@@ -3115,9 +3147,24 @@ UI.renderBattles = () => {
               chip.onclick = (e) => {
                 stop(e);
                 _captureBattleFocus(b.id, card);
+                const scriptedNastyaController = Game && Game.Stage715Demo;
+                if (String(card.textContent || "").includes("Ты на проблемы нарываешься?")
+                  && scriptedNastyaController
+                  && typeof scriptedNastyaController.handleNastyaDefenseChoice === "function") {
+                  const scriptedResult = scriptedNastyaController.handleNastyaDefenseChoice(b.id, p.id);
+                  trackBattleChoice("pickDefense", p.id, b.id, scriptedResult);
+                  return;
+                }
+                if (stage715OlegDemo
+                  && stage715DemoController
+                  && typeof stage715DemoController.handleOlegDefenseChoice === "function") {
+                  const scriptedResult = stage715DemoController.handleOlegDefenseChoice(b.id, p.id);
+                  trackBattleChoice("pickDefense", p.id, b.id, scriptedResult);
+                  return;
+                }
                 const result = pickDefenseFn.call(Game.Conflict, b.id, p.id);
                 trackBattleChoice("pickDefense", chip.dataset.argId, chip.dataset.battleId, result);
-                if (b.meta && b.meta.stage715NastyaBattle === true && p.stage715DisplayText) {
+                if (b.meta && b.meta.stage715DemoBattle === true && p.stage715DisplayText) {
                   b.defense = Object.assign({}, b.defense || {}, { stage715DisplayText: p.stage715DisplayText });
                   b.meta.stage715SelectedDefenseText = p.stage715DisplayText;
                 }
@@ -3277,7 +3324,7 @@ UI.renderBattles = () => {
           const isStage715Escape = isStage715OlegEscapeBattle(b);
           const isStage715Rayhan = isStage715RayhanScriptedBattle(b);
 
-          if (!isStage715Rayhan) {
+          if (!isStage715Rayhan && !stage715NastyaDemo) {
           const sm = document.createElement("button");
           sm.className = "btn small";
 
@@ -3382,7 +3429,9 @@ UI.renderBattles = () => {
           argumentTexts,
           labels: isOutgoingCard
             ? { opponent: "Аргумент оппонента", mine: "Мой контраргумент" }
-            : { opponent: "Его аргумент", mine: "Мой контраргумент" },
+            : (stage715RayhanDemo || (b.meta && b.meta.stage715DemoBattle === true)
+              ? { opponent: "Аргумент", mine: "Твой контраргумент" }
+              : { opponent: "Его аргумент", mine: "Мой контраргумент" }),
           testIds: isOutgoingCard
             ? { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" }
             : { opponent: "incoming-opp-arg", mine: "incoming-my-counter" },
@@ -3390,14 +3439,30 @@ UI.renderBattles = () => {
           canRematch,
           outcomeLabel: getBattleOutcomeLabel(b),
           rematchHandler: (battleId) => triggerRematchFlow(battleId),
-          mode: nextMode
+          mode: stage715NastyaIntermediate ? "incoming_resolved" : nextMode,
+          suppressOutcome: stage715NastyaIntermediate
         };
+        if (stage715NastyaIntermediate) {
+          helperCtx.labels = { opponent: "Аргумент", mine: "Твой контраргумент" };
+          helperCtx.testIds = { opponent: "incoming-opp-arg", mine: "incoming-my-counter" };
+        }
         const renderResult = renderResolvedBattleCardCore(card, b, helperCtx);
         logMeta.hasOppArg = renderResult.wroteOppArgNode;
         logMeta.hasMyCounter = renderResult.wroteMyCounterNode;
         logMeta.hasResult = renderResult.wroteResultNode;
         logMeta.hasRematchBtn = renderResult.wroteRematchNode;
         emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+
+        if (stage715NastyaIntermediate) {
+          finalLogMode = "incoming_resolved_intermediate";
+          finalLogNodes = renderResult;
+          logBattleCardRenderFinal(battleId, finalLogMode, finalLogNodes);
+          if (battleId) {
+            try { UI._battleCardCache[battleId] = { mode: "incoming_resolved", updatedAt: Date.now(), nodes: Object.assign({}, finalLogNodes) }; } catch (_) {}
+          }
+          body.appendChild(card);
+          return;
+        }
 
         const closeRow = document.createElement("div");
         closeRow.className = "actions";
