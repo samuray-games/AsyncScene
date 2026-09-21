@@ -36,6 +36,14 @@ window.Game = window.Game || {};
   const TRAINING_UI_ARG_KEY = "menu_training_arg";
   const DEV_MODE_STORAGE_KEY = "asyncscene.devModeUnlocked";
   const DEV_MODE_PIN = "2468";
+  const STAGE715_GOAL_TEXT = "Цель - стать значимой фигурой в этом мире: наращивать влияние, строить связи и менять расклад вокруг себя.";
+
+  function isStage715DemoActive() {
+    const state = UI && UI.S ? UI.S : null;
+    return !!(Game.Stage715Demo
+      && typeof Game.Stage715Demo.isActive === "function"
+      && Game.Stage715Demo.isActive({ UI, state }));
+  }
 
   function isLocalDevModeUnlocked() {
     try {
@@ -110,6 +118,27 @@ window.Game = window.Game || {};
       };
       body.appendChild(btn);
     }
+    if (isStage715DemoActive()) {
+      btn.textContent = "Цель";
+      let bodyEl = document.getElementById("manifestBody");
+      const legacyPanel = bodyEl && bodyEl.closest("#manifestPanel");
+      if (legacyPanel) {
+        legacyPanel.remove();
+        bodyEl = null;
+      }
+      if (!bodyEl) {
+        bodyEl = document.createElement("div");
+        bodyEl.id = "manifestBody";
+        bodyEl.className = "manifestBody";
+        btn.insertAdjacentElement("afterend", bodyEl);
+      }
+      bodyEl.textContent = STAGE715_GOAL_TEXT;
+      const S = UI.S || {};
+      S.flags = S.flags || {};
+      bodyEl.hidden = !S.flags.manifestOpen;
+      bodyEl.setAttribute("aria-hidden", S.flags.manifestOpen ? "false" : "true");
+      return;
+    }
     btn.textContent = t("goal_label");
 
     let panel = document.getElementById("manifestPanel");
@@ -182,7 +211,7 @@ window.Game = window.Game || {};
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn small";
-    btn.textContent = t("return_to_start");
+    btn.textContent = isStage715DemoActive() ? "К старту" : t("return_to_start");
     btn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();

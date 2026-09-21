@@ -24,15 +24,14 @@ required = (
     'const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward"',
     'economy.transferPoints(RAYHAN_ID, "me", pointsNeeded, RAYHAN_REWARD_REASON',
     'G.__A.transferRep("crowd_pool", "me", repNeeded, RAYHAN_REWARD_REASON',
-    'G.__A.emitStatDelta("wins", winsNeeded',
     'ensureRayhanRewardToast("rep", 1, battleId)',
     'ensureRayhanRewardToast("points", 2, battleId)',
-    'ensureRayhanRewardToast("wins", 1, battleId)',
+    'const winsNeeded = 0',
     'phase = "rayhan_win_waiting_reply"',
     'state.flags.stage715RayhanRewardChatShown !== true',
     'const label = currentBattleBlockLabel()',
     'UI.displayNameByIdOrName',
-    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, ты проблем захотел? Бегом в ${label}!`',
+    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`',
     'const started = startNastyaBattle()',
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
     'stage715NastyaReactionShown !== true',
@@ -113,13 +112,14 @@ const context = { state, UI, playerName: "Тестер" };
 Game.Stage715Demo.claimResume(context);
 state.players.npc_stage7_ken.points = 10;
 rayhanBattle.resolved = true; rayhanBattle.finished = true; rayhanBattle.status = "finished"; rayhanBattle.result = "win";
+state.me.wins = 1; // generic Conflict economy owns the battle win
 setTimeout(() => {
   try {
     assert.strictEqual(state.rep, 1);
     assert.strictEqual(state.me.points, 2);
     assert.strictEqual(state.players.npc_stage7_ken.points, 8);
     assert.strictEqual(state.me.wins, 1);
-    assert.deepStrictEqual(toastEvents.map((item) => [item.kind, item.delta]).sort(), [["rep", 1], ["points", 2], ["wins", 1]].sort());
+    assert.deepStrictEqual(toastEvents.map((item) => [item.kind, item.delta]).sort(), [["rep", 1], ["points", 2]].sort());
     assert(visibleChat.some((item) => item.text.includes("денежек больше стало")));
     Game.Stage715Demo.handlePlayerMessage("готов");
     setTimeout(() => {

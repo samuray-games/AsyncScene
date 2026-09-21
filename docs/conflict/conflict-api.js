@@ -1190,6 +1190,18 @@
        const battle = findBattle(battleId);
        if (!battle) return { ok: false, error: "no_battle" };
 
+       // Stage 7.15's correct Nastya answer is an intermediate scripted
+       // teaching state, not ordinary conflict resolution. Route only that
+       // canonical choice through its controller; all other battles retain
+       // the generic API below.
+       if (((battle.meta && battle.meta.stage715NastyaBattle === true)
+         || String(battle.attack && (battle.attack.text || battle.attack.displayText) || "") === "Ты на проблемы нарываешься?")
+         && String(defenseArgId) === "yn_no"
+         && Game.Stage715Demo
+         && typeof Game.Stage715Demo.handleNastyaDefenseChoice === "function") {
+         return Game.Stage715Demo.handleNastyaDefenseChoice(battleId, defenseArgId);
+       }
+
        // Defense picking is only valid for INCOMING battles.
        // If this is an outgoing battle (fromThem === false), UI must not be able to resolve it as incoming.
        if (battle.fromThem === false && battle.status !== "pickDefense") {

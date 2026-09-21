@@ -20,7 +20,7 @@ for path in (WEB_BOOT, DOCS_BOOT):
 boot = WEB_BOOT.read_text(encoding="utf-8")
 docs_boot = DOCS_BOOT.read_text(encoding="utf-8")
 fresh = boot[boot.index("// Stage 7.15 demo is the public fresh-start entry"):]
-resume = boot[boot.index("if (resumeMode"):boot.index("if (S.flags.started")]
+resume = boot[boot.index("if (resumeMode"):boot.index("if ((S.flags.started")]
 docs_fresh = docs_boot[docs_boot.index("// Stage 7.15 demo is the public fresh-start entry"):]
 helper_start = boot.index("  function claimStage715FreshStart")
 helper_end = boot.index("\n\n  function startGame", helper_start)
@@ -168,6 +168,17 @@ allowed = {
     "tools/test_stage7_15_initial_greeting_corridor.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
+    "tools/test_stage7_15_rayhan_post_win.py",
+    "tools/test_stage7_15_tone_hud.py",
+    "tools/test_stage7_15_menu_inline.py",
+    "tools/test_stage7_15_canonical_corridor.py",
+    "tools/test_stage7_15_first_battle.py",
+    "AsyncScene/Web/index.html",
+    "docs/index.html",
+    "AsyncScene/Web/ui/ui-core.js",
+    "docs/ui/ui-core.js",
+    "AsyncScene/Web/ui/ui-menu.js",
+    "docs/ui/ui-menu.js",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 

@@ -41,7 +41,7 @@ for marker in (
 
 require('function scriptedRayhanBattle(state)' in stage and 'function handleRayhanDefenseChoice' in stage,
         "controller must own deterministic Rayhan battle creation and choice routing")
-require('stage715RayhanScripted' in battles and 'if (!isStage715Rayhan)' in battles,
+require('stage715RayhanScripted' in battles and 'if (!isStage715Rayhan && !stage715NastyaDemo)' in battles,
         "scripted Rayhan battle must suppress ordinary battle controls")
 require('stage715DemoActive ? "Вызвать"' in battles,
         "Stage 7.15 challenge button must use the scripted label")

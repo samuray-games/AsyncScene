@@ -43,9 +43,15 @@ boot_text = BOOT.read_text(encoding="utf-8")
 require('text: "здарова)"' in stage_text, "Oleg intro is not exact canonical text")
 require('text: "Здарова"' not in stage_text, "obsolete Oleg intro remains")
 require("hasPersistedCheckpoint" in stage_text, "Stage 7.15 persistence probe missing")
+require("const candidates = [stateFor(), G.__S, G.UI && G.UI.S]" in stage_text, "save must select authoritative mirror")
+require("const stateScore = (candidate) =>" in stage_text, "save mirror selection score missing")
+require("const seen = new WeakSet();" in stage_text, "cycle-safe persisted snapshot serializer missing")
+require("const payload = JSON.stringify({ version: 1, state: persisted }," in stage_text, "serialized persisted snapshot payload missing")
 require("autoResumeStage715" in boot_text, "ordinary boot auto-resume missing")
+require("if (autoResumeStage715)" in boot_text, "restored checkpoint re-render missing")
+require("UI.renderAll && UI.renderAll();" in boot_text, "restored checkpoint render missing")
 require("retired missing-money PRELUDE resume API" in boot_text, "PRELUDE guard missing from boot")
-resume_route = boot_text[boot_text.index("if (resumeMode"):boot_text.index("if (S.flags.started")]
+resume_route = boot_text[boot_text.index("if (resumeMode"):boot_text.index("if ((S.flags.started")]
 require(resume_route.index("retired missing-money PRELUDE resume API") < resume_route.index("firstExperience.claimResume"), "canonical Stage 7.15 route can still fall through to PRELUDE")
 
 node_test = r'''

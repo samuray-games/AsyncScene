@@ -1615,6 +1615,15 @@
       if (!Econ || typeof Econ.applyResult !== "function") return;
 
       const b = battle || {};
+      const economyKey = String(outcome || "");
+      const battleId = b.id || b.battleId || null;
+      const authoritative = battleId && Game && Game.__S && Array.isArray(Game.__S.battles)
+        ? Game.__S.battles.find((entry) => entry && String(entry.id || entry.battleId || "") === String(battleId))
+        : null;
+      const owner = authoritative || b;
+      if (owner._economyOutcomeApplied === economyKey) return;
+      owner._economyOutcomeApplied = economyKey;
+      if (owner !== b) b._economyOutcomeApplied = economyKey;
       const role = getRole(b.opponentId);
 
       // Mafia battles: humiliation wipes influence, but base win/lose economy should NOT auto-apply here.

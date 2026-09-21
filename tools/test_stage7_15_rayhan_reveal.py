@@ -37,7 +37,7 @@ for marker in (
 for marker in (
     'const stage715RayhanDemo = isStage715RayhanScriptedBattle(b)',
     'stage715DemoController.handleRayhanDefenseChoice',
-    'if (!isStage715Rayhan)',
+    'if (!isStage715Rayhan && !stage715NastyaDemo)',
     'traceStage715RayhanDom("render-start"',
     'document.querySelector("#battlesBody")',
     'battlesBodyInnerHTMLLength',
@@ -237,6 +237,17 @@ allowed = {
     "tools/test_stage7_15_initial_greeting_corridor.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
+    "tools/test_stage7_15_rayhan_post_win.py",
+    "tools/test_stage7_15_tone_hud.py",
+    "tools/test_stage7_15_menu_inline.py",
+    "tools/test_stage7_15_canonical_corridor.py",
+    "tools/test_stage7_15_first_battle.py",
+    "AsyncScene/Web/index.html",
+    "docs/index.html",
+    "AsyncScene/Web/ui/ui-core.js",
+    "docs/ui/ui-core.js",
+    "AsyncScene/Web/ui/ui-menu.js",
+    "docs/ui/ui-menu.js",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

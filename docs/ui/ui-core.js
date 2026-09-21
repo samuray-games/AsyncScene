@@ -707,6 +707,13 @@ window.Game = window.Game || {};
       }
     }
 
+    const stage715DemoActive = !!(Game.Stage715Demo
+      && typeof Game.Stage715Demo.isActive === "function"
+      && Game.Stage715Demo.isActive({ UI, state: S }));
+    dom.next.hidden = stage715DemoActive;
+    dom.next.setAttribute("aria-hidden", stage715DemoActive ? "true" : "false");
+    if (stage715DemoActive) return;
+
     const nextColorKey = _argColorKeyFromSub(nextSubKey) || colorKey;
     dom.next.style.display = "";
     const __logToneHUD = (() => {
