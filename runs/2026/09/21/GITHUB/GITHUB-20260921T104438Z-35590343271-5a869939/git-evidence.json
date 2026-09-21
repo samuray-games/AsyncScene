@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "afcdeacc8c89279777488892bce4143ef36f005d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "# branch.oid afcdeacc8c89279777488892bce4143ef36f005d\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "afcdeacc (HEAD -> main, origin/main) Repair Stage 7.15 canonical corridor through M82 (#404)\n1ab75c31 Repair Stage 7.15 Events visibility and Rayhan wrong-counter flow (#403)\nb2de3447 Restore canonical Stage 7.15 contracts for M82 Safari re-run\n87b4dfde Sanitize control plane from retired bridge machinery\nff9ea494 Stage 7.15 M82: reveal First Event entry after first independent win\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD afcdeacc8c89279777488892bce4143ef36f005d\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-09-21T10:44:38Z",
+      "stderr": "",
+      "stdout": "afcdeacc8c89279777488892bce4143ef36f005d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "afcdeacc8c89279777488892bce4143ef36f005d",
+  "observedAtUtc": "2026-09-21T10:44:38Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
