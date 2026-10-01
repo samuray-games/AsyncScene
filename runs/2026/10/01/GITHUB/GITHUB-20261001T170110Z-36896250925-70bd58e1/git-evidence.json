@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom3-nastya-correct",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom3-nastya-correct\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "7ce183fba6a8a7452b9fd31862b600f5e6328d91\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7ce183fba6a8a7452b9fd31862b600f5e6328d91\n# branch.head codex/stage715-atom3-nastya-correct\n# branch.upstream origin/codex/stage715-atom3-nastya-correct\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "7ce183fb (HEAD -> codex/stage715-atom3-nastya-correct, origin/codex/stage715-atom3-nastya-correct) Fix Stage 7.15 Nastya REP resume\n8495118d Fix Stage 7.15 Nastya correct vote path\nc9f1b4e3 (origin/main) Fix Stage 7.15 Rayhan wrong-answer event ownership\n845e3296 Sync model inventory integration into repository memory\n4cd05ac8 Update model selector inventory to 8 models / 44 effort pairs\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7ce183fba6a8a7452b9fd31862b600f5e6328d91\nbranch refs/heads/codex/stage715-atom3-nastya-correct\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T17:01:10Z",
+      "stderr": "",
+      "stdout": "c9f1b4e34f02111d8c7bf7508e2c9f8c08ff5751\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7ce183fba6a8a7452b9fd31862b600f5e6328d91",
+  "observedAtUtc": "2026-10-01T17:01:10Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
