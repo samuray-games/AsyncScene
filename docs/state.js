@@ -1225,6 +1225,17 @@ window.Game = window.Game || {};
     }
   }
 
+  function restoreRepSnapshot(value, source){
+    if (source !== "stage715_checkpoint" || !State.flags || State.flags.stage715Demo !== true) {
+      return { ok: false, reason: "unauthorized_rep_snapshot_restore" };
+    }
+    const next = Number(value);
+    if (!Number.isFinite(next) || next < 0) return { ok: false, reason: "bad_rep_snapshot" };
+    const before = State.rep | 0;
+    withRepWrite(() => { State.rep = next | 0; });
+    return { ok: true, before, after: State.rep | 0 };
+  }
+
   function maybeDailyRepBonus(){
     ensureProgress();
     const cfg = getRepConfig();
@@ -4728,6 +4739,7 @@ window.Game = window.Game || {};
     spendPoints,
     addRep,
     transferRep,
+    restoreRepSnapshot,
     giveRespect,
     emitStatDelta,
     maybeDailyRepBonus,
@@ -8269,6 +8281,7 @@ window.Game = window.Game || {};
   Security.protectMethod(StateAPI, "addPoints", addPoints, "StateAPI.addPoints");
   Security.protectMethod(StateAPI, "spendPoints", spendPoints, "StateAPI.spendPoints");
   Security.protectMethod(StateAPI, "transferRep", transferRep, "StateAPI.transferRep");
+  Security.protectMethod(StateAPI, "restoreRepSnapshot", restoreRepSnapshot, "StateAPI.restoreRepSnapshot");
   Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
   Security.protectMethod(StateAPI, "giveRespect", giveRespect, "StateAPI.giveRespect");
   Security.finishBoot();

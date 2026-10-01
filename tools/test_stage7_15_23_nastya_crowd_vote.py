@@ -54,12 +54,17 @@ for text in (
 
 require('if (battle.meta && battle.meta.stage715NastyaVote) return 0;' in api_js,
         "generic NPC vote generator must not own the scripted Nastya vote")
-require(core_js.count("v._stage715NastyaVoteApplied = true;") == 1,
-        "scripted Nastya votes must apply exactly once")
-require('v.votesA = votesA;' in core_js and 'v.votesB = votesB;' in core_js,
-        "scripted Nastya tally must remain stable across renders")
-require('v.cap = votesA + votesB;' in core_js,
-        "scripted Nastya vote must use its canonical five-vote cap")
+require('v._stage715NastyaVoteApplied = total + 1;' in core_js,
+        "scripted Nastya vote must record each individual transition")
+require('v.voters[voterId] = side;' in core_js and 'v.votesA = (v.votesA | 0) + 1;' in core_js and
+        'v.votesB = (v.votesB | 0) + 1;' in core_js,
+        "scripted Nastya vote must add one real visible voter to the tally")
+require('1000 + Math.floor(Math.random() * 1001)' in core_js and
+        'v.stage715NextVoteAtMs = nowMs + delay;' in core_js,
+        "each scripted Nastya vote must use its own 1-2 second delay")
+nastya_vote = core_js[core_js.index("function applyScriptedNastyaVote(b, v)"):core_js.index("function finalizeEscapeVote")]
+require(nastya_vote.count('v.cap = votesA + votesB;') == 1,
+        "scripted Nastya vote must keep the canonical five-vote cap")
 require('v.stage715VoteOwner = "stage715_nastya"' in core_js,
         "scripted Nastya vote must record deterministic ownership")
 ui_js = battles_ui.decode("utf-8")
