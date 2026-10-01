@@ -1,8 +1,26 @@
 {
   "authorityVersion": "1.0.11",
-  "inventoryArtifactPath": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801/UI-VISIBLE-MODEL-INVENTORY.md",
+  "inventoryArtifactPath": ".ai-work/tasks/TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20261001/UI-VISIBLE-MODEL-INVENTORY.md",
   "inventoryParser": "markdown-bullet-inventory-v1",
   "provenanceType": "repository-markdown",
-  "lastAcceptedBlobSha": "dba335f701f704a3e38cd2318cd59a0a964852af",
-  "currentSnapshotRevision": "20260801.1"
+  "lastAcceptedBlobSha": "f1942a55fd358dbcca19a6fd9df5d704b07b4a8f",
+  "currentSnapshotRevision": "20261001.1",
+  "modelStableFloorRanks": {
+    "gpt-6.1-sol": 4,
+    "gpt-6-astra": 3,
+    "gpt-6-sol": 3,
+    "gpt-6-luna": 3,
+    "gpt-5.6-sol": 2,
+    "gpt-5.6-terra": 1,
+    "gpt-5.6-luna": 0,
+    "gpt-5.5": -1
+  },
+  "modelStableFloorRankPolicy": "ordered-inventory; larger-rank-is-stronger; preserve existing anchors; leading and trailing runs extend one rank per model; interior runs inherit the preceding anchor",
+  "modelStableFloorRankAnchors": {
+    "gpt-6-astra": 3,
+    "gpt-5.6-sol": 2,
+    "gpt-5.6-terra": 1,
+    "gpt-5.6-luna": 0,
+    "gpt-5.5": -1
+  }
 }
