@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "4628a4149fb37f128ba1ba3d06e29939865d0151\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "# branch.oid 4628a4149fb37f128ba1ba3d06e29939865d0151\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "4628a414 (HEAD, pull/406/merge) Merge 9d90934ba87ff661a320cb2f46dee3797ba1974c into 5eb5b1eb9c72699fafae6594133005a16df20f6b\n9d90934b (origin/codex/stage715-atom1-rayhan-resume) Bust Stage 7.15 Rayhan controller cache\n8d83ee80 Fix Stage 7.15 Rayhan resume chat persistence\n5eb5b1eb (origin/main) Restore Codex subagent orchestration (#405)\nafcdeacc Repair Stage 7.15 canonical corridor through M82 (#404)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 4628a4149fb37f128ba1ba3d06e29939865d0151\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T09:27:17Z",
+      "stderr": "",
+      "stdout": "5eb5b1eb9c72699fafae6594133005a16df20f6b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "4628a4149fb37f128ba1ba3d06e29939865d0151",
+  "observedAtUtc": "2026-10-01T09:27:17Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
