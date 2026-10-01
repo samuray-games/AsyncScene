@@ -172,6 +172,7 @@ allowed = {
     "tools/test_stage7_15_tone_hud.py",
     "tools/test_stage7_15_menu_inline.py",
     "tools/test_stage7_15_canonical_corridor.py",
+    "tools/test_stage7_15_atom1_rayhan_resume.py",
     "tools/test_stage7_15_first_battle.py",
     "AsyncScene/Web/index.html",
     "docs/index.html",
