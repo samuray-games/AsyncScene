@@ -3238,17 +3238,10 @@ window.Game = window.Game || {};
   }
 
   function saveState() {
-    const candidates = [stateFor(), G.__S, G.UI && G.UI.S]
-      .filter((candidate, index, all) => candidate && all.indexOf(candidate) === index);
-    const stateScore = (candidate) => {
-      if (!candidate || typeof candidate !== "object") return -1;
-      const flags = candidate.flags && typeof candidate.flags === "object" ? candidate.flags : {};
-      const stageFlags = Object.keys(flags).filter((key) => key.startsWith("stage715") && flags[key] === true).length;
-      const chatCount = Array.isArray(candidate.chat) ? candidate.chat.length : (Array.isArray(candidate.messages) ? candidate.messages.length : 0);
-      const battleCount = Array.isArray(candidate.battles) ? candidate.battles.length : 0;
-      return (stageFlags * 1000) + (battleCount * 100) + chatCount;
-    };
-    const state = candidates.sort((a, b) => stateScore(b) - stateScore(a))[0] || null;
+    // stateFor() is the controller's authoritative state reference. The
+    // other objects are mirrors and must never win persistence by having a
+    // larger heuristic score or a newer-looking chat array.
+    const state = stateFor() || G.__S || (G.UI && G.UI.S) || null;
     if (!state) return;
     const persisted = state;
     persisted.flags = persisted.flags || {};
@@ -3692,6 +3685,10 @@ window.Game = window.Game || {};
         sourceTag: DEMO_SOURCE_TAG,
         preserveText: true,
       });
+      // Persist after UI.pushChat commits the queued message to the
+      // authoritative UI state. Saving before this point loses the line on
+      // Menu -> Start -> Continue.
+      saveState();
       render();
       if (typeof entry.onComplete === "function") {
         try { entry.onComplete(); } catch (_) {}
@@ -3883,6 +3880,9 @@ window.Game = window.Game || {};
       pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WIN_CHAT });
       state.flags.stage715RayhanRewardChatShown = true;
     }
+    // Persist the exactly-once ownership flag after scheduling the durable
+    // line; drainNpcQueue() persists again after UI.pushChat commits it.
+    saveState();
     telemetry("stage715_rayhan_win_rewards");
     render();
     return true;
