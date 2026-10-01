@@ -226,6 +226,7 @@ allowed = {
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/test_stage7_15_40_generic_events.py",
     "tools/test_stage7_15_rayhan_missing_group.py",
     "tools/test_stage7_15_rayhan_light_theme.py",
     "tools/test_stage7_15_safari_corridor.py",

@@ -3225,6 +3225,13 @@ window.Game = window.Game || {};
     battleWatchTimer = null;
     rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
     rayhanEventVoteTimers = [];
+    const rayhanVoteRegistry = G.__stage715RayhanEventVoteTimers;
+    if (rayhanVoteRegistry && typeof rayhanVoteRegistry === "object") {
+      Object.keys(rayhanVoteRegistry).forEach((eventId) => {
+        clearTimeout(rayhanVoteRegistry[eventId]);
+        delete rayhanVoteRegistry[eventId];
+      });
+    }
     if (escapeWatchTimer) clearInterval(escapeWatchTimer);
     escapeWatchTimer = null;
     if (npcQueueTimer) clearTimeout(npcQueueTimer);
@@ -4066,13 +4073,13 @@ window.Game = window.Game || {};
     state.flags.stage715RayhanChoiceId = choice.id;
     saveState();
     telemetry("stage715_rayhan_scripted_choice");
-    const conflict = G.Conflict;
-    if (!conflict || typeof conflict.pickDefense !== "function") return false;
     const preserveSelectedScriptedText = () => {
       if (!choice.stage715DisplayText) return;
       preserveStage715SelectedDefenseText(FIRST_BATTLE_ID, choice.stage715DisplayText);
     };
     const resolveChoice = () => {
+      const conflict = G.Conflict;
+      if (!conflict || typeof conflict.pickDefense !== "function") return false;
       battle.meta.stage715RayhanAnswerPending = false;
       battle.suppressCrowdSystemChat = true;
       battle._defenseChoices = [choice];
@@ -4082,6 +4089,7 @@ window.Game = window.Game || {};
       if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
         startRayhanEventVote(battle);
       }
+      return true;
     };
     const attackType = String(battle.attack && (battle.attack.group || battle.attack.type || battle.attack.qtype || "") || "").toLowerCase();
     const defenseType = String(choice.group || choice.type || choice.qtype || "").toLowerCase();
@@ -4090,14 +4098,22 @@ window.Game = window.Game || {};
       battle.meta.stage715RayhanAnswerPending = true;
       battle.meta.stage715RayhanPendingChoiceId = choice.id;
       battle.meta.stage715RayhanArgumentRevealed = true;
+      battle.defense = Object.assign({}, choice);
+      battle.result = null;
+      battle.outcome = null;
+      battle.resolved = false;
+      battle.finished = false;
+      battle.draw = false;
+      battle.crowd = null;
       battle._defenseChoices = [choice];
+      preserveSelectedScriptedText();
       phase = "rayhan_wrong_waiting_reply";
       if (state.flags.stage715RayhanWrongChatShown !== true) {
         pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT });
         state.flags.stage715RayhanWrongChatShown = true;
       }
     } else {
-      resolveChoice();
+      if (!resolveChoice()) return false;
     }
     saveState();
     render();
@@ -4240,7 +4256,9 @@ window.Game = window.Game || {};
 
   function rayhanEventVoterIds() {
     const state = rayhanBattleState();
-    return Object.values(state && state.players || {})
+    if (!state) return [];
+    state.players = state.players || {};
+    const voterIds = Object.values(state.players)
       .filter((player) => {
         const id = String(player && player.id || "");
         const role = String(player && player.role || "").toLowerCase();
@@ -4249,6 +4267,11 @@ window.Game = window.Game || {};
       })
       .slice(0, RAYHAN_EVENT_VOTE_COUNT)
       .map((player) => String(player.id));
+    for (let index = voterIds.length; index < RAYHAN_EVENT_VOTE_COUNT; index += 1) {
+      const id = `stage715_rayhan_event_voter_${index + 1}`;
+      voterIds.push(state.players[id] ? `${id}_scripted` : id);
+    }
+    return voterIds.slice(0, RAYHAN_EVENT_VOTE_COUNT);
   }
 
   function stopRayhanBattleCrowd(battle) {
@@ -4275,27 +4298,8 @@ window.Game = window.Game || {};
   function finalizeRayhanEventBattle(event) {
     if (!event || !event.resolved || !event.crowd || event.crowd.winner !== "a") return false;
     const battle = stage715BattleById(FIRST_BATTLE_ID);
-    if (!battle || !battle.crowd || !G.Conflict || typeof G.Conflict.finalizeCrowdVote !== "function") return false;
-    const voters = event.crowd.voters || {};
-    const battleVoters = {};
-    Object.keys(voters).forEach((voterId) => {
-      battleVoters[voterId] = voters[voterId] === "a" ? "defender" : "attacker";
-    });
-    stopRayhanBattleCrowd(battle);
-    battle.crowd.voters = battleVoters;
-    battle.crowd.votesA = 2;
-    battle.crowd.votesB = 3;
-    battle.crowd.aVotes = 2;
-    battle.crowd.bVotes = 3;
-    battle.crowd.cap = RAYHAN_EVENT_VOTE_COUNT;
-    battle.crowd.totalPlayers = RAYHAN_EVENT_VOTE_COUNT;
-    battle.crowd._econApplied = true;
-    battle.status = "draw";
-    battle.result = "draw";
-    battle.draw = true;
-    battle.resolved = false;
-    battle.finished = false;
-    const finalized = G.Conflict.finalizeCrowdVote(battle.id);
+    if (!battle || !G.Conflict || typeof G.Conflict.finalizeStage715RayhanEventWin !== "function") return false;
+    const finalized = G.Conflict.finalizeStage715RayhanEventWin(battle.id, event.id);
     if (battleOutcome(battle) !== "win") return false;
     const state = rayhanBattleState();
     if (state && state.players && state.players[RAYHAN_EVENT_PLAYER_ID]
@@ -4316,6 +4320,7 @@ window.Game = window.Game || {};
     const event = rayhanEventById(eventId);
     const crowd = event && event.crowd;
     if (!event || !crowd || event.resolved || crowd.decided) return false;
+    if (Number(crowd.stage715NextVoteAllowedAt || 0) > Date.now()) return false;
     const voterId = Array.isArray(crowd.scriptedVoterIds) ? crowd.scriptedVoterIds[voteIndex] : null;
     const side = voteIndex < 3 ? "a" : "b";
     if (!voterId || crowd.voters[voterId]) return false;
@@ -4337,16 +4342,27 @@ window.Game = window.Game || {};
 
   function scheduleRayhanEventVotes(event) {
     if (!event || !event.crowd || event.crowd.decided || event.resolved) return false;
-    rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
-    rayhanEventVoteTimers = [];
-    const voteAt = Array.isArray(event.crowd.scriptedVoteAt) ? event.crowd.scriptedVoteAt : [];
     const voterIds = Array.isArray(event.crowd.scriptedVoterIds) ? event.crowd.scriptedVoterIds : [];
-    voteAt.forEach((at, index) => {
-      if (!voterIds[index] || event.crowd.voters[voterIds[index]]) return;
-      const delay = Math.max(25, Number(at || 0) - Date.now());
-      rayhanEventVoteTimers.push(setTimeout(() => applyRayhanEventVote(event.id, index), delay));
-    });
-    return rayhanEventVoteTimers.length > 0;
+    const nextIndex = voterIds.findIndex((id) => id && !event.crowd.voters[id]);
+    if (nextIndex < 0) return false;
+    const registry = G.__stage715RayhanEventVoteTimers || (G.__stage715RayhanEventVoteTimers = Object.create(null));
+    if (registry[event.id]) return true;
+    const delay = rayhanEventVoteDelay();
+    const previousAt = Date.now();
+    event.crowd.stage715NextVoteAllowedAt = previousAt + delay;
+    event.crowd.scriptedVoteAt = voterIds.map((_, index) => (
+      index < nextIndex ? Number(event.crowd.scriptedVoteAt && event.crowd.scriptedVoteAt[index] || previousAt)
+        : (index === nextIndex ? previousAt + delay : 0)
+    ));
+    const timer = setTimeout(() => {
+      if (registry[event.id] !== timer) return;
+      delete registry[event.id];
+      rayhanEventVoteTimers = [];
+      if (applyRayhanEventVote(event.id, nextIndex) && !event.resolved) scheduleRayhanEventVotes(event);
+    }, delay);
+    registry[event.id] = timer;
+    rayhanEventVoteTimers = [timer];
+    return true;
   }
 
   function startRayhanEventVote(battle) {
@@ -4428,6 +4444,16 @@ window.Game = window.Game || {};
       note: "",
       action: "event",
     };
+    battle.meta.stage715RayhanEventVotePending = true;
+    battle.meta.stage715RayhanEventId = event.id;
+    battle.status = "stage715_rayhan_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.resolved = false;
+    battle.finished = false;
+    battle.draw = false;
+    stopRayhanBattleCrowd(battle);
+    battle.crowd = null;
     const players = state.players || (state.players = {});
     const previousSyntheticPlayer = players[RAYHAN_EVENT_PLAYER_ID];
     players[RAYHAN_EVENT_PLAYER_ID] = {
@@ -4449,7 +4475,6 @@ window.Game = window.Game || {};
         else delete players[RAYHAN_EVENT_PLAYER_ID];
       }
     }
-    stopRayhanBattleCrowd(battle);
     battle.meta = Object.assign({}, battle.meta || {}, {
       stage715RayhanEventId: event.id,
       stage715RayhanEventVotePending: true,
@@ -4470,6 +4495,18 @@ window.Game = window.Game || {};
     const event = eventId ? rayhanEventById(eventId) : null;
     if (!event) return false;
     if (event.resolved) return finalizeRayhanEventBattle(event);
+    if (battle.meta) battle.meta.stage715RayhanEventVotePending = true;
+    battle.status = "stage715_rayhan_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.resolved = false;
+    battle.finished = false;
+    battle.draw = false;
+    if (battle._crowdTimer) clearInterval(battle._crowdTimer);
+    battle._crowdTimer = null;
+    battle.crowd = null;
+    saveState();
+    render();
     return scheduleRayhanEventVotes(event);
   }
 
@@ -5108,18 +5145,11 @@ window.Game = window.Game || {};
       if (battle && choice) {
         battle.meta.stage715RayhanPendingChoiceId = null;
         battle.meta.stage715RayhanAnswerPending = false;
-        battle.suppressCrowdSystemChat = true;
-        battle._defenseChoices = [choice];
-        const result = G.Conflict && typeof G.Conflict.pickDefense === "function"
-          ? G.Conflict.pickDefense(battle.id, choice.id)
-          : null;
+        battle.defense = Object.assign({}, choice);
         if (choice.stage715DisplayText) {
           preserveStage715SelectedDefenseText(FIRST_BATTLE_ID, choice.stage715DisplayText);
         }
-        const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
-        if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
-          startRayhanEventVote(battle);
-        }
+        startRayhanEventVote(battle);
         saveState();
       }
       return true;

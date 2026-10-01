@@ -629,6 +629,7 @@ window.Game ||= {};
     // Adds NPC votes over time so it never stays at 0s with 0-0 forever.
     // Only applies to standalone Events draws and battle-backed draws that have a crowd.
     if (!e || e.state !== "open") return false;
+    if (e.stage715RayhanEvent === true) return false;
 
     ensureEventCrowd(e);
     const crowd = e.crowd;
