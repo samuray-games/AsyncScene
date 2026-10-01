@@ -1,0 +1,106 @@
+{
+  "branch": "codex/restore-subagents-20261001",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "codex/restore-subagents-20261001\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "693dc95dd689539c4e5bec34c695709a614de6ba\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "# branch.oid 693dc95dd689539c4e5bec34c695709a614de6ba\n# branch.head codex/restore-subagents-20261001\n# branch.upstream origin/codex/restore-subagents-20261001\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "693dc95d (HEAD -> codex/restore-subagents-20261001, origin/codex/restore-subagents-20261001) Restore Codex subagent orchestration\nafcdeacc (origin/main) Repair Stage 7.15 canonical corridor through M82 (#404)\n1ab75c31 Repair Stage 7.15 Events visibility and Rayhan wrong-counter flow (#403)\nb2de3447 Restore canonical Stage 7.15 contracts for M82 Safari re-run\n87b4dfde Sanitize control plane from retired bridge machinery\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 693dc95dd689539c4e5bec34c695709a614de6ba\nbranch refs/heads/codex/restore-subagents-20261001\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T08:03:28Z",
+      "stderr": "",
+      "stdout": "afcdeacc8c89279777488892bce4143ef36f005d\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "693dc95dd689539c4e5bec34c695709a614de6ba",
+  "observedAtUtc": "2026-10-01T08:03:28Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
