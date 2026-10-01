@@ -4232,20 +4232,19 @@ window.Game = window.Game || {};
       eligibleNpcCount: 5,
       alreadyVotedCount: 0,
     };
+    const rewardState = G.__S && G.__S.me ? G.__S : stateFor();
+    battle.meta.stage715NastyaRewardBaseline = {
+      rep: currentPlayerStat(rewardState, "rep"),
+      points: currentPlayerStat(rewardState, "points"),
+      wins: currentPlayerStat(rewardState, "wins"),
+    };
+    battle.suppressCrowdSystemChat = true;
     phase = "nastya_crowd_vote";
     const started = G.Conflict.startCrowdVote(battle.id);
     if (!started) {
       phase = "nastya_waiting_chat_reply";
       battle.meta.stage715NastyaChatReplyPending = true;
       return false;
-    }
-    const state = stateFor();
-    if (state) {
-      state.flags = state.flags || {};
-      // This is only a completion gate seed. The phase remains
-      // nastya_crowd_vote until the generic crowd resolver finishes, so a
-      // reply cannot start Oleg before the visible crowd result exists.
-      state.flags.stage715NastyaWon = true;
     }
     saveState();
     telemetry("stage715_nastya_crowd_vote_started");
@@ -4958,19 +4957,11 @@ window.Game = window.Game || {};
   }
 
   function revealNastyaBattle(battle, outcome) {
-    if (!battle || !battle.attack) return false;
+    if (!battle || !battle.attack || outcome !== "win") return false;
     const state = stateFor();
     if (state) {
       state.flags = state.flags || {};
-      // The generic Battles UI may remove a closed finished card before the
-      // player's next chat reply. Keep the scripted handoff semantic, not the
-      // transient card, as the source of truth for starting Oleg.
-      // The canonical crowd handoff may report the defender result as either
-      // win or draw while the generic card is being finalized. Both values
-      // mean the Nastya sequence is complete here; the explicit flag is the
-      // durable gate for the later Oleg flow and is never set by the
-      // intermediate resolved-answer state.
-      if (outcome === "win" || outcome === "draw") state.flags.stage715NastyaWon = true;
+      state.flags.stage715NastyaWon = true;
     }
     const trueColor = battle.attack._color || battle.attack.color || "o";
     battle.attack.color = trueColor;
@@ -4984,6 +4975,30 @@ window.Game = window.Game || {};
       },
       stage715NastyaVote: { a: 2, b: 3, cap: 5 },
     });
+    if (battle.meta.stage715NastyaRewardsApplied !== true) {
+      const baseline = battle.meta.stage715NastyaRewardBaseline || { rep: currentPlayerStat(G.__S || state, "rep"), points: currentPlayerStat(G.__S || state, "points"), wins: currentPlayerStat(G.__S || state, "wins") };
+      const authoritative = G.__S && G.__S.me ? G.__S : state;
+      const repDelta = currentPlayerStat(authoritative, "rep") - (Number(baseline.rep) | 0);
+      const pointsDelta = currentPlayerStat(authoritative, "points") - (Number(baseline.points) | 0);
+      const economy = G.ConflictEconomy || G._ConflictEconomy;
+      if (pointsDelta < 2 && economy && typeof economy.transferPoints === "function") {
+        economy.transferPoints("sink", "me", 2 - pointsDelta, "stage715_nastya_exact_reward", { battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_win" });
+      } else if (pointsDelta > 2 && economy && typeof economy.transferPoints === "function") {
+        economy.transferPoints("me", "sink", pointsDelta - 2, "stage715_nastya_exact_reward_rebalance", { battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_win" });
+      }
+      if (repDelta < 2 && G.__A && typeof G.__A.transferRep === "function") {
+        G.__A.transferRep("crowd_pool", "me", 2 - repDelta, "rep_stage715_nastya_win", NASTYA_BATTLE_ID, { context: "stage715_nastya_win" });
+      } else if (repDelta > 2 && G.__A && typeof G.__A.transferRep === "function") {
+        G.__A.transferRep("me", "crowd_pool", repDelta - 2, "rep_stage715_nastya_win_rebalance", NASTYA_BATTLE_ID, { context: "stage715_nastya_win" });
+      }
+      battle.meta.stage715NastyaRewardsApplied = true;
+      battle.meta.stage715NastyaReward = { rep: 2, money: 2, wins: 1 };
+    }
+    if (battle.meta.stage715NastyaMajorityLineShown !== true) {
+      if (context && context.UI && typeof context.UI.pushSystem === "function") context.UI.pushSystem("Тебя поддержало большинство.");
+      else pushNpc({ name: "", system: true, text: "Тебя поддержало большинство." });
+      battle.meta.stage715NastyaMajorityLineShown = true;
+    }
     if (!battle.meta.stage715NastyaExplanationShown) {
       pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
       battle.meta.stage715NastyaExplanationShown = true;
@@ -4994,7 +5009,11 @@ window.Game = window.Game || {};
       color: trueColor,
       voteStarted: outcome === "draw",
     });
-    phase = "next_scripted_flow";
+    if (battle.meta.stage715NastyaPostWinQuestionShown !== true) {
+      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?" });
+      battle.meta.stage715NastyaPostWinQuestionShown = true;
+    }
+    phase = "nastya_post_win_waiting_reply";
     saveState();
     render();
     return true;
@@ -5007,7 +5026,8 @@ window.Game = window.Game || {};
     if (!battle || !outcome) return false;
     if (battle.meta && battle.meta.stage715NastyaPayoff && battle.meta.stage715NastyaPayoff.status === "revealed") return true;
     if (battle.meta && battle.meta.stage715NastyaResultRecorded === true) return true;
-    if (outcome === "win" || outcome === "draw") return revealNastyaBattle(battle, outcome);
+    if (outcome === "win") return revealNastyaBattle(battle, outcome);
+    if (outcome === "draw") return true;
     battle.meta = Object.assign({}, battle.meta || {}, { stage715NastyaResultRecorded: true });
     telemetry("stage715_nastya_battle_result", { battleId: battle.id, outcome, nextFlow: "scripted" });
     openNextScriptedFlow("loss");
@@ -5172,6 +5192,13 @@ window.Game = window.Game || {};
     }
     if (phase === "nastya_waiting_chat_reply") {
       startNastyaCrowdVote();
+      return true;
+    }
+    if (phase === "nastya_post_win_waiting_reply") {
+      phase = "next_scripted_flow";
+      const state = stateFor();
+      if (state && state.flags) state.flags.stage715NastyaPostWinReplyReceived = true;
+      saveState();
       return true;
     }
     if (phase === "next_scripted_flow") {

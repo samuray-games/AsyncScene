@@ -2195,7 +2195,8 @@ UI.renderBattles = () => {
       line.className = "noteLine";
 
       const isEscape = isEscapeVote(b);
-      const isDraw = isDrawBattle(b);
+      const isDraw = isDrawBattle(b) || !!(b.meta && b.meta.stage715NastyaBattle === true
+        && b.meta.stage715NastyaCrowdStarted === true && b.crowd && b.crowd.decided === true);
       const uiThinksResolved = isBattleResolved(b);
       const stage715NastyaIntermediate = !!(b.meta
         && b.meta.stage715NastyaResolvedAnswer === true
@@ -2253,7 +2254,8 @@ UI.renderBattles = () => {
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
        else line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
       } else {
-        line.textContent = _normalizeResultText(b);
+        line.textContent = (b.meta && b.meta.stage715NastyaBattle === true
+          && b.meta.stage715NastyaCrowdStarted === true) ? "" : _normalizeResultText(b);
       }
       card.appendChild(line);
 
@@ -2435,7 +2437,7 @@ UI.renderBattles = () => {
         }
 
       // DRAW (crowd vote) - render even if resolved is true
-      if (isDrawBattle(b)) {
+      if (isDraw) {
           const isMyDraw = (b.fromThem === true || b.fromThem === false);
           const crowd = b.crowd || {};
           if (!b.crowd) b.crowd = { votesA: 0, votesB: 0, decided: false };
@@ -2645,6 +2647,20 @@ UI.renderBattles = () => {
             (bb) => update(bb)
           );
           update(b);
+
+          if (b.meta && b.meta.stage715NastyaBattle === true && b.crowd.decided === true) {
+            const finalLine = document.createElement("div");
+            finalLine.className = "noteLine";
+            finalLine.textContent = b.result === "win" ? "Победа!" : "";
+            if (finalLine.textContent) drawWrap.appendChild(finalLine);
+            card.appendChild(drawWrap);
+            emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+            finalLogMode = "stage715_nastya_final";
+            finalLogNodes = createBattleRenderNodeState();
+            logBattleCardRenderFinal(b.id, finalLogMode, finalLogNodes);
+            body.appendChild(card);
+            return;
+          }
 
           if ((b.drawResolved === true || b.crowd.decided) && !drawWrap._resultShown) {
             const resLine = document.createElement("div");

@@ -2595,17 +2595,37 @@
 
   function applyScriptedNastyaVote(b, v){
     const scripted = b && b.meta && b.meta.stage715NastyaVote;
-    if (!scripted || !v || v._stage715NastyaVoteApplied) return false;
+    if (!scripted || !v || !b.meta.stage715NastyaCrowdStarted || v.decided) return false;
     const votesA = Number(scripted.a) | 0;
     const votesB = Number(scripted.b) | 0;
     if (votesA < 0 || votesB < 0 || (votesA + votesB) <= 0 || votesA === votesB) return false;
-    v.voters = {};
-    v.votesA = votesA;
-    v.votesB = votesB;
-    v.aVotes = votesA;
-    v.bVotes = votesB;
+    const nowMs = Date.now();
+    const total = getCrowdTotalVotes(v);
+    if (!Number.isFinite(v.stage715NextVoteAtMs)) {
+      const firstDelay = 1000 + Math.floor(Math.random() * 1001);
+      v.stage715VoteIntervals = [firstDelay];
+      v.stage715NextVoteAtMs = nowMs + firstDelay;
+      return false;
+    }
+    if (nowMs < v.stage715NextVoteAtMs || total >= votesA + votesB) return false;
+    v.voters = v.voters || {};
+    const side = (v.votesA | 0) < votesA ? "a" : "b";
+    const voterId = `stage715_nastya_voter_${total + 1}`;
+    v.voters[voterId] = side;
+    if (side === "a") v.votesA = (v.votesA | 0) + 1;
+    else v.votesB = (v.votesB | 0) + 1;
+    v.aVotes = v.votesA;
+    v.bVotes = v.votesB;
     v.cap = votesA + votesB;
-    v._stage715NastyaVoteApplied = true;
+    if (total + 1 < votesA + votesB) {
+      const delay = 1000 + Math.floor(Math.random() * 1001);
+      v.stage715VoteIntervals = v.stage715VoteIntervals || [];
+      v.stage715VoteIntervals.push(delay);
+      v.stage715NextVoteAtMs = nowMs + delay;
+    } else {
+      v.stage715NextVoteAtMs = null;
+    }
+    v._stage715NastyaVoteApplied = total + 1;
     v.stage715VoteOwner = "stage715_nastya";
     return true;
   }
@@ -3036,7 +3056,7 @@
       logCrowdDiag(b.crowd, b.id || b.battleId || null, "cap_zero");
     }
 
-    const tickMs = 700;
+    const tickMs = b.meta && b.meta.stage715NastyaVote ? 100 : 700;
 
     b._crowdTimer = setInterval(() => {
       const cur = Game.__S.battles.find(x => x.id === b.id);
