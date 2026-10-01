@@ -1,5 +1,5 @@
-MEMORY_REV: 2026-09-16-1928-JST
-NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
+MEMORY_REV: 2026-10-01-1945-JST-R8
+NOTION_MEMORY_BASELINE_REV: 2026-10-01-1945-JST-R8
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -8,6 +8,7 @@ NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
 - GitHub Actions run `32264675135` on `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` verified `Safari2234` with city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and summary/sessions/export consistency.
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are recorded.
 - PR #395 is merged into `main@5c73460d0b5422ecff10efee878b4aede466e727` with expected parent `e38b1ca0f504beb778d0466bb40bf5f0658995a4`; its exact four-file policy scope is integrated.
+- Model-selector inventory revision `20261001.1` is integrated by PR #407 at `main@4cd05ac81584003e44f31a265d3a389350bc5ddb`: 8 models / 44 model-effort pairs. Floor ranks: `gpt-6.1-sol:4`, `gpt-6-astra:3`, `gpt-6-sol:3`, `gpt-6-luna:3`, `gpt-5.6-sol:2`, `gpt-5.6-terra:1`, `gpt-5.6-luna:0`, `gpt-5.5:-1`.
 - Ordinary user-operated model-selector handshake is retired. Configured Codex agent-team/model/effort routing is ordinary; numbered bridge selector procedure remains historical/specialized for `мост 1`, `мост 2`, and `мост 3`.
 
 # Current Memory

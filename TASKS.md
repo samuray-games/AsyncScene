@@ -88,6 +88,17 @@ Later First Event milestones remain distinct and unconsumed: 81% unlock conditio
 - Central private-friends-alpha friend-session collection is ACTIVE. The old stale-marker blocker and Safari-pending blocker are closed. This dedicated PR changes repository memory/task/canon files only; runtime files are unchanged.
 - NEXT_ACTION: `AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENTATION_TASK`.
 
+## 2026-10-01 - Asynchronia model selector inventory integration
+
+- Status: COMPLETE; current main integration and repository-memory synchronization are recorded at `MEMORY_REV 2026-10-01-1945-JST-R8`.
+- Current main baseline before the inventory PR: `f24428555ea4d156b8302d991bb944a2b010157d`.
+- PR #407, branch `codex/model-inventory-maintenance-20261001`, was squash-merged as `4cd05ac81584003e44f31a265d3a389350bc5ddb`; reviewed PR head: `91f24b5a3c40a255ccc3f8e9108c85fd47c56e0e`.
+- Canonical inventory revision `20261001.1`: exactly 8 models and 44 model-effort pairs. GPT-6 Luna and GPT-5.6 Luna have no Ultra; GPT-5.5 has four efforts and neither Max nor Ultra.
+- Stable floor ranks: `gpt-6.1-sol:4`, `gpt-6-astra:3`, `gpt-6-sol:3`, `gpt-6-luna:3`, `gpt-5.6-sol:2`, `gpt-5.6-terra:1`, `gpt-5.6-luna:0`, `gpt-5.5:-1`. Capability ranks remain separate from cost authority.
+- Focused inventory and selector tests: 9/9 PASS; Python compile: PASS; orchestration policy validator: `PASS_REPOSITORY_POLICY`; generated snapshot: 8/44 with canonical hash `sha256:25e31adbc721866221bae84814c4154b4118e1e0157909eee580a8cfd34abbd6`; cost and floor-rank coverage: PASS; `git diff --check`: PASS; PR checks `capture` x2 and `validate`: SUCCESS.
+- `validate_ai_work_pipeline.py` reports the same unrelated baseline errors on pre-change main and the candidate branch. The historical auto-model-preflight validator is absent from current main and was not restored.
+- Scope: selector/inventory maintenance only; gameplay/runtime files untouched.
+
 ## 2026-08-13 - Behavioral telemetry v1
 - Status: runtime implementation, PR review, merge, Pages publication, and public Chromium smoke complete; later production activation and acceptance are recorded above.
 - PR #342 merged reviewed head `6b86ca7c582660af74a75a77b1a5ad5fdd133230` as `31edf9f1c0bed7508befbc7140fb15d091ac9ade`.
