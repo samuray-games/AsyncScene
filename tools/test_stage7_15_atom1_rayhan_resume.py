@@ -1,12 +1,17 @@
 from pathlib import Path
+import re
 import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
-STAGE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
+STAGE = ROOT / "docs/ui/ui-stage7-first-experience.js"
+STAGE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 STAGE_DOCS = ROOT / "docs/ui/ui-stage7-first-experience.js"
-BOOT = ROOT / "AsyncScene/Web/ui/ui-boot.js"
-BOOT_DOCS = ROOT / "docs/ui/ui-boot.js"
+BOOT = ROOT / "docs/ui/ui-boot.js"
+BOOT_SOURCE = ROOT / "AsyncScene/Web/ui/ui-boot.js"
+INDEX = ROOT / "docs/index.html"
+INDEX_SOURCE = ROOT / "AsyncScene/Web/index.html"
+BASELINE = "5eb5b1eb9c72699fafae6594133005a16df20f6b"
 
 
 def require(condition, message):
@@ -14,16 +19,24 @@ def require(condition, message):
         raise AssertionError(message)
 
 
-require(STAGE.read_bytes() == STAGE_DOCS.read_bytes(), "Stage 7.15 controller mirrors differ")
-for path in (STAGE, STAGE_DOCS, BOOT, BOOT_DOCS):
+require(STAGE.read_bytes() == STAGE_SOURCE.read_bytes(), "Stage 7.15 controller mirrors differ")
+require(BOOT.exists() and BOOT_SOURCE.exists(), "boot mirrors missing")
+stage_url = re.search(r"ui/ui-stage7-first-experience\.js\?v=([^\"']+)", INDEX.read_text())
+baseline_index = subprocess.check_output(["git", "show", f"{BASELINE}:docs/index.html"], cwd=ROOT, text=True)
+baseline_url = re.search(r"ui/ui-stage7-first-experience\.js\?v=([^\"']+)", baseline_index)
+require(stage_url and baseline_url, "Stage 7.15 controller cache-bust URL missing")
+baseline_stage = subprocess.check_output(["git", "show", f"{BASELINE}:docs/ui/ui-stage7-first-experience.js"], cwd=ROOT)
+if STAGE.read_bytes() != baseline_stage:
+    require(stage_url.group(1) != baseline_url.group(1), "changed deployed controller keeps the baseline cache-bust token")
+for path in (STAGE, STAGE_DOCS, STAGE_SOURCE, BOOT, BOOT_SOURCE):
     subprocess.run(["node", "--check", str(path)], cwd=ROOT, check=True)
 
 node_test = r'''
 const fs = require("fs");
 const vm = require("vm");
 const assert = require("assert");
-const stageSource = fs.readFileSync("AsyncScene/Web/ui/ui-stage7-first-experience.js", "utf8");
-const bootSource = fs.readFileSync("AsyncScene/Web/ui/ui-boot.js", "utf8");
+const stageSource = fs.readFileSync("docs/ui/ui-stage7-first-experience.js", "utf8");
+const bootSource = fs.readFileSync("docs/ui/ui-boot.js", "utf8");
 const storage = new Map();
 const canonical = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, заодно посмотри чо там в меню и дай знать когда закончишь";
 
