@@ -64,6 +64,7 @@ function stageRuntime(state) {
     __A: {
       transferRep(from, to, amount) { assert.strictEqual(from, "crowd_pool"); assert.strictEqual(to, "me"); state.rep += amount; return { ok: true }; },
       emitStatDelta() {}, syncMeToPlayers() {},
+      restoreRepSnapshot(value, source) { if (source !== "stage715_checkpoint") return { ok: false }; state.rep = value | 0; return { ok: true }; },
     },
     ConflictEconomy: {
       transferPoints(from, to, amount) {
@@ -116,7 +117,8 @@ function bootRuntime(state) {
     pushChat(entry) { state.chat = state.chat || []; state.chat.push(entry); }, pushSystem() {}, sendChat() {} };
   const localStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, String(value)), removeItem: (key) => storage.delete(key) };
   const Game = { __S: state, UI, Data: { START_POINTS_NPC: 10, START_POINTS_PLAYER: 0, t: () => "Споры", RANDOM_NAMES: ["Тестер"], pick: (items) => items[0] },
-    Telemetry: { action() {}, setGameplayNickname() {} }, __A: { syncMeToPlayers() {}, seedPlayers() {} } };
+    Telemetry: { action() {}, setGameplayNickname() {} }, __A: { syncMeToPlayers() {}, seedPlayers() {},
+      restoreRepSnapshot(value, source) { if (source !== "stage715_checkpoint") return { ok: false }; state.rep = value | 0; return { ok: true }; } } };
   const window = { Game, localStorage, document, location: { search: "" }, URLSearchParams, setTimeout, clearTimeout, setInterval, clearInterval,
     addEventListener() {}, removeEventListener() {} };
   window.window = window;

@@ -3132,13 +3132,16 @@ window.Game = window.Game || {};
     if (!restored) return false;
     const state = stateFor(nextContext);
     if (!state) return false;
-    Object.keys(restored).forEach((key) => {
+    Object.keys(restored).filter((key) => key !== "rep").forEach((key) => {
       state[key] = restored[key];
     });
     const UI = nextContext && nextContext.UI ? nextContext.UI : G.UI;
-    if (UI && UI.S && UI.S !== state) Object.keys(restored).forEach((key) => { UI.S[key] = restored[key]; });
+    if (UI && UI.S && UI.S !== state) Object.keys(restored).filter((key) => key !== "rep").forEach((key) => { UI.S[key] = restored[key]; });
     if (G.__S && G.__S !== state && G.__S !== (UI && UI.S)) {
-      Object.keys(restored).forEach((key) => { G.__S[key] = restored[key]; });
+      Object.keys(restored).filter((key) => key !== "rep").forEach((key) => { G.__S[key] = restored[key]; });
+    }
+    if (Number.isFinite(restored.rep) && G.__A && typeof G.__A.restoreRepSnapshot === "function") {
+      G.__A.restoreRepSnapshot(restored.rep, "stage715_checkpoint");
     }
     return true;
   }
