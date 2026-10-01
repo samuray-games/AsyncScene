@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 13837)
-Total output lines: 1038
-
 """Markdown-driven Asynchronia model selection and same-thread authorization."""
 
 from __future__ import annotations
@@ -380,7 +377,377 @@ def validate_snapshot(snapshot: Mapping[str, object], *, require_hash: bool = Tr
     if snapshot["supersedes"] is not None and not isinstance(snapshot["supersedes"], str):
         raise SnapshotError("supersedes must be null or a string")
     if not isinstance(snapshot["notes"], list) or not snapshot["notes"] or not all(isinstance(note, str) and note.strip() for note in snapshot["notes"]):
-        raise SnapshotError("notes must be a no…4837 tokens truncated…ect], task: Mapping[str, object], snapshot: Mapping[str, object], report: EvaluationReport, thread_id: str, branch: str, baseline: str) -> None:
+        raise SnapshotError("notes must be a non-empty string list")
+    models = snapshot["models"]
+    if not isinstance(models, list) or not models:
+        raise SnapshotError("models must be a non-empty ordered list")
+    seen_models: set[str] = set()
+    normalized_models: list[dict[str, object]] = []
+    for model in models:
+        if not isinstance(model, Mapping) or set(model) != {"modelLabel", "modelIdentifier", "supportedEfforts"}:
+            raise SnapshotError("each model must contain modelLabel, modelIdentifier, supportedEfforts")
+        model_label = model["modelLabel"]
+        if not isinstance(model_label, str) or not model_label.strip():
+            raise SnapshotError("modelLabel must be a non-empty string")
+        model_id = _require_identifier(model["modelIdentifier"], "model identifier")
+        if model_id in seen_models:
+            raise SnapshotError(f"duplicate model identifier: {model_id}")
+        if model_id != normalize_model_identifier(model_label):
+            raise SnapshotError(f"model identifier mismatch for {model_label}")
+        seen_models.add(model_id)
+        efforts = model["supportedEfforts"]
+        if not isinstance(efforts, list) or not efforts:
+            raise SnapshotError(f"empty effort list for model: {model_label}")
+        seen_efforts: set[str] = set()
+        ordered_efforts: list[dict[str, str]] = []
+        for effort in efforts:
+            if not isinstance(effort, Mapping) or set(effort) != {"effortLabel", "effortIdentifier"}:
+                raise SnapshotError("each supported effort must contain effortLabel and effortIdentifier")
+            effort_label = effort["effortLabel"]
+            if not isinstance(effort_label, str) or not effort_label.strip():
+                raise SnapshotError("effortLabel must be a non-empty string")
+            effort_id = _require_identifier(effort["effortIdentifier"], f"effort identifier for {model_label}")
+            if effort_id in seen_efforts:
+                raise SnapshotError(f"duplicate effort identifier for {model_label}: {effort_id}")
+            if effort_id != normalize_effort_identifier(effort_label):
+                raise SnapshotError(f"effort identifier mismatch for {model_label} / {effort_label}")
+            seen_efforts.add(effort_id)
+            ordered_efforts.append({"effortLabel": effort_label, "effortIdentifier": effort_id})
+        normalized_models.append({"modelLabel": model_label, "modelIdentifier": model_id, "supportedEfforts": ordered_efforts})
+    model_count = len(normalized_models)
+    pair_count = sum(len(model["supportedEfforts"]) for model in normalized_models)
+    if snapshot["completeModelCount"] != model_count or snapshot["completeModelEffortPairCount"] != pair_count:
+        raise SnapshotError("snapshot counts do not match its complete ordered inventory")
+    if require_hash and snapshot["canonicalContentHash"] != canonical_hash(snapshot):
+        raise SnapshotError("canonical content hash mismatch")
+    result = dict(snapshot)
+    result["models"] = normalized_models
+    return result
+
+
+def load_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, object]:
+    snapshot = _snapshot_from_file(path)
+    _validate_authority_binding(snapshot)
+    return snapshot
+
+
+def build_candidate_matrix(snapshot: Mapping[str, object]) -> tuple[Candidate, ...]:
+    valid = validate_snapshot(snapshot)
+    candidates: list[Candidate] = []
+    ordinal = 0
+    for model in valid["models"]:
+        for effort in model["supportedEfforts"]:
+            candidates.append(
+                Candidate(
+                    modelLabel=model["modelLabel"],
+                    effortLabel=effort["effortLabel"],
+                    modelIdentifier=model["modelIdentifier"],
+                    effortIdentifier=effort["effortIdentifier"],
+                    ordinal=ordinal,
+                )
+            )
+            ordinal += 1
+    return tuple(candidates)
+
+
+def _validate_task(task: Mapping[str, object]) -> dict[str, object]:
+    if not isinstance(task, Mapping) or set(task) != set(TASK_FIELDS):
+        raise TaskDescriptionError("task description must contain exactly the required fields")
+    normalized = dict(task)
+    for field in ("taskId", "taskType", "objective"):
+        if not isinstance(normalized[field], str) or not normalized[field].strip():
+            raise TaskDescriptionError(f"{field} must be a non-empty string")
+    for field in ("readScope", "affectedSystems"):
+        if not isinstance(normalized[field], list) or not normalized[field] or not all(isinstance(item, str) and item.strip() for item in normalized[field]):
+            raise TaskDescriptionError(f"{field} must be a non-empty string list")
+    write_scope = normalized["writeScope"]
+    if not isinstance(write_scope, list):
+        raise TaskDescriptionError("writeScope must be a list")
+    if write_scope and not all(isinstance(item, str) and item.strip() for item in write_scope):
+        raise TaskDescriptionError("writeScope must contain only non-empty strings")
+    for field in ("runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact", "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk"):
+        if normalized[field] not in LEVELS:
+            raise TaskDescriptionError(f"{field} must be one of {sorted(LEVELS)}")
+    if normalized["expectedImplementationSize"] not in SIZE_LEVELS:
+        raise TaskDescriptionError(f"expectedImplementationSize must be one of {sorted(SIZE_LEVELS)}")
+    return normalized
+
+
+def _normalized_write_scope(task: Mapping[str, object]) -> tuple[str, ...]:
+    normalized = _validate_task(task)
+    write_scope = normalized["writeScope"]
+    if write_scope == ["NONE_READ_ONLY"]:
+        return tuple()
+    return tuple(write_scope)
+
+
+def _is_read_only_task(task: Mapping[str, object]) -> bool:
+    return len(_normalized_write_scope(task)) == 0
+
+
+def _is_docs_only_mutation(task: Mapping[str, object]) -> bool:
+    normalized = _validate_task(task)
+    write_scope = normalized["writeScope"]
+    if not write_scope:
+        return False
+    if normalized["expectedImplementationSize"] != "small":
+        return False
+    if any(normalized[field] != "low" for field in (
+        "runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact",
+        "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk",
+    )):
+        return False
+    return all(isinstance(path, str) and path.endswith((".md", ".txt")) for path in write_scope)
+
+
+def _model_floor_index(model_identifier: str) -> int:
+    if model_identifier in MODEL_STABLE_FLOOR_RANKS:
+        return MODEL_STABLE_FLOOR_RANKS[model_identifier]
+    raise TaskDescriptionError(f"unknown model floor: {model_identifier}")
+
+
+def _effort_floor_index(effort_identifier: str) -> int:
+    normalized = effort_identifier.lower().replace("_", "-")
+    try:
+        return EFFORT_FLOOR_ORDER.index(normalized)
+    except ValueError as exc:
+        raise TaskDescriptionError(f"unknown effort floor: {effort_identifier}") from exc
+
+
+def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str | None, str | None]:
+    normalized = _validate_task(task)
+    if _is_read_only_task(normalized):
+        return (None, None)
+    if _is_docs_only_mutation(normalized):
+        return ("gpt-5.6-luna", "light")
+    if required_score < 10 or required_score > 39:
+        raise TaskDescriptionError("required score must be between 10 and 39")
+    # Generic mutation work has no family floor.  Capability and the
+    # authoritative cost tiers decide the cheapest sufficient pair.  Family
+    # floors below are reserved for explicit safety/complexity gates.
+    # GPT-5.5 retains the lowest accepted floor rank after retired model IDs
+    # are removed, so generic work still has no effective family restriction.
+    model_floor = "gpt-5.5"
+    if required_score <= 19:
+        effort_floor = "light"
+    elif required_score <= 29:
+        effort_floor = "medium"
+    elif required_score <= 37:
+        effort_floor = "high"
+    elif required_score <= 39:
+        effort_floor = "max"
+    broad_cross_cutting = (
+        normalized["expectedImplementationSize"] in {"large", "very_large"}
+        and len(normalized["affectedSystems"]) >= 3
+        and sum(1 for field in (
+            "architectureImpact", "securityImpact", "economyImpact", "releaseImpact", "validationComplexity", "concurrencyBranchRisk",
+        ) if normalized[field] in {"high", "critical"}) >= 3
+    )
+    if broad_cross_cutting:
+        model_floor = "gpt-5.6-sol"
+    if normalized["runtimeSensitivity"] in {"high", "critical"}:
+        effort_floor = max(effort_floor, "high", key=_effort_floor_index)
+    if normalized["architectureImpact"] in {"high", "critical"}:
+        effort_floor = max(effort_floor, "high", key=_effort_floor_index)
+    if normalized["securityImpact"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "light", key=_effort_floor_index)
+    if normalized["economyImpact"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "light", key=_effort_floor_index)
+    if normalized["ambiguityNovelty"] in {"high", "critical"} and normalized["concurrencyBranchRisk"] in {"high", "critical"}:
+        model_floor = max(model_floor, "gpt-5.6-terra", key=_model_floor_index)
+        effort_floor = max(effort_floor, "medium", key=_effort_floor_index)
+    return model_floor, effort_floor
+
+
+def _authority_validation_result(snapshot: Mapping[str, object] | None = None) -> str:
+    try:
+        loaded = snapshot if snapshot is not None else load_snapshot()
+    except (SnapshotError, OSError, subprocess.CalledProcessError, FileNotFoundError) as exc:
+        return f"FAIL: {exc}"
+    return f"PASS: {loaded['snapshotRevision']} {loaded['canonicalContentHash']}"
+
+
+def load_task(path: Path) -> dict[str, object]:
+    try:
+        task = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise TaskDescriptionError(f"unable to read task description: {path}") from exc
+    return _validate_task(task)
+
+
+def task_hash(task: Mapping[str, object]) -> str:
+    return _sha256(_validate_task(task))
+
+
+def _required_score(task: Mapping[str, object]) -> int:
+    valid = _validate_task(task)
+    score = sum(LEVELS[valid[field]] for field in (
+        "runtimeSensitivity", "architectureImpact", "securityImpact", "economyImpact",
+        "releaseImpact", "validationComplexity", "ambiguityNovelty", "concurrencyBranchRisk",
+    ))
+    score += SIZE_LEVELS[valid["expectedImplementationSize"]]
+    score += min(3, len(valid["affectedSystems"]))
+    return score
+
+
+def _ordinal(snapshot: Mapping[str, object], candidate: Candidate) -> int:
+    for model_index, model in enumerate(snapshot["models"]):
+        if model["modelIdentifier"] != candidate.modelIdentifier:
+            continue
+        for effort_index, effort in enumerate(model["supportedEfforts"]):
+            if effort["effortIdentifier"] == candidate.effortIdentifier:
+                return model_index * 100 + effort_index
+    raise TaskDescriptionError("candidate not present in snapshot")
+
+
+def _cost_authority(snapshot: Mapping[str, object]) -> CostAuthority:
+    try:
+        root = _resolve_git_worktree_root()
+        return load_cost_authority(inventory_model_ids=[model["modelIdentifier"] for model in snapshot["models"]], repository_root=root)
+    except CostAuthorityError as exc:
+        raise SnapshotError(str(exc)) from exc
+
+
+def _effort_index(snapshot: Mapping[str, object], candidate: Candidate) -> int:
+    model = next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.modelIdentifier)
+    return next(index for index, effort in enumerate(model["supportedEfforts"]) if effort["effortIdentifier"] == candidate.effortIdentifier)
+
+
+def evaluate_task(snapshot: Mapping[str, object], task: Mapping[str, object], evaluator: Callable[[Candidate, Mapping[str, object], int], str] | None = None) -> EvaluationReport:
+    valid_task = _validate_task(task)
+    candidates = build_candidate_matrix(snapshot)
+    authority = _cost_authority(snapshot)
+    required = _required_score(valid_task)
+    model_floor, effort_floor = _policy_floor(valid_task, required)
+    if model_floor is None:
+        raise TaskDescriptionError("read-only tasks do not produce recommendations")
+    if not 10 <= required <= 39:
+        raise TaskDescriptionError("required score must be between 10 and 39")
+    evaluations: list[PairEvaluation] = []
+    for candidate in candidates:
+        model_index = next(index for index, model in enumerate(snapshot["models"]) if model["modelIdentifier"] == candidate.modelIdentifier)
+        effort_index = next(index for index, effort in enumerate(next(model for model in snapshot["models"] if model["modelIdentifier"] == candidate.modelIdentifier)["supportedEfforts"]) if effort["effortIdentifier"] == candidate.effortIdentifier)
+        capability = (model_index + 1) * 10 + effort_index * 2
+        injected = evaluator(candidate, valid_task, required) if evaluator else None
+        policy_suitable = (
+            _model_floor_index(candidate.modelIdentifier) >= _model_floor_index(model_floor)
+            and _effort_floor_index(candidate.effortIdentifier) >= _effort_floor_index(effort_floor)
+        )
+        if not policy_suitable:
+            verdict = "INSUFFICIENT"
+        elif injected == "SUITABLE" or injected is None:
+            verdict = "SUITABLE" if capability >= required else "INSUFFICIENT"
+        else:
+            verdict = injected
+        if verdict == "SUITABLE":
+            reason = None
+        elif not policy_suitable:
+            reason = f"policy floors require at least {model_floor} / {EFFORT_FLOOR_RENDER[effort_floor]}"
+        else:
+            reason = f"capability score {capability} is below task requirement {required}"
+        risk = "LOW" if capability >= required + 3 else ("MEDIUM" if capability >= required else "HIGH")
+        escalation = "LOW" if capability >= required + 2 else ("MEDIUM" if capability >= required else "HIGH")
+        tier = tier_for_model(authority, candidate.modelIdentifier)
+        vector = authority.models[candidate.modelIdentifier]
+        evaluations.append(PairEvaluation(
+            candidate.modelLabel, candidate.effortLabel, candidate.modelIdentifier, candidate.effortIdentifier,
+            verdict, reason, risk, escalation, f"TIER_{tier.index}",
+            (vector.inputCredits, vector.cachedInputCredits, vector.outputCredits), tier.index,
+            capability, required, candidate.ordinal,
+        ))
+    suitable = [evaluation for evaluation in evaluations if evaluation.verdict == "SUITABLE"]
+    if not suitable:
+        raise TaskDescriptionError("no candidate satisfies the reliability constraint")
+    def key(item: PairEvaluation) -> tuple[object, ...]:
+        candidate = Candidate(item.modelLabel, item.effortLabel, item.modelIdentifier, item.effortIdentifier, item.candidateOrdinal)
+        return selection_key(item, authority, _effort_index(snapshot, candidate), candidate.ordinal)
+
+    recommendation = min(suitable, key=key)
+    rejected = [evaluation for evaluation in evaluations if evaluation.verdict != "SUITABLE"]
+    cheapest_rejected = min(rejected, key=key, default=None)
+    next_more_capable = min(
+        (evaluation for evaluation in suitable if evaluation.capabilityScore > recommendation.capabilityScore),
+        key=key,
+        default=None,
+    )
+    matrix_hash = _sha256([asdict(evaluation) for evaluation in evaluations])
+    return EvaluationReport(tuple(evaluations), recommendation, cheapest_rejected, next_more_capable, matrix_hash, required)
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _parse_time(value: str) -> float:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+
+
+def current_branch() -> str:
+    result = subprocess.run(["git", "-C", str(_resolve_git_worktree_root()), "branch", "--show-current"], check=True, capture_output=True, text=True)
+    branch = result.stdout.strip()
+    if not branch:
+        raise AuthorizationError("detached HEAD is not an authorized branch")
+    return branch
+
+
+def _state_path(thread_id: str, state_dir: Path = DEFAULT_STATE_DIR) -> Path:
+    if not thread_id or any(char in thread_id for char in "/\\"):
+        raise AuthorizationError("invalid thread id")
+    return state_dir / (hashlib.sha256(thread_id.encode("utf-8")).hexdigest() + ".json")
+
+
+def _write_state(state: Mapping[str, object], state_dir: Path) -> None:
+    state_dir.mkdir(parents=True, exist_ok=True)
+    path = _state_path(state["threadId"], state_dir)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def _read_state(thread_id: str, state_dir: Path) -> dict[str, object]:
+    path = _state_path(thread_id, state_dir)
+    try:
+        state = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AuthorizationError("preflight state is absent or malformed") from exc
+    if not isinstance(state, dict):
+        raise AuthorizationError("preflight state is malformed")
+    if time.time() - _parse_time(state["createdAt"]) > STATE_TTL_SECONDS:
+        raise AuthorizationError("preflight state is stale")
+    return state
+
+
+def _identity(task: Mapping[str, object], snapshot: Mapping[str, object], report: EvaluationReport, thread_id: str, branch: str, baseline: str) -> dict[str, object]:
+    authority = _cost_authority(snapshot)
+    return {
+        "taskId": task["taskId"], "threadId": thread_id, "branch": branch, "baselineSha": baseline,
+        "snapshotRevision": snapshot["snapshotRevision"], "snapshotHash": snapshot["canonicalContentHash"],
+        "taskDescriptionHash": task_hash(task), "completeMatrixHash": report.matrixHash,
+        "costAuthorityRevision": authority.authorityRevision,
+        "costAuthorityHash": authority.canonicalContentHash,
+        "pricingBasis": authority.pricingBasis,
+        "recommendation": {"modelIdentifier": report.recommendation.modelIdentifier, "effortIdentifier": report.recommendation.effortIdentifier},
+    }
+
+
+def _preliminary_identity(task: Mapping[str, object], snapshot: Mapping[str, object], thread_id: str, branch: str, baseline: str) -> dict[str, object]:
+    return {
+        "taskId": task["taskId"], "threadId": thread_id, "branch": branch, "baselineSha": baseline,
+        "snapshotRevision": snapshot["snapshotRevision"], "snapshotHash": snapshot["canonicalContentHash"],
+        "taskDescriptionHash": task_hash(task),
+    }
+
+
+def _assert_preliminary_identity(state: Mapping[str, object], task: Mapping[str, object], snapshot: Mapping[str, object], thread_id: str, branch: str, baseline: str) -> None:
+    expected = _preliminary_identity(task, snapshot, thread_id, branch, baseline)
+    for field, value in expected.items():
+        if state.get(field) != value:
+            raise AuthorizationError(f"stale authorization: {field} differs")
+
+
+def _assert_identity(state: Mapping[str, object], task: Mapping[str, object], snapshot: Mapping[str, object], report: EvaluationReport, thread_id: str, branch: str, baseline: str) -> None:
     expected = _identity(task, snapshot, report, thread_id, branch, baseline)
     for field, value in expected.items():
         if state.get(field) != value:
