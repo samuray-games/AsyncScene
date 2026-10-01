@@ -28,6 +28,22 @@ def normalize_effort_identifier(label: str) -> str:
     return label.strip().lower().replace(" ", "-")
 
 
+def parse_inventory_metadata(path: Path) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if ": " not in line:
+            continue
+        key, value = line.split(": ", 1)
+        if key in {"SNAPSHOT_REVISION", "CONFIRMED_TIMESTAMP", "CONFIRMATION_SOURCE", "APPLICATION_SURFACE", "STATUS", "SUPERSEDES"}:
+            if key in metadata or not value.strip():
+                raise ValueError(f"invalid inventory metadata field: {key}")
+            metadata[key] = value.strip()
+    required = {"SNAPSHOT_REVISION", "CONFIRMED_TIMESTAMP", "CONFIRMATION_SOURCE", "APPLICATION_SURFACE", "STATUS", "SUPERSEDES"}
+    if set(metadata) != required:
+        raise ValueError(f"inventory metadata fields mismatch; missing={sorted(required - set(metadata))}, extra={sorted(set(metadata) - required)}")
+    return metadata
+
+
 def parse_inventory_markdown(path: Path) -> ParsedInventory:
     models: list[dict[str, object]] = []
     for line in path.read_text(encoding="utf-8").splitlines():

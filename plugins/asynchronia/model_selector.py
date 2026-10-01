@@ -11,9 +11,9 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Iterable, Mapping
+from typing import Callable, Iterable, Mapping, Sequence
 
-from .model_selector_inventory import canonical_hash, canonical_snapshot_payload, normalize_effort_identifier, normalize_model_identifier, parse_inventory_markdown
+from .model_selector_inventory import canonical_hash, canonical_snapshot_payload, normalize_effort_identifier, normalize_model_identifier, parse_inventory_markdown, parse_inventory_metadata
 from .model_selector_costs import CostAuthority, CostAuthorityError, exact_vector_text, load_cost_authority, selection_key, tier_for_model
 
 
@@ -22,7 +22,7 @@ SNAPSHOT_PATH = Path(__file__).with_name("snapshots") / "confirmed-model-effort-
 SNAPSHOT_STATUS = "PENDING_CONFIRMATION"
 SNAPSHOT_SCHEMA_VERSION = "1.0.11"
 PLUGIN_VERSION = "1.0.18"
-MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20260801"
+MAINTENANCE_TASK_ID = "TASK-INFRA-MODEL-SNAPSHOT-MAINTENANCE-20261001"
 DEFAULT_STATE_DIR = Path(os.environ.get("ASYNCHRONIA_SELECTOR_STATE_DIR", Path.home() / ".asynchronia" / "model-selector-state"))
 STATE_TTL_SECONDS = 24 * 60 * 60
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -34,13 +34,59 @@ TASK_FIELDS = (
 )
 LEVELS = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 SIZE_LEVELS = {"small": 1, "medium": 2, "large": 3, "very_large": 4}
+def extend_model_stable_floor_ranks(ordered_model_ids: Sequence[str], anchors: Mapping[str, int]) -> dict[str, int]:
+    """Extend fixed floor-rank anchors over an ordered inventory without changing anchors."""
+    ordered = list(ordered_model_ids)
+    if not ordered or len(set(ordered)) != len(ordered):
+        raise TaskDescriptionError("model-floor inventory order must be non-empty and unique")
+    if not anchors or not set(anchors).issubset(ordered):
+        raise TaskDescriptionError("model-floor anchors must be non-empty and present in inventory order")
+    if any(not isinstance(rank, int) or isinstance(rank, bool) for rank in anchors.values()):
+        raise TaskDescriptionError("model-floor anchor ranks must be integers")
+    anchor_positions = sorted((ordered.index(model_id), model_id, rank) for model_id, rank in anchors.items())
+    if any(left[2] < right[2] for left, right in zip(anchor_positions, anchor_positions[1:])):
+        raise TaskDescriptionError("model-floor anchors contradict ordered inventory")
+
+    result: dict[str, int] = {}
+    first_position, first_model, first_rank = anchor_positions[0]
+    for position in range(first_position):
+        result[ordered[position]] = first_rank + first_position - position
+    result[first_model] = first_rank
+    for (left_position, left_model, left_rank), (right_position, right_model, right_rank) in zip(anchor_positions, anchor_positions[1:]):
+        result[left_model] = left_rank
+        for position in range(left_position + 1, right_position):
+            result[ordered[position]] = left_rank
+        result[right_model] = right_rank
+    last_position, last_model, last_rank = anchor_positions[-1]
+    result[last_model] = last_rank
+    for position in range(last_position + 1, len(ordered)):
+        result[ordered[position]] = last_rank - (position - last_position)
+    return {model_id: result[model_id] for model_id in ordered}
+
+
 MODEL_STABLE_FLOOR_RANKS = {
-    "gpt-5.4-mini": -1,
-    "gpt-5.4": -1,
-    "gpt-5.5": -1,
-    "gpt-5.6-luna": 0,
-    "gpt-5.6-terra": 1,
+    # Larger values satisfy stronger minimum-model floors; ties are valid.
+    # Existing anchors stay fixed. New inventory runs inherit the preceding
+    # anchor between ranks, or extend by one rank per model outside the anchors.
+    "gpt-6.1-sol": 4,
+    "gpt-6-astra": 3,
+    "gpt-6-sol": 3,
+    "gpt-6-luna": 3,
     "gpt-5.6-sol": 2,
+    "gpt-5.6-terra": 1,
+    "gpt-5.6-luna": 0,
+    "gpt-5.5": -1,
+}
+MODEL_STABLE_FLOOR_RANK_POLICY = (
+    "ordered-inventory; larger-rank-is-stronger; preserve existing anchors; "
+    "leading and trailing runs extend one rank per model; interior runs inherit the preceding anchor"
+)
+MODEL_STABLE_FLOOR_RANK_ANCHORS = {
+    "gpt-6-astra": 3,
+    "gpt-5.6-sol": 2,
+    "gpt-5.6-terra": 1,
+    "gpt-5.6-luna": 0,
+    "gpt-5.5": -1,
 }
 EFFORT_FLOOR_ORDER = ("light", "medium", "high", "extra-high", "max", "ultra")
 EFFORT_FLOOR_RENDER = {
@@ -142,9 +188,18 @@ def _manifest() -> dict[str, object]:
         raise SnapshotError(f"unable to read authority manifest: {AUTHORITY_MANIFEST_PATH}") from exc
     if not isinstance(manifest, dict):
         raise SnapshotError("authority manifest must be an object")
-    required = {"inventoryArtifactPath", "inventoryParser", "provenanceType", "lastAcceptedBlobSha", "currentSnapshotRevision"}
+    required = {
+        "inventoryArtifactPath", "inventoryParser", "provenanceType", "lastAcceptedBlobSha",
+        "currentSnapshotRevision", "modelStableFloorRanks", "modelStableFloorRankAnchors", "modelStableFloorRankPolicy",
+    }
     if not required.issubset(manifest):
         raise SnapshotError("authority manifest is missing required fields")
+    if manifest["modelStableFloorRanks"] != MODEL_STABLE_FLOOR_RANKS:
+        raise SnapshotError("authority manifest model floor ranks do not match selector policy")
+    if manifest["modelStableFloorRankAnchors"] != MODEL_STABLE_FLOOR_RANK_ANCHORS:
+        raise SnapshotError("authority manifest model floor rank anchors do not match selector policy")
+    if manifest["modelStableFloorRankPolicy"] != MODEL_STABLE_FLOOR_RANK_POLICY:
+        raise SnapshotError("authority manifest model floor rank policy is unsupported")
     return manifest
 
 
@@ -212,20 +267,28 @@ def _snapshot_payload_path() -> Path:
 def _build_snapshot_from_inventory() -> dict[str, object]:
     manifest = _manifest()
     artifact_path = _inventory_artifact_path()
-    parsed = parse_inventory_markdown(artifact_path)
+    try:
+        parsed = parse_inventory_markdown(artifact_path)
+        metadata = parse_inventory_metadata(artifact_path)
+    except (OSError, ValueError) as exc:
+        raise SnapshotError(f"unable to parse inventory source: {artifact_path}") from exc
+    if metadata["SNAPSHOT_REVISION"] != manifest["currentSnapshotRevision"]:
+        raise SnapshotError("inventory metadata revision does not match authority manifest")
+    if metadata["STATUS"] != SNAPSHOT_STATUS:
+        raise SnapshotError("inventory metadata status does not match selector snapshot status")
     return canonical_snapshot_payload(
-        snapshot_revision=str(manifest["currentSnapshotRevision"]),
-        confirmed_timestamp="2026-08-01T05:31:00Z",
-        confirmation_source="USER_CONFIRMED_CODEX_DESKTOP_PICKER_INVENTORY",
-        application_surface="CODEX_DESKTOP_APP",
-        supersedes="20260722.1",
+        snapshot_revision=metadata["SNAPSHOT_REVISION"],
+        confirmed_timestamp=metadata["CONFIRMED_TIMESTAMP"],
+        confirmation_source=metadata["CONFIRMATION_SOURCE"],
+        application_surface=metadata["APPLICATION_SURFACE"],
+        supersedes=metadata["SUPERSEDES"],
         source_artifact_path=str(manifest["inventoryArtifactPath"]),
         source_artifact_blob_sha=str(manifest["lastAcceptedBlobSha"]),
-        status=SNAPSHOT_STATUS,
+        status=metadata["STATUS"],
         models=list(parsed.models),
         notes=[
             "This snapshot is generated from the authoritative repository Markdown inventory.",
-            "It is pending same-thread confirmation until the user responds INVENTORY_OK.",
+            "Snapshot status is pending confirmation under the current selector snapshot contract.",
         ],
     )
 
@@ -462,7 +525,9 @@ def _policy_floor(task: Mapping[str, object], required_score: int) -> tuple[str 
     # Generic mutation work has no family floor.  Capability and the
     # authoritative cost tiers decide the cheapest sufficient pair.  Family
     # floors below are reserved for explicit safety/complexity gates.
-    model_floor = "gpt-5.4-mini"
+    # GPT-5.5 retains the lowest accepted floor rank after retired model IDs
+    # are removed, so generic work still has no effective family restriction.
+    model_floor = "gpt-5.5"
     if required_score <= 19:
         effort_floor = "light"
     elif required_score <= 29:

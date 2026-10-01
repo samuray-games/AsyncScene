@@ -15,11 +15,11 @@ from typing import Mapping, Sequence
 
 COST_AUTHORITY_PATH = Path(__file__).with_name("model-selector-cost-authority.json")
 PRICING_BASIS = "CODEX_CREDITS_PER_1M_TOKENS_STANDARD_SPEED"
-AUTHORITY_REVISION = "20260801.1"
+AUTHORITY_REVISION = "20261001.1"
 STATUS = "ACTIVE"
 SCHEMA_VERSION = "1.0.0"
-OFFICIAL_SOURCE_URL = "https://help.openai.com/en/articles/20001106-codex-rate-card"
-SOURCE_ARTIFACT_PATH = ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20260801/OFFICIAL-CODEX-RATE-CARD.md"
+OFFICIAL_SOURCE_URL = "https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu-credit-based-pricing"
+SOURCE_ARTIFACT_PATH = ".ai-work/tasks/TASK-INFRA-MODEL-SELECTOR-COST-ORDER-20261001/OFFICIAL-CODEX-RATE-CARD.md"
 DECIMAL_RE = re.compile(r"^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
 RFC3339_UTC_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?Z$")
 

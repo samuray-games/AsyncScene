@@ -64,12 +64,18 @@ State is per-thread and binds task ID, task hash, thread, branch, baseline, snap
 
 The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
 
-Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and the active six-model inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
+Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and every model in the active inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
+
+### Stable model-floor rank extension
+
+`MODEL_STABLE_FLOOR_RANKS` values are ordered thresholds: a candidate satisfies a required model floor when its rank is greater than or equal to the floor rank. Larger values mean a stronger minimum-model floor. Equal ranks are valid; the selector compares ranks and does not require unique or contiguous ranks.
+
+Keep existing model rank anchors unchanged when maintaining inventory. For an ordered inventory with missing ranks, assign a leading run consecutive ranks above its next anchor, assign each unranked model between anchors the preceding anchor rank, and assign a trailing run consecutive ranks below its preceding anchor. This preserves inventory ordering and all anchored ranks without using prices. Unknown identifiers still fail closed.
 
 The first mutation stop prints:
 
 - snapshot revision/hash and complete inventory;
-- all six models and every supported effort;
+- all eight models and every supported effort;
 - model and model-effort pair counts;
 - exact next response `INVENTORY_OK or INVENTORY_CHANGED`;
 - no evaluation, required score, rejected frontier, recommendation, or next capable pair.
@@ -101,7 +107,7 @@ Required at both visible stops:
 Required only at `WAITING_FOR_INVENTORY_CONFIRMATION`:
 
 - source artifact blob SHA;
-- complete authoritative inventory with all six models and all supported efforts;
+- complete authoritative inventory with all eight models and all supported efforts;
 - exact next response `INVENTORY_OK or INVENTORY_CHANGED`.
 
 Required only at `WAITING_FOR_MODEL_SELECTION`:
