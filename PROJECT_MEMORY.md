@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-09-16-1928-JST
+MEMORY_REV: 2026-10-01-1945-JST-R8
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
@@ -6,6 +6,7 @@ MEMORY_REV: 2026-09-16-1928-JST
 - Receiver production acceptance is complete. PR #345 enabled the exact endpoint configuration, PR #346 fixed Pages recovery artifact verification, and PR #352 added the reviewed read-only owner-readback workflow.
 - Owner-authenticated GitHub Actions run `32264675135` on merged `main@cbcaf9c0f38ab114c6aac5f41f7f5fa0b58fde2f` passed the exact `Safari2234` readback: stored city `Tachikawa`, 146 events across 38 observed batch IDs, duplicate event IDs `false`, session-only metadata, forbidden PII absent, and summary/sessions/export consistent.
 - Central private-friends-alpha friend-session collection is ACTIVE; cohort `private_friends_alpha_2026_08`; retention 30 days. No secrets are stored in repository memory.
+- Model-selector inventory revision `20261001.1` is integrated by PR #407 at `main@4cd05ac81584003e44f31a265d3a389350bc5ddb`: exactly 8 models and 44 model-effort pairs. Stable floor ranks: `gpt-6.1-sol:4`, `gpt-6-astra:3`, `gpt-6-sol:3`, `gpt-6-luna:3`, `gpt-5.6-sol:2`, `gpt-5.6-terra:1`, `gpt-5.6-luna:0`, `gpt-5.5:-1`.
 
 CURRENT_STATUS: RECEIVER_ACCEPTANCE_COMPLETE / PR_345_MERGED / PR_346_MERGED / PR_352_MERGED / PR_393_MERGED / PR_392_SUPERSEDED_CLOSED / PR_395_MERGED / POLICY_2185411_INTEGRATED / TASK_7_15_40_INTEGRATED / PAGES_PUBLICATION_VERIFIED / PUBLIC_SERVED_CONFIG_VERIFIED / PUBLIC_NETWORK_TRANSMISSION_PASS / SAFARI_ACCEPTANCE_PASS / OWNER_READBACK_PASS_SAFARI2234_TACHIKAWA / CENTRAL_FRIEND_SESSION_COLLECTION_ACTIVE / PR_397_MERGED / MILESTONE_81_INTEGRATED_AND_STATICALLY_VALIDATED
 NEXT_ACTION: M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL
@@ -17,7 +18,7 @@ NEXT_ACTION: M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL
 - No visible First Event entry/control, card, narrative, content, choices, resolution UI, completion persistence, economy, REP, money, wins, reward, refund, or penalty behavior was added.
 - Stage 7.15 remains 75%; no progress bump is authorized by M81 integration. M82 remains `NOT_STARTED`; the next product checkpoint is M82 visible First Event entry/control, followed by M83 canonical content/choices, M84 visible resolution, and M85 completion plus persistence.
 - Repository-memory synchronization is complete on this merged main after this five-file reconciliation. NEXT_ACTION: `RETURN_TO_CHATGPT_FOR_M82_VISIBLE_FIRST_EVENT_ENTRY_ROUTING`
-NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
+NOTION_MEMORY_BASELINE_REV: 2026-10-01-1945-JST-R8
 
 ## 2026-08-25 - Accepted Stage 7.15 state after PR #389
 

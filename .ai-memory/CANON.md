@@ -1,4 +1,4 @@
-MEMORY_REV: 2026-09-16-1928-JST
+MEMORY_REV: 2026-10-01-1945-JST-R8
 
 ## CURRENT_PROJECT_STATE
 NEXT_ACTION: `M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL`
@@ -29,9 +29,9 @@ NEXT_ACTION: `M82_VISIBLE_FIRST_EVENT_ENTRY_CONTROL`
 
 This file captures stable product canon relevant to memory handling.
 
-MEMORY_REVISION: 2026-09-16-1928-JST
-EXPECTED_REVISION: 2026-09-16-1928-JST
-NOTION_MEMORY_BASELINE_REV: 2026-08-25-2224-JST
+MEMORY_REVISION: 2026-10-01-1945-JST-R8
+EXPECTED_REVISION: 2026-10-01-1945-JST-R8
+NOTION_MEMORY_BASELINE_REV: 2026-10-01-1945-JST-R8
 
 ## Canon principles
 
@@ -201,7 +201,7 @@ HISTORICAL_CURRENT_NEXT_ACTION: AWAIT_EXPLICIT_USER_DIRECTION_FOR_NEXT_IMPLEMENT
 - PR #246 is bookkeeping closure history, with reviewed head `be4f8fdb5f84a1a4f07fac270a87cf811be71b18` and merge commit `2e360a6137f8b15e28c004a66afc7ed320ce7024`; it does not replace the accepted runtime implementation head.
 - Legacy Alpha Step 4.3.x smoke failures are `LEGACY_ALPHA_SMOKE_CONTRACT_DRIFT: REPAIRED / INTEGRATED`, not a Stage 6 frozen-copy product regression. Current canonical counts are 174 / 152 / 206 versus historical Step 4.3.6 counts 164 / 122 / 187.
 - PR #263 capability calibration is complete and integrated. Durable selector calibration facts remain unchanged from revision `20260801.1`.
-- Current model inventory revision `20260801.1` contains 6 models and 29 model-effort pairs. `Low` is not a recorded effort label.
+- Current model inventory revision `20261001.1`, integrated by PR #407 at `main@4cd05ac81584003e44f31a265d3a389350bc5ddb`, contains exactly 8 models and 44 model-effort pairs. Effort order is Light, Medium, High, Extra High, Max, Ultra; GPT-6 Luna and GPT-5.6 Luna have no Ultra; GPT-5.5 has only Light, Medium, High, Extra High. Stable floor ranks are `gpt-6.1-sol:4`, `gpt-6-astra:3`, `gpt-6-sol:3`, `gpt-6-luna:3`, `gpt-5.6-sol:2`, `gpt-5.6-terra:1`, `gpt-5.6-luna:0`, `gpt-5.5:-1`. Cost authority is separate from capability ranks and uses the official Standard Codex-credit rate card.
 - Conversational `мост 1`, `мост 2`, and `мост 3` mean Slot 1, Slot 2, and Slot 3 respectively. They are conversational slot references and do not invoke the retired literal short bridge command interface unless the user explicitly says they are issuing such a command.
 - The retired short bridge interface remains permanently retired and is not current workflow authority. Future Codex work uses full self-contained prompt sheets/tasks.
 - PR #263 capability calibration, PR #265 security repair, and PR #266 canon reconciliation are complete and integrated history.
