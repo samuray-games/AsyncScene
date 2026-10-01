@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "afc46d491a7aff257ae8c371a33a951599814927\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "# branch.oid afc46d491a7aff257ae8c371a33a951599814927\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "afc46d49 (HEAD, pull/408/merge) Merge 4c9125f6f044a6a8055fd54eacca6bebed754ea2 into 4cd05ac81584003e44f31a265d3a389350bc5ddb\n4c9125f6 (origin/codex/model-inventory-memory-sync-20261001) Sync model inventory integration memory\n4cd05ac8 (origin/main) Update model selector inventory to 8 models / 44 effort pairs\nf2442855 Fix Stage 7.15 Rayhan post-win resume persistence\n5eb5b1eb Restore Codex subagent orchestration (#405)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD afc46d491a7aff257ae8c371a33a951599814927\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-01T10:51:40Z",
+      "stderr": "",
+      "stdout": "4cd05ac81584003e44f31a265d3a389350bc5ddb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "afc46d491a7aff257ae8c371a33a951599814927",
+  "observedAtUtc": "2026-10-01T10:51:40Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
