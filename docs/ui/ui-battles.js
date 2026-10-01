@@ -153,6 +153,13 @@
         || battle.id === "stage7_15_first_battle"));
   }
 
+  function isStage715RayhanEventOwnedBattle(battle) {
+    return !!(isStage715RayhanScriptedBattle(battle)
+      && battle.meta
+      && (battle.meta.stage715RayhanEventVotePending === true
+        || battle.meta.stage715RayhanEventResolved === true));
+  }
+
   function isStage715NastyaScriptedBattle(battle) {
     return !!(battle
       && ((battle.meta && battle.meta.stage715NastyaBattle === true)
@@ -2154,6 +2161,10 @@ UI.renderBattles = () => {
           if (fresh) b = fresh;
         }
       } catch (_) {}
+      // Stage 7.15's Rayhan wrong-answer vote belongs to Events from creation
+      // through resolution. Never expose the backing battle as a generic
+      // draw/result card while that event owns the outcome.
+      if (isStage715RayhanEventOwnedBattle(b)) return;
       const opp = S.players[b.opponentId];
       const oppName = opp ? (UI.displayName ? UI.displayName(opp) : opp.name) : "Кто-то";
 
@@ -2430,7 +2441,9 @@ UI.renderBattles = () => {
           if (!b.crowd) b.crowd = { votesA: 0, votesB: 0, decided: false };
           b.crowd.uiOnly = true;
 
-          if (!b._crowdLoopStarted && !b.crowd.decided && Game.Conflict && typeof Game.Conflict.startCrowdVote === "function") {
+          if (!isStage715RayhanEventOwnedBattle(b)
+            && !b._crowdLoopStarted && !b.crowd.decided
+            && Game.Conflict && typeof Game.Conflict.startCrowdVote === "function") {
             b._crowdLoopStarted = true;
             try { Game.Conflict.startCrowdVote(b.id); } catch (_) {}
           }

@@ -916,6 +916,36 @@
        return { ok: true };
      },
 
+    finalizeStage715RayhanEventWin(battleId, eventId) {
+      const battle = findBattle(battleId);
+      const events = Game.__S && Array.isArray(Game.__S.events) ? Game.__S.events : [];
+      const event = events.find((item) => item && String(item.id) === String(eventId)) || null;
+      const stageBattle = !!(battle && battle.meta
+        && battle.meta.stage715RayhanScripted === true
+        && (battle.meta.stage715RayhanEventVotePending === true
+          || (battle.meta.stage715RayhanEventResolved === true && battle.resolved === true && battle.result === "win")));
+      const stageEvent = !!(event && event.stage715RayhanEvent === true
+        && event.resolved === true
+        && event.crowd && event.crowd.winner === "a"
+        && String(event.relatedBattleId || "") === String(battleId));
+      if (!stageBattle || !stageEvent) return { ok: false, error: "invalid_stage715_rayhan_event_win" };
+      if (battle.resolved === true) {
+        return battle.result === "win" ? { ok: true, outcome: "win", alreadyResolved: true } : { ok: false, error: "already_resolved" };
+      }
+      battle.meta.stage715RayhanEventVotePending = false;
+      battle.meta.stage715RayhanEventResolved = true;
+      const result = Core && typeof Core.resolveBattleOutcome === "function"
+        ? Core.resolveBattleOutcome(battle.id, battle.defense || null, { forceOutcome: "win" })
+        : null;
+      if (!result || result.ok !== true || result.outcome !== "win") {
+        battle.meta.stage715RayhanEventVotePending = true;
+        battle.meta.stage715RayhanEventResolved = false;
+        return result || { ok: false, error: "stage715_rayhan_win_resolution_failed" };
+      }
+      render();
+      return result;
+    },
+
     applyCrowdVote(battleId) {
       const b = findBattle(battleId);
       // Let NPCs vote a little each tick while the draw is active.
