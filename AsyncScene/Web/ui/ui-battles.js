@@ -2653,6 +2653,26 @@ UI.renderBattles = () => {
             finalLine.className = "noteLine";
             finalLine.textContent = b.result === "win" ? "Победа!" : "";
             if (finalLine.textContent) drawWrap.appendChild(finalLine);
+            const closeRow = document.createElement("div");
+            closeRow.className = "actions";
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "btn small";
+            closeBtn.type = "button";
+            closeBtn.textContent = "Закрыть";
+            closeBtn.onclick = (e) => {
+              stop(e);
+              _captureBattleFocus(b.id, card);
+              UI._clearDrawTicker(b.id);
+              const stage715 = Game && Game.Stage715Demo;
+              if (b.meta && b.meta.stage715NastyaBattle === true
+                && stage715 && typeof stage715.removeResolvedNastyaBattle === "function") {
+                stage715.removeResolvedNastyaBattle(b.id);
+              }
+              S.battles = S.battles.filter((item) => item.id !== b.id);
+              requestAll();
+            };
+            closeRow.appendChild(closeBtn);
+            drawWrap.appendChild(closeRow);
             card.appendChild(drawWrap);
             emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
             finalLogMode = "stage715_nastya_final";
@@ -3503,6 +3523,11 @@ UI.renderBattles = () => {
           stop(e);
           _captureBattleFocus(b.id, card);
           UI._clearDrawTicker(b.id);
+          const stage715 = Game && Game.Stage715Demo;
+          if (b.meta && b.meta.stage715NastyaBattle === true
+            && stage715 && typeof stage715.removeResolvedNastyaBattle === "function") {
+            stage715.removeResolvedNastyaBattle(b.id);
+          }
           S.battles = S.battles.filter(x => x.id !== b.id);
           requestAll();
         };

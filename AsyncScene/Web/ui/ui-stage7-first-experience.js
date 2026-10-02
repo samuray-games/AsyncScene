@@ -3025,6 +3025,7 @@ window.Game = window.Game || {};
   const FIRST_BATTLE_ID = "stage7_15_first_battle";
   const RAYHAN_ID = "npc_stage7_ken";
   const RAYHAN_EVENT_PLAYER_ID = "stage715_rayhan_event_player";
+  const NASTYA_EVENT_PLAYER_ID = "stage715_nastya_event_player";
   const RAYHAN_EVENT_VOTE_COUNT = 5;
   const RAYHAN_EVENT_MIN_DELAY_MS = 3_000;
   const RAYHAN_EVENT_MAX_DELAY_MS = 4_000;
@@ -3214,7 +3215,8 @@ window.Game = window.Game || {};
 
   function isActive(nextContext) {
     const state = stateFor(nextContext);
-    return queryEnabled()
+    return active
+      || queryEnabled()
       || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true)
       || hasPersistedCheckpoint();
   }
@@ -3228,6 +3230,13 @@ window.Game = window.Game || {};
     battleWatchTimer = null;
     rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
     rayhanEventVoteTimers = [];
+    const nastyaVoteRegistry = G.__stage715NastyaEventVoteTimers;
+    if (nastyaVoteRegistry && typeof nastyaVoteRegistry === "object") {
+      Object.keys(nastyaVoteRegistry).forEach((eventId) => {
+        clearTimeout(nastyaVoteRegistry[eventId]);
+        delete nastyaVoteRegistry[eventId];
+      });
+    }
     const rayhanVoteRegistry = G.__stage715RayhanEventVoteTimers;
     if (rayhanVoteRegistry && typeof rayhanVoteRegistry === "object") {
       Object.keys(rayhanVoteRegistry).forEach((eventId) => {
@@ -3352,6 +3361,7 @@ window.Game = window.Game || {};
       "nastya_battle",
       "nastya_waiting_chat_reply",
       "nastya_crowd_vote",
+      "nastya_post_win_waiting_reply",
       "oleg_battle",
       "oleg_dm",
       "oleg_escape_ready",
@@ -4140,13 +4150,13 @@ window.Game = window.Game || {};
       battle.meta.stage715NastyaResolvedAnswer = true;
       battle.meta.stage715NastyaChatReplyPending = true;
       battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
-      battle.meta.stage715SelectedDefenseText = NASTYA_RESOLVED_COUNTERARGUMENT;
+      battle.meta.stage715SelectedDefenseText = choice.stage715DisplayText || choice.text || "";
       battle.attackHidden = false;
       battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
       battle.defense = Object.assign({}, battle.defense || {}, {
-        color: "y", _color: "y", stage715DisplayText: NASTYA_RESOLVED_COUNTERARGUMENT,
+        color: "y", _color: "y", stage715DisplayText: choice.stage715DisplayText || choice.text || "",
       });
-      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, NASTYA_RESOLVED_COUNTERARGUMENT);
+      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
       battle.status = "stage715_resolved_answer";
       battle.result = null;
       battle.outcome = null;
@@ -4208,51 +4218,142 @@ window.Game = window.Game || {};
   function startNastyaCrowdVote() {
     const battle = stage715BattleById(NASTYA_BATTLE_ID);
     if (!battle || !battle.meta || battle.meta.stage715NastyaChatReplyPending !== true) return false;
-    if (!G.Conflict || typeof G.Conflict.startCrowdVote !== "function") return false;
+    if (!G.Events || typeof G.Events.addEvent !== "function") return false;
     battle.meta.stage715NastyaChatReplyPending = false;
     battle.meta.stage715NastyaCrowdStarted = true;
-    battle.status = "draw";
-    battle.result = "draw";
-    battle.outcome = "draw";
-    battle.draw = true;
+    battle.status = "stage715_nastya_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.draw = false;
     battle.resolved = false;
     battle.finished = false;
-    const crowdNow = Date.now();
-    battle.crowd = {
-      votesA: 0,
-      votesB: 0,
-      aVotes: 0,
-      bVotes: 0,
-      cap: 5,
-      totalPlayers: 5,
-      voters: {},
-      decided: false,
-      winner: null,
-      startedAtMs: crowdNow,
-      endAt: crowdNow + 120000,
-      endsAt: crowdNow + 120000,
-      nextNpcVoteAt: Number.MAX_SAFE_INTEGER,
-      eligibleNpcCount: 5,
-      alreadyVotedCount: 0,
-    };
+    battle.crowd = null;
     const rewardState = G.__S && G.__S.me ? G.__S : stateFor();
     battle.meta.stage715NastyaRewardBaseline = {
       rep: currentPlayerStat(rewardState, "rep"),
       points: currentPlayerStat(rewardState, "points"),
       wins: currentPlayerStat(rewardState, "wins"),
     };
-    battle.suppressCrowdSystemChat = true;
     phase = "nastya_crowd_vote";
-    const started = G.Conflict.startCrowdVote(battle.id);
-    if (!started) {
+    const state = rayhanBattleState();
+    const voters = nastyaEventVoterIds(state);
+    if (voters.length !== RAYHAN_EVENT_VOTE_COUNT) {
       phase = "nastya_waiting_chat_reply";
       battle.meta.stage715NastyaChatReplyPending = true;
       return false;
     }
+    const now = Date.now();
+    const player = state && state.me ? state.me : { id: "me", name: playerNickname() };
+    const players = state.players || (state.players = {});
+    const previousSynthetic = players[NASTYA_EVENT_PLAYER_ID];
+    players[NASTYA_EVENT_PLAYER_ID] = {
+      id: NASTYA_EVENT_PLAYER_ID, name: playerNickname(), npc: true, role: "crowd", points: 1,
+      stage715NastyaEventSynthetic: true,
+    };
+    let nextAt = now;
+    const scriptedVoteAt = voters.map(() => (nextAt += nastyaEventVoteDelay()));
+    const event = {
+      id: `stage715_nastya_event_${battle.id}`, type: "draw", kind: "draw",
+      title: `${playerNickname()} против Насти`, aId: NASTYA_EVENT_PLAYER_ID, aName: playerNickname(),
+      aInf: Number(player.influence || 0), bId: "npc_stage7_mika", bName: "Настя",
+      bInf: Number((state.players && state.players["npc_stage7_mika"] && state.players["npc_stage7_mika"].influence) || 0),
+      voteLabels: { a: "за тебя", b: "за Настю" }, votesA: 0, votesB: 0, aVotes: 0, bVotes: 0,
+      playerVoted: false, myVote: null, createdAt: now, endsAt: nextAt + 2000,
+      state: "open", resolved: false, skipSys: true, hideResolvedParticipantLine: true,
+      stage715NastyaEvent: true, relatedBattleId: battle.id, refId: `stage715_nastya_event_${battle.id}`,
+      crowd: { votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, endAt: nextAt + 2000,
+        decided: false, nextNpcVoteAt: Number.MAX_SAFE_INTEGER, winner: null, voters: {},
+        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteAt, _econApplied: true },
+      meta: `${playerNickname()} - Настя`, text: "Толпа решает.", resultLine: "", action: "event"
+    };
+    battle.meta.stage715NastyaEventId = event.id;
+    try { G.Events.addEvent(event); } catch (_) {}
+    const events = state.events || (state.events = []);
+    if (!events.includes(event) && !(G.__S && Array.isArray(G.__S.events) && G.__S.events.some((item) => item && item.id === event.id))) {
+      if (previousSynthetic) players[NASTYA_EVENT_PLAYER_ID] = previousSynthetic;
+      else delete players[NASTYA_EVENT_PLAYER_ID];
+      phase = "nastya_waiting_chat_reply";
+      battle.meta.stage715NastyaChatReplyPending = true;
+      return false;
+    }
+    revealEventsPanel();
     saveState();
     telemetry("stage715_nastya_crowd_vote_started");
     render();
     watchNastyaBattle();
+    scheduleNastyaEventVotes(event);
+    return true;
+  }
+
+  function nastyaEventVoterIds(state) {
+    const players = state && state.players || {};
+    const ids = Object.values(players).filter((p) => p && p.npc === true
+      && p.id && p.id !== "npc_stage7_mika" && p.id !== "me"
+      && String(p.role || "").toLowerCase() !== "cop"
+      && String(p.role || "").toLowerCase() !== "police"
+      && Number(p.points || 0) > 0).slice(0, RAYHAN_EVENT_VOTE_COUNT).map((p) => String(p.id));
+    for (let i = ids.length; i < RAYHAN_EVENT_VOTE_COUNT; i += 1) ids.push(`stage715_nastya_event_voter_${i + 1}`);
+    return ids;
+  }
+
+  function nastyaEventVoteDelay() {
+    return 1000 + Math.floor(Math.random() * 1001);
+  }
+
+  function scheduleNastyaEventVotes(event) {
+    if (!event || !event.crowd || event.resolved) return false;
+    const crowd = event.crowd;
+    const index = crowd.scriptedVoterIds.findIndex((id) => !crowd.voters[id]);
+    if (index < 0) return false;
+    const timers = G.__stage715NastyaEventVoteTimers || (G.__stage715NastyaEventVoteTimers = Object.create(null));
+    if (timers[event.id]) return true;
+    const delay = Math.max(1, Number(crowd.scriptedVoteAt[index] || Date.now() + nastyaEventVoteDelay()) - Date.now());
+    crowd.stage715NextVoteAllowedAt = Date.now() + delay;
+    const timer = setTimeout(() => {
+      if (timers[event.id] !== timer) return;
+      delete timers[event.id];
+      const currentState = rayhanBattleState();
+      const current = currentState && (currentState.events || []).find((e) => e && e.id === event.id);
+      if (!current || current.resolved) return;
+      const voterId = current.crowd.scriptedVoterIds[index];
+      const side = index < 3 ? "a" : "b";
+      current.crowd.voters[voterId] = side;
+      current.crowd.aVotes = current.crowd.votesA = Object.values(current.crowd.voters).filter((v) => v === "a").length;
+      current.crowd.bVotes = current.crowd.votesB = Object.values(current.crowd.voters).filter((v) => v === "b").length;
+      current.crowd.alreadyVotedCount = Object.keys(current.crowd.voters).length;
+      current.aVotes = current.votesA = current.crowd.aVotes;
+      current.bVotes = current.votesB = current.crowd.bVotes;
+      current.crowd.stage715NextVoteAllowedAt = 0;
+      saveState();
+      if (G.UI && typeof G.UI.requestRenderAll === "function") G.UI.requestRenderAll();
+      if (current.crowd.alreadyVotedCount === 5) {
+        if (G.Events && typeof G.Events.finalizeOpenEventNow === "function") G.Events.finalizeOpenEventNow(current);
+        finishNastyaEventVote(current);
+      } else scheduleNastyaEventVotes(current);
+    }, delay);
+    timers[event.id] = timer;
+    return true;
+  }
+
+  function finishNastyaEventVote(event) {
+    if (!event || !event.resolved || !event.crowd
+      || Number(event.crowd.aVotes || event.crowd.votesA || 0) !== 3
+      || Number(event.crowd.bVotes || event.crowd.votesB || 0) !== 2) return false;
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta || battle.meta.stage715NastyaEventResolved === true) return !!battle;
+    battle.crowd = null;
+    battle.draw = false;
+    battle.status = battle.result = battle.outcome = "win";
+    battle.resolved = battle.finished = true;
+    battle.meta.stage715NastyaEventResolved = true;
+    const eventState = rayhanBattleState();
+    if (eventState && eventState.players && eventState.players[NASTYA_EVENT_PLAYER_ID]
+      && eventState.players[NASTYA_EVENT_PLAYER_ID].stage715NastyaEventSynthetic === true) {
+      delete eventState.players[NASTYA_EVENT_PLAYER_ID];
+    }
+    phase = "nastya_battle";
+    saveState();
+    syncNastyaBattleOutcome();
     return true;
   }
 
@@ -4981,6 +5082,22 @@ window.Game = window.Game || {};
     if (battle.meta.stage715NastyaRewardsApplied !== true) {
       const baseline = battle.meta.stage715NastyaRewardBaseline || { rep: currentPlayerStat(G.__S || state, "rep"), points: currentPlayerStat(G.__S || state, "points"), wins: currentPlayerStat(G.__S || state, "wins") };
       const authoritative = G.__S && G.__S.me ? G.__S : state;
+      if (battle.meta.stage715NastyaWinApplied !== true) {
+        const me = authoritative && authoritative.me;
+        if (me) {
+          me.wins = (Number(me.wins) | 0) + 1;
+          const mirrors = [G.__S, G.UI && G.UI.S].filter((store, index, all) => store && store !== authoritative && all.indexOf(store) === index);
+          mirrors.forEach((store) => {
+            if (store.me) store.me.wins = me.wins;
+            if (store.players && store.players.me) store.players.me.wins = me.wins;
+          });
+          if (authoritative.players && authoritative.players.me) authoritative.players.me.wins = me.wins;
+          if (G.__A && typeof G.__A.emitStatDelta === "function") {
+            G.__A.emitStatDelta("wins", 1, { reason: "stage715_nastya_win", battleId: battle.id || NASTYA_BATTLE_ID });
+          }
+          battle.meta.stage715NastyaWinApplied = true;
+        }
+      }
       const repDelta = currentPlayerStat(authoritative, "rep") - (Number(baseline.rep) | 0);
       const pointsDelta = currentPlayerStat(authoritative, "points") - (Number(baseline.points) | 0);
       const economy = G.ConflictEconomy || G._ConflictEconomy;
@@ -5038,6 +5155,28 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function removeResolvedNastyaBattle(battleId) {
+    const stores = [stateFor(), G.__S, G.UI && G.UI.S, context && context.state]
+      .filter((store, index, all) => store && all.indexOf(store) === index);
+    const target = stores.flatMap((store) => Array.isArray(store.battles) ? store.battles : [])
+      .find((battle) => battle && String(battle.id || battle.battleId || "") === String(battleId || "")
+        && battle.meta && battle.meta.stage715NastyaBattle === true);
+    if (!target) return false;
+    const targetId = String(target.id || target.battleId || "");
+    let removed = false;
+    stores.forEach((store) => {
+      if (!Array.isArray(store.battles)) return;
+      const before = store.battles.length;
+      store.battles = store.battles.filter((battle) => !battle
+        || (String(battle.id || battle.battleId || "") !== targetId
+          && !(battle.meta && battle.meta.stage715NastyaBattle === true
+            && battle.meta.stage715BattleId === NASTYA_BATTLE_ID)));
+      removed = removed || store.battles.length !== before;
+    });
+    if (removed) saveState();
+    return removed;
+  }
+
   function watchNastyaBattle() {
     if (battleWatchTimer) clearInterval(battleWatchTimer);
     battleWatchTimer = setInterval(() => {
@@ -5090,6 +5229,13 @@ window.Game = window.Game || {};
     if (phase === "intro") playIntro();
     if (phase === "nastya_battle" || phase === "nastya_waiting_chat_reply"
       || phase === "nastya_crowd_vote") watchNastyaBattle();
+    if (phase === "nastya_crowd_vote") {
+      const battle = stage715BattleById(NASTYA_BATTLE_ID);
+      const eventId = battle && battle.meta && battle.meta.stage715NastyaEventId;
+      const event = eventId && (state.events || []).find((item) => item && item.id === eventId);
+      if (event && event.resolved) finishNastyaEventVote(event);
+      else if (event) scheduleNastyaEventVotes(event);
+    }
     if (phase === "battle_unlocked" || phase === "first_battle") watchRayhanBattle();
     if (phase === "battle_unlocked" || phase === "first_battle") {
       const resumedRayhan = stage715BattleById(FIRST_BATTLE_ID);
@@ -5282,6 +5428,7 @@ window.Game = window.Game || {};
     handlePlayerMessage,
     handleRayhanDefenseChoice,
     handleNastyaDefenseChoice,
+    removeResolvedNastyaBattle,
     handleOlegDefenseChoice,
     handleOlegDmReply,
     revealBattlesPanel,
