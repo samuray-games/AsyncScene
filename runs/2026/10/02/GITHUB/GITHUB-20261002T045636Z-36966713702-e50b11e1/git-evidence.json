@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "71bbaaf83f9c7cb595d8362c13f33a7d5709d4df\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "# branch.oid 71bbaaf83f9c7cb595d8362c13f33a7d5709d4df\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "71bbaaf8 (HEAD, pull/411/merge) Merge 2e1d335cf050eacd14105623dae4ef2413628e46 into 3a349d5db9d37e020afb4cccca8d487a12021f24\n2e1d335c (origin/codex/stage715-atom3-runtime-repair-v2) Fix Stage 7.15 Atom 3 Nastya runtime flow\n3a349d5d (origin/main) Stage 7.15 Atom 3: Nastya correct path (#410)\nc9f1b4e3 Fix Stage 7.15 Rayhan wrong-answer event ownership\n845e3296 Sync model inventory integration into repository memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 71bbaaf83f9c7cb595d8362c13f33a7d5709d4df\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-02T04:56:36Z",
+      "stderr": "",
+      "stdout": "3a349d5db9d37e020afb4cccca8d487a12021f24\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "71bbaaf83f9c7cb595d8362c13f33a7d5709d4df",
+  "observedAtUtc": "2026-10-02T04:56:36Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
