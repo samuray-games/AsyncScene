@@ -3010,6 +3010,9 @@ window.Game = window.Game || {};
   const NASTYA_PROMPT = "Ты на проблемы нарываешься?";
   const NASTYA_EXPLANATION = "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?";
   const NASTYA_RESOLVED_COUNTERARGUMENT = "Ну… да, наверное.";
+  const NASTYA_INITIAL_WRONG_LINE = "Что ж, за слова отвечать надо, иногда даже толпа тебя не спасёт. Вызывай на реванш за 1💰!";
+  const NASTYA_SURRENDER_LINE = "Хорош деньги сливать, я сдаюсь. Не злишься?";
+  const NASTYA_POST_WIN_QUESTION = "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?";
   const NASTYA_CHOICES = Object.freeze([
     Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
     Object.freeze({ id: "who_oleg", type: "who", text: "Думаю, Олег, но это не точно…" }),
@@ -3359,6 +3362,13 @@ window.Game = window.Game || {};
       "battle_unlocked",
       "nastya_prompt",
       "nastya_battle",
+      "nastya_initial_wrong_waiting_rematch",
+      "nastya_rematch_available",
+      "nastya_rematch_paid",
+      "nastya_rematch_awaiting_answer",
+      "nastya_rematch_wrong",
+      "nastya_surrender_waiting_reply",
+      "nastya_automatic_victory_settlement",
       "nastya_waiting_chat_reply",
       "nastya_crowd_vote",
       "nastya_post_win_waiting_reply",
@@ -3674,6 +3684,21 @@ window.Game = window.Game || {};
     if (!entry || !String(entry.text || "").trim()) return;
     npcQueue.push(Object.assign({}, entry));
     drainNpcQueue();
+  }
+
+  function ensureNastyaScriptedChatLine(flag, text) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    const state = stateFor();
+    if (!battle || !battle.meta || !state) return false;
+    if (Array.isArray(state.chat) && state.chat.some((entry) => String(entry && entry.text || "") === text)) {
+      battle.meta[flag] = true;
+      return true;
+    }
+    if (npcQueue.some((entry) => String(entry && entry.text || "") === text)) return false;
+    battle.meta[flag] = true;
+    pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text });
+    saveState();
+    return false;
   }
 
   function npcTypingDelayMs(text) {
@@ -4133,6 +4158,119 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function isChoiceText(text, choice) {
+    const value = String(text || "").trim().toLowerCase();
+    return value === String(choice.id).toLowerCase()
+      || value === String(choice.text).trim().toLowerCase()
+      || value.startsWith(`${choice.id}:`)
+      || value.startsWith(`${choice.id}.`);
+  }
+
+  function settleNastyaWrongAnswer(battle, choice, isInitial) {
+    const state = stateFor();
+    if (!battle || !state || !choice || !choice.stage715DisplayText) return false;
+    battle.meta = Object.assign({}, battle.meta || {});
+    let meta = battle.meta;
+    if (isInitial && meta.stage715NastyaInitialLossApplied !== true) {
+      const economy = G.ConflictEconomy || G._ConflictEconomy;
+      if (!economy || typeof economy.transferPoints !== "function"
+        || !G.__A || typeof G.__A.transferRep !== "function"
+        || currentPlayerStat(state, "points") < 2) return false;
+      const paid = economy.transferPoints("me", "sink", 2, "stage715_nastya_initial_wrong_loss", {
+        battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_initial_wrong_loss",
+      });
+      if (!paid || paid.ok !== true) return false;
+      const rep = G.__A.transferRep("me", "crowd_pool", 1, "rep_stage715_nastya_initial_wrong_loss", NASTYA_BATTLE_ID, {
+        context: "stage715_nastya_initial_wrong_loss",
+      });
+      if (!rep || rep.ok === false) return false;
+      meta.stage715NastyaInitialLossApplied = true;
+      meta.stage715NastyaLoss = { rep: -1, money: -2 };
+    }
+    battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText);
+    battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText);
+    battle.defense = Object.assign({}, battle.defense || {}, {
+      id: choice.id, text: choice.text, displayText: choice.stage715DisplayText,
+      stage715DisplayText: choice.stage715DisplayText, color: "y", _color: "y",
+    });
+    preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText);
+    meta = battle.meta;
+    battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+    battle.attackHidden = false;
+    battle.revealColor = "o";
+    battle.status = "finished";
+    battle.result = "lose";
+    battle.outcome = "lose";
+    battle.resolved = true;
+    battle.finished = true;
+    battle.draw = false;
+    battle.crowd = null;
+    battle.meta.stage715NastyaPayoff = { status: "revealed", color: "o", outcome: "lose" };
+    battle.meta.stage715NastyaResultRecorded = true;
+    if (isInitial) {
+      ensureNastyaScriptedChatLine("stage715NastyaLossLineShown", NASTYA_INITIAL_WRONG_LINE);
+      meta.stage715NastyaPhase = "initial_wrong_settled";
+      meta.stage715NastyaRematchGate = true;
+      phase = "nastya_initial_wrong_waiting_rematch";
+    } else {
+      meta.stage715NastyaFailedPaidRematches = Math.max(0, Number(meta.stage715NastyaFailedPaidRematches) | 0) + 1;
+      meta.stage715NastyaRematchGate = meta.stage715NastyaFailedPaidRematches < 2;
+      meta.stage715NastyaPhase = meta.stage715NastyaFailedPaidRematches < 2 ? "rematch_wrong" : "surrender_waiting_reply";
+      phase = meta.stage715NastyaFailedPaidRematches < 2 ? "nastya_rematch_available" : "nastya_surrender_waiting_reply";
+      if (meta.stage715NastyaFailedPaidRematches >= 2) {
+        meta.stage715NastyaSurrenderWaitingReply = true;
+        meta.stage715NastyaRematchGate = false;
+        ensureNastyaScriptedChatLine("stage715NastyaSurrenderLineShown", NASTYA_SURRENDER_LINE);
+      }
+    }
+    saveState();
+    telemetry(isInitial ? "stage715_nastya_initial_wrong_settled" : "stage715_nastya_rematch_wrong_settled");
+    render();
+    return true;
+  }
+
+  function startNastyaRematch(battleId) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || (String(battle.id) !== String(battleId) && String(battleId) !== NASTYA_BATTLE_ID)
+      || !battle.meta || battle.meta.stage715NastyaRematchGate !== true
+      || Number(battle.meta.stage715NastyaFailedPaidRematches || 0) >= 2) return false;
+    const economy = G.ConflictEconomy || G._ConflictEconomy;
+    if (!economy || typeof economy.transferPoints !== "function" || currentPlayerStat(stateFor(), "points") < 1) return false;
+    battle.defense = null;
+    battle.attackHidden = true;
+    battle.status = "pickDefense";
+    if (!prepareNastyaDefenseChoices(battle, NASTYA_REMATCH_CHOICES)) return false;
+    const attempt = Math.max(0, Number(battle.meta.stage715NastyaPaidRematches) | 0) + 1;
+    const chargeKey = `stage715_nastya_rematch_${attempt}`;
+    if (battle.meta[`${chargeKey}Charged`] === true) return false;
+    const charge = economy.transferPoints("me", "sink", 1, "stage715_nastya_rematch_purchase", {
+      battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_rematch_purchase", attempt,
+    });
+    if (!charge || charge.ok !== true) return false;
+    battle.meta[`${chargeKey}Charged`] = true;
+    battle.meta.stage715NastyaPaidRematches = attempt;
+    battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaPhase = "rematch_awaiting_answer";
+    battle.meta.stage715NastyaResultRecorded = false;
+    battle.meta.stage715NastyaPayoff = { status: "pending", color: null, outcome: null };
+    battle.meta.stage715NastyaCrowdStarted = false;
+    battle.meta.stage715NastyaRematchPrompt = "Ну и кто всё это начал?";
+    battle.meta.stage715NastyaRematchChoices = NASTYA_REMATCH_CHOICES.map((choice) => choice.text);
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: `stage715_nastya_rematch_attack_${attempt}`, text: "Ну и кто всё это начал?",
+      displayText: "Ну и кто всё это начал?", color: "o", _color: "o", type: "who", qtype: "who", group: "who",
+    });
+    battle.result = battle.outcome = null;
+    battle.resolved = battle.finished = false;
+    battle.draw = false;
+    battle.crowd = null;
+    phase = "nastya_rematch_awaiting_answer";
+    saveState();
+    telemetry("stage715_nastya_rematch_paid");
+    render();
+    return true;
+  }
+
   function handleNastyaDefenseChoice(battleId, choiceId) {
     const battle = stage715BattleById(NASTYA_BATTLE_ID);
     if (!battle || (String(battle.id) !== String(battleId)
@@ -4142,10 +4280,41 @@ window.Game = window.Game || {};
       || battle.resolved === true || battle.finished === true) return false;
     const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
     if (!choice) return false;
-    const isCorrect = String(choice.id || "") === "yn_no"
-      || String(choice.stage715DisplayText || "") === NASTYA_CHOICES[0].text;
+    const isRematch = Number(battle.meta.stage715NastyaPaidRematches || 0) > 0
+      && battle.meta.stage715NastyaPhase === "rematch_awaiting_answer";
+    const isCorrect = isRematch
+      ? (choice.stage715ScriptedChoiceId === "who_rayhan" || choice.stage715DisplayText === NASTYA_REMATCH_CHOICES[0].text)
+      : (String(choice.id || "") === "yn_no" || String(choice.stage715DisplayText || "") === NASTYA_CHOICES[0].text);
     battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 };
     battle._defenseChoices = [choice];
+    if (isCorrect && isRematch) {
+      battle.meta.stage715NastyaRematchGate = false;
+      battle.meta.stage715NastyaPhase = "rematch_correct_events";
+      battle.meta.stage715NastyaResolvedAnswer = true;
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
+      if (!battle.meta.stage715NastyaExplanationShown) {
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
+        battle.meta.stage715NastyaExplanationShown = true;
+      }
+      battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText || choice.text || "");
+      battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText || choice.text || "");
+      battle.attackHidden = false;
+      battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+      battle.defense = Object.assign({}, choice, { color: "y", _color: "y", stage715DisplayText: choice.stage715DisplayText });
+      battle.status = "stage715_resolved_answer";
+      battle.result = battle.outcome = null;
+      battle.resolved = battle.finished = false;
+      battle.draw = false;
+      battle.crowd = null;
+      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
+      phase = "nastya_waiting_chat_reply";
+      saveState();
+      telemetry("stage715_nastya_rematch_correct_waiting_chat");
+      render();
+      watchNastyaBattle();
+      return true;
+    }
     if (isCorrect) {
       battle.meta.stage715NastyaResolvedAnswer = true;
       battle.meta.stage715NastyaChatReplyPending = true;
@@ -4178,15 +4347,7 @@ window.Game = window.Game || {};
     if (choice.stage715DisplayText) {
       preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText);
     }
-    const conflict = G.Conflict;
-    if (!conflict || typeof conflict.pickDefense !== "function") return false;
-    const result = conflict.pickDefense(battle.id, choice.id);
-    if (choice.stage715DisplayText) {
-      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText);
-    }
-    saveState();
-    render();
-    return result || true;
+    return settleNastyaWrongAnswer(battle, choice, !isRematch);
   }
 
   function handleOlegDefenseChoice(battleId, choiceId) {
@@ -4613,14 +4774,6 @@ window.Game = window.Game || {};
     return scheduleRayhanEventVotes(event);
   }
 
-  function isChoiceText(text, choice) {
-    const value = String(text || "").trim().toLowerCase();
-    return value === String(choice.id).toLowerCase()
-      || value === String(choice.text).trim().toLowerCase()
-      || value.startsWith(`${choice.id}:`)
-      || value.startsWith(`${choice.id}.`);
-  }
-
   function selectedNastyaChoice(text) {
     const value = String(text || "").trim().toLowerCase();
     const numeric = /^([1-3])(?:[.)]|\s|$)/.exec(value);
@@ -4628,7 +4781,7 @@ window.Game = window.Game || {};
     return NASTYA_CHOICES.find((choice) => isChoiceText(value, choice)) || null;
   }
 
-  function prepareNastyaDefenseChoices(battle) {
+  function prepareNastyaDefenseChoices(battle, scriptedChoices = NASTYA_CHOICES) {
     if (!battle || !G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
     let options = [];
     for (let attempt = 0; attempt < 12; attempt += 1) {
@@ -4640,9 +4793,9 @@ window.Game = window.Game || {};
       const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
       return raw === "yesno" ? "yn" : raw;
     };
-    const choices = NASTYA_CHOICES.map((wanted) => {
+    const choices = scriptedChoices.map((wanted) => {
       const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
-      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
+      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text, stage715ScriptedChoiceId: wanted.id }) : null;
     });
     if (choices.some((choice) => !choice)) return false;
     battle._defenseChoices = choices;
@@ -5060,7 +5213,7 @@ window.Game = window.Game || {};
     render();
   }
 
-  function revealNastyaBattle(battle, outcome) {
+  function revealNastyaBattle(battle, outcome, options = {}) {
     if (!battle || !battle.attack || outcome !== "win") return false;
     const state = stateFor();
     if (state) {
@@ -5114,12 +5267,12 @@ window.Game = window.Game || {};
       battle.meta.stage715NastyaRewardsApplied = true;
       battle.meta.stage715NastyaReward = { rep: 2, money: 2, wins: 1 };
     }
-    if (battle.meta.stage715NastyaMajorityLineShown !== true) {
+    if (!options.skipMajority && battle.meta.stage715NastyaMajorityLineShown !== true) {
       if (context && context.UI && typeof context.UI.pushSystem === "function") context.UI.pushSystem("Тебя поддержало большинство.");
       else pushNpc({ name: "", system: true, text: "Тебя поддержало большинство." });
       battle.meta.stage715NastyaMajorityLineShown = true;
     }
-    if (!battle.meta.stage715NastyaExplanationShown) {
+    if (!options.skipExplanation && !battle.meta.stage715NastyaExplanationShown) {
       pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
       battle.meta.stage715NastyaExplanationShown = true;
     }
@@ -5129,10 +5282,7 @@ window.Game = window.Game || {};
       color: trueColor,
       voteStarted: outcome === "draw",
     });
-    if (battle.meta.stage715NastyaPostWinQuestionShown !== true) {
-      pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?" });
-      battle.meta.stage715NastyaPostWinQuestionShown = true;
-    }
+    ensureNastyaScriptedChatLine("stage715NastyaPostWinQuestionShown", NASTYA_POST_WIN_QUESTION);
     phase = "nastya_post_win_waiting_reply";
     saveState();
     render();
@@ -5153,6 +5303,34 @@ window.Game = window.Game || {};
     openNextScriptedFlow("loss");
     openOlegDmAfterLoss();
     return true;
+  }
+
+  function settleNastyaAutomaticVictory() {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta) return false;
+    if (battle.meta.stage715NastyaAutomaticVictoryApplied === true
+      && battle.meta.stage715NastyaPayoff && battle.meta.stage715NastyaPayoff.status === "revealed") return true;
+    battle.meta.stage715NastyaAutomaticVictoryApplied = true;
+    battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaPhase = "automatic_victory_settlement";
+    battle.attackHidden = false;
+    battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+    battle.status = battle.result = battle.outcome = "win";
+    battle.resolved = battle.finished = true;
+    battle.draw = false;
+    battle.crowd = null;
+    battle.meta.stage715NastyaRewardBaseline = {
+      rep: currentPlayerStat(stateFor(), "rep"),
+      points: currentPlayerStat(stateFor(), "points"),
+      wins: currentPlayerStat(stateFor(), "wins"),
+    };
+    phase = "nastya_automatic_victory_settlement";
+    const settled = revealNastyaBattle(battle, "win", { skipMajority: true, skipExplanation: true });
+    if (settled) {
+      battle.meta.stage715NastyaPhase = "post_win_waiting_reply";
+      saveState();
+    }
+    return settled;
   }
 
   function removeResolvedNastyaBattle(battleId) {
@@ -5181,7 +5359,12 @@ window.Game = window.Game || {};
     if (battleWatchTimer) clearInterval(battleWatchTimer);
     battleWatchTimer = setInterval(() => {
       if (phase !== "nastya_battle" && phase !== "nastya_waiting_chat_reply"
-        && phase !== "nastya_crowd_vote" && phase !== "next_scripted_flow") return;
+        && phase !== "nastya_initial_wrong_waiting_rematch"
+        && phase !== "nastya_rematch_available" && phase !== "nastya_rematch_paid"
+        && phase !== "nastya_rematch_awaiting_answer" && phase !== "nastya_rematch_wrong"
+        && phase !== "nastya_surrender_waiting_reply" && phase !== "nastya_automatic_victory_settlement"
+        && phase !== "nastya_crowd_vote" && phase !== "nastya_post_win_waiting_reply"
+        && phase !== "next_scripted_flow") return;
       syncNastyaBattleOutcome();
     }, 250);
   }
@@ -5218,6 +5401,18 @@ window.Game = window.Game || {};
     installDemoInteractionGuards();
     const state = stateFor(context);
     ensurePlayers(state);
+    const nastyaCheckpoint = stage715BattleById(NASTYA_BATTLE_ID);
+    if (nastyaCheckpoint && nastyaCheckpoint.meta) {
+      if (nastyaCheckpoint.meta.stage715NastyaLossLineShown === true) {
+        ensureNastyaScriptedChatLine("stage715NastyaLossLineShown", NASTYA_INITIAL_WRONG_LINE);
+      }
+      if (nastyaCheckpoint.meta.stage715NastyaSurrenderLineShown === true) {
+        ensureNastyaScriptedChatLine("stage715NastyaSurrenderLineShown", NASTYA_SURRENDER_LINE);
+      }
+      if (nastyaCheckpoint.meta.stage715NastyaPostWinQuestionShown === true) {
+        ensureNastyaScriptedChatLine("stage715NastyaPostWinQuestionShown", NASTYA_POST_WIN_QUESTION);
+      }
+    }
     if (state && state.me && state.players && state.players.me && state.me.name) {
       state.players.me.name = state.me.name;
     }
@@ -5227,8 +5422,35 @@ window.Game = window.Game || {};
     setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true));
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
-    if (phase === "nastya_battle" || phase === "nastya_waiting_chat_reply"
-      || phase === "nastya_crowd_vote") watchNastyaBattle();
+    if (["nastya_battle", "nastya_initial_wrong_waiting_rematch", "nastya_rematch_available",
+      "nastya_rematch_paid", "nastya_rematch_awaiting_answer", "nastya_rematch_wrong",
+      "nastya_surrender_waiting_reply", "nastya_automatic_victory_settlement",
+      "nastya_waiting_chat_reply", "nastya_crowd_vote", "nastya_post_win_waiting_reply"].includes(phase)) {
+      watchNastyaBattle();
+    }
+    if (phase === "nastya_rematch_awaiting_answer") {
+      const rematch = stage715BattleById(NASTYA_BATTLE_ID);
+      if (rematch && rematch.meta && rematch.meta.stage715NastyaPhase === "rematch_awaiting_answer") {
+        rematch.attack = Object.assign({}, rematch.attack || {}, {
+          text: "Ну и кто всё это начал?", displayText: "Ну и кто всё это начал?",
+          color: "o", _color: "o", type: "who", qtype: "who", group: "who",
+        });
+        if (!Array.isArray(rematch._defenseChoices)
+          || rematch._defenseChoices.length !== 3
+          || rematch._defenseChoices.some((choice, index) => choice.stage715DisplayText !== NASTYA_REMATCH_CHOICES[index].text)) {
+          prepareNastyaDefenseChoices(rematch, NASTYA_REMATCH_CHOICES);
+        }
+      }
+    }
+    if (phase === "nastya_surrender_waiting_reply") {
+      const surrendered = stage715BattleById(NASTYA_BATTLE_ID);
+      if (surrendered && surrendered.meta && surrendered.meta.stage715NastyaSurrenderReplyReceived === true) {
+        phase = "nastya_automatic_victory_settlement";
+        settleNastyaAutomaticVictory();
+      }
+    } else if (phase === "nastya_automatic_victory_settlement") {
+      settleNastyaAutomaticVictory();
+    }
     if (phase === "nastya_crowd_vote") {
       const battle = stage715BattleById(NASTYA_BATTLE_ID);
       const eventId = battle && battle.meta && battle.meta.stage715NastyaEventId;
@@ -5343,6 +5565,13 @@ window.Game = window.Game || {};
       startNastyaCrowdVote();
       return true;
     }
+    if (phase === "nastya_surrender_waiting_reply") {
+      const battle = stage715BattleById(NASTYA_BATTLE_ID);
+      if (battle && battle.meta) battle.meta.stage715NastyaSurrenderReplyReceived = true;
+      phase = "nastya_automatic_victory_settlement";
+      saveState();
+      return settleNastyaAutomaticVictory();
+    }
     if (phase === "nastya_post_win_waiting_reply") {
       phase = "next_scripted_flow";
       const state = stateFor();
@@ -5428,6 +5657,7 @@ window.Game = window.Game || {};
     handlePlayerMessage,
     handleRayhanDefenseChoice,
     handleNastyaDefenseChoice,
+    startNastyaRematch,
     removeResolvedNastyaBattle,
     handleOlegDefenseChoice,
     handleOlegDmReply,

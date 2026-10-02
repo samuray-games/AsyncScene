@@ -37,13 +37,25 @@ ordered_controller_markers = (
 require(all(marker in controller for marker in ordered_controller_markers),
         "canonical corridor controller markers are incomplete")
 
+nastya_crowd_start = controller[controller.index("function startNastyaCrowdVote"):
+                                controller.index("function nastyaEventVoterIds")]
+for marker in (
+    "G.Events.addEvent(event)",
+    "revealEventsPanel()",
+    "battle.crowd = null",
+    "scheduleNastyaEventVotes(event)",
+):
+    require(marker in nastya_crowd_start,
+            f"Nastya's accepted Events-owned crowd flow is missing: {marker}")
+require("G.Conflict.startCrowdVote(" not in nastya_crowd_start,
+        "Nastya's teaching crowd must remain owned by Events, not Battles")
+
 for text in (
     'const NASTYA_EXPLANATION = "Видишь, у меня аргумент оранжевый',
     'const NASTYA_RESOLVED_COUNTERARGUMENT = "Ну… да, наверное."',
     'battle.status = "stage715_resolved_answer"',
     'battle.result = null',
     'battle.meta.stage715NastyaChatReplyPending = false',
-    'G.Conflict.startCrowdVote(battle.id)',
     'if (phase === "nastya_waiting_chat_reply") return true;',
     'phase === "nastya_crowd_vote"',
     'if (nastyaWon && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();',
