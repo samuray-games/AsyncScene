@@ -2255,12 +2255,14 @@ UI.renderBattles = () => {
        else line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
       } else {
         line.textContent = (b.meta && b.meta.stage715NastyaBattle === true
-          && b.meta.stage715NastyaCrowdStarted === true) ? "" : _normalizeResultText(b);
+          && (b.meta.stage715NastyaCrowdStarted === true || b.result === "win" || b.outcome === "win"))
+          ? "" : _normalizeResultText(b);
       }
       card.appendChild(line);
 
       if (b.meta && b.meta.stage715NastyaBattle === true
-        && (b.meta.stage715NastyaRematchGate === true || b.meta.stage715NastyaSurrenderWaitingReply === true)) {
+        && (b.meta.stage715NastyaRematchGate === true || b.meta.stage715NastyaSurrenderWaitingReply === true)
+        && b.result !== "win" && b.outcome !== "win") {
         line.textContent = "Поражение";
         const nastyaPrompt = getBattleArgumentTexts(b).opponent
           || String(b.attack && (b.attack.displayText || b.attack.text) || "");
@@ -3527,7 +3529,9 @@ UI.renderBattles = () => {
             : { opponent: "incoming-opp-arg", mine: "incoming-my-counter" },
           showResolvedChoices: !isOutgoingCard,
           canRematch,
-          outcomeLabel: getBattleOutcomeLabel(b),
+          outcomeLabel: b.meta && b.meta.stage715NastyaBattle === true
+            && (b.result === "win" || b.outcome === "win")
+            ? "Победа!" : getBattleOutcomeLabel(b),
           rematchHandler: (battleId) => triggerRematchFlow(battleId),
           mode: stage715NastyaIntermediate ? "incoming_resolved" : nextMode,
           suppressOutcome: stage715NastyaIntermediate

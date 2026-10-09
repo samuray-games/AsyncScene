@@ -22,6 +22,7 @@ const assert = require("assert");
 const currentSource = fs.readFileSync("AsyncScene/Web/ui/ui-stage7-first-experience.js", "utf8");
 const uiSource = fs.readFileSync("AsyncScene/Web/ui/ui-battles.js", "utf8");
 const baselineSource = cp.execFileSync("git", ["show", "HEAD:AsyncScene/Web/ui/ui-stage7-first-experience.js"], { encoding: "utf8" });
+const baselineUiSource = cp.execFileSync("git", ["show", "HEAD:AsyncScene/Web/ui/ui-battles.js"], { encoding: "utf8" });
 
 function makeRuntime(source, phase = "nastya_battle", persistedStore = new Map()) {
   let now = 1000;
@@ -117,6 +118,12 @@ function makeRuntime(source, phase = "nastya_battle", persistedStore = new Map()
       emitStatDelta() {}, syncMeToPlayers() {},
     },
     Conflict: {
+      incoming(opponentId) {
+        const created = { id: "stage7_15_oleg_battle", opponentId, status: "pickDefense",
+          fromThem: true, meta: {}, attack: { text: "Олегов вопрос" } };
+        state.battles.push(created);
+        return created;
+      },
       myDefenseOptions() { return makeChoices(true); },
       pickDefense(id, choiceId) {
         const selected = battle._defenseChoices.find((choice) => choice.id === choiceId);
@@ -172,12 +179,64 @@ function chooseWrong(rt, initial = false) {
   const choice = initial ? "canon_who" : "canon_yn";
   assert.strictEqual(rt.controller.handleNastyaDefenseChoice(rt.battle.id, choice), true);
 }
+// Prove each requested repair is red against the exact current-main source,
+// independently of the fixed-source assertions below.
+const redSurrender = makeRuntime(baselineSource);
+redSurrender.controller.handleNastyaDefenseChoice(redSurrender.battle.id, "canon_who");
+redSurrender.advance(2500);
+redSurrender.controller.startNastyaRematch(redSurrender.battle.id);
+chooseWrong(redSurrender);
+redSurrender.advance(2500);
+redSurrender.controller.startNastyaRematch(redSurrender.battle.id);
+chooseWrong(redSurrender);
+redSurrender.advance(2500);
+redSurrender.controller.handlePlayerMessage("ответ на сдачу");
+redSurrender.advance(3500);
+const legacyCheckpoint = redSurrender.storage;
+const afterAutomaticWin = {
+  surrenderFlagStillSet: redSurrender.battle.meta.stage715NastyaSurrenderWaitingReply === true,
+  uiStillRoutesWinThroughLossBranch: /stage715NastyaSurrenderWaitingReply === true/.test(baselineUiSource)
+    && !/stage715NastyaSurrenderWaitingReply === true[\s\S]{0,140}b\.result !== "win"/.test(baselineUiSource),
+  closeActionBypassed: /stage715NastyaSurrenderWaitingReply === true[\s\S]*?return;/.test(baselineUiSource)
+    && /closeBtn\.textContent = "Закрыть"/.test(baselineUiSource),
+};
+const legacyResume = makeRuntime(baselineSource, "intro", legacyCheckpoint);
+afterAutomaticWin.legacyWinKeepsStaleSurrenderFlagAfterResume =
+  legacyResume.battle.result === "win" && legacyResume.battle.meta.stage715NastyaRewardsApplied === true
+    && legacyResume.battle.meta.stage715NastyaSurrenderWaitingReply === true;
+legacyResume.controller.handlePlayerMessage("первый ответ после победы");
+afterAutomaticWin.firstPostWinReplyDoesNotStartOleg =
+  legacyResume.state.battles.filter((battle) => battle.meta && battle.meta.stage715OlegBattle).length === 0;
+
+const redCorrectRematch = makeRuntime(baselineSource);
+redCorrectRematch.controller.handleNastyaDefenseChoice(redCorrectRematch.battle.id, "canon_who");
+redCorrectRematch.controller.startNastyaRematch(redCorrectRematch.battle.id);
+redCorrectRematch.controller.handleNastyaDefenseChoice(redCorrectRematch.battle.id, "canon_who");
+afterAutomaticWin.correctPaidRematchStartsEventsBeforeChat = redCorrectRematch.state.events.length === 1;
+console.log("RED_BASELINE_ATOM4 " + JSON.stringify(afterAutomaticWin));
+assert(Object.values(afterAutomaticWin).every(Boolean), "each Atom 4 regression must reproduce on current main");
+
 function simulateInterruptedChatCommit(storage, line) {
   for (const [key, raw] of storage.entries()) {
     if (typeof raw !== "string" || !raw.startsWith("{\"version\":1,")) continue;
     const envelope = JSON.parse(raw);
     if (!envelope.state || !Array.isArray(envelope.state.chat)) continue;
     envelope.state.chat = envelope.state.chat.filter((entry) => entry.text !== line);
+    storage.set(key, JSON.stringify(envelope));
+    return true;
+  }
+  return false;
+}
+function restoreLegacyVictoryFlag(storage) {
+  for (const [key, raw] of storage.entries()) {
+    if (typeof raw !== "string" || !raw.startsWith("{\"version\":1,")) continue;
+    const envelope = JSON.parse(raw);
+    const battle = envelope.state && Array.isArray(envelope.state.battles)
+      ? envelope.state.battles.find((entry) => entry.meta && entry.meta.stage715NastyaBattle)
+      : null;
+    if (!battle || battle.result !== "win" || battle.meta.stage715NastyaRewardsApplied !== true) continue;
+    battle.meta.stage715NastyaSurrenderWaitingReply = true;
+    battle.meta.stage715NastyaRematchGate = true;
     storage.set(key, JSON.stringify(envelope));
     return true;
   }
@@ -252,13 +311,37 @@ loop = resumed;
 assert.strictEqual(loop.controller.handlePlayerMessage("да, нормально"), true);
 loop.advance(3500);
 assert.strictEqual(loop.battle.result, "win");
+assert.strictEqual(loop.battle.meta.stage715NastyaSurrenderWaitingReply, false,
+  "automatic victory must clear the surrender renderer gate");
 assert.strictEqual(loop.state.rep, 4);
 assert.strictEqual(loop.state.me.points, 8);
 assert.strictEqual(loop.state.me.wins, 1);
 assert.strictEqual(loop.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
 assert.strictEqual(loop.state.battles.some((b) => b.meta && b.meta.stage715OlegBattle), false);
+assert.strictEqual(restoreLegacyVictoryFlag(loop.storage), true,
+  "legacy checkpoint fixture must be a rewarded WIN with both obsolete flags");
 resumed = makeRuntime(currentSource, "intro", loop.storage);
 assert.strictEqual(resumed.state.rep, 4); assert.strictEqual(resumed.state.me.points, 8); assert.strictEqual(resumed.state.me.wins, 1);
+assert.strictEqual(resumed.battle.meta.stage715NastyaRewardsApplied, true);
+assert.strictEqual(resumed.battle.meta.stage715NastyaSurrenderWaitingReply, false,
+  "legacy persisted victory must clear the stale surrender flag during resume");
+assert.strictEqual(resumed.battle.meta.stage715NastyaRematchGate, false,
+  "legacy persisted victory must clear the obsolete rematch gate during resume");
+assert.strictEqual(resumed.ledger.length, 0, "legacy resume must not replay settlement or rewards");
+assert.strictEqual(resumed.chat.filter((m) => m.text === "Хорош деньги сливать, я сдаюсь. Не злишься?").length, 1);
+assert.strictEqual(resumed.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
+assert.strictEqual(resumed.controller.handlePlayerMessage("после победы отвечаю один раз"), true);
+assert.strictEqual(resumed.state.battles.filter((b) => b.meta && b.meta.stage715OlegBattle).length, 1,
+  "the first post-win reply must create exactly one Oleg battle");
+assert.strictEqual(resumed.state.flags.stage715NastyaPostWinReplyReceived, true);
+loop = resumed;
+resumed = makeRuntime(currentSource, "intro", loop.storage);
+assert.strictEqual(resumed.state.battles.filter((b) => b.meta && b.meta.stage715OlegBattle).length, 1,
+  "resume after the post-win reply must not create another Oleg battle");
+resumed.controller.handlePlayerMessage("повторный ответ не должен повторить handoff");
+assert.strictEqual(resumed.state.battles.filter((b) => b.meta && b.meta.stage715OlegBattle).length, 1,
+  "a later reply must not create a second Oleg battle");
+assert.strictEqual(resumed.state.me.points, 8); assert.strictEqual(resumed.state.rep, 4); assert.strictEqual(resumed.state.me.wins, 1);
 assert.strictEqual(resumed.battle.meta.stage715NastyaRewardsApplied, true);
 assert.strictEqual(resumed.chat.filter((m) => m.text === "Хорош деньги сливать, я сдаюсь. Не злишься?").length, 1);
 assert.strictEqual(resumed.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
@@ -269,37 +352,68 @@ correct.controller.startNastyaRematch(correct.battle.id);
 const nastyaExplanation = "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?";
 const explanationCountBeforeRematchAnswer = correct.chat.filter((m) => m.text === nastyaExplanation).length;
 assert.strictEqual(correct.controller.handleNastyaDefenseChoice(correct.battle.id, "canon_who"), true);
-assert.strictEqual(correct.state.events.length, 1, "correct paid rematch must start Events voting immediately");
-assert.strictEqual(correct.battle.meta.stage715NastyaChatReplyPending, false, "correct rematch must not create a chat gate");
-assert.strictEqual(correct.chat.filter((m) => m.text === nastyaExplanation).length, explanationCountBeforeRematchAnswer,
-  "correct rematch must not emit the Atom 3 Nastya explanation again");
+correct.advance(15000);
+assert.strictEqual(correct.state.events.length, 0, "correct paid rematch must wait before creating Events");
+assert.strictEqual(correct.battle.meta.stage715NastyaChatReplyPending, true, "correct rematch must wait for ordinary chat");
+assert.strictEqual(correct.chat.filter((m) => m.text === nastyaExplanation).length, explanationCountBeforeRematchAnswer + 1,
+  "correct paid rematch must show the exact Nastya explanation once");
+assert.strictEqual(correct.battle.meta.stage715NastyaExplanationShown, true);
 assert.strictEqual(correct.battle.meta.stage715NastyaSelectedAnswer, "Кажется, Райхан…");
 assert.strictEqual(correct.battle.crowd, null, "Events, not Battles, must own the crowd");
-assert.strictEqual(correct.state.flags.stage715EventsPanelRevealed, true);
+assert.strictEqual(correct.state.flags.stage715EventsPanelRevealed, false);
 const correctResume = makeRuntime(currentSource, "intro", correct.storage);
-assert.strictEqual(correctResume.state.events.length, 1, "reload during direct Events vote must not duplicate or lose the event");
+assert.strictEqual(correctResume.state.events.length, 0, "reload before reply must preserve the chat gate without starting Events");
 assert.strictEqual(correctResume.battle.meta.stage715NastyaSelectedAnswer, "Кажется, Райхан…");
 assert.strictEqual(correctResume.state.me.points, 7, "reload after correct paid rematch must not charge again");
-assert.strictEqual(correctResume.battle.meta.stage715NastyaChatReplyPending, false);
-correctResume.advance(15000);
-const event = correctResume.state.events[0];
+assert.strictEqual(correctResume.battle.meta.stage715NastyaChatReplyPending, true);
+assert.strictEqual(correctResume.chat.filter((m) => m.text === nastyaExplanation).length, explanationCountBeforeRematchAnswer + 1,
+  "resume must not repeat Nastya's explanation");
+assert.strictEqual(correctResume.controller.handlePlayerMessage("ладно, отвечаю"), true);
+assert.strictEqual(correctResume.state.events.length, 1, "one ordinary reply must start the accepted Events vote");
+assert.strictEqual(correctResume.state.flags.stage715EventsPanelRevealed, true);
+assert.strictEqual(correctResume.controller.handlePlayerMessage("второй ответ не нужен"), true);
+assert.strictEqual(correctResume.state.events.length, 1, "a second reply must not duplicate the vote");
+const votingResume = makeRuntime(currentSource, "intro", correctResume.storage);
+assert.strictEqual(votingResume.state.events.length, 1, "reload during voting must preserve one Events event");
+assert.strictEqual(votingResume.battle.meta.stage715NastyaSelectedAnswer, "Кажется, Райхан…");
+votingResume.advance(15000);
+const event = votingResume.state.events[0];
 assert.strictEqual(Object.keys(event.crowd.voters).length, 5);
 assert.strictEqual(event.crowd.aVotes, 3); assert.strictEqual(event.crowd.bVotes, 2);
 assert(event.crowd.scriptedVoteAt.every((at, i, list) => !i || (at-list[i-1] >= 1000 && at-list[i-1] <= 2000)));
-assert.strictEqual(correctResume.battle.result, "win");
-assert.strictEqual(correctResume.state.rep, 4, "correct rematch must converge to the canonical +2 REP victory settlement");
-assert.strictEqual(correctResume.state.me.points, 9, "correct rematch must settle +2 money after initial loss and one paid rematch");
-assert.strictEqual(correctResume.state.me.wins, 1);
-assert(correctResume.chat.some((m) => m.text === "Тебя поддержало большинство."));
-assert.strictEqual(correctResume.chat.filter((m) => m.text === "Тебя поддержало большинство.").length, 1);
-assert.strictEqual(correctResume.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
-assert.strictEqual(correctResume.state.battles.some((b) => b.meta && b.meta.stage715OlegBattle), false);
+assert.strictEqual(votingResume.battle.result, "win");
+assert.strictEqual(votingResume.state.rep, 4, "correct rematch must converge to the canonical +2 REP victory settlement");
+assert.strictEqual(votingResume.state.me.points, 9, "correct rematch must settle +2 money after initial loss and one paid rematch");
+assert.strictEqual(votingResume.state.me.wins, 1);
+assert(votingResume.chat.some((m) => m.text === "Тебя поддержало большинство."));
+assert.strictEqual(votingResume.chat.filter((m) => m.text === "Тебя поддержало большинство.").length, 1);
+assert.strictEqual(votingResume.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
+assert.strictEqual(votingResume.state.battles.some((b) => b.meta && b.meta.stage715OlegBattle), false,
+  "Oleg must not start before the post-win reply");
+assert.strictEqual(votingResume.controller.handlePlayerMessage("ответ после победы"), true);
+assert.strictEqual(votingResume.state.battles.filter((b) => b.meta && b.meta.stage715OlegBattle).length, 1,
+  "one correct-rematch post-win reply must start exactly one Oleg battle");
 const lossUiBranch = uiSource.slice(uiSource.indexOf('if (b.meta && b.meta.stage715NastyaBattle === true\n        && (b.meta.stage715NastyaRematchGate'), uiSource.indexOf('emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);', uiSource.indexOf('if (b.meta && b.meta.stage715NastyaBattle === true\n        && (b.meta.stage715NastyaRematchGate')));
 assert(lossUiBranch.includes('argumentColors: getBattleArgumentColorKeys(b)'), "loss card must use existing revealed argument color keys");
 assert(lossUiBranch.includes('labels: { opponent: "Аргумент", mine: "Твой контраргумент" }'), "loss card must use canonical argument labels");
 assert(lossUiBranch.includes('"stage715-nastya-loss-prompt"') && lossUiBranch.includes('"stage715-nastya-selected-answer"'),
   "loss card must expose focused prompt and counterargument DOM markers");
 assert(lossUiBranch.includes('rematch.textContent = "Реванш!"'), "loss gate must expose the single rematch action");
+assert(/stage715NastyaSurrenderWaitingReply === true[\s\S]*?b\.result !== "win"/.test(lossUiBranch)
+  || !lossUiBranch.includes("stage715NastyaSurrenderWaitingReply === true"),
+  "a persisted WIN must render the victory branch instead of the stale surrender-loss branch");
+assert(uiSource.includes('closeBtn.textContent = "Закрыть"')
+  && uiSource.includes('stage715.removeResolvedNastyaBattle(b.id)'),
+  "resolved Nastya victory UI must expose one close action routed to card-only removal");
+assert(/stage715NastyaCrowdStarted === true \|\| b\.result === "win" \|\| b\.outcome === "win"/.test(uiSource),
+  "resolved Nastya win must suppress the pre-render result line so the card has one result");
+assert(/\? "Победа!" : getBattleOutcomeLabel\(b\)/.test(uiSource),
+  "resolved Nastya win result pill must use the exact one-copy Победа! label");
+const resolvedUiStart = uiSource.indexOf("const finalMode = nextMode;");
+const resolvedUiBranch = uiSource.slice(resolvedUiStart,
+  uiSource.indexOf('traceStage715RayhanDom("card-appended"', resolvedUiStart));
+assert.strictEqual((resolvedUiBranch.match(/closeBtn\.textContent = "Закрыть"/g) || []).length, 1,
+  "resolved Nastya card renderer must create exactly one Закрыть button");
 assert(!lossUiBranch.includes('"Закрыть"') && !lossUiBranch.includes('"Уйти"') && !lossUiBranch.includes('"Отойти"'),
   "forced loss/surrender branch must not add unrelated actions");
 assert(uiSource.includes('chip.className = clsForColor(resolvedColorKey)'), "the shared resolved renderer must map revealed colors to visible chip classes");
