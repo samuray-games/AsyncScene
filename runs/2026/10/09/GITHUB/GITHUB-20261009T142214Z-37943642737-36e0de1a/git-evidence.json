@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom4-nastya-rematch",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom4-nastya-rematch\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "5a9486fa68b690f45dac9ec6ec7261606b640ebe\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "# branch.oid 5a9486fa68b690f45dac9ec6ec7261606b640ebe\n# branch.head codex/stage715-atom4-nastya-rematch\n# branch.upstream origin/codex/stage715-atom4-nastya-rematch\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "5a9486fa (HEAD -> codex/stage715-atom4-nastya-rematch, origin/codex/stage715-atom4-nastya-rematch) Fix Atom 4 Nastya rematch blockers\n2e73ada8 Implement Stage 7.15 Nastya rematch flow\n73494758 (origin/main) Stage 7.15 Atom 3 runtime repair (#411)\n3a349d5d Stage 7.15 Atom 3: Nastya correct path (#410)\nc9f1b4e3 Fix Stage 7.15 Rayhan wrong-answer event ownership\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 5a9486fa68b690f45dac9ec6ec7261606b640ebe\nbranch refs/heads/codex/stage715-atom4-nastya-rematch\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:22:14Z",
+      "stderr": "",
+      "stdout": "73494758000c5666aeb77f408094f9b99fc16584\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "5a9486fa68b690f45dac9ec6ec7261606b640ebe",
+  "observedAtUtc": "2026-10-09T14:22:14Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
