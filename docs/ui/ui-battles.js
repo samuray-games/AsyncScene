@@ -2262,16 +2262,18 @@ UI.renderBattles = () => {
       if (b.meta && b.meta.stage715NastyaBattle === true
         && (b.meta.stage715NastyaRematchGate === true || b.meta.stage715NastyaSurrenderWaitingReply === true)) {
         line.textContent = "Поражение";
-        const attackLine = document.createElement("div");
-        attackLine.className = "noteLine";
-        attackLine.dataset.testid = "stage715-nastya-loss-prompt";
-        attackLine.textContent = "Аргумент: Ты на проблемы нарываешься?";
-        card.appendChild(attackLine);
-        const selectedLine = document.createElement("div");
-        selectedLine.className = "noteLine";
-        selectedLine.dataset.testid = "stage715-nastya-selected-answer";
-        selectedLine.textContent = `Твой контраргумент: ${String(b.meta.stage715NastyaSelectedAnswer || b.meta.stage715SelectedDefenseText || "")}`;
-        card.appendChild(selectedLine);
+        const nastyaPrompt = getBattleArgumentTexts(b).opponent
+          || String(b.attack && (b.attack.displayText || b.attack.text) || "");
+        const selectedAnswer = String(b.meta.stage715NastyaSelectedAnswer || b.meta.stage715SelectedDefenseText || "");
+        renderResolvedBattleCardCore(card, b, {
+          argumentTexts: { opponent: nastyaPrompt, mine: selectedAnswer },
+          argumentColors: getBattleArgumentColorKeys(b),
+          labels: { opponent: "Аргумент", mine: "Твой контраргумент" },
+          testIds: { opponent: "stage715-nastya-loss-prompt", mine: "stage715-nastya-selected-answer" },
+          mode: "incoming_resolved",
+          suppressOutcome: true,
+          showResolvedChoices: false,
+        });
         if (b.meta.stage715NastyaRematchGate === true) {
           const actions = document.createElement("div");
           actions.className = "actions";

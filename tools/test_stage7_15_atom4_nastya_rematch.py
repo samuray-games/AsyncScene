@@ -20,6 +20,7 @@ const vm = require("vm");
 const cp = require("child_process");
 const assert = require("assert");
 const currentSource = fs.readFileSync("AsyncScene/Web/ui/ui-stage7-first-experience.js", "utf8");
+const uiSource = fs.readFileSync("AsyncScene/Web/ui/ui-battles.js", "utf8");
 const baselineSource = cp.execFileSync("git", ["show", "HEAD:AsyncScene/Web/ui/ui-stage7-first-experience.js"], { encoding: "utf8" });
 
 function makeRuntime(source, phase = "nastya_battle", persistedStore = new Map()) {
@@ -192,6 +193,9 @@ assert.strictEqual(loop.state.rep, 2);
 assert.strictEqual(loop.state.me.points, 8);
 assert.strictEqual(loop.chat.filter((m) => m.text === "Что ж, за слова отвечать надо, иногда даже толпа тебя не спасёт. Вызывай на реванш за 1💰!").length, 1);
 assert.strictEqual(loop.battle.meta.stage715NastyaRematchGate, true);
+assert.strictEqual(loop.battle.attack.text, "Ты на проблемы нарываешься?");
+assert.strictEqual(loop.battle.attack.color, "o");
+assert.strictEqual(loop.battle.defense.color, "y");
 assert.strictEqual(loop.battle.crowd, null);
 assert.strictEqual(simulateInterruptedChatCommit(loop.storage, "Что ж, за слова отвечать надо, иногда даже толпа тебя не спасёт. Вызывай на реванш за 1💰!"), true);
 let resumed = makeRuntime(currentSource, "intro", loop.storage);
@@ -213,6 +217,9 @@ assert.strictEqual(loop.battle.meta.stage715NastyaFailedPaidRematches, 1);
 assert.strictEqual(loop.state.me.points, 7, "wrong rematch must not charge generic loss economy");
 assert.strictEqual(loop.state.rep, 2, "wrong rematch must not repeat initial REP penalty");
 assert.strictEqual(loop.battle.meta.stage715NastyaRematchGate, true);
+assert.strictEqual(loop.battle.attack.text, "Ну и кто всё это начал?", "failed paid rematch must preserve its prompt");
+assert.strictEqual(loop.battle.attack.color, "o");
+assert.strictEqual(loop.battle.defense.color, "y");
 resumed = makeRuntime(currentSource, "intro", loop.storage);
 assert.strictEqual(resumed.battle.meta.stage715NastyaFailedPaidRematches, 1);
 assert.strictEqual(resumed.state.me.points, 7, "failed-rematch reload charged or changed money");
@@ -234,6 +241,9 @@ assert.strictEqual(loop.battle.result, "lose", "surrender must wait before victo
 assert.strictEqual(loop.state.me.wins, 0);
 resumed = makeRuntime(currentSource, "intro", loop.storage);
 assert.strictEqual(resumed.battle.meta.stage715NastyaSurrenderWaitingReply, true);
+assert.strictEqual(resumed.battle.attack.text, "Ну и кто всё это начал?", "surrender checkpoint must preserve the paid rematch prompt");
+assert.strictEqual(resumed.battle.attack.color, "o");
+assert.strictEqual(resumed.battle.defense.color, "y");
 assert.strictEqual(resumed.battle.result, "lose");
 assert.strictEqual(resumed.state.me.points, 6); assert.strictEqual(resumed.state.rep, 2);
 assert.strictEqual(resumed.state.me.wins, 0);
@@ -256,10 +266,13 @@ assert.strictEqual(resumed.chat.filter((m) => m.text === "Ладно, возмо
 const correct = makeRuntime(currentSource);
 correct.controller.handleNastyaDefenseChoice(correct.battle.id, "canon_who");
 correct.controller.startNastyaRematch(correct.battle.id);
+const nastyaExplanation = "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?";
+const explanationCountBeforeRematchAnswer = correct.chat.filter((m) => m.text === nastyaExplanation).length;
 assert.strictEqual(correct.controller.handleNastyaDefenseChoice(correct.battle.id, "canon_who"), true);
-assert.strictEqual(correct.state.events.length, 0, "correct rematch must wait for the accepted Atom 3 chat reply");
-correct.controller.handlePlayerMessage("ясно");
-assert.strictEqual(correct.state.events.length, 1);
+assert.strictEqual(correct.state.events.length, 1, "correct paid rematch must start Events voting immediately");
+assert.strictEqual(correct.battle.meta.stage715NastyaChatReplyPending, false, "correct rematch must not create a chat gate");
+assert.strictEqual(correct.chat.filter((m) => m.text === nastyaExplanation).length, explanationCountBeforeRematchAnswer,
+  "correct rematch must not emit the Atom 3 Nastya explanation again");
 assert.strictEqual(correct.battle.crowd, null, "Events, not Battles, must own the crowd");
 assert.strictEqual(correct.state.flags.stage715EventsPanelRevealed, true);
 correct.advance(15000);
@@ -268,10 +281,22 @@ assert.strictEqual(Object.keys(event.crowd.voters).length, 5);
 assert.strictEqual(event.crowd.aVotes, 3); assert.strictEqual(event.crowd.bVotes, 2);
 assert(event.crowd.scriptedVoteAt.every((at, i, list) => !i || (at-list[i-1] >= 1000 && at-list[i-1] <= 2000)));
 assert.strictEqual(correct.battle.result, "win");
+assert.strictEqual(correct.state.rep, 4, "correct rematch must converge to the canonical +2 REP victory settlement");
+assert.strictEqual(correct.state.me.points, 9, "correct rematch must settle +2 money after initial loss and one paid rematch");
 assert.strictEqual(correct.state.me.wins, 1);
 assert(correct.chat.some((m) => m.text === "Тебя поддержало большинство."));
+assert.strictEqual(correct.chat.filter((m) => m.text === "Тебя поддержало большинство.").length, 1);
 assert.strictEqual(correct.chat.filter((m) => m.text === "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?").length, 1);
 assert.strictEqual(correct.state.battles.some((b) => b.meta && b.meta.stage715OlegBattle), false);
+const lossUiBranch = uiSource.slice(uiSource.indexOf('if (b.meta && b.meta.stage715NastyaBattle === true\n        && (b.meta.stage715NastyaRematchGate'), uiSource.indexOf('emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);', uiSource.indexOf('if (b.meta && b.meta.stage715NastyaBattle === true\n        && (b.meta.stage715NastyaRematchGate')));
+assert(lossUiBranch.includes('argumentColors: getBattleArgumentColorKeys(b)'), "loss card must use existing revealed argument color keys");
+assert(lossUiBranch.includes('labels: { opponent: "Аргумент", mine: "Твой контраргумент" }'), "loss card must use canonical argument labels");
+assert(lossUiBranch.includes('"stage715-nastya-loss-prompt"') && lossUiBranch.includes('"stage715-nastya-selected-answer"'),
+  "loss card must expose focused prompt and counterargument DOM markers");
+assert(lossUiBranch.includes('rematch.textContent = "Реванш!"'), "loss gate must expose the single rematch action");
+assert(!lossUiBranch.includes('"Закрыть"') && !lossUiBranch.includes('"Уйти"') && !lossUiBranch.includes('"Отойти"'),
+  "forced loss/surrender branch must not add unrelated actions");
+assert(uiSource.includes('chip.className = clsForColor(resolvedColorKey)'), "the shared resolved renderer must map revealed colors to visible chip classes");
 console.log("PASS_STAGE7_15_ATOM4_NASTYA_REMATCH_SEMANTIC_RUNTIME");
 '''
 

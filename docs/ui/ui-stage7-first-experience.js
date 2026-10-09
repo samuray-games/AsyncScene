@@ -4291,12 +4291,9 @@ window.Game = window.Game || {};
       battle.meta.stage715NastyaRematchGate = false;
       battle.meta.stage715NastyaPhase = "rematch_correct_events";
       battle.meta.stage715NastyaResolvedAnswer = true;
-      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaChatReplyPending = false;
+      battle.meta.stage715NastyaRematchDirectVoteAllowed = true;
       battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
-      if (!battle.meta.stage715NastyaExplanationShown) {
-        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
-        battle.meta.stage715NastyaExplanationShown = true;
-      }
       battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText || choice.text || "");
       battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText || choice.text || "");
       battle.attackHidden = false;
@@ -4308,11 +4305,12 @@ window.Game = window.Game || {};
       battle.draw = false;
       battle.crowd = null;
       preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
-      phase = "nastya_waiting_chat_reply";
-      saveState();
-      telemetry("stage715_nastya_rematch_correct_waiting_chat");
-      render();
-      watchNastyaBattle();
+      phase = "nastya_crowd_vote";
+      telemetry("stage715_nastya_rematch_correct_events_started");
+      if (!startNastyaCrowdVote()) {
+        saveState();
+        render();
+      }
       return true;
     }
     if (isCorrect) {
@@ -4378,9 +4376,13 @@ window.Game = window.Game || {};
 
   function startNastyaCrowdVote() {
     const battle = stage715BattleById(NASTYA_BATTLE_ID);
-    if (!battle || !battle.meta || battle.meta.stage715NastyaChatReplyPending !== true) return false;
+    if (!battle || !battle.meta
+      || (battle.meta.stage715NastyaChatReplyPending !== true
+        && !(battle.meta.stage715NastyaRematchDirectVoteAllowed === true
+          && battle.meta.stage715NastyaPhase === "rematch_correct_events"))) return false;
     if (!G.Events || typeof G.Events.addEvent !== "function") return false;
     battle.meta.stage715NastyaChatReplyPending = false;
+    battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
     battle.meta.stage715NastyaCrowdStarted = true;
     battle.status = "stage715_nastya_event_vote";
     battle.result = null;
