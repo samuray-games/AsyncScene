@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom4-safari-repair",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom4-safari-repair\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "f7f4cde9288fc0264fe9b41a9399e6fc86e14498\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid f7f4cde9288fc0264fe9b41a9399e6fc86e14498\n# branch.head codex/stage715-atom4-safari-repair\n# branch.upstream origin/codex/stage715-atom4-safari-repair\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "f7f4cde9 (HEAD -> codex/stage715-atom4-safari-repair, origin/main, origin/codex/stage715-atom4-safari-repair) Stage 7.15 Atom 4: Nastya rematch and surrender (#412)\n73494758 Stage 7.15 Atom 3 runtime repair (#411)\n3a349d5d Stage 7.15 Atom 3: Nastya correct path (#410)\nc9f1b4e3 Fix Stage 7.15 Rayhan wrong-answer event ownership\n845e3296 Sync model inventory integration into repository memory\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f7f4cde9288fc0264fe9b41a9399e6fc86e14498\nbranch refs/heads/codex/stage715-atom4-safari-repair\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:57:39Z",
+      "stderr": "",
+      "stdout": "f7f4cde9288fc0264fe9b41a9399e6fc86e14498\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f7f4cde9288fc0264fe9b41a9399e6fc86e14498",
+  "observedAtUtc": "2026-10-09T14:57:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
