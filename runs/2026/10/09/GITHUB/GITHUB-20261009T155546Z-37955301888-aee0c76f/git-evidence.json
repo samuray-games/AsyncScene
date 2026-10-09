@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "6586d2f5f520f3c0d005c0f461147e5012f21405\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "# branch.oid 6586d2f5f520f3c0d005c0f461147e5012f21405\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "6586d2f5 (HEAD, pull/414/merge) Merge 3db03fbad9deb8771832a2a09d2af4b6249766e7 into 87b9ca89f0b4ab48a608885d09da9aa77a26d12c\n3db03fba (origin/codex/stage715-atom5-oleg-first-loss) Stage 7.15 Atom 5 Oleg first-loss sequence\n87b9ca89 (origin/main) Stage 7.15 Atom 4 Safari repair (#413)\nf7f4cde9 Stage 7.15 Atom 4: Nastya rematch and surrender (#412)\n73494758 Stage 7.15 Atom 3 runtime repair (#411)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 6586d2f5f520f3c0d005c0f461147e5012f21405\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T15:55:46Z",
+      "stderr": "",
+      "stdout": "87b9ca89f0b4ab48a608885d09da9aa77a26d12c\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "6586d2f5f520f3c0d005c0f461147e5012f21405",
+  "observedAtUtc": "2026-10-09T15:55:46Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
