@@ -3381,6 +3381,21 @@ window.Game = window.Game || {};
     ].includes(saved) ? saved : "intro";
   }
 
+  function normalizeResolvedNastyaCheckpoint(state) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta || battle.result !== "win"
+      || battle.meta.stage715NastyaRewardsApplied !== true
+      || battle.meta.stage715NastyaSurrenderWaitingReply !== true) return false;
+    battle.meta.stage715NastyaSurrenderWaitingReply = false;
+    battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
+    battle.meta.stage715NastyaChatReplyPending = false;
+    if (state && state.flags && state.flags.stage715NastyaPostWinReplyReceived === true) {
+      state.flags.stage715DemoPhase = "next_scripted_flow";
+    }
+    return true;
+  }
+
   function telemetry(actionId) {
     if (G.Telemetry && typeof G.Telemetry.action === "function") {
       G.Telemetry.action(actionId, { flowId: "stage7_15_zero_tutorial_demo_v1", phase });
@@ -4289,10 +4304,10 @@ window.Game = window.Game || {};
     battle._defenseChoices = [choice];
     if (isCorrect && isRematch) {
       battle.meta.stage715NastyaRematchGate = false;
-      battle.meta.stage715NastyaPhase = "rematch_correct_events";
+      battle.meta.stage715NastyaPhase = "rematch_correct_waiting_chat";
       battle.meta.stage715NastyaResolvedAnswer = true;
-      battle.meta.stage715NastyaChatReplyPending = false;
-      battle.meta.stage715NastyaRematchDirectVoteAllowed = true;
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
       battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
       battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText || choice.text || "");
       battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText || choice.text || "");
@@ -4305,12 +4320,15 @@ window.Game = window.Game || {};
       battle.draw = false;
       battle.crowd = null;
       preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
-      phase = "nastya_crowd_vote";
-      telemetry("stage715_nastya_rematch_correct_events_started");
-      if (!startNastyaCrowdVote()) {
-        saveState();
-        render();
+      if (!battle.meta.stage715NastyaExplanationShown) {
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
+        battle.meta.stage715NastyaExplanationShown = true;
       }
+      phase = "nastya_waiting_chat_reply";
+      saveState();
+      telemetry("stage715_nastya_rematch_correct_waiting_chat");
+      render();
+      watchNastyaBattle();
       return true;
     }
     if (isCorrect) {
@@ -4377,9 +4395,19 @@ window.Game = window.Game || {};
   function startNastyaCrowdVote() {
     const battle = stage715BattleById(NASTYA_BATTLE_ID);
     if (!battle || !battle.meta
-      || (battle.meta.stage715NastyaChatReplyPending !== true
-        && !(battle.meta.stage715NastyaRematchDirectVoteAllowed === true
-          && battle.meta.stage715NastyaPhase === "rematch_correct_events"))) return false;
+      || battle.meta.stage715NastyaChatReplyPending !== true) return false;
+    if (battle.meta.stage715NastyaCrowdStarted === true) {
+      const existingEvent = battle.meta.stage715NastyaEventId
+        ? rayhanEventById(battle.meta.stage715NastyaEventId) : null;
+      if (existingEvent) {
+        battle.meta.stage715NastyaChatReplyPending = false;
+        phase = "nastya_crowd_vote";
+        if (existingEvent.resolved) finishNastyaEventVote(existingEvent);
+        else scheduleNastyaEventVotes(existingEvent);
+        return true;
+      }
+      battle.meta.stage715NastyaCrowdStarted = false;
+    }
     if (!G.Events || typeof G.Events.addEvent !== "function") return false;
     battle.meta.stage715NastyaChatReplyPending = false;
     battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
@@ -4403,6 +4431,7 @@ window.Game = window.Game || {};
     if (voters.length !== RAYHAN_EVENT_VOTE_COUNT) {
       phase = "nastya_waiting_chat_reply";
       battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaCrowdStarted = false;
       return false;
     }
     const now = Date.now();
@@ -4437,6 +4466,7 @@ window.Game = window.Game || {};
       else delete players[NASTYA_EVENT_PLAYER_ID];
       phase = "nastya_waiting_chat_reply";
       battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaCrowdStarted = false;
       return false;
     }
     revealEventsPanel();
@@ -4993,7 +5023,14 @@ window.Game = window.Game || {};
     const conflict = G.Conflict;
     if (!state || !conflict || typeof conflict.incoming !== "function") return false;
     const existing = stage715BattleById(OLEG_BATTLE_ID);
-    if (existing) { phase = "oleg_battle"; saveState(); watchOlegBattle(); return true; }
+    if (existing) {
+      state.flags = state.flags || {};
+      state.flags.stage715OlegHandoffStarted = true;
+      phase = "oleg_battle";
+      saveState();
+      watchOlegBattle();
+      return true;
+    }
     const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
     if (!battle || !battle.id) return false;
     battle.fromThem = true;
@@ -5018,6 +5055,8 @@ window.Game = window.Game || {};
       demoId: "stage7_15_oleg_battle",
       sourceTag: DEMO_SOURCE_TAG,
     });
+    state.flags = state.flags || {};
+    state.flags.stage715OlegHandoffStarted = true;
     prepareOlegDefenseChoices(battle);
     mirrorRayhanBattleToRenderState(battle);
     phase = "oleg_battle";
@@ -5314,6 +5353,9 @@ window.Game = window.Game || {};
       && battle.meta.stage715NastyaPayoff && battle.meta.stage715NastyaPayoff.status === "revealed") return true;
     battle.meta.stage715NastyaAutomaticVictoryApplied = true;
     battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
+    battle.meta.stage715NastyaChatReplyPending = false;
+    battle.meta.stage715NastyaSurrenderWaitingReply = false;
     battle.meta.stage715NastyaPhase = "automatic_victory_settlement";
     battle.attackHidden = false;
     battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
@@ -5403,6 +5445,7 @@ window.Game = window.Game || {};
     installDemoInteractionGuards();
     const state = stateFor(context);
     ensurePlayers(state);
+    normalizeResolvedNastyaCheckpoint(state);
     const nastyaCheckpoint = stage715BattleById(NASTYA_BATTLE_ID);
     if (nastyaCheckpoint && nastyaCheckpoint.meta) {
       if (nastyaCheckpoint.meta.stage715NastyaLossLineShown === true) {
@@ -5459,6 +5502,14 @@ window.Game = window.Game || {};
       const event = eventId && (state.events || []).find((item) => item && item.id === eventId);
       if (event && event.resolved) finishNastyaEventVote(event);
       else if (event) scheduleNastyaEventVotes(event);
+    }
+    if (phase === "next_scripted_flow") {
+      const nastya = stage715BattleById(NASTYA_BATTLE_ID);
+      const postWinReplyReceived = !!(state && state.flags
+        && state.flags.stage715NastyaPostWinReplyReceived === true);
+      const nastyaWon = battleOutcome(nastya) === "win"
+        || !!(state && state.flags && state.flags.stage715NastyaWon === true);
+      if (postWinReplyReceived && nastyaWon && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
     }
     if (phase === "battle_unlocked" || phase === "first_battle") watchRayhanBattle();
     if (phase === "battle_unlocked" || phase === "first_battle") {
@@ -5579,6 +5630,10 @@ window.Game = window.Game || {};
       const state = stateFor();
       if (state && state.flags) state.flags.stage715NastyaPostWinReplyReceived = true;
       saveState();
+      const nastya = stage715BattleById(NASTYA_BATTLE_ID);
+      const nastyaWon = battleOutcome(nastya) === "win"
+        || !!(state && state.flags && state.flags.stage715NastyaWon === true);
+      if (nastyaWon && !stage715BattleById(OLEG_BATTLE_ID)) startOlegBattle();
       return true;
     }
     if (phase === "next_scripted_flow") {
