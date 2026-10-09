@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "ad4b8e270383a44af8ad55fee5193d7122cdefce\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid ad4b8e270383a44af8ad55fee5193d7122cdefce\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "ad4b8e27 (HEAD, pull/412/merge) Merge 2c30a4e7e2379b1a596d17af4806374e7cc6ce97 into 73494758000c5666aeb77f408094f9b99fc16584\n2c30a4e7 (origin/codex/stage715-atom4-nastya-rematch) Cover correct rematch vote resume\n5a9486fa Fix Atom 4 Nastya rematch blockers\n2e73ada8 Implement Stage 7.15 Nastya rematch flow\n73494758 (origin/main) Stage 7.15 Atom 3 runtime repair (#411)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ad4b8e270383a44af8ad55fee5193d7122cdefce\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-09T14:23:49Z",
+      "stderr": "",
+      "stdout": "73494758000c5666aeb77f408094f9b99fc16584\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ad4b8e270383a44af8ad55fee5193d7122cdefce",
+  "observedAtUtc": "2026-10-09T14:23:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
