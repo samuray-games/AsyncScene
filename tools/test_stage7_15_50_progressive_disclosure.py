@@ -63,6 +63,7 @@ allowed = {
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_tone_first_battle.py",
     "tools/test_stage7_15_21_nastya_battle.py",
+    "tools/test_stage7_15_atom4_nastya_rematch.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_rayhan_post_win.py",

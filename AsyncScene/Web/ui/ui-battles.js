@@ -2259,6 +2259,47 @@ UI.renderBattles = () => {
       }
       card.appendChild(line);
 
+      if (b.meta && b.meta.stage715NastyaBattle === true
+        && (b.meta.stage715NastyaRematchGate === true || b.meta.stage715NastyaSurrenderWaitingReply === true)) {
+        line.textContent = "Поражение";
+        const nastyaPrompt = getBattleArgumentTexts(b).opponent
+          || String(b.attack && (b.attack.displayText || b.attack.text) || "");
+        const selectedAnswer = String(b.meta.stage715NastyaSelectedAnswer || b.meta.stage715SelectedDefenseText || "");
+        renderResolvedBattleCardCore(card, b, {
+          argumentTexts: { opponent: nastyaPrompt, mine: selectedAnswer },
+          argumentColors: getBattleArgumentColorKeys(b),
+          labels: { opponent: "Аргумент", mine: "Твой контраргумент" },
+          testIds: { opponent: "stage715-nastya-loss-prompt", mine: "stage715-nastya-selected-answer" },
+          mode: "incoming_resolved",
+          suppressOutcome: true,
+          showResolvedChoices: false,
+        });
+        if (b.meta.stage715NastyaRematchGate === true) {
+          const actions = document.createElement("div");
+          actions.className = "actions";
+          const rematch = document.createElement("button");
+          rematch.type = "button";
+          rematch.className = "btn small";
+          rematch.dataset.testid = "stage715-nastya-rematch";
+          rematch.textContent = "Реванш!";
+          rematch.onclick = (e) => {
+            stop(e);
+            const controller = Game && Game.Stage715Demo;
+            if (controller && typeof controller.startNastyaRematch === "function") {
+              controller.startNastyaRematch(b.id);
+            }
+          };
+          actions.appendChild(rematch);
+          card.appendChild(actions);
+        }
+        emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+        finalLogMode = "stage715_nastya_rematch_gate";
+        finalLogNodes = createBattleRenderNodeState();
+        logBattleCardRenderFinal(b.id, finalLogMode, finalLogNodes);
+        body.appendChild(card);
+        return;
+      }
+
       // ESCAPE VOTE (crowd vote) - render even if resolved is true
       if (isEscapeVote(b)) {
           const v = b.escapeVote || {};
