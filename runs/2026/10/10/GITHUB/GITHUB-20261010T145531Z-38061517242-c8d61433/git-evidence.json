@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "bbbf8bc2bf93faf53acade579af9f0753ec2e721\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid bbbf8bc2bf93faf53acade579af9f0753ec2e721\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "bbbf8bc2 (HEAD, pull/417/merge) Merge cfcbc160307bf874a79187d2a659bff0ed94faf0 into aee47147c6cccc7f104e161c1d8b40019afe9da4\ncfcbc160 (origin/codex/stage715-atom6-oleg-escape) Atom 6: restore live Oleg escape vote timer after reload (docs)\nfb2fe729 Atom 6: restore live Oleg escape vote timer after reload (Web)\n9c7d4302 fix(stage7): restore scripted Oleg escape teaching card\naee47147 (origin/main) Restore Rayhan result card after Events vote (#416)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bbbf8bc2bf93faf53acade579af9f0753ec2e721\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T14:55:31Z",
+      "stderr": "",
+      "stdout": "aee47147c6cccc7f104e161c1d8b40019afe9da4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bbbf8bc2bf93faf53acade579af9f0753ec2e721",
+  "observedAtUtc": "2026-10-10T14:55:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
