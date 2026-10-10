@@ -118,6 +118,8 @@ try {
     await awaitEscapeOutcome('success');
     const secondOutcome = { status: battle.meta.stage715Escape.status, repSettled: battle.meta.stage715Escape.repSettled, votes: battle.meta.stage715Escape.scriptedVotes, result: battle.result, money: S.me.points, rep: S.rep, noActions: battle.meta.stage715OlegNoPostLossActions };
     const successful = renderAndRead();
+    const olegDms = (G.__S.dm?.logs?.npc_bandit || []).map((line) => String(line.text || ""));
+    const dmChecks = { failure: olegDms.filter((line) => line.includes("кудааа, не так быстро")).length, success: olegDms.filter((line) => line.includes("неприятный, но полезный урок")).length };
     const charges = (G.__D?.moneyLogByBattle?.[id] || []).filter((entry) => entry && entry.reason === "escape_vote_cost" && entry.sourceId === "me").map((entry) => ({ amount: entry.amount, nonce: entry.meta?.context?.actionNonce }));
     if (G.Conflict) G.Conflict.pickDefense = priorPick;
     return {
@@ -128,7 +130,7 @@ try {
       beforeAttempts,
       firstAttempt, firstOutcome,
       restored: { buttons: restored.buttons, texts: restored.texts },
-      secondAttempt, secondOutcome, charges,
+      secondAttempt, secondOutcome, charges, dmChecks,
       successful: { buttons: successful.buttons, text: successful.card?.textContent || '' },
     };
   });
@@ -167,6 +169,7 @@ try {
   assert.equal(result.secondOutcome.rep, result.beforeAttempts.rep - 2, "two escapes must debit exactly two REP");
   assert.equal(result.secondOutcome.noActions, true, "success must suppress post-escape actions");
   assert.deepEqual(result.successful.buttons, [], "completed escape must have no generic actions");
+  assert.deepEqual(result.dmChecks, {failure: 1, success: 1}, "canonical Oleg failure and success DMs must arrive exactly once");
   assert.deepEqual(result.charges.map((charge) => charge.nonce), ["stage715_oleg_escape_1", "stage715_oleg_escape_2"], "two actual money charges must use unique attempt nonces");
   assert.equal(result.firstAttempt.battleId, result.beforeAttempts.battleId, "first attempt must retain the original battle identity");
   assert.equal(result.secondAttempt.battleId, result.beforeAttempts.battleId, "retry must retain the same battle identity");
