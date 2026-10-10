@@ -33,7 +33,7 @@ for text in (
     'Возможно, там, где Подворотня…',
     'Думаю, Райхан…',
     'Кажется, нет…',
-    'const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?"',
+    'const OLEG_FIRST_LOSS_DELAY_MS = 1000',
     'stage715OlegScriptedLoss: true',
     'conflict.incoming(OLEG_DM_ID, { pinned: true })',
     'battle.attack = Object.assign({}, battle.attack || {}, {',
@@ -41,9 +41,13 @@ for text in (
     'openOlegDmAfterLoss();',
     'stage715_oleg_battle_started',
     'stage715_oleg_battle_result',
-    'stage715_oleg_rematch_line_shown',
+    'stage715OlegResultRevealAt',
+    'stage715OlegPublicLossAt',
+    'stage715OlegDmAt',
 ):
     require(text in stage, f"missing Oleg battle contract: {text}")
+
+require("rematchRequestCount" not in stage, "Oleg first-loss handoff must not require rematches")
 
 for text in (
     'const stage715Oleg = !!(b.meta && b.meta.stage715OlegScriptedLoss === true)',

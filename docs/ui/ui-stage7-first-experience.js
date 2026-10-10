@@ -3045,7 +3045,6 @@ window.Game = window.Game || {};
   const STAGE715_EVENTS_REVEALED_FLAG = "stage715EventsPanelRevealed";
   const OLEG_BATTLE_LINE = "слыш ты, совсем нюх потерялся да? надо тебя на место поставить.";
   const OLEG_BATTLE_PROMPT = "Где будем разбираться?";
-  const OLEG_REMATCH_LINE = "ты реально решил биться до последней монеты?";
   const OLEG_BATTLE_CHOICES = Object.freeze([
     Object.freeze({ id: "where_backyard", type: "where", text: "Возможно, там, где Подворотня…" }),
     Object.freeze({ id: "who_rayhan", type: "who", text: "Думаю, Райхан…" }),
@@ -3053,6 +3052,7 @@ window.Game = window.Game || {};
   ]);
   const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
   const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
+  const OLEG_FIRST_LOSS_DELAY_MS = 1000;
   const OLEG_ESCAPE_FAILED_DM_LINE = "слыш трусишка, кудааа, не так быстро! ладно, можешь ещё разок попробовать.";
   const OLEG_ESCAPE_SUCCESS_DM_LINE = "трусишек не уважают, поэтому репутация понизилась, но ничего, уверен ты всё наверстаешь, а это был неприятный, но полезный урок. без обид?";
   const OLEG_ESCAPE_SUCCESS_RESULT = "У тебя получилось уйти от конфликта за взятку, все довольны.";
@@ -3094,6 +3094,8 @@ window.Game = window.Game || {};
   let silenceTimer = null;
   let introTimers = [];
   let battleWatchTimer = null;
+  let olegSequenceTimer = null;
+  let olegGreetingQueuedInRuntime = false;
   let rayhanEventVoteTimers = [];
   let escapeWatchTimer = null;
   let npcQueue = [];
@@ -3231,6 +3233,8 @@ window.Game = window.Game || {};
     silenceTimer = null;
     if (battleWatchTimer) clearInterval(battleWatchTimer);
     battleWatchTimer = null;
+    if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
+    olegSequenceTimer = null;
     rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
     rayhanEventVoteTimers = [];
     const nastyaVoteRegistry = G.__stage715NastyaEventVoteTimers;
@@ -3495,6 +3499,7 @@ window.Game = window.Game || {};
     if (!state || !UI) return false;
     ensurePlayers(state);
     state.flags = state.flags || {};
+    if (state.flags.stage715OlegPublicLossLineShown !== true) return false;
     const alreadyOpened = state.flags.stage715OlegDmOpened === true;
     state.flags.stage715OlegDmActive = true;
     state.flags.stage715OlegDmOpened = true;
@@ -3503,10 +3508,6 @@ window.Game = window.Game || {};
       state.flags.stage715OlegDmReplied = false;
     }
     phase = state.flags.stage715OlegDmReplied === true ? "next_scripted_flow" : "oleg_dm";
-    if (!state.flags.stage715OlegPublicLossLineShown) {
-      pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_PUBLIC_LOSS_LINE });
-      state.flags.stage715OlegPublicLossLineShown = true;
-    }
     if (G.__A && typeof G.__A.pushDm === "function" && !state.flags.stage715OlegDmLineSent) {
       G.__A.pushDm(OLEG_DM_ID, "Олег", OLEG_DM_LINE, { isSystem: false, playerId: OLEG_DM_ID });
       state.flags.stage715OlegDmLineSent = true;
@@ -4381,6 +4382,18 @@ window.Game = window.Game || {};
       ? G.Conflict.pickDefense(battle.id, choice.id)
       : false;
     if (displayText) preserveStage715SelectedDefenseText(OLEG_BATTLE_ID, displayText);
+    if (battleOutcome(battle) === "lose") {
+      battle.meta.stage715OlegNoPostLossActions = true;
+      battle.meta.stage715OlegResultRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      battle.meta.stage715OlegResultRevealed = false;
+      battle.meta.stage715OlegPublicLossLineShown = false;
+      const state = stateFor();
+      state.flags = state.flags || {};
+      state.flags.stage715OlegPublicLossAt = null;
+      state.flags.stage715OlegDmAt = null;
+      saveState();
+      scheduleOlegSequenceTimer(battle.meta.stage715OlegResultRevealAt, () => advanceOlegFirstLoss(battle));
+    }
     saveState();
     render();
     return result || true;
@@ -5018,8 +5031,125 @@ window.Game = window.Game || {};
     return true;
   }
 
-  function startOlegBattle() {
+  function scheduleOlegSequenceTimer(dueAt, callback) {
+    if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
+    const delay = Math.max(0, Number(dueAt) - Date.now());
+    olegSequenceTimer = setTimeout(() => {
+      olegSequenceTimer = null;
+      callback();
+    }, delay);
+    return true;
+  }
+
+  function scheduleOlegDm(state) {
+    const dueAt = Number(state && state.flags && state.flags.stage715OlegDmAt);
+    if (!Number.isFinite(dueAt) || dueAt <= 0) return false;
+    return scheduleOlegSequenceTimer(dueAt, () => {
+      const current = stateFor();
+      if (!active || !current || current.flags.stage715OlegPublicLossLineShown !== true) return;
+      current.flags.stage715OlegDmAt = null;
+      phase = "oleg_dm";
+      saveState();
+      openOlegDmAfterLoss();
+    });
+  }
+
+  function sendOlegPublicLossLine(state, battle) {
+    const flags = state && state.flags;
+    if (!flags || !battle || !battle.meta) return false;
+    const chatLines = (Array.isArray(state.chat) ? state.chat : [])
+      .concat(Array.isArray(state.messages) ? state.messages : []);
+    const visible = chatLines.some((entry) => entry
+      && String(entry.text || entry.content || "") === OLEG_PUBLIC_LOSS_LINE);
+    if (visible) {
+      flags.stage715OlegPublicLossLineShown = true;
+      battle.meta.stage715OlegPublicLossLineShown = true;
+      if (!(Number(flags.stage715OlegDmAt) > 0)) {
+        flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      }
+      saveState();
+      return scheduleOlegDm(state);
+    }
+    const UI = context && context.UI;
+    if (!UI || typeof UI.pushChat !== "function") return false;
+    UI.pushChat({
+      name: "Олег",
+      text: OLEG_PUBLIC_LOSS_LINE,
+      system: false,
+      speakerId: null,
+      sourceTag: DEMO_SOURCE_TAG,
+      preserveText: true,
+    });
+    flags.stage715OlegPublicLossLineQueued = false;
+    flags.stage715OlegPublicLossLineShown = true;
+    battle.meta.stage715OlegPublicLossLineShown = true;
+    flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+    saveState();
+    render();
+    return scheduleOlegDm(state);
+  }
+
+  function advanceOlegFirstLoss(battle) {
     const state = stateFor();
+    if (!active || !state || !battle || !battle.meta
+      || battle.meta.stage715OlegBattle !== true || battleOutcome(battle) !== "lose") return false;
+    state.flags = state.flags || {};
+    const flags = state.flags;
+    if (battle.meta.stage715OlegResultRevealed !== true) {
+      const dueAt = Number(battle.meta.stage715OlegResultRevealAt);
+      if (!Number.isFinite(dueAt) || dueAt <= 0) {
+        battle.meta.stage715OlegResultRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+        battle.meta.stage715OlegNoPostLossActions = true;
+        saveState();
+        scheduleOlegSequenceTimer(battle.meta.stage715OlegResultRevealAt, () => advanceOlegFirstLoss(battle));
+        return true;
+      }
+      if (Date.now() < dueAt) {
+        scheduleOlegSequenceTimer(dueAt, () => advanceOlegFirstLoss(battle));
+        return true;
+      }
+      battle.meta.stage715OlegResultRevealed = true;
+      battle.meta.stage715OlegResultRecorded = true;
+      if (!(Number(flags.stage715OlegPublicLossAt) > 0)) {
+        flags.stage715OlegPublicLossAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      }
+      telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
+      saveState();
+      render();
+    }
+    if (battle.meta.stage715OlegPublicLossLineShown === true
+      || flags.stage715OlegPublicLossLineShown === true) {
+      if (!(Number(flags.stage715OlegDmAt) > 0)) {
+        flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+        saveState();
+      }
+      return scheduleOlegDm(state);
+    }
+    const publicLossAt = Number(flags.stage715OlegPublicLossAt);
+    if (Number.isFinite(publicLossAt) && publicLossAt > 0 && Date.now() < publicLossAt) {
+      return scheduleOlegSequenceTimer(publicLossAt, () => {
+        flags.stage715OlegPublicLossAt = null;
+        sendOlegPublicLossLine(state, battle);
+      });
+    }
+    flags.stage715OlegPublicLossAt = null;
+    return sendOlegPublicLossLine(state, battle);
+  }
+
+  function scheduleOlegCardReveal(state) {
+    const flags = state && state.flags;
+    if (!flags || stage715BattleById(OLEG_BATTLE_ID)) return false;
+    const dueAt = Number(flags.stage715OlegCardRevealAt);
+    if (!Number.isFinite(dueAt) || dueAt <= 0) return false;
+    return scheduleOlegSequenceTimer(dueAt, () => {
+      if (!active || stage715BattleById(OLEG_BATTLE_ID)) return;
+      flags.stage715OlegCardRevealAt = null;
+      flags.stage715OlegCardRevealed = true;
+      createOlegBattle(state);
+    });
+  }
+
+  function createOlegBattle(state) {
     const conflict = G.Conflict;
     if (!state || !conflict || typeof conflict.incoming !== "function") return false;
     const existing = stage715BattleById(OLEG_BATTLE_ID);
@@ -5062,32 +5192,65 @@ window.Game = window.Game || {};
     phase = "oleg_battle";
     saveState();
     telemetry("stage715_oleg_battle_started");
-    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_BATTLE_LINE });
-    pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: `${OLEG_BATTLE_PROMPT}\n1. ${OLEG_BATTLE_CHOICES[0].text}\n2. ${OLEG_BATTLE_CHOICES[1].text}\n3. ${OLEG_BATTLE_CHOICES[2].text}` });
     render();
     watchOlegBattle();
     return true;
   }
 
+  function startOlegBattle() {
+    const state = stateFor();
+    if (!state) return false;
+    const existing = stage715BattleById(OLEG_BATTLE_ID);
+    phase = "oleg_battle";
+    if (existing) {
+      saveState();
+      watchOlegBattle();
+      return true;
+    }
+    state.flags = state.flags || {};
+    const flags = state.flags;
+    const chatLines = (Array.isArray(state.chat) ? state.chat : [])
+      .concat(Array.isArray(state.messages) ? state.messages : []);
+    const greetingVisible = chatLines.some((entry) => entry
+      && String(entry.text || entry.content || "") === OLEG_BATTLE_LINE);
+    if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
+      flags.stage715OlegGreetingSent = true;
+      flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+    }
+    if (!greetingVisible && !olegGreetingQueuedInRuntime) {
+      flags.stage715OlegGreetingSent = true;
+      olegGreetingQueuedInRuntime = true;
+      saveState();
+      pushNpc({
+        speakerId: OLEG_DM_ID,
+        name: "Олег",
+        text: OLEG_BATTLE_LINE,
+        onComplete: () => {
+          olegGreetingQueuedInRuntime = false;
+          if (!active || stage715BattleById(OLEG_BATTLE_ID)) return;
+          flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+          saveState();
+          scheduleOlegCardReveal(state);
+        },
+      });
+      render();
+      return true;
+    }
+    if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
+      flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      saveState();
+    }
+    scheduleOlegCardReveal(state);
+    render();
+    return true;
+  }
+
   function watchOlegBattle() {
-    if (battleWatchTimer) clearInterval(battleWatchTimer);
-    battleWatchTimer = setInterval(() => {
-      const state = stateFor();
-      const battle = stage715BattleById(OLEG_BATTLE_ID);
-      if (!battle) return;
-      const attempts = Math.max(0, Number(battle.rematchRequestCount) | 0);
-      if (attempts >= 3 && state && state.flags && state.flags.stage715OlegRematchLineShown !== true) {
-        pushNpc({ speakerId: OLEG_DM_ID, name: "Олег", text: OLEG_REMATCH_LINE });
-        state.flags.stage715OlegRematchLineShown = true;
-        saveState();
-        telemetry("stage715_oleg_rematch_line_shown");
-      }
-      if (battleOutcome(battle) !== "lose") return;
-      if (battle.meta && battle.meta.stage715OlegResultRecorded === true) return;
-      battle.meta = Object.assign({}, battle.meta || {}, { stage715OlegResultRecorded: true });
-      telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
-      openOlegDmAfterLoss();
-    }, 250);
+    const state = stateFor();
+    const battle = stage715BattleById(OLEG_BATTLE_ID);
+    if (!battle) return scheduleOlegCardReveal(state);
+    if (battleOutcome(battle) !== "lose") return false;
+    return advanceOlegFirstLoss(battle);
   }
 
   function settleOlegEscapeRep(battle, attempt) {
@@ -5520,7 +5683,10 @@ window.Game = window.Game || {};
       watchRayhanBattle();
       resumeRayhanEventVote();
     }
-    if (phase === "oleg_battle") watchOlegBattle();
+    if (phase === "oleg_battle") {
+      if (stage715BattleById(OLEG_BATTLE_ID)) watchOlegBattle();
+      else startOlegBattle();
+    }
     if (phase === "oleg_dm") {
       openOlegDmAfterLoss();
     }

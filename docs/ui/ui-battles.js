@@ -2239,6 +2239,9 @@ UI.renderBattles = () => {
       const payload = buildBattleCardBranchPayload(b, directionInfo, argumentTexts, branch, uiThinksResolved, playerLost);
         logBattleCardBranch(payload);
       }
+      const stage715OlegPendingResult = isStage715OlegScriptedBattle(b)
+        && b.meta.stage715OlegResultRevealed !== true
+        && b.meta.stage715OlegNoPostLossActions === true;
       const shouldRenderResolvedCard = (uiThinksResolved || stage715NastyaIntermediate) && !isEscape && !isDraw;
       if (stage715NastyaIntermediate) line.textContent = "";
 
@@ -2254,9 +2257,9 @@ UI.renderBattles = () => {
        else if (isDrawBattle(b)) line.textContent = t("battle_draw");
        else line.textContent = resolveProfileCopy("argument.select", "Выбери аргумент.");
       } else {
-        line.textContent = (b.meta && b.meta.stage715NastyaBattle === true
+        line.textContent = stage715OlegPendingResult ? "" : ((b.meta && b.meta.stage715NastyaBattle === true
           && (b.meta.stage715NastyaCrowdStarted === true || b.result === "win" || b.outcome === "win"))
-          ? "" : _normalizeResultText(b);
+          ? "" : _normalizeResultText(b));
       }
       card.appendChild(line);
 
@@ -2815,7 +2818,8 @@ UI.renderBattles = () => {
           const stage715RayhanRevealed = !!(stage715RayhanDemo
             && b.meta
             && b.meta.stage715RayhanArgumentRevealed === true);
-        const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed;
+          const stage715OlegRevealed = !!(stage715OlegDemo && b.meta.stage715OlegResultRevealed === true);
+          const stage7ColorRevealed = evidenceRevealed || witnessRevealed || nastyaRevealed || stage715RayhanRevealed || stage715OlegRevealed;
           chip.className = clsForColor(stage7ColorRevealed ? b.attack.color : null, !stage7ColorRevealed);
           chip.textContent = `Аргумент: ${String(argCanonUiText(b.attack, "Q") || "")}`;
           if (!stage7ColorRevealed) chip.style.color = "rgba(255,255,255,.92)";
@@ -3211,7 +3215,7 @@ UI.renderBattles = () => {
               return;
             }
 
-            chip.className = clsForColor(p.color);
+            chip.className = clsForColor(stage715OlegDemo ? null : p.color, stage715OlegDemo);
             chip.textContent = argCanonUiText(p, "A");
             const livePayPayoff = b && b.meta && b.meta.stage7PayPayoff
               ? b.meta.stage7PayPayoff
@@ -3416,7 +3420,7 @@ UI.renderBattles = () => {
           const isStage715Escape = isStage715OlegEscapeBattle(b);
           const isStage715Rayhan = isStage715RayhanScriptedBattle(b);
 
-          if (!isStage715Rayhan && !stage715NastyaDemo) {
+          if (!isStage715Rayhan && !stage715NastyaDemo && !stage715OlegDemo) {
           const sm = document.createElement("button");
           sm.className = "btn small";
 
@@ -3516,7 +3520,10 @@ UI.renderBattles = () => {
         }
       } else {
         const finalMode = nextMode;
-        const canRematch = playerLost && (directionInfo.isOutgoing || incomingRematchButtons > 0);
+        const stage715OlegNoPostLossActions = isStage715OlegScriptedBattle(b)
+          && b.meta.stage715OlegNoPostLossActions === true;
+        const canRematch = !stage715OlegNoPostLossActions
+          && playerLost && (directionInfo.isOutgoing || incomingRematchButtons > 0);
         const helperCtx = {
           argumentTexts,
           labels: isOutgoingCard
@@ -3528,13 +3535,14 @@ UI.renderBattles = () => {
             ? { opponent: "outgoing-opp-arg", mine: "outgoing-my-counter" }
             : { opponent: "incoming-opp-arg", mine: "incoming-my-counter" },
           showResolvedChoices: !isOutgoingCard,
+          argumentColors: stage715OlegPendingResult ? { opponent: null, mine: null } : null,
           canRematch,
           outcomeLabel: b.meta && b.meta.stage715NastyaBattle === true
             && (b.result === "win" || b.outcome === "win")
             ? "Победа!" : getBattleOutcomeLabel(b),
           rematchHandler: (battleId) => triggerRematchFlow(battleId),
-          mode: stage715NastyaIntermediate ? "incoming_resolved" : nextMode,
-          suppressOutcome: stage715NastyaIntermediate
+          mode: stage715NastyaIntermediate || stage715OlegPendingResult ? "incoming_resolved" : nextMode,
+          suppressOutcome: stage715NastyaIntermediate || stage715OlegPendingResult
         };
         if (stage715NastyaIntermediate) {
           helperCtx.labels = { opponent: "Аргумент", mine: "Твой контраргумент" };
@@ -3558,27 +3566,29 @@ UI.renderBattles = () => {
           return;
         }
 
-        const closeRow = document.createElement("div");
-        closeRow.className = "actions";
+        if (!stage715OlegNoPostLossActions) {
+          const closeRow = document.createElement("div");
+          closeRow.className = "actions";
 
-        const closeBtn = document.createElement("button");
-        closeBtn.className = "btn small";
-        closeBtn.textContent = "Закрыть";
-        closeBtn.onclick = (e) => {
-          stop(e);
-          _captureBattleFocus(b.id, card);
-          UI._clearDrawTicker(b.id);
-          const stage715 = Game && Game.Stage715Demo;
-          if (b.meta && b.meta.stage715NastyaBattle === true
-            && stage715 && typeof stage715.removeResolvedNastyaBattle === "function") {
-            stage715.removeResolvedNastyaBattle(b.id);
-          }
-          S.battles = S.battles.filter(x => x.id !== b.id);
-          requestAll();
-        };
-        closeRow.appendChild(closeBtn);
+          const closeBtn = document.createElement("button");
+          closeBtn.className = "btn small";
+          closeBtn.textContent = "Закрыть";
+          closeBtn.onclick = (e) => {
+            stop(e);
+            _captureBattleFocus(b.id, card);
+            UI._clearDrawTicker(b.id);
+            const stage715 = Game && Game.Stage715Demo;
+            if (b.meta && b.meta.stage715NastyaBattle === true
+              && stage715 && typeof stage715.removeResolvedNastyaBattle === "function") {
+              stage715.removeResolvedNastyaBattle(b.id);
+            }
+            S.battles = S.battles.filter(x => x.id !== b.id);
+            requestAll();
+          };
+          closeRow.appendChild(closeBtn);
 
-        card.appendChild(closeRow);
+          card.appendChild(closeRow);
+        }
 
         finalLogMode = finalMode;
         finalLogNodes = renderResult;

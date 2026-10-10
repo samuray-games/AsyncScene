@@ -35,8 +35,8 @@ index = INDEX_SOURCE.read_text(encoding="utf-8")
 require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors differ")
 for text in (
     "conflict/conflict-core.js?v=stage7_15_canonical_corridor_repair_20260921",
-    "ui/ui-battles.js?v=stage7_15_canonical_corridor_repair_20260921",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_canonical_corridor_repair_20260921",
+    "ui/ui-battles.js?v=stage7_15_oleg_first_loss_20261010a",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_oleg_first_loss_20261010a",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
