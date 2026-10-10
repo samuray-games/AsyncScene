@@ -101,24 +101,22 @@ try {
       money: S.me.points,
       battleId: battle.id,
     };
-    if (battle._escapeTimer) clearInterval(battle._escapeTimer);
-    if (battle._crowdTimer) clearInterval(battle._crowdTimer);
-    battle.escapeVote = null;
-    battle._escapePrev = null;
-    battle.status = "pickDefense";
-    battle.result = null;
-    battle.resolved = false;
-    battle.finished = false;
-    battle.meta.stage715Escape = { attempt: 1, status: "failed", outcomeHandled: true, repSettled: true, scriptedVotes: { a: 2, b: 3 } };
-    const restored = renderAndRead();
-    restored.card?.querySelector("button")?.click();
-    const secondAttempt = {
-      escape: Object.assign({}, battle.meta.stage715Escape),
-      money: S.me.points,
-      battleId: battle.id,
+    // Real Core/controller lifecycle: never fabricate vote results.
+    const awaitEscapeOutcome = async (wanted) => {
+      for (let poll = 0; poll < 60; poll += 1) {
+        if (battle.meta?.stage715Escape?.status === wanted) return;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      throw new Error('Real Oleg escape vote stuck. Expected ' + wanted + ', observed ' + JSON.stringify({status: battle.meta?.stage715Escape?.status, vote: battle.escapeVote, result: battle.result}));
     };
-    if (battle._escapeTimer) clearInterval(battle._escapeTimer);
-    if (battle._crowdTimer) clearInterval(battle._crowdTimer);
+    await awaitEscapeOutcome('failed');
+    const firstOutcome = { status: battle.meta.stage715Escape.status, repSettled: battle.meta.stage715Escape.repSettled, votes: battle.meta.stage715Escape.scriptedVotes, result: battle.result, money: S.me.points, rep: S.rep };
+    const restored = renderAndRead();
+    restored.card?.querySelector('button')?.click();
+    const secondAttempt = { escape: Object.assign({}, battle.meta.stage715Escape), money: S.me.points, battleId: battle.id };
+    await awaitEscapeOutcome('success');
+    const secondOutcome = { status: battle.meta.stage715Escape.status, repSettled: battle.meta.stage715Escape.repSettled, votes: battle.meta.stage715Escape.scriptedVotes, result: battle.result, money: S.me.points, rep: S.rep, noActions: battle.meta.stage715OlegNoPostLossActions };
+    const successful = renderAndRead();
     if (G.Conflict) G.Conflict.pickDefense = priorPick;
     return {
       expected, first: { argument: first.argument, texts: first.texts, colors: first.colors, buttons: first.buttons, visible: first.visible },
@@ -126,9 +124,10 @@ try {
       afterInvalidate: { argument: afterInvalidate.argument, texts: afterInvalidate.texts, colors: afterInvalidate.colors, buttons: afterInvalidate.buttons },
       resultAfterSelection,
       beforeAttempts,
-      firstAttempt,
+      firstAttempt, firstOutcome,
       restored: { buttons: restored.buttons, texts: restored.texts },
-      secondAttempt,
+      secondAttempt, secondOutcome,
+      successful: { buttons: successful.buttons, text: successful.card?.textContent || '' },
     };
   });
 
@@ -147,12 +146,23 @@ try {
   assert.equal(result.firstAttempt.escape.status, "voting", "the first leave button must start the existing escape vote");
   assert.deepEqual(result.firstAttempt.escape.scriptedVotes, { a: 2, b: 3 }, "first attempt must schedule five scripted votes at 2:3");
   assert.equal(result.firstAttempt.money, result.beforeAttempts.money - 1, "the first attempt must charge one money at start");
+  assert.equal(result.firstOutcome.status, "failed", "real first vote must settle as a loss");
+  assert.equal(result.firstOutcome.repSettled, true, "first loss must settle REP");
+  assert.deepEqual(result.firstOutcome.votes, { a: 2, b: 3 }, "first actual outcome must remain 2:3");
+  assert.equal(result.firstOutcome.money, result.beforeAttempts.money - 1, "first outcome must not recharge");
   assert.deepEqual(result.restored.buttons, ["Уйти"], "the restored retry card must expose only Уйти");
   assert.deepEqual(result.restored.texts, result.expected, "the restored retry card must keep the exact scripted choices");
   assert.equal(result.secondAttempt.escape.attempt, 2, "the retry must reuse the same battle identity for attempt two");
   assert.equal(result.secondAttempt.escape.status, "voting", "the retry action must start the second existing escape vote");
   assert.deepEqual(result.secondAttempt.escape.scriptedVotes, { a: 3, b: 2 }, "second attempt must schedule five scripted votes at 3:2");
   assert.equal(result.secondAttempt.money, result.beforeAttempts.money - 2, "two starts must charge two money total");
+  assert.equal(result.secondOutcome.status, "success", "second real vote must settle as a win");
+  assert.equal(result.secondOutcome.result, "escaped", "Core must resolve successful escape");
+  assert.equal(result.secondOutcome.repSettled, true, "real second success must settle REP");
+  assert.deepEqual(result.secondOutcome.votes, { a: 3, b: 2 }, "second actual outcome must remain 3:2");
+  assert.equal(result.secondOutcome.money, result.beforeAttempts.money - 2, "second outcome must not recharge");
+  assert.equal(result.secondOutcome.noActions, true, "success must suppress post-escape actions");
+  assert.deepEqual(result.successful.buttons, [], "completed escape must have no generic actions");
   assert.equal(result.firstAttempt.battleId, result.beforeAttempts.battleId, "first attempt must retain the original battle identity");
   assert.equal(result.secondAttempt.battleId, result.beforeAttempts.battleId, "retry must retain the same battle identity");
   assert.deepEqual(errors, [], `browser page errors: ${JSON.stringify(errors)}`);
