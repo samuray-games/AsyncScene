@@ -150,6 +150,7 @@ allowed = {
     "tools/test_transfer_rep_suppress_stat_delta.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_tone_first_battle.py",

@@ -37,7 +37,8 @@ for marker in (
 for marker in (
     'const stage715RayhanDemo = isStage715RayhanScriptedBattle(b)',
     'stage715DemoController.handleRayhanDefenseChoice',
-    'if (!isStage715Rayhan && !stage715NastyaDemo)',
+    'const stage715OlegEscape = isStage715OlegEscapeBattle(b)',
+    'const stage715NastyaDemo = !stage715OlegEscape && (isStage715NastyaScriptedBattle(b)',
     'traceStage715RayhanDom("render-start"',
     'document.querySelector("#battlesBody")',
     'battlesBodyInnerHTMLLength',
@@ -200,6 +201,7 @@ allowed = {
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",
     "tools/test_stage7_15_82_visible_first_event_entry.py",

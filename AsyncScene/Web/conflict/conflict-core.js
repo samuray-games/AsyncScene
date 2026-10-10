@@ -2898,9 +2898,18 @@
     return { ok: true, decided: false, totalVotes };
   }
 
+  // Live timer ownership cannot be persisted. Stage 7.15's scripted Oleg
+  // escape is the only exception to the legacy battle._escapeTimer guard:
+  // a restored numeric interval ID belongs to the previous browser session.
+  const stage715OlegEscapeLiveTimers = new WeakMap();
+
   function startEscapeVoteTimer(b){
     if (!isEscapeVote(b)) return;
-    if (b._escapeTimer) return;
+    const stage715Oleg = !!(b.meta && b.meta.stage715OlegEscape === true);
+    if (stage715Oleg) {
+      if (stage715OlegEscapeLiveTimers.has(b)) return;
+      b._escapeTimer = null; // discard a stale timer handle from saved state
+    } else if (b._escapeTimer) return;
 
     const tickMs = 700;
 
@@ -2909,6 +2918,7 @@
       if (!cur || !isEscapeVote(cur)) {
         clearInterval(b._escapeTimer);
         b._escapeTimer = null;
+        if (stage715Oleg) stage715OlegEscapeLiveTimers.delete(b);
         return;
       }
 
@@ -2939,7 +2949,24 @@
         } catch (_) {}
       } catch (_) {}
     }, tickMs);
+    if (stage715Oleg) stage715OlegEscapeLiveTimers.set(b, b._escapeTimer);
   }
+
+  // Called only by Stage 7.15 resume. A watcher that observes the outcome
+  // cannot replace the Core vote timer that actually produces the outcome.
+  C.resumeStage715OlegEscapeVote = function (battleId) {
+    const b = Game.__S && Array.isArray(Game.__S.battles)
+      ? Game.__S.battles.find((item) => item && String(item.id) === String(battleId))
+      : null;
+    if (!b || !b.meta || b.meta.stage715OlegEscape !== true
+      || !isEscapeVote(b)) return false;
+    const scriptedVotes = b.meta.stage715Escape && b.meta.stage715Escape.scriptedVotes;
+    if (scriptedVotes && b.escapeVote) {
+      b.escapeVote.scriptedVotes = Object.assign({}, scriptedVotes);
+    }
+    startEscapeVoteTimer(b);
+    return stage715OlegEscapeLiveTimers.has(b);
+  };
 
   function startEscapeVote(b, mode, cost){
     if (!b || b.resolved) return { ok: false, reason: "already_resolved" };
@@ -2967,7 +2994,15 @@
     const opp = getPlayer(b.opponentId);
     const battleRef = b.id || b.battleId || `escape_${Date.now()}`;
     const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-    const price = calcFinalPriceForActor(costBase, mePoints, "escape", { battleId: battleRef, mode: modeNorm });
+    const escapeContext = { battleId: battleRef, mode: modeNorm };
+    const olegEscape = b.meta && b.meta.stage715OlegEscape === true
+      ? b.meta.stage715Escape
+      : null;
+    const olegAttempt = olegEscape && Number(olegEscape.attempt);
+    if (Number.isInteger(olegAttempt) && olegAttempt > 0) {
+      escapeContext.actionNonce = `stage715_oleg_escape_${olegAttempt}`;
+    }
+    const price = calcFinalPriceForActor(costBase, mePoints, "escape", escapeContext);
     const costFinal = price.finalPrice;
     if (modeNorm !== "off" && costFinal > 0) {
       ensurePointsField(me);
@@ -2985,7 +3020,7 @@
               basePrice: costBase,
               actorPoints: mePoints,
               battleId: battleRef,
-              context: price.context || { battleId: battleRef, mode: modeNorm }
+              context: price.context || escapeContext
             });
           } else {
             econTransfer("me", opp.id, costFinal, "escape_vote_cost", { battleId: battleRef });

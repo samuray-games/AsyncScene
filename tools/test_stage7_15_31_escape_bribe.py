@@ -34,9 +34,9 @@ index = INDEX_SOURCE.read_text(encoding="utf-8")
 
 require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors differ")
 for text in (
-    "conflict/conflict-core.js?v=stage7_15_canonical_corridor_repair_20260921",
-    "ui/ui-battles.js?v=stage7_15_oleg_first_loss_20261010a",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_oleg_first_loss_20261010a",
+    "conflict/conflict-core.js?v=stage7_15_atom6_oleg_escape_20261011b",
+    "ui/ui-battles.js?v=stage7_15_atom6_oleg_escape_20261010a",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_oleg_escape_20261011b",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
@@ -50,6 +50,7 @@ for text in (
     'const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;',
     'const mirroredVoteBattles = [battle, activeBattle]',
     'entry.escapeVote.scriptedVotes = scriptedVotes;',
+    'Core.resumeStage715OlegEscapeVote(existing.id);',
     'entry.escapeVote.cap = 5;',
     'transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id',
     'stage715_escape_started',
@@ -72,10 +73,38 @@ require('const states = id === FIRST_BATTLE_ID' in stage and '[G.__S, stateFor()
         "Stage 7.15 battle lookup must cover the runtime render state")
 require('if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;' in stage,
         "escape watcher must select the live battle carrying the active vote")
+watch_start = stage.index("  function watchOlegEscape()")
+watch_end = stage.index("  function startOlegEscape(", watch_start)
+watch_body = stage[watch_start:watch_end]
+require('Core.resumeStage715OlegEscapeVote(battle.id);' in watch_body,
+        "escape watcher must rearm a restored Oleg vote after runtime hydration")
 require('flatMap((store) => Array.isArray(store && store.battles)' in stage,
         "escape scripted vote must mirror every runtime battle store")
 require('if (previous.status === "failed")' in stage,
         "failed escape must reset the mirrored battle before retry")
+prepare_start = stage.index("  function prepareOlegDefenseChoices(battle)")
+prepare_end = stage.index("    } else {", prepare_start)
+prepare_escape = stage[prepare_start:prepare_end]
+require("G.Conflict.myDefenseOptions" not in prepare_escape,
+        "scripted Oleg escape choices must not be discovered from generic argument generation")
+for text in (
+    'id: `stage715_oleg_escape_choice_${wanted.id}`',
+    'stage715ScriptedChoiceId: wanted.id',
+    'stage715OlegEscapeChoicesVersion: 1',
+    'function getOlegEscapeDefenseChoices(battleId)',
+    'prepareOlegDefenseChoices(existing);',
+    'prepareOlegDefenseChoices(battle);',
+    'stage715OlegEscapeSelectedText = displayText',
+):
+    require(text in stage, f"missing deterministic Oleg escape ownership: {text}")
+for text in (
+    'const stage715OlegEscape = isStage715OlegEscapeBattle(b)',
+    'getOlegEscapeDefenseChoices(b.id)',
+    '!stage715OlegEscape && livePayAction',
+    '!stage715OlegEscape && stage7AccuseKenPayoff',
+    '!stage715OlegEscape && stage7DenyEvidencePayoff',
+):
+    require(text in battle, f"missing generic renderer/cache isolation: {text}")
 for text in (
     'entry.resolved = false;',
     'entry.status = "pickDefense";',
@@ -95,6 +124,14 @@ for text in (
 
 require('function startEscapeVote(b, mode, cost)' in core, "existing escape vote start must remain the owner")
 require('function finalizeEscapeVote(b)' in core, "existing escape vote finalization must remain the owner")
+require('b.meta.stage715OlegEscape === true' in core, "escape nonce must be gated by explicit Oleg ownership")
+require('stage715_oleg_escape_${olegAttempt}' in core, "Oleg attempts must have stable distinct settlement keys")
+require('C.resumeStage715OlegEscapeVote = function (battleId)' in core and 'b.escapeVote.scriptedVotes = Object.assign({}, scriptedVotes);' in core,
+        "resumed Oleg votes must restore the attempt-specific scripted 2:3 or 3:2 votes")
+require('const escapeContext = { battleId: battleRef, mode: modeNorm };' in core,
+        "generic escape context must retain its original battle and mode fields")
+require('const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting" });' in stage,
+        "attempt nonce metadata must exist before the canonical escape call")
 
 for text in (
     'function isStage715OlegEscapeBattle(battle)',
@@ -142,6 +179,7 @@ allowed = {
     "AsyncScene/Web/index.html",
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_rayhan_post_win.py",
