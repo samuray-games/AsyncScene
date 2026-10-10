@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom5-safari-repair-20261010",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:54Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:54Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom5-safari-repair-20261010\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:54Z",
+      "stderr": "",
+      "stdout": "b5288e5739ecbb27e58237f9ea2c2e4446361a6a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid b5288e5739ecbb27e58237f9ea2c2e4446361a6a\n# branch.head codex/stage715-atom5-safari-repair-20261010\n# branch.upstream origin/codex/stage715-atom5-safari-repair-20261010\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:55Z",
+      "stderr": "",
+      "stdout": "b5288e57 (HEAD -> codex/stage715-atom5-safari-repair-20261010, origin/codex/stage715-atom5-safari-repair-20261010) Repair Atom 5 Oleg Safari presentation timing\ne6f9985d (origin/main) Stage 7.15 Atom 5 Oleg first-loss sequence (#414)\n87b9ca89 Stage 7.15 Atom 4 Safari repair (#413)\nf7f4cde9 Stage 7.15 Atom 4: Nastya rematch and surrender (#412)\n73494758 Stage 7.15 Atom 3 runtime repair (#411)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b5288e5739ecbb27e58237f9ea2c2e4446361a6a\nbranch refs/heads/codex/stage715-atom5-safari-repair-20261010\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T04:10:55Z",
+      "stderr": "",
+      "stdout": "e6f9985d5df0f7e2a26ac83dbafea214b277fd15\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b5288e5739ecbb27e58237f9ea2c2e4446361a6a",
+  "observedAtUtc": "2026-10-10T04:10:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
