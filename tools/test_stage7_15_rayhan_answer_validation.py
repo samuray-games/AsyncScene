@@ -36,8 +36,8 @@ require("stage715RayhanAnswerPending" in handler, "wrong Rayhan answer must ente
 require("if (!stage715RayhanDemo)" in battles_text and "Stage 7.15 owns scripted choices through its waiting-for-reply phase." in battles_text,
         "generic battle choice-cache cleanup must not overwrite scripted Rayhan choices")
 require("function isStage715RayhanEventOwnedBattle" in battles_text
-        and "if (isStage715RayhanEventOwnedBattle(b)) return;" in battles_text,
-        "Events must exclusively own Stage 7.15 Rayhan vote presentation and resolution")
+        and "if (isStage715RayhanEventOwnedBattle(b) && b.meta.stage715RayhanEventVotePending === true) return;" in battles_text,
+        "Events must own the pending vote, then expose the resolved Rayhan battle card")
 require("finalizeStage715RayhanEventWin" in source_text and "finalizeStage715RayhanEventWin(battle.id, event.id)" in source_text,
         "Rayhan battle must finalize as a win only at the resolved Event boundary")
 require('battle.meta && battle.meta.stage715BattleId === "stage7_15_first_battle"' in battles_text
