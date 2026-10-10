@@ -2161,10 +2161,9 @@ UI.renderBattles = () => {
           if (fresh) b = fresh;
         }
       } catch (_) {}
-      // Stage 7.15's Rayhan wrong-answer vote belongs to Events from creation
-      // through resolution. Never expose the backing battle as a generic
-      // draw/result card while that event owns the outcome.
-      if (isStage715RayhanEventOwnedBattle(b)) return;
+      // Events owns vote presentation while pending. After resolution, restore
+      // the persistent Rayhan battle card with its win result.
+      if (isStage715RayhanEventOwnedBattle(b) && b.meta.stage715RayhanEventVotePending === true) return;
       const opp = S.players[b.opponentId];
       const oppName = opp ? (UI.displayName ? UI.displayName(opp) : opp.name) : "Кто-то";
 
