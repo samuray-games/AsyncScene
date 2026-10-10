@@ -5009,7 +5009,11 @@ window.Game = window.Game || {};
       mirrorRayhanBattleToRenderState(existing);
       phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
       saveState();
-      if (existing.escapeVote) watchOlegEscape();
+      if (existing.escapeVote) {
+        const Core = G._ConflictCore || G.ConflictCore;
+        if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") Core.resumeStage715OlegEscapeVote(existing.id);
+        watchOlegEscape();
+      }
       return true;
     }
     const cooldowns = state.battleCooldowns || (state.battleCooldowns = {});
