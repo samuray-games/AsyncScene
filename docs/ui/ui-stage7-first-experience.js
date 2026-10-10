@@ -5520,6 +5520,12 @@ window.Game = window.Game || {};
         escapeWatchTimer = null;
         return;
       }
+      if (battle.escapeVote && !battle.escapeVote.decided) {
+        const Core = G._ConflictCore || G.ConflictCore;
+        if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") {
+          Core.resumeStage715OlegEscapeVote(battle.id);
+        }
+      }
       settleOlegEscapeOutcome(battle);
       const escape = battle.meta && battle.meta.stage715Escape;
       if (escape && escape.outcomeHandled === true) {

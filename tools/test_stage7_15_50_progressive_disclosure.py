@@ -40,7 +40,6 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
-    "tools/test_stage7_15_atom6_oleg_escape_dom.mjs",
     "tools/test_stage7_15_rayhan_reveal.py",
     "AsyncScene/Web/ui/ui-stage7-first-experience.js",
     "docs/ui/ui-stage7-first-experience.js",
@@ -76,7 +75,6 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
-    "tools/test_stage7_15_atom6_oleg_escape_dom.mjs",
     "tools/test_stage7_15_82_visible_first_event_entry.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",
     "tools/run_stage715_external_acceptance.sh",
@@ -110,8 +108,10 @@ for text in (
 require(stage.count('revealPanelOnce("battles"') == 1, "Battles reveal helper must be one-shot")
 require(stage.count('revealPanelOnce("dm"') == 1, "DM reveal helper must be one-shot")
 require(stage.count('revealPanelOnce("events"') == 1, "Events reveal helper must be one-shot")
-watch_oleg = stage[stage.index("function watchOlegBattle"):stage.index("function settleOlegEscapeRep")]
-require(watch_oleg.index('telemetry("stage715_oleg_battle_result"') < watch_oleg.index("openOlegDmAfterLoss()"), "DM cannot open before Oleg battle result")
+watch_oleg = stage[stage.index("function watchOlegBattle()"):stage.index("function settleOlegEscapeRep")]
+advance_oleg = stage[stage.index("function advanceOlegFirstLoss("):stage.index("function scheduleOlegCardReveal(")]
+require("return advanceOlegFirstLoss(battle);" in watch_oleg, "Oleg battle watcher must route losses through the staged first-loss sequence")
+require(advance_oleg.index('telemetry("stage715_oleg_battle_result"') < advance_oleg.index("sendOlegPublicLossLine(state, battle)"), "public DM cannot open before the recorded Oleg battle result")
 require('!stage715Progressive && !UI._battlesInitExpanded' in battles, "ordinary battle default expansion must remain intact")
 require('if (!alreadyOpened && typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);' in stage, "resume must not call Oleg openDM again")
 require('setInterval(() => {' not in stage[stage.index('function revealPanelOnce'):stage.index('function focusOlegDmLine')], "panel reveal helpers must not poll")

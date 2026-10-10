@@ -2960,6 +2960,10 @@
       : null;
     if (!b || !b.meta || b.meta.stage715OlegEscape !== true
       || !isEscapeVote(b)) return false;
+    const scriptedVotes = b.meta.stage715Escape && b.meta.stage715Escape.scriptedVotes;
+    if (scriptedVotes && b.escapeVote) {
+      b.escapeVote.scriptedVotes = Object.assign({}, scriptedVotes);
+    }
     startEscapeVoteTimer(b);
     return stage715OlegEscapeLiveTimers.has(b);
   };

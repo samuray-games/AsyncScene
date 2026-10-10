@@ -202,7 +202,6 @@ allowed = {
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
-    "tools/test_stage7_15_atom6_oleg_escape_dom.mjs",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",
     "tools/test_stage7_15_82_visible_first_event_entry.py",
