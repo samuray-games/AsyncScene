@@ -2967,7 +2967,15 @@
     const opp = getPlayer(b.opponentId);
     const battleRef = b.id || b.battleId || `escape_${Date.now()}`;
     const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-    const price = calcFinalPriceForActor(costBase, mePoints, "escape", { battleId: battleRef, mode: modeNorm });
+    const escapeContext = { battleId: battleRef, mode: modeNorm };
+    const olegEscape = b.meta && b.meta.stage715OlegEscape === true
+      ? b.meta.stage715Escape
+      : null;
+    const olegAttempt = olegEscape && Number(olegEscape.attempt);
+    if (Number.isInteger(olegAttempt) && olegAttempt > 0) {
+      escapeContext.actionNonce = `stage715_oleg_escape_${olegAttempt}`;
+    }
+    const price = calcFinalPriceForActor(costBase, mePoints, "escape", escapeContext);
     const costFinal = price.finalPrice;
     if (modeNorm !== "off" && costFinal > 0) {
       ensurePointsField(me);
@@ -2985,7 +2993,7 @@
               basePrice: costBase,
               actorPoints: mePoints,
               battleId: battleRef,
-              context: price.context || { battleId: battleRef, mode: modeNorm }
+              context: price.context || escapeContext
             });
           } else {
             econTransfer("me", opp.id, costFinal, "escape_vote_cost", { battleId: battleRef });

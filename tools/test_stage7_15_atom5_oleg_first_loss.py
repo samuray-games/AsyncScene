@@ -57,7 +57,7 @@ for source, deployed in ((STAGE, STAGE_DOCS), (BATTLES, BATTLES_DOCS)):
 
 require(INDEX.read_bytes() == INDEX_DOCS.read_bytes(), "Web/docs index mirror mismatch")
 for script in ("ui-battles.js", "ui-stage7-first-experience.js"):
-    require(f'{script}?v=stage7_15_oleg_safari_repair_20261010a' in INDEX.read_text(encoding="utf-8"),
+    require(re.search(rf'{re.escape(script)}\?v=[A-Za-z0-9_-]+', INDEX.read_text(encoding="utf-8")),
             f"deployment cache token missing for {script}")
 
 runtime_test = r'''

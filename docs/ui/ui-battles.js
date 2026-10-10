@@ -2763,11 +2763,12 @@ UI.renderBattles = () => {
         }
 
       const stage715RayhanDemo = isStage715RayhanScriptedBattle(b);
-      const stage715NastyaDemo = isStage715NastyaScriptedBattle(b)
+      const stage715OlegEscape = isStage715OlegEscapeBattle(b);
+      const stage715NastyaDemo = !stage715OlegEscape && (isStage715NastyaScriptedBattle(b)
         || String(b.attack && (b.attack.text || b.attack.displayText) || "") === "Ты на проблемы нарываешься?"
         || String(b.opponentId || "") === "npc_stage7_mika"
         || (Array.isArray(b._defenseChoices)
-          && b._defenseChoices.some((choice) => choice && choice.stage715DisplayText === "Кажется, нет…"));
+          && b._defenseChoices.some((choice) => choice && choice.stage715DisplayText === "Кажется, нет…")));
       const stage715OlegDemo = isStage715OlegScriptedBattle(b);
 
       // UNRESOLVED
@@ -3151,6 +3152,13 @@ UI.renderBattles = () => {
             if (UI._battleChoiceCache && UI._battleChoiceCache.defense) {
               UI._battleChoiceCache.defense[String(b.id)] = restoredPayChoices;
             }
+          } else if (stage715OlegEscape
+            && stage715DemoController
+            && typeof stage715DemoController.getOlegEscapeDefenseChoices === "function") {
+            const scriptedChoices = stage715DemoController.getOlegEscapeDefenseChoices(b.id);
+            choices = Array.isArray(scriptedChoices) ? scriptedChoices.slice(0, 3) : [];
+            b._defenseChoices = choices;
+            b._choicesForStatus = b.status;
           } else if (stage715RayhanDemo && Array.isArray(b._defenseChoices)) {
             choices = b._defenseChoices.slice(0, 3);
           } else {
@@ -3176,7 +3184,7 @@ UI.renderBattles = () => {
               && stage715DemoController
               && typeof stage715DemoController.handleNastyaDefenseChoice === "function"
               ? stage715DemoController.handleNastyaDefenseChoice
-            : stage715OlegDemo
+            : (stage715OlegDemo || stage715OlegEscape)
               && stage715DemoController
               && typeof stage715DemoController.handleOlegDefenseChoice === "function"
               ? stage715DemoController.handleOlegDefenseChoice
@@ -3250,7 +3258,7 @@ UI.renderBattles = () => {
                   trackBattleChoice("pickDefense", p.id, b.id, scriptedResult);
                   return;
                 }
-                if (stage715OlegDemo
+                if ((stage715OlegDemo || stage715OlegEscape)
                   && stage715DemoController
                   && typeof stage715DemoController.handleOlegDefenseChoice === "function") {
                   const scriptedResult = stage715DemoController.handleOlegDefenseChoice(b.id, p.id);
@@ -3317,7 +3325,7 @@ UI.renderBattles = () => {
           const livePayAction = b && b.meta && b.meta.stage7PayPayoff
             ? b.meta.stage7PayPayoff
             : stage7PayPayoff;
-          if (livePayAction
+          if (!stage715OlegEscape && livePayAction
             && livePayAction.mode === "pressure"
             && livePayAction.status === "pending") {
             const pressureBtn = document.createElement("button");
@@ -3343,7 +3351,7 @@ UI.renderBattles = () => {
             actions.appendChild(pressureBtn);
           }
 
-          if (stage7AccuseKenPayoff
+          if (!stage715OlegEscape && stage7AccuseKenPayoff
             && stage7AccuseKenPayoff.mode === "public_rematch"
             && stage7AccuseKenPayoff.status === "pending") {
             const rematchRefreshBtn = document.createElement("button");
@@ -3392,7 +3400,7 @@ UI.renderBattles = () => {
             actions.appendChild(rematchRefreshBtn);
           }
 
-          if (stage7DenyEvidencePayoff
+          if (!stage715OlegEscape && stage7DenyEvidencePayoff
             && stage7DenyEvidencePayoff.mode === "held"
             && stage7DenyEvidencePayoff.status === "pending") {
             const evidenceBtn = document.createElement("button");
@@ -3416,7 +3424,7 @@ UI.renderBattles = () => {
           }
 
           const isMafiaBattle = !!(opp && opp.role === "mafia");
-          const isStage715Escape = isStage715OlegEscapeBattle(b);
+          const isStage715Escape = stage715OlegEscape;
           const isStage715Rayhan = isStage715RayhanScriptedBattle(b);
 
           if (!isStage715Rayhan && !stage715NastyaDemo && !stage715OlegDemo) {

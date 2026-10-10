@@ -4372,16 +4372,32 @@ window.Game = window.Game || {};
   }
 
   function handleOlegDefenseChoice(battleId, choiceId) {
-    const battle = stage715BattleById(OLEG_BATTLE_ID);
-    if (!battle || !battle.meta || battle.meta.stage715OlegBattle !== true
-      || (String(battle.id) !== String(battleId) && String(battleId) !== OLEG_BATTLE_ID)
+    const escapeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    const battle = escapeBattle && String(escapeBattle.id) === String(battleId)
+      ? escapeBattle
+      : stage715BattleById(OLEG_BATTLE_ID);
+    const escapeChoice = isOlegEscapeBattle(battle);
+    if (!battle || !battle.meta || (!escapeChoice && battle.meta.stage715OlegBattle !== true)
+      || (String(battle.id) !== String(battleId)
+        && String(battleId) !== OLEG_BATTLE_ID
+        && !(escapeChoice && String(battleId) === OLEG_ESCAPE_BATTLE_ID))
       || battle.resolved === true || battle.finished === true) return false;
     const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
     if (!choice) return false;
-    const displayText = choice.stage715DisplayText
+    const displayText = escapeChoice
+      ? OLEG_BATTLE_CHOICES.find((item) => item.id === choice.stage715ScriptedChoiceId)?.text
+      : choice.stage715DisplayText
       || OLEG_BATTLE_CHOICES.find((item) => item.type === (choice.group || choice.type || choice.qtype))?.text
       || choice.text;
-    if (displayText) preserveStage715SelectedDefenseText(OLEG_BATTLE_ID, displayText);
+    if (displayText) preserveStage715SelectedDefenseText(battle.id, displayText);
+    if (escapeChoice) {
+      battle.meta.stage715OlegEscapeSelectedChoiceId = choice.stage715ScriptedChoiceId;
+      battle.meta.stage715OlegEscapeSelectedText = displayText;
+      battle.defense = Object.assign({}, choice, { stage715DisplayText: displayText });
+      saveState();
+      render();
+      return true;
+    }
     const result = G.Conflict && typeof G.Conflict.pickDefense === "function"
       ? G.Conflict.pickDefense(battle.id, choice.id)
       : false;
@@ -4974,6 +4990,23 @@ window.Game = window.Game || {};
     if (!state || !conflict || typeof conflict.incoming !== "function") return false;
     const existing = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
     if (existing) {
+      existing.attack = Object.assign({}, existing.attack || {}, {
+        id: "stage7_15_oleg_red_call",
+        text: OLEG_BATTLE_PROMPT,
+        displayText: OLEG_BATTLE_PROMPT,
+        color: "r", _color: "r", type: "where", qtype: "where", group: "where",
+      });
+      existing.attackHidden = true;
+      existing.meta = Object.assign({}, existing.meta || {}, {
+        stage715DemoBattle: true,
+        stage715BattleId: OLEG_ESCAPE_BATTLE_ID,
+        stage715OlegEscape: true,
+        stage715Escape: existing.meta && existing.meta.stage715Escape || { attempt: 0, status: "ready" },
+        demoId: "stage7_15_oleg_escape",
+        sourceTag: DEMO_SOURCE_TAG,
+      });
+      prepareOlegDefenseChoices(existing);
+      mirrorRayhanBattleToRenderState(existing);
       phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
       saveState();
       if (existing.escapeVote) watchOlegEscape();
@@ -5005,6 +5038,7 @@ window.Game = window.Game || {};
       demoId: "stage7_15_oleg_escape",
       sourceTag: DEMO_SOURCE_TAG,
     });
+    prepareOlegDefenseChoices(battle);
     phase = "oleg_escape_ready";
     mirrorRayhanBattleToRenderState(battle);
     saveState();
@@ -5013,26 +5047,55 @@ window.Game = window.Game || {};
   }
 
   function prepareOlegDefenseChoices(battle) {
-    if (!battle || !G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
-    let options = [];
-    for (let attempt = 0; attempt < 12; attempt += 1) {
-      try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
-      const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
-      if (types.has("yn") && types.has("who") && types.has("where")) break;
+    if (!battle) return false;
+    let choices;
+    if (isOlegEscapeBattle(battle)) {
+      choices = OLEG_BATTLE_CHOICES.map((wanted) => ({
+        id: `stage715_oleg_escape_choice_${wanted.id}`,
+        type: wanted.type,
+        qtype: wanted.type,
+        group: wanted.type,
+        color: "y",
+        text: wanted.text,
+        stage715DisplayText: wanted.text,
+        stage715ScriptedChoiceId: wanted.id,
+      }));
+    } else {
+      if (!G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
+      let options = [];
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
+        const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+        if (types.has("yn") && types.has("who") && types.has("where")) break;
+      }
+      const normalizedType = (entry) => {
+        const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
+        return raw === "yesno" ? "yn" : raw;
+      };
+      choices = OLEG_BATTLE_CHOICES.map((wanted) => {
+        const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
+        return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
+      });
+      if (choices.some((choice) => !choice)) return false;
     }
-    const normalizedType = (entry) => {
-      const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
-      return raw === "yesno" ? "yn" : raw;
-    };
-    const choices = OLEG_BATTLE_CHOICES.map((wanted) => {
-      const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
-      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
-    });
-    if (choices.some((choice) => !choice)) return false;
     battle._defenseChoices = choices;
     battle._choicesForStatus = battle.status;
-    battle.meta = Object.assign({}, battle.meta || {}, { stage715DefenseChoiceIds: choices.map((choice) => choice.id) });
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DefenseChoiceIds: choices.map((choice) => choice.id),
+      ...(isOlegEscapeBattle(battle) ? {
+        stage715OlegEscapeChoiceIds: choices.map((choice) => choice.id),
+        stage715OlegEscapeChoicesVersion: 1,
+      } : {}),
+    });
     return true;
+  }
+
+  function getOlegEscapeDefenseChoices(battleId) {
+    const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    if (!isOlegEscapeBattle(battle)
+      || (String(battle.id) !== String(battleId) && String(battleId) !== OLEG_ESCAPE_BATTLE_ID)) return null;
+    prepareOlegDefenseChoices(battle);
+    return battle._defenseChoices.slice();
   }
 
   function scheduleOlegSequenceTimer(dueAt, callback) {
@@ -5424,6 +5487,8 @@ window.Game = window.Game || {};
     escape.outcomeHandled = true;
     if (succeeded) {
       escape.status = "success";
+      battle.meta.stage715OlegEscapeCompleted = true;
+      battle.meta.stage715OlegNoPostLossActions = true;
       battle.resultLine = OLEG_ESCAPE_SUCCESS_RESULT;
       pushOlegEscapeSystem(`У ${playerName} получилось уйти от Олега!`, "stage715OlegEscapeSuccessSystemShown");
       pushOlegEscapeDm(OLEG_ESCAPE_SUCCESS_DM_LINE, "stage715OlegEscapeSuccessDmSent");
@@ -5490,8 +5555,17 @@ window.Game = window.Game || {};
     }
     const Core = G._ConflictCore || G.ConflictCore;
     if (!Core || typeof Core.escape !== "function") return false;
+    const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting" });
+    mirroredBattles.forEach((entry) => {
+      entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: attemptMetadata });
+    });
     const started = Core.escape(battle.id, { mode: "smyt", cost: 1 });
-    if (!started || started.ok !== true) return false;
+    if (!started || started.ok !== true) {
+      mirroredBattles.forEach((entry) => {
+        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: previous });
+      });
+      return false;
+    }
     const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;
     if (!activeBattle.escapeVote) return false;
     const escapeMetadata = {
@@ -6005,6 +6079,7 @@ window.Game = window.Game || {};
     startNastyaRematch,
     removeResolvedNastyaBattle,
     handleOlegDefenseChoice,
+    getOlegEscapeDefenseChoices,
     handleOlegDmReply,
     revealBattlesPanel,
     revealEventsPanel,
