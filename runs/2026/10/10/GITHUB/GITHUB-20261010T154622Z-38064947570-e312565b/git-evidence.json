@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom6-oleg-escape",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:22Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:22Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom6-oleg-escape\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:22Z",
+      "stderr": "",
+      "stdout": "bdaac90445881f52ab3044b73b93800ae3eb729b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:23Z",
+      "stderr": "",
+      "stdout": "# branch.oid bdaac90445881f52ab3044b73b93800ae3eb729b\n# branch.head codex/stage715-atom6-oleg-escape\n# branch.upstream origin/codex/stage715-atom6-oleg-escape\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:23Z",
+      "stderr": "",
+      "stdout": "bdaac904 (HEAD -> codex/stage715-atom6-oleg-escape, origin/codex/stage715-atom6-oleg-escape) fix(stage7.15): resume Oleg escape votes after reload\nbfeedd3e Verify both actual Oleg follow-up DMs\n086698fe Verify two unique Oleg escape money ledger charges\n29be23f4 Atom 6 suppress generic Close after successful Oleg escape\n78d56ce6 Assert exactly-once REP debits for both Oleg votes\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:23Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bdaac90445881f52ab3044b73b93800ae3eb729b\nbranch refs/heads/codex/stage715-atom6-oleg-escape\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:23Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:46:23Z",
+      "stderr": "",
+      "stdout": "aee47147c6cccc7f104e161c1d8b40019afe9da4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bdaac90445881f52ab3044b73b93800ae3eb729b",
+  "observedAtUtc": "2026-10-10T15:46:23Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
