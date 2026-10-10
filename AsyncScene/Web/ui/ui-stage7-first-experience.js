@@ -3096,6 +3096,8 @@ window.Game = window.Game || {};
   let battleWatchTimer = null;
   let olegSequenceTimer = null;
   let olegGreetingQueuedInRuntime = false;
+  let olegPresentationGeneration = 0;
+  let olegPresentationWatches = { card: false, result: false, publicLoss: false };
   let rayhanEventVoteTimers = [];
   let escapeWatchTimer = null;
   let npcQueue = [];
@@ -3235,6 +3237,8 @@ window.Game = window.Game || {};
     battleWatchTimer = null;
     if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
     olegSequenceTimer = null;
+    olegPresentationGeneration += 1;
+    olegPresentationWatches = { card: false, result: false, publicLoss: false };
     rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
     rayhanEventVoteTimers = [];
     const nastyaVoteRegistry = G.__stage715NastyaEventVoteTimers;
@@ -5041,6 +5045,128 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function waitForOlegPresentation(isVisible, callback) {
+    let cancelled = false;
+    const generation = olegPresentationGeneration;
+    const raf = typeof requestAnimationFrame === "function" ? requestAnimationFrame : null;
+    if (!raf) {
+      callback(Date.now());
+      return () => { cancelled = true; };
+    }
+    const isActuallyVisible = () => {
+      if (cancelled || !active || generation !== olegPresentationGeneration) return false;
+      try { return !!isVisible(); } catch (_) { return false; }
+    };
+    const finishAfterPaint = () => {
+      if (!isActuallyVisible()) return waitForFrame();
+      raf(() => {
+        if (isActuallyVisible()) callback(Date.now());
+        else waitForFrame();
+      });
+    };
+    const waitForFrame = () => {
+      if (cancelled || !active || generation !== olegPresentationGeneration) return;
+      raf(finishAfterPaint);
+    };
+    waitForFrame();
+    return () => { cancelled = true; };
+  }
+
+  function hasVisibleOlegText(containerId, exactText) {
+    const root = document && document.getElementById ? document.getElementById(containerId) : null;
+    if (!root || !root.isConnected) return false;
+    const candidates = [root, ...Array.from(root.querySelectorAll ? root.querySelectorAll("*") : [])];
+    return candidates.some((element) => {
+      if (String(element.textContent || "").trim() !== exactText) return false;
+      const style = typeof getComputedStyle === "function" ? getComputedStyle(element) : null;
+      const rect = element.getBoundingClientRect ? element.getBoundingClientRect() : null;
+      return !element.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0))
+        && (!rect || (rect.width > 0 && rect.height > 0));
+    });
+  }
+
+  function hasVisibleOlegBattleResult(battle) {
+    if (!battle || !battle.id || !document || !document.querySelector) return false;
+    const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(String(battle.id)) : String(battle.id).replace(/["\\]/g, "\\$&");
+    const card = document.querySelector(`[data-battle-id="${escapedId}"]`);
+    if (!card || !card.isConnected) return false;
+    const style = typeof getComputedStyle === "function" ? getComputedStyle(card) : null;
+    const rect = card.getBoundingClientRect ? card.getBoundingClientRect() : null;
+    if (card.hidden || (style && (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || "1") <= 0))
+      || (rect && (!rect.width || !rect.height))) return false;
+    return hasVisibleOlegTextInRoot(card, "Поражение");
+  }
+
+  function hasVisibleOlegTextInRoot(root, exactText) {
+    const candidates = [root, ...Array.from(root && root.querySelectorAll ? root.querySelectorAll("*") : [])];
+    return candidates.some((element) => {
+      if (String(element.textContent || "").trim() !== exactText) return false;
+      const style = typeof getComputedStyle === "function" ? getComputedStyle(element) : null;
+      const rect = element.getBoundingClientRect ? element.getBoundingClientRect() : null;
+      return !element.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0))
+        && (!rect || (rect.width > 0 && rect.height > 0));
+    });
+  }
+
+  function scheduleOlegDeadlineAfterVisibleText(containerId, exactText, writeDeadline) {
+    return waitForOlegPresentation(
+      () => hasVisibleOlegText(containerId, exactText),
+      (visibleAt) => {
+        if (!active) return;
+        writeDeadline(visibleAt + OLEG_FIRST_LOSS_DELAY_MS);
+      },
+    );
+  }
+
+  function scheduleOlegCardFromVisibleGreeting(state) {
+    const flags = state && state.flags;
+    if (!flags || stage715BattleById(OLEG_BATTLE_ID) || olegPresentationWatches.card) return false;
+    olegPresentationWatches.card = true;
+    flags.stage715OlegCardPresentationPending = true;
+    scheduleOlegDeadlineAfterVisibleText("chatLog", OLEG_BATTLE_LINE, (dueAt) => {
+      olegPresentationWatches.card = false;
+      flags.stage715OlegCardPresentationPending = false;
+      if (stage715BattleById(OLEG_BATTLE_ID)) return;
+      flags.stage715OlegGreetingSent = true;
+      flags.stage715OlegCardRevealAt = dueAt;
+      saveState();
+      scheduleOlegCardReveal(state);
+    });
+    return true;
+  }
+
+  function scheduleOlegDmFromVisiblePublicLoss(state) {
+    const flags = state && state.flags;
+    if (!flags || olegPresentationWatches.publicLoss) return false;
+    olegPresentationWatches.publicLoss = true;
+    flags.stage715OlegDmPresentationPending = true;
+    scheduleOlegDeadlineAfterVisibleText("chatLog", OLEG_PUBLIC_LOSS_LINE, (dueAt) => {
+      olegPresentationWatches.publicLoss = false;
+      flags.stage715OlegDmPresentationPending = false;
+      if (flags.stage715OlegPublicLossLineShown !== true) return;
+      flags.stage715OlegDmAt = dueAt;
+      saveState();
+      scheduleOlegDm(state);
+    });
+    return true;
+  }
+
+  function scheduleOlegPublicLossFromVisibleResult(state, battle) {
+    const flags = state && state.flags;
+    if (!flags || !battle || !battle.meta || olegPresentationWatches.result) return false;
+    olegPresentationWatches.result = true;
+    flags.stage715OlegResultPresentationPending = true;
+    waitForOlegPresentation(() => hasVisibleOlegBattleResult(battle), (visibleAt) => {
+      olegPresentationWatches.result = false;
+      flags.stage715OlegResultPresentationPending = false;
+      if (!active || battle.meta.stage715OlegResultRevealed !== true || battle.meta.stage715OlegPublicLossLineShown === true) return;
+      flags.stage715OlegPublicLossAt = visibleAt + OLEG_FIRST_LOSS_DELAY_MS;
+      saveState();
+      scheduleOlegSequenceTimer(flags.stage715OlegPublicLossAt, () => advanceOlegFirstLoss(battle));
+    });
+    return true;
+  }
+
   function scheduleOlegDm(state) {
     const dueAt = Number(state && state.flags && state.flags.stage715OlegDmAt);
     if (!Number.isFinite(dueAt) || dueAt <= 0) return false;
@@ -5064,11 +5190,9 @@ window.Game = window.Game || {};
     if (visible) {
       flags.stage715OlegPublicLossLineShown = true;
       battle.meta.stage715OlegPublicLossLineShown = true;
-      if (!(Number(flags.stage715OlegDmAt) > 0)) {
-        flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
-      }
       saveState();
-      return scheduleOlegDm(state);
+      scheduleOlegDmFromVisiblePublicLoss(state);
+      return true;
     }
     const UI = context && context.UI;
     if (!UI || typeof UI.pushChat !== "function") return false;
@@ -5083,10 +5207,10 @@ window.Game = window.Game || {};
     flags.stage715OlegPublicLossLineQueued = false;
     flags.stage715OlegPublicLossLineShown = true;
     battle.meta.stage715OlegPublicLossLineShown = true;
-    flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
     saveState();
     render();
-    return scheduleOlegDm(state);
+    scheduleOlegDmFromVisiblePublicLoss(state);
+    return true;
   }
 
   function advanceOlegFirstLoss(battle) {
@@ -5110,22 +5234,23 @@ window.Game = window.Game || {};
       }
       battle.meta.stage715OlegResultRevealed = true;
       battle.meta.stage715OlegResultRecorded = true;
-      if (!(Number(flags.stage715OlegPublicLossAt) > 0)) {
-        flags.stage715OlegPublicLossAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
-      }
+      flags.stage715OlegPublicLossAt = null;
       telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
       saveState();
       render();
+      scheduleOlegPublicLossFromVisibleResult(state, battle);
+      return true;
     }
     if (battle.meta.stage715OlegPublicLossLineShown === true
       || flags.stage715OlegPublicLossLineShown === true) {
-      if (!(Number(flags.stage715OlegDmAt) > 0)) {
-        flags.stage715OlegDmAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
-        saveState();
-      }
+      if (!(Number(flags.stage715OlegDmAt) > 0)) scheduleOlegDmFromVisiblePublicLoss(state);
       return scheduleOlegDm(state);
     }
     const publicLossAt = Number(flags.stage715OlegPublicLossAt);
+    if (!(Number.isFinite(publicLossAt) && publicLossAt > 0)) {
+      scheduleOlegPublicLossFromVisibleResult(state, battle);
+      return true;
+    }
     if (Number.isFinite(publicLossAt) && publicLossAt > 0 && Date.now() < publicLossAt) {
       return scheduleOlegSequenceTimer(publicLossAt, () => {
         flags.stage715OlegPublicLossAt = null;
@@ -5215,7 +5340,7 @@ window.Game = window.Game || {};
       && String(entry.text || entry.content || "") === OLEG_BATTLE_LINE);
     if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
       flags.stage715OlegGreetingSent = true;
-      flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      scheduleOlegCardFromVisibleGreeting(state);
     }
     if (!greetingVisible && !olegGreetingQueuedInRuntime) {
       flags.stage715OlegGreetingSent = true;
@@ -5228,17 +5353,14 @@ window.Game = window.Game || {};
         onComplete: () => {
           olegGreetingQueuedInRuntime = false;
           if (!active || stage715BattleById(OLEG_BATTLE_ID)) return;
-          flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
-          saveState();
-          scheduleOlegCardReveal(state);
+          scheduleOlegCardFromVisibleGreeting(state);
         },
       });
       render();
       return true;
     }
     if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
-      flags.stage715OlegCardRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
-      saveState();
+      scheduleOlegCardFromVisibleGreeting(state);
     }
     scheduleOlegCardReveal(state);
     render();
