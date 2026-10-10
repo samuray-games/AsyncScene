@@ -3527,7 +3527,7 @@ UI.renderBattles = () => {
         }
       } else {
         const finalMode = nextMode;
-        const stage715OlegNoPostLossActions = isStage715OlegScriptedBattle(b)
+        const stage715OlegNoPostLossActions = (isStage715OlegScriptedBattle(b) || isStage715OlegEscapeBattle(b))
           && b.meta.stage715OlegNoPostLossActions === true;
         const canRematch = !stage715OlegNoPostLossActions
           && playerLost && (directionInfo.isOutgoing || incomingRematchButtons > 0);
