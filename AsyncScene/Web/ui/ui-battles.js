@@ -3215,7 +3215,7 @@ UI.renderBattles = () => {
               return;
             }
 
-            chip.className = clsForColor(stage715OlegDemo ? null : p.color, stage715OlegDemo);
+            chip.className = clsForColor(stage715OlegDemo ? "y" : p.color);
             chip.textContent = argCanonUiText(p, "A");
             const livePayPayoff = b && b.meta && b.meta.stage7PayPayoff
               ? b.meta.stage7PayPayoff

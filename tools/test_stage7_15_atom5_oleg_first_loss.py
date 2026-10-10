@@ -7,6 +7,8 @@ STAGE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 BATTLES = ROOT / "AsyncScene/Web/ui/ui-battles.js"
 STAGE_DOCS = ROOT / "docs/ui/ui-stage7-first-experience.js"
 BATTLES_DOCS = ROOT / "docs/ui/ui-battles.js"
+INDEX = ROOT / "AsyncScene/Web/index.html"
+INDEX_DOCS = ROOT / "docs/index.html"
 
 
 def require(condition, message):
@@ -43,13 +45,20 @@ require("OLEG_REMATCH_LINE" not in stage, "the obsolete mandatory rematch dialog
 require("stage715OlegNoPostLossActions" in battles, "first-loss Oleg card must explicitly suppress all actions")
 require("stage715OlegResultRevealed !== true" in battles, "Oleg result and colors must stay hidden until the scripted reveal")
 require("if (!stage715OlegNoPostLossActions)" in battles, "first-loss Oleg card must omit the close action")
-require("clsForColor(stage715OlegDemo ? null : p.color, stage715OlegDemo)" in battles,
-        "Oleg defense colors must remain hidden until the answer resolves")
+require("clsForColor(stage715OlegDemo ? null : p.color, stage715OlegDemo)" not in battles,
+        "Oleg defense colors must not be deliberately suppressed before selection")
+require(re.search(r"chip\.className\s*=\s*clsForColor\(stage715OlegDemo\s*\?\s*\"y\"\s*:\s*p\.color\)", battles),
+        "Oleg defense choices must render their yellow player color before selection")
 require("isStage715OlegScriptedBattle(b)" in battles, "Oleg-only UI behavior must use explicit script metadata")
 
 for source, deployed in ((STAGE, STAGE_DOCS), (BATTLES, BATTLES_DOCS)):
     require(source.read_bytes() == deployed.read_bytes(), f"mirror mismatch: {source.name}")
     subprocess.run(["node", "--check", str(source)], cwd=ROOT, check=True)
+
+require(INDEX.read_bytes() == INDEX_DOCS.read_bytes(), "Web/docs index mirror mismatch")
+for script in ("ui-battles.js", "ui-stage7-first-experience.js"):
+    require(f'{script}?v=stage7_15_oleg_safari_repair_20261010a' in INDEX.read_text(encoding="utf-8"),
+            f"deployment cache token missing for {script}")
 
 runtime_test = r'''
 const fs = require("fs");
