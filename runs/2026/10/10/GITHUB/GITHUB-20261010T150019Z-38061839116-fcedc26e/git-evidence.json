@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom6-oleg-escape",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom6-oleg-escape\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "11252781b2ba3941881a45d57dba9d61de85cb4d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "# branch.oid 11252781b2ba3941881a45d57dba9d61de85cb4d\n# branch.head codex/stage715-atom6-oleg-escape\n# branch.upstream origin/codex/stage715-atom6-oleg-escape\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "11252781 (HEAD -> codex/stage715-atom6-oleg-escape, origin/codex/stage715-atom6-oleg-escape) Atom 6 DOM test now observes both real escape outcomes\n616a027a Mirror Oleg escape vote resume\n340a7573 Atom 6 re-arm pending escape vote after resume\ncfcbc160 Atom 6: restore live Oleg escape vote timer after reload (docs)\nfb2fe729 Atom 6: restore live Oleg escape vote timer after reload (Web)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 11252781b2ba3941881a45d57dba9d61de85cb4d\nbranch refs/heads/codex/stage715-atom6-oleg-escape\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T15:00:19Z",
+      "stderr": "",
+      "stdout": "aee47147c6cccc7f104e161c1d8b40019afe9da4\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "11252781b2ba3941881a45d57dba9d61de85cb4d",
+  "observedAtUtc": "2026-10-10T15:00:19Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
