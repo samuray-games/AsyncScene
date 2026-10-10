@@ -102,19 +102,35 @@ try {
     G.Stage715Demo.handlePlayerMessage("готово");
   });
 
-  const visibleStamp = async (container, text, battleId = null) => page.waitForFunction(({ containerId, expected, id }) => {
-    const root = id === "dmBlock" ? document.getElementById(id)
-      : id ? document.querySelector(`[data-battle-id="${CSS.escape(id)}"]`) : document.getElementById(containerId);
-    if (!root || !root.isConnected) return false;
-    const style = getComputedStyle(root);
-    const rect = root.getBoundingClientRect();
-    if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || "1") <= 0 || !rect.width || !rect.height) return false;
-    if (!String(root.innerText || root.textContent || "").includes(expected)) return false;
-    return Date.now();
-  }, { containerId: container, expected: text, id: battleId }, { polling: "raf", timeout: 20000 });
+  const visibleStamp = async (container, text, battleId = null) => {
+    const handle = await page.waitForFunction(({ containerId, expected, id }) => {
+      const root = id === "dmBlock" ? document.getElementById(id)
+        : id ? document.querySelector(`[data-battle-id="${CSS.escape(id)}"]`) : document.getElementById(containerId);
+      if (!root || !root.isConnected) return false;
+      const style = getComputedStyle(root);
+      const rect = root.getBoundingClientRect();
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || "1") <= 0 || !rect.width || !rect.height) return false;
+      if (!String(root.innerText || root.textContent || "").includes(expected)) return false;
+      return Date.now();
+    }, { containerId: container, expected: text, id: battleId }, { polling: "raf", timeout: 20000 });
+    try {
+      const timestamp = await handle.jsonValue();
+      assert.ok(Number.isFinite(timestamp), `visible timestamp must be numeric for ${container}`);
+      return timestamp;
+    } finally {
+      await handle.dispose();
+    }
+  };
 
   const greetingAt = await visibleStamp("chatLog", "слыш ты, совсем нюх потерялся да? надо тебя на место поставить.");
-  const olegBattleId = await page.waitForFunction(() => window.Game.__S.battles.find((item) => item.meta?.stage715OlegBattle)?.id || false, null, { polling: "raf", timeout: 10000 });
+  const olegBattleHandle = await page.waitForFunction(() => window.Game.__S.battles.find((item) => item.meta?.stage715OlegBattle)?.id || false, null, { polling: "raf", timeout: 10000 });
+  let olegBattleId;
+  try {
+    olegBattleId = await olegBattleHandle.jsonValue();
+  } finally {
+    await olegBattleHandle.dispose();
+  }
+  assert.equal(typeof olegBattleId, "string", "Oleg battle ID must be a concrete string");
   let cardAt;
   try { cardAt = await visibleStamp("battlesBody", "Где будем разбираться?", olegBattleId); }
   catch (error) {
