@@ -370,4 +370,5 @@ function runScenario(choiceId, includeVoteNpcActors = true) {
 '''
 
 subprocess.run(["node", "-e", node_test], cwd=ROOT, check=True)
+subprocess.run(["node", str(ROOT / "tools/test_stage7_15_rayhan_result_card_dom.mjs")], cwd=ROOT, check=True)
 print("PASS_STAGE7_15_RAYHAN_EVENTS_FIRST_CONTRACT")
