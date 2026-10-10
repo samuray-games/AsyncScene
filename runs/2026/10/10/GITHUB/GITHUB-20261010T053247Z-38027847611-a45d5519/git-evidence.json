@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-rayhan-event-result-card-20261010",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "codex/stage715-rayhan-event-result-card-20261010\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "1f0d1b1435cd8cac1372fb190173ab9f61809292\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1f0d1b1435cd8cac1372fb190173ab9f61809292\n# branch.head codex/stage715-rayhan-event-result-card-20261010\n# branch.upstream origin/codex/stage715-rayhan-event-result-card-20261010\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "1f0d1b14 (HEAD -> codex/stage715-rayhan-event-result-card-20261010, origin/codex/stage715-rayhan-event-result-card-20261010) test: verify Rayhan result card renders after Events vote\n67cd0a4a test: run Rayhan resolved-card browser regression\n86eecd31 chore: cache bust Rayhan result card fix deployed mirror\n483d47ab chore: cache bust Rayhan result card fix\n45973b13 fix: restore resolved Rayhan result card deployed mirror\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1f0d1b1435cd8cac1372fb190173ab9f61809292\nbranch refs/heads/codex/stage715-rayhan-event-result-card-20261010\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-10T05:32:47Z",
+      "stderr": "",
+      "stdout": "232e0ac7750bdca10fe05e76e179abbbf0d2b1a8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1f0d1b1435cd8cac1372fb190173ab9f61809292",
+  "observedAtUtc": "2026-10-10T05:32:47Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
