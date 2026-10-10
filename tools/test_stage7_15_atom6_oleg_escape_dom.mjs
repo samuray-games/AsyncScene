@@ -42,6 +42,7 @@ try {
       stage715OlegDmReplied: false,
       stage715OlegPublicLossLineShown: true,
     });
+    S.rep = 5;
     if (canonicalState && canonicalState !== S) {
       canonicalState.flags = Object.assign({}, canonicalState.flags, S.flags);
       canonicalState.rep = 5;
@@ -92,7 +93,7 @@ try {
     const selected = battle.meta.stage715OlegEscapeSelectedText;
     const resultAfterSelection = { corePickCalls, selected, battleStatus: battle.status, resolved: battle.resolved };
     S.me.points = 10;
-    const beforeAttempts = { money: S.me.points, rep: S.rep, battleId: battle.id };
+    const beforeAttempts = { money: S.me.points, rep: G.__S.rep, battleId: battle.id };
     const leave = document.querySelector(`[data-battle-id="${id}"]`)?.querySelector("button");
     leave?.click();
     leave?.click();
@@ -110,7 +111,7 @@ try {
       throw new Error('Real Oleg escape vote stuck. Expected ' + wanted + ', observed ' + JSON.stringify({status: battle.meta?.stage715Escape?.status, vote: battle.escapeVote, result: battle.result}));
     };
     await awaitEscapeOutcome('failed');
-    const firstOutcome = { status: battle.meta.stage715Escape.status, repSettled: battle.meta.stage715Escape.repSettled, votes: battle.meta.stage715Escape.scriptedVotes, result: battle.result, money: S.me.points, rep: S.rep };
+    const firstOutcome = { status: battle.meta.stage715Escape.status, repSettled: battle.meta.stage715Escape.repSettled, votes: battle.meta.stage715Escape.scriptedVotes, result: battle.result, money: S.me.points, rep: G.__S.rep };
     const restored = renderAndRead();
     restored.card?.querySelector('button')?.click();
     const secondAttempt = { escape: Object.assign({}, battle.meta.stage715Escape), money: S.me.points, battleId: battle.id };
@@ -150,6 +151,7 @@ try {
   assert.equal(result.firstOutcome.repSettled, true, "first loss must settle REP");
   assert.deepEqual(result.firstOutcome.votes, { a: 2, b: 3 }, "first actual outcome must remain 2:3");
   assert.equal(result.firstOutcome.money, result.beforeAttempts.money - 1, "first outcome must not recharge");
+  assert.equal(result.firstOutcome.rep, result.beforeAttempts.rep - 1, "first escape must debit exactly one REP");
   assert.deepEqual(result.restored.buttons, ["Уйти"], "the restored retry card must expose only Уйти");
   assert.deepEqual(result.restored.texts, result.expected, "the restored retry card must keep the exact scripted choices");
   assert.equal(result.secondAttempt.escape.attempt, 2, "the retry must reuse the same battle identity for attempt two");
@@ -161,6 +163,7 @@ try {
   assert.equal(result.secondOutcome.repSettled, true, "real second success must settle REP");
   assert.deepEqual(result.secondOutcome.votes, { a: 3, b: 2 }, "second actual outcome must remain 3:2");
   assert.equal(result.secondOutcome.money, result.beforeAttempts.money - 2, "second outcome must not recharge");
+  assert.equal(result.secondOutcome.rep, result.beforeAttempts.rep - 2, "two escapes must debit exactly two REP");
   assert.equal(result.secondOutcome.noActions, true, "success must suppress post-escape actions");
   assert.deepEqual(result.successful.buttons, [], "completed escape must have no generic actions");
   assert.equal(result.firstAttempt.battleId, result.beforeAttempts.battleId, "first attempt must retain the original battle identity");
