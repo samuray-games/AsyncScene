@@ -4000,8 +4000,17 @@ window.Game = window.Game || {};
   }
 
   function stage715BattleById(id) {
-    const states = id === FIRST_BATTLE_ID
-      ? [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S]
+    if (id === OLEG_ESCAPE_BATTLE_ID) {
+      // Core owns the battle lifecycle. A render/persistence mirror can keep
+      // the pre-settlement vote object after Core has restored the scripted
+      // card, so never let that stale vote outrank Core's terminal record.
+      const authoritative = G.__S && Array.isArray(G.__S.battles)
+        ? G.__S.battles.find((entry) => entry && entry.meta
+          && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID) : null;
+      if (authoritative) return authoritative;
+    }
+    const states = id === OLEG_ESCAPE_BATTLE_ID
+      ? [G.__S, stateFor(), G.UI && G.UI.S]
       : [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S];
     let fallback = null;
     for (const state of states) {
@@ -5043,6 +5052,11 @@ window.Game = window.Game || {};
         const Core = G._ConflictCore || G.ConflictCore;
         if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") Core.resumeStage715OlegEscapeVote(existing.id);
         watchOlegEscape();
+      } else if (escapeVoteState.status === "voting") {
+        // Core may have settled vote five just before a reload while the
+        // Stage outcome metadata was still pending. Resume from that
+        // authoritative Core state instead of leaving the scripted flow stuck.
+        settleOlegEscapeOutcome(existing);
       }
       return true;
     }
@@ -5537,6 +5551,10 @@ window.Game = window.Game || {};
       phase = "oleg_escape_ready";
       saveState();
     }
+    // Core owns vote resolution; this controller owns the Stage 7.15 outcome.
+    // Publish that outcome back to the persistence and render mirrors before
+    // their next read so reload and the restored scripted card agree.
+    persistOlegEscapeVoteProgress(battle.id);
     render();
     return true;
   }
@@ -5568,10 +5586,9 @@ window.Game = window.Game || {};
   function persistOlegEscapeVoteProgress(battleId) {
     const authoritative = G.__S && Array.isArray(G.__S.battles)
       ? G.__S.battles.find((entry) => entry && String(entry.id) === String(battleId)) : null;
-    if (!authoritative || !isOlegEscapeBattle(authoritative) || !authoritative.escapeVote) return false;
-    const vote = authoritative.escapeVote;
+    if (!authoritative || !isOlegEscapeBattle(authoritative)) return false;
     const persistenceState = stateFor();
-    const stores = [G.__S, persistenceState, G.UI && G.UI.S]
+    const stores = [persistenceState, G.UI && G.UI.S]
       .filter((store, index, all) => store && all.indexOf(store) === index);
     stores.forEach((store) => {
       store.battles = Array.isArray(store.battles) ? store.battles : [];
@@ -5582,12 +5599,24 @@ window.Game = window.Game || {};
         target = Object.assign({}, authoritative);
         store.battles.push(target);
       }
-      target.escapeVote = Object.assign({}, vote, {
-        voters: Object.assign({}, vote.voters || {}),
-        scriptedVoteSequence: Array.isArray(vote.scriptedVoteSequence) ? vote.scriptedVoteSequence.slice() : [],
-        stage715VoteIntervals: Array.isArray(vote.stage715VoteIntervals) ? vote.stage715VoteIntervals.slice() : [],
+      if (target === authoritative) return;
+      ["status", "result", "outcome", "note", "resultLine", "inlineNote", "resolved", "finished",
+        "draw", "crowd", "attackHidden", "updatedAt", "_repEscapeClickApplied", "_repEscapeRefundApplied"].forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(authoritative, key)) target[key] = authoritative[key];
+        else delete target[key];
       });
-      target.meta = Object.assign({}, target.meta || {}, {
+      target.escapeVote = authoritative.escapeVote
+        ? Object.assign({}, authoritative.escapeVote, {
+          voters: Object.assign({}, authoritative.escapeVote.voters || {}),
+          scriptedVoteSequence: Array.isArray(authoritative.escapeVote.scriptedVoteSequence)
+            ? authoritative.escapeVote.scriptedVoteSequence.slice() : [],
+          stage715VoteIntervals: Array.isArray(authoritative.escapeVote.stage715VoteIntervals)
+            ? authoritative.escapeVote.stage715VoteIntervals.slice() : [],
+        })
+        : null;
+      target._escapePrev = authoritative._escapePrev
+        ? Object.assign({}, authoritative._escapePrev) : null;
+      target.meta = Object.assign({}, target.meta || {}, authoritative.meta || {}, {
         stage715Escape: Object.assign({}, authoritative.meta.stage715Escape || {}),
       });
     });
@@ -5668,6 +5697,7 @@ window.Game = window.Game || {};
       }
       entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, previous, escapeMetadata) });
     });
+    persistOlegEscapeVoteProgress(activeBattle.id);
     state.flags = state.flags || {};
     state.flags.stage715OlegEscapeAttempts = attempt;
     phase = "oleg_escape_vote";
@@ -5888,6 +5918,16 @@ window.Game = window.Game || {};
     const state = stateFor(context);
     ensurePlayers(state);
     normalizeResolvedNastyaCheckpoint(state);
+    const pendingOlegEscape = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    const pendingOlegEscapeState = pendingOlegEscape && pendingOlegEscape.meta
+      ? pendingOlegEscape.meta.stage715Escape : null;
+    if (pendingOlegEscapeState && pendingOlegEscapeState.status === "voting"
+      && (!pendingOlegEscape.escapeVote || pendingOlegEscape.escapeVote.decided)) {
+      // A Core settlement can survive reload before Stage metadata is updated.
+      // Reconcile it on controller startup even if an older saved phase no
+      // longer points at the escape screen.
+      settleOlegEscapeOutcome(pendingOlegEscape);
+    }
     const nastyaCheckpoint = stage715BattleById(NASTYA_BATTLE_ID);
     if (nastyaCheckpoint && nastyaCheckpoint.meta) {
       if (nastyaCheckpoint.meta.stage715NastyaLossLineShown === true) {

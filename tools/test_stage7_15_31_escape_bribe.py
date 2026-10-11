@@ -34,9 +34,9 @@ index = INDEX_SOURCE.read_text(encoding="utf-8")
 
 require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors differ")
 for text in (
-    "conflict/conflict-core.js?v=stage7_15_atom6_vote_pacing_20261012c",
+    "conflict/conflict-core.js?v=stage7_15_atom6_vote_pacing_20261012g",
     "ui/ui-battles.js?v=stage7_15_atom6_oleg_escape_20261010a",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_vote_pacing_20261012c",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_vote_pacing_20261012g",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
@@ -69,10 +69,11 @@ require(stage.count('telemetry("stage715_escape_failed")') == 1, "escape failed 
 require(stage.count('telemetry("stage715_escape_success")') == 1, "escape success telemetry must be controller-owned once")
 require('stage715OlegEscapeAttempts = attempt' in stage, "escape attempt count must persist in scenario state")
 require('openNextScriptedFlow("escape_success")' in stage, "success must release the next scripted flow")
-require('const states = id === FIRST_BATTLE_ID' in stage and '[G.__S, stateFor(), G.UI && G.UI.S]' in stage,
+require('function stage715BattleById(id)' in stage and 'G.UI && G.UI.S' in stage,
         "Stage 7.15 battle lookup must cover the runtime render state")
-require('if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;' in stage,
-        "escape watcher must select the live battle carrying the active vote")
+require('const states = id === OLEG_ESCAPE_BATTLE_ID' in stage
+        and '? [G.__S, stateFor(), G.UI && G.UI.S]' in stage,
+        "escape watcher must prefer authoritative Core state before UI mirrors")
 watch_start = stage.index("  function watchOlegEscape()")
 watch_end = stage.index("  function startOlegEscape(", watch_start)
 watch_body = stage[watch_start:watch_end]
@@ -126,6 +127,18 @@ for text in (
     require(text in core, f"missing existing escape vote integration: {text}")
 require('if (b && b.meta && b.meta.stage715OlegEscape === true) return false;' in core,
         "Oleg must fail closed instead of reaching the legacy bulk scripted-vote branch")
+require('else if (escapeVoteState.status === "voting")' in stage and 'settleOlegEscapeOutcome(existing);' in stage,
+        "restored Core-settled vote must finish the pending Stage outcome")
+require('const pendingOlegEscape = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);' in stage
+        and 'settleOlegEscapeOutcome(pendingOlegEscape);' in stage,
+        "controller startup must reconcile a completed Core vote regardless of stale saved phase")
+require('persistOlegEscapeVoteProgress(battle.id);' in stage,
+        "Stage outcome metadata must be mirrored after settlement")
+core_tick_start = core.index("  function applyEscapeVoteTick(b){")
+core_tick_end = core.index("  const stage715OlegEscapeLiveTimers", core_tick_start)
+core_tick = core[core_tick_start:core_tick_end]
+require(core_tick.index("finalizeEscapeVote(b);") < core_tick.index("persistOlegEscapeVoteProgress(b.id)"),
+        "vote mirrors must sync after Core finalization, not before")
 
 require('function startEscapeVote(b, mode, cost)' in core, "existing escape vote start must remain the owner")
 require('function finalizeEscapeVote(b)' in core, "existing escape vote finalization must remain the owner")
@@ -224,6 +237,7 @@ allowed = {
     "AsyncScene/Web/index.html",
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_31_oleg_escape_lifecycle.py",
     "tools/test_stage7_15_24_nastya_vote_timing.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",

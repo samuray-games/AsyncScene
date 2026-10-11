@@ -2805,21 +2805,22 @@
 
     if (applyScriptedEscapeVote(b, v)) {
       const totalVotes = getCrowdTotalVotes(v);
-      if (b.meta && b.meta.stage715OlegEscape === true
-        && Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
-        Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+      const decided = Number.isFinite(v.cap) && totalVotes >= (v.cap | 0);
+      if (decided) {
+        finalizeEscapeVote(b);
       }
       if (b.meta && b.meta.stage715OlegEscape === true) {
+        if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+          // Mirror only after Core settlement. On vote five this carries the
+          // terminal state (including a cleared escapeVote on failure) to UI
+          // and persistence stores without replacing Core's live vote object.
+          Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+        }
         try {
-          if (Game.UI && typeof Game.UI.renderBattles === "function") Game.UI.renderBattles();
-          else if (Game.UI && typeof Game.UI.renderAll === "function") Game.UI.renderAll();
+          if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
         } catch (_) {}
       }
-      if (Number.isFinite(v.cap) && totalVotes >= (v.cap | 0)) {
-        finalizeEscapeVote(b);
-        return { ok: true, decided: true, totalVotes };
-      }
-      return { ok: true, decided: false, totalVotes };
+      return { ok: true, decided, totalVotes };
     }
 
     try {
@@ -2956,6 +2957,13 @@
   const stage715OlegEscapeLiveTimers = new WeakMap();
 
   function stage715OlegEscapeBattleById(battleId) {
+    const coreBattle = Game && Game.__S && Array.isArray(Game.__S.battles)
+      ? Game.__S.battles.find((item) => item && String(item.id) === String(battleId)
+        && item.meta && item.meta.stage715OlegEscape === true) : null;
+    // A stale UI mirror may still contain the vote that Core just consumed.
+    // If Core has the scripted battle, it remains authoritative even when
+    // its vote is null; never resume a timer against a mirror clone.
+    if (coreBattle) return coreBattle.escapeVote && !coreBattle.escapeVote.decided ? coreBattle : null;
     const stores = [Game && Game.__S, Game && Game.UI && Game.UI.S, Game && Game.State]
       .filter((store, index, all) => store && all.indexOf(store) === index);
     for (const store of stores) {
@@ -3029,6 +3037,19 @@
       b.escapeVote.scriptedVoteSequence = scriptedVoteSequence.slice();
       b.escapeVote.scriptedVotes = null;
       b.escapeVote.cap = scriptedVoteSequence.length;
+      if (getCrowdTotalVotes(b.escapeVote) >= scriptedVoteSequence.length) {
+        // A prior build could persist vote five to UI state immediately
+        // before its authoritative Core finalize. Complete that already-full
+        // vote through the same Core settlement path during hydration.
+        finalizeEscapeVote(b);
+        if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+          Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+        }
+        try {
+          if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
+        } catch (_) {}
+        return true;
+      }
       if (!Number.isFinite(b.escapeVote.stage715NextVoteAtMs)) {
         const delay = 1000 + Math.floor(Math.random() * 1001);
         b.escapeVote.stage715VoteIntervals = b.escapeVote.stage715VoteIntervals || [];
