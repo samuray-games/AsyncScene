@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom6-vote-pacing-20261012",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom6-vote-pacing-20261012\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "3996d83a1215e1b02bce89ecc0e7951911a2b23c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3996d83a1215e1b02bce89ecc0e7951911a2b23c\n# branch.head codex/stage715-atom6-vote-pacing-20261012\n# branch.upstream origin/codex/stage715-atom6-vote-pacing-20261012\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "3996d83a (HEAD -> codex/stage715-atom6-vote-pacing-20261012, origin/codex/stage715-atom6-vote-pacing-20261012) Fix Stage 7.15 Oleg escape settlement resume\n7b523b87 fix stage 7.15 scripted vote pacing\n483c815c (origin/main) Stage 7.15 Atom 6 Oleg escape teaching loop (#417)\naee47147 Restore Rayhan result card after Events vote (#416)\n232e0ac7 Stage 7.15 Atom 5 Safari presentation repair (#415)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3996d83a1215e1b02bce89ecc0e7951911a2b23c\nbranch refs/heads/codex/stage715-atom6-vote-pacing-20261012\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-11T15:48:14Z",
+      "stderr": "",
+      "stdout": "483c815c7977796bbc87f827a6d873e95edc91c2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3996d83a1215e1b02bce89ecc0e7951911a2b23c",
+  "observedAtUtc": "2026-10-11T15:48:14Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
