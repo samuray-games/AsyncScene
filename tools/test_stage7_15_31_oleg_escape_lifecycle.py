@@ -65,6 +65,9 @@ stage_functions = "\n".join(function_source(stage_text, name) for name in (
     "stateFor",
     "stage715BattleById",
     "isOlegEscapeBattle",
+    "olegEscapeMoneyLedgerEntry",
+    "compensateOlegEscapeRep",
+    "ensureOlegEscapePayment",
     "settleOlegEscapeRep",
     "pushOlegEscapeDm",
     "pushOlegEscapeSystem",
@@ -85,6 +88,7 @@ const ledger = { money: [], rep: [], system: [], dm: [], telemetry: [] };
 const repActions = new Set();
 const moneyActions = new Set();
 let nextRepTransferResult = { ok: true };
+let nextMoneyChargeResult = { ok: true };
 let repTransferCalls = 0;
 const player = { id: "me", name: "Тест", points: 20, influence: 4, rep: 5, isMe: true };
 const oleg = { id: "npc_oleg", name: "Олег", points: 10, influence: 6, type: "npc", npc: true };
@@ -116,7 +120,14 @@ const Game = {
       const actionId = options && options.actionId;
       if (reason === "rep_stage715_escape_bribe" && !repActions.has(actionId)) {
         repActions.add(actionId);
+        Game.__S.rep = Math.max(0, (Game.__S.rep | 0) - amount);
         const entry = { sourceId: from, targetId: to, amount, reason, battleId, currency: "rep", actionId };
+        ledger.rep.push(entry);
+        Game.__D.moneyLog.push(entry);
+      }
+      if (reason === "rep_stage715_escape_payment_compensation") {
+        Game.__S.rep += amount;
+        const entry = { sourceId: from, targetId: to, amount, reason, battleId, currency: "rep", actionId: options && options.actionId };
         ledger.rep.push(entry);
         Game.__D.moneyLog.push(entry);
       }
@@ -126,16 +137,31 @@ const Game = {
   },
   _ConflictEconomy: {
     calcFinalPrice({ basePrice, priceKey, context }) { return { basePrice, finalPrice: basePrice, priceKey, context }; },
-    chargePriceOnce({ context, basePrice, reason }) {
+    chargePriceOnce({ context, basePrice, reason, fromId, toId, battleId, actorPoints, priceKey, extraMeta }) {
+      if (!nextMoneyChargeResult || nextMoneyChargeResult.ok !== true) return nextMoneyChargeResult;
       const actionId = context && context.actionNonce;
-      if (reason === "escape_vote_cost" && !moneyActions.has(actionId)) { moneyActions.add(actionId); ledger.money.push({ amount: basePrice, actionId }); }
-      return { ok: true };
+      const idempotencyKey = [priceKey, "me", battleId, context && context.rematchOf, context && context.mode,
+        context && context.targetId, context && context.argKey, actionId].filter(Boolean).join("|");
+      if (reason === "escape_vote_cost" && !moneyActions.has(actionId)) {
+        moneyActions.add(actionId);
+        const entry = { sourceId: fromId, targetId: toId, amount: basePrice, reason, battleId,
+          meta: { idempotencyKey, context, actorPoints, ...extraMeta } };
+        ledger.money.push(entry);
+        Game.__D.moneyLog.push(entry);
+        Game.__S.me.points -= basePrice;
+      }
+      return { ok: true, idempotencyKey };
     },
-    getCrowdPoolId(id) { return `crowd:${id}`; }, ensurePool() {}, transferPoints() { return { ok: true }; }, transferFromPool() { return { ok: true }; }
+    getCrowdPoolId(id) { return `crowd:${id}`; }, ensurePool() {},
+    transferPoints(from, to, amount, reason, meta = {}) {
+      if (from === "npc_oleg") Game.__S.me.points += amount;
+      Game.__D.moneyLog.push({ sourceId: from, targetId: to, amount, reason, battleId: meta.battleId, meta });
+      return { ok: true };
+    }, transferFromPool() { return { ok: true }; }
   }
 };
 const vmContext = {
-  Game, assert, ledger, clock, clone, persistedState, window: { location: { search: "" } }, console: { warn() {}, error() {}, log: console.log },
+  Game, assert, ledger, clock, clone, persistedState, repActions, window: { location: { search: "" } }, console: { warn() {}, error() {}, log: console.log },
   URLSearchParams, Date: FakeDate, Math: Object.create(Math), setInterval() { return 1; }, clearInterval() {},
   setTimeout, clearTimeout, OLEG_ESCAPE_BATTLE_ID: "stage7_15_oleg_escape_battle",
   FIRST_BATTLE_ID: "stage7_15_rayhan_battle", G: Game,
@@ -164,6 +190,7 @@ const vmContext = {
   pushNpc() {},
   stage715OlegEscapeLiveTimers: new WeakMap(),
   setRepTransferResult(value) { nextRepTransferResult = value; },
+  setMoneyChargeResult(value) { nextMoneyChargeResult = value; },
   getRepTransferCalls() { return repTransferCalls; },
   getEcon() { return null; }, useWeightedTally() { return false; },
   ensureBattleCrowdCap() {},
@@ -178,6 +205,32 @@ vm.runInContext(process.argv[2], vmContext);
 vm.runInContext(process.argv[3], vmContext);
 vm.runInContext(`
   Game.Stage715Demo = { persistOlegEscapeVoteProgress };
+  // RED-first resource preflight contract: an unaffordable attempt must keep
+  // the scripted card ready, leave both balances and ledgers untouched, and
+  // remain retryable without consuming an attempt number.
+  const preflightBattle = Game.__S.battles[0];
+  Game.__S.me.points = 20;
+  Game.__S.rep = 0;
+  Game.__S.me.rep = 0;
+  const moneyBalanceBeforePreflight = Game.__S.me.points;
+  const repBalanceBeforePreflight = Game.__S.rep;
+  assert.strictEqual(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), false,
+    "Oleg escape must not begin if either required resource is missing");
+  assert.strictEqual(preflightBattle.meta.stage715Escape.attempt, 0,
+    "a rejected attempt must not increment its attempt number");
+  assert.strictEqual(preflightBattle.escapeVote, undefined,
+    "a rejected attempt must not start voting");
+  assert.strictEqual(Game.__S.me.points, moneyBalanceBeforePreflight,
+    "a rejected attempt must not charge money");
+  assert.strictEqual(Game.__S.rep, repBalanceBeforePreflight,
+    "a rejected attempt must not charge REP");
+  assert.strictEqual(ledger.money.length, 0, "a rejected attempt must not append a money transfer");
+  assert.strictEqual(ledger.rep.length, 0, "a rejected attempt must not append a REP transfer");
+  assert(preflightBattle.meta.stage715Escape.preflightFailureReason,
+    "the scripted card must explain why the attempt was rejected");
+  Game.__S.me.points = 20;
+  Game.__S.rep = 5;
+  Game.__S.me.rep = 5;
   assert(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), "controller should start the first escape through Core.escape");
   const authoritative = Game.__S.battles[0];
   const vote = authoritative.escapeVote;
@@ -206,6 +259,13 @@ vm.runInContext(`
   assert.strictEqual(Game._ConflictCore.resumeStage715OlegEscapeVote(OLEG_ESCAPE_BATTLE_ID), false,
     "Core resume must not restart a timer against a stale UI mirror after authoritative settlement");
   persistStageProgress(OLEG_ESCAPE_BATTLE_ID);
+  // Recreate a historical save from the pre-preflight build: the fifth vote
+  // and money transfer are already canonical, but its REP action never ran.
+  Game.__D.moneyLog = Game.__D.moneyLog.filter(entry => entry.reason !== "rep_stage715_escape_bribe");
+  ledger.rep.length = 0;
+  repActions.delete("stage715_escape_1");
+  Game.__S.rep = 0;
+  observed.meta.stage715Escape.repSettled = false;
   const repBeforeFailure = ledger.rep.length;
   setRepTransferResult({ ok: false, reason: "insufficient_rep", available: 0, requested: 1 });
   assert.strictEqual(settleOlegEscapeOutcome(observed), false, "insufficient REP must not fabricate a successful settlement");
@@ -215,12 +275,17 @@ vm.runInContext(`
   assert.strictEqual(ledger.rep.length, repBeforeFailure, "insufficient REP must not append a debit");
   assert.strictEqual(ledger.system.length, 0, "insufficient REP must not publish an outcome");
   assert.strictEqual(ledger.dm.length, 0, "insufficient REP must not publish an outcome DM");
+  assert.strictEqual(observed.meta.stage715Escape.status, "payment_recovery_required",
+    "a historical settled vote must be explicitly recoverable instead of waiting forever");
+  assert.strictEqual(observed.escapeVote, null, "payment recovery must not restart the historical vote");
+  Game.__S.rep = 1;
   setRepTransferResult({ ok: false, reason: "security_blocked" });
   assert.strictEqual(settleOlegEscapeOutcome(observed), false, "other economy errors must also fail closed");
   assert.strictEqual(observed.meta.stage715Escape.repSettlementFailureReason, "security_blocked",
     "the controller must preserve the concrete economy error instead of collapsing it");
   assert.strictEqual(ledger.rep.length, repBeforeFailure);
   setRepTransferResult({ ok: true });
+  Game.__S.rep = 1;
   // Model a real interrupted lifecycle boundary: the canonical REP transfer
   // succeeds, then Stage outcome handling runs on the already-settled state.
   assert(settleOlegEscapeRep(observed, 1), "canonical REP action settles before the Stage outcome watcher");
@@ -240,6 +305,8 @@ vm.runInContext(`
   assert.strictEqual(observed._defenseChoices.length, 3, "restored card retains the three scripted choices");
   assert.strictEqual(ledger.rep.length, 1, "REP settles once for the first attempt");
   assert.strictEqual(ledger.money.length, 1, "money settles once for the first attempt");
+  assert.strictEqual(ledger.money.filter(entry => entry.meta.actionId === "stage715_oleg_escape_1").length, 1,
+    "canonical money ledger identifies the first escape with its actionId");
   assert.strictEqual(Game.UI.S.battles[0].meta.stage715Escape.status, "failed", "render mirror reflects the failed Stage outcome");
   const firstReload = clone(persistedState);
   assert.strictEqual(firstReload.battles[0].meta.stage715Escape.status, "failed", "failed attempt survives reload");
@@ -253,7 +320,33 @@ vm.runInContext(`
     reason: "rep_stage715_escape_bribe", battleId: OLEG_ESCAPE_BATTLE_ID,
     currency: "rep", actionId: "stage715_escape_1"
   }), "the REP journal must identify the first attempt by its stable actionId");
+  Game.__S.rep = 5;
+  const moneyEntriesBeforeRejectedRetry = ledger.money.length;
+  const repEntriesBeforeRejectedRetry = ledger.rep.length;
+  Game.__S.me.points = 0;
+  assert.strictEqual(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), false,
+    "a second escape must not start without its money resource");
+  assert.strictEqual(authoritative.meta.stage715Escape.attempt, 1,
+    "a rejected money preflight must not increment the attempt number");
+  assert.strictEqual(ledger.money.length, moneyEntriesBeforeRejectedRetry,
+    "a rejected money preflight must not append a ledger row");
+  assert.strictEqual(ledger.rep.length, repEntriesBeforeRejectedRetry,
+    "a rejected money preflight must not partially charge REP");
+  Game.__S.me.points = 20;
+  setMoneyChargeResult({ ok: false, reason: "money_transfer_rejected" });
+  const repBeforeCompensatedChargeFailure = Game.__S.rep;
+  assert.strictEqual(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), false,
+    "a failed canonical money transfer must not start voting");
+  assert.strictEqual(Game.__S.rep, repBeforeCompensatedChargeFailure,
+    "a failed money transfer must compensate its earlier REP debit");
+  assert.strictEqual(ledger.money.length, moneyEntriesBeforeRejectedRetry,
+    "a failed money transfer must not append a successful money charge");
+  assert.strictEqual(authoritative.meta.stage715Escape.status, "payment_recovery_required",
+    "a failed payment transaction remains explicitly recoverable");
+  setMoneyChargeResult({ ok: true });
   assert(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), "controller should start the second escape through Core.escape");
+  assert.strictEqual(Game.__S.rep, repBeforeCompensatedChargeFailure - 1,
+    "retry after a compensating REP refund must charge exactly one net REP");
   const second = Game.__S.battles[0];
   assert.strictEqual(second.meta.stage715Escape.attempt, 2);
   assert.strictEqual(second.escapeVote.scriptedVoteSequence.slice(0, 4).filter(side => side === "a").length, 2);
@@ -274,14 +367,19 @@ vm.runInContext(`
   assert.strictEqual(ledger.dm.filter(message => message.text === OLEG_ESCAPE_SUCCESS_DM_LINE).length, 1, "one Oleg success DM");
   assert.strictEqual(persistedState.flags.stage715NextScriptedFlowReady, true, "success opens the independent-battle instruction gate");
   assert.strictEqual(persistedState.flags.stage715NextScriptedFlowReason, "escape_success");
-  assert.strictEqual(ledger.rep.length, 2, "one REP charge per escape attempt");
+  const repNet = ledger.rep.reduce((sum, entry) => sum
+    + (entry.sourceId === "me" && entry.targetId === "crowd_pool" ? Number(entry.amount) : 0)
+    - (entry.sourceId === "crowd_pool" && entry.targetId === "me" ? Number(entry.amount) : 0), 0);
+  assert.strictEqual(repNet, 2, "REP debits and compensation reconcile to one net charge per escape attempt");
   assert.strictEqual(ledger.money.length, 2, "one money charge per escape attempt");
+  assert.strictEqual(ledger.money.filter(entry => entry.meta.actionId === "stage715_oleg_escape_2").length, 1,
+    "canonical money ledger identifies the second escape with its actionId");
   assert.strictEqual(Game.UI.S.battles[0].meta.stage715Escape.status, "success", "render mirror reflects final Stage outcome");
   const secondReload = clone(persistedState);
   assert.strictEqual(secondReload.battles[0].meta.stage715Escape.status, "success", "successful attempt survives reload");
   assert.strictEqual(secondReload.battles[0].id, OLEG_ESCAPE_BATTLE_ID, "success retains the scripted battle identity");
   assert.strictEqual(settleOlegEscapeOutcome(second), false, "replaying the Stage watcher cannot duplicate settlement");
-  assert.strictEqual(ledger.rep.length, 2);
+  assert.strictEqual(repNet, 2);
   assert.strictEqual(ledger.money.length, 2);
   assert.strictEqual(ledger.system.filter(text => text === "У Тест получилось уйти от Олега!").length, 1);
   assert.strictEqual(ledger.dm.filter(message => message.text === OLEG_ESCAPE_SUCCESS_DM_LINE).length, 1);
