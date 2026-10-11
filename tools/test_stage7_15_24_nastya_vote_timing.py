@@ -44,8 +44,12 @@ for (let index = 0; index < 5; index += 1) {
   assert.strictEqual(Object.keys(crowd.voters).length, before + 1, "a tick must add exactly one visible vote");
   assert(crowd.stage715VoteIntervals.at(-1) >= 1000 && crowd.stage715VoteIntervals.at(-1) <= 2000, "each vote delay must be 1-2 seconds");
 }
-assert.strictEqual(crowd.votesA, 2);
-assert.strictEqual(crowd.votesB, 3);
+assert.strictEqual(crowd.stage715VoteOrder.length, 5);
+assert.strictEqual(crowd.stage715VoteOrder.slice(0, 4).filter((side) => side === 'a').length, 2);
+assert.strictEqual(crowd.stage715VoteOrder.slice(0, 4).filter((side) => side === 'b').length, 2);
+assert.strictEqual(crowd.stage715VoteOrder[4], 'a');
+assert.strictEqual(crowd.votesA, 3);
+assert.strictEqual(crowd.votesB, 2);
 assert.strictEqual(crowd.cap, 5);
 assert.strictEqual(crowd.stage715VoteIntervals.length, 5, "there must be exactly one independent interval per vote");
 assert(crowd.stage715VoteIntervals.every((delay) => delay >= 1000 && delay <= 2000), "every vote interval must be 1-2 seconds");
@@ -54,6 +58,9 @@ assert.strictEqual(context.vote(battle, crowd), false, "no sixth vote may be add
 console.log("PASS_STAGE7_15_24_NASTYA_VOTE_TIMING");
 '''
 subprocess.run(["node", "-e", node_test, vote_function], cwd=ROOT, check=True)
+assert 'scriptedVoteSides' in controller and 'current.crowd.scriptedVoteSides[index]' in controller
+assert 'shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a")' in controller
+assert 'const side = index < 3 ? "a" : "b";' not in controller
 
 # Demonstrate that this exact executable contract goes red on the requested
 # authoritative baseline for the behavioral bulk-vote defect.

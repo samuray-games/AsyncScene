@@ -34,9 +34,9 @@ index = INDEX_SOURCE.read_text(encoding="utf-8")
 
 require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors differ")
 for text in (
-    "conflict/conflict-core.js?v=stage7_15_atom6_oleg_escape_20261011b",
+    "conflict/conflict-core.js?v=stage7_15_atom6_vote_pacing_20261012c",
     "ui/ui-battles.js?v=stage7_15_atom6_oleg_escape_20261010a",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_oleg_escape_20261011b",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_vote_pacing_20261012c",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
@@ -115,23 +115,68 @@ for text in (
 
 for text in (
     'function applyScriptedEscapeVote(b, v)',
-    'const scripted = v && v.scriptedVotes;',
-    'v.cap = votesA + votesB;',
+    'function stage715OlegEscapeBattleById(battleId)',
+    'const scriptedSequence = v && v.scriptedVoteSequence;',
+    'stage715NextVoteAtMs',
+    'stage715ScriptedVoteIndex',
+    'v.scriptedVoteSequence',
     'if (applyScriptedEscapeVote(b, v))',
-    'finalizeEscapeVote(b);',
+    'stage715VoteIntervals.push(delay)',
 ):
     require(text in core, f"missing existing escape vote integration: {text}")
+require('if (b && b.meta && b.meta.stage715OlegEscape === true) return false;' in core,
+        "Oleg must fail closed instead of reaching the legacy bulk scripted-vote branch")
 
 require('function startEscapeVote(b, mode, cost)' in core, "existing escape vote start must remain the owner")
 require('function finalizeEscapeVote(b)' in core, "existing escape vote finalization must remain the owner")
 require('b.meta.stage715OlegEscape === true' in core, "escape nonce must be gated by explicit Oleg ownership")
 require('stage715_oleg_escape_${olegAttempt}' in core, "Oleg attempts must have stable distinct settlement keys")
-require('C.resumeStage715OlegEscapeVote = function (battleId)' in core and 'b.escapeVote.scriptedVotes = Object.assign({}, scriptedVotes);' in core,
+require('C.resumeStage715OlegEscapeVote = function (battleId)' in core and 'b.escapeVote.scriptedVoteSequence = scriptedVoteSequence.slice();' in core,
         "resumed Oleg votes must restore the attempt-specific scripted 2:3 or 3:2 votes")
+require('scriptedVoteSequence' in stage and 'shuffleStage715VoteSides' in stage,
+        "each Oleg attempt must persist one randomized sequence with a deterministic fifth vote")
+require('String(entry.meta && entry.meta.stage715BattleId || "") === OLEG_ESCAPE_BATTLE_ID' in stage
+        and 'store.battles.push(target);' in stage,
+        "partial Oleg vote progress must be copied into the controller persistence state even when its battle mirror is missing")
 require('const escapeContext = { battleId: battleRef, mode: modeNorm };' in core,
         "generic escape context must retain its original battle and mode fields")
-require('const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting" });' in stage,
+require('const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting", scriptedVoteSequence });' in stage,
         "attempt nonce metadata must exist before the canonical escape call")
+
+script_start = core.index("  function applyScriptedEscapeVote(b, v){")
+script_end = core.index("\n  function applyScriptedNastyaVote", script_start)
+script_function = core[script_start:script_end]
+node_vote_test = r'''const vm = require("vm");
+const assert = require("assert");
+let now = 10000;
+class FakeDate extends Date { static now() { return now; } }
+const context = { Date: FakeDate, Math: Object.create(Math), getCrowdTotalVotes(v) { return Object.keys(v.voters || {}).length; } };
+context.Math.random = () => 0;
+vm.createContext(context);
+vm.runInContext(process.argv[1] + "\nthis.apply = applyScriptedEscapeVote;", context);
+for (const sequence of [["b", "a", "a", "b", "b"], ["a", "b", "a", "b", "a"]]) {
+  let vote = { cap: 5, voters: {}, votesA: 0, votesB: 0, scriptedVoteSequence: sequence.slice(), stage715NextVoteAtMs: now + 1200 };
+  for (let index = 0; index < 5; index += 1) {
+    now = vote.stage715NextVoteAtMs - 1;
+    assert.strictEqual(context.apply({}, vote), false, "no vote may appear before its saved deadline");
+    now += 1;
+    const count = Object.keys(vote.voters).length;
+    assert.strictEqual(context.apply({}, vote), true, "one due vote should appear");
+    assert.strictEqual(Object.keys(vote.voters).length, count + 1, "each call must add exactly one vote");
+    assert.strictEqual(vote.voters[`stage715_oleg_escape_voter_${index + 1}`], sequence[index]);
+    assert.strictEqual(vote.stage715ScriptedVoteIndex, index + 1);
+    if (index < 4) {
+      const delay = vote.stage715VoteIntervals.at(-1);
+      assert(delay >= 1000 && delay <= 2000, "next visible vote delay must be 1-2 seconds");
+      vote = JSON.parse(JSON.stringify(vote)); // reload with persisted order, progress and deadline
+      assert.strictEqual(vote.stage715NextVoteAtMs, now + delay);
+    }
+  }
+  assert.strictEqual(vote.votesA + vote.votesB, 5);
+  assert.strictEqual(context.apply({}, vote), false, "a sixth vote must never be applied");
+}
+console.log("PASS_STAGE7_15_31_OLEG_ONE_VOTE_PER_DEADLINE_RELOAD");'''
+subprocess.run(["node", "-e", node_vote_test, script_function], cwd=ROOT, check=True)
 
 for text in (
     'function isStage715OlegEscapeBattle(battle)',
@@ -179,6 +224,9 @@ allowed = {
     "AsyncScene/Web/index.html",
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_24_nastya_vote_timing.py",
+    "tools/test_stage7_15_21_nastya_battle.py",
+    "tools/test_stage7_15_23_nastya_crowd_vote.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",

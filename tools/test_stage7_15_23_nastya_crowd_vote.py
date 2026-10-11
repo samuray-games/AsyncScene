@@ -45,9 +45,9 @@ for text in (
     "v._stage715NastyaVoteApplied",
     'v.stage715VoteOwner = "stage715_nastya"',
     "applyScriptedNastyaVote(b, b.crowd)",
-    "stage715NastyaVote: { a: 2, b: 3, cap: 5 }",
+    "stage715NastyaVote: { a: 3, b: 2, cap: 5 }",
     "function handleNastyaDefenseChoice(battleId, choiceId)",
-    "battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 }",
+    "battle.meta.stage715NastyaVote = { a: 3, b: 2, cap: 5 }",
     'capSource = "stage715_nastya"',
 ):
     require(text in core_js or text in controller_js, f"missing scripted Nastya vote contract: {text}")

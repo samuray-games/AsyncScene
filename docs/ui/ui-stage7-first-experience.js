@@ -4305,7 +4305,7 @@ window.Game = window.Game || {};
     const isCorrect = isRematch
       ? (choice.stage715ScriptedChoiceId === "who_rayhan" || choice.stage715DisplayText === NASTYA_REMATCH_CHOICES[0].text)
       : (String(choice.id || "") === "yn_no" || String(choice.stage715DisplayText || "") === NASTYA_CHOICES[0].text);
-    battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 };
+    battle.meta.stage715NastyaVote = { a: 3, b: 2, cap: 5 };
     battle._defenseChoices = [choice];
     if (isCorrect && isRematch) {
       battle.meta.stage715NastyaRematchGate = false;
@@ -4468,6 +4468,7 @@ window.Game = window.Game || {};
       return false;
     }
     const now = Date.now();
+    const scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
     const player = state && state.me ? state.me : { id: "me", name: playerNickname() };
     const players = state.players || (state.players = {});
     const previousSynthetic = players[NASTYA_EVENT_PLAYER_ID];
@@ -4488,7 +4489,7 @@ window.Game = window.Game || {};
       stage715NastyaEvent: true, relatedBattleId: battle.id, refId: `stage715_nastya_event_${battle.id}`,
       crowd: { votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, endAt: nextAt + 2000,
         decided: false, nextNpcVoteAt: Number.MAX_SAFE_INTEGER, winner: null, voters: {},
-        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteAt, _econApplied: true },
+        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteSides, scriptedVoteAt, _econApplied: true },
       meta: `${playerNickname()} - Настя`, text: "Толпа решает.", resultLine: "", action: "event"
     };
     battle.meta.stage715NastyaEventId = event.id;
@@ -4526,9 +4527,22 @@ window.Game = window.Game || {};
     return 1000 + Math.floor(Math.random() * 1001);
   }
 
+  function shuffleStage715VoteSides(sides) {
+    const shuffled = sides.slice();
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   function scheduleNastyaEventVotes(event) {
     if (!event || !event.crowd || event.resolved) return false;
     const crowd = event.crowd;
+    if (!Array.isArray(crowd.scriptedVoteSides) || crowd.scriptedVoteSides.length !== RAYHAN_EVENT_VOTE_COUNT) {
+      crowd.scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
+      saveState();
+    }
     const index = crowd.scriptedVoterIds.findIndex((id) => !crowd.voters[id]);
     if (index < 0) return false;
     const timers = G.__stage715NastyaEventVoteTimers || (G.__stage715NastyaEventVoteTimers = Object.create(null));
@@ -4542,7 +4556,7 @@ window.Game = window.Game || {};
       const current = currentState && (currentState.events || []).find((e) => e && e.id === event.id);
       if (!current || current.resolved) return;
       const voterId = current.crowd.scriptedVoterIds[index];
-      const side = index < 3 ? "a" : "b";
+      const side = current.crowd.scriptedVoteSides[index];
       current.crowd.voters[voterId] = side;
       current.crowd.aVotes = current.crowd.votesA = Object.values(current.crowd.voters).filter((v) => v === "a").length;
       current.crowd.bVotes = current.crowd.votesB = Object.values(current.crowd.voters).filter((v) => v === "b").length;
@@ -5005,6 +5019,22 @@ window.Game = window.Game || {};
         demoId: "stage7_15_oleg_escape",
         sourceTag: DEMO_SOURCE_TAG,
       });
+      const escapeVoteState = existing.meta.stage715Escape || {};
+      if (existing.escapeVote && !existing.escapeVote.decided
+        && !Array.isArray(escapeVoteState.scriptedVoteSequence)) {
+        const attempt = Math.max(1, Number(escapeVoteState.attempt) | 0);
+        escapeVoteState.scriptedVoteSequence = shuffleStage715VoteSides(["a", "a", "b", "b"])
+          .concat(attempt === 1 ? "b" : "a");
+        existing.meta.stage715Escape = escapeVoteState;
+        existing.escapeVote.scriptedVotes = null;
+        existing.escapeVote.scriptedVoteSequence = escapeVoteState.scriptedVoteSequence.slice();
+        existing.escapeVote.cap = 5;
+        if (!Number.isFinite(existing.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          existing.escapeVote.stage715VoteIntervals = [delay];
+          existing.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
+      }
       prepareOlegDefenseChoices(existing);
       mirrorRayhanBattleToRenderState(existing);
       phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
@@ -5535,6 +5565,36 @@ window.Game = window.Game || {};
     }, 100);
   }
 
+  function persistOlegEscapeVoteProgress(battleId) {
+    const authoritative = G.__S && Array.isArray(G.__S.battles)
+      ? G.__S.battles.find((entry) => entry && String(entry.id) === String(battleId)) : null;
+    if (!authoritative || !isOlegEscapeBattle(authoritative) || !authoritative.escapeVote) return false;
+    const vote = authoritative.escapeVote;
+    const persistenceState = stateFor();
+    const stores = [G.__S, persistenceState, G.UI && G.UI.S]
+      .filter((store, index, all) => store && all.indexOf(store) === index);
+    stores.forEach((store) => {
+      store.battles = Array.isArray(store.battles) ? store.battles : [];
+      let target = store.battles.find((entry) => entry
+        && (String(entry.id) === String(battleId)
+          || String(entry.meta && entry.meta.stage715BattleId || "") === OLEG_ESCAPE_BATTLE_ID));
+      if (!target) {
+        target = Object.assign({}, authoritative);
+        store.battles.push(target);
+      }
+      target.escapeVote = Object.assign({}, vote, {
+        voters: Object.assign({}, vote.voters || {}),
+        scriptedVoteSequence: Array.isArray(vote.scriptedVoteSequence) ? vote.scriptedVoteSequence.slice() : [],
+        stage715VoteIntervals: Array.isArray(vote.stage715VoteIntervals) ? vote.stage715VoteIntervals.slice() : [],
+      });
+      target.meta = Object.assign({}, target.meta || {}, {
+        stage715Escape: Object.assign({}, authoritative.meta.stage715Escape || {}),
+      });
+    });
+    saveState();
+    return true;
+  }
+
   function startOlegEscape(battleId) {
     const state = stateFor();
     const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
@@ -5543,6 +5603,8 @@ window.Game = window.Game || {};
     if (previous.status === "voting" || previous.status === "success") return true;
     const attempt = Number.isFinite(previous.attempt) ? (previous.attempt | 0) + 1 : 1;
     const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 };
+    const scriptedVoteSequence = shuffleStage715VoteSides(["a", "a", "b", "b"])
+      .concat(attempt === 1 ? "b" : "a");
     const mirroredBattles = [battle]
       .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
       .filter((entry, index, all) => entry
@@ -5565,7 +5627,7 @@ window.Game = window.Game || {};
     }
     const Core = G._ConflictCore || G.ConflictCore;
     if (!Core || typeof Core.escape !== "function") return false;
-    const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting" });
+    const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting", scriptedVoteSequence });
     mirroredBattles.forEach((entry) => {
       entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: attemptMetadata });
     });
@@ -5584,6 +5646,7 @@ window.Game = window.Game || {};
       outcomeHandled: false,
       repSettled: false,
       scriptedVotes,
+      scriptedVoteSequence,
     };
     const mirroredVoteBattles = [battle, activeBattle]
       .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
@@ -5594,6 +5657,13 @@ window.Game = window.Game || {};
     mirroredVoteBattles.forEach((entry) => {
       if (entry.escapeVote) {
         entry.escapeVote.scriptedVotes = scriptedVotes;
+        entry.escapeVote.scriptedVoteSequence = scriptedVoteSequence.slice();
+        entry.escapeVote.stage715ScriptedVoteIndex = Object.keys(entry.escapeVote.voters || {}).length;
+        if (!Number.isFinite(entry.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          entry.escapeVote.stage715VoteIntervals = [delay];
+          entry.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
         entry.escapeVote.cap = 5;
       }
       entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, previous, escapeMetadata) });
@@ -5602,6 +5672,9 @@ window.Game = window.Game || {};
     state.flags.stage715OlegEscapeAttempts = attempt;
     phase = "oleg_escape_vote";
     saveState();
+    if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") {
+      Core.resumeStage715OlegEscapeVote(activeBattle.id);
+    }
     telemetry("stage715_escape_started");
     watchOlegEscape();
     render();
@@ -5640,7 +5713,7 @@ window.Game = window.Game || {};
         color: trueColor,
         outcome: outcome || null,
       },
-      stage715NastyaVote: { a: 2, b: 3, cap: 5 },
+      stage715NastyaVote: { a: 3, b: 2, cap: 5 },
     });
     if (battle.meta.stage715NastyaRewardsApplied !== true) {
       const baseline = battle.meta.stage715NastyaRewardBaseline || { rep: currentPlayerStat(G.__S || state, "rep"), points: currentPlayerStat(G.__S || state, "points"), wins: currentPlayerStat(G.__S || state, "wins") };
@@ -6091,6 +6164,7 @@ window.Game = window.Game || {};
     handleOlegDefenseChoice,
     getOlegEscapeDefenseChoices,
     handleOlegDmReply,
+    persistOlegEscapeVoteProgress,
     revealBattlesPanel,
     revealEventsPanel,
     shouldRevealBattleBlock,
