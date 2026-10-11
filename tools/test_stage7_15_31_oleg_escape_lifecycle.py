@@ -84,6 +84,8 @@ class FakeDate extends Date { static now() { return clock.now; } }
 const ledger = { money: [], rep: [], system: [], dm: [], telemetry: [] };
 const repActions = new Set();
 const moneyActions = new Set();
+let nextRepTransferResult = { ok: true };
+let repTransferCalls = 0;
 const player = { id: "me", name: "Тест", points: 20, influence: 4, rep: 5, isMe: true };
 const oleg = { id: "npc_oleg", name: "Олег", points: 10, influence: 6, type: "npc", npc: true };
 const battle = {
@@ -101,6 +103,7 @@ assert.notStrictEqual(canonicalState, renderState);
 assert.notStrictEqual(canonicalState.battles[0], renderState.battles[0]);
 const Game = {
   __S: canonicalState,
+  __D: { moneyLog: [] },
   UI: { S: renderState, pushSystem(text) { ledger.system.push(text); }, renderAll() {}, requestRenderAll() {} },
   Data: { resolveUiTextProfileName() { return "millennial"; }, TEXTS: { millennial: {
     "battle.draw_fallback": "Толпа решает", "battle.escaped_fallback": "Свалить", "battle.ignored_fallback": "Отвали"
@@ -108,9 +111,16 @@ const Game = {
   __A: {
     ensureNonNegativePoints() {}, syncMeToPlayers() {}, emitStatDelta() {},
     transferRep(from, to, amount, reason, battleId, options) {
+      repTransferCalls += 1;
+      if (!nextRepTransferResult || nextRepTransferResult.ok !== true) return nextRepTransferResult;
       const actionId = options && options.actionId;
-      if (reason === "rep_stage715_escape_bribe" && !repActions.has(actionId)) { repActions.add(actionId); ledger.rep.push({ amount, actionId }); }
-      return { ok: true };
+      if (reason === "rep_stage715_escape_bribe" && !repActions.has(actionId)) {
+        repActions.add(actionId);
+        const entry = { sourceId: from, targetId: to, amount, reason, battleId, currency: "rep", actionId };
+        ledger.rep.push(entry);
+        Game.__D.moneyLog.push(entry);
+      }
+      return nextRepTransferResult;
     },
     pushDm(id, name, text) { ledger.dm.push({ id, name, text }); return true; }
   },
@@ -153,6 +163,8 @@ const vmContext = {
   escapeCostForBattle() { return 1; },
   pushNpc() {},
   stage715OlegEscapeLiveTimers: new WeakMap(),
+  setRepTransferResult(value) { nextRepTransferResult = value; },
+  getRepTransferCalls() { return repTransferCalls; },
   getEcon() { return null; }, useWeightedTally() { return false; },
   ensureBattleCrowdCap() {},
   isEscapeVote(b) { return !!(b && b.escapeVote && !b.escapeVote.decided); },
@@ -194,6 +206,32 @@ vm.runInContext(`
   assert.strictEqual(Game._ConflictCore.resumeStage715OlegEscapeVote(OLEG_ESCAPE_BATTLE_ID), false,
     "Core resume must not restart a timer against a stale UI mirror after authoritative settlement");
   persistStageProgress(OLEG_ESCAPE_BATTLE_ID);
+  const repBeforeFailure = ledger.rep.length;
+  setRepTransferResult({ ok: false, reason: "insufficient_rep", available: 0, requested: 1 });
+  assert.strictEqual(settleOlegEscapeOutcome(observed), false, "insufficient REP must not fabricate a successful settlement");
+  assert.strictEqual(observed.meta.stage715Escape.repSettled, false);
+  assert.strictEqual(observed.meta.stage715Escape.outcomeHandled, false);
+  assert.strictEqual(observed.meta.stage715Escape.repSettlementFailureReason, "insufficient_rep");
+  assert.strictEqual(ledger.rep.length, repBeforeFailure, "insufficient REP must not append a debit");
+  assert.strictEqual(ledger.system.length, 0, "insufficient REP must not publish an outcome");
+  assert.strictEqual(ledger.dm.length, 0, "insufficient REP must not publish an outcome DM");
+  setRepTransferResult({ ok: false, reason: "security_blocked" });
+  assert.strictEqual(settleOlegEscapeOutcome(observed), false, "other economy errors must also fail closed");
+  assert.strictEqual(observed.meta.stage715Escape.repSettlementFailureReason, "security_blocked",
+    "the controller must preserve the concrete economy error instead of collapsing it");
+  assert.strictEqual(ledger.rep.length, repBeforeFailure);
+  setRepTransferResult({ ok: true });
+  // Model a real interrupted lifecycle boundary: the canonical REP transfer
+  // succeeds, then Stage outcome handling runs on the already-settled state.
+  assert(settleOlegEscapeRep(observed, 1), "canonical REP action settles before the Stage outcome watcher");
+  assert.strictEqual(observed.meta.stage715Escape.repSettled, true);
+  assert.strictEqual(observed.meta.stage715Escape.outcomeHandled, false);
+  const transferCallsAfterSettlement = getRepTransferCalls();
+  observed.meta.stage715Escape.repSettled = false;
+  const recoveredTransfer = settleOlegEscapeRep(observed, 1);
+  assert(recoveredTransfer.alreadySettled, "a durable canonical REP ledger entry recovers an interrupted flag write");
+  assert.strictEqual(getRepTransferCalls(), transferCallsAfterSettlement, "ledger recovery must not call transferRep again");
+  assert.strictEqual(ledger.rep.length, 1, "ledger recovery must not debit REP twice");
   assert(settleOlegEscapeOutcome(observed), "Stage outcome must settle after Core settlement");
   assert.strictEqual(observed.meta.stage715Escape.status, "failed");
   assert.strictEqual(ledger.system.filter(text => text === "У Тест не получилось уйти от Олега!").length, 1, "one loss system message");
@@ -206,6 +244,15 @@ vm.runInContext(`
   const firstReload = clone(persistedState);
   assert.strictEqual(firstReload.battles[0].meta.stage715Escape.status, "failed", "failed attempt survives reload");
   assert.strictEqual(firstReload.battles[0].id, OLEG_ESCAPE_BATTLE_ID, "reload retains the same scripted card");
+  // Replaying the canonical REP helper recognizes its persisted settlement.
+  assert(settleOlegEscapeRep(authoritative, 1));
+  assert.strictEqual(ledger.rep.filter(entry => entry.actionId === "stage715_escape_1").length, 1,
+    "recovery must not debit REP a second time");
+  assert.strictEqual(JSON.stringify(ledger.rep[0]), JSON.stringify({
+    sourceId: "me", targetId: "crowd_pool", amount: 1,
+    reason: "rep_stage715_escape_bribe", battleId: OLEG_ESCAPE_BATTLE_ID,
+    currency: "rep", actionId: "stage715_escape_1"
+  }), "the REP journal must identify the first attempt by its stable actionId");
   assert(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), "controller should start the second escape through Core.escape");
   const second = Game.__S.battles[0];
   assert.strictEqual(second.meta.stage715Escape.attempt, 2);

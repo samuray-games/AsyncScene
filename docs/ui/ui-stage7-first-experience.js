@@ -5488,17 +5488,42 @@ window.Game = window.Game || {};
 
   function settleOlegEscapeRep(battle, attempt) {
     const escape = battle && battle.meta && battle.meta.stage715Escape;
-    if (!escape || escape.repSettled === true) return false;
+    if (!escape) return { ok: false, reason: "escape_state_missing" };
+    if (escape.repSettled === true) return { ok: true, alreadySettled: true };
+    const actionId = String(escape.repActionId || `stage715_escape_${attempt}`);
+    const repLog = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const priorTransfer = repLog.find((entry) => entry
+      && String(entry.actionId || "") === actionId
+      && String(entry.reason || "") === "rep_stage715_escape_bribe"
+      && String(entry.battleId || "") === String(battle.id)
+      && String(entry.sourceId || "") === "me"
+      && String(entry.targetId || "") === "crowd_pool"
+      && Number(entry.amount) === 1);
+    if (priorTransfer) {
+      escape.repSettled = true;
+      escape.repActionId = actionId;
+      delete escape.repSettlementFailureReason;
+      return { ok: true, alreadySettled: true, ledgerEntry: priorTransfer };
+    }
     const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
     const settled = transferRep
       ? transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id, {
-        actionId: `stage715_escape_${attempt}`,
+        actionId,
         context: "stage715_escape_bribe",
       })
       : { ok: false, reason: "transfer_rep_unavailable" };
-    if (!settled || settled.ok !== true) return false;
+    if (!settled || settled.ok !== true) {
+      return {
+        ok: false,
+        reason: String(settled && settled.reason || "rep_transfer_failed"),
+        available: settled && settled.available,
+        requested: settled && settled.requested,
+      };
+    }
     escape.repSettled = true;
-    return true;
+    escape.repActionId = actionId;
+    delete escape.repSettlementFailureReason;
+    return { ok: true, newlySettled: true };
   }
 
   function pushOlegEscapeDm(text, flag) {
@@ -5531,7 +5556,16 @@ window.Game = window.Game || {};
     const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
     const succeeded = battle.resolved === true && battle.result === "escaped";
     if (!succeeded && battle.escapeVote) return false;
-    if (!settleOlegEscapeRep(battle, attempt)) return false;
+    const repSettlement = settleOlegEscapeRep(battle, attempt);
+    if (!repSettlement || repSettlement.ok !== true) {
+      const reason = String(repSettlement && repSettlement.reason || "rep_transfer_failed");
+      if (escape.repSettlementFailureReason !== reason) {
+        escape.repSettlementFailureReason = reason;
+        persistOlegEscapeVoteProgress(battle.id);
+      }
+      return false;
+    }
+    delete escape.repSettlementFailureReason;
     escape.outcomeHandled = true;
     if (succeeded) {
       escape.status = "success";
@@ -5674,6 +5708,7 @@ window.Game = window.Game || {};
       status: "voting",
       outcomeHandled: false,
       repSettled: false,
+      repActionId: `stage715_escape_${attempt}`,
       scriptedVotes,
       scriptedVoteSequence,
     };
