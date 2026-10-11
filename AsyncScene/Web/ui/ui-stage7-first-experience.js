@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 73733)
-Total output lines: 6449
-
 // Stage 7.1 deterministic first causal experience.
 window.Game = window.Game || {};
 
@@ -754,7 +751,4858 @@ window.Game = window.Game || {};
       intermissionNpcVisits: raw.intermissionNpcVisits && typeof raw.intermissionNpcVisits === "object" ? raw.intermissionNpcVisits : {},
       intermissionNpcMessage: raw.intermissionNpcMessage && typeof raw.intermissionNpcMessage === "object" ? raw.intermissionNpcMessage : null,
       awaitingWorldAdvance: raw.awaitingWorldAdvance === true,
-     …53733 tokens truncated… { ok: true, moneyEntry, repEntry, moneyWasAlreadySettled, repWasAlreadySettled };
+      worldAdvanceDueAt: Number.isFinite(Number(raw.worldAdvanceDueAt)) ? Number(raw.worldAdvanceDueAt) : null,
+      worldAdvanceSettled: raw.worldAdvanceSettled === true && typeof raw.worldAdvanceId === "string" && raw.worldAdvanceId.length > 0,
+      worldAdvancePresented: raw.worldAdvancePresented === true,
+      worldAdvancePresentationMode: ["foreground", "return"].includes(raw.worldAdvancePresentationMode) ? raw.worldAdvancePresentationMode : null,
+      branchFollowUpPending: raw.branchFollowUpPending === true,
+      followUpChoiceId: ["primary", "secondary"].includes(raw.followUpChoiceId) ? raw.followUpChoiceId : null,
+      followUpSettled: raw.followUpSettled === true,
+      roundTwoResultAcknowledged: raw.roundTwoResultAcknowledged === true,
+      onboardingUnlocked: raw.onboardingUnlocked === true || legacyCompleted,
+      unlockedAt: Number.isFinite(Number(raw.unlockedAt)) ? Number(raw.unlockedAt) : null,
+      lastHiddenAt: Number.isFinite(Number(raw.lastHiddenAt)) ? Number(raw.lastHiddenAt) : null,
+      npcMemory: raw.npcMemory && typeof raw.npcMemory === "object" ? raw.npcMemory : {},
+      realBattleBridge: sanitizeRealBattleBridge(raw.realBattleBridge),
+      evidence: sanitizeEvidence(raw.evidence),
+      telemetry: Array.isArray(raw.telemetry) ? raw.telemetry.slice(-80) : [],
+    });
+    if (normalized.onboardingUnlocked) {
+      normalized.stateId = "main_unlocked";
+      normalized.awaitingWorldAdvance = false;
+      normalized.worldAdvancePresented = false;
+      normalized.worldAdvanceSettled = true;
+      normalized.branchFollowUpPending = false;
+      normalized.followUpSettled = true;
+      normalized.evidence.questionnaireOpen = false;
+      normalized.evidence.answersComplete = true;
+      return normalized;
+    }
+    if (!hasCorridorContract && normalized.stateId === "intermission") {
+      const startedAt = normalized.cycleCompletedAt || Date.now();
+      normalized.intermissionStartedAt = startedAt;
+      normalized.worldAdvanceDueAt = normalized.worldAdvanceDueAt || (startedAt + INTERMISSION_DELAY_MS);
+      normalized.awaitingWorldAdvance = true;
+      normalized.worldAdvancePresented = false;
+      normalized.worldAdvanceSettled = false;
+      normalized.branchFollowUpPending = false;
+      normalized.followUpSettled = false;
+    }
+    if (!hasCorridorContract && normalized.stateId === "round_two") {
+      normalized.awaitingWorldAdvance = true;
+      normalized.worldAdvancePresented = true;
+      normalized.worldAdvanceSettled = false;
+      normalized.branchFollowUpPending = true;
+      normalized.followUpSettled = false;
+    }
+    return normalized;
+  }
+
+  function loadSnapshot() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return sanitize(JSON.parse(raw));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveSnapshot() {
+    if (!snapshot) return false;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function telemetry(name, meta) {
+    if (!snapshot) return;
+    snapshot.telemetrySeq = (snapshot.telemetrySeq | 0) + 1;
+    snapshot.telemetry = Array.isArray(snapshot.telemetry) ? snapshot.telemetry : [];
+    snapshot.telemetry.push({ seq: snapshot.telemetrySeq, name, at: Date.now(), meta: meta || null });
+    if (snapshot.telemetry.length > 80) snapshot.telemetry.splice(0, snapshot.telemetry.length - 80);
+    saveSnapshot();
+    if (G.Telemetry && typeof G.Telemetry.action === "function") {
+      G.Telemetry.action(name, meta || {});
+    }
+  }
+
+  function syncProductionTelemetry(panel) {
+    if (!snapshot || !panel) return;
+    const stateId = snapshot.stateId || "unknown";
+    panel.setAttribute("data-telemetry-screen", `stage7.${stateId}`);
+    if (productionStateId !== stateId && G.Telemetry && typeof G.Telemetry.stateChanged === "function") {
+      G.Telemetry.stateChanged({
+        flowId: SCENARIO_ID,
+        fromStateId: productionStateId || "entry",
+        toStateId: stateId,
+      });
+    }
+    productionStateId = stateId;
+  }
+
+  function getState() {
+    return context && context.state ? context.state : (G.__S || (G.UI && G.UI.S) || G.State || null);
+  }
+
+  function ensureScenarioPlayers() {
+    const S = getState();
+    if (!S) return;
+    S.players = S.players || {};
+    const startNpcPoints = G.Data && Number.isFinite(G.Data.START_POINTS_NPC)
+      ? (G.Data.START_POINTS_NPC | 0)
+      : (G.Data && Number.isFinite(G.Data.POINTS_START_NPC) ? (G.Data.POINTS_START_NPC | 0) : 10);
+    if (!S.players.npc_stage7_ken) S.players.npc_stage7_ken = { id: "npc_stage7_ken", name: "Райхан", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
+    if (!S.players.npc_stage7_mika) S.players.npc_stage7_mika = { id: "npc_stage7_mika", name: "Настя", role: "crowd", npc: true, points: startNpcPoints, meta: {} };
+    if (!S.players.npc_bandit) S.players.npc_bandit = { id: "npc_bandit", name: "Олег", role: "bandit", npc: true, points: startNpcPoints, meta: {} };
+    ["npc_stage7_ken", "npc_stage7_mika", "npc_bandit"].forEach((id) => {
+      const player = S.players[id];
+      if (!player) return;
+      player.meta = player.meta && typeof player.meta === "object" ? player.meta : {};
+      player.meta.stage7FirstExperience = Object.assign(
+        {},
+        player.meta.stage7FirstExperience || {},
+        snapshot && snapshot.npcMemory && snapshot.npcMemory[id] || {}
+      );
+    });
+  }
+
+  function pushLine(entry) {
+    if (!entry || !context || !context.UI) return;
+    const UI = context.UI;
+    if (entry.system && typeof UI.pushSystem === "function") UI.pushSystem(entry.text);
+    else if (typeof UI.pushChat === "function") UI.pushChat({ name: entry.name, text: entry.text, system: false, preserveText: entry.preserveText === true });
+    if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+    else if (typeof UI.renderAll === "function") UI.renderAll();
+  }
+
+  function emitPrelude(entry) {
+    if (!snapshot || snapshot.shownMessageIds.includes(entry.id)) return false;
+    snapshot.shownMessageIds.push(entry.id);
+    if (entry.id === "ken_accusation") {
+      snapshot.preludeComplete = true;
+      snapshot.stateId = "accusation";
+    }
+    saveSnapshot();
+    const state = getState();
+    const playerName = String(
+      state && state.me && state.me.name
+      || context && context.playerName
+      || "игрок"
+    ).trim() || "игрок";
+    const nextEntry = entry.id === "ken_accusation"
+      ? Object.assign({}, entry, {
+        text: `@${playerName}, это сделал ты!!! деньги пропали после твоего появления!`,
+        preserveText: true,
+      })
+      : entry;
+    pushLine(nextEntry);
+    telemetry("first_experience.prelude_message_shown", { messageId: entry.id });
+    if (entry.id === "room_entered") telemetry("first_experience.room_entered");
+    if (entry.id === "ken_accusation") telemetry("first_experience.accusation_triggered");
+    render();
+    return true;
+  }
+
+  function ensurePanel() {
+    let panel = document.getElementById("stage7FirstExperiencePanel");
+    if (panel) return panel;
+    const blocks = document.getElementById("blocks");
+    if (!blocks) return null;
+    panel = document.createElement("section");
+    panel.id = "stage7FirstExperiencePanel";
+    panel.className = "block panel stage7FirstExperiencePanel";
+    panel.setAttribute("aria-live", "polite");
+    panel.setAttribute("data-telemetry-screen", "stage7.entry");
+    panel.addEventListener("click", onPanelClick);
+    blocks.insertBefore(panel, blocks.firstChild || null);
+    return panel;
+  }
+
+  function setControlledMode(active) {
+    const root = document.documentElement;
+    if (root) root.classList.toggle("stage7-first-experience-active", !!active);
+  }
+
+  function actionButton(label, action, extra) {
+    return `<button class="btn primary stage7FirstExperienceAction" type="button" data-stage7-action="${action}" ${extra || ""}>${label}</button>`;
+  }
+
+  function getIntermissionNpc(npcId) {
+    return INTERMISSION_NPCS.find((npc) => npc.id === npcId) || null;
+  }
+
+  function getIntermissionLine(npc) {
+    if (!npc || !snapshot || !snapshot.branchId) return "";
+    const lines = npc.lines[snapshot.branchId] || [];
+    const visits = snapshot.intermissionNpcVisits && Number(snapshot.intermissionNpcVisits[npc.id]) || 0;
+    return lines.length ? lines[Math.max(0, visits - 1) % lines.length] : "";
+  }
+
+  function renderIntermission(panel) {
+    const message = snapshot.intermissionNpcMessage;
+    const cards = INTERMISSION_NPCS.map((npc) => `
+      <button class="btn stage7NpcAction" type="button" data-stage7-action="talk-intermission-npc" data-intermission-npc="${npc.id}">
+        <strong>${npc.name}</strong><span>${npc.role}</span>
+      </button>`).join("");
+    panel.innerHTML = `
+      <div class="stage7Intermission">
+        <div class="stage7EvidenceBadge">Первый раунд завершён.</div>
+        <h2>В комнате остались трое</h2>
+        <p>До второго раунда можно осмотреться и узнать об участниках.</p>
+        <div class="stage7IntermissionGrid" aria-label="Три доступных персонажа">${cards}</div>
+        ${message ? `<div class="stage7NpcReply"><strong>${message.name}</strong><p>${message.text}</p></div>` : ""}
+        <div class="stage7Support">Полная игра пока закрыта. Если уйдёшь, второй раунд встретит тебя после возвращения. Всё сохранено.</div>
+      </div>`;
+  }
+
+  function renderVotes(branch) {
+    return `<div class="stage7VoteRow" aria-label="Пять голосов">${branch.vote.map((side, index) => {
+      const resolved = index < snapshot.voteStep;
+      const cls = !resolved ? "pending" : (side ? "player" : "ken");
+      const text = !resolved ? "•" : (side ? "За тебя" : "За Райхана");
+      return `<span class="stage7VoteMarker ${cls}" data-vote-index="${index}">${text}</span>`;
+    }).join("")}</div>`;
+  }
+
+  function renderWorldAdvance(panel) {
+    const branch = BRANCHES[snapshot.branchId];
+    const offer = BRANCH_FOLLOW_UPS[snapshot.branchId];
+    if (!branch || !offer) return;
+    const header = snapshot.worldAdvancePresentationMode === "return" ? "Пока тебя не было..." : "Второй раунд начался";
+    panel.innerHTML = `
+      <div class="stage7WorldAdvance">
+        <div class="stage7EvidenceBadge">${header}</div>
+        <h2>${offer.title}</h2>
+        <p><strong>${branch.change}</strong></p>
+        <p>${branch.cause}</p>
+        <p class="stage7DecisionHook">${offer.prompt}</p>
+        <div class="stage7ChoiceGrid">
+          ${actionButton(offer.primaryLabel, "resolve-branch-follow-up", 'data-follow-up="primary"')}
+          ${actionButton(offer.secondaryLabel, "resolve-branch-follow-up", 'data-follow-up="secondary"')}
+        </div>
+      </div>`;
+  }
+
+  function renderEvidenceQuestion(panel) {
+    const evidence = snapshot && snapshot.evidence;
+    const questions = evidenceQuestions();
+    const question = evidence && questions[evidence.questionIndex];
+    if (!evidence || !question) return;
+    const options = question.options.map((option) => actionButton(
+      option.label,
+      "answer-evidence-question",
+      `data-evidence-question="${question.id}" data-evidence-answer="${option.id}"`
+    )).join("");
+    panel.innerHTML = `
+      <div class="stage7EvidenceQuestion" role="group" aria-labelledby="stage7EvidenceQuestionTitle" data-telemetry-question="${question.id}">
+        <div class="stage7EvidenceBadge">Вопрос · ${evidence.questionIndex + 1}/${questions.length}</div>
+        <h2 id="stage7EvidenceQuestionTitle">${question.prompt}</h2>
+        <div class="stage7EvidenceOptions">${options}</div>
+      </div>`;
+    if (G.Telemetry && typeof G.Telemetry.questionShown === "function") {
+      G.Telemetry.questionShown({ flowId: SCENARIO_ID, questionId: question.id });
+    }
+  }
+
+  function getRoundTwoResult() {
+    if (!snapshot || !snapshot.followUpSettled || !snapshot.followUpChoiceId) return null;
+    const offer = BRANCH_FOLLOW_UPS[snapshot.branchId];
+    if (!offer) return null;
+    const reaction = snapshot.followUpChoiceId === "primary" ? offer.primaryReaction : offer.secondaryReaction;
+    const memory = snapshot.npcMemory && snapshot.npcMemory[offer.memoryTarget];
+    if (!reaction || !memory || Number(memory[reaction.memoryKey]) < 1) return null;
+    return reaction;
+  }
+
+  function renderRoundTwoResult(panel) {
+    const result = getRoundTwoResult();
+    if (!result) return;
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp" role="dialog" aria-modal="true" aria-labelledby="stage7RoundTwoResultTitle">
+        <div class="stage7EvidenceBadge">Второй раунд завершён</div>
+        <h2 id="stage7RoundTwoResultTitle">${result.title}</h2>
+        <p>${result.body}</p>
+        <p>Пока Райхан ищет свидетеля, ответьте на 6 простых, но очень важных для разраба вопросов.</p>
+        ${actionButton("Перейти к вопросам", "open-onboarding-questionnaire")}
+        <div class="stage7Support">После вопросов откроется полная игра.</div>
+      </div>`;
+  }
+
+
+  function normalizeFirstBattleAftermathOutcome(rawOutcome) {
+    const raw = String(rawOutcome || "").trim().toLowerCase();
+    if (raw === "win") return "win";
+    if (raw === "lose" || raw === "cop_penalty") return "lose";
+    return "interrupted";
+  }
+
+  function getFirstBattleAftermathRecord() {
+    const bridge = getBridgeState();
+    if (!bridge || !["pending", "acknowledged"].includes(bridge.aftermathStatus)) return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = branchId ? FIRST_BATTLE_AFTERMATH_COPY[branchId] : null;
+    const copy = copyGroup && copyGroup[outcomeKind] ? copyGroup[outcomeKind] : null;
+    if (!branchId || !copyGroup || !copy) return null;
+    return {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      status: bridge.aftermathStatus,
+      targetNpcId: bridge.aftermathTargetNpcId || FIRST_BATTLE_AFTERMATH_TARGETS[branchId],
+      npcName: copyGroup.npcName,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId: bridge.battleId,
+      outcomeRaw: bridge.aftermathOutcomeRaw || bridge.outcome,
+      outcomeKind,
+      recordedAt: bridge.aftermathRecordedAt,
+      acknowledgedAt: bridge.aftermathAcknowledgedAt,
+      applyCount: bridge.aftermathApplyCount,
+      dmStatus: bridge.aftermathDmStatus,
+      dmLineId: bridge.aftermathDmLineId,
+      dmDeliveredAt: bridge.aftermathDmDeliveredAt,
+      dmDeliveryCount: bridge.aftermathDmDeliveryCount,
+      title: copy.title,
+      body: copy.body,
+    };
+  }
+
+  function recordFirstBattleAftermath(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle || bridge.status !== "completed") return false;
+    if (["pending", "acknowledged"].includes(bridge.aftermathStatus)) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const exactBridgeBattle = !!(battleId
+      && bridge.battleId === battleId
+      && battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!exactBridgeBattle) return false;
+    const branchId = RESPONSE_IDS.includes(bridge.branchId) ? bridge.branchId : snapshot.branchId;
+    const targetNpcId = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    if (!branchId || !targetNpcId) return false;
+    const outcomeRaw = typeof battle.result === "string" && battle.result
+      ? battle.result
+      : (bridge.outcome || "unknown");
+    const outcomeKind = normalizeFirstBattleAftermathOutcome(outcomeRaw);
+    const recordedAt = Date.now();
+    bridge.aftermathStatus = "pending";
+    bridge.aftermathTargetNpcId = targetNpcId;
+    bridge.aftermathBranchId = branchId;
+    bridge.aftermathSecondRoundChoiceId = bridge.secondRoundChoiceId || snapshot.followUpChoiceId || null;
+    bridge.aftermathOutcomeRaw = outcomeRaw;
+    bridge.aftermathOutcomeKind = outcomeKind;
+    bridge.aftermathRecordedAt = recordedAt;
+    bridge.aftermathAcknowledgedAt = null;
+    bridge.aftermathApplyCount = Math.max(1, bridge.aftermathApplyCount + 1);
+    bridge.aftermathDmStatus = "locked";
+    bridge.aftermathDmLineId = null;
+    bridge.aftermathDmDeliveredAt = null;
+    bridge.aftermathDmDeliveryCount = 0;
+
+    const record = {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      status: "pending",
+      targetNpcId,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId,
+      outcomeRaw,
+      outcomeKind,
+      recordedAt,
+      acknowledgedAt: null,
+      applyCount: bridge.aftermathApplyCount,
+      dmStatus: "locked",
+      dmLineId: null,
+      dmDeliveredAt: null,
+      dmDeliveryCount: 0,
+    };
+    snapshot.npcMemory[targetNpcId] = Object.assign({}, snapshot.npcMemory[targetNpcId] || {}, {
+      firstRealBattleAftermath: record,
+    });
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_recorded", {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      targetNpcId,
+      branchId,
+      secondRoundChoiceId: bridge.aftermathSecondRoundChoiceId,
+      battleId,
+      outcomeRaw,
+      outcomeKind,
+      applyCount: bridge.aftermathApplyCount,
+    });
+    return true;
+  }
+
+  function renderFirstBattleAftermath(panel) {
+    const record = getFirstBattleAftermathRecord();
+    if (!panel || !record || record.status !== "pending") return false;
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp stage7FirstBattleAftermath" data-testid="stage7-first-battle-aftermath">
+        <h2>${record.title}</h2>
+        <p>${record.body}</p>
+        ${actionButton("Понятно", "acknowledge-first-battle-aftermath")}
+      </div>`;
+    return true;
+  }
+
+  function acknowledgeFirstBattleAftermath() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.aftermathStatus !== "pending") return false;
+    const targetNpcId = bridge.aftermathTargetNpcId;
+    const memory = targetNpcId && snapshot.npcMemory ? snapshot.npcMemory[targetNpcId] : null;
+    const record = memory && memory.firstRealBattleAftermath;
+    const acknowledgedAt = Date.now();
+    bridge.aftermathStatus = "acknowledged";
+    bridge.aftermathAcknowledgedAt = acknowledgedAt;
+    bridge.aftermathDmStatus = "pending";
+    bridge.aftermathDmLineId = null;
+    bridge.aftermathDmDeliveredAt = null;
+    bridge.aftermathDmDeliveryCount = 0;
+    if (record && record.aftermathId === FIRST_BATTLE_AFTERMATH_ID) {
+      record.status = "acknowledged";
+      record.acknowledgedAt = acknowledgedAt;
+      record.dmStatus = "pending";
+      record.dmLineId = null;
+      record.dmDeliveredAt = null;
+      record.dmDeliveryCount = 0;
+    }
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_acknowledged", {
+      aftermathId: FIRST_BATTLE_AFTERMATH_ID,
+      targetNpcId,
+      branchId: bridge.aftermathBranchId,
+      battleId: bridge.battleId,
+      outcomeRaw: bridge.aftermathOutcomeRaw,
+      outcomeKind: bridge.aftermathOutcomeKind,
+      applyCount: bridge.aftermathApplyCount,
+    });
+    render();
+    return true;
+  }
+
+
+  function getFirstBattleAftermathDmContactRecord() {
+    const current = snapshot || loadSnapshot();
+    if (!current || current.onboardingUnlocked !== true) return null;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    if (bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || !["pending", "delivered"].includes(bridge.aftermathDmStatus)) return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const expectedTarget = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    const target = bridge.aftermathTargetNpcId || expectedTarget;
+    if (!branchId || !target || target !== expectedTarget) return null;
+    const memory = current.npcMemory && current.npcMemory[target];
+    const saved = memory && memory.firstRealBattleAftermath;
+    if (!saved
+      || saved.aftermathId !== FIRST_BATTLE_AFTERMATH_ID
+      || saved.status !== "acknowledged"
+      || !saved.battleId
+      || saved.battleId !== bridge.battleId
+      || saved.targetNpcId !== target
+      || saved.branchId !== branchId) return null;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = FIRST_BATTLE_AFTERMATH_DM_COPY[branchId];
+    const text = copyGroup && copyGroup[outcomeKind];
+    if (!copyGroup || !text) return null;
+    const lineId = bridge.aftermathDmLineId
+      || `${FIRST_BATTLE_AFTERMATH_DM_ID}:${bridge.battleId}:${target}`;
+    return {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      lineId,
+      targetNpcId: target,
+      npcName: copyGroup.npcName,
+      battleId: bridge.battleId,
+      branchId,
+      outcomeKind,
+      dmStatus: bridge.aftermathDmStatus,
+      text,
+    };
+  }
+
+  function restoreFirstBattleAftermathDmHistory(contact) {
+    if (!contact || contact.dmStatus !== "delivered") return false;
+    ensureScenarioPlayers();
+    const logs = getDmLogsForNpc(contact.targetNpcId);
+    const UI = G.UI;
+    if (!logs || !UI || typeof UI.dmPushLine !== "function") return false;
+    const existing = logs.find((item) => item
+      && item.stage7AftermathReplyId === contact.lineId
+      && item.stage7AftermathBattleId === contact.battleId);
+    if (existing) return true;
+    UI.dmPushLine(contact.targetNpcId, contact.npcName, contact.text);
+    const line = logs[logs.length - 1] || null;
+    if (!line) return false;
+    line.stage7AftermathReplyId = contact.lineId;
+    line.stage7AftermathBattleId = contact.battleId;
+    line.stage7AftermathOutcomeKind = contact.outcomeKind;
+    line.stage7AftermathHistoryRestored = true;
+    return true;
+  }
+
+  function renderFirstBattleAftermathDmContact(panel) {
+    const contact = getFirstBattleAftermathDmContactRecord();
+    const bridge = getBridgeState();
+    if (!panel || !contact || (bridge && bridge.aftermathDmContactPromptDismissed)) return false;
+    panel.innerHTML = `
+      <div class="stage7BranchFollowUp stage7AftermathDmContact" data-testid="stage7-aftermath-dm-contact">
+        <div class="stage7EvidenceBadge">Личный контакт</div>
+        <h2>${contact.npcName}</h2>
+        ${actionButton(`Открыть личку: ${contact.npcName}`, "open-aftermath-dm-contact")}
+      </div>`;
+    return true;
+  }
+
+  function dismissFirstBattleAftermathDmContactPrompt() {
+    if (!snapshot) snapshot = loadSnapshot();
+    const bridge = getBridgeState();
+    if (!bridge || !["pending", "delivered"].includes(bridge.aftermathDmStatus)) return false;
+    if (bridge.aftermathDmContactPromptDismissed) return true;
+    bridge.aftermathDmContactPromptDismissed = true;
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_dm_contact_prompt_dismissed", {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      targetNpcId: bridge.aftermathTargetNpcId,
+      branchId: bridge.aftermathBranchId,
+      battleId: bridge.battleId,
+    });
+    return true;
+  }
+
+  function openFirstBattleAftermathDmContact() {
+    const contact = getFirstBattleAftermathDmContactRecord();
+    const UI = G.UI;
+    if (!contact || !UI || typeof UI.openDM !== "function") return false;
+    ensureScenarioPlayers();
+    if (contact.dmStatus === "delivered") restoreFirstBattleAftermathDmHistory(contact);
+    const result = UI.openDM(contact.targetNpcId);
+    if (result === false) return false;
+    if (contact.dmStatus === "delivered") restoreFirstBattleAftermathDmHistory(contact);
+    dismissFirstBattleAftermathDmContactPrompt();
+    telemetry("first_experience.first_real_battle_aftermath_dm_contact_opened", {
+      contactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+      targetNpcId: contact.targetNpcId,
+      branchId: contact.branchId,
+      battleId: contact.battleId,
+      outcomeKind: contact.outcomeKind,
+      dmStatus: contact.dmStatus,
+    });
+    render();
+    return true;
+  }
+
+
+  function getFirstBattleAftermathDmRecord(targetNpcId) {
+    const current = snapshot || loadSnapshot();
+    if (!current || current.onboardingUnlocked !== true) return null;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    if (bridge.status !== "completed"
+      || bridge.aftermathStatus !== "acknowledged"
+      || bridge.aftermathDmStatus !== "pending") return null;
+    const branchId = RESPONSE_IDS.includes(bridge.aftermathBranchId)
+      ? bridge.aftermathBranchId
+      : bridge.branchId;
+    const expectedTarget = branchId ? FIRST_BATTLE_AFTERMATH_TARGETS[branchId] : null;
+    const target = bridge.aftermathTargetNpcId || expectedTarget;
+    if (!branchId || !target || target !== expectedTarget) return null;
+    if (targetNpcId != null && String(targetNpcId) !== target) return null;
+    const memory = current.npcMemory && current.npcMemory[target];
+    const saved = memory && memory.firstRealBattleAftermath;
+    if (!saved
+      || saved.aftermathId !== FIRST_BATTLE_AFTERMATH_ID
+      || saved.status !== "acknowledged"
+      || !saved.battleId
+      || saved.battleId !== bridge.battleId
+      || saved.targetNpcId !== target
+      || saved.branchId !== branchId) return null;
+    const outcomeKind = ["win", "lose", "interrupted"].includes(bridge.aftermathOutcomeKind)
+      ? bridge.aftermathOutcomeKind
+      : normalizeFirstBattleAftermathOutcome(bridge.aftermathOutcomeRaw || bridge.outcome);
+    const copyGroup = FIRST_BATTLE_AFTERMATH_DM_COPY[branchId];
+    const text = copyGroup && copyGroup[outcomeKind];
+    if (!copyGroup || !text) return null;
+    const lineId = `${FIRST_BATTLE_AFTERMATH_DM_ID}:${bridge.battleId}:${target}`;
+    return {
+      followUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+      lineId,
+      targetNpcId: target,
+      npcName: copyGroup.npcName,
+      battleId: bridge.battleId,
+      branchId,
+      outcomeKind,
+      text,
+    };
+  }
+
+  function getDmLogsForNpc(targetNpcId) {
+    const state = getState();
+    if (!state) return null;
+    state.dm = state.dm && typeof state.dm === "object" ? state.dm : {};
+    state.dm.logs = state.dm.logs && typeof state.dm.logs === "object" ? state.dm.logs : {};
+    const id = String(targetNpcId || "");
+    if (!id) return null;
+    state.dm.logs[id] = Array.isArray(state.dm.logs[id]) ? state.dm.logs[id] : [];
+    return state.dm.logs[id];
+  }
+
+  function deliverFirstBattleAftermathDm(targetNpcId) {
+    const pending = getFirstBattleAftermathDmRecord(targetNpcId);
+    if (!pending) return false;
+    if (!snapshot) snapshot = loadSnapshot();
+    if (!snapshot) return false;
+    ensureScenarioPlayers();
+    const logs = getDmLogsForNpc(pending.targetNpcId);
+    const UI = G.UI;
+    if (!logs || !UI || typeof UI.dmPushLine !== "function") return false;
+    let line = logs.find((item) => item
+      && item.stage7AftermathReplyId === pending.lineId
+      && item.stage7AftermathBattleId === pending.battleId) || null;
+    if (!line) {
+      UI.dmPushLine(pending.targetNpcId, pending.npcName, pending.text);
+      line = logs[logs.length - 1] || null;
+      if (!line) return false;
+      line.stage7AftermathReplyId = pending.lineId;
+      line.stage7AftermathBattleId = pending.battleId;
+      line.stage7AftermathOutcomeKind = pending.outcomeKind;
+    }
+
+    const bridge = getBridgeState();
+    const memory = snapshot.npcMemory && snapshot.npcMemory[pending.targetNpcId];
+    const record = memory && memory.firstRealBattleAftermath;
+    if (!bridge || !record || record.battleId !== pending.battleId) return false;
+    const deliveredAt = Date.now();
+    bridge.aftermathDmStatus = "delivered";
+    bridge.aftermathDmLineId = pending.lineId;
+    bridge.aftermathDmDeliveredAt = bridge.aftermathDmDeliveredAt || deliveredAt;
+    bridge.aftermathDmDeliveryCount = Math.max(1, bridge.aftermathDmDeliveryCount || 0);
+    record.dmStatus = "delivered";
+    record.dmLineId = pending.lineId;
+    record.dmDeliveredAt = record.dmDeliveredAt || bridge.aftermathDmDeliveredAt;
+    record.dmDeliveryCount = Math.max(1, record.dmDeliveryCount || 0);
+    ensureScenarioPlayers();
+    saveSnapshot();
+    telemetry("first_experience.first_real_battle_aftermath_dm_delivered", {
+      followUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+      lineId: pending.lineId,
+      targetNpcId: pending.targetNpcId,
+      branchId: pending.branchId,
+      battleId: pending.battleId,
+      outcomeKind: pending.outcomeKind,
+      deliveryCount: bridge.aftermathDmDeliveryCount,
+    });
+    if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+    else if (typeof UI.renderAll === "function") UI.renderAll();
+    return true;
+  }
+
+  function installFirstBattleAftermathDmHook() {
+    const UI = G.UI;
+    if (!UI || typeof UI.openDM !== "function") return false;
+    if (UI.openDM.__stage7AftermathDmHook === true) return true;
+    const originalOpenDM = UI.openDM;
+    const wrappedOpenDM = function stage7AftermathOpenDM(playerId, ...args) {
+      const contact = getFirstBattleAftermathDmContactRecord();
+      const pending = getFirstBattleAftermathDmRecord(playerId);
+      if (pending) {
+        if (!snapshot) snapshot = loadSnapshot();
+        ensureScenarioPlayers();
+      }
+      const result = originalOpenDM.apply(this, [playerId, ...args]);
+      if (result !== false && pending && deliverFirstBattleAftermathDm(playerId)) {
+        dismissFirstBattleAftermathDmContactPrompt();
+      }
+      if (result !== false && contact && contact.targetNpcId === String(playerId)) {
+        dismissFirstBattleAftermathDmContactPrompt();
+      }
+      return result;
+    };
+    Object.defineProperty(wrappedOpenDM, "__stage7AftermathDmHook", {
+      configurable: false,
+      enumerable: false,
+      value: true,
+      writable: false,
+    });
+    Object.defineProperty(wrappedOpenDM, "__stage7AftermathDmOriginal", {
+      configurable: false,
+      enumerable: false,
+      value: originalOpenDM,
+      writable: false,
+    });
+    UI.openDM = wrappedOpenDM;
+    return true;
+  }
+
+  function render() {
+    if (!snapshot) return;
+    const panel = ensurePanel();
+    if (!panel) return;
+    syncProductionTelemetry(panel);
+    const branch = snapshot.branchId ? BRANCHES[snapshot.branchId] : null;
+
+    if (snapshot.onboardingUnlocked) {
+      setControlledMode(false);
+      const bridge = getBridgeState();
+      if (bridge && bridge.status === "pending") {
+        panel.remove();
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return;
+      }
+      if (bridge && bridge.aftermathStatus === "pending") {
+        releaseNormalWorldOnce({ preservePanel: true });
+        panel.hidden = false;
+        renderFirstBattleAftermath(panel);
+        return;
+      }
+      if (bridge
+        && bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        releaseNormalWorldOnce({ preservePanel: true });
+        panel.hidden = false;
+        if (renderFirstBattleAftermathDmContact(panel)) return;
+      }
+      panel.remove();
+      releaseNormalWorldOnce();
+      return;
+    }
+
+    if (snapshot.evidence && snapshot.evidence.questionnaireOpen && !snapshot.evidence.answersComplete) {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderEvidenceQuestion(panel);
+      return;
+    }
+
+    if (snapshot.stateId === "round_two" && snapshot.worldAdvancePresented && !snapshot.worldAdvanceSettled) {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderWorldAdvance(panel);
+      return;
+    }
+
+    if (snapshot.stateId === "round_two_result" && snapshot.followUpSettled) {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderRoundTwoResult(panel);
+      return;
+    }
+
+    if (snapshot.stateId === "intermission") {
+      panel.hidden = false;
+      setControlledMode(true);
+      renderIntermission(panel);
+      return;
+    }
+
+    if (!snapshot.preludeComplete) {
+      panel.hidden = true;
+      panel.innerHTML = "";
+      setControlledMode(true);
+      return;
+    }
+
+    panel.hidden = false;
+    setControlledMode(true);
+    if (snapshot.stateId === "accusation") {
+      panel.innerHTML = `<h2>Райхан обвиняет тебя в краже.</h2><p>Все это видят.</p>${actionButton("Ответить", "open-answer")}`;
+      return;
+    }
+    if (snapshot.stateId === "answer") {
+      panel.innerHTML = `<h2>Что ответить?</h2><div class="stage7ChoiceGrid">
+        ${actionButton("Отрицать", "choose", 'data-branch="deny"')}
+        ${actionButton("Обвинить Райхана", "choose", 'data-branch="accuse_ken"')}
+        ${actionButton("Заплатить", "choose", 'data-branch="pay"')}
+      </div>`;
+      return;
+    }
+    if (!branch) {
+      panel.innerHTML = `<h2>Первый конфликт</h2><p>Восстанавливаем сохранённое состояние.</p>`;
+      return;
+    }
+    if (snapshot.stateId === "reaction") {
+      panel.innerHTML = `<h2>Твой ответ</h2><p>${branch.player}</p>${actionButton("Посмотреть реакцию", "show-reaction")}`;
+      return;
+    }
+    if (snapshot.stateId === "vote") {
+      const complete = snapshot.voteStep >= 5;
+      panel.innerHTML = `<h2>Реакция Насти</h2><p>${branch.reaction}</p>
+        ${renderVotes(branch)}
+        ${complete
+          ? `<p class="stage7Result">${branch.result}</p>${actionButton("Понятно", "accept-consequence")}`
+          : (snapshot.voteStarted
+            ? `<div class="stage7Support">Голоса появляются по очереди.</div>`
+            : actionButton("Увидеть голосование", "start-vote"))}`;
+      return;
+    }
+    if (snapshot.stateId === "consequence") {
+      panel.innerHTML = `<h2>${branch.result}</h2><p>${branch.consequence}</p><p class="stage7KenLine">Райхан: Это ещё не конец. Я требую второй раунд.</p>${actionButton("Ответить", "accept-rematch")}`;
+      return;
+    }
+    if (snapshot.stateId === "rematch") {
+      panel.innerHTML = `<h2>Первый раунд завершён.</h2><p>До второго раунда можно осмотреться и узнать об участниках.</p>${actionButton("Осмотреться", "explore-world")}`;
+    }
+  }
+
+  function getMoneyLogRows() {
+    const stores = [G.__D && G.__D.moneyLog, G.State && G.State.moneyLog, G.__S && G.__S.moneyLog];
+    return stores.find(Array.isArray) || [];
+  }
+
+  function ledgerHasMoneySettlement(id) {
+    return getMoneyLogRows().some((row) => row && row.meta && (
+      row.meta.settlementId === id || row.meta.idempotencyKey === id
+    ));
+  }
+
+  function applySettlement() {
+    if (!snapshot || !snapshot.branchId) return false;
+    const branchId = snapshot.branchId;
+    const evidence = snapshot.evidence;
+    const settlementBase = `first_experience_settlement_v1:${branchId}`;
+    const settlementId = snapshot.settlementId || (TEST_MODE && evidence
+      ? `${settlementBase}:${evidence.sessionId}`
+      : settlementBase);
+    snapshot.settlementId = settlementId;
+    saveSnapshot();
+    if (snapshot.settled || (branchId === "pay" && ledgerHasMoneySettlement(settlementId))) {
+      snapshot.settled = true;
+      saveSnapshot();
+      return true;
+    }
+    const meta = {
+      scenarioId: SCENARIO_ID,
+      branchId,
+      settlementId,
+      actionId: settlementId,
+      idempotencyKey: settlementId,
+    };
+    let result = null;
+    if (branchId === "pay") {
+      const S = getState();
+      const currentPoints = S && S.me && Number.isFinite(S.me.points) ? (S.me.points | 0) : 0;
+      if (currentPoints < 3) return false;
+      const economy = G.ConflictEconomy || G._ConflictEconomy;
+      if (!economy || typeof economy.transferPoints !== "function") return false;
+      result = economy.transferPoints("me", "sink", 3, "first_experience_compensation", meta);
+    } else {
+      if (!G.__A || typeof G.__A.transferRep !== "function") return false;
+      result = G.__A.transferRep("crowd_pool", "me", 2, "first_experience_reputation_result", settlementId, meta);
+    }
+    if (result && result.ok === false && result.reason !== "duplicate") return false;
+    snapshot.settled = true;
+    if (TEST_MODE && evidence) evidence.settlementAppliedCount += 1;
+    if (branchId === "accuse_ken") {
+      snapshot.npcMemory.npc_stage7_ken = Object.assign({}, snapshot.npcMemory.npc_stage7_ken || {}, { ken_escalation: 1 });
+    }
+    saveSnapshot();
+    telemetry("first_experience.settlement_applied", { branchId, settlementId });
+    if (context && context.UI && typeof context.UI.requestRenderAll === "function") context.UI.requestRenderAll();
+    return true;
+  }
+
+  function scheduleVoteStep() {
+    if (voteTimer || !snapshot || snapshot.stateId !== "vote" || !snapshot.voteStarted || snapshot.voteStep >= 5) return;
+    voteTimer = setTimeout(() => {
+      voteTimer = null;
+      if (!snapshot || snapshot.stateId !== "vote") return;
+      if (document.hidden) {
+        scheduleVoteStep();
+        return;
+      }
+      snapshot.voteStep = Math.min(5, (snapshot.voteStep | 0) + 1);
+      saveSnapshot();
+      render();
+      if (snapshot.voteStep >= 5) telemetry("first_experience.vote_completed", { branchId: snapshot.branchId });
+      else scheduleVoteStep();
+    }, 500);
+  }
+
+  function completeCycle() {
+    if (!snapshot || !snapshot.branchId) return;
+    snapshot.cycleCompletedAt = Date.now();
+    snapshot.intermissionStartedAt = snapshot.cycleCompletedAt;
+    snapshot.intermissionNpcVisits = {};
+    snapshot.intermissionNpcMessage = null;
+    snapshot.stateId = "intermission";
+    snapshot.awaitingWorldAdvance = true;
+    snapshot.worldAdvanceDueAt = snapshot.cycleCompletedAt + INTERMISSION_DELAY_MS;
+    const worldAdvanceBase = `first_experience_world_advance_v2:${snapshot.branchId}`;
+    snapshot.worldAdvanceId = TEST_MODE && snapshot.evidence
+      ? `${worldAdvanceBase}:${snapshot.evidence.sessionId}`
+      : worldAdvanceBase;
+    snapshot.worldAdvanceSettled = false;
+    snapshot.worldAdvancePresented = false;
+    snapshot.worldAdvancePresentationMode = null;
+    snapshot.branchFollowUpPending = false;
+    snapshot.followUpChoiceId = null;
+    snapshot.followUpSettled = false;
+    snapshot.roundTwoResultAcknowledged = false;
+    snapshot.onboardingUnlocked = false;
+    if (snapshot.evidence) snapshot.evidence.branchId = snapshot.branchId;
+    hydrateBranchMemory();
+    saveSnapshot();
+    telemetry("first_experience.round_one_completed", { branchId: snapshot.branchId });
+    telemetry("first_experience.intermission_opened", {
+      branchId: snapshot.branchId,
+      dueAt: snapshot.worldAdvanceDueAt,
+      npcCount: INTERMISSION_NPCS.length,
+    });
+    if (G.Telemetry && typeof G.Telemetry.completeCycle === "function") {
+      G.Telemetry.completeCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_one", outcomeId: snapshot.branchId });
+    }
+    render();
+  }
+
+  function presentWorldAdvance(mode) {
+    if (!snapshot
+      || snapshot.stateId !== "intermission"
+      || snapshot.worldAdvanceSettled
+      || snapshot.worldAdvancePresented
+      || !snapshot.awaitingWorldAdvance) return false;
+    snapshot.stateId = "round_two";
+    snapshot.worldAdvancePresented = true;
+    snapshot.worldAdvancePresentationMode = mode === "return" ? "return" : "foreground";
+    snapshot.branchFollowUpPending = true;
+    markEvidenceWorldAdvancePresented(snapshot.worldAdvancePresentationMode);
+    saveSnapshot();
+    telemetry("first_experience.round_two_presented", {
+      mode: snapshot.worldAdvancePresentationMode,
+      worldAdvanceId: snapshot.worldAdvanceId,
+      branchId: snapshot.branchId,
+    });
+    if (G.Telemetry && typeof G.Telemetry.startCycle === "function") {
+      G.Telemetry.startCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_two" });
+    }
+    render();
+    return true;
+  }
+
+  function hydrateBranchMemory() {
+    if (!snapshot) return;
+    if (snapshot.branchId === "deny") {
+      snapshot.npcMemory.npc_stage7_ken = Object.assign({}, snapshot.npcMemory.npc_stage7_ken || {}, { rebuildingSupport: 1 });
+      snapshot.npcMemory.npc_stage7_mika = Object.assign({}, snapshot.npcMemory.npc_stage7_mika || {}, { asksForEvidence: 1 });
+    } else if (snapshot.branchId === "accuse_ken") {
+      snapshot.npcMemory.npc_stage7_ken = Object.assign({}, snapshot.npcMemory.npc_stage7_ken || {}, { ken_escalation: 1, publicRematch: 1 });
+    } else if (snapshot.branchId === "pay") {
+      snapshot.npcMemory.npc_bandit = Object.assign({}, snapshot.npcMemory.npc_bandit || {}, { pressureWorked: 1 });
+      snapshot.npcMemory.npc_stage7_mika = Object.assign({}, snapshot.npcMemory.npc_stage7_mika || {}, { uncertainMotive: 1 });
+    }
+    ensureScenarioPlayers();
+  }
+
+  function getBridgeState() {
+    if (!snapshot) return null;
+    snapshot.realBattleBridge = sanitizeRealBattleBridge(snapshot.realBattleBridge);
+    return snapshot.realBattleBridge;
+  }
+
+  function getBridgeBattleList() {
+    const state = context && context.state
+      ? context.state
+      : (G.__S || G.State || null);
+    return state && Array.isArray(state.battles) ? state.battles : [];
+  }
+
+  function findExistingRealBattle() {
+    return getBridgeBattleList().find((battle) => battle
+      && battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID) || null;
+  }
+
+  function syncRealArgumentBattleLifecycle() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "created") return false;
+    const battle = getBridgeBattleList().find((item) => item && (
+      (item.id === bridge.battleId || item.battleId === bridge.battleId)
+      && item.meta
+      && item.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID
+    ));
+    if (!battle) return false;
+    const completed = battle.resolved === true
+      || battle.finished === true
+      || battle.status === "finished";
+    if (!completed) return false;
+    bridge.status = "completed";
+    bridge.completedAt = bridge.completedAt || Date.now();
+    bridge.outcome = typeof battle.result === "string" && battle.result ? battle.result : null;
+    bridge.lastFailureReason = null;
+    if (bridge.evidencePayoffStatus === "pending") {
+      bridge.evidencePayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7DenyEvidencePayoff) {
+        battle.meta.stage7DenyEvidencePayoff.status = "expired";
+      }
+      telemetry("first_experience.deny_evidence_payoff_expired", {
+        payoffId: DENY_EVIDENCE_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.evidencePayoffMode,
+      });
+    }
+    if (bridge.accusePayoffStatus === "pending") {
+      bridge.accusePayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7AccuseKenPayoff) {
+        battle.meta.stage7AccuseKenPayoff.status = "expired";
+      }
+      telemetry("first_experience.accuse_ken_payoff_expired", {
+        payoffId: ACCUSE_KEN_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.accusePayoffMode,
+      });
+    }
+    if (bridge.payPayoffStatus === "pending") {
+      bridge.payPayoffStatus = "expired";
+      if (battle.meta && battle.meta.stage7PayPayoff) {
+        battle.meta.stage7PayPayoff.status = "expired";
+      }
+      telemetry("first_experience.pay_payoff_expired", {
+        payoffId: PAY_PAYOFF_ID,
+        battleId: bridge.battleId,
+        mode: bridge.payPayoffMode,
+      });
+    }
+    recordFirstBattleAftermath(battle);
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_completed", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      battleId: bridge.battleId,
+      outcome: bridge.outcome,
+    });
+    render();
+    return true;
+  }
+
+  function getRealBattleInjection() {
+    const branchId = snapshot && snapshot.branchId;
+    const choiceId = snapshot && snapshot.followUpChoiceId;
+    const branch = branchId && REAL_BATTLE_INJECTIONS[branchId];
+    return branch && branch[choiceId]
+      ? branch[choiceId]
+      : "Первый спор был разминкой. Теперь отвечай публично - аргументом.";
+  }
+
+  function getDenyEvidencePayoffMode() {
+    if (!snapshot || snapshot.branchId !== "deny") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_stage7_mika
+      ? snapshot.npcMemory.npc_stage7_mika
+      : {};
+    if (memory.evidenceShared) return "shared";
+    if (memory.evidenceHeld) return "held";
+    if (snapshot.followUpChoiceId === "primary") return "shared";
+    if (snapshot.followUpChoiceId === "secondary") return "held";
+    return null;
+  }
+
+  function ensureDenyEvidencePayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getDenyEvidencePayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.evidencePayoffMode) bridge.evidencePayoffMode = mode;
+    if (bridge.evidencePayoffMode !== mode
+      && !["revealed", "expired"].includes(bridge.evidencePayoffStatus)) {
+      bridge.evidencePayoffMode = mode;
+    }
+    if (bridge.evidencePayoffStatus === "not_applicable") bridge.evidencePayoffStatus = "pending";
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    battle.meta.stage7DenyEvidencePayoff = Object.assign(
+      {},
+      battle.meta.stage7DenyEvidencePayoff || {},
+      {
+        payoffId: DENY_EVIDENCE_PAYOFF_ID,
+        mode: bridge.evidencePayoffMode,
+        status: bridge.evidencePayoffStatus,
+        revealedAt: bridge.evidencePayoffRevealedAt,
+        revealCount: bridge.evidencePayoffRevealCount,
+      }
+    );
+    return true;
+  }
+
+  function revealDenyEvidencePayoff(battle, trigger) {
+    if (!battle || !ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    const payoff = battle.meta && battle.meta.stage7DenyEvidencePayoff;
+    if (!bridge || !payoff) return false;
+    if (bridge.evidencePayoffStatus === "revealed") return true;
+    if (bridge.evidencePayoffStatus === "expired") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense" || !battle.attack) return false;
+    const trueColor = battle.attack._color || battle.attack.color || null;
+    if (!trueColor) return false;
+
+    battle.attack.color = trueColor;
+    battle.attackHidden = false;
+    battle.revealColor = trueColor;
+    bridge.evidencePayoffStatus = "revealed";
+    bridge.evidencePayoffRevealedAt = bridge.evidencePayoffRevealedAt || Date.now();
+    bridge.evidencePayoffRevealCount = Math.max(1, bridge.evidencePayoffRevealCount + 1);
+    payoff.status = "revealed";
+    payoff.revealedAt = bridge.evidencePayoffRevealedAt;
+    payoff.revealCount = bridge.evidencePayoffRevealCount;
+    payoff.trigger = trigger === "held_manual" ? "held_manual" : "shared_auto";
+    saveSnapshot();
+    telemetry("first_experience.deny_evidence_payoff_revealed", {
+      payoffId: DENY_EVIDENCE_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.evidencePayoffMode,
+      trigger: payoff.trigger,
+      color: trueColor,
+      revealCount: bridge.evidencePayoffRevealCount,
+    });
+    pushLine({
+      system: true,
+      text: bridge.evidencePayoffMode === "held"
+        ? "Ты предъявил сохранённое доказательство. Цвет аргумента Райхана раскрыт."
+        : "Настя уже показала доказательство. Цвет аргумента Райхана раскрыт.",
+    });
+    return true;
+  }
+
+  function initializeDenyEvidencePayoff(battle) {
+    if (!ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge) return false;
+    saveSnapshot();
+    if (bridge.evidencePayoffMode === "shared" && bridge.evidencePayoffStatus === "pending") {
+      return revealDenyEvidencePayoff(battle, "shared_auto");
+    }
+    return true;
+  }
+
+  function revealHeldDenyEvidence(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureDenyEvidencePayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.evidencePayoffMode !== "held") return false;
+    return revealDenyEvidencePayoff(battle, "held_manual");
+  }
+
+
+  function getAccuseKenPayoffMode() {
+    if (!snapshot || snapshot.branchId !== "accuse_ken") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_stage7_ken
+      ? snapshot.npcMemory.npc_stage7_ken
+      : {};
+    if (memory.publicRematchAccepted) return "public_rematch";
+    if (memory.witnessRequested) return "witness";
+    if (snapshot.followUpChoiceId === "primary") return "public_rematch";
+    if (snapshot.followUpChoiceId === "secondary") return "witness";
+    return null;
+  }
+
+  function syncAccuseKenPayoffMeta(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle || !battle.meta) return false;
+    battle.meta.stage7AccuseKenPayoff = Object.assign(
+      {},
+      battle.meta.stage7AccuseKenPayoff || {},
+      {
+        payoffId: ACCUSE_KEN_PAYOFF_ID,
+        mode: bridge.accusePayoffMode,
+        status: bridge.accusePayoffStatus,
+        appliedAt: bridge.accusePayoffAppliedAt,
+        applyCount: bridge.accusePayoffApplyCount,
+        previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
+        defenseIds: bridge.accusePayoffDefenseIds.slice(),
+        previousDefenseChoices: clone(bridge.accusePayoffPreviousDefenseChoices) || [],
+        defenseChoices: clone(bridge.accusePayoffDefenseChoices) || [],
+      }
+    );
+    return true;
+  }
+
+  function ensureAccuseKenPayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getAccuseKenPayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.accusePayoffMode) bridge.accusePayoffMode = mode;
+    if (bridge.accusePayoffMode !== mode
+      && !["used", "revealed", "expired"].includes(bridge.accusePayoffStatus)) {
+      bridge.accusePayoffMode = mode;
+    }
+    if (bridge.accusePayoffStatus === "not_applicable") bridge.accusePayoffStatus = "pending";
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    return syncAccuseKenPayoffMeta(battle);
+  }
+
+  function applyAccuseKenWitnessPayoff(battle) {
+    if (!battle || !ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "witness") return false;
+    if (bridge.accusePayoffStatus === "expired") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense" || !battle.attack) return false;
+    const trueColor = battle.attack._color || battle.attack.color || null;
+    if (!trueColor) return false;
+    if (bridge.accusePayoffStatus === "revealed") {
+      battle.attack.color = trueColor;
+      battle.attackHidden = false;
+      battle.revealColor = trueColor;
+      syncAccuseKenPayoffMeta(battle);
+      return true;
+    }
+
+    battle.attack.color = trueColor;
+    battle.attackHidden = false;
+    battle.revealColor = trueColor;
+    bridge.accusePayoffStatus = "revealed";
+    bridge.accusePayoffAppliedAt = bridge.accusePayoffAppliedAt || Date.now();
+    bridge.accusePayoffApplyCount = Math.max(1, bridge.accusePayoffApplyCount + 1);
+    syncAccuseKenPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.accuse_ken_payoff_applied", {
+      payoffId: ACCUSE_KEN_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.accusePayoffMode,
+      color: trueColor,
+      applyCount: bridge.accusePayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Настя привела свидетеля. Цвет аргумента Райхана раскрыт.",
+    });
+    return true;
+  }
+
+  function initializeAccuseKenPayoff(battle) {
+    if (!ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge) return false;
+    saveSnapshot();
+    if (bridge.accusePayoffMode === "witness") return applyAccuseKenWitnessPayoff(battle);
+    return true;
+  }
+
+  function useAccuseKenRematchOptions(battleId, currentDefenseChoices, candidateChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureAccuseKenPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "pending") return false;
+    if (battle.resolved === true || battle.finished === true || battle.status === "finished") return false;
+    if (battle.status !== "pickDefense") return false;
+
+    const previousChoices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    const candidates = sanitizeDefenseChoices(candidateChoices);
+    if (previousChoices.length !== 3 || candidates.length < 3) return false;
+    const previousFingerprints = new Set(previousChoices.map(defenseChoiceFingerprint).filter(Boolean));
+    const selected = [];
+    const selectedFingerprints = new Set();
+    const appendChoice = (choice, requireNew) => {
+      if (!choice || selected.length >= 3) return;
+      const fingerprint = defenseChoiceFingerprint(choice);
+      if (!fingerprint || selectedFingerprints.has(fingerprint)) return;
+      if (requireNew && previousFingerprints.has(fingerprint)) return;
+      selected.push(choice);
+      selectedFingerprints.add(fingerprint);
+    };
+    candidates.forEach((choice) => appendChoice(choice, true));
+    candidates.forEach((choice) => appendChoice(choice, false));
+    if (selected.length !== 3) return false;
+    if (!selected.some((choice) => !previousFingerprints.has(defenseChoiceFingerprint(choice)))) return false;
+
+    bridge.accusePayoffStatus = "used";
+    bridge.accusePayoffAppliedAt = bridge.accusePayoffAppliedAt || Date.now();
+    bridge.accusePayoffApplyCount = Math.max(1, bridge.accusePayoffApplyCount + 1);
+    bridge.accusePayoffPreviousDefenseChoices = clone(previousChoices) || [];
+    bridge.accusePayoffDefenseChoices = clone(selected) || [];
+    bridge.accusePayoffPreviousDefenseIds = previousChoices.map((choice) => choice.id);
+    bridge.accusePayoffDefenseIds = selected.map((choice) => choice.id);
+    syncAccuseKenPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.accuse_ken_payoff_applied", {
+      payoffId: ACCUSE_KEN_PAYOFF_ID,
+      battleId: battle.id || battle.battleId || null,
+      mode: bridge.accusePayoffMode,
+      previousDefenseIds: bridge.accusePayoffPreviousDefenseIds.slice(),
+      defenseIds: bridge.accusePayoffDefenseIds.slice(),
+      applyCount: bridge.accusePayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Ты принял публичный реванш и один раз сменил варианты ответа.",
+    });
+    return true;
+  }
+
+  function chooseAccuseKenRematchDefenseChoices(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensureAccuseKenPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.accusePayoffMode !== "public_rematch" || bridge.accusePayoffStatus !== "used") return null;
+    const saved = sanitizeDefenseChoices(bridge.accusePayoffDefenseChoices).slice(0, 3);
+    if (saved.length !== 3) return null;
+    bridge.accusePayoffDefenseChoices = clone(saved) || [];
+    bridge.accusePayoffDefenseIds = saved.map((choice) => choice.id);
+    syncAccuseKenPayoffMeta(battle);
+    return clone(saved);
+  }
+
+  function chooseAccuseKenRematchDefenseIds(battleId) {
+    const choices = chooseAccuseKenRematchDefenseChoices(battleId);
+    return Array.isArray(choices) ? choices.map((choice) => choice.id) : null;
+  }
+
+  function normalizePayArgumentGroup(value) {
+    const raw = value && (value.group || value.type || value.qtype || value.kind || value.questionType);
+    const normalized = String(raw || "").trim().toLowerCase();
+    if (["yesno", "yes-no", "yes_no", "да/нет", "да-нет"].includes(normalized)) return "yn";
+    if (["topic", "о чем", "о-чем", "о_чем"].includes(normalized)) return "about";
+    if (["what", "who/what", "who-what", "кто", "что", "кто/что", "кто-что"].includes(normalized)) return "who";
+    return normalized;
+  }
+
+  function getPayPayoffMode() {
+    if (!snapshot || snapshot.branchId !== "pay") return null;
+    const memory = snapshot.npcMemory && snapshot.npcMemory.npc_bandit
+      ? snapshot.npcMemory.npc_bandit
+      : {};
+    if (memory.receiptDemanded) return "receipt";
+    if (memory.pressureIgnored) return "pressure";
+    if (snapshot.followUpChoiceId === "primary") return "receipt";
+    if (snapshot.followUpChoiceId === "secondary") return "pressure";
+    return null;
+  }
+
+  function syncPayPayoffMeta(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle) return false;
+    battle.meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    battle.meta.stage7PayPayoff = Object.assign({}, battle.meta.stage7PayPayoff || {}, {
+      payoffId: PAY_PAYOFF_ID,
+      mode: bridge.payPayoffMode,
+      status: bridge.payPayoffStatus,
+      appliedAt: bridge.payPayoffAppliedAt,
+      applyCount: bridge.payPayoffApplyCount,
+      defenseChoices: clone(bridge.payPayoffDefenseChoices) || [],
+      markedDefenseId: bridge.payPayoffMarkedDefenseId,
+      markedFingerprint: bridge.payPayoffMarkedFingerprint,
+    });
+    return true;
+  }
+
+  function ensurePayPayoff(battle) {
+    const bridge = getBridgeState();
+    const mode = getPayPayoffMode();
+    if (!bridge || !battle || !mode) return false;
+    const battleId = battle.id || battle.battleId || null;
+    const taggedBridgeBattle = !!(battle.meta
+      && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID);
+    if (!taggedBridgeBattle || !battleId
+      || (bridge.battleId && bridge.battleId !== battleId)) return false;
+    if (!bridge.payPayoffMode) bridge.payPayoffMode = mode;
+    if (bridge.payPayoffMode !== mode
+      && !["marked", "used", "expired"].includes(bridge.payPayoffStatus)) {
+      bridge.payPayoffMode = mode;
+    }
+    if (bridge.payPayoffStatus === "not_applicable") bridge.payPayoffStatus = "pending";
+    return syncPayPayoffMeta(battle);
+  }
+
+  function choosePayDefenseChoices(battleId) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || !["receipt", "pressure"].includes(bridge.payPayoffMode)) return null;
+    const saved = sanitizeDefenseChoices(bridge.payPayoffDefenseChoices).slice(0, 3);
+    if (saved.length !== 3) return null;
+    bridge.payPayoffDefenseChoices = clone(saved) || [];
+    syncPayPayoffMeta(battle);
+    return clone(saved);
+  }
+
+  function preparePayDefenseChoices(battleId, currentDefenseChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return null;
+    const bridge = getBridgeState();
+    if (!bridge || battle.status !== "pickDefense"
+      || battle.resolved === true || battle.finished === true) return null;
+
+    const alreadySaved = sanitizeDefenseChoices(bridge.payPayoffDefenseChoices).slice(0, 3);
+    if (alreadySaved.length === 3) {
+      bridge.payPayoffDefenseChoices = clone(alreadySaved) || [];
+      syncPayPayoffMeta(battle);
+      return clone(alreadySaved);
+    }
+
+    const choices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    if (choices.length !== 3) return null;
+    bridge.payPayoffDefenseChoices = clone(choices) || [];
+
+    if (bridge.payPayoffMode === "receipt" && bridge.payPayoffStatus === "pending") {
+      const attackGroup = normalizePayArgumentGroup(battle.attack);
+      const matching = choices.find((choice) => normalizePayArgumentGroup(choice) === attackGroup) || null;
+      if (!matching) return null;
+      bridge.payPayoffStatus = "marked";
+      bridge.payPayoffAppliedAt = bridge.payPayoffAppliedAt || Date.now();
+      bridge.payPayoffApplyCount = Math.max(1, bridge.payPayoffApplyCount + 1);
+      bridge.payPayoffMarkedDefenseId = matching.id;
+      bridge.payPayoffMarkedFingerprint = defenseChoiceFingerprint(matching);
+      telemetry("first_experience.pay_payoff_applied", {
+        payoffId: PAY_PAYOFF_ID,
+        battleId,
+        mode: bridge.payPayoffMode,
+        markedDefenseId: matching.id,
+        applyCount: bridge.payPayoffApplyCount,
+      });
+      pushLine({
+        system: true,
+        text: "Расписка Олега помогла отделить подходящий по типу ответ.",
+      });
+    }
+
+    syncPayPayoffMeta(battle);
+    saveSnapshot();
+    return clone(choices);
+  }
+
+  function usePayPressureAnalysis(battleId, currentDefenseChoices) {
+    const battle = getBridgeBattleList().find((item) => item && (
+      item.id === battleId || item.battleId === battleId
+    ));
+    if (!battle || !ensurePayPayoff(battle)) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.payPayoffMode !== "pressure" || bridge.payPayoffStatus !== "pending") return false;
+    if (battle.status !== "pickDefense" || battle.resolved === true || battle.finished === true) return false;
+
+    const choices = sanitizeDefenseChoices(currentDefenseChoices).slice(0, 3);
+    if (choices.length !== 3) return false;
+    const attackGroup = normalizePayArgumentGroup(battle.attack);
+    const wrong = choices.find((choice) => normalizePayArgumentGroup(choice) !== attackGroup) || null;
+    if (!wrong) return false;
+
+    bridge.payPayoffStatus = "used";
+    bridge.payPayoffAppliedAt = bridge.payPayoffAppliedAt || Date.now();
+    bridge.payPayoffApplyCount = Math.max(1, bridge.payPayoffApplyCount + 1);
+    bridge.payPayoffDefenseChoices = clone(choices) || [];
+    bridge.payPayoffMarkedDefenseId = wrong.id;
+    bridge.payPayoffMarkedFingerprint = defenseChoiceFingerprint(wrong);
+    syncPayPayoffMeta(battle);
+    saveSnapshot();
+    telemetry("first_experience.pay_payoff_applied", {
+      payoffId: PAY_PAYOFF_ID,
+      battleId,
+      mode: bridge.payPayoffMode,
+      markedDefenseId: wrong.id,
+      applyCount: bridge.payPayoffApplyCount,
+    });
+    pushLine({
+      system: true,
+      text: "Ты разобрал давление Олега и заметил один ответ, который не подходит к типу аргумента.",
+    });
+    return true;
+  }
+
+  function initializePayPayoff(battle) {
+    if (!ensurePayPayoff(battle)) return false;
+    saveSnapshot();
+    return true;
+  }
+
+  function adoptRealBattle(battle) {
+    const bridge = getBridgeState();
+    if (!bridge || !battle) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage7OnboardingBridgeId: REAL_BATTLE_BRIDGE_ID,
+      stage7BranchId: snapshot.branchId,
+      stage7SecondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    bridge.status = "created";
+    bridge.battleId = battle.id || battle.battleId || bridge.battleId;
+    bridge.createdAt = bridge.createdAt || Date.now();
+    bridge.lastFailureReason = null;
+    initializeDenyEvidencePayoff(battle);
+    initializeAccuseKenPayoff(battle);
+    initializePayPayoff(battle);
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_created", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      battleId: bridge.battleId,
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    if (realBattleBridgeTimer) {
+      clearTimeout(realBattleBridgeTimer);
+      realBattleBridgeTimer = null;
+    }
+    if (context && context.UI) {
+      const UI = context.UI;
+      if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+      else if (typeof UI.renderAll === "function") UI.renderAll();
+    }
+    return true;
+  }
+
+  function attemptRealArgumentBattleBridge() {
+    if (!snapshot || !snapshot.onboardingUnlocked) return false;
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "pending") return bridge && bridge.status === "created";
+    if (realBattleBridgeInFlight) return true;
+    realBattleBridgeInFlight = true;
+    try {
+
+    const existing = findExistingRealBattle();
+    if (existing) return adoptRealBattle(existing);
+
+    releaseNormalWorldOnce();
+    ensureScenarioPlayers();
+    const state = context && context.state ? context.state : (G.__S || G.State || null);
+    const rayhan = state && state.players ? state.players[REAL_BATTLE_OPPONENT_ID] : null;
+    if (rayhan) rayhan.name = "Райхан";
+
+    if (!bridge.injectionShown) {
+      bridge.injectionShown = true;
+      bridge.injectionShownAt = Date.now();
+      saveSnapshot();
+      pushLine({ name: "Райхан", text: getRealBattleInjection() });
+      pushLine({ system: true, text: "Райхан перевёл спор в баттл. Выбери аргумент защиты." });
+    }
+
+    bridge.attemptCount += 1;
+    bridge.lastAttemptAt = Date.now();
+    saveSnapshot();
+
+    const conflict = G.Conflict;
+    if (!conflict || typeof conflict.incoming !== "function") {
+      bridge.lastFailureReason = "conflict_api_not_ready";
+      saveSnapshot();
+      return false;
+    }
+
+    const result = conflict.incoming(REAL_BATTLE_OPPONENT_ID, {
+      stage7OnboardingBridgeId: REAL_BATTLE_BRIDGE_ID,
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    const battle = result && result.ok === true
+      ? (result.battle || getBridgeBattleList().find((item) => item && (item.id === result.battleId || item.battleId === result.battleId)) || null)
+      : (result && (result.id || result.battleId) ? result : null);
+    if (battle) return adoptRealBattle(battle);
+
+    bridge.lastFailureReason = result && (result.reason || result.error)
+      ? String(result.reason || result.error)
+      : "incoming_failed";
+    saveSnapshot();
+    telemetry("first_experience.real_argument_battle_retry", {
+      bridgeId: REAL_BATTLE_BRIDGE_ID,
+      attemptCount: bridge.attemptCount,
+      reason: bridge.lastFailureReason,
+    });
+    return false;
+    } finally {
+      realBattleBridgeInFlight = false;
+    }
+  }
+
+  function scheduleRealArgumentBattleBridge() {
+    const bridge = getBridgeState();
+    if (!bridge || bridge.status !== "pending" || realBattleBridgeTimer) return false;
+    if (bridge.attemptCount >= REAL_BATTLE_MAX_ATTEMPTS) return false;
+    realBattleBridgeTimer = setTimeout(() => {
+      realBattleBridgeTimer = null;
+      if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+    }, REAL_BATTLE_RETRY_MS);
+    return true;
+  }
+
+  function releaseNormalWorldOnce(options) {
+    setControlledMode(false);
+    const preservePanel = !!(options && options.preservePanel === true);
+    const panel = document.getElementById("stage7FirstExperiencePanel");
+    if (panel && !preservePanel) panel.remove();
+    if (normalWorldReleased) return;
+    normalWorldReleased = true;
+    if (context && typeof context.startNormalWorld === "function") context.startNormalWorld();
+  }
+
+  function settleBranchFollowUp(choiceId) {
+    if (!snapshot
+      || snapshot.stateId !== "round_two"
+      || !snapshot.worldAdvancePresented
+      || snapshot.worldAdvanceSettled
+      || snapshot.followUpSettled) return false;
+    const offer = BRANCH_FOLLOW_UPS[snapshot.branchId];
+    if (!offer || !["primary", "secondary"].includes(choiceId)) return false;
+    const memory = choiceId === "primary" ? offer.primaryMemory : offer.secondaryMemory;
+    snapshot.followUpChoiceId = choiceId;
+    snapshot.followUpSettled = true;
+    snapshot.branchFollowUpPending = false;
+    snapshot.awaitingWorldAdvance = false;
+    snapshot.worldAdvanceSettled = true;
+    snapshot.worldAdvancePresented = false;
+    snapshot.stateId = "round_two_result";
+    snapshot.npcMemory[offer.memoryTarget] = Object.assign(
+      {},
+      snapshot.npcMemory[offer.memoryTarget] || {},
+      memory
+    );
+    ensureScenarioPlayers();
+    if (TEST_MODE && snapshot.evidence) snapshot.evidence.worldAdvanceSettledCount += 1;
+    saveSnapshot();
+    telemetry("first_experience.round_two_settled", {
+      branchId: snapshot.branchId,
+      choiceId,
+      worldAdvanceId: snapshot.worldAdvanceId,
+    });
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "round_two",
+        choiceId: `follow_up.${choiceId}`,
+      });
+    }
+    render();
+    return true;
+  }
+
+  function talkToIntermissionNpc(npcId) {
+    if (!snapshot || snapshot.stateId !== "intermission") return false;
+    const npc = getIntermissionNpc(npcId);
+    if (!npc) return false;
+    snapshot.intermissionNpcVisits = snapshot.intermissionNpcVisits || {};
+    snapshot.intermissionNpcVisits[npc.id] = (Number(snapshot.intermissionNpcVisits[npc.id]) | 0) + 1;
+    const text = getIntermissionLine(npc);
+    snapshot.intermissionNpcMessage = { npcId: npc.id, name: npc.name, text, at: Date.now() };
+    saveSnapshot();
+    pushLine({ name: npc.name, text });
+    telemetry("first_experience.intermission_npc_talked", {
+      npcId: npc.id,
+      visit: snapshot.intermissionNpcVisits[npc.id],
+      branchId: snapshot.branchId,
+    });
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "intermission",
+        choiceId: `npc.${npc.id}`,
+      });
+    }
+    render();
+    return true;
+  }
+
+  function openOnboardingQuestionnaire() {
+    if (!snapshot || snapshot.stateId !== "round_two_result" || !snapshot.followUpSettled) return false;
+    snapshot.roundTwoResultAcknowledged = true;
+    snapshot.stateId = "questionnaire";
+    snapshot.evidence = snapshot.evidence || defaultEvidence();
+    snapshot.evidence.questionnaireOpen = true;
+    snapshot.evidence.questionIndex = 0;
+    snapshot.evidence.answers = {};
+    snapshot.evidence.answersComplete = false;
+    saveSnapshot();
+    telemetry("first_experience.questionnaire_opened", {
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    render();
+    return true;
+  }
+
+  function answerOnboardingQuestion(questionId, answerId) {
+    if (!snapshot || snapshot.stateId !== "questionnaire" || !snapshot.evidence || !snapshot.evidence.questionnaireOpen) return false;
+    const questions = evidenceQuestions();
+    const question = questions[snapshot.evidence.questionIndex];
+    if (!question || question.id !== questionId || !question.options.some((option) => option.id === answerId)) return false;
+    if (G.Telemetry && typeof G.Telemetry.questionAnswered === "function") {
+      G.Telemetry.questionAnswered({ flowId: SCENARIO_ID, questionId, answerId });
+    }
+    if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+      G.Telemetry.choiceSelected({
+        flowId: SCENARIO_ID,
+        stateId: "questionnaire",
+        questionId,
+        choiceId: answerId,
+      });
+    }
+    snapshot.evidence.answers[question.id] = answerId;
+    snapshot.evidence.questionIndex += 1;
+    if (snapshot.evidence.questionIndex < questions.length) {
+      saveSnapshot();
+      render();
+      return true;
+    }
+    snapshot.evidence.answersComplete = true;
+    snapshot.evidence.questionnaireOpen = false;
+    snapshot.evidence.completedAt = Date.now();
+    snapshot.evidence.cycleCompletedAt = snapshot.evidence.completedAt;
+    snapshot.evidence.cycleMs = Math.max(0, snapshot.evidence.completedAt - snapshot.evidence.startedAt);
+    snapshot.evidence.comprehensionScore = questions.reduce(
+      (score, item) => score + (snapshot.evidence.answers[item.id] === item.correct ? 1 : 0),
+      0
+    );
+    snapshot.onboardingUnlocked = true;
+    snapshot.unlockedAt = Date.now();
+    snapshot.stateId = "main_unlocked";
+    snapshot.realBattleBridge = Object.assign(defaultRealBattleBridge(), {
+      status: "pending",
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+      queuedAt: Date.now(),
+    });
+    saveSnapshot();
+    if (TEST_MODE) {
+      snapshot.evidence.finalReport = getObservedEvidenceReport();
+      saveSnapshot();
+    }
+    telemetry("first_experience.questionnaire_completed", {
+      score: snapshot.evidence.comprehensionScore,
+      total: questions.length,
+      branchId: snapshot.branchId,
+      secondRoundChoiceId: snapshot.followUpChoiceId,
+    });
+    if (G.Telemetry && typeof G.Telemetry.completeCycle === "function") {
+      G.Telemetry.completeCycle({
+        flowId: SCENARIO_ID,
+        cycleId: "stage7.round_two",
+        outcomeId: "questionnaire_completed",
+      });
+    }
+    telemetry("first_experience.full_game_unlocked", { branchId: snapshot.branchId });
+    releaseNormalWorldOnce();
+    if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+    return true;
+  }
+
+  function runAction(action, button) {
+    if (!snapshot) return;
+    if (action === "open-answer" && snapshot.stateId === "accusation") {
+      markEvidenceFirstAction();
+      snapshot.stateId = "answer";
+      saveSnapshot();
+      telemetry("first_experience.answer_opened");
+      render();
+    } else if (action === "choose" && snapshot.stateId === "answer") {
+      const branchId = button && button.getAttribute("data-branch");
+      if (!RESPONSE_IDS.includes(branchId)) return;
+      snapshot.branchId = branchId;
+      if (snapshot.evidence) snapshot.evidence.branchId = branchId;
+      snapshot.selectedAt = Date.now();
+      snapshot.stateId = "reaction";
+      saveSnapshot();
+      pushLine({ name: context && context.playerName || "Игрок", text: BRANCHES[branchId].player });
+      telemetry("first_experience.answer_selected", { branchId });
+      if (G.Telemetry && typeof G.Telemetry.choiceSelected === "function") {
+        G.Telemetry.choiceSelected({ flowId: SCENARIO_ID, stateId: "answer", choiceId: branchId });
+      }
+      render();
+    } else if (action === "show-reaction" && snapshot.stateId === "reaction") {
+      pushLine({ name: "Настя", text: BRANCHES[snapshot.branchId].reaction });
+      snapshot.stateId = "vote";
+      saveSnapshot();
+      telemetry("first_experience.reaction_shown", { branchId: snapshot.branchId });
+      render();
+    } else if (action === "start-vote" && snapshot.stateId === "vote" && snapshot.voteStep < 5) {
+      snapshot.voteStarted = true;
+      saveSnapshot();
+      telemetry("first_experience.vote_started", { branchId: snapshot.branchId });
+      render();
+      scheduleVoteStep();
+    } else if (action === "accept-consequence" && snapshot.stateId === "vote" && snapshot.voteStep >= 5) {
+      if (!applySettlement()) return;
+      snapshot.stateId = "consequence";
+      saveSnapshot();
+      telemetry("first_experience.consequence_shown", { branchId: snapshot.branchId });
+      render();
+    } else if (action === "accept-rematch" && snapshot.stateId === "consequence") {
+      snapshot.stateId = "rematch";
+      saveSnapshot();
+      telemetry("first_experience.rematch_shown", { branchId: snapshot.branchId });
+      render();
+    } else if (action === "explore-world" && snapshot.stateId === "rematch") {
+      completeCycle();
+    } else if (action === "talk-intermission-npc" && snapshot.stateId === "intermission") {
+      talkToIntermissionNpc(button && button.getAttribute("data-intermission-npc"));
+    } else if (action === "resolve-branch-follow-up" && snapshot.stateId === "round_two") {
+      settleBranchFollowUp(button && button.getAttribute("data-follow-up"));
+    } else if (action === "open-onboarding-questionnaire" && snapshot.stateId === "round_two_result") {
+      openOnboardingQuestionnaire();
+    } else if (action === "answer-evidence-question" && snapshot.stateId === "questionnaire") {
+      answerOnboardingQuestion(
+        button && button.getAttribute("data-evidence-question"),
+        button && button.getAttribute("data-evidence-answer")
+      );
+    } else if (action === "acknowledge-first-battle-aftermath" && snapshot.onboardingUnlocked) {
+      acknowledgeFirstBattleAftermath();
+    } else if (action === "open-aftermath-dm-contact" && snapshot.onboardingUnlocked) {
+      openFirstBattleAftermathDmContact();
+    }
+  }
+
+  function onPanelClick(event) {
+    const button = event.target && event.target.closest ? event.target.closest("button[data-stage7-action]") : null;
+    if (!button || interactionLock) return;
+    event.preventDefault();
+    interactionLock = true;
+    button.disabled = true;
+    try { runAction(button.getAttribute("data-stage7-action"), button); }
+    finally { interactionLock = false; }
+  }
+
+  function schedulerTick() {
+    if (!snapshot || !context) return;
+    syncRealArgumentBattleLifecycle();
+    const nowMono = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+    if (!lastTickAt) lastTickAt = nowMono;
+    if (!document.hidden && !snapshot.preludeComplete) {
+      const delta = Math.max(0, Math.min(1000, nowMono - lastTickAt));
+      snapshot.foregroundElapsedMs += delta;
+      const due = PRELUDE.find((entry) => !snapshot.shownMessageIds.includes(entry.id) && snapshot.foregroundElapsedMs >= entry.at);
+      if (due && Date.now() >= nextPreludeEligibleAt) {
+        emitPrelude(due);
+        nextPreludeEligibleAt = Date.now() + PRELUDE_MIN_GAP_MS;
+      }
+      saveSnapshot();
+    }
+    lastTickAt = nowMono;
+    const roundTwoDue = snapshot.stateId === "intermission"
+      && snapshot.awaitingWorldAdvance
+      && !snapshot.worldAdvanceSettled
+      && !snapshot.worldAdvancePresented
+      && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
+    if (!document.hidden && roundTwoDue) {
+      presentWorldAdvance("foreground");
+      return;
+    }
+    if (!document.hidden && snapshot.stateId === "intermission") {
+      const second = Math.max(0, Math.ceil((Number(snapshot.worldAdvanceDueAt || 0) - Date.now()) / 1000));
+      if (second !== lastIntermissionSecond) {
+        lastIntermissionSecond = second;
+        render();
+      }
+    }
+  }
+
+  function startScheduler() {
+    if (scheduler) return;
+    lastTickAt = 0;
+    scheduler = setInterval(schedulerTick, 250);
+    if (!visibilityBound) {
+      document.addEventListener("visibilitychange", () => {
+        lastTickAt = 0;
+        lastIntermissionSecond = null;
+        if (!snapshot) return;
+        if (document.hidden) {
+          snapshot.lastHiddenAt = Date.now();
+          saveSnapshot();
+          return;
+        }
+        const due = snapshot.stateId === "intermission"
+          && snapshot.awaitingWorldAdvance
+          && !snapshot.worldAdvanceSettled
+          && !snapshot.worldAdvancePresented
+          && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
+        if (due) {
+          presentWorldAdvance("return");
+        } else {
+          snapshot.lastHiddenAt = null;
+          saveSnapshot();
+          render();
+        }
+      });
+      visibilityBound = true;
+    }
+  }
+
+  function attach(nextContext) {
+    context = nextContext || {};
+    normalWorldReleased = false;
+    ensureScenarioPlayers();
+    startScheduler();
+    if (snapshot && snapshot.stateId === "vote" && snapshot.voteStarted && snapshot.voteStep < 5) scheduleVoteStep();
+    render();
+  }
+
+  function claimFreshStart(nextContext) {
+    const existing = loadSnapshot();
+    if (existing && existing.onboardingUnlocked) {
+      const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      const resumeState = nextContext && nextContext.state
+        ? nextContext.state
+        : (G.__S || G.State || null);
+      const resumedBattle = resumeState && Array.isArray(resumeState.battles)
+        ? resumeState.battles.find((battle) => battle && (
+          (battle.meta && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID)
+          || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
+        ))
+        : null;
+      if (bridge.status === "created" && resumedBattle) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        initializeDenyEvidencePayoff(resumedBattle);
+        releaseNormalWorldOnce();
+        syncRealArgumentBattleLifecycle();
+        return { claimed: true, mode: "battle_bridge_active_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
+      if (bridge.status === "created" && !resumedBattle) {
+        bridge.status = "pending";
+        bridge.battleId = null;
+        bridge.attemptCount = 0;
+        bridge.lastFailureReason = "created_battle_missing_after_resume";
+      }
+      if (bridge.status === "pending") {
+        bridge.attemptCount = 0;
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
+      if (bridge.status === "completed" && bridge.aftermathStatus === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
+      if (bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_dm_contact_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
+      return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
+    }
+    snapshot = existing || defaultSnapshot();
+    attach(nextContext);
+    if (!existing && G.Telemetry && typeof G.Telemetry.startCycle === "function") {
+      G.Telemetry.startCycle({ flowId: SCENARIO_ID, cycleId: "stage7.round_one" });
+    }
+    telemetry("first_experience.entry_opened", { mode: existing ? "fresh_resume" : "fresh" });
+    telemetry("first_experience.year_submitted");
+    if (!snapshot.preludeComplete) telemetry("first_experience.prelude_started");
+    return { claimed: true, mode: existing ? "fresh_resume" : "fresh", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+  }
+
+  function claimResume(nextContext) {
+    const existing = loadSnapshot();
+    if (existing && existing.onboardingUnlocked) {
+      const bridge = sanitizeRealBattleBridge(existing.realBattleBridge);
+      const resumeState = nextContext && nextContext.state
+        ? nextContext.state
+        : (G.__S || G.State || null);
+      const resumedBattle = resumeState && Array.isArray(resumeState.battles)
+        ? resumeState.battles.find((battle) => battle && (
+          (battle.meta && battle.meta.stage7OnboardingBridgeId === REAL_BATTLE_BRIDGE_ID)
+          || (bridge.battleId && (battle.id === bridge.battleId || battle.battleId === bridge.battleId))
+        ))
+        : null;
+      if (bridge.status === "created" && resumedBattle) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        syncRealArgumentBattleLifecycle();
+        return { claimed: true, mode: "battle_bridge_active_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
+      if (bridge.status === "created" && !resumedBattle) {
+        bridge.status = "pending";
+        bridge.battleId = null;
+        bridge.attemptCount = 0;
+        bridge.lastFailureReason = "created_battle_missing_after_resume";
+      }
+      if (bridge.status === "pending") {
+        bridge.attemptCount = 0;
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        releaseNormalWorldOnce();
+        if (!attemptRealArgumentBattleBridge()) scheduleRealArgumentBattleBridge();
+        return { claimed: true, mode: "battle_bridge_resume", stateId: snapshot.stateId, releaseNormalWorld: releaseNormalWorldOnce };
+      }
+      if (bridge.status === "completed" && bridge.aftermathStatus === "pending") {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
+      if (bridge.status === "completed"
+        && bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus)) {
+        snapshot = Object.assign(existing, { realBattleBridge: bridge });
+        attach(nextContext);
+        return {
+          claimed: true,
+          mode: "battle_aftermath_dm_contact_resume",
+          stateId: snapshot.stateId,
+          releaseNormalWorld: () => releaseNormalWorldOnce({ preservePanel: true }),
+        };
+      }
+      return { claimed: false, mode: "complete", stateId: existing.stateId, releaseNormalWorld: () => {} };
+    }
+    const migratedLegacySave = !existing;
+    snapshot = existing || defaultSnapshot();
+    attach(nextContext);
+    const dueOnReturn = snapshot.stateId === "intermission"
+      && snapshot.awaitingWorldAdvance
+      && !snapshot.worldAdvancePresented
+      && Date.now() >= Number(snapshot.worldAdvanceDueAt || 0);
+    if (dueOnReturn) presentWorldAdvance("return");
+    telemetry("first_experience.entry_opened", { mode: migratedLegacySave ? "legacy_resume_migration" : "resume" });
+    if (migratedLegacySave) {
+      telemetry("first_experience.legacy_save_migrated");
+      telemetry("first_experience.prelude_started");
+    }
+    return {
+      claimed: true,
+      mode: migratedLegacySave ? "legacy_resume_migration" : "resume",
+      stateId: snapshot.stateId,
+      releaseNormalWorld: releaseNormalWorldOnce,
+    };
+  }
+
+  function isPending() {
+    const current = snapshot || loadSnapshot();
+    if (!current) return false;
+    if (!current.onboardingUnlocked) return true;
+    const bridge = sanitizeRealBattleBridge(current.realBattleBridge);
+    return bridge.status === "completed" && (
+      bridge.aftermathStatus === "pending"
+      || (bridge.aftermathStatus === "acknowledged"
+        && ["pending", "delivered"].includes(bridge.aftermathDmStatus))
+    );
+  }
+
+  function getSnapshot() {
+    return clone(snapshot || loadSnapshot());
+  }
+
+  function resetForDev() {
+    destroy();
+    try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+    snapshot = null;
+    const panel = document.getElementById("stage7FirstExperiencePanel");
+    if (panel) panel.remove();
+    setControlledMode(false);
+    return true;
+  }
+
+  function advanceForegroundForDev(ms) {
+    if (!snapshot) snapshot = loadSnapshot();
+    if (!snapshot) return null;
+    snapshot.foregroundElapsedMs += Math.max(0, Number(ms) || 0);
+    PRELUDE.forEach((entry) => {
+      if (!snapshot.shownMessageIds.includes(entry.id) && snapshot.foregroundElapsedMs >= entry.at) emitPrelude(entry);
+    });
+    saveSnapshot();
+    render();
+    return getSnapshot();
+  }
+
+  function settleWorldAdvanceForDev(mode) {
+    if (!snapshot) snapshot = loadSnapshot();
+    if (!snapshot || snapshot.stateId !== "intermission") return false;
+    snapshot.worldAdvanceDueAt = Date.now() - 1;
+    saveSnapshot();
+    return presentWorldAdvance(mode === "return" ? "return" : "foreground");
+  }
+
+  function completeRoundOneForDev(branchId) {
+    if (!snapshot) snapshot = defaultSnapshot();
+    if (!RESPONSE_IDS.includes(branchId)) return false;
+    snapshot.preludeComplete = true;
+    snapshot.branchId = branchId;
+    snapshot.stateId = "rematch";
+    snapshot.settlementId = `dev_settlement:${branchId}:${Date.now()}`;
+    snapshot.settled = true;
+    if (snapshot.evidence) {
+      snapshot.evidence.branchId = branchId;
+      snapshot.evidence.settlementAppliedCount = 1;
+      snapshot.evidence.firstActionAt = snapshot.evidence.firstActionAt || Date.now();
+      snapshot.evidence.firstActionMs = snapshot.evidence.firstActionMs == null ? 1 : snapshot.evidence.firstActionMs;
+    }
+    completeCycle();
+    return true;
+  }
+
+  function resolveRoundTwoForDev(choiceId) {
+    return settleBranchFollowUp(choiceId);
+  }
+
+  function openQuestionsForDev() {
+    return openOnboardingQuestionnaire();
+  }
+
+  function answerCurrentQuestionCorrectForDev() {
+    if (!snapshot || !snapshot.evidence) return false;
+    const question = evidenceQuestions()[snapshot.evidence.questionIndex];
+    if (!question) return false;
+    return answerOnboardingQuestion(question.id, question.correct);
+  }
+
+  function talkIntermissionNpcForDev(npcId) {
+    return talkToIntermissionNpc(npcId);
+  }
+
+  function destroy() {
+    if (scheduler) clearInterval(scheduler);
+    if (voteTimer) clearTimeout(voteTimer);
+    if (realBattleBridgeTimer) clearTimeout(realBattleBridgeTimer);
+    scheduler = null;
+    voteTimer = null;
+    realBattleBridgeTimer = null;
+    realBattleBridgeInFlight = false;
+    context = null;
+    lastTickAt = 0;
+    nextPreludeEligibleAt = 0;
+    lastIntermissionSecond = null;
+  }
+
+  G.Stage7FirstExperience = {
+    claimFreshStart,
+    claimResume,
+    isPending,
+    getSnapshot,
+    getObservedEvidenceReport,
+    revealHeldDenyEvidence,
+    useAccuseKenRematchOptions,
+    chooseAccuseKenRematchDefenseChoices,
+    chooseAccuseKenRematchDefenseIds,
+    preparePayDefenseChoices,
+    choosePayDefenseChoices,
+    usePayPressureAnalysis,
+    acknowledgeFirstBattleAftermath,
+    getFirstBattleAftermathRecord,
+    getFirstBattleAftermathDmRecord,
+    getFirstBattleAftermathDmContactRecord,
+    openFirstBattleAftermathDmContact,
+    restoreFirstBattleAftermathDmHistory,
+    deliverFirstBattleAftermathDm,
+    installFirstBattleAftermathDmHook,
+    resetForDev,
+    advanceForegroundForDev,
+    destroy,
+  };
+
+  if (!G.__DEV || typeof G.__DEV !== "object") G.__DEV = {};
+  G.__DEV.getStage7FirstExperienceSnapshot = getSnapshot;
+  G.__DEV.getStage7ObservedEvidenceReport = getObservedEvidenceReport;
+  G.__DEV.resetStage7FirstExperience = resetForDev;
+  G.__DEV.advanceStage7FirstExperienceForeground = advanceForegroundForDev;
+  G.__DEV.completeStage7RoundOne = completeRoundOneForDev;
+  G.__DEV.settleStage7Intermission = settleWorldAdvanceForDev;
+  G.__DEV.talkStage7IntermissionNpc = talkIntermissionNpcForDev;
+  G.__DEV.resolveStage7RoundTwo = resolveRoundTwoForDev;
+  G.__DEV.openStage7Questions = openQuestionsForDev;
+  G.__DEV.answerStage7CurrentQuestionCorrect = answerCurrentQuestionCorrectForDev;
+  G.__DEV.runStage7RealArgumentBattleBridge = attemptRealArgumentBattleBridge;
+  G.__DEV.syncStage7RealArgumentBattleLifecycle = syncRealArgumentBattleLifecycle;
+  G.__DEV.getStage7FirstBattleAftermath = getFirstBattleAftermathRecord;
+  G.__DEV.acknowledgeStage7FirstBattleAftermath = acknowledgeFirstBattleAftermath;
+  G.__DEV.getStage7FirstBattleAftermathDm = getFirstBattleAftermathDmRecord;
+  G.__DEV.getStage7FirstBattleAftermathDmContact = getFirstBattleAftermathDmContactRecord;
+  G.__DEV.openStage7FirstBattleAftermathDmContact = openFirstBattleAftermathDmContact;
+  G.__DEV.restoreStage7FirstBattleAftermathDmHistory = restoreFirstBattleAftermathDmHistory;
+  G.__DEV.deliverStage7FirstBattleAftermathDm = deliverFirstBattleAftermathDm;
+  G.__DEV.installStage7FirstBattleAftermathDmHook = installFirstBattleAftermathDmHook;
+  G.__DEV.revealStage7HeldDenyEvidence = revealHeldDenyEvidence;
+  G.__DEV.useStage7AccuseKenRematchOptions = useAccuseKenRematchOptions;
+  G.__DEV.chooseStage7AccuseKenRematchDefenseChoices = chooseAccuseKenRematchDefenseChoices;
+  G.__DEV.chooseStage7AccuseKenRematchDefenseIds = chooseAccuseKenRematchDefenseIds;
+  G.__DEV.getStage7IntermissionNpcIds = () => INTERMISSION_NPCS.map((npc) => npc.id);
+  installFirstBattleAftermathDmHook();
+  G.__DEV.smokeStage7FirstCausalVerticalSlice = () => ({
+    ok: !!G.Stage7FirstExperience,
+    storageKey: STORAGE_KEY,
+    scenarioId: SCENARIO_ID,
+    states: STATES.slice(),
+    responses: RESPONSE_IDS.slice(),
+    worldAdvanceDelayMs: WORLD_ADVANCE_DELAY_MS,
+  });
+  G.__DEV.smokeStage7ObservedEvidenceHarness = () => ({
+    ok: TEST_MODE && !!G.__DEV.getStage7ObservedEvidenceReport,
+    testMode: TEST_MODE,
+    runToken: TEST_RUN_TOKEN,
+    storageKey: STORAGE_KEY,
+    firstActionTargetMs: FIRST_ACTION_TARGET_MS,
+    completeCycleTargetMs: COMPLETE_CYCLE_TARGET_MS,
+    comprehensionPassMin: COMPREHENSION_PASS_MIN,
+    networkTransmission: false,
+    continuationStateEvidence: true,
+    stage: "7.14",
+    onboardingFlowVersion: ONBOARDING_FLOW_VERSION,
+    intermissionDelayMs: INTERMISSION_DELAY_MS,
+    limitedNpcCount: INTERMISSION_NPCS.length,
+    secondRoundBeforeQuestions: true,
+    fullUnlockAfterQuestions: true,
+    realArgumentBattleBridgePending: false,
+    realArgumentBattleBridgeId: REAL_BATTLE_BRIDGE_ID,
+    denyEvidencePayoffId: DENY_EVIDENCE_PAYOFF_ID,
+    denyEvidenceSharedAutoReveal: true,
+    denyEvidenceHeldManualReveal: true,
+    accuseKenPayoffId: ACCUSE_KEN_PAYOFF_ID,
+    accuseKenPublicRematchDefenseRefresh: true,
+    accuseKenWitnessAutoReveal: true,
+    firstBattleAftermathId: FIRST_BATTLE_AFTERMATH_ID,
+    firstBattleAftermathPersisted: true,
+    firstBattleAftermathNonBlocking: true,
+    firstBattleAftermathExactlyOnce: true,
+    firstBattleAftermathDmFollowUpId: FIRST_BATTLE_AFTERMATH_DM_ID,
+    firstBattleAftermathDmTargetBound: true,
+    firstBattleAftermathDmExactlyOnce: true,
+    firstBattleAftermathDmRefreshSafe: true,
+    firstBattleAftermathDmContactId: FIRST_BATTLE_AFTERMATH_DM_CONTACT_ID,
+    firstBattleAftermathDmContactDurable: true,
+    firstBattleAftermathDmContactNoAutoOpen: true,
+    firstBattleAftermathDmHistoryRestoredOnDemand: true,
+  });
+})();
+
+// Stage 7.15 zero-tutorial demo: entry chat and first two player replies.
+// This controller is opt-in and never starts or changes the ordinary world loops.
+(() => {
+  const G = window.Game || (window.Game = {});
+  const DEMO_QUERY = "stage715demo";
+  const DEMO_STATE_FLAG = "stage715Demo";
+  const STAGE715_STORAGE_KEY = "AsyncScene_stage715_gameplay_v1";
+  const DEMO_SOURCE_TAG = "stage7_15_demo";
+  const INTRO_LINES = Object.freeze([
+    Object.freeze({ id: "rayhan_greeting", speakerId: "npc_stage7_ken", name: "Райхан", text: "всем привет в этом чатике!" }),
+    Object.freeze({ id: "nastya_greeting", speakerId: "npc_stage7_mika", name: "Настя", text: "Приветик!" }),
+    Object.freeze({ id: "oleg_greeting", speakerId: "npc_bandit", name: "Олег", text: "здарова)" }),
+  ]);
+  const SILENCE_TEXT = "слыш а ты чо не здороваешься!?";
+  const TONE_PROMPT = "слыш а чо как грубо?! ща выясним кто тут главный! посмотри в правый верхний угол экрана и напиши мне силу и цвет твоего тона, посмотрим насколько имеешь право дерзить!";
+  const TONE_ACK = "ага, вижу. вот значит кто ты такое. интересно...";
+  const NASTYA_PROMPT = "Ты на проблемы нарываешься?";
+  const NASTYA_EXPLANATION = "Видишь, у меня аргумент оранжевый, а у тебя жёлтые? Это значит у меня выше влияние и поэтому тон сильнее, поэтому тут тебе просто так не выкрутиться. Толпа решит твою судьбу. Ясно тебе?";
+  const NASTYA_RESOLVED_COUNTERARGUMENT = "Ну… да, наверное.";
+  const NASTYA_INITIAL_WRONG_LINE = "Что ж, за слова отвечать надо, иногда даже толпа тебя не спасёт. Вызывай на реванш за 1💰!";
+  const NASTYA_SURRENDER_LINE = "Хорош деньги сливать, я сдаюсь. Не злишься?";
+  const NASTYA_POST_WIN_QUESTION = "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?";
+  const NASTYA_CHOICES = Object.freeze([
+    Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
+    Object.freeze({ id: "who_oleg", type: "who", text: "Думаю, Олег, но это не точно…" }),
+    Object.freeze({ id: "where_america", type: "where", text: "Похоже, там, где Америка…" }),
+  ]);
+  // Canonical Stage 7.15 rematch copy is kept as a separate scripted set so
+  // any later rematch handoff cannot fall through to ordinary argument text.
+  const NASTYA_REMATCH_CHOICES = Object.freeze([
+    Object.freeze({ id: "who_rayhan", type: "who", text: "Кажется, Райхан…" }),
+    Object.freeze({ id: "yn_no", type: "yn", text: "Похоже, нет…" }),
+    Object.freeze({ id: "where_square", type: "where", text: "Наверное, там, где Площадь…" }),
+  ]);
+  const FIRST_BATTLE_ID = "stage7_15_first_battle";
+  const RAYHAN_ID = "npc_stage7_ken";
+  const RAYHAN_EVENT_PLAYER_ID = "stage715_rayhan_event_player";
+  const NASTYA_EVENT_PLAYER_ID = "stage715_nastya_event_player";
+  const RAYHAN_EVENT_VOTE_COUNT = 5;
+  const RAYHAN_EVENT_MIN_DELAY_MS = 3_000;
+  const RAYHAN_EVENT_MAX_DELAY_MS = 4_000;
+  const RAYHAN_WIN_CHAT = "ладно ладно, я понял, не ори. смари у тебя репутация выросла, денежек больше стало и победа первая появилась. кликни по этим “+1” чтоб не мусорили экран, заодно посмотри чо там в меню и дай знать когда закончишь";
+  const RAYHAN_WRONG_CHAT = "хааа ответ мимо! ща толпа решит кто из нас прав! готов?";
+  const RAYHAN_REWARD_REASON = "stage715_rayhan_post_win_reward";
+  const NASTYA_BATTLE_ID = "stage7_15_nastya_battle";
+  const OLEG_BATTLE_ID = "stage7_15_oleg_battle";
+  const OLEG_ESCAPE_BATTLE_ID = "stage7_15_oleg_escape_battle";
+  const OLEG_DM_ID = "npc_bandit";
+  const STAGE715_PROGRESSIVE_INIT_FLAG = "stage715ProgressiveDisclosureInitialized";
+  const STAGE715_BATTLES_REVEALED_FLAG = "stage715BattlesPanelRevealed";
+  const STAGE715_DM_REVEALED_FLAG = "stage715DmPanelRevealed";
+  const STAGE715_EVENTS_REVEALED_FLAG = "stage715EventsPanelRevealed";
+  const OLEG_BATTLE_LINE = "слыш ты, совсем нюх потерялся да? надо тебя на место поставить.";
+  const OLEG_BATTLE_PROMPT = "Где будем разбираться?";
+  const OLEG_BATTLE_CHOICES = Object.freeze([
+    Object.freeze({ id: "where_backyard", type: "where", text: "Возможно, там, где Подворотня…" }),
+    Object.freeze({ id: "who_rayhan", type: "who", text: "Думаю, Райхан…" }),
+    Object.freeze({ id: "yn_no", type: "yn", text: "Кажется, нет…" }),
+  ]);
+  const OLEG_PUBLIC_LOSS_LINE = "нефига лезть на взрослых дядек! меня может победить только такой же красный цвет, либо соседний оранжевый, а ты, с желтым тоном, знай свое место, и не дай Бог попадётся черный - это конец даже для меня. но ты вроде норм, поэтому я тебе в личку кое-что отправил, глянь.";
+  const OLEG_DM_LINE = "ладно не расстраивайся, дам тебе ещё один шанс, только никому не говори. если понимаешь, что не вытягиваешь, то всегда можешь уйти от конфликта за взятку. ок?";
+  const OLEG_FIRST_LOSS_DELAY_MS = 1000;
+  const OLEG_ESCAPE_FAILED_DM_LINE = "слыш трусишка, кудааа, не так быстро! ладно, можешь ещё разок попробовать.";
+  const OLEG_ESCAPE_SUCCESS_DM_LINE = "трусишек не уважают, поэтому репутация понизилась, но ничего, уверен ты всё наверстаешь, а это был неприятный, но полезный урок. без обид?";
+  const OLEG_ESCAPE_SUCCESS_RESULT = "У тебя получилось уйти от конфликта за взятку, все довольны.";
+  const STAGE715_INITIAL_REP_BASELINE = 1;
+  const STAGE715_INITIAL_REP_BASELINE_ID = "stage7_15_initial_rep_baseline";
+  const FIRST_INDEPENDENT_BATTLE_TARGET_ID = "npc_weak";
+  const OLEG_FIRST_INDEPENDENT_BATTLE_LINE = "ладно я сегодня добрый, теперь попробуй наверстать свои потери за счёт одного из моих шавок, иди в {battlePanel} и нажми «Вызвать», там выбери самого слабого и кинь ему вызов. победишь его - вернешь себе репутацию. не благодари.";
+  const NASTYA_ORANGE_INFLUENCE = 8;
+  const SILENCE_DELAY_MS = 10_000;
+  const INTRO_STEP_DELAY_MS = 350;
+  const NPC_MESSAGE_GAP_MS = 900;
+  const NPC_TYPING_MIN_MS = 1100;
+  const NPC_TYPING_MAX_MS = 2800;
+  const NPC_TYPING_CHARS_MS = 24;
+  const RAYHAN_BATTLE_CHOICES = Object.freeze([
+    Object.freeze({ id: "stage715_rayhan_answer_1", type: "who", group: "who", text: "Похоже, ты…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_2", type: "where", group: "where", text: "Кажется, прямо тут…" }),
+    Object.freeze({ id: "stage715_rayhan_answer_3", type: "yn", group: "yn", text: "Наверное, да…" }),
+  ]);
+  const NPCS = Object.freeze([
+    Object.freeze({ id: "npc_stage7_ken", name: "Райхан", role: "crowd" }),
+    Object.freeze({ id: "npc_stage7_mika", name: "Настя", role: "crowd" }),
+    Object.freeze({ id: "npc_bandit", name: "Олег", role: "bandit" }),
+  ]);
+
+  function isStage715DemoBattle(battle) {
+    if (!battle || typeof battle !== "object") return false;
+    const meta = battle.meta && typeof battle.meta === "object" ? battle.meta : {};
+    return meta.stage715DemoBattle === true
+      || meta.stage7_15_demo_battle === true
+      || meta.demoId === "stage7_15_first_battle"
+      || meta.sourceTag === DEMO_SOURCE_TAG
+      || battle.sourceTag === DEMO_SOURCE_TAG;
+  }
+
+  let context = null;
+  let active = false;
+  let phase = "idle";
+  let silenceTimer = null;
+  let introTimers = [];
+  let battleWatchTimer = null;
+  let olegSequenceTimer = null;
+  let olegGreetingQueuedInRuntime = false;
+  let olegPresentationGeneration = 0;
+  let olegPresentationWatches = { card: false, result: false, publicLoss: false };
+  let rayhanEventVoteTimers = [];
+  let escapeWatchTimer = null;
+  let npcQueue = [];
+  let npcQueueTimer = null;
+  let npcTyping = null;
+  let firstBattleWatchTimer = null;
+  let firstIndependentBattleWatchTimer = null;
+  let lastRayhanFailure = null;
+
+  function stage715Storage() {
+    try {
+      return typeof window !== "undefined" && window.localStorage ? window.localStorage : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function readPersistedStage715State() {
+    const storage = stage715Storage();
+    if (!storage) return null;
+    try {
+      const raw = storage.getItem(STAGE715_STORAGE_KEY);
+      if (!raw) return null;
+      const envelope = JSON.parse(raw);
+      return envelope && envelope.version === 1 && envelope.state && typeof envelope.state === "object"
+        ? envelope.state
+        : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function hasPersistedCheckpoint() {
+    const state = readPersistedStage715State();
+    return !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true);
+  }
+
+  function restorePersistedStage715State(nextContext) {
+    const restored = readPersistedStage715State();
+    if (!restored) return false;
+    const state = stateFor(nextContext);
+    if (!state) return false;
+    Object.keys(restored).filter((key) => key !== "rep").forEach((key) => {
+      state[key] = restored[key];
+    });
+    const UI = nextContext && nextContext.UI ? nextContext.UI : G.UI;
+    if (UI && UI.S && UI.S !== state) Object.keys(restored).filter((key) => key !== "rep").forEach((key) => { UI.S[key] = restored[key]; });
+    if (G.__S && G.__S !== state && G.__S !== (UI && UI.S)) {
+      Object.keys(restored).filter((key) => key !== "rep").forEach((key) => { G.__S[key] = restored[key]; });
+    }
+    if (Number.isFinite(restored.rep) && G.__A && typeof G.__A.restoreRepSnapshot === "function") {
+      G.__A.restoreRepSnapshot(restored.rep, "stage715_checkpoint");
+    }
+    return true;
+  }
+
+  function queryEnabled() {
+    try {
+      return new URLSearchParams(window.location.search || "").get(DEMO_QUERY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function stateFor(nextContext) {
+    const ctx = nextContext || context || {};
+    return ctx.state || G.__S || (G.UI && G.UI.S) || G.State || null;
+  }
+
+  function rayhanBattleState() {
+    const UI = G.UI || (context && context.UI);
+    return (UI && UI.S) || stateFor();
+  }
+
+  function mirrorRayhanBattleToRenderState(battle) {
+    const state = rayhanBattleState();
+    const renderStates = [G.__S, G.UI && G.UI.S].filter((renderState, index, list) => (
+      renderState && renderState !== state && list.indexOf(renderState) === index
+    ));
+    if (!battle || renderStates.length === 0) return;
+    renderStates.forEach((renderState) => {
+      renderState.battles = Array.isArray(renderState.battles) ? renderState.battles : [];
+      if (!renderState.battles.some((entry) => entry && entry.id === battle.id)) {
+        renderState.battles.push(battle);
+      }
+    });
+  }
+
+  function preserveStage715SelectedDefenseText(battleId, text) {
+    if (!text) return false;
+    const refs = [stateFor(), rayhanBattleState(), G.__S, G.UI && G.UI.S]
+      .filter((state, index, list) => state && list.indexOf(state) === index);
+    let preserved = false;
+    refs.forEach((state) => {
+      (Array.isArray(state.battles) ? state.battles : []).forEach((entry) => {
+        if (!entry || (String(entry.id) !== String(battleId) && String(entry.battleId || "") !== String(battleId))) return;
+        entry.meta = Object.assign({}, entry.meta || {}, {
+          stage715SelectedDefenseText: String(text),
+        });
+        entry.defense = Object.assign({}, entry.defense || {}, {
+          stage715DisplayText: String(text),
+        });
+        preserved = true;
+      });
+    });
+    return preserved;
+  }
+
+  function currentBattlesPanelLabel() {
+    try {
+      const title = document.querySelector("#battlesHeader .battleTitleText");
+      const label = String(title && title.textContent || "").trim();
+      return label || "Споры";
+    } catch (_) {
+      return "Споры";
+    }
+  }
+
+  function rayhanBattleInviteText() {
+    return `нефиг дерзить тут сопля, пошли в ${currentBattlesPanelLabel().toLowerCase()}, пообщаемся 1на1 коль не ссыш`;
+  }
+
+  function isActive(nextContext) {
+    const state = stateFor(nextContext);
+    return active
+      || queryEnabled()
+      || !!(state && state.flags && state.flags[DEMO_STATE_FLAG] === true)
+      || hasPersistedCheckpoint();
+  }
+
+  function clearTimers() {
+    introTimers.forEach((timer) => clearTimeout(timer));
+    introTimers = [];
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = null;
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = null;
+    if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
+    olegSequenceTimer = null;
+    olegPresentationGeneration += 1;
+    olegPresentationWatches = { card: false, result: false, publicLoss: false };
+    rayhanEventVoteTimers.forEach((timer) => clearTimeout(timer));
+    rayhanEventVoteTimers = [];
+    const nastyaVoteRegistry = G.__stage715NastyaEventVoteTimers;
+    if (nastyaVoteRegistry && typeof nastyaVoteRegistry === "object") {
+      Object.keys(nastyaVoteRegistry).forEach((eventId) => {
+        clearTimeout(nastyaVoteRegistry[eventId]);
+        delete nastyaVoteRegistry[eventId];
+      });
+    }
+    const rayhanVoteRegistry = G.__stage715RayhanEventVoteTimers;
+    if (rayhanVoteRegistry && typeof rayhanVoteRegistry === "object") {
+      Object.keys(rayhanVoteRegistry).forEach((eventId) => {
+        clearTimeout(rayhanVoteRegistry[eventId]);
+        delete rayhanVoteRegistry[eventId];
+      });
+    }
+    if (escapeWatchTimer) clearInterval(escapeWatchTimer);
+    escapeWatchTimer = null;
+    if (npcQueueTimer) clearTimeout(npcQueueTimer);
+    npcQueueTimer = null;
+    npcQueue = [];
+    npcTyping = null;
+    if (firstBattleWatchTimer) clearInterval(firstBattleWatchTimer);
+    firstBattleWatchTimer = null;
+    if (firstIndependentBattleWatchTimer) clearInterval(firstIndependentBattleWatchTimer);
+    firstIndependentBattleWatchTimer = null;
+  }
+
+  function saveState() {
+    // stateFor() is the controller's authoritative state reference. The
+    // other objects are mirrors and must never win persistence by having a
+    // larger heuristic score or a newer-looking chat array.
+    const state = stateFor() || G.__S || (G.UI && G.UI.S) || null;
+    if (!state) return;
+    const persisted = state;
+    persisted.flags = persisted.flags || {};
+    persisted.flags[DEMO_STATE_FLAG] = true;
+    persisted.flags.stage715DemoPhase = phase;
+    const storage = stage715Storage();
+    if (!storage) return;
+    try {
+      const seen = new WeakSet();
+      const payload = JSON.stringify({ version: 1, state: persisted }, (key, value) => {
+        if (!value || typeof value !== "object") return value;
+        if (seen.has(value)) return undefined;
+        seen.add(value);
+        return value;
+      });
+      storage.setItem(STAGE715_STORAGE_KEY, payload);
+    } catch (_) {}
+  }
+
+  function resetStage715FreshState(nextContext) {
+    // Fresh-start construction must not carry visible economy/toast artifacts
+    // from the abandoned run into the new canonical corridor.
+    try {
+      document.querySelectorAll('.statToast, [id^="stage6StartupNameToast_"]').forEach((node) => node.remove());
+    } catch (_) {}
+    const storage = stage715Storage();
+    if (storage) {
+      try { storage.removeItem(STAGE715_STORAGE_KEY); } catch (_) {}
+    }
+    const primary = stateFor(nextContext);
+    const preservedName = String((nextContext && nextContext.playerName)
+      || (primary && primary.me && primary.me.name) || "");
+    // Game.Core.resetAll() reloads the document and aborts the fresh-start
+    // transaction. Use the non-reloading StateAPI reset for this in-page
+    // production path so the canonical state can be rebuilt immediately.
+    const resetState = G.StateAPI && typeof G.StateAPI.resetAll === "function"
+      ? G.StateAPI.resetAll
+      : (G.__A && typeof G.__A.resetAll === "function" ? G.__A.resetAll : null);
+    if (resetState) {
+      try { resetState(); } catch (_) {}
+    }
+    const states = [stateFor(nextContext), G.__S, G.UI && G.UI.S];
+    states.forEach((state) => {
+      if (!state || typeof state !== "object") return;
+      state.me = state.me || {};
+      if (preservedName) state.me.name = preservedName;
+      if (state.players && state.players.me && preservedName) state.players.me.name = preservedName;
+      if (state.flags && typeof state.flags === "object") {
+        Object.keys(state.flags).forEach((key) => {
+          if (key === DEMO_STATE_FLAG || key.startsWith("stage715")) delete state.flags[key];
+        });
+      }
+      if (Array.isArray(state.battles)) {
+        state.battles = state.battles.filter((battle) => !(battle && battle.meta && battle.meta.stage715DemoBattle === true));
+      }
+    });
+  }
+
+  function initializeStage715InitialRepBaseline(state, mode) {
+    if (mode !== "fresh" || !state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715InitialRepBaselineApplied === true) return true;
+    const currentRep = Number.isFinite(state.rep) ? (state.rep | 0) : 0;
+    if (currentRep >= STAGE715_INITIAL_REP_BASELINE) {
+      state.flags.stage715InitialRepBaselineApplied = true;
+      return true;
+    }
+    const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
+    const transferred = transferRep
+      ? transferRep("crowd_pool", "me", STAGE715_INITIAL_REP_BASELINE - currentRep,
+        "rep_stage715_initial_baseline", STAGE715_INITIAL_REP_BASELINE_ID, {
+          actionId: STAGE715_INITIAL_REP_BASELINE_ID,
+          context: "stage715_initial_rep_baseline",
+          suppressStatDelta: true,
+        })
+      : { ok: false, reason: "transfer_rep_unavailable" };
+    if (!transferred || transferred.ok !== true) return false;
+    state.flags.stage715InitialRepBaselineApplied = true;
+    return true;
+  }
+
+  function restorePhase(nextContext, mode) {
+    if (mode !== "resume") return "intro";
+    const state = stateFor(nextContext);
+    const saved = state && state.flags && state.flags.stage715DemoPhase;
+    return [
+      "intro",
+      "awaiting_first",
+      "awaiting_first_after_nudge",
+      "awaiting_second",
+      "tone_prompted",
+      "rayhan_event_vote",
+      "rayhan_wrong_waiting_reply",
+      "rayhan_win_waiting_reply",
+      "first_battle",
+      "battle_unlocked",
+      "nastya_prompt",
+      "nastya_battle",
+      "nastya_initial_wrong_waiting_rematch",
+      "nastya_rematch_available",
+      "nastya_rematch_paid",
+      "nastya_rematch_awaiting_answer",
+      "nastya_rematch_wrong",
+      "nastya_surrender_waiting_reply",
+      "nastya_automatic_victory_settlement",
+      "nastya_waiting_chat_reply",
+      "nastya_crowd_vote",
+      "nastya_post_win_waiting_reply",
+      "oleg_battle",
+      "oleg_dm",
+      "oleg_escape_ready",
+      "oleg_escape_vote",
+      "first_independent_battle",
+      "next_scripted_flow",
+    ].includes(saved) ? saved : "intro";
+  }
+
+  function normalizeResolvedNastyaCheckpoint(state) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta || battle.result !== "win"
+      || battle.meta.stage715NastyaRewardsApplied !== true
+      || battle.meta.stage715NastyaSurrenderWaitingReply !== true) return false;
+    battle.meta.stage715NastyaSurrenderWaitingReply = false;
+    battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
+    battle.meta.stage715NastyaChatReplyPending = false;
+    if (state && state.flags && state.flags.stage715NastyaPostWinReplyReceived === true) {
+      state.flags.stage715DemoPhase = "next_scripted_flow";
+    }
+    return true;
+  }
+
+  function telemetry(actionId) {
+    if (G.Telemetry && typeof G.Telemetry.action === "function") {
+      G.Telemetry.action(actionId, { flowId: "stage7_15_zero_tutorial_demo_v1", phase });
+    }
+  }
+
+  function isOlegDmRestrictedThread(targetId) {
+    const state = stateFor();
+    return active
+      && String(targetId || "") === OLEG_DM_ID
+      && !!(state && state.flags && state.flags.stage715OlegDmActive === true);
+  }
+
+  function revealPanelOnce(panelKey, stateFlag, telemetryId) {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || !state.flags) return false;
+    if (state.flags[stateFlag] === true) return false;
+    state.flags[stateFlag] = true;
+    if (panelKey === "events") setStage715EventsPanelVisible(true);
+    if (panelKey === "events" && typeof UI.ensureEventsExpanded === "function") {
+      if (typeof UI.setPanelSize === "function") UI.setPanelSize("events", "medium");
+      UI.ensureEventsExpanded();
+    } else if (typeof UI.ensurePanelExpanded === "function") {
+      UI.ensurePanelExpanded(panelKey);
+    } else if (typeof UI.setPanelSize === "function") {
+      UI.setPanelSize(panelKey, "medium");
+    }
+    saveState();
+    if (telemetryId) telemetry(telemetryId);
+    return true;
+  }
+
+  function setStage715EventsPanelVisible(visible) {
+    const panel = document.getElementById("eventsBlock");
+    if (!panel) return;
+    panel.hidden = !visible;
+    panel.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+
+  function initializeProgressiveDisclosure(mode) {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI || mode !== "fresh") return false;
+    state.flags = state.flags || {};
+    if (state.flags[STAGE715_PROGRESSIVE_INIT_FLAG] === true) return false;
+    if (typeof UI.setPanelSize === "function") {
+      UI.setPanelSize("battles", "collapsed");
+      UI.setPanelSize("dm", "collapsed");
+      UI.setPanelSize("events", "collapsed");
+    }
+    if (typeof UI.setEventsCollapsed === "function") UI.setEventsCollapsed(true);
+    setStage715EventsPanelVisible(false);
+    state.flags[STAGE715_PROGRESSIVE_INIT_FLAG] = true;
+    saveState();
+    return true;
+  }
+
+  function revealBattlesPanel() {
+    const revealed = revealPanelOnce("battles", STAGE715_BATTLES_REVEALED_FLAG, "stage715_battles_panel_revealed");
+    const UI = G.UI || (context && context.UI);
+    if (UI) {
+      if (typeof UI.ensurePanelExpanded === "function") UI.ensurePanelExpanded("battles");
+      if (typeof UI.renderBattles === "function") UI.renderBattles();
+    }
+    return revealed;
+  }
+
+  function revealEventsPanel() {
+    return revealPanelOnce("events", STAGE715_EVENTS_REVEALED_FLAG, "stage715_events_panel_revealed");
+  }
+
+  function shouldRevealBattleBlock() {
+    const state = rayhanBattleState();
+    if (!state || !state.flags) return false;
+    if (state.flags[STAGE715_BATTLES_REVEALED_FLAG] === true) return true;
+    return (state.battles || []).some((battle) => isStage715DemoBattle(battle));
+  }
+
+  function focusOlegDmLine() {
+    try {
+      const box = document.getElementById("dmLog");
+      if (!box) return;
+      const lines = Array.from(box.querySelectorAll(".dmLine"));
+      const hit = lines.slice().reverse().find((line) => String(line.textContent || "").includes(OLEG_DM_LINE));
+      if (!hit) return;
+      hit.classList.remove("focusFlash");
+      hit.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      hit.classList.add("focusFlash");
+      setTimeout(() => { try { hit.classList.remove("focusFlash"); } catch (_) {} }, 1200);
+    } catch (_) {}
+  }
+
+  function openOlegDmAfterLoss() {
+    const state = stateFor();
+    const UI = context && context.UI;
+    if (!state || !UI) return false;
+    ensurePlayers(state);
+    state.flags = state.flags || {};
+    if (state.flags.stage715OlegPublicLossLineShown !== true) return false;
+    const alreadyOpened = state.flags.stage715OlegDmOpened === true;
+    state.flags.stage715OlegDmActive = true;
+    state.flags.stage715OlegDmOpened = true;
+    state.flags.stage715OlegFlowComplete = true;
+    if (!alreadyOpened) {
+      state.flags.stage715OlegDmReplied = false;
+    }
+    phase = state.flags.stage715OlegDmReplied === true ? "next_scripted_flow" : "oleg_dm";
+    if (G.__A && typeof G.__A.pushDm === "function" && !state.flags.stage715OlegDmLineSent) {
+      G.__A.pushDm(OLEG_DM_ID, "Олег", OLEG_DM_LINE, { isSystem: false, playerId: OLEG_DM_ID });
+      state.flags.stage715OlegDmLineSent = true;
+    }
+    state.dm = state.dm && typeof state.dm === "object" ? state.dm : {};
+    if (!alreadyOpened) {
+      revealPanelOnce("dm", STAGE715_DM_REVEALED_FLAG, "stage715_dm_panel_revealed");
+      state.dm.openIds = [OLEG_DM_ID];
+      state.dm.activeId = OLEG_DM_ID;
+      state.dm.withId = OLEG_DM_ID;
+      state.dm.open = true;
+    }
+    saveState();
+    if (!alreadyOpened && typeof UI.openDM === "function") UI.openDM(OLEG_DM_ID);
+    if (state.dm.open && typeof UI.renderDM === "function") {
+      UI.renderDM();
+      if (!alreadyOpened) focusOlegDmLine();
+    }
+    if (!alreadyOpened) telemetry("stage715_oleg_dm_opened");
+    render();
+    return true;
+  }
+
+  function handleOlegDmReply(text) {
+    if (!isOlegDmRestrictedThread(OLEG_DM_ID) || !String(text || "").trim()) return false;
+    const state = stateFor();
+    if (!state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715OlegDmReplied !== true) {
+      state.flags.stage715OlegDmReplied = true;
+      phase = "oleg_escape_ready";
+      saveState();
+      telemetry("stage715_oleg_dm_replied");
+      telemetry("stage715_escape_option_unlocked");
+      unlockOlegEscapeBattle();
+      render();
+      return true;
+    }
+    if (state.flags.stage715OlegEscapeSuccessDmSent === true
+      && state.flags.stage715FirstIndependentBattleInstructionSent !== true) {
+      const label = currentBattlesPanelLabel().toLowerCase();
+      const instruction = OLEG_FIRST_INDEPENDENT_BATTLE_LINE.replace("{battlePanel}", label);
+      if (pushOlegEscapeDm(instruction, "stage715FirstIndependentBattleInstructionSent")) {
+        phase = "first_independent_battle";
+        saveState();
+        telemetry("stage715_first_independent_battle_instruction");
+      }
+    }
+    render();
+    return true;
+  }
+
+  function isFirstIndependentBattleReady(state) {
+    const flags = state && state.flags;
+    return !!(active
+      && flags
+      && flags.stage715FirstIndependentBattleInstructionSent === true
+      && flags.stage715FirstIndependentBattleComplete !== true);
+  }
+
+  function firstIndependentBattleStartOptions({ opponentId, state: suppliedState } = {}) {
+    const canonicalState = stateFor();
+    const state = [canonicalState, suppliedState].find((candidate) => {
+      const flags = candidate && candidate.flags;
+      return flags && flags.stage715FirstIndependentBattleInstructionSent === true;
+    }) || canonicalState || suppliedState;
+    const flags = state && state.flags || {};
+    if (!isFirstIndependentBattleReady(state)
+      || flags.stage715FirstIndependentBattleStarted === true
+      || String(opponentId || "") !== FIRST_INDEPENDENT_BATTLE_TARGET_ID) return null;
+    return {
+      battleMeta: {
+        stage715FirstIndependentBattle: true,
+        stage715FirstIndependentRecovery: true,
+        safeArgumentRelation: {
+          attackColor: "r",
+          defenseColor: "y",
+        },
+      },
+    };
+  }
+
+  function firstIndependentBattleStarted({ opponentId, battle } = {}) {
+    const state = stateFor();
+    const flags = state && state.flags || {};
+    const resolvedOpponentId = battle && battle.opponentId || opponentId;
+    const isCanonicalTarget = String(resolvedOpponentId || "") === FIRST_INDEPENDENT_BATTLE_TARGET_ID;
+    const isPendingCanonicalCall = flags.stage715FirstIndependentBattleInstructionSent === true
+      && flags.stage715FirstIndependentBattleStarted !== true
+      && battle.fromThem === false;
+    if (!state || !battle || (!isCanonicalTarget && !isPendingCanonicalCall)) return false;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715FirstIndependentBattle: true,
+      stage715FirstIndependentRecovery: true,
+      safeArgumentRelation: { attackColor: "r", defenseColor: "y" },
+    });
+    battle.fromThem = false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715FirstIndependentBattleStarted === true) return true;
+    state.flags.stage715FirstIndependentBattleStarted = true;
+    state.flags.stage715FirstIndependentBattleId = battle.id || battle.battleId || null;
+    phase = "first_independent_battle";
+    saveState();
+    watchFirstIndependentBattle();
+    return true;
+  }
+
+  function firstIndependentBattleFromState() {
+    const state = stateFor();
+    const flags = state && state.flags || {};
+    const battleId = flags.stage715FirstIndependentBattleId;
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    return battles.find((battle) => battle && battle.meta
+      && battle.meta.stage715FirstIndependentBattle === true
+      && (!battleId || String(battle.id || battle.battleId || "") === String(battleId))) || null;
+  }
+
+  function settleFirstIndependentBattleCompletion() {
+    const state = stateFor();
+    const battle = firstIndependentBattleFromState();
+    if (!state || !battle || battleOutcome(battle) !== "win") return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715FirstIndependentBattleComplete === true) return true;
+    battle.meta.stage715FirstIndependentBattleComplete = true;
+    state.flags.stage715FirstIndependentBattleComplete = true;
+    telemetry("stage715_first_independent_battle_complete", { battleId: battle.id || battle.battleId || null });
+    if (G.UI && typeof G.UI.pushChat === "function") {
+      G.UI.pushChat({
+        name: "Система",
+        text: "У нас тут стычка!!! Выбери за кого ты в событиях. Участие стоит 1💰 плюс репутация за смелость.",
+        system: true,
+        sourceTag: "stage715_first_event"
+      });
+    }
+    revealEventsPanel();
+    saveState();
+    render();
+    return true;
+  }
+
+  function isFirstEventEligible(state = stateFor()) {
+    return !!(state && state.flags && state.flags.stage715FirstIndependentBattleComplete === true);
+  }
+
+  function watchFirstIndependentBattle() {
+    if (firstIndependentBattleWatchTimer) return;
+    firstIndependentBattleWatchTimer = setInterval(() => {
+      if (settleFirstIndependentBattleCompletion()) {
+        clearInterval(firstIndependentBattleWatchTimer);
+        firstIndependentBattleWatchTimer = null;
+      }
+    }, 100);
+  }
+
+  function ensurePlayers(state) {
+    if (!state) return;
+    state.players = state.players || {};
+    const npcPoints = G.Data && Number.isFinite(G.Data.START_POINTS_NPC) ? (G.Data.START_POINTS_NPC | 0) : 10;
+    NPCS.forEach((npc) => {
+      const player = state.players[npc.id] || {
+        id: npc.id,
+        name: npc.name,
+        role: npc.role,
+        npc: true,
+        points: npcPoints,
+        meta: {},
+      };
+      player.name = npc.name;
+      player.role = npc.role;
+      player.npc = true;
+      player.meta = player.meta && typeof player.meta === "object" ? player.meta : {};
+      state.players[npc.id] = player;
+    });
+    if (state.players.npc_stage7_ken && !Number.isFinite(state.players.npc_stage7_ken.influence)) {
+      state.players.npc_stage7_ken.influence = 1;
+    }
+    if (state.players.npc_stage7_mika && !Number.isFinite(state.players.npc_stage7_mika.influence)) {
+      state.players.npc_stage7_mika.influence = NASTYA_ORANGE_INFLUENCE;
+    }
+  }
+
+  function render() {
+    const UI = context && context.UI;
+    if (!UI) return;
+    if (typeof UI.requestRenderAll === "function") UI.requestRenderAll();
+    else if (typeof UI.renderAll === "function") UI.renderAll();
+  }
+
+  function pushNpc(entry) {
+    if (!entry || !String(entry.text || "").trim()) return;
+    npcQueue.push(Object.assign({}, entry));
+    drainNpcQueue();
+  }
+
+  function ensureNastyaScriptedChatLine(flag, text) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    const state = stateFor();
+    if (!battle || !battle.meta || !state) return false;
+    if (Array.isArray(state.chat) && state.chat.some((entry) => String(entry && entry.text || "") === text)) {
+      battle.meta[flag] = true;
+      return true;
+    }
+    if (npcQueue.some((entry) => String(entry && entry.text || "") === text)) return false;
+    battle.meta[flag] = true;
+    pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text });
+    saveState();
+    return false;
+  }
+
+  function npcTypingDelayMs(text) {
+    const length = String(text || "").trim().length;
+    return Math.max(NPC_TYPING_MIN_MS, Math.min(NPC_TYPING_MAX_MS, length * NPC_TYPING_CHARS_MS));
+  }
+
+  function setNpcTyping(entry) {
+    npcTyping = entry ? { name: entry.name, text: entry.text } : null;
+    if (context && typeof context.onTyping === "function") {
+      try { context.onTyping(npcTyping); } catch (_) {}
+    }
+  }
+
+  function drainNpcQueue() {
+    if (npcQueueTimer || !npcQueue.length) return;
+    const entry = npcQueue.shift();
+    const UI = context && context.UI;
+    if (!UI || typeof UI.pushChat !== "function") return;
+    setNpcTyping(entry);
+    npcQueueTimer = setTimeout(() => {
+      npcQueueTimer = null;
+      setNpcTyping(null);
+      UI.pushChat({
+        name: entry.name,
+        text: entry.text,
+        system: false,
+        speakerId: null,
+        sourceTag: DEMO_SOURCE_TAG,
+        preserveText: true,
+      });
+      // Persist after UI.pushChat commits the queued message to the
+      // authoritative UI state. Saving before this point loses the line on
+      // Menu -> Start -> Continue.
+      saveState();
+      render();
+      if (typeof entry.onComplete === "function") {
+        try { entry.onComplete(); } catch (_) {}
+      }
+      npcQueueTimer = setTimeout(() => {
+        npcQueueTimer = null;
+        drainNpcQueue();
+      }, NPC_MESSAGE_GAP_MS);
+    }, npcTypingDelayMs(entry.text));
+  }
+
+  function withDemoChatIsolation(callback) {
+    const npc = G.NPC;
+    const reaction = npc && npc.generateReactionToMe;
+    if (npc && typeof reaction === "function") npc.generateReactionToMe = null;
+    try {
+      return callback();
+    } finally {
+      if (npc && typeof reaction === "function") npc.generateReactionToMe = reaction;
+    }
+  }
+
+  function pushPlayer(text) {
+    const UI = context && context.UI;
+    const state = stateFor();
+    if (!UI || !state || typeof UI.pushChat !== "function") return;
+    const playerName = String(state.me && state.me.name || context.playerName || "игрок").trim() || "игрок";
+    withDemoChatIsolation(() => UI.pushChat({
+      name: playerName,
+      text,
+      system: false,
+      playerId: state.me && state.me.id || "me",
+      isMe: true,
+      sourceTag: DEMO_SOURCE_TAG,
+      preserveText: true,
+    }));
+    render();
+  }
+
+  function sendSilencePrompt() {
+    if (!active || phase !== "awaiting_first") return;
+    phase = "awaiting_first_after_nudge";
+    saveState();
+    const state = stateFor();
+    const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
+    pushNpc({ speakerId: "npc_stage7_ken", name: "Райхан", text: `${playerName} слыш а ты чо не здороваешься!?` });
+  }
+
+  function scheduleSilencePrompt() {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(sendSilencePrompt, SILENCE_DELAY_MS);
+  }
+
+  function battleOutcome(battle) {
+    if (!battle) return null;
+    const raw = battle.result != null ? battle.result : battle.outcome;
+    const normalized = String(raw == null ? "" : raw).trim().toLowerCase();
+    if (["win", "lose", "draw"].includes(normalized)) return normalized;
+    if (battle.status === "finished" && battle.resolved === true) return normalized || null;
+    return null;
+  }
+
+  function rayhanRewardBaseline(battle) {
+    const state = stateFor();
+    const me = state && state.me ? state.me : {};
+    const rayhan = state && state.players ? state.players[RAYHAN_ID] : null;
+    const existing = battle && battle.meta && battle.meta.stage715RayhanRewardBaseline;
+    if (existing && typeof existing === "object") return existing;
+    const baseline = {
+      rep: Number(state && state.rep || 0) | 0,
+      points: Number(me.points || 0) | 0,
+      wins: Number(me.wins || 0) | 0,
+      rayhanPoints: Number(rayhan && rayhan.points || 0) | 0,
+    };
+    if (battle) {
+      battle.meta = Object.assign({}, battle.meta || {}, { stage715RayhanRewardBaseline: baseline });
+    }
+    return baseline;
+  }
+
+  function currentPlayerStat(state, key) {
+    const me = state && state.me ? state.me : {};
+    if (key === "rep") return Number(state && state.rep || 0) | 0;
+    return Number(me[key] || 0) | 0;
+  }
+
+  function hasRewardToast(kind, battleId, delta) {
+    const log = G.__D && Array.isArray(G.__D.toastLog) ? G.__D.toastLog : [];
+    return log.some((entry) => entry
+      && String(entry.kind || "") === String(kind)
+      && Number(entry.delta || 0) === Number(delta)
+      && String(entry.battleId || "") === String(battleId || ""));
+  }
+
+  function rayhanMoneyNet(battleId) {
+    const log = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    return log.reduce((total, entry) => {
+      if (!entry || String(entry.battleId || (entry.meta && entry.meta.battleId) || "") !== String(battleId || "")) return total;
+      if (entry.currency && String(entry.currency).toLowerCase() !== "points") return total;
+      const amount = Math.max(0, Number(entry.amount || 0) | 0);
+      if (String(entry.sourceId || "") === RAYHAN_ID && String(entry.targetId || "") === "me") return total + amount;
+      if (String(entry.sourceId || "") === "me" && String(entry.targetId || "") === RAYHAN_ID) return total - amount;
+      return total;
+    }, 0);
+  }
+
+  function ensureRayhanRewardToast(kind, delta, battleId) {
+    if (hasRewardToast(kind, battleId, delta)) return;
+    const API = G.__A;
+    if (API && typeof API.emitStatDelta === "function") {
+      API.emitStatDelta(kind, delta, { reason: RAYHAN_REWARD_REASON, battleId });
+      return;
+    }
+    const UI = context && context.UI;
+    if (UI && typeof UI.showStatToast === "function") {
+      const icons = { rep: "⭐", points: "💰", wins: "🏆" };
+      UI.showStatToast(kind, `${icons[kind] || ""} +${delta}`.trim());
+    }
+  }
+
+  function settleRayhanWinRewards(battle) {
+    const state = stateFor();
+    if (!battle || !state || !state.me) return false;
+    // Conflict economy settles against the render authority (Game.__S). The
+    // Stage 7.15 controller can be invoked with a UI/state mirror, so read
+    // progression from the same authority before deciding whether a scripted
+    // reward is still missing. Otherwise the generic battle win and this
+    // idempotent repair path can award the first win twice.
+    const progressionState = G.__S && G.__S.me ? G.__S : state;
+    battle.meta = battle.meta || {};
+    if (battle.meta.stage715RayhanRewardApplied === true) {
+      phase = "rayhan_win_waiting_reply";
+      return true;
+    }
+    const baseline = rayhanRewardBaseline(battle);
+    const battleId = battle.id || battle.battleId || FIRST_BATTLE_ID;
+    const economy = G.ConflictEconomy || G._ConflictEconomy;
+    const pointsAlreadyTransferred = rayhanMoneyNet(battleId);
+    const pointsNeeded = Math.max(0, 2 - pointsAlreadyTransferred);
+    if (pointsNeeded > 0) {
+      if (!economy || typeof economy.transferPoints !== "function") return false;
+      const transfer = economy.transferPoints(RAYHAN_ID, "me", pointsNeeded, RAYHAN_REWARD_REASON, {
+        battleId,
+        context: "stage7_15_rayhan_post_win",
+        opponentId: RAYHAN_ID,
+      });
+      if (!transfer || transfer.ok !== true) return false;
+    }
+
+    const netMoney = rayhanMoneyNet(battleId);
+    if (netMoney > 2) {
+      const rebalance = economy && typeof economy.transferPoints === "function"
+        ? economy.transferPoints("me", RAYHAN_ID, netMoney - 2, RAYHAN_REWARD_REASON, {
+          battleId,
+          context: "stage7_15_rayhan_post_win_rebalance",
+          opponentId: RAYHAN_ID,
+        })
+        : null;
+      if (!rebalance || rebalance.ok !== true) return false;
+    }
+
+    const repNeeded = Math.max(0, 1 - (currentPlayerStat(progressionState, "rep") - baseline.rep));
+    if (repNeeded > 0) {
+      if (!G.__A || typeof G.__A.transferRep !== "function") return false;
+      const transfer = G.__A.transferRep("crowd_pool", "me", repNeeded, RAYHAN_REWARD_REASON, battleId, {
+        context: "stage7_15_rayhan_post_win",
+      });
+      if (!transfer || transfer.ok !== true) return false;
+    }
+
+    // The generic conflict economy is the sole owner of the win counter. The
+    // Stage 7.15 settlement only owns its extra scripted points/rep reward;
+    // touching wins here would duplicate the battle win.
+    const winsNeeded = 0;
+    if (G.__A && typeof G.__A.syncMeToPlayers === "function") G.__A.syncMeToPlayers();
+    ensureRayhanRewardToast("rep", 1, battleId);
+    ensureRayhanRewardToast("points", 2, battleId);
+    if (winsNeeded > 0) ensureRayhanRewardToast("wins", winsNeeded, battleId);
+    battle.meta.stage715RayhanRewardApplied = true;
+    battle.meta.stage715RayhanReward = { reputation: 1, money: 2, wins: 1, opponentId: RAYHAN_ID };
+    [rayhanBattleState(), stateFor()].forEach((candidate) => {
+      if (!candidate || !Array.isArray(candidate.battles)) return;
+      const mirror = candidate.battles.find((entry) => entry && entry.id === battle.id);
+      if (mirror && mirror !== battle) mirror.meta = Object.assign({}, mirror.meta || {}, battle.meta);
+    });
+    phase = "rayhan_win_waiting_reply";
+    saveState();
+    if (state.flags.stage715RayhanRewardChatShown !== true) {
+      pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WIN_CHAT });
+      state.flags.stage715RayhanRewardChatShown = true;
+    }
+    // Persist the exactly-once ownership flag after scheduling the durable
+    // line; drainNpcQueue() persists again after UI.pushChat commits it.
+    saveState();
+    telemetry("stage715_rayhan_win_rewards");
+    render();
+    return true;
+  }
+
+  function currentBattleBlockLabel() {
+    try {
+      const node = document.querySelector("#battlesBlock .battleTitleText, #battlesHeader .battleTitleText");
+      const visible = String(node && node.textContent || "").trim();
+      if (visible) return visible;
+    } catch (_) {}
+    try {
+      const resolved = G.Data && typeof G.Data.t === "function" ? G.Data.t("battle_invite_title") : "";
+      if (resolved) return String(resolved).trim();
+    } catch (_) {}
+    return "";
+  }
+
+  function playerNickname() {
+    const state = stateFor();
+    const UI = context && context.UI;
+    const me = state && state.me ? state.me : null;
+    if (context && String(context.playerName || "").trim()) return String(context.playerName).trim();
+    if (UI && typeof UI.displayNameByIdOrName === "function") {
+      const resolved = UI.displayNameByIdOrName(me && (me.id || "me"));
+      if (String(resolved || "").trim()) return String(resolved).trim();
+    }
+    return String(me && me.name || context && context.playerName || "игрок").trim() || "игрок";
+  }
+
+  function showNastyaAfterRayhanReply() {
+    const state = stateFor();
+    if (!state) return false;
+    state.flags = state.flags || {};
+    if (state.flags.stage715NastyaReactionShown !== true) {
+      const label = currentBattleBlockLabel() || "споры";
+      pushNpc({
+        speakerId: "npc_stage7_mika",
+        name: "Настя",
+        text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`,
+      });
+      state.flags.stage715NastyaReactionShown = true;
+      telemetry("stage715_nastya_reaction_after_rayhan");
+    }
+    phase = "nastya_prompt";
+    saveState();
+    const started = startNastyaBattle();
+    if (!started) render();
+    return started;
+  }
+
+  function stage715BattleById(id) {
+    if (id === OLEG_ESCAPE_BATTLE_ID) {
+      // Core owns the battle lifecycle. A render/persistence mirror can keep
+      // the pre-settlement vote object after Core has restored the scripted
+      // card, so never let that stale vote outrank Core's terminal record.
+      const authoritative = G.__S && Array.isArray(G.__S.battles)
+        ? G.__S.battles.find((entry) => entry && entry.meta
+          && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID) : null;
+      if (authoritative) return authoritative;
+    }
+    const states = id === OLEG_ESCAPE_BATTLE_ID
+      ? [G.__S, stateFor(), G.UI && G.UI.S]
+      : [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S];
+    let fallback = null;
+    for (const state of states) {
+      if (!state || states.indexOf(state) !== states.findIndex((candidate) => candidate === state)) continue;
+      const battles = state && Array.isArray(state.battles) ? state.battles : [];
+      const battle = battles.find((entry) => entry && entry.meta && entry.meta.stage715BattleId === id) || null;
+      if (!battle) continue;
+      if (!fallback) fallback = battle;
+      if (id === OLEG_ESCAPE_BATTLE_ID && battle.escapeVote) return battle;
+      if (battleOutcome(battle) === "win") return battle;
+    }
+    return fallback;
+  }
+
+  function isOlegEscapeBattle(battle) {
+    return !!(battle
+      && battle.meta
+      && battle.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
+      && battle.meta.stage715OlegEscape === true);
+  }
+
+  function resolveIncomingBattle(state, started, opponentId) {
+    const direct = started && started.battle && typeof started.battle === "object" ? started.battle : started;
+    if (direct && direct.id) return direct;
+    const battles = state && Array.isArray(state.battles) ? state.battles : [];
+    return battles.find((battle) => battle && battle.opponentId === opponentId && battle.status === "pickDefense") || null;
+  }
+
+  function scriptedRayhanBattle(state) {
+    const battleState = rayhanBattleState();
+    if (!battleState) return null;
+    battleState.battles = Array.isArray(battleState.battles) ? battleState.battles : [];
+    const existing = battleState && Array.isArray(battleState.battles)
+      ? battleState.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID)
+      : null;
+    if (existing) {
+      mirrorRayhanBattleToRenderState(existing);
+      return existing;
+    }
+    const battle = {
+      id: FIRST_BATTLE_ID,
+      battleId: FIRST_BATTLE_ID,
+      opponentId: "npc_stage7_ken",
+      fromThem: true,
+      attackerId: "npc_stage7_ken",
+      defenderId: battleState.me && battleState.me.id || "me",
+      status: "pickDefense",
+      resolved: false,
+      finished: false,
+      result: null,
+      draw: false,
+      crowd: null,
+      pinned: false,
+      defense: null,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      attackHidden: true,
+      attack: {
+        id: "stage7_15_rayhan_yellow_call",
+        text: "Извините, кто тут дерзкий?? Выберите ответ быстренько!",
+        displayText: "Извините, кто тут дерзкий?? Выберите ответ быстренько!",
+        color: "y",
+        _color: "y",
+        type: "who",
+        qtype: "who",
+        group: "who",
+      },
+      _defenseChoices: [],
+      _choicesForStatus: "pickDefense",
+      meta: {
+        stage715DemoBattle: true,
+        stage715BattleId: FIRST_BATTLE_ID,
+        demoId: "stage7_15_first_battle",
+        sourceTag: DEMO_SOURCE_TAG,
+        stage715RayhanScripted: true,
+      },
+    };
+    const canonicalChoices = [];
+    if (G.Conflict && typeof G.Conflict.myDefenseOptions === "function") {
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        let options = [];
+        try { options = G.Conflict.myDefenseOptions(battle) || []; } catch (_) {}
+        options.forEach((entry) => {
+          if (!entry || canonicalChoices.some((existing) => existing && existing.id === entry.id)) return;
+          canonicalChoices.push(entry);
+        });
+        const groups = new Set(canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+        if (groups.has("who") && groups.has("where") && groups.has("yn")) break;
+      }
+    } else {
+      RAYHAN_BATTLE_CHOICES.forEach((wanted) => canonicalChoices.push({
+        id: `canon_stage715_${wanted.group}`,
+        group: wanted.group,
+        type: wanted.type,
+        color: "y",
+        text: wanted.text,
+      }));
+    }
+    const choices = RAYHAN_BATTLE_CHOICES.map((wanted) => {
+      const canonical = canonicalChoices.find((entry) => String(entry && (entry.group || entry.type) || "").toLowerCase() === wanted.group);
+      return canonical
+        ? Object.assign({}, canonical, { stage715DisplayText: wanted.text })
+        : null;
+    }).filter(Boolean);
+    if (choices.length !== RAYHAN_BATTLE_CHOICES.length) {
+      const groups = new Set(canonicalChoices.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+      const missing = RAYHAN_BATTLE_CHOICES.map((wanted) => wanted.group).filter((group) => !groups.has(group));
+      return { ok: false, reason: `missing canonical defense group: ${missing.join(", ")}` };
+    }
+    battle._defenseChoices = choices;
+    battleState.battles.push(battle);
+    mirrorRayhanBattleToRenderState(battle);
+    return battle;
+  }
+
+  function handleRayhanDefenseChoice(battleId, choiceId) {
+    const battle = stage715BattleById(FIRST_BATTLE_ID);
+    if (!battle || String(battle.id) !== String(battleId)
+      || !battle.meta || battle.meta.stage715RayhanScripted !== true
+      || battle.status !== "pickDefense") return false;
+    const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
+    if (!choice) return false;
+    battle.meta = battle.meta || {};
+    if (battle.meta.stage715RayhanAnswerPending === true) return false;
+    const state = stateFor();
+    state.flags = state.flags || {};
+    state.flags.stage715RayhanChoiceId = choice.id;
+    saveState();
+    telemetry("stage715_rayhan_scripted_choice");
+    const preserveSelectedScriptedText = () => {
+      if (!choice.stage715DisplayText) return;
+      preserveStage715SelectedDefenseText(FIRST_BATTLE_ID, choice.stage715DisplayText);
+    };
+    const resolveChoice = () => {
+      const conflict = G.Conflict;
+      if (!conflict || typeof conflict.pickDefense !== "function") return false;
+      battle.meta.stage715RayhanAnswerPending = false;
+      battle.suppressCrowdSystemChat = true;
+      battle._defenseChoices = [choice];
+      const result = conflict.pickDefense(battle.id, choice.id);
+      preserveSelectedScriptedText();
+      const outcome = result && typeof result.outcome === "string" ? result.outcome : battleOutcome(battle);
+      if (outcome === "draw" || battle.status === "draw" || battle.status === "crowd" || battle.crowd) {
+        startRayhanEventVote(battle);
+      }
+      return true;
+    };
+    const attackType = String(battle.attack && (battle.attack.group || battle.attack.type || battle.attack.qtype || "") || "").toLowerCase();
+    const defenseType = String(choice.group || choice.type || choice.qtype || "").toLowerCase();
+    const isWrongAnswer = !attackType || !defenseType || attackType !== defenseType;
+    if (isWrongAnswer) {
+      battle.meta.stage715RayhanAnswerPending = true;
+      battle.meta.stage715RayhanPendingChoiceId = choice.id;
+      battle.meta.stage715RayhanArgumentRevealed = true;
+      battle.defense = Object.assign({}, choice);
+      battle.result = null;
+      battle.outcome = null;
+      battle.resolved = false;
+      battle.finished = false;
+      battle.draw = false;
+      battle.crowd = null;
+      battle._defenseChoices = [choice];
+      preserveSelectedScriptedText();
+      phase = "rayhan_wrong_waiting_reply";
+      if (state.flags.stage715RayhanWrongChatShown !== true) {
+        pushNpc({ speakerId: RAYHAN_ID, name: "Райхан", text: RAYHAN_WRONG_CHAT });
+        state.flags.stage715RayhanWrongChatShown = true;
+      }
+    } else {
+      if (!resolveChoice()) return false;
+    }
+    saveState();
+    render();
+    return true;
+  }
+
+  function isChoiceText(text, choice) {
+    const value = String(text || "").trim().toLowerCase();
+    return value === String(choice.id).toLowerCase()
+      || value === String(choice.text).trim().toLowerCase()
+      || value.startsWith(`${choice.id}:`)
+      || value.startsWith(`${choice.id}.`);
+  }
+
+  function settleNastyaWrongAnswer(battle, choice, isInitial) {
+    const state = stateFor();
+    if (!battle || !state || !choice || !choice.stage715DisplayText) return false;
+    battle.meta = Object.assign({}, battle.meta || {});
+    let meta = battle.meta;
+    if (isInitial && meta.stage715NastyaInitialLossApplied !== true) {
+      const economy = G.ConflictEconomy || G._ConflictEconomy;
+      if (!economy || typeof economy.transferPoints !== "function"
+        || !G.__A || typeof G.__A.transferRep !== "function"
+        || currentPlayerStat(state, "points") < 2) return false;
+      const paid = economy.transferPoints("me", "sink", 2, "stage715_nastya_initial_wrong_loss", {
+        battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_initial_wrong_loss",
+      });
+      if (!paid || paid.ok !== true) return false;
+      const rep = G.__A.transferRep("me", "crowd_pool", 1, "rep_stage715_nastya_initial_wrong_loss", NASTYA_BATTLE_ID, {
+        context: "stage715_nastya_initial_wrong_loss",
+      });
+      if (!rep || rep.ok === false) return false;
+      meta.stage715NastyaInitialLossApplied = true;
+      meta.stage715NastyaLoss = { rep: -1, money: -2 };
+    }
+    battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText);
+    battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText);
+    battle.defense = Object.assign({}, battle.defense || {}, {
+      id: choice.id, text: choice.text, displayText: choice.stage715DisplayText,
+      stage715DisplayText: choice.stage715DisplayText, color: "y", _color: "y",
+    });
+    preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText);
+    meta = battle.meta;
+    battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+    battle.attackHidden = false;
+    battle.revealColor = "o";
+    battle.status = "finished";
+    battle.result = "lose";
+    battle.outcome = "lose";
+    battle.resolved = true;
+    battle.finished = true;
+    battle.draw = false;
+    battle.crowd = null;
+    battle.meta.stage715NastyaPayoff = { status: "revealed", color: "o", outcome: "lose" };
+    battle.meta.stage715NastyaResultRecorded = true;
+    if (isInitial) {
+      ensureNastyaScriptedChatLine("stage715NastyaLossLineShown", NASTYA_INITIAL_WRONG_LINE);
+      meta.stage715NastyaPhase = "initial_wrong_settled";
+      meta.stage715NastyaRematchGate = true;
+      phase = "nastya_initial_wrong_waiting_rematch";
+    } else {
+      meta.stage715NastyaFailedPaidRematches = Math.max(0, Number(meta.stage715NastyaFailedPaidRematches) | 0) + 1;
+      meta.stage715NastyaRematchGate = meta.stage715NastyaFailedPaidRematches < 2;
+      meta.stage715NastyaPhase = meta.stage715NastyaFailedPaidRematches < 2 ? "rematch_wrong" : "surrender_waiting_reply";
+      phase = meta.stage715NastyaFailedPaidRematches < 2 ? "nastya_rematch_available" : "nastya_surrender_waiting_reply";
+      if (meta.stage715NastyaFailedPaidRematches >= 2) {
+        meta.stage715NastyaSurrenderWaitingReply = true;
+        meta.stage715NastyaRematchGate = false;
+        ensureNastyaScriptedChatLine("stage715NastyaSurrenderLineShown", NASTYA_SURRENDER_LINE);
+      }
+    }
+    saveState();
+    telemetry(isInitial ? "stage715_nastya_initial_wrong_settled" : "stage715_nastya_rematch_wrong_settled");
+    render();
+    return true;
+  }
+
+  function startNastyaRematch(battleId) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || (String(battle.id) !== String(battleId) && String(battleId) !== NASTYA_BATTLE_ID)
+      || !battle.meta || battle.meta.stage715NastyaRematchGate !== true
+      || Number(battle.meta.stage715NastyaFailedPaidRematches || 0) >= 2) return false;
+    const economy = G.ConflictEconomy || G._ConflictEconomy;
+    if (!economy || typeof economy.transferPoints !== "function" || currentPlayerStat(stateFor(), "points") < 1) return false;
+    battle.defense = null;
+    battle.attackHidden = true;
+    battle.status = "pickDefense";
+    if (!prepareNastyaDefenseChoices(battle, NASTYA_REMATCH_CHOICES)) return false;
+    const attempt = Math.max(0, Number(battle.meta.stage715NastyaPaidRematches) | 0) + 1;
+    const chargeKey = `stage715_nastya_rematch_${attempt}`;
+    if (battle.meta[`${chargeKey}Charged`] === true) return false;
+    const charge = economy.transferPoints("me", "sink", 1, "stage715_nastya_rematch_purchase", {
+      battleId: NASTYA_BATTLE_ID, context: "stage715_nastya_rematch_purchase", attempt,
+    });
+    if (!charge || charge.ok !== true) return false;
+    battle.meta[`${chargeKey}Charged`] = true;
+    battle.meta.stage715NastyaPaidRematches = attempt;
+    battle.meta.stage715NastyaRematchGate = false;
+    battle.meta.stage715NastyaPhase = "rematch_awaiting_answer";
+    battle.meta.stage715NastyaResultRecorded = false;
+    battle.meta.stage715NastyaPayoff = { status: "pending", color: null, outcome: null };
+    battle.meta.stage715NastyaCrowdStarted = false;
+    battle.meta.stage715NastyaRematchPrompt = "Ну и кто всё это начал?";
+    battle.meta.stage715NastyaRematchChoices = NASTYA_REMATCH_CHOICES.map((choice) => choice.text);
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: `stage715_nastya_rematch_attack_${attempt}`, text: "Ну и кто всё это начал?",
+      displayText: "Ну и кто всё это начал?", color: "o", _color: "o", type: "who", qtype: "who", group: "who",
+    });
+    battle.result = battle.outcome = null;
+    battle.resolved = battle.finished = false;
+    battle.draw = false;
+    battle.crowd = null;
+    phase = "nastya_rematch_awaiting_answer";
+    saveState();
+    telemetry("stage715_nastya_rematch_paid");
+    render();
+    return true;
+  }
+
+  function handleNastyaDefenseChoice(battleId, choiceId) {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || (String(battle.id) !== String(battleId)
+      && String(battle.battleId || "") !== String(battleId)
+      && String(battleId) !== NASTYA_BATTLE_ID)
+      || !battle.meta || battle.meta.stage715NastyaBattle !== true
+      || battle.resolved === true || battle.finished === true) return false;
+    const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
+    if (!choice) return false;
+    const isRematch = Number(battle.meta.stage715NastyaPaidRematches || 0) > 0
+      && battle.meta.stage715NastyaPhase === "rematch_awaiting_answer";
+    const isCorrect = isRematch
+      ? (choice.stage715ScriptedChoiceId === "who_rayhan" || choice.stage715DisplayText === NASTYA_REMATCH_CHOICES[0].text)
+      : (String(choice.id || "") === "yn_no" || String(choice.stage715DisplayText || "") === NASTYA_CHOICES[0].text);
+    battle.meta.stage715NastyaVote = { a: 3, b: 2, cap: 5 };
+    battle._defenseChoices = [choice];
+    if (isCorrect && isRematch) {
+      battle.meta.stage715NastyaRematchGate = false;
+      battle.meta.stage715NastyaPhase = "rematch_correct_waiting_chat";
+      battle.meta.stage715NastyaResolvedAnswer = true;
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
+      battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
+      battle.meta.stage715NastyaSelectedAnswer = String(choice.stage715DisplayText || choice.text || "");
+      battle.meta.stage715SelectedDefenseText = String(choice.stage715DisplayText || choice.text || "");
+      battle.attackHidden = false;
+      battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+      battle.defense = Object.assign({}, choice, { color: "y", _color: "y", stage715DisplayText: choice.stage715DisplayText });
+      battle.status = "stage715_resolved_answer";
+      battle.result = battle.outcome = null;
+      battle.resolved = battle.finished = false;
+      battle.draw = false;
+      battle.crowd = null;
+      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
+      if (!battle.meta.stage715NastyaExplanationShown) {
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
+        battle.meta.stage715NastyaExplanationShown = true;
+      }
+      phase = "nastya_waiting_chat_reply";
+      saveState();
+      telemetry("stage715_nastya_rematch_correct_waiting_chat");
+      render();
+      watchNastyaBattle();
+      return true;
+    }
+    if (isCorrect) {
+      battle.meta.stage715NastyaResolvedAnswer = true;
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaPayoff = { status: "intermediate", color: "o", outcome: null };
+      battle.meta.stage715SelectedDefenseText = choice.stage715DisplayText || choice.text || "";
+      battle.attackHidden = false;
+      battle.attack = Object.assign({}, battle.attack || {}, { color: "o", _color: "o" });
+      battle.defense = Object.assign({}, battle.defense || {}, {
+        color: "y", _color: "y", stage715DisplayText: choice.stage715DisplayText || choice.text || "",
+      });
+      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText || choice.text || "");
+      battle.status = "stage715_resolved_answer";
+      battle.result = null;
+      battle.outcome = null;
+      battle.resolved = false;
+      battle.finished = false;
+      battle.draw = false;
+      battle.crowd = null;
+      if (!battle.meta.stage715NastyaExplanationShown) {
+        pushNpc({ speakerId: "npc_stage7_mika", name: "Настя", text: NASTYA_EXPLANATION });
+        battle.meta.stage715NastyaExplanationShown = true;
+      }
+      phase = "nastya_waiting_chat_reply";
+      saveState();
+      telemetry("stage715_nastya_correct_answer_waiting_chat");
+      render();
+      watchNastyaBattle();
+      return true;
+    }
+    if (choice.stage715DisplayText) {
+      preserveStage715SelectedDefenseText(NASTYA_BATTLE_ID, choice.stage715DisplayText);
+    }
+    return settleNastyaWrongAnswer(battle, choice, !isRematch);
+  }
+
+  function handleOlegDefenseChoice(battleId, choiceId) {
+    const escapeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    const battle = escapeBattle && String(escapeBattle.id) === String(battleId)
+      ? escapeBattle
+      : stage715BattleById(OLEG_BATTLE_ID);
+    const escapeChoice = isOlegEscapeBattle(battle);
+    if (!battle || !battle.meta || (!escapeChoice && battle.meta.stage715OlegBattle !== true)
+      || (String(battle.id) !== String(battleId)
+        && String(battleId) !== OLEG_BATTLE_ID
+        && !(escapeChoice && String(battleId) === OLEG_ESCAPE_BATTLE_ID))
+      || battle.resolved === true || battle.finished === true) return false;
+    const choice = (battle._defenseChoices || []).find((item) => String(item.id) === String(choiceId));
+    if (!choice) return false;
+    const displayText = escapeChoice
+      ? OLEG_BATTLE_CHOICES.find((item) => item.id === choice.stage715ScriptedChoiceId)?.text
+      : choice.stage715DisplayText
+      || OLEG_BATTLE_CHOICES.find((item) => item.type === (choice.group || choice.type || choice.qtype))?.text
+      || choice.text;
+    if (displayText) preserveStage715SelectedDefenseText(battle.id, displayText);
+    if (escapeChoice) {
+      battle.meta.stage715OlegEscapeSelectedChoiceId = choice.stage715ScriptedChoiceId;
+      battle.meta.stage715OlegEscapeSelectedText = displayText;
+      battle.defense = Object.assign({}, choice, { stage715DisplayText: displayText });
+      saveState();
+      render();
+      return true;
+    }
+    const result = G.Conflict && typeof G.Conflict.pickDefense === "function"
+      ? G.Conflict.pickDefense(battle.id, choice.id)
+      : false;
+    if (displayText) preserveStage715SelectedDefenseText(OLEG_BATTLE_ID, displayText);
+    if (battleOutcome(battle) === "lose") {
+      battle.meta.stage715OlegNoPostLossActions = true;
+      battle.meta.stage715OlegResultRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+      battle.meta.stage715OlegResultRevealed = false;
+      battle.meta.stage715OlegPublicLossLineShown = false;
+      const state = stateFor();
+      state.flags = state.flags || {};
+      state.flags.stage715OlegPublicLossAt = null;
+      state.flags.stage715OlegDmAt = null;
+      saveState();
+      scheduleOlegSequenceTimer(battle.meta.stage715OlegResultRevealAt, () => advanceOlegFirstLoss(battle));
+    }
+    saveState();
+    render();
+    return result || true;
+  }
+
+  function rayhanEventById(eventId) {
+    const state = rayhanBattleState();
+    return (state && Array.isArray(state.events) ? state.events : [])
+      .find((event) => event && String(event.id) === String(eventId)) || null;
+  }
+
+  function startNastyaCrowdVote() {
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta
+      || battle.meta.stage715NastyaChatReplyPending !== true) return false;
+    if (battle.meta.stage715NastyaCrowdStarted === true) {
+      const existingEvent = battle.meta.stage715NastyaEventId
+        ? rayhanEventById(battle.meta.stage715NastyaEventId) : null;
+      if (existingEvent) {
+        battle.meta.stage715NastyaChatReplyPending = false;
+        phase = "nastya_crowd_vote";
+        if (existingEvent.resolved) finishNastyaEventVote(existingEvent);
+        else scheduleNastyaEventVotes(existingEvent);
+        return true;
+      }
+      battle.meta.stage715NastyaCrowdStarted = false;
+    }
+    if (!G.Events || typeof G.Events.addEvent !== "function") return false;
+    battle.meta.stage715NastyaChatReplyPending = false;
+    battle.meta.stage715NastyaRematchDirectVoteAllowed = false;
+    battle.meta.stage715NastyaCrowdStarted = true;
+    battle.status = "stage715_nastya_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.draw = false;
+    battle.resolved = false;
+    battle.finished = false;
+    battle.crowd = null;
+    const rewardState = G.__S && G.__S.me ? G.__S : stateFor();
+    battle.meta.stage715NastyaRewardBaseline = {
+      rep: currentPlayerStat(rewardState, "rep"),
+      points: currentPlayerStat(rewardState, "points"),
+      wins: currentPlayerStat(rewardState, "wins"),
+    };
+    phase = "nastya_crowd_vote";
+    const state = rayhanBattleState();
+    const voters = nastyaEventVoterIds(state);
+    if (voters.length !== RAYHAN_EVENT_VOTE_COUNT) {
+      phase = "nastya_waiting_chat_reply";
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaCrowdStarted = false;
+      return false;
+    }
+    const now = Date.now();
+    const scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
+    const player = state && state.me ? state.me : { id: "me", name: playerNickname() };
+    const players = state.players || (state.players = {});
+    const previousSynthetic = players[NASTYA_EVENT_PLAYER_ID];
+    players[NASTYA_EVENT_PLAYER_ID] = {
+      id: NASTYA_EVENT_PLAYER_ID, name: playerNickname(), npc: true, role: "crowd", points: 1,
+      stage715NastyaEventSynthetic: true,
+    };
+    let nextAt = now;
+    const scriptedVoteAt = voters.map(() => (nextAt += nastyaEventVoteDelay()));
+    const event = {
+      id: `stage715_nastya_event_${battle.id}`, type: "draw", kind: "draw",
+      title: `${playerNickname()} против Насти`, aId: NASTYA_EVENT_PLAYER_ID, aName: playerNickname(),
+      aInf: Number(player.influence || 0), bId: "npc_stage7_mika", bName: "Настя",
+      bInf: Number((state.players && state.players["npc_stage7_mika"] && state.players["npc_stage7_mika"].influence) || 0),
+      voteLabels: { a: "за тебя", b: "за Настю" }, votesA: 0, votesB: 0, aVotes: 0, bVotes: 0,
+      playerVoted: false, myVote: null, createdAt: now, endsAt: nextAt + 2000,
+      state: "open", resolved: false, skipSys: true, hideResolvedParticipantLine: true,
+      stage715NastyaEvent: true, relatedBattleId: battle.id, refId: `stage715_nastya_event_${battle.id}`,
+      crowd: { votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, endAt: nextAt + 2000,
+        decided: false, nextNpcVoteAt: Number.MAX_SAFE_INTEGER, winner: null, voters: {},
+        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteSides, scriptedVoteAt, _econApplied: true },
+      meta: `${playerNickname()} - Настя`, text: "Толпа решает.", resultLine: "", action: "event"
+    };
+    battle.meta.stage715NastyaEventId = event.id;
+    try { G.Events.addEvent(event); } catch (_) {}
+    const events = state.events || (state.events = []);
+    if (!events.includes(event) && !(G.__S && Array.isArray(G.__S.events) && G.__S.events.some((item) => item && item.id === event.id))) {
+      if (previousSynthetic) players[NASTYA_EVENT_PLAYER_ID] = previousSynthetic;
+      else delete players[NASTYA_EVENT_PLAYER_ID];
+      phase = "nastya_waiting_chat_reply";
+      battle.meta.stage715NastyaChatReplyPending = true;
+      battle.meta.stage715NastyaCrowdStarted = false;
+      return false;
+    }
+    revealEventsPanel();
+    saveState();
+    telemetry("stage715_nastya_crowd_vote_started");
+    render();
+    watchNastyaBattle();
+    scheduleNastyaEventVotes(event);
+    return true;
+  }
+
+  function nastyaEventVoterIds(state) {
+    const players = state && state.players || {};
+    const ids = Object.values(players).filter((p) => p && p.npc === true
+      && p.id && p.id !== "npc_stage7_mika" && p.id !== "me"
+      && String(p.role || "").toLowerCase() !== "cop"
+      && String(p.role || "").toLowerCase() !== "police"
+      && Number(p.points || 0) > 0).slice(0, RAYHAN_EVENT_VOTE_COUNT).map((p) => String(p.id));
+    for (let i = ids.length; i < RAYHAN_EVENT_VOTE_COUNT; i += 1) ids.push(`stage715_nastya_event_voter_${i + 1}`);
+    return ids;
+  }
+
+  function nastyaEventVoteDelay() {
+    return 1000 + Math.floor(Math.random() * 1001);
+  }
+
+  function shuffleStage715VoteSides(sides) {
+    const shuffled = sides.slice();
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function scheduleNastyaEventVotes(event) {
+    if (!event || !event.crowd || event.resolved) return false;
+    const crowd = event.crowd;
+    if (!Array.isArray(crowd.scriptedVoteSides) || crowd.scriptedVoteSides.length !== RAYHAN_EVENT_VOTE_COUNT) {
+      crowd.scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
+      saveState();
+    }
+    const index = crowd.scriptedVoterIds.findIndex((id) => !crowd.voters[id]);
+    if (index < 0) return false;
+    const timers = G.__stage715NastyaEventVoteTimers || (G.__stage715NastyaEventVoteTimers = Object.create(null));
+    if (timers[event.id]) return true;
+    const delay = Math.max(1, Number(crowd.scriptedVoteAt[index] || Date.now() + nastyaEventVoteDelay()) - Date.now());
+    crowd.stage715NextVoteAllowedAt = Date.now() + delay;
+    const timer = setTimeout(() => {
+      if (timers[event.id] !== timer) return;
+      delete timers[event.id];
+      const currentState = rayhanBattleState();
+      const current = currentState && (currentState.events || []).find((e) => e && e.id === event.id);
+      if (!current || current.resolved) return;
+      const voterId = current.crowd.scriptedVoterIds[index];
+      const side = current.crowd.scriptedVoteSides[index];
+      current.crowd.voters[voterId] = side;
+      current.crowd.aVotes = current.crowd.votesA = Object.values(current.crowd.voters).filter((v) => v === "a").length;
+      current.crowd.bVotes = current.crowd.votesB = Object.values(current.crowd.voters).filter((v) => v === "b").length;
+      current.crowd.alreadyVotedCount = Object.keys(current.crowd.voters).length;
+      current.aVotes = current.votesA = current.crowd.aVotes;
+      current.bVotes = current.votesB = current.crowd.bVotes;
+      current.crowd.stage715NextVoteAllowedAt = 0;
+      saveState();
+      if (G.UI && typeof G.UI.requestRenderAll === "function") G.UI.requestRenderAll();
+      if (current.crowd.alreadyVotedCount === 5) {
+        if (G.Events && typeof G.Events.finalizeOpenEventNow === "function") G.Events.finalizeOpenEventNow(current);
+        finishNastyaEventVote(current);
+      } else scheduleNastyaEventVotes(current);
+    }, delay);
+    timers[event.id] = timer;
+    return true;
+  }
+
+  function finishNastyaEventVote(event) {
+    if (!event || !event.resolved || !event.crowd
+      || Number(event.crowd.aVotes || event.crowd.votesA || 0) !== 3
+      || Number(event.crowd.bVotes || event.crowd.votesB || 0) !== 2) return false;
+    const battle = stage715BattleById(NASTYA_BATTLE_ID);
+    if (!battle || !battle.meta || battle.meta.stage715NastyaEventResolved === true) return !!battle;
+    battle.crowd = null;
+    battle.draw = false;
+    battle.status = battle.result = battle.outcome = "win";
+    battle.resolved = battle.finished = true;
+    battle.meta.stage715NastyaEventResolved = true;
+    const eventState = rayhanBattleState();
+    if (eventState && eventState.players && eventState.players[NASTYA_EVENT_PLAYER_ID]
+      && eventState.players[NASTYA_EVENT_PLAYER_ID].stage715NastyaEventSynthetic === true) {
+      delete eventState.players[NASTYA_EVENT_PLAYER_ID];
+    }
+    phase = "nastya_battle";
+    saveState();
+    syncNastyaBattleOutcome();
+    return true;
+  }
+
+  function rayhanEventVoterIds() {
+    const state = rayhanBattleState();
+    if (!state) return [];
+    state.players = state.players || {};
+    const voterIds = Object.values(state.players)
+      .filter((player) => {
+        const id = String(player && player.id || "");
+        const role = String(player && player.role || "").toLowerCase();
+        return player && player.npc === true && id && id !== RAYHAN_ID && id !== RAYHAN_EVENT_PLAYER_ID && id !== "me"
+          && role !== "cop" && role !== "police" && Number(player.points || 0) > 0;
+      })
+      .slice(0, RAYHAN_EVENT_VOTE_COUNT)
+      .map((player) => String(player.id));
+    for (let index = voterIds.length; index < RAYHAN_EVENT_VOTE_COUNT; index += 1) {
+      const id = `stage715_rayhan_event_voter_${index + 1}`;
+      voterIds.push(state.players[id] ? `${id}_scripted` : id);
+    }
+    return voterIds.slice(0, RAYHAN_EVENT_VOTE_COUNT);
+  }
+
+  function stopRayhanBattleCrowd(battle) {
+    if (!battle) return;
+    if (battle._crowdTimer) clearInterval(battle._crowdTimer);
+    battle._crowdTimer = null;
+    if (battle.crowd && typeof battle.crowd === "object") {
+      battle.crowd.voters = {};
+      battle.crowd.votesA = 0;
+      battle.crowd.votesB = 0;
+      battle.crowd.aVotes = 0;
+      battle.crowd.bVotes = 0;
+      battle.crowd.decided = false;
+      battle.crowd.winner = null;
+      battle.crowd.cap = RAYHAN_EVENT_VOTE_COUNT;
+    }
+  }
+
+  function rayhanEventVoteDelay() {
+    return RAYHAN_EVENT_MIN_DELAY_MS
+      + Math.floor(Math.random() * (RAYHAN_EVENT_MAX_DELAY_MS - RAYHAN_EVENT_MIN_DELAY_MS + 1));
+  }
+
+  function finalizeRayhanEventBattle(event) {
+    if (!event || !event.resolved || !event.crowd || event.crowd.winner !== "a") return false;
+    const battle = stage715BattleById(FIRST_BATTLE_ID);
+    if (!battle || !G.Conflict || typeof G.Conflict.finalizeStage715RayhanEventWin !== "function") return false;
+    const finalized = G.Conflict.finalizeStage715RayhanEventWin(battle.id, event.id);
+    if (battleOutcome(battle) !== "win") return false;
+    const state = rayhanBattleState();
+    if (state && state.players && state.players[RAYHAN_EVENT_PLAYER_ID]
+      && state.players[RAYHAN_EVENT_PLAYER_ID].stage715RayhanEventSynthetic === true) {
+      delete state.players[RAYHAN_EVENT_PLAYER_ID];
+    }
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715RayhanEventVotePending: false,
+      stage715RayhanEventResolved: true,
+    });
+    phase = settleRayhanWinRewards(battle) ? "rayhan_win_waiting_reply" : "battle_unlocked";
+    saveState();
+    render();
+    return !!finalized || battleOutcome(battle) === "win";
+  }
+
+  function applyRayhanEventVote(eventId, voteIndex) {
+    const event = rayhanEventById(eventId);
+    const crowd = event && event.crowd;
+    if (!event || !crowd || event.resolved || crowd.decided) return false;
+    if (Number(crowd.stage715NextVoteAllowedAt || 0) > Date.now()) return false;
+    const voterId = Array.isArray(crowd.scriptedVoterIds) ? crowd.scriptedVoterIds[voteIndex] : null;
+    const side = voteIndex < 3 ? "a" : "b";
+    if (!voterId || crowd.voters[voterId]) return false;
+    crowd.voters[voterId] = side;
+    crowd.aVotes = side === "a" ? (crowd.aVotes | 0) + 1 : (crowd.aVotes | 0);
+    crowd.bVotes = side === "b" ? (crowd.bVotes | 0) + 1 : (crowd.bVotes | 0);
+    crowd.votesA = crowd.aVotes;
+    crowd.votesB = crowd.bVotes;
+    crowd.alreadyVotedCount = Object.keys(crowd.voters).length;
+    crowd.nextNpcVoteAt = Number.MAX_SAFE_INTEGER;
+    saveState();
+    if (G.UI && typeof G.UI.requestRenderAll === "function") G.UI.requestRenderAll();
+    if (crowd.alreadyVotedCount < RAYHAN_EVENT_VOTE_COUNT) return true;
+    if (G.Events && typeof G.Events.finalizeOpenEventNow === "function") {
+      G.Events.finalizeOpenEventNow(event);
+    }
+    return finalizeRayhanEventBattle(event);
+  }
+
+  function scheduleRayhanEventVotes(event) {
+    if (!event || !event.crowd || event.crowd.decided || event.resolved) return false;
+    const voterIds = Array.isArray(event.crowd.scriptedVoterIds) ? event.crowd.scriptedVoterIds : [];
+    const nextIndex = voterIds.findIndex((id) => id && !event.crowd.voters[id]);
+    if (nextIndex < 0) return false;
+    const registry = G.__stage715RayhanEventVoteTimers || (G.__stage715RayhanEventVoteTimers = Object.create(null));
+    if (registry[event.id]) return true;
+    const delay = rayhanEventVoteDelay();
+    const previousAt = Date.now();
+    event.crowd.stage715NextVoteAllowedAt = previousAt + delay;
+    event.crowd.scriptedVoteAt = voterIds.map((_, index) => (
+      index < nextIndex ? Number(event.crowd.scriptedVoteAt && event.crowd.scriptedVoteAt[index] || previousAt)
+        : (index === nextIndex ? previousAt + delay : 0)
+    ));
+    const timer = setTimeout(() => {
+      if (registry[event.id] !== timer) return;
+      delete registry[event.id];
+      rayhanEventVoteTimers = [];
+      if (applyRayhanEventVote(event.id, nextIndex) && !event.resolved) scheduleRayhanEventVotes(event);
+    }, delay);
+    registry[event.id] = timer;
+    rayhanEventVoteTimers = [timer];
+    return true;
+  }
+
+  function startRayhanEventVote(battle) {
+    if (!battle || battle.resolved) return false;
+    battle.meta = battle.meta || {};
+    const state = rayhanBattleState();
+    const events = state && Array.isArray(state.events) ? state.events : [];
+    const existing = events.find((event) => event && event.stage715RayhanEvent === true && !event.resolved);
+    if (existing) {
+      battle.meta.stage715RayhanEventStartSequence = true;
+      revealEventsPanel();
+      scheduleRayhanEventVotes(existing);
+      return true;
+    }
+    if (battle.meta.stage715RayhanEventStartSequence === true) return false;
+    battle.meta.stage715RayhanEventStartSequence = true;
+    const voterIds = rayhanEventVoterIds();
+    if (voterIds.length < RAYHAN_EVENT_VOTE_COUNT || !G.Events || typeof G.Events.addEvent !== "function") {
+      battle.meta.stage715RayhanEventStartSequence = false;
+      return false;
+    }
+    revealEventsPanel();
+    if (G.UI && typeof G.UI.pushSystem === "function") G.UI.pushSystem("Толпа решает.");
+    const playerName = playerNickname();
+    const player = state && state.me ? state.me : { id: "me", name: playerName };
+    const nowMs = Date.now();
+    let nextVoteAt = nowMs;
+    const scriptedVoteAt = voterIds.map(() => {
+      nextVoteAt += rayhanEventVoteDelay();
+      return nextVoteAt;
+    });
+    const event = {
+      id: `stage715_rayhan_event_${battle.id}`,
+      type: "draw",
+      kind: "draw",
+      title: `Райхан против ${playerName}`,
+      aId: RAYHAN_EVENT_PLAYER_ID,
+      aName: playerName,
+      aInf: Number(player.influence || 0),
+      bId: RAYHAN_ID,
+      bName: "Райхан",
+      bInf: Number((state.players && state.players[RAYHAN_ID] && state.players[RAYHAN_ID].influence) || 0),
+      voteLabels: { a: "за тебя", b: "за Райхана" },
+      votesA: 0,
+      votesB: 0,
+      aVotes: 0,
+      bVotes: 0,
+      playerVoted: false,
+      myVote: null,
+      createdAt: nowMs,
+      endsAt: nextVoteAt + RAYHAN_EVENT_MAX_DELAY_MS,
+      state: "open",
+      resolved: false,
+      skipSys: true,
+      hideResolvedParticipantLine: true,
+      stage715RayhanEvent: true,
+      relatedBattleId: battle.id,
+      refId: `stage715_rayhan_event_${battle.id}`,
+      crowd: {
+        votesA: 0,
+        votesB: 0,
+        aVotes: 0,
+        bVotes: 0,
+        cap: RAYHAN_EVENT_VOTE_COUNT,
+        endAt: nextVoteAt + RAYHAN_EVENT_MAX_DELAY_MS,
+        decided: false,
+        nextNpcVoteAt: Number.MAX_SAFE_INTEGER,
+        winner: null,
+        voters: {},
+        eligibleNpcCount: RAYHAN_EVENT_VOTE_COUNT,
+        alreadyVotedCount: 0,
+        scriptedVoterIds: voterIds,
+        scriptedVoteAt,
+        _econApplied: true,
+      },
+      meta: `${playerName} - Райхан`,
+      text: "Толпа решает.",
+      resultLine: "",
+      note: "",
+      action: "event",
+    };
+    battle.meta.stage715RayhanEventVotePending = true;
+    battle.meta.stage715RayhanEventId = event.id;
+    battle.status = "stage715_rayhan_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.resolved = false;
+    battle.finished = false;
+    battle.draw = false;
+    stopRayhanBattleCrowd(battle);
+    battle.crowd = null;
+    const players = state.players || (state.players = {});
+    const previousSyntheticPlayer = players[RAYHAN_EVENT_PLAYER_ID];
+    players[RAYHAN_EVENT_PLAYER_ID] = {
+      id: RAYHAN_EVENT_PLAYER_ID,
+      name: playerName,
+      npc: true,
+      role: "crowd",
+      points: 1,
+      stage715RayhanEventSynthetic: true,
+    };
+    let eventAdded = false;
+    try {
+      G.Events.addEvent(event);
+      eventAdded = events.includes(event) || (state.events || []).includes(event);
+    } finally {
+      if (!eventAdded) {
+        battle.meta.stage715RayhanEventStartSequence = false;
+        if (previousSyntheticPlayer) players[RAYHAN_EVENT_PLAYER_ID] = previousSyntheticPlayer;
+        else delete players[RAYHAN_EVENT_PLAYER_ID];
+      }
+    }
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715RayhanEventId: event.id,
+      stage715RayhanEventVotePending: true,
+    });
+    state.flags = state.flags || {};
+    state.flags.stage715RayhanEventStarted = true;
+    phase = "rayhan_event_vote";
+    saveState();
+    scheduleRayhanEventVotes(event);
+    render();
+    return true;
+  }
+
+  function resumeRayhanEventVote() {
+    const battle = stage715BattleById(FIRST_BATTLE_ID);
+    if (!battle) return false;
+    const eventId = battle.meta && battle.meta.stage715RayhanEventId;
+    const event = eventId ? rayhanEventById(eventId) : null;
+    if (!event) return false;
+    if (event.resolved) return finalizeRayhanEventBattle(event);
+    if (battle.meta) battle.meta.stage715RayhanEventVotePending = true;
+    battle.status = "stage715_rayhan_event_vote";
+    battle.result = null;
+    battle.outcome = null;
+    battle.resolved = false;
+    battle.finished = false;
+    battle.draw = false;
+    if (battle._crowdTimer) clearInterval(battle._crowdTimer);
+    battle._crowdTimer = null;
+    battle.crowd = null;
+    saveState();
+    render();
+    return scheduleRayhanEventVotes(event);
+  }
+
+  function selectedNastyaChoice(text) {
+    const value = String(text || "").trim().toLowerCase();
+    const numeric = /^([1-3])(?:[.)]|\s|$)/.exec(value);
+    if (numeric) return NASTYA_CHOICES[Number(numeric[1]) - 1] || null;
+    return NASTYA_CHOICES.find((choice) => isChoiceText(value, choice)) || null;
+  }
+
+  function prepareNastyaDefenseChoices(battle, scriptedChoices = NASTYA_CHOICES) {
+    if (!battle || !G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
+    let options = [];
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
+      const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+      if (types.has("yn") && types.has("who") && types.has("where")) break;
+    }
+    const normalizedType = (entry) => {
+      const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
+      return raw === "yesno" ? "yn" : raw;
+    };
+    const choices = scriptedChoices.map((wanted) => {
+      const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
+      return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text, stage715ScriptedChoiceId: wanted.id }) : null;
+    });
+    if (choices.some((choice) => !choice)) return false;
+    battle._defenseChoices = choices;
+    battle._choicesForStatus = battle.status;
+    battle.meta = Object.assign({}, battle.meta || {}, { stage715DefenseChoiceIds: choices.map((choice) => choice.id) });
+    return true;
+  }
+
+  function unlockFirstBattle() {
+    lastRayhanFailure = null;
+    const state = rayhanBattleState();
+    if (!state) return { ok: false, reason: "missing battle state" };
+    const existing = state.battles && state.battles.find((battle) => battle && battle.meta && battle.meta.stage715BattleId === FIRST_BATTLE_ID);
+    if (existing) {
+      revealBattlesPanel();
+      phase = battleOutcome(existing) ? phase : "battle_unlocked";
+      rayhanRewardBaseline(existing);
+      saveState();
+      if (!battleOutcome(existing)) watchRayhanBattle();
+      return { ok: true, battle: existing };
+    }
+    const battle = scriptedRayhanBattle(state);
+    if (!battle || battle.ok === false) {
+      lastRayhanFailure = battle && battle.reason
+        ? { ok: false, reason: battle.reason }
+        : { ok: false, reason: "unable to create scripted Rayhan battle" };
+      return lastRayhanFailure;
+    }
+    rayhanRewardBaseline(battle);
+    phase = "battle_unlocked";
+    revealBattlesPanel();
+    saveState();
+    telemetry("stage715_battle_unlocked");
+    render();
+    watchRayhanBattle();
+    return { ok: true, battle };
+  }
+
+  function watchRayhanBattle() {
+    if (battleWatchTimer) clearInterval(battleWatchTimer);
+    battleWatchTimer = setInterval(() => {
+      const battle = stage715BattleById(FIRST_BATTLE_ID);
+      if (!battle || battleOutcome(battle) !== "win") return;
+      if (battle.meta && battle.meta.stage715RayhanRewardApplied === true) {
+        clearInterval(battleWatchTimer);
+        battleWatchTimer = null;
+        return;
+      }
+      settleRayhanWinRewards(battle);
+    }, 100);
+  }
+
+  function startNastyaBattle() {
+    const state = rayhanBattleState() || stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(NASTYA_BATTLE_ID);
+    if (existing) {
+      phase = "nastya_battle";
+      mirrorRayhanBattleToRenderState(existing);
+      saveState();
+      return true;
+    }
+    const started = conflict.incoming("npc_stage7_mika", { pinned: true });
+    let battle = resolveIncomingBattle(state, started, "npc_stage7_mika");
+    // The production incoming factory can reject this scripted teaching beat
+    // after a restored checkpoint because its generic cooldown/ownership
+    // guards do not know about the canonical Stage 7.15 corridor. Keep the
+    // scripted battle owned by this controller without changing ordinary
+    // incoming-battle behavior.
+    if (!battle) {
+      battle = {
+        id: NASTYA_BATTLE_ID,
+        battleId: NASTYA_BATTLE_ID,
+        opponentId: "npc_stage7_mika",
+        opponentRole: "crowd",
+        fromThem: true,
+        attackerId: "npc_stage7_mika",
+        defenderId: state.me && state.me.id || "me",
+        status: "pickDefense",
+        resolved: false,
+        finished: false,
+        result: null,
+        outcome: null,
+        attackHidden: true,
+        attack: { id: "stage7_15_nastya_orange_call", text: NASTYA_PROMPT, displayText: NASTYA_PROMPT, color: "o", _color: "o", type: "yn", qtype: "yn", group: "yn" },
+        meta: { stage715DemoBattle: true, stage715BattleId: NASTYA_BATTLE_ID, stage715NastyaBattle: true, demoId: "stage7_15_nastya_battle", sourceTag: DEMO_SOURCE_TAG },
+      };
+      state.battles = Array.isArray(state.battles) ? state.battles : [];
+      state.battles.push(battle);
+    }
+    if (!battle || !battle.id) return false;
+    battle.fromThem = true;
+    battle.attackerId = "npc_stage7_mika";
+    battle.defenderId = state.me && state.me.id || "me";
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: "stage7_15_nastya_orange_call",
+      text: NASTYA_PROMPT,
+      displayText: NASTYA_PROMPT,
+      color: "o",
+      _color: "o",
+      type: "yn",
+      qtype: "yn",
+      group: "yn",
+    });
+    battle.attackHidden = true;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: NASTYA_BATTLE_ID,
+      stage715NastyaBattle: true,
+      demoId: "stage7_15_nastya_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    prepareNastyaDefenseChoices(battle);
+    mirrorRayhanBattleToRenderState(battle);
+    phase = "nastya_battle";
+    saveState();
+    telemetry("stage715_nastya_battle_started");
+    render();
+    watchNastyaBattle();
+    return true;
+  }
+
+  function unlockOlegEscapeBattle() {
+    const state = stateFor();
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    if (existing) {
+      existing.attack = Object.assign({}, existing.attack || {}, {
+        id: "stage7_15_oleg_red_call",
+        text: OLEG_BATTLE_PROMPT,
+        displayText: OLEG_BATTLE_PROMPT,
+        color: "r", _color: "r", type: "where", qtype: "where", group: "where",
+      });
+      existing.attackHidden = true;
+      existing.meta = Object.assign({}, existing.meta || {}, {
+        stage715DemoBattle: true,
+        stage715BattleId: OLEG_ESCAPE_BATTLE_ID,
+        stage715OlegEscape: true,
+        stage715Escape: existing.meta && existing.meta.stage715Escape || { attempt: 0, status: "ready" },
+        demoId: "stage7_15_oleg_escape",
+        sourceTag: DEMO_SOURCE_TAG,
+      });
+      const escapeVoteState = existing.meta.stage715Escape || {};
+      if (existing.escapeVote && !existing.escapeVote.decided
+        && !Array.isArray(escapeVoteState.scriptedVoteSequence)) {
+        const attempt = Math.max(1, Number(escapeVoteState.attempt) | 0);
+        escapeVoteState.scriptedVoteSequence = shuffleStage715VoteSides(["a", "a", "b", "b"])
+          .concat(attempt === 1 ? "b" : "a");
+        existing.meta.stage715Escape = escapeVoteState;
+        existing.escapeVote.scriptedVotes = null;
+        existing.escapeVote.scriptedVoteSequence = escapeVoteState.scriptedVoteSequence.slice();
+        existing.escapeVote.cap = 5;
+        if (!Number.isFinite(existing.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          existing.escapeVote.stage715VoteIntervals = [delay];
+          existing.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
+      }
+      prepareOlegDefenseChoices(existing);
+      mirrorRayhanBattleToRenderState(existing);
+      phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
+      saveState();
+      if (existing.escapeVote) {
+        const Core = G._ConflictCore || G.ConflictCore;
+        if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") Core.resumeStage715OlegEscapeVote(existing.id);
+        watchOlegEscape();
+      } else if (escapeVoteState.status === "voting") {
+        // Core may have settled vote five just before a reload while the
+        // Stage outcome metadata was still pending. Resume from that
+        // authoritative Core state instead of leaving the scripted flow stuck.
+        settleOlegEscapeOutcome(existing);
+      }
+      return true;
+    }
+    const cooldowns = state.battleCooldowns || (state.battleCooldowns = {});
+    delete cooldowns[OLEG_DM_ID];
+    const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
+    if (!battle || !battle.id) return false;
+    battle.fromThem = true;
+    battle.attackerId = OLEG_DM_ID;
+    battle.defenderId = state.me && state.me.id || "me";
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: "stage7_15_oleg_red_call",
+      text: OLEG_BATTLE_PROMPT,
+      displayText: OLEG_BATTLE_PROMPT,
+      color: "r",
+      _color: "r",
+      type: "where",
+      qtype: "where",
+      group: "where",
+    });
+    battle.attackHidden = true;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: OLEG_ESCAPE_BATTLE_ID,
+      stage715OlegEscape: true,
+      stage715Escape: { attempt: 0, status: "ready" },
+      demoId: "stage7_15_oleg_escape",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    prepareOlegDefenseChoices(battle);
+    phase = "oleg_escape_ready";
+    mirrorRayhanBattleToRenderState(battle);
+    saveState();
+    render();
+    return true;
+  }
+
+  function prepareOlegDefenseChoices(battle) {
+    if (!battle) return false;
+    let choices;
+    if (isOlegEscapeBattle(battle)) {
+      choices = OLEG_BATTLE_CHOICES.map((wanted) => ({
+        id: `stage715_oleg_escape_choice_${wanted.id}`,
+        type: wanted.type,
+        qtype: wanted.type,
+        group: wanted.type,
+        color: "y",
+        text: wanted.text,
+        stage715DisplayText: wanted.text,
+        stage715ScriptedChoiceId: wanted.id,
+      }));
+    } else {
+      if (!G.Conflict || typeof G.Conflict.myDefenseOptions !== "function") return false;
+      let options = [];
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        try { options = options.concat(G.Conflict.myDefenseOptions(battle) || []); } catch (_) {}
+        const types = new Set(options.map((entry) => String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase()));
+        if (types.has("yn") && types.has("who") && types.has("where")) break;
+      }
+      const normalizedType = (entry) => {
+        const raw = String(entry && (entry.group || entry.type || entry.qtype || entry.kind) || "").toLowerCase();
+        return raw === "yesno" ? "yn" : raw;
+      };
+      choices = OLEG_BATTLE_CHOICES.map((wanted) => {
+        const picked = options.find((entry) => entry && String(entry.id || "").startsWith("canon_") && normalizedType(entry) === wanted.type);
+        return picked ? Object.assign({}, picked, { stage715DisplayText: wanted.text }) : null;
+      });
+      if (choices.some((choice) => !choice)) return false;
+    }
+    battle._defenseChoices = choices;
+    battle._choicesForStatus = battle.status;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DefenseChoiceIds: choices.map((choice) => choice.id),
+      ...(isOlegEscapeBattle(battle) ? {
+        stage715OlegEscapeChoiceIds: choices.map((choice) => choice.id),
+        stage715OlegEscapeChoicesVersion: 1,
+      } : {}),
+    });
+    return true;
+  }
+
+  function getOlegEscapeDefenseChoices(battleId) {
+    const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    if (!isOlegEscapeBattle(battle)
+      || (String(battle.id) !== String(battleId) && String(battleId) !== OLEG_ESCAPE_BATTLE_ID)) return null;
+    prepareOlegDefenseChoices(battle);
+    return battle._defenseChoices.slice();
+  }
+
+  function scheduleOlegSequenceTimer(dueAt, callback) {
+    if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
+    const delay = Math.max(0, Number(dueAt) - Date.now());
+    olegSequenceTimer = setTimeout(() => {
+      olegSequenceTimer = null;
+      callback();
+    }, delay);
+    return true;
+  }
+
+  function waitForOlegPresentation(isVisible, callback) {
+    let cancelled = false;
+    const generation = olegPresentationGeneration;
+    const raf = typeof requestAnimationFrame === "function" ? requestAnimationFrame : null;
+    if (!raf) {
+      callback(Date.now());
+      return () => { cancelled = true; };
+    }
+    const isActuallyVisible = () => {
+      if (cancelled || !active || generation !== olegPresentationGeneration) return false;
+      try { return !!isVisible(); } catch (_) { return false; }
+    };
+    const finishAfterPaint = () => {
+      if (!isActuallyVisible()) return waitForFrame();
+      raf(() => {
+        if (isActuallyVisible()) callback(Date.now());
+        else waitForFrame();
+      });
+    };
+    const waitForFrame = () => {
+      if (cancelled || !active || generation !== olegPresentationGeneration) return;
+      raf(finishAfterPaint);
+    };
+    waitForFrame();
+    return () => { cancelled = true; };
+  }
+
+  function hasVisibleOlegText(containerId, exactText) {
+    const root = document && document.getElementById ? document.getElementById(containerId) : null;
+    if (!root || !root.isConnected) return false;
+    const candidates = [root, ...Array.from(root.querySelectorAll ? root.querySelectorAll("*") : [])];
+    return candidates.some((element) => {
+      if (String(element.textContent || "").trim() !== exactText) return false;
+      const style = typeof getComputedStyle === "function" ? getComputedStyle(element) : null;
+      const rect = element.getBoundingClientRect ? element.getBoundingClientRect() : null;
+      return !element.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0))
+        && (!rect || (rect.width > 0 && rect.height > 0));
+    });
+  }
+
+  function hasVisibleOlegBattleResult(battle) {
+    if (!battle || !battle.id || !document || !document.querySelector) return false;
+    const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(String(battle.id)) : String(battle.id).replace(/["\\]/g, "\\$&");
+    const card = document.querySelector(`[data-battle-id="${escapedId}"]`);
+    if (!card || !card.isConnected) return false;
+    const style = typeof getComputedStyle === "function" ? getComputedStyle(card) : null;
+    const rect = card.getBoundingClientRect ? card.getBoundingClientRect() : null;
+    if (card.hidden || (style && (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || "1") <= 0))
+      || (rect && (!rect.width || !rect.height))) return false;
+    return hasVisibleOlegTextInRoot(card, "Поражение");
+  }
+
+  function hasVisibleOlegTextInRoot(root, exactText) {
+    const candidates = [root, ...Array.from(root && root.querySelectorAll ? root.querySelectorAll("*") : [])];
+    return candidates.some((element) => {
+      if (String(element.textContent || "").trim() !== exactText) return false;
+      const style = typeof getComputedStyle === "function" ? getComputedStyle(element) : null;
+      const rect = element.getBoundingClientRect ? element.getBoundingClientRect() : null;
+      return !element.hidden && (!style || (style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || "1") > 0))
+        && (!rect || (rect.width > 0 && rect.height > 0));
+    });
+  }
+
+  function scheduleOlegDeadlineAfterVisibleText(containerId, exactText, writeDeadline) {
+    return waitForOlegPresentation(
+      () => hasVisibleOlegText(containerId, exactText),
+      (visibleAt) => {
+        if (!active) return;
+        writeDeadline(visibleAt + OLEG_FIRST_LOSS_DELAY_MS);
+      },
+    );
+  }
+
+  function scheduleOlegCardFromVisibleGreeting(state) {
+    const flags = state && state.flags;
+    if (!flags || stage715BattleById(OLEG_BATTLE_ID) || olegPresentationWatches.card) return false;
+    olegPresentationWatches.card = true;
+    flags.stage715OlegCardPresentationPending = true;
+    scheduleOlegDeadlineAfterVisibleText("chatLog", OLEG_BATTLE_LINE, (dueAt) => {
+      olegPresentationWatches.card = false;
+      flags.stage715OlegCardPresentationPending = false;
+      if (stage715BattleById(OLEG_BATTLE_ID)) return;
+      flags.stage715OlegGreetingSent = true;
+      flags.stage715OlegCardRevealAt = dueAt;
+      saveState();
+      scheduleOlegCardReveal(state);
+    });
+    return true;
+  }
+
+  function scheduleOlegDmFromVisiblePublicLoss(state) {
+    const flags = state && state.flags;
+    if (!flags || olegPresentationWatches.publicLoss) return false;
+    olegPresentationWatches.publicLoss = true;
+    flags.stage715OlegDmPresentationPending = true;
+    scheduleOlegDeadlineAfterVisibleText("chatLog", OLEG_PUBLIC_LOSS_LINE, (dueAt) => {
+      olegPresentationWatches.publicLoss = false;
+      flags.stage715OlegDmPresentationPending = false;
+      if (flags.stage715OlegPublicLossLineShown !== true) return;
+      flags.stage715OlegDmAt = dueAt;
+      saveState();
+      scheduleOlegDm(state);
+    });
+    return true;
+  }
+
+  function scheduleOlegPublicLossFromVisibleResult(state, battle) {
+    const flags = state && state.flags;
+    if (!flags || !battle || !battle.meta || olegPresentationWatches.result) return false;
+    olegPresentationWatches.result = true;
+    flags.stage715OlegResultPresentationPending = true;
+    waitForOlegPresentation(() => hasVisibleOlegBattleResult(battle), (visibleAt) => {
+      olegPresentationWatches.result = false;
+      flags.stage715OlegResultPresentationPending = false;
+      if (!active || battle.meta.stage715OlegResultRevealed !== true || battle.meta.stage715OlegPublicLossLineShown === true) return;
+      flags.stage715OlegPublicLossAt = visibleAt + OLEG_FIRST_LOSS_DELAY_MS;
+      saveState();
+      scheduleOlegSequenceTimer(flags.stage715OlegPublicLossAt, () => advanceOlegFirstLoss(battle));
+    });
+    return true;
+  }
+
+  function scheduleOlegDm(state) {
+    const dueAt = Number(state && state.flags && state.flags.stage715OlegDmAt);
+    if (!Number.isFinite(dueAt) || dueAt <= 0) return false;
+    return scheduleOlegSequenceTimer(dueAt, () => {
+      const current = stateFor();
+      if (!active || !current || current.flags.stage715OlegPublicLossLineShown !== true) return;
+      current.flags.stage715OlegDmAt = null;
+      phase = "oleg_dm";
+      saveState();
+      openOlegDmAfterLoss();
+    });
+  }
+
+  function sendOlegPublicLossLine(state, battle) {
+    const flags = state && state.flags;
+    if (!flags || !battle || !battle.meta) return false;
+    const chatLines = (Array.isArray(state.chat) ? state.chat : [])
+      .concat(Array.isArray(state.messages) ? state.messages : []);
+    const visible = chatLines.some((entry) => entry
+      && String(entry.text || entry.content || "") === OLEG_PUBLIC_LOSS_LINE);
+    if (visible) {
+      flags.stage715OlegPublicLossLineShown = true;
+      battle.meta.stage715OlegPublicLossLineShown = true;
+      saveState();
+      scheduleOlegDmFromVisiblePublicLoss(state);
+      return true;
+    }
+    const UI = context && context.UI;
+    if (!UI || typeof UI.pushChat !== "function") return false;
+    UI.pushChat({
+      name: "Олег",
+      text: OLEG_PUBLIC_LOSS_LINE,
+      system: false,
+      speakerId: null,
+      sourceTag: DEMO_SOURCE_TAG,
+      preserveText: true,
+    });
+    flags.stage715OlegPublicLossLineQueued = false;
+    flags.stage715OlegPublicLossLineShown = true;
+    battle.meta.stage715OlegPublicLossLineShown = true;
+    saveState();
+    render();
+    scheduleOlegDmFromVisiblePublicLoss(state);
+    return true;
+  }
+
+  function advanceOlegFirstLoss(battle) {
+    const state = stateFor();
+    if (!active || !state || !battle || !battle.meta
+      || battle.meta.stage715OlegBattle !== true || battleOutcome(battle) !== "lose") return false;
+    state.flags = state.flags || {};
+    const flags = state.flags;
+    if (battle.meta.stage715OlegResultRevealed !== true) {
+      const dueAt = Number(battle.meta.stage715OlegResultRevealAt);
+      if (!Number.isFinite(dueAt) || dueAt <= 0) {
+        battle.meta.stage715OlegResultRevealAt = Date.now() + OLEG_FIRST_LOSS_DELAY_MS;
+        battle.meta.stage715OlegNoPostLossActions = true;
+        saveState();
+        scheduleOlegSequenceTimer(battle.meta.stage715OlegResultRevealAt, () => advanceOlegFirstLoss(battle));
+        return true;
+      }
+      if (Date.now() < dueAt) {
+        scheduleOlegSequenceTimer(dueAt, () => advanceOlegFirstLoss(battle));
+        return true;
+      }
+      battle.meta.stage715OlegResultRevealed = true;
+      battle.meta.stage715OlegResultRecorded = true;
+      flags.stage715OlegPublicLossAt = null;
+      telemetry("stage715_oleg_battle_result", { battleId: battle.id, outcome: "lose" });
+      saveState();
+      render();
+      scheduleOlegPublicLossFromVisibleResult(state, battle);
+      return true;
+    }
+    if (battle.meta.stage715OlegPublicLossLineShown === true
+      || flags.stage715OlegPublicLossLineShown === true) {
+      if (!(Number(flags.stage715OlegDmAt) > 0)) scheduleOlegDmFromVisiblePublicLoss(state);
+      return scheduleOlegDm(state);
+    }
+    const publicLossAt = Number(flags.stage715OlegPublicLossAt);
+    if (!(Number.isFinite(publicLossAt) && publicLossAt > 0)) {
+      scheduleOlegPublicLossFromVisibleResult(state, battle);
+      return true;
+    }
+    if (Number.isFinite(publicLossAt) && publicLossAt > 0 && Date.now() < publicLossAt) {
+      return scheduleOlegSequenceTimer(publicLossAt, () => {
+        flags.stage715OlegPublicLossAt = null;
+        sendOlegPublicLossLine(state, battle);
+      });
+    }
+    flags.stage715OlegPublicLossAt = null;
+    return sendOlegPublicLossLine(state, battle);
+  }
+
+  function scheduleOlegCardReveal(state) {
+    const flags = state && state.flags;
+    if (!flags || stage715BattleById(OLEG_BATTLE_ID)) return false;
+    const dueAt = Number(flags.stage715OlegCardRevealAt);
+    if (!Number.isFinite(dueAt) || dueAt <= 0) return false;
+    return scheduleOlegSequenceTimer(dueAt, () => {
+      if (!active || stage715BattleById(OLEG_BATTLE_ID)) return;
+      flags.stage715OlegCardRevealAt = null;
+      flags.stage715OlegCardRevealed = true;
+      createOlegBattle(state);
+    });
+  }
+
+  function createOlegBattle(state) {
+    const conflict = G.Conflict;
+    if (!state || !conflict || typeof conflict.incoming !== "function") return false;
+    const existing = stage715BattleById(OLEG_BATTLE_ID);
+    if (existing) {
+      state.flags = state.flags || {};
+      state.flags.stage715OlegHandoffStarted = true;
+      phase = "oleg_battle";
+      saveState();
+      watchOlegBattle();
+      return true;
+    }
+    const battle = resolveIncomingBattle(state, conflict.incoming(OLEG_DM_ID, { pinned: true }), OLEG_DM_ID);
+    if (!battle || !battle.id) return false;
+    battle.fromThem = true;
+    battle.attackerId = OLEG_DM_ID;
+    battle.defenderId = state.me && state.me.id || "me";
+    battle.attack = Object.assign({}, battle.attack || {}, {
+      id: "stage7_15_oleg_red_call",
+      text: OLEG_BATTLE_PROMPT,
+      displayText: OLEG_BATTLE_PROMPT,
+      color: "r",
+      _color: "r",
+      type: "where",
+      qtype: "where",
+      group: "where",
+    });
+    battle.attackHidden = true;
+    battle.meta = Object.assign({}, battle.meta || {}, {
+      stage715DemoBattle: true,
+      stage715BattleId: OLEG_BATTLE_ID,
+      stage715OlegBattle: true,
+      stage715OlegScriptedLoss: true,
+      demoId: "stage7_15_oleg_battle",
+      sourceTag: DEMO_SOURCE_TAG,
+    });
+    state.flags = state.flags || {};
+    state.flags.stage715OlegHandoffStarted = true;
+    prepareOlegDefenseChoices(battle);
+    mirrorRayhanBattleToRenderState(battle);
+    phase = "oleg_battle";
+    saveState();
+    telemetry("stage715_oleg_battle_started");
+    render();
+    watchOlegBattle();
+    return true;
+  }
+
+  function startOlegBattle() {
+    const state = stateFor();
+    if (!state) return false;
+    const existing = stage715BattleById(OLEG_BATTLE_ID);
+    phase = "oleg_battle";
+    if (existing) {
+      saveState();
+      watchOlegBattle();
+      return true;
+    }
+    state.flags = state.flags || {};
+    const flags = state.flags;
+    const chatLines = (Array.isArray(state.chat) ? state.chat : [])
+      .concat(Array.isArray(state.messages) ? state.messages : []);
+    const greetingVisible = chatLines.some((entry) => entry
+      && String(entry.text || entry.content || "") === OLEG_BATTLE_LINE);
+    if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
+      flags.stage715OlegGreetingSent = true;
+      scheduleOlegCardFromVisibleGreeting(state);
+    }
+    if (!greetingVisible && !olegGreetingQueuedInRuntime) {
+      flags.stage715OlegGreetingSent = true;
+      olegGreetingQueuedInRuntime = true;
+      saveState();
+      pushNpc({
+        speakerId: OLEG_DM_ID,
+        name: "Олег",
+        text: OLEG_BATTLE_LINE,
+        onComplete: () => {
+          olegGreetingQueuedInRuntime = false;
+          if (!active || stage715BattleById(OLEG_BATTLE_ID)) return;
+          scheduleOlegCardFromVisibleGreeting(state);
+        },
+      });
+      render();
+      return true;
+    }
+    if (greetingVisible && !(Number(flags.stage715OlegCardRevealAt) > 0)) {
+      scheduleOlegCardFromVisibleGreeting(state);
+    }
+    scheduleOlegCardReveal(state);
+    render();
+    return true;
+  }
+
+  function watchOlegBattle() {
+    const state = stateFor();
+    const battle = stage715BattleById(OLEG_BATTLE_ID);
+    if (!battle) return scheduleOlegCardReveal(state);
+    if (battleOutcome(battle) !== "lose") return false;
+    return advanceOlegFirstLoss(battle);
+  }
+
+  function olegEscapeMoneyLedgerEntry(battle, attempt) {
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const actionNonce = `stage715_oleg_escape_${attempt}`;
+    return ledger.find((entry) => {
+      if (!entry || String(entry.reason || "") !== "escape_vote_cost") return false;
+      const entryBattleId = String(entry.battleId || entry.meta && entry.meta.battleId || "");
+      const meta = entry.meta || {};
+      const context = meta.context || {};
+      return entryBattleId === String(battle && battle.id || "")
+        && (String(context.actionNonce || "") === actionNonce
+          || String(meta.idempotencyKey || "").endsWith(`|${actionNonce}`));
+    }) || null;
+  }
+
+  function compensateOlegEscapeRep(battle, attempt, actionId) {
+    const refundActionId = `${actionId || `stage715_escape_${attempt}`}_refund`;
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const prior = ledger.find((entry) => entry
+      && String(entry.reason || "") === "rep_stage715_escape_payment_compensation"
+      && String(entry.actionId || "") === refundActionId);
+    if (prior) return { ok: true, alreadyCompensated: true };
+    const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
+    if (!transferRep) return { ok: false, reason: "rep_compensation_unavailable" };
+    return transferRep("crowd_pool", "me", 1, "rep_stage715_escape_payment_compensation", battle && battle.id || OLEG_ESCAPE_BATTLE_ID, {
+      actionId: refundActionId,
+      context: "stage715_oleg_escape_payment_compensation",
+    });
+  }
+
+  function ensureOlegEscapePayment(battle, attempt, options) {
+    const authoritative = G.__S || stateFor();
+    const me = authoritative && authoritative.me;
+    const actionNonce = `stage715_oleg_escape_${attempt}`;
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    let moneyEntry = olegEscapeMoneyLedgerEntry(battle, attempt);
+    const escape = battle.meta.stage715Escape || (battle.meta.stage715Escape = {});
+    const moneyWasAlreadySettled = !!moneyEntry;
+    if (!moneyEntry) {
+      const available = me && Number.isFinite(me.points) ? me.points | 0 : 0;
+      if (available < 1) return { ok: false, reason: "insufficient_money", available, requested: 1 };
+    }
+    const repActionId = String(escape.repActionId || `stage715_escape_${attempt}`);
+    const repEntry = ledger.find((entry) => entry
+      && String(entry.actionId || "") === repActionId
+      && String(entry.reason || "") === "rep_stage715_escape_bribe"
+      && String(entry.battleId || "") === String(battle.id)
+      && String(entry.sourceId || "") === "me"
+      && String(entry.targetId || "") === "crowd_pool"
+      && Number(entry.amount) === 1);
+    const repWasAlreadySettled = !!repEntry;
+    const repAvailable = authoritative && Number.isFinite(authoritative.rep) ? authoritative.rep | 0 : 0;
+    if (!repWasAlreadySettled && repAvailable < 1) {
+      return { ok: false, reason: "insufficient_rep", available: repAvailable, requested: 1 };
+    }
+
+    // REP is attempted first so a blocked canonical REP transfer cannot leave
+    // a money-only partial payment. The money transfer is synchronous after
+    // preflight and uses the same idempotency key Core will see below.
+    if (!repWasAlreadySettled) {
+      const repSettlement = settleOlegEscapeRep(battle, attempt);
+      if (!repSettlement || repSettlement.ok !== true) return repSettlement || { ok: false, reason: "rep_transfer_failed" };
+    }
+    if (!moneyEntry) {
+      const econ = G.ConflictEconomy || G._ConflictEconomy;
+      const charged = econ && typeof econ.chargePriceOnce === "function" ? econ.chargePriceOnce({
+        fromId: "me", toId: OLEG_DM_ID, actorId: "me", reason: "escape_vote_cost",
+        priceKey: "escape", basePrice: 1, actorPoints: me.points | 0,
+        battleId: battle.id,
+        context: { battleId: battle.id, mode: "smyt", actionNonce },
+        extraMeta: { actionId: actionNonce, context: "stage715_oleg_escape_payment" },
+      }) : { ok: false, reason: "money_charge_unavailable" };
+      if (!charged || charged.ok !== true) {
+        if (!repWasAlreadySettled) {
+          const compensation = compensateOlegEscapeRep(battle, attempt, repActionId);
+          escape.status = "payment_recovery_required";
+          escape.outcomePending = !!(options && options.outcomePending === true);
+          if (compensation && compensation.ok === true) {
+            const revision = (Number(escape.paymentRevision) | 0) + 1;
+            escape.paymentRevision = revision;
+            escape.repActionId = `stage715_escape_${attempt}_payment_${revision}`;
+            escape.repSettled = false;
+            escape.paymentRecovery = { missingResource: "money", repCompensated: true, reason: String(charged && charged.reason || "money_charge_failed") };
+            battle.inlineNote = "Оплата не завершена и REP возвращён. Голосование не началось; повтори действие после восстановления монеты.";
+          } else {
+            escape.paymentRecovery = { missingResource: "money", chargedResource: "rep", compensationReason: String(compensation && compensation.reason || "rep_compensation_failed") };
+            battle.inlineNote = "Оплата требует восстановления. Голосование не началось; повтори действие после устранения причины.";
+          }
+          persistOlegEscapeVoteProgress(battle.id);
+        }
+        return { ok: false, reason: String(charged && charged.reason || "money_charge_failed") };
+      }
+      moneyEntry = olegEscapeMoneyLedgerEntry(battle, attempt);
+      if (!moneyEntry) {
+        if (!repWasAlreadySettled) {
+          const compensation = compensateOlegEscapeRep(battle, attempt, repActionId);
+          escape.status = "payment_recovery_required";
+          escape.outcomePending = !!(options && options.outcomePending === true);
+          escape.paymentRecovery = { missingResource: "money_ledger", repCompensated: !!(compensation && compensation.ok === true) };
+          if (compensation && compensation.ok === true) {
+            const revision = (Number(escape.paymentRevision) | 0) + 1;
+            escape.paymentRevision = revision;
+            escape.repActionId = `stage715_escape_${attempt}_payment_${revision}`;
+            escape.repSettled = false;
+          }
+          battle.inlineNote = "Оплата не подтверждена журналом. Голосование не началось; состояние сохранено для восстановления.";
+          persistOlegEscapeVoteProgress(battle.id);
+        }
+        return { ok: false, reason: "money_charge_unrecorded" };
+      }
+    }
+    escape.moneySettled = true;
+    escape.moneyActionId = actionNonce;
+    escape.repSettled = true;
+    escape.repActionId = repActionId;
+    delete escape.repSettlementFailureReason;
+    delete escape.paymentRecovery;
+    return { ok: true, moneyEntry, repEntry, moneyWasAlreadySettled, repWasAlreadySettled };
   }
 
   function settleOlegEscapeRep(battle, attempt) {
