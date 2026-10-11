@@ -1,8292 +1,4528 @@
-// state.js
-window.Game = window.Game || {};
-
-(() => {
-  const Game = window.Game;
-  const SECURITY_POLICY_SOURCE_MARKER = "state.js:ReactionPolicy";
-  const SECURITY_POLICY_BUILD_MARKER = "build_2026_03_09_flowaudit_v6";
-  const SECURITY_POLICY_STATEJS_VERSION_TAG = "state.js?v=6";
-  if (!Game.__DEV || typeof Game.__DEV !== "object") Game.__DEV = {};
-  if (Game.Dev && typeof Game.Dev === "object" && typeof Game.Dev.smokeZoomerForbiddenRulesOnce === "function" && typeof Game.__DEV.smokeZoomerForbiddenRulesOnce !== "function") {
-    Game.__DEV.smokeZoomerForbiddenRulesOnce = Game.Dev.smokeZoomerForbiddenRulesOnce;
-  }
-  if (!Number.isFinite(Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__))) Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = 0;
-  Game.__FLOW_AUDIT_STATE_EXEC_COUNT__ = (Number(Game.__FLOW_AUDIT_STATE_EXEC_COUNT__) | 0) + 1;
-  try {
-    console.log(`[FLOW_AUDIT] statejs-executed count=${Game.__FLOW_AUDIT_STATE_EXEC_COUNT__}`);
-  } catch (_) {}
-  let ReactionPolicy = null;
-  const REP_EMITTER_DAILY_CAP = 20;
-  const COP_CHAT_QUOTA = 1 / 11;
-  const REPORT_PENDING_DELAY_MS = 800;
-  const RESPECT_REASON_CODES = Object.freeze({
-    POINTS_COST: "points_respect_cost",
-    REP_GIVEN: "rep_respect_given",
-    REP_EMITTER_REFILL: "rep_emitter_refill",
-    BLOCK_PREFIX: "respect_block_",
-  });
-  const RESPECT_FLOW_STEP31_TEXT = Object.freeze({
-    spent: "–†–∞—Å—Ö–æ–¥: 1üí∞",
-    gained: "–¶–µ–ª—å: +1‚≠ê",
-  });
-  let respectEntrypointLogged = false;
-  function logRespectEntrypointReady(){
-    if (respectEntrypointLogged) return;
-    respectEntrypointLogged = true;
-    try {
-      console.log("ECON08_RESPECT_ENTRYPOINT_READY");
-    } catch (_) {}
-  }
-
-  const ONBOARDING_SEEN_STORAGE_KEY = "AsyncScene_onboarding_seen_v1";
-
-  function getStorage(){
-    try {
-      return (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function readPersistedOnboardingSeen(){
-    const storage = getStorage();
-    if (!storage) return false;
-    try {
-      return storage.getItem(ONBOARDING_SEEN_STORAGE_KEY) === "1";
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function writePersistedOnboardingSeen(value){
-    const storage = getStorage();
-    if (!storage) return false;
-    try {
-      if (value) storage.setItem(ONBOARDING_SEEN_STORAGE_KEY, "1");
-      else storage.setItem(ONBOARDING_SEEN_STORAGE_KEY, "0");
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function ensureProgressOnboardingSeen(){
-    if (!State.progress || typeof State.progress !== "object") State.progress = {};
-    if (typeof State.progress.onboardingSeen !== "boolean") {
-      State.progress.onboardingSeen = readPersistedOnboardingSeen();
-    }
-    return State.progress.onboardingSeen === true;
-  }
-
-  function setOnboardingSeen(value){
-    ensureProgress();
-    State.progress.onboardingSeen = value === true;
-    writePersistedOnboardingSeen(State.progress.onboardingSeen);
-    return State.progress.onboardingSeen;
-  }
-
-  // Avoid capturing Util/Data too early: other scripts may load after state.js.
-  // Always resolve dependencies at call-time and provide safe fallbacks.
-  const getUtil = () => Game.Util || {};
-  const nowHHMM = () => {
-    const U = getUtil();
-    if (typeof U.nowHHMM === "function") return U.nowHHMM();
-    const d = new Date();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
-  };
-  const safeId = () => {
-    const U = getUtil();
-    if (typeof U.safeId === "function") return U.safeId();
-    return `id_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
-  };
-
-  if (!Game.Config) Game.Config = {};
-  if (!Number.isFinite(Game.Config.copQuota)) {
-    Game.Config.copQuota = COP_CHAT_QUOTA;
-  }
-
-  function getProgression() {
-    const P = (Game.Data && Game.Data.PROGRESSION) ? Game.Data.PROGRESSION : null;
-    const unlock = (P && P.unlockInfluence) ? P.unlockInfluence : null;
-    const strong = (unlock && Number.isFinite(unlock.strong)) ? (unlock.strong | 0) : 5;
-    const power = (unlock && Number.isFinite(unlock.power)) ? (unlock.power | 0) : 10;
-    const absolute = (unlock && Number.isFinite(unlock.absolute)) ? (unlock.absolute | 0) : 100;
-    return {
-      strong: Math.max(0, strong),
-      power: Math.max(0, power),
-      absolute: Math.max(0, absolute),
-    };
-  }
-
-  function getRepConfig(){
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const REP_WIN = (D && Number.isFinite(D.REP_WIN)) ? (D.REP_WIN | 0) : 2;
-    const REP_DRAW = (D && Number.isFinite(D.REP_DRAW)) ? (D.REP_DRAW | 0) : 1;
-    const REP_TIE_HELP = (D && Number.isFinite(D.REP_TIE_HELP)) ? (D.REP_TIE_HELP | 0) : 1;
-    const REP_DAILY = (D && Number.isFinite(D.REP_DAILY)) ? (D.REP_DAILY | 0) : 1;
-    const INF_BASE = (D && Number.isFinite(D.INF_BASE_COST)) ? (D.INF_BASE_COST | 0) : 12;
-    const INF_PER = (D && Number.isFinite(D.INF_PER_LEVEL)) ? (D.INF_PER_LEVEL | 0) : 4;
-    const WEEKLY_SOFTCAP = (D && Number.isFinite(D.WEEKLY_SOFTCAP)) ? (D.WEEKLY_SOFTCAP | 0) : 2;
-    const SOFTCAP_MULT = (D && Number.isFinite(D.SOFTCAP_MULT)) ? (D.SOFTCAP_MULT | 0) : 2;
-    return {
-      REP_WIN,
-      REP_DRAW,
-      REP_TIE_HELP,
-      REP_DAILY,
-      INF_BASE: Math.max(1, INF_BASE),
-      INF_PER: Math.max(0, INF_PER),
-      WEEKLY_SOFTCAP: Math.max(0, WEEKLY_SOFTCAP),
-      SOFTCAP_MULT: Math.max(1, SOFTCAP_MULT),
-    };
-  }
-
-  function ensureProgress(){
-    if (!State.progress || typeof State.progress !== "object") {
-      State.progress = { weeklyInfluenceGained: 0, weekStartAt: 0, lastDailyBonusAt: 0, onboardingSeen: readPersistedOnboardingSeen() };
-    }
-    if (!Number.isFinite(State.progress.weeklyInfluenceGained)) State.progress.weeklyInfluenceGained = 0;
-    if (!Number.isFinite(State.progress.weekStartAt)) State.progress.weekStartAt = 0;
-    if (!Number.isFinite(State.progress.lastDailyBonusAt)) State.progress.lastDailyBonusAt = 0;
-    if (typeof State.progress.onboardingSeen !== "boolean") State.progress.onboardingSeen = readPersistedOnboardingSeen();
-  }
-
-  function dayKeyFromNowTs(nowTs){
-    const stamp = Number.isFinite(nowTs) ? nowTs : Date.now();
-    const d = new Date(stamp);
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  }
-
-  function ensureRespectLedger(){
-    ensureProgress();
-    if (!State.progress.respectLedger || typeof State.progress.respectLedger !== "object") {
-      State.progress.respectLedger = {
-        lastByPairDay: Object.create(null),
-        lastInboundDay: Object.create(null),
-      };
-    }
-    const ledger = State.progress.respectLedger;
-    if (!ledger.lastByPairDay || typeof ledger.lastByPairDay !== "object") {
-      ledger.lastByPairDay = Object.create(null);
-    }
-    if (!ledger.lastInboundDay || typeof ledger.lastInboundDay !== "object") {
-      ledger.lastInboundDay = Object.create(null);
-    }
-    return ledger;
-  }
-
-  function ensureRepEmitter(nowTs){
-    ensureProgress();
-    const dayKey = dayKeyFromNowTs(nowTs);
-    if (!State.progress.repEmitter || typeof State.progress.repEmitter !== "object") {
-      State.progress.repEmitter = { balance: 0, dayKey: "", lastRefillLoggedDayKey: "" };
-    }
-    const emitter = State.progress.repEmitter;
-    let emitterRefilled = false;
-    if (emitter.dayKey !== dayKey) {
-      emitter.dayKey = dayKey;
-      emitter.balance = REP_EMITTER_DAILY_CAP;
-      emitterRefilled = true;
-    }
-    if (!Number.isFinite(emitter.balance)) emitter.balance = 0;
-    return { emitter, dayKey, emitterRefilled };
-  }
-
-  function ensurePool(container, key){
-    if (!container[key] || typeof container[key] !== "object") {
-      container[key] = Object.create(null);
-    }
-    return container[key];
-  }
-
-  function normalizeWeek(){
-    ensureProgress();
-    const now = Date.now();
-    const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-    if (!State.progress.weekStartAt) {
-      State.progress.weekStartAt = now;
-      State.progress.weeklyInfluenceGained = 0;
-      return;
-    }
-    if ((now - State.progress.weekStartAt) >= WEEK_MS) {
-      State.progress.weekStartAt = now;
-      State.progress.weeklyInfluenceGained = 0;
-    }
-  }
-
-  function repNeedForNextInfluence(){
-    normalizeWeek();
-    const cfg = getRepConfig();
-    const progV2 = !!(Game && Game.Data && Game.Data.PROGRESSION_V2);
-    const inf = Number(State.me.influence || 0);
-    let need = cfg.INF_BASE + (cfg.INF_PER * (inf | 0));
-    if (progV2) {
-      const cap = cfg.WEEKLY_SOFTCAP;
-      if (cap > 0) {
-        const over = (State.progress.weeklyInfluenceGained | 0) - cap + 1;
-        if (over > 0) {
-          const ratio = Math.min(1, over / cap);
-          const mult = 1 + ratio * (cfg.SOFTCAP_MULT - 1);
-          need = Math.ceil(need * mult);
-        }
-      }
-    } else if (State.progress.weeklyInfluenceGained >= cfg.WEEKLY_SOFTCAP) {
-      need = need * cfg.SOFTCAP_MULT;
-    }
-    return Math.max(1, need | 0);
-  }
-
-  function weeklyCapActive(){
-    normalizeWeek();
-    const cfg = getRepConfig();
-    return State.progress.weeklyInfluenceGained >= cfg.WEEKLY_SOFTCAP;
-  }
-
-  function applyRepConversion(){
-    normalizeWeek();
-    const cfg = getRepConfig();
-    const before = (State.me.influence | 0);
-    let loops = 0;
-    while ((State.rep | 0) >= repNeedForNextInfluence()) {
-      const need = repNeedForNextInfluence();
-      withRepWrite(() => {
-        State.rep = (State.rep | 0) - need;
-      });
-      State.me.influence = (State.me.influence | 0) + 1;
-      State.progress.weeklyInfluenceGained = (State.progress.weeklyInfluenceGained | 0) + 1;
-      loops++;
-      if (loops > 50) break;
-    }
-    // UI side-effects are out-of-scope for state layer.
-  }
-
-  function addRep(amount, reason, meta){
-    if (!isDevFlag()) {
-      try { console.warn("[REP] addRep blocked in prod", reason); } catch (_) {}
-      return 0;
-    }
-    const meId = (State.me && State.me.id) ? State.me.id : "me";
-    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
-      return State.rep | 0;
-    }
-    if (!Security.isSafe()) {
-      Security.emit("tamper_function", { key: "addRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
-      return State.rep | 0;
-    }
-    const n = Number(amount || 0);
-    if (!Number.isFinite(n) || n === 0) return 0;
-    const rl = Security.rateLimit("rep_add", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      reason: reason || "addRep",
-      battleId: meta && meta.battleId,
-      actionId: meta && meta.actionId
-    }, { max: 3, windowMs: 1200, burst: 2 });
-    if (!rl.ok) {
-      Security.emit("rate_limit", { action: "rep_add", reason: reason || "addRep", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
-      return State.rep | 0;
-    }
-    if (!Number.isFinite(State.rep)) {
-      withRepWrite(() => {
-        State.rep = 0;
-      });
-    }
-    const guardMeta = {
-      reason: reason || "addRep",
-      actionId: meta && meta.actionId,
-      battleId: meta && meta.battleId,
-      context: meta && meta.context,
-    };
-    const guard = ResourceValidator.claim("rep", guardMeta);
-    if (!guard.ok) {
-      return State.rep | 0;
-    }
-    let success = false;
-    try {
-      withRepWrite(() => {
-        State.rep = (State.rep | 0) + (n | 0);
-      });
-      applyRepConversion();
-      syncMeToPlayers();
-      success = true;
-      return State.rep | 0;
-    } finally {
-      ResourceValidator.release(guard.key, success);
-    }
-  }
-
-  function giveRespect(fromId, toId, nowTs){
-    logRespectEntrypointReady();
-    const actorId = (typeof fromId === "string" && fromId) ? fromId : (State.me && State.me.id) ? State.me.id : "me";
-    const targetId = (typeof toId === "string") ? toId : (toId != null ? String(toId) : "");
-    const timestamp = Number.isFinite(nowTs) ? nowTs : Date.now();
-    const dayKey = dayKeyFromNowTs(timestamp);
-    const ledger = ensureRespectLedger();
-    const pairMap = ensurePool(ledger.lastByPairDay, actorId);
-    const inboundMap = ensurePool(ledger.lastInboundDay, targetId);
-    const opKey = `respect:${dayKey}:${actorId}:${targetId}`;
-    const meta = {
-      fromId: actorId,
-      toId: targetId,
-      nowTs: timestamp,
-      op: "respect",
-      opKey,
-      stub: true,
-      dayKey,
-    };
-
-    const blockedResponse = (reason) => ({
-      ok: false,
-      reason,
-      delta: { points: 0, rep: 0 },
-      meta: { ...meta, blocked: true },
-    });
-
-    if (!targetId) {
-      return blockedResponse("respect_pair_daily");
-    }
-
-    if (actorId === targetId) {
-      return blockedResponse("respect_self");
-    }
-
-    const actorDay = ledger.lastByPairDay[actorId];
-    if (actorDay && actorDay[targetId] === dayKey) {
-      return blockedResponse("respect_pair_daily");
-    }
-
-    const reverseDay = ledger.lastByPairDay[targetId];
-    if (reverseDay && reverseDay[actorId] === dayKey) {
-      return blockedResponse("respect_no_chain");
-    }
-
-    const emitterState = ensureRepEmitter(timestamp);
-    if (emitterState.emitter.balance < 1) {
-      return {
-        ok: false,
-        reason: "respect_emitter_empty",
-        delta: { points: 0, rep: 0 },
-        meta: {
-          ...meta,
-          blocked: true,
-          emitterBalance: emitterState.emitter.balance,
-          emitterDailyCap: REP_EMITTER_DAILY_CAP,
-          emitterRefilled: !!emitterState.emitterRefilled,
-        },
-      };
-    }
-
-    const Econ = getEcon();
-    let pay = null;
-    if (Econ && typeof Econ.transferPoints === "function") {
-      pay = Econ.transferPoints(actorId, "sink", 1, RESPECT_REASON_CODES.POINTS_COST, {
-        opKey,
-        dayKey,
-        op: "respect",
-        fromId: actorId,
-        toId: targetId,
-        stub: true,
-      });
-    }
-    if (!pay || pay.ok === false) {
-      return {
-        ok: false,
-        reason: "respect_no_points",
-        delta: { points: 0, rep: 0 },
-        meta: {
-          ...meta,
-          blocked: true,
-          payReason: pay && pay.reason ? pay.reason : "transfer_failed",
-        },
-      };
-    }
-
-    if (emitterState.emitterRefilled && emitterState.emitter.lastRefillLoggedDayKey !== dayKey) {
-      emitterState.emitter.lastRefillLoggedDayKey = dayKey;
-      logRepTransfer({
-        time: Date.now(),
-        sourceId: "rep_emitter",
-        targetId: "rep_emitter",
-        amount: 0,
-        reason: RESPECT_REASON_CODES.REP_EMITTER_REFILL,
-        battleId: opKey,
-        currency: "rep",
-        meta: { dayKey, cap: REP_EMITTER_DAILY_CAP, op: "respect", opKey }
-      });
-    }
-
-    emitterState.emitter.balance -= 1;
-    transferRep("rep_emitter", targetId, 1, RESPECT_REASON_CODES.REP_GIVEN, opKey, {
-      fromId: actorId,
-      toId: targetId,
-      dayKey,
-      opKey,
-      op: "respect",
-    });
-    pairMap[targetId] = dayKey;
-    inboundMap[actorId] = dayKey;
-
-    return {
-      ok: true,
-      reason: RESPECT_REASON_CODES.REP_GIVEN,
-      delta: { points: -1, rep: 1 },
-      meta: {
-        ...meta,
-        emitterBalanceAfter: emitterState.emitter.balance,
-        emitterDailyCap: REP_EMITTER_DAILY_CAP,
-        emitterRefilled: !!emitterState.emitterRefilled,
-      },
-    };
-  }
-
-  function getRepAccount(id){
-    if (!id) return null;
-    if (id === "crowd_pool" || id === "daily_pool") {
-      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-      if (!Game.__D.repPools || typeof Game.__D.repPools !== "object") Game.__D.repPools = {};
-      if (!Game.__D.repPools[id]) Game.__D.repPools[id] = { id, rep: 1000, pool: true };
-      return Game.__D.repPools[id];
-    }
-    if (id === "rep_emitter") {
-      return { id: "rep_emitter", rep: Number.MAX_SAFE_INTEGER, pool: true };
-    }
-    if (id === "me") return { id: "me", kind: "me" };
-    if (!State.players) return null;
-    const p = State.players[id];
-    if (!p) return null;
-    if (!Number.isFinite(p.rep)) p.rep = 0;
-    return p;
-  }
-
-  function logRepTransfer(entry){
-    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    if (Econ && typeof Econ._logTx === "function") {
-      Econ._logTx(entry);
-      return;
-    }
-    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
-    if (!Game.__D.moneyLogByBattle || typeof Game.__D.moneyLogByBattle !== "object") Game.__D.moneyLogByBattle = {};
-    Game.__D.moneyLog.push(entry);
-    const bid = entry && entry.battleId ? String(entry.battleId) : "";
-    if (bid) {
-      if (!Array.isArray(Game.__D.moneyLogByBattle[bid])) Game.__D.moneyLogByBattle[bid] = [];
-      Game.__D.moneyLogByBattle[bid].push(entry);
-    }
-  }
-
-  function getPointsEmissionCallsite(){
-    try {
-      const err = new Error("POINTS_EMISSION_BLOCKED");
-      const lines = String(err && err.stack ? err.stack : "").split("\n").map(x => x.trim()).filter(Boolean);
-      return lines[3] || lines[2] || lines[1] || "";
-    } catch (_) {
-      return "";
-    }
-  }
-
-  function logPointsEmissionBlocked(callsite, amount, reason, meta, targetId){
-    const Econ = (Game && (Game.ConflictEconomy || Game._ConflictEconomy)) ? (Game.ConflictEconomy || Game._ConflictEconomy) : null;
-    const amt = Number.isFinite(amount) ? (amount | 0) : 0;
-    const entry = {
-      time: Date.now(),
-      reason: "points_emission_blocked",
-      currency: "points",
-      amount: amt,
-      sourceId: "emitter",
-      targetId: targetId || "me",
-      battleId: meta && meta.battleId ? meta.battleId : null,
-      eventId: meta && meta.eventId ? meta.eventId : null,
-      meta: {
-        callsite: callsite || "",
-        amount: amt,
-        targetId: targetId || "me",
-        reason: reason || "addPoints"
-      }
-    };
-    if (Econ && typeof Econ._logTx === "function") {
-      Econ._logTx(entry);
-      return;
-    }
-    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-    if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
-    if (!Game.__D.moneyLogByBattle || typeof Game.__D.moneyLogByBattle !== "object") Game.__D.moneyLogByBattle = {};
-    Game.__D.moneyLog.push(entry);
-    const bid = entry && entry.battleId ? String(entry.battleId) : "";
-    if (bid) {
-      if (!Array.isArray(Game.__D.moneyLogByBattle[bid])) Game.__D.moneyLogByBattle[bid] = [];
-      Game.__D.moneyLogByBattle[bid].push(entry);
-    }
-  }
-
-  const SILENT_REASON_TOKENS = ["dev", "migration", "internal"];
-  const SILENT_WORLD_REASONS = new Set([
-    "world_tax_in",
-    "world_tax_out",
-    "world_stipend_out",
-    "npc_account_init",
-    "npc_account_sync",
-    "npc_activity_tax",
-    "crowd_cap_debug"
-  ]);
-
-  function isSilentOkReason(reason, involvesMe){
-    if (!reason) return false;
-    const normalized = String(reason || "").toLowerCase();
-    if (!normalized) return false;
-    for (const token of SILENT_REASON_TOKENS) {
-      if (normalized === token) return true;
-      if (normalized.startsWith(token)) return true;
-      if (normalized.includes(`_${token}`)) return true;
-    }
-    if (!involvesMe && SILENT_WORLD_REASONS.has(normalized)) return true;
-    return false;
-  }
-
-  function shouldToastRow(row){
-    if (!row || typeof row !== "object") return false;
-    const involvesMe = (String(row.sourceId || "") === "me") || (String(row.targetId || "") === "me");
-    if (!involvesMe) return false;
-    const amountSource = (row.amount !== undefined) ? row.amount : ((row.delta !== undefined) ? row.delta : 0);
-    const amount = Number(amountSource);
-    if (!Number.isFinite(amount) || amount === 0) return false;
-    const currencyCandidate = String(row.currency || row.kind || "points").toLowerCase();
-    if (currencyCandidate !== "points" && currencyCandidate !== "rep") return false;
-    const reason = String(row.reason || (row.meta && row.meta.reason) || "").trim();
-    if (isSilentOkReason(reason, involvesMe)) return false;
-    return true;
-  }
-
-  function getPointsSnapshotSafe(opts = {}){
-    const dev = Game && Game.__DEV ? Game.__DEV : null;
-    const econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-    const sumFn = (dev && typeof dev.sumPointsSnapshot === "function")
-      ? dev.sumPointsSnapshot
-      : (econ && typeof econ.sumPointsSnapshot === "function" ? econ.sumPointsSnapshot : null);
-    if (!sumFn) return null;
-    try {
-      return sumFn(opts || {});
-    } catch (_) {
-      try {
-        return sumFn(opts && Object.keys(opts).length ? opts : undefined);
-      } catch (_) {
-        return null;
-      }
-    }
-  }
-
-  function sumSnapshotByIds(snapshot, ids){
-    if (!snapshot || !ids || !ids.length) return 0;
-    const byId = snapshot.byId || {};
-    let total = 0;
-    ids.forEach(id => {
-      const key = String(id || "");
-      if (!key) return;
-      const val = Number.isFinite(byId[key]) ? byId[key] : 0;
-      total += val;
-    });
-    return total;
-  }
-
-  function buildIncludeIdsFromResult(label, scenarioResult){
-    const ids = new Set();
-    try {
-      const S = Game && (Game.__S || Game.State) ? (Game.__S || Game.State) : null;
-      if (S && S.players) {
-        Object.keys(S.players || {}).forEach(id => { if (id) ids.add(String(id)); });
-      }
-      if (S && S.me && S.me.id) ids.add(String(S.me.id));
-    } catch (_) {}
-    ids.add("worldBank");
-    ids.add("sink");
-    ids.add("crowd");
-    try {
-      const res = scenarioResult || {};
-      if (Array.isArray(res.includeIds)) res.includeIds.forEach(id => { if (id) ids.add(String(id)); });
-      if (Array.isArray(res.accountsIncluded)) res.accountsIncluded.forEach(id => { if (id) ids.add(String(id)); });
-      if (res.snapshotReport && Array.isArray(res.snapshotReport.accountsIncluded)) {
-        res.snapshotReport.accountsIncluded.forEach(id => { if (id) ids.add(String(id)); });
-      }
-      const battleId = res.battleId || (res.details && res.details.battleId) || null;
-      const eventId = res.eventId || (res.details && res.details.eventId) || null;
-      if (battleId) ids.add(`crowd:${battleId}`);
-      if (eventId) ids.add(`crowd:${eventId}`);
-      if (Array.isArray(res.__rows)) {
-        res.__rows.forEach(row => {
-          if (!row || typeof row !== "object") return;
-          const src = String(row.sourceId || "");
-          const tgt = String(row.targetId || "");
-          if (src) ids.add(src);
-          if (tgt) ids.add(tgt);
-          const bid = row.battleId || row.eventId || null;
-          if (bid) ids.add(`crowd:${bid}`);
-          if (src.startsWith("crowd:")) ids.add(src);
-          if (tgt.startsWith("crowd:")) ids.add(tgt);
-        });
-      }
-    } catch (_) {}
-    return Array.from(ids).filter(Boolean);
-  }
-
-  function withZeroSumAssert(label, fn, includeIds){
-    const beforeFull = getPointsSnapshotSafe();
-    let res = null;
-    let errMessage = null;
-    try {
-      res = fn ? fn() : null;
-    } catch (err) {
-      errMessage = err && err.message ? String(err.message) : String(err);
-    }
-    const ids = Array.isArray(includeIds) ? includeIds : buildIncludeIdsFromResult(label, res);
-    const before = getPointsSnapshotSafe(ids ? { includeIds: ids } : undefined);
-    const after = getPointsSnapshotSafe(ids ? { includeIds: ids } : undefined);
-    const beforeTotal = (beforeFull && beforeFull.byId && ids && ids.length)
-      ? sumSnapshotByIds(beforeFull, ids)
-      : (before && Number.isFinite(before.total) ? before.total : 0);
-    const afterTotal = after && Number.isFinite(after.total) ? after.total : 0;
-    const delta = afterTotal - beforeTotal;
-    const topIncreases = [];
-    try {
-      const beforeById = (beforeFull && beforeFull.byId) ? beforeFull.byId : ((before && before.byId) ? before.byId : {});
-      const afterById = (after && after.byId) ? after.byId : {};
-      const keys = new Set(Object.keys(beforeById).concat(Object.keys(afterById)));
-      for (const key of keys) {
-        const b = Number.isFinite(beforeById[key]) ? beforeById[key] : 0;
-        const a = Number.isFinite(afterById[key]) ? afterById[key] : 0;
-        const d = a - b;
-        if (d > 0) topIncreases.push({ id: key, before: b, after: a, d });
-      }
-      topIncreases.sort((a, b) => b.d - a.d);
-    } catch (_) {}
-    const trimmed = topIncreases.slice(0, 5);
-    return {
-      ok: delta <= 0,
-      label,
-      delta,
-      beforeTotal,
-      afterTotal,
-      topIncreases: trimmed,
-      error: errMessage || null,
-      result: res,
-      includeIdsCount: Array.isArray(ids) ? ids.length : 0
-    };
-  }
-
-  function pushMoneyLogRow(row){
-    const entry = (row && typeof row === "object") ? row : {};
-    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-    const dbg = Game.__D;
-    if (!Array.isArray(dbg.moneyLog)) dbg.moneyLog = [];
-    if (!dbg.moneyLogByBattle || typeof dbg.moneyLogByBattle !== "object") dbg.moneyLogByBattle = {};
-    const timestamp = Number.isFinite(entry.time) ? entry.time : (Number.isFinite(entry.ts) ? entry.ts : Date.now());
-    const candidateCurrency = String(entry.currency || entry.kind || "points").toLowerCase();
-    const currency = (candidateCurrency === "rep") ? "rep" : "points";
-    const amountSource = (entry.amount !== undefined) ? entry.amount : ((entry.delta !== undefined) ? entry.delta : 0);
-    const parsedAmount = Number(amountSource);
-    const amount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
-    const reasonSource = entry.reason || (entry.meta && entry.meta.reason) || entry.kind || "";
-    const reason = String(reasonSource || "").trim();
-    const txId = entry.txId ? String(entry.txId) : `tx_${timestamp}_${Math.random().toString(16).slice(2)}`;
-    const meta = (entry.meta && typeof entry.meta === "object") ? Object.assign({}, entry.meta) : {};
-    if (entry.delta !== undefined && meta.delta === undefined) {
-      meta.delta = entry.delta;
-    }
-    const normalized = Object.assign({}, entry, {
-      time: timestamp,
-      ts: timestamp,
-      currency,
-      amount,
-      reason,
-      txId,
-      meta
-    });
-    normalized.toastExpected = shouldToastRow(normalized);
-    dbg.moneyLog.push(normalized);
-    const logIndex = dbg.moneyLog.length - 1;
-    const result = { txId, logIndex };
-    const battleId = normalized.battleId ? String(normalized.battleId) : "";
-    if (battleId) {
-      if (!Array.isArray(dbg.moneyLogByBattle[battleId])) dbg.moneyLogByBattle[battleId] = [];
-      dbg.moneyLogByBattle[battleId].push(normalized);
-      result.battleLogIndex = dbg.moneyLogByBattle[battleId].length - 1;
-    }
-    return result;
-  }
-
-  function calcEconToastTs(){
-    if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-    const dbg = Game.__D;
-    const nowMs = Date.now();
-    if (!Number.isFinite(dbg._econToastLastMs) || dbg._econToastLastMs !== nowMs) {
-      dbg._econToastSeq = 0;
-      dbg._econToastLastMs = nowMs;
-    }
-    const seq = Number.isFinite(dbg._econToastSeq) ? (dbg._econToastSeq | 0) : 0;
-    const ts = nowMs + (seq * 0.001);
-    dbg._econToastSeq = seq + 1;
-    return ts;
-  }
-
-  function resolveMoneyLogRow(ref){
-    if (!ref || typeof ref !== "object") return null;
-    if (!Game.__D || typeof Game.__D !== "object") return null;
-    const dbg = Game.__D;
-    if (!Array.isArray(dbg.moneyLog)) return null;
-    const logIndex = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
-    if (logIndex !== null) {
-      return dbg.moneyLog[logIndex] || null;
-    }
-    const txId = ref.txId ? String(ref.txId) : null;
-    if (txId) {
-      return dbg.moneyLog.find(row => row && String(row.txId || "") === txId) || null;
-    }
-    return null;
-  }
-
-  function formatEconToastText(payload){
-    const icons = { rep: "‚≠ê", points: "üí∞" };
-    const currency = String(payload.currency || "points").toLowerCase();
-    const icon = icons[currency] || "";
-    const amount = Number.isFinite(payload.amount) ? payload.amount : 0;
-    const sign = amount > 0 ? "+" : amount < 0 ? "" : "";
-    const textAmount = `${sign}${amount}`;
-    const reason = payload.reason ? ` ${payload.reason}` : "";
-    return `${icon}${textAmount}${reason}`.trim();
-  }
-
-  function getCurrentPointsBalance(){
-    const S = Game && Game.__S ? Game.__S : null;
-    const me = S && S.me ? S.me : null;
-    if (me && Number.isFinite(me.points)) return me.points | 0;
-    const playersMe = S && S.players && S.players.me;
-    if (playersMe && Number.isFinite(playersMe.points)) return playersMe.points | 0;
-    return 0;
-  }
-
-  function normalizeEconomyReason(reason){
-    return String(reason || "").trim().toLowerCase();
-  }
-
-  function resolveEconomyFlavorToastKey(payload, opts = {}){
-    if (!payload) return "";
-    const currency = String(payload.currency || "points").toLowerCase();
-    if (currency !== "points") return "";
-    const amount = Number.isFinite(payload.amount) ? (payload.amount | 0) : 0;
-    const reason = normalizeEconomyReason(payload.reason);
-    const sourceId = String(payload.sourceId || "").trim();
-    const targetId = String(payload.targetId || "").trim();
-    const balanceAfter = Number.isFinite(opts.balanceAfter)
-      ? (opts.balanceAfter | 0)
-      : (targetId === "me" || sourceId === "me" ? getCurrentPointsBalance() : null);
-    const balanceBefore = Number.isFinite(opts.balanceBefore)
-      ? (opts.balanceBefore | 0)
-      : (Number.isFinite(balanceAfter) ? (balanceAfter - amount) : null);
-    const richThreshold = (Game && Game.Data && Number.isFinite(Game.Data.RICH_THRESHOLD)) ? (Game.Data.RICH_THRESHOLD | 0) : 20;
-    const povertyThreshold = (Game && Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP))
-      ? Math.max(1, Math.floor((Game.Data.POINTS_SOFT_CAP | 0) / 10))
-      : 2;
-    const incomeReason = /(^|[._-])(reward|refund|income|plus|win|earned)(?=$|[._-])/.test(reason);
-    const expenseReason = /(^|[._-])(cost|expense|spent|charge|fee|penalty|tax|robbed|steal|purchase|buy|pay|payment|rematch|escape)(?=$|[._-])/.test(reason);
-    if (amount === 0) return "economy_neutral";
-    if (Number.isFinite(balanceAfter)) {
-      if (balanceAfter <= 0) return "bankrupt_state";
-      if (balanceAfter <= povertyThreshold) return "poverty_state";
-      if (balanceAfter >= richThreshold) return "rich_state";
-    }
-    if (amount > 0) {
-      if (incomeReason) return "income_event";
-      if (targetId === "me" || sourceId === "sink" || sourceId.startsWith("crowd:")) return "money_received";
-      if (Number.isFinite(balanceBefore) && Number.isFinite(balanceAfter) && balanceAfter > balanceBefore) return "money_changed_positive";
-      return "money_changed_positive";
-    }
-    if (amount < 0) {
-      if (expenseReason) return "expense_event";
-      if (sourceId === "me" || targetId === "sink" || targetId.startsWith("crowd:")) return "money_spent";
-      if (Number.isFinite(balanceBefore) && Number.isFinite(balanceAfter) && balanceAfter < balanceBefore) return "money_changed_negative";
-      return "money_changed_negative";
-    }
-    return "";
-  }
-
-  function resolveEconomyFlavorToastText(row, opts = {}){
-    const payload = createEconPayload(row);
-    if (!payload) return "";
-    const key = resolveEconomyFlavorToastKey(payload, opts);
-    if (!key || !Game || !Game.System || typeof Game.System.profileText !== "function") return "";
-    return String(Game.System.profileText(key) || "").trim();
-  }
-
-  function createEconPayload(row){
-    if (!row || typeof row !== "object") return null;
-    const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
-    const amount = Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0);
-    return {
-      currency,
-      amount,
-      reason: row.reason,
-      sourceId: row.sourceId,
-      targetId: row.targetId,
-      battleId: row.battleId,
-      eventId: row.eventId
-    };
-  }
-
-  function formatEconDelta(row){
-    const payload = createEconPayload(row) || {
-      currency: String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points",
-      amount: Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0),
-      reason: row.reason,
-      sourceId: row.sourceId,
-      targetId: row.targetId,
-      battleId: row.battleId,
-      eventId: row.eventId
-    };
-    if (!payload) return "";
-    const flavorText = resolveEconomyFlavorToastText(row, {
-      balanceBefore: Number.isFinite(row && row.balanceBefore) ? (row.balanceBefore | 0) : undefined,
-      balanceAfter: Number.isFinite(row && row.balanceAfter) ? (row.balanceAfter | 0) : undefined
-    });
-    return flavorText || formatEconToastText(payload);
-  }
-
-  function logEconToastSideEffect(fn, detail){
-    if (!fn) return;
-    if (!Game || !Game.__D || typeof Game.__D !== "object") return;
-    const dbg = Game.__D;
-    if (!Array.isArray(dbg.__econToastForbiddenCalls)) dbg.__econToastForbiddenCalls = [];
-    dbg.__econToastForbiddenCalls.push({
-      fn,
-      detail: (detail && typeof detail === "object") ? Object.assign({}, detail) : detail,
-      ts: Date.now()
-    });
-    try {
-      console.warn("ECON_UI4_FORBIDDEN_UI_SIDE_EFFECT", { fn, detail });
-    } catch (_) {}
-  }
-
-  function sanitizePanelList(flags){
-    if (Array.isArray(flags)) return flags.slice();
-    if (!flags) return null;
-    try {
-      return Array.from(flags).slice();
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function capturePanelStateSig(){
-    const notes = [];
-    let flags = null;
-    if (Game && Game.__S && Game.__S.flags) {
-      flags = Game.__S.flags;
-    } else if (Game && Game.State && Game.State.flags) {
-      flags = Game.State.flags;
-    }
-    const panelState = {
-      activePanel: null,
-      openPanels: null,
-      activeChip: null,
-      dmOpen: null,
-      battlesOpen: null,
-      eventsOpen: null
-    };
-    if (flags && typeof flags === "object") {
-      panelState.activePanel = flags.activePanel || flags.activePanelId || null;
-      panelState.openPanels = sanitizePanelList(flags.openPanels) || null;
-      panelState.activeChip = flags.activeChip || flags.activeChipId || null;
-      if (flags.dmHidden === true) panelState.dmOpen = false;
-      else if (flags.dmHidden === false) panelState.dmOpen = true;
-      if (flags.battlesHidden === true) panelState.battlesOpen = false;
-      else if (flags.battlesHidden === false) panelState.battlesOpen = true;
-      panelState.eventsOpen = (flags.eventsOpen === undefined) ? null : !!flags.eventsOpen;
-    } else {
-      notes.push("panelFlags_missing");
-    }
-    if (!panelState.openPanels && typeof document !== "undefined" && document && document.querySelectorAll) {
-      try {
-        const panelEls = document.querySelectorAll(".panel:not(.hidden), .panel.panel--full, .card:not(.hidden)");
-        const ids = Array.from(panelEls || []).map(el => String(el.id || (el.dataset ? el.dataset.panelKey : "") || el.className || "").trim()).filter(Boolean);
-        panelState.openPanels = ids.length ? ids : null;
-        if (ids.length) notes.push("panelList_from_dom");
-      } catch (_) {}
-    }
-    if (panelState.activePanel === null && typeof document !== "undefined" && document && document.querySelector) {
-      try {
-        const activeEl = document.querySelector(".panel.panel--full, .panel.is-open, .card.panel--full");
-        if (activeEl) {
-          panelState.activePanel = activeEl.id || (activeEl.dataset ? activeEl.dataset.panelKey : null) || null;
-          notes.push("activePanel_from_dom");
-        }
-      } catch (_) {}
-    }
-    return { panelStateSig: panelState, notes };
-  }
-
-  function captureFocusSig(){
-    const sig = { tag: null, id: null, cls: null };
-    if (typeof document === "undefined" || !document) return sig;
-    try {
-      const active = document.activeElement;
-      if (!active) return sig;
-      sig.tag = String(active.tagName || "").toLowerCase() || null;
-      sig.id = active.id || null;
-      const cls = (active.getAttribute && active.getAttribute("class")) ? active.getAttribute("class") : active.className;
-      sig.cls = cls ? String(cls) : null;
-    } catch (_) {}
-    return sig;
-  }
-
-  function sigEqual(a, b){
-    try {
-      return JSON.stringify(a) === JSON.stringify(b);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function summarizeArg(arg){
-    if (arg == null) return null;
-    if (typeof arg === "string" || typeof arg === "number" || typeof arg === "boolean") return arg;
-    if (typeof arg === "object") {
-      if (typeof HTMLElement !== "undefined" && arg instanceof HTMLElement) {
-        return {
-          tag: String(arg.tagName || "").toLowerCase(),
-          id: String(arg.id || ""),
-          cls: String(arg.className || "")
-        };
-      }
-      if (arg && typeof arg.id === "string" && typeof arg.tagName === "string") {
-        return { tag: arg.tagName, id: arg.id };
-      }
-      try {
-        return JSON.stringify(arg);
-      } catch (_) {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  function wrapUiSideEffect(name){
-    if (!Game || !Game.UI) return;
-    const target = Game.UI[name];
-    if (typeof target !== "function" || target.__econGuarded) return;
-    Game.UI[name] = function(...args){
-      if (Game && Game.__D && Game.__D.__econToastInFlight) {
-        logEconToastSideEffect(name, { args: args.map(summarizeArg).filter(x => x != null) });
-      }
-      return target.apply(this, args);
-    };
-    Game.UI[name].__econGuarded = true;
-  }
-
-  function wrapDomMethod(proto, methodName, label){
-    if (!proto || typeof proto.prototype === "undefined") return;
-    const original = proto.prototype[methodName];
-    if (typeof original !== "function" || original.__econPatched) return;
-    proto.prototype[methodName] = function(...args){
-      if (Game && Game.__D && Game.__D.__econToastInFlight) {
-        logEconToastSideEffect(label, {
-          tag: this && this.tagName ? String(this.tagName).toLowerCase() : null,
-          id: this && this.id ? String(this.id) : null,
-          cls: this && this.className ? String(this.className) : null,
-          args: args.map(summarizeArg).filter(x => x != null)
-        });
-      }
-      return original.apply(this, args);
-    };
-    proto.prototype[methodName].__econPatched = true;
-  }
-
-  function installEconUiSideEffectGuards(){
-    const guardNames = [
-      "openDM",
-      "openDMByName",
-      "openDMBySpeakerId",
-      "openBattlesAndScroll",
-      "openEventsPanel",
-      "ensureEventsExpanded",
-      "highlightEventById",
-      "scrollToEventByBattleId"
-    ];
-    for (const name of guardNames) {
-      wrapUiSideEffect(name);
-    }
-    if (typeof HTMLElement !== "undefined") {
-      wrapDomMethod(HTMLElement, "focus", "element.focus");
-    }
-    if (typeof Element !== "undefined") {
-      wrapDomMethod(Element, "scrollIntoView", "element.scrollIntoView");
-    }
-    if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
-      const originalScrollTo = window.scrollTo;
-      if (!originalScrollTo.__econPatched) {
-        window.scrollTo = function(...args){
-          if (Game && Game.__D && Game.__D.__econToastInFlight) {
-            logEconToastSideEffect("window.scrollTo", { args: args.map(summarizeArg).filter(x => x != null) });
-          }
-          return originalScrollTo.apply(this, args);
-        };
-        window.scrollTo.__econPatched = true;
-      }
-    }
-  }
-
-  function emitEconToastNow(row, toast, overrideText){
-    if (!row || !toast) return;
-    const text = String(overrideText || toast.text || row.reason || "");
-    if (!text) return;
-    const kind = String(row.currency || "points").toLowerCase() === "rep" ? "rep" : "points";
-    try {
-      if (Game && Game.UI && typeof Game.UI.showStatToast === "function") {
-        Game.UI.showStatToast(kind, text);
-      }
-    } catch (_) {}
-  }
-
-  function pushEconToastFromLogRef(ref, overrideText){
-    if (!ref || typeof ref !== "object") return null;
-    if (!Game.__D || typeof Game.__D !== "object") return null;
-    const dbg = Game.__D;
-    if (!Array.isArray(dbg.moneyLog)) return { ok: false, reason: "moneylog_missing" };
-    const indexCandidate = Number.isFinite(ref.logIndex) ? ref.logIndex : null;
-    let row = (indexCandidate !== null) ? dbg.moneyLog[indexCandidate] : null;
-    if (!row || (ref.txId && String(row.txId || "") !== String(ref.txId))) {
-      row = resolveMoneyLogRow(ref);
-    }
-    if (!row) {
-      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
-        console.warn("ECON_UI3_ROW_MISSING", { ref });
-      }
-      return { ok: false, reason: "row_not_found_for_toast", ref };
-    }
-    if (!row.reason) {
-      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
-        console.warn("ECON_UI3_ROW_REASON_MISSING", { ref, txId: row.txId });
-      }
-      return { ok: false, reason: "row_missing_reason", ref, txId: row.txId };
-    }
-    if (!Array.isArray(dbg.toastLog)) dbg.toastLog = [];
-    const already = dbg.toastLog.some(t => t && t.kind === "econ" && t.txId === row.txId);
-    if (already) {
-      if (Game && Game.__DEV && typeof Game.__DEV === "object") {
-        console.warn("ECON_UI2_DUP_BLOCKED", { txId: row.txId });
-      }
-      return { skipped: true, reason: "dup_txId", txId: row.txId };
-    }
-    const payload = createEconPayload(row);
-    const tsToast = calcEconToastTs();
-    const logIndex = dbg.moneyLog.findIndex(r => r && String(r.txId || "") === String(row.txId));
-    const toast = {
-      kind: "econ",
-      txId: row.txId,
-      logIndex: (logIndex >= 0) ? logIndex : (indexCandidate !== null ? indexCandidate : 0),
-      reason: row.reason,
-      ts: tsToast,
-      payload
-    };
-    if (!toast.text) {
-      const defaultText = formatEconDelta(row);
-      if (defaultText) toast.text = defaultText;
-    }
-    if (typeof overrideText === "string" && overrideText) {
-      toast.text = overrideText;
-    }
-    try {
-      const helper = Game && Game.Text && typeof Game.Text.normalizeText === "function" ? Game.Text.normalizeText : null;
-      if (helper && toast.text) {
-        const normalized = helper(toast.text, { surface: "toast", source: "Game.__D.pushEconToastFromLogRef", reason: row.reason || null });
-        if (normalized && typeof normalized.text === "string") {
-          toast.rawText = toast.text;
-          toast.text = normalized.text;
-          toast.styleLex = {
-            ok: normalized.ok,
-            changed: normalized.changed,
-            replacements: normalized.replacements,
-            forbiddenHits: normalized.forbiddenHits,
-            lengthLimited: normalized.lengthLimited
-          };
-        }
-      }
-    } catch (_) {}
-    dbg.toastLog.push(toast);
-    const flagHolder = Game && Game.__D ? Game.__D : null;
-    try {
-      if (flagHolder) flagHolder.__econToastInFlight = true;
-      emitEconToastNow(row, toast, overrideText);
-    } finally {
-      if (flagHolder) flagHolder.__econToastInFlight = false;
-    }
-    return toast;
-  }
-
-  function transferRep(fromId, toId, amount, reason, battleId, meta){
-    const meId = (State.me && State.me.id) ? State.me.id : "me";
-    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy") && ((fromId === meId) || (toId === meId))) {
-      return { ok: false, reason: "security_blocked" };
-    }
-    if (!Security.isSafe()) {
-      Security.emit("tamper_function", { key: "transferRep", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
-      return { ok: false, reason: "security_tamper" };
-    }
-    const n = Number(amount || 0);
-    if (!Number.isFinite(n) || n === 0) return { ok: false, reason: "bad_amount" };
-    const rl = Security.rateLimit("rep_transfer", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      reason: reason || "rep_transfer",
-      battleId,
-      actionId: meta && meta.actionId,
-      fromId,
-      toId
-    }, { max: 6, windowMs: 1200, burst: 4 });
-    if (!rl.ok) {
-      Security.emit("rate_limit", { action: "rep_transfer", reason: reason || "rep_transfer", battleId, fromId, toId, key: rl.key, resetIn: rl.resetIn });
-      return { ok: false, reason: "rate_limited" };
-    }
-    const fromAcc = getRepAccount(fromId);
-    const toAcc = getRepAccount(toId);
-    if (!fromAcc || !toAcc) return { ok: false, reason: "bad_account" };
-    if (isDevFlag() && (!reason || !battleId)) {
-      try { console.warn("[REP] transferRep missing reason/battleId", reason, battleId); } catch (_) {}
-    }
-    const beforeRep = (State.rep || 0) | 0;
-    const beforeInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
-    const normalizedFromId = (fromId != null) ? String(fromId) : "";
-    const beforeFrom = (normalizedFromId === "me") ? (State.rep | 0) : (fromAcc.rep | 0);
-    const beforeTo = (toId === "me") ? (State.rep | 0) : (toAcc.rep | 0);
-    const isEmitter = (normalizedFromId === "rep_emitter" || normalizedFromId === "crowd_pool");
-    const amt = n | 0;
-    
-    // Check sufficient funds (fix DUM-022 #3)
-    const available = isEmitter ? Number.MAX_SAFE_INTEGER : (beforeFrom | 0);
-    if (!isEmitter && available < amt) {
-      if (isDevFlag()) {
-        try { console.warn("[REP] transferRep insufficient funds", { fromId, available, amt, reason }); } catch (_) {}
-      }
-      return { ok: false, reason: "insufficient_rep", available, requested: amt };
-    }
-    const guardMeta = {
-      reason: reason || "rep_transfer",
-      battleId,
-      actionId: meta && meta.actionId,
-      context: meta && meta.context,
-      fromId,
-      toId,
-    };
-    const guard = ResourceValidator.claim("rep", guardMeta);
-    if (!guard.ok) {
-      return { ok: false, reason: guard.reason || "duplicate" };
-    }
-    let success = false;
-    
-    // Apply transfer with clipping to prevent negative (fix DUM-022 #2)
-    if (!isEmitter) {
-      if (normalizedFromId === "me") {
-        withRepWrite(() => {
-          State.rep = Math.max(0, (State.rep | 0) - amt);
-        });
-      } else {
-        fromAcc.rep = Math.max(0, (fromAcc.rep | 0) - amt);
-      }
-    }
-    if (toId === "me") {
-      withRepWrite(() => {
-        State.rep = Math.max(0, (State.rep | 0) + amt);
-      });
-    } else {
-      toAcc.rep = Math.max(0, (toAcc.rep | 0) + amt);
-    }
-    if (fromId === "me" || toId === "me") {
-      applyRepConversion();
-      syncMeToPlayers();
-    }
-    const afterRep = (State.rep || 0) | 0;
-    const afterInfluence = (State.me && Number.isFinite(State.me.influence)) ? (State.me.influence | 0) : 0;
-    try {
-      logRepTransfer({
-        time: Date.now(),
-        sourceId: String(fromId),
-        targetId: String(toId),
-        amount: amt,
-        reason: String(reason || "rep_transfer"),
-        battleId: battleId || null,
-        currency: "rep",
-        before: { from: beforeFrom, to: beforeTo }
-      });
-      if (!(meta && meta.suppressStatDelta === true)) {
-        emitStatDelta("rep", afterRep - beforeRep, { reason: reason || "rep_transfer", battleId: battleId || null });
-        emitStatDelta("influence", afterInfluence - beforeInfluence, { reason: reason || "rep_transfer", battleId: battleId || null });
-      }
-      success = true;
-      return { ok: true, amount: amt };
-    } finally {
-      ResourceValidator.release(guard.key, success);
-    }
-  }
-
-  function restoreRepSnapshot(value, source){
-    if (source !== "stage715_checkpoint" || !State.flags || State.flags.stage715Demo !== true) {
-      return { ok: false, reason: "unauthorized_rep_snapshot_restore" };
-    }
-    const next = Number(value);
-    if (!Number.isFinite(next) || next < 0) return { ok: false, reason: "bad_rep_snapshot" };
-    const before = State.rep | 0;
-    withRepWrite(() => { State.rep = next | 0; });
-    return { ok: true, before, after: State.rep | 0 };
-  }
-
-  function maybeDailyRepBonus(){
-    ensureProgress();
-    const cfg = getRepConfig();
-    const last = new Date(State.progress.lastDailyBonusAt || 0);
-    const now = new Date();
-    const sameDay = last.getFullYear() === now.getFullYear()
-      && last.getMonth() === now.getMonth()
-      && last.getDate() === now.getDate();
-    if (sameDay) return false;
-    State.progress.lastDailyBonusAt = Date.now();
-    const day = new Date();
-    const dayId = `daily_${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
-    transferRep("daily_pool", "me", cfg.REP_DAILY, "rep_daily_bonus", dayId);
-    // REP v2 economy: daily also grants +1 point (legacy mode only).
-    try {
-      if (!isCirculationEnabled()) {
-        addPoints(1, "daily_bonus");
-      }
-    } catch (_) {}
-    return true;
-  }
-  function getPointsConfig(){
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const start = (D && Number.isFinite(D.POINTS_START)) ? (D.POINTS_START | 0) : 10;
-    const startPlayer = (D && Number.isFinite(D.START_POINTS_PLAYER)) ? (D.START_POINTS_PLAYER | 0) : start;
-    const startNpc = (D && Number.isFinite(D.START_POINTS_NPC)) ? (D.START_POINTS_NPC | 0) : start;
-    const softCap = (D && Number.isFinite(D.POINTS_SOFT_CAP)) ? (D.POINTS_SOFT_CAP | 0) : 20;
-    return {
-      start: Math.max(0, start),
-      startPlayer: Math.max(0, startPlayer),
-      startNpc: Math.max(0, startNpc),
-      softCap: Math.max(0, softCap)
-    };
-  }
-
-  function isCirculationEnabled(){
-    return true;
-  }
-
-  function getEcon(){
-    return (Game && Game._ConflictEconomy) ? Game._ConflictEconomy : null;
-  }
-
-  function getPointsActor(actorId){
-    const id = (actorId != null) ? String(actorId) : "me";
-    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
-    if (id === "me" || id === meId) return State.me || null;
-    if (State.players && State.players[id]) return State.players[id];
-    return null;
-  }
-
-  function applySocialPenalty(action, actorId, opts = null){
-    const cfg = (opts && typeof opts === "object") ? opts : {};
-    const reason = String(cfg.reason || "social_penalty");
-    const actorKey = (actorId != null) ? String(actorId) : "me";
-    const actor = getPointsActor(actorKey);
-    const amountWanted = Number.isFinite(cfg.amountWanted) ? (cfg.amountWanted | 0) : 0;
-    if (!actor || !Number.isFinite(actor.points)) {
-      return {
-        ok: false,
-        reason,
-        amountWanted,
-        amountActual: 0,
-        partial: true,
-        pointsBefore: 0,
-        pointsAfter: 0
-      };
-    }
-    const pointsBefore = actor.points | 0;
-    const amountActual = Math.max(0, Math.min(amountWanted | 0, Math.max(0, pointsBefore | 0)));
-    const partial = amountActual !== amountWanted;
-    let pointsAfter = pointsBefore;
-    let ok = true;
-    const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-    if (Econ && typeof Econ.transferPoints === "function" && amountActual > 0) {
-      const meta = Object.assign({}, (cfg.meta && typeof cfg.meta === "object") ? cfg.meta : {}, {
-        action: String(action || "social_penalty"),
-        targetId: cfg.targetId ? String(cfg.targetId) : null,
-        amountWanted,
-        amountActual,
-        partial,
-        pointsBefore,
-        pointsAfter: null,
-        key: cfg.key ? String(cfg.key) : null
-      });
-      const tx = Econ.transferPoints(actorKey, "sink", amountActual, reason, meta);
-      ok = !(tx && tx.ok === false);
-      const actorAfter = getPointsActor(actorKey);
-      pointsAfter = (actorAfter && Number.isFinite(actorAfter.points)) ? (actorAfter.points | 0) : (pointsBefore - amountActual);
-      meta.pointsAfter = pointsAfter;
-    }
-    return {
-      ok,
-      reason,
-      amountWanted,
-      amountActual,
-      partial,
-      pointsBefore,
-      pointsAfter
-    };
-  }
-
-  function hasExplicitDevQueryParam() {
-    if (typeof location === "undefined" || !location) return false;
-    const search = location.search;
-    if (!search) return false;
-    try {
-      const params = new URLSearchParams(search);
-      return params.get("dev") === "1";
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function hasExplicitSmokeQueryParam() {
-    if (typeof location === "undefined" || !location) return false;
-    const search = location.search;
-    if (!search) return false;
-    try {
-      const params = new URLSearchParams(search);
-      return params.get("smoke") === "1";
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function allowSmokeSurface(){
-    if (typeof location === "undefined" || !location) return false;
-    const host = String(location.hostname || "");
-    if (host === "samuray-games.github.io") return true;
-    return hasExplicitSmokeQueryParam();
-  }
-
-  function isDevFlag(){
-    return (
-      (typeof window !== "undefined" && (window.__DEV__ === true || window.DEV === true)) ||
-      hasExplicitDevQueryParam()
-    );
-  }
-
-  function securityAuditMode(){ return isDevFlag() ? "dev" : "prod"; }
-
-  let globalTamperTrustedDepth = 0;
-  function withGlobalTamperTrust(fn){
-    globalTamperTrustedDepth++;
-    try { return fn(); }
-    finally { globalTamperTrustedDepth = Math.max(0, globalTamperTrustedDepth - 1); }
-  }
-
-  function defineGameSurfaceProp(name, internalName) {
-    if (!Game || !internalName) return;
-    if (Object.getOwnPropertyDescriptor(Game, name)) return;
-    withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
-      configurable: false,
-      enumerable: false,
-      get() {
-        if (!isDevFlag()) {
-          emitForbiddenAccess(`Game.${name}`, "get");
-          return undefined;
-        }
-        return Game[internalName];
-      },
-      set(value) {
-        if (!isDevFlag()) {
-          emitForbiddenAccess(`Game.${name}`, "set");
-          return;
-        }
-        Game[internalName] = value;
-      }
-    }));
-  }
-
-  if (typeof window !== "undefined") {
-    if (isDevFlag()) {
-      window.__defineGameSurfaceProp = window.__defineGameSurfaceProp || defineGameSurfaceProp;
-    } else if (window.__defineGameSurfaceProp === defineGameSurfaceProp) {
-      try {
-        delete window.__defineGameSurfaceProp;
-      } catch (_) {
-        window.__defineGameSurfaceProp = undefined;
-      }
-    }
-  }
-
-  function tryRemove(propTarget, propName){
-    if (!propTarget || typeof propTarget !== "object") return;
-    try {
-      delete propTarget[propName];
-    } catch (_) {
-      propTarget[propName] = undefined;
-    }
-  }
-
-  if (typeof window !== "undefined" && !isDevFlag()) {
-    tryRemove(Game, "Dev");
-    if (!allowSmokeSurface()) {
-      tryRemove(Game, "__DEV");
-    }
-    tryRemove(window, "__defineGameSurfaceProp");
-  }
-
-  let pointsWriteDepth = 0;
-  function withPointsWrite(fn){
-    pointsWriteDepth++;
-    try { return fn(); } finally { pointsWriteDepth = Math.max(0, pointsWriteDepth - 1); }
-  }
-
-  function canWritePoints(){
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    const allowDev = !!(dbg && (dbg.ALLOW_POINTS_WRITE === true || dbg.BYPASS_POINTS_GUARD === true));
-    return !isCirculationEnabled() || pointsWriteDepth > 0 || allowDev;
-  }
-
-  function rejectPointsWrite(action){
-    const msg = "–¶–∏—Ä–∫—É–ª—è—Ü–∏—è: –ø—Ä—è–º–æ–µ –∏–∑–º–µ–Ω–µ–Ω–∏–µ –±–∞–ª–∞–Ω—Å–∞ –∑–∞–±–ª–æ–∫–∏—Ä–æ–≤–∞–Ω–æ";
-    const dbg = (Game && Game.__D) ? Game.__D : null;
-    if (dbg && (dbg.ALLOW_POINTS_WRITE === true || dbg.BYPASS_POINTS_GUARD === true)) {
-      return true;
-    }
-    if (isDevFlag()) {
-      const allowWrite = !!(dbg && dbg.ALLOW_POINTS_WRITE === true);
-      const bypass = !!(dbg && dbg.BYPASS_POINTS_GUARD === true);
-      const cir = isCirculationEnabled();
-      let stackHead = "";
-      try {
-        const err = new Error();
-        const s = String(err && err.stack ? err.stack : "");
-        const lines = s.split("\n").map(x => x.trim()).filter(Boolean);
-        if (lines.length > 1) stackHead = `${lines[1] || ""}${lines[2] ? " | " + lines[2] : ""}`;
-      } catch (_) {}
-      const tail = ` allowWrite=${allowWrite} bypass=${bypass} cir=${cir}${stackHead ? " stack=" + stackHead : ""}`;
-      throw new Error(action ? `${msg} (${action})${tail}` : `${msg}${tail}`);
-    }
-    try { pushSystem(msg + "."); } catch (_) {}
-    return false;
-  }
-
-  function guardPointsObject(obj, label){
-    if (!obj || typeof obj !== "object") return;
-    const desc = Object.getOwnPropertyDescriptor(obj, "points");
-    if (desc && typeof desc.get === "function") return;
-    let store = Number.isFinite(obj.points) ? (obj.points | 0) : 0;
-    Object.defineProperty(obj, "points", {
-      configurable: true,
-      enumerable: true,
-      get(){ return store; },
-      set(v){
-        const next = Number.isFinite(Number(v)) ? (Number(v) | 0) : 0;
-        if (!canWritePoints()) {
-          const labelPath = label || "State.me.points";
-          const reason = Number.isFinite(v) ? "unauthorized_points_write" : "invalid_number";
-          emitInvalidMutation(labelPath, next, reason);
-          rejectPointsWrite(label || "points");
-          return;
-        }
-        store = next;
-      }
-    });
- }
-
-  const RESOURCE_DUPLICATE_WINDOW_MS = 1400;
-  const ResourceValidator = (() => {
-    const recent = new Map();
-    const locked = new Set();
-
-    function now(){ return Date.now(); }
-
-    function cleanup(){
-      const stamp = now();
-      for (const [key, ts] of recent) {
-        if ((stamp - ts) > RESOURCE_DUPLICATE_WINDOW_MS) {
-          recent.delete(key);
-        }
-      }
-    }
-
-    function readValue(kind){
-      const runtime = (Game && Game.__S) ? Game.__S : (typeof State !== "undefined" ? State : null);
-      if (!runtime) return 0;
-      if (kind === "points") {
-        const points = runtime.me && Number.isFinite(runtime.me.points) ? (runtime.me.points | 0) : 0;
-        return points;
-      }
-      if (kind === "rep") {
-        return Number.isFinite(runtime.rep) ? (runtime.rep | 0) : 0;
-      }
-      if (kind === "influence") {
-        const inf = runtime.me && Number.isFinite(runtime.me.influence) ? (runtime.me.influence | 0) : 0;
-        return inf;
-      }
-      return 0;
-    }
-
-    function makeKey(kind, meta){
-      const reason = (meta && meta.reason) ? String(meta.reason) : "";
-      const actionId = (meta && meta.actionId) ? String(meta.actionId) : "";
-      const battleId = (meta && meta.battleId != null) ? String(meta.battleId) : "";
-      const context = (meta && meta.context) ? String(meta.context) : "";
-      const fromId = (meta && meta.fromId) ? String(meta.fromId) : "";
-      const toId = (meta && meta.toId) ? String(meta.toId) : "";
-      return `${kind}:${battleId}:${actionId}:${fromId}:${toId}:${reason}:${context}`;
-    }
-
-    return {
-      claim(kind, meta){
-        cleanup();
-        const key = makeKey(kind, meta || {});
-        const stamp = now();
-        if (recent.has(key) && (stamp - recent.get(key)) < RESOURCE_DUPLICATE_WINDOW_MS) {
-          return { ok: false, key, reason: "duplicate" };
-        }
-        if (locked.has(key)) {
-          return { ok: false, key, reason: "in_progress" };
-        }
-        locked.add(key);
-        return { ok: true, key, before: readValue(kind) };
-      },
-      release(key, success){
-        if (!key) return;
-        locked.delete(key);
-        if (success) {
-          recent.set(key, now());
-        }
-      }
-    };
-  })();
-
-  const Security = (() => {
-    const OWNER_DM_TARGET = "security_owner";
-    const OWNER_DM_NAME = "–°–ª—É–∂–±–∞ –±–µ–∑–æ–ø–∞—Å–Ω–æ—Å—Ç–∏";
-
-    const SEC = {
-      events: [],
-      notices: [],
-      maxEvents: 120,
-      maxNotices: 50,
-      lastEmit: new Map(),
-      lastNotify: new Map(),
-      buckets: new Map(),
-      methods: [],
-      handles: [],
-      tampered: false,
-      lastVerifyAt: 0,
-      bootPhase: true,
-    };
-
-    function now(){ return Date.now(); }
-    function mode(){ return securityAuditMode(); }
-
-    function safeStr(v){
-      if (v == null) return "";
-      try { return String(v); } catch (_) { return ""; }
-    }
-
-    function readStateSafe(){
-      try { return State; } catch (_) { return null; }
-    }
-
-    function readPlayerId(){
-      const state = readStateSafe();
-      if (state && state.me && state.me.id) return String(state.me.id);
-      const fallback = (Game && Game.__S && Game.__S.me && Game.__S.me.id) ? Game.__S.me.id : null;
-      if (fallback) return String(fallback);
-      return "me";
-    }
-
-    function readSessionId(){
-      if (Game && Game.Logger && Game.Logger.sessionId) {
-        return String(Game.Logger.sessionId);
-      }
-      if (typeof window !== "undefined" && window.sessionId) {
-        return String(window.sessionId);
-      }
-      return "";
-    }
-
-    function describeEventDetails(details){
-      if (!details || typeof details !== "object") return "";
-      const parts = [];
-      if (details.key) parts.push(`key=${safeStr(details.key)}`);
-      if (details.action) parts.push(`action=${safeStr(details.action)}`);
-      if (details.reason) parts.push(`reason=${safeStr(details.reason)}`);
-      if (!parts.length && details.description) parts.push(String(details.description));
-      return parts.join("; ");
-    }
-
-    function deliverOwnerDm(ev){
-      if (!ev || !ev.time) return;
-      const state = readStateSafe();
-      if (!state || !state.dm) return;
-      const lines = [];
-      lines.push(`–¢–∏–ø: ${ev.type}`);
-      lines.push(`–ò–≥—Ä–æ–∫: ${ev.playerId || "unknown"}`);
-      lines.push(`–°–µ—Å—Å–∏—è: ${ev.sessionId || "‚Äî"}`);
-      lines.push(`–í—Ä–µ–º—è: ${new Date(ev.time).toISOString()}`);
-      const desc = describeEventDetails(ev.meta);
-      if (desc) lines.push(`–û–ø–∏—Å–∞–Ω–∏–µ: ${desc}`);
-      try {
-        pushDm(OWNER_DM_TARGET, OWNER_DM_NAME, lines.join("\n"), { isSystem: true });
-      } catch (_) {}
-    }
-
-    function buildEventKey(type, details){
-      const base = safeStr(type);
-      const key = details && details.key ? safeStr(details.key) : "";
-      const action = details && details.action ? safeStr(details.action) : "";
-      const reason = details && details.reason ? safeStr(details.reason) : "";
-      if (key) return `${base}:${key}`;
-      if (action || reason) return `${base}:${action}:${reason}`;
-      return base;
-    }
-
-    function pushRing(arr, item, max){
-      arr.push(item);
-      if (arr.length > max) arr.splice(0, arr.length - max);
-    }
-
-    const DEBUG_SECURITY_EVENTS_STORE = "__debugSecurityEventsStore";
-
-    function ensureSecurityEventsArray(){
-      if (typeof Game !== "object" || !Game) return;
-      if (!Game.__D) Game.__D = {};
-      if (!Array.isArray(Game.__D.securityEvents)) Game.__D.securityEvents = [];
-      if (!isDevFlag()) return;
-      const debugSurface = (Game && Game.Debug && typeof Game.Debug === "object") ? Game.Debug : null;
-      if (!debugSurface) return;
-      const storeExists = Object.prototype.hasOwnProperty.call(debugSurface, DEBUG_SECURITY_EVENTS_STORE);
-      if (!storeExists) {
-        const existing = Array.isArray(Game.__D.securityEvents) ? Game.__D.securityEvents : [];
-        Object.defineProperty(debugSurface, DEBUG_SECURITY_EVENTS_STORE, {
-          configurable: true,
-          enumerable: false,
-          writable: true,
-          value: existing,
-        });
-      }
-      const desc = Object.getOwnPropertyDescriptor(debugSurface, "securityEvents");
-      if (desc && desc.get) return;
-      Object.defineProperty(debugSurface, "securityEvents", {
-        configurable: true,
-        enumerable: false,
-        get() {
-          let arr = debugSurface[DEBUG_SECURITY_EVENTS_STORE];
-          if (!Array.isArray(arr)) {
-            arr = [];
-            debugSurface[DEBUG_SECURITY_EVENTS_STORE] = arr;
-          }
-          return arr;
-        },
-        set(value) {
-          if (!Array.isArray(value)) return;
-          debugSurface[DEBUG_SECURITY_EVENTS_STORE] = value;
-        },
-      });
-    }
-
-    function shouldEmit(map, key, ttl){
-      const stamp = now();
-      const prev = map.get(key) || 0;
-      if ((stamp - prev) < ttl) return 0;
-      map.set(key, stamp);
-      return stamp;
-    }
-
-    function emit(type, details, opts = null){
-      if (SEC.bootPhase) return;
-      const key = buildEventKey(type, details);
-      const ttl = (opts && Number.isFinite(opts.minGapMs)) ? (opts.minGapMs | 0) : 1500;
-      const stamp = shouldEmit(SEC.lastEmit, key, ttl);
-      if (!stamp) return;
-      const playerId = readPlayerId();
-      const sessionId = readSessionId();
-      const meta = (details && typeof details === "object") ? Object.assign({}, details) : {};
-      const ev = {
-        time: stamp,
-        type: safeStr(type),
-        playerId,
-        sessionId,
-        meta,
-        details: meta,
-        key,
-        mode: mode(),
-      };
-      try {
-        const reasonRaw = (meta && (meta.reason || meta.action || meta.key)) ? (meta.reason || meta.action || meta.key) : null;
-        const reasonText = reasonRaw == null ? "none" : String(reasonRaw);
-        const pidText = playerId ? String(playerId) : "me";
-        console.log(`[FLOW_AUDIT] post-finishBoot-security-event type=${ev.type} player=${pidText} reason=${reasonText}`);
-      } catch (_) {}
-      pushRing(SEC.events, ev, SEC.maxEvents);
-      try {
-        if (Game.__D && typeof Game.__D === "object") {
-          ensureSecurityEventsArray();
-          if (!Array.isArray(Game.__D.securityEvents)) Game.__D.securityEvents = [];
-          pushRing(Game.__D.securityEvents, ev, SEC.maxEvents);
-          if (ReactionPolicy && typeof ReactionPolicy.handleEvent === "function") {
-            ReactionPolicy.handleEvent(ev);
-          }
-        }
-      } catch (_) {}
-      if (isDevFlag()) {
-        try { console.warn("[SEC]", ev.type, ev.details); } catch (_) {}
-      }
-      if (!opts || opts.notify !== false) notifyOwner(ev);
-    }
-
-    function notifyOwner(ev){
-      if (SEC.bootPhase) return;
-      const detailKey = ev && ev.key ? safeStr(ev.key) : "";
-      const key = `notify:${safeStr(ev && ev.type)}:${detailKey}`;
-      const stamp = shouldEmit(SEC.lastNotify, key, 6000);
-      if (!stamp) return;
-      const notice = {
-        time: stamp,
-        type: safeStr(ev && ev.type),
-        details: ev && ev.meta ? ev.meta : {},
-      };
-      pushRing(SEC.notices, notice, SEC.maxNotices);
-      try {
-        if (Game.__D && typeof Game.__D === "object") {
-          if (!Array.isArray(Game.__D.securityNotices)) Game.__D.securityNotices = [];
-          pushRing(Game.__D.securityNotices, notice, SEC.maxNotices);
-        }
-      } catch (_) {}
-      if (isDevFlag()) {
-        try { console.warn("[SEC:notify]", notice.type, notice.details); } catch (_) {}
-      }
-      deliverOwnerDm(ev);
-    }
-
-    function buildRateKey(action, details){
-      const actorId = details && details.actorId ? safeStr(details.actorId) : "me";
-      const reason = details && details.reason ? safeStr(details.reason) : "";
-      const battleId = details && details.battleId != null ? safeStr(details.battleId) : "";
-      const eventId = details && details.eventId != null ? safeStr(details.eventId) : "";
-      const actionId = details && details.actionId ? safeStr(details.actionId) : "";
-      const fromId = details && details.fromId ? safeStr(details.fromId) : "";
-      const toId = details && details.toId ? safeStr(details.toId) : "";
-      const stableKey = details && details.stableKey ? safeStr(details.stableKey) : "";
-      if (stableKey) return `${safeStr(action)}:${stableKey}`;
-      return `${safeStr(action)}:${actorId}:${reason}:${battleId}:${eventId}:${actionId}:${fromId}:${toId}`;
-    }
-
-    function rateLimit(action, details, cfg){
-      const max = (cfg && Number.isFinite(cfg.max)) ? Number(cfg.max) : 4;
-      const windowMs = (cfg && Number.isFinite(cfg.windowMs)) ? Number(cfg.windowMs) : 1200;
-      const burst = (cfg && Number.isFinite(cfg.burst)) ? Number(cfg.burst) : max;
-      const key = buildRateKey(action, details || {});
-      const stamp = now();
-      let b = SEC.buckets.get(key);
-      if (!b) b = { tokens: burst, last: stamp };
-      const elapsed = Math.max(0, stamp - b.last);
-      const refill = (elapsed / windowMs) * max;
-      b.tokens = Math.min(burst, b.tokens + refill);
-      b.last = stamp;
-      if (b.tokens < 1) {
-        SEC.buckets.set(key, b);
-        const resetIn = Math.ceil(((1 - b.tokens) * windowMs) / max);
-        return { ok: false, key, resetIn, remaining: 0 };
-      }
-      b.tokens -= 1;
-      SEC.buckets.set(key, b);
-      return { ok: true, key, remaining: Math.floor(b.tokens) };
-    }
-
-    function finishBoot(){
-      if (!SEC.bootPhase) return;
-      SEC.bootPhase = false;
-    }
-
-    function defineHandleProp(name, value){
-      if (!Game || !name) return;
-      const desc = Object.getOwnPropertyDescriptor(Game, name);
-      if (desc && desc.get && desc.get._secHandle) return;
-      try {
-        withGlobalTamperTrust(() => Object.defineProperty(Game, name, {
-          configurable: false,
-          enumerable: false,
-          get() { return value; },
-      set(v){
-        if (v !== value) {
-          SEC.tampered = true;
-          emit("tamper_handle", { key: name, action: "set", mode: mode() });
-          emitTamperDetected({ key: name, action: "set_handle", mode: mode() });
-        }
-      }
-    }));
-        const g = Object.getOwnPropertyDescriptor(Game, name).get;
-        if (g) g._secHandle = true;
-      } catch (_) {}
-      SEC.handles.push({ name, value });
-    }
-
-    function protectMethod(obj, key, fn, label){
-      if (!obj || !key || typeof fn !== "function") return;
-      const desc = Object.getOwnPropertyDescriptor(obj, key);
-      if (desc && desc.get && desc.get._secProtected) return;
-      try {
-        withGlobalTamperTrust(() => Object.defineProperty(obj, key, {
-          configurable: false,
-          enumerable: true,
-          get() { return fn; },
-      set(v){
-        if (v !== fn) {
-          SEC.tampered = true;
-          emit("tamper_function", { key: label || key, action: "set", mode: mode() });
-          emitTamperDetected({ key: label || key, action: "set_function", mode: mode() });
-          const auditLabel = String(label || key || "").toLowerCase();
-          if (auditLabel.endsWith("transferrep")) {
-            const stack = captureSecurityStack(3);
-            const caller = auditSecurityCaller(stack);
-            auditSecurityConsole(`[SEC_AUDIT] transferRep-set-attempt caller=${caller} reason=set`);
-          }
-        }
-      }
-    }));
-        const g = Object.getOwnPropertyDescriptor(obj, key).get;
-        if (g) g._secProtected = true;
-      } catch (_) {}
-      SEC.methods.push({ obj, key, fn, label: label || key });
-    }
-
-    function verify(force){
-      const stamp = now();
-      if (!force && (stamp - SEC.lastVerifyAt) < 1500) return !SEC.tampered;
-      SEC.lastVerifyAt = stamp;
-      for (const h of SEC.handles) {
-      try {
-        if (Game[h.name] !== h.value) {
-          SEC.tampered = true;
-          emit("tamper_handle", { key: h.name, action: "swap", mode: mode() });
-          emitTamperDetected({ key: h.name, action: "swap_handle", mode: mode() });
-          defineHandleProp(h.name, h.value);
-        }
-      } catch (_) {}
-      }
-      for (const m of SEC.methods) {
-      try {
-        if (!m.obj || m.obj[m.key] !== m.fn) {
-          SEC.tampered = true;
-          emit("tamper_function", { key: m.label, action: "swap", mode: mode() });
-          emitTamperDetected({ key: m.label, action: "swap_function", mode: mode() });
-          protectMethod(m.obj, m.key, m.fn, m.label);
-        }
-      } catch (_) {}
-      }
-      return !SEC.tampered;
-    }
-
-    const store = { events: SEC.events, notices: SEC.notices, emit, notifyOwner };
-
-  return {
-      emit,
-      notifyOwner,
-      rateLimit,
-      defineHandleProp,
-      protectMethod,
-      verify,
-      isSafe: () => verify(false),
-      finishBoot,
-      store,
-    };
-  })();
-
-  function captureSecurityStack(limit = 3){
-    try {
-      const err = new Error();
-      const stack = err && err.stack ? String(err.stack) : "";
-      const lines = stack.split("\n").map(x => x.trim()).filter(Boolean);
-      return lines.slice(2, 2 + (limit || 0)).join(" | ");
-    } catch (_) {
-      return "";
-    }
-  }
-
-  function auditSecurityCaller(stack){
-    if (!stack) return "unknown";
-    const pieces = stack.split("|").map(x => x.trim()).filter(Boolean);
-    for (const piece of pieces) {
-      const normalized = piece.toLowerCase();
-      if (normalized.includes("capturesecuritystack")) continue;
-      if (normalized.includes("auditsecuritycaller")) continue;
-      if (normalized.includes("emitforbiddenaccess")) continue;
-      if (normalized.includes("object.get")) continue;
-      if (normalized.includes(" get@")) continue;
-      if (normalized.startsWith("get@")) continue;
-      return piece;
-    }
-    return pieces.length ? pieces[0] : "unknown";
-  }
-
-  function auditSecurityConsole(message){
-    if (!message) return;
-    try { console.warn(message); } catch (_) {}
-  }
-
-  function securitySafeKey(value){
-    if (value == null) return "";
-    try {
-      return String(value);
-    } catch (_) {
-      return "";
-    }
-  }
-
-  function emitForbiddenAccess(key, action){
-    const stack = captureSecurityStack(3);
-    const caller = auditSecurityCaller(stack);
-    const resolvedMode = securityAuditMode();
-    auditSecurityConsole(`[SEC_AUDIT] forbidden-access-source key=${securitySafeKey(key)} caller=${caller} mode=${resolvedMode}`);
-    Security.emit("forbidden_api_access", {
-      key: securitySafeKey(key),
-      action: securitySafeKey(action),
-      stack
-    }, { minGapMs: 1000 });
-  }
-
-  function emitInvalidMutation(path, value, reason){
-    Security.emit("invalid_state_mutation", {
-      path: securitySafeKey(path),
-      value: (typeof value === "number") ? value : securitySafeKey(value),
-      reason: securitySafeKey(reason),
-      stack: captureSecurityStack(4)
-    }, { minGapMs: 1200 });
-  }
-
-  function emitTamperDetected(details){
-    const payload = Object.assign({
-      stack: captureSecurityStack(4)
-    }, details || {});
-    Security.emit("tamper_detected", payload, { minGapMs: 1500 });
-  }
-
-  function isProtectedSurface(target){
-    if (!target) return false;
-    if (target === Game) return true;
-    const stateSurface = Game && Game.__S;
-    if (stateSurface && target === stateSurface) return true;
-    const stateApiSurface = Game && Game.__A;
-    if (stateApiSurface && target === stateApiSurface) return true;
-    const debugSurface = Game && Game.__D;
-    if (debugSurface && target === debugSurface) return true;
-    const coreSurface = Game && Game._ConflictCore;
-    if (coreSurface && target === coreSurface) return true;
-    if (target === (Game && Game.ConflictCore)) return true;
-    const handleS = Game && Game.__S;
-    if (handleS && target === handleS) return true;
-    const handleA = Game && Game.__A;
-    if (handleA && target === handleA) return true;
-    const handleD = Game && Game.__D;
-    if (handleD && target === handleD) return true;
-    return false;
-  }
-
-  function describeSurface(target){
-    if (!target) return "unknown";
-    if (target === Game) return "Game";
-    if (target === (Game && Game.__S)) return "Game.State";
-    if (target === (Game && Game.__A)) return "Game.StateAPI";
-    const debugSurface = Game && Game.__D;
-    if (debugSurface && target === debugSurface) return "Game.Debug";
-    if (target === (Game && Game._ConflictCore)) return "Game._ConflictCore";
-    if (target === (Game && Game.ConflictCore)) return "Game.ConflictCore";
-    return "protected";
-  }
-
-  function handleGlobalTamper(target, prop, action){
-    if (!isProtectedSurface(target)) return;
-    if (globalTamperTrustedDepth > 0) return;
-    emitTamperDetected({ key: `${describeSurface(target)}.${String(prop || "<?>")}`, action });
-  }
-
-  (function wrapGlobalTamperHooks(){
-    if (typeof Object === "undefined") return;
-    if (!Object.defineProperty.__intrusionWrapped) {
-      const original = Object.defineProperty;
-      Object.defineProperty = function(target, prop, descriptor){
-        handleGlobalTamper(target, prop, "defineProperty");
-        return original.call(Object, target, prop, descriptor);
-      };
-      try { Object.defineProperty.__intrusionWrapped = true; } catch (_) {}
-    }
-    if (!Object.defineProperties.__intrusionWrapped) {
-      const original = Object.defineProperties;
-      Object.defineProperties = function(target, props){
-        handleGlobalTamper(target, Object.keys(props || {}).join(","), "defineProperties");
-        return original.call(Object, target, props);
-      };
-      try { Object.defineProperties.__intrusionWrapped = true; } catch (_) {}
-    }
-    if (!Object.setPrototypeOf.__intrusionWrapped) {
-      const original = Object.setPrototypeOf;
-      Object.setPrototypeOf = function(target, proto){
-        handleGlobalTamper(target, "__proto__", "setPrototypeOf");
-        return original.call(Object, target, proto);
-      };
-      try { Object.setPrototypeOf.__intrusionWrapped = true; } catch (_) {}
-    }
-  })();
-
-  function signedProfileDeltaFromMoneyRow(row, wantedKind){
-    if (!row || typeof row !== "object") return 0;
-    const currency = String(row.currency || row.kind || "points").toLowerCase() === "rep" ? "rep" : "points";
-    if (currency !== String(wantedKind || "")) return 0;
-    const amountSource = row.amount !== undefined ? row.amount : row.delta;
-    const amount = Number(amountSource);
-    if (!Number.isFinite(amount) || amount === 0) return 0;
-    const src = String(row.sourceId || "");
-    const tgt = String(row.targetId || "");
-    const meId = (State && State.me && State.me.id) ? String(State.me.id) : "me";
-    const sourceIsMe = src === "me" || src === meId;
-    const targetIsMe = tgt === "me" || tgt === meId;
-    if (targetIsMe && !sourceIsMe) return amount | 0;
-    if (sourceIsMe && !targetIsMe) return -(amount | 0);
-    return 0;
-  }
-
-  function findProfileMoneyLogProof(kind, delta, meta){
-    if (kind !== "points" && kind !== "rep") return null;
-    if (!Game.__D || typeof Game.__D !== "object" || !Array.isArray(Game.__D.moneyLog)) return null;
-    const diff = delta | 0;
-    if (!diff) return null;
-    const reason = meta && meta.reason ? String(meta.reason) : "";
-    const battleId = meta && meta.battleId != null ? String(meta.battleId) : "";
-    const actionId = meta && meta.actionId != null ? String(meta.actionId) : "";
-    const log = Game.__D.moneyLog;
-    for (let i = log.length - 1; i >= 0; i--) {
-      const row = log[i];
-      if (!row || typeof row !== "object") continue;
-      if (signedProfileDeltaFromMoneyRow(row, kind) !== diff) continue;
-      const rowReason = String(row.reason || (row.meta && row.meta.reason) || "");
-      if (reason && rowReason && rowReason !== reason) continue;
-      const rowBattleId = row.battleId != null ? String(row.battleId) : ((row.meta && row.meta.battleId != null) ? String(row.meta.battleId) : "");
-      if (battleId && rowBattleId && rowBattleId !== battleId) continue;
-      const rowActionId = row.actionId != null ? String(row.actionId) : ((row.meta && row.meta.actionId != null) ? String(row.meta.actionId) : "");
-      if (actionId && rowActionId && rowActionId !== actionId) continue;
-      return {
-        txId: row.txId ? String(row.txId) : null,
-        logIndex: i,
-        reason: rowReason || reason || null,
-        battleId: rowBattleId || battleId || null,
-        currency: kind,
-        delta: diff
-      };
-    }
-    return null;
-  }
-
-  function emitStatDelta(kind, delta, meta){
-    if (!kind || !Number.isFinite(Number(delta || 0))) return;
-    const statKind = String(kind);
-    const diff = (delta | 0);
-    if (!diff) return;
-    const profileKind = (statKind === "points" || statKind === "rep") ? statKind : null;
-    const moneyLogProof = profileKind ? findProfileMoneyLogProof(profileKind, diff, meta || null) : null;
-    const enrichedMeta = Object.assign({}, (meta && typeof meta === "object") ? meta : {}, moneyLogProof ? { __moneyLogRef: moneyLogProof } : {});
-    try {
-      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-      if (!Array.isArray(Game.__D.toastLog)) Game.__D.toastLog = [];
-      Game.__D.toastLog.push({
-        time: Date.now(),
-        kind: statKind,
-        delta: diff,
-        reason: meta && meta.reason ? String(meta.reason) : null,
-        battleId: (meta && meta.battleId != null) ? meta.battleId : null,
-        profileEcon: !!profileKind,
-        moneyLogProof: moneyLogProof || null,
-        txId: moneyLogProof && moneyLogProof.txId ? moneyLogProof.txId : null,
-        logIndex: moneyLogProof && Number.isFinite(moneyLogProof.logIndex) ? moneyLogProof.logIndex : null
-      });
-      if (Game.__D.toastLog.length > 300) {
-        Game.__D.toastLog.splice(0, Game.__D.toastLog.length - 300);
-      }
-    } catch (_) {}
-    try {
-      if (Game && Game.UI && typeof Game.UI.emitStatDelta === "function") {
-        Game.UI.emitStatDelta(statKind, diff, enrichedMeta);
-      }
-    } catch (_) {}
-  }
-
-  // Tier is derived from influence thresholds (single source of truth: Game.Data.PROGRESSION.unlockInfluence)
-  // y (weak) < strong, o (strong) >= strong, r (powerful) >= power, k (absolute) >= absolute
-  function tierFromInfluence(influence) {
-    const inf = (influence || 0) | 0;
-    const T = getProgression();
-    if (inf >= T.absolute) return "k";
-    if (inf >= T.power) return "r";
-    if (inf >= T.strong) return "o";
-    return "y";
-  }
-
-  // --- Training state (data contract only, deterministic defaults) ---
-  const TRAINING_VERSION = 1;
-
-  function sanitizeNonNegativeInt(v){
-    if (!Number.isFinite(v)) return 0;
-    const n = (v | 0);
-    return n < 0 ? 0 : n;
-  }
-
-  function sanitizeTimestamp(v){
-    return sanitizeNonNegativeInt(v);
-  }
-
-  function cloneTrainingEntry(raw){
-    const entry = raw && typeof raw === "object" ? raw : {};
-    return {
-      level: sanitizeNonNegativeInt(entry.level),
-      xp: sanitizeNonNegativeInt(entry.xp),
-      lastTrainedAt: sanitizeTimestamp(entry.lastTrainedAt),
-      cooldownUntil: sanitizeTimestamp(entry.cooldownUntil),
-    };
-  }
-
-  function buildTrainingStateFrom(raw){
-    const src = raw && typeof raw === "object" ? raw : {};
-    const byArgKeySrc = (src.byArgKey && typeof src.byArgKey === "object") ? src.byArgKey : {};
-    const countersSrc = (src.counters && typeof src.counters === "object") ? src.counters : {};
-    const byArgKey = {};
-    for (const key of Object.keys(byArgKeySrc)) {
-      if (!key) continue;
-      byArgKey[String(key)] = cloneTrainingEntry(byArgKeySrc[key]);
-    }
-    const counters = {
-      totalTrains: sanitizeNonNegativeInt(countersSrc.totalTrains),
-      todayTrains: sanitizeNonNegativeInt(countersSrc.todayTrains),
-      lastTrainDay: sanitizeNonNegativeInt(countersSrc.lastTrainDay),
-    };
-    const versionRaw = Number.isFinite(src.version) ? (src.version | 0) : TRAINING_VERSION;
-    const version = versionRaw > 0 ? versionRaw : TRAINING_VERSION;
-    return { version, byArgKey, counters };
-  }
-
-  function ensureTrainingState(target){
-    const tgt = (target && typeof target === "object") ? target : null;
-    const next = buildTrainingStateFrom(tgt && tgt.training);
-    if (tgt) tgt.training = next;
-    return next;
-  }
-
-  const State = {
-    isStarted: false,
-
-    // NPC runtime state
-    npc: {
-      lastChatAt: 0,
-      chatCooldownMs: 0,
-      lastActionAt: 0,
-      actionCooldownMs: 0,
-      lastDmAt: 0,
-      timers: {}, // named timers for npc loops
-      copBudget: 0,
-      copQuotaReady: false,
-    },
-
-    me: {
-      id: "me",
-      name: "",
-      points: getPointsConfig().startPlayer,
-      influence: 0,
-      wins: 0,
-      winsSinceInfluence: 0,
-
-      // Unlock flags (single source of truth in state)
-      unlockOrange: false,
-      unlockRed: false,
-      unlockBlack: false,
-
-      // Cached tier for UI (y/o/r/k). Updated via syncMeToPlayers().
-      argumentTier: "y",
-
-      locationId: "plaza",
-    },
-
-    rep: 0,
-    influence: 0,
-
-    // all "players" includes NPCs + me mirror
-    players: {},
-
-    points: {
-      lastChatRewardAt: 0,
-    },
-
-    progress: {
-      weeklyInfluenceGained: 0,
-      weekStartAt: 0,
-      lastDailyBonusAt: 0,
-      onboardingSeen: readPersistedOnboardingSeen(),
-    },
-
-    training: buildTrainingStateFrom({}),
-    dayIndex: 0,
-
-    chat: [], // {id,t,name,text,isSystem,isMe,playerId}
-    chatAutoReplyNonceByMessageId: {},
-    dm: {
-      open: false,
-      withId: null,
-      logs: {}, // withId -> messages
-      names: {}, // custom display names for system DM threads
-
-      // UI toggles inside DM
-      inviteOpen: false,
-      teachOpen: false,
-
-      // One-time aggression triggers per DM (toxic/bandit)
-      agroStarted: {}, // withId -> true
-    },
-
-    // Cop reports (denunciations) runtime state
-    // Global state for authority system (multiple cops)
-    reports: {
-      lastAt: 0,
-      cooldownMs: 3 * 60 * 1000, 
-      history: {},
-      copCooldowns: {}, // copId -> lastAt (global per cop)
-    },
-    jailed: {},
-    victimByRole: {},
-    revengeUntil: 0,
-    battleCooldowns: {},
-    battleProvocationCooldowns: {},
-
-    battles: [], // active battle cards
-    events: [],  // npc vs npc events
-    lottery: {
-      bet: 5,          // —Ñ–∏–∫—Å–∏—Ä–æ–≤–∞–Ω–Ω–∞—è —Å—Ç–∞–≤–∫–∞
-      lastRoll: null,  // –ø–æ—Å–ª–µ–¥–Ω–∏–π —Ä–µ–∑—É–ª—å—Ç–∞—Ç
-      lastAt: 0,       // timestamp –ø–æ—Å–ª–µ–¥–Ω–µ–≥–æ –±—Ä–æ—Å–∫–∞ (ms)
-      plays: 0,        // –ø–æ–ø—ã—Ç–∫–∏ –∑–∞ —Å–µ—Å—Å–∏—é
-    },
-    // UI flags (single source of truth for collapsible blocks etc.)
-    flags: {
-      // Events panel
-      eventsOpen: true,
-      eventsCollapsed: false,
-      eventCount: 0,
-
-      // Events selection + highlight (single source of truth)
-      activeEventId: null,
-      selectedEventId: null,
-      highlightEventId: null,
-
-      // Panel sizes (collapsed / medium / max) - single source of truth for UI
-      // These are used by ui-dm.js / ui-battles.js / ui-events.js
-      dmSize: "medium",
-      battlesSize: "medium",
-      eventsSize: "medium",
-      locationsSize: "medium",
-
-      // Optional visibility toggles (UI may set these)
-      dmHidden: false,
-      battlesHidden: false,
-      eventsHidden: false,
-    },
-
-    // Optional cache for Events panel selection when S.events is an array
-    eventsMeta: {
-      activeId: null,
-      selectedId: null,
-    },
-
-    // Tie-vote state (single source of truth).
-    // IMPORTANT: UI/render code must NOT replace this object reference during an active vote.
-    // Always mutate fields via StateAPI.upsertVote()/ensureVote()/clearVote() so rerenders don't lose mutations.
-    vote: {
-      active: false,
-      battleId: null,
-      // contenders
-      aId: null,
-      bId: null,
-      aName: "",
-      bName: "",
-      // counts map: { [playerId]: 0|1 } and totals per side
-      countsByVoter: {},
-      totals: { a: 0, b: 0 },
-      // voting constraints
-      playerVoted: false,
-      playerSide: null, // "a" | "b" | null
-      // timing
-      startedAt: 0,
-      endsAt: 0,
-      // timers (ids) so loops can cancel reliably
-      timerId: null,
-      npcTimerId: null,
-      // resolution
-      resolved: false,
-      winner: null, // "a" | "b" | "tie"
-      resultText: "",
-      // linked event/chat
-      eventId: null,
-      chatId: null,
-    },
-    securityFlags: {},
-
-    // Evidence that certain roles were actually seen recently (chat/battles can mark this).
-    // roleKey -> lastSeenAt (ms)
-  sightings: {},
-};
-
-  State.provocationCooldowns = State.battleProvocationCooldowns;
-
-  guardPointsObject(State.me, "State.me.points");
-  let _stateRepValue = Number.isFinite(State.rep) ? (State.rep | 0) : 0;
-  let _repWriteDepth = 0;
-  function withRepWrite(fn){
-    _repWriteDepth++;
-    try { return fn(); }
-    finally { _repWriteDepth = Math.max(0, _repWriteDepth - 1); }
-  }
-  function canWriteRep(){
-    return _repWriteDepth > 0 || isDevFlag();
-  }
-  function sanitizeRepValue(v){
-    return Number.isFinite(Number(v)) ? (Number(v) | 0) : 0;
-  }
-  Object.defineProperty(State, "rep", {
-    configurable: true,
-    enumerable: true,
-    get(){ return _stateRepValue; },
-    set(v){
-      const next = sanitizeRepValue(v);
-      if (!canWriteRep()) {
-        const reason = Number.isFinite(Number(v)) ? "unauthorized_rep_write" : "invalid_number";
-        emitInvalidMutation("State.rep", next, reason);
-        return;
-      }
-      _stateRepValue = Math.max(0, next);
-    }
-  });
-
-  function resetAll(){
-    State.isStarted = false;
-    State.me = {
-      id: "me",
-      name: "",
-      points: getPointsConfig().startPlayer,
-      influence: 0,
-      wins: 0,
-      winsSinceInfluence: 0,
-
-      unlockOrange: false,
-      unlockRed: false,
-      unlockBlack: false,
-      argumentTier: "y",
-
-      locationId: "plaza",
-    };
-    withRepWrite(() => {
-      State.rep = 0;
-    });
-    State.influence = 0;
-    State.players = {};
-    State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-    State.training = buildTrainingStateFrom({});
-    State.dayIndex = 0;
-    State.chat = [];
-    State.chat.autoReplyNonceByMessageId = {};
-    State.chatAutoReplyNonceByMessageId = State.chat.autoReplyNonceByMessageId;
-    State.dm = { open:false, withId:null, logs:{}, names:{}, inviteOpen:false, teachOpen:false, agroStarted:{} };
-    State.battles = [];
-    State.events = [];
-    State.eventsMeta = { activeId: null, selectedId: null };
-    State.lottery = { bet: 5, lastRoll: null, lastAt: 0, plays: 0 };
-    State.flags = {
-      eventsOpen: true,
-      eventsCollapsed: false,
-      eventCount: 0,
-
-      activeEventId: null,
-      selectedEventId: null,
-      highlightEventId: null,
-
-      dmSize: "medium",
-      battlesSize: "medium",
-      eventsSize: "medium",
-      locationsSize: "medium",
-
-      dmHidden: false,
-      battlesHidden: false,
-      eventsHidden: false,
-    };
-    State.vote = {
-      active: false,
-      battleId: null,
-      aId: null,
-      bId: null,
-      aName: "",
-      bName: "",
-      countsByVoter: {},
-      totals: { a: 0, b: 0 },
-      playerVoted: false,
-      playerSide: null,
-      startedAt: 0,
-      endsAt: 0,
-      timerId: null,
-      npcTimerId: null,
-      resolved: false,
-      winner: null,
-      resultText: "",
-      eventId: null,
-      chatId: null,
-    };
-    State.sightings = {};
-    State.securityFlags = {};
-    try {
-      console.log("[FLOW_AUDIT] state-securityflags-write player=* level=reset authority=resetAll caller=StateAPI.resetAll");
-    } catch (_) {}
-    if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
-      ReactionPolicy.restorePersistedFlags();
-    }
-    State.reports = {
-      lastAt: 0,
-      cooldownMs: 3 * 60 * 1000,
-      history: {},
-      copCooldowns: {},
-      copChatter: {
-        nextChatAtByCopId: {},
-        nextDmAtByCopId: {},
-        introChatSentByCopId: {},
-        introDmSentByCopId: {},
-      },
-      pendingByActorId: {},
-      pendingById: {},
-    };
-    // Alias for external access (requested: state.copCooldowns)
-    State.copCooldowns = State.reports.copCooldowns;
-    State.jailed = {};
-    State.victimByRole = {};
-    State.revengeUntil = 0;
-    State.npc = {
-      lastChatAt: 0,
-      chatCooldownMs: 0,
-      lastActionAt: 0,
-      actionCooldownMs: 0,
-      timers: {},
-      copBudget: 0,
-      copQuotaReady: false,
-    };
-    State.progress = {
-      weeklyInfluenceGained: 0,
-      weekStartAt: 0,
-      lastDailyBonusAt: 0,
-      onboardingSeen: readPersistedOnboardingSeen(),
-    };
-    State._seededNPCs = false;
-    guardPointsObject(State.me, "State.me.points");
-  }
-
-  // --- DM state migration (targetId -> withId) ---
-  function migrateDmState(){
-    const dm = State.dm || null;
-    if (!dm) return;
-    if (dm.withId == null && dm.targetId != null) dm.withId = dm.targetId;
-    if (dm.targetId != null) delete dm.targetId;
-
-    if (typeof dm.inviteOpen !== "boolean") dm.inviteOpen = false;
-    if (typeof dm.teachOpen !== "boolean") dm.teachOpen = false;
-    if (!dm.agroStarted || typeof dm.agroStarted !== "object") dm.agroStarted = {};
-  }
-
-  function seedPlayers(){
-    State.players = {};
-    migrateDmState();
-    State._seededNPCs = false;
-
-    // ensure tier cache is consistent before mirroring
-    State.me.argumentTier = tierFromInfluence(State.me.influence);
-
-    if (Game.NPC && typeof Game.NPC.seedPlayers === "function") {
-      Game.NPC.seedPlayers(State);
-    }
-
-    // me mirror
-    State.players["me"] = {
-      id: "me",
-      name: State.me.name || "–¢—ã",
-      points: State.me.points,
-      influence: State.me.influence,
-      argumentTier: State.me.argumentTier,
-      unlockOrange: !!State.me.unlockOrange,
-      unlockRed: !!State.me.unlockRed,
-      unlockBlack: !!State.me.unlockBlack,
-      isMe: true,
-      npc: false,
-    };
-    guardPointsObject(State.players["me"], "State.players.me.points");
-
-    // NPC pool comes from Game.NPC after loaded.
-    // Support both the newer API (getAll) and older (list).
-    let npcs = Object.values(State.players || {}).filter(p => {
-      if (!p) return false;
-      const id = String(p.id || "");
-      return p.npc === true || p.type === "npc" || id.startsWith("npc_");
-    });
-    if (!npcs.length) {
-      npcs = (Game.NPC && typeof Game.NPC.getAll === "function")
-        ? Game.NPC.getAll()
-        : (Game.NPC && typeof Game.NPC.list === "function")
-          ? Game.NPC.list()
-          : (Game.NPC && Array.isArray(Game.NPC.PLAYERS))
-            ? Game.NPC.PLAYERS
-            : [];
-    }
-
-    npcs.forEach(n => {
-      if (!n || !n.id) return;
-      // Ensure npc flag exists for role queries
-      const cfg = getPointsConfig();
-      const base = { npc: true, ...n };
-      if (typeof base.points !== "number") base.points = cfg.startNpc;
-      State.players[n.id] = base;
-      guardPointsObject(State.players[n.id], `State.players.${n.id}.points`);
-    });
-  }
-
-  function pushChat(name, text, opts = {}){
-    migrateDmState();
-    const item = {
-      id: safeId(),
-      t: nowHHMM(),
-      name,
-      text,
-      isSystem: !!opts.isSystem,
-      playerId: opts.playerId || null,
-      isMe: !!opts.isMe,
-      speakerId: opts.playerId || null,
-      sourceTag: opts.sourceTag || null,
-
-      // Mentions metadata (optional, for UI highlights)
-      mentions: extractMentionedIds(text),
-      isMentionedMe: isMeMentioned(text),
-    };
-    State.chat.push(item);
-
-    // Mark that we have actually seen this NPC role recently (for Cop evidence).
-    if (item.playerId) markSightingByPlayerId(item.playerId);
-
-    if (State.chat.length > 200) State.chat.shift();
-    return item;
-  }
-
-  function pushSystem(text){
-    return pushChat("–°–∏—Å—Ç–µ–º–∞", text, { isSystem:true });
-  }
-
-  const AUTO_REPLY_WEIGHTS = Object.freeze({
-    crowd: 1,
-    toxic: 2,
-    bandit: 2,
-    mafia: 3,
-    cop: 1,
-  });
-
-  const escapeRegex = (s) => String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  function getAutoReplyNonceMap(){
-    if (!State.chat || !Array.isArray(State.chat)) {
-      State.chat = [];
-    }
-    if (!State.chat.autoReplyNonceByMessageId || typeof State.chat.autoReplyNonceByMessageId !== "object") {
-      State.chat.autoReplyNonceByMessageId = {};
-    }
-    State.chatAutoReplyNonceByMessageId = State.chat.autoReplyNonceByMessageId;
-    return State.chat.autoReplyNonceByMessageId;
-  }
-
-  function isNpcAvailableForReply(npc){
-    if (!npc || !npc.id) return false;
-    const isJailed = (Game && Game.__A && typeof Game.__A.isNpcJailed === "function")
-      ? Game.__A.isNpcJailed(npc.id)
-      : false;
-    return !isJailed;
-  }
-
-  function findMentionedNpcForAutoReply(text){
-    const raw = String(text || "");
-    const lower = raw.toLowerCase();
-    const hasAt = lower.includes("@");
-    let firstMatch = null;
-    const players = Object.values(State.players || {});
-    for (const candidate of players) {
-      if (!candidate || !candidate.npc) continue;
-      if (!isNpcAvailableForReply(candidate)) continue;
-      const id = candidate.id ? String(candidate.id).trim() : "";
-      const name = candidate.name ? String(candidate.name).trim() : "";
-      const patterns = [];
-      if (name) patterns.push(escapeRegex(name.toLowerCase()));
-      if (id) patterns.push(escapeRegex(id.toLowerCase()));
-      for (const pattern of patterns) {
-        const regex = new RegExp(`(^|\\s)@?${pattern}(?=\\s|$)`, "iu");
-        if (regex.test(lower)) {
-          firstMatch = candidate;
-          break;
-        }
-      }
-      if (firstMatch) break;
-    }
-    return { npc: firstMatch, mentionHint: hasAt || /\b(id:|npc_)/i.test(raw) };
-  }
-
-  function pickRandomNpcForAutoReply(playerId, opts = {}, diagOut){
-    const entries = [];
-    const roleCounts = { cop: 0, crowd: 0, toxic: 0, bandit: 0, mafia: 0, other: 0 };
-    const weightTotals = { cop: 0, crowd: 0, toxic: 0, bandit: 0, mafia: 0, other: 0 };
-    const players = Object.values(State.players || {});
-    for (const candidate of players) {
-      if (!candidate || !candidate.npc) continue;
-      if (candidate.id === playerId) continue;
-      if (!isNpcAvailableForReply(candidate)) continue;
-      const role = String(candidate.role || "").toLowerCase() || "crowd";
-      const weight = AUTO_REPLY_WEIGHTS[role] || AUTO_REPLY_WEIGHTS.crowd;
-      entries.push({ npc: candidate, weight, role });
-      if (roleCounts[role] != null) roleCounts[role] += 1;
-      else roleCounts.other += 1;
-      if (weightTotals[role] != null) weightTotals[role] += weight;
-      else weightTotals.other += weight;
-    }
-    diagOut.finalPoolRoleCounts = roleCounts;
-    diagOut.totalWeightByRole = weightTotals;
-    if (!entries.length) {
-      diagOut.note = diagOut.note || "npc_pool_empty";
-      return null;
-    }
-    const rng = opts && typeof opts.rng === "function" ? opts.rng : Math.random;
-    const totalWeight = entries.reduce((sum, entry) => sum + Math.max(0, entry.weight || 0), 0);
-    if (totalWeight <= 0) {
-      diagOut.note = diagOut.note || "npc_weight_zero";
-      return null;
-    }
-    let roll = rng() * totalWeight;
-    for (const entry of entries) {
-      const w = Math.max(0, entry.weight || 0);
-      if (roll <= w) return entry.npc;
-      roll -= w;
-    }
-    return entries[entries.length - 1].npc;
-  }
-
-  function formatAutoReplyText(npc, playerName){
-    const mention = playerName ? `[${playerName}]` : "[–ò–≥—Ä–æ–∫]";
-    let reply = "";
-    if (Game && Game.NPC && typeof Game.NPC.generateReactionToMe === "function") {
-      reply = Game.NPC.generateReactionToMe(npc, playerName || "");
-    }
-    if (!reply && Game && Game.NPC && typeof Game.NPC.generateChatLine === "function") {
-      reply = Game.NPC.generateChatLine(npc);
-    }
-    if (!reply) return "";
-    return `${mention}, ${String(reply || "").trim()}`;
-  }
-
-  function handleNpcAutoReplyCore(payload = {}, opts = {}){
-    const nonce = getAutoReplyNonceMap();
-    const playerMessageId = payload.playerMessageId || payload.messageId;
-    const diag = {
-      mentionDetected: false,
-      mentionTargetId: null,
-      chosenRole: null,
-      note: null,
-      buildTag: (Game && Game.__DEV && Game.__DEV.DEV_CHECKS_BUILD_TAG_V5)
-        ? Game.__DEV.DEV_CHECKS_BUILD_TAG_V5
-        : ((Game && Game.__DEV && Game.__DEV.buildTag) ? Game.__DEV.buildTag : (window && window.__BUILD_TAG) ? window.__BUILD_TAG : null),
-      fileMarker: "handleNpcAutoReplyCore@COP_AUTO_V1"
-    };
-    if (!playerMessageId) {
-      diag.note = "missing_player_message_id";
-      return { didReply: false, diag };
-    }
-    if (nonce[playerMessageId]) {
-      diag.note = "duplicate_auto_reply";
-      return { didReply: false, diag };
-    }
-    nonce[playerMessageId] = true;
-    const playerId = payload.playerId || "me";
-    const mentionResult = findMentionedNpcForAutoReply(payload.text || "");
-    let selectedNpc = mentionResult.npc;
-    if (selectedNpc) {
-      diag.mentionDetected = true;
-      diag.mentionTargetId = selectedNpc.id;
-      if (!selectedNpc.name) {
-        diag.note = diag.note || "mention_npc_missing";
-      }
-    } else if (mentionResult.mentionHint) {
-      diag.mentionDetected = true;
-      diag.note = diag.note || "mention_not_found";
-    }
-    if (!selectedNpc) {
-      selectedNpc = pickRandomNpcForAutoReply(playerId, opts, diag);
-    }
-    if (!selectedNpc) {
-      diag.note = diag.note || "npc_selection_failed";
-      return { didReply: false, diag };
-    }
-    diag.chosenRole = String(selectedNpc.role || "crowd");
-    const playerName = payload.playerName
-      ? String(payload.playerName)
-      : (State.me && State.me.name) ? String(State.me.name) : "–ò–≥—Ä–æ–∫";
-    const replyText = formatAutoReplyText(selectedNpc, playerName);
-    if (!replyText) {
-      diag.note = diag.note || "reply_generation_failed";
-      return { didReply: false, diag };
-    }
-    return {
-      didReply: true,
-      replyAuthorId: selectedNpc.id,
-      replyName: selectedNpc.name || "NPC",
-      replyText,
-      diag,
-    };
-  }
-
-  function handleNpcAutoReply(payload = {}, opts = {}){
-    const result = opts.coreResult || handleNpcAutoReplyCore(payload, opts);
-    if (!result || !result.didReply) {
-      return { ok: false, diag: (result && result.diag) || null };
-    }
-    try {
-      const name = result.replyName || "NPC";
-      if (Game && Game.UI && typeof Game.UI.pushChat === "function") {
-        Game.UI.pushChat({ name, text: result.replyText, system: false });
-      } else if (typeof UI !== "undefined" && UI && typeof UI.pushChat === "function") {
-        UI.pushChat({ name, text: result.replyText, system: false });
-      } else {
-        State.chat = State.chat || [];
-        pushChat(name, result.replyText, {});
-      }
-    } catch (_) {}
-    return { ok: true, npcId: result.replyAuthorId, diag: result.diag };
-  }
-
-  if (typeof window !== "undefined") {
-    window.Core = window.Core || {};
-    if (typeof window.Core.handleNpcAutoReplyCore !== "function") {
-      window.Core.handleNpcAutoReplyCore = handleNpcAutoReplyCore;
-    }
-  }
-  Game.Core = Game.Core || {};
-  if (typeof Game.Core.handleNpcAutoReplyCore !== "function") {
-    Game.Core.handleNpcAutoReplyCore = handleNpcAutoReplyCore;
-  }
-  function npcSpeechRuntimeLine(source, cop, text, opts = {}) {
-    const fallback = String(text || "");
-    try {
-      const speech = Game && Game.NPCSpeech;
-      if (!speech || typeof speech.generateRuntimeNpcLine !== "function" || typeof speech.makeCtx !== "function") return fallback;
-      return speech.generateRuntimeNpcLine(speech.makeCtx(cop || null, {
-        source,
-        block: opts.block || "neutral",
-        channel: opts.channel || "dm",
-        intensity: opts.intensity,
-        tick: opts.tick,
-        vars: opts.vars || {}
-      }), fallback);
-    } catch (_) {
-      return fallback;
-    }
-  }
-
-  try {
-    Game.__DEV ||= {};
-    Game.__DEV.__probeNpcSpeechReportReactionLine = function __probeNpcSpeechReportReactionLine(cop, text) {
-      return npcSpeechRuntimeLine("report_reaction", cop || null, text || "–ü—Ä–∏–Ω—è–ª. –ü—Ä–æ–≤–µ—Ä–∫–∞ –Ω–∞—á–∞–ª–∞—Å—å.", { channel: "dm" });
-    };
-  } catch (_) {}
-
-  function copLine(text){
-    const N = Game.NPC || null;
-    if (N && typeof N.normalizeCopLine === "function") return N.normalizeCopLine(text);
-    // Fallback: keep punctuation decent
-    const raw = (text == null) ? "" : String(text);
-    let t = raw.replace(/\s+/g, " ").trim();
-    if (!t) return "";
-    t = t.charAt(0).toUpperCase() + t.slice(1);
-    if (!/[.!?]$/.test(t)) t += ".";
-    return t;
-  }
-
-  function copName(){
-    // Pick an assigned cop for the current session or a random one if none assigned.
-    if (!State.assignedCopId) {
-      const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
-      if (cops.length > 0) {
-        State.assignedCopId = cops[Math.floor(Math.random() * cops.length)].id;
-      }
-    }
-    const p = State.players[State.assignedCopId || "npc_cop_v"];
-    return (p && p.name) ? p.name : "–í–ª–∞–¥–∏–º–∏—Ä –ò–≤–∞–Ω–æ–≤–∏—á";
-  }
-
-  function listCops(){
-    return Object.values(State.players || {}).filter(p => p && p.role === "cop");
-  }
-
-  function isCopBusyById(copId, nowTs){
-    const cdMs = (State.reports && Number.isFinite(State.reports.cooldownMs)) ? (State.reports.cooldownMs | 0) : (5 * 60 * 1000);
-    const last = (State.reports && State.reports.copCooldowns) ? (State.reports.copCooldowns[copId] || 0) : 0;
-    const now0 = (typeof nowTs === "number") ? nowTs : Date.now();
-    return (now0 - last) < cdMs;
-  }
-
-  function pickCopTemplate(list, fallback){
-    const arr = Array.isArray(list) ? list : [];
-    if (!arr.length) return String(fallback || "");
-    return String(arr[Math.floor(Math.random() * arr.length)] || arr[0] || fallback || "");
-  }
-
-  function fillCopTemplate(tpl, cop, vars = {}){
-    let out = String(tpl || "");
-    const copName0 = (cop && cop.name) ? String(cop.name) : "–ö–æ–ø";
-    out = out.replace(/\{cop\.fullName\}/g, copName0);
-    out = out.replace(/\{cop\.rank\}/g, "");
-    out = out.replace(/\{role\}/g, String(vars.role || ""));
-    out = out.replace(/\{name\}/g, String(vars.name || ""));
-    return out.replace(/\s+/g, " ").trim();
-  }
-
-  function emitCopChatById(copId, listName, vars = {}){
-    const D = Game.Data || null;
-    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
-    const cop = (State.players && copId && State.players[copId]) ? State.players[copId] : null;
-    if (!cop || cop.role !== "cop") return false;
-    if (!tpl) return false;
-    const raw = pickCopTemplate(tpl[listName], "");
-    const msg = fillCopTemplate(raw, cop, vars);
-    if (!msg) return false;
-    const speechMsg = npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars });
-    pushChat(String(cop.name || "–ö–æ–ø"), copLine(speechMsg), { isSystem: false, playerId: copId, sourceTag: "explicit_cop_public_notice" });
-    return true;
-  }
-
-  function emitCopDmById(copId, listName, vars = {}){
-    const D = Game.Data || null;
-    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
-    const cop = (State.players && copId && State.players[copId]) ? State.players[copId] : null;
-    if (!cop || cop.role !== "cop") return false;
-    if (!tpl) return false;
-    const raw = pickCopTemplate(tpl[listName], "");
-    const msg = fillCopTemplate(raw, cop, vars);
-    if (!msg) return false;
-    const speechMsg = npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "dm", vars });
-    pushDm(copId, String(cop.name || "–ö–æ–ø"), copLine(speechMsg), { isSystem: false, playerId: copId });
-    return true;
-  }
-
-  function tickCopChatter(nowTs){
-    const now0 = (typeof nowTs === "number") ? nowTs : Date.now();
-    const cops = listCops();
-    if (!cops.length) return false;
-    const D = Game.Data || null;
-    if (!D || !D.COP_TEMPLATES) return false;
-
-    const rep = State.reports || {};
-    rep.copChatter ||= {
-      nextChatAtByCopId: {},
-      nextDmAtByCopId: {},
-      introChatSentByCopId: {},
-      introDmSentByCopId: {},
-      // New single-source flags (avoid chat+DM duplicates)
-      introSentByCopId: {},
-      lastKindByCopId: {},   // "warnings" | "chatReplies" | "cooldownReplies" | "intros"
-      lastTextByCopId: {},   // last emitted line (dedupe)
-    };
-    const ch = rep.copChatter;
-    ch.nextChatAtByCopId ||= {};
-    ch.nextDmAtByCopId ||= {};
-    ch.introChatSentByCopId ||= {};
-    ch.introDmSentByCopId ||= {};
-    ch.introSentByCopId ||= {};
-    ch.lastKindByCopId ||= {};
-    ch.lastTextByCopId ||= {};
-    ch.skippedDmTargetDiagnostics ||= [];
-
-    let did = false;
-
-    for (const cop of cops) {
-      const cid = String(cop.id || "");
-      if (!cid) continue;
-
-      // Schedule defaults (staggered)
-      if (!Number.isFinite(ch.nextChatAtByCopId[cid])) ch.nextChatAtByCopId[cid] = now0 + 8000 + Math.floor(Math.random() * 12000);
-      if (!Number.isFinite(ch.nextDmAtByCopId[cid])) ch.nextDmAtByCopId[cid] = now0 + 12000 + Math.floor(Math.random() * 18000);
-
-      const busy = isCopBusyById(cid, now0);
-
-      const dueChat = now0 >= (ch.nextChatAtByCopId[cid] || 0);
-      const dueDm = now0 >= (ch.nextDmAtByCopId[cid] || 0);
-      if (!dueChat && !dueDm) continue;
-
-      let listName = "chatReplies";
-      if (busy) {
-        listName = "cooldownReplies";
-      } else if (!ch.introSentByCopId[cid]) {
-        listName = "intros";
-      } else {
-        // Alternate warnings <-> chatReplies when not busy
-        const last = String(ch.lastKindByCopId[cid] || "");
-        listName = (last === "warnings") ? "chatReplies" : "warnings";
-      }
-
-      // Build the exact message once (so it can't appear in both chat+DM)
-      let ok = false;
-      try {
-        const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
-        if (tpl) {
-          let raw = pickCopTemplate(tpl[listName], "");
-          let msg = fillCopTemplate(raw, cop, {});
-          const lastText = String(ch.lastTextByCopId[cid] || "");
-          // Try a couple times to avoid immediate repeats
-          if (msg && lastText && msg === lastText) {
-            for (let i = 0; i < 2; i++) {
-              raw = pickCopTemplate(tpl[listName], raw);
-              msg = fillCopTemplate(raw, cop, {});
-              if (msg && msg !== lastText) break;
-            }
-          }
-          if (msg) {
-            const targetId = (cop && cop.id) ? cop.id : "";
-            if (targetId) {
-              pushDm(targetId, String(cop.name || "–ö–æ–ø"), copLine(msg), { isSystem: false, playerId: cid });
-              ok = true;
-              ch.lastTextByCopId[cid] = msg;
-            } else {
-              if (ch.skippedDmTargetDiagnostics.length >= 8) ch.skippedDmTargetDiagnostics.shift();
-              ch.skippedDmTargetDiagnostics.push({
-                copId: cid,
-                listName,
-                reason: "missing_dm_target",
-                ts: now0,
-              });
-            }
-          }
-        }
-      } catch (_) {
-        ok = false;
-      }
-
-      // Keep the legacy per-cop scheduler state, but periodic chatter now emits only into DM.
-      const nextDmAt = now0 + 60000 + Math.floor(Math.random() * 60000);
-      ch.nextDmAtByCopId[cid] = nextDmAt;
-      ch.nextChatAtByCopId[cid] = nextDmAt;
-
-      if (ok) {
-        did = true;
-        if (listName === "intros") ch.introSentByCopId[cid] = true;
-        if (!busy && (listName === "warnings" || listName === "chatReplies")) ch.lastKindByCopId[cid] = listName;
-        if (busy) ch.lastKindByCopId[cid] = "cooldownReplies";
-      }
-    }
-
-    return did;
-  }
-
-  function getAvailableCop(){
-    const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
-    const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
-    const now = Date.now();
-    
-    // Find first cop whose cooldown has passed
-    return cops.find(c => {
-      const last = State.reports.copCooldowns[c.id] || 0;
-      return (now - last) >= cdMs;
-    }) || null;
-  }
-
-  function getRoleOf(id){
-    const p = (id && State.players) ? State.players[id] : null;
-    return p && (p.role || p.type) ? String(p.role || p.type) : "";
-  }
-
-  // ---- Mentions helpers (single source of truth for UI) ----
-  function getAllPlayerIds(){
-    return Object.keys(State.players || {});
-  }
-
-  function getAllMentionCandidates(){
-    const out = [];
-    const ids = getAllPlayerIds();
-    for (const id of ids) {
-      const p = State.players[id];
-      if (!p || !p.name) continue;
-      out.push({
-        id,
-        name: String(p.name),
-        influence: (p.influence || 0) | 0,
-        isMe: !!p.isMe,
-        npc: !!p.npc,
-        role: p.role || p.type || "",
-      });
-    }
-    // sort: me first, then by influence desc, then name asc
-    out.sort((a, b) => {
-      if (a.isMe !== b.isMe) return a.isMe ? -1 : 1;
-      if (b.influence !== a.influence) return b.influence - a.influence;
-      return a.name.localeCompare(b.name, "ru");
-    });
-    return out;
-  }
-
-  function getMentionNames(){
-    return getAllMentionCandidates().map(x => x.name);
-  }
-
-  function findPlayerIdByName(name){
-    const n = String(name || "").trim();
-    if (!n) return null;
-    const ids = getAllPlayerIds();
-    for (const id of ids) {
-      const p = State.players[id];
-      if (!p || !p.name) continue;
-      if (String(p.name) === n) return id;
-    }
-    return null;
-  }
-
-  function escapeRe(s){
-    return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
-  // Extract mentions in text. Supports both "@Name" and bare "Name" (for NPC reactions that may omit "@").
-  function extractMentionedIds(text){
-    const t = String(text || "");
-    const ids = [];
-    const candidates = getAllMentionCandidates();
-    for (const c of candidates) {
-      const nm = String(c.name || "");
-      if (!nm) continue;
-      const reAt = new RegExp(`(^|\\s)@${escapeRe(nm)}(?=\\s|$)`, "iu");
-      const reBare = new RegExp(`(^|\\s)${escapeRe(nm)}(?=\\s|$)`, "iu");
-      if (reAt.test(t) || reBare.test(t)) ids.push(c.id);
-    }
-    return ids;
-  }
-
-  function isMeMentioned(text){
-    const meName = (State.me && State.me.name) ? String(State.me.name).trim() : "";
-    if (!meName) return false;
-    const t = String(text || "");
-    const reAt = new RegExp(`(^|\\s)@${escapeRe(meName)}(?=\\s|$)`, "iu");
-    const reBare = new RegExp(`(^|\\s)${escapeRe(meName)}(?=\\s|$)`, "iu");
-    return reAt.test(t) || reBare.test(t);
-  }
-
-  const DEFAULT_ACCEPT_CHANCE = 0.15;
-  const ACCEPT_RATE_ASSERT_RANGE = {
-    min: 0.10,
-    max: 0.20
-  };
-  const BATTLE_PROVOCATION_PHRASES = [
-    "–≥–æ –±–∞—Ç–ª",
-    "go battle",
-    "–≥–æ –±–æ–π",
-    "–±–æ–π?",
-    "–±–∞—Ç–ª?",
-    "1v1",
-    "–¥—É—ç–ª—å",
-    "–Ω–∞ –±–æ–π",
-    "–≤—ã—Ö–æ–¥–∏",
-    "–ø–æ–≥–Ω–∞–ª–∏",
-    "–≥–æ 1 –Ω–∞ 1",
-    "1 v 1",
-    "–≥–æ –≤ –±–∞—Ç–ª",
-    "–ø–æ–π–¥—ë–º –±–∞—Ç–ª",
-    "–ø–æ–π–¥–µ–º –±–∞—Ç–ª",
-    "–ø–æ–≥–Ω–∞–ª–∏ –≤ –±–æ–π",
-    "–¥–∞–≤–∞–π 1 –Ω–∞ 1",
-    "–¥–∞–≤–∞–π –æ–¥–∏–Ω –Ω–∞ –æ–¥–∏–Ω",
-    "–≤—ã–π–¥–µ—à—å 1v1",
-    "–≤—ã—Ö–æ–¥–∏ –Ω–∞ –¥—É—ç–ª—å",
-    "–∫–∏–¥–∞—é –≤—ã–∑–æ–≤",
-    "–ø—Ä–∏–Ω–∏–º–∞–µ—à—å –≤—ã–∑–æ–≤",
-    "–≥–æ –∑–∞—Ä—É–±–∏–º—Å—è",
-    "–≥–æ –ø–æ–¥–µ—Ä–µ–º—Å—è",
-    "–ø—Ä–æ–≤–µ—Ä–∏–º —Å–∏–ª—É",
-  ];
-
-  function normalizeProvocationText(text){
-    return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
-  }
-
-  function isBattleProvocationText(text){
-    const t = normalizeProvocationText(text);
-    if (!t) return false;
-    for (const phrase of BATTLE_PROVOCATION_PHRASES) {
-      if (phrase && t.includes(phrase)) return true;
-    }
-    return false;
-  }
-
-  const DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS = { min: 60000, max: 180000 };
-  const DEV_PROVOCATION_COOLDOWN_RANGE_MS = { min: 200, max: 400 };
-  function normalizeProvocationCooldownRange(range, opts = {}){
-    const devSmoke = !!opts.devSmoke;
-    const base = devSmoke ? DEV_PROVOCATION_COOLDOWN_RANGE_MS : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS;
-    const clamp = (value, fallback) => {
-      const n = Number.isFinite(value) ? (value | 0) : fallback;
-      return Math.max(0, n);
-    };
-    let min = clamp(range && range.min, base.min);
-    let max = clamp(range && range.max, base.max);
-    if (!devSmoke) {
-      min = Math.max(min, base.min);
-      max = Math.max(max, base.max);
-    }
-    if (max < min) max = min;
-    return { min, max, devSmoke };
-  }
-  function pickProvocationCooldown(range){
-    const source = (range && typeof range === "object") ? range : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS;
-    const min = Number.isFinite(source.min) ? source.min : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.min;
-    const maxCandidate = Number.isFinite(source.max) ? Math.max(min, source.max) : DEFAULT_PROVOCATION_COOLDOWN_RANGE_MS.max;
-    const max = Math.max(min, maxCandidate);
-    const delta = Math.max(0, max - min);
-    const offset = delta > 0 ? Math.floor(Math.random() * (delta + 1)) : 0;
-    return min + offset;
-  }
-
-  function resolveMentionedNpcIds(text, mentions){
-    const ids = new Set();
-    const addIfNpc = (id) => {
-      if (!id) return;
-      const pid = String(id);
-      const p = State.players ? State.players[pid] : null;
-      const isNpc = p && (p.npc === true || p.type === "npc" || pid.startsWith("npc_"));
-      if (isNpc) ids.add(pid);
-    };
-    const base = Array.isArray(mentions) && mentions.length ? mentions : extractMentionedIds(text);
-    base.forEach(addIfNpc);
-    try {
-      const raw = String(text || "");
-      const reAtId = /(^|\s)@([A-Za-z0-9_\-]{1,64})/g;
-      let m;
-      while ((m = reAtId.exec(raw)) !== null) {
-        const token = m[2] || "";
-        if (!token) continue;
-        addIfNpc(token);
-      }
-    } catch (_) {}
-    return Array.from(ids);
-  }
-
-  function attemptProvokedIncoming(npcId){
-    const incoming = Game.Conflict && typeof Game.Conflict.incoming === "function"
-      ? Game.Conflict.incoming
-      : null;
-    if (!incoming) return { ok: false, reason: "incoming_missing", rawKeys: [] };
-    let res = null;
-    try {
-      res = incoming(npcId, { lowEconomyFree: true, reason: "provoked_battle_zero_points" });
-    } catch (_) {
-      return { ok: false, reason: "incoming_throw", rawKeys: [] };
-    }
-    if (!res) return { ok: false, reason: "incoming_null", rawKeys: [] , missingId: true };
-    if (res.ok === true) {
-      const battle = res.battle || null;
-      const battleId = res.battleId || (battle && (battle.id || battle.battleId || null));
-      if (battleId) return { ok: true, battleId, battle };
-      return { ok: false, reason: "missing_id", rawKeys: Object.keys(res || {}), missingId: true };
-    }
-    if (res.ok === false) {
-      return { ok: false, reason: res.reason || "incoming_failed", rawKeys: Object.keys(res || {}) };
-    }
-    const battleId = res && (res.id || res.battleId || null);
-    if (battleId) return { ok: true, battleId, battle: res };
-    return { ok: false, reason: "missing_id", rawKeys: Object.keys(res || {}), missingId: true };
-  }
-
-  function handleBattleProvocationZeroPoints(payload = {}){
-    const senderId = (payload && payload.senderId != null) ? String(payload.senderId) : "";
-    if (senderId !== "me") return { ok: false, reason: "sender_not_me" };
-    const me = State.me || null;
-    const mePoints = (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-    if (mePoints !== 0) return { ok: false, reason: "points_not_zero", mePoints };
-
-    const text = (payload && payload.text != null) ? String(payload.text) : "";
-    if (!isBattleProvocationText(text)) return { ok: false, reason: "not_provocation" };
-
-    const channel = (payload && payload.channel) ? String(payload.channel) : "chat";
-    const npcIds = resolveMentionedNpcIds(text, payload.mentions);
-    if (!npcIds.length) return { ok: false, reason: "no_npc_mentions" };
-
-    const preview = normalizeProvocationText(text).slice(0, 120);
-    try {
-      console.warn("PROVOKE_BATTLE_DETECTED_V1", {
-        channel: (channel === "dm") ? "dm" : "chat",
-        npcIds,
-        mePoints,
-        textPreview: preview
-      });
-    } catch (_) {}
-
-    const rawAcceptChance = (payload && Number.isFinite(payload.acceptChance))
-      ? Number(payload.acceptChance)
-      : null;
-    const acceptChanceUsed = (rawAcceptChance !== null)
-      ? Math.min(1, Math.max(0, rawAcceptChance))
-      : DEFAULT_ACCEPT_CHANCE;
-    const REFUSAL_LINES = [
-      "–ù–æ–ª—å –æ—á–∫–æ–≤ ‚Äî –Ω–æ–ª—å –±–æ—è.",
-      "–° –Ω—É–ª–µ–º –≤ –∫–∞—Ä–º–∞–Ω–µ –±–æ–π –Ω–µ–∏–Ω—Ç–µ—Ä–µ—Å–µ–Ω.",
-      "–ù–µ —Å–µ–π—á–∞—Å. –ù—É–∂–Ω—ã –æ—á–∫–∏.",
-      "–ë–æ–π? –° —Ç–∞–∫–∏–º–∏ —Ä–µ—Å—É—Ä—Å–∞–º–∏?",
-      "–ë–µ–∑ —Å—Ç–∞–≤–∫–∏ –Ω–µ –ø–æ–π–¥—É.",
-      "–°–µ–π—á–∞—Å –Ω–µ —Ö–æ—á—É.",
-      "–ë—É–¥—É—Ç –æ—á–∫–∏ ‚Äî –±—É–¥–µ—Ç —Å—Ç–∞–≤–∫–∞.",
-      "–ü—É—Å—Ç–æ–π –∫–æ—à–µ–ª—ë–∫. –ë–æ—è –Ω–µ –±—É–¥–µ—Ç.",
-      "–¢—ã —Å–µ—Ä—å–µ–∑–Ω–æ?",
-      "–ü–æ–∑–∂–µ, –∫–æ–≥–¥–∞ –±—É–¥—É—Ç –æ—á–∫–∏.",
-    ];
-
-    const cooldownRange = normalizeProvocationCooldownRange(payload.cooldownRangeMs, { devSmoke: !!payload.devSmoke });
-    try {
-      console.warn("PROVOKE_BATTLE_COOLDOWN_RANGE_V1", {
-        min: cooldownRange.min,
-        max: cooldownRange.max,
-        devSmoke: !!cooldownRange.devSmoke
-      });
-    } catch (_) {}
-    const store = State.battleProvocationCooldowns || (State.battleProvocationCooldowns = {});
-    if (!State.provocationCooldowns) {
-      State.provocationCooldowns = store;
-    }
-    const nowMs = Date.now();
-    let accepted = 0;
-    let acceptedBattleIdCount = 0;
-    let acceptedBattleIdNullCount = 0;
-    let acceptFailedCount = 0;
-    let refusals = 0;
-    let cooldownSkips = 0;
-    let dmSentCount = 0;
-    const refusalIdxByNpc = {};
-    const acceptFailedReasons = {};
-
-    for (const npcId of npcIds) {
-      try {
-        const p0 = State.players ? State.players[npcId] : null;
-        const role0 = p0 ? String(p0.role || p0.type || "") : "";
-        if (role0 === "cop" || role0 === "police") continue;
-      } catch (_) {}
-      try {
-        if (Game.__A && typeof Game.__A.isNpcJailed === "function" && Game.__A.isNpcJailed(npcId)) {
-          continue;
-        }
-      } catch (_) {}
-
-      const rec = store[npcId] || {};
-      const untilMs = Number.isFinite(rec.untilMs) ? rec.untilMs : 0;
-      if (untilMs > nowMs) {
-        const leftMs = Math.max(0, untilMs - nowMs);
-        cooldownSkips += 1;
-        try { console.warn("PROVOKE_BATTLE_COOLDOWN_SKIP_V1", { npcId, leftMs }); } catch (_) {}
-        continue;
-      }
-
-      const roll = Math.random();
-      if (roll < acceptChanceUsed) {
-        const attempt = attemptProvokedIncoming(npcId);
-        if (attempt && attempt.ok && attempt.battleId) {
-          accepted += 1;
-          acceptedBattleIdCount += 1;
-          try { console.warn("PROVOKE_BATTLE_ACCEPTED_V1", { npcId, battleId: attempt.battleId }); } catch (_) {}
-          continue;
-        }
-        acceptFailedCount += 1;
-        if (attempt && attempt.missingId === true) acceptedBattleIdNullCount += 1;
-        const reason = attempt && attempt.reason ? String(attempt.reason) : "incoming_failed";
-        acceptFailedReasons[reason] = (acceptFailedReasons[reason] || 0) + 1;
-        try {
-          console.warn("PROVOKE_BATTLE_ACCEPT_FAILED_V1", {
-            npcId,
-            reason,
-            rawKeys: attempt && attempt.rawKeys ? attempt.rawKeys : []
-          });
-        } catch (_) {}
-      }
-
-      let idx = Math.floor(Math.random() * REFUSAL_LINES.length);
-      const lastIdx = Number.isFinite(rec.lastRefusalIdx) ? rec.lastRefusalIdx : null;
-      if (REFUSAL_LINES.length > 1 && lastIdx != null && idx === lastIdx) {
-        idx = (idx + 1 + Math.floor(Math.random() * (REFUSAL_LINES.length - 1))) % REFUSAL_LINES.length;
-      }
-      const line = REFUSAL_LINES[idx] || REFUSAL_LINES[0];
-      const cooldownMs = pickProvocationCooldown(cooldownRange);
-      store[npcId] = { untilMs: nowMs + cooldownMs, lastRefusalIdx: idx };
-
-      const p = State.players ? State.players[npcId] : null;
-      const npcName = (p && p.name) ? String(p.name) : "NPC";
-      const dmOpts = { isSystem: false, playerId: npcId };
-      let dmPushed = false;
-      try {
-        pushDm(npcId, npcName, line, dmOpts);
-        dmPushed = true;
-      } catch (_) {}
-      try {
-        if (Game.__A && typeof Game.__A.pushDm === "function" && Game.__A.pushDm !== pushDm) {
-          Game.__A.pushDm(npcId, npcName, line, dmOpts);
-          dmPushed = true;
-        }
-      } catch (_) {}
-      if (dmPushed) {
-        dmSentCount += 1;
-        try {
-          console.warn("PROVOKE_BATTLE_REFUSAL_DM_V1", {
-            npcId,
-            refusalIdx: idx,
-            textPreview: line.slice(0, 120)
-          });
-        } catch (_) {}
-      }
-      refusals += 1;
-      refusalIdxByNpc[npcId] = idx;
-      try { console.warn("PROVOKE_BATTLE_REFUSED_V1", { npcId, refusalIdx: idx, cooldownMs }); } catch (_) {}
-    }
-
-    return {
-      ok: true,
-      accepted,
-      acceptedBattleIdCount,
-      acceptedBattleIdNullCount,
-      acceptFailedCount,
-      refusals,
-      cooldownSkips,
-      npcIds,
-      refusalIdxByNpc,
-      acceptFailedReasons,
-      cooldownRangeUsed: cooldownRange,
-      acceptChanceUsed,
-      dmSentCount
-    };
-  }
-
-  function markSightingByPlayerId(playerId){
-    try {
-      const p = (playerId && State.players) ? State.players[playerId] : null;
-      if (!p || !p.npc) return;
-      const role = String(p.role || p.type || "").toLowerCase();
-      if (!role) return;
-      // normalize role keys
-      const roleKey =
-        (role.includes("—Ç–æ–∫—Å") || role === "toxic") ? "toxic" :
-        (role.includes("–±–∞–Ω–¥") || role === "bandit") ? "bandit" :
-        (role.includes("–º–∞—Ñ–∏") || role === "mafia" || role === "mafioso") ? "mafia" :
-        (role.includes("cop") || role.includes("police") || role === "cop") ? "cop" :
-        "";
-      if (!roleKey) return;
-      State.sightings[roleKey] = Date.now();
-    } catch (_) {}
-  }
-
-  function findNpcByRole(role){
-    const r = String(role || "");
-    const ids = Object.keys(State.players || {});
-    for (const id of ids) {
-      const p = State.players[id];
-      if (!p || !p.npc) continue;
-      const pr = p.role || p.type;
-      if (pr && String(pr) === r) return p;
-    }
-    return null;
-  }
-
-  function resolveCopById(copId){
-    try {
-      if (!copId || !State || !State.players) return null;
-      const p = State.players[copId];
-      if (!p) return null;
-      const role = String(p.role || p.type || "").toLowerCase();
-      if (role === "cop" || role === "police") return p;
-    } catch (_) {}
-    return null;
-  }
-
-  function copDmTo(copId, text, vars = {}){
-    const D = Game.Data || null;
-    const cop = resolveCopById(copId)
-      || (State && State.players ? Object.values(State.players).find(p => p && (p.role === "cop" || p.role === "police")) : null);
-    const copName0 = (cop && cop.name) ? String(cop.name) : "–ö–æ–ø";
-    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
-    const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
-    const fill = (s) => {
-      let out = String(s || "");
-      out = out.replace(/\{cop\.fullName\}/g, copName0);
-      out = out.replace(/\{cop\.rank\}/g, "");
-      out = out.replace(/\{role\}/g, String(vars.role || ""));
-      out = out.replace(/\{name\}/g, String(vars.name || ""));
-      return out.replace(/\s+/g, " ").trim();
-    };
-    const isKey =
-      text === "cop_busy" ||
-      text === "cop_accept" ||
-      text === "cop_success" ||
-      text === "cop_fail";
-    const listName =
-      (text === "cop_busy") ? "cooldownReplies" :
-      (text === "cop_accept") ? "chatReplies" :
-      (text === "cop_success") ? "thanks" :
-      (text === "cop_fail") ? "scolds" :
-      "";
-
-    // First DM: send intro once
-    try {
-      migrateDmState();
-      const key = (cop && cop.id) ? cop.id : String(copId || "npc_cop");
-      const arr = (State.dm && State.dm.logs && State.dm.logs[key]) ? State.dm.logs[key] : [];
-      if (arr && arr.length === 0 && tpl && tpl.intros) {
-        const intro = fill(pick(tpl.intros));
-        if (intro && cop && cop.id) pushDm(cop.id, copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, intro, { channel: "dm", vars })), { isSystem: false, playerId: cop.id });
-      }
-    } catch (_) {}
-
-    const msg = (isKey && tpl && listName && tpl[listName])
-      ? fill(pick(tpl[listName]))
-      : fill(String(text || ""));
-    if (cop && cop.id) pushDm(cop.id, copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "dm", vars })), { isSystem: false, playerId: cop.id });
-  }
-
-  function copChatFrom(copId, text, vars = {}){
-    const D = Game.Data || null;
-    const cop = resolveCopById(copId)
-      || (State && State.players ? Object.values(State.players).find(p => p && (p.role === "cop" || p.role === "police")) : null);
-    const copName0 = (cop && cop.name) ? String(cop.name) : "–ö–æ–ø";
-    const tpl = (D && D.COP_TEMPLATES) ? D.COP_TEMPLATES : null;
-    const pick = (arr) => (Array.isArray(arr) && arr.length) ? arr[Math.floor(Math.random() * arr.length)] : "";
-    const fill = (s) => {
-      let out = String(s || "");
-      out = out.replace(/\{cop\.fullName\}/g, copName0);
-      out = out.replace(/\{cop\.rank\}/g, "");
-      out = out.replace(/\{role\}/g, String(vars.role || ""));
-      out = out.replace(/\{name\}/g, String(vars.name || ""));
-      return out.replace(/\s+/g, " ").trim();
-    };
-    const isKey =
-      text === "cop_warning" ||
-      text === "cop_reply" ||
-      text === "cop_busy" ||
-      text === "cop_thanks" ||
-      text === "cop_scold";
-    const listName =
-      (text === "cop_warning") ? "warnings" :
-      (text === "cop_reply") ? "chatReplies" :
-      (text === "cop_busy") ? "cooldownReplies" :
-      (text === "cop_thanks") ? "thanks" :
-      (text === "cop_scold") ? "scolds" :
-      "";
-    const msg = (isKey && tpl && listName && tpl[listName])
-      ? fill(pick(tpl[listName]))
-      : fill(String(text || ""));
-    pushChat(copName0, copLine(npcSpeechRuntimeLine("report_reaction", cop, msg, { channel: "event", vars })), { isSystem: false, playerId: (cop && cop.id) ? cop.id : (copId || "npc_cop_v"), sourceTag: "explicit_cop_public_notice" });
-  }
-
-  // Backward-compat wrappers (legacy callsites rely on assignedCopId).
-  function copDm(text, vars = {}){
-    const cid = State && State.assignedCopId ? State.assignedCopId : null;
-    return copDmTo(cid, text, vars);
-  }
-
-  function copChat(text, vars = {}){
-    const cid = State && State.assignedCopId ? State.assignedCopId : null;
-    return copChatFrom(cid, text, vars);
-  }
-
-  function pushDm(targetId, name, text, opts = {}){
-    migrateDmState();
-    if (!State.dm.logs[targetId]) State.dm.logs[targetId] = [];
-    // Deduplicate: avoid pushing identical DM from same sender within short window
-    try {
-      const arr = State.dm.logs[targetId];
-      const last = Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null;
-      const nowMs = Date.now();
-      if (last && String(last.name) === String(name) && String(last.text) === String(text)) {
-        const lastTime = Number(last.timeMs || 0);
-        if (nowMs - lastTime < 2500) {
-          // skip duplicate within 2.5s window
-          return;
-        }
-      }
-    } catch (_) {}
-
-    State.dm.logs[targetId].push({
-      id: safeId(),
-      t: nowHHMM(),
-      timeMs: Date.now(),
-      name,
-      text,
-      isSystem: !!opts.isSystem,
-      playerId: opts.playerId || null,
-
-      // Mentions metadata (optional, for UI highlights)
-      mentions: extractMentionedIds(text),
-      isMentionedMe: isMeMentioned(text),
-    });
-    const arr = State.dm.logs[targetId];
-    if (arr.length > 120) arr.shift();
-
-    State.dm.names = State.dm.names || {};
-    const dmId = String(targetId || opts.playerId || "");
-    const safeName = name ? String(name) : dmId;
-    if (dmId) {
-      State.dm.names[dmId] = safeName;
-      State.players = State.players || {};
-      const existingPlayer = State.players[dmId];
-      if (!existingPlayer) {
-        State.players[dmId] = { id: dmId, name: safeName, influence: 0 };
-      } else if (name) {
-        existingPlayer.name = safeName;
-      }
-    }
-
-    // DM tabs: incoming/outgoing line opens (or focuses) the corresponding DM thread.
-    // Silent incoming system lines for collapsed panels only update counters/header.
-    try {
-      State.dm.openIds = Array.isArray(State.dm.openIds) ? State.dm.openIds : [];
-      if (!("activeId" in State.dm)) State.dm.activeId = null;
-      State.dm.unread = State.dm.unread || {};
-      const id = String(targetId || "");
-      const collapsed = !!(Game && Game.UI && typeof Game.UI.isPanelCollapsed === "function" && Game.UI.isPanelCollapsed("dm"));
-      const silentIncoming = !!(opts && opts.silentIncoming && opts.isSystem && collapsed);
-      if (id && !silentIncoming && !State.dm.openIds.includes(id)) State.dm.openIds.push(id);
-      if (id && !silentIncoming && !State.dm.activeId) {
-        State.dm.activeId = id;
-        State.dm.withId = id; // compat alias
-      }
-      const activeId = String(State.dm.activeId || "");
-      if (id) {
-        if (!silentIncoming && activeId === id) {
-          State.dm.unread[id] = 0;
-        } else {
-          State.dm.unread[id] = (Number(State.dm.unread[id]) || 0) + 1;
-        }
-        try {
-          if (collapsed) {
-            if (typeof Game.UI.bumpCollapsedCounter === "function") Game.UI.bumpCollapsedCounter("dm");
-            const header = (typeof document !== "undefined") ? document.getElementById("dmBlockHeader") : null;
-            if (header) {
-              header.classList.add("panelHeader--hot");
-              if (typeof Game.UI.pulsePanelHeader === "function") Game.UI.pulsePanelHeader("dm", header, Game.UI.getCollapsedCounter ? Game.UI.getCollapsedCounter("dm") : 1, 0);
-            }
-          }
-        } catch (_) {}
-      }
-    } catch (_) {}
-  }
-
-  try {
-    if (Game && Game.UI && typeof Game.UI.renderDM === "function") {
-      Game.UI.renderDM();
-    }
-  } catch (_) {}
-  try {
-    if (Game && Game.UI && typeof Game.UI.requestRenderAll === "function") {
-      Game.UI.requestRenderAll();
-    }
-  } catch (_) {}
-
-  function canReport(copId){
-    const specific = resolveCopById(copId);
-    if (specific && specific.id) {
-      return !isCopBusyById(specific.id);
-    }
-    return !!getAvailableCop();
-  }
-
-  function getReportCooldownLeftMs(){
-    const cops = Object.values(State.players || {}).filter(p => p && p.role === "cop");
-    const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
-    const now = Date.now();
-    
-    const lefts = cops.map(c => {
-      const last = State.reports.copCooldowns[c.id] || 0;
-      return Math.max(0, cdMs - (now - last));
-    });
-    
-    // If any cop is free, cooldown left is 0. Otherwise, it's the minimum wait time until first cop is free.
-    return Math.min(...lefts);
-  }
-
-  function markReported(targetId, ok, role, copId){
-    State.reports.history[targetId] = {
-      ok: !!ok,
-      at: Date.now(),
-      by: "me",
-      role: String(role || ""),
-      copId: copId || null,
-    };
-    // Canon: cooldown on "report" starts only after a successful report.
-    // In multi-cop system, we record which cop took the report and start their global cooldown.
-    if (ok) {
-      State.reports.lastAt = Date.now();
-      const cid = copId || State.assignedCopId || null;
-      if (cid) State.reports.copCooldowns[cid] = Date.now();
-    }
-  }
-
-  function hasReported(targetId){
-    // Canon: reported targets disappear from lists only during the report cooldown window,
-    // and only after a successful report.
-    const rec = State.reports.history[targetId];
-    if (!rec || !rec.ok) return false;
-    
-    // We check against the general cooldown duration.
-    const cd = State.reports.cooldownMs || 5 * 60 * 1000;
-    return (Date.now() - (rec.at || 0)) < cd;
-  }
-
-  // P0-2: –ø—Ä–æ–≤–µ—Ä–∏—Ç—å, –ø–æ—Å—Ç—Ä–∞–¥–∞–ª –ª–∏ –∏–≥—Ä–æ–∫ –æ—Ç —ç—Ç–æ–≥–æ NPC –∏ —Å–∫–æ–ª—å–∫–æ –ø–æ—Ç–µ—Ä—è–ª
-  function checkIfVictimized(npcId) {
-    if (!npcId) return false;
-    try {
-      let stolenAmount = 0;
-      let wasVictimized = false;
-      
-      // –ü—Ä–æ–≤–µ—Ä—è–µ–º moneyLog –Ω–∞ robbery/theft –æ—Ç —ç—Ç–æ–≥–æ –∫–æ–Ω–∫—Ä–µ—Ç–Ω–æ–≥–æ NPC
-      if (Game.__D && Array.isArray(Game.__D.moneyLog)) {
-        const theftLogs = Game.__D.moneyLog.filter(l => 
-          l && l.sourceId === "me" && l.targetId === npcId &&
-          (l.reason && (l.reason.includes("toxic") || l.reason.includes("bandit") || l.reason.includes("robbery") || l.reason.includes("steal")))
-        );
-        if (theftLogs.length > 0) {
-          wasVictimized = true;
-          stolenAmount = theftLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
-        }
-      }
-      
-      // –ü—Ä–æ–≤–µ—Ä—è–µ–º –∏—Å—Ç–æ—Ä–∏—é –±–∞—Ç—Ç–ª–æ–≤ –Ω–∞ –ø–æ—Ä–∞–∂–µ–Ω–∏—è –æ—Ç —ç—Ç–æ–≥–æ NPC
-      if (Array.isArray(State.battles)) {
-        const lost = State.battles.find(b => b && b.opponentId === npcId && b.result === "lose");
-        if (lost) wasVictimized = true;
-      }
-      
-      return wasVictimized ? { stolenAmount } : false;
-    } catch (_) {}
-    return false;
-  }
-
-  function buildReportOpKey({ dayKey, copId, reporterId, targetId, bucket }) {
-    const safeDay = String(dayKey || dayKeyFromNowTs(Date.now()));
-    const idParts = [
-      "report",
-      safeDay,
-      String(copId || "cop"),
-      String(reporterId || ((State.me && State.me.id) ? State.me.id : "me")),
-      String(targetId || "unknown"),
-      String(bucket || "false"),
-    ];
-    return idParts.join(":").toLowerCase();
-  }
-
-  function findMoneyLogRow(reason, opKey) {
-    if (!Game.__D || !Array.isArray(Game.__D.moneyLog)) return null;
-    return Game.__D.moneyLog.find(row => {
-      if (!row || String(row.reason || "").trim() !== String(reason || "").trim()) return false;
-      return row.meta && String(row.meta.opKey || "") === String(opKey || "");
-    }) || null;
-  }
-
-  function ensureReportMoneyLogRow({ reason, amount, currency, sourceId, targetId, meta, opKey, eventId, battleId }) {
-    if (!reason) return null;
-    const existing = findMoneyLogRow(reason, opKey);
-    if (existing) return existing;
-    const normalized = {
-      time: Date.now(),
-      reason: String(reason || ""),
-      currency: (String(currency || "").toLowerCase() === "rep") ? "rep" : "points",
-      amount: Number.isFinite(Number(amount)) ? (Number(amount) | 0) : 0,
-      sourceId: String(sourceId || ""),
-      targetId: String(targetId || ""),
-      eventId: eventId ? String(eventId) : null,
-      battleId: battleId ? String(battleId) : null,
-      meta: Object.assign({}, meta || {}, { opKey }),
-    };
-    return pushMoneyLogRow(normalized);
-  }
-
-  function sendRevengeDM(roleKey, jailedId) {
-    try {
-      const pool = Object.values(State.players || {}).filter(p => p && p.role === roleKey && p.id !== jailedId);
-      if (!pool.length) return;
-      const npc = pool[Math.floor(Math.random() * pool.length)];
-      if (!npc || !npc.id) return;
-      let line = "–∑–∞ —ç—Ç–æ —Å–ø—Ä–æ—à—É";
-      if (roleKey === "bandit") line = "–¥–æ–ª–≥ –≤–µ—Ä–Ω—ë–º";
-      if (Game.NPC && typeof Game.NPC.generateAggroDMLine === "function") {
-        const fallback = Game.NPC.generateAggroDMLine(npc);
-        if (!line && fallback) line = fallback;
-      }
-      pushDm(npc.id, npc.name, line, { isSystem: false, playerId: npc.id });
-    } catch (_) {}
-  }
-
-  function ensurePendingStructures(){
-    const reports = State.reports || (State.reports = {});
-    if (!reports.pendingByActorId || typeof reports.pendingByActorId !== "object") reports.pendingByActorId = {};
-    if (!reports.pendingById || typeof reports.pendingById !== "object") reports.pendingById = {};
-    return reports;
-  }
-
-  function createPendingReport({ reporterId, copId, targetId, roleKey, truth, bucket, reportId, opKey } = {}) {
-    const now = Date.now();
-    const pendingId = `pending_${now}_${Math.floor(Math.random() * 1e6)}`;
-    const pending = {
-      id: pendingId,
-      reporterId: String(reporterId || ((State.me && State.me.id) ? State.me.id : "me")),
-      copId: String(copId || ""),
-      targetId: String(targetId || ""),
-      roleKey: String(roleKey || ""),
-      truth: !!truth,
-      bucket: String(bucket || (truth ? "true" : "false")),
-      reportId: String(reportId || ""),
-      opKey: String(opKey || ""),
-      createdAtMs: now,
-      resolveAtMs: now + REPORT_PENDING_DELAY_MS,
-      resolved: false,
-    };
-    const reports = ensurePendingStructures();
-    reports.pendingById[pendingId] = pending;
-    if (pending.reporterId) {
-      reports.pendingByActorId[pending.reporterId] = pending;
-    }
-    try {
-      console.warn("REPORT_PENDING_CREATED_V1", {
-        pendingId,
-        opKey: pending.opKey,
-        resolveAtMs: pending.resolveAtMs,
-        copId: pending.copId,
-        targetId: pending.targetId,
-      });
-    } catch (_) {}
-    return pending;
-  }
-
-  function resolveReport(pendingId){
-    const now = Date.now();
-    const reports = ensurePendingStructures();
-    const pending = (reports.pendingById || {})[pendingId] || null;
-    try {
-      console.warn("REPORT_RESOLVE_CALL_V1", {
-        pendingId,
-        now,
-        found: !!pending,
-        actorId: pending && pending.reporterId ? pending.reporterId : null,
-      });
-    } catch (_) {}
-    if (!pending) return { ok: false, reasonCode: "pending_missing", pendingId };
-    if (pending.resolved) {
-      try {
-        console.warn("REPORT_PENDING_RESOLVE_ALREADY_V1", {
-          pendingId,
-          opKey: pending.opKey,
-        });
-      } catch (_) {}
-      return { ok: false, reasonCode: "already_resolved", pendingId };
-    }
-    const cop = (pending.copId && State.players) ? State.players[pending.copId] : null;
-    const target = (pending.targetId && State.players) ? State.players[pending.targetId] : null;
-    const resolver = pending.truth ? applyTrueReport : applyFalseReport;
-    const bucket = String(pending.bucket || (pending.truth ? "true" : "false"));
-    const outcomeBucket = (bucket === "true") ? "true" : "false";
-    try {
-      console.warn("REPORT_PENDING_RESOLVING_V1", {
-        pendingId,
-        opKey: pending.opKey,
-        outcomeBucket,
-        copId: pending.copId,
-        targetId: pending.targetId,
-      });
-    } catch (_) {}
-    const moneyLogBefore = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
-    let result = null;
-    try {
-      result = resolver({
-        target,
-        roleKey: pending.roleKey,
-        cop,
-        reporterId: pending.reporterId,
-        reportId: pending.reportId,
-        bucket: pending.bucket,
-      });
-    } catch (err) {
-      try { console.warn("REPORT_PENDING_RESOLVE_ERROR_V1", { pendingId, error: String(err) }); } catch (_) {}
-      result = { ok: false, reasonCode: "resolve_error" };
-    }
-    pending.resolved = true;
-    if (pending.reporterId) delete reports.pendingByActorId[pending.reporterId];
-    const moneyLogAfter = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog.length : 0;
-    const delta = Math.max(0, moneyLogAfter - moneyLogBefore);
-    const appliedReasonCodes = [];
-    if (result) {
-      if (Array.isArray(result.appliedReasonCodes)) appliedReasonCodes.push(...result.appliedReasonCodes);
-      if (result.reasonCode) appliedReasonCodes.push(result.reasonCode);
-      if (Array.isArray(result.appliedReasons)) appliedReasonCodes.push(...result.appliedReasons);
-    }
-    const uniqueReasons = Array.from(new Set(appliedReasonCodes.filter(r => !!r)));
-    const moneyLog = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-    let lastReasonsTail = [];
-    try {
-      lastReasonsTail = moneyLog.slice(-8).map(row => (row && row.reason) ? row.reason : null);
-    } catch (_) {}
-    try {
-      console.warn("REPORT_PENDING_RESOLVED_V1", {
-        pendingId,
-        opKey: pending.opKey,
-        outcomeBucket,
-        appliedReasonCodes: uniqueReasons,
-        moneyLogDeltaCount: delta,
-        lastReasonsTail,
-        alreadyResolved: false,
-      });
-    } catch (_) {}
-    const safeResult = result || { ok: false, reasonCode: "resolve_error" };
-    return Object.assign({}, safeResult, { pendingId, opKey: pending.opKey, copId: pending.copId, targetId: pending.targetId });
-  }
-
-  function resolvePendingReportsTick(nowTs){
-    const now = Number.isFinite(nowTs) ? nowTs : Date.now();
-    const reports = ensurePendingStructures();
-    const ids = Object.keys(reports.pendingById || {});
-    try {
-      console.warn("REPORT_PENDING_TICK_V1", { pendingCount: ids.length, now });
-    } catch (_) {}
-    const resolved = [];
-    for (const id of ids) {
-      const pending = reports.pendingById[id];
-      if (!pending || pending.resolved) continue;
-      if (now >= (pending.resolveAtMs || 0)) {
-        resolved.push(resolveReport(id));
-      }
-    }
-    return resolved;
-  }
-
-  function applyFalseReport({ target, roleKey, cop, reporterId, reportId, reasonCode = "false_report", bucket = "false" } = {}) {
-    const copId = (cop && cop.id) ? cop.id : "";
-    const copName = (cop && cop.name) ? String(cop.name) : "–ö–æ–ø";
-    const targetId = (target && target.id) ? target.id : `missing:${String(roleKey || "unknown")}`;
-    const reporter = String(reporterId || ((State.me && State.me.id) ? State.me.id : "me"));
-    const dayKey = dayKeyFromNowTs(Date.now());
-    const opKey = buildReportOpKey({ dayKey, copId, reporterId: reporter, targetId, bucket });
-    const metaBase = {
-      fromId: reporter,
-      toId: "sink",
-      targetId,
-      copId,
-      reporterId: reporter,
-      opKey,
-      reportId: String(reportId || ""),
-      bucket,
-    };
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const prev = (State.reports && State.reports.history) ? State.reports.history[targetId] : null;
-    const baseRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE)) ? (D.REP_REPORT_FALSE | 0) : 2;
-    const repeatRepPenalty = (D && Number.isFinite(D.REP_REPORT_FALSE_REPEAT)) ? (D.REP_REPORT_FALSE_REPEAT | 0) : 3;
-    const repPenalty = (prev && prev.ok === false) ? repeatRepPenalty : baseRepPenalty;
-    try {
-      transferRep(reporter, "crowd_pool", repPenalty, "rep_report_false", reportId);
-    } catch (_) {}
-    ensureReportMoneyLogRow({
-      reason: "rep_report_false",
-      amount: repPenalty,
-      currency: "rep",
-      sourceId: reporter,
-      targetId: "crowd_pool",
-      meta: Object.assign({}, metaBase, { fromId: reporter, toId: "crowd_pool" }),
-      opKey,
-      eventId: reportId,
-      battleId: reportId,
-    });
-
-    const N = Game.NPC || {};
-    const econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-    const penaltyPts = (N.COP && N.COP.report && Number.isFinite(N.COP.report.falsePenalty))
-      ? (N.COP.report.falsePenalty | 0)
-      : 5;
-    const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    const amountWanted = penaltyPts | 0;
-    const amountActual = Math.min(amountWanted, Math.max(0, pointsBefore));
-    const pointsAfter = Math.max(0, pointsBefore - amountActual);
-    const pointsMeta = Object.assign({}, metaBase, {
-      amountWanted,
-      pointsBefore,
-      pointsAfter,
-      operation: "report_false_penalty",
-      fromId: reporter,
-      toId: "sink",
-    });
-    if (econ && typeof econ.transferPoints === "function" && amountActual > 0) {
-      econ.transferPoints(reporter, "sink", amountActual, "report_false_penalty", pointsMeta);
-    }
-    ensureReportMoneyLogRow({
-      reason: "report_false_penalty",
-      amount: amountActual,
-      currency: "points",
-      sourceId: reporter,
-      targetId: "sink",
-      meta: pointsMeta,
-      opKey,
-      eventId: reportId,
-      battleId: reportId,
-    });
-
-    try {
-      const penaltyMsg = `¬´–°–¥–∞—Ç—å¬ª –±–µ–∑ —Ñ–∞–∫—Ç–æ–≤ ‚Äî —à—Ç—Ä–∞—Ñ ${repPenalty}‚≠ê. –ó–∞–ø–∏—Å—å –≤ –æ—Ç—á–µ—Ç–µ.`;
-      pushDm(copId, copName, copLine(npcSpeechRuntimeLine("report_reaction", cop, penaltyMsg, { channel: "dm" })), { isSystem: false, playerId: copId });
-    } catch (_) {}
-    try { copDmTo(copId, "cop_fail"); } catch (_) {}
-    markReported(targetId, false, roleKey, copId);
-    if (isDevFlag()) {
-      const endPts = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : null;
-      console.warn("ECON_SOC_FALSE_PTS_TRACE_V1", {
-        stage: "after_false_report",
-        reportId: reportId || null,
-        pointsAfter: endPts
-      });
-    }
-    return {
-      ok: false,
-      reasonCode: reasonCode,
-      role: roleKey,
-      targetId,
-      copId,
-      opKey,
-      reportId: String(reportId || ""),
-      repPenalty,
-      pointsPenalty: amountActual,
-    };
-  }
-
-  function applyTrueReport({ target, roleKey, cop, reporterId, reportId, bucket = "true" } = {}) {
-    const copId = (cop && cop.id) ? cop.id : "";
-    const copName = (cop && cop.name) ? cop.name : "–ö–æ–ø";
-    const targetId = (target && target.id) ? target.id : "";
-    const reporter = String(reporterId || ((State.me && State.me.id) ? State.me.id : "me"));
-    const dayKey = dayKeyFromNowTs(Date.now());
-    const opKey = buildReportOpKey({ dayKey, copId, reporterId: reporter, targetId, bucket });
-    const payout = 0;
-    const D = (Game && Game.Data) ? Game.Data : null;
-    const repGain = (D && Number.isFinite(D.REP_REPORT_TRUE)) ? (D.REP_REPORT_TRUE | 0) : 2;
-    try {
-      transferRep("crowd_pool", "me", repGain, "rep_report_true", reportId);
-    } catch (_) {}
-    ensureReportMoneyLogRow({
-      reason: "rep_report_true",
-      amount: repGain,
-      currency: "rep",
-      sourceId: "crowd_pool",
-      targetId: "me",
-      meta: { fromId: "crowd_pool", toId: "me", targetId, copId, reporterId: reporter },
-      opKey,
-      eventId: reportId,
-      battleId: reportId,
-    });
-    markReported(targetId, true, roleKey, copId);
-    try {
-      let repSum = 0;
-      let ptsSum = 0;
-      try {
-        const logs = (Game && Game.__D && Array.isArray(Game.__D.moneyLog)) ? Game.__D.moneyLog : [];
-        const bidStr = String(reportId || "");
-        for (const L of logs) {
-          if (!L) continue;
-          const tag = String(L.reason || "").toLowerCase();
-          const bidMatch = String(L.eventId || L.battleId || (L.meta && L.meta.eventId) || "").indexOf(bidStr) >= 0 || String(L.battleId || L.eventId || "") === bidStr;
-          if (!bidStr || bidMatch) {
-            if (tag.indexOf("rep_report_true") >= 0 || tag.indexOf("rep_") === 0 || String(L.currency || "").toLowerCase() === "rep") {
-              repSum += Number(L.amount || L.delta || 0);
-            }
-            if (tag.indexOf("cop_compensation_return") >= 0 || tag.indexOf("crowd_vote_refund") >= 0 || String(L.currency || "").toLowerCase() === "points") {
-              ptsSum += Number(L.amount || L.delta || 0);
-            }
-          }
-        }
-      } catch (_) {}
-      const repMsg = (repSum > 0) ? `+${repSum}‚≠ê` : "";
-      const ptsMsg = (ptsSum > 0) ? ` +${ptsSum}üí∞` : "";
-      const bonusMsg = repMsg || ptsMsg ? `–ë–ª–∞–≥–æ–¥–∞—Ä–∏–º –∑–∞ —Å–¥–∞—á—É, –ø–æ–ª—É—á–µ–Ω–æ ${repMsg}${ptsMsg}`.trim() : "–ë–ª–∞–≥–æ–¥–∞—Ä–∏–º –∑–∞ —Å–¥–∞—á—É, –ø–æ–ª—É—á–µ–Ω–æ.";
-      pushDm(copId, copName, copLine(npcSpeechRuntimeLine("report_reaction", cop, bonusMsg, { channel: "dm" })), { isSystem: false, playerId: copId });
-    } catch (_) {}
-
-    let compensationTotal = 0;
-    try {
-      const victimized = checkIfVictimized(targetId);
-      if (victimized) {
-        copDmTo(copId, "–ü—Ä–∏–Ω—è–ª. –£–∂–µ –≤–º–µ—à–∞–ª—Å—è.");
-        const Econ = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-        const returnAmount = victimized.stolenAmount || 0;
-        if (returnAmount > 0 && Econ && typeof Econ.transferPoints === "function") {
-          const amountWanted = returnAmount | 0;
-          const bankBal = (Econ && typeof Econ.getWorldBankBalance === "function") ? (Econ.getWorldBankBalance() | 0) : null;
-          const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
-          const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-          const pointsAfter = pointsBefore + amountActual;
-          if (amountActual > 0) {
-            Econ.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
-              reportId: reportId || null,
-              amountWanted,
-              amountActual,
-              pointsBefore,
-              pointsAfter,
-              partial: amountActual !== amountWanted,
-              kind: "return",
-              opKey,
-              fromId: "worldBank",
-              toId: "me",
-              targetId,
-              copId,
-              reporterId: reporter
-            });
-          }
-          compensationTotal += amountActual;
-        }
-        try {
-          if (Game.__A && typeof Game.__A.transferRep === "function") {
-            Game.__A.transferRep("crowd_pool", "me", 1, "rep_cop_victim_bonus", reportId);
-          }
-        } catch (_) {}
-        try {
-          const Econ2 = (Game && (Game._ConflictEconomy || Game.ConflictEconomy)) ? (Game._ConflictEconomy || Game.ConflictEconomy) : null;
-          const amountWanted = 1;
-          const bankBal = (Econ2 && typeof Econ2.getWorldBankBalance === "function") ? (Econ2.getWorldBankBalance() | 0) : null;
-          const amountActual = (bankBal == null) ? amountWanted : Math.max(0, Math.min(amountWanted, bankBal));
-          const pointsBefore = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-          const pointsAfter = pointsBefore + amountActual;
-          if (Econ2 && typeof Econ2.transferPoints === "function" && amountActual > 0) {
-            Econ2.transferPoints("worldBank", "me", amountActual, "report_true_compensation", {
-              reportId: reportId || null,
-              amountWanted,
-              amountActual,
-              pointsBefore,
-              pointsAfter,
-              partial: amountActual !== amountWanted,
-              kind: "victim_bonus",
-              opKey,
-              fromId: "worldBank",
-              toId: "me",
-              targetId,
-              copId,
-              reporterId: reporter
-            });
-          }
-          compensationTotal += amountActual;
-        } catch (_) {}
-
-        try {
-          if (Game.UI && typeof Game.UI.pushSystem === "function") {
-            Game.UI.pushSystem((Game.System && typeof Game.System.say === "function") ? Game.System.say("notifications", "reportCompensationBundle") : "–ì–æ—Ç–æ–≤–æ.");
-          }
-          if (Game.UI && typeof Game.UI.requestRenderAll === "function") {
-            Game.UI.requestRenderAll();
-          }
-        } catch (_) {}
-
-        if (returnAmount > 0) {
-          try {
-            if (Game.UI && typeof Game.UI.pushSystem === "function") {
-              Game.UI.pushSystem((Game.System && typeof Game.System.say === "function") ? Game.System.say("notifications", "reportReturnAmount", { returnAmount }) : "–ì–æ—Ç–æ–≤–æ.");
-            }
-          } catch (_) {}
-        }
-      } else {
-        copDmTo(copId, "–ü—Ä–æ–≤–µ—Ä–∫–∞ —Å–æ—à–ª–∞—Å—å. –ö–æ–Ω—Ç–∞–∫—Ç –æ—Ç–º–µ—á–µ–Ω.");
-      }
-    } catch (_) {}
-
-    try {
-      ensureReportMoneyLogRow({
-        reason: "report_true_compensation",
-        amount: compensationTotal,
-        currency: "points",
-        sourceId: "worldBank",
-        targetId: "me",
-        meta: {
-          opKey,
-          reportId: String(reportId || ""),
-          copId,
-          reporterId: reporter,
-          targetId,
-          fromId: "worldBank",
-          toId: "me",
-        },
-        opKey,
-        eventId: reportId,
-        battleId: reportId,
-      });
-    } catch (_) {}
-
-    try {
-      if (Array.isArray(State.battles)) {
-        State.battles = State.battles.filter(b => b && b.opponentId !== targetId && b.attackerId !== targetId);
-      }
-    } catch (_) {}
-
-    const now = Date.now();
-    if (roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") {
-      const jailMs = 5 * 60 * 1000;
-      State.jailed = State.jailed || {};
-      State.jailed[targetId] = { until: now + jailMs, role: roleKey };
-      State.revengeUntil = Math.max(State.revengeUntil || 0, now + jailMs);
-      try {
-        if (State.reports && State.reports.history) delete State.reports.history[targetId];
-      } catch (_) {}
-      try {
-        copChatFrom(copId, `–ö–æ–ø: ${target.name} –∑–∞–∫—Ä—ã—Ç –Ω–∞ 5 –º–∏–Ω—É—Ç.`);
-      } catch (_) {}
-      sendRevengeDM(roleKey, targetId);
-    }
-    if (State.victimByRole && State.victimByRole[roleKey]) {
-      State.victimByRole[roleKey] = null;
-    }
-
-    return {
-      ok: true,
-      reasonCode: "true_report",
-      targetId,
-      role: roleKey,
-      reward: payout,
-      copId,
-      opKey,
-      repGain,
-      compensation: compensationTotal,
-    };
-  }
-
-  function applyReportByRole(role, opts = null){
-    if (isDevFlag()) {
-      console.warn("REPORT_REPEAT_RL_V1_LOADED", {
-        buildTag: (Game && Game.__BUILD_TAG) ? Game.__BUILD_TAG : null,
-        file: "state.js",
-        ts: Date.now()
-      });
-    }
-    if (!Security.isSafe()) {
-      Security.emit("tamper_function", { key: "applyReportByRole", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
-      return { ok: false, reason: "security_tamper" };
-    }
-    const rl = Security.rateLimit("report_submit", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      reason: "report_submit",
-      actionId: opts && opts.actionId,
-      battleId: opts && opts.battleId
-    }, { max: 1, windowMs: 4000, burst: 1 });
-    if (!rl.ok) {
-      Security.emit("rate_limit", { action: "report_submit", reason: "report_submit", key: rl.key, resetIn: rl.resetIn });
-      try {
-        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-        if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
-        const entry = {
-          time: Date.now(),
-          reason: "report_rate_limited",
-          currency: "meta",
-          amount: 0,
-          sourceId: (State.me && State.me.id) ? String(State.me.id) : "me",
-          targetId: "report_submit",
-          eventId: opts && opts.actionId ? String(opts.actionId) : null,
-          battleId: opts && opts.battleId ? String(opts.battleId) : null,
-          meta: { key: rl.key, resetIn: rl.resetIn, actionId: opts && opts.actionId ? String(opts.actionId) : null }
-        };
-        Game.__D.moneyLog.push(entry);
-      } catch (_) {}
-      return { ok: false, reason: "rate_limited" };
-    }
-    const raw = String(role || "").trim();
-    const r = raw.toLowerCase();
-    // normalize synonyms
-    let target = null;
-    try {
-      const ps = State.players || {};
-      target = Object.values(ps).find(x => x && x.name && String(x.name).toLowerCase() === r) || null;
-    } catch (_) {}
-    // normalize synonyms helper (moved up so name-only reports are supported)
-    const normalizeRoleKey = (s) => {
-      const x = String(s || "").toLowerCase();
-      if (!x) return "";
-      if (x.includes("—Ç–æ–∫—Å") || x.includes("toxic")) return "toxic";
-      if (x.includes("–±–∞–Ω–¥") || x.includes("bandit")) return "bandit";
-      if (x.includes("–º–∞—Ñ–∏") || x.includes("mafia") || x.includes("mafioso")) return "mafia";
-      return "";
-    };
-
-    let roleKey = "";
-    try {
-      if (target) roleKey = normalizeRoleKey(String(target.role || target.type || ""));
-      if (!roleKey) {
-        if (r.includes("—Ç–æ–∫—Å") || r === "toxic") roleKey = "toxic";
-        else if (r.includes("–±–∞–Ω–¥") || r === "bandit") roleKey = "bandit";
-        else if (r.includes("–º–∞—Ñ–∏") || r === "mafia" || r === "mafioso") roleKey = "mafia";
-      }
-    } catch (_) { roleKey = ""; }
-
-    // MULTI-COP CANON: report is handled by a –∫–æ–Ω–∫—Ä–µ—Ç–Ω—ã–π copId (from DM), with per-cop cooldowns.
-    // We resolve the cop as early as possible so even "unknown_role" replies go to the correct DM thread.
-    const requestedCopId = (opts && typeof opts === "object" && opts.copId) ? String(opts.copId) : "";
-    const requestedCop = requestedCopId ? resolveCopById(requestedCopId) : null;
-    const availableCop = requestedCop || getAvailableCop();
-    const cop = (availableCop && availableCop.id) ? availableCop : null;
-
-    // If no roleKey AND no target found by name -> unknown role request
-    if (!roleKey && !target) {
-      if (cop && cop.id) copDmTo(cop.id, "–ù–∞–ø–∏—à–∏, –∫–æ–≥–æ —Å–¥–∞—ë—à—å: —Ç–æ–∫—Å–∏–∫, –±–∞–Ω–¥–∏—Ç –∏–ª–∏ –º–∞—Ñ–∏–æ–∑–∏.");
-      return { ok: false, reason: "unknown_role" };
-    }
-
-    if (!cop || !cop.id) {
-      return { ok: false, reason: "all_cops_busy" };
-    }
-    // If the requested cop is busy, only this cop replies "busy" in their DM.
-    if (isCopBusyById(cop.id)) {
-      try { copDmTo(cop.id, "cop_busy"); } catch (_) {}
-      return { ok: false, reason: "cop_busy", copId: cop.id };
-    }
-
-    // Assign this cop for this interaction (used by legacy helpers)
-    State.assignedCopId = cop.id;
-    // Immediately notify player that this cop accepted the report (DM in THIS cop thread)
-    try { pushDm(cop.id, cop.name, copLine(npcSpeechRuntimeLine("report_reaction", cop, "–ü—Ä–∏–Ω—è–ª. –ü—Ä–æ–≤–µ—Ä–∫–∞ –Ω–∞—á–∞–ª–∞—Å—å.", { channel: "dm" })), { isSystem: false, playerId: cop.id }); } catch (_) {}
-
-    if (!target) target = findNpcByRole(roleKey);
-    if (!target || !target.id) {
-      copDmTo(cop.id, "–¶–µ–ª—å –Ω–µ –æ–±–Ω–∞—Ä—É–∂–µ–Ω–∞. –ü—Ä–æ–≤–µ—Ä—é –µ—â—ë —Ä–∞–∑.");
-      markReported(`missing:${roleKey}:${Date.now()}`, false, roleKey, cop.id);
-      return { ok: false, reason: "not_found" };
-    }
-
-    // If already jailed, don't panic or duplicate.
-    if ((roleKey === "toxic" || roleKey === "bandit" || roleKey === "mafia") && State.jailed && State.jailed[target.id]) {
-      const jail = State.jailed[target.id];
-      if (jail && Date.now() < (jail.until || 0)) {
-        return { ok: false, reason: "already_jailed", targetId: target.id };
-      }
-    }
-
-    const reportedRoleEarly = normalizeRoleKey(r || roleKey || "");
-    const repeatActorId = (State.me && State.me.id) ? String(State.me.id) : "me";
-    const repeatTargetId = String(target.id);
-    const repeatRole = reportedRoleEarly || null;
-    const stableKey = `${repeatActorId}|${repeatTargetId}|${repeatRole || ""}`;
-    const repeatKeyMeta = {
-      actorId: repeatActorId,
-      targetId: repeatTargetId,
-      role: repeatRole,
-      reason: "report_repeat",
-      battleId: opts && opts.battleId,
-      stableKey
-    };
-    const repeatRl = Security.rateLimit("report_repeat", repeatKeyMeta, { max: 1, windowMs: 4000, burst: 1 });
-    const rlResetIn = Number.isFinite(repeatRl.resetIn) ? repeatRl.resetIn : 4000;
-    const rlResetAt = Date.now() + rlResetIn;
-    if (isDevFlag()) {
-      console.warn("REPORT_REPEAT_RL_V1_CHECK", {
-        stableKey,
-        rawKey: repeatRl.key || null,
-        actorId: repeatActorId,
-        targetId: repeatTargetId,
-        role: repeatRole,
-        now: Date.now(),
-        blocked: !repeatRl.ok,
-        resetAt: rlResetAt
-      });
-    }
-    try {
-      if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-      if (!Array.isArray(Game.__D.repeatRateLimitLog)) Game.__D.repeatRateLimitLog = [];
-      Game.__D.repeatRateLimitLog.push({
-        type: "check",
-        stableKey,
-        rawKey: repeatRl.key || null,
-        blocked: !repeatRl.ok,
-        resetAt: rlResetAt,
-        resetIn: rlResetIn,
-        actorId: repeatActorId,
-        targetId: repeatTargetId,
-        role: repeatRole,
-        time: Date.now()
-      });
-    } catch (_) {}
-    if (!repeatRl.ok) {
-      Security.emit("rate_limit", { action: "report_repeat", reason: "report_repeat", key: repeatRl.key, resetIn: repeatRl.resetIn });
-      if (isDevFlag()) {
-        console.warn("REPORT_REPEAT_RL_V1_BLOCK", {
-          stableKey,
-          rawKey: repeatRl.key,
-          resetIn: repeatRl.resetIn,
-          resetAt: rlResetIn ? (Date.now() + rlResetIn) : null,
-          actorId: repeatActorId,
-          targetId: repeatTargetId,
-          role: repeatRole
-        });
-      }
-      try {
-        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-        if (!Array.isArray(Game.__D.moneyLog)) Game.__D.moneyLog = [];
-        const entry = {
-          time: Date.now(),
-          reason: "report_rate_limited",
-          currency: "meta",
-          amount: 0,
-          sourceId: repeatActorId,
-          targetId: repeatTargetId,
-          eventId: opts && opts.actionId ? String(opts.actionId) : null,
-          battleId: opts && opts.battleId ? String(opts.battleId) : null,
-          meta: { key: repeatRl.key, stableKey, resetIn: repeatRl.resetIn, role: repeatRole, targetId: repeatTargetId }
-        };
-        Game.__D.moneyLog.push(entry);
-      } catch (_) {}
-      try {
-        if (!Game.__D || typeof Game.__D !== "object") Game.__D = {};
-        if (!Array.isArray(Game.__D.repeatRateLimitLog)) Game.__D.repeatRateLimitLog = [];
-        Game.__D.repeatRateLimitLog.push({
-          type: "block",
-          stableKey,
-          rawKey: repeatRl.key || null,
-          blocked: true,
-          resetAt: rlResetAt,
-          resetIn: rlResetIn,
-          actorId: repeatActorId,
-          targetId: repeatTargetId,
-          role: repeatRole,
-          time: Date.now()
-        });
-      } catch (_) {}
-      return {
-        ok: false,
-        reason: "rate_limited",
-        cooldownMs: 4000,
-        resetAt: Date.now() + (repeatRl.resetIn || 0),
-        targetId: target.id,
-        key: repeatRl.key,
-        stableKey
-      };
-    }
-
-    // Prevent repeat report of the same target during cooldown window.
-    if (hasReported(target.id)) {
-      copDmTo(cop.id, "–≠—Ç–æ—Ç –∫–æ–Ω—Ç–∞–∫—Ç —É–∂–µ –æ—Ç–º–µ—á–µ–Ω. –ü–æ–≤—Ç–æ—Ä –Ω–µ —Ç—Ä–µ–±—É–µ—Ç—Å—è.");
-      return { ok: false, reason: "already_reported", targetId: target.id };
-    }
-
-    // Determine reported role key (for later truthful check).
-    // If roleKey is empty but we found a target by name, accept the report and use the target's role for comparisons.
-    if (!roleKey && target && target.role) {
-      const nr = normalizeRoleKey(target.role);
-      roleKey = nr || "";
-    }
-
-    const ALLOWED_REPORT_ROLES = new Set(["toxic","bandit","mafia"]);
-    let reportedRole = "";
-    try {
-      if (target && target.role) reportedRole = normalizeRoleKey(target.role);
-      if (!reportedRole) reportedRole = normalizeRoleKey(r);
-    } catch (_) { reportedRole = normalizeRoleKey(r); }
-    const targetRole = (target && target.role) ? String(target.role).toLowerCase() : "";
-    const actual = getRoleOf(target && target.id);
-    const truthful = Boolean(reportedRole && target && (reportedRole === normalizeRoleKey(actual)));
-    const reportId = `report_${target.id}_${Date.now()}`;
-    const reporterId = repeatActorId;
-
-    if (!ALLOWED_REPORT_ROLES.has(roleKey)) {
-      return applyFalseReport({
-        target,
-        roleKey,
-        cop,
-        reporterId,
-        reportId,
-        reasonCode: "report_invalid_target",
-        bucket: "false",
-      });
-    }
-    const meId = (State.me && State.me.id) ? String(State.me.id) : "me";
-    if (target && target.id && String(target.id) === meId) {
-      return applyFalseReport({
-        target,
-        roleKey,
-        cop,
-        reporterId,
-        reportId,
-        reasonCode: "self_report",
-        bucket: "false",
-      });
-    }
-    if (targetRole === "cop" || (cop && cop.id && target && target.id && String(target.id) === String(cop.id))) {
-      return applyFalseReport({
-        target,
-        roleKey,
-        cop,
-        reporterId,
-        reportId,
-        reasonCode: "report_invalid_target",
-        bucket: "false",
-      });
-    }
-    if (!truthful) {
-      return applyFalseReport({
-        target,
-        roleKey,
-        cop,
-        reporterId,
-        reportId,
-        reasonCode: "false_report",
-        bucket: "false",
-      });
-    }
-
-    const reports = ensurePendingStructures();
-    const existingPending = (reports.pendingByActorId || {})[reporterId];
-    if (existingPending && !existingPending.resolved) {
-      return {
-        ok: true,
-        reasonCode: "pending_exists",
-        pendingId: existingPending.id,
-        resolveAtMs: existingPending.resolveAtMs,
-        copId: existingPending.copId,
-        targetId: existingPending.targetId,
-        opKey: existingPending.opKey,
-      };
-    }
-
-    const dayKey = dayKeyFromNowTs(Date.now());
-    const bucket = truthful ? "true" : "false";
-    const pendingOpKey = buildReportOpKey({
-      dayKey,
-      copId: cop.id,
-      reporterId,
-      targetId: target.id,
-      bucket,
-    });
-    const pending = createPendingReport({
-      reporterId,
-      copId: cop.id,
-      targetId: target.id,
-      roleKey,
-      truth: truthful,
-      bucket,
-      reportId,
-      opKey: pendingOpKey,
-    });
-
-    return {
-      ok: true,
-      reasonCode: "pending",
-      pendingId: pending.id,
-      resolveAtMs: pending.resolveAtMs,
-      copId: pending.copId,
-      targetId: pending.targetId,
-      opKey: pending.opKey,
-    };
-  }
-
-  function ensureNonNegativePoints(){
-    withPointsWrite(() => {
-      // me
-      State.me.points = Math.max(0, State.me.points || 0);
-      if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-      State.points.overflow = Math.max(0, State.points.overflow || 0);
-      // Mirror legacy/compat field for UI: overPoints == overflow remainder (0..4)
-      State.overPoints = Math.max(0, (State.points.overflow || 0) | 0);
-      // mirror in players
-      if (State.players.me) State.players.me.points = State.me.points;
-
-      // others
-      Object.values(State.players).forEach(p => {
-        if (p && typeof p.points === "number") p.points = Math.max(0, p.points);
-      });
-    });
-  }
-
-  function addPoints(amount, reason, meta){
-    const meId = (State.me && State.me.id) ? State.me.id : "me";
-    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
-      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    }
-    if (!Security.isSafe()) {
-      Security.emit("tamper_function", { key: "addPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
-      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    }
-    const cfg = getPointsConfig();
-    // Capture beforePoints early so circulation branch can compute overflow reliably.
-    const beforePoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    const finalizePoints = () => {
-      const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-      emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "addPoints" });
-      return State.me.points;
-    };
-    const n = Number(amount || 0);
-    if (!Number.isFinite(n) || n === 0) return 0;
-    if (n > 0) {
-      const callsite = getPointsEmissionCallsite();
-      if (isDevFlag()) {
-        const err = new Error("POINTS_EMISSION_BLOCKED");
-        if (callsite) err.stack = `Error: POINTS_EMISSION_BLOCKED\n${callsite}`;
-        throw err;
-      }
-      logPointsEmissionBlocked(callsite, n, reason, meta || {}, meId);
-      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    }
-    const rl = Security.rateLimit("points_add", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      reason: reason || "addPoints",
-      battleId: meta && meta.battleId,
-      actionId: meta && meta.actionId
-    }, { max: 1, windowMs: 900, burst: 1 });
-    if (!rl.ok) {
-      Security.emit("rate_limit", { action: "points_add", reason: reason || "addPoints", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
-      return (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-    }
-    if (isCirculationEnabled() && !pointsWriteDepth) {
-      const r = String(reason || "").toLowerCase();
-      const allow = r.startsWith("dev") || r.includes("migration") || r.includes("init") || !State.isStarted;
-      if (!allow) return rejectPointsWrite(`addPoints:${reason || "unknown"}`) ? 0 : 0;
-    }
-    const guardMeta = {
-      reason: reason || "addPoints",
-      actionId: meta && meta.actionId,
-      battleId: meta && meta.battleId,
-      context: meta && meta.context,
-    };
-    const guard = ResourceValidator.claim("points", guardMeta);
-    if (!guard.ok) {
-      const current = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-      return current;
-    }
-    let success = false;
-    try {
-      if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-      if (isCirculationEnabled()) {
-        withPointsWrite(() => {
-          State.me.points = (State.me.points || 0) + (n | 0);
-          State.points.overflow = 0;
-          State.points.capNote = "";
-        });
-        syncMeToPlayers();
-        ensureNonNegativePoints();
-        // When circulation is enabled, still support overflow->REP conversion:
-        try {
-          const cfg2 = getPointsConfig();
-          const cap2 = (cfg2 && Number.isFinite(cfg2.softCap)) ? (cfg2.softCap | 0) : ((Game.Data && Number.isFinite(Game.Data.POINTS_SOFT_CAP)) ? (Game.Data.POINTS_SOFT_CAP|0) : 20);
-          const before = (typeof beforePoints !== "undefined" && Number.isFinite(beforePoints)) ? (beforePoints | 0) : ((State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0) - (n|0);
-          const total = before + (n|0);
-          let overflow = Math.max(0, total - cap2);
-          const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP)) ? (Game.Data.OVERPOINTS_TO_REP | 0) : 5;
-          const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
-          if (repGain > 0) {
-            overflow -= (repGain * step);
-            try {
-              const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
-              if (Game && Game.__A && typeof Game.__A.transferRep === "function") {
-                Game.__A.transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-              } else {
-                transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-              }
-            } catch (_) {}
-            // Per spec: on conversion, reset overflow to 0.
-            overflow = 0;
-          }
-          const finalOverflow = Math.max(0, overflow | 0);
-          State.points.overflow = finalOverflow;
-          State.overPoints = finalOverflow;
-          State.pointsCapActive = ((State.me && Number.isFinite(State.me.points) ? (State.me.points|0) : 0) >= cap2);
-        } catch (_) {}
-        success = true;
-        return finalizePoints();
-      }
-      const cap = (cfg.softCap | 0);
-      let base = (State.me.points || 0) | 0;
-      let overflow = (State.points.overflow || 0) | 0;
-      const total = base + (n | 0);
-      if (total <= cap) {
-        base = total;
-      } else {
-        base = cap;
-        overflow += (total - cap);
-      }
-      // Variant B: convert overPoints to +1 ‚≠ê REP per N (default 5), not influence
-      const step = (Game && Game.Data && Number.isFinite(Game.Data.OVERPOINTS_TO_REP))
-        ? (Game.Data.OVERPOINTS_TO_REP | 0)
-        : 5;
-      const repGain = (step > 0) ? Math.floor(overflow / step) : 0;
-      if (repGain > 0) {
-        overflow -= (repGain * step);
-        try {
-          const bid = `overpoints_${(State.progress && Number.isFinite(State.progress.weekStartAt)) ? (State.progress.weekStartAt | 0) : Date.now()}`;
-          transferRep("crowd_pool", "me", repGain, "rep_overpoints_convert", bid);
-        } catch (_) {}
-        // Reset overflow on conversion (spec: clear overPoints after conversion)
-        overflow = 0;
-      }
-      State.me.points = base;
-      // Store final overflow (zero if conversion occurred)
-      State.points.overflow = Math.max(0, overflow | 0);
-      State.overPoints = Math.max(0, State.points.overflow | 0);
-      State.pointsCapActive = (base >= cap);
-      State.points.capNote = (base >= cap) ? "–ö–∞–ø: –∫–∞–∂–¥—ã–µ 5 üí∞ -> +1 ‚≠ê." : "";
-      syncMeToPlayers();
-      ensureNonNegativePoints();
-      success = true;
-      return finalizePoints();
-    } finally {
-      ResourceValidator.release(guard.key, success);
-    }
-  }
-
-  function spendPoints(amount, reason, meta){
-    const meId = (State.me && State.me.id) ? State.me.id : "me";
-    if (ReactionPolicy && ReactionPolicy.isActionBlocked(meId, "economy")) {
-      return false;
-    }
-    if (!Security.isSafe()) {
-      Security.emit("tamper_function", { key: "spendPoints", action: "call", reason: "blocked", mode: isDevFlag() ? "dev" : "prod" });
-      return false;
-    }
-    const n = Number(amount || 0);
-    if (!Number.isFinite(n) || n <= 0) return true;
-    const rl = Security.rateLimit("points_spend", {
-      actorId: (State.me && State.me.id) ? String(State.me.id) : "me",
-      reason: reason || "spendPoints",
-      battleId: meta && meta.battleId,
-      actionId: meta && meta.actionId
-    }, { max: 1, windowMs: 900, burst: 1 });
-    if (!rl.ok) {
-      Security.emit("rate_limit", { action: "points_spend", reason: reason || "spendPoints", battleId: meta && meta.battleId, key: rl.key, resetIn: rl.resetIn });
-      return false;
-    }
-    if (isCirculationEnabled() && !pointsWriteDepth) {
-      const r = String(reason || "").toLowerCase();
-      const allow = r.startsWith("dev") || r.includes("migration") || r.includes("init") || !State.isStarted;
-      if (!allow) return rejectPointsWrite(`spendPoints:${reason || "unknown"}`) ? false : false;
-    }
-    const cur = (State.me.points || 0) | 0;
-    if (cur < n) return false;
-    const beforePoints = cur;
-    const guardMeta = {
-      reason: reason || "spendPoints",
-      actionId: meta && meta.actionId,
-      battleId: meta && meta.battleId,
-      context: meta && meta.context,
-    };
-    const guard = ResourceValidator.claim("points", guardMeta);
-    if (!guard.ok) return false;
-    let success = false;
-    try {
-      withPointsWrite(() => {
-        State.me.points = cur - (n | 0);
-        if (!State.points) State.points = { lastChatRewardAt: 0, overflow: 0, capNote: "" };
-        State.points.overflow = 0;
-        State.points.capNote = "";
-      });
-      State.overPoints = 0;
-      State.pointsCapActive = false;
-      syncMeToPlayers();
-      ensureNonNegativePoints();
-      const afterPoints = (State.me && Number.isFinite(State.me.points)) ? (State.me.points | 0) : 0;
-      emitStatDelta("points", afterPoints - beforePoints, { reason: reason || "spendPoints" });
-      success = true;
-      return true;
-    } finally {
-      ResourceValidator.release(guard.key, success);
-    }
-  }
-
-  function syncMeToPlayers(){
-    // keep cached tier consistent (single source of truth)
-    State.me.argumentTier = tierFromInfluence(State.me.influence);
-    State.influence = State.me.influence;
-
-    if (!State.players.me) return;
-    withPointsWrite(() => {
-      State.players.me.name = State.me.name;
-      State.players.me.points = State.me.points;
-      State.players.me.influence = State.me.influence;
-    });
-
-    // mirror unlock flags and cached tier for UI
-    State.players.me.argumentTier = State.me.argumentTier;
-    // mirror progression counters for UI lists/filters
-    State.players.me.wins = (State.me.wins | 0);
-    State.players.me.winsSinceInfluence = (State.me.winsSinceInfluence | 0);
-    State.players.me.unlockOrange = !!State.me.unlockOrange;
-    State.players.me.unlockRed = !!State.me.unlockRed;
-    State.players.me.unlockBlack = !!State.me.unlockBlack;
-  }
-
-  function setLocation(id){
-    State.me.locationId = id;
-  }
-
-  const TrainingStateAPI = {
-    getSnapshot: () => buildTrainingStateFrom(ensureTrainingState(State)),
-    normalize: (raw) => buildTrainingStateFrom(raw),
-  };
-  Game.TrainingState = Object.assign(Game.TrainingState || {}, TrainingStateAPI);
-
-  Security.defineHandleProp("__S", State);
-  Game._withPointsWrite = withPointsWrite;
-  const StateAPI = {
-    resetAll,
-    seedPlayers,
-    pushChat,
-    pushSystem,
-    pushDm,
-    ensureNonNegativePoints,
-    addPoints,
-    spendPoints,
-    addRep,
-    transferRep,
-    restoreRepSnapshot,
-    giveRespect,
-    emitStatDelta,
-    maybeDailyRepBonus,
-    repNeedForNextInfluence,
-    weeklyCapActive,
-    syncMeToPlayers,
-    setLocation,
-    handleNpcAutoReply,
-    handleBattleProvocationZeroPoints,
-
-    // Tier helpers for UI
-    getMyArgumentTier: () => tierFromInfluence(State.me.influence),
-    getMyArgumentTierColor: () => tierFromInfluence(State.me.influence),
-
-    // Mentions (centralized list for autocomplete + flags)
-    getAllMentionCandidates,
-    getMentionNames,
-    findPlayerIdByName,
-
-    getOnboardingSeen: () => ensureProgressOnboardingSeen(),
-    setOnboardingSeen: (value) => setOnboardingSeen(value),
-    resetOnboardingSeen: () => setOnboardingSeen(false),
-
-    getNpcState: () => State.npc,
-    setNpcCooldowns: ({ chatMs, actionMs }) => {
-      if (typeof chatMs === "number") State.npc.chatCooldownMs = chatMs;
-      if (typeof actionMs === "number") State.npc.actionCooldownMs = actionMs;
-    },
-    markNpcChat: () => { State.npc.lastChatAt = Date.now(); },
-    markNpcAction: () => { State.npc.lastActionAt = Date.now(); },
-    canNpcChat: () => {
-      const cd = State.npc.chatCooldownMs || 0;
-      return Date.now() - (State.npc.lastChatAt || 0) >= cd;
-    },
-    canNpcAct: () => {
-      const cd = State.npc.actionCooldownMs || 0;
-      return Date.now() - (State.npc.lastActionAt || 0) >= cd;
-    },
-    getPublicChatCopBudget: () => {
-      if (!State.npc) return 0;
-      const value = Number.isFinite(State.npc.copBudget) ? State.npc.copBudget : 0;
-      return value;
-    },
-    resetPublicChatCopBudget: (value = 0) => {
-      if (!State.npc) State.npc = {};
-      const next = Number.isFinite(value) ? value : 0;
-      State.npc.copBudget = next;
-      State.npc.lastAmbientPublicChatWasCop = false;
-    },
-
-    // Cop reports (denunciations)
-    canReport,
-    isCopBusyById,
-    getReportCooldownLeftMsForCop: (copId) => {
-      const cop = resolveCopById(copId);
-      if (!cop || !cop.id) return 0;
-      const cdMs = State.reports.cooldownMs || (5 * 60 * 1000);
-      const last = State.reports.copCooldowns[cop.id] || 0;
-      return Math.max(0, cdMs - (Date.now() - last));
-    },
-    getReportCooldownLeftMs,
-    hasReported,
-    applyReportByRole,
-    resolveReport: (pendingId) => resolveReport(pendingId),
-    resolvePendingReportsTick: (nowTs) => resolvePendingReportsTick(nowTs),
-    getPendingReport: (pendingId) => {
-      const rep = ensurePendingStructures();
-      return (rep.pendingById || {})[pendingId] || null;
-    },
-    tickCops: (nowTs) => tickCopChatter(nowTs),
-    setReportCooldownMs: (ms) => {
-      if (typeof ms === "number" && ms >= 0) State.reports.cooldownMs = ms;
-    },
-    isNpcJailed: (id) => {
-      if (!id || !State.jailed) return false;
-      const rec = State.jailed[id];
-      if (!rec || !rec.until) return false;
-      if (Date.now() >= rec.until) {
-        delete State.jailed[id];
-        try {
-          if (State.reports && State.reports.history) delete State.reports.history[id];
-        } catch (_) {}
-        return false;
-      }
-      return true;
-    },
-    markNpcJailed: (id, ms, role) => {
-      if (!id) return;
-      const until = Date.now() + (ms || 0);
-      if (!State.jailed) State.jailed = {};
-      State.jailed[id] = { until, role: role || null };
-    },
-    getRevengeUntil: () => State.revengeUntil || 0,
-    setRevengeUntil: (ms) => {
-      if (typeof ms === "number") State.revengeUntil = Math.max(State.revengeUntil || 0, Date.now() + ms);
-    },
-
-    // Events flags helpers (source of truth in State.flags)
-    getEventsFlags: () => (State.flags || {}),
-    setEventsOpen: (v) => { if (!State.flags) State.flags = {}; State.flags.eventsOpen = !!v; },
-    setEventsCollapsed: (v) => { if (!State.flags) State.flags = {}; State.flags.eventsCollapsed = !!v; },
-    setEventCount: (n) => { if (!State.flags) State.flags = {}; State.flags.eventCount = (n || 0) | 0; },
-    setHighlightEventId: (id) => { if (!State.flags) State.flags = {}; State.flags.highlightEventId = id || null; },
-
-    // Events data helpers (preserve object identity so vote mutations are not lost on rerender)
-    getEvents: () => State.events,
-    findEventById: (id) => {
-      const eid = id == null ? null : String(id);
-      if (!eid) return null;
-      const arr = State.events || [];
-      for (const ev of arr) {
-        if (ev && String(ev.id) === eid) return ev;
-      }
-      return null;
-    },
-    upsertEvent: (eventOrId, patch = {}) => {
-      const arr = State.events || (State.events = []);
-      const isObj = eventOrId && typeof eventOrId === "object";
-      const id = isObj ? (eventOrId.id != null ? String(eventOrId.id) : "") : String(eventOrId || "");
-      if (!id) return null;
-
-      let ev = null;
-      for (const x of arr) {
-        if (x && String(x.id) === id) { ev = x; break; }
-      }
-
-      if (!ev) {
-        ev = isObj ? eventOrId : { id };
-        arr.unshift(ev);
-      }
-
-      if (patch && typeof patch === "object") {
-        for (const k of Object.keys(patch)) {
-          const v = patch[k];
-          // preserve nested objects unless explicitly replaced with an object
-          if (k === "crowd" || k === "votes") {
-            if (v && typeof v === "object") ev[k] = v;
-            continue;
-          }
-          ev[k] = v;
-        }
-      }
-
-      // Ensure containers exist for vote simulation
-      if (!ev.crowd || typeof ev.crowd !== "object") ev.crowd = {};
-      if (!ev.votes || typeof ev.votes !== "object") ev.votes = { a: 0, b: 0, by: {} };
-
-      return ev;
-    },
-
-    // Ensures event vote containers exist without replacing event object
-    ensureEventVoteContainers: (eventId) => {
-      const ev = (typeof eventId === "object") ? eventId : (Game.__A.findEventById ? Game.__A.findEventById(eventId) : null);
-      if (!ev) return null;
-      if (!ev.crowd || typeof ev.crowd !== "object") ev.crowd = {};
-      if (!ev.votes || typeof ev.votes !== "object") ev.votes = { a: 0, b: 0, by: {} };
-      return ev;
-    },
-
-    // Panel size helpers (collapsed / medium / max)
-    getPanelSizes: () => {
-      const f = State.flags || {};
-      return {
-        dm: f.dmSize || "medium",
-        battles: f.battlesSize || "medium",
-        events: f.eventsSize || "medium",
-        locations: f.locationsSize || "medium",
-      };
-    },
-    setPanelSize: (key, size) => {
-      if (!State.flags) State.flags = {};
-      const s = (size === "collapsed" || size === "medium" || size === "max") ? size : "medium";
-      if (key === "dm") State.flags.dmSize = s;
-      if (key === "battles") State.flags.battlesSize = s;
-      if (key === "events") State.flags.eventsSize = s;
-      if (key === "locations") State.flags.locationsSize = s;
-    },
-    setPanelHidden: (key, v) => {
-      if (!State.flags) State.flags = {};
-      const b = !!v;
-      if (key === "dm") State.flags.dmHidden = b;
-      if (key === "battles") State.flags.battlesHidden = b;
-      if (key === "events") State.flags.eventsHidden = b;
-      if (key === "locations") State.flags.locationsHidden = b;
-    },
-
-    // Lottery state (UI-only convenience, economy is handled elsewhere)
-    getLotteryBet: () => {
-      const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5 };
-      const fixed = (LOT.bet | 0) || 5;
-      return Math.max(0, fixed);
-    },
-    setLotteryBet: (n) => {
-      const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5 };
-      const v = (LOT.bet | 0) || 5;
-      if (!State.lottery) State.lottery = { bet: v, lastRoll: null, lastAt: 0, plays: 0 };
-      State.lottery.bet = v;
-      return v;
-    },
-    setLotteryLastRoll: (roll) => {
-      const LOT = (Game.Data && Game.Data.LOTTERY) ? Game.Data.LOTTERY : { bet: 5 };
-      const BET = (LOT.bet | 0) || 5;
-      if (!State.lottery) State.lottery = { bet: BET, lastRoll: null, lastAt: 0, plays: 0 };
-      State.lottery.lastRoll = (roll == null) ? null : (roll | 0);
-      State.lottery.lastAt = Date.now();
-    },
-  };
-
-  logRespectEntrypointReady();
-  if (Game.__DEV && typeof Game.__DEV === "object") {
-    Game.__DEV.getRespectEmitterCap = () => REP_EMITTER_DAILY_CAP;
-    Game.__DEV.smokeToastContractProbeOnce = function smokeToastContractProbeOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const savedToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = [];
-      const failed = [];
-      let sampleToast = null;
-      let sampleRow = null;
-      let ref = null;
-      try {
-        const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-        ref = rowHelper({
-          time: Date.now(),
-          reason: "toast_contract_probe",
-          currency: "points",
-          amount: 1,
-          sourceId: "toast_contract_probe",
-          targetId: "me",
-          eventId: opts.eventId || "toast_contract_probe",
-          battleId: opts.battleId || "toast_contract_probe",
-          meta: { probe: true }
-        });
-        sampleRow = (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) ? dbg.moneyLog[ref.logIndex] : null;
-        if (!sampleRow) failed.push("moneylog_row_missing");
-      } catch (_) {
-        failed.push("moneylog_push_failed");
-      }
-      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-      if (ref && typeof toastHelper === "function") {
-        const toastResult = toastHelper(ref, opts.toastText || "+1üí∞");
-        const toast = (toastResult && toastResult.ok === false) ? null : toastResult;
-        if (toast) {
-          sampleToast = toast;
-          if (toast.kind !== "econ") failed.push("toast_wrong_kind");
-          if (!toast.txId) failed.push("toast_missing_txId");
-          if (!toast.reason) failed.push("toast_missing_reason");
-          if (sampleRow && toast.logIndex !== ref.logIndex) failed.push("toast_logindex_mismatch");
-          if (sampleRow && toast.txId !== sampleRow.txId) failed.push("toast_txid_mismatch");
-          if (sampleRow && toast.reason !== sampleRow.reason) failed.push("toast_reason_mismatch");
-        } else {
-          failed.push("toast_push_failed");
-          if (toastResult && toastResult.ok === false) {
-            failed.push(`toast_error:${toastResult.reason || "unknown"}`);
-          }
-        }
-      } else {
-        failed.push("toast_helper_missing");
-      }
-      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = savedToasts.concat(newToasts);
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        sampleToast,
-        sampleRow
-      };
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI0_TOAST_CONTRACT_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI0_TOAST_CONTRACT_END");
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.smokeEconUi_ToastImmediateOnce = function smokeEconUi_ToastImmediateOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const failed = [];
-      const samples = [];
-      const seenToastTs = new Set();
-      const ops = [
-        { reason: "toast_immediate_probe", currency: "points", amount: 1, sourceId: "smoke_probe", targetId: "me", text: "+1üí∞" },
-        { reason: "toast_immediate_crowd", currency: "points", amount: 1, sourceId: "smoke_crowd", targetId: "me", text: "+1üí∞" },
-        { reason: "toast_immediate_report", currency: "rep", amount: -1, sourceId: "me", targetId: "crowd_pool", text: "-1‚≠ê" }
-      ];
-      for (const op of ops) {
-        const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-        let ref = null;
-        let row = null;
-        let toast = null;
-        let toastFailed = false;
-        try {
-          ref = rowHelper({
-            time: Date.now(),
-            reason: op.reason,
-            currency: op.currency,
-            amount: op.amount,
-            sourceId: op.sourceId,
-            targetId: op.targetId,
-            battleId: op.battleId || "smoke_econ_ui",
-            meta: { smoke: "econ_ui_immediate", op: op.reason }
-          });
-          row = (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) ? dbg.moneyLog[ref.logIndex] : null;
-        } catch (_) {
-          failed.push(`moneylog_push_failed:${op.reason}`);
-        }
-        try {
-          const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-          if (ref && typeof toastHelper === "function") {
-            const toastResult = toastHelper(ref, op.text);
-            if (toastResult && toastResult.ok === false) {
-              toast = null;
-              toastFailed = true;
-              failed.push(`toast_push_failed:${op.reason}`);
-              failed.push(`toast_error:${op.reason}:${toastResult.reason || "unknown"}`);
-            } else {
-              toast = toastResult;
-            }
-          }
-        } catch (_) {
-          toastFailed = true;
-          failed.push(`toast_push_failed:${op.reason}`);
-        }
-        const tsRow = row ? Number(row.ts || row.time || 0) : 0;
-        const tsToast = toast ? Number(toast.ts || 0) : 0;
-        const dt = (tsRow && tsToast) ? (tsToast - tsRow) : null;
-        samples.push({
-          reason: op.reason,
-          tsRow,
-          tsToast,
-          dt
-        });
-        if (!row) failed.push(`moneylog_row_missing:${op.reason}`);
-        if (!toast && !toastFailed) failed.push(`toast_missing:${op.reason}`);
-        if (dt != null && dt > (opts.maxDt || 16)) {
-          failed.push(`dt_too_large:${op.reason}:${dt}`);
-        }
-        if (tsToast && seenToastTs.has(tsToast)) {
-          failed.push(`toast_batched:${op.reason}`);
-        }
-        if (tsToast) seenToastTs.add(tsToast);
-      }
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        samples
-      };
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI1_TOAST_IMMEDIATE_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI1_TOAST_IMMEDIATE_END");
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.smokeEconUi_DedupOnce = function smokeEconUi_DedupOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const saved = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = [];
-      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-      let ref = null;
-      try {
-        ref = rowHelper({
-          time: Date.now(),
-          reason: "toast_dedup_probe",
-          currency: "points",
-          amount: 1,
-          sourceId: "smoke_dedup",
-          targetId: "me",
-          battleId: "smoke_dedup",
-          meta: { smoke: "econ_ui_dedup" }
-        });
-      } catch (_) {}
-      let first = null;
-      let second = null;
-      try {
-        if (ref) first = pushEconToastFromLogRef(ref, opts.toastText || "+1üí∞");
-      } catch (_) {}
-      try {
-        if (ref) second = pushEconToastFromLogRef(ref, opts.toastText || "+1üí∞");
-      } catch (_) {}
-      const log = Array.isArray(dbg.toastLog) ? dbg.toastLog : [];
-      const count = log.filter(t => t && t.kind === "econ" && t.txId === (ref && ref.txId)).length;
-      const failed = [];
-      if (count !== 1) failed.push(`count=${count}`);
-      if (!ref) failed.push("moneylog_missing");
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        count,
-        txId: ref && ref.txId ? ref.txId : null,
-        first,
-        second
-      };
-      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = saved.concat(newToasts);
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI2_DEDUP_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI2_DEDUP_END");
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.smokeEconUi_ToastMatchesMoneyLogOnce = function smokeEconUi_ToastMatchesMoneyLogOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const savedToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = [];
-      const failed = [];
-      const samples = [];
-      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-      const ops = [
-        { reason: "toast_match_probe_points_plus", currency: "points", amount: 1, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_points_plus", eventId: "toast_match_probe_points_plus", text: "+1üí∞" },
-        { reason: "toast_match_probe_points_minus", currency: "points", amount: -2, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_points_minus", eventId: "toast_match_probe_points_minus", text: "-2üí∞" },
-        { reason: "toast_match_probe_rep_plus", currency: "rep", amount: 5, sourceId: "smoke_match_probe", targetId: "me", battleId: "toast_match_probe_rep_plus", eventId: "toast_match_probe_rep_plus", text: "+5‚≠ê" },
-        { reason: "toast_match_probe_rep_minus", currency: "rep", amount: -1, sourceId: "me", targetId: "crowd_pool", battleId: "toast_match_probe_rep_minus", eventId: "toast_match_probe_rep_minus", text: "-1‚≠ê" },
-      ];
-      for (const op of ops) {
-        let ref = null;
-        let row = null;
-        let toast = null;
-        let toastFailed = false;
-        try {
-          ref = rowHelper({
-            time: Date.now(),
-            reason: op.reason,
-            currency: op.currency,
-            amount: op.amount,
-            sourceId: op.sourceId,
-            targetId: op.targetId,
-            battleId: op.battleId,
-            eventId: op.eventId,
-            meta: { smoke: "econ_ui_match", op: op.reason }
-          });
-          if (ref && Array.isArray(dbg.moneyLog) && Number.isFinite(ref.logIndex)) {
-            row = dbg.moneyLog[ref.logIndex];
-          }
-        } catch (_) {
-          failed.push(`moneylog_push_failed:${op.reason}`);
-        }
-        try {
-          if (ref && typeof toastHelper === "function") {
-            const toastResult = toastHelper(ref, op.text);
-            if (toastResult && toastResult.ok === false) {
-              toastFailed = true;
-              failed.push(`toast_push_failed:${op.reason}`);
-              failed.push(`toast_error:${op.reason}:${toastResult.reason || "unknown"}`);
-            } else {
-              toast = toastResult;
-            }
-          }
-        } catch (_) {
-          toastFailed = true;
-          failed.push(`toast_push_failed:${op.reason}`);
-        }
-        const payload = toast && toast.payload ? toast.payload : null;
-        samples.push({
-          txId: ref && ref.txId ? ref.txId : null,
-          row: row ? {
-            txId: row.txId,
-            reason: row.reason,
-            currency: row.currency,
-            kind: row.kind,
-            amount: row.amount,
-            delta: row.delta,
-            sourceId: row.sourceId,
-            targetId: row.targetId
-          } : null,
-          toastPayload: payload,
-          text: toast && toast.text ? toast.text : null
-        });
-        if (!row) {
-          failed.push(`moneylog_row_missing:${op.reason}`);
-        }
-        if (!toast) {
-          if (!toastFailed) {
-            failed.push(`toast_missing:${op.reason}`);
-          }
-          continue;
-        }
-        const expectedCurrency = row ? String(row.currency || row.kind || "points").toLowerCase() : null;
-        const gotCurrency = payload ? String(payload.currency || "points").toLowerCase() : null;
-        if (row && payload && gotCurrency !== expectedCurrency) {
-          failed.push(`currency_mismatch:${op.reason}:${expectedCurrency}->${payload.currency}`);
-        }
-        const expectedAmount = row ? (Number.isFinite(row.amount) ? row.amount : ((row.delta !== undefined) ? Number(row.delta) : 0)) : null;
-        const gotAmount = (payload && Number.isFinite(payload.amount)) ? payload.amount : payload && payload.amount;
-        if (row && payload && expectedAmount !== gotAmount) {
-          failed.push(`amount_mismatch:${op.reason}:${expectedAmount}->${payload && payload.amount}`);
-        }
-        if (row && payload && String(payload.reason || "") !== String(row.reason || "")) {
-          failed.push(`reason_mismatch:${op.reason}:${row.reason}->${payload && payload.reason}`);
-        }
-      }
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        samples
-      };
-      const newToasts = Array.isArray(dbg.toastLog) ? dbg.toastLog.slice() : [];
-      dbg.toastLog = savedToasts.concat(newToasts);
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI3_MATCH_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI3_MATCH_END");
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.smokeEconUi_NoAutoOpenOnce = function smokeEconUi_NoAutoOpenOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const savedCalls = Array.isArray(dbg.__econToastForbiddenCalls) ? dbg.__econToastForbiddenCalls.slice() : [];
-      dbg.__econToastForbiddenCalls = [];
-      const beforePanel = capturePanelStateSig();
-      const beforeFocus = captureFocusSig();
-      const rowHelper = (typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : pushMoneyLogRow;
-      const toastHelper = (typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : pushEconToastFromLogRef;
-      const ops = [
-        { reason: "ui4_probe_1", currency: "points", amount: 1, sourceId: "smoke_ui4", targetId: "me" },
-        { reason: "ui4_probe_2", currency: "points", amount: -1, sourceId: "me", targetId: "crowd_pool" },
-        { reason: "ui4_probe_3", currency: "rep", amount: 1, sourceId: "smoke_ui4", targetId: "me" }
-      ];
-      for (const op of ops) {
-        try {
-          const ref = rowHelper({
-            time: Date.now(),
-            reason: op.reason,
-            currency: op.currency,
-            amount: op.amount,
-            sourceId: op.sourceId,
-            targetId: op.targetId,
-            meta: { smoke: "econ_ui4", op: op.reason }
-          });
-          if (ref && typeof toastHelper === "function") {
-            toastHelper(ref, opts.toastText || `probe:${op.reason}`);
-          }
-        } catch (_) {}
-      }
-      const afterPanel = capturePanelStateSig();
-      const afterFocus = captureFocusSig();
-      const forbiddenCalls = Array.isArray(dbg.__econToastForbiddenCalls) ? dbg.__econToastForbiddenCalls.slice() : [];
-      dbg.__econToastForbiddenCalls = savedCalls.concat(forbiddenCalls);
-      const failed = [];
-      if (!sigEqual(beforePanel.panelStateSig, afterPanel.panelStateSig)) failed.push("panel_state_changed");
-      if (!sigEqual(beforeFocus, afterFocus)) failed.push("focus_changed");
-      if (forbiddenCalls.length) failed.push("forbidden_calls");
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        before: {
-          panelStateSig: beforePanel.panelStateSig,
-          focusSig: beforeFocus,
-          notes: beforePanel.notes
-        },
-        after: {
-          panelStateSig: afterPanel.panelStateSig,
-          focusSig: afterFocus,
-          notes: afterPanel.notes
-        },
-        forbiddenCalls,
-        notes: []
-      };
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI4_NOAUTO_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI4_NOAUTO_END");
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.ensurePointsAtLeastForSmokesOnce = function ensurePointsAtLeastForSmokesOnce(minPts = 100, opts = {}) {
-      const stateRef = Game.__S || Game.State || {};
-      const targetId = String((opts && opts.targetId) || "me");
-      const getPointsFor = (pid) => {
-        if (pid === "me") {
-          const me = stateRef.me || (stateRef.players && stateRef.players.me);
-          return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-        }
-        const p = stateRef.players ? stateRef.players[pid] : null;
-        return (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : null;
-      const hasMoneyLog = !!(dbg && Array.isArray(dbg.moneyLog));
-      const logSourceUsed = hasMoneyLog ? "Game.__D.moneyLog" : "unknown";
-      const beforeLogLen = hasMoneyLog ? dbg.moneyLog.length : 0;
-      const target = Number.isFinite(minPts) ? (minPts | 0) : 100;
-      const before = getPointsFor(targetId);
-      const need = Math.max(1, target - before);
-      let method = null;
-      let amount = 0;
-      let errReason = null;
-      let donorId = null;
-      let worldBankBefore = null;
-      let worldBankAfter = null;
-
-      const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-      const canTransfer = !!(Econ && typeof Econ.transferPoints === "function");
-      const readSnapshot = () => (Econ && typeof Econ.sumPointsSnapshot === "function")
-        ? Econ.sumPointsSnapshot({ includeWorld: true, includePools: true })
-        : null;
-      const getBal = (id) => {
-        const snap = readSnapshot();
-        const byId = snap && snap.byId && typeof snap.byId === "object" ? snap.byId : null;
-        return (byId && Number.isFinite(byId[id])) ? (byId[id] | 0) : 0;
-      };
-      worldBankBefore = getBal("worldBank");
-
-      const ensureWorldBankFunds = (amountNeed) => {
-        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
-        if (getBal("worldBank") >= amountNeed) return { ok: true, method: "worldBank_ready" };
-        if (getBal("sink") >= amountNeed) {
-          try {
-            const tx = Econ.transferPoints("sink", "worldBank", amountNeed, "dev_seed_worldbank_topup", {
-              context: { smoke: "econ_ui_seed", minPts: target },
-              meta: { smoke: "econ_ui_seed", source: "sink", to: "worldBank", amount: amountNeed }
-            });
-            if (tx && tx.ok === true) return { ok: true, method: "sink_to_worldBank" };
-            return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "worldbank_topup_failed" };
-          } catch (_) {
-            return { ok: false, reason: "worldbank_topup_exception" };
-          }
-        }
-        return { ok: false, reason: "insufficient_worldbank" };
-      };
-
-      const seedWithWorldBank = () => {
-        const fundRes = ensureWorldBankFunds(need);
-        if (!fundRes.ok) return { ok: false, reason: fundRes.reason };
-        try {
-          const tx = Econ.transferPoints("worldBank", targetId, need, "dev_seed_points_for_smoke", {
-            context: { smoke: "econ_ui_seed", minPts: target },
-            meta: { smoke: "econ_ui_seed", minPts: target, source: "worldBank", targetId }
-          });
-          if (tx && tx.ok === true) {
-            method = `worldBank:${fundRes.method || "ready"}`;
-            amount = need;
-            return { ok: true };
-          }
-          return { ok: false, reason: tx && tx.reason ? String(tx.reason) : "worldbank_transfer_failed" };
-        } catch (_) {
-          return { ok: false, reason: "worldbank_transfer_exception" };
-        }
-      };
-
-      const seedWithSink = () => {
-        if (!canTransfer) return { ok: false, reason: "transfer_unavailable" };
-        try {
-          const tx = Econ.transferPoints("sink", targetId, need, "dev_seed_points_for_smoke", {
-            context: { smoke: "econ_ui_seed", minPts: target },
-            meta: { smoke: "econ_ui_seed", minPts: target, source: "sink", targetId }
-          });
-          if (tx && tx.ok === true) {
-            method = "sink";
-            amount = need;
-            return { ok: true };
-          }
-          const r = tx && tx.reason ? String(tx.reason) : "sink_transfer_failed";
-          if (r === "bad_account") return { ok: false, reason: "no_sink_id" };
-          if (r === "insufficient") return { ok: false, reason: "insufficient_sink" };
-          return { ok: false, reason: r };
-        } catch (_) {
-          return { ok: false, reason: "sink_transfer_exception" };
-        }
-      };
-
-      let seedRes = { ok: false, reason: "no_seed_path_internal" };
-      if (canTransfer) {
-        seedRes = seedWithWorldBank();
-        if (!seedRes.ok) {
-          seedRes = seedWithSink();
-        }
-      } else {
-        errReason = "transfer_unavailable";
-      }
-
-      if (!seedRes.ok) errReason = seedRes.reason || errReason || "no_seed_path_internal";
-      let after = getPointsFor(targetId);
-      let afterLogLen = hasMoneyLog ? dbg.moneyLog.length : beforeLogLen;
-      let rowsCount = Math.max(0, afterLogLen - beforeLogLen);
-      let txId = null;
-      if (hasMoneyLog && afterLogLen > beforeLogLen) {
-        const lastRow = dbg.moneyLog[afterLogLen - 1];
-        if (lastRow && lastRow.txId) txId = lastRow.txId;
-      }
-      const warn = [];
-      const balanceChanged = after > before;
-      if (rowsCount === 0 && balanceChanged && after >= target) {
-        warn.push("row_missing_but_balance_changed");
-        const rowHelper = (dbg && typeof dbg.pushMoneyLogRow === "function") ? dbg.pushMoneyLogRow : (typeof pushMoneyLogRow === "function" ? pushMoneyLogRow : null);
-        const toastHelper = (dbg && typeof dbg.pushEconToastFromLogRef === "function") ? dbg.pushEconToastFromLogRef : (typeof pushEconToastFromLogRef === "function" ? pushEconToastFromLogRef : null);
-        const delta = (after - before) | 0;
-        const sourceId = String(method || "").includes("worldBank") ? "worldBank" : (method === "sink" ? "sink" : "worldBank");
-        if (rowHelper && delta > 0) {
-          try {
-            const ref = rowHelper({
-              time: Date.now(),
-              reason: "dev_seed_points_for_smoke",
-              currency: "points",
-              amount: delta,
-              sourceId,
-              targetId,
-              meta: { smoke: "econ_ui_seed", minPts: target, method: method || null, forced: true, targetId }
-            });
-            if (ref && ref.txId) txId = ref.txId;
-            if (ref && toastHelper) {
-              try { toastHelper(ref); } catch (_) {}
-            }
-          } catch (_) {}
-          after = getPointsFor(targetId);
-          afterLogLen = hasMoneyLog ? dbg.moneyLog.length : afterLogLen;
-          rowsCount = Math.max(0, afterLogLen - beforeLogLen);
-        } else if (!rowHelper) {
-          warn.push("row_missing_no_helper");
-        }
-      }
-      const ok = (after >= target) && (rowsCount > 0 || balanceChanged);
-      if (!ok && !errReason) {
-        errReason = (after >= target && rowsCount === 0) ? "row_missing" : "insufficient_after_seed";
-      }
-      const worldBankAfterBal = (Econ && typeof Econ.sumPointsSnapshot === "function")
-        ? (Econ.sumPointsSnapshot({ includeWorld: true, includePools: true }).byId || {}).worldBank
-        : null;
-      worldBankAfter = Number.isFinite(worldBankAfterBal) ? (worldBankAfterBal | 0) : null;
-      return {
-        ok,
-        method,
-        amount,
-        before,
-        after,
-        errReason,
-        rowsCount,
-        donorId,
-        worldBankBefore,
-        worldBankAfter,
-        minPtsTarget: target,
-        targetId,
-        moneyLogLenBefore: beforeLogLen,
-        moneyLogLenAfter: afterLogLen,
-        logSourceUsed,
-        txId,
-        warn
-      };
-    };
-    Game.__DEV.listReportRoleKeysOnce = function listReportRoleKeysOnce() {
-      try {
-        const normalize = (input) => {
-          if (!input) return "";
-          const text = String(input).toLowerCase();
-          if (text.includes("—Ç–æ–∫—Å") || text.includes("toxic")) return "toxic";
-          if (text.includes("–±–∞–Ω–¥") || text.includes("bandit")) return "bandit";
-          if (text.includes("–º–∞—Ñ–∏") || text.includes("mafia")) return "mafia";
-          return "";
-        };
-        const allowedRoleKeys = ["toxic", "bandit", "mafia"];
-        const players = Object.values(State.players || {}).filter(p => p && p.id);
-        const findByRole = (roleKey) => players.find(p => normalize(p.role) === roleKey || normalize(p.type) === roleKey);
-        const trueTarget = findByRole("toxic") || findByRole("bandit") || findByRole("mafia") || players[0] || null;
-        const trueRoleKey = normalize(trueTarget && trueTarget.role) || normalize(trueTarget && trueTarget.type) || allowedRoleKeys[0];
-        const falseTarget = players.find(p => p && trueTarget && p.id !== trueTarget.id && allowedRoleKeys.includes(normalize(p.role)))
-          || players.find(p => p && trueTarget && p.id !== trueTarget.id) || null;
-        const falseTargetRole = normalize(falseTarget && falseTarget.role) || normalize(falseTarget && falseTarget.type) || (allowedRoleKeys[1] || allowedRoleKeys[0]);
-        const falseRoleKey = allowedRoleKeys.find(r => r !== falseTargetRole) || allowedRoleKeys.find(r => r !== trueRoleKey) || allowedRoleKeys[0];
-        const buildHint = (target, reportedRole) => {
-          if (!target) return `–≤–≤–µ–¥–∏—Ç–µ "${reportedRole}" –≤ –ø–æ–ª–µ ¬´–°–¥–∞—Ç—å¬ª.`;
-          const name = target.name || target.id || "NPC";
-          const actual = normalize(target.role) || normalize(target.type) || "unknown";
-          if (actual && reportedRole && actual !== reportedRole) {
-            return `–æ—Ç–∫—Ä–æ–π—Ç–µ DM —Å ${name} (—Ä–æ–ª—å ${actual}) –∏ –≤—ã–±–µ—Ä–∏—Ç–µ ¬´–°–¥–∞—Ç—å¬ª –∫–∞–∫ "${reportedRole}" ‚Äî —Ñ–∞–∫—Ç—ã –Ω–µ –ø–æ–¥—Ç–≤–µ—Ä–¥—è—Ç—Å—è.`;
-          }
-          return `–æ—Ç–∫—Ä–æ–π—Ç–µ DM —Å ${name} –∏ –≤—ã–±–µ—Ä–∏—Ç–µ ¬´–°–¥–∞—Ç—å¬ª –∫–∞–∫ "${reportedRole}".`;
-        };
-        return {
-          ok: true,
-          allowedRoleKeys,
-          examples: {
-            trueReport: {
-              roleKey: trueRoleKey,
-              targetId: trueTarget && trueTarget.id,
-              targetName: trueTarget && trueTarget.name,
-              note: buildHint(trueTarget, trueRoleKey),
-            },
-            falseReport: {
-              roleKey: falseRoleKey,
-              targetId: falseTarget && falseTarget.id,
-              targetName: falseTarget && falseTarget.name,
-              note: buildHint(falseTarget, falseRoleKey),
-            },
-          },
-          note: "–ò—Å–ø–æ–ª—å–∑—É–π—Ç–µ —ç—Ç–∏ roleKey —á–µ—Ä–µ–∑ applyReportByRole –∏–ª–∏ —á–µ—Ä–µ–∑ UI, —á—Ç–æ–±—ã –ø–æ–ª—É—á–∏—Ç—å —Å—Ç–∞–±–∏–ª—å–Ω—ã–µ true/false —Å—Ü–µ–Ω–∞—Ä–∏–∏.",
-        };
-      } catch (error) {
-        return { ok: false, reason: error && error.message ? error.message : "list_report_roles_failed" };
-      }
-    };
-    Game.__DEV.smokeEconUi_NoSilentReasonsOnce = function smokeEconUi_NoSilentReasonsOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const dbg = (Game && Game.__D) ? Game.__D : (window.Game.__D = window.Game.__D || {});
-      const sampleLimit = (opts && Number.isFinite(opts.sampleLimit)) ? (opts.sampleLimit | 0) : 5;
-      const summary = { rowsChecked: 0, silentCount: 0, silentSamples: [] };
-      const failed = [];
-      const scenarioAudit = [];
-
-      const ensurePointsForRematch = (targetId, battleId) => {
-        if (!targetId) return;
-        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-        if (!Econ || typeof Econ.transferPoints !== "function") return;
-        const getSnapshotPoints = (pid) => {
-          const stateRef = Game.__S || Game.State || {};
-          if (!pid) return 0;
-          if (pid === "me") {
-            const me = stateRef.me || (stateRef.players && stateRef.players.me);
-            return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-          }
-          const player = stateRef.players ? stateRef.players[pid] : null;
-          return (player && Number.isFinite(player.points)) ? (player.points | 0) : 0;
-        };
-        if (getSnapshotPoints(targetId) >= 1) return;
-        try {
-          Econ.transferPoints("worldBank", targetId, 1, "smoke_rematch_seed", {
-            battleId,
-            context: { battleId },
-            meta: { smoke: "econ_ui_no_silent" }
-          });
-        } catch (_) {}
-      };
-
-      const runRematchScenario = () => {
-        const Core = Game.ConflictCore || Game._ConflictCore || null;
-        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
-          return { ok: false, reason: "rematch_core_missing" };
-        }
-        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-        }
-        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
-        const battleId = battleRes.battleId || null;
-        if (!battleId) return { ok: false, reason: "battle_id_missing" };
-        const stateRef = Game.__S || Game.State || {};
-        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
-        if (!battle) return { ok: false, reason: "battle_missing", battleId };
-        const resultLabel = String(battle.result || "").toLowerCase();
-        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
-        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
-        if (!loserId) return { ok: false, reason: "loser_missing" };
-        ensurePointsForRematch(loserId, battleId);
-        const request = Core.requestRematch(battleId, loserId);
-        if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
-        const respond = Core.respondRematch(battleId, true, winnerId);
-        if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", respond };
-        return { ok: true, battleId, request, respond };
-      };
-
-      const scenarioDefs = [
-        {
-          label: "battle",
-          runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-              return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-            }
-            return Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-          }
-        },
-        {
-          label: "crowd",
-          runner: () => {
-            const diag = { stage: "start", trace: [] };
-            try {
-              diag.stage = "npc_event";
-              if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
-                const res = Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
-                diag.trace.push("npc_event_done");
-                if (res && res.ok !== false) return Object.assign({ ok: true }, res, { diag });
-                diag.trace.push("npc_event_failed");
-              } else {
-                diag.trace.push("npc_event_missing");
-              }
-              diag.stage = "battle_fallback";
-              if (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function") {
-                const res2 = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-                diag.trace.push("battle_fallback_done");
-                if (res2 && res2.ok !== false) return Object.assign({ ok: true }, res2, { diag, notes: ["fallback_battle"] });
-                return { ok: false, reason: "crowd_fallback_failed", details: res2, diag };
-              }
-              return { ok: false, reason: "smoke_crowd_missing", diag };
-            } catch (err) {
-              return {
-                ok: false,
-                reason: "crowd_exception",
-                errMessage: err && err.message ? String(err.message) : String(err),
-                errStack: err && err.stack ? String(err.stack) : null,
-                diag
-              };
-            }
-          }
-        },
-        {
-          label: "report",
-          runner: () => {
-            if (typeof window.devReportTest !== "function") {
-              return { ok: false, reason: "devReportTest_missing" };
-            }
-            return window.devReportTest({ mode: "false" });
-          }
-        },
-        { label: "rematch", runner: runRematchScenario },
-        {
-          label: "escape",
-          runner: () => {
-            const diag = { stage: "start", trace: [] };
-            try {
-              diag.stage = "call_smoke";
-              if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
-                return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"], diag };
-              }
-              const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
-              diag.trace.push("smoke_called");
-              if (res && res.ok === false) {
-                return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res, diag };
-              }
-              return Object.assign({ ok: true }, res || {}, { diag });
-            } catch (err) {
-              return {
-                ok: true,
-                reason: "no_econ_rows_expected",
-                notes: ["escape_exception_nonfatal"],
-                errMessage: err && err.message ? String(err.message) : String(err),
-                errStack: err && err.stack ? String(err.stack) : null,
-                diag
-              };
-            }
-          }
-        }
-      ];
-
-      const runScenario = (def) => {
-        const beforeLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
-        let scenarioResult = null;
-        let errMessage = null;
-        let errStack = null;
-        let stage = "runner";
-        try {
-          stage = "runner_call";
-          scenarioResult = def.runner();
-        } catch (err) {
-          scenarioResult = { ok: false, reason: err && err.message ? String(err.message) : "exception" };
-          errMessage = err && err.message ? String(err.message) : String(err);
-          errStack = err && err.stack ? String(err.stack) : null;
-          stage = "runner_exception";
-        }
-        const afterLen = (Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
-        const rows = (Array.isArray(dbg.moneyLog) && afterLen > beforeLen) ? dbg.moneyLog.slice(beforeLen, afterLen) : [];
-        scenarioAudit.push({
-          label: def.label,
-          ok: scenarioResult ? (scenarioResult.ok !== false) : true,
-          reason: scenarioResult && scenarioResult.reason ? scenarioResult.reason : null,
-          rowsCount: rows.length,
-          battleId: scenarioResult && (scenarioResult.battleId || (scenarioResult.details && scenarioResult.details.battleId)) ? (scenarioResult.battleId || scenarioResult.details.battleId) : null,
-          eventId: scenarioResult && (scenarioResult.eventId || (scenarioResult.details && scenarioResult.details.eventId)) ? (scenarioResult.eventId || scenarioResult.details.eventId) : null,
-          stage,
-          errMessage: scenarioResult && scenarioResult.errMessage ? scenarioResult.errMessage : errMessage,
-          errStack: scenarioResult && scenarioResult.errStack ? scenarioResult.errStack : errStack,
-          details: scenarioResult && scenarioResult.details ? scenarioResult.details : null,
-          diag: scenarioResult && scenarioResult.diag ? scenarioResult.diag : null,
-          notes: scenarioResult && scenarioResult.notes ? scenarioResult.notes : null
-        });
-        if (scenarioResult && scenarioResult.ok === false) {
-          failed.push(`scenario:${def.label}:${scenarioResult.reason || "failed"}`);
-        }
-        rows.forEach(row => {
-          if (!row || typeof row !== "object") return;
-          const involvesMe = (String(row.sourceId || "") === "me") || (String(row.targetId || "") === "me");
-          const amountSource = (row.amount !== undefined) ? row.amount : ((row.delta !== undefined) ? row.delta : 0);
-          const amount = Number(amountSource);
-          const currencyCandidate = String(row.currency || row.kind || "").toLowerCase();
-          if (!involvesMe && !row.txId) return;
-          if (involvesMe && (!row.txId || row.txId === "undefined")) {
-            failed.push(`missing_txId:${String(row.reason || "unknown")}`);
-            return;
-          }
-          if (involvesMe && Number.isFinite(amount) && amount !== 0) {
-            if (currencyCandidate !== "points" && currencyCandidate !== "rep") {
-              failed.push(`missing_currency:${String(row.reason || "unknown")}`);
-              return;
-            }
-          }
-          if (shouldToastRow(row)) {
-            summary.rowsChecked += 1;
-            const hasToast = Array.isArray(dbg.toastLog) ? dbg.toastLog.some(t => t && t.kind === "econ" && row.txId && row.txId === t.txId) : false;
-            if (!hasToast) {
-              summary.silentCount += 1;
-              if (summary.silentSamples.length < sampleLimit) {
-                summary.silentSamples.push({
-                  scenario: def.label,
-                  reason: row.reason,
-                  currency: row.currency,
-                  amount: row.amount,
-                  txId: row.txId,
-                  battleId: row.battleId,
-                  eventId: row.eventId
-                });
-              }
-              failed.push(`silent:${def.label}:${String(row.reason || "unknown")}:missing`);
-            }
-          }
-        });
-      };
-
-      for (const scenarioDef of scenarioDefs) {
-        runScenario(scenarioDef);
-      }
-
-      const result = {
-        ok: failed.length === 0,
-        failed,
-        summary,
-        scenarios: scenarioAudit
-      };
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI5_COVERAGE_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI5_COVERAGE_END");
-      } catch (_) {}
-      try { console.log("ECON_UI5_COVERAGE_RESULT", result); } catch (_) {}
-      return result;
-    };
-    Game.__DEV.withZeroSumAssert = withZeroSumAssert;
-    Game.__DEV.smokeEconUi_ZeroSumOnce = function smokeEconUi_ZeroSumOnce(opts = {}) {
-      const now = () => (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-      const formatTimestamp = (stamp) => {
-        const d = new Date(stamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-      };
-      const failed = [];
-      const scenarios = [];
-
-      const runRematchScenario = () => {
-        const Core = Game.ConflictCore || Game._ConflictCore || null;
-        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
-          return { ok: false, reason: "rematch_core_missing" };
-        }
-        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-        }
-        const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-        if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
-        const battleId = battleRes.battleId || null;
-        if (!battleId) return { ok: false, reason: "battle_id_missing" };
-        const stateRef = Game.__S || Game.State || {};
-        const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
-        if (!battle) return { ok: false, reason: "battle_missing", battleId };
-        const resultLabel = String(battle.result || "").toLowerCase();
-        const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
-        const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
-        if (!loserId) return { ok: false, reason: "loser_missing" };
-        const Econ = Game.ConflictEconomy || Game._ConflictEconomy || null;
-        if (Econ && typeof Econ.transferPoints === "function") {
-          const S = Game.__S || Game.State || {};
-          const p = (loserId === "me") ? (S.me || (S.players && S.players.me)) : (S.players ? S.players[loserId] : null);
-          const have = (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
-          if (have < 1) {
-            Econ.transferPoints("worldBank", loserId, 1, "smoke_rematch_seed", { battleId });
-          }
-        }
-        const request = Core.requestRematch(battleId, loserId);
-        if (!request || request.ok !== true) return { ok: false, reason: "rematch_request_failed", request };
-        const respond = Core.respondRematch(battleId, true, winnerId);
-        if (!respond || respond.ok !== true) return { ok: false, reason: "rematch_respond_failed", respond };
-        return { ok: true, battleId, request, respond };
-      };
-
-      const scenarioDefs = [
-        {
-          label: "battle",
-          runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-              return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-            }
-            return Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-          }
-        },
-        {
-          label: "crowd",
-          runner: () => {
-            if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
-              return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: "majority" });
-            }
-            if (Game.__DEV && typeof Game.__DEV.smokeBattleCrowdOutcomeOnce === "function") {
-              const res = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-              return Object.assign({ notes: ["fallback_battle"] }, res || {});
-            }
-            return { ok: false, reason: "smoke_crowd_missing" };
-          }
-        },
-        {
-          label: "report",
-          runner: () => {
-            if (typeof window.devReportTest !== "function") {
-              return { ok: false, reason: "devReportTest_missing" };
-            }
-            return window.devReportTest({ mode: "false" });
-          }
-        },
-        { label: "rematch", runner: runRematchScenario },
-        {
-          label: "escape",
-          runner: () => {
-            if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
-              return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"] };
-            }
-            const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
-            if (res && res.ok === false) return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res };
-            return res;
-          }
-        }
-      ];
-
-      const dbg = (Game && Game.__D) ? Game.__D : null;
-      for (const scenario of scenarioDefs) {
-        let scenarioRes = null;
-        let errMessage = null;
-        const beforeLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
-        try {
-          scenarioRes = scenario.runner();
-        } catch (err) {
-          errMessage = err && err.message ? String(err.message) : String(err);
-        }
-        const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
-        const rows = (dbg && Array.isArray(dbg.moneyLog) && afterLen > beforeLen) ? dbg.moneyLog.slice(beforeLen, afterLen) : [];
-        if (scenarioRes && typeof scenarioRes === "object") scenarioRes.__rows = rows;
-        const result = withZeroSumAssert(`ui6:${scenario.label}`, () => scenarioRes);
-        const entry = {
-          label: scenario.label,
-          ok: result.ok,
-          delta: result.delta,
-          beforeTotal: result.beforeTotal,
-          afterTotal: result.afterTotal,
-          includeIdsCount: result.includeIdsCount,
-          topIncreases: result.topIncreases,
-          scenarioResult: result.result || null,
-          error: result.error || errMessage || null
-        };
-        scenarios.push(entry);
-        if (!result.ok) failed.push(`delta_positive:${scenario.label}:${result.delta}`);
-      }
-
-      const output = {
-        ok: failed.length === 0,
-        failed,
-        scenarios,
-        notes: []
-      };
-      try {
-        const stamp = formatTimestamp(now());
-        console.log(`DUMP_AT [${stamp}]`);
-        console.log("ECON_UI6_ZERO_SUM_BEGIN");
-        console.log(JSON.stringify(output));
-        console.log("ECON_UI6_ZERO_SUM_END");
-      } catch (_) {}
-      try { console.log("ECON_UI6_ZERO_SUM_RESULT", output); } catch (_) {}
-      return output;
-    };
-    Game.__DEV.resetToIdleForSmokesOnce = function resetToIdleForSmokesOnce() {
-      const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
-      const result = {
-        ok: true,
-        activeBattlesBefore: 0,
-        activeBattlesAfter: 0,
-        activeEventsBefore: 0,
-        activeEventsAfter: 0,
-        cleared: false
-      };
-      if (!S) return Object.assign(result, { ok: false, reason: "state_missing" });
-      const battles = Array.isArray(S.battles) ? S.battles : [];
-      const events = Array.isArray(S.events) ? S.events : [];
-      const isBattleActive = (b) => {
-        if (!b) return false;
-        if (b.resolved === true) return false;
-        if (b.finished === true) return false;
-        if (String(b.status || "") === "finished") return false;
-        return true;
-      };
-      const isEventActive = (ev) => {
-        if (!ev) return false;
-        if (ev.resolved === true) return false;
-        const s = String(ev.state || ev.status || "");
-        if (s === "resolved" || s === "finished") return false;
-        return true;
-      };
-      result.activeBattlesBefore = battles.filter(isBattleActive).length;
-      result.activeEventsBefore = events.filter(isEventActive).length;
-      if (result.activeBattlesBefore) {
-        S.battles = battles.filter(b => !isBattleActive(b));
-      }
-      if (result.activeEventsBefore) {
-        S.events = events.filter(ev => !isEventActive(ev));
-      }
-      const battlesAfter = Array.isArray(S.battles) ? S.battles : [];
-      const eventsAfter = Array.isArray(S.events) ? S.events : [];
-      result.activeBattlesAfter = battlesAfter.filter(isBattleActive).length;
-      result.activeEventsAfter = eventsAfter.filter(isEventActive).length;
-      result.cleared = (result.activeBattlesBefore !== result.activeBattlesAfter) || (result.activeEventsBefore !== result.activeEventsAfter);
-      try {
-        if (Game && Game.UI && typeof Game.UI.requestAll === "function") {
-          Game.UI.requestAll();
-        }
-      } catch (_) {}
-      return result;
-    };
-    Game.__DEV.resetRematchCountersForSmokesOnce = function resetRematchCountersForSmokesOnce() {
-      const S = (Game && (Game.__S || Game.State)) ? (Game.__S || Game.State) : null;
-      if (!S || !Array.isArray(S.battles)) return { ok: false, reason: "state_missing" };
-      let cleared = 0;
-      for (const b of S.battles) {
-        if (!b) continue;
-        if (Number.isFinite(b.rematchRequestCount) && b.rematchRequestCount !== 0) {
-          b.rematchRequestCount = 0;
-          cleared += 1;
-        }
-      }
-      return { ok: true, cleared };
-    };
-    Game.__DEV.smokeEconUi_RegressionPackOnce = function smokeEconUi_RegressionPackOnce(opts = {}) {
-      const nowMs = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
-      const totalStart = nowMs();
-      const resultSteps = [];
-      const pre = (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function")
-        ? Game.__DEV.resetToIdleForSmokesOnce()
-        : { ok: false, reason: "reset_missing" };
-
-      const logStep = (name, stepRes, ms, errMessage, errStack) => {
-        const ok = !!(stepRes && stepRes.ok !== false);
-        let failedCount = (stepRes && Array.isArray(stepRes.failed)) ? stepRes.failed.length : 0;
-        if (!ok && failedCount === 0) failedCount = 1;
-        const notes = (stepRes && Array.isArray(stepRes.notes)) ? stepRes.notes.slice() : [];
-        if (!ok && stepRes && stepRes.reason) notes.push(`reason:${stepRes.reason}`);
-        resultSteps.push({
-          name,
-          ok,
-          ms,
-          failedCount,
-          notes,
-          errMessage,
-          errStack,
-          details: (!ok) ? stepRes : (stepRes && stepRes.__details ? stepRes.__details : null)
-        });
-      };
-
-      const safeRun = (name, fn, optsRun = {}) => {
-        const stepStart = nowMs();
-        let stepRes = null;
-        let errMessage = null;
-        let errStack = null;
-        try {
-          stepRes = fn();
-        } catch (err) {
-          errMessage = err && err.message ? String(err.message) : String(err);
-          errStack = err && err.stack ? String(err.stack) : null;
-          stepRes = { ok: false, reason: "exception" };
-        }
-        const stepEnd = nowMs();
-        if (optsRun && typeof optsRun.postProcess === "function") {
-          stepRes = optsRun.postProcess(stepRes) || stepRes;
-        }
-        logStep(name, stepRes, Math.round(stepEnd - stepStart), errMessage, errStack);
-        return stepRes;
-      };
-
-      const battleStep = (name, optsStep) => safeRun(name, () => {
-        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-        }
-        return Game.__DEV.smokeBattleCrowdOutcomeOnce(Object.assign({ allowParallel: false }, optsStep));
-      });
-      const crowdStep = (name, branch) => safeRun(name, () => {
-        if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
-          Game.__DEV.resetToIdleForSmokesOnce();
-        }
-        if (Game.__DEV && typeof Game.__DEV.smokeNpcCrowdEventEconomyOnce === "function") {
-          return Game.__DEV.smokeNpcCrowdEventEconomyOnce({ forceBranch: branch });
-        }
-        return { ok: false, reason: "smokeNpcCrowdEventEconomyOnce_missing" };
-      }, {
-        postProcess: (res) => {
-          const crowdPass = !!(res && (
-            res.ok === true ||
-            (res.totalsStable === true && (res.deltaWorld | 0) === 0 && (res.poolAfter | 0) === 0 && res.pointsDiffOk === true)
-          ));
-          if (crowdPass && res && res.ok === false) {
-            const notes = Array.isArray(res.notes) ? res.notes.slice() : [];
-            notes.push("crowd_nonfatal_smoke_ok:false");
-            return Object.assign({}, res, { ok: true, notes, __details: { ok: res.ok, economyOk: res.economyOk, totalsStable: res.totalsStable, deltaWorld: res.deltaWorld, pointsDiffOk: res.pointsDiffOk, poolAfter: res.poolAfter } });
-          }
-          return res;
-        }
-      });
-      const reportStep = (name, mode) => safeRun(name, () => {
-        if (typeof window.devReportTest !== "function") {
-          return { ok: false, reason: "devReportTest_missing" };
-        }
-        return window.devReportTest({ mode });
-      });
-      const rematchStep = (name) => safeRun(name, () => {
-        if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
-          Game.__DEV.resetToIdleForSmokesOnce();
-        }
-        const dbg = (Game && Game.__D) ? Game.__D : null;
-        const beforeLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : 0;
-        const Core = Game.ConflictCore || Game._ConflictCore || null;
-        if (!Core || typeof Core.requestRematch !== "function" || typeof Core.respondRematch !== "function") {
-          return { ok: false, reason: "rematch_core_missing" };
-        }
-        if (!Game.__DEV || typeof Game.__DEV.smokeBattleCrowdOutcomeOnce !== "function") {
-          return { ok: false, reason: "smokeBattleCrowdOutcomeOnce_missing" };
-        }
-        const stateRef = Game.__S || Game.State || {};
-        const countActiveBattles = () => {
-          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
-          return list.filter(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished").length;
-        };
-        const getMePoints = () => {
-          const me = stateRef.me || (stateRef.players && stateRef.players.me);
-          return (me && Number.isFinite(me.points)) ? (me.points | 0) : 0;
-        };
-        const getPointsFor = (pid) => {
-          if (pid === "me") return getMePoints();
-          const p = stateRef.players ? stateRef.players[pid] : null;
-          return (p && Number.isFinite(p.points)) ? (p.points | 0) : 0;
-        };
-        const getActiveBattleId = () => {
-          const list = Array.isArray(stateRef.battles) ? stateRef.battles : [];
-          const active = list.find(b => b && b.resolved !== true && b.finished !== true && String(b.status || "") !== "finished");
-          return active ? active.id || null : null;
-        };
-        const getLastBattleId = () => (Array.isArray(stateRef.battles) && stateRef.battles.length) ? stateRef.battles[0].id || null : null;
-        const getExpectedRematchCost = () => {
-          const api = Game.RematchAPI || Game.Rematch || Game.ConflictRematch || null;
-          const costFns = [
-            api && api.getCost,
-            api && api.cost,
-            api && api.calcPriceOnce,
-            Core && Core.getRematchCost,
-            Core && Core.calcRematchCost
-          ];
-          for (const fn of costFns) {
-            if (typeof fn === "function") {
-              try {
-                const val = fn.call(api || Core);
-                if (Number.isFinite(val)) return Number(val);
-              } catch (_) {}
-            }
-          }
-          return null;
-        };
-        const ensureBattleContext = () => {
-          const battleRes = Game.__DEV.smokeBattleCrowdOutcomeOnce({ allowParallel: false });
-          if (!battleRes || battleRes.ok !== true) return { ok: false, reason: "battle_smoke_failed", battleRes };
-          const battleId = battleRes.battleId || null;
-          if (!battleId) return { ok: false, reason: "battle_id_missing" };
-          const battle = (stateRef.battles || []).find(b => b && String(b.id) === String(battleId));
-          if (!battle) return { ok: false, reason: "battle_missing", battleId };
-          const resultLabel = String(battle.result || "").toLowerCase();
-          const winnerId = (resultLabel === "win") ? "me" : (battle.opponentId || "npc_weak");
-          const loserId = (resultLabel === "win") ? (battle.opponentId || "npc_weak") : "me";
-          const canRematch = !!(battle.resolved || battle.finished || battle.status === "finished");
-          return { ok: true, battleId, winnerId, loserId, battle, canRematch };
-        };
-        const buildStateSig = () => ({
-          activeBattles: countActiveBattles(),
-          activeBattleId: getActiveBattleId(),
-          pointsMe: getMePoints(),
-          lastBattleId: getLastBattleId(),
-          canRematch: null
-        });
-        const seedForTarget = (target, targetId = "me") => {
-          const before = getPointsFor(targetId);
-          let seedRes = null;
-          if (Game.__DEV && typeof Game.__DEV.ensurePointsAtLeastForSmokesOnce === "function") {
-            try {
-              seedRes = Game.__DEV.ensurePointsAtLeastForSmokesOnce(target, { targetId });
-            } catch (_) {
-              seedRes = null;
-            }
-          }
-          if (!seedRes || typeof seedRes !== "object") {
-            const after = getPointsFor(targetId);
-            seedRes = { ok: false, method: null, amount: 0, before, after, errReason: "seed_helper_missing", rowsCount: 0, minPtsTarget: target, targetId };
-          }
-          return seedRes;
-        };
-        const preState = buildStateSig();
-        const expectedCost = getExpectedRematchCost();
-        const minPtsTarget = Number.isFinite(expectedCost) ? Math.max(300, Math.ceil(expectedCost * 3 + 10)) : 300;
-        const seedRes1 = seedForTarget(minPtsTarget);
-        const pointsBeforeSeed = Number.isFinite(seedRes1.before) ? seedRes1.before : getMePoints();
-        const pointsAfterSeed = Number.isFinite(seedRes1.after) ? seedRes1.after : getMePoints();
-        if (!seedRes1.ok) {
-          const havePoints = getPointsFor("me");
-          const computedCost = Number.isFinite(expectedCost) ? expectedCost : null;
-          const needPoints = (Number.isFinite(computedCost) && Number.isFinite(havePoints)) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null;
-          return {
-            ok: false,
-            reason: `seed_failed_${seedRes1.errReason || "unknown"}`,
-            preState,
-            expectedCost,
-            minPtsTarget,
-            seedAttempted: true,
-            seed: seedRes1,
-            pointsBeforeSeed,
-            pointsAfterSeed,
-            payerId: "me",
-            havePoints,
-            needPoints,
-            computedCost
-          };
-        }
-        const ctx1 = ensureBattleContext();
-        if (!ctx1.ok) {
-          const havePoints = getPointsFor("me");
-          const computedCost = Number.isFinite(expectedCost) ? expectedCost : null;
-          const needPoints = (Number.isFinite(computedCost) && Number.isFinite(havePoints)) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null;
-          return Object.assign({
-            ok: false,
-            preState,
-            expectedCost,
-            minPtsTarget,
-            seedAttempted: true,
-            seed: seedRes1,
-            pointsBeforeSeed,
-            pointsAfterSeed,
-            payerId: "me",
-            havePoints,
-            needPoints,
-            computedCost
-          }, ctx1);
-        }
-        preState.canRematch = ctx1.canRematch;
-        const pointsBeforeAttempt1 = getMePoints();
-        const attempt1 = Core.requestRematch(ctx1.battleId, ctx1.loserId);
-        const attempt1Reason = (attempt1 && attempt1.reason) ? String(attempt1.reason) : "rematch_request_failed";
-        const extractPay = (attempt, fallbackLoserId) => {
-          const payerId = attempt && attempt.payerId ? String(attempt.payerId) : String(fallbackLoserId || "me");
-          const havePoints = Number.isFinite(attempt && attempt.havePoints)
-            ? attempt.havePoints
-            : (Number.isFinite(attempt && attempt.have) ? attempt.have : getPointsFor(payerId));
-          const computedCost = Number.isFinite(attempt && attempt.computedCost)
-            ? attempt.computedCost
-            : (Number.isFinite(attempt && attempt.cost) ? attempt.cost : expectedCost);
-          const needPoints = Number.isFinite(attempt && attempt.needPoints)
-            ? attempt.needPoints
-            : (Number.isFinite(computedCost) && Number.isFinite(havePoints) ? Math.max(0, (computedCost | 0) - (havePoints | 0)) : null);
-          return { payerId, havePoints, needPoints, computedCost };
-        };
-        const pay1 = extractPay(attempt1, ctx1.loserId);
-        if (attempt1 && attempt1.ok === true) {
-          const respond = Core.respondRematch(ctx1.battleId, true, ctx1.winnerId);
-          if (!respond || respond.ok !== true) {
-            return {
-              ok: false,
-              reason: "rematch_respond_failed",
-              attempt1,
-              respond,
-              preState,
-              expectedCost,
-              minPtsTarget,
-              seedAttempted: true,
-              seed: seedRes1,
-              pointsBeforeSeed,
-              pointsAfterSeed,
-              pointsBeforeAttempt1,
-              attempt1ReasonCode: attempt1Reason,
-              payerId: pay1.payerId,
-              havePoints: pay1.havePoints,
-              needPoints: pay1.needPoints,
-              computedCost: pay1.computedCost
-            };
-          }
-          const postState = buildStateSig();
-          postState.canRematch = ctx1.canRematch;
-          const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
-          const rowsCount = Math.max(0, afterLen - beforeLen);
-          const out = {
-            ok: true,
-            battleId: ctx1.battleId,
-            attempt1,
-            respond,
-            preState,
-            postState,
-            attempt1ReasonCode: null,
-            rowsCount
-          };
-          out.__details = {
-            preState,
-            postState,
-            attempt1ReasonCode: null,
-            attempt2ReasonCode: null,
-            expectedCost,
-            minPtsTarget,
-            seedAttempted: true,
-            seed: seedRes1,
-            pointsBeforeSeed,
-            pointsAfterSeed,
-            pointsBeforeAttempt1,
-            pointsBeforeAttempt2: null,
-            payerId: pay1.payerId,
-            havePoints: pay1.havePoints,
-            needPoints: pay1.needPoints,
-            computedCost: pay1.computedCost
-          };
-          if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
-          return out;
-        }
-        const retryReasons = new Set(["no_points", "insufficient", "rematch_request_failed", "no_last_battle", "not_allowed", "active_battle_present"]);
-        if (retryReasons.has(attempt1Reason)) {
-          let retryTarget = (attempt1Reason === "no_points") ? Math.max(300, minPtsTarget) : minPtsTarget;
-          if (attempt1Reason === "no_points") {
-            if (Number.isFinite(pay1.computedCost)) retryTarget = Math.max(retryTarget, (pay1.computedCost | 0) + 10);
-            if (Number.isFinite(pay1.havePoints) && Number.isFinite(pay1.needPoints)) {
-              retryTarget = Math.max(retryTarget, (pay1.havePoints | 0) + (pay1.needPoints | 0) + 10);
-            }
-          }
-          const payerId = pay1.payerId || "me";
-          const seedRes2 = seedForTarget(retryTarget, payerId);
-          const pointsBeforeSeed2 = Number.isFinite(seedRes2.before) ? seedRes2.before : getPointsFor(payerId);
-          const pointsAfterSeed2 = Number.isFinite(seedRes2.after) ? seedRes2.after : getPointsFor(payerId);
-          if (!seedRes2.ok) {
-            return {
-              ok: false,
-              reason: `seed_failed_${seedRes2.errReason || "unknown"}`,
-              preState,
-              expectedCost,
-              minPtsTarget: retryTarget,
-              seedAttempted: true,
-              seed: seedRes2,
-              pointsBeforeSeed: pointsBeforeSeed2,
-              pointsAfterSeed: pointsAfterSeed2,
-              attempt1ReasonCode: attempt1Reason,
-              payerId: pay1.payerId,
-              havePoints: pay1.havePoints,
-              needPoints: pay1.needPoints,
-              computedCost: pay1.computedCost
-            };
-          }
-          if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
-            Game.__DEV.resetToIdleForSmokesOnce();
-          }
-          const ctx2 = ensureBattleContext();
-          if (!ctx2.ok) {
-            return Object.assign({
-              ok: false,
-              reason: "rematch_request_failed",
-              attempt1,
-              preState,
-              attempt1ReasonCode: attempt1Reason,
-              expectedCost,
-              minPtsTarget: retryTarget,
-              seedAttempted: true,
-              seed: seedRes2,
-              pointsBeforeSeed: pointsBeforeSeed2,
-              pointsAfterSeed: pointsAfterSeed2,
-              payerId: pay1.payerId,
-              havePoints: pay1.havePoints,
-              needPoints: pay1.needPoints,
-              computedCost: pay1.computedCost
-            }, ctx2);
-          }
-          const pointsBeforeAttempt2 = getMePoints();
-          const attempt2 = Core.requestRematch(ctx2.battleId, ctx2.loserId);
-          const attempt2Reason = (attempt2 && attempt2.reason) ? String(attempt2.reason) : "rematch_request_failed";
-          if (attempt2 && attempt2.ok === true) {
-            const respond2 = Core.respondRematch(ctx2.battleId, true, ctx2.winnerId);
-            if (!respond2 || respond2.ok !== true) {
-              return {
-                ok: false,
-                reason: "rematch_respond_failed",
-                attempt1,
-                attempt2,
-                respond: respond2,
-                preState,
-                expectedCost,
-                minPtsTarget: retryTarget,
-                seedAttempted: true,
-                seed: seedRes2,
-                pointsBeforeSeed: pointsBeforeSeed2,
-                pointsAfterSeed: pointsAfterSeed2,
-                pointsBeforeAttempt1,
-                pointsBeforeAttempt2,
-                attempt1ReasonCode: attempt1Reason,
-                attempt2ReasonCode: attempt2Reason,
-                payerId: pay1.payerId,
-                havePoints: pay1.havePoints,
-                needPoints: pay1.needPoints,
-                computedCost: pay1.computedCost
-              };
-            }
-            const postState = buildStateSig();
-            postState.canRematch = ctx2.canRematch;
-            const afterLen = (dbg && Array.isArray(dbg.moneyLog)) ? dbg.moneyLog.length : beforeLen;
-            const rowsCount = Math.max(0, afterLen - beforeLen);
-            const out = {
-              ok: true,
-              battleId: ctx2.battleId,
-              attempt1,
-              attempt2,
-              respond: respond2,
-              preState,
-              postState,
-              attempt1ReasonCode: attempt1Reason,
-              attempt2ReasonCode: null,
-              rowsCount
-            };
-            out.__details = {
-              preState,
-              postState,
-              attempt1ReasonCode: attempt1Reason,
-              attempt2ReasonCode: null,
-              expectedCost,
-              minPtsTarget: retryTarget,
-              seedAttempted: true,
-              seed: seedRes2,
-              pointsBeforeSeed: pointsBeforeSeed2,
-              pointsAfterSeed: pointsAfterSeed2,
-              pointsBeforeAttempt1,
-              pointsBeforeAttempt2,
-              payerId: pay1.payerId,
-              havePoints: pay1.havePoints,
-              needPoints: pay1.needPoints,
-              computedCost: pay1.computedCost
-            };
-            if (rowsCount === 0) return Object.assign(out, { ok: false, reason: "no_econ_rows" });
-            return out;
-          }
-          const postState = buildStateSig();
-          postState.canRematch = ctx2.canRematch;
-          return {
-            ok: false,
-            reason: "rematch_request_failed",
-            attempt1,
-            attempt2,
-            preState,
-            postState,
-            expectedCost,
-            minPtsTarget: retryTarget,
-            seedAttempted: true,
-            seed: seedRes2,
-            pointsBeforeSeed: pointsBeforeSeed2,
-            pointsAfterSeed: pointsAfterSeed2,
-            pointsBeforeAttempt1,
-            pointsBeforeAttempt2,
-            attempt1ReasonCode: attempt1Reason,
-            attempt2ReasonCode: attempt2Reason,
-            payerId: pay1.payerId,
-            havePoints: pay1.havePoints,
-            needPoints: pay1.needPoints,
-            computedCost: pay1.computedCost
-          };
-        }
-        return {
-          ok: false,
-          reason: "rematch_request_failed",
-          attempt1,
-          preState,
-          expectedCost,
-          minPtsTarget,
-          seedAttempted: true,
-          seed: seedRes1,
-          pointsBeforeSeed,
-          pointsAfterSeed,
-          pointsBeforeAttempt1,
-          attempt1ReasonCode: attempt1Reason,
-          payerId: pay1.payerId,
-          havePoints: pay1.havePoints,
-          needPoints: pay1.needPoints,
-          computedCost: pay1.computedCost
-        };
-      });
-      const escapeStep = () => safeRun("escape", () => {
-        if (!Game.__DEV || typeof Game.__DEV.smokeEscapeCrowdOutcomeOnce !== "function") {
-          return { ok: true, reason: "no_econ_rows_expected", notes: ["smokeEscapeCrowdOutcomeOnce_missing"] };
-        }
-        const res = Game.__DEV.smokeEscapeCrowdOutcomeOnce({ allowParallel: false });
-        if (res && res.ok === false) return { ok: true, reason: "no_econ_rows_expected", notes: ["smoke_failed_nonfatal"], details: res };
-        return res;
-      });
-      const decorateStep = (name, fn) => safeRun(name, fn);
-
-      battleStep("battle_win", { forceMajoritySide: "attacker" });
-      battleStep("battle_lose", { forceMajoritySide: "defender" });
-      crowdStep("crowd_majority", "majority");
-      crowdStep("crowd_minority", "minority");
-      crowdStep("crowd_fifty_fifty", "fifty");
-      reportStep("report_true", "true");
-      reportStep("report_false", "false");
-      if (Game.__DEV && typeof Game.__DEV.resetRematchCountersForSmokesOnce === "function") {
-        Game.__DEV.resetRematchCountersForSmokesOnce();
-      }
-      rematchStep("rematch_1");
-      rematchStep("rematch_2");
-      rematchStep("rematch_3");
-      escapeStep();
-      if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
-        Game.__DEV.resetToIdleForSmokesOnce();
-      }
-      decorateStep("smoke_no_silent", () => (Game.__DEV && typeof Game.__DEV.smokeEconUi_NoSilentReasonsOnce === "function") ? Game.__DEV.smokeEconUi_NoSilentReasonsOnce() : { ok: false, reason: "smoke_no_silent_missing" });
-      decorateStep("smoke_zero_sum", () => (Game.__DEV && typeof Game.__DEV.smokeEconUi_ZeroSumOnce === "function") ? Game.__DEV.smokeEconUi_ZeroSumOnce() : { ok: false, reason: "smoke_zero_sum_missing" });
-
-      const totalEnd = nowMs();
-      const totalMs = Math.round(totalEnd - totalStart);
-      const ok = resultSteps.every(step => step.ok) && totalMs <= (opts.timeout || 180000);
-      const result = {
-        ok,
-        totalMs,
-        pre,
-        steps: resultSteps.map(step => ({
-          name: step.name,
-          ok: step.ok,
-          ms: step.ms,
-          failedCount: step.failedCount,
-          notes: step.notes,
-          details: step.details || null
-        })),
-        notes: []
-      };
-      const resultOut = Object.assign({}, result);
-      if (resultOut && typeof resultOut.then === "function") {
-        try { delete resultOut.then; } catch (_) {}
-      }
-      try {
-        const stamp = (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-        const fmt = (stampVal) => {
-          const d = new Date(stampVal);
-          const pad = (n) => String(n).padStart(2, "0");
-          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-        };
-        console.log(`DUMP_AT [${fmt(stamp)}]`);
-        console.log("ECON_UI7_PACK_BEGIN");
-        console.log(JSON.stringify(resultOut));
-        console.log("ECON_UI7_PACK_END");
-      } catch (_) {}
-      try { console.log("ECON_UI7_PACK_RESULT", resultOut); } catch (_) {}
-      return resultOut;
-    };
-
-    Game.__DEV.smokeEconUi_FinalAuditOnce = function smokeEconUi_FinalAuditOnce(opts = {}) {
-      const nowMs = () => (typeof performance !== "undefined" && typeof performance.now === "function") ? performance.now() : Date.now();
-      const totalStart = nowMs();
-      const failed = [];
-
-      const fetchTextSync = (path) => {
-        try {
-          const xhr = new XMLHttpRequest();
-          xhr.open("GET", path, false);
-          xhr.send(null);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            return { ok: true, text: xhr.responseText || "" };
-          }
-          return { ok: false, reason: `http_${xhr.status || 0}` };
-        } catch (_) {
-          return { ok: false, reason: "xhr_exception" };
-        }
-      };
-
-      const getStatus = (text, key) => {
-        if (!text) return "MISSING";
-        const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const re = new RegExp(`${esc}[\\s\\S]{0,240}?- Status:\\s*(\\w+)`, "i");
-        const m = re.exec(text);
-        if (!m) return "MISSING";
-        return String(m[1] || "").toUpperCase();
-      };
-
-      const tRes = fetchTextSync("/__dev__/docs/TASKS.md");
-      const pRes = fetchTextSync("/__dev__/docs/PROJECT_MEMORY.md");
-      const keys = [
-        { id: "econ01", key: "ECON-01" },
-        { id: "econ02", key: "ECON-02" },
-        { id: "econ03", key: "ECON-03" }
-      ];
-      const docs = {
-        ok: true,
-        econ01: "MISSING",
-        econ02: "MISSING",
-        econ03: "MISSING",
-        readOk: true,
-        mode: "read_ok",
-        missing: [],
-        notes: []
-      };
-
-      if (!tRes.ok) docs.notes.push(`TASKS.md:${tRes.reason || "unavailable"}`);
-      if (!pRes.ok) docs.notes.push(`PROJECT_MEMORY.md:${pRes.reason || "unavailable"}`);
-      const tGood = tRes.ok && (tRes.text || "").trim().length > 0;
-      const pGood = pRes.ok && (pRes.text || "").trim().length > 0;
-      const readOk = tGood && pGood;
-      docs.readOk = readOk;
-      docs.mode = readOk ? "read_http" : "skipped_http_404";
-      if (!readOk) {
-        docs.ok = true;
-      } else {
-        for (const k of keys) {
-          const tStatus = getStatus(tRes.text, k.key);
-          const pStatus = getStatus(pRes.text, k.key);
-          let finalStatus = "MISSING";
-          if (tStatus === "PASS" && pStatus === "PASS") finalStatus = "PASS";
-          else if (tStatus === "MISSING" || pStatus === "MISSING") finalStatus = "MISSING";
-          else finalStatus = "FAIL";
-          docs[k.id] = finalStatus;
-          if (tStatus === "MISSING") docs.missing.push(`TASKS:${k.key}`);
-          if (pStatus === "MISSING") docs.missing.push(`PROJECT_MEMORY:${k.key}`);
-          if (finalStatus !== "PASS") docs.ok = false;
-        }
-        if (!docs.ok) failed.push("docs_not_pass");
-      }
-
-      const runtime = { ok: true, steps: [] };
-      const addStep = (name, payload) => {
-        runtime.steps.push(payload);
-        if (!payload.ok) runtime.ok = false;
-      };
-
-      const resetIdle = (tag) => {
-        if (Game.__DEV && typeof Game.__DEV.resetToIdleForSmokesOnce === "function") {
-          const res = Game.__DEV.resetToIdleForSmokesOnce();
-          if (res && Number.isFinite(res.activeBattlesBefore) && res.activeBattlesBefore > 0) {
-            return `active_battles_before_${tag}:${res.activeBattlesBefore}`;
-          }
-        }
-        return null;
-      };
-
-      const t0 = nowMs();
-      let packRes = null;
-      try {
-        packRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_RegressionPackOnce === "function")
-          ? Game.__DEV.smokeEconUi_RegressionPackOnce()
-          : { ok: false, failed: ["missing"] };
-      } catch (err) {
-        packRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
-      }
-      const packMs = (packRes && Number.isFinite(packRes.totalMs)) ? (packRes.totalMs | 0) : Math.round(nowMs() - t0);
-      const packFailedCount = (packRes && Array.isArray(packRes.steps)) ? packRes.steps.filter(s => s && s.ok === false).length
-        : (packRes && Array.isArray(packRes.failed)) ? packRes.failed.length
-        : (packRes && packRes.ok === false ? 1 : 0);
-      addStep("ui7_regression", { name: "ui7_regression", ok: !!(packRes && packRes.ok), totalMs: packMs, failedCount: packFailedCount, note: null });
-
-      let noSilentRes = null;
-      const idleNote1 = resetIdle("ui5");
-      try {
-        noSilentRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_NoSilentReasonsOnce === "function")
-          ? Game.__DEV.smokeEconUi_NoSilentReasonsOnce(opts && opts.window ? { window: opts.window } : {})
-          : { ok: false };
-      } catch (err) {
-        noSilentRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
-      }
-      addStep("ui5_coverage", {
-        name: "ui5_coverage",
-        ok: !!(noSilentRes && noSilentRes.ok),
-        rowsChecked: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.rowsChecked)) ? noSilentRes.summary.rowsChecked : 0,
-        silentCount: (noSilentRes && noSilentRes.summary && Number.isFinite(noSilentRes.summary.silentCount)) ? noSilentRes.summary.silentCount : 0,
-        note: idleNote1
-      });
-
-      let zeroSumRes = null;
-      const idleNote2 = resetIdle("ui6");
-      try {
-        zeroSumRes = (Game.__DEV && typeof Game.__DEV.smokeEconUi_ZeroSumOnce === "function")
-          ? Game.__DEV.smokeEconUi_ZeroSumOnce()
-          : { ok: false };
-      } catch (err) {
-        zeroSumRes = { ok: false, failed: [String(err && err.message ? err.message : err)] };
-      }
-      const deltasSample = Array.isArray(zeroSumRes && zeroSumRes.scenarios)
-        ? zeroSumRes.scenarios.slice(0, 3).map(s => Number.isFinite(s && s.delta) ? s.delta : 0)
-        : [];
-      addStep("ui6_zero_sum", {
-        name: "ui6_zero_sum",
-        ok: !!(zeroSumRes && zeroSumRes.ok),
-        scenarios: Array.isArray(zeroSumRes && zeroSumRes.scenarios) ? zeroSumRes.scenarios.length : 0,
-        deltasSample,
-        note: idleNote2
-      });
-
-      if (!runtime.ok) failed.push("runtime_not_pass");
-
-      const totalEnd = nowMs();
-      const totalMs = Math.round(totalEnd - totalStart);
-      if (totalMs > 180000) failed.push("timeout");
-
-      const docsGateOk = docs.readOk ? docs.ok : true;
-      const result = {
-        ok: docsGateOk && runtime.ok && totalMs <= 180000 && failed.length === 0,
-        totalMs,
-        docs,
-        runtime,
-        failed
-      };
-
-      try {
-        const stamp = (Game.Time && typeof Game.Time.now === "function") ? Game.Time.now() : Date.now();
-        const fmt = (stampVal) => {
-          const d = new Date(stampVal);
-          const pad = (n) => String(n).padStart(2, "0");
-          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-        };
-        console.log(`DUMP_AT [${fmt(stamp)}]`);
-        console.log("ECON_UI8_FINAL_BEGIN");
-        console.log(JSON.stringify(result));
-        console.log("ECON_UI8_FINAL_END");
-      } catch (_) {}
-      return result;
-    };
-  }
-
-  try {
-    const dev = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : null;
-    const hasSmoke = !!(dev && typeof dev.smokeEconUi_RegressionPackOnce === "function");
-    console.log("SMOKE_REGISTRY_STATUS", {
-      smokeName: "smokeEconUi_RegressionPackOnce",
-      hasSmoke,
-      devFlag: isDevFlag(),
-      smokeSurface: allowSmokeSurface()
-    });
-  } catch (_) {}
-  try {
-    const dev = (Game && Game.__DEV && typeof Game.__DEV === "object") ? Game.__DEV : null;
-    const keys = dev ? Object.keys(dev) : [];
-    console.log("SMOKE_REGISTRY_KEYS", { count: keys.length, sample: keys.slice(0, 12) });
-  } catch (_) {}
-
-  installEconUiSideEffectGuards();
-  if (typeof window !== "undefined") {
-    const scheduleGuard = () => installEconUiSideEffectGuards();
-    if (typeof window.requestAnimationFrame === "function") {
-      window.requestAnimationFrame(scheduleGuard);
-    } else {
-      setTimeout(scheduleGuard, 0);
-    }
-  }
-
-  function createReactionPolicy(){
-    const SHORT_WINDOW_MS = 60 * 1000;
-    const TEMP_BLOCK_TTL_MS = 120 * 1000;
-    const LONG_WINDOW_MS = 10 * 60 * 1000;
-    const HARD_THRESHOLD = 5;
-    const MAX_REACTIONS = 180;
-    const HARD_TYPES = new Set(["critical_tamper", "forbidden_api_repeat"]);
-    const LEVELS = {
-      LOG_ONLY: "log_only",
-      TEMP_BLOCK: "temp_block",
-      PERMA_FLAG: "perma_flag",
-    };
-    const PRIORITY = {
-      [LEVELS.LOG_ONLY]: 0,
-      [LEVELS.TEMP_BLOCK]: 1,
-      [LEVELS.PERMA_FLAG]: 2,
-    };
-    const STORAGE_KEY = "AsyncScene_security_perma_flags_v1";
-    const storage = (typeof window !== "undefined" && window.localStorage) ? window.localStorage : null;
-    const RUNTIME_SOURCE = "runtime";
-    const BOOTSTRAP_SOURCE_NAME = "ReactionPolicy.restorePersistedFlags";
-    const FLAG_AUTHORITY = {
-      AUTHORITATIVE: "authoritative_perma_flag",
-      RESTORED_LOCAL: "restored_local_non_authoritative_flag",
-    };
-    const BOOT_TIME_MS = Date.now();
-    const STALE_FINGERPRINT_SINCE = 1772946669418;
-    if (!Number.isFinite(Number(Game.__FLOW_AUDIT_POLICY_SEQ__))) Game.__FLOW_AUDIT_POLICY_SEQ__ = 0;
-    Game.__FLOW_AUDIT_POLICY_SEQ__ = (Number(Game.__FLOW_AUDIT_POLICY_SEQ__) | 0) + 1;
-    const POLICY_ID = `policy_${Game.__FLOW_AUDIT_POLICY_SEQ__}`;
-    const flowAuditObjectIds = new WeakMap();
-    const flowAuditProxyTargets = new WeakMap();
-    let flowAuditObjectSeq = 0;
-    let policyApi = null;
-
-    function flowAuditText(value, fallback){
-      if (typeof value === "string" && value.trim()) return value.trim();
-      if (value != null) {
-        const str = String(value).trim();
-        if (str) return str;
-      }
-      if (fallback != null) {
-        const fb = String(fallback).trim();
-        if (fb) return fb;
-      }
-      return "unknown";
-    }
-
-    function flowAuditRefId(obj){
-      if (!obj || typeof obj !== "object") return "null";
-      let id = flowAuditObjectIds.get(obj);
-      if (!id) {
-        flowAuditObjectSeq += 1;
-        id = `ref_${flowAuditObjectSeq}`;
-        flowAuditObjectIds.set(obj, id);
-      }
-      return id;
-    }
-
-    function isStaleFingerprintSince(value){
-      const since = Number(value);
-      return Number.isFinite(since) && since === STALE_FINGERPRINT_SINCE;
-    }
-
-    function logStaleFingerprint(source, action){
-      const src = flowAuditText(source, "unknown");
-      const actionText = flowAuditText(action, "seen");
-      try {
-        console.log(`[FLOW_AUDIT] stale-flag-fingerprint since=${STALE_FINGERPRINT_SINCE} action=${actionText} source=${src}`);
-      } catch (_) {}
-    }
-
-    function countSecurityFlagKeys(){
-      const flags = (State && typeof State === "object" && State.securityFlags && typeof State.securityFlags === "object")
-        ? State.securityFlags
-        : null;
-      return flags ? Object.keys(flags).length : 0;
-    }
-
-    function logPolicyCall(fnName, source, details){
-      const fnText = flowAuditText(fnName, "unknown");
-      const src = flowAuditText(source, "unknown");
-      const detailText = details ? ` details=${flowAuditText(details, "none")}` : "";
-      try {
-        console.log(`[FLOW_AUDIT] policy-call id=${POLICY_ID} fn=${fnText} source=${src}${detailText}`);
-      } catch (_) {}
-    }
-
-    function auditStateBinding(source){
-      const src = flowAuditText(source, "unknown");
-      const gameStateRef = (Game && Game.__S && typeof Game.__S === "object") ? Game.__S : null;
-      const sameRefText = (gameStateRef === State) ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] state-store-binding id=${POLICY_ID} source=${src} sameRef=${sameRefText} stateRef=${flowAuditRefId(State)} gameSRef=${flowAuditRefId(gameStateRef)}`);
-      } catch (_) {}
-    }
-
-    function auditPolicyBinding(fnName){
-      const fnText = flowAuditText(fnName, "unknown");
-      const currentPolicy = (Game && Game.SecurityPolicy) ? Game.SecurityPolicy : null;
-      const sameRefText = (policyApi && currentPolicy === policyApi) ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] policy-binding id=${POLICY_ID} fn=${fnText} sameRef=${sameRefText} localPolicyRef=${flowAuditRefId(policyApi)} gamePolicyRef=${flowAuditRefId(currentPolicy)}`);
-      } catch (_) {}
-    }
-
-    function logPolicyInstanceCreated(){
-      try {
-        console.log(`[FLOW_AUDIT] policy-instance-created id=${POLICY_ID} bootTime=${BOOT_TIME_MS}`);
-      } catch (_) {}
-      auditStateBinding("createReactionPolicy:init");
-    }
-
-    logPolicyInstanceCreated();
-
-    function logRestore(marker, payload){
-      try {
-        console.log(marker, payload);
-      } catch (_) {}
-    }
-
-    function logSecurityRestore(meta, count, valid){
-      const src = meta && meta.source ? String(meta.source) : "unknown";
-      const safeCount = Number.isFinite(count) ? count : 0;
-      const flagCount = Math.max(0, safeCount | 0);
-      const validText = valid ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] security-restore flags=${flagCount} source=${src} valid=${validText}`);
-      } catch (_) {}
-    }
-
-    const RESTORED_WEAK_REASONS = new Set(["perma_flag_restore", "restored_security_state"]);
-
-    function normalizeRestoreReason(value){
-      if (typeof value !== "string") {
-        if (value == null) return "";
-        value = String(value);
-      }
-      const trimmed = value.trim();
-      if (!trimmed) return "";
-      const base = trimmed.split(":")[0].trim().toLowerCase();
-      return base;
-    }
-
-    function hasStrongRestoreProof(entry){
-      if (!entry) return false;
-      if (entry.authority === FLAG_AUTHORITY.RESTORED_LOCAL) return false;
-      const reasonBase = normalizeRestoreReason(entry.reason);
-      const typeBase = normalizeRestoreReason(entry.type);
-      if (!typeBase || RESTORED_WEAK_REASONS.has(typeBase)) return false;
-      if (reasonBase && RESTORED_WEAK_REASONS.has(reasonBase)) return false;
-      return true;
-    }
-
-    function logPermaFlagRestoreRead(playerId, type, until, valid){
-      if (!playerId) playerId = "unknown";
-      const typeText = type || "perma_flag_restore";
-      const untilText = (until == null) ? "null" : String(until);
-      const validText = valid ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-restore-read player=${playerId} type=${typeText} until=${untilText} valid=${validText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagRestoreDiscard(playerId, reason){
-      if (!playerId) playerId = "unknown";
-      const reasonText = sanitizeReason(reason, "restored_security_state");
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-restore-discard player=${playerId} reason=${reasonText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagRestoreDowngrade(playerId, fromLevel, toLevel, reason){
-      if (!playerId) playerId = "unknown";
-      const reasonText = sanitizeReason(reason, "restored_security_state");
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-restore-downgrade player=${playerId} from=${fromLevel} to=${toLevel} reason=${reasonText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagRestoreRejected(playerId, reason, source){
-      if (!playerId) playerId = "unknown";
-      const reasonText = sanitizeReason(reason, "restored_security_state");
-      const sourceText = source || "unknown";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-restore-rejected player=${playerId} reason=${reasonText} source=${sourceText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagBootstrapSource(playerId, source, accepted){
-      if (!playerId) playerId = "unknown";
-      const sourceText = source || "unknown";
-      const acceptedText = accepted ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-bootstrap-source player=${playerId} source=${sourceText} accepted=${acceptedText}`);
-      } catch (_) {}
-    }
-
-    function logPoisonedStorageCleanup(changed, removed){
-      const changedText = changed ? "true" : "false";
-      const removedCount = Number.isFinite(removed) ? (removed | 0) : 0;
-      try {
-        console.log(`[FLOW_AUDIT] poisoned-storage-cleanup changed=${changedText} removed=${removedCount}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagAuthorityCheck(playerId, authoritative, source){
-      if (!playerId) playerId = "unknown";
-      const authoritativeText = authoritative ? "true" : "false";
-      const sourceText = source || "unknown";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-authority-check player=${playerId} authoritative=${authoritativeText} source=${sourceText}`);
-      } catch (_) {}
-    }
-
-    function logStalePermaRemoved(playerId, reason){
-      if (!playerId) playerId = "unknown";
-      const reasonText = sanitizeReason(reason, "stale_local_restore");
-      try {
-        console.log(`[FLOW_AUDIT] stale-perma-removed player=${playerId} reason=${reasonText}`);
-      } catch (_) {}
-    }
-
-    function isAuthoritativePermaFlag(playerId, flag, source){
-      const pid = playerId ? String(playerId) : "unknown";
-      let authoritative = false;
-      if (flag && flag.level === LEVELS.PERMA_FLAG) {
-        authoritative = runtimePermaProofPlayers.has(pid) || flag.authority === FLAG_AUTHORITY.AUTHORITATIVE;
-      }
-      logPermaFlagAuthorityCheck(pid, authoritative, source || "ReactionPolicy.isAuthoritativePermaFlag");
-      return authoritative;
-    }
-
-    function logGetFlagResult(playerId, flag, authoritative){
-      if (!playerId) playerId = "unknown";
-      const levelText = flag && flag.level ? String(flag.level) : "null";
-      const typeText = flag && flag.type ? String(flag.type) : "null";
-      const authoritativeText = authoritative ? "true" : "false";
-      const sinceText = (flag && Number.isFinite(Number(flag.since))) ? String(Number(flag.since)) : "null";
-      try {
-        console.log(`[FLOW_AUDIT] getFlag-result player=${playerId} level=${levelText} type=${typeText} authoritative=${authoritativeText} since=${sinceText} policyId=${POLICY_ID}`);
-      } catch (_) {}
-    }
-
-    function flowAuditCaller(fallback){
-      try {
-        const stack = String((new Error().stack) || "").split("\n").map((line) => String(line || "").trim()).filter(Boolean);
-        for (let i = 2; i < stack.length; i += 1) {
-          const row = stack[i];
-          if (!row) continue;
-          if (row.includes("flowAuditCaller")) continue;
-          if (row.includes("logStateSecurityFlagsWrite")) continue;
-          if (row.includes("logAuthoritativePermaWrite")) continue;
-          if (row.includes("logRuntimeProofAdd")) continue;
-          return row.replace(/\s+/g, " ");
-        }
-      } catch (_) {}
-      return fallback || "unknown";
-    }
-
-    function hasFingerprintOnMe(flagsObj){
-      if (!flagsObj || typeof flagsObj !== "object") return false;
-      const meFlag = flagsObj.me;
-      if (!meFlag || typeof meFlag !== "object") return false;
-      return isStaleFingerprintSince(meFlag.since);
-    }
-
-    function logSecurityFlagsObjectReplaced(source, sameRef, flagsObj, meta = null){
-      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.replace");
-      const keys = (flagsObj && typeof flagsObj === "object") ? Object.keys(flagsObj).length : 0;
-      const sameRefText = sameRef ? "true" : "false";
-      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : 0;
-      try {
-        console.log(`[FLOW_AUDIT] securityflags-object-replaced source=${src} writeSeq=${writeSeq} sameRef=${sameRefText} keys=${keys}`);
-      } catch (_) {}
-      if (hasFingerprintOnMe(flagsObj)) {
-        logStaleFingerprint(src, "replace");
-      }
-    }
-
-    function logSecurityFlagsMeWrite(value){
-      const sinceText = Number.isFinite(Number(value && value.since)) ? String(Number(value.since)) : "null";
-      const sourceKind = flowAuditText(value && value.sourceKind, "unknown");
-      const writer = flowAuditText(value && value.writerFunction, "unknown");
-      const writeSeq = Number.isFinite(Number(value && value.writeSeq)) ? String(Number(value.writeSeq)) : "0";
-      try {
-        console.log(`[FLOW_AUDIT] securityflags-me-write since=${sinceText} sourceKind=${sourceKind} writer=${writer} writeSeq=${writeSeq}`);
-      } catch (_) {}
-      if (isStaleFingerprintSince(value && value.since)) {
-        logStaleFingerprint(writer, "write");
-      }
-    }
-
-    function logSecurityFlagsMerge(playerId, level, since, source){
-      const pid = playerId ? String(playerId) : "unknown";
-      const lvl = (level != null) ? String(level) : "null";
-      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
-      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.merge");
-      try {
-        console.log(`[FLOW_AUDIT] securityflags-merge player=${pid} level=${lvl} since=${sinceText} source=${src}`);
-      } catch (_) {}
-    }
-
-    function logStaleFlagDetected(playerId, since, preboot, authoritative){
-      const pid = playerId ? String(playerId) : "unknown";
-      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
-      const prebootText = preboot ? "true" : "false";
-      const authoritativeText = authoritative ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] stale-flag-detected player=${pid} since=${sinceText} preboot=${prebootText} authoritative=${authoritativeText}`);
-      } catch (_) {}
-    }
-
-    function logStaleFlagOrigin(playerId, since, source){
-      const pid = playerId ? String(playerId) : "unknown";
-      const sinceText = Number.isFinite(Number(since)) ? String(Number(since)) : "null";
-      const src = source || flowAuditCaller("ReactionPolicy.staleFlagOrigin");
-      try {
-        console.log(`[FLOW_AUDIT] stale-flag-origin player=${pid} since=${sinceText} bootTime=${BOOT_TIME_MS} source=${src}`);
-      } catch (_) {}
-    }
-
-    function logStateSecurityFlagsWrite(playerId, level, authority, caller){
-      const pid = playerId ? String(playerId) : "unknown";
-      const levelText = sanitizeReason(level, "unknown");
-      const authorityText = sanitizeReason(authority, "unknown");
-      const callerText = caller || flowAuditCaller("ReactionPolicy.logStateSecurityFlagsWrite");
-      try {
-        console.log(`[FLOW_AUDIT] state-securityflags-write player=${pid} level=${levelText} authority=${authorityText} caller=${callerText}`);
-      } catch (_) {}
-    }
-
-    function logAuthoritativePermaWrite(playerId, eventType, reason, caller){
-      const pid = playerId ? String(playerId) : "unknown";
-      const eventText = sanitizeReason(eventType, "unknown");
-      const reasonText = sanitizeReason(reason, "perma_flag");
-      const callerText = caller || flowAuditCaller("ReactionPolicy.logAuthoritativePermaWrite");
-      try {
-        console.log(`[FLOW_AUDIT] authoritative-perma-write player=${pid} event=${eventText} reason=${reasonText} caller=${callerText}`);
-      } catch (_) {}
-    }
-
-    function logRuntimeProofAdd(playerId, eventType, caller){
-      const pid = playerId ? String(playerId) : "unknown";
-      const eventText = sanitizeReason(eventType, "unknown");
-      const callerText = caller || flowAuditCaller("ReactionPolicy.logRuntimeProofAdd");
-      try {
-        console.log(`[FLOW_AUDIT] runtime-proof-add player=${pid} event=${eventText} caller=${callerText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagIllegalState(playerId, type, level, source){
-      if (!playerId) playerId = "unknown";
-      const typeText = sanitizeReason(type, "perma_flag_restore");
-      const levelText = sanitizeReason(level, "perma_flag");
-      const sourceText = source || "unknown";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-illegal-state player=${playerId} type=${typeText} level=${levelText} source=${sourceText}`);
-      } catch (_) {}
-    }
-
-    function logPermaFlagSelfHeal(playerId, removed, source){
-      if (!playerId) playerId = "unknown";
-      const removedText = removed ? "true" : "false";
-      const sourceText = source || "unknown";
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-self-heal player=${playerId} removed=${removedText} source=${sourceText}`);
-      } catch (_) {}
-    }
-
-    function logBootstrapPermaWrite(playerId, level, type, restored, caller){
-      if (!playerId) playerId = "unknown";
-      const levelText = sanitizeReason(level, "unknown");
-      const typeText = sanitizeReason(type, "null");
-      const restoredText = restored ? "true" : "false";
-      const callerText = caller || "unknown";
-      try {
-        console.log(`[FLOW_AUDIT] bootstrap-perma-write player=${playerId} level=${levelText} type=${typeText} restored=${restoredText} caller=${callerText}`);
-      } catch (_) {}
-    }
-
-    function logIdentityBindFlag(playerId, source, accepted){
-      if (!playerId) playerId = "unknown";
-      const src = source || "unknown";
-      const acceptedText = accepted ? "true" : "false";
-      try {
-        console.log(`[FLOW_AUDIT] identity-bind-flag player=${playerId} source=${src} accepted=${acceptedText}`);
-      } catch (_) {}
-    }
-
-    function sanitizeFlagKey(rawKey){
-      if (rawKey == null) return null;
-      const candidate = String(rawKey).trim();
-      if (!candidate) return null;
-      if (candidate === "__proto__" || candidate === "constructor" || candidate === "prototype") return null;
-      return candidate;
-    }
-
-    function sanitizeReason(value, fallback){
-      if (typeof value === "string" && value.trim()) return value.trim();
-      if (value != null) {
-        const str = String(value).trim();
-        if (str) return str;
-      }
-      if (fallback != null) {
-        const fbStr = String(fallback).trim();
-        if (fbStr) return fbStr;
-      }
-      return "restored_security_state";
-    }
-
-    function normalizeFlagEntry(rawValue){
-      const entry = (rawValue && typeof rawValue === "object") ? rawValue : {};
-      const sinceCandidate = Number(entry.since);
-      const since = Number.isFinite(sinceCandidate) ? Math.max(0, sinceCandidate) : Date.now();
-      const rawType = entry.type || entry._type || entry.reason;
-      const type = sanitizeReason(rawType, "perma_flag_restore");
-      const reason = sanitizeReason(entry.reason || entry._reason || type, "restored_security_state");
-      const authority = FLAG_AUTHORITY.RESTORED_LOCAL;
-      return { since, reason, type, authority };
-    }
-
-    function logPermaFlagNormalized(key, reason){
-      if (!key) return;
-      const safeReason = sanitizeReason(reason, "unknown");
-      try {
-        console.log(`[FLOW_AUDIT] perma-flag-normalized key=${key} reason=${safeReason}`);
-      } catch (_) {}
-    }
-
-    function normalizePersisted(parsed){
-      if (!parsed || typeof parsed !== "object") {
-        return { flags: {}, source: "empty", format: "empty", stamp: 0 };
-      }
-      const hasWrapped = parsed.flags && typeof parsed.flags === "object";
-      const bucket = hasWrapped ? parsed.flags : parsed;
-      const source = hasWrapped
-        ? String(parsed.source || parsed._source || "wrapped")
-        : "legacy";
-      const format = hasWrapped ? "wrapped" : "legacy";
-      const stampCandidate = Number(parsed.stamp || parsed._stamp || 0);
-      const stamp = Number.isFinite(stampCandidate) ? Math.max(0, stampCandidate) : 0;
-      const normalizedFlags = {};
-      if (bucket && typeof bucket === "object") {
-        for (const [rawKey, rawValue] of Object.entries(bucket)) {
-          const key = sanitizeFlagKey(rawKey);
-          if (!key) continue;
-          const entry = normalizeFlagEntry(rawValue);
-          normalizedFlags[key] = entry;
-          logPermaFlagNormalized(key, entry.reason);
-        }
-      }
-      return { flags: normalizedFlags, source, format, stamp };
-    }
-
-    function loadPersisted(){
-      if (!storage) return { flags: {}, source: "none", format: "none", stamp: 0 };
-      try {
-        const raw = storage.getItem(STORAGE_KEY);
-        if (!raw) return { flags: {}, source: "empty", format: "none", stamp: 0 };
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") return normalizePersisted(parsed);
-      } catch (_) {}
-      return { flags: {}, source: "invalid", format: "invalid", stamp: 0 };
-    }
-
-    let persistedPerma = loadPersisted();
-    const restoredPlayers = [];
-    const history = new Map();
-    const runtimePermaProofPlayers = new Set();
-    let flagStateFinalized = false;
-    let restoreInProgress = false;
-    let securityFlagsStore = null;
-    let securityFlagsWriteSeq = 0;
-    let securityFlagsWriteContext = null;
-    const lastFlagProvenanceByPlayer = Object.create(null);
-
-    function sanitizeSecurityFlagsObject(raw){
-      return (raw && typeof raw === "object") ? raw : {};
-    }
-
-    function readEventType(value){
-      if (value == null) return null;
-      const text = String(value).trim();
-      return text ? text : null;
-    }
-
-    function nextSecurityFlagsWriteSeq(){
-      securityFlagsWriteSeq = (securityFlagsWriteSeq | 0) + 1;
-      return securityFlagsWriteSeq;
-    }
-
-    function withSecurityFlagsWriteContext(meta, fn){
-      const prev = securityFlagsWriteContext;
-      securityFlagsWriteContext = (meta && typeof meta === "object") ? meta : null;
-      try { return fn(); }
-      finally { securityFlagsWriteContext = prev; }
-    }
-
-    function normalizeSourceKind(rawKind, source, action){
-      const known = new Set(["restore", "hydrate", "runtime_event", "direct_write", "object_replace", "merge"]);
-      const fromRaw = rawKind ? String(rawKind).trim().toLowerCase() : "";
-      if (fromRaw && known.has(fromRaw)) return fromRaw;
-      const src = source ? String(source).toLowerCase() : "";
-      const act = action ? String(action).toLowerCase() : "";
-      if (src.includes("restorepersistedflags")) return "restore";
-      if (src.includes("bootstrap") || src.includes("hydrate") || src.includes("installsecurityflagshooks:init")) return "hydrate";
-      if (src.includes("setflagforplayer") || src.includes("handleevent")) return "runtime_event";
-      if (src.includes("securityflags.setter") || act === "replace") return "object_replace";
-      if (src.includes("proxy.") || act === "write") return "direct_write";
-      return "merge";
-    }
-
-    function buildFlagWriteMeta(overrides = null){
-      const patch = (overrides && typeof overrides === "object") ? overrides : {};
-      const ctx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object") ? securityFlagsWriteContext : null;
-      const src = flowAuditText(
-        patch.writerFunction || patch.source || (ctx && (ctx.writerFunction || ctx.source)) || flowAuditCaller("ReactionPolicy.securityFlags.write"),
-        "unknown"
-      );
-      const sourceKind = normalizeSourceKind(patch.sourceKind || (ctx && ctx.sourceKind), src, patch.action || (ctx && ctx.action) || "write");
-      const rawSeq = patch.writeSeq != null ? patch.writeSeq : (ctx && ctx.writeSeq);
-      const writeSeq = Number.isFinite(Number(rawSeq)) && Number(rawSeq) > 0 ? Number(rawSeq) : nextSecurityFlagsWriteSeq();
-      const writerTag = flowAuditText(
-        patch.writerTag || (ctx && ctx.writerTag) || `securityflags:${sourceKind}`,
-        "securityflags:unknown"
-      );
-      const bootTime = Number.isFinite(Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime)))
-        ? Number(patch.bootTime != null ? patch.bootTime : (ctx && ctx.bootTime))
-        : BOOT_TIME_MS;
-      const policyId = flowAuditText(patch.policyId || (ctx && ctx.policyId) || POLICY_ID, POLICY_ID);
-      const eventType = readEventType(
-        patch.eventType != null
-          ? patch.eventType
-          : (ctx && Object.prototype.hasOwnProperty.call(ctx, "eventType") ? ctx.eventType : null)
-      );
-      return { writerTag, writerFunction: src, policyId, writeSeq, bootTime, sourceKind, eventType };
-    }
-
-    function markFlagProvenance(playerId, value, meta = null){
-      if (!value || typeof value !== "object") return null;
-      const pid = playerId ? String(playerId) : "unknown";
-      const info = buildFlagWriteMeta(meta);
-      const eventType = readEventType(info.eventType != null ? info.eventType : (value.eventType != null ? value.eventType : value.type));
-      try {
-        value.writerTag = info.writerTag;
-        value.writerFunction = info.writerFunction;
-        value.policyId = info.policyId;
-        value.writeSeq = info.writeSeq;
-        value.bootTime = info.bootTime;
-        value.sourceKind = info.sourceKind;
-        value.eventType = eventType;
-      } catch (_) {}
-      lastFlagProvenanceByPlayer[pid] = {
-        writerTag: info.writerTag,
-        writerFunction: info.writerFunction,
-        policyId: info.policyId,
-        writeSeq: info.writeSeq,
-        bootTime: info.bootTime,
-        sourceKind: info.sourceKind,
-        eventType,
-      };
-      if (pid === "me" && (!meta || meta.logWrite !== false)) {
-        logSecurityFlagsMeWrite(value);
-      }
-      return value;
-    }
-
-    function cloneFlagForReturn(flag){
-      if (!flag || typeof flag !== "object") return null;
-      return {
-        level: flag.level || null,
-        since: Number.isFinite(Number(flag.since)) ? Number(flag.since) : null,
-        until: (flag.until == null) ? null : Number(flag.until),
-        counts: (flag.counts && typeof flag.counts === "object") ? Object.assign({}, flag.counts) : null,
-        type: flag.type || null,
-        reason: flag.reason || null,
-        authority: flag.authority || null,
-        writerTag: flag.writerTag || null,
-        writerFunction: flag.writerFunction || null,
-        policyId: flag.policyId || POLICY_ID,
-        writeSeq: Number.isFinite(Number(flag.writeSeq)) ? Number(flag.writeSeq) : null,
-        bootTime: Number.isFinite(Number(flag.bootTime)) ? Number(flag.bootTime) : BOOT_TIME_MS,
-        sourceKind: flag.sourceKind || null,
-        eventType: readEventType(flag.eventType),
-      };
-    }
-
-    function snapshotFlagProvenance(playerId, flag){
-      const pid = playerId ? String(playerId) : "unknown";
-      const fromFlag = flag && typeof flag === "object" ? flag : null;
-      const saved = (!fromFlag && Object.prototype.hasOwnProperty.call(lastFlagProvenanceByPlayer, pid))
-        ? lastFlagProvenanceByPlayer[pid]
-        : null;
-      const source = fromFlag || saved || null;
-      if (!source) return null;
-      return {
-        writerTag: source.writerTag || null,
-        writerFunction: source.writerFunction || null,
-        policyId: source.policyId || POLICY_ID,
-        writeSeq: Number.isFinite(Number(source.writeSeq)) ? Number(source.writeSeq) : null,
-        bootTime: Number.isFinite(Number(source.bootTime)) ? Number(source.bootTime) : BOOT_TIME_MS,
-        sourceKind: source.sourceKind || null,
-        eventType: readEventType(source.eventType),
-      };
-    }
-
-    function logFlagProvenanceReturn(playerId, flag){
-      const pid = playerId ? String(playerId) : "unknown";
-      const provenance = snapshotFlagProvenance(pid, flag);
-      const writer = provenance && provenance.writerFunction ? String(provenance.writerFunction) : "unknown";
-      const sourceKind = provenance && provenance.sourceKind ? String(provenance.sourceKind) : "unknown";
-      const policy = provenance && provenance.policyId ? String(provenance.policyId) : POLICY_ID;
-      try {
-        console.log(`[FLOW_AUDIT] flag-provenance-return player=${pid} writer=${writer} sourceKind=${sourceKind} policyId=${policy}`);
-      } catch (_) {}
-      if (flag && isStaleFingerprintSince(flag.since)) {
-        logStaleFingerprint(writer, "return");
-      }
-    }
-
-    function replaceSecurityFlagsStore(nextValue, meta = null){
-      const info = buildFlagWriteMeta(Object.assign({}, (meta && typeof meta === "object") ? meta : {}, { action: "replace" }));
-      return withSecurityFlagsWriteContext(info, () => {
-        State.securityFlags = sanitizeSecurityFlagsObject(nextValue);
-        return State.securityFlags;
-      });
-    }
-
-    function observeFlagWrite(playerId, value, source, action = "seen", meta = null){
-      if (!playerId) return;
-      if (!value || typeof value !== "object") return;
-      const src = source || flowAuditCaller("ReactionPolicy.securityFlags.observe");
-      const actionText = flowAuditText(action, "seen");
-      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, actionText);
-      const shouldLogWrite = actionText === "write" || sourceKind === "object_replace" || sourceKind === "restore" || sourceKind === "hydrate";
-      markFlagProvenance(playerId, value, Object.assign({}, meta || {}, {
-        writerFunction: src,
-        sourceKind,
-        logWrite: shouldLogWrite,
-      }));
-      logSecurityFlagsMerge(playerId, value.level || null, value.since, src);
-      const since = Number(value.since);
-      if (!Number.isFinite(since)) return;
-      const preboot = since < BOOT_TIME_MS;
-      const authoritative = value.authority === FLAG_AUTHORITY.AUTHORITATIVE;
-      if (isStaleFingerprintSince(since)) {
-        logStaleFingerprint(src, "write");
-      }
-      logStaleFlagDetected(playerId, since, preboot, authoritative);
-      if (!preboot) return;
-      logStaleFlagOrigin(playerId, since, src);
-    }
-
-    function wrapSecurityFlagsObject(rawObj, source, meta = null){
-      const base = sanitizeSecurityFlagsObject(rawObj);
-      const src = source || flowAuditCaller("ReactionPolicy.wrapSecurityFlagsObject");
-      const sourceKind = normalizeSourceKind(meta && meta.sourceKind, src, "merge");
-      const writeSeq = Number.isFinite(Number(meta && meta.writeSeq)) ? Number(meta.writeSeq) : null;
-      for (const [pid, flag] of Object.entries(base)) {
-        observeFlagWrite(pid, flag, src, "seen", Object.assign({}, meta || {}, {
-          sourceKind,
-          writerFunction: src,
-          writeSeq,
-        }));
-      }
-      const proxy = new Proxy(base, {
-        set(target, prop, value){
-          target[prop] = value;
-          if (typeof prop === "string") {
-            const srcSet = flowAuditCaller("ReactionPolicy.securityFlags.proxy.set");
-            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
-              ? securityFlagsWriteContext
-              : null;
-            const writeMeta = buildFlagWriteMeta(activeCtx ? {
-              writerTag: activeCtx.writerTag,
-              writerFunction: activeCtx.writerFunction || srcSet,
-              sourceKind: activeCtx.sourceKind,
-              writeSeq: activeCtx.writeSeq,
-              eventType: activeCtx.eventType,
-              action: "write",
-            } : {
-              writerTag: "securityflags:proxy_set",
-              writerFunction: srcSet,
-              sourceKind: "direct_write",
-              action: "write",
-              eventType: value && value.eventType,
-            });
-            observeFlagWrite(prop, value, srcSet, "write", writeMeta);
-          }
-          return true;
-        },
-        defineProperty(target, prop, descriptor){
-          const ok = Reflect.defineProperty(target, prop, descriptor);
-          if (ok && typeof prop === "string" && descriptor && Object.prototype.hasOwnProperty.call(descriptor, "value")) {
-            const srcDefine = flowAuditCaller("ReactionPolicy.securityFlags.proxy.defineProperty");
-            const activeCtx = (securityFlagsWriteContext && typeof securityFlagsWriteContext === "object")
-              ? securityFlagsWriteContext
-              : null;
-            const writeMeta = buildFlagWriteMeta(activeCtx ? {
-              writerTag: activeCtx.writerTag,
-              writerFunction: activeCtx.writerFunction || srcDefine,
-              sourceKind: activeCtx.sourceKind,
-              writeSeq: activeCtx.writeSeq,
-              eventType: activeCtx.eventType,
-              action: "write",
-            } : {
-              writerTag: "securityflags:proxy_define",
-              writerFunction: srcDefine,
-              sourceKind: "direct_write",
-              action: "write",
-              eventType: descriptor.value && descriptor.value.eventType,
-            });
-            observeFlagWrite(prop, descriptor.value, srcDefine, "write", writeMeta);
-          }
-          return ok;
-        },
-        deleteProperty(target, prop){
-          return Reflect.deleteProperty(target, prop);
-        }
-      });
-      try {
-        flowAuditProxyTargets.set(proxy, base);
-      } catch (_) {}
-      return proxy;
-    }
-
-    function installSecurityFlagsHooks(){
-      if (!State || typeof State !== "object") return;
-      const currentDesc = Object.getOwnPropertyDescriptor(State, "securityFlags");
-      if (currentDesc && currentDesc.get && currentDesc.get._flowAuditSecurityFlags) return;
-      const initialRaw = sanitizeSecurityFlagsObject(State.securityFlags || {});
-      const initMeta = buildFlagWriteMeta({
-        writerTag: "securityflags:install_init",
-        writerFunction: "ReactionPolicy.installSecurityFlagsHooks:init",
-        sourceKind: "hydrate",
-        action: "replace",
-      });
-      securityFlagsStore = wrapSecurityFlagsObject(initialRaw, "ReactionPolicy.installSecurityFlagsHooks:init", initMeta);
-      logSecurityFlagsObjectReplaced("ReactionPolicy.installSecurityFlagsHooks:init", false, securityFlagsStore, initMeta);
-      Object.defineProperty(State, "securityFlags", {
-        configurable: true,
-        enumerable: true,
-        get(){ return securityFlagsStore; },
-        set(next){
-          const src = flowAuditText(
-            (securityFlagsWriteContext && securityFlagsWriteContext.writerFunction) || flowAuditCaller("ReactionPolicy.securityFlags.setter"),
-            "ReactionPolicy.securityFlags.setter"
-          );
-          const prevRaw = flowAuditProxyTargets.get(securityFlagsStore) || securityFlagsStore || null;
-          const nextRaw = sanitizeSecurityFlagsObject(next);
-          const sameRef = !!prevRaw && prevRaw === nextRaw;
-          const replaceMeta = buildFlagWriteMeta({
-            writerTag: (securityFlagsWriteContext && securityFlagsWriteContext.writerTag) || "securityflags:setter",
-            writerFunction: src,
-            sourceKind: (securityFlagsWriteContext && securityFlagsWriteContext.sourceKind) || "object_replace",
-            writeSeq: securityFlagsWriteContext && securityFlagsWriteContext.writeSeq,
-            eventType: securityFlagsWriteContext && securityFlagsWriteContext.eventType,
-            action: "replace",
-          });
-          securityFlagsStore = withSecurityFlagsWriteContext(replaceMeta, () => wrapSecurityFlagsObject(nextRaw, src, replaceMeta));
-          logSecurityFlagsObjectReplaced(src, sameRef, securityFlagsStore, replaceMeta);
-        }
-      });
-      const descAfter = Object.getOwnPropertyDescriptor(State, "securityFlags");
-      if (descAfter && descAfter.get) {
-        try { descAfter.get._flowAuditSecurityFlags = true; } catch (_) {}
-      }
-    }
-
-    function ensureStateFlags(){
-      installSecurityFlagsHooks();
-      if (!State.securityFlags || typeof State.securityFlags !== "object") {
-        replaceSecurityFlagsStore({}, {
-          writerTag: "securityflags:ensure_state_flags",
-          writerFunction: "ReactionPolicy.ensureStateFlags",
-          sourceKind: "object_replace",
-        });
-        logStateSecurityFlagsWrite("*", "reset", "runtime_reset", "ReactionPolicy.ensureStateFlags");
-      }
-    }
-
-    function purgePrebootStaleFlags(source){
-      ensureStateFlags();
-      const flags = State.securityFlags || {};
-      let removedCount = 0;
-      for (const [pid, flag] of Object.entries(flags)) {
-        if (!flag || flag.level !== LEVELS.PERMA_FLAG) continue;
-        const since = Number(flag.since);
-        if (!Number.isFinite(since)) continue;
-        const authoritative = isAuthoritativePermaFlag(pid, flag, `${source || "ReactionPolicy.purgePrebootStaleFlags"}:authority`);
-        const preboot = since < BOOT_TIME_MS;
-        if (!preboot) continue;
-        logStaleFlagDetected(pid, since, true, authoritative);
-        logStaleFlagOrigin(pid, since, source || "ReactionPolicy.purgePrebootStaleFlags");
-        delete State.securityFlags[pid];
-        runtimePermaProofPlayers.delete(String(pid));
-        logStateSecurityFlagsWrite(String(pid || "unknown"), "deleted", "preboot_stale_purge", source || "ReactionPolicy.purgePrebootStaleFlags");
-        removePersistedFlagEntry(pid);
-        removedCount++;
-      }
-      finalizePersistedAfterHeal(removedCount);
-      return removedCount;
-    }
-
-    function cleanupExpiredFlag(playerId){
-      ensureStateFlags();
-      const flag = State.securityFlags[playerId];
-      if (!flag) return null;
-      if (flag.level === LEVELS.TEMP_BLOCK && flag.until && Date.now() >= (flag.until || 0)) {
-        delete State.securityFlags[playerId];
-        logStateSecurityFlagsWrite(String(playerId || "unknown"), "deleted", "expired_cleanup", "ReactionPolicy.cleanupExpiredFlag");
-        return null;
-      }
-      return flag;
-    }
-
-    function getStateFlag(playerId){
-      if (!playerId) return null;
-      return cleanupExpiredFlag(String(playerId));
-    }
-
-    function persistPermaFlags(){
-      if (!storage) return;
-      const payload = {};
-      const flags = State.securityFlags || {};
-      for (const [pid, flag] of Object.entries(flags)) {
-        if (flag && flag.level === LEVELS.PERMA_FLAG) {
-          const sinceValue = Number(flag.since);
-          const since = Number.isFinite(sinceValue) ? Math.max(0, sinceValue) : Date.now();
-          const reason = sanitizeReason(flag.reason || flag.type, "perma_flag");
-          const type = sanitizeReason(flag.type || flag.reason, "perma_flag");
-          const authority = (flag.authority === FLAG_AUTHORITY.AUTHORITATIVE)
-            ? FLAG_AUTHORITY.AUTHORITATIVE
-            : FLAG_AUTHORITY.RESTORED_LOCAL;
-          payload[pid] = { since, reason, type, authority };
-        }
-      }
-      try {
-        const envelope = { flags: payload, source: RUNTIME_SOURCE, stamp: Date.now(), v: 1 };
-        storage.setItem(STORAGE_KEY, JSON.stringify(envelope));
-      } catch (_) {}
-      persistedPerma = { flags: payload, source: RUNTIME_SOURCE, format: "wrapped", stamp: Date.now() };
-    }
-
-    function isIllegalRestoreOnlyPerma(flag){
-      if (!flag || flag.level !== LEVELS.PERMA_FLAG) return false;
-      const until = (flag.until == null) ? null : Number(flag.until);
-      if (until !== null) return false;
-      const typeBase = normalizeRestoreReason(flag.type);
-      const weakType = typeBase === "perma_flag_restore" || !typeBase;
-      if (!weakType) return false;
-      return flag.authority !== FLAG_AUTHORITY.AUTHORITATIVE;
-    }
-
-    function hasStrongCurrentRuntimeProof(playerId, flag){
-      return isAuthoritativePermaFlag(playerId, flag, "ReactionPolicy.hasStrongCurrentRuntimeProof");
-    }
-
-    function hasAnyPermaFlags(){
-      const flags = State.securityFlags || {};
-      for (const value of Object.values(flags)) {
-        if (value && value.level === LEVELS.PERMA_FLAG) return true;
-      }
-      return false;
-    }
-
-    function removePersistedFlagEntry(playerId){
-      const key = playerId ? String(playerId) : "";
-      if (!key) return false;
-      const bucket = (persistedPerma && persistedPerma.flags && typeof persistedPerma.flags === "object") ? persistedPerma.flags : null;
-      if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, key)) return false;
-      delete bucket[key];
-      return true;
-    }
-
-    function finalizePersistedAfterHeal(removedCount){
-      if (!removedCount) return;
-      let storageChanged = false;
-      if (hasAnyPermaFlags()) {
-        persistPermaFlags();
-        storageChanged = true;
-      } else if (storage) {
-        try {
-          storage.removeItem(STORAGE_KEY);
-          storageChanged = true;
-        } catch (_) {}
-        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
-      } else {
-        persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
-      }
-      logPoisonedStorageCleanup(storageChanged, removedCount);
-    }
-
-    function selfHealIllegalPermaFlags(source){
-      ensureStateFlags();
-      const sourceText = source || "ReactionPolicy.selfHealIllegalPermaFlags";
-      const flags = State.securityFlags || {};
-      let removedCount = 0;
-      for (const [pid, flag] of Object.entries(flags)) {
-        if (!isIllegalRestoreOnlyPerma(flag)) continue;
-        const hasStrongProof = hasStrongCurrentRuntimeProof(pid, flag);
-        if (hasStrongProof) {
-          logPermaFlagSelfHeal(pid, false, sourceText);
-          continue;
-        }
-        logPermaFlagIllegalState(pid, flag.type, flag.level, sourceText);
-        delete State.securityFlags[pid];
-        logStateSecurityFlagsWrite(String(pid || "unknown"), "deleted", "self_heal_remove", sourceText);
-        removePersistedFlagEntry(pid);
-        logStalePermaRemoved(pid, "restore_only_perma_without_runtime_proof");
-        removedCount++;
-        logPermaFlagSelfHeal(pid, true, sourceText);
-      }
-      finalizePersistedAfterHeal(removedCount);
-      return removedCount;
-    }
-
-    function ensureFlagStateFinalized(source){
-      const src = source || "ReactionPolicy.ensureFlagStateFinalized";
-      const beforeKeys = countSecurityFlagKeys();
-      logPolicyCall("ensureFlagStateFinalized", src, `flagStateFinalized=${flagStateFinalized ? "true" : "false"} restoreInProgress=${restoreInProgress ? "true" : "false"}`);
-      auditStateBinding(`${src}:before`);
-      if (flagStateFinalized) {
-        try {
-          console.log(`[FLOW_AUDIT] finalize-call id=${POLICY_ID} source=${src} beforeKeys=${beforeKeys} afterKeys=${beforeKeys}`);
-        } catch (_) {}
-        return;
-      }
-      if (!restoreInProgress) {
-        restorePersistedFlags();
-      }
-      selfHealIllegalPermaFlags(src);
-      purgePrebootStaleFlags(src);
-      flagStateFinalized = true;
-      const afterKeys = countSecurityFlagKeys();
-      try {
-        console.log(`[FLOW_AUDIT] finalize-call id=${POLICY_ID} source=${src} beforeKeys=${beforeKeys} afterKeys=${afterKeys}`);
-      } catch (_) {}
-      auditStateBinding(`${src}:after`);
-    }
-
-    function setFlagForPlayer(playerId, level, stamp, extra = {}){
-      ensureStateFlags();
-      const key = playerId ? String(playerId) : "me";
-      const current = cleanupExpiredFlag(key);
-      const nextPriority = PRIORITY[level] || 0;
-      const currentPriority = current ? (PRIORITY[current.level] || 0) : -1;
-      const callerText = flowAuditText(extra.caller, "ReactionPolicy.setFlagForPlayer");
-      const sourceKind = normalizeSourceKind(
-        extra.sourceKind || (extra.bootstrapWrite ? "restore" : "runtime_event"),
-        callerText,
-        "write"
-      );
-      if (current && current.level === LEVELS.TEMP_BLOCK && level === LEVELS.TEMP_BLOCK) {
-        current.until = Math.max(current.until || 0, Number(extra.until || 0));
-        current.since = stamp;
-        current.counts = extra.counts || current.counts;
-        markFlagProvenance(key, current, {
-          writerTag: "securityflags:setFlagForPlayer:temp_refresh",
-          writerFunction: callerText,
-          sourceKind,
-          eventType: extra.eventType || extra.type || current.type,
-          action: "write",
-        });
-        return current;
-      }
-      if (current && currentPriority > nextPriority) {
-        return current;
-      }
-      const entryReason = sanitizeReason(extra.reason || extra.type, level === LEVELS.PERMA_FLAG ? "perma_flag" : "temp_block");
-      const entry = {
-        level,
-        since: stamp,
-        until: (level === LEVELS.TEMP_BLOCK) ? Number(extra.until || 0) : null,
-        counts: extra.counts || null,
-        type: extra.type || null,
-        reason: entryReason,
-        authority: (level === LEVELS.PERMA_FLAG)
-          ? (extra.authority || FLAG_AUTHORITY.AUTHORITATIVE)
-          : FLAG_AUTHORITY.RESTORED_LOCAL,
-      };
-      markFlagProvenance(key, entry, {
-        writerTag: "securityflags:setFlagForPlayer",
-        writerFunction: callerText,
-        sourceKind,
-        eventType: extra.eventType || extra.type || entry.type,
-        action: "write",
-      });
-      withSecurityFlagsWriteContext({
-        writerTag: entry.writerTag,
-        writerFunction: entry.writerFunction,
-        sourceKind: entry.sourceKind,
-        writeSeq: entry.writeSeq,
-        bootTime: entry.bootTime,
-        policyId: entry.policyId,
-        eventType: entry.eventType,
-      }, () => {
-        State.securityFlags[key] = entry;
-      });
-      logStateSecurityFlagsWrite(key, entry.level, entry.authority || "unknown", callerText);
-      if (entry.level === LEVELS.PERMA_FLAG && entry.authority === FLAG_AUTHORITY.AUTHORITATIVE) {
-        logAuthoritativePermaWrite(
-          key,
-          sanitizeReason(extra.eventType || entry.type, "unknown"),
-          sanitizeReason(entry.reason, "perma_flag"),
-          callerText
-        );
-      }
-      if (extra && extra.bootstrapWrite) {
-        logBootstrapPermaWrite(key, level, entry.type, !!extra.restored, extra.caller || BOOTSTRAP_SOURCE_NAME);
-      }
-      if (level === LEVELS.PERMA_FLAG) {
-        persistedPerma = {
-          flags: {
-            ...(persistedPerma.flags || {}),
-            [key]: { since: stamp, type: entry.type, reason: entry.reason, authority: entry.authority },
-          },
-          source: RUNTIME_SOURCE,
-          format: "wrapped",
-          stamp: Date.now(),
-        };
-        persistPermaFlags();
-      }
-      return entry;
-    }
-
-    function restorePersistedFlags(){
-      logPolicyCall("restorePersistedFlags", "ReactionPolicy.restorePersistedFlags", `restoreInProgress=${restoreInProgress ? "true" : "false"}`);
-      auditStateBinding("ReactionPolicy.restorePersistedFlags:enter");
-      if (restoreInProgress) return;
-      restoreInProgress = true;
-      flagStateFinalized = false;
-      const meta = persistedPerma || { flags: {}, source: "none", format: "none", stamp: 0 };
-      const flags = (meta.flags && typeof meta.flags === "object") ? meta.flags : {};
-      const count = Object.keys(flags).length;
-      const devMode = (isDevFlag && isDevFlag()) ? true : false;
-      logRestore("[SEC_RESTORE_SOURCE]", {
-        source: meta.source || "unknown",
-        format: meta.format || "unknown",
-        count,
-        devMode,
-        hasStorage: !!storage,
-      });
-      if (devMode) {
-        ensureStateFlags();
-        replaceSecurityFlagsStore({}, {
-          writerTag: "securityflags:restore_dev_mode",
-          writerFunction: "ReactionPolicy.restorePersistedFlags:dev_mode",
-          sourceKind: "restore",
-        });
-        logStateSecurityFlagsWrite("*", "reset", "dev_mode", "ReactionPolicy.restorePersistedFlags");
-        restoredPlayers.length = 0;
-        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
-        logRestore("[SEC_RESTORE_REASON]", "dev_mode");
-        logSecurityRestore(meta, 0, false);
-        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:dev_mode");
-        flagStateFinalized = true;
-        restoreInProgress = false;
-        return;
-      }
-      if (!count) {
-        ensureStateFlags();
-        replaceSecurityFlagsStore({}, {
-          writerTag: "securityflags:restore_empty",
-          writerFunction: "ReactionPolicy.restorePersistedFlags:empty_flags",
-          sourceKind: "restore",
-        });
-        logStateSecurityFlagsWrite("*", "reset", "empty_flags", "ReactionPolicy.restorePersistedFlags");
-        restoredPlayers.length = 0;
-        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
-        logRestore("[SEC_RESTORE_REASON]", "empty_flags");
-        logSecurityRestore(meta, 0, false);
-        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:empty_flags");
-        flagStateFinalized = true;
-        restoreInProgress = false;
-        return;
-      }
-      if (meta.format === "legacy") {
-        ensureStateFlags();
-        replaceSecurityFlagsStore({}, {
-          writerTag: "securityflags:restore_legacy",
-          writerFunction: "ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod",
-          sourceKind: "restore",
-        });
-        logStateSecurityFlagsWrite("*", "reset", "legacy_untrusted_prod", "ReactionPolicy.restorePersistedFlags");
-        restoredPlayers.length = 0;
-        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
-        logRestore("[SEC_RESTORE_REASON]", "legacy_untrusted_prod");
-        logSecurityRestore(meta, 0, false);
-        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:legacy_untrusted_prod");
-        flagStateFinalized = true;
-        restoreInProgress = false;
-        return;
-      }
-      if (meta.format === "wrapped" && meta.source !== RUNTIME_SOURCE) {
-        ensureStateFlags();
-        replaceSecurityFlagsStore({}, {
-          writerTag: "securityflags:restore_bad_source",
-          writerFunction: "ReactionPolicy.restorePersistedFlags:source_not_runtime",
-          sourceKind: "restore",
-        });
-        logStateSecurityFlagsWrite("*", "reset", "source_not_runtime", "ReactionPolicy.restorePersistedFlags");
-        restoredPlayers.length = 0;
-        logRestore("[SEC_RESTORE_SKIP]", { count, source: meta.source || "unknown", format: meta.format || "unknown" });
-        logRestore("[SEC_RESTORE_REASON]", "source_not_runtime");
-        logSecurityRestore(meta, 0, false);
-        selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:source_not_runtime");
-        flagStateFinalized = true;
-        restoreInProgress = false;
-        return;
-      }
-      ensureStateFlags();
-      replaceSecurityFlagsStore({}, {
-        writerTag: "securityflags:restore_apply",
-        writerFunction: "ReactionPolicy.restorePersistedFlags:restore_apply",
-        sourceKind: "restore",
-      });
-      logStateSecurityFlagsWrite("*", "reset", "restore_apply", "ReactionPolicy.restorePersistedFlags");
-      restoredPlayers.length = 0;
-      let hadInvalidRestore = false;
-      let invalidRestoreCount = 0;
-      const baseSource = meta.source || "unknown";
-      for (const [pid, data] of Object.entries(flags)) {
-        if (!pid) continue;
-        const normalizedData = normalizeFlagEntry(data);
-        const sanitizedType = sanitizeReason(normalizedData.type, "perma_flag_restore");
-        const authoritative = false;
-        logPermaFlagRestoreRead(pid, sanitizedType, null, authoritative);
-        logIdentityBindFlag(pid, baseSource, authoritative);
-        logPermaFlagBootstrapSource(pid, BOOTSTRAP_SOURCE_NAME, authoritative);
-        logPermaFlagAuthorityCheck(pid, authoritative, "ReactionPolicy.restorePersistedFlags");
-        logBootstrapPermaWrite(pid, LEVELS.PERMA_FLAG, sanitizedType, true, BOOTSTRAP_SOURCE_NAME);
-        const degradeReason = sanitizeReason(normalizedData.reason || sanitizedType, "restored_security_state");
-        logPermaFlagRestoreDowngrade(pid, LEVELS.PERMA_FLAG, LEVELS.TEMP_BLOCK, degradeReason);
-        logPermaFlagRestoreDiscard(pid, degradeReason);
-        logPermaFlagRestoreRejected(pid, degradeReason, baseSource);
-        logStalePermaRemoved(pid, "restored_local_without_runtime_proof");
-        removePersistedFlagEntry(pid);
-        hadInvalidRestore = true;
-        invalidRestoreCount++;
-      }
-      logRestore("[SEC_RESTORE_APPLY]", { count: restoredPlayers.length, source: meta.source || "unknown", format: meta.format || "unknown" });
-      logSecurityRestore(meta, restoredPlayers.length, restoredPlayers.length > 0);
-      const permaFlags = State.securityFlags || {};
-      let permaCount = 0;
-      for (const flag of Object.values(permaFlags)) {
-        if (flag && flag.level === LEVELS.PERMA_FLAG) {
-          permaCount++;
-        }
-      }
-      if (hadInvalidRestore) {
-        let storageChanged = false;
-        if (storage) {
-          try {
-            if (permaCount) {
-              persistPermaFlags();
-              storageChanged = true;
-            } else {
-              storage.removeItem(STORAGE_KEY);
-              storageChanged = true;
-              persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
-            }
-          } catch (_) {}
-        } else if (!permaCount) {
-          persistedPerma = { flags: {}, source: "none", format: "none", stamp: 0 };
-        }
-        logPoisonedStorageCleanup(storageChanged, invalidRestoreCount);
-      }
-      selfHealIllegalPermaFlags("ReactionPolicy.restorePersistedFlags:post_apply");
-      purgePrebootStaleFlags("ReactionPolicy.restorePersistedFlags:post_apply");
-      flagStateFinalized = true;
-      restoreInProgress = false;
-    }
-
-    const REACTION_LOG_TTL_MS = 1500;
-    const reactionLogLast = new Map();
-
-    function makeReactionLogKey(entry){
-      if (!entry) return "";
-      const playerId = entry.playerId || "me";
-      const sessionId = entry.sessionId || "";
-      const type = entry.type || "";
-      const reaction = entry.reaction || "";
-      const metaKey = entry.meta && entry.meta.key ? String(entry.meta.key) : "";
-      return [playerId, sessionId, type, reaction, metaKey].join("|");
-    }
-
-    function shouldLogReaction(key, ttl = REACTION_LOG_TTL_MS){
-      if (!key) return true;
-      const stamp = Date.now();
-      const prev = reactionLogLast.get(key) || 0;
-      if (stamp - prev < ttl) return false;
-      reactionLogLast.set(key, stamp);
-      return true;
-    }
-
-    function emitReactionConsole(entry){
-      if (!entry || !isDevFlag()) return;
-      const key = makeReactionLogKey(entry);
-      if (!shouldLogReaction(key)) return;
-      const payload = {
-        time: entry.time,
-        playerId: entry.playerId,
-        sessionId: entry.sessionId,
-        type: entry.type,
-        reaction: entry.reaction,
-        counts: entry.counts,
-        window: {
-          shortWindowMs: SHORT_WINDOW_MS,
-          longWindowMs: LONG_WINDOW_MS,
-        },
-        meta: entry.meta,
-      };
-      try {
-        console.log("[SEC:reaction]", payload);
-      } catch (_) {}
-    }
-
-    function buildBlockReason(typeKey, meta){
-      const baseReason = sanitizeReason(typeKey || "", "security_event");
-      const detailParts = [];
-      if (meta && typeof meta === "object") {
-        const addDetail = (value) => {
-          const candidate = sanitizeReason(value, "");
-          if (candidate && candidate !== baseReason) {
-            detailParts.push(candidate);
-          }
-        };
-        addDetail(meta.reason);
-        addDetail(meta.action);
-        addDetail(meta.key);
-      }
-      if (detailParts.length) {
-        return `${baseReason}:${detailParts.join(":")}`;
-      }
-      return baseReason;
-    }
-
-    function emitRestoreEvents(){
-      if (!restoredPlayers.length) return;
-      if (!Security || typeof Security.emit !== "function") return;
-      for (const pid of restoredPlayers) {
-        Security.emit("perma_flag_restore", { restored: true, playerId: String(pid) }, { minGapMs: 1500 });
-      }
-    }
-
-    function ensureReactionArray(){
-      if (!Game.__D) Game.__D = {};
-      if (!Array.isArray(Game.__D.securityReactions)) Game.__D.securityReactions = [];
-      return Game.__D.securityReactions;
-    }
-
-    function pushReactionLog(entry){
-      if (!entry) return;
-      const arr = ensureReactionArray();
-      arr.push(entry);
-      if (arr.length > MAX_REACTIONS) {
-        arr.splice(0, arr.length - MAX_REACTIONS);
-      }
-      emitReactionConsole(entry);
-    }
-
-    function recordHistory(typeKey, timestamp){
-      let list = history.get(typeKey);
-      if (!list) {
-        list = [];
-        history.set(typeKey, list);
-      }
-      list.push(timestamp);
-      const cutoff = timestamp - LONG_WINDOW_MS;
-      while (list.length && list[0] < cutoff) {
-        list.shift();
-      }
-      return list;
-    }
-
-    function handleEvent(ev){
-      if (!ev || !ev.type) return null;
-      const stamp = Number.isFinite(ev.time) ? ev.time : Date.now();
-      const origType = String(ev.type);
-      const typeKey = origType.toLowerCase();
-      const playerId = (ev.playerId && String(ev.playerId)) ? String(ev.playerId) : "me";
-      const sessionId = (ev.sessionId && String(ev.sessionId)) ? String(ev.sessionId) : "";
-      const meta = (ev.meta && typeof ev.meta === "object") ? Object.assign({}, ev.meta) : {};
-      const isBootstrapRestoreEvent = typeKey === "perma_flag_restore" && !!meta.restored;
-      const list = recordHistory(typeKey, stamp);
-      const shortCutoff = stamp - SHORT_WINDOW_MS;
-      let shortCount = 0;
-      for (let i = list.length - 1; i >= 0; i--) {
-        if (list[i] >= shortCutoff) shortCount++;
-        else break;
-      }
-      const longCount = list.length;
-      let level = LEVELS.LOG_ONLY;
-      const devMode = (typeof isDevFlag === "function") ? isDevFlag() : false;
-      if (!devMode) {
-      if (typeKey === "forbidden_api_access") {
-        level = LEVELS.LOG_ONLY;
-      } else {
-        if (typeKey === "perma_flag_restore" && !isBootstrapRestoreEvent) {
-          level = LEVELS.PERMA_FLAG;
-        }
-        if (HARD_TYPES.has(typeKey) || longCount >= HARD_THRESHOLD) {
-          level = LEVELS.PERMA_FLAG;
-        } else if (shortCount >= 2) {
-          level = LEVELS.TEMP_BLOCK;
-        }
-      }
-      }
-      const counts = { short: shortCount, long: longCount };
-      const blockReason = buildBlockReason(typeKey, meta);
-      let until = null;
-      if (!devMode && level === LEVELS.TEMP_BLOCK) {
-        until = stamp + TEMP_BLOCK_TTL_MS;
-        setFlagForPlayer(playerId, level, stamp, {
-          until,
-          type: origType,
-          counts,
-          reason: blockReason,
-          caller: "ReactionPolicy.handleEvent",
-          eventType: origType,
-        });
-      } else if (!devMode && level === LEVELS.PERMA_FLAG) {
-        setFlagForPlayer(playerId, level, stamp, {
-          type: origType,
-          counts,
-          reason: blockReason,
-          authority: FLAG_AUTHORITY.AUTHORITATIVE,
-          caller: "ReactionPolicy.handleEvent",
-          eventType: origType,
-        });
-        runtimePermaProofPlayers.add(playerId);
-        logRuntimeProofAdd(playerId, origType, "ReactionPolicy.handleEvent");
-      }
-      const reactionEntry = {
-        time: stamp,
-        playerId,
-        sessionId,
-        type: origType,
-        reaction: level,
-        until: until,
-        counts,
-        meta,
-        reason: blockReason,
-      };
-      pushReactionLog(reactionEntry);
-      return reactionEntry;
-    }
-
-    function isActionBlocked(playerId, action){
-      const pid = playerId ? String(playerId) : "me";
-      const actionText = flowAuditText(action, "unknown");
-      logPolicyCall("isActionBlocked", "ReactionPolicy.isActionBlocked", `player=${pid} action=${actionText}`);
-      auditPolicyBinding("isActionBlocked");
-      auditStateBinding("ReactionPolicy.isActionBlocked");
-      if (isDevFlag && isDevFlag()) return false;
-      ensureFlagStateFinalized("ReactionPolicy.isActionBlocked");
-      purgePrebootStaleFlags("ReactionPolicy.isActionBlocked");
-      const flag = getStateFlag(pid);
-      const authoritative = isAuthoritativePermaFlag(pid, flag, "ReactionPolicy.isActionBlocked");
-      const blocked = !!flag && (flag.level !== LEVELS.PERMA_FLAG || authoritative);
-      if (action === "call" || action === "vote") {
-        const reason = blocked ? (flag.reason || flag.type || "security_flag") : "none";
-        const safeReason = sanitizeReason(reason, "none");
-        const blockedText = blocked ? "true" : "false";
-        try {
-          console.log(`[FLOW_AUDIT] isActionBlocked action=${action} blocked=${blockedText} reason=${safeReason}`);
-        } catch (_) {}
-      }
-      return blocked;
-    }
-
-    function getFlag(playerId){
-      const pid = playerId ? String(playerId) : "me";
-      logPolicyCall("getFlag", "ReactionPolicy.getFlag", `player=${pid}`);
-      auditPolicyBinding("getFlag");
-      auditStateBinding("ReactionPolicy.getFlag");
-      if (isDevFlag && isDevFlag()) {
-        logGetFlagResult(pid, null, false);
-        return null;
-      }
-      ensureFlagStateFinalized("ReactionPolicy.getFlag");
-      purgePrebootStaleFlags("ReactionPolicy.getFlag");
-      const rawFlag = getStateFlag(pid);
-      const authoritative = isAuthoritativePermaFlag(pid, rawFlag, "ReactionPolicy.getFlag");
-      const flag = (rawFlag && rawFlag.level === LEVELS.PERMA_FLAG && !authoritative) ? null : rawFlag;
-      logGetFlagResult(pid, flag, authoritative);
-      logFlagProvenanceReturn(pid, flag);
-      return cloneFlagForReturn(flag);
-    }
-
-    function inspectFlag(playerId){
-      const pid = playerId ? String(playerId) : "me";
-      logPolicyCall("inspectFlag", "ReactionPolicy.inspectFlag", `player=${pid}`);
-      auditPolicyBinding("inspectFlag");
-      auditStateBinding("ReactionPolicy.inspectFlag");
-      const flag = getFlag(pid);
-      const provenance = snapshotFlagProvenance(pid, flag);
-      const result = {
-        playerId: pid,
-        policyId: POLICY_ID,
-        policyRef: flowAuditRefId(policyApi),
-        gamePolicyRef: flowAuditRefId((Game && Game.SecurityPolicy) ? Game.SecurityPolicy : null),
-        stateRef: flowAuditRefId(State),
-        securityFlagsRef: flowAuditRefId(State && State.securityFlags ? State.securityFlags : null),
-        bootTime: BOOT_TIME_MS,
-        flag,
-        provenance,
-      };
-      return result;
-    }
-
-    function versionInfo(){
-      const runtimeScriptUrl = getPolicyRuntimeSource();
-      return {
-        sourceFileMarker: SECURITY_POLICY_SOURCE_MARKER,
-        buildMarker: SECURITY_POLICY_BUILD_MARKER,
-        policyId: POLICY_ID,
-        hasInspectFlag: !!(policyApi && typeof policyApi.inspectFlag === "function"),
-        stateJsVersionTag: SECURITY_POLICY_STATEJS_VERSION_TAG,
-        runtimeScriptUrl,
-      };
-    }
-
-    policyApi = {
-      handleEvent,
-      isActionBlocked,
-      getFlag,
-      inspectFlag,
-      versionInfo,
-      restorePersistedFlags,
-      emitRestoreEvents,
-      __flowAuditId: POLICY_ID,
-    };
-    return policyApi;
-  }
-
-  function getPolicyRuntimeSource(){
-    try {
-      if (typeof document !== "undefined" && document.currentScript && document.currentScript.src) {
-        return String(document.currentScript.src);
-      }
-    } catch (_) {}
-    return "state.js";
-  }
-
-  function getPolicyBuildSource(){
-    return `${SECURITY_POLICY_SOURCE_MARKER}/${SECURITY_POLICY_BUILD_MARKER}`;
-  }
-
-  function logRuntimeScriptUrl(runtimeSource){
-    const src = (runtimeSource && String(runtimeSource).trim()) ? String(runtimeSource).trim() : "state.js";
-    try {
-      console.log(`[FLOW_AUDIT] runtime-script-url state=${src}`);
-    } catch (_) {}
-  }
-
-  function auditSecurityPolicyExport(source){
-    const src = source ? String(source).trim() : "state.js";
-    const runtimeSource = getPolicyRuntimeSource();
-    const buildSource = getPolicyBuildSource();
-    const versionTag = SECURITY_POLICY_STATEJS_VERSION_TAG;
-    const policy = (Game && Game.SecurityPolicy && typeof Game.SecurityPolicy === "object") ? Game.SecurityPolicy : null;
-    const keys = policy ? Object.keys(policy).sort().join(",") : "null";
-    const hasInspectFlag = !!(policy && typeof policy.inspectFlag === "function");
-    const hasInspectText = hasInspectFlag ? "true" : "false";
-    const policyId = (policy && policy.__flowAuditId) ? String(policy.__flowAuditId) : "unknown";
-    try {
-      console.log(`[FLOW_AUDIT] securitypolicy-export keys=${keys || "none"} hasInspectFlag=${hasInspectText}`);
-    } catch (_) {}
-    try {
-      console.log(`[FLOW_AUDIT] policy-runtime-version source=${buildSource} policyId=${policyId} version=${versionTag}`);
-    } catch (_) {}
-    logRuntimeScriptUrl(runtimeSource);
-    if (!hasInspectFlag) {
-      try {
-        Game.__FLOW_AUDIT_POLICY_EXPORT_MISSING__ = {
-          source: runtimeSource,
-          stage: src,
-          policyId,
-          at: Date.now(),
-        };
-      } catch (_) {}
-      try {
-        console.log(`[FLOW_AUDIT] inspectFlag-export-missing source=${src}`);
-      } catch (_) {}
-    }
-  }
-
-  ReactionPolicy = createReactionPolicy();
-  try {
-    const pid = (ReactionPolicy && ReactionPolicy.__flowAuditId) ? String(ReactionPolicy.__flowAuditId) : "unknown";
-    console.log(`[FLOW_AUDIT] policy-instance-mounted id=${pid}`);
-  } catch (_) {}
-  Game.SecurityPolicy = ReactionPolicy;
-  try {
-    const pid = (ReactionPolicy && ReactionPolicy.__flowAuditId) ? String(ReactionPolicy.__flowAuditId) : "unknown";
-    const sameRefText = (Game.SecurityPolicy === ReactionPolicy) ? "true" : "false";
-    console.log(`[FLOW_AUDIT] securitypolicy-assigned id=${pid} sameRef=${sameRefText}`);
-  } catch (_) {}
-  auditSecurityPolicyExport("state.js:post-assign");
-  if (ReactionPolicy && typeof ReactionPolicy.restorePersistedFlags === "function") {
-    ReactionPolicy.restorePersistedFlags();
-  }
-
-  Security.defineHandleProp("__A", StateAPI);
-
-  function readCrowdCore(){
-    return (Game && (Game.ConflictCore || Game._ConflictCore)) ? (Game.ConflictCore || Game._ConflictCore) : null;
-  }
-
-  function bindCrowdCoreFunctions(){
-    const core = readCrowdCore();
-    if (!Game.__A) Game.__A = {};
-    Game.__A.applyCrowdVoteTick = (battleId) => {
-      try {
-        if (!core || typeof core.applyCrowdVoteTick !== "function") return null;
-        return core.applyCrowdVoteTick(battleId);
-      } catch (_) {
-        return null;
-      }
-    };
-    Game.__A.finalizeCrowdVote = (battleId) => {
-      try {
-        if (!core || typeof core.finalizeCrowdVote !== "function") return null;
-        return core.finalizeCrowdVote(battleId);
-      } catch (_) {
-        return null;
-      }
-    };
-  }
-
-  const debugStore = Game.__D || {};
-  Security.defineHandleProp("__D", debugStore);
-  Security.defineHandleProp("__SEC", Security.store);
-  if (typeof debugStore.pushMoneyLogRow !== "function") {
-    debugStore.pushMoneyLogRow = pushMoneyLogRow;
-  }
-  if (typeof debugStore.pushEconToastFromLogRef !== "function") {
-    debugStore.pushEconToastFromLogRef = pushEconToastFromLogRef;
-  }
-  if (typeof debugStore.resolveEconomyFlavorToastKey !== "function") {
-    debugStore.resolveEconomyFlavorToastKey = resolveEconomyFlavorToastKey;
-  }
-  if (typeof debugStore.resolveEconomyFlavorToastText !== "function") {
-    debugStore.resolveEconomyFlavorToastText = resolveEconomyFlavorToastText;
-  }
-  defineGameSurfaceProp("State", "__S");
-  defineGameSurfaceProp("Debug", "__D");
-  defineGameSurfaceProp("StateAPI", "__A");
-
-  if (!Game.Social || typeof Game.Social !== "object") Game.Social = {};
-  Game.Social.applySocialPenalty = applySocialPenalty;
-
-  bindCrowdCoreFunctions();
-  Security.protectMethod(StateAPI, "addPoints", addPoints, "StateAPI.addPoints");
-  Security.protectMethod(StateAPI, "spendPoints", spendPoints, "StateAPI.spendPoints");
-  Security.protectMethod(StateAPI, "transferRep", transferRep, "StateAPI.transferRep");
-  Security.protectMethod(StateAPI, "restoreRepSnapshot", restoreRepSnapshot, "StateAPI.restoreRepSnapshot");
-  Security.protectMethod(StateAPI, "addRep", addRep, "StateAPI.addRep");
-  Security.protectMethod(StateAPI, "giveRespect", giveRespect, "StateAPI.giveRespect");
-  Security.finishBoot();
-  auditSecurityPolicyExport("state.js:post-finishBoot");
-  if (ReactionPolicy && typeof ReactionPolicy.emitRestoreEvents === "function") {
-    ReactionPolicy.emitRestoreEvents();
-  }
-})();
+Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌ◊]∑Î‘Ëµ©h∫⁄n∂XßzÕKÀ»›]Köú¬ù⁄[ô›Àëÿ[YHH⁄[ô›Àëÿ[YHﬂN¬Çä
+
+HOà¬à€€ú›ÿ[YHH⁄[ô›Àëÿ[YN¬à€€ú›—P’TíUW‘”P÷W‘”’Tê—W”PTí—TàHú›]KöúŒîôXX›[€î€XﬁHé¬à€€ú›—P’TíUW‘”P÷W–ïRS”PTí—TàHòùZ[ÃåçóÃ◊ÃWŸõ›ÿ]Y]›çàé¬à€€ú›—P’TíUW‘”P÷W‘’URî◊’ëTî“S”ó’Q»Hú›]Köúœ›èMàé¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äHÿ[YKó◊—UàHﬂN¬àYà
+ÿ[YKë]à	âà\[Ÿàÿ[YKë]àOOHõÿöôX›à	âà\[Ÿàÿ[YKë]ãú€[⁄ŸVõ€€Y\ëõ‹òöY[îù[\”€òŸHOOHôù[ò›[€àà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸVõ€€Y\ëõ‹òöY[îù[\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãú€[⁄ŸVõ€€Y\ëõ‹òöY[îù[\”€òŸHHÿ[YKë]ãú€[⁄ŸVõ€€Y\ëõ‹òöY[îù[\”€òŸN¬àBàYà
+Sù[Xô\ãö\—ö[ö]Jù[Xô\äÿ[YKó◊—ì’◊–UQU‘’UW—VP◊–”’Sï◊ JJHÿ[YKó◊—ì’◊–UQU‘’UW—VP◊–”’Sï◊»H¬àÿ[YKó◊—ì’◊–UQU‘’UW—VP◊–”’Sï◊»H
+ù[Xô\äÿ[YKó◊—ì’◊–UQU‘’UW—VP◊–”’Sï◊ H
+H
+»N¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›]ZúÀY^X›]Y€›[ùI—ÿ[YKó◊—ì’◊–UQU‘’UW—VP◊–”’Sï◊ﬂX
+N¬àHÿ]⁄
+ HﬂBà]ôXX›[€î€XﬁHHù[¬à€€ú›ëT—SRUTó—RSW––THå¬à€€ú›”‘–“U‘US’HHH»LN¬à€€ú›ëT‘ï‘SëSë◊—SVW”T»H¬à€€ú›ëT‘P’‘ëPT””ó–”—T»HÿöôX›ôúôY^ôJ¬à“Sï◊–”‘’àú⁄[ù◊‹ô\‹X›ÿ€‹›ãàëT—“UëSéàúô\‹ô\‹X›Ÿ⁄]ô[àãàëT—SRUTó‘ëQíSàúô\Ÿ[Z]\ó‹ôYö[ãàì–“◊‘ëQíVàúô\‹X›ÿõÿ⁄◊»ãàJN¬à€€ú›ëT‘P’—ì’◊‘’TÃW’VHÿöôX›ôúôY^ôJ¬à‹[ùà¥(4,4`tat/¥-à|'‰¨ãàÿZ[ôYà¥)¥-t.Ùcà
+Ãx´dãàJN¬à]ô\‹X›[ùû\⁄[ùŸŸŸYHò[ŸN¬àù[ò›[€àŸ‘ô\‹X›[ùû\⁄[ùôXYJ
+^¬àYà
+ô\‹X›[ùû\⁄[ùŸŸŸY
+Hô]\õé¬àô\‹X›[ùû\⁄[ùŸŸŸYHùYN¬àûH¬à€€ú€€KõŸ ëP””å‘ëT‘P’—SïñT“Sï‘ëPQHäN¬àHÿ]⁄
+ HﬂBàBÇà€€ú›”êì–TëSë◊‘—QSó‘’‘êQ—W“—VHHê\ﬁ[ò‘ÿŸ[ôW€€òõÿ\ô[ô◊‹ŸY[ó›åHé¬Çàù[ò›[€àŸ]›‹òYŸJ
+^¬àûH¬àô]\õà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âà⁄[ô›Àõÿÿ[›‹òYŸJH»⁄[ô›Àõÿÿ[›‹òYŸHàù[¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàBÇàù[ò›[€àôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+^¬à€€ú››‹òYŸHHŸ]›‹òYŸJ
+N¬àYà
+\›‹òYŸJHô]\õàò[ŸN¬àûH¬àô]\õà›‹òYŸKôŸ]][J”êì–TëSë◊‘—QSó‘’‘êQ—W“—VJHOOHåHé¬àHÿ]⁄
+ H¬àô]\õàò[ŸN¬àBàBÇàù[ò›[€à‹ö]T\ú⁄\›Y€òõÿ\ô[ô‘ŸY[äò[YJ^¬à€€ú››‹òYŸHHŸ]›‹òYŸJ
+N¬àYà
+\›‹òYŸJHô]\õàò[ŸN¬àûH¬àYà
+ò[YJH›‹òYŸKúŸ]][J”êì–TëSë◊‘—QSó‘’‘êQ—W“—VKåHäN¬à[ŸH›‹òYŸKúŸ]][J”êì–TëSë◊‘—QSó‘’‘êQ—W“—VKåäN¬àô]\õàùYN¬àHÿ]⁄
+ H¬àô]\õàò[ŸN¬àBàBÇàù[ò›[€à[ú›\ôTõŸ‹ô\‹”€òõÿ\ô[ô‘ŸY[ä
+^¬àYà
+T›]KúõŸ‹ô\‹»\[Ÿà›]KúõŸ‹ô\‹»OOHõÿöôX›äH›]KúõŸ‹ô\‹»HﬂN¬àYà
+\[Ÿà›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àOOHòõ€€X[àäH¬à›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àHôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+N¬àBàô]\õà›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àOOHùYN¬àBÇàù[ò›[€àŸ]€òõÿ\ô[ô‘ŸY[äò[YJ^¬à[ú›\ôTõŸ‹ô\‹ 
+N¬à›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àHò[YHOOHùYN¬à‹ö]T\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[äN¬àô]\õà›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[é¬àBÇàÀ»]õ⁄Yÿ\\ö[ô»][—]H€»X\õNà›\àÿ‹ö\»X^HÿYYù\à›]KöúÀÇàÀ»[ÿ^\»ô\€€ôH\[ô[ò⁄Y\»]ÿ[][YH[ôõ›öYHÿYôHò[òX⁄‹ÀÇà€€ú›Ÿ]][H
+
+HOàÿ[YKï][ﬂN¬à€€ú›õ›“SHH
+
+HOà¬à€€ú›HHŸ]][
+
+N¬àYà
+\[ŸàKõõ›“SHOOHôù[ò›[€àäHô]\õàKõõ›“SJ
+N¬à€€ú›Hô]»]J
+N¬à€€ú›H›ö[ô ôŸ]›\ú 
+JKúY›\ù
+ãåäN¬à€€ú›[HH›ö[ô ôŸ]Z[ù]\ 
+JKúY›\ù
+ãåäN¬àô]\õà	⁄Nâ€[_X¬àN¬à€€ú›ÿYôRYH
+
+HOà¬à€€ú›HHŸ]][
+
+N¬àYà
+\[ŸàKúÿYôRYOOHôù[ò›[€àäHô]\õàKúÿYôRY
+
+N¬àô]\õàY…—]Kõõ› 
+_W…”X]ôõ€‹äX]úò[ô€J
+H
+àYMä_X¬àN¬ÇàYà
+Qÿ[YKê€€ôöY Hÿ[YKê€€ôöY»HﬂN¬àYà
+Sù[Xô\ãö\—ö[ö]Jÿ[YKê€€ôöYÀò€‹][›JJH¬àÿ[YKê€€ôöYÀò€‹][›HH”‘–“U‘US’N¬àBÇàù[ò›[€àŸ]õŸ‹ô\‹⁄[€ä
+H¬à€€ú›H
+ÿ[YKë]H	âàÿ[YKë]Kîì—‘ëT‘“S”äH»ÿ[YKë]Kîì—‘ëT‘“S”ààù[¬à€€ú›[õÿ⁄»H
+	âàù[õÿ⁄“[ôõY[òŸJH»ù[õÿ⁄“[ôõY[òŸHàù[¬à€€ú››õ€ô»H
+[õÿ⁄»	âàù[Xô\ãö\—ö[ö]J[õÿ⁄Àú›õ€ô JH»
+[õÿ⁄Àú›õ€ô»
+HàN¬à€€ú››Ÿ\àH
+[õÿ⁄»	âàù[Xô\ãö\—ö[ö]J[õÿ⁄Àú›Ÿ\äJH»
+[õÿ⁄Àú›Ÿ\à
+HàL¬à€€ú›Xú€€]HH
+[õÿ⁄»	âàù[Xô\ãö\—ö[ö]J[õÿ⁄ÀòXú€€]JJH»
+[õÿ⁄ÀòXú€€]H
+HàL¬àô]\õà¬à›õ€ôŒàX]õX^
+›õ€ô Kà›Ÿ\éàX]õX^
+›Ÿ\äKàXú€€]NàX]õX^
+Xú€€]JKàN¬àBÇàù[ò›[€àŸ]ô\€€ôöY 
+^¬à€€ú›H
+ÿ[YH	âàÿ[YKë]JH»ÿ[YKë]Hàù[¬à€€ú›ëT’“SàH
+	âàù[Xô\ãö\—ö[ö]JîëT’“SäJH»
+îëT’“Sà
+Hàé¬à€€ú›ëT—êU»H
+	âàù[Xô\ãö\—ö[ö]JîëT—êU JH»
+îëT—êU»
+HàN¬à€€ú›ëT’QW“SH
+	âàù[Xô\ãö\—ö[ö]JîëT’QW“S
+JH»
+îëT’QW“S
+HàN¬à€€ú›ëT—RSHH
+	âàù[Xô\ãö\—ö[ö]JîëT—RSJJH»
+îëT—RSH
+HàN¬à€€ú›Sëó–êT—HH
+	âàù[Xô\ãö\—ö[ö]JíSëó–êT—W–”‘’
+JH»
+íSëó–êT—W–”‘’
+HàLé¬à€€ú›Sëó‘TàH
+	âàù[Xô\ãö\—ö[ö]JíSëó‘Tó”UëS
+JH»
+íSëó‘Tó”UëS
+Hà¬à€€ú›—QR”W‘”—ï–TH
+	âàù[Xô\ãö\—ö[ö]Jï—QR”W‘”—ï–T
+JH»
+ï—QR”W‘”—ï–T
+Hàé¬à€€ú›”—ï–T”USH
+	âàù[Xô\ãö\—ö[ö]Jî”—ï–T”US
+JH»
+î”—ï–T”US
+Hàé¬àô]\õà¬àëT’“SãàëT—êUÀàëT’QW“SàëT—RSKàSëó–êT—NàX]õX^
+KSëó–êT—JKàSëó‘TéàX]õX^
+Sëó‘TäKà—QR”W‘”—ï–TàX]õX^
+—QR”W‘”—ï–T
+Kà”—ï–T”USàX]õX^
+K”—ï–T”US
+KàN¬àBÇàù[ò›[€à[ú›\ôTõŸ‹ô\‹ 
+^¬àYà
+T›]KúõŸ‹ô\‹»\[Ÿà›]KúõŸ‹ô\‹»OOHõÿöôX›äH¬à›]KúõŸ‹ô\‹»H»ŸYZ€R[ôõY[òŸQÿZ[ôYàŸYZ‘›\ù]à\›Z[Põ€ù\–]à€òõÿ\ô[ô‘ŸY[éàôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+HN¬àBàYà
+Sù[Xô\ãö\—ö[ö]J›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôY
+JH›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYH¬àYà
+Sù[Xô\ãö\—ö[ö]J›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]
+JH›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]H¬àYà
+Sù[Xô\ãö\—ö[ö]J›]KúõŸ‹ô\‹Àõ\›Z[Põ€ù\–]
+JH›]KúõŸ‹ô\‹Àõ\›Z[Põ€ù\–]H¬àYà
+\[Ÿà›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àOOHòõ€€X[àäH›]KúõŸ‹ô\‹Àõ€òõÿ\ô[ô‘ŸY[àHôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+N¬àBÇàù[ò›[€à^RŸ^Qúõ€Sõ›’ õ›’ ^¬à€€ú››[\Hù[Xô\ãö\—ö[ö]Jõ›’ H»õ›’»à]Kõõ› 
+N¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_X¬àBÇàù[ò›[€à[ú›\ôTô\‹X›YŸ\ä
+^¬à[ú›\ôTõŸ‹ô\‹ 
+N¬àYà
+T›]KúõŸ‹ô\‹Àúô\‹X›YŸ\à\[Ÿà›]KúõŸ‹ô\‹Àúô\‹X›YŸ\àOOHõÿöôX›äH¬à›]KúõŸ‹ô\‹Àúô\‹X›YŸ\àH¬à\›ûTZ\ë^NàÿöôX›ò‹ôX]Jù[
+Kà\›[òõ›[ô^NàÿöôX›ò‹ôX]Jù[
+KàN¬àBà€€ú›YŸ\àH›]KúõŸ‹ô\‹Àúô\‹X›YŸ\é¬àYà
+[YŸ\ãõ\›ûTZ\ë^H\[ŸàYŸ\ãõ\›ûTZ\ë^HOOHõÿöôX›äH¬àYŸ\ãõ\›ûTZ\ë^HHÿöôX›ò‹ôX]Jù[
+N¬àBàYà
+[YŸ\ãõ\›[òõ›[ô^H\[ŸàYŸ\ãõ\›[òõ›[ô^HOOHõÿöôX›äH¬àYŸ\ãõ\›[òõ›[ô^HHÿöôX›ò‹ôX]Jù[
+N¬àBàô]\õàYŸ\é¬àBÇàù[ò›[€à[ú›\ôTô\[Z]\äõ›’ ^¬à[ú›\ôTõŸ‹ô\‹ 
+N¬à€€ú›^RŸ^HH^RŸ^Qúõ€Sõ›’ õ›’ N¬àYà
+T›]KúõŸ‹ô\‹Àúô\[Z]\à\[Ÿà›]KúõŸ‹ô\‹Àúô\[Z]\àOOHõÿöôX›äH¬à›]KúõŸ‹ô\‹Àúô\[Z]\àH»ò[[òŸNà^RŸ^Nààã\›ôYö[ŸŸŸY^RŸ^NàààN¬àBà€€ú›[Z]\àH›]KúõŸ‹ô\‹Àúô\[Z]\é¬à][Z]\îôYö[YHò[ŸN¬àYà
+[Z]\ãô^RŸ^HOOH^RŸ^JH¬à[Z]\ãô^RŸ^HH^RŸ^N¬à[Z]\ãòò[[òŸHHëT—SRUTó—RSW––T¬à[Z]\îôYö[YHùYN¬àBàYà
+Sù[Xô\ãö\—ö[ö]J[Z]\ãòò[[òŸJJH[Z]\ãòò[[òŸHH¬àô]\õà»[Z]\ã^RŸ^K[Z]\îôYö[YN¬àBÇàù[ò›[€à[ú›\ôT€€
+€€ùZ[ô\ãŸ^J^¬àYà
+X€€ùZ[ô\ñ⁄Ÿ^WH\[Ÿà€€ùZ[ô\ñ⁄Ÿ^WHOOHõÿöôX›äH¬à€€ùZ[ô\ñ⁄Ÿ^WHHÿöôX›ò‹ôX]Jù[
+N¬àBàô]\õà€€ùZ[ô\ñ⁄Ÿ^WN¬àBÇàù[ò›[€àõ‹õX[^ôUŸYZ 
+^¬à[ú›\ôTõŸ‹ô\‹ 
+N¬à€€ú›õ›»H]Kõõ› 
+N¬à€€ú›—QR◊”T»H»
+àç
+àå
+àå
+àL¬àYà
+T›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]
+H¬à›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]Hõ›Œ¬à›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYH¬àô]\õé¬àBàYà
+
+õ›»H›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]
+HèH—QR◊”T H¬à›]KúõŸ‹ô\‹ÀùŸYZ‘›\ù]Hõ›Œ¬à›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYH¬àBàBÇàù[ò›[€àô\ôYYõ‹ìô^[ôõY[òŸJ
+^¬àõ‹õX[^ôUŸYZ 
+N¬à€€ú›Ÿô»HŸ]ô\€€ôöY 
+N¬à€€ú›õŸ’åàHHJÿ[YH	âàÿ[YKë]H	âàÿ[YKë]Kîì—‘ëT‘“S”ó’åäN¬à€€ú›[ôàHù[Xô\ä›]KõYKö[ôõY[òŸH
+N¬à]ôYYHŸôÀíSëó–êT—H
+»
+ŸôÀíSëó‘Tà
+à
+[ôà
+JN¬àYà
+õŸ’åäH¬à€€ú›ÿ\HŸôÀï—QR”W‘”—ï–T¬àYà
+ÿ\à
+H¬à€€ú››ô\àH
+›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôY
+HHÿ\
+»N¬àYà
+›ô\àà
+H¬à€€ú›ò][»HX]õZ[äK›ô\à»ÿ\
+N¬à€€ú›][HH
+»ò][»
+à
+ŸôÀî”—ï–T”USHJN¬àôYYHX]òŸZ[
+ôYY
+à][
+N¬àBàBàH[ŸHYà
+›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYèHŸôÀï—QR”W‘”—ï–T
+H¬àôYYHôYY
+àŸôÀî”—ï–T”US¬àBàô]\õàX]õX^
+KôYY
+N¬àBÇàù[ò›[€àŸYZ€Pÿ\X›]ôJ
+^¬àõ‹õX[^ôUŸYZ 
+N¬à€€ú›Ÿô»HŸ]ô\€€ôöY 
+N¬àô]\õà›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYèHŸôÀï—QR”W‘”—ï–T¬àBÇàù[ò›[€à\Tô\€€ùô\ú⁄[€ä
+^¬àõ‹õX[^ôUŸYZ 
+N¬à€€ú›Ÿô»HŸ]ô\€€ôöY 
+N¬à€€ú›ôYõ‹ôHH
+›]KõYKö[ôõY[òŸH
+N¬à]€‹»H¬à⁄[H
+
+›]Kúô\
+HèHô\ôYYõ‹ìô^[ôõY[òŸJ
+JH¬à€€ú›ôYYHô\ôYYõ‹ìô^[ôõY[òŸJ
+N¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\H
+›]Kúô\
+HHôYY¬àJN¬à›]KõYKö[ôõY[òŸHH
+›]KõYKö[ôõY[òŸH
+H
+»N¬à›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôYH
+›]KúõŸ‹ô\‹ÀùŸYZ€R[ôõY[òŸQÿZ[ôY
+H
+»N¬à€‹  Œ¬àYà
+€‹»àL
+HúôXZŒ¬àBàÀ»RH⁄YKYYôôX›»\ôH›][Ÿã\ÿ€‹Hõ‹à›]H^Y\ãÇàBÇàù[ò›[€àYô\
+[[›[ùôX\€€ãY]J^¬àYà
+Z\—]ëõY 
+JH¬àûH»€€ú€€Kùÿ\õäñ‘ëTHYô\õÿ⁄ŸY[àõŸãôX\€€äN»Hÿ]⁄
+ HﬂBàô]\õà¬àBà€€ú›YRYH
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHé¬àYà
+ôXX›[€î€XﬁH	âàôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸY
+YRYôX€€õ€^HäJH¬àô]\õà›]Kúô\¬àBàYà
+TŸX›\ö]Kö\‘ÿYôJ
+JH¬àŸX›\ö]Kô[Z]
+ù[\\óŸù[ò›[€àã»Ÿ^NàòYô\ãX›[€éàòÿ[ãôX\€€éàòõÿ⁄ŸYã[ŸNà\—]ëõY 
+H»ô]àààúõŸàJN¬àô]\õà›]Kúô\¬àBà€€ú›àHù[Xô\ä[[›[ù
+N¬àYà
+Sù[Xô\ãö\—ö[ö]JäHàOOH
+Hô]\õà¬à€€ú›õHŸX›\ö]Kúò]S[Z]
+úô\ÿYã¬àX›‹íYà
+›]KõYH	âà›]KõYKöY
+H»›ö[ô ›]KõYKöY
+HàõYHãàôX\€€éàôX\€€àòYô\ãàò]RYàY]H	âàY]Kòò]RYàX›[€íYàY]H	âàY]KòX›[€íYàK»X^àÀ⁄[ô›”\ŒàLåù\ú›ààJN¬àYà
+\õõ⁄ H¬àŸX›\ö]Kô[Z]
+úò]W€[Z]ã»X›[€éàúô\ÿYãôX\€€éàôX\€€àòYô\ãò]RYàY]H	âàY]Kòò]RYŸ^NàõöŸ^Kô\Ÿ][éàõúô\Ÿ][àJN¬àô]\õà›]Kúô\¬àBàYà
+Sù[Xô\ãö\—ö[ö]J›]Kúô\
+JH¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\H¬àJN¬àBà€€ú››X\ôY]HH¬àôX\€€éàôX\€€àòYô\ãàX›[€íYàY]H	âàY]KòX›[€íYàò]RYàY]H	âàY]Kòò]RYà€€ù^àY]H	âàY]Kò€€ù^àN¬à€€ú››X\ôHô\€›\òŸUò[Y]‹ãò€Z[Júô\ã›X\ôY]JN¬àYà
+Y›X\ôõ⁄ H¬àô]\õà›]Kúô\¬àBà]›XÿŸ\‹»Hò[ŸN¬àûH¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\H
+›]Kúô\
+H
+»
+à
+N¬àJN¬à\Tô\€€ùô\ú⁄[€ä
+N¬àﬁ[ò”YU‘^Y\ú 
+N¬à›XÿŸ\‹»HùYN¬àô]\õà›]Kúô\¬àHö[ò[H¬àô\€›\òŸUò[Y]‹ãúô[X\ŸJ›X\ôöŸ^K›XÿŸ\‹ N¬àBàBÇàù[ò›[€à⁄]ôTô\‹X›
+úõ€RY“Yõ›’ ^¬àŸ‘ô\‹X›[ùû\⁄[ùôXYJ
+N¬à€€ú›X›‹íYH
+\[Ÿàúõ€RYOOHú›ö[ô»à	âàúõ€RY
+H»úõ€RYà
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHé¬à€€ú›\ôŸ]YH
+\[Ÿà“YOOHú›ö[ô»äH»“Yà
+“YOHù[»›ö[ô “Y
+HààäN¬à€€ú›[Y\›[\Hù[Xô\ãö\—ö[ö]Jõ›’ H»õ›’»à]Kõõ› 
+N¬à€€ú›^RŸ^HH^RŸ^Qúõ€Sõ›’ [Y\›[\
+N¬à€€ú›YŸ\àH[ú›\ôTô\‹X›YŸ\ä
+N¬à€€ú›Z\ìX\H[ú›\ôT€€
+YŸ\ãõ\›ûTZ\ë^KX›‹íY
+N¬à€€ú›[òõ›[ôX\H[ú›\ôT€€
+YŸ\ãõ\›[òõ›[ô^K\ôŸ]Y
+N¬à€€ú›‹Ÿ^HHô\‹X›âŸ^RŸ^_NâÿX›‹íYNâ›\ôŸ]YX¬à€€ú›Y]HH¬àúõ€RYàX›‹íYà“Yà\ôŸ]Yàõ›’Œà[Y\›[\à‹àúô\‹X›ãà‹Ÿ^Kà›XéàùYKà^RŸ^KàN¬Çà€€ú›õÿ⁄ŸYô\‹€úŸHH
+ôX\€€äHOà
+¬à⁄Œàò[ŸKàôX\€€ãà[Nà»⁄[ùŒàô\àKàY]Nà»ããõY]Kõÿ⁄ŸYàùYHKàJN¬ÇàYà
+]\ôŸ]Y
+H¬àô]\õàõÿ⁄ŸYô\‹€úŸJúô\‹X›‹Z\óŸZ[HäN¬àBÇàYà
+X›‹íYOOH\ôŸ]Y
+H¬àô]\õàõÿ⁄ŸYô\‹€úŸJúô\‹X›‹Ÿ[àäN¬àBÇà€€ú›X›‹ë^HHYŸ\ãõ\›ûTZ\ë^VÿX›‹íYN¬àYà
+X›‹ë^H	âàX›‹ë^V›\ôŸ]YHOOH^RŸ^JH¬àô]\õàõÿ⁄ŸYô\‹€úŸJúô\‹X›‹Z\óŸZ[HäN¬àBÇà€€ú›ô]ô\úŸQ^HHYŸ\ãõ\›ûTZ\ë^V›\ôŸ]YN¬àYà
+ô]ô\úŸQ^H	âàô]ô\úŸQ^VÿX›‹íYHOOH^RŸ^JH¬àô]\õàõÿ⁄ŸYô\‹€úŸJúô\‹X›€õ◊ÿ⁄Z[àäN¬àBÇà€€ú›[Z]\î›]HH[ú›\ôTô\[Z]\ä[Y\›[\
+N¬àYà
+[Z]\î›]Kô[Z]\ãòò[[òŸHJH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô\‹X›Ÿ[Z]\óŸ[\Hãà[Nà»⁄[ùŒàô\àKàY]Nà¬àããõY]Kàõÿ⁄ŸYàùYKà[Z]\êò[[òŸNà[Z]\î›]Kô[Z]\ãòò[[òŸKà[Z]\ëZ[Pÿ\àëT—SRUTó—RSW––Tà[Z]\îôYö[YàHY[Z]\î›]Kô[Z]\îôYö[YàKàN¬àBÇà€€ú›X€€àHŸ]X€€ä
+N¬à]^HHù[¬àYà
+X€€à	âà\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àäH¬à^HHX€€ãùò[úŸô\î⁄[ù X›‹íYú⁄[ö»ãKëT‘P’‘ëPT””ó–”—TÀî“Sï◊–”‘’¬à‹Ÿ^Kà^RŸ^Kà‹àúô\‹X›ãàúõ€RYàX›‹íYà“Yà\ôŸ]Yà›XéàùYKàJN¬àBàYà
+\^H^Kõ⁄»OOHò[ŸJH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô\‹X›€õ◊‹⁄[ù»ãà[Nà»⁄[ùŒàô\àKàY]Nà¬àããõY]Kàõÿ⁄ŸYàùYKà^TôX\€€éà^H	âà^KúôX\€€à»^KúôX\€€ààùò[úŸô\óŸòZ[YãàKàN¬àBÇàYà
+[Z]\î›]Kô[Z]\îôYö[Y	âà[Z]\î›]Kô[Z]\ãõ\›ôYö[ŸŸŸY^RŸ^HOOH^RŸ^JH¬à[Z]\î›]Kô[Z]\ãõ\›ôYö[ŸŸŸY^RŸ^HH^RŸ^N¬àŸ‘ô\ò[úŸô\ä¬à[YNà]Kõõ› 
+Kà€›\òŸRYàúô\Ÿ[Z]\àãà\ôŸ]Yàúô\Ÿ[Z]\àãà[[›[ùààôX\€€éàëT‘P’‘ëPT””ó–”—TÀîëT—SRUTó‘ëQíSàò]RYà‹Ÿ^Kà›\úô[òﬁNàúô\ãàY]Nà»^RŸ^Kÿ\àëT—SRUTó—RSW––T‹àúô\‹X›ã‹Ÿ^HBàJN¬àBÇà[Z]\î›]Kô[Z]\ãòò[[òŸHOHN¬àò[úŸô\îô\
+úô\Ÿ[Z]\àã\ôŸ]YKëT‘P’‘ëPT””ó–”—TÀîëT—“UëSã‹Ÿ^K¬àúõ€RYàX›‹íYà“Yà\ôŸ]Yà^RŸ^Kà‹Ÿ^Kà‹àúô\‹X›ãàJN¬àZ\ìX\›\ôŸ]YHH^RŸ^N¬à[òõ›[ôX\ÿX›‹íYHH^RŸ^N¬Çàô]\õà¬à⁄ŒàùYKàôX\€€éàëT‘P’‘ëPT””ó–”—TÀîëT—“UëSãà[Nà»⁄[ùŒàLKô\àHKàY]Nà¬àããõY]Kà[Z]\êò[[òŸPYù\éà[Z]\î›]Kô[Z]\ãòò[[òŸKà[Z]\ëZ[Pÿ\àëT—SRUTó—RSW––Tà[Z]\îôYö[YàHY[Z]\î›]Kô[Z]\îôYö[YàKàN¬àBÇàù[ò›[€àŸ]ô\Xÿ€›[ù
+Y
+^¬àYà
+ZY
+Hô]\õàù[¬àYà
+YOOHò‹õ›Ÿ‹€€àYOOHôZ[W‹€€äH¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬àYà
+Qÿ[YKó◊—úô\€€»\[Ÿàÿ[YKó◊—úô\€€»OOHõÿöôX›äHÿ[YKó◊—úô\€€»HﬂN¬àYà
+Qÿ[YKó◊—úô\€€÷⁄YJHÿ[YKó◊—úô\€€÷⁄YHH»Yô\àL€€àùYHN¬àô]\õàÿ[YKó◊—úô\€€÷⁄YN¬àBàYà
+YOOHúô\Ÿ[Z]\àäH¬àô]\õà»Yàúô\Ÿ[Z]\àãô\àù[Xô\ãìPV‘–QëW“SïQ—Tã€€àùYHN¬àBàYà
+YOOHõYHäHô]\õà»YàõYHã⁄[ôàõYHàN¬àYà
+T›]Kú^Y\ú Hô]\õàù[¬à€€ú›H›]Kú^Y\ú÷⁄YN¬àYà
+\
+Hô]\õàù[¬àYà
+Sù[Xô\ãö\—ö[ö]Júô\
+JHúô\H¬àô]\õà¬àBÇàù[ò›[€àŸ‘ô\ò[úŸô\ä[ùûJ^¬à€€ú›X€€àH
+ÿ[YH	âà
+ÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^JJH»
+ÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^JHàù[¬àYà
+X€€à	âà\[ŸàX€€ãó€Ÿ’OOHôù[ò›[€àäH¬àX€€ãó€Ÿ’
+[ùûJN¬àô]\õé¬àBàYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JHÿ[YKó◊—õ[€ô^SŸ»H◊N¬àYà
+Qÿ[YKó◊—õ[€ô^SŸ–ûPò]H\[Ÿàÿ[YKó◊—õ[€ô^SŸ–ûPò]HOOHõÿöôX›äHÿ[YKó◊—õ[€ô^SŸ–ûPò]HHﬂN¬àÿ[YKó◊—õ[€ô^SŸÀú\⁄
+[ùûJN¬à€€ú›öYH[ùûH	âà[ùûKòò]RY»›ö[ô [ùûKòò]RY
+Hààé¬àYà
+öY
+H¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYJJHÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYHH◊N¬àÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYKú\⁄
+[ùûJN¬àBàBÇàù[ò›[€àŸ]⁄[ù—[Z\‹⁄[€êÿ[⁄]J
+^¬àûH¬à€€ú›\úàHô]»\úõ‹äî“Sï◊—SRT‘“S”ó–ì–“—QäN¬à€€ú›[ô\»H›ö[ô \úà	âà\úãú›X⁄»»\úãú›X⁄»ààäKú‹]
+óàäKõX\
+Oàùö[J
+JKôö[\äõ€€X[äN¬àô]\õà[ô\÷Ã◊H[ô\÷ÃóH[ô\÷ÃWHàé¬àHÿ]⁄
+ H¬àô]\õààé¬àBàBÇàù[ò›[€àŸ‘⁄[ù—[Z\‹⁄[€êõÿ⁄ŸY
+ÿ[⁄]K[[›[ùôX\€€ãY]K\ôŸ]Y
+^¬à€€ú›X€€àH
+ÿ[YH	âà
+ÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^JJH»
+ÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^JHàù[¬à€€ú›[]Hù[Xô\ãö\—ö[ö]J[[›[ù
+H»
+[[›[ù
+Hà¬à€€ú›[ùûHH¬à[YNà]Kõõ› 
+KàôX\€€éàú⁄[ù◊Ÿ[Z\‹⁄[€óÿõÿ⁄ŸYãà›\úô[òﬁNàú⁄[ù»ãà[[›[ùà[]à€›\òŸRYàô[Z]\àãà\ôŸ]Yà\ôŸ]YõYHãàò]RYàY]H	âàY]Kòò]RY»Y]Kòò]RYàù[à]ô[ùYàY]H	âàY]Kô]ô[ùY»Y]Kô]ô[ùYàù[àY]Nà¬àÿ[⁄]Nàÿ[⁄]Hàãà[[›[ùà[]à\ôŸ]Yà\ôŸ]YõYHãàôX\€€éàôX\€€àòY⁄[ù»ÇàBàN¬àYà
+X€€à	âà\[ŸàX€€ãó€Ÿ’OOHôù[ò›[€àäH¬àX€€ãó€Ÿ’
+[ùûJN¬àô]\õé¬àBàYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JHÿ[YKó◊—õ[€ô^SŸ»H◊N¬àYà
+Qÿ[YKó◊—õ[€ô^SŸ–ûPò]H\[Ÿàÿ[YKó◊—õ[€ô^SŸ–ûPò]HOOHõÿöôX›äHÿ[YKó◊—õ[€ô^SŸ–ûPò]HHﬂN¬àÿ[YKó◊—õ[€ô^SŸÀú\⁄
+[ùûJN¬à€€ú›öYH[ùûH	âà[ùûKòò]RY»›ö[ô [ùûKòò]RY
+Hààé¬àYà
+öY
+H¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYJJHÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYHH◊N¬àÿ[YKó◊—õ[€ô^SŸ–ûPò]VÿöYKú\⁄
+[ùûJN¬àBàBÇà€€ú›“SSï‘ëPT””ó’“—Sî»H»ô]àãõZY‹ò][€àãö[ù\õò[óN¬à€€ú›“SSï’”‘ì‘ëPT””î»Hô]»Ÿ]
+¬àù€‹õ›^⁄[àãàù€‹õ›^€›]ãàù€‹õ‹›\[ô€›]ãàõú◊ÿXÿ€›[ù⁄[ö]ãàõú◊ÿXÿ€›[ù‹ﬁ[ò»ãàõú◊ÿX›]ö]W›^ãàò‹õ›Ÿÿÿ\ŸXùY»ÇàJN¬Çàù[ò›[€à\‘⁄[[ù⁄‘ôX\€€äôX\€€ã[ùõ€ô\”YJ^¬àYà
+\ôX\€€äHô]\õàò[ŸN¬à€€ú›õ‹õX[^ôYH›ö[ô ôX\€€ààäKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+[õ‹õX[^ôY
+Hô]\õàò[ŸN¬àõ‹à
+€€ú›⁄Ÿ[àŸà“SSï‘ëPT””ó’“—Sî H¬àYà
+õ‹õX[^ôYOOH⁄Ÿ[äHô]\õàùYN¬àYà
+õ‹õX[^ôYú›\ù’⁄]
+⁄Ÿ[äJHô]\õàùYN¬àYà
+õ‹õX[^ôYö[ò€Y\ …›⁄Ÿ[üX
+JHô]\õàùYN¬àBàYà
+Z[ùõ€ô\”YH	âà“SSï’”‘ì‘ëPT””îÀö\ õ‹õX[^ôY
+JHô]\õàùYN¬àô]\õàò[ŸN¬àBÇàù[ò›[€à⁄›[ÿ\›õ› õ› ^¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äHô]\õàò[ŸN¬à€€ú›[ùõ€ô\”YHH
+›ö[ô õ›Àú€›\òŸRYàäHOOHõYHäH
+›ö[ô õ›Àù\ôŸ]YàäHOOHõYHäN¬àYà
+Z[ùõ€ô\”YJHô]\õàò[ŸN¬à€€ú›[[›[ù€›\òŸHH
+õ›Àò[[›[ùOOH[ôYö[ôY
+H»õ›Àò[[›[ùà
+
+õ›Àô[HOOH[ôYö[ôY
+H»õ›Àô[Hà
+N¬à€€ú›[[›[ùHù[Xô\ä[[›[ù€›\òŸJN¬àYà
+Sù[Xô\ãö\—ö[ö]J[[›[ù
+H[[›[ùOOH
+Hô]\õàò[ŸN¬à€€ú››\úô[òﬁPÿ[ôY]HH›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+›\úô[òﬁPÿ[ôY]HOOHú⁄[ù»à	âà›\úô[òﬁPÿ[ôY]HOOHúô\äHô]\õàò[ŸN¬à€€ú›ôX\€€àH›ö[ô õ›ÀúôX\€€à
+õ›ÀõY]H	âàõ›ÀõY]KúôX\€€äHàäKùö[J
+N¬àYà
+\‘⁄[[ù⁄‘ôX\€€äôX\€€ã[ùõ€ô\”YJJHô]\õàò[ŸN¬àô]\õàùYN¬àBÇàù[ò›[€àŸ]⁄[ù‘€ò\⁄›ÿYôJ‹»HﬂJ^¬à€€ú›]àHÿ[YH	âàÿ[YKó◊—Uà»ÿ[YKó◊—Uààù[¬à€€ú›X€€àH
+ÿ[YH	âà
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JJH»
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JHàù[¬à€€ú››[QõàH
+]à	âà\[Ÿà]ãú›[T⁄[ù‘€ò\⁄›OOHôù[ò›[€àäBà»]ãú›[T⁄[ù‘€ò\⁄›àà
+X€€à	âà\[ŸàX€€ãú›[T⁄[ù‘€ò\⁄›OOHôù[ò›[€àà»X€€ãú›[T⁄[ù‘€ò\⁄›àù[
+N¬àYà
+\›[QõäHô]\õàù[¬àûH¬àô]\õà›[Qõä‹»ﬂJN¬àHÿ]⁄
+ H¬àûH¬àô]\õà›[Qõä‹»	âàÿöôX›öŸ^\ ‹ Kõ[ô›»‹»à[ôYö[ôY
+N¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàBàBÇàù[ò›[€à›[T€ò\⁄›ûRY €ò\⁄›Y ^¬àYà
+\€ò\⁄›ZY»ZYÀõ[ô›
+Hô]\õà¬à€€ú›ûRYH€ò\⁄›òûRYﬂN¬à]›[H¬àYÀôõ‹ëXX⁄
+YOà¬à€€ú›Ÿ^HH›ö[ô YàäN¬àYà
+ZŸ^JHô]\õé¬à€€ú›ò[Hù[Xô\ãö\—ö[ö]JûRY⁄Ÿ^WJH»ûRY⁄Ÿ^WHà¬à›[
+œHò[¬àJN¬àô]\õà›[¬àBÇàù[ò›[€àùZ[[ò€YRY—úõ€Tô\›[
+Xô[ÿŸ[ò\ö[‘ô\›[
+^¬à€€ú›Y»Hô]»Ÿ]
+
+N¬àûH¬à€€ú›»Hÿ[YH	âà
+ÿ[YKó◊‘»ÿ[YKî›]JH»
+ÿ[YKó◊‘»ÿ[YKî›]JHàù[¬àYà
+»	âàÀú^Y\ú H¬àÿöôX›öŸ^\ Àú^Y\ú»ﬂJKôõ‹ëXX⁄
+YOà»Yà
+Y
+HYÀòY
+›ö[ô Y
+JN»JN¬àBàYà
+»	âàÀõYH	âàÀõYKöY
+HYÀòY
+›ö[ô ÀõYKöY
+JN¬àHÿ]⁄
+ HﬂBàYÀòY
+ù€‹õò[ö»äN¬àYÀòY
+ú⁄[ö»äN¬àYÀòY
+ò‹õ›ŸäN¬àûH¬à€€ú›ô\»HÿŸ[ò\ö[‘ô\›[ﬂN¬àYà
+\úò^Kö\–\úò^Jô\Àö[ò€YRY JHô\Àö[ò€YRYÀôõ‹ëXX⁄
+YOà»Yà
+Y
+HYÀòY
+›ö[ô Y
+JN»JN¬àYà
+\úò^Kö\–\úò^Jô\ÀòXÿ€›[ù“[ò€YY
+JHô\ÀòXÿ€›[ù“[ò€YYôõ‹ëXX⁄
+YOà»Yà
+Y
+HYÀòY
+›ö[ô Y
+JN»JN¬àYà
+ô\Àú€ò\⁄›ô\‹ù	âà\úò^Kö\–\úò^Jô\Àú€ò\⁄›ô\‹ùòXÿ€›[ù“[ò€YY
+JH¬àô\Àú€ò\⁄›ô\‹ùòXÿ€›[ù“[ò€YYôõ‹ëXX⁄
+YOà»Yà
+Y
+HYÀòY
+›ö[ô Y
+JN»JN¬àBà€€ú›ò]RYHô\Àòò]RY
+ô\Àô]Z[»	âàô\Àô]Z[Àòò]RY
+Hù[¬à€€ú›]ô[ùYHô\Àô]ô[ùY
+ô\Àô]Z[»	âàô\Àô]Z[Àô]ô[ùY
+Hù[¬àYà
+ò]RY
+HYÀòY
+‹õ›Ÿâÿò]RYX
+N¬àYà
+]ô[ùY
+HYÀòY
+‹õ›ŸâŸ]ô[ùYX
+N¬àYà
+\úò^Kö\–\úò^Jô\Àó◊‹õ›‹ JH¬àô\Àó◊‹õ›‹Àôõ‹ëXX⁄
+õ›»Oà¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äHô]\õé¬à€€ú›‹ò»H›ö[ô õ›Àú€›\òŸRYàäN¬à€€ú››H›ö[ô õ›Àù\ôŸ]YàäN¬àYà
+‹ò HYÀòY
+‹ò N¬àYà
+›
+HYÀòY
+›
+N¬à€€ú›öYHõ›Àòò]RYõ›Àô]ô[ùYù[¬àYà
+öY
+HYÀòY
+‹õ›ŸâÿöYX
+N¬àYà
+‹òÀú›\ù’⁄]
+ò‹õ›ŸàäJHYÀòY
+‹ò N¬àYà
+›ú›\ù’⁄]
+ò‹õ›ŸàäJHYÀòY
+›
+N¬àJN¬àBàHÿ]⁄
+ HﬂBàô]\õà\úò^Kôúõ€JY Kôö[\äõ€€X[äN¬àBÇàù[ò›[€à⁄]ô\õ‘›[P\‹Ÿ\ù
+Xô[õã[ò€YRY ^¬à€€ú›ôYõ‹ôQù[HŸ]⁄[ù‘€ò\⁄›ÿYôJ
+N¬à]ô\»Hù[¬à]\úìY\‹ÿYŸHHù[¬àûH¬àô\»Hõà»õä
+Hàù[¬àHÿ]⁄
+\úäH¬à\úìY\‹ÿYŸHH\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäN¬àBà€€ú›Y»H\úò^Kö\–\úò^J[ò€YRY H»[ò€YRY»àùZ[[ò€YRY—úõ€Tô\›[
+Xô[ô\ N¬à€€ú›ôYõ‹ôHHŸ]⁄[ù‘€ò\⁄›ÿYôJY»»»[ò€YRYŒàY»Hà[ôYö[ôY
+N¬à€€ú›Yù\àHŸ]⁄[ù‘€ò\⁄›ÿYôJY»»»[ò€YRYŒàY»Hà[ôYö[ôY
+N¬à€€ú›ôYõ‹ôU›[H
+ôYõ‹ôQù[	âàôYõ‹ôQù[òûRY	âàY»	âàYÀõ[ô›
+Bà»›[T€ò\⁄›ûRY ôYõ‹ôQù[Y Bàà
+ôYõ‹ôH	âàù[Xô\ãö\—ö[ö]JôYõ‹ôKù›[
+H»ôYõ‹ôKù›[à
+N¬à€€ú›Yù\ï›[HYù\à	âàù[Xô\ãö\—ö[ö]JYù\ãù›[
+H»Yù\ãù›[à¬à€€ú›[HHYù\ï›[HôYõ‹ôU›[¬à€€ú›‹[ò‹ôX\Ÿ\»H◊N¬àûH¬à€€ú›ôYõ‹ôPûRYH
+ôYõ‹ôQù[	âàôYõ‹ôQù[òûRY
+H»ôYõ‹ôQù[òûRYà
+
+ôYõ‹ôH	âàôYõ‹ôKòûRY
+H»ôYõ‹ôKòûRYàﬂJN¬à€€ú›Yù\êûRYH
+Yù\à	âàYù\ãòûRY
+H»Yù\ãòûRYàﬂN¬à€€ú›Ÿ^\»Hô]»Ÿ]
+ÿöôX›öŸ^\ ôYõ‹ôPûRY
+Kò€€òÿ]
+ÿöôX›öŸ^\ Yù\êûRY
+JJN¬àõ‹à
+€€ú›Ÿ^HŸàŸ^\ H¬à€€ú›àHù[Xô\ãö\—ö[ö]JôYõ‹ôPûRY⁄Ÿ^WJH»ôYõ‹ôPûRY⁄Ÿ^WHà¬à€€ú›HHù[Xô\ãö\—ö[ö]JYù\êûRY⁄Ÿ^WJH»Yù\êûRY⁄Ÿ^WHà¬à€€ú›HHHé¬àYà
+à
+H‹[ò‹ôX\Ÿ\Àú\⁄
+»YàŸ^KôYõ‹ôNàãYù\éàKJN¬àBà‹[ò‹ôX\Ÿ\Àú€‹ù
+
+KäHOàãôHKô
+N¬àHÿ]⁄
+ HﬂBà€€ú›ö[[YYH‹[ò‹ôX\Ÿ\Àú€XŸJJN¬àô]\õà¬à⁄Œà[HHàXô[à[KàôYõ‹ôU›[àYù\ï›[à‹[ò‹ôX\Ÿ\Œàö[[YYà\úõ‹éà\úìY\‹ÿYŸHù[àô\›[àô\Àà[ò€YRY–€›[ùà\úò^Kö\–\úò^JY H»YÀõ[ô›ààN¬àBÇàù[ò›[€à\⁄[€ô^SŸ‘õ› õ› ^¬à€€ú›[ùûHH
+õ›»	âà\[Ÿàõ›»OOHõÿöôX›äH»õ›»àﬂN¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬à€€ú›ô»Hÿ[YKó◊—¬àYà
+P\úò^Kö\–\úò^JôÀõ[€ô^SŸ JHôÀõ[€ô^SŸ»H◊N¬àYà
+YôÀõ[€ô^SŸ–ûPò]H\[ŸàôÀõ[€ô^SŸ–ûPò]HOOHõÿöôX›äHôÀõ[€ô^SŸ–ûPò]HHﬂN¬à€€ú›[Y\›[\Hù[Xô\ãö\—ö[ö]J[ùûKù[YJH»[ùûKù[YHà
+ù[Xô\ãö\—ö[ö]J[ùûKù H»[ùûKù»à]Kõõ› 
+JN¬à€€ú›ÿ[ôY]P›\úô[òﬁHH›ö[ô [ùûKò›\úô[òﬁH[ùûKö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú››\úô[òﬁHH
+ÿ[ôY]P›\úô[òﬁHOOHúô\äH»úô\ààú⁄[ù»é¬à€€ú›[[›[ù€›\òŸHH
+[ùûKò[[›[ùOOH[ôYö[ôY
+H»[ùûKò[[›[ùà
+
+[ùûKô[HOOH[ôYö[ôY
+H»[ùûKô[Hà
+N¬à€€ú›\úŸY[[›[ùHù[Xô\ä[[›[ù€›\òŸJN¬à€€ú›[[›[ùHù[Xô\ãö\—ö[ö]J\úŸY[[›[ù
+H»\úŸY[[›[ùà¬à€€ú›ôX\€€î€›\òŸHH[ùûKúôX\€€à
+[ùûKõY]H	âà[ùûKõY]KúôX\€€äH[ùûKö⁄[ôàé¬à€€ú›ôX\€€àH›ö[ô ôX\€€î€›\òŸHàäKùö[J
+N¬à€€ú›YH[ùûKùY»›ö[ô [ùûKùY
+Hà…›[Y\›[\W…”X]úò[ô€J
+Kù‘›ö[ô MäKú€XŸJä_X¬à€€ú›Y]HH
+[ùûKõY]H	âà\[Ÿà[ùûKõY]HOOHõÿöôX›äH»ÿöôX›ò\‹⁄Y€äﬂK[ùûKõY]JHàﬂN¬àYà
+[ùûKô[HOOH[ôYö[ôY	âàY]Kô[HOOH[ôYö[ôY
+H¬àY]Kô[HH[ùûKô[N¬àBà€€ú›õ‹õX[^ôYHÿöôX›ò\‹⁄Y€äﬂK[ùûK¬à[YNà[Y\›[\àŒà[Y\›[\à›\úô[òﬁKà[[›[ùàôX\€€ãàYàY]BàJN¬àõ‹õX[^ôYùÿ\›^X›YH⁄›[ÿ\›õ› õ‹õX[^ôY
+N¬àôÀõ[€ô^SŸÀú\⁄
+õ‹õX[^ôY
+N¬à€€ú›Ÿ“[ô^HôÀõ[€ô^SŸÀõ[ô›HN¬à€€ú›ô\›[H»YŸ“[ô^N¬à€€ú›ò]RYHõ‹õX[^ôYòò]RY»›ö[ô õ‹õX[^ôYòò]RY
+Hààé¬àYà
+ò]RY
+H¬àYà
+P\úò^Kö\–\úò^JôÀõ[€ô^SŸ–ûPò]Vÿò]RYJJHôÀõ[€ô^SŸ–ûPò]Vÿò]RYHH◊N¬àôÀõ[€ô^SŸ–ûPò]Vÿò]RYKú\⁄
+õ‹õX[^ôY
+N¬àô\›[òò]SŸ“[ô^HôÀõ[€ô^SŸ–ûPò]Vÿò]RYKõ[ô›HN¬àBàô]\õàô\›[¬àBÇàù[ò›[€àÿ[—X€€ïÿ\› 
+^¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬à€€ú›ô»Hÿ[YKó◊—¬à€€ú›õ›”\»H]Kõõ› 
+N¬àYà
+Sù[Xô\ãö\—ö[ö]JôÀóŸX€€ïÿ\›\›\ HôÀóŸX€€ïÿ\›\›\»OOHõ›”\ H¬àôÀóŸX€€ïÿ\›Ÿ\HH¬àôÀóŸX€€ïÿ\›\›\»Hõ›”\Œ¬àBà€€ú›Ÿ\HHù[Xô\ãö\—ö[ö]JôÀóŸX€€ïÿ\›Ÿ\JH»
+ôÀóŸX€€ïÿ\›Ÿ\H
+Hà¬à€€ú›»Hõ›”\»
+»
+Ÿ\H
+àåJN¬àôÀóŸX€€ïÿ\›Ÿ\HHŸ\H
+»N¬àô]\õàŒ¬àBÇàù[ò›[€àô\€€ôS[€ô^SŸ‘õ› ôYä^¬àYà
+\ôYà\[ŸàôYàOOHõÿöôX›äHô]\õàù[¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHô]\õàù[¬à€€ú›ô»Hÿ[YKó◊—¬àYà
+P\úò^Kö\–\úò^JôÀõ[€ô^SŸ JHô]\õàù[¬à€€ú›Ÿ“[ô^Hù[Xô\ãö\—ö[ö]JôYãõŸ“[ô^
+H»ôYãõŸ“[ô^àù[¬àYà
+Ÿ“[ô^OOHù[
+H¬àô]\õàôÀõ[€ô^SŸ÷€Ÿ“[ô^Hù[¬àBà€€ú›YHôYãùY»›ö[ô ôYãùY
+Hàù[¬àYà
+Y
+H¬àô]\õàôÀõ[€ô^SŸÀôö[ô
+õ›»Oàõ›»	âà›ö[ô õ›ÀùYàäHOOHY
+Hù[¬àBàô]\õàù[¬àBÇàù[ò›[€àõ‹õX]X€€ïÿ\›^
+^[ÿY
+^¬à€€ú›X€€ú»H»ô\à∏´dã⁄[ùŒàº'‰¨àN¬à€€ú››\úô[òﬁHH›ö[ô ^[ÿYò›\úô[òﬁHú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›X€€àHX€€ú÷ÿ›\úô[òﬁWHàé¬à€€ú›[[›[ùHù[Xô\ãö\—ö[ö]J^[ÿYò[[›[ù
+H»^[ÿYò[[›[ùà¬à€€ú›⁄Y€àH[[›[ùà»ä»àà[[›[ù»ààààé¬à€€ú›^[[›[ùH	‹⁄Y€üIÿ[[›[ùX¬à€€ú›ôX\€€àH^[ÿYúôX\€€à»	‹^[ÿYúôX\€€üXààé¬àô]\õà	⁄X€€üI›^[[›[ùI‹ôX\€€üXùö[J
+N¬àBÇàù[ò›[€àŸ]›\úô[ù⁄[ù–ò[[òŸJ
+^¬à€€ú›»Hÿ[YH	âàÿ[YKó◊‘»»ÿ[YKó◊‘»àù[¬à€€ú›YHH»	âàÀõYH»ÀõYHàù[¬àYà
+YH	âàù[Xô\ãö\—ö[ö]JYKú⁄[ù JHô]\õàYKú⁄[ù»¬à€€ú›^Y\ú”YHH»	âàÀú^Y\ú»	âàÀú^Y\úÀõYN¬àYà
+^Y\ú”YH	âàù[Xô\ãö\—ö[ö]J^Y\ú”YKú⁄[ù JHô]\õà^Y\ú”YKú⁄[ù»¬àô]\õà¬àBÇàù[ò›[€àõ‹õX[^ôQX€€õ€^TôX\€€äôX\€€ä^¬àô]\õà›ö[ô ôX\€€ààäKùö[J
+Kù”›Ÿ\êÿ\ŸJ
+N¬àBÇàù[ò›[€àô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›Ÿ^J^[ÿY‹»HﬂJ^¬àYà
+\^[ÿY
+Hô]\õààé¬à€€ú››\úô[òﬁHH›ö[ô ^[ÿYò›\úô[òﬁHú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+›\úô[òﬁHOOHú⁄[ù»äHô]\õààé¬à€€ú›[[›[ùHù[Xô\ãö\—ö[ö]J^[ÿYò[[›[ù
+H»
+^[ÿYò[[›[ù
+Hà¬à€€ú›ôX\€€àHõ‹õX[^ôQX€€õ€^TôX\€€ä^[ÿYúôX\€€äN¬à€€ú›€›\òŸRYH›ö[ô ^[ÿYú€›\òŸRYàäKùö[J
+N¬à€€ú›\ôŸ]YH›ö[ô ^[ÿYù\ôŸ]YàäKùö[J
+N¬à€€ú›ò[[òŸPYù\àHù[Xô\ãö\—ö[ö]J‹Àòò[[òŸPYù\äBà»
+‹Àòò[[òŸPYù\à
+Bàà
+\ôŸ]YOOHõYHà€›\òŸRYOOHõYHà»Ÿ]›\úô[ù⁄[ù–ò[[òŸJ
+Hàù[
+N¬à€€ú›ò[[òŸPôYõ‹ôHHù[Xô\ãö\—ö[ö]J‹Àòò[[òŸPôYõ‹ôJBà»
+‹Àòò[[òŸPôYõ‹ôH
+Bàà
+ù[Xô\ãö\—ö[ö]Jò[[òŸPYù\äH»
+ò[[òŸPYù\àH[[›[ù
+Hàù[
+N¬à€€ú›öX⁄ô\⁄€H
+ÿ[YH	âàÿ[YKë]H	âàù[Xô\ãö\—ö[ö]Jÿ[YKë]KîíP“’ëT“”
+JH»
+ÿ[YKë]KîíP“’ëT“”
+Hàå¬à€€ú››ô\ùUô\⁄€H
+ÿ[YH	âàÿ[YKë]H	âàù[Xô\ãö\—ö[ö]Jÿ[YKë]Kî“Sï◊‘”—ï––T
+JBà»X]õX^
+KX]ôõ€‹ä
+ÿ[YKë]Kî“Sï◊‘”—ï––T
+H»L
+JBààé¬à€€ú›[ò€€YTôX\€€àH üÀóÀWJJô]ÿ\ôôYù[ô[ò€€Y_\ﬂ⁄[üX\õôY
+JœIÀóÀWJKÀù\›
+ôX\€€äN¬à€€ú›^[úŸTôX\€€àH üÀóÀWJJ€‹›^[úŸ_‹[ù⁄\ôŸ_ôY_[ò[_^õÿòôY›X[\ò⁄\Ÿ_ù^_^_^[Y[ùô[X]⁄\ÿÿ\JJœIÀóÀWJKÀù\›
+ôX\€€äN¬àYà
+[[›[ùOOH
+Hô]\õàôX€€õ€^W€ô]]ò[é¬àYà
+ù[Xô\ãö\—ö[ö]Jò[[òŸPYù\äJH¬àYà
+ò[[òŸPYù\àH
+Hô]\õàòò[ö‹ù\‹›]Hé¬àYà
+ò[[òŸPYù\àH›ô\ùUô\⁄€
+Hô]\õàú›ô\ùW‹›]Hé¬àYà
+ò[[òŸPYù\àèHöX⁄ô\⁄€
+Hô]\õàúöX⁄‹›]Hé¬àBàYà
+[[›[ùà
+H¬àYà
+[ò€€YTôX\€€äHô]\õàö[ò€€YWŸ]ô[ùé¬àYà
+\ôŸ]YOOHõYHà€›\òŸRYOOHú⁄[ö»à€›\òŸRYú›\ù’⁄]
+ò‹õ›ŸàäJHô]\õàõ[€ô^W‹ôXŸZ]ôYé¬àYà
+ù[Xô\ãö\—ö[ö]Jò[[òŸPôYõ‹ôJH	âàù[Xô\ãö\—ö[ö]Jò[[òŸPYù\äH	âàò[[òŸPYù\ààò[[òŸPôYõ‹ôJHô]\õàõ[€ô^Wÿ⁄[ôŸY‹‹⁄]]ôHé¬àô]\õàõ[€ô^Wÿ⁄[ôŸY‹‹⁄]]ôHé¬àBàYà
+[[›[ù
+H¬àYà
+^[úŸTôX\€€äHô]\õàô^[úŸWŸ]ô[ùé¬àYà
+€›\òŸRYOOHõYHà\ôŸ]YOOHú⁄[ö»à\ôŸ]Yú›\ù’⁄]
+ò‹õ›ŸàäJHô]\õàõ[€ô^W‹‹[ùé¬àYà
+ù[Xô\ãö\—ö[ö]Jò[[òŸPôYõ‹ôJH	âàù[Xô\ãö\—ö[ö]Jò[[òŸPYù\äH	âàò[[òŸPYù\àò[[òŸPôYõ‹ôJHô]\õàõ[€ô^Wÿ⁄[ôŸY€ôYÿ]]ôHé¬àô]\õàõ[€ô^Wÿ⁄[ôŸY€ôYÿ]]ôHé¬àBàô]\õààé¬àBÇàù[ò›[€àô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›^
+õ›À‹»HﬂJ^¬à€€ú›^[ÿYH‹ôX]QX€€î^[ÿY
+õ› N¬àYà
+\^[ÿY
+Hô]\õààé¬à€€ú›Ÿ^HHô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›Ÿ^J^[ÿY‹ N¬àYà
+ZŸ^HQÿ[YHQÿ[YKîﬁ\›[H\[Ÿàÿ[YKîﬁ\›[KúõŸö[U^OOHôù[ò›[€àäHô]\õààé¬àô]\õà›ö[ô ÿ[YKîﬁ\›[KúõŸö[U^
+Ÿ^JHàäKùö[J
+N¬àBÇàù[ò›[€à‹ôX]QX€€î^[ÿY
+õ› ^¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äHô]\õàù[¬à€€ú››\úô[òﬁHH›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+HOOHúô\à»úô\ààú⁄[ù»é¬à€€ú›[[›[ùHù[Xô\ãö\—ö[ö]Jõ›Àò[[›[ù
+H»õ›Àò[[›[ùà
+
+õ›Àô[HOOH[ôYö[ôY
+H»ù[Xô\äõ›Àô[JHà
+N¬àô]\õà¬à›\úô[òﬁKà[[›[ùàôX\€€éàõ›ÀúôX\€€ãà€›\òŸRYàõ›Àú€›\òŸRYà\ôŸ]Yàõ›Àù\ôŸ]Yàò]RYàõ›Àòò]RYà]ô[ùYàõ›Àô]ô[ùYàN¬àBÇàù[ò›[€àõ‹õX]X€€ë[Jõ› ^¬à€€ú›^[ÿYH‹ôX]QX€€î^[ÿY
+õ› H¬à›\úô[òﬁNà›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+HOOHúô\à»úô\ààú⁄[ù»ãà[[›[ùàù[Xô\ãö\—ö[ö]Jõ›Àò[[›[ù
+H»õ›Àò[[›[ùà
+
+õ›Àô[HOOH[ôYö[ôY
+H»ù[Xô\äõ›Àô[JHà
+KàôX\€€éàõ›ÀúôX\€€ãà€›\òŸRYàõ›Àú€›\òŸRYà\ôŸ]Yàõ›Àù\ôŸ]Yàò]RYàõ›Àòò]RYà]ô[ùYàõ›Àô]ô[ùYàN¬àYà
+\^[ÿY
+Hô]\õààé¬à€€ú›õ]õ‹ï^Hô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›^
+õ›À¬àò[[òŸPôYõ‹ôNàù[Xô\ãö\—ö[ö]Jõ›»	âàõ›Àòò[[òŸPôYõ‹ôJH»
+õ›Àòò[[òŸPôYõ‹ôH
+Hà[ôYö[ôYàò[[òŸPYù\éàù[Xô\ãö\—ö[ö]Jõ›»	âàõ›Àòò[[òŸPYù\äH»
+õ›Àòò[[òŸPYù\à
+Hà[ôYö[ôYàJN¬àô]\õàõ]õ‹ï^õ‹õX]X€€ïÿ\›^
+^[ÿY
+N¬àBÇàù[ò›[€àŸ—X€€ïÿ\›⁄YQYôôX›
+õã]Z[
+^¬àYà
+YõäHô]\õé¬àYà
+Qÿ[YHQÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHô]\õé¬à€€ú›ô»Hÿ[YKó◊—¬àYà
+P\úò^Kö\–\úò^JôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[ JHôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[»H◊N¬àôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[Àú\⁄
+¬àõãà]Z[à
+]Z[	âà\[Ÿà]Z[OOHõÿöôX›äH»ÿöôX›ò\‹⁄Y€äﬂK]Z[
+Hà]Z[àŒà]Kõõ› 
+BàJN¬àûH¬à€€ú€€Kùÿ\õäëP””ó’RM—ì‘êíQSó’RW‘“QW—QëëP’ã»õã]Z[JN¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àÿ[ö]^ôT[ô[\›
+õY‹ ^¬àYà
+\úò^Kö\–\úò^JõY‹ JHô]\õàõY‹Àú€XŸJ
+N¬àYà
+YõY‹ Hô]\õàù[¬àûH¬àô]\õà\úò^Kôúõ€JõY‹ Kú€XŸJ
+N¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàBÇàù[ò›[€àÿ\\ôT[ô[›]T⁄Y 
+^¬à€€ú›õ›\»H◊N¬à]õY‹»Hù[¬àYà
+ÿ[YH	âàÿ[YKó◊‘»	âàÿ[YKó◊‘ÀôõY‹ H¬àõY‹»Hÿ[YKó◊‘ÀôõY‹Œ¬àH[ŸHYà
+ÿ[YH	âàÿ[YKî›]H	âàÿ[YKî›]KôõY‹ H¬àõY‹»Hÿ[YKî›]KôõY‹Œ¬àBà€€ú›[ô[›]HH¬àX›]ôT[ô[àù[à‹[î[ô[Œàù[àX›]ôP⁄\àù[àS‹[éàù[àò]\”‹[éàù[à]ô[ù”‹[éàù[àN¬àYà
+õY‹»	âà\[ŸàõY‹»OOHõÿöôX›äH¬à[ô[›]KòX›]ôT[ô[HõY‹ÀòX›]ôT[ô[õY‹ÀòX›]ôT[ô[Yù[¬à[ô[›]Kõ‹[î[ô[»Hÿ[ö]^ôT[ô[\›
+õY‹Àõ‹[î[ô[ Hù[¬à[ô[›]KòX›]ôP⁄\HõY‹ÀòX›]ôP⁄\õY‹ÀòX›]ôP⁄\Yù[¬àYà
+õY‹ÀôRY[àOOHùYJH[ô[›]KôS‹[àHò[ŸN¬à[ŸHYà
+õY‹ÀôRY[àOOHò[ŸJH[ô[›]KôS‹[àHùYN¬àYà
+õY‹Àòò]\“Y[àOOHùYJH[ô[›]Kòò]\”‹[àHò[ŸN¬à[ŸHYà
+õY‹Àòò]\“Y[àOOHò[ŸJH[ô[›]Kòò]\”‹[àHùYN¬à[ô[›]Kô]ô[ù”‹[àH
+õY‹Àô]ô[ù”‹[àOOH[ôYö[ôY
+H»ù[àHYõY‹Àô]ô[ù”‹[é¬àH[ŸH¬àõ›\Àú\⁄
+ú[ô[õY‹◊€Z\‹⁄[ô»äN¬àBàYà
+\[ô[›]Kõ‹[î[ô[»	âà\[Ÿàÿ›[Y[ùOOHù[ôYö[ôYà	âàÿ›[Y[ù	âàÿ›[Y[ùú]Y\ûTŸ[X›‹ê[
+H¬àûH¬à€€ú›[ô[[»Hÿ›[Y[ùú]Y\ûTŸ[X›‹ê[
+ãú[ô[õõ›
+öY[äKú[ô[ú[ô[KYù[òÿ\ôõõ›
+öY[äHäN¬à€€ú›Y»H\úò^Kôúõ€J[ô[[»◊JKõX\
+[Oà›ö[ô [öY
+[ô]\Ÿ]»[ô]\Ÿ]ú[ô[Ÿ^HààäH[ò€\‹”ò[YHàäKùö[J
+JKôö[\äõ€€X[äN¬à[ô[›]Kõ‹[î[ô[»HYÀõ[ô›»Y»àù[¬àYà
+YÀõ[ô›
+Hõ›\Àú\⁄
+ú[ô[\›Ÿúõ€WŸ€HäN¬àHÿ]⁄
+ HﬂBàBàYà
+[ô[›]KòX›]ôT[ô[OOHù[	âà\[Ÿàÿ›[Y[ùOOHù[ôYö[ôYà	âàÿ›[Y[ù	âàÿ›[Y[ùú]Y\ûTŸ[X›‹äH¬àûH¬à€€ú›X›]ôQ[Hÿ›[Y[ùú]Y\ûTŸ[X›‹äãú[ô[ú[ô[KYù[ú[ô[ö\À[‹[ãòÿ\ôú[ô[KYù[äN¬àYà
+X›]ôQ[
+H¬à[ô[›]KòX›]ôT[ô[HX›]ôQ[öY
+X›]ôQ[ô]\Ÿ]»X›]ôQ[ô]\Ÿ]ú[ô[Ÿ^Hàù[
+Hù[¬àõ›\Àú\⁄
+òX›]ôT[ô[Ÿúõ€WŸ€HäN¬àBàHÿ]⁄
+ HﬂBàBàô]\õà»[ô[›]T⁄YŒà[ô[›]Kõ›\»N¬àBÇàù[ò›[€àÿ\\ôQõÿ›\‘⁄Y 
+^¬à€€ú›⁄Y»H»YŒàù[Yàù[€Œàù[N¬àYà
+\[Ÿàÿ›[Y[ùOOHù[ôYö[ôYàYÿ›[Y[ù
+Hô]\õà⁄YŒ¬àûH¬à€€ú›X›]ôHHÿ›[Y[ùòX›]ôQ[[Y[ù¬àYà
+XX›]ôJHô]\õà⁄YŒ¬à⁄YÀùY»H›ö[ô X›]ôKùY”ò[YHàäKù”›Ÿ\êÿ\ŸJ
+Hù[¬à⁄YÀöYHX›]ôKöYù[¬à€€ú›€»H
+X›]ôKôŸ]]öXù]H	âàX›]ôKôŸ]]öXù]Jò€\‹»äJH»X›]ôKôŸ]]öXù]Jò€\‹»äHàX›]ôKò€\‹”ò[YN¬à⁄YÀò€»H€»»›ö[ô € Hàù[¬àHÿ]⁄
+ HﬂBàô]\õà⁄YŒ¬àBÇàù[ò›[€à⁄Y—\]X[
+Kä^¬àûH¬àô]\õàî””ãú›ö[ô⁄YûJJHOOHî””ãú›ö[ô⁄YûJäN¬àHÿ]⁄
+ H¬àô]\õàò[ŸN¬àBàBÇàù[ò›[€à›[[X\ö^ôP\ô \ô ^¬àYà
+\ô»OHù[
+Hô]\õàù[¬àYà
+\[Ÿà\ô»OOHú›ö[ô»à\[Ÿà\ô»OOHõù[Xô\àà\[Ÿà\ô»OOHòõ€€X[àäHô]\õà\ôŒ¬àYà
+\[Ÿà\ô»OOHõÿöôX›äH¬àYà
+\[ŸàS[[Y[ùOOHù[ôYö[ôYà	âà\ô»[ú›[òŸ[ŸàS[[Y[ù
+H¬àô]\õà¬àYŒà›ö[ô \ôÀùY”ò[YHàäKù”›Ÿ\êÿ\ŸJ
+KàYà›ö[ô \ôÀöYàäKà€Œà›ö[ô \ôÀò€\‹”ò[YHàäBàN¬àBàYà
+\ô»	âà\[Ÿà\ôÀöYOOHú›ö[ô»à	âà\[Ÿà\ôÀùY”ò[YHOOHú›ö[ô»äH¬àô]\õà»YŒà\ôÀùY”ò[YKYà\ôÀöYN¬àBàûH¬àô]\õàî””ãú›ö[ô⁄YûJ\ô N¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàBàô]\õàù[¬àBÇàù[ò›[€à‹ò\ZT⁄YQYôôX›
+ò[YJ^¬àYà
+Qÿ[YHQÿ[YKïRJHô]\õé¬à€€ú›\ôŸ]Hÿ[YKïRV€ò[YWN¬àYà
+\[Ÿà\ôŸ]OOHôù[ò›[€àà\ôŸ]ó◊ŸX€€ë›X\ôY
+Hô]\õé¬àÿ[YKïRV€ò[YWHHù[ò›[€äããò\ô‹ ^¬àYà
+ÿ[YH	âàÿ[YKó◊—	âàÿ[YKó◊—ó◊ŸX€€ïÿ\›[ëõY⁄
+H¬àŸ—X€€ïÿ\›⁄YQYôôX›
+ò[YK»\ô‹Œà\ô‹ÀõX\
+›[[X\ö^ôP\ô Kôö[\äOàOHù[
+HJN¬àBàô]\õà\ôŸ]ò\J\À\ô‹ N¬àN¬àÿ[YKïRV€ò[YWKó◊ŸX€€ë›X\ôYHùYN¬àBÇàù[ò›[€à‹ò\€SY]Ÿ
+õ›ÀY]Ÿò[YKXô[
+^¬àYà
+\õ›»\[Ÿàõ›Àúõ››\HOOHù[ôYö[ôYäHô]\õé¬à€€ú›‹öY⁄[ò[Hõ›Àúõ››\V€Y]Ÿò[YWN¬àYà
+\[Ÿà‹öY⁄[ò[OOHôù[ò›[€àà‹öY⁄[ò[ó◊ŸX€€î]⁄Y
+Hô]\õé¬àõ›Àúõ››\V€Y]Ÿò[YWHHù[ò›[€äããò\ô‹ ^¬àYà
+ÿ[YH	âàÿ[YKó◊—	âàÿ[YKó◊—ó◊ŸX€€ïÿ\›[ëõY⁄
+H¬àŸ—X€€ïÿ\›⁄YQYôôX›
+Xô[¬àYŒà\»	âà\ÀùY”ò[YH»›ö[ô \ÀùY”ò[YJKù”›Ÿ\êÿ\ŸJ
+Hàù[àYà\»	âà\ÀöY»›ö[ô \ÀöY
+Hàù[à€Œà\»	âà\Àò€\‹”ò[YH»›ö[ô \Àò€\‹”ò[YJHàù[à\ô‹Œà\ô‹ÀõX\
+›[[X\ö^ôP\ô Kôö[\äOàOHù[
+BàJN¬àBàô]\õà‹öY⁄[ò[ò\J\À\ô‹ N¬àN¬àõ›Àúõ››\V€Y]Ÿò[YWKó◊ŸX€€î]⁄YHùYN¬àBÇàù[ò›[€à[ú›[X€€ïZT⁄YQYôôX››X\ô 
+^¬à€€ú››X\ôò[Y\»H¬àõ‹[ëHãàõ‹[ëPûSò[YHãàõ‹[ëPûT‹XZŸ\íYãàõ‹[êò]\–[ôÿ‹õ€ãàõ‹[ë]ô[ù‘[ô[ãàô[ú›\ôQ]ô[ù—^[ôYãàöY⁄Y⁄]ô[ùûRYãàúÿ‹õ€—]ô[ùûPò]RYÇàN¬àõ‹à
+€€ú›ò[YHŸà›X\ôò[Y\ H¬à‹ò\ZT⁄YQYôôX›
+ò[YJN¬àBàYà
+\[ŸàS[[Y[ùOOHù[ôYö[ôYäH¬à‹ò\€SY]Ÿ
+S[[Y[ùôõÿ›\»ãô[[Y[ùôõÿ›\»äN¬àBàYà
+\[Ÿà[[Y[ùOOHù[ôYö[ôYäH¬à‹ò\€SY]Ÿ
+[[Y[ùúÿ‹õ€[ù’öY]»ãô[[Y[ùúÿ‹õ€[ù’öY]»äN¬àBàYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âà\[Ÿà⁄[ô›Àúÿ‹õ€»OOHôù[ò›[€àäH¬à€€ú›‹öY⁄[ò[ÿ‹õ€»H⁄[ô›Àúÿ‹õ€Œ¬àYà
+[‹öY⁄[ò[ÿ‹õ€Àó◊ŸX€€î]⁄Y
+H¬à⁄[ô›Àúÿ‹õ€»Hù[ò›[€äããò\ô‹ ^¬àYà
+ÿ[YH	âàÿ[YKó◊—	âàÿ[YKó◊—ó◊ŸX€€ïÿ\›[ëõY⁄
+H¬àŸ—X€€ïÿ\›⁄YQYôôX›
+ù⁄[ô›Àúÿ‹õ€»ã»\ô‹Œà\ô‹ÀõX\
+›[[X\ö^ôP\ô Kôö[\äOàOHù[
+HJN¬àBàô]\õà‹öY⁄[ò[ÿ‹õ€Àò\J\À\ô‹ N¬àN¬à⁄[ô›Àúÿ‹õ€Àó◊ŸX€€î]⁄YHùYN¬àBàBàBÇàù[ò›[€à[Z]X€€ïÿ\›õ› õ›Àÿ\››ô\úöYU^
+^¬àYà
+\õ›»]ÿ\›
+Hô]\õé¬à€€ú›^H›ö[ô ›ô\úöYU^ÿ\›ù^õ›ÀúôX\€€ààäN¬àYà
+]^
+Hô]\õé¬à€€ú›⁄[ôH›ö[ô õ›Àò›\úô[òﬁHú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+HOOHúô\à»úô\ààú⁄[ù»é¬àûH¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKú⁄›‘›]ÿ\›OOHôù[ò›[€àäH¬àÿ[YKïRKú⁄›‘›]ÿ\›
+⁄[ô^
+N¬àBàHÿ]⁄
+ HﬂBàBÇàù[ò›[€à\⁄X€€ïÿ\›úõ€SŸ‘ôYäôYã›ô\úöYU^
+^¬àYà
+\ôYà\[ŸàôYàOOHõÿöôX›äHô]\õàù[¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHô]\õàù[¬à€€ú›ô»Hÿ[YKó◊—¬àYà
+P\úò^Kö\–\úò^JôÀõ[€ô^SŸ JHô]\õà»⁄Œàò[ŸKôX\€€éàõ[€ô^[Ÿ◊€Z\‹⁄[ô»àN¬à€€ú›[ô^ÿ[ôY]HHù[Xô\ãö\—ö[ö]JôYãõŸ“[ô^
+H»ôYãõŸ“[ô^àù[¬à]õ›»H
+[ô^ÿ[ôY]HOOHù[
+H»ôÀõ[€ô^SŸ÷⁄[ô^ÿ[ôY]WHàù[¬àYà
+\õ›»
+ôYãùY	âà›ö[ô õ›ÀùYàäHOOH›ö[ô ôYãùY
+JJH¬àõ›»Hô\€€ôS[€ô^SŸ‘õ› ôYäN¬àBàYà
+\õ› H¬àYà
+ÿ[YH	âàÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH¬à€€ú€€Kùÿ\õäëP””ó’RL◊‘ì’◊”RT‘“Së»ã»ôYàJN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éàúõ›◊€õ›Ÿõ›[ôŸõ‹ó›ÿ\›ãôYàN¬àBàYà
+\õ›ÀúôX\€€äH¬àYà
+ÿ[YH	âàÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH¬à€€ú€€Kùÿ\õäëP””ó’RL◊‘ì’◊‘ëPT””ó”RT‘“Së»ã»ôYãYàõ›ÀùYJN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éàúõ›◊€Z\‹⁄[ô◊‹ôX\€€àãôYãYàõ›ÀùYN¬àBàYà
+P\úò^Kö\–\úò^JôÀùÿ\›Ÿ JHôÀùÿ\›Ÿ»H◊N¬à€€ú›[ôXYHHôÀùÿ\›ŸÀú€€YJOà	âàö⁄[ôOOHôX€€àà	âàùYOOHõ›ÀùY
+N¬àYà
+[ôXYJH¬àYà
+ÿ[YH	âàÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH¬à€€ú€€Kùÿ\õäëP””ó’RLó—T–ì–“—Qã»Yàõ›ÀùYJN¬àBàô]\õà»⁄⁄\YàùYKôX\€€éàô\›YãYàõ›ÀùYN¬àBà€€ú›^[ÿYH‹ôX]QX€€î^[ÿY
+õ› N¬à€€ú›’ÿ\›Hÿ[—X€€ïÿ\› 
+N¬à€€ú›Ÿ“[ô^HôÀõ[€ô^SŸÀôö[ô[ô^
+àOàà	âà›ö[ô ãùYàäHOOH›ö[ô õ›ÀùY
+JN¬à€€ú›ÿ\›H¬à⁄[ôàôX€€àãàYàõ›ÀùYàŸ“[ô^à
+Ÿ“[ô^èH
+H»Ÿ“[ô^à
+[ô^ÿ[ôY]HOOHù[»[ô^ÿ[ôY]Hà
+KàôX\€€éàõ›ÀúôX\€€ãàŒà’ÿ\›à^[ÿYàN¬àYà
+]ÿ\›ù^
+H¬à€€ú›Yò][^Hõ‹õX]X€€ë[Jõ› N¬àYà
+Yò][^
+Hÿ\›ù^HYò][^¬àBàYà
+\[Ÿà›ô\úöYU^OOHú›ö[ô»à	âà›ô\úöYU^
+H¬àÿ\›ù^H›ô\úöYU^¬àBàûH¬à€€ú›[\àHÿ[YH	âàÿ[YKï^	âà\[Ÿàÿ[YKï^õõ‹õX[^ôU^OOHôù[ò›[€àà»ÿ[YKï^õõ‹õX[^ôU^àù[¬àYà
+[\à	âàÿ\›ù^
+H¬à€€ú›õ‹õX[^ôYH[\äÿ\›ù^»›\ôòXŸNàùÿ\›ã€›\òŸNàëÿ[YKó◊—ú\⁄X€€ïÿ\›úõ€SŸ‘ôYàãôX\€€éàõ›ÀúôX\€€àù[JN¬àYà
+õ‹õX[^ôY	âà\[Ÿàõ‹õX[^ôYù^OOHú›ö[ô»äH¬àÿ\›úò]’^Hÿ\›ù^¬àÿ\›ù^Hõ‹õX[^ôYù^¬àÿ\›ú›[S^H¬à⁄Œàõ‹õX[^ôYõ⁄Àà⁄[ôŸYàõ‹õX[^ôYò⁄[ôŸYàô\XŸ[Y[ùŒàõ‹õX[^ôYúô\XŸ[Y[ùÀàõ‹òöY[í]Œàõ‹õX[^ôYôõ‹òöY[í]Àà[ô›[Z]Yàõ‹õX[^ôYõ[ô›[Z]YàN¬àBàBàHÿ]⁄
+ HﬂBàôÀùÿ\›ŸÀú\⁄
+ÿ\›
+N¬à€€ú›õY“€\àHÿ[YH	âàÿ[YKó◊—»ÿ[YKó◊—àù[¬àûH¬àYà
+õY“€\äHõY“€\ãó◊ŸX€€ïÿ\›[ëõY⁄HùYN¬à[Z]X€€ïÿ\›õ› õ›Àÿ\››ô\úöYU^
+N¬àHö[ò[H¬àYà
+õY“€\äHõY“€\ãó◊ŸX€€ïÿ\›[ëõY⁄Hò[ŸN¬àBàô]\õàÿ\›¬àBÇàù[ò›[€àò[úŸô\îô\
+úõ€RY“Y[[›[ùôX\€€ãò]RYY]J^¬à€€ú›YRYH
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHé¬àYà
+ôXX›[€î€XﬁH	âàôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸY
+YRYôX€€õ€^HäH	âà
+
+úõ€RYOOHYRY
+H
+“YOOHYRY
+JJH¬àô]\õà»⁄Œàò[ŸKôX\€€éàúŸX›\ö]Wÿõÿ⁄ŸYàN¬àBàYà
+TŸX›\ö]Kö\‘ÿYôJ
+JH¬àŸX›\ö]Kô[Z]
+ù[\\óŸù[ò›[€àã»Ÿ^Nàùò[úŸô\îô\ãX›[€éàòÿ[ãôX\€€éàòõÿ⁄ŸYã[ŸNà\—]ëõY 
+H»ô]àààúõŸàJN¬àô]\õà»⁄Œàò[ŸKôX\€€éàúŸX›\ö]W›[\\ààN¬àBà€€ú›àHù[Xô\ä[[›[ù
+N¬àYà
+Sù[Xô\ãö\—ö[ö]JäHàOOH
+Hô]\õà»⁄Œàò[ŸKôX\€€éàòòYÿ[[›[ùàN¬à€€ú›õHŸX›\ö]Kúò]S[Z]
+úô\›ò[úŸô\àã¬àX›‹íYà
+›]KõYH	âà›]KõYKöY
+H»›ö[ô ›]KõYKöY
+HàõYHãàôX\€€éàôX\€€àúô\›ò[úŸô\àãàò]RYàX›[€íYàY]H	âàY]KòX›[€íYàúõ€RYà“YàK»X^àã⁄[ô›”\ŒàLåù\ú›àJN¬àYà
+\õõ⁄ H¬àŸX›\ö]Kô[Z]
+úò]W€[Z]ã»X›[€éàúô\›ò[úŸô\àãôX\€€éàôX\€€àúô\›ò[úŸô\àãò]RYúõ€RY“YŸ^NàõöŸ^Kô\Ÿ][éàõúô\Ÿ][àJN¬àô]\õà»⁄Œàò[ŸKôX\€€éàúò]W€[Z]YàN¬àBà€€ú›úõ€PXÿ»HŸ]ô\Xÿ€›[ù
+úõ€RY
+N¬à€€ú›–Xÿ»HŸ]ô\Xÿ€›[ù
+“Y
+N¬àYà
+Yúõ€PXÿ»]–Xÿ Hô]\õà»⁄Œàò[ŸKôX\€€éàòòYÿXÿ€›[ùàN¬àYà
+\—]ëõY 
+H	âà
+\ôX\€€àXò]RY
+JH¬àûH»€€ú€€Kùÿ\õäñ‘ëTHò[úŸô\îô\Z\‹⁄[ô»ôX\€€ãÿò]RYãôX\€€ãò]RY
+N»Hÿ]⁄
+ HﬂBàBà€€ú›ôYõ‹ôTô\H
+›]Kúô\
+H¬à€€ú›ôYõ‹ôR[ôõY[òŸHH
+›]KõYH	âàù[Xô\ãö\—ö[ö]J›]KõYKö[ôõY[òŸJJH»
+›]KõYKö[ôõY[òŸH
+Hà¬à€€ú›õ‹õX[^ôYúõ€RYH
+úõ€RYOHù[
+H»›ö[ô úõ€RY
+Hààé¬à€€ú›ôYõ‹ôQúõ€HH
+õ‹õX[^ôYúõ€RYOOHõYHäH»
+›]Kúô\
+Hà
+úõ€PXÿÀúô\
+N¬à€€ú›ôYõ‹ôU»H
+“YOOHõYHäH»
+›]Kúô\
+Hà
+–XÿÀúô\
+N¬à€€ú›\—[Z]\àH
+õ‹õX[^ôYúõ€RYOOHúô\Ÿ[Z]\ààõ‹õX[^ôYúõ€RYOOHò‹õ›Ÿ‹€€äN¬à€€ú›[]Hà¬ààÀ»⁄X⁄»›YôöX⁄Y[ùù[ô»
+ö^SKLåàÃ Bà€€ú›]òZ[XõHH\—[Z]\à»ù[Xô\ãìPV‘–QëW“SïQ—Tàà
+ôYõ‹ôQúõ€H
+N¬àYà
+Z\—[Z]\à	âà]òZ[XõH[]
+H¬àYà
+\—]ëõY 
+JH¬àûH»€€ú€€Kùÿ\õäñ‘ëTHò[úŸô\îô\[ú›YôöX⁄Y[ùù[ô»ã»úõ€RY]òZ[XõK[]ôX\€€àJN»Hÿ]⁄
+ HﬂBàBàô]\õà»⁄Œàò[ŸKôX\€€éàö[ú›YôöX⁄Y[ù‹ô\ã]òZ[XõKô\]Y\›Yà[]N¬àBà€€ú››X\ôY]HH¬àôX\€€éàôX\€€àúô\›ò[úŸô\àãàò]RYàX›[€íYàY]H	âàY]KòX›[€íYà€€ù^àY]H	âàY]Kò€€ù^àúõ€RYà“YàN¬à€€ú››X\ôHô\€›\òŸUò[Y]‹ãò€Z[Júô\ã›X\ôY]JN¬àYà
+Y›X\ôõ⁄ H¬àô]\õà»⁄Œàò[ŸKôX\€€éà›X\ôúôX\€€àô\Xÿ]HàN¬àBà]›XÿŸ\‹»Hò[ŸN¬ààÀ»\Hò[úŸô\à⁄]€\[ô»»ô]ô[ùôYÿ]]ôH
+ö^SKLåàÃäBàYà
+Z\—[Z]\äH¬àYà
+õ‹õX[^ôYúõ€RYOOHõYHäH¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\HX]õX^
+
+›]Kúô\
+HH[]
+N¬àJN¬àH[ŸH¬àúõ€PXÿÀúô\HX]õX^
+
+úõ€PXÿÀúô\
+HH[]
+N¬àBàBàYà
+“YOOHõYHäH¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\HX]õX^
+
+›]Kúô\
+H
+»[]
+N¬àJN¬àH[ŸH¬à–XÿÀúô\HX]õX^
+
+–XÿÀúô\
+H
+»[]
+N¬àBàYà
+úõ€RYOOHõYHà“YOOHõYHäH¬à\Tô\€€ùô\ú⁄[€ä
+N¬àﬁ[ò”YU‘^Y\ú 
+N¬àBà€€ú›Yù\îô\H
+›]Kúô\
+H¬à€€ú›Yù\í[ôõY[òŸHH
+›]KõYH	âàù[Xô\ãö\—ö[ö]J›]KõYKö[ôõY[òŸJJH»
+›]KõYKö[ôõY[òŸH
+Hà¬àûH¬àŸ‘ô\ò[úŸô\ä¬à[YNà]Kõõ› 
+Kà€›\òŸRYà›ö[ô úõ€RY
+Kà\ôŸ]Yà›ö[ô “Y
+Kà[[›[ùà[]àôX\€€éà›ö[ô ôX\€€àúô\›ò[úŸô\àäKàò]RYàò]RYù[àX›[€íYàY]H	âàY]KòX›[€íY»›ö[ô Y]KòX›[€íY
+Hàù[à€€ù^àY]H	âàY]Kò€€ù^»›ö[ô Y]Kò€€ù^
+Hàù[à›\úô[òﬁNàúô\ãàôYõ‹ôNà»úõ€NàôYõ‹ôQúõ€KŒàôYõ‹ôU»BàJN¬àYà
+JY]H	âàY]Kú›\ô\‹‘›][HOOHùYJJH¬à[Z]›][Júô\ãYù\îô\HôYõ‹ôTô\»ôX\€€éàôX\€€àúô\›ò[úŸô\àãò]RYàò]RYù[JN¬à[Z]›][Jö[ôõY[òŸHãYù\í[ôõY[òŸHHôYõ‹ôR[ôõY[òŸK»ôX\€€éàôX\€€àúô\›ò[úŸô\àãò]RYàò]RYù[JN¬àBà›XÿŸ\‹»HùYN¬àô]\õà»⁄ŒàùYK[[›[ùà[]N¬àHö[ò[H¬àô\€›\òŸUò[Y]‹ãúô[X\ŸJ›X\ôöŸ^K›XÿŸ\‹ N¬àBàBÇàù[ò›[€àô\›‹ôTô\€ò\⁄›
+ò[YK€›\òŸJ^¬àYà
+€›\òŸHOOHú›YŸMÃMWÿ⁄X⁄‹⁄[ùàT›]KôõY‹»›]KôõY‹Àú›YŸMÃMQ[[»OOHùYJH¬àô]\õà»⁄Œàò[ŸKôX\€€éàù[ò]]‹ö^ôY‹ô\‹€ò\⁄›‹ô\›‹ôHàN¬àBà€€ú›ô^Hù[Xô\äò[YJN¬àYà
+Sù[Xô\ãö\—ö[ö]Jô^
+Hô^
+Hô]\õà»⁄Œàò[ŸKôX\€€éàòòY‹ô\‹€ò\⁄›àN¬à€€ú›ôYõ‹ôHH›]Kúô\¬à⁄]ô\‹ö]J
+
+HOà»›]Kúô\Hô^»JN¬àô]\õà»⁄ŒàùYKôYõ‹ôKYù\éà›]Kúô\N¬àBÇàù[ò›[€àX^XôQZ[Tô\õ€ù\ 
+^¬à[ú›\ôTõŸ‹ô\‹ 
+N¬à€€ú›Ÿô»HŸ]ô\€€ôöY 
+N¬à€€ú›\›Hô]»]J›]KúõŸ‹ô\‹Àõ\›Z[Põ€ù\–]
+N¬à€€ú›õ›»Hô]»]J
+N¬à€€ú›ÿ[YQ^HH\›ôŸ]ù[YX\ä
+HOOHõ›ÀôŸ]ù[YX\ä
+Bà	âà\›ôŸ][€ù
+
+HOOHõ›ÀôŸ][€ù
+
+Bà	âà\›ôŸ]]J
+HOOHõ›ÀôŸ]]J
+N¬àYà
+ÿ[YQ^JHô]\õàò[ŸN¬à›]KúõŸ‹ô\‹Àõ\›Z[Põ€ù\–]H]Kõõ› 
+N¬à€€ú›^HHô]»]J
+N¬à€€ú›^RYHZ[W…Ÿ^KôŸ]ù[YX\ä
+_KI‘›ö[ô ^KôŸ][€ù
+
+H
+»JKúY›\ù
+ãåä_KI‘›ö[ô ^KôŸ]]J
+JKúY›\ù
+ãåä_X¬àò[úŸô\îô\
+ôZ[W‹€€ãõYHãŸôÀîëT—RSKúô\ŸZ[Wÿõ€ù\»ã^RY
+N¬àÀ»ëTåàX€€õ€^NàZ[H[€»‹ò[ù»
+ÃH⁄[ù
+YÿXﬁH[ŸH€õJKÇàûH¬àYà
+Z\–⁄\ò›[][€ë[òXõY
+
+JH¬àY⁄[ù KôZ[Wÿõ€ù\»äN¬àBàHÿ]⁄
+ HﬂBàô]\õàùYN¬àBàù[ò›[€àŸ]⁄[ù–€€ôöY 
+^¬à€€ú›H
+ÿ[YH	âàÿ[YKë]JH»ÿ[YKë]Hàù[¬à€€ú››\ùH
+	âàù[Xô\ãö\—ö[ö]Jî“Sï◊‘’Tï
+JH»
+î“Sï◊‘’Tï
+HàL¬à€€ú››\ù^Y\àH
+	âàù[Xô\ãö\—ö[ö]Jî’Tï‘“Sï◊‘VQTäJH»
+î’Tï‘“Sï◊‘VQTà
+Hà›\ù¬à€€ú››\ùú»H
+	âàù[Xô\ãö\—ö[ö]Jî’Tï‘“Sï◊”î JH»
+î’Tï‘“Sï◊”î»
+Hà›\ù¬à€€ú›€Ÿùÿ\H
+	âàù[Xô\ãö\—ö[ö]Jî“Sï◊‘”—ï––T
+JH»
+î“Sï◊‘”—ï––T
+Hàå¬àô]\õà¬à›\ùàX]õX^
+›\ù
+Kà›\ù^Y\éàX]õX^
+›\ù^Y\äKà›\ùúŒàX]õX^
+›\ùú Kà€Ÿùÿ\àX]õX^
+€Ÿùÿ\
+BàN¬àBÇàù[ò›[€à\–⁄\ò›[][€ë[òXõY
+
+^¬àô]\õàùYN¬àBÇàù[ò›[€àŸ]X€€ä
+^¬àô]\õà
+ÿ[YH	âàÿ[YKó–€€ôõX›X€€õ€^JH»ÿ[YKó–€€ôõX›X€€õ€^Hàù[¬àBÇàù[ò›[€àŸ]⁄[ù–X›‹äX›‹íY
+^¬à€€ú›YH
+X›‹íYOHù[
+H»›ö[ô X›‹íY
+HàõYHé¬à€€ú›YRYH
+›]KõYH	âà›]KõYKöY
+H»›ö[ô ›]KõYKöY
+HàõYHé¬àYà
+YOOHõYHàYOOHYRY
+Hô]\õà›]KõYHù[¬àYà
+›]Kú^Y\ú»	âà›]Kú^Y\ú÷⁄YJHô]\õà›]Kú^Y\ú÷⁄YN¬àô]\õàù[¬àBÇàù[ò›[€à\T€ÿ⁄X[[ò[JX›[€ãX›‹íY‹»Hù[
+^¬à€€ú›Ÿô»H
+‹»	âà\[Ÿà‹»OOHõÿöôX›äH»‹»àﬂN¬à€€ú›ôX\€€àH›ö[ô ŸôÀúôX\€€àú€ÿ⁄X[‹[ò[HäN¬à€€ú›X›‹íŸ^HH
+X›‹íYOHù[
+H»›ö[ô X›‹íY
+HàõYHé¬à€€ú›X›‹àHŸ]⁄[ù–X›‹äX›‹íŸ^JN¬à€€ú›[[›[ùÿ[ùYHù[Xô\ãö\—ö[ö]JŸôÀò[[›[ùÿ[ùY
+H»
+ŸôÀò[[›[ùÿ[ùY
+Hà¬àYà
+XX›‹àSù[Xô\ãö\—ö[ö]JX›‹ãú⁄[ù JH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€ãà[[›[ùÿ[ùYà[[›[ùX›X[àà\ùX[àùYKà⁄[ù–ôYõ‹ôNàà⁄[ù–Yù\éààN¬àBà€€ú›⁄[ù–ôYõ‹ôHHX›‹ãú⁄[ù»¬à€€ú›[[›[ùX›X[HX]õX^
+X]õZ[ä[[›[ùÿ[ùYX]õX^
+⁄[ù–ôYõ‹ôH
+JJN¬à€€ú›\ùX[H[[›[ùX›X[OOH[[›[ùÿ[ùY¬à]⁄[ù–Yù\àH⁄[ù–ôYõ‹ôN¬à]⁄»HùYN¬à€€ú›X€€àH
+ÿ[YH	âà
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JJH»
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JHàù[¬àYà
+X€€à	âà\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àà	âà[[›[ùX›X[à
+H¬à€€ú›Y]HHÿöôX›ò\‹⁄Y€äﬂK
+ŸôÀõY]H	âà\[ŸàŸôÀõY]HOOHõÿöôX›äH»ŸôÀõY]HàﬂK¬àX›[€éà›ö[ô X›[€àú€ÿ⁄X[‹[ò[HäKà\ôŸ]YàŸôÀù\ôŸ]Y»›ö[ô ŸôÀù\ôŸ]Y
+Hàù[à[[›[ùÿ[ùYà[[›[ùX›X[à\ùX[à⁄[ù–ôYõ‹ôKà⁄[ù–Yù\éàù[àŸ^NàŸôÀöŸ^H»›ö[ô ŸôÀöŸ^JHàù[àJN¬à€€ú›HX€€ãùò[úŸô\î⁄[ù X›‹íŸ^Kú⁄[ö»ã[[›[ùX›X[ôX\€€ãY]JN¬à⁄»HJ	âàõ⁄»OOHò[ŸJN¬à€€ú›X›‹êYù\àHŸ]⁄[ù–X›‹äX›‹íŸ^JN¬à⁄[ù–Yù\àH
+X›‹êYù\à	âàù[Xô\ãö\—ö[ö]JX›‹êYù\ãú⁄[ù JH»
+X›‹êYù\ãú⁄[ù»
+Hà
+⁄[ù–ôYõ‹ôHH[[›[ùX›X[
+N¬àY]Kú⁄[ù–Yù\àH⁄[ù–Yù\é¬àBàô]\õà¬à⁄ÀàôX\€€ãà[[›[ùÿ[ùYà[[›[ùX›X[à\ùX[à⁄[ù–ôYõ‹ôKà⁄[ù–Yù\ÇàN¬àBÇàù[ò›[€à\—^X⁄]]î]Y\ûT\ò[J
+H¬àYà
+\[Ÿàÿÿ][€àOOHù[ôYö[ôYà[ÿÿ][€äHô]\õàò[ŸN¬à€€ú›ŸX\ò⁄Hÿÿ][€ãúŸX\ò⁄¬àYà
+\ŸX\ò⁄
+Hô]\õàò[ŸN¬àûH¬à€€ú›\ò[\»Hô]»TìŸX\ò⁄\ò[\ ŸX\ò⁄
+N¬àô]\õà\ò[\ÀôŸ]
+ô]àäHOOHåHé¬àHÿ]⁄
+ H¬àô]\õàò[ŸN¬àBàBÇàù[ò›[€à\—^X⁄]€[⁄ŸT]Y\ûT\ò[J
+H¬àYà
+\[Ÿàÿÿ][€àOOHù[ôYö[ôYà[ÿÿ][€äHô]\õàò[ŸN¬à€€ú›ŸX\ò⁄Hÿÿ][€ãúŸX\ò⁄¬àYà
+\ŸX\ò⁄
+Hô]\õàò[ŸN¬àûH¬à€€ú›\ò[\»Hô]»TìŸX\ò⁄\ò[\ ŸX\ò⁄
+N¬àô]\õà\ò[\ÀôŸ]
+ú€[⁄ŸHäHOOHåHé¬àHÿ]⁄
+ H¬àô]\õàò[ŸN¬àBàBÇàù[ò›[€à[›‘€[⁄ŸT›\ôòXŸJ
+^¬àYà
+\[Ÿàÿÿ][€àOOHù[ôYö[ôYà[ÿÿ][€äHô]\õàò[ŸN¬à€€ú›‹›H›ö[ô ÿÿ][€ãö‹›ò[YHàäN¬àYà
+‹›OOHúÿ[]\ò^KYÿ[Y\Àô⁄]Xãö[»äHô]\õàùYN¬àô]\õà\—^X⁄]€[⁄ŸT]Y\ûT\ò[J
+N¬àBÇàù[ò›[€à\—]ëõY 
+^¬àô]\õà
+à
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âà
+⁄[ô›Àó◊—Uó◊»OOHùYH⁄[ô›ÀëUàOOHùYJJHà\—^X⁄]]î]Y\ûT\ò[J
+Bà
+N¬àBÇàù[ò›[€àŸX›\ö]P]Y][ŸJ
+^»ô]\õà\—]ëõY 
+H»ô]àààúõŸé»BÇà]€ÿò[[\\ïù\›Y\H¬àù[ò›[€à⁄]€ÿò[[\\ïù\›
+õä^¬à€ÿò[[\\ïù\›Y\
+ Œ¬àûH»ô]\õàõä
+N»Bàö[ò[H»€ÿò[[\\ïù\›Y\HX]õX^
+€ÿò[[\\ïù\›Y\HJN»BàBÇàù[ò›[€àYö[ôQÿ[YT›\ôòXŸTõ‹
+ò[YK[ù\õò[ò[YJH¬àYà
+Qÿ[YHZ[ù\õò[ò[YJHô]\õé¬àYà
+ÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿ[YKò[YJJHô]\õé¬à⁄]€ÿò[[\\ïù\›
+
+
+HOàÿöôX›ôYö[ôTõ‹\ùJÿ[YKò[YK¬à€€ôöY›\òXõNàò[ŸKà[ù[Y\òXõNàò[ŸKàŸ]
+
+H¬àYà
+Z\—]ëõY 
+JH¬à[Z]õ‹òöY[êXÿŸ\‹ ÿ[YKâ€ò[Y_XôŸ]äN¬àô]\õà[ôYö[ôY¬àBàô]\õàÿ[YV⁄[ù\õò[ò[YWN¬àKàŸ]
+ò[YJH¬àYà
+Z\—]ëõY 
+JH¬à[Z]õ‹òöY[êXÿŸ\‹ ÿ[YKâ€ò[Y_XúŸ]äN¬àô]\õé¬àBàÿ[YV⁄[ù\õò[ò[YWHHò[YN¬àBàJJN¬àBÇàYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYäH¬àYà
+\—]ëõY 
+JH¬à⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹H⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹Yö[ôQÿ[YT›\ôòXŸTõ‹¬àH[ŸHYà
+⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹OOHYö[ôQÿ[YT›\ôòXŸTõ‹
+H¬àûH¬à[]H⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹¬àHÿ]⁄
+ H¬à⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹H[ôYö[ôY¬àBàBàBÇàù[ò›[€àûTô[[›ôJõ‹\ôŸ]õ‹ò[YJ^¬àYà
+\õ‹\ôŸ]\[Ÿàõ‹\ôŸ]OOHõÿöôX›äHô]\õé¬àûH¬à[]Hõ‹\ôŸ]‹õ‹ò[YWN¬àHÿ]⁄
+ H¬àõ‹\ôŸ]‹õ‹ò[YWHH[ôYö[ôY¬àBàBÇàYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âàZ\—]ëõY 
+JH¬àûTô[[›ôJÿ[YKë]àäN¬àYà
+X[›‘€[⁄ŸT›\ôòXŸJ
+JH¬àûTô[[›ôJÿ[YKó◊—UàäN¬àBàûTô[[›ôJ⁄[ô›Àó◊ŸYö[ôQÿ[YT›\ôòXŸTõ‹äN¬àBÇà]⁄[ù’‹ö]Q\H¬àù[ò›[€à⁄]⁄[ù’‹ö]Jõä^¬à⁄[ù’‹ö]Q\
+ Œ¬àûH»ô]\õàõä
+N»Hö[ò[H»⁄[ù’‹ö]Q\HX]õX^
+⁄[ù’‹ö]Q\HJN»BàBÇàù[ò›[€àÿ[ï‹ö]T⁄[ù 
+^¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—àù[¬à€€ú›[›—]àHHJô»	âà
+ôÀêS’◊‘“Sï◊’‘íUHOOHùYHôÀêñTT‘◊‘“Sï◊—’PTëOOHùYJJN¬àô]\õàZ\–⁄\ò›[][€ë[òXõY
+
+H⁄[ù’‹ö]Q\à[›—]é¬àBÇàù[ò›[€àôZôX›⁄[ù’‹ö]JX›[€ä^¬à€€ú›\Ÿ»H¥)¥.4`4.¥`Ù.ÙcÙa¥.4cŒà4/Ù`4cÙ/4/¥-H4.4-Ù/4-t/t-t/t.4-H4,t,4.Ù,4/t`t,4-Ù,4,t.Ù/¥.¥.4`4/¥,¥,4/t/àé¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—àù[¬àYà
+ô»	âà
+ôÀêS’◊‘“Sï◊’‘íUHOOHùYHôÀêñTT‘◊‘“Sï◊—’PTëOOHùYJJH¬àô]\õàùYN¬àBàYà
+\—]ëõY 
+JH¬à€€ú›[›’‹ö]HHHJô»	âàôÀêS’◊‘“Sï◊’‘íUHOOHùYJN¬à€€ú›û\\‹»HHJô»	âàôÀêñTT‘◊‘“Sï◊—’PTëOOHùYJN¬à€€ú›⁄\àH\–⁄\ò›[][€ë[òXõY
+
+N¬à]›X⁄“XYHàé¬àûH¬à€€ú›\úàHô]»\úõ‹ä
+N¬à€€ú›»H›ö[ô \úà	âà\úãú›X⁄»»\úãú›X⁄»ààäN¬à€€ú›[ô\»HÀú‹]
+óàäKõX\
+Oàùö[J
+JKôö[\äõ€€X[äN¬àYà
+[ô\Àõ[ô›àJH›X⁄“XYH	€[ô\÷ÃWHàüI€[ô\÷ÃóH»àà
+»[ô\÷ÃóHààüX¬àHÿ]⁄
+ HﬂBà€€ú›Z[H[›’‹ö]OIÿ[›’‹ö]_Hû\\‹œIÿû\\‹ﬂH⁄\èIÿ⁄\üI‹›X⁄“XY»à›X⁄œHà
+»›X⁄“XYààüX¬àõ›»ô]»\úõ‹äX›[€à»	€\ŸﬂH
+	ÿX›[€üJI›Z[Xà	€\ŸﬂI›Z[X
+N¬àBàûH»\⁄ﬁ\›[J\Ÿ»
+»ãàäN»Hÿ]⁄
+ HﬂBàô]\õàò[ŸN¬àBÇàù[ò›[€à›X\ô⁄[ù”ÿöôX›
+ÿöãXô[
+^¬àYà
+[ÿöà\[ŸàÿöàOOHõÿöôX›äHô]\õé¬à€€ú›\ÿ»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿöãú⁄[ù»äN¬àYà
+\ÿ»	âà\[Ÿà\ÿÀôŸ]OOHôù[ò›[€àäHô]\õé¬à]›‹ôHHù[Xô\ãö\—ö[ö]Jÿöãú⁄[ù H»
+ÿöãú⁄[ù»
+Hà¬àÿöôX›ôYö[ôTõ‹\ùJÿöãú⁄[ù»ã¬à€€ôöY›\òXõNàùYKà[ù[Y\òXõNàùYKàŸ]
+
+^»ô]\õà›‹ôN»KàŸ]
+ä^¬à€€ú›ô^Hù[Xô\ãö\—ö[ö]Jù[Xô\ääJH»
+ù[Xô\ääH
+Hà¬àYà
+Xÿ[ï‹ö]T⁄[ù 
+JH¬à€€ú›Xô[]HXô[î›]KõYKú⁄[ù»é¬à€€ú›ôX\€€àHù[Xô\ãö\—ö[ö]JäH»ù[ò]]‹ö^ôY‹⁄[ù◊›‹ö]Hààö[ùò[Y€ù[Xô\àé¬à[Z][ùò[Y]]][€äXô[]ô^ôX\€€äN¬àôZôX›⁄[ù’‹ö]JXô[ú⁄[ù»äN¬àô]\õé¬àBà›‹ôHHô^¬àBàJN¬àBÇà€€ú›ëT”’Tê—W—TP–UW’“Së’◊”T»HM¬à€€ú›ô\€›\òŸUò[Y]‹àH
+
+
+HOà¬à€€ú›ôXŸ[ùHô]»X\
+
+N¬à€€ú›ÿ⁄ŸYHô]»Ÿ]
+
+N¬Çàù[ò›[€àõ› 
+^»ô]\õà]Kõõ› 
+N»BÇàù[ò›[€à€X[ù\
+
+^¬à€€ú››[\Hõ› 
+N¬àõ‹à
+€€ú›⁄Ÿ^K◊HŸàôXŸ[ù
+H¬àYà
+
+›[\H HàëT”’Tê—W—TP–UW’“Së’◊”T H¬àôXŸ[ùô[]JŸ^JN¬àBàBàBÇàù[ò›[€àôXYò[YJ⁄[ô
+^¬à€€ú›ù[ù[YHH
+ÿ[YH	âàÿ[YKó◊‘ H»ÿ[YKó◊‘»à
+\[Ÿà›]HOOHù[ôYö[ôYà»›]Hàù[
+N¬àYà
+\ù[ù[YJHô]\õà¬àYà
+⁄[ôOOHú⁄[ù»äH¬à€€ú›⁄[ù»Hù[ù[YKõYH	âàù[Xô\ãö\—ö[ö]Jù[ù[YKõYKú⁄[ù H»
+ù[ù[YKõYKú⁄[ù»
+Hà¬àô]\õà⁄[ùŒ¬àBàYà
+⁄[ôOOHúô\äH¬àô]\õàù[Xô\ãö\—ö[ö]Jù[ù[YKúô\
+H»
+ù[ù[YKúô\
+Hà¬àBàYà
+⁄[ôOOHö[ôõY[òŸHäH¬à€€ú›[ôàHù[ù[YKõYH	âàù[Xô\ãö\—ö[ö]Jù[ù[YKõYKö[ôõY[òŸJH»
+ù[ù[YKõYKö[ôõY[òŸH
+Hà¬àô]\õà[ôé¬àBàô]\õà¬àBÇàù[ò›[€àXZŸRŸ^J⁄[ôY]J^¬à€€ú›ôX\€€àH
+Y]H	âàY]KúôX\€€äH»›ö[ô Y]KúôX\€€äHààé¬à€€ú›X›[€íYH
+Y]H	âàY]KòX›[€íY
+H»›ö[ô Y]KòX›[€íY
+Hààé¬à€€ú›ò]RYH
+Y]H	âàY]Kòò]RYOHù[
+H»›ö[ô Y]Kòò]RY
+Hààé¬à€€ú›€€ù^H
+Y]H	âàY]Kò€€ù^
+H»›ö[ô Y]Kò€€ù^
+Hààé¬à€€ú›úõ€RYH
+Y]H	âàY]Kôúõ€RY
+H»›ö[ô Y]Kôúõ€RY
+Hààé¬à€€ú›“YH
+Y]H	âàY]Kù“Y
+H»›ö[ô Y]Kù“Y
+Hààé¬àô]\õà	⁄⁄[ôNâÿò]RYNâÿX›[€íYNâŸúõ€RYNâ›“YNâ‹ôX\€€üNâÿ€€ù^X¬àBÇàô]\õà¬à€Z[J⁄[ôY]J^¬à€X[ù\
+
+N¬à€€ú›Ÿ^HHXZŸRŸ^J⁄[ôY]HﬂJN¬à€€ú››[\Hõ› 
+N¬àYà
+ôXŸ[ùö\ Ÿ^JH	âà
+›[\HôXŸ[ùôŸ]
+Ÿ^JJHëT”’Tê—W—TP–UW’“Së’◊”T H¬àô]\õà»⁄Œàò[ŸKŸ^KôX\€€éàô\Xÿ]HàN¬àBàYà
+ÿ⁄ŸYö\ Ÿ^JJH¬àô]\õà»⁄Œàò[ŸKŸ^KôX\€€éàö[ó‹õŸ‹ô\‹»àN¬àBàÿ⁄ŸYòY
+Ÿ^JN¬àô]\õà»⁄ŒàùYKŸ^KôYõ‹ôNàôXYò[YJ⁄[ô
+HN¬àKàô[X\ŸJŸ^K›XÿŸ\‹ ^¬àYà
+ZŸ^JHô]\õé¬àÿ⁄ŸYô[]JŸ^JN¬àYà
+›XÿŸ\‹ H¬àôXŸ[ùúŸ]
+Ÿ^Kõ› 
+JN¬àBàBàN¬àJJ
+N¬Çà€€ú›ŸX›\ö]HH
+
+
+HOà¬à€€ú›’”ëTó—W’Të—UHúŸX›\ö]W€›€ô\àé¬à€€ú›’”ëTó—W”êSQHH¥(t.Ù`Ù-¥,t,4,t-t-Ù/¥/Ù,4`t/t/¥`t`¥.é¬Çà€€ú›—P»H¬à]ô[ùŒà◊Kàõ›XŸ\Œà◊KàX^]ô[ùŒàLåàX^õ›XŸ\ŒàLà\›[Z]àô]»X\
+
+Kà\›õ›YûNàô]»X\
+
+KàùX⁄Ÿ]Œàô]»X\
+
+KàY]ŸŒà◊Kà[ô\Œà◊Kà[\\ôYàò[ŸKà\›ô\öYûP]ààõ€›\ŸNàùYKàN¬Çàù[ò›[€àõ› 
+^»ô]\õà]Kõõ› 
+N»Bàù[ò›[€à[ŸJ
+^»ô]\õàŸX›\ö]P]Y][ŸJ
+N»BÇàù[ò›[€àÿYôT›ää^¬àYà
+àOHù[
+Hô]\õààé¬àûH»ô]\õà›ö[ô äN»Hÿ]⁄
+ H»ô]\õààé»BàBÇàù[ò›[€àôXY›]TÿYôJ
+^¬àûH»ô]\õà›]N»Hÿ]⁄
+ H»ô]\õàù[»BàBÇàù[ò›[€àôXY^Y\íY
+
+^¬à€€ú››]HHôXY›]TÿYôJ
+N¬àYà
+›]H	âà›]KõYH	âà›]KõYKöY
+Hô]\õà›ö[ô ›]KõYKöY
+N¬à€€ú›ò[òX⁄»H
+ÿ[YH	âàÿ[YKó◊‘»	âàÿ[YKó◊‘ÀõYH	âàÿ[YKó◊‘ÀõYKöY
+H»ÿ[YKó◊‘ÀõYKöYàù[¬àYà
+ò[òX⁄ Hô]\õà›ö[ô ò[òX⁄ N¬àô]\õàõYHé¬àBÇàù[ò›[€àôXYŸ\‹⁄[€íY
+
+^¬àYà
+ÿ[YH	âàÿ[YKìŸŸŸ\à	âàÿ[YKìŸŸŸ\ãúŸ\‹⁄[€íY
+H¬àô]\õà›ö[ô ÿ[YKìŸŸŸ\ãúŸ\‹⁄[€íY
+N¬àBàYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âà⁄[ô›ÀúŸ\‹⁄[€íY
+H¬àô]\õà›ö[ô ⁄[ô›ÀúŸ\‹⁄[€íY
+N¬àBàô]\õààé¬àBÇàù[ò›[€à\ÿ‹öXôQ]ô[ù]Z[ ]Z[ ^¬àYà
+Y]Z[»\[Ÿà]Z[»OOHõÿöôX›äHô]\õààé¬à€€ú›\ù»H◊N¬àYà
+]Z[ÀöŸ^JH\ùÀú\⁄
+Ÿ^OI‹ÿYôT›ä]Z[ÀöŸ^J_X
+N¬àYà
+]Z[ÀòX›[€äH\ùÀú\⁄
+X›[€èI‹ÿYôT›ä]Z[ÀòX›[€ä_X
+N¬àYà
+]Z[ÀúôX\€€äH\ùÀú\⁄
+ôX\€€èI‹ÿYôT›ä]Z[ÀúôX\€€ä_X
+N¬àYà
+\\ùÀõ[ô›	âà]Z[Àô\ÿ‹ö\[€äH\ùÀú\⁄
+›ö[ô ]Z[Àô\ÿ‹ö\[€äJN¬àô]\õà\ùÀöõ⁄[äé»äN¬àBÇàù[ò›[€à[]ô\ì›€ô\ëJ]ä^¬àYà
+Y]àY]ãù[YJHô]\õé¬à€€ú››]HHôXY›]TÿYôJ
+N¬àYà
+\›]H\›]KôJHô]\õé¬à€€ú›[ô\»H◊N¬à[ô\Àú\⁄
+4(¥.4/Œà	Ÿ]ãù\_X
+N¬à[ô\Àú\⁄
+4&4,Ù`4/¥.éà	Ÿ]ãú^Y\íYù[ö€õ›€àüX
+N¬à[ô\Àú\⁄
+4(t-t`t`t.4cŒà	Ÿ]ãúŸ\‹⁄[€íY∏†%üX
+N¬à[ô\Àú\⁄
+4$¥`4-t/4cŒà	€ô]»]J]ãù[YJKù“T”‘›ö[ô 
+_X
+N¬à€€ú›\ÿ»H\ÿ‹öXôQ]ô[ù]Z[ ]ãõY]JN¬àYà
+\ÿ H[ô\Àú\⁄
+4'¥/Ù.4`t,4/t.4-Nà	Ÿ\ÿﬂX
+N¬àûH¬à\⁄J’”ëTó—W’Të—U’”ëTó—W”êSQK[ô\Àöõ⁄[äóàäK»\‘ﬁ\›[NàùYHJN¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àùZ[]ô[ùŸ^J\K]Z[ ^¬à€€ú›ò\ŸHHÿYôT›ä\JN¬à€€ú›Ÿ^HH]Z[»	âà]Z[ÀöŸ^H»ÿYôT›ä]Z[ÀöŸ^JHààé¬à€€ú›X›[€àH]Z[»	âà]Z[ÀòX›[€à»ÿYôT›ä]Z[ÀòX›[€äHààé¬à€€ú›ôX\€€àH]Z[»	âà]Z[ÀúôX\€€à»ÿYôT›ä]Z[ÀúôX\€€äHààé¬àYà
+Ÿ^JHô]\õà	ÿò\Ÿ_Nâ⁄Ÿ^_X¬àYà
+X›[€àôX\€€äHô]\õà	ÿò\Ÿ_NâÿX›[€üNâ‹ôX\€€üX¬àô]\õàò\ŸN¬àBÇàù[ò›[€à\⁄ö[ô \úã][KX^
+^¬à\úãú\⁄
+][JN¬àYà
+\úãõ[ô›àX^
+H\úãú‹XŸJ\úãõ[ô›HX^
+N¬àBÇà€€ú›PïQ◊‘—P’TíUW—UëSï◊‘’‘ëHHó◊ŸXùY‘ŸX›\ö]Q]ô[ù‘›‹ôHé¬Çàù[ò›[€à[ú›\ôTŸX›\ö]Q]ô[ù–\úò^J
+^¬àYà
+\[Ÿàÿ[YHOOHõÿöôX›àQÿ[YJHô]\õé¬àYà
+Qÿ[YKó◊—
+Hÿ[YKó◊—HﬂN¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—úŸX›\ö]Q]ô[ù JHÿ[YKó◊—úŸX›\ö]Q]ô[ù»H◊N¬àYà
+Z\—]ëõY 
+JHô]\õé¬à€€ú›XùY‘›\ôòXŸHH
+ÿ[YH	âàÿ[YKëXùY»	âà\[Ÿàÿ[YKëXùY»OOHõÿöôX›äH»ÿ[YKëXùY»àù[¬àYà
+YXùY‘›\ôòXŸJHô]\õé¬à€€ú››‹ôQ^\›»HÿöôX›úõ››\Kö\”›€îõ‹\ùKòÿ[
+XùY‘›\ôòXŸKPïQ◊‘—P’TíUW—UëSï◊‘’‘ëJN¬àYà
+\›‹ôQ^\› H¬à€€ú›^\›[ô»H\úò^Kö\–\úò^Jÿ[YKó◊—úŸX›\ö]Q]ô[ù H»ÿ[YKó◊—úŸX›\ö]Q]ô[ù»à◊N¬àÿöôX›ôYö[ôTõ‹\ùJXùY‘›\ôòXŸKPïQ◊‘—P’TíUW—UëSï◊‘’‘ëK¬à€€ôöY›\òXõNàùYKà[ù[Y\òXõNàò[ŸKà‹ö]XõNàùYKàò[YNà^\›[ôÀàJN¬àBà€€ú›\ÿ»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äXùY‘›\ôòXŸKúŸX›\ö]Q]ô[ù»äN¬àYà
+\ÿ»	âà\ÿÀôŸ]
+Hô]\õé¬àÿöôX›ôYö[ôTõ‹\ùJXùY‘›\ôòXŸKúŸX›\ö]Q]ô[ù»ã¬à€€ôöY›\òXõNàùYKà[ù[Y\òXõNàò[ŸKàŸ]
+
+H¬à]\úàHXùY‘›\ôòXŸV—PïQ◊‘—P’TíUW—UëSï◊‘’‘ëWN¬àYà
+P\úò^Kö\–\úò^J\úäJH¬à\úàH◊N¬àXùY‘›\ôòXŸV—PïQ◊‘—P’TíUW—UëSï◊‘’‘ëWHH\úé¬àBàô]\õà\úé¬àKàŸ]
+ò[YJH¬àYà
+P\úò^Kö\–\úò^Jò[YJJHô]\õé¬àXùY‘›\ôòXŸV—PïQ◊‘—P’TíUW—UëSï◊‘’‘ëWHHò[YN¬àKàJN¬àBÇàù[ò›[€à⁄›[[Z]
+X\Ÿ^K
+^¬à€€ú››[\Hõ› 
+N¬à€€ú›ô]àHX\ôŸ]
+Ÿ^JH¬àYà
+
+›[\Hô]äH
+Hô]\õà¬àX\úŸ]
+Ÿ^K›[\
+N¬àô]\õà›[\¬àBÇàù[ò›[€à[Z]
+\K]Z[À‹»Hù[
+^¬àYà
+—PÀòõ€›\ŸJHô]\õé¬à€€ú›Ÿ^HHùZ[]ô[ùŸ^J\K]Z[ N¬à€€ú›H
+‹»	âàù[Xô\ãö\—ö[ö]J‹ÀõZ[ëÿ\\ JH»
+‹ÀõZ[ëÿ\\»
+HàML¬à€€ú››[\H⁄›[[Z]
+—PÀõ\›[Z]Ÿ^K
+N¬àYà
+\›[\
+Hô]\õé¬à€€ú›^Y\íYHôXY^Y\íY
+
+N¬à€€ú›Ÿ\‹⁄[€íYHôXYŸ\‹⁄[€íY
+
+N¬à€€ú›Y]HH
+]Z[»	âà\[Ÿà]Z[»OOHõÿöôX›äH»ÿöôX›ò\‹⁄Y€äﬂK]Z[ HàﬂN¬à€€ú›]àH¬à[YNà›[\à\NàÿYôT›ä\JKà^Y\íYàŸ\‹⁄[€íYàY]Kà]Z[ŒàY]KàŸ^Kà[ŸNà[ŸJ
+KàN¬àûH¬à€€ú›ôX\€€îò]»H
+Y]H	âà
+Y]KúôX\€€àY]KòX›[€àY]KöŸ^JJH»
+Y]KúôX\€€àY]KòX›[€àY]KöŸ^JHàù[¬à€€ú›ôX\€€ï^HôX\€€îò]»OHù[»õõ€ôHàà›ö[ô ôX\€€îò] N¬à€€ú›Y^H^Y\íY»›ö[ô ^Y\íY
+HàõYHé¬à€€ú€€KõŸ —ì’◊–UQUH‹›Yö[ö\⁄õ€›\ŸX›\ö]KY]ô[ù\OIŸ]ãù\_H^Y\èI‹Y^HôX\€€èI‹ôX\€€ï^X
+N¬àHÿ]⁄
+ HﬂBà\⁄ö[ô —PÀô]ô[ùÀ]ã—PÀõX^]ô[ù N¬àûH¬àYà
+ÿ[YKó◊—	âà\[Ÿàÿ[YKó◊—OOHõÿöôX›äH¬à[ú›\ôTŸX›\ö]Q]ô[ù–\úò^J
+N¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—úŸX›\ö]Q]ô[ù JHÿ[YKó◊—úŸX›\ö]Q]ô[ù»H◊N¬à\⁄ö[ô ÿ[YKó◊—úŸX›\ö]Q]ô[ùÀ]ã—PÀõX^]ô[ù N¬àYà
+ôXX›[€î€XﬁH	âà\[ŸàôXX›[€î€XﬁKö[ôQ]ô[ùOOHôù[ò›[€àäH¬àôXX›[€î€XﬁKö[ôQ]ô[ù
+]äN¬àBàBàHÿ]⁄
+ HﬂBàYà
+\—]ëõY 
+JH¬àûH»€€ú€€Kùÿ\õäñ‘—P◊Hã]ãù\K]ãô]Z[ N»Hÿ]⁄
+ HﬂBàBàYà
+[‹»‹Àõõ›YûHOOHò[ŸJHõ›YûS›€ô\ä]äN¬àBÇàù[ò›[€àõ›YûS›€ô\ä]ä^¬àYà
+—PÀòõ€›\ŸJHô]\õé¬à€€ú›]Z[Ÿ^HH]à	âà]ãöŸ^H»ÿYôT›ä]ãöŸ^JHààé¬à€€ú›Ÿ^HHõ›YûNâ‹ÿYôT›ä]à	âà]ãù\J_NâŸ]Z[Ÿ^_X¬à€€ú››[\H⁄›[[Z]
+—PÀõ\›õ›YûKŸ^Kå
+N¬àYà
+\›[\
+Hô]\õé¬à€€ú›õ›XŸHH¬à[YNà›[\à\NàÿYôT›ä]à	âà]ãù\JKà]Z[Œà]à	âà]ãõY]H»]ãõY]HàﬂKàN¬à\⁄ö[ô —PÀõõ›XŸ\Àõ›XŸK—PÀõX^õ›XŸ\ N¬àûH¬àYà
+ÿ[YKó◊—	âà\[Ÿàÿ[YKó◊—OOHõÿöôX›äH¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—úŸX›\ö]Sõ›XŸ\ JHÿ[YKó◊—úŸX›\ö]Sõ›XŸ\»H◊N¬à\⁄ö[ô ÿ[YKó◊—úŸX›\ö]Sõ›XŸ\Àõ›XŸK—PÀõX^õ›XŸ\ N¬àBàHÿ]⁄
+ HﬂBàYà
+\—]ëõY 
+JH¬àûH»€€ú€€Kùÿ\õäñ‘—PŒõõ›YûWHãõ›XŸKù\Kõ›XŸKô]Z[ N»Hÿ]⁄
+ HﬂBàBà[]ô\ì›€ô\ëJ]äN¬àBÇàù[ò›[€àùZ[ò]RŸ^JX›[€ã]Z[ ^¬à€€ú›X›‹íYH]Z[»	âà]Z[ÀòX›‹íY»ÿYôT›ä]Z[ÀòX›‹íY
+HàõYHé¬à€€ú›ôX\€€àH]Z[»	âà]Z[ÀúôX\€€à»ÿYôT›ä]Z[ÀúôX\€€äHààé¬à€€ú›ò]RYH]Z[»	âà]Z[Àòò]RYOHù[»ÿYôT›ä]Z[Àòò]RY
+Hààé¬à€€ú›]ô[ùYH]Z[»	âà]Z[Àô]ô[ùYOHù[»ÿYôT›ä]Z[Àô]ô[ùY
+Hààé¬à€€ú›X›[€íYH]Z[»	âà]Z[ÀòX›[€íY»ÿYôT›ä]Z[ÀòX›[€íY
+Hààé¬à€€ú›úõ€RYH]Z[»	âà]Z[Àôúõ€RY»ÿYôT›ä]Z[Àôúõ€RY
+Hààé¬à€€ú›“YH]Z[»	âà]Z[Àù“Y»ÿYôT›ä]Z[Àù“Y
+Hààé¬à€€ú››XõRŸ^HH]Z[»	âà]Z[Àú›XõRŸ^H»ÿYôT›ä]Z[Àú›XõRŸ^JHààé¬àYà
+›XõRŸ^JHô]\õà	‹ÿYôT›äX›[€ä_Nâ‹›XõRŸ^_X¬àô]\õà	‹ÿYôT›äX›[€ä_NâÿX›‹íYNâ‹ôX\€€üNâÿò]RYNâŸ]ô[ùYNâÿX›[€íYNâŸúõ€RYNâ›“YX¬àBÇàù[ò›[€àò]S[Z]
+X›[€ã]Z[ÀŸô ^¬à€€ú›X^H
+Ÿô»	âàù[Xô\ãö\—ö[ö]JŸôÀõX^
+JH»ù[Xô\äŸôÀõX^
+Hà¬à€€ú›⁄[ô›”\»H
+Ÿô»	âàù[Xô\ãö\—ö[ö]JŸôÀù⁄[ô›”\ JH»ù[Xô\äŸôÀù⁄[ô›”\ HàLå¬à€€ú›ù\ú›H
+Ÿô»	âàù[Xô\ãö\—ö[ö]JŸôÀòù\ú›
+JH»ù[Xô\äŸôÀòù\ú›
+HàX^¬à€€ú›Ÿ^HHùZ[ò]RŸ^JX›[€ã]Z[»ﬂJN¬à€€ú››[\Hõ› 
+N¬à]àH—PÀòùX⁄Ÿ]ÀôŸ]
+Ÿ^JN¬àYà
+XäHàH»⁄Ÿ[úŒàù\ú›\›à›[\N¬à€€ú›[\ŸYHX]õX^
+›[\Hãõ\›
+N¬à€€ú›ôYö[H
+[\ŸY»⁄[ô›”\ H
+àX^¬àãù⁄Ÿ[ú»HX]õZ[äù\ú›ãù⁄Ÿ[ú»
+»ôYö[
+N¬àãõ\›H›[\¬àYà
+ãù⁄Ÿ[ú»JH¬à—PÀòùX⁄Ÿ]ÀúŸ]
+Ÿ^KäN¬à€€ú›ô\Ÿ][àHX]òŸZ[
+
+
+HHãù⁄Ÿ[ú H
+à⁄[ô›”\ H»X^
+N¬àô]\õà»⁄Œàò[ŸKŸ^Kô\Ÿ][ãô[XZ[ö[ôŒàN¬àBàãù⁄Ÿ[ú»OHN¬à—PÀòùX⁄Ÿ]ÀúŸ]
+Ÿ^KäN¬àô]\õà»⁄ŒàùYKŸ^Kô[XZ[ö[ôŒàX]ôõ€‹äãù⁄Ÿ[ú HN¬àBÇàù[ò›[€àö[ö\⁄õ€›
+
+^¬àYà
+T—PÀòõ€›\ŸJHô]\õé¬à—PÀòõ€›\ŸHHò[ŸN¬àBÇàù[ò›[€àYö[ôR[ôTõ‹
+ò[YKò[YJ^¬àYà
+Qÿ[YH[ò[YJHô]\õé¬à€€ú›\ÿ»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿ[YKò[YJN¬àYà
+\ÿ»	âà\ÿÀôŸ]	âà\ÿÀôŸ]ó‹ŸX“[ôJHô]\õé¬àûH¬à⁄]€ÿò[[\\ïù\›
+
+
+HOàÿöôX›ôYö[ôTõ‹\ùJÿ[YKò[YK¬à€€ôöY›\òXõNàò[ŸKà[ù[Y\òXõNàò[ŸKàŸ]
+
+H»ô]\õàò[YN»KàŸ]
+ä^¬àYà
+àOOHò[YJH¬à—PÀù[\\ôYHùYN¬à[Z]
+ù[\\ó⁄[ôHã»Ÿ^Nàò[YKX›[€éàúŸ]ã[ŸNà[ŸJ
+HJN¬à[Z][\\ë]X›Y
+»Ÿ^Nàò[YKX›[€éàúŸ]⁄[ôHã[ŸNà[ŸJ
+HJN¬àBàBàJJN¬à€€ú›»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿ[YKò[YJKôŸ]¬àYà
+ HÀó‹ŸX“[ôHHùYN¬àHÿ]⁄
+ HﬂBà—PÀö[ô\Àú\⁄
+»ò[YKò[YHJN¬àBÇàù[ò›[€àõ›X›Y]Ÿ
+ÿöãŸ^KõãXô[
+^¬àYà
+[ÿöàZŸ^H\[ŸàõàOOHôù[ò›[€àäHô]\õé¬à€€ú›\ÿ»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿöãŸ^JN¬àYà
+\ÿ»	âà\ÿÀôŸ]	âà\ÿÀôŸ]ó‹ŸX‘õ›X›Y
+Hô]\õé¬àûH¬à⁄]€ÿò[[\\ïù\›
+
+
+HOàÿöôX›ôYö[ôTõ‹\ùJÿöãŸ^K¬à€€ôöY›\òXõNàò[ŸKà[ù[Y\òXõNàùYKàŸ]
+
+H»ô]\õàõé»KàŸ]
+ä^¬àYà
+àOOHõäH¬à—PÀù[\\ôYHùYN¬à[Z]
+ù[\\óŸù[ò›[€àã»Ÿ^NàXô[Ÿ^KX›[€éàúŸ]ã[ŸNà[ŸJ
+HJN¬à[Z][\\ë]X›Y
+»Ÿ^NàXô[Ÿ^KX›[€éàúŸ]Ÿù[ò›[€àã[ŸNà[ŸJ
+HJN¬à€€ú›]Y]Xô[H›ö[ô Xô[Ÿ^HàäKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+]Y]Xô[ô[ô’⁄]
+ùò[úŸô\úô\äJH¬à€€ú››X⁄»Hÿ\\ôTŸX›\ö]T›X⁄  N¬à€€ú›ÿ[\àH]Y]ŸX›\ö]Pÿ[\ä›X⁄ N¬à]Y]ŸX›\ö]P€€ú€€J‘—P◊–UQUHò[úŸô\îô\\Ÿ]X][\ÿ[\èIÿÿ[\üHôX\€€è\Ÿ]
+N¬àBàBàBàJJN¬à€€ú›»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹äÿöãŸ^JKôŸ]¬àYà
+ HÀó‹ŸX‘õ›X›YHùYN¬àHÿ]⁄
+ HﬂBà—PÀõY]ŸÀú\⁄
+»ÿöãŸ^KõãXô[àXô[Ÿ^HJN¬àBÇàù[ò›[€àô\öYûJõ‹òŸJ^¬à€€ú››[\Hõ› 
+N¬àYà
+Yõ‹òŸH	âà
+›[\H—PÀõ\›ô\öYûP]
+HML
+Hô]\õàT—PÀù[\\ôY¬à—PÀõ\›ô\öYûP]H›[\¬àõ‹à
+€€ú›Ÿà—PÀö[ô\ H¬àûH¬àYà
+ÿ[YV⁄õò[YWHOOHùò[YJH¬à—PÀù[\\ôYHùYN¬à[Z]
+ù[\\ó⁄[ôHã»Ÿ^Nàõò[YKX›[€éàú›ÿ\ã[ŸNà[ŸJ
+HJN¬à[Z][\\ë]X›Y
+»Ÿ^Nàõò[YKX›[€éàú›ÿ\⁄[ôHã[ŸNà[ŸJ
+HJN¬àYö[ôR[ôTõ‹
+õò[YKùò[YJN¬àBàHÿ]⁄
+ HﬂBàBàõ‹à
+€€ú›HŸà—PÀõY]Ÿ H¬àûH¬àYà
+[KõÿöàKõÿöñ€KöŸ^WHOOHKôõäH¬à—PÀù[\\ôYHùYN¬à[Z]
+ù[\\óŸù[ò›[€àã»Ÿ^NàKõXô[X›[€éàú›ÿ\ã[ŸNà[ŸJ
+HJN¬à[Z][\\ë]X›Y
+»Ÿ^NàKõXô[X›[€éàú›ÿ\Ÿù[ò›[€àã[ŸNà[ŸJ
+HJN¬àõ›X›Y]Ÿ
+KõÿöãKöŸ^KKôõãKõXô[
+N¬àBàHÿ]⁄
+ HﬂBàBàô]\õàT—PÀù[\\ôY¬àBÇà€€ú››‹ôHH»]ô[ùŒà—PÀô]ô[ùÀõ›XŸ\Œà—PÀõõ›XŸ\À[Z]õ›YûS›€ô\àN¬Çàô]\õà¬à[Z]àõ›YûS›€ô\ãàò]S[Z]àYö[ôR[ôTõ‹àõ›X›Y]Ÿàô\öYûKà\‘ÿYôNà
+
+HOàô\öYûJò[ŸJKàö[ö\⁄õ€›à›‹ôKàN¬àJJ
+N¬Çàù[ò›[€àÿ\\ôTŸX›\ö]T›X⁄ [Z]H ^¬àûH¬à€€ú›\úàHô]»\úõ‹ä
+N¬à€€ú››X⁄»H\úà	âà\úãú›X⁄»»›ö[ô \úãú›X⁄ Hààé¬à€€ú›[ô\»H›X⁄Àú‹]
+óàäKõX\
+Oàùö[J
+JKôö[\äõ€€X[äN¬àô]\õà[ô\Àú€XŸJãà
+»
+[Z]
+JKöõ⁄[äàäN¬àHÿ]⁄
+ H¬àô]\õààé¬àBàBÇàù[ò›[€à]Y]ŸX›\ö]Pÿ[\ä›X⁄ ^¬àYà
+\›X⁄ Hô]\õàù[ö€õ›€àé¬à€€ú›YXŸ\»H›X⁄Àú‹]
+üäKõX\
+Oàùö[J
+JKôö[\äõ€€X[äN¬àõ‹à
+€€ú›YXŸHŸàYXŸ\ H¬à€€ú›õ‹õX[^ôYHYXŸKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+õ‹õX[^ôYö[ò€Y\ òÿ\\ô\ŸX›\ö]\›X⁄»äJH€€ù[ùYN¬àYà
+õ‹õX[^ôYö[ò€Y\ ò]Y]ŸX›\ö]Xÿ[\àäJH€€ù[ùYN¬àYà
+õ‹õX[^ôYö[ò€Y\ ô[Z]õ‹òöY[òXÿŸ\‹»äJH€€ù[ùYN¬àYà
+õ‹õX[^ôYö[ò€Y\ õÿöôX›ôŸ]äJH€€ù[ùYN¬àYà
+õ‹õX[^ôYö[ò€Y\ àŸ]äJH€€ù[ùYN¬àYà
+õ‹õX[^ôYú›\ù’⁄]
+ôŸ]äJH€€ù[ùYN¬àô]\õàYXŸN¬àBàô]\õàYXŸ\Àõ[ô›»YXŸ\÷ÃHàù[ö€õ›€àé¬àBÇàù[ò›[€à]Y]ŸX›\ö]P€€ú€€JY\‹ÿYŸJ^¬àYà
+[Y\‹ÿYŸJHô]\õé¬àûH»€€ú€€Kùÿ\õäY\‹ÿYŸJN»Hÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸX›\ö]TÿYôRŸ^Jò[YJ^¬àYà
+ò[YHOHù[
+Hô]\õààé¬àûH¬àô]\õà›ö[ô ò[YJN¬àHÿ]⁄
+ H¬àô]\õààé¬àBàBÇàù[ò›[€à[Z]õ‹òöY[êXÿŸ\‹ Ÿ^KX›[€ä^¬à€€ú››X⁄»Hÿ\\ôTŸX›\ö]T›X⁄  N¬à€€ú›ÿ[\àH]Y]ŸX›\ö]Pÿ[\ä›X⁄ N¬à€€ú›ô\€€ôY[ŸHHŸX›\ö]P]Y][ŸJ
+N¬à]Y]ŸX›\ö]P€€ú€€J‘—P◊–UQUHõ‹òöY[ãXXÿŸ\‹À\€›\òŸHŸ^OI‹ŸX›\ö]TÿYôRŸ^JŸ^J_Hÿ[\èIÿÿ[\üH[ŸOI‹ô\€€ôY[Ÿ_X
+N¬àŸX›\ö]Kô[Z]
+ôõ‹òöY[óÿ\WÿXÿŸ\‹»ã¬àŸ^NàŸX›\ö]TÿYôRŸ^JŸ^JKàX›[€éàŸX›\ö]TÿYôRŸ^JX›[€äKà›X⁄¬àK»Z[ëÿ\\ŒàLJN¬àBÇàù[ò›[€à[Z][ùò[Y]]][€ä]ò[YKôX\€€ä^¬àŸX›\ö]Kô[Z]
+ö[ùò[Y‹›]W€]]][€àã¬à]àŸX›\ö]TÿYôRŸ^J]
+Kàò[YNà
+\[Ÿàò[YHOOHõù[Xô\àäH»ò[YHàŸX›\ö]TÿYôRŸ^Jò[YJKàôX\€€éàŸX›\ö]TÿYôRŸ^JôX\€€äKà›X⁄Œàÿ\\ôTŸX›\ö]T›X⁄ 
+BàK»Z[ëÿ\\ŒàLåJN¬àBÇàù[ò›[€à[Z][\\ë]X›Y
+]Z[ ^¬à€€ú›^[ÿYHÿöôX›ò\‹⁄Y€ä¬à›X⁄Œàÿ\\ôTŸX›\ö]T›X⁄ 
+BàK]Z[»ﬂJN¬àŸX›\ö]Kô[Z]
+ù[\\óŸ]X›Yã^[ÿY»Z[ëÿ\\ŒàMLJN¬àBÇàù[ò›[€à\‘õ›X›Y›\ôòXŸJ\ôŸ]
+^¬àYà
+]\ôŸ]
+Hô]\õàò[ŸN¬àYà
+\ôŸ]OOHÿ[YJHô]\õàùYN¬à€€ú››]T›\ôòXŸHHÿ[YH	âàÿ[YKó◊‘Œ¬àYà
+›]T›\ôòXŸH	âà\ôŸ]OOH›]T›\ôòXŸJHô]\õàùYN¬à€€ú››]P\T›\ôòXŸHHÿ[YH	âàÿ[YKó◊–N¬àYà
+›]P\T›\ôòXŸH	âà\ôŸ]OOH›]P\T›\ôòXŸJHô]\õàùYN¬à€€ú›XùY‘›\ôòXŸHHÿ[YH	âàÿ[YKó◊—¬àYà
+XùY‘›\ôòXŸH	âà\ôŸ]OOHXùY‘›\ôòXŸJHô]\õàùYN¬à€€ú›€‹ôT›\ôòXŸHHÿ[YH	âàÿ[YKó–€€ôõX›€‹ôN¬àYà
+€‹ôT›\ôòXŸH	âà\ôŸ]OOH€‹ôT›\ôòXŸJHô]\õàùYN¬àYà
+\ôŸ]OOH
+ÿ[YH	âàÿ[YKê€€ôõX›€‹ôJJHô]\õàùYN¬à€€ú›[ôT»Hÿ[YH	âàÿ[YKó◊‘Œ¬àYà
+[ôT»	âà\ôŸ]OOH[ôT Hô]\õàùYN¬à€€ú›[ôPHHÿ[YH	âàÿ[YKó◊–N¬àYà
+[ôPH	âà\ôŸ]OOH[ôPJHô]\õàùYN¬à€€ú›[ôQHÿ[YH	âàÿ[YKó◊—¬àYà
+[ôQ	âà\ôŸ]OOH[ôQ
+Hô]\õàùYN¬àô]\õàò[ŸN¬àBÇàù[ò›[€à\ÿ‹öXôT›\ôòXŸJ\ôŸ]
+^¬àYà
+]\ôŸ]
+Hô]\õàù[ö€õ›€àé¬àYà
+\ôŸ]OOHÿ[YJHô]\õàëÿ[YHé¬àYà
+\ôŸ]OOH
+ÿ[YH	âàÿ[YKó◊‘ JHô]\õàëÿ[YKî›]Hé¬àYà
+\ôŸ]OOH
+ÿ[YH	âàÿ[YKó◊–JJHô]\õàëÿ[YKî›]PTHé¬à€€ú›XùY‘›\ôòXŸHHÿ[YH	âàÿ[YKó◊—¬àYà
+XùY‘›\ôòXŸH	âà\ôŸ]OOHXùY‘›\ôòXŸJHô]\õàëÿ[YKëXùY»é¬àYà
+\ôŸ]OOH
+ÿ[YH	âàÿ[YKó–€€ôõX›€‹ôJJHô]\õàëÿ[YKó–€€ôõX›€‹ôHé¬àYà
+\ôŸ]OOH
+ÿ[YH	âàÿ[YKê€€ôõX›€‹ôJJHô]\õàëÿ[YKê€€ôõX›€‹ôHé¬àô]\õàúõ›X›Yé¬àBÇàù[ò›[€à[ôQ€ÿò[[\\ä\ôŸ]õ‹X›[€ä^¬àYà
+Z\‘õ›X›Y›\ôòXŸJ\ôŸ]
+JHô]\õé¬àYà
+€ÿò[[\\ïù\›Y\à
+Hô]\õé¬à[Z][\\ë]X›Y
+»Ÿ^Nà	Ÿ\ÿ‹öXôT›\ôòXŸJ\ôŸ]
+_Kâ‘›ö[ô õ‹èœàä_XX›[€àJN¬àBÇà
+ù[ò›[€à‹ò\€ÿò[[\\í€⁄‹ 
+^¬àYà
+\[ŸàÿöôX›OOHù[ôYö[ôYäHô]\õé¬àYà
+SÿöôX›ôYö[ôTõ‹\ùKó◊⁄[ùù\⁄[€ï‹ò\Y
+H¬à€€ú›‹öY⁄[ò[HÿöôX›ôYö[ôTõ‹\ùN¬àÿöôX›ôYö[ôTõ‹\ùHHù[ò›[€ä\ôŸ]õ‹\ÿ‹ö\‹ä^¬à[ôQ€ÿò[[\\ä\ôŸ]õ‹ôYö[ôTõ‹\ùHäN¬àô]\õà‹öY⁄[ò[òÿ[
+ÿöôX›\ôŸ]õ‹\ÿ‹ö\‹äN¬àN¬àûH»ÿöôX›ôYö[ôTõ‹\ùKó◊⁄[ùù\⁄[€ï‹ò\YHùYN»Hÿ]⁄
+ HﬂBàBàYà
+SÿöôX›ôYö[ôTõ‹\ùY\Àó◊⁄[ùù\⁄[€ï‹ò\Y
+H¬à€€ú›‹öY⁄[ò[HÿöôX›ôYö[ôTõ‹\ùY\Œ¬àÿöôX›ôYö[ôTõ‹\ùY\»Hù[ò›[€ä\ôŸ]õ‹ ^¬à[ôQ€ÿò[[\\ä\ôŸ]ÿöôX›öŸ^\ õ‹»ﬂJKöõ⁄[äãäKôYö[ôTõ‹\ùY\»äN¬àô]\õà‹öY⁄[ò[òÿ[
+ÿöôX›\ôŸ]õ‹ N¬àN¬àûH»ÿöôX›ôYö[ôTõ‹\ùY\Àó◊⁄[ùù\⁄[€ï‹ò\YHùYN»Hÿ]⁄
+ HﬂBàBàYà
+SÿöôX›úŸ]õ››\SŸãó◊⁄[ùù\⁄[€ï‹ò\Y
+H¬à€€ú›‹öY⁄[ò[HÿöôX›úŸ]õ››\SŸé¬àÿöôX›úŸ]õ››\SŸàHù[ò›[€ä\ôŸ]õ› ^¬à[ôQ€ÿò[[\\ä\ôŸ]ó◊‹õ›◊◊»ãúŸ]õ››\SŸàäN¬àô]\õà‹öY⁄[ò[òÿ[
+ÿöôX›\ôŸ]õ› N¬àN¬àûH»ÿöôX›úŸ]õ››\SŸãó◊⁄[ùù\⁄[€ï‹ò\YHùYN»Hÿ]⁄
+ HﬂBàBàJJ
+N¬Çàù[ò›[€à⁄Y€ôYõŸö[Q[Qúõ€S[€ô^Tõ› õ›Àÿ[ùY⁄[ô
+^¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äHô]\õà¬à€€ú››\úô[òﬁHH›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+HOOHúô\à»úô\ààú⁄[ù»é¬àYà
+›\úô[òﬁHOOH›ö[ô ÿ[ùY⁄[ôàäJHô]\õà¬à€€ú›[[›[ù€›\òŸHHõ›Àò[[›[ùOOH[ôYö[ôY»õ›Àò[[›[ùàõ›Àô[N¬à€€ú›[[›[ùHù[Xô\ä[[›[ù€›\òŸJN¬àYà
+Sù[Xô\ãö\—ö[ö]J[[›[ù
+H[[›[ùOOH
+Hô]\õà¬à€€ú›‹ò»H›ö[ô õ›Àú€›\òŸRYàäN¬à€€ú››H›ö[ô õ›Àù\ôŸ]YàäN¬à€€ú›YRYH
+›]H	âà›]KõYH	âà›]KõYKöY
+H»›ö[ô ›]KõYKöY
+HàõYHé¬à€€ú›€›\òŸR\”YHH‹ò»OOHõYHà‹ò»OOHYRY¬à€€ú›\ôŸ]\”YHH›OOHõYHà›OOHYRY¬àYà
+\ôŸ]\”YH	âà\€›\òŸR\”YJHô]\õà[[›[ù¬àYà
+€›\òŸR\”YH	âà]\ôŸ]\”YJHô]\õàJ[[›[ù
+N¬àô]\õà¬àBÇàù[ò›[€àö[ôõŸö[S[€ô^SŸ‘õ€Ÿä⁄[ô[KY]J^¬àYà
+⁄[ôOOHú⁄[ù»à	âà⁄[ôOOHúô\äHô]\õàù[¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›àP\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JHô]\õàù[¬à€€ú›YôàH[H¬àYà
+YYôäHô]\õàù[¬à€€ú›ôX\€€àHY]H	âàY]KúôX\€€à»›ö[ô Y]KúôX\€€äHààé¬à€€ú›ò]RYHY]H	âàY]Kòò]RYOHù[»›ö[ô Y]Kòò]RY
+Hààé¬à€€ú›X›[€íYHY]H	âàY]KòX›[€íYOHù[»›ö[ô Y]KòX›[€íY
+Hààé¬à€€ú›Ÿ»Hÿ[YKó◊—õ[€ô^SŸŒ¬àõ‹à
+]HHŸÀõ[ô›HN»HèH»KKJH¬à€€ú›õ›»HŸ÷⁄WN¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äH€€ù[ùYN¬àYà
+⁄Y€ôYõŸö[Q[Qúõ€S[€ô^Tõ› õ›À⁄[ô
+HOOHYôäH€€ù[ùYN¬à€€ú›õ›‘ôX\€€àH›ö[ô õ›ÀúôX\€€à
+õ›ÀõY]H	âàõ›ÀõY]KúôX\€€äHàäN¬àYà
+ôX\€€à	âàõ›‘ôX\€€à	âàõ›‘ôX\€€àOOHôX\€€äH€€ù[ùYN¬à€€ú›õ›–ò]RYHõ›Àòò]RYOHù[»›ö[ô õ›Àòò]RY
+Hà
+
+õ›ÀõY]H	âàõ›ÀõY]Kòò]RYOHù[
+H»›ö[ô õ›ÀõY]Kòò]RY
+HààäN¬àYà
+ò]RY	âàõ›–ò]RY	âàõ›–ò]RYOOHò]RY
+H€€ù[ùYN¬à€€ú›õ›–X›[€íYHõ›ÀòX›[€íYOHù[»›ö[ô õ›ÀòX›[€íY
+Hà
+
+õ›ÀõY]H	âàõ›ÀõY]KòX›[€íYOHù[
+H»›ö[ô õ›ÀõY]KòX›[€íY
+HààäN¬àYà
+X›[€íY	âàõ›–X›[€íY	âàõ›–X›[€íYOOHX›[€íY
+H€€ù[ùYN¬àô]\õà¬àYàõ›ÀùY»›ö[ô õ›ÀùY
+Hàù[àŸ“[ô^àKàôX\€€éàõ›‘ôX\€€àôX\€€àù[àò]RYàõ›–ò]RYò]RYù[à›\úô[òﬁNà⁄[ôà[NàYôÇàN¬àBàô]\õàù[¬àBÇàù[ò›[€à[Z]›][J⁄[ô[KY]J^¬àYà
+Z⁄[ôSù[Xô\ãö\—ö[ö]Jù[Xô\ä[H
+JJHô]\õé¬à€€ú››]⁄[ôH›ö[ô ⁄[ô
+N¬à€€ú›YôàH
+[H
+N¬àYà
+YYôäHô]\õé¬à€€ú›õŸö[R⁄[ôH
+›]⁄[ôOOHú⁄[ù»à›]⁄[ôOOHúô\äH»›]⁄[ôàù[¬à€€ú›[€ô^SŸ‘õ€ŸàHõŸö[R⁄[ô»ö[ôõŸö[S[€ô^SŸ‘õ€ŸäõŸö[R⁄[ôYôãY]Hù[
+Hàù[¬à€€ú›[úöX⁄YY]HHÿöôX›ò\‹⁄Y€äﬂK
+Y]H	âà\[ŸàY]HOOHõÿöôX›äH»Y]HàﬂK[€ô^SŸ‘õ€Ÿà»»◊€[€ô^SŸ‘ôYéà[€ô^SŸ‘õ€ŸàHàﬂJN¬àûH¬àYà
+Qÿ[YKó◊—\[Ÿàÿ[YKó◊—OOHõÿöôX›äHÿ[YKó◊—HﬂN¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—ùÿ\›Ÿ JHÿ[YKó◊—ùÿ\›Ÿ»H◊N¬àÿ[YKó◊—ùÿ\›ŸÀú\⁄
+¬à[YNà]Kõõ› 
+Kà⁄[ôà›]⁄[ôà[NàYôãàôX\€€éàY]H	âàY]KúôX\€€à»›ö[ô Y]KúôX\€€äHàù[àò]RYà
+Y]H	âàY]Kòò]RYOHù[
+H»Y]Kòò]RYàù[àõŸö[QX€€éàH\õŸö[R⁄[ôà[€ô^SŸ‘õ€Ÿéà[€ô^SŸ‘õ€Ÿàù[àYà[€ô^SŸ‘õ€Ÿà	âà[€ô^SŸ‘õ€ŸãùY»[€ô^SŸ‘õ€ŸãùYàù[àŸ“[ô^à[€ô^SŸ‘õ€Ÿà	âàù[Xô\ãö\—ö[ö]J[€ô^SŸ‘õ€ŸãõŸ“[ô^
+H»[€ô^SŸ‘õ€ŸãõŸ“[ô^àù[àJN¬àYà
+ÿ[YKó◊—ùÿ\›ŸÀõ[ô›àÃ
+H¬àÿ[YKó◊—ùÿ\›ŸÀú‹XŸJÿ[YKó◊—ùÿ\›ŸÀõ[ô›HÃ
+N¬àBàHÿ]⁄
+ HﬂBàûH¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKô[Z]›][HOOHôù[ò›[€àäH¬àÿ[YKïRKô[Z]›][J›]⁄[ôYôã[úöX⁄YY]JN¬àBàHÿ]⁄
+ HﬂBàBÇàÀ»Y\à\»\ö]ôYúõ€H[ôõY[òŸHô\⁄€»
+⁄[ô€H€›\òŸHŸàù]àÿ[YKë]Kîì—‘ëT‘“S”ãù[õÿ⁄“[ôõY[òŸJBàÀ»H
+ŸXZ H›õ€ôÀ»
+›õ€ô HèH›õ€ôÀà
+›Ÿ\ôù[
+HèH›Ÿ\ã»
+Xú€€]JHèHXú€€]Bàù[ò›[€àY\ëúõ€R[ôõY[òŸJ[ôõY[òŸJH¬à€€ú›[ôàH
+[ôõY[òŸH
+H¬à€€ú›HŸ]õŸ‹ô\‹⁄[€ä
+N¬àYà
+[ôàèHòXú€€]JHô]\õàö»é¬àYà
+[ôàèHú›Ÿ\äHô]\õàúàé¬àYà
+[ôàèHú›õ€ô Hô]\õàõ»é¬àô]\õàûHé¬àBÇàÀ»KKHòZ[ö[ô»›]H
+]H€€ùòX›€õK]\õZ[ö\›X»Yò][ HKKBà€€ú›êRSíSë◊’ëTî“S”àHN¬Çàù[ò›[€àÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+ä^¬àYà
+Sù[Xô\ãö\—ö[ö]JäJHô]\õà¬à€€ú›àH
+à
+N¬àô]\õàà»àé¬àBÇàù[ò›[€àÿ[ö]^ôU[Y\›[\
+ä^¬àô]\õàÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+äN¬àBÇàù[ò›[€à€€ôUòZ[ö[ô—[ùûJò] ^¬à€€ú›[ùûHHò]»	âà\[Ÿàò]»OOHõÿöôX›à»ò]»àﬂN¬àô]\õà¬à]ô[àÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+[ùûKõ]ô[
+Kààÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+[ùûKû
+Kà\›òZ[ôY]àÿ[ö]^ôU[Y\›[\
+[ùûKõ\›òZ[ôY]
+Kà€€€›€ï[ù[àÿ[ö]^ôU[Y\›[\
+[ùûKò€€€›€ï[ù[
+KàN¬àBÇàù[ò›[€àùZ[òZ[ö[ô‘›]Qúõ€Jò] ^¬à€€ú›‹ò»Hò]»	âà\[Ÿàò]»OOHõÿöôX›à»ò]»àﬂN¬à€€ú›ûP\ô“Ÿ^T‹ò»H
+‹òÀòûP\ô“Ÿ^H	âà\[Ÿà‹òÀòûP\ô“Ÿ^HOOHõÿöôX›äH»‹òÀòûP\ô“Ÿ^HàﬂN¬à€€ú›€›[ù\ú‘‹ò»H
+‹òÀò€›[ù\ú»	âà\[Ÿà‹òÀò€›[ù\ú»OOHõÿöôX›äH»‹òÀò€›[ù\ú»àﬂN¬à€€ú›ûP\ô“Ÿ^HHﬂN¬àõ‹à
+€€ú›Ÿ^HŸàÿöôX›öŸ^\ ûP\ô“Ÿ^T‹ò JH¬àYà
+ZŸ^JH€€ù[ùYN¬àûP\ô“Ÿ^V‘›ö[ô Ÿ^JWHH€€ôUòZ[ö[ô—[ùûJûP\ô“Ÿ^T‹ò÷⁄Ÿ^WJN¬àBà€€ú›€›[ù\ú»H¬à›[òZ[úŒàÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+€›[ù\ú‘‹òÀù›[òZ[ú KàŸ^UòZ[úŒàÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+€›[ù\ú‘‹òÀùŸ^UòZ[ú Kà\›òZ[ë^Nàÿ[ö]^ôSõ€ìôYÿ]]ôR[ù
+€›[ù\ú‘‹òÀõ\›òZ[ë^JKàN¬à€€ú›ô\ú⁄[€îò]»Hù[Xô\ãö\—ö[ö]J‹òÀùô\ú⁄[€äH»
+‹òÀùô\ú⁄[€à
+HàêRSíSë◊’ëTî“S”é¬à€€ú›ô\ú⁄[€àHô\ú⁄[€îò]»à»ô\ú⁄[€îò]»àêRSíSë◊’ëTî“S”é¬àô]\õà»ô\ú⁄[€ãûP\ô“Ÿ^K€›[ù\ú»N¬àBÇàù[ò›[€à[ú›\ôUòZ[ö[ô‘›]J\ôŸ]
+^¬à€€ú››H
+\ôŸ]	âà\[Ÿà\ôŸ]OOHõÿöôX›äH»\ôŸ]àù[¬à€€ú›ô^HùZ[òZ[ö[ô‘›]Qúõ€J›	âà›ùòZ[ö[ô N¬àYà
+›
+H›ùòZ[ö[ô»Hô^¬àô]\õàô^¬àBÇà€€ú››]HH¬à\‘›\ùYàò[ŸKÇàÀ»î»ù[ù[YH›]BàúŒà¬à\›⁄]]àà⁄]€€€›€ì\Œàà\›X›[€ê]ààX›[€ê€€€›€ì\Œàà\›P]àà[Y\úŒàﬂKÀ»ò[YY[Y\ú»õ‹àú»€‹¬à€‹ùYŸ]àà€‹][›TôXYNàò[ŸKàKÇàYNà¬àYàõYHãàò[YNààãà⁄[ùŒàŸ]⁄[ù–€€ôöY 
+Kú›\ù^Y\ãà[ôõY[òŸNàà⁄[úŒàà⁄[ú‘⁄[òŸR[ôõY[òŸNàÇàÀ»[õÿ⁄»õY‹»
+⁄[ô€H€›\òŸHŸàù][à›]JBà[õÿ⁄”‹ò[ôŸNàò[ŸKà[õÿ⁄‘ôYàò[ŸKà[õÿ⁄–õX⁄Œàò[ŸKÇàÀ»ÿX⁄YY\àõ‹àRH
+K€À‹ã⁄ Kà\]YöXHﬁ[ò”YU‘^Y\ú 
+KÇà\ô›[Y[ùY\éàûHãÇàÿÿ][€íYàú^òHãàKÇàô\àà[ôõY[òŸNàÇàÀ»[ú^Y\ú»à[ò€Y\»î‹»
+»YHZ\úõ‹Çà^Y\úŒàﬂKÇà⁄[ùŒà¬à\›⁄]ô]ÿ\ô]ààKÇàõŸ‹ô\‹Œà¬àŸYZ€R[ôõY[òŸQÿZ[ôYààŸYZ‘›\ù]àà\›Z[Põ€ù\–]àà€òõÿ\ô[ô‘ŸY[éàôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+KàKÇàòZ[ö[ôŒàùZ[òZ[ö[ô‘›]Qúõ€JﬂJKà^R[ô^àÇà⁄]à◊KÀ»⁄Yò[YK^\‘ﬁ\›[K\”YK^Y\íYBà⁄]]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYàﬂKàNà¬à‹[éàò[ŸKà⁄]Yàù[àŸ‹ŒàﬂKÀ»⁄]YOàY\‹ÿYŸ\¬àò[Y\ŒàﬂKÀ»›\›€H\‹^Hò[Y\»õ‹àﬁ\›[HHôXY¬ÇàÀ»RHŸŸ€\»[ú⁄YHBà[ùö]S‹[éàò[ŸKàXX⁄‹[éàò[ŸKÇàÀ»€ôK][YHYŸ‹ô\‹⁄[€àöYŸŸ\ú»\àH
+ﬁXÀÿò[ô]
+BàY‹õ‘›\ùYàﬂKÀ»⁄]YOàùYBàKÇàÀ»€‹ô\‹ù»
+[ù[ò⁄X][€ú Hù[ù[YH›]BàÀ»€ÿò[›]Hõ‹à]]‹ö]Hﬁ\›[H
+][\H€‹ Bàô\‹ùŒà¬à\›]àà€€€›€ì\Œà»
+àå
+àLà\›‹ûNàﬂKà€‹€€€›€úŒàﬂKÀ»€‹YOà\›]
+€ÿò[\à€‹
+BàKàòZ[YàﬂKàöX›[PûTõ€NàﬂKàô]ô[ôŸU[ù[ààò]P€€€›€úŒàﬂKàò]Tõ›õÿÿ][€ê€€€›€úŒàﬂKÇàò]\Œà◊KÀ»X›]ôHò]Hÿ\ô¬à]ô[ùŒà◊KÀ»ú»ú»ú»]ô[ù¬à›\ûNà¬àô]àKÀ»4a4.4.¥`t.4`4/¥,¥,4/t/t,4c»4`t`¥,4,¥.¥,à\›õ€àù[À»4/Ù/¥`t.Ù-t-4/t.4.H4`4-t-Ù`Ù.Ùc4`¥,4`Çà\›]àÀ»[Y\›[\4/Ù/¥`t.Ù-t-4/t-t,Ù/à4,t`4/¥`t.¥,
+\ Bà^\ŒàÀ»4/Ù/¥/ÙbÙ`¥.¥.4-Ù,4`t-t`t`t.4cÇàKàÀ»RHõY‹»
+⁄[ô€H€›\òŸHŸàù]õ‹à€€\⁄XõHõÿ⁄‹»]ÀäBàõY‹Œà¬àÀ»]ô[ù»[ô[à]ô[ù”‹[éàùYKà]ô[ù–€€\ŸYàò[ŸKà]ô[ù€›[ùàÇàÀ»]ô[ù»Ÿ[X›[€à
+»Y⁄Y⁄
+⁄[ô€H€›\òŸHŸàù]
+BàX›]ôQ]ô[ùYàù[àŸ[X›Y]ô[ùYàù[àY⁄Y⁄]ô[ùYàù[ÇàÀ»[ô[⁄^ô\»
+€€\ŸY»YY][H»X^
+HH⁄[ô€H€›\òŸHŸàù]õ‹àRBàÀ»\ŸH\ôH\ŸYûHZKYKöú»»ZKXò]\Àöú»»ZKY]ô[ùÀöú¬àT⁄^ôNàõYY][Hãàò]\‘⁄^ôNàõYY][Hãà]ô[ù‘⁄^ôNàõYY][Hãàÿÿ][€ú‘⁄^ôNàõYY][HãÇàÀ»‹[€ò[ö\⁄Xö[]HŸŸ€\»
+RHX^HŸ]\ŸJBàRY[éàò[ŸKàò]\“Y[éàò[ŸKà]ô[ù“Y[éàò[ŸKàKÇàÀ»‹[€ò[ÿX⁄Hõ‹à]ô[ù»[ô[Ÿ[X›[€à⁄[àÀô]ô[ù»\»[à\úò^Bà]ô[ù”Y]Nà¬àX›]ôRYàù[àŸ[X›YYàù[àKÇàÀ»YK]õ›H›]H
+⁄[ô€H€›\òŸHŸàù]
+KÇàÀ»ST‘ïSïàRK‹ô[ô\à€ŸH]\›ì’ô\XŸH\»ÿöôX›ôYô\ô[òŸH\ö[ô»[àX›]ôHõ›KÇàÀ»[ÿ^\»]]]HöY[»öXH›]PTKù\Ÿ\ùõ›J
+KŸ[ú›\ôUõ›J
+Kÿ€X\ïõ›J
+H€»ô\ô[ô\ú»€â›‹ŸH]]][€úÀÇàõ›Nà¬àX›]ôNàò[ŸKàò]RYàù[àÀ»€€ù[ô\ú¬àRYàù[àíYàù[àSò[YNààãàìò[YNààãàÀ»€›[ù»X\à»‹^Y\íYNàHH[ô›[»\à⁄YBà€›[ù–ûUõ›\éàﬂKà›[Œà»NàéàKàÀ»õ›[ô»€€ú›òZ[ù¬à^Y\ïõ›Yàò[ŸKà^Y\î⁄YNàù[À»òHàòààù[àÀ»[Z[ô¬à›\ùY]àà[ô–]ààÀ»[Y\ú»
+Y H€»€‹»ÿ[àÿ[òŸ[ô[XXõBà[Y\íYàù[àú’[Y\íYàù[àÀ»ô\€€][€Çàô\€€ôYàò[ŸKà⁄[õô\éàù[À»òHàòààùYHÇàô\›[^ààãàÀ»[öŸY]ô[ùÿ⁄]à]ô[ùYàù[à⁄]Yàù[àKàŸX›\ö]QõY‹ŒàﬂKÇàÀ»]öY[òŸH]Ÿ\ùZ[àõ€\»Ÿ\ôHX›X[HŸY[àôXŸ[ùH
+⁄]ÿò]\»ÿ[àX\ö»\ KÇàÀ»õ€RŸ^HOà\›ŸY[ê]
+\ Bà⁄Y⁄[ô‹ŒàﬂKüN¬Çà›]Kúõ›õÿÿ][€ê€€€›€ú»H›]Kòò]Tõ›õÿÿ][€ê€€€›€úŒ¬Çà›X\ô⁄[ù”ÿöôX›
+›]KõYKî›]KõYKú⁄[ù»äN¬à]‹›]Tô\ò[YHHù[Xô\ãö\—ö[ö]J›]Kúô\
+H»
+›]Kúô\
+Hà¬à]‹ô\‹ö]Q\H¬àù[ò›[€à⁄]ô\‹ö]Jõä^¬à‹ô\‹ö]Q\
+ Œ¬àûH»ô]\õàõä
+N»Bàö[ò[H»‹ô\‹ö]Q\HX]õX^
+‹ô\‹ö]Q\HJN»BàBàù[ò›[€àÿ[ï‹ö]Tô\
+
+^¬àô]\õà‹ô\‹ö]Q\à\—]ëõY 
+N¬àBàù[ò›[€àÿ[ö]^ôTô\ò[YJä^¬àô]\õàù[Xô\ãö\—ö[ö]Jù[Xô\ääJH»
+ù[Xô\ääH
+Hà¬àBàÿöôX›ôYö[ôTõ‹\ùJ›]Kúô\ã¬à€€ôöY›\òXõNàùYKà[ù[Y\òXõNàùYKàŸ]
+
+^»ô]\õà‹›]Tô\ò[YN»KàŸ]
+ä^¬à€€ú›ô^Hÿ[ö]^ôTô\ò[YJäN¬àYà
+Xÿ[ï‹ö]Tô\
+
+JH¬à€€ú›ôX\€€àHù[Xô\ãö\—ö[ö]Jù[Xô\ääJH»ù[ò]]‹ö^ôY‹ô\›‹ö]Hààö[ùò[Y€ù[Xô\àé¬à[Z][ùò[Y]]][€äî›]Kúô\ãô^ôX\€€äN¬àô]\õé¬àBà‹›]Tô\ò[YHHX]õX^
+ô^
+N¬àBàJN¬Çàù[ò›[€àô\Ÿ][
+
+^¬à›]Kö\‘›\ùYHò[ŸN¬à›]KõYHH¬àYàõYHãàò[YNààãà⁄[ùŒàŸ]⁄[ù–€€ôöY 
+Kú›\ù^Y\ãà[ôõY[òŸNàà⁄[úŒàà⁄[ú‘⁄[òŸR[ôõY[òŸNàÇà[õÿ⁄”‹ò[ôŸNàò[ŸKà[õÿ⁄‘ôYàò[ŸKà[õÿ⁄–õX⁄Œàò[ŸKà\ô›[Y[ùY\éàûHãÇàÿÿ][€íYàú^òHãàN¬à⁄]ô\‹ö]J
+
+HOà¬à›]Kúô\H¬àJN¬à›]Kö[ôõY[òŸHH¬à›]Kú^Y\ú»HﬂN¬à›]Kú⁄[ù»H»\›⁄]ô]ÿ\ô]à›ô\ôõ›Œàÿ\õ›NàààN¬à›]KùòZ[ö[ô»HùZ[òZ[ö[ô‘›]Qúõ€JﬂJN¬à›]Kô^R[ô^H¬à›]Kò⁄]H◊N¬à›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYHﬂN¬à›]Kò⁄]]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYH›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRY¬à›]KôHH»‹[éôò[ŸK⁄]Yõù[Ÿ‹ŒûﬂKò[Y\ŒûﬂK[ùö]S‹[éôò[ŸKXX⁄‹[éôò[ŸKY‹õ‘›\ùYûﬂHN¬à›]Kòò]\»H◊N¬à›]Kô]ô[ù»H◊N¬à›]Kô]ô[ù”Y]HH»X›]ôRYàù[Ÿ[X›YYàù[N¬à›]Kõ›\ûHH»ô]àK\›õ€àù[\›]à^\ŒàN¬à›]KôõY‹»H¬à]ô[ù”‹[éàùYKà]ô[ù–€€\ŸYàò[ŸKà]ô[ù€›[ùàÇàX›]ôQ]ô[ùYàù[àŸ[X›Y]ô[ùYàù[àY⁄Y⁄]ô[ùYàù[ÇàT⁄^ôNàõYY][Hãàò]\‘⁄^ôNàõYY][Hãà]ô[ù‘⁄^ôNàõYY][Hãàÿÿ][€ú‘⁄^ôNàõYY][HãÇàRY[éàò[ŸKàò]\“Y[éàò[ŸKà]ô[ù“Y[éàò[ŸKàN¬à›]Kùõ›HH¬àX›]ôNàò[ŸKàò]RYàù[àRYàù[àíYàù[àSò[YNààãàìò[YNààãà€›[ù–ûUõ›\éàﬂKà›[Œà»NàéàKà^Y\ïõ›Yàò[ŸKà^Y\î⁄YNàù[à›\ùY]àà[ô–]àà[Y\íYàù[àú’[Y\íYàù[àô\€€ôYàò[ŸKà⁄[õô\éàù[àô\›[^ààãà]ô[ùYàù[à⁄]Yàù[àN¬à›]Kú⁄Y⁄[ô‹»HﬂN¬à›]KúŸX›\ö]QõY‹»HﬂN¬àûH¬à€€ú€€KõŸ ñ—ì’◊–UQUH›]K\ŸX›\ö]YõY‹À]‹ö]H^Y\èJà]ô[\ô\Ÿ]]]‹ö]O\ô\Ÿ][ÿ[\èT›]PTKúô\Ÿ][äN¬àHÿ]⁄
+ HﬂBàYà
+ôXX›[€î€XﬁH	âà\[ŸàôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»OOHôù[ò›[€àäH¬àôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹ 
+N¬àBà›]Kúô\‹ù»H¬à\›]àà€€€›€ì\Œà»
+àå
+àLà\›‹ûNàﬂKà€‹€€€›€úŒàﬂKà€‹⁄]\éà¬àô^⁄]]ûP€‹YàﬂKàô^P]ûP€‹YàﬂKà[ùõ–⁄]Ÿ[ùûP€‹YàﬂKà[ùõ—TŸ[ùûP€‹YàﬂKàKà[ô[ô–ûPX›‹íYàﬂKà[ô[ô–ûRYàﬂKàN¬àÀ»[X\»õ‹à^\õò[XÿŸ\‹»
+ô\]Y\›Yà›]Kò€‹€€€›€ú Bà›]Kò€‹€€€›€ú»H›]Kúô\‹ùÀò€‹€€€›€úŒ¬à›]KöòZ[YHﬂN¬à›]KùöX›[PûTõ€HHﬂN¬à›]Kúô]ô[ôŸU[ù[H¬à›]Kõú»H¬à\›⁄]]àà⁄]€€€›€ì\Œàà\›X›[€ê]ààX›[€ê€€€›€ì\Œàà[Y\úŒàﬂKà€‹ùYŸ]àà€‹][›TôXYNàò[ŸKàN¬à›]KúõŸ‹ô\‹»H¬àŸYZ€R[ôõY[òŸQÿZ[ôYààŸYZ‘›\ù]àà\›Z[Põ€ù\–]àà€òõÿ\ô[ô‘ŸY[éàôXY\ú⁄\›Y€òõÿ\ô[ô‘ŸY[ä
+KàN¬à›]Kó‹ŸYYYî‹»Hò[ŸN¬à›X\ô⁄[ù”ÿöôX›
+›]KõYKî›]KõYKú⁄[ù»äN¬àBÇàÀ»KKHH›]HZY‹ò][€à
+\ôŸ]YOà⁄]Y
+HKKBàù[ò›[€àZY‹ò]QT›]J
+^¬à€€ú›HH›]KôHù[¬àYà
+YJHô]\õé¬àYà
+Kù⁄]YOHù[	âàKù\ôŸ]YOHù[
+HKù⁄]YHKù\ôŸ]Y¬àYà
+Kù\ôŸ]YOHù[
+H[]HKù\ôŸ]Y¬ÇàYà
+\[ŸàKö[ùö]S‹[àOOHòõ€€X[àäHKö[ùö]S‹[àHò[ŸN¬àYà
+\[ŸàKùXX⁄‹[àOOHòõ€€X[àäHKùXX⁄‹[àHò[ŸN¬àYà
+YKòY‹õ‘›\ùY\[ŸàKòY‹õ‘›\ùYOOHõÿöôX›äHKòY‹õ‘›\ùYHﬂN¬àBÇàù[ò›[€àŸYY^Y\ú 
+^¬à›]Kú^Y\ú»HﬂN¬àZY‹ò]QT›]J
+N¬à›]Kó‹ŸYYYî‹»Hò[ŸN¬ÇàÀ»[ú›\ôHY\àÿX⁄H\»€€ú⁄\›[ùôYõ‹ôHZ\úõ‹ö[ô¬à›]KõYKò\ô›[Y[ùY\àHY\ëúõ€R[ôõY[òŸJ›]KõYKö[ôõY[òŸJN¬ÇàYà
+ÿ[YKìî»	âà\[Ÿàÿ[YKìîÀúŸYY^Y\ú»OOHôù[ò›[€àäH¬àÿ[YKìîÀúŸYY^Y\ú ›]JN¬àBÇàÀ»YHZ\úõ‹Çà›]Kú^Y\ú÷»õYHóHH¬àYàõYHãàò[YNà›]KõYKõò[YH¥(¥b»ãà⁄[ùŒà›]KõYKú⁄[ùÀà[ôõY[òŸNà›]KõYKö[ôõY[òŸKà\ô›[Y[ùY\éà›]KõYKò\ô›[Y[ùY\ãà[õÿ⁄”‹ò[ôŸNàHT›]KõYKù[õÿ⁄”‹ò[ôŸKà[õÿ⁄‘ôYàHT›]KõYKù[õÿ⁄‘ôYà[õÿ⁄–õX⁄ŒàHT›]KõYKù[õÿ⁄–õX⁄Àà\”YNàùYKàúŒàò[ŸKàN¬à›X\ô⁄[ù”ÿöôX›
+›]Kú^Y\ú÷»õYHóKî›]Kú^Y\úÀõYKú⁄[ù»äN¬ÇàÀ»î»€€€€Y\»úõ€Hÿ[YKìî»Yù\àÿYYÇàÀ»›\‹ùõ›Hô]Ÿ\àTH
+Ÿ][
+H[ô€\à
+\›
+KÇà]ú‹»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà¬àYà
+\
+Hô]\õàò[ŸN¬à€€ú›YH›ö[ô öYàäN¬àô]\õàõú»OOHùYHù\HOOHõú»àYú›\ù’⁄]
+õú◊»äN¬àJN¬àYà
+[ú‹Àõ[ô›
+H¬àú‹»H
+ÿ[YKìî»	âà\[Ÿàÿ[YKìîÀôŸ][OOHôù[ò›[€àäBà»ÿ[YKìîÀôŸ][
+
+Bàà
+ÿ[YKìî»	âà\[Ÿàÿ[YKìîÀõ\›OOHôù[ò›[€àäBà»ÿ[YKìîÀõ\›
+
+Bàà
+ÿ[YKìî»	âà\úò^Kö\–\úò^Jÿ[YKìîÀîVQTî JBà»ÿ[YKìîÀîVQTî¬àà◊N¬àBÇàú‹Àôõ‹ëXX⁄
+àOà¬àYà
+[à[ãöY
+Hô]\õé¬àÀ»[ú›\ôHú»õY»^\›»õ‹àõ€H]Y\öY\¬à€€ú›Ÿô»HŸ]⁄[ù–€€ôöY 
+N¬à€€ú›ò\ŸHH»úŒàùYKããõàN¬àYà
+\[Ÿàò\ŸKú⁄[ù»OOHõù[Xô\àäHò\ŸKú⁄[ù»HŸôÀú›\ùúŒ¬à›]Kú^Y\ú÷€ãöYHHò\ŸN¬à›X\ô⁄[ù”ÿöôX›
+›]Kú^Y\ú÷€ãöYK›]Kú^Y\úÀâ€ãöYKú⁄[ùÿ
+N¬àJN¬àBÇàù[ò›[€à\⁄⁄]
+ò[YK^‹»HﬂJ^¬àZY‹ò]QT›]J
+N¬à€€ú›][HH¬àYàÿYôRY
+
+Kààõ›“SJ
+Kàò[YKà^à\‘ﬁ\›[NàH[‹Àö\‘ﬁ\›[Kà^Y\íYà‹Àú^Y\íYù[à\”YNàH[‹Àö\”YKà‹XZŸ\íYà‹Àú^Y\íYù[à€›\òŸUYŒà‹Àú€›\òŸUY»ù[ÇàÀ»Y[ù[€ú»Y]Y]H
+‹[€ò[õ‹àRHY⁄Y⁄ BàY[ù[€úŒà^òX›Y[ù[€ôYY ^
+Kà\”Y[ù[€ôYYNà\”YSY[ù[€ôY
+^
+KàN¬à›]Kò⁄]ú\⁄
+][JN¬ÇàÀ»X\ö»]ŸH]ôHX›X[HŸY[à\»î»õ€HôXŸ[ùH
+õ‹à€‹]öY[òŸJKÇàYà
+][Kú^Y\íY
+HX\ö‘⁄Y⁄[ô–ûT^Y\íY
+][Kú^Y\íY
+N¬ÇàYà
+›]Kò⁄]õ[ô›àå
+H›]Kò⁄]ú⁄Yù
+
+N¬àô]\õà][N¬àBÇàù[ò›[€à\⁄ﬁ\›[J^
+^¬àô]\õà\⁄⁄]
+¥(t.4`t`¥-t/4,ã^»\‘ﬁ\›[NùùYHJN¬àBÇà€€ú›UU◊‘ëTW’—RQ“»HÿöôX›ôúôY^ôJ¬à‹õ›ŸàKàﬁXŒàãàò[ô]àãàXYöXNàÀà€‹àKàJN¬Çà€€ú›\ÿÿ\TôYŸ^H
+ HOà›ö[ô »àäKúô\XŸJ÷Àääœ◊âﬂJ
+_◊WKŸÀó		àäN¬Çàù[ò›[€àŸ]]]‘ô\Sõ€òŸSX\
+
+^¬àYà
+T›]Kò⁄]P\úò^Kö\–\úò^J›]Kò⁄]
+JH¬à›]Kò⁄]H◊N¬àBàYà
+T›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRY\[Ÿà›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYOOHõÿöôX›äH¬à›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYHﬂN¬àBà›]Kò⁄]]]‘ô\Sõ€òŸPûSY\‹ÿYŸRYH›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRY¬àô]\õà›]Kò⁄]ò]]‘ô\Sõ€òŸPûSY\‹ÿYŸRY¬àBÇàù[ò›[€à\”ú–]òZ[XõQõ‹îô\Jú ^¬àYà
+[ú»[úÀöY
+Hô]\õàò[ŸN¬à€€ú›\“òZ[YH
+ÿ[YH	âàÿ[YKó◊–H	âà\[Ÿàÿ[YKó◊–Kö\”ú“òZ[YOOHôù[ò›[€àäBà»ÿ[YKó◊–Kö\”ú“òZ[Y
+úÀöY
+Bààò[ŸN¬àô]\õàZ\“òZ[Y¬àBÇàù[ò›[€àö[ôY[ù[€ôYú—õ‹ê]]‘ô\J^
+^¬à€€ú›ò]»H›ö[ô ^àäN¬à€€ú››Ÿ\àHò]Àù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›\–]H›Ÿ\ãö[ò€Y\ êäN¬à]ö\ú›X]⁄Hù[¬à€€ú›^Y\ú»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJN¬àõ‹à
+€€ú›ÿ[ôY]HŸà^Y\ú H¬àYà
+Xÿ[ôY]HXÿ[ôY]Kõú H€€ù[ùYN¬àYà
+Z\”ú–]òZ[XõQõ‹îô\Jÿ[ôY]JJH€€ù[ùYN¬à€€ú›YHÿ[ôY]KöY»›ö[ô ÿ[ôY]KöY
+Kùö[J
+Hààé¬à€€ú›ò[YHHÿ[ôY]Kõò[YH»›ö[ô ÿ[ôY]Kõò[YJKùö[J
+Hààé¬à€€ú›]\õú»H◊N¬àYà
+ò[YJH]\õúÀú\⁄
+\ÿÿ\TôYŸ^
+ò[YKù”›Ÿ\êÿ\ŸJ
+JJN¬àYà
+Y
+H]\õúÀú\⁄
+\ÿÿ\TôYŸ^
+Yù”›Ÿ\êÿ\ŸJ
+JJN¬àõ‹à
+€€ú›]\õàŸà]\õú H¬à€€ú›ôYŸ^Hô]»ôY—^
+
+ü P…‹]\õüJœWﬂ	
+Xö]HäN¬àYà
+ôYŸ^ù\›
+›Ÿ\äJH¬àö\ú›X]⁄Hÿ[ôY]N¬àúôXZŒ¬àBàBàYà
+ö\ú›X]⁄
+HúôXZŒ¬àBàô]\õà»úŒàö\ú›X]⁄Y[ù[€í[ùà\–]◊äYüú◊ K⁄Kù\›
+ò] HN¬àBÇàù[ò›[€àX⁄‘ò[ô€Sú—õ‹ê]]‘ô\J^Y\íY‹»HﬂKXY”›]
+^¬à€€ú›[ùöY\»H◊N¬à€€ú›õ€P€›[ù»H»€‹à‹õ›ŸàﬁXŒàò[ô]àXYöXNà›\éàN¬à€€ú›ŸZY⁄›[»H»€‹à‹õ›ŸàﬁXŒàò[ô]àXYöXNà›\éàN¬à€€ú›^Y\ú»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJN¬àõ‹à
+€€ú›ÿ[ôY]HŸà^Y\ú H¬àYà
+Xÿ[ôY]HXÿ[ôY]Kõú H€€ù[ùYN¬àYà
+ÿ[ôY]KöYOOH^Y\íY
+H€€ù[ùYN¬àYà
+Z\”ú–]òZ[XõQõ‹îô\Jÿ[ôY]JJH€€ù[ùYN¬à€€ú›õ€HH›ö[ô ÿ[ôY]Kúõ€HàäKù”›Ÿ\êÿ\ŸJ
+Hò‹õ›Ÿé¬à€€ú›ŸZY⁄HUU◊‘ëTW’—RQ“÷‹õ€WHUU◊‘ëTW’—RQ“Àò‹õ›Ÿ¬à[ùöY\Àú\⁄
+»úŒàÿ[ôY]KŸZY⁄õ€HJN¬àYà
+õ€P€›[ù÷‹õ€WHOHù[
+Hõ€P€›[ù÷‹õ€WH
+œHN¬à[ŸHõ€P€›[ùÀõ›\à
+œHN¬àYà
+ŸZY⁄›[÷‹õ€WHOHù[
+HŸZY⁄›[÷‹õ€WH
+œHŸZY⁄¬à[ŸHŸZY⁄›[Àõ›\à
+œHŸZY⁄¬àBàXY”›]ôö[ò[€€õ€P€›[ù»Hõ€P€›[ùŒ¬àXY”›]ù›[ŸZY⁄ûTõ€HHŸZY⁄›[Œ¬àYà
+Y[ùöY\Àõ[ô›
+H¬àXY”›]õõ›HHXY”›]õõ›Hõú◊‹€€Ÿ[\Hé¬àô]\õàù[¬àBà€€ú›õô»H‹»	âà\[Ÿà‹Àúõô»OOHôù[ò›[€àà»‹Àúõô»àX]úò[ô€N¬à€€ú››[ŸZY⁄H[ùöY\ÀúôYXŸJ
+›[K[ùûJHOà›[H
+»X]õX^
+[ùûKùŸZY⁄
+K
+N¬àYà
+›[ŸZY⁄H
+H¬àXY”›]õõ›HHXY”›]õõ›Hõú◊›ŸZY⁄ﬁô\õ»é¬àô]\õàù[¬àBà]õ€Hõô 
+H
+à›[ŸZY⁄¬àõ‹à
+€€ú›[ùûHŸà[ùöY\ H¬à€€ú›»HX]õX^
+[ùûKùŸZY⁄
+N¬àYà
+õ€H Hô]\õà[ùûKõúŒ¬àõ€OHŒ¬àBàô]\õà[ùöY\÷Ÿ[ùöY\Àõ[ô›HWKõúŒ¬àBÇàù[ò›[€àõ‹õX]]]‘ô\U^
+úÀ^Y\ìò[YJ^¬à€€ú›Y[ù[€àH^Y\ìò[YH»…‹^Y\ìò[Y_WXàñÙ&4,Ù`4/¥.óHé¬à]ô\HHàé¬àYà
+ÿ[YH	âàÿ[YKìî»	âà\[Ÿàÿ[YKìîÀôŸ[ô\ò]TôXX›[€ï”YHOOHôù[ò›[€àäH¬àô\HHÿ[YKìîÀôŸ[ô\ò]TôXX›[€ï”YJúÀ^Y\ìò[YHàäN¬àBàYà
+\ô\H	âàÿ[YH	âàÿ[YKìî»	âà\[Ÿàÿ[YKìîÀôŸ[ô\ò]P⁄][ôHOOHôù[ò›[€àäH¬àô\HHÿ[YKìîÀôŸ[ô\ò]P⁄][ôJú N¬àBàYà
+\ô\JHô]\õààé¬àô]\õà	€Y[ù[€üK	‘›ö[ô ô\HàäKùö[J
+_X¬àBÇàù[ò›[€à[ôSú–]]‘ô\P€‹ôJ^[ÿYHﬂK‹»HﬂJ^¬à€€ú›õ€òŸHHŸ]]]‘ô\Sõ€òŸSX\
+
+N¬à€€ú›^Y\ìY\‹ÿYŸRYH^[ÿYú^Y\ìY\‹ÿYŸRY^[ÿYõY\‹ÿYŸRY¬à€€ú›XY»H¬àY[ù[€ë]X›Yàò[ŸKàY[ù[€ï\ôŸ]Yàù[à⁄‹Ÿ[îõ€Nàù[àõ›Nàù[àùZ[YŒà
+ÿ[YH	âàÿ[YKó◊—Uà	âàÿ[YKó◊—UãëUó–“P“‘◊–ïRS’Q◊’çJBà»ÿ[YKó◊—UãëUó–“P“‘◊–ïRS’Q◊’çBàà
+
+ÿ[YH	âàÿ[YKó◊—Uà	âàÿ[YKó◊—UãòùZ[Y H»ÿ[YKó◊—UãòùZ[Y»à
+⁄[ô›»	âà⁄[ô›Àó◊–ïRS’Q H»⁄[ô›Àó◊–ïRS’Q»àù[
+Kàö[SX\öŸ\éàö[ôSú–]]‘ô\P€‹ôP”‘–UU◊’åHÇàN¬àYà
+\^Y\ìY\‹ÿYŸRY
+H¬àXYÀõõ›HHõZ\‹⁄[ô◊‹^Y\ó€Y\‹ÿYŸW⁄Yé¬àô]\õà»Yô\Nàò[ŸKXY»N¬àBàYà
+õ€òŸV‹^Y\ìY\‹ÿYŸRYJH¬àXYÀõõ›HHô\Xÿ]Wÿ]]◊‹ô\Hé¬àô]\õà»Yô\Nàò[ŸKXY»N¬àBàõ€òŸV‹^Y\ìY\‹ÿYŸRYHHùYN¬à€€ú›^Y\íYH^[ÿYú^Y\íYõYHé¬à€€ú›Y[ù[€îô\›[Hö[ôY[ù[€ôYú—õ‹ê]]‘ô\J^[ÿYù^àäN¬à]Ÿ[X›Yú»HY[ù[€îô\›[õúŒ¬àYà
+Ÿ[X›Yú H¬àXYÀõY[ù[€ë]X›YHùYN¬àXYÀõY[ù[€ï\ôŸ]YHŸ[X›YúÀöY¬àYà
+\Ÿ[X›YúÀõò[YJH¬àXYÀõõ›HHXYÀõõ›HõY[ù[€ó€ú◊€Z\‹⁄[ô»é¬àBàH[ŸHYà
+Y[ù[€îô\›[õY[ù[€í[ù
+H¬àXYÀõY[ù[€ë]X›YHùYN¬àXYÀõõ›HHXYÀõõ›HõY[ù[€ó€õ›Ÿõ›[ôé¬àBàYà
+\Ÿ[X›Yú H¬àŸ[X›Yú»HX⁄‘ò[ô€Sú—õ‹ê]]‘ô\J^Y\íY‹ÀXY N¬àBàYà
+\Ÿ[X›Yú H¬àXYÀõõ›HHXYÀõõ›Hõú◊‹Ÿ[X›[€óŸòZ[Yé¬àô]\õà»Yô\Nàò[ŸKXY»N¬àBàXYÀò⁄‹Ÿ[îõ€HH›ö[ô Ÿ[X›YúÀúõ€Hò‹õ›ŸäN¬à€€ú›^Y\ìò[YHH^[ÿYú^Y\ìò[YBà»›ö[ô ^[ÿYú^Y\ìò[YJBàà
+›]KõYH	âà›]KõYKõò[YJH»›ö[ô ›]KõYKõò[YJHà¥&4,Ù`4/¥.àé¬à€€ú›ô\U^Hõ‹õX]]]‘ô\U^
+Ÿ[X›YúÀ^Y\ìò[YJN¬àYà
+\ô\U^
+H¬àXYÀõõ›HHXYÀõõ›Húô\WŸŸ[ô\ò][€óŸòZ[Yé¬àô]\õà»Yô\Nàò[ŸKXY»N¬àBàô]\õà¬àYô\NàùYKàô\P]]‹íYàŸ[X›YúÀöYàô\Sò[YNàŸ[X›YúÀõò[YHìî»ãàô\U^àXYÀàN¬àBÇàù[ò›[€à[ôSú–]]‘ô\J^[ÿYHﬂK‹»HﬂJ^¬à€€ú›ô\›[H‹Àò€‹ôTô\›[[ôSú–]]‘ô\P€‹ôJ^[ÿY‹ N¬àYà
+\ô\›[\ô\›[ôYô\JH¬àô]\õà»⁄Œàò[ŸKXYŒà
+ô\›[	âàô\›[ôXY Hù[N¬àBàûH¬à€€ú›ò[YHHô\›[úô\Sò[YHìî»é¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKú\⁄⁄]OOHôù[ò›[€àäH¬àÿ[YKïRKú\⁄⁄]
+»ò[YK^àô\›[úô\U^ﬁ\›[Nàò[ŸHJN¬àH[ŸHYà
+\[ŸàRHOOHù[ôYö[ôYà	âàRH	âà\[ŸàRKú\⁄⁄]OOHôù[ò›[€àäH¬àRKú\⁄⁄]
+»ò[YK^àô\›[úô\U^ﬁ\›[Nàò[ŸHJN¬àH[ŸH¬à›]Kò⁄]H›]Kò⁄]◊N¬à\⁄⁄]
+ò[YKô\›[úô\U^ﬂJN¬àBàHÿ]⁄
+ HﬂBàô]\õà»⁄ŒàùYKú“Yàô\›[úô\P]]‹íYXYŒàô\›[ôXY»N¬àBÇàYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYäH¬à⁄[ô›Àê€‹ôHH⁄[ô›Àê€‹ôHﬂN¬àYà
+\[Ÿà⁄[ô›Àê€‹ôKö[ôSú–]]‘ô\P€‹ôHOOHôù[ò›[€àäH¬à⁄[ô›Àê€‹ôKö[ôSú–]]‘ô\P€‹ôHH[ôSú–]]‘ô\P€‹ôN¬àBàBàÿ[YKê€‹ôHHÿ[YKê€‹ôHﬂN¬àYà
+\[Ÿàÿ[YKê€‹ôKö[ôSú–]]‘ô\P€‹ôHOOHôù[ò›[€àäH¬àÿ[YKê€‹ôKö[ôSú–]]‘ô\P€‹ôHH[ôSú–]]‘ô\P€‹ôN¬àBàù[ò›[€àú‘‹YX⁄ù[ù[YS[ôJ€›\òŸK€‹^‹»HﬂJH¬à€€ú›ò[òX⁄»H›ö[ô ^àäN¬àûH¬à€€ú›‹YX⁄Hÿ[YH	âàÿ[YKìî‘‹YX⁄¬àYà
+\‹YX⁄\[Ÿà‹YX⁄ôŸ[ô\ò]Tù[ù[YSú”[ôHOOHôù[ò›[€àà\[Ÿà‹YX⁄õXZŸP›OOHôù[ò›[€àäHô]\õàò[òX⁄Œ¬àô]\õà‹YX⁄ôŸ[ô\ò]Tù[ù[YSú”[ôJ‹YX⁄õXZŸP›
+€‹ù[¬à€›\òŸKàõÿ⁄Œà‹Àòõÿ⁄»õô]]ò[ãà⁄[õô[à‹Àò⁄[õô[ôHãà[ù[ú⁄]Nà‹Àö[ù[ú⁄]KàX⁄Œà‹ÀùX⁄Ààò\úŒà‹Àùò\ú»ﬂBàJKò[òX⁄ N¬àHÿ]⁄
+ H¬àô]\õàò[òX⁄Œ¬àBàBÇàûH¬àÿ[YKó◊—UàHﬂN¬àÿ[YKó◊—Uãó◊‹õÿôSú‘‹YX⁄ô\‹ùôXX›[€ì[ôHHù[ò›[€à◊‹õÿôSú‘‹YX⁄ô\‹ùôXX›[€ì[ôJ€‹^
+H¬àô]\õàú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹ù[^¥'Ù`4.4/tcÙ.Àà4'Ù`4/¥,¥-t`4.¥,4/t,4aÙ,4.Ù,4`tcàã»⁄[õô[àôHàJN¬àN¬àHÿ]⁄
+ HﬂBÇàù[ò›[€à€‹[ôJ^
+^¬à€€ú›àHÿ[YKìî»ù[¬àYà
+à	âà\[Ÿàãõõ‹õX[^ôP€‹[ôHOOHôù[ò›[€àäHô]\õàãõõ‹õX[^ôP€‹[ôJ^
+N¬àÀ»ò[òX⁄ŒàŸY\[ò›X][€àXŸ[ùà€€ú›ò]»H
+^OHù[
+H»ààà›ö[ô ^
+N¬à]Hò]Àúô\XŸJ◊ ÀŸÀàäKùö[J
+N¬àYà
+]
+Hô]\õààé¬àHò⁄\ê]
+
+Kù’\\êÿ\ŸJ
+H
+»ú€XŸJJN¬àYà
+K÷ÀàO◊IÀù\›
+
+JH
+œHãàé¬àô]\õà¬àBÇàù[ò›[€à€‹ò[YJ
+^¬àÀ»X⁄»[à\‹⁄Y€ôY€‹õ‹àH›\úô[ùŸ\‹⁄[€à‹àHò[ô€H€ôHYàõ€ôH\‹⁄Y€ôYÇàYà
+T›]Kò\‹⁄Y€ôY€‹Y
+H¬à€€ú›€‹»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàúõ€HOOHò€‹äN¬àYà
+€‹Àõ[ô›à
+H¬à›]Kò\‹⁄Y€ôY€‹YH€‹÷”X]ôõ€‹äX]úò[ô€J
+H
+à€‹Àõ[ô›
+WKöY¬àBàBà€€ú›H›]Kú^Y\ú÷‘›]Kò\‹⁄Y€ôY€‹Yõú◊ÿ€‹›àóN¬àô]\õà
+	âàõò[YJH»õò[YHà¥$¥.Ù,4-4.4/4.4`4&4,¥,4/t/¥,¥.4a»é¬àBÇàù[ò›[€à\›€‹ 
+^¬àô]\õàÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàúõ€HOOHò€‹äN¬àBÇàù[ò›[€à\–€‹ù\ﬁPûRY
+€‹Yõ›’ ^¬à€€ú›Ÿ\»H
+›]Kúô\‹ù»	âàù[Xô\ãö\—ö[ö]J›]Kúô\‹ùÀò€€€›€ì\ JH»
+›]Kúô\‹ùÀò€€€›€ì\»
+Hà
+H
+àå
+àL
+N¬à€€ú›\›H
+›]Kúô\‹ù»	âà›]Kúô\‹ùÀò€‹€€€›€ú H»
+›]Kúô\‹ùÀò€‹€€€›€ú÷ÿ€‹YH
+Hà¬à€€ú›õ›ÃH
+\[Ÿàõ›’»OOHõù[Xô\àäH»õ›’»à]Kõõ› 
+N¬àô]\õà
+õ›ÃH\›
+HŸ\Œ¬àBÇàù[ò›[€àX⁄–€‹[\]J\›ò[òX⁄ ^¬à€€ú›\úàH\úò^Kö\–\úò^J\›
+H»\›à◊N¬àYà
+X\úãõ[ô›
+Hô]\õà›ö[ô ò[òX⁄»àäN¬àô]\õà›ö[ô \úñ”X]ôõ€‹äX]úò[ô€J
+H
+à\úãõ[ô›
+WH\úñÃHò[òX⁄»àäN¬àBÇàù[ò›[€àö[€‹[\]J€‹ò\ú»HﬂJ^¬à]›]H›ö[ô àäN¬à€€ú›€‹ò[YLH
+€‹	âà€‹õò[YJH»›ö[ô €‹õò[YJHà¥&¥/¥/»é¬à›]H›]úô\XŸJ◊ÿ€‹ôù[ò[YWKŸÀ€‹ò[YL
+N¬à›]H›]úô\XŸJ◊ÿ€‹úò[ö◊KŸÀàäN¬à›]H›]úô\XŸJ◊‹õ€WKŸÀ›ö[ô ò\úÀúõ€HàäJN¬à›]H›]úô\XŸJ◊€ò[YWKŸÀ›ö[ô ò\úÀõò[YHàäJN¬àô]\õà›]úô\XŸJ◊ ÀŸÀàäKùö[J
+N¬àBÇàù[ò›[€à[Z]€‹⁄]ûRY
+€‹Y\›ò[YKò\ú»HﬂJ^¬à€€ú›Hÿ[YKë]Hù[¬à€€ú›H
+	âàê”‘’STUT H»ê”‘’STUT»àù[¬à€€ú›€‹H
+›]Kú^Y\ú»	âà€‹Y	âà›]Kú^Y\ú÷ÿ€‹YJH»›]Kú^Y\ú÷ÿ€‹YHàù[¬àYà
+X€‹€‹úõ€HOOHò€‹äHô]\õàò[ŸN¬àYà
+]
+Hô]\õàò[ŸN¬à€€ú›ò]»HX⁄–€‹[\]J€\›ò[YWKàäN¬à€€ú›\Ÿ»Hö[€‹[\]Jò]À€‹ò\ú N¬àYà
+[\Ÿ Hô]\õàò[ŸN¬à€€ú›‹YX⁄\Ÿ»Hú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹\ŸÀ»⁄[õô[àô]ô[ùãò\ú»JN¬à\⁄⁄]
+›ö[ô €‹õò[YH¥&¥/¥/»äK€‹[ôJ‹YX⁄\Ÿ K»\‘ﬁ\›[Nàò[ŸK^Y\íYà€‹Y€›\òŸUYŒàô^X⁄]ÿ€‹‹XõX◊€õ›XŸHàJN¬àô]\õàùYN¬àBÇàù[ò›[€à[Z]€‹PûRY
+€‹Y\›ò[YKò\ú»HﬂJ^¬à€€ú›Hÿ[YKë]Hù[¬à€€ú›H
+	âàê”‘’STUT H»ê”‘’STUT»àù[¬à€€ú›€‹H
+›]Kú^Y\ú»	âà€‹Y	âà›]Kú^Y\ú÷ÿ€‹YJH»›]Kú^Y\ú÷ÿ€‹YHàù[¬àYà
+X€‹€‹úõ€HOOHò€‹äHô]\õàò[ŸN¬àYà
+]
+Hô]\õàò[ŸN¬à€€ú›ò]»HX⁄–€‹[\]J€\›ò[YWKàäN¬à€€ú›\Ÿ»Hö[€‹[\]Jò]À€‹ò\ú N¬àYà
+[\Ÿ Hô]\õàò[ŸN¬à€€ú›‹YX⁄\Ÿ»Hú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹\ŸÀ»⁄[õô[àôHãò\ú»JN¬à\⁄J€‹Y›ö[ô €‹õò[YH¥&¥/¥/»äK€‹[ôJ‹YX⁄\Ÿ K»\‘ﬁ\›[Nàò[ŸK^Y\íYà€‹YJN¬àô]\õàùYN¬àBÇàù[ò›[€àX⁄–€‹⁄]\äõ›’ ^¬à€€ú›õ›ÃH
+\[Ÿàõ›’»OOHõù[Xô\àäH»õ›’»à]Kõõ› 
+N¬à€€ú›€‹»H\›€‹ 
+N¬àYà
+X€‹Àõ[ô›
+Hô]\õàò[ŸN¬à€€ú›Hÿ[YKë]Hù[¬àYà
+QQê”‘’STUT Hô]\õàò[ŸN¬Çà€€ú›ô\H›]Kúô\‹ù»ﬂN¬àô\ò€‹⁄]\àH¬àô^⁄]]ûP€‹YàﬂKàô^P]ûP€‹YàﬂKà[ùõ–⁄]Ÿ[ùûP€‹YàﬂKà[ùõ—TŸ[ùûP€‹YàﬂKàÀ»ô]»⁄[ô€K\€›\òŸHõY‹»
+]õ⁄Y⁄]
+—H\Xÿ]\ Bà[ùõ‘Ÿ[ùûP€‹YàﬂKà\›⁄[ôûP€‹YàﬂKÀ»ùÿ\õö[ô‹»àò⁄]ô\Y\»àò€€€›€îô\Y\»àö[ùõ‹»Çà\›^ûP€‹YàﬂKÀ»\›[Z]Y[ôH
+Y\JBàN¬à€€ú›⁄Hô\ò€‹⁄]\é¬à⁄õô^⁄]]ûP€‹YHﬂN¬à⁄õô^P]ûP€‹YHﬂN¬à⁄ö[ùõ–⁄]Ÿ[ùûP€‹YHﬂN¬à⁄ö[ùõ—TŸ[ùûP€‹YHﬂN¬à⁄ö[ùõ‘Ÿ[ùûP€‹YHﬂN¬à⁄õ\›⁄[ôûP€‹YHﬂN¬à⁄õ\›^ûP€‹YHﬂN¬à⁄ú⁄⁄\YU\ôŸ]XY€õ‹›X‹»H◊N¬Çà]YHò[ŸN¬Çàõ‹à
+€€ú›€‹Ÿà€‹ H¬à€€ú›⁄YH›ö[ô €‹öYàäN¬àYà
+X⁄Y
+H€€ù[ùYN¬ÇàÀ»ÿ⁄Y[HYò][»
+›YŸŸ\ôY
+BàYà
+Sù[Xô\ãö\—ö[ö]J⁄õô^⁄]]ûP€‹Yÿ⁄YJJH⁄õô^⁄]]ûP€‹Yÿ⁄YHHõ›Ã
+»
+»X]ôõ€‹äX]úò[ô€J
+H
+àLå
+N¬àYà
+Sù[Xô\ãö\—ö[ö]J⁄õô^P]ûP€‹Yÿ⁄YJJH⁄õô^P]ûP€‹Yÿ⁄YHHõ›Ã
+»Lå
+»X]ôõ€‹äX]úò[ô€J
+H
+àN
+N¬Çà€€ú›ù\ﬁHH\–€‹ù\ﬁPûRY
+⁄Yõ›Ã
+N¬Çà€€ú›YP⁄]Hõ›ÃèH
+⁄õô^⁄]]ûP€‹Yÿ⁄YH
+N¬à€€ú›YQHHõ›ÃèH
+⁄õô^P]ûP€‹Yÿ⁄YH
+N¬àYà
+YYP⁄]	âàYYQJH€€ù[ùYN¬Çà]\›ò[YHHò⁄]ô\Y\»é¬àYà
+ù\ﬁJH¬à\›ò[YHHò€€€›€îô\Y\»é¬àH[ŸHYà
+X⁄ö[ùõ‘Ÿ[ùûP€‹Yÿ⁄YJH¬à\›ò[YHHö[ùõ‹»é¬àH[ŸH¬àÀ»[\õò]Hÿ\õö[ô‹»Oà⁄]ô\Y\»⁄[àõ›ù\ﬁBà€€ú›\›H›ö[ô ⁄õ\›⁄[ôûP€‹Yÿ⁄YHàäN¬à\›ò[YHH
+\›OOHùÿ\õö[ô‹»äH»ò⁄]ô\Y\»ààùÿ\õö[ô‹»é¬àBÇàÀ»ùZ[H^X›Y\‹ÿYŸH€òŸH
+€»]ÿ[â›\X\à[àõ›⁄]
+—JBà]⁄»Hò[ŸN¬àûH¬à€€ú›H
+	âàê”‘’STUT H»ê”‘’STUT»àù[¬àYà
+
+H¬à]ò]»HX⁄–€‹[\]J€\›ò[YWKàäN¬à]\Ÿ»Hö[€‹[\]Jò]À€‹ﬂJN¬à€€ú›\›^H›ö[ô ⁄õ\›^ûP€‹Yÿ⁄YHàäN¬àÀ»ûHH€›\H[Y\»»]õ⁄Y[[YYX]Hô\X]¬àYà
+\Ÿ»	âà\›^	âà\Ÿ»OOH\›^
+H¬àõ‹à
+]HH»Hé»J  H¬àò]»HX⁄–€‹[\]J€\›ò[YWKò] N¬à\Ÿ»Hö[€‹[\]Jò]À€‹ﬂJN¬àYà
+\Ÿ»	âà\Ÿ»OOH\›^
+HúôXZŒ¬àBàBàYà
+\Ÿ H¬à€€ú›\ôŸ]YH
+€‹	âà€‹öY
+H»€‹öYààé¬àYà
+\ôŸ]Y
+H¬à\⁄J\ôŸ]Y›ö[ô €‹õò[YH¥&¥/¥/»äK€‹[ôJ\Ÿ K»\‘ﬁ\›[Nàò[ŸK^Y\íYà⁄YJN¬à⁄»HùYN¬à⁄õ\›^ûP€‹Yÿ⁄YHH\ŸŒ¬àH[ŸH¬àYà
+⁄ú⁄⁄\YU\ôŸ]XY€õ‹›X‹Àõ[ô›èH
+H⁄ú⁄⁄\YU\ôŸ]XY€õ‹›X‹Àú⁄Yù
+
+N¬à⁄ú⁄⁄\YU\ôŸ]XY€õ‹›X‹Àú\⁄
+¬à€‹Yà⁄Yà\›ò[YKàôX\€€éàõZ\‹⁄[ô◊ŸW›\ôŸ]ãàŒàõ›ÃàJN¬àBàBàBàHÿ]⁄
+ H¬à⁄»Hò[ŸN¬àBÇàÀ»ŸY\HYÿXﬁH\ãX€‹ÿ⁄Y[\à›]Kù]\ö[ŸX»⁄]\àõ›»[Z]»€õH[ù»KÇà€€ú›ô^P]Hõ›Ã
+»å
+»X]ôõ€‹äX]úò[ô€J
+H
+àå
+N¬à⁄õô^P]ûP€‹Yÿ⁄YHHô^P]¬à⁄õô^⁄]]ûP€‹Yÿ⁄YHHô^P]¬ÇàYà
+⁄ H¬àYHùYN¬àYà
+\›ò[YHOOHö[ùõ‹»äH⁄ö[ùõ‘Ÿ[ùûP€‹Yÿ⁄YHHùYN¬àYà
+Xù\ﬁH	âà
+\›ò[YHOOHùÿ\õö[ô‹»à\›ò[YHOOHò⁄]ô\Y\»äJH⁄õ\›⁄[ôûP€‹Yÿ⁄YHH\›ò[YN¬àYà
+ù\ﬁJH⁄õ\›⁄[ôûP€‹Yÿ⁄YHHò€€€›€îô\Y\»é¬àBàBÇàô]\õàY¬àBÇàù[ò›[€àŸ]]òZ[XõP€‹
+
+^¬à€€ú›€‹»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàúõ€HOOHò€‹äN¬à€€ú›Ÿ\»H›]Kúô\‹ùÀò€€€›€ì\»
+H
+àå
+àL
+N¬à€€ú›õ›»H]Kõõ› 
+N¬ààÀ»ö[ôö\ú›€‹⁄‹ŸH€€€›€à\»\‹ŸYàô]\õà€‹Àôö[ô
+»Oà¬à€€ú›\›H›]Kúô\‹ùÀò€‹€€€›€ú÷ÿÀöYH¬àô]\õà
+õ›»H\›
+HèHŸ\Œ¬àJHù[¬àBÇàù[ò›[€àŸ]õ€SŸäY
+^¬à€€ú›H
+Y	âà›]Kú^Y\ú H»›]Kú^Y\ú÷⁄YHàù[¬àô]\õà	âà
+úõ€Hù\JH»›ö[ô úõ€Hù\JHààé¬àBÇàÀ»KKKHY[ù[€ú»[\ú»
+⁄[ô€H€›\òŸHŸàù]õ‹àRJHKKKBàù[ò›[€àŸ][^Y\íY 
+^¬àô]\õàÿöôX›öŸ^\ ›]Kú^Y\ú»ﬂJN¬àBÇàù[ò›[€àŸ][Y[ù[€êÿ[ôY]\ 
+^¬à€€ú››]H◊N¬à€€ú›Y»HŸ][^Y\íY 
+N¬àõ‹à
+€€ú›YŸàY H¬à€€ú›H›]Kú^Y\ú÷⁄YN¬àYà
+\\õò[YJH€€ù[ùYN¬à›]ú\⁄
+¬àYàò[YNà›ö[ô õò[YJKà[ôõY[òŸNà
+ö[ôõY[òŸH
+Hà\”YNàH\ö\”YKàúŒàH\õúÀàõ€Nàúõ€Hù\HàãàJN¬àBàÀ»€‹ùàYHö\ú›[àûH[ôõY[òŸH\ÿÀ[àò[YH\ÿ¬à›]ú€‹ù
+
+KäHOà¬àYà
+Kö\”YHOOHãö\”YJHô]\õàKö\”YH»LHàN¬àYà
+ãö[ôõY[òŸHOOHKö[ôõY[òŸJHô]\õàãö[ôõY[òŸHHKö[ôõY[òŸN¬àô]\õàKõò[YKõÿÿ[P€€\\ôJãõò[YKúùHäN¬àJN¬àô]\õà›]¬àBÇàù[ò›[€àŸ]Y[ù[€ìò[Y\ 
+^¬àô]\õàŸ][Y[ù[€êÿ[ôY]\ 
+KõX\
+Oàõò[YJN¬àBÇàù[ò›[€àö[ô^Y\íYûSò[YJò[YJ^¬à€€ú›àH›ö[ô ò[YHàäKùö[J
+N¬àYà
+[äHô]\õàù[¬à€€ú›Y»HŸ][^Y\íY 
+N¬àõ‹à
+€€ú›YŸàY H¬à€€ú›H›]Kú^Y\ú÷⁄YN¬àYà
+\\õò[YJH€€ù[ùYN¬àYà
+›ö[ô õò[YJHOOHäHô]\õàY¬àBàô]\õàù[¬àBÇàù[ò›[€à\ÿÿ\TôJ ^¬àô]\õà›ö[ô »àäKúô\XŸJ÷Àääœ◊âﬂJ
+_◊WKŸÀó		àäN¬àBÇàÀ»^òX›Y[ù[€ú»[à^à›\‹ù»õ›êò[YHà[ôò\ôHìò[YHà
+õ‹àî»ôXX›[€ú»]X^H€Z]êäKÇàù[ò›[€à^òX›Y[ù[€ôYY ^
+^¬à€€ú›H›ö[ô ^àäN¬à€€ú›Y»H◊N¬à€€ú›ÿ[ôY]\»HŸ][Y[ù[€êÿ[ôY]\ 
+N¬àõ‹à
+€€ú›»Ÿàÿ[ôY]\ H¬à€€ú›õHH›ö[ô Àõò[YHàäN¬àYà
+[õJH€€ù[ùYN¬à€€ú›ôP]Hô]»ôY—^
+
+ü P	Ÿ\ÿÿ\TôJõJ_JœWﬂ	
+Xö]HäN¬à€€ú›ôPò\ôHHô]»ôY—^
+
+ü IŸ\ÿÿ\TôJõJ_JœWﬂ	
+Xö]HäN¬àYà
+ôP]ù\›
+
+HôPò\ôKù\›
+
+JHYÀú\⁄
+ÀöY
+N¬àBàô]\õàYŒ¬àBÇàù[ò›[€à\”YSY[ù[€ôY
+^
+^¬à€€ú›YSò[YHH
+›]KõYH	âà›]KõYKõò[YJH»›ö[ô ›]KõYKõò[YJKùö[J
+Hààé¬àYà
+[YSò[YJHô]\õàò[ŸN¬à€€ú›H›ö[ô ^àäN¬à€€ú›ôP]Hô]»ôY—^
+
+ü P	Ÿ\ÿÿ\TôJYSò[YJ_JœWﬂ	
+Xö]HäN¬à€€ú›ôPò\ôHHô]»ôY—^
+
+ü IŸ\ÿÿ\TôJYSò[YJ_JœWﬂ	
+Xö]HäN¬àô]\õàôP]ù\›
+
+HôPò\ôKù\›
+
+N¬àBÇà€€ú›QêUS–P–—T–“Sê—HHåMN¬à€€ú›P–—T‘êUW–T‘—Tï‘êSë—HH¬àZ[éàåLàX^àååàN¬à€€ú›êUW‘ì’ì––US”ó‘êT—T»H¬à¥,Ù/à4,t,4`¥.»ãàô€»ò]Hãà¥,Ù/à4,t/¥.Hãà¥,t/¥.O»ãà¥,t,4`¥.œ»ãàå]åHãà¥-4`Ùct.Ùcãà¥/t,4,t/¥.Hãà¥,¥bÙat/¥-4.ãà¥/Ù/¥,Ù/t,4.Ù.ãà¥,Ù/àH4/t,HãàåHàHãà¥,Ù/à4,à4,t,4`¥.»ãà¥/Ù/¥.t-4dt/4,t,4`¥.»ãà¥/Ù/¥.t-4-t/4,t,4`¥.»ãà¥/Ù/¥,Ù/t,4.Ù.4,à4,t/¥.Hãà¥-4,4,¥,4.HH4/t,Hãà¥-4,4,¥,4.H4/¥-4.4/H4/t,4/¥-4.4/Hãà¥,¥bÙ.t-4-tb4c]åHãà¥,¥bÙat/¥-4.4/t,4-4`Ùct.Ùcãà¥.¥.4-4,4cà4,¥bÙ-Ù/¥,àãà¥/Ù`4.4/t.4/4,4-tb4c4,¥bÙ-Ù/¥,àãà¥,Ù/à4-Ù,4`4`Ù,t.4/4`tc»ãà¥,Ù/à4/Ù/¥-4-t`4-t/4`tc»ãà¥/Ù`4/¥,¥-t`4.4/4`t.4.Ù`»ãàN¬Çàù[ò›[€àõ‹õX[^ôTõ›õÿÿ][€ï^
+^
+^¬àô]\õà›ö[ô ^àäKù”›Ÿ\êÿ\ŸJ
+Kúô\XŸJ◊ ÀŸÀàäKùö[J
+N¬àBÇàù[ò›[€à\–ò]Tõ›õÿÿ][€ï^
+^
+^¬à€€ú›Hõ‹õX[^ôTõ›õÿÿ][€ï^
+^
+N¬àYà
+]
+Hô]\õàò[ŸN¬àõ‹à
+€€ú›ò\ŸHŸàêUW‘ì’ì––US”ó‘êT—T H¬àYà
+ò\ŸH	âàö[ò€Y\ ò\ŸJJHô]\õàùYN¬àBàô]\õàò[ŸN¬àBÇà€€ú›QêUS‘ì’ì––US”ó–”””’”ó‘êSë—W”T»H»Z[éàåX^àNN¬à€€ú›Uó‘ì’ì––US”ó–”””’”ó‘êSë—W”T»H»Z[éàåX^àN¬àù[ò›[€àõ‹õX[^ôTõ›õÿÿ][€ê€€€›€îò[ôŸJò[ôŸK‹»HﬂJ^¬à€€ú›]î€[⁄ŸHHH[‹Àô]î€[⁄ŸN¬à€€ú›ò\ŸHH]î€[⁄ŸH»Uó‘ì’ì––US”ó–”””’”ó‘êSë—W”T»àQêUS‘ì’ì––US”ó–”””’”ó‘êSë—W”TŒ¬à€€ú›€[\H
+ò[YKò[òX⁄ HOà¬à€€ú›àHù[Xô\ãö\—ö[ö]Jò[YJH»
+ò[YH
+Hàò[òX⁄Œ¬àô]\õàX]õX^
+äN¬àN¬à]Z[àH€[\
+ò[ôŸH	âàò[ôŸKõZ[ãò\ŸKõZ[äN¬à]X^H€[\
+ò[ôŸH	âàò[ôŸKõX^ò\ŸKõX^
+N¬àYà
+Y]î€[⁄ŸJH¬àZ[àHX]õX^
+Z[ãò\ŸKõZ[äN¬àX^HX]õX^
+X^ò\ŸKõX^
+N¬àBàYà
+X^Z[äHX^HZ[é¬àô]\õà»Z[ãX^]î€[⁄ŸHN¬àBàù[ò›[€àX⁄‘õ›õÿÿ][€ê€€€›€äò[ôŸJ^¬à€€ú›€›\òŸHH
+ò[ôŸH	âà\[Ÿàò[ôŸHOOHõÿöôX›äH»ò[ôŸHàQêUS‘ì’ì––US”ó–”””’”ó‘êSë—W”TŒ¬à€€ú›Z[àHù[Xô\ãö\—ö[ö]J€›\òŸKõZ[äH»€›\òŸKõZ[ààQêUS‘ì’ì––US”ó–”””’”ó‘êSë—W”TÀõZ[é¬à€€ú›X^ÿ[ôY]HHù[Xô\ãö\—ö[ö]J€›\òŸKõX^
+H»X]õX^
+Z[ã€›\òŸKõX^
+HàQêUS‘ì’ì––US”ó–”””’”ó‘êSë—W”TÀõX^¬à€€ú›X^HX]õX^
+Z[ãX^ÿ[ôY]JN¬à€€ú›[HHX]õX^
+X^HZ[äN¬à€€ú›ŸôúŸ]H[Hà»X]ôõ€‹äX]úò[ô€J
+H
+à
+[H
+»JJHà¬àô]\õàZ[à
+»ŸôúŸ]¬àBÇàù[ò›[€àô\€€ôSY[ù[€ôYú“Y ^Y[ù[€ú ^¬à€€ú›Y»Hô]»Ÿ]
+
+N¬à€€ú›YYìú»H
+Y
+HOà¬àYà
+ZY
+Hô]\õé¬à€€ú›YH›ö[ô Y
+N¬à€€ú›H›]Kú^Y\ú»»›]Kú^Y\ú÷‹YHàù[¬à€€ú›\”ú»H	âà
+õú»OOHùYHù\HOOHõú»àYú›\ù’⁄]
+õú◊»äJN¬àYà
+\”ú HYÀòY
+Y
+N¬àN¬à€€ú›ò\ŸHH\úò^Kö\–\úò^JY[ù[€ú H	âàY[ù[€úÀõ[ô›»Y[ù[€ú»à^òX›Y[ù[€ôYY ^
+N¬àò\ŸKôõ‹ëXX⁄
+YYìú N¬àûH¬à€€ú›ò]»H›ö[ô ^àäN¬à€€ú›ôP]YH ü P
+–KVòK^åNW◊W^ÃKçJKŸŒ¬à]N¬à⁄[H
+
+HHôP]Yô^X ò] JHOOHù[
+H¬à€€ú›⁄Ÿ[àHVÃóHàé¬àYà
+]⁄Ÿ[äH€€ù[ùYN¬àYYìú ⁄Ÿ[äN¬àBàHÿ]⁄
+ HﬂBàô]\õà\úò^Kôúõ€JY N¬àBÇàù[ò›[€à][\õ›õ⁄ŸY[ò€€Z[ô ú“Y
+^¬à€€ú›[ò€€Z[ô»Hÿ[YKê€€ôõX›	âà\[Ÿàÿ[YKê€€ôõX›ö[ò€€Z[ô»OOHôù[ò›[€àÇà»ÿ[YKê€€ôõX›ö[ò€€Z[ô¬ààù[¬àYà
+Z[ò€€Z[ô Hô]\õà»⁄Œàò[ŸKôX\€€éàö[ò€€Z[ô◊€Z\‹⁄[ô»ãò]“Ÿ^\Œà◊HN¬à]ô\»Hù[¬àûH¬àô\»H[ò€€Z[ô ú“Y»›—X€€õ€^QúôYNàùYKôX\€€éàúõ›õ⁄ŸYÿò]Wﬁô\õ◊‹⁄[ù»àJN¬àHÿ]⁄
+ H¬àô]\õà»⁄Œàò[ŸKôX\€€éàö[ò€€Z[ô◊›õ›»ãò]“Ÿ^\Œà◊HN¬àBàYà
+\ô\ Hô]\õà»⁄Œàò[ŸKôX\€€éàö[ò€€Z[ô◊€ù[ãò]“Ÿ^\Œà◊HZ\‹⁄[ô“YàùYHN¬àYà
+ô\Àõ⁄»OOHùYJH¬à€€ú›ò]HHô\Àòò]Hù[¬à€€ú›ò]RYHô\Àòò]RY
+ò]H	âà
+ò]KöYò]Kòò]RYù[
+JN¬àYà
+ò]RY
+Hô]\õà»⁄ŒàùYKò]RYò]HN¬àô]\õà»⁄Œàò[ŸKôX\€€éàõZ\‹⁄[ô◊⁄Yãò]“Ÿ^\ŒàÿöôX›öŸ^\ ô\»ﬂJKZ\‹⁄[ô“YàùYHN¬àBàYà
+ô\Àõ⁄»OOHò[ŸJH¬àô]\õà»⁄Œàò[ŸKôX\€€éàô\ÀúôX\€€àö[ò€€Z[ô◊ŸòZ[Yãò]“Ÿ^\ŒàÿöôX›öŸ^\ ô\»ﬂJHN¬àBà€€ú›ò]RYHô\»	âà
+ô\ÀöYô\Àòò]RYù[
+N¬àYà
+ò]RY
+Hô]\õà»⁄ŒàùYKò]RYò]Nàô\»N¬àô]\õà»⁄Œàò[ŸKôX\€€éàõZ\‹⁄[ô◊⁄Yãò]“Ÿ^\ŒàÿöôX›öŸ^\ ô\»ﬂJKZ\‹⁄[ô“YàùYHN¬àBÇàù[ò›[€à[ôPò]Tõ›õÿÿ][€ñô\õ‘⁄[ù ^[ÿYHﬂJ^¬à€€ú›Ÿ[ô\íYH
+^[ÿY	âà^[ÿYúŸ[ô\íYOHù[
+H»›ö[ô ^[ÿYúŸ[ô\íY
+Hààé¬àYà
+Ÿ[ô\íYOOHõYHäHô]\õà»⁄Œàò[ŸKôX\€€éàúŸ[ô\ó€õ›€YHàN¬à€€ú›YHH›]KõYHù[¬à€€ú›YT⁄[ù»H
+YH	âàù[Xô\ãö\—ö[ö]JYKú⁄[ù JH»
+YKú⁄[ù»
+Hà¬àYà
+YT⁄[ù»OOH
+Hô]\õà»⁄Œàò[ŸKôX\€€éàú⁄[ù◊€õ›ﬁô\õ»ãYT⁄[ù»N¬Çà€€ú›^H
+^[ÿY	âà^[ÿYù^OHù[
+H»›ö[ô ^[ÿYù^
+Hààé¬àYà
+Z\–ò]Tõ›õÿÿ][€ï^
+^
+JHô]\õà»⁄Œàò[ŸKôX\€€éàõõ›‹õ›õÿÿ][€ààN¬Çà€€ú›⁄[õô[H
+^[ÿY	âà^[ÿYò⁄[õô[
+H»›ö[ô ^[ÿYò⁄[õô[
+Hàò⁄]é¬à€€ú›ú“Y»Hô\€€ôSY[ù[€ôYú“Y ^^[ÿYõY[ù[€ú N¬àYà
+[ú“YÀõ[ô›
+Hô]\õà»⁄Œàò[ŸKôX\€€éàõõ◊€ú◊€Y[ù[€ú»àN¬Çà€€ú›ô]öY]»Hõ‹õX[^ôTõ›õÿÿ][€ï^
+^
+Kú€XŸJLå
+N¬àûH¬à€€ú€€Kùÿ\õäîì’ì“—W–êUW—UP’Q’åHã¬à⁄[õô[à
+⁄[õô[OOHôHäH»ôHààò⁄]ãàú“YÀàYT⁄[ùÀà^ô]öY]Œàô]öY]¬àJN¬àHÿ]⁄
+ HﬂBÇà€€ú›ò]–XÿŸ\⁄[òŸHH
+^[ÿY	âàù[Xô\ãö\—ö[ö]J^[ÿYòXÿŸ\⁄[òŸJJBà»ù[Xô\ä^[ÿYòXÿŸ\⁄[òŸJBààù[¬à€€ú›XÿŸ\⁄[òŸU\ŸYH
+ò]–XÿŸ\⁄[òŸHOOHù[
+Bà»X]õZ[äKX]õX^
+ò]–XÿŸ\⁄[òŸJJBààQêUS–P–—T–“Sê—N¬à€€ú›ëQïT–S”SëT»H¬à¥'t/¥.Ùc4/¥aÙ.¥/¥,à8†%4/t/¥.Ùc4,t/¥cÀàãà¥(H4/t`Ù.Ù-t/4,à4.¥,4`4/4,4/t-H4,t/¥.H4/t-t.4/t`¥-t`4-t`t-t/Kàãà¥'t-H4`t-t.taÙ,4`Kà4't`Ù-¥/tb»4/¥aÙ.¥.àãà¥$t/¥.O»4(H4`¥,4.¥.4/4.4`4-t`t`Ù`4`t,4/4.»ãà¥$t-t-»4`t`¥,4,¥.¥.4/t-H4/Ù/¥.t-4`Ààãà¥(t-t.taÙ,4`H4/t-H4at/¥aÙ`Ààãà¥$t`Ù-4`Ù`à4/¥aÙ.¥.8†%4,t`Ù-4-t`à4`t`¥,4,¥.¥,àãà¥'Ù`Ù`t`¥/¥.H4.¥/¥b4-t.Ùdt.ãà4$t/¥c»4/t-H4,t`Ù-4-t`ãàãà¥(¥b»4`t-t`4c4-t-Ù/t/è»ãà¥'Ù/¥-Ù-¥-K4.¥/¥,Ù-4,4,t`Ù-4`Ù`à4/¥aÙ.¥.àãàN¬Çà€€ú›€€€›€îò[ôŸHHõ‹õX[^ôTõ›õÿÿ][€ê€€€›€îò[ôŸJ^[ÿYò€€€›€îò[ôŸS\À»]î€[⁄ŸNàH\^[ÿYô]î€[⁄ŸHJN¬àûH¬à€€ú€€Kùÿ\õäîì’ì“—W–êUW–”””’”ó‘êSë—W’åHã¬àZ[éà€€€›€îò[ôŸKõZ[ãàX^à€€€›€îò[ôŸKõX^à]î€[⁄ŸNàHX€€€›€îò[ôŸKô]î€[⁄ŸBàJN¬àHÿ]⁄
+ HﬂBà€€ú››‹ôHH›]Kòò]Tõ›õÿÿ][€ê€€€›€ú»
+›]Kòò]Tõ›õÿÿ][€ê€€€›€ú»HﬂJN¬àYà
+T›]Kúõ›õÿÿ][€ê€€€›€ú H¬à›]Kúõ›õÿÿ][€ê€€€›€ú»H›‹ôN¬àBà€€ú›õ›”\»H]Kõõ› 
+N¬à]XÿŸ\YH¬à]XÿŸ\Yò]RY€›[ùH¬à]XÿŸ\Yò]RYù[€›[ùH¬à]XÿŸ\òZ[Y€›[ùH¬à]ôYù\ÿ[»H¬à]€€€›€î⁄⁄\»H¬à]TŸ[ù€›[ùH¬à€€ú›ôYù\ÿ[YûSú»HﬂN¬à€€ú›XÿŸ\òZ[YôX\€€ú»HﬂN¬Çàõ‹à
+€€ú›ú“YŸàú“Y H¬àûH¬à€€ú›H›]Kú^Y\ú»»›]Kú^Y\ú÷€ú“YHàù[¬à€€ú›õ€LH»›ö[ô úõ€Hù\HàäHààé¬àYà
+õ€LOOHò€‹àõ€LOOHú€XŸHäH€€ù[ùYN¬àHÿ]⁄
+ HﬂBàûH¬àYà
+ÿ[YKó◊–H	âà\[Ÿàÿ[YKó◊–Kö\”ú“òZ[YOOHôù[ò›[€àà	âàÿ[YKó◊–Kö\”ú“òZ[Y
+ú“Y
+JH¬à€€ù[ùYN¬àBàHÿ]⁄
+ HﬂBÇà€€ú›ôX»H›‹ôV€ú“YHﬂN¬à€€ú›[ù[\»Hù[Xô\ãö\—ö[ö]JôXÀù[ù[\ H»ôXÀù[ù[\»à¬àYà
+[ù[\»àõ›”\ H¬à€€ú›Yù\»HX]õX^
+[ù[\»Hõ›”\ N¬à€€€›€î⁄⁄\»
+œHN¬àûH»€€ú€€Kùÿ\õäîì’ì“—W–êUW–”””’”ó‘““T’åHã»ú“YYù\»JN»Hÿ]⁄
+ HﬂBà€€ù[ùYN¬àBÇà€€ú›õ€HX]úò[ô€J
+N¬àYà
+õ€XÿŸ\⁄[òŸU\ŸY
+H¬à€€ú›][\H][\õ›õ⁄ŸY[ò€€Z[ô ú“Y
+N¬àYà
+][\	âà][\õ⁄»	âà][\òò]RY
+H¬àXÿŸ\Y
+œHN¬àXÿŸ\Yò]RY€›[ù
+œHN¬àûH»€€ú€€Kùÿ\õäîì’ì“—W–êUW–P–—TQ’åHã»ú“Yò]RYà][\òò]RYJN»Hÿ]⁄
+ HﬂBà€€ù[ùYN¬àBàXÿŸ\òZ[Y€›[ù
+œHN¬àYà
+][\	âà][\õZ\‹⁄[ô“YOOHùYJHXÿŸ\Yò]RYù[€›[ù
+œHN¬à€€ú›ôX\€€àH][\	âà][\úôX\€€à»›ö[ô ][\úôX\€€äHàö[ò€€Z[ô◊ŸòZ[Yé¬àXÿŸ\òZ[YôX\€€ú÷‹ôX\€€óHH
+XÿŸ\òZ[YôX\€€ú÷‹ôX\€€óH
+H
+»N¬àûH¬à€€ú€€Kùÿ\õäîì’ì“—W–êUW–P–—T—êRSQ’åHã¬àú“YàôX\€€ãàò]“Ÿ^\Œà][\	âà][\úò]“Ÿ^\»»][\úò]“Ÿ^\»à◊BàJN¬àHÿ]⁄
+ HﬂBàBÇà]YHX]ôõ€‹äX]úò[ô€J
+H
+àëQïT–S”SëTÀõ[ô›
+N¬à€€ú›\›YHù[Xô\ãö\—ö[ö]JôXÀõ\›ôYù\ÿ[Y
+H»ôXÀõ\›ôYù\ÿ[Yàù[¬àYà
+ëQïT–S”SëTÀõ[ô›àH	âà\›YOHù[	âàYOOH\›Y
+H¬àYH
+Y
+»H
+»X]ôõ€‹äX]úò[ô€J
+H
+à
+ëQïT–S”SëTÀõ[ô›HJJJH	HëQïT–S”SëTÀõ[ô›¬àBà€€ú›[ôHHëQïT–S”SëT÷⁄YHëQïT–S”SëT÷ÃN¬à€€ú›€€€›€ì\»HX⁄‘õ›õÿÿ][€ê€€€›€ä€€€›€îò[ôŸJN¬à›‹ôV€ú“YHH»[ù[\Œàõ›”\»
+»€€€›€ì\À\›ôYù\ÿ[YàYN¬Çà€€ú›H›]Kú^Y\ú»»›]Kú^Y\ú÷€ú“YHàù[¬à€€ú›ú”ò[YHH
+	âàõò[YJH»›ö[ô õò[YJHàìî»é¬à€€ú›S‹»H»\‘ﬁ\›[Nàò[ŸK^Y\íYàú“YN¬à]T\⁄YHò[ŸN¬àûH¬à\⁄Jú“Yú”ò[YK[ôKS‹ N¬àT\⁄YHùYN¬àHÿ]⁄
+ HﬂBàûH¬àYà
+ÿ[YKó◊–H	âà\[Ÿàÿ[YKó◊–Kú\⁄HOOHôù[ò›[€àà	âàÿ[YKó◊–Kú\⁄HOOH\⁄JH¬àÿ[YKó◊–Kú\⁄Jú“Yú”ò[YK[ôKS‹ N¬àT\⁄YHùYN¬àBàHÿ]⁄
+ HﬂBàYà
+T\⁄Y
+H¬àTŸ[ù€›[ù
+œHN¬àûH¬à€€ú€€Kùÿ\õäîì’ì“—W–êUW‘ëQïT–S—W’åHã¬àú“YàôYù\ÿ[YàYà^ô]öY]Œà[ôKú€XŸJLå
+BàJN¬àHÿ]⁄
+ HﬂBàBàôYù\ÿ[»
+œHN¬àôYù\ÿ[YûSú÷€ú“YHHY¬àûH»€€ú€€Kùÿ\õäîì’ì“—W–êUW‘ëQïT—Q’åHã»ú“YôYù\ÿ[YàY€€€›€ì\»JN»Hÿ]⁄
+ HﬂBàBÇàô]\õà¬à⁄ŒàùYKàXÿŸ\YàXÿŸ\Yò]RY€›[ùàXÿŸ\Yò]RYù[€›[ùàXÿŸ\òZ[Y€›[ùàôYù\ÿ[Àà€€€›€î⁄⁄\Ààú“YÀàôYù\ÿ[YûSúÀàXÿŸ\òZ[YôX\€€úÀà€€€›€îò[ôŸU\ŸYà€€€›€îò[ôŸKàXÿŸ\⁄[òŸU\ŸYàTŸ[ù€›[ùàN¬àBÇàù[ò›[€àX\ö‘⁄Y⁄[ô–ûT^Y\íY
+^Y\íY
+^¬àûH¬à€€ú›H
+^Y\íY	âà›]Kú^Y\ú H»›]Kú^Y\ú÷‹^Y\íYHàù[¬àYà
+\\õú Hô]\õé¬à€€ú›õ€HH›ö[ô úõ€Hù\HàäKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+\õ€JHô]\õé¬àÀ»õ‹õX[^ôHõ€HŸ^\¬à€€ú›õ€RŸ^HBà
+õ€Kö[ò€Y\ ¥`¥/¥.¥`HäHõ€HOOHùﬁX»äH»ùﬁX»àÇà
+õ€Kö[ò€Y\ ¥,t,4/t-äHõ€HOOHòò[ô]äH»òò[ô]àÇà
+õ€Kö[ò€Y\ ¥/4,4a4.äHõ€HOOHõXYöXHàõ€HOOHõXYö[‹€»äH»õXYöXHàÇà
+õ€Kö[ò€Y\ ò€‹äHõ€Kö[ò€Y\ ú€XŸHäHõ€HOOHò€‹äH»ò€‹àÇààé¬àYà
+\õ€RŸ^JHô]\õé¬à›]Kú⁄Y⁄[ô‹÷‹õ€RŸ^WHH]Kõõ› 
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àö[ôú–ûTõ€Jõ€J^¬à€€ú›àH›ö[ô õ€HàäN¬à€€ú›Y»HÿöôX›öŸ^\ ›]Kú^Y\ú»ﬂJN¬àõ‹à
+€€ú›YŸàY H¬à€€ú›H›]Kú^Y\ú÷⁄YN¬àYà
+\\õú H€€ù[ùYN¬à€€ú›àHúõ€Hù\N¬àYà
+à	âà›ö[ô äHOOHäHô]\õà¬àBàô]\õàù[¬àBÇàù[ò›[€àô\€€ôP€‹ûRY
+€‹Y
+^¬àûH¬àYà
+X€‹YT›]HT›]Kú^Y\ú Hô]\õàù[¬à€€ú›H›]Kú^Y\ú÷ÿ€‹YN¬àYà
+\
+Hô]\õàù[¬à€€ú›õ€HH›ö[ô úõ€Hù\HàäKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+õ€HOOHò€‹àõ€HOOHú€XŸHäHô]\õà¬àHÿ]⁄
+ HﬂBàô]\õàù[¬àBÇàù[ò›[€à€‹U €‹Y^ò\ú»HﬂJ^¬à€€ú›Hÿ[YKë]Hù[¬à€€ú›€‹Hô\€€ôP€‹ûRY
+€‹Y
+Bà
+›]H	âà›]Kú^Y\ú»»ÿöôX›ùò[Y\ ›]Kú^Y\ú Kôö[ô
+Oà	âà
+úõ€HOOHò€‹àúõ€HOOHú€XŸHäJHàù[
+N¬à€€ú›€‹ò[YLH
+€‹	âà€‹õò[YJH»›ö[ô €‹õò[YJHà¥&¥/¥/»é¬à€€ú›H
+	âàê”‘’STUT H»ê”‘’STUT»àù[¬à€€ú›X⁄»H
+\úäHOà
+\úò^Kö\–\úò^J\úäH	âà\úãõ[ô›
+H»\úñ”X]ôõ€‹äX]úò[ô€J
+H
+à\úãõ[ô›
+WHààé¬à€€ú›ö[H
+ HOà¬à]›]H›ö[ô »àäN¬à›]H›]úô\XŸJ◊ÿ€‹ôù[ò[YWKŸÀ€‹ò[YL
+N¬à›]H›]úô\XŸJ◊ÿ€‹úò[ö◊KŸÀàäN¬à›]H›]úô\XŸJ◊‹õ€WKŸÀ›ö[ô ò\úÀúõ€HàäJN¬à›]H›]úô\XŸJ◊€ò[YWKŸÀ›ö[ô ò\úÀõò[YHàäJN¬àô]\õà›]úô\XŸJ◊ ÀŸÀàäKùö[J
+N¬àN¬à€€ú›\“Ÿ^HBà^OOHò€‹ÿù\ﬁHàà^OOHò€‹ÿXÿŸ\àà^OOHò€‹‹›XÿŸ\‹»àà^OOHò€‹ŸòZ[é¬à€€ú›\›ò[YHBà
+^OOHò€‹ÿù\ﬁHäH»ò€€€›€îô\Y\»àÇà
+^OOHò€‹ÿXÿŸ\äH»ò⁄]ô\Y\»àÇà
+^OOHò€‹‹›XÿŸ\‹»äH»ù[ö‹»àÇà
+^OOHò€‹ŸòZ[äH»úÿ€€»àÇààé¬ÇàÀ»ö\ú›NàŸ[ô[ùõ»€òŸBàûH¬àZY‹ò]QT›]J
+N¬à€€ú›Ÿ^HH
+€‹	âà€‹öY
+H»€‹öYà›ö[ô €‹Yõú◊ÿ€‹äN¬à€€ú›\úàH
+›]KôH	âà›]KôKõŸ‹»	âà›]KôKõŸ‹÷⁄Ÿ^WJH»›]KôKõŸ‹÷⁄Ÿ^WHà◊N¬àYà
+\úà	âà\úãõ[ô›OOH	âà	âàö[ùõ‹ H¬à€€ú›[ùõ»Hö[
+X⁄ ö[ùõ‹ JN¬àYà
+[ùõ»	âà€‹	âà€‹öY
+H\⁄J€‹öY€‹ò[YL€‹[ôJú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹[ùõÀ»⁄[õô[àôHãò\ú»JJK»\‘ﬁ\›[Nàò[ŸK^Y\íYà€‹öYJN¬àBàHÿ]⁄
+ HﬂBÇà€€ú›\Ÿ»H
+\“Ÿ^H	âà	âà\›ò[YH	âà€\›ò[YWJBà»ö[
+X⁄ €\›ò[YWJJBààö[
+›ö[ô ^àäJN¬àYà
+€‹	âà€‹öY
+H\⁄J€‹öY€‹ò[YL€‹[ôJú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹\ŸÀ»⁄[õô[àôHãò\ú»JJK»\‘ﬁ\›[Nàò[ŸK^Y\íYà€‹öYJN¬àBÇàù[ò›[€à€‹⁄]úõ€J€‹Y^ò\ú»HﬂJ^¬à€€ú›Hÿ[YKë]Hù[¬à€€ú›€‹Hô\€€ôP€‹ûRY
+€‹Y
+Bà
+›]H	âà›]Kú^Y\ú»»ÿöôX›ùò[Y\ ›]Kú^Y\ú Kôö[ô
+Oà	âà
+úõ€HOOHò€‹àúõ€HOOHú€XŸHäJHàù[
+N¬à€€ú›€‹ò[YLH
+€‹	âà€‹õò[YJH»›ö[ô €‹õò[YJHà¥&¥/¥/»é¬à€€ú›H
+	âàê”‘’STUT H»ê”‘’STUT»àù[¬à€€ú›X⁄»H
+\úäHOà
+\úò^Kö\–\úò^J\úäH	âà\úãõ[ô›
+H»\úñ”X]ôõ€‹äX]úò[ô€J
+H
+à\úãõ[ô›
+WHààé¬à€€ú›ö[H
+ HOà¬à]›]H›ö[ô »àäN¬à›]H›]úô\XŸJ◊ÿ€‹ôù[ò[YWKŸÀ€‹ò[YL
+N¬à›]H›]úô\XŸJ◊ÿ€‹úò[ö◊KŸÀàäN¬à›]H›]úô\XŸJ◊‹õ€WKŸÀ›ö[ô ò\úÀúõ€HàäJN¬à›]H›]úô\XŸJ◊€ò[YWKŸÀ›ö[ô ò\úÀõò[YHàäJN¬àô]\õà›]úô\XŸJ◊ ÀŸÀàäKùö[J
+N¬àN¬à€€ú›\“Ÿ^HBà^OOHò€‹›ÿ\õö[ô»àà^OOHò€‹‹ô\Hàà^OOHò€‹ÿù\ﬁHàà^OOHò€‹›[ö‹»àà^OOHò€‹‹ÿ€€é¬à€€ú›\›ò[YHBà
+^OOHò€‹›ÿ\õö[ô»äH»ùÿ\õö[ô‹»àÇà
+^OOHò€‹‹ô\HäH»ò⁄]ô\Y\»àÇà
+^OOHò€‹ÿù\ﬁHäH»ò€€€›€îô\Y\»àÇà
+^OOHò€‹›[ö‹»äH»ù[ö‹»àÇà
+^OOHò€‹‹ÿ€€äH»úÿ€€»àÇààé¬à€€ú›\Ÿ»H
+\“Ÿ^H	âà	âà\›ò[YH	âà€\›ò[YWJBà»ö[
+X⁄ €\›ò[YWJJBààö[
+›ö[ô ^àäJN¬à\⁄⁄]
+€‹ò[YL€‹[ôJú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹\ŸÀ»⁄[õô[àô]ô[ùãò\ú»JJK»\‘ﬁ\›[Nàò[ŸK^Y\íYà
+€‹	âà€‹öY
+H»€‹öYà
+€‹Yõú◊ÿ€‹›àäK€›\òŸUYŒàô^X⁄]ÿ€‹‹XõX◊€õ›XŸHàJN¬àBÇàÀ»òX⁄›ÿ\ôX€€\]‹ò\\ú»
+YÿXﬁHÿ[⁄]\»ô[H€à\‹⁄Y€ôY€‹Y
+KÇàù[ò›[€à€‹J^ò\ú»HﬂJ^¬à€€ú›⁄YH›]H	âà›]Kò\‹⁄Y€ôY€‹Y»›]Kò\‹⁄Y€ôY€‹Yàù[¬àô]\õà€‹U ⁄Y^ò\ú N¬àBÇàù[ò›[€à€‹⁄]
+^ò\ú»HﬂJ^¬à€€ú›⁄YH›]H	âà›]Kò\‹⁄Y€ôY€‹Y»›]Kò\‹⁄Y€ôY€‹Yàù[¬àô]\õà€‹⁄]úõ€J⁄Y^ò\ú N¬àBÇàù[ò›[€à\⁄J\ôŸ]Yò[YK^‹»HﬂJ^¬àZY‹ò]QT›]J
+N¬àYà
+T›]KôKõŸ‹÷›\ôŸ]YJH›]KôKõŸ‹÷›\ôŸ]YHH◊N¬àÀ»Y\Xÿ]Nà]õ⁄Y\⁄[ô»Y[ùXÿ[Húõ€Hÿ[YHŸ[ô\à⁄][à⁄‹ù⁄[ô›¬àûH¬à€€ú›\úàH›]KôKõŸ‹÷›\ôŸ]YN¬à€€ú›\›H\úò^Kö\–\úò^J\úäH	âà\úãõ[ô›»\úñÿ\úãõ[ô›HWHàù[¬à€€ú›õ›”\»H]Kõõ› 
+N¬àYà
+\›	âà›ö[ô \›õò[YJHOOH›ö[ô ò[YJH	âà›ö[ô \›ù^
+HOOH›ö[ô ^
+JH¬à€€ú›\›[YHHù[Xô\ä\›ù[YS\»
+N¬àYà
+õ›”\»H\›[YHçL
+H¬àÀ»⁄⁄\\Xÿ]H⁄][àãç\»⁄[ô›¬àô]\õé¬àBàBàHÿ]⁄
+ HﬂBÇà›]KôKõŸ‹÷›\ôŸ]YKú\⁄
+¬àYàÿYôRY
+
+Kààõ›“SJ
+Kà[YS\Œà]Kõõ› 
+Kàò[YKà^à\‘ﬁ\›[NàH[‹Àö\‘ﬁ\›[Kà^Y\íYà‹Àú^Y\íYù[ÇàÀ»Y[ù[€ú»Y]Y]H
+‹[€ò[õ‹àRHY⁄Y⁄ BàY[ù[€úŒà^òX›Y[ù[€ôYY ^
+Kà\”Y[ù[€ôYYNà\”YSY[ù[€ôY
+^
+KàJN¬à€€ú›\úàH›]KôKõŸ‹÷›\ôŸ]YN¬àYà
+\úãõ[ô›àLå
+H\úãú⁄Yù
+
+N¬Çà›]KôKõò[Y\»H›]KôKõò[Y\»ﬂN¬à€€ú›RYH›ö[ô \ôŸ]Y‹Àú^Y\íYàäN¬à€€ú›ÿYôSò[YHHò[YH»›ö[ô ò[YJHàRY¬àYà
+RY
+H¬à›]KôKõò[Y\÷ŸRYHHÿYôSò[YN¬à›]Kú^Y\ú»H›]Kú^Y\ú»ﬂN¬à€€ú›^\›[ô‘^Y\àH›]Kú^Y\ú÷ŸRYN¬àYà
+Y^\›[ô‘^Y\äH¬à›]Kú^Y\ú÷ŸRYHH»YàRYò[YNàÿYôSò[YK[ôõY[òŸNàN¬àH[ŸHYà
+ò[YJH¬à^\›[ô‘^Y\ãõò[YHHÿYôSò[YN¬àBàBÇàÀ»HXúŒà[ò€€Z[ôÀ€›]€⁄[ô»[ôH‹[ú»
+‹àõÿ›\Ÿ\ HH€‹úô\‹€ô[ô»HôXYÇàÀ»⁄[[ù[ò€€Z[ô»ﬁ\›[H[ô\»õ‹à€€\ŸY[ô[»€õH\]H€›[ù\úÀ⁄XY\ãÇàûH¬à›]KôKõ‹[íY»H\úò^Kö\–\úò^J›]KôKõ‹[íY H»›]KôKõ‹[íY»à◊N¬àYà
+JòX›]ôRYà[à›]KôJJH›]KôKòX›]ôRYHù[¬à›]KôKù[úôXYH›]KôKù[úôXYﬂN¬à€€ú›YH›ö[ô \ôŸ]YàäN¬à€€ú›€€\ŸYHHJÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKö\‘[ô[€€\ŸYOOHôù[ò›[€àà	âàÿ[YKïRKö\‘[ô[€€\ŸY
+ôHäJN¬à€€ú›⁄[[ù[ò€€Z[ô»HHJ‹»	âà‹Àú⁄[[ù[ò€€Z[ô»	âà‹Àö\‘ﬁ\›[H	âà€€\ŸY
+N¬àYà
+Y	âà\⁄[[ù[ò€€Z[ô»	âàT›]KôKõ‹[íYÀö[ò€Y\ Y
+JH›]KôKõ‹[íYÀú\⁄
+Y
+N¬àYà
+Y	âà\⁄[[ù[ò€€Z[ô»	âàT›]KôKòX›]ôRY
+H¬à›]KôKòX›]ôRYHY¬à›]KôKù⁄]YHY»À»€€\][X\¬àBà€€ú›X›]ôRYH›ö[ô ›]KôKòX›]ôRYàäN¬àYà
+Y
+H¬àYà
+\⁄[[ù[ò€€Z[ô»	âàX›]ôRYOOHY
+H¬à›]KôKù[úôXY⁄YHH¬àH[ŸH¬à›]KôKù[úôXY⁄YHH
+ù[Xô\ä›]KôKù[úôXY⁄YJH
+H
+»N¬àBàûH¬àYà
+€€\ŸY
+H¬àYà
+\[Ÿàÿ[YKïRKòù[\€€\ŸY€›[ù\àOOHôù[ò›[€àäHÿ[YKïRKòù[\€€\ŸY€›[ù\äôHäN¬à€€ú›XY\àH
+\[Ÿàÿ›[Y[ùOOHù[ôYö[ôYäH»ÿ›[Y[ùôŸ][[Y[ùûRY
+ôPõÿ⁄“XY\àäHàù[¬àYà
+XY\äH¬àXY\ãò€\‹”\›òY
+ú[ô[XY\ãKZ›äN¬àYà
+\[Ÿàÿ[YKïRKú[ŸT[ô[XY\àOOHôù[ò›[€àäHÿ[YKïRKú[ŸT[ô[XY\äôHãXY\ãÿ[YKïRKôŸ]€€\ŸY€›[ù\à»ÿ[YKïRKôŸ]€€\ŸY€›[ù\äôHäHàK
+N¬àBàBàHÿ]⁄
+ HﬂBàBàHÿ]⁄
+ HﬂBàBÇàûH¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKúô[ô\ëHOOHôù[ò›[€àäH¬àÿ[YKïRKúô[ô\ëJ
+N¬àBàHÿ]⁄
+ HﬂBàûH¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKúô\]Y\›ô[ô\ê[OOHôù[ò›[€àäH¬àÿ[YKïRKúô\]Y\›ô[ô\ê[
+
+N¬àBàHÿ]⁄
+ HﬂBÇàù[ò›[€àÿ[îô\‹ù
+€‹Y
+^¬à€€ú›‹X⁄YöX»Hô\€€ôP€‹ûRY
+€‹Y
+N¬àYà
+‹X⁄YöX»	âà‹X⁄YöXÀöY
+H¬àô]\õàZ\–€‹ù\ﬁPûRY
+‹X⁄YöXÀöY
+N¬àBàô]\õàHYŸ]]òZ[XõP€‹
+
+N¬àBÇàù[ò›[€àŸ]ô\‹ù€€€›€ìYù\ 
+^¬à€€ú›€‹»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàúõ€HOOHò€‹äN¬à€€ú›Ÿ\»H›]Kúô\‹ùÀò€€€›€ì\»
+H
+àå
+àL
+N¬à€€ú›õ›»H]Kõõ› 
+N¬àà€€ú›Yù»H€‹ÀõX\
+»Oà¬à€€ú›\›H›]Kúô\‹ùÀò€‹€€€›€ú÷ÿÀöYH¬àô]\õàX]õX^
+Ÿ\»H
+õ›»H\›
+JN¬àJN¬ààÀ»Yà[ûH€‹\»úôYK€€€›€àYù\»à›\ù⁄\ŸK]	‹»HZ[ö[][HÿZ][YH[ù[ö\ú›€‹\»úôYKÇàô]\õàX]õZ[äããõYù N¬àBÇàù[ò›[€àX\ö‘ô\‹ùY
+\ôŸ]Y⁄Àõ€K€‹Y
+^¬à›]Kúô\‹ùÀö\›‹ûV›\ôŸ]YHH¬à⁄ŒàH[⁄Àà]à]Kõõ› 
+KàûNàõYHãàõ€Nà›ö[ô õ€HàäKà€‹Yà€‹Yù[àN¬àÀ»ÿ[õ€éà€€€›€à€àúô\‹ùà›\ù»€õHYù\àH›XÿŸ\‹Ÿù[ô\‹ùÇàÀ»[à][KX€‹ﬁ\›[KŸHôX€‹ô⁄X⁄€‹€⁄»Hô\‹ù[ô›\ùZ\à€ÿò[€€€›€ãÇàYà
+⁄ H¬à›]Kúô\‹ùÀõ\›]H]Kõõ› 
+N¬à€€ú›⁄YH€‹Y›]Kò\‹⁄Y€ôY€‹Yù[¬àYà
+⁄Y
+H›]Kúô\‹ùÀò€‹€€€›€ú÷ÿ⁄YHH]Kõõ› 
+N¬àBàBÇàù[ò›[€à\‘ô\‹ùY
+\ôŸ]Y
+^¬àÀ»ÿ[õ€éàô\‹ùY\ôŸ]»\ÿ\X\àúõ€H\›»€õH\ö[ô»Hô\‹ù€€€›€à⁄[ô›ÀàÀ»[ô€õHYù\àH›XÿŸ\‹Ÿù[ô\‹ùÇà€€ú›ôX»H›]Kúô\‹ùÀö\›‹ûV›\ôŸ]YN¬àYà
+\ôX»\ôXÀõ⁄ Hô]\õàò[ŸN¬ààÀ»ŸH⁄X⁄»YÿZ[ú›HŸ[ô\ò[€€€›€à\ò][€ãÇà€€ú›ŸH›]Kúô\‹ùÀò€€€›€ì\»H
+àå
+àL¬àô]\õà
+]Kõõ› 
+HH
+ôXÀò]
+JHŸ¬àBÇàÀ»Léà4/Ù`4/¥,¥-t`4.4`¥c4/Ù/¥`t`¥`4,4-4,4.»4.Ù.4.4,Ù`4/¥.à4/¥`à4ct`¥/¥,Ù/àî»4.4`t.¥/¥.Ùc4.¥/à4/Ù/¥`¥-t`4cÙ.¬àù[ò›[€à⁄X⁄“YïöX›[Z^ôY
+ú“Y
+H¬àYà
+[ú“Y
+Hô]\õàò[ŸN¬àûH¬à]›€[ê[[›[ùH¬à]ÿ\’öX›[Z^ôYHò[ŸN¬ààÀ»4'Ù`4/¥,¥-t`4cÙ-t/[€ô^SŸ»4/t,õÿòô\ûK›Yù4/¥`à4ct`¥/¥,Ù/à4.¥/¥/t.¥`4-t`¥/t/¥,Ù/àî¬àYà
+ÿ[YKó◊—	âà\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JH¬à€€ú›YùŸ‹»Hÿ[YKó◊—õ[€ô^SŸÀôö[\äOàà	âàú€›\òŸRYOOHõYHà	âàù\ôŸ]YOOHú“Y	âÇà
+úôX\€€à	âà
+úôX\€€ãö[ò€Y\ ùﬁX»äHúôX\€€ãö[ò€Y\ òò[ô]äHúôX\€€ãö[ò€Y\ úõÿòô\ûHäHúôX\€€ãö[ò€Y\ ú›X[äJJBà
+N¬àYà
+YùŸ‹Àõ[ô›à
+H¬àÿ\’öX›[Z^ôYHùYN¬à›€[ê[[›[ùHYùŸ‹ÀúôYXŸJ
+›[KŸ HOà›[H
+»
+ŸÀò[[›[ù
+K
+N¬àBàBààÀ»4'Ù`4/¥,¥-t`4cÙ-t/4.4`t`¥/¥`4.4cà4,t,4`¥`¥.Ù/¥,à4/t,4/Ù/¥`4,4-¥-t/t.4c»4/¥`à4ct`¥/¥,Ù/àî¬àYà
+\úò^Kö\–\úò^J›]Kòò]\ JH¬à€€ú›‹›H›]Kòò]\Àôö[ô
+àOàà	âàãõ‹€ô[ùYOOHú“Y	âàãúô\›[OOHõ‹ŸHäN¬àYà
+‹›
+Hÿ\’öX›[Z^ôYHùYN¬àBààô]\õàÿ\’öX›[Z^ôY»»›€[ê[[›[ùHàò[ŸN¬àHÿ]⁄
+ HﬂBàô]\õàò[ŸN¬àBÇàù[ò›[€àùZ[ô\‹ù‹Ÿ^J»^RŸ^K€‹Yô\‹ù\íY\ôŸ]YùX⁄Ÿ]JH¬à€€ú›ÿYôQ^HH›ö[ô ^RŸ^H^RŸ^Qúõ€Sõ›’ ]Kõõ› 
+JJN¬à€€ú›Y\ù»H¬àúô\‹ùãàÿYôQ^Kà›ö[ô €‹Yò€‹äKà›ö[ô ô\‹ù\íY
+
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHäJKà›ö[ô \ôŸ]Yù[ö€õ›€àäKà›ö[ô ùX⁄Ÿ]ôò[ŸHäKàN¬àô]\õàY\ùÀöõ⁄[äéàäKù”›Ÿ\êÿ\ŸJ
+N¬àBÇàù[ò›[€àö[ô[€ô^SŸ‘õ› ôX\€€ã‹Ÿ^JH¬àYà
+Qÿ[YKó◊—P\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JHô]\õàù[¬àô]\õàÿ[YKó◊—õ[€ô^SŸÀôö[ô
+õ›»Oà¬àYà
+\õ›»›ö[ô õ›ÀúôX\€€ààäKùö[J
+HOOH›ö[ô ôX\€€ààäKùö[J
+JHô]\õàò[ŸN¬àô]\õàõ›ÀõY]H	âà›ö[ô õ›ÀõY]Kõ‹Ÿ^HàäHOOH›ö[ô ‹Ÿ^HàäN¬àJHù[¬àBÇàù[ò›[€à[ú›\ôTô\‹ù[€ô^SŸ‘õ› »ôX\€€ã[[›[ù›\úô[òﬁK€›\òŸRY\ôŸ]YY]K‹Ÿ^K]ô[ùYò]RYJH¬àYà
+\ôX\€€äHô]\õàù[¬à€€ú›^\›[ô»Hö[ô[€ô^SŸ‘õ› ôX\€€ã‹Ÿ^JN¬àYà
+^\›[ô Hô]\õà^\›[ôŒ¬à€€ú›õ‹õX[^ôYH¬à[YNà]Kõõ› 
+KàôX\€€éà›ö[ô ôX\€€ààäKà›\úô[òﬁNà
+›ö[ô ›\úô[òﬁHàäKù”›Ÿ\êÿ\ŸJ
+HOOHúô\äH»úô\ààú⁄[ù»ãà[[›[ùàù[Xô\ãö\—ö[ö]Jù[Xô\ä[[›[ù
+JH»
+ù[Xô\ä[[›[ù
+H
+Hàà€›\òŸRYà›ö[ô €›\òŸRYàäKà\ôŸ]Yà›ö[ô \ôŸ]YàäKà]ô[ùYà]ô[ùY»›ö[ô ]ô[ùY
+Hàù[àò]RYàò]RY»›ö[ô ò]RY
+Hàù[àY]NàÿöôX›ò\‹⁄Y€äﬂKY]HﬂK»‹Ÿ^HJKàN¬àô]\õà\⁄[€ô^SŸ‘õ› õ‹õX[^ôY
+N¬àBÇàù[ò›[€àŸ[ôô]ô[ôŸQJõ€RŸ^KòZ[YY
+H¬àûH¬à€€ú›€€HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàúõ€HOOHõ€RŸ^H	âàöYOOHòZ[YY
+N¬àYà
+\€€õ[ô›
+Hô]\õé¬à€€ú›ú»H€€”X]ôõ€‹äX]úò[ô€J
+H
+à€€õ[ô›
+WN¬àYà
+[ú»[úÀöY
+Hô]\õé¬à][ôHH¥-Ù,4ct`¥/à4`t/Ù`4/¥b4`»é¬àYà
+õ€RŸ^HOOHòò[ô]äH[ôHH¥-4/¥.Ù,»4,¥-t`4/tdt/é¬àYà
+ÿ[YKìî»	âà\[Ÿàÿ[YKìîÀôŸ[ô\ò]PYŸ‹õ—S[ôHOOHôù[ò›[€àäH¬à€€ú›ò[òX⁄»Hÿ[YKìîÀôŸ[ô\ò]PYŸ‹õ—S[ôJú N¬àYà
+[[ôH	âàò[òX⁄ H[ôHHò[òX⁄Œ¬àBà\⁄JúÀöYúÀõò[YK[ôK»\‘ﬁ\›[Nàò[ŸK^Y\íYàúÀöYJN¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à[ú›\ôT[ô[ô‘›ùX›\ô\ 
+^¬à€€ú›ô\‹ù»H›]Kúô\‹ù»
+›]Kúô\‹ù»HﬂJN¬àYà
+\ô\‹ùÀú[ô[ô–ûPX›‹íY\[Ÿàô\‹ùÀú[ô[ô–ûPX›‹íYOOHõÿöôX›äHô\‹ùÀú[ô[ô–ûPX›‹íYHﬂN¬àYà
+\ô\‹ùÀú[ô[ô–ûRY\[Ÿàô\‹ùÀú[ô[ô–ûRYOOHõÿöôX›äHô\‹ùÀú[ô[ô–ûRYHﬂN¬àô]\õàô\‹ùŒ¬àBÇàù[ò›[€à‹ôX]T[ô[ô‘ô\‹ù
+»ô\‹ù\íY€‹Y\ôŸ]Yõ€RŸ^Kù]ùX⁄Ÿ]ô\‹ùY‹Ÿ^HHHﬂJH¬à€€ú›õ›»H]Kõõ› 
+N¬à€€ú›[ô[ô“YH[ô[ô◊…€õ›ﬂW…”X]ôõ€‹äX]úò[ô€J
+H
+àYMä_X¬à€€ú›[ô[ô»H¬àYà[ô[ô“Yàô\‹ù\íYà›ö[ô ô\‹ù\íY
+
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHäJKà€‹Yà›ö[ô €‹YàäKà\ôŸ]Yà›ö[ô \ôŸ]YàäKàõ€RŸ^Nà›ö[ô õ€RŸ^HàäKàù]àH]ù]àùX⁄Ÿ]à›ö[ô ùX⁄Ÿ]
+ù]»ùùYHààôò[ŸHäJKàô\‹ùYà›ö[ô ô\‹ùYàäKà‹Ÿ^Nà›ö[ô ‹Ÿ^HàäKà‹ôX]Y]\Œàõ›Ààô\€€ôP]\Œàõ›»
+»ëT‘ï‘SëSë◊—SVW”TÀàô\€€ôYàò[ŸKàN¬à€€ú›ô\‹ù»H[ú›\ôT[ô[ô‘›ùX›\ô\ 
+N¬àô\‹ùÀú[ô[ô–ûRY‹[ô[ô“YHH[ô[ôŒ¬àYà
+[ô[ôÀúô\‹ù\íY
+H¬àô\‹ùÀú[ô[ô–ûPX›‹íY‹[ô[ôÀúô\‹ù\íYHH[ô[ôŒ¬àBàûH¬à€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊–‘ëPUQ’åHã¬à[ô[ô“Yà‹Ÿ^Nà[ô[ôÀõ‹Ÿ^Kàô\€€ôP]\Œà[ô[ôÀúô\€€ôP]\Àà€‹Yà[ô[ôÀò€‹Yà\ôŸ]Yà[ô[ôÀù\ôŸ]YàJN¬àHÿ]⁄
+ HﬂBàô]\õà[ô[ôŒ¬àBÇàù[ò›[€àô\€€ôTô\‹ù
+[ô[ô“Y
+^¬à€€ú›õ›»H]Kõõ› 
+N¬à€€ú›ô\‹ù»H[ú›\ôT[ô[ô‘›ùX›\ô\ 
+N¬à€€ú›[ô[ô»H
+ô\‹ùÀú[ô[ô–ûRYﬂJV‹[ô[ô“YHù[¬àûH¬à€€ú€€Kùÿ\õäîëT‘ï‘ëT””ëW––S’åHã¬à[ô[ô“Yàõ›Ààõ›[ôàH\[ô[ôÀàX›‹íYà[ô[ô»	âà[ô[ôÀúô\‹ù\íY»[ô[ôÀúô\‹ù\íYàù[àJN¬àHÿ]⁄
+ HﬂBàYà
+\[ô[ô Hô]\õà»⁄Œàò[ŸKôX\€€ê€ŸNàú[ô[ô◊€Z\‹⁄[ô»ã[ô[ô“YN¬àYà
+[ô[ôÀúô\€€ôY
+H¬àûH¬à€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊‘ëT””ëW–SëPQW’åHã¬à[ô[ô“Yà‹Ÿ^Nà[ô[ôÀõ‹Ÿ^KàJN¬àHÿ]⁄
+ HﬂBàô]\õà»⁄Œàò[ŸKôX\€€ê€ŸNàò[ôXYW‹ô\€€ôYã[ô[ô“YN¬àBà€€ú›€‹H
+[ô[ôÀò€‹Y	âà›]Kú^Y\ú H»›]Kú^Y\ú÷‹[ô[ôÀò€‹YHàù[¬à€€ú›\ôŸ]H
+[ô[ôÀù\ôŸ]Y	âà›]Kú^Y\ú H»›]Kú^Y\ú÷‹[ô[ôÀù\ôŸ]YHàù[¬à€€ú›ô\€€ô\àH[ô[ôÀùù]»\UùYTô\‹ùà\Qò[ŸTô\‹ù¬à€€ú›ùX⁄Ÿ]H›ö[ô [ô[ôÀòùX⁄Ÿ]
+[ô[ôÀùù]»ùùYHààôò[ŸHäJN¬à€€ú››]€€YPùX⁄Ÿ]H
+ùX⁄Ÿ]OOHùùYHäH»ùùYHààôò[ŸHé¬àûH¬à€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊‘ëT””íSë◊’åHã¬à[ô[ô“Yà‹Ÿ^Nà[ô[ôÀõ‹Ÿ^Kà›]€€YPùX⁄Ÿ]à€‹Yà[ô[ôÀò€‹Yà\ôŸ]Yà[ô[ôÀù\ôŸ]YàJN¬àHÿ]⁄
+ HﬂBà€€ú›[€ô^SŸ–ôYõ‹ôHH
+ÿ[YH	âàÿ[YKó◊—	âà\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JH»ÿ[YKó◊—õ[€ô^SŸÀõ[ô›à¬à]ô\›[Hù[¬àûH¬àô\›[Hô\€€ô\ä¬à\ôŸ]àõ€RŸ^Nà[ô[ôÀúõ€RŸ^Kà€‹àô\‹ù\íYà[ô[ôÀúô\‹ù\íYàô\‹ùYà[ô[ôÀúô\‹ùYàùX⁄Ÿ]à[ô[ôÀòùX⁄Ÿ]àJN¬àHÿ]⁄
+\úäH¬àûH»€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊‘ëT””ëW—Tîì‘ó’åHã»[ô[ô“Y\úõ‹éà›ö[ô \úäHJN»Hÿ]⁄
+ HﬂBàô\›[H»⁄Œàò[ŸKôX\€€ê€ŸNàúô\€€ôWŸ\úõ‹ààN¬àBà[ô[ôÀúô\€€ôYHùYN¬àYà
+[ô[ôÀúô\‹ù\íY
+H[]Hô\‹ùÀú[ô[ô–ûPX›‹íY‹[ô[ôÀúô\‹ù\íYN¬à€€ú›[€ô^SŸ–Yù\àH
+ÿ[YH	âàÿ[YKó◊—	âà\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JH»ÿ[YKó◊—õ[€ô^SŸÀõ[ô›à¬à€€ú›[HHX]õX^
+[€ô^SŸ–Yù\àH[€ô^SŸ–ôYõ‹ôJN¬à€€ú›\YYôX\€€ê€Ÿ\»H◊N¬àYà
+ô\›[
+H¬àYà
+\úò^Kö\–\úò^Jô\›[ò\YYôX\€€ê€Ÿ\ JH\YYôX\€€ê€Ÿ\Àú\⁄
+ããúô\›[ò\YYôX\€€ê€Ÿ\ N¬àYà
+ô\›[úôX\€€ê€ŸJH\YYôX\€€ê€Ÿ\Àú\⁄
+ô\›[úôX\€€ê€ŸJN¬àYà
+\úò^Kö\–\úò^Jô\›[ò\YYôX\€€ú JH\YYôX\€€ê€Ÿ\Àú\⁄
+ããúô\›[ò\YYôX\€€ú N¬àBà€€ú›[ö\]YTôX\€€ú»H\úò^Kôúõ€Jô]»Ÿ]
+\YYôX\€€ê€Ÿ\Àôö[\äàOàH\äJJN¬à€€ú›[€ô^SŸ»H
+ÿ[YH	âàÿ[YKó◊—	âà\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JH»ÿ[YKó◊—õ[€ô^SŸ»à◊N¬à]\›ôX\€€ú’Z[H◊N¬àûH¬à\›ôX\€€ú’Z[H[€ô^SŸÀú€XŸJN
+KõX\
+õ›»Oà
+õ›»	âàõ›ÀúôX\€€äH»õ›ÀúôX\€€ààù[
+N¬àHÿ]⁄
+ HﬂBàûH¬à€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊‘ëT””ëQ’åHã¬à[ô[ô“Yà‹Ÿ^Nà[ô[ôÀõ‹Ÿ^Kà›]€€YPùX⁄Ÿ]à\YYôX\€€ê€Ÿ\Œà[ö\]YTôX\€€úÀà[€ô^SŸ—[P€›[ùà[Kà\›ôX\€€ú’Z[à[ôXYTô\€€ôYàò[ŸKàJN¬àHÿ]⁄
+ HﬂBà€€ú›ÿYôTô\›[Hô\›[»⁄Œàò[ŸKôX\€€ê€ŸNàúô\€€ôWŸ\úõ‹ààN¬àô]\õàÿöôX›ò\‹⁄Y€äﬂKÿYôTô\›[»[ô[ô“Y‹Ÿ^Nà[ô[ôÀõ‹Ÿ^K€‹Yà[ô[ôÀò€‹Y\ôŸ]Yà[ô[ôÀù\ôŸ]YJN¬àBÇàù[ò›[€àô\€€ôT[ô[ô‘ô\‹ù’X⁄ õ›’ ^¬à€€ú›õ›»Hù[Xô\ãö\—ö[ö]Jõ›’ H»õ›’»à]Kõõ› 
+N¬à€€ú›ô\‹ù»H[ú›\ôT[ô[ô‘›ùX›\ô\ 
+N¬à€€ú›Y»HÿöôX›öŸ^\ ô\‹ùÀú[ô[ô–ûRYﬂJN¬àûH¬à€€ú€€Kùÿ\õäîëT‘ï‘SëSë◊’P“◊’åHã»[ô[ô–€›[ùàYÀõ[ô›õ›»JN¬àHÿ]⁄
+ HﬂBà€€ú›ô\€€ôYH◊N¬àõ‹à
+€€ú›YŸàY H¬à€€ú›[ô[ô»Hô\‹ùÀú[ô[ô–ûRY⁄YN¬àYà
+\[ô[ô»[ô[ôÀúô\€€ôY
+H€€ù[ùYN¬àYà
+õ›»èH
+[ô[ôÀúô\€€ôP]\»
+JH¬àô\€€ôYú\⁄
+ô\€€ôTô\‹ù
+Y
+JN¬àBàBàô]\õàô\€€ôY¬àBÇàù[ò›[€à\Qò[ŸTô\‹ù
+»\ôŸ]õ€RŸ^K€‹ô\‹ù\íYô\‹ùYôX\€€ê€ŸHHôò[ŸW‹ô\‹ùãùX⁄Ÿ]Hôò[ŸHàHHﬂJH¬à€€ú›€‹YH
+€‹	âà€‹öY
+H»€‹öYààé¬à€€ú›€‹ò[YHH
+€‹	âà€‹õò[YJH»›ö[ô €‹õò[YJHà¥&¥/¥/»é¬à€€ú›\ôŸ]YH
+\ôŸ]	âà\ôŸ]öY
+H»\ôŸ]öYàZ\‹⁄[ôŒâ‘›ö[ô õ€RŸ^Hù[ö€õ›€àä_X¬à€€ú›ô\‹ù\àH›ö[ô ô\‹ù\íY
+
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHäJN¬à€€ú›^RŸ^HH^RŸ^Qúõ€Sõ›’ ]Kõõ› 
+JN¬à€€ú›‹Ÿ^HHùZ[ô\‹ù‹Ÿ^J»^RŸ^K€‹Yô\‹ù\íYàô\‹ù\ã\ôŸ]YùX⁄Ÿ]JN¬à€€ú›Y]Pò\ŸHH¬àúõ€RYàô\‹ù\ãà“Yàú⁄[ö»ãà\ôŸ]Yà€‹Yàô\‹ù\íYàô\‹ù\ãà‹Ÿ^Kàô\‹ùYà›ö[ô ô\‹ùYàäKàùX⁄Ÿ]àN¬à€€ú›H
+ÿ[YH	âàÿ[YKë]JH»ÿ[YKë]Hàù[¬à€€ú›ô]àH
+›]Kúô\‹ù»	âà›]Kúô\‹ùÀö\›‹ûJH»›]Kúô\‹ùÀö\›‹ûV›\ôŸ]YHàù[¬à€€ú›ò\ŸTô\[ò[HH
+	âàù[Xô\ãö\—ö[ö]JîëT‘ëT‘ï—êS—JJH»
+îëT‘ëT‘ï—êS—H
+Hàé¬à€€ú›ô\X]ô\[ò[HH
+	âàù[Xô\ãö\—ö[ö]JîëT‘ëT‘ï—êS—W‘ëTPU
+JH»
+îëT‘ëT‘ï—êS—W‘ëTPU
+HàŒ¬à€€ú›ô\[ò[HH
+ô]à	âàô]ãõ⁄»OOHò[ŸJH»ô\X]ô\[ò[Hàò\ŸTô\[ò[N¬àûH¬àò[úŸô\îô\
+ô\‹ù\ãò‹õ›Ÿ‹€€ãô\[ò[Kúô\‹ô\‹ùŸò[ŸHãô\‹ùY
+N¬àHÿ]⁄
+ HﬂBà[ú›\ôTô\‹ù[€ô^SŸ‘õ› ¬àôX\€€éàúô\‹ô\‹ùŸò[ŸHãà[[›[ùàô\[ò[Kà›\úô[òﬁNàúô\ãà€›\òŸRYàô\‹ù\ãà\ôŸ]Yàò‹õ›Ÿ‹€€ãàY]NàÿöôX›ò\‹⁄Y€äﬂKY]Pò\ŸK»úõ€RYàô\‹ù\ã“Yàò‹õ›Ÿ‹€€àJKà‹Ÿ^Kà]ô[ùYàô\‹ùYàò]RYàô\‹ùYàJN¬Çà€€ú›àHÿ[YKìî»ﬂN¬à€€ú›X€€àH
+ÿ[YH	âà
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JJH»
+ÿ[YKó–€€ôõX›X€€õ€^Hÿ[YKê€€ôõX›X€€õ€^JHàù[¬à€€ú›[ò[T»H
+ãê”‘	âàãê”‘úô\‹ù	âàù[Xô\ãö\—ö[ö]Jãê”‘úô\‹ùôò[ŸT[ò[JJBà»
+ãê”‘úô\‹ùôò[ŸT[ò[H
+BààN¬à€€ú›⁄[ù–ôYõ‹ôHH
+›]KõYH	âàù[Xô\ãö\—ö[ö]J›]KõYKú⁄[ù JH»
+›]KõYKú⁄[ù»
+Hà¬à€€ú›[[›[ùÿ[ùYH[ò[T»¬à€€ú›[[›[ùX›X[HX]õZ[ä[[›[ùÿ[ùYX]õX^
+⁄[ù–ôYõ‹ôJJN¬à€€ú›⁄[ù–Yù\àHX]õX^
+⁄[ù–ôYõ‹ôHH[[›[ùX›X[
+N¬à€€ú›⁄[ù”Y]HHÿöôX›ò\‹⁄Y€äﬂKY]Pò\ŸK¬à[[›[ùÿ[ùYà⁄[ù–ôYõ‹ôKà⁄[ù–Yù\ãà‹\ò][€éàúô\‹ùŸò[ŸW‹[ò[Hãàúõ€RYàô\‹ù\ãà“Yàú⁄[ö»ãàJN¬àYà
+X€€à	âà\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àà	âà[[›[ùX›X[à
+H¬àX€€ãùò[úŸô\î⁄[ù ô\‹ù\ãú⁄[ö»ã[[›[ùX›X[úô\‹ùŸò[ŸW‹[ò[Hã⁄[ù”Y]JN¬àBà[ú›\ôTô\‹ù[€ô^SŸ‘õ› ¬àôX\€€éàúô\‹ùŸò[ŸW‹[ò[Hãà[[›[ùà[[›[ùX›X[à›\úô[òﬁNàú⁄[ù»ãà€›\òŸRYàô\‹ù\ãà\ôŸ]Yàú⁄[ö»ãàY]Nà⁄[ù”Y]Kà‹Ÿ^Kà]ô[ùYàô\‹ùYàò]RYàô\‹ùYàJN¬ÇàûH¬à€€ú›[ò[S\Ÿ»H0™Ù(t-4,4`¥c0Æ»4,t-t-»4a4,4.¥`¥/¥,à8†%4b4`¥`4,4a	‹ô\[ò[_x´dà4%Ù,4/Ù.4`tc4,à4/¥`¥aÙ-t`¥-Kò¬à\⁄J€‹Y€‹ò[YK€‹[ôJú‘‹YX⁄ù[ù[YS[ôJúô\‹ù‹ôXX›[€àã€‹[ò[S\ŸÀ»⁄[õô[àôHàJJK»\‘ﬁ\›[Nàò[ŸK^Y\íYà€‹YJN¬àHÿ]⁄
+ HﬂBàûH»€‹U €‹Yò€‹ŸòZ[äN»Hÿ]⁄
+ HﬂBàX\ö‘ô\‹ùY
+\ôŸ]Yò[ŸKõ€RŸ^K€‹Y
+N¬àYà
+\—]ëõY 
+JH¬à€€ú›[ô»H
+›]KõYH	âàù[Xô\ãö\—ö[ö]J›]KõYKú⁄[ù JH»
+›]KõYKú⁄[ù»
+Hàù[¬à€€ú€€Kùÿ\õäëP””ó‘”–◊—êS—W‘◊’êP—W’åHã¬à›YŸNàòYù\óŸò[ŸW‹ô\‹ùãàô\‹ùYàô\‹ùYù[à⁄[ù–Yù\éà[ô¬àJN¬àBàô]\õà¬à⁄Œàò[ŸKàôX\€€ê€ŸNàôX\€€ê€ŸKàõ€Nàõ€RŸ^Kà\ôŸ]Yà€‹Yà‹Ÿ^Kàô\‹ùYà›ö[ô ô\‹ùYàäKàô\[ò[Kà⁄[ù‘[ò[Nà[[›[ùX›X[àN¬àBÇàù[ò›[€à\UùYTô\‹ù
+»\ôŸ]õ€RŸ^K€‹ô\‹ù\íYô\‹ùYùX⁄Ÿ]HùùYHàHHﬂJH¬à€€ú›€‹YH
+€‹	âà€‹öY
+H»€‹öYààé¬à€€ú›€‹ò[YHH
+€‹	âà€‹õò[YJH»€‹õò[YHà¥&¥/¥/»é¬à€€ú›\ôŸ]YH
+\ôŸ]	âà\ôŸ]öY
+H»\ôŸ]öYààé¬à€€ú›ô\‹ù\àH›ö[ô ô\‹ù\íY
+
+›]KõYH	âà›]KõYKöY
+H»›]KõYKöYàõYHäJN¬à€€ú›^RŸ^HH^RŸ^Qúõ€Sõ›’ ]Kõõ› 
+JN¬à€€ú›‹Ÿ^HHùZ[ô\‹ù‹Ÿ^J»^RŸ^K€‹Yô\‹ù\íYàô\‹ù\ã\ôŸ]YùX⁄Ÿ]JN¬à€€ú›^[›]H¬à€€ú›H
+ÿ[YH	âàÿ[YKë]JH»ÿ[YKë]Hàù[¬à€€ú›ô\ÿZ[àH
+	âàù[Xô\ãö\—ö[ö]JîëT‘ëT‘ï’ïQJJH»
+îëT‘ëT‘ï’ïQH
+Hàé¬àûH¬àò[úŸô\îô\
+ò‹õ›Ÿ‹€€ãõYHãô\ÿZ[ãúô\‹ô\‹ù›ùYHãô\‹ùY
+N¬àHÿ]⁄
+ HﬂBà[ú›\ôTô\‹ù[€ô^SŸ‘õ› ¬àôX\€€éàúô\‹ô\‹ù›ùYHãà[[›[ùàô\ÿZ[ãà›\úô[òﬁNàúô\ãà€›\òŸRYàò‹õ›Ÿ‹€€ãà\ôŸ]YàõYHãàY]Nà»úõ€RYàò‹õ›Ÿ‹€€ã“YàõYHã\ôŸ]Y€‹Yô\‹ù\íYàô\‹ù\àKà‹Ÿ^Kà]ô[ùYàô\‹ùYàò]RYàô\‹ùYàJN¬àX\ö‘ô\‹ùY
+\ôŸ]YùYKõ€RŸ^K€‹Y
+N¬àûH¬à]ô\›[HH¬à]‘›[HH¬àûH¬à€€ú›Ÿ‹»H
+ÿ[YH	âàÿ[YKó◊—	âà\úò^Kö\–\úò^Jÿ[YKó◊—õ[€ô^SŸ JH»ÿ[YKó◊—õ[€ô^SŸ»à◊N¬à€€ú›öY›àH›ö[ô ô\‹ùYàäN¬àõ‹à
+€€ú›ŸàŸ‹ H¬àYà
+S
+H€€ù[ùYN¬à€€ú›Y»H›ö[ô úôX\€€ààäKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›öYX]⁄H›ö[ô ô]ô[ùYòò]RY
+õY]H	âàõY]Kô]ô[ùY
+HàäKö[ô^ŸäöY›äHèH›ö[ô òò]RYô]ô[ùYàäHOOHöY›é¬àYà
+XöY›àöYX]⁄
+H¬àYà
+YÀö[ô^Ÿäúô\‹ô\‹ù›ùYHäHèHYÀö[ô^Ÿäúô\»äHOOH›ö[ô ò›\úô[òﬁHàäKù”›Ÿ\êÿ\ŸJ
+HOOHúô\äH¬àô\›[H
+œHù[Xô\äò[[›[ùô[H
+N¬àBàYà
+YÀö[ô^Ÿäò€‹ÿ€€\[úÿ][€ó‹ô]\õàäHèHYÀö[ô^Ÿäò‹õ›Ÿ›õ›W‹ôYù[ôäHèH›ö[ô ò›\úô[òﬁHàäKù”›Ÿ\êÿ\ŸJ
+HOOHú⁄[ù»äH¬à‘›[H
+œHù[Xô\äò[[›[ùô[H
+N¬àBàBàBàHÿ]⁄
+ HﬂBà€€ú›ô\\Ÿ»H
+ô\›[Hà
+H»
+…‹ô\›[_x´dààé¬àı€~Ω∂âûÀk∫wµÁ_KàŸ]›\ûS\›õ€à
+õ€
+HOà¬à€€ú›’H
+ÿ[YKë]H	âàÿ[YKë]Kì’TñJH»ÿ[YKë]Kì’TñHà»ô]àHN¬à€€ú›ëUH
+’òô]
+HN¬àYà
+T›]Kõ›\ûJH›]Kõ›\ûHH»ô]àëU\›õ€àù[\›]à^\ŒàN¬à›]Kõ›\ûKõ\›õ€H
+õ€OHù[
+H»ù[à
+õ€
+N¬à›]Kõ›\ûKõ\›]H]Kõõ› 
+N¬àKàN¬ÇàŸ‘ô\‹X›[ùû\⁄[ùôXYJ
+N¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH¬àÿ[YKó◊—UãôŸ]ô\‹X›[Z]\êÿ\H
+
+HOàëT—SRUTó—RSW––T¬àÿ[YKó◊—Uãú€[⁄ŸUÿ\›€€ùòX›õÿôS€òŸHHù[ò›[€à€[⁄ŸUÿ\›€€ùòX›õÿôS€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›ÿ]ôYÿ\›»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»H◊N¬à€€ú›òZ[YH◊N¬à]ÿ[\Uÿ\›Hù[¬à]ÿ[\Tõ›»Hù[¬à]ôYàHù[¬àûH¬à€€ú›õ›“[\àH
+\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à\⁄[€ô^SŸ‘õ›Œ¬àôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éàùÿ\›ÿ€€ùòX›‹õÿôHãà›\úô[òﬁNàú⁄[ù»ãà[[›[ùàKà€›\òŸRYàùÿ\›ÿ€€ùòX›‹õÿôHãà\ôŸ]YàõYHãà]ô[ùYà‹Àô]ô[ùYùÿ\›ÿ€€ùòX›‹õÿôHãàò]RYà‹Àòò]RYùÿ\›ÿ€€ùòX›‹õÿôHãàY]Nà»õÿôNàùYHBàJN¬àÿ[\Tõ›»H
+ôYà	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ H	âàù[Xô\ãö\—ö[ö]JôYãõŸ“[ô^
+JH»ôÀõ[€ô^SŸ÷‹ôYãõŸ“[ô^Hàù[¬àYà
+\ÿ[\Tõ› HòZ[Yú\⁄
+õ[€ô^[Ÿ◊‹õ›◊€Z\‹⁄[ô»äN¬àHÿ]⁄
+ H¬àòZ[Yú\⁄
+õ[€ô^[Ÿ◊‹\⁄ŸòZ[YäN¬àBà€€ú›ÿ\›[\àH
+\[ŸàôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH»ôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàà\⁄X€€ïÿ\›úõ€SŸ‘ôYé¬àYà
+ôYà	âà\[Ÿàÿ\›[\àOOHôù[ò›[€àäH¬à€€ú›ÿ\›ô\›[Hÿ\›[\äôYã‹Àùÿ\›^äÃ|'‰¨äN¬à€€ú›ÿ\›H
+ÿ\›ô\›[	âàÿ\›ô\›[õ⁄»OOHò[ŸJH»ù[àÿ\›ô\›[¬àYà
+ÿ\›
+H¬àÿ[\Uÿ\›Hÿ\›¬àYà
+ÿ\›ö⁄[ôOOHôX€€àäHòZ[Yú\⁄
+ùÿ\››‹õ€ô◊⁄⁄[ôäN¬àYà
+]ÿ\›ùY
+HòZ[Yú\⁄
+ùÿ\›€Z\‹⁄[ô◊›YäN¬àYà
+]ÿ\›úôX\€€äHòZ[Yú\⁄
+ùÿ\›€Z\‹⁄[ô◊‹ôX\€€àäN¬àYà
+ÿ[\Tõ›»	âàÿ\›õŸ“[ô^OOHôYãõŸ“[ô^
+HòZ[Yú\⁄
+ùÿ\›€Ÿ⁄[ô^€Z\€X]⁄äN¬àYà
+ÿ[\Tõ›»	âàÿ\›ùYOOHÿ[\Tõ›ÀùY
+HòZ[Yú\⁄
+ùÿ\››Y€Z\€X]⁄äN¬àYà
+ÿ[\Tõ›»	âàÿ\›úôX\€€àOOHÿ[\Tõ›ÀúôX\€€äHòZ[Yú\⁄
+ùÿ\›‹ôX\€€ó€Z\€X]⁄äN¬àH[ŸH¬àòZ[Yú\⁄
+ùÿ\›‹\⁄ŸòZ[YäN¬àYà
+ÿ\›ô\›[	âàÿ\›ô\›[õ⁄»OOHò[ŸJH¬àòZ[Yú\⁄
+ÿ\›Ÿ\úõ‹éâ›ÿ\›ô\›[úôX\€€àù[ö€õ›€àüX
+N¬àBàBàH[ŸH¬àòZ[Yú\⁄
+ùÿ\›⁄[\ó€Z\‹⁄[ô»äN¬àBà€€ú›ô]’ÿ\›»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»Hÿ]ôYÿ\›Àò€€òÿ]
+ô]’ÿ\› N¬à€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[Yàÿ[\Uÿ\›àÿ[\Tõ›¬àN¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RL’–T’–””ïêP’–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RL’–T’–””ïêP’—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW’ÿ\›[[YYX]S€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW’ÿ\›[[YYX]S€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›òZ[YH◊N¬à€€ú›ÿ[\\»H◊N¬à€€ú›ŸY[ïÿ\›»Hô]»Ÿ]
+
+N¬à€€ú›‹»H¬à»ôX\€€éàùÿ\›⁄[[YYX]W‹õÿôHã›\úô[òﬁNàú⁄[ù»ã[[›[ùàK€›\òŸRYàú€[⁄ŸW‹õÿôHã\ôŸ]YàõYHã^àäÃ|'‰¨àKà»ôX\€€éàùÿ\›⁄[[YYX]Wÿ‹õ›Ÿã›\úô[òﬁNàú⁄[ù»ã[[›[ùàK€›\òŸRYàú€[⁄ŸWÿ‹õ›Ÿã\ôŸ]YàõYHã^àäÃ|'‰¨àKà»ôX\€€éàùÿ\›⁄[[YYX]W‹ô\‹ùã›\úô[òﬁNàúô\ã[[›[ùàLK€›\òŸRYàõYHã\ôŸ]Yàò‹õ›Ÿ‹€€ã^àãLx´dàBàN¬àõ‹à
+€€ú›‹Ÿà‹ H¬à€€ú›õ›“[\àH
+\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à\⁄[€ô^SŸ‘õ›Œ¬à]ôYàHù[¬à]õ›»Hù[¬à]ÿ\›Hù[¬à]ÿ\›òZ[YHò[ŸN¬àûH¬àôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éà‹úôX\€€ãà›\úô[òﬁNà‹ò›\úô[òﬁKà[[›[ùà‹ò[[›[ùà€›\òŸRYà‹ú€›\òŸRYà\ôŸ]Yà‹ù\ôŸ]Yàò]RYà‹òò]RYú€[⁄ŸWŸX€€ó›ZHãàY]Nà»€[⁄ŸNàôX€€ó›ZW⁄[[YYX]Hã‹à‹úôX\€€àBàJN¬àõ›»H
+ôYà	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ H	âàù[Xô\ãö\—ö[ö]JôYãõŸ“[ô^
+JH»ôÀõ[€ô^SŸ÷‹ôYãõŸ“[ô^Hàù[¬àHÿ]⁄
+ H¬àòZ[Yú\⁄
+[€ô^[Ÿ◊‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àBàûH¬à€€ú›ÿ\›[\àH
+\[ŸàôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH»ôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàà\⁄X€€ïÿ\›úõ€SŸ‘ôYé¬àYà
+ôYà	âà\[Ÿàÿ\›[\àOOHôù[ò›[€àäH¬à€€ú›ÿ\›ô\›[Hÿ\›[\äôYã‹ù^
+N¬àYà
+ÿ\›ô\›[	âàÿ\›ô\›[õ⁄»OOHò[ŸJH¬àÿ\›Hù[¬àÿ\›òZ[YHùYN¬àòZ[Yú\⁄
+ÿ\›‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àòZ[Yú\⁄
+ÿ\›Ÿ\úõ‹éâ€‹úôX\€€üNâ›ÿ\›ô\›[úôX\€€àù[ö€õ›€àüX
+N¬àH[ŸH¬àÿ\›Hÿ\›ô\›[¬àBàBàHÿ]⁄
+ H¬àÿ\›òZ[YHùYN¬àòZ[Yú\⁄
+ÿ\›‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àBà€€ú›‘õ›»Hõ›»»ù[Xô\äõ›Àù»õ›Àù[YH
+Hà¬à€€ú›’ÿ\›Hÿ\›»ù[Xô\äÿ\›ù»
+Hà¬à€€ú›H
+‘õ›»	âà’ÿ\›
+H»
+’ÿ\›H‘õ› Hàù[¬àÿ[\\Àú\⁄
+¬àôX\€€éà‹úôX\€€ãà‘õ›Àà’ÿ\›ààJN¬àYà
+\õ› HòZ[Yú\⁄
+[€ô^[Ÿ◊‹õ›◊€Z\‹⁄[ôŒâ€‹úôX\€€üX
+N¬àYà
+]ÿ\›	âà]ÿ\›òZ[Y
+HòZ[Yú\⁄
+ÿ\›€Z\‹⁄[ôŒâ€‹úôX\€€üX
+N¬àYà
+OHù[	âàà
+‹ÀõX^MäJH¬àòZ[Yú\⁄
+›€◊€\ôŸNâ€‹úôX\€€üNâŸX
+N¬àBàYà
+’ÿ\›	âàŸY[ïÿ\›Àö\ ’ÿ\›
+JH¬àòZ[Yú\⁄
+ÿ\›ÿò]⁄Yâ€‹úôX\€€üX
+N¬àBàYà
+’ÿ\›
+HŸY[ïÿ\›ÀòY
+’ÿ\›
+N¬àBà€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[Yàÿ[\\¬àN¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RLW’–T’“SSQQPUW–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RLW’–T’“SSQQPUW—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW—Y\€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW—Y\€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›ÿ]ôYH\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»H◊N¬à€€ú›õ›“[\àH
+\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à\⁄[€ô^SŸ‘õ›Œ¬à]ôYàHù[¬àûH¬àôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éàùÿ\›ŸY\‹õÿôHãà›\úô[òﬁNàú⁄[ù»ãà[[›[ùàKà€›\òŸRYàú€[⁄ŸWŸY\ãà\ôŸ]YàõYHãàò]RYàú€[⁄ŸWŸY\ãàY]Nà»€[⁄ŸNàôX€€ó›ZWŸY\àBàJN¬àHÿ]⁄
+ HﬂBà]ö\ú›Hù[¬à]ŸX€€ôHù[¬àûH¬àYà
+ôYäHö\ú›H\⁄X€€ïÿ\›úõ€SŸ‘ôYäôYã‹Àùÿ\›^äÃ|'‰¨äN¬àHÿ]⁄
+ HﬂBàûH¬àYà
+ôYäHŸX€€ôH\⁄X€€ïÿ\›úõ€SŸ‘ôYäôYã‹Àùÿ\›^äÃ|'‰¨äN¬àHÿ]⁄
+ HﬂBà€€ú›Ÿ»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›Ÿ»à◊N¬à€€ú›€›[ùHŸÀôö[\äOà	âàö⁄[ôOOHôX€€àà	âàùYOOH
+ôYà	âàôYãùY
+JKõ[ô›¬à€€ú›òZ[YH◊N¬àYà
+€›[ùOOHJHòZ[Yú\⁄
+€›[ùIÿ€›[ùX
+N¬àYà
+\ôYäHòZ[Yú\⁄
+õ[€ô^[Ÿ◊€Z\‹⁄[ô»äN¬à€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[Yà€›[ùàYàôYà	âàôYãùY»ôYãùYàù[àö\ú›àŸX€€ôàN¬à€€ú›ô]’ÿ\›»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»Hÿ]ôYò€€òÿ]
+ô]’ÿ\› N¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RLó—QT–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RLó—QT—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW’ÿ\›X]⁄\”[€ô^SŸ”€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW’ÿ\›X]⁄\”[€ô^SŸ”€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›ÿ]ôYÿ\›»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»H◊N¬à€€ú›òZ[YH◊N¬à€€ú›ÿ[\\»H◊N¬à€€ú›õ›“[\àH
+\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à\⁄[€ô^SŸ‘õ›Œ¬à€€ú›ÿ\›[\àH
+\[ŸàôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH»ôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàà\⁄X€€ïÿ\›úõ€SŸ‘ôYé¬à€€ú›‹»H¬à»ôX\€€éàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊‹\»ã›\úô[òﬁNàú⁄[ù»ã[[›[ùàK€›\òŸRYàú€[⁄ŸW€X]⁄‹õÿôHã\ôŸ]YàõYHãò]RYàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊‹\»ã]ô[ùYàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊‹\»ã^àäÃ|'‰¨àKà»ôX\€€éàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊€Z[ù\»ã›\úô[òﬁNàú⁄[ù»ã[[›[ùàLã€›\òŸRYàú€[⁄ŸW€X]⁄‹õÿôHã\ôŸ]YàõYHãò]RYàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊€Z[ù\»ã]ô[ùYàùÿ\›€X]⁄‹õÿôW‹⁄[ù◊€Z[ù\»ã^àãLº'‰¨àKà»ôX\€€éàùÿ\›€X]⁄‹õÿôW‹ô\‹\»ã›\úô[òﬁNàúô\ã[[›[ùàK€›\òŸRYàú€[⁄ŸW€X]⁄‹õÿôHã\ôŸ]YàõYHãò]RYàùÿ\›€X]⁄‹õÿôW‹ô\‹\»ã]ô[ùYàùÿ\›€X]⁄‹õÿôW‹ô\‹\»ã^àäÕx´dàKà»ôX\€€éàùÿ\›€X]⁄‹õÿôW‹ô\€Z[ù\»ã›\úô[òﬁNàúô\ã[[›[ùàLK€›\òŸRYàõYHã\ôŸ]Yàò‹õ›Ÿ‹€€ãò]RYàùÿ\›€X]⁄‹õÿôW‹ô\€Z[ù\»ã]ô[ùYàùÿ\›€X]⁄‹õÿôW‹ô\€Z[ù\»ã^àãLx´dàKàN¬àõ‹à
+€€ú›‹Ÿà‹ H¬à]ôYàHù[¬à]õ›»Hù[¬à]ÿ\›Hù[¬à]ÿ\›òZ[YHò[ŸN¬àûH¬àôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éà‹úôX\€€ãà›\úô[òﬁNà‹ò›\úô[òﬁKà[[›[ùà‹ò[[›[ùà€›\òŸRYà‹ú€›\òŸRYà\ôŸ]Yà‹ù\ôŸ]Yàò]RYà‹òò]RYà]ô[ùYà‹ô]ô[ùYàY]Nà»€[⁄ŸNàôX€€ó›ZW€X]⁄ã‹à‹úôX\€€àBàJN¬àYà
+ôYà	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ H	âàù[Xô\ãö\—ö[ö]JôYãõŸ“[ô^
+JH¬àõ›»HôÀõ[€ô^SŸ÷‹ôYãõŸ“[ô^N¬àBàHÿ]⁄
+ H¬àòZ[Yú\⁄
+[€ô^[Ÿ◊‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àBàûH¬àYà
+ôYà	âà\[Ÿàÿ\›[\àOOHôù[ò›[€àäH¬à€€ú›ÿ\›ô\›[Hÿ\›[\äôYã‹ù^
+N¬àYà
+ÿ\›ô\›[	âàÿ\›ô\›[õ⁄»OOHò[ŸJH¬àÿ\›òZ[YHùYN¬àòZ[Yú\⁄
+ÿ\›‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àòZ[Yú\⁄
+ÿ\›Ÿ\úõ‹éâ€‹úôX\€€üNâ›ÿ\›ô\›[úôX\€€àù[ö€õ›€àüX
+N¬àH[ŸH¬àÿ\›Hÿ\›ô\›[¬àBàBàHÿ]⁄
+ H¬àÿ\›òZ[YHùYN¬àòZ[Yú\⁄
+ÿ\›‹\⁄ŸòZ[Yâ€‹úôX\€€üX
+N¬àBà€€ú›^[ÿYHÿ\›	âàÿ\›ú^[ÿY»ÿ\›ú^[ÿYàù[¬àÿ[\\Àú\⁄
+¬àYàôYà	âàôYãùY»ôYãùYàù[àõ›Œàõ›»»¬àYàõ›ÀùYàôX\€€éàõ›ÀúôX\€€ãà›\úô[òﬁNàõ›Àò›\úô[òﬁKà⁄[ôàõ›Àö⁄[ôà[[›[ùàõ›Àò[[›[ùà[Nàõ›Àô[Kà€›\òŸRYàõ›Àú€›\òŸRYà\ôŸ]Yàõ›Àù\ôŸ]YàHàù[àÿ\›^[ÿYà^[ÿYà^àÿ\›	âàÿ\›ù^»ÿ\›ù^àù[àJN¬àYà
+\õ› H¬àòZ[Yú\⁄
+[€ô^[Ÿ◊‹õ›◊€Z\‹⁄[ôŒâ€‹úôX\€€üX
+N¬àBàYà
+]ÿ\›
+H¬àYà
+]ÿ\›òZ[Y
+H¬àòZ[Yú\⁄
+ÿ\›€Z\‹⁄[ôŒâ€‹úôX\€€üX
+N¬àBà€€ù[ùYN¬àBà€€ú›^X›Y›\úô[òﬁHHõ›»»›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+Hàù[¬à€€ú›€››\úô[òﬁHH^[ÿY»›ö[ô ^[ÿYò›\úô[òﬁHú⁄[ù»äKù”›Ÿ\êÿ\ŸJ
+Hàù[¬àYà
+õ›»	âà^[ÿY	âà€››\úô[òﬁHOOH^X›Y›\úô[òﬁJH¬àòZ[Yú\⁄
+›\úô[òﬁW€Z\€X]⁄â€‹úôX\€€üNâŸ^X›Y›\úô[òﬁ_KOâ‹^[ÿYò›\úô[òﬁ_X
+N¬àBà€€ú›^X›Y[[›[ùHõ›»»
+ù[Xô\ãö\—ö[ö]Jõ›Àò[[›[ù
+H»õ›Àò[[›[ùà
+
+õ›Àô[HOOH[ôYö[ôY
+H»ù[Xô\äõ›Àô[JHà
+JHàù[¬à€€ú›€›[[›[ùH
+^[ÿY	âàù[Xô\ãö\—ö[ö]J^[ÿYò[[›[ù
+JH»^[ÿYò[[›[ùà^[ÿY	âà^[ÿYò[[›[ù¬àYà
+õ›»	âà^[ÿY	âà^X›Y[[›[ùOOH€›[[›[ù
+H¬àòZ[Yú\⁄
+[[›[ù€Z\€X]⁄â€‹úôX\€€üNâŸ^X›Y[[›[ùKOâ‹^[ÿY	âà^[ÿYò[[›[ùX
+N¬àBàYà
+õ›»	âà^[ÿY	âà›ö[ô ^[ÿYúôX\€€ààäHOOH›ö[ô õ›ÀúôX\€€ààäJH¬àòZ[Yú\⁄
+ôX\€€ó€Z\€X]⁄â€‹úôX\€€üNâ‹õ›ÀúôX\€€üKOâ‹^[ÿY	âà^[ÿYúôX\€€üX
+N¬àBàBà€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[Yàÿ[\\¬àN¬à€€ú›ô]’ÿ\›»H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€XŸJ
+Hà◊N¬àôÀùÿ\›Ÿ»Hÿ]ôYÿ\›Àò€€òÿ]
+ô]’ÿ\› N¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RL◊”PU“–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RL◊”PU“—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ–]]”‹[ì€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW”õ–]]”‹[ì€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›ÿ]ôYÿ[»H\úò^Kö\–\úò^JôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[ H»ôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[Àú€XŸJ
+Hà◊N¬àôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[»H◊N¬à€€ú›ôYõ‹ôT[ô[Hÿ\\ôT[ô[›]T⁄Y 
+N¬à€€ú›ôYõ‹ôQõÿ›\»Hÿ\\ôQõÿ›\‘⁄Y 
+N¬à€€ú›õ›“[\àH
+\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à\⁄[€ô^SŸ‘õ›Œ¬à€€ú›ÿ\›[\àH
+\[ŸàôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH»ôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàà\⁄X€€ïÿ\›úõ€SŸ‘ôYé¬à€€ú›‹»H¬à»ôX\€€éàùZM‹õÿôWÃHã›\úô[òﬁNàú⁄[ù»ã[[›[ùàK€›\òŸRYàú€[⁄ŸW›ZMã\ôŸ]YàõYHàKà»ôX\€€éàùZM‹õÿôWÃàã›\úô[òﬁNàú⁄[ù»ã[[›[ùàLK€›\òŸRYàõYHã\ôŸ]Yàò‹õ›Ÿ‹€€àKà»ôX\€€éàùZM‹õÿôWÃ»ã›\úô[òﬁNàúô\ã[[›[ùàK€›\òŸRYàú€[⁄ŸW›ZMã\ôŸ]YàõYHàBàN¬àõ‹à
+€€ú›‹Ÿà‹ H¬àûH¬à€€ú›ôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éà‹úôX\€€ãà›\úô[òﬁNà‹ò›\úô[òﬁKà[[›[ùà‹ò[[›[ùà€›\òŸRYà‹ú€›\òŸRYà\ôŸ]Yà‹ù\ôŸ]YàY]Nà»€[⁄ŸNàôX€€ó›ZMã‹à‹úôX\€€àBàJN¬àYà
+ôYà	âà\[Ÿàÿ\›[\àOOHôù[ò›[€àäH¬àÿ\›[\äôYã‹Àùÿ\›^õÿôNâ€‹úôX\€€üX
+N¬àBàHÿ]⁄
+ HﬂBàBà€€ú›Yù\î[ô[Hÿ\\ôT[ô[›]T⁄Y 
+N¬à€€ú›Yù\ëõÿ›\»Hÿ\\ôQõÿ›\‘⁄Y 
+N¬à€€ú›õ‹òöY[êÿ[»H\úò^Kö\–\úò^JôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[ H»ôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[Àú€XŸJ
+Hà◊N¬àôÀó◊ŸX€€ïÿ\›õ‹òöY[êÿ[»Hÿ]ôYÿ[Àò€€òÿ]
+õ‹òöY[êÿ[ N¬à€€ú›òZ[YH◊N¬àYà
+\⁄Y—\]X[
+ôYõ‹ôT[ô[ú[ô[›]T⁄YÀYù\î[ô[ú[ô[›]T⁄Y JHòZ[Yú\⁄
+ú[ô[‹›]Wÿ⁄[ôŸYäN¬àYà
+\⁄Y—\]X[
+ôYõ‹ôQõÿ›\ÀYù\ëõÿ›\ JHòZ[Yú\⁄
+ôõÿ›\◊ÿ⁄[ôŸYäN¬àYà
+õ‹òöY[êÿ[Àõ[ô›
+HòZ[Yú\⁄
+ôõ‹òöY[óÿÿ[»äN¬à€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[YàôYõ‹ôNà¬à[ô[›]T⁄YŒàôYõ‹ôT[ô[ú[ô[›]T⁄YÀàõÿ›\‘⁄YŒàôYõ‹ôQõÿ›\Ààõ›\ŒàôYõ‹ôT[ô[õõ›\¬àKàYù\éà¬à[ô[›]T⁄YŒàYù\î[ô[ú[ô[›]T⁄YÀàõÿ›\‘⁄YŒàYù\ëõÿ›\Ààõ›\ŒàYù\î[ô[õõ›\¬àKàõ‹òöY[êÿ[Ààõ›\Œà◊BàN¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RM”ì–UU◊–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RM”ì–UU◊—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãô[ú›\ôT⁄[ù–]X\›õ‹î€[⁄Ÿ\”€òŸHHù[ò›[€à[ú›\ôT⁄[ù–]X\›õ‹î€[⁄Ÿ\”€òŸJZ[î»HL‹»HﬂJH¬à€€ú››]TôYàHÿ[YKó◊‘»ÿ[YKî›]HﬂN¬à€€ú›\ôŸ]YH›ö[ô 
+‹»	âà‹Àù\ôŸ]Y
+HõYHäN¬à€€ú›Ÿ]⁄[ù—õ‹àH
+Y
+HOà¬àYà
+YOOHõYHäH¬à€€ú›YHH›]TôYãõYH
+›]TôYãú^Y\ú»	âà›]TôYãú^Y\úÀõYJN¬àô]\õà
+YH	âàù[Xô\ãö\—ö[ö]JYKú⁄[ù JH»
+YKú⁄[ù»
+Hà¬àBà€€ú›H›]TôYãú^Y\ú»»›]TôYãú^Y\ú÷‹YHàù[¬àô]\õà
+	âàù[Xô\ãö\—ö[ö]Jú⁄[ù JH»
+ú⁄[ù»
+Hà¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—àù[¬à€€ú›\”[€ô^SŸ»HHJô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JN¬à€€ú›Ÿ‘€›\òŸU\ŸYH\”[€ô^SŸ»»ëÿ[YKó◊—õ[€ô^SŸ»ààù[ö€õ›€àé¬à€€ú›ôYõ‹ôSŸ”[àH\”[€ô^SŸ»»ôÀõ[€ô^SŸÀõ[ô›à¬à€€ú›\ôŸ]Hù[Xô\ãö\—ö[ö]JZ[î H»
+Z[î»
+HàL¬à€€ú›ôYõ‹ôHHŸ]⁄[ù—õ‹ä\ôŸ]Y
+N¬à€€ú›ôYYHX]õX^
+K\ôŸ]HôYõ‹ôJN¬à]Y]ŸHù[¬à][[›[ùH¬à]\úîôX\€€àHù[¬à]€õ‹íYHù[¬à]€‹õò[ö–ôYõ‹ôHHù[¬à]€‹õò[ö–Yù\àHù[¬Çà€€ú›X€€àHÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^Hù[¬à€€ú›ÿ[ïò[úŸô\àHHJX€€à	âà\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àäN¬à€€ú›ôXY€ò\⁄›H
+
+HOà
+X€€à	âà\[ŸàX€€ãú›[T⁄[ù‘€ò\⁄›OOHôù[ò›[€àäBà»X€€ãú›[T⁄[ù‘€ò\⁄›
+»[ò€YU€‹õàùYK[ò€YT€€ŒàùYHJBààù[¬à€€ú›Ÿ]ò[H
+Y
+HOà¬à€€ú›€ò\HôXY€ò\⁄›
+
+N¬à€€ú›ûRYH€ò\	âà€ò\òûRY	âà\[Ÿà€ò\òûRYOOHõÿöôX›à»€ò\òûRYàù[¬àô]\õà
+ûRY	âàù[Xô\ãö\—ö[ö]JûRY⁄YJJH»
+ûRY⁄YH
+Hà¬àN¬à€‹õò[ö–ôYõ‹ôHHŸ]ò[
+ù€‹õò[ö»äN¬Çà€€ú›[ú›\ôU€‹õò[ö—ù[ô»H
+[[›[ùôYY
+HOà¬àYà
+Xÿ[ïò[úŸô\äHô]\õà»⁄Œàò[ŸKôX\€€éàùò[úŸô\ó›[ò]òZ[XõHàN¬àYà
+Ÿ]ò[
+ù€‹õò[ö»äHèH[[›[ùôYY
+Hô]\õà»⁄ŒàùYKY]Ÿàù€‹õò[ö◊‹ôXYHàN¬àYà
+Ÿ]ò[
+ú⁄[ö»äHèH[[›[ùôYY
+H¬àûH¬à€€ú›HX€€ãùò[úŸô\î⁄[ù ú⁄[ö»ãù€‹õò[ö»ã[[›[ùôYYô]ó‹ŸYY›€‹õò[ö◊›‹\ã¬à€€ù^à»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]KàY]Nà»€[⁄ŸNàôX€€ó›ZW‹ŸYYã€›\òŸNàú⁄[ö»ãŒàù€‹õò[ö»ã[[›[ùà[[›[ùôYYBàJN¬àYà
+	âàõ⁄»OOHùYJHô]\õà»⁄ŒàùYKY]Ÿàú⁄[ö◊›◊›€‹õò[ö»àN¬àô]\õà»⁄Œàò[ŸKôX\€€éà	âàúôX\€€à»›ö[ô úôX\€€äHàù€‹õò[ö◊›‹\ŸòZ[YàN¬àHÿ]⁄
+ H¬àô]\õà»⁄Œàò[ŸKôX\€€éàù€‹õò[ö◊›‹\Ÿ^Ÿ\[€ààN¬àBàBàô]\õà»⁄Œàò[ŸKôX\€€éàö[ú›YôöX⁄Y[ù›€‹õò[ö»àN¬àN¬Çà€€ú›ŸYY⁄]€‹õò[ö»H
+
+HOà¬à€€ú›ù[ôô\»H[ú›\ôU€‹õò[ö—ù[ô ôYY
+N¬àYà
+Yù[ôô\Àõ⁄ Hô]\õà»⁄Œàò[ŸKôX\€€éàù[ôô\ÀúôX\€€àN¬àûH¬à€€ú›HX€€ãùò[úŸô\î⁄[ù ù€‹õò[ö»ã\ôŸ]YôYYô]ó‹ŸYY‹⁄[ù◊Ÿõ‹ó‹€[⁄ŸHã¬à€€ù^à»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]KàY]Nà»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]€›\òŸNàù€‹õò[ö»ã\ôŸ]YBàJN¬àYà
+	âàõ⁄»OOHùYJH¬àY]ŸH€‹õò[öŒâŸù[ôô\ÀõY]ŸúôXYHüX¬à[[›[ùHôYY¬àô]\õà»⁄ŒàùYHN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éà	âàúôX\€€à»›ö[ô úôX\€€äHàù€‹õò[ö◊›ò[úŸô\óŸòZ[YàN¬àHÿ]⁄
+ H¬àô]\õà»⁄Œàò[ŸKôX\€€éàù€‹õò[ö◊›ò[úŸô\óŸ^Ÿ\[€ààN¬àBàN¬Çà€€ú›ŸYY⁄]⁄[ö»H
+
+HOà¬àYà
+Xÿ[ïò[úŸô\äHô]\õà»⁄Œàò[ŸKôX\€€éàùò[úŸô\ó›[ò]òZ[XõHàN¬àûH¬à€€ú›HX€€ãùò[úŸô\î⁄[ù ú⁄[ö»ã\ôŸ]YôYYô]ó‹ŸYY‹⁄[ù◊Ÿõ‹ó‹€[⁄ŸHã¬à€€ù^à»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]KàY]Nà»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]€›\òŸNàú⁄[ö»ã\ôŸ]YBàJN¬àYà
+	âàõ⁄»OOHùYJH¬àY]ŸHú⁄[ö»é¬à[[›[ùHôYY¬àô]\õà»⁄ŒàùYHN¬àBà€€ú›àH	âàúôX\€€à»›ö[ô úôX\€€äHàú⁄[ö◊›ò[úŸô\óŸòZ[Yé¬àYà
+àOOHòòYÿXÿ€›[ùäHô]\õà»⁄Œàò[ŸKôX\€€éàõõ◊‹⁄[ö◊⁄YàN¬àYà
+àOOHö[ú›YôöX⁄Y[ùäHô]\õà»⁄Œàò[ŸKôX\€€éàö[ú›YôöX⁄Y[ù‹⁄[ö»àN¬àô]\õà»⁄Œàò[ŸKôX\€€éààN¬àHÿ]⁄
+ H¬àô]\õà»⁄Œàò[ŸKôX\€€éàú⁄[ö◊›ò[úŸô\óŸ^Ÿ\[€ààN¬àBàN¬Çà]ŸYYô\»H»⁄Œàò[ŸKôX\€€éàõõ◊‹ŸYY‹]⁄[ù\õò[àN¬àYà
+ÿ[ïò[úŸô\äH¬àŸYYô\»HŸYY⁄]€‹õò[ö 
+N¬àYà
+\ŸYYô\Àõ⁄ H¬àŸYYô\»HŸYY⁄]⁄[ö 
+N¬àBàH[ŸH¬à\úîôX\€€àHùò[úŸô\ó›[ò]òZ[XõHé¬àBÇàYà
+\ŸYYô\Àõ⁄ H\úîôX\€€àHŸYYô\ÀúôX\€€à\úîôX\€€àõõ◊‹ŸYY‹]⁄[ù\õò[é¬à]Yù\àHŸ]⁄[ù—õ‹ä\ôŸ]Y
+N¬à]Yù\ìŸ”[àH\”[€ô^SŸ»»ôÀõ[€ô^SŸÀõ[ô›àôYõ‹ôSŸ”[é¬à]õ›‹–€›[ùHX]õX^
+Yù\ìŸ”[àHôYõ‹ôSŸ”[äN¬à]YHù[¬àYà
+\”[€ô^SŸ»	âàYù\ìŸ”[ààôYõ‹ôSŸ”[äH¬à€€ú›\›õ›»HôÀõ[€ô^SŸ÷ÿYù\ìŸ”[àHWN¬àYà
+\›õ›»	âà\›õ›ÀùY
+HYH\›õ›ÀùY¬àBà€€ú›ÿ\õàH◊N¬à€€ú›ò[[òŸP⁄[ôŸYHYù\ààôYõ‹ôN¬àYà
+õ›‹–€›[ùOOH	âàò[[òŸP⁄[ôŸY	âàYù\àèH\ôŸ]
+H¬àÿ\õãú\⁄
+úõ›◊€Z\‹⁄[ô◊ÿù]ÿò[[òŸWÿ⁄[ôŸYäN¬à€€ú›õ›“[\àH
+ô»	âà\[ŸàôÀú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH»ôÀú\⁄[€ô^SŸ‘õ›»à
+\[Ÿà\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àà»\⁄[€ô^SŸ‘õ›»àù[
+N¬à€€ú›ÿ\›[\àH
+ô»	âà\[ŸàôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH»ôÀú\⁄X€€ïÿ\›úõ€SŸ‘ôYàà
+\[Ÿà\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àà»\⁄X€€ïÿ\›úõ€SŸ‘ôYààù[
+N¬à€€ú›[HH
+Yù\àHôYõ‹ôJH¬à€€ú›€›\òŸRYH›ö[ô Y]ŸàäKö[ò€Y\ ù€‹õò[ö»äH»ù€‹õò[ö»àà
+Y]ŸOOHú⁄[ö»à»ú⁄[ö»ààù€‹õò[ö»äN¬àYà
+õ›“[\à	âà[Hà
+H¬àûH¬à€€ú›ôYàHõ›“[\ä¬à[YNà]Kõõ› 
+KàôX\€€éàô]ó‹ŸYY‹⁄[ù◊Ÿõ‹ó‹€[⁄ŸHãà›\úô[òﬁNàú⁄[ù»ãà[[›[ùà[Kà€›\òŸRYà\ôŸ]YàY]Nà»€[⁄ŸNàôX€€ó›ZW‹ŸYYãZ[îŒà\ôŸ]Y]ŸàY]Ÿù[õ‹òŸYàùYK\ôŸ]YBàJN¬àYà
+ôYà	âàôYãùY
+HYHôYãùY¬àYà
+ôYà	âàÿ\›[\äH¬àûH»ÿ\›[\äôYäN»Hÿ]⁄
+ HﬂBàBàHÿ]⁄
+ HﬂBàYù\àHŸ]⁄[ù—õ‹ä\ôŸ]Y
+N¬àYù\ìŸ”[àH\”[€ô^SŸ»»ôÀõ[€ô^SŸÀõ[ô›àYù\ìŸ”[é¬àõ›‹–€›[ùHX]õX^
+Yù\ìŸ”[àHôYõ‹ôSŸ”[äN¬àH[ŸHYà
+\õ›“[\äH¬àÿ\õãú\⁄
+úõ›◊€Z\‹⁄[ô◊€õ◊⁄[\àäN¬àBàBà€€ú›⁄»H
+Yù\àèH\ôŸ]
+H	âà
+õ›‹–€›[ùàò[[òŸP⁄[ôŸY
+N¬àYà
+[⁄»	âàY\úîôX\€€äH¬à\úîôX\€€àH
+Yù\àèH\ôŸ]	âàõ›‹–€›[ùOOH
+H»úõ›◊€Z\‹⁄[ô»ààö[ú›YôöX⁄Y[ùÿYù\ó‹ŸYYé¬àBà€€ú›€‹õò[ö–Yù\êò[H
+X€€à	âà\[ŸàX€€ãú›[T⁄[ù‘€ò\⁄›OOHôù[ò›[€àäBà»
+X€€ãú›[T⁄[ù‘€ò\⁄›
+»[ò€YU€‹õàùYK[ò€YT€€ŒàùYHJKòûRYﬂJKù€‹õò[ö¬ààù[¬à€‹õò[ö–Yù\àHù[Xô\ãö\—ö[ö]J€‹õò[ö–Yù\êò[
+H»
+€‹õò[ö–Yù\êò[
+Hàù[¬àô]\õà¬à⁄ÀàY]Ÿà[[›[ùàôYõ‹ôKàYù\ãà\úîôX\€€ãàõ›‹–€›[ùà€õ‹íYà€‹õò[ö–ôYõ‹ôKà€‹õò[ö–Yù\ãàZ[î’\ôŸ]à\ôŸ]à\ôŸ]Yà[€ô^SŸ”[êôYõ‹ôNàôYõ‹ôSŸ”[ãà[€ô^SŸ”[êYù\éàYù\ìŸ”[ãàŸ‘€›\òŸU\ŸYàYàÿ\õÇàN¬àN¬àÿ[YKó◊—Uãõ\›ô\‹ùõ€RŸ^\”€òŸHHù[ò›[€à\›ô\‹ùõ€RŸ^\”€òŸJ
+H¬àûH¬à€€ú›õ‹õX[^ôHH
+[ú]
+HOà¬àYà
+Z[ú]
+Hô]\õààé¬à€€ú›^H›ö[ô [ú]
+Kù”›Ÿ\êÿ\ŸJ
+N¬àYà
+^ö[ò€Y\ ¥`¥/¥.¥`HäH^ö[ò€Y\ ùﬁX»äJHô]\õàùﬁX»é¬àYà
+^ö[ò€Y\ ¥,t,4/t-äH^ö[ò€Y\ òò[ô]äJHô]\õàòò[ô]é¬àYà
+^ö[ò€Y\ ¥/4,4a4.äH^ö[ò€Y\ õXYöXHäJHô]\õàõXYöXHé¬àô]\õààé¬àN¬à€€ú›[›ŸYõ€RŸ^\»H»ùﬁX»ãòò[ô]ãõXYöXHóN¬à€€ú›^Y\ú»HÿöôX›ùò[Y\ ›]Kú^Y\ú»ﬂJKôö[\äOà	âàöY
+N¬à€€ú›ö[ôûTõ€HH
+õ€RŸ^JHOà^Y\úÀôö[ô
+Oàõ‹õX[^ôJúõ€JHOOHõ€RŸ^Hõ‹õX[^ôJù\JHOOHõ€RŸ^JN¬à€€ú›ùYU\ôŸ]Hö[ôûTõ€JùﬁX»äHö[ôûTõ€Jòò[ô]äHö[ôûTõ€JõXYöXHäH^Y\ú÷ÃHù[¬à€€ú›ùYTõ€RŸ^HHõ‹õX[^ôJùYU\ôŸ]	âàùYU\ôŸ]úõ€JHõ‹õX[^ôJùYU\ôŸ]	âàùYU\ôŸ]ù\JH[›ŸYõ€RŸ^\÷ÃN¬à€€ú›ò[ŸU\ôŸ]H^Y\úÀôö[ô
+Oà	âàùYU\ôŸ]	âàöYOOHùYU\ôŸ]öY	âà[›ŸYõ€RŸ^\Àö[ò€Y\ õ‹õX[^ôJúõ€JJJBà^Y\úÀôö[ô
+Oà	âàùYU\ôŸ]	âàöYOOHùYU\ôŸ]öY
+Hù[¬à€€ú›ò[ŸU\ôŸ]õ€HHõ‹õX[^ôJò[ŸU\ôŸ]	âàò[ŸU\ôŸ]úõ€JHõ‹õX[^ôJò[ŸU\ôŸ]	âàò[ŸU\ôŸ]ù\JH
+[›ŸYõ€RŸ^\÷ÃWH[›ŸYõ€RŸ^\÷ÃJN¬à€€ú›ò[ŸTõ€RŸ^HH[›ŸYõ€RŸ^\Àôö[ô
+àOààOOHò[ŸU\ôŸ]õ€JH[›ŸYõ€RŸ^\Àôö[ô
+àOààOOHùYTõ€RŸ^JH[›ŸYõ€RŸ^\÷ÃN¬à€€ú›ùZ[[ùH
+\ôŸ]ô\‹ùYõ€JHOà¬àYà
+]\ôŸ]
+Hô]\õà4,¥,¥-t-4.4`¥-Hâ‹ô\‹ùYõ€_Hà4,à4/Ù/¥.Ù-H0™Ù(t-4,4`¥c0ÆÀò¬à€€ú›ò[YHH\ôŸ]õò[YH\ôŸ]öYìî»é¬à€€ú›X›X[Hõ‹õX[^ôJ\ôŸ]úõ€JHõ‹õX[^ôJ\ôŸ]ù\JHù[ö€õ›€àé¬àYà
+X›X[	âàô\‹ùYõ€H	âàX›X[OOHô\‹ùYõ€JH¬àô]\õà4/¥`¥.¥`4/¥.t`¥-HH4`H	€ò[Y_H
+4`4/¥.Ùc	ÿX›X[JH4.4,¥bÙ,t-t`4.4`¥-H0™Ù(t-4,4`¥c0Æ»4.¥,4.àâ‹ô\‹ùYõ€_Hà8†%4a4,4.¥`¥b»4/t-H4/Ù/¥-4`¥,¥-t`4-4cÙ`¥`tcÀò¬àBàô]\õà4/¥`¥.¥`4/¥.t`¥-HH4`H	€ò[Y_H4.4,¥bÙ,t-t`4.4`¥-H0™Ù(t-4,4`¥c0Æ»4.¥,4.àâ‹ô\‹ùYõ€_Hãò¬àN¬àô]\õà¬à⁄ŒàùYKà[›ŸYõ€RŸ^\Àà^[\\Œà¬àùYTô\‹ùà¬àõ€RŸ^NàùYTõ€RŸ^Kà\ôŸ]YàùYU\ôŸ]	âàùYU\ôŸ]öYà\ôŸ]ò[YNàùYU\ôŸ]	âàùYU\ôŸ]õò[YKàõ›NàùZ[[ù
+ùYU\ôŸ]ùYTõ€RŸ^JKàKàò[ŸTô\‹ùà¬àõ€RŸ^Nàò[ŸTõ€RŸ^Kà\ôŸ]Yàò[ŸU\ôŸ]	âàò[ŸU\ôŸ]öYà\ôŸ]ò[YNàò[ŸU\ôŸ]	âàò[ŸU\ôŸ]õò[YKàõ›NàùZ[[ù
+ò[ŸU\ôŸ]ò[ŸTõ€RŸ^JKàKàKàõ›Nà¥&4`t/Ù/¥.Ùc4-Ù`Ù.t`¥-H4ct`¥.õ€RŸ^H4aÙ-t`4-t-»\Tô\‹ùûTõ€H4.4.Ù.4aÙ-t`4-t-»RK4aÙ`¥/¥,tb»4/Ù/¥.Ù`ÙaÙ.4`¥c4`t`¥,4,t.4.Ùc4/tbÙ-HùYKŸò[ŸH4`ta¥-t/t,4`4.4.àãàN¬àHÿ]⁄
+\úõ‹äH¬àô]\õà»⁄Œàò[ŸKôX\€€éà\úõ‹à	âà\úõ‹ãõY\‹ÿYŸH»\úõ‹ãõY\‹ÿYŸHàõ\›‹ô\‹ù‹õ€\◊ŸòZ[YàN¬àBàN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—à
+⁄[ô›Àëÿ[YKó◊—H⁄[ô›Àëÿ[YKó◊—ﬂJN¬à€€ú›ÿ[\S[Z]H
+‹»	âàù[Xô\ãö\—ö[ö]J‹Àúÿ[\S[Z]
+JH»
+‹Àúÿ[\S[Z]
+HàN¬à€€ú››[[X\ûHH»õ›‹–⁄X⁄ŸYà⁄[[ù€›[ùà⁄[[ùÿ[\\Œà◊HN¬à€€ú›òZ[YH◊N¬à€€ú›ÿŸ[ò\ö[–]Y]H◊N¬Çà€€ú›[ú›\ôT⁄[ù—õ‹îô[X]⁄H
+\ôŸ]Yò]RY
+HOà¬àYà
+]\ôŸ]Y
+Hô]\õé¬à€€ú›X€€àHÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^Hù[¬àYà
+QX€€à\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àäHô]\õé¬à€€ú›Ÿ]€ò\⁄›⁄[ù»H
+Y
+HOà¬à€€ú››]TôYàHÿ[YKó◊‘»ÿ[YKî›]HﬂN¬àYà
+\Y
+Hô]\õà¬àYà
+YOOHõYHäH¬à€€ú›YHH›]TôYãõYH
+›]TôYãú^Y\ú»	âà›]TôYãú^Y\úÀõYJN¬àô]\õà
+YH	âàù[Xô\ãö\—ö[ö]JYKú⁄[ù JH»
+YKú⁄[ù»
+Hà¬àBà€€ú›^Y\àH›]TôYãú^Y\ú»»›]TôYãú^Y\ú÷‹YHàù[¬àô]\õà
+^Y\à	âàù[Xô\ãö\—ö[ö]J^Y\ãú⁄[ù JH»
+^Y\ãú⁄[ù»
+Hà¬àN¬àYà
+Ÿ]€ò\⁄›⁄[ù \ôŸ]Y
+HèHJHô]\õé¬àûH¬àX€€ãùò[úŸô\î⁄[ù ù€‹õò[ö»ã\ôŸ]YKú€[⁄ŸW‹ô[X]⁄‹ŸYYã¬àò]RYà€€ù^à»ò]RYKàY]Nà»€[⁄ŸNàôX€€ó›ZW€õ◊‹⁄[[ùàBàJN¬àHÿ]⁄
+ HﬂBàN¬Çà€€ú›ù[îô[X]⁄ÿŸ[ò\ö[»H
+
+HOà¬à€€ú›€‹ôHHÿ[YKê€€ôõX›€‹ôHÿ[YKó–€€ôõX›€‹ôHù[¬àYà
+P€‹ôH\[Ÿà€‹ôKúô\]Y\›ô[X]⁄OOHôù[ò›[€àà\[Ÿà€‹ôKúô\‹€ôô[X]⁄OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄ÿ€‹ôW€Z\‹⁄[ô»àN¬àBàYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBà€€ú›ò]Tô\»Hÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àYà
+Xò]Tô\»ò]Tô\Àõ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W‹€[⁄ŸWŸòZ[Yãò]Tô\»N¬à€€ú›ò]RYHò]Tô\Àòò]RYù[¬àYà
+Xò]RY
+Hô]\õà»⁄Œàò[ŸKôX\€€éàòò]W⁄Y€Z\‹⁄[ô»àN¬à€€ú››]TôYàHÿ[YKó◊‘»ÿ[YKî›]HﬂN¬à€€ú›ò]HH
+›]TôYãòò]\»◊JKôö[ô
+àOàà	âà›ö[ô ãöY
+HOOH›ö[ô ò]RY
+JN¬àYà
+Xò]JHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W€Z\‹⁄[ô»ãò]RYN¬à€€ú›ô\›[Xô[H›ö[ô ò]Kúô\›[àäKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›⁄[õô\íYH
+ô\›[Xô[OOHù⁄[àäH»õYHàà
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äN¬à€€ú›‹Ÿ\íYH
+ô\›[Xô[OOHù⁄[àäH»
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äHàõYHé¬àYà
+[‹Ÿ\íY
+Hô]\õà»⁄Œàò[ŸKôX\€€éàõ‹Ÿ\ó€Z\‹⁄[ô»àN¬à[ú›\ôT⁄[ù—õ‹îô[X]⁄
+‹Ÿ\íYò]RY
+N¬à€€ú›ô\]Y\›H€‹ôKúô\]Y\›ô[X]⁄
+ò]RY‹Ÿ\íY
+N¬àYà
+\ô\]Y\›ô\]Y\›õ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄‹ô\]Y\›ŸòZ[Yãô\]Y\›N¬à€€ú›ô\‹€ôH€‹ôKúô\‹€ôô[X]⁄
+ò]RYùYK⁄[õô\íY
+N¬àYà
+\ô\‹€ôô\‹€ôõ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄‹ô\‹€ôŸòZ[Yãô\‹€ôN¬àô]\õà»⁄ŒàùYKò]RYô\]Y\›ô\‹€ôN¬àN¬Çà€€ú›ÿŸ[ò\ö[—Yú»H¬à¬àXô[àòò]Hãàù[õô\éà
+
+HOà¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBàô]\õàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àBàKà¬àXô[àò‹õ›Ÿãàù[õô\éà
+
+HOà¬à€€ú›XY»H»›YŸNàú›\ùãòXŸNà◊HN¬àûH¬àXYÀú›YŸHHõú◊Ÿ]ô[ùé¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸHOOHôù[ò›[€àäH¬à€€ú›ô\»Hÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸJ»õ‹òŸPúò[ò⁄àõXZõ‹ö]HàJN¬àXYÀùòXŸKú\⁄
+õú◊Ÿ]ô[ùŸ€ôHäN¬àYà
+ô\»	âàô\Àõ⁄»OOHò[ŸJHô]\õàÿöôX›ò\‹⁄Y€ä»⁄ŒàùYHKô\À»XY»JN¬àXYÀùòXŸKú\⁄
+õú◊Ÿ]ô[ùŸòZ[YäN¬àH[ŸH¬àXYÀùòXŸKú\⁄
+õú◊Ÿ]ô[ù€Z\‹⁄[ô»äN¬àBàXYÀú›YŸHHòò]WŸò[òX⁄»é¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬à€€ú›ô\ÃàHÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àXYÀùòXŸKú\⁄
+òò]WŸò[òX⁄◊Ÿ€ôHäN¬àYà
+ô\Ãà	âàô\Ããõ⁄»OOHò[ŸJHô]\õàÿöôX›ò\‹⁄Y€ä»⁄ŒàùYHKô\Ãã»XYÀõ›\Œà»ôò[òX⁄◊ÿò]HóHJN¬àô]\õà»⁄Œàò[ŸKôX\€€éàò‹õ›ŸŸò[òX⁄◊ŸòZ[Yã]Z[Œàô\ÃãXY»N¬àBàô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸWÿ‹õ›Ÿ€Z\‹⁄[ô»ãXY»N¬àHÿ]⁄
+\úäH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàò‹õ›ŸŸ^Ÿ\[€àãà\úìY\‹ÿYŸNà\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäKà\úî›X⁄Œà\úà	âà\úãú›X⁄»»›ö[ô \úãú›X⁄ Hàù[àXY¬àN¬àBàBàKà¬àXô[àúô\‹ùãàù[õô\éà
+
+HOà¬àYà
+\[Ÿà⁄[ô›Àô]îô\‹ù\›OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàô]îô\‹ù\›€Z\‹⁄[ô»àN¬àBàô]\õà⁄[ô›Àô]îô\‹ù\›
+»[ŸNàôò[ŸHàJN¬àBàKà»Xô[àúô[X]⁄ãù[õô\éàù[îô[X]⁄ÿŸ[ò\ö[»Kà¬àXô[àô\ÿÿ\Hãàù[õô\éà
+
+HOà¬à€€ú›XY»H»›YŸNàú›\ùãòXŸNà◊HN¬àûH¬àXYÀú›YŸHHòÿ[‹€[⁄ŸHé¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»óKXY»N¬àBà€€ú›ô\»Hÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àXYÀùòXŸKú\⁄
+ú€[⁄ŸWÿÿ[YäN¬àYà
+ô\»	âàô\Àõ⁄»OOHò[ŸJH¬àô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸWŸòZ[Y€õ€ôò][óK]Z[Œàô\ÀXY»N¬àBàô]\õàÿöôX›ò\‹⁄Y€ä»⁄ŒàùYHKô\»ﬂK»XY»JN¬àHÿ]⁄
+\úäH¬àô]\õà¬à⁄ŒàùYKàôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãàõ›\Œà»ô\ÿÿ\WŸ^Ÿ\[€ó€õ€ôò][óKà\úìY\‹ÿYŸNà\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäKà\úî›X⁄Œà\úà	âà\úãú›X⁄»»›ö[ô \úãú›X⁄ Hàù[àXY¬àN¬àBàBàBàN¬Çà€€ú›ù[îÿŸ[ò\ö[»H
+YäHOà¬à€€ú›ôYõ‹ôS[àH
+\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›à¬à]ÿŸ[ò\ö[‘ô\›[Hù[¬à]\úìY\‹ÿYŸHHù[¬à]\úî›X⁄»Hù[¬à]›YŸHHúù[õô\àé¬àûH¬à›YŸHHúù[õô\óÿÿ[é¬àÿŸ[ò\ö[‘ô\›[HYãúù[õô\ä
+N¬àHÿ]⁄
+\úäH¬àÿŸ[ò\ö[‘ô\›[H»⁄Œàò[ŸKôX\€€éà\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHàô^Ÿ\[€ààN¬à\úìY\‹ÿYŸHH\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäN¬à\úî›X⁄»H\úà	âà\úãú›X⁄»»›ö[ô \úãú›X⁄ Hàù[¬à›YŸHHúù[õô\óŸ^Ÿ\[€àé¬àBà€€ú›Yù\ì[àH
+\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›à¬à€€ú›õ›‹»H
+\úò^Kö\–\úò^JôÀõ[€ô^SŸ H	âàYù\ì[ààôYõ‹ôS[äH»ôÀõ[€ô^SŸÀú€XŸJôYõ‹ôS[ãYù\ì[äHà◊N¬àÿŸ[ò\ö[–]Y]ú\⁄
+¬àXô[àYãõXô[à⁄ŒàÿŸ[ò\ö[‘ô\›[»
+ÿŸ[ò\ö[‘ô\›[õ⁄»OOHò[ŸJHàùYKàôX\€€éàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[úôX\€€à»ÿŸ[ò\ö[‘ô\›[úôX\€€ààù[àõ›‹–€›[ùàõ›‹Àõ[ô›àò]RYàÿŸ[ò\ö[‘ô\›[	âà
+ÿŸ[ò\ö[‘ô\›[òò]RY
+ÿŸ[ò\ö[‘ô\›[ô]Z[»	âàÿŸ[ò\ö[‘ô\›[ô]Z[Àòò]RY
+JH»
+ÿŸ[ò\ö[‘ô\›[òò]RYÿŸ[ò\ö[‘ô\›[ô]Z[Àòò]RY
+Hàù[à]ô[ùYàÿŸ[ò\ö[‘ô\›[	âà
+ÿŸ[ò\ö[‘ô\›[ô]ô[ùY
+ÿŸ[ò\ö[‘ô\›[ô]Z[»	âàÿŸ[ò\ö[‘ô\›[ô]Z[Àô]ô[ùY
+JH»
+ÿŸ[ò\ö[‘ô\›[ô]ô[ùYÿŸ[ò\ö[‘ô\›[ô]Z[Àô]ô[ùY
+Hàù[à›YŸKà\úìY\‹ÿYŸNàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[ô\úìY\‹ÿYŸH»ÿŸ[ò\ö[‘ô\›[ô\úìY\‹ÿYŸHà\úìY\‹ÿYŸKà\úî›X⁄ŒàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[ô\úî›X⁄»»ÿŸ[ò\ö[‘ô\›[ô\úî›X⁄»à\úî›X⁄Àà]Z[ŒàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[ô]Z[»»ÿŸ[ò\ö[‘ô\›[ô]Z[»àù[àXYŒàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[ôXY»»ÿŸ[ò\ö[‘ô\›[ôXY»àù[àõ›\ŒàÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[õõ›\»»ÿŸ[ò\ö[‘ô\›[õõ›\»àù[àJN¬àYà
+ÿŸ[ò\ö[‘ô\›[	âàÿŸ[ò\ö[‘ô\›[õ⁄»OOHò[ŸJH¬àòZ[Yú\⁄
+ÿŸ[ò\ö[ŒâŸYãõXô[Nâ‹ÿŸ[ò\ö[‘ô\›[úôX\€€àôòZ[YüX
+N¬àBàõ›‹Àôõ‹ëXX⁄
+õ›»Oà¬àYà
+\õ›»\[Ÿàõ›»OOHõÿöôX›äHô]\õé¬à€€ú›[ùõ€ô\”YHH
+›ö[ô õ›Àú€›\òŸRYàäHOOHõYHäH
+›ö[ô õ›Àù\ôŸ]YàäHOOHõYHäN¬à€€ú›[[›[ù€›\òŸHH
+õ›Àò[[›[ùOOH[ôYö[ôY
+H»õ›Àò[[›[ùà
+
+õ›Àô[HOOH[ôYö[ôY
+H»õ›Àô[Hà
+N¬à€€ú›[[›[ùHù[Xô\ä[[›[ù€›\òŸJN¬à€€ú››\úô[òﬁPÿ[ôY]HH›ö[ô õ›Àò›\úô[òﬁHõ›Àö⁄[ôàäKù”›Ÿ\êÿ\ŸJ
+N¬àYà
+Z[ùõ€ô\”YH	âà\õ›ÀùY
+Hô]\õé¬àYà
+[ùõ€ô\”YH	âà
+\õ›ÀùYõ›ÀùYOOHù[ôYö[ôYäJH¬àòZ[Yú\⁄
+Z\‹⁄[ô◊›Yâ‘›ö[ô õ›ÀúôX\€€àù[ö€õ›€àä_X
+N¬àô]\õé¬àBàYà
+[ùõ€ô\”YH	âàù[Xô\ãö\—ö[ö]J[[›[ù
+H	âà[[›[ùOOH
+H¬àYà
+›\úô[òﬁPÿ[ôY]HOOHú⁄[ù»à	âà›\úô[òﬁPÿ[ôY]HOOHúô\äH¬àòZ[Yú\⁄
+Z\‹⁄[ô◊ÿ›\úô[òﬁNâ‘›ö[ô õ›ÀúôX\€€àù[ö€õ›€àä_X
+N¬àô]\õé¬àBàBàYà
+⁄›[ÿ\›õ› õ› JH¬à›[[X\ûKúõ›‹–⁄X⁄ŸY
+œHN¬à€€ú›\’ÿ\›H\úò^Kö\–\úò^JôÀùÿ\›Ÿ H»ôÀùÿ\›ŸÀú€€YJOà	âàö⁄[ôOOHôX€€àà	âàõ›ÀùY	âàõ›ÀùYOOHùY
+Hàò[ŸN¬àYà
+Z\’ÿ\›
+H¬à›[[X\ûKú⁄[[ù€›[ù
+œHN¬àYà
+›[[X\ûKú⁄[[ùÿ[\\Àõ[ô›ÿ[\S[Z]
+H¬à›[[X\ûKú⁄[[ùÿ[\\Àú\⁄
+¬àÿŸ[ò\ö[ŒàYãõXô[àôX\€€éàõ›ÀúôX\€€ãà›\úô[òﬁNàõ›Àò›\úô[òﬁKà[[›[ùàõ›Àò[[›[ùàYàõ›ÀùYàò]RYàõ›Àòò]RYà]ô[ùYàõ›Àô]ô[ùYàJN¬àBàòZ[Yú\⁄
+⁄[[ùâŸYãõXô[Nâ‘›ö[ô õ›ÀúôX\€€àù[ö€õ›€àä_NõZ\‹⁄[ôÿ
+N¬àBàBàJN¬àN¬Çàõ‹à
+€€ú›ÿŸ[ò\ö[—YàŸàÿŸ[ò\ö[—Yú H¬àù[îÿŸ[ò\ö[ ÿŸ[ò\ö[—YäN¬àBÇà€€ú›ô\›[H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[Yà›[[X\ûKàÿŸ[ò\ö[‹ŒàÿŸ[ò\ö[–]Y]àN¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RMW–”’ëTêQ—W–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RMW–”’ëTêQ—W—SëäN¬àHÿ]⁄
+ HﬂBàûH»€€ú€€KõŸ ëP””ó’RMW–”’ëTêQ—W‘ëT’Sãô\›[
+N»Hÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãù⁄]ô\õ‘›[P\‹Ÿ\ùH⁄]ô\õ‘›[P\‹Ÿ\ù¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸJ‹»HﬂJH¬à€€ú›õ›»H
+
+HOà
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ‹õX][Y\›[\H
+›[\
+HOà¬à€€ú›Hô]»]J›[\
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+H
+»J_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú›òZ[YH◊N¬à€€ú›ÿŸ[ò\ö[‹»H◊N¬Çà€€ú›ù[îô[X]⁄ÿŸ[ò\ö[»H
+
+HOà¬à€€ú›€‹ôHHÿ[YKê€€ôõX›€‹ôHÿ[YKó–€€ôõX›€‹ôHù[¬àYà
+P€‹ôH\[Ÿà€‹ôKúô\]Y\›ô[X]⁄OOHôù[ò›[€àà\[Ÿà€‹ôKúô\‹€ôô[X]⁄OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄ÿ€‹ôW€Z\‹⁄[ô»àN¬àBàYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBà€€ú›ò]Tô\»Hÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àYà
+Xò]Tô\»ò]Tô\Àõ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W‹€[⁄ŸWŸòZ[Yãò]Tô\»N¬à€€ú›ò]RYHò]Tô\Àòò]RYù[¬àYà
+Xò]RY
+Hô]\õà»⁄Œàò[ŸKôX\€€éàòò]W⁄Y€Z\‹⁄[ô»àN¬à€€ú››]TôYàHÿ[YKó◊‘»ÿ[YKî›]HﬂN¬à€€ú›ò]HH
+›]TôYãòò]\»◊JKôö[ô
+àOàà	âà›ö[ô ãöY
+HOOH›ö[ô ò]RY
+JN¬àYà
+Xò]JHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W€Z\‹⁄[ô»ãò]RYN¬à€€ú›ô\›[Xô[H›ö[ô ò]Kúô\›[àäKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›⁄[õô\íYH
+ô\›[Xô[OOHù⁄[àäH»õYHàà
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äN¬à€€ú›‹Ÿ\íYH
+ô\›[Xô[OOHù⁄[àäH»
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äHàõYHé¬àYà
+[‹Ÿ\íY
+Hô]\õà»⁄Œàò[ŸKôX\€€éàõ‹Ÿ\ó€Z\‹⁄[ô»àN¬à€€ú›X€€àHÿ[YKê€€ôõX›X€€õ€^Hÿ[YKó–€€ôõX›X€€õ€^Hù[¬àYà
+X€€à	âà\[ŸàX€€ãùò[úŸô\î⁄[ù»OOHôù[ò›[€àäH¬à€€ú›»Hÿ[YKó◊‘»ÿ[YKî›]HﬂN¬à€€ú›H
+‹Ÿ\íYOOHõYHäH»
+ÀõYH
+Àú^Y\ú»	âàÀú^Y\úÀõYJJHà
+Àú^Y\ú»»Àú^Y\ú÷€‹Ÿ\íYHàù[
+N¬à€€ú›]ôHH
+	âàù[Xô\ãö\—ö[ö]Jú⁄[ù JH»
+ú⁄[ù»
+Hà¬àYà
+]ôHJH¬àX€€ãùò[úŸô\î⁄[ù ù€‹õò[ö»ã‹Ÿ\íYKú€[⁄ŸW‹ô[X]⁄‹ŸYYã»ò]RYJN¬àBàBà€€ú›ô\]Y\›H€‹ôKúô\]Y\›ô[X]⁄
+ò]RY‹Ÿ\íY
+N¬àYà
+\ô\]Y\›ô\]Y\›õ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄‹ô\]Y\›ŸòZ[Yãô\]Y\›N¬à€€ú›ô\‹€ôH€‹ôKúô\‹€ôô[X]⁄
+ò]RYùYK⁄[õô\íY
+N¬àYà
+\ô\‹€ôô\‹€ôõ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄‹ô\‹€ôŸòZ[Yãô\‹€ôN¬àô]\õà»⁄ŒàùYKò]RYô\]Y\›ô\‹€ôN¬àN¬Çà€€ú›ÿŸ[ò\ö[—Yú»H¬à¬àXô[àòò]Hãàù[õô\éà
+
+HOà¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBàô]\õàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àBàKà¬àXô[àò‹õ›Ÿãàù[õô\éà
+
+HOà¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸHOOHôù[ò›[€àäH¬àô]\õàÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸJ»õ‹òŸPúò[ò⁄àõXZõ‹ö]HàJN¬àBàYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬à€€ú›ô\»Hÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àô]\õàÿöôX›ò\‹⁄Y€ä»õ›\Œà»ôò[òX⁄◊ÿò]HóHKô\»ﬂJN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸWÿ‹õ›Ÿ€Z\‹⁄[ô»àN¬àBàKà¬àXô[àúô\‹ùãàù[õô\éà
+
+HOà¬àYà
+\[Ÿà⁄[ô›Àô]îô\‹ù\›OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàô]îô\‹ù\›€Z\‹⁄[ô»àN¬àBàô]\õà⁄[ô›Àô]îô\‹ù\›
+»[ŸNàôò[ŸHàJN¬àBàKà»Xô[àúô[X]⁄ãù[õô\éàù[îô[X]⁄ÿŸ[ò\ö[»Kà¬àXô[àô\ÿÿ\Hãàù[õô\éà
+
+HOà¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»óHN¬àBà€€ú›ô\»Hÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àYà
+ô\»	âàô\Àõ⁄»OOHò[ŸJHô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸWŸòZ[Y€õ€ôò][óK]Z[Œàô\»N¬àô]\õàô\Œ¬àBàBàN¬Çà€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—àù[¬àõ‹à
+€€ú›ÿŸ[ò\ö[»ŸàÿŸ[ò\ö[—Yú H¬à]ÿŸ[ò\ö[‘ô\»Hù[¬à]\úìY\‹ÿYŸHHù[¬à€€ú›ôYõ‹ôS[àH
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›à¬àûH¬àÿŸ[ò\ö[‘ô\»HÿŸ[ò\ö[Àúù[õô\ä
+N¬àHÿ]⁄
+\úäH¬à\úìY\‹ÿYŸHH\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäN¬àBà€€ú›Yù\ì[àH
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›àôYõ‹ôS[é¬à€€ú›õ›‹»H
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ H	âàYù\ì[ààôYõ‹ôS[äH»ôÀõ[€ô^SŸÀú€XŸJôYõ‹ôS[ãYù\ì[äHà◊N¬àYà
+ÿŸ[ò\ö[‘ô\»	âà\[ŸàÿŸ[ò\ö[‘ô\»OOHõÿöôX›äHÿŸ[ò\ö[‘ô\Àó◊‹õ›‹»Hõ›‹Œ¬à€€ú›ô\›[H⁄]ô\õ‘›[P\‹Ÿ\ù
+ZMéâ‹ÿŸ[ò\ö[ÀõXô[X
+
+HOàÿŸ[ò\ö[‘ô\ N¬à€€ú›[ùûHH¬àXô[àÿŸ[ò\ö[ÀõXô[à⁄Œàô\›[õ⁄Àà[Nàô\›[ô[KàôYõ‹ôU›[àô\›[òôYõ‹ôU›[àYù\ï›[àô\›[òYù\ï›[à[ò€YRY–€›[ùàô\›[ö[ò€YRY–€›[ùà‹[ò‹ôX\Ÿ\Œàô\›[ù‹[ò‹ôX\Ÿ\ÀàÿŸ[ò\ö[‘ô\›[àô\›[úô\›[ù[à\úõ‹éàô\›[ô\úõ‹à\úìY\‹ÿYŸHù[àN¬àÿŸ[ò\ö[‹Àú\⁄
+[ùûJN¬àYà
+\ô\›[õ⁄ HòZ[Yú\⁄
+[W‹‹⁄]]ôNâ‹ÿŸ[ò\ö[ÀõXô[Nâ‹ô\›[ô[_X
+N¬àBÇà€€ú››]]H¬à⁄ŒàòZ[Yõ[ô›OOHàòZ[YàÿŸ[ò\ö[‹Ààõ›\Œà◊BàN¬àûH¬à€€ú››[\Hõ‹õX][Y\›[\
+õ› 
+JN¬à€€ú€€KõŸ ST–U…‹›[\WX
+N¬à€€ú€€KõŸ ëP””ó’RMó÷ëTì◊‘’SW–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJ›]]
+JN¬à€€ú€€KõŸ ëP””ó’RMó÷ëTì◊‘’SW—SëäN¬àHÿ]⁄
+ HﬂBàûH»€€ú€€KõŸ ëP””ó’RMó÷ëTì◊‘’SW‘ëT’Sã›]]
+N»Hÿ]⁄
+ HﬂBàô]\õà›]]¬àN¬àÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHHù[ò›[€àô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+H¬à€€ú›»H
+ÿ[YH	âà
+ÿ[YKó◊‘»ÿ[YKî›]JJH»
+ÿ[YKó◊‘»ÿ[YKî›]JHàù[¬à€€ú›ô\›[H¬à⁄ŒàùYKàX›]ôPò]\–ôYõ‹ôNààX›]ôPò]\–Yù\éààX›]ôQ]ô[ù–ôYõ‹ôNààX›]ôQ]ô[ù–Yù\éàà€X\ôYàò[ŸBàN¬àYà
+T Hô]\õàÿöôX›ò\‹⁄Y€äô\›[»⁄Œàò[ŸKôX\€€éàú›]W€Z\‹⁄[ô»àJN¬à€€ú›ò]\»H\úò^Kö\–\úò^JÀòò]\ H»Àòò]\»à◊N¬à€€ú›]ô[ù»H\úò^Kö\–\úò^JÀô]ô[ù H»Àô]ô[ù»à◊N¬à€€ú›\–ò]PX›]ôHH
+äHOà¬àYà
+XäHô]\õàò[ŸN¬àYà
+ãúô\€€ôYOOHùYJHô]\õàò[ŸN¬àYà
+ãôö[ö\⁄YOOHùYJHô]\õàò[ŸN¬àYà
+›ö[ô ãú›]\»àäHOOHôö[ö\⁄YäHô]\õàò[ŸN¬àô]\õàùYN¬àN¬à€€ú›\—]ô[ùX›]ôHH
+]äHOà¬àYà
+Y]äHô]\õàò[ŸN¬àYà
+]ãúô\€€ôYOOHùYJHô]\õàò[ŸN¬à€€ú›»H›ö[ô ]ãú›]H]ãú›]\»àäN¬àYà
+»OOHúô\€€ôYà»OOHôö[ö\⁄YäHô]\õàò[ŸN¬àô]\õàùYN¬àN¬àô\›[òX›]ôPò]\–ôYõ‹ôHHò]\Àôö[\ä\–ò]PX›]ôJKõ[ô›¬àô\›[òX›]ôQ]ô[ù–ôYõ‹ôHH]ô[ùÀôö[\ä\—]ô[ùX›]ôJKõ[ô›¬àYà
+ô\›[òX›]ôPò]\–ôYõ‹ôJH¬àÀòò]\»Hò]\Àôö[\äàOàZ\–ò]PX›]ôJäJN¬àBàYà
+ô\›[òX›]ôQ]ô[ù–ôYõ‹ôJH¬àÀô]ô[ù»H]ô[ùÀôö[\ä]àOàZ\—]ô[ùX›]ôJ]äJN¬àBà€€ú›ò]\–Yù\àH\úò^Kö\–\úò^JÀòò]\ H»Àòò]\»à◊N¬à€€ú›]ô[ù–Yù\àH\úò^Kö\–\úò^JÀô]ô[ù H»Àô]ô[ù»à◊N¬àô\›[òX›]ôPò]\–Yù\àHò]\–Yù\ãôö[\ä\–ò]PX›]ôJKõ[ô›¬àô\›[òX›]ôQ]ô[ù–Yù\àH]ô[ù–Yù\ãôö[\ä\—]ô[ùX›]ôJKõ[ô›¬àô\›[ò€X\ôYH
+ô\›[òX›]ôPò]\–ôYõ‹ôHOOHô\›[òX›]ôPò]\–Yù\äH
+ô\›[òX›]ôQ]ô[ù–ôYõ‹ôHOOHô\›[òX›]ôQ]ô[ù–Yù\äN¬àûH¬àYà
+ÿ[YH	âàÿ[YKïRH	âà\[Ÿàÿ[YKïRKúô\]Y\›[OOHôù[ò›[€àäH¬àÿ[YKïRKúô\]Y\›[
+
+N¬àBàHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àÿ[YKó◊—Uãúô\Ÿ]ô[X]⁄€›[ù\ú—õ‹î€[⁄Ÿ\”€òŸHHù[ò›[€àô\Ÿ]ô[X]⁄€›[ù\ú—õ‹î€[⁄Ÿ\”€òŸJ
+H¬à€€ú›»H
+ÿ[YH	âà
+ÿ[YKó◊‘»ÿ[YKî›]JJH»
+ÿ[YKó◊‘»ÿ[YKî›]JHàù[¬àYà
+T»P\úò^Kö\–\úò^JÀòò]\ JHô]\õà»⁄Œàò[ŸKôX\€€éàú›]W€Z\‹⁄[ô»àN¬à]€X\ôYH¬àõ‹à
+€€ú›àŸàÀòò]\ H¬àYà
+XäH€€ù[ùYN¬àYà
+ù[Xô\ãö\—ö[ö]Jãúô[X]⁄ô\]Y\›€›[ù
+H	âàãúô[X]⁄ô\]Y\›€›[ùOOH
+H¬àãúô[X]⁄ô\]Y\›€›[ùH¬à€X\ôY
+œHN¬àBàBàô]\õà»⁄ŒàùYK€X\ôYN¬àN¬àÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸJ‹»HﬂJH¬à€€ú›õ›”\»H
+
+HOà
+\[Ÿà\ôõ‹õX[òŸHOOHù[ôYö[ôYà	âà\[Ÿà\ôõ‹õX[òŸKõõ›»OOHôù[ò›[€àäH»\ôõ‹õX[òŸKõõ› 
+Hà]Kõõ› 
+N¬à€€ú››[›\ùHõ›”\ 
+N¬à€€ú›ô\›[›\»H◊N¬à€€ú›ôHH
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäBà»ÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+Bàà»⁄Œàò[ŸKôX\€€éàúô\Ÿ]€Z\‹⁄[ô»àN¬Çà€€ú›Ÿ‘›\H
+ò[YK›\ô\À\À\úìY\‹ÿYŸK\úî›X⁄ HOà¬à€€ú›⁄»HHJ›\ô\»	âà›\ô\Àõ⁄»OOHò[ŸJN¬à]òZ[Y€›[ùH
+›\ô\»	âà\úò^Kö\–\úò^J›\ô\ÀôòZ[Y
+JH»›\ô\ÀôòZ[Yõ[ô›à¬àYà
+[⁄»	âàòZ[Y€›[ùOOH
+HòZ[Y€›[ùHN¬à€€ú›õ›\»H
+›\ô\»	âà\úò^Kö\–\úò^J›\ô\Àõõ›\ JH»›\ô\Àõõ›\Àú€XŸJ
+Hà◊N¬àYà
+[⁄»	âà›\ô\»	âà›\ô\ÀúôX\€€äHõ›\Àú\⁄
+ôX\€€éâ‹›\ô\ÀúôX\€€üX
+N¬àô\›[›\Àú\⁄
+¬àò[YKà⁄Àà\ÀàòZ[Y€›[ùàõ›\Àà\úìY\‹ÿYŸKà\úî›X⁄Àà]Z[Œà
+[⁄ H»›\ô\»à
+›\ô\»	âà›\ô\Àó◊Ÿ]Z[»»›\ô\Àó◊Ÿ]Z[»àù[
+BàJN¬àN¬Çà€€ú›ÿYôTù[àH
+ò[YKõã‹‘ù[àHﬂJHOà¬à€€ú››\›\ùHõ›”\ 
+N¬à]›\ô\»Hù[¬à]\úìY\‹ÿYŸHHù[¬à]\úî›X⁄»Hù[¬àûH¬à›\ô\»Hõä
+N¬àHÿ]⁄
+\úäH¬à\úìY\‹ÿYŸHH\úà	âà\úãõY\‹ÿYŸH»›ö[ô \úãõY\‹ÿYŸJHà›ö[ô \úäN¬à\úî›X⁄»H\úà	âà\úãú›X⁄»»›ö[ô \úãú›X⁄ Hàù[¬à›\ô\»H»⁄Œàò[ŸKôX\€€éàô^Ÿ\[€ààN¬àBà€€ú››\[ôHõ›”\ 
+N¬àYà
+‹‘ù[à	âà\[Ÿà‹‘ù[ãú‹›õÿŸ\‹»OOHôù[ò›[€àäH¬à›\ô\»H‹‘ù[ãú‹›õÿŸ\‹ ›\ô\ H›\ô\Œ¬àBàŸ‘›\
+ò[YK›\ô\ÀX]úõ›[ô
+›\[ôH›\›\ù
+K\úìY\‹ÿYŸK\úî›X⁄ N¬àô]\õà›\ô\Œ¬àN¬Çà€€ú›ò]T›\H
+ò[YK‹‘›\
+HOàÿYôTù[äò[YK
+
+HOà¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBàô]\õàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJÿöôX›ò\‹⁄Y€ä»[›‘\ò[[àò[ŸHK‹‘›\
+JN¬àJN¬à€€ú›‹õ›Ÿ›\H
+ò[YKúò[ò⁄
+HOàÿYôTù[äò[YK
+
+HOà¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+N¬àBàYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸHOOHôù[ò›[€àäH¬àô]\õàÿ[YKó◊—Uãú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸJ»õ‹òŸPúò[ò⁄àúò[ò⁄JN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸSú–‹õ›Ÿ]ô[ùX€€õ€^S€òŸW€Z\‹⁄[ô»àN¬àK¬à‹›õÿŸ\‹Œà
+ô\ HOà¬à€€ú›‹õ›Ÿ\‹»HHJô\»	âà
+àô\Àõ⁄»OOHùYHà
+ô\Àù›[‘›XõHOOHùYH	âà
+ô\Àô[U€‹õ
+HOOH	âà
+ô\Àú€€Yù\à
+HOOH	âàô\Àú⁄[ù—Yôì⁄»OOHùYJBà
+JN¬àYà
+‹õ›Ÿ\‹»	âàô\»	âàô\Àõ⁄»OOHò[ŸJH¬à€€ú›õ›\»H\úò^Kö\–\úò^Jô\Àõõ›\ H»ô\Àõõ›\Àú€XŸJ
+Hà◊N¬àõ›\Àú\⁄
+ò‹õ›Ÿ€õ€ôò][‹€[⁄ŸW€⁄Œôò[ŸHäN¬àô]\õàÿöôX›ò\‹⁄Y€äﬂKô\À»⁄ŒàùYKõ›\À◊Ÿ]Z[Œà»⁄Œàô\Àõ⁄ÀX€€õ€^S⁄Œàô\ÀôX€€õ€^S⁄À›[‘›XõNàô\Àù›[‘›XõK[U€‹õàô\Àô[U€‹õ⁄[ù—Yôì⁄Œàô\Àú⁄[ù—Yôì⁄À€€Yù\éàô\Àú€€Yù\àHJN¬àBàô]\õàô\Œ¬àBàJN¬à€€ú›ô\‹ù›\H
+ò[YK[ŸJHOàÿYôTù[äò[YK
+
+HOà¬àYà
+\[Ÿà⁄[ô›Àô]îô\‹ù\›OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàô]îô\‹ù\›€Z\‹⁄[ô»àN¬àBàô]\õà⁄[ô›Àô]îô\‹ù\›
+»[ŸHJN¬àJN¬à€€ú›ô[X]⁄›\H
+ò[YJHOàÿYôTù[äò[YK
+
+HOà¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+N¬àBà€€ú›ô»H
+ÿ[YH	âàÿ[YKó◊—
+H»ÿ[YKó◊—àù[¬à€€ú›ôYõ‹ôS[àH
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›à¬à€€ú›€‹ôHHÿ[YKê€€ôõX›€‹ôHÿ[YKó–€€ôõX›€‹ôHù[¬àYà
+P€‹ôH\[Ÿà€‹ôKúô\]Y\›ô[X]⁄OOHôù[ò›[€àà\[Ÿà€‹ôKúô\‹€ôô[X]⁄OOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàúô[X]⁄ÿ€‹ôW€Z\‹⁄[ô»àN¬àBàYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»àN¬àBà€€ú››]TôYàHÿ[YKó◊‘»ÿ[YKî›]HﬂN¬à€€ú›€›[ùX›]ôPò]\»H
+
+HOà¬à€€ú›\›H\úò^Kö\–\úò^J›]TôYãòò]\ H»›]TôYãòò]\»à◊N¬àô]\õà\›ôö[\äàOàà	âàãúô\€€ôYOOHùYH	âàãôö[ö\⁄YOOHùYH	âà›ö[ô ãú›]\»àäHOOHôö[ö\⁄YäKõ[ô›¬àN¬à€€ú›Ÿ]YT⁄[ù»H
+
+HOà¬à€€ú›YHH›]TôYãõYH
+›]TôYãú^Y\ú»	âà›]TôYãú^Y\úÀõYJN¬àô]\õà
+YH	âàù[Xô\ãö\—ö[ö]JYKú⁄[ù JH»
+YKú⁄[ù»
+Hà¬àN¬à€€ú›Ÿ]⁄[ù—õ‹àH
+Y
+HOà¬àYà
+YOOHõYHäHô]\õàŸ]YT⁄[ù 
+N¬à€€ú›H›]TôYãú^Y\ú»»›]TôYãú^Y\ú÷‹YHàù[¬àô]\õà
+	âàù[Xô\ãö\—ö[ö]Jú⁄[ù JH»
+ú⁄[ù»
+Hà¬àN¬à€€ú›Ÿ]X›]ôPò]RYH
+
+HOà¬à€€ú›\›H\úò^Kö\–\úò^J›]TôYãòò]\ H»›]TôYãòò]\»à◊N¬à€€ú›X›]ôHH\›ôö[ô
+àOàà	âàãúô\€€ôYOOHùYH	âàãôö[ö\⁄YOOHùYH	âà›ö[ô ãú›]\»àäHOOHôö[ö\⁄YäN¬àô]\õàX›]ôH»X›]ôKöYù[àù[¬àN¬à€€ú›Ÿ]\›ò]RYH
+
+HOà
+\úò^Kö\–\úò^J›]TôYãòò]\ H	âà›]TôYãòò]\Àõ[ô›
+H»›]TôYãòò]\÷ÃKöYù[àù[¬à€€ú›Ÿ]^X›Yô[X]⁄€‹›H
+
+HOà¬à€€ú›\HHÿ[YKîô[X]⁄THÿ[YKîô[X]⁄ÿ[YKê€€ôõX›ô[X]⁄ù[¬à€€ú›€‹›õú»H¬à\H	âà\KôŸ]€‹›à\H	âà\Kò€‹›à\H	âà\Kòÿ[‘öXŸS€òŸKà€‹ôH	âà€‹ôKôŸ]ô[X]⁄€‹›à€‹ôH	âà€‹ôKòÿ[‘ô[X]⁄€‹›àN¬àõ‹à
+€€ú›õàŸà€‹›õú H¬àYà
+\[ŸàõàOOHôù[ò›[€àäH¬àûH¬à€€ú›ò[Hõãòÿ[
+\H€‹ôJN¬àYà
+ù[Xô\ãö\—ö[ö]Jò[
+JHô]\õàù[Xô\äò[
+N¬àHÿ]⁄
+ HﬂBàBàBàô]\õàù[¬àN¬à€€ú›[ú›\ôPò]P€€ù^H
+
+HOà¬à€€ú›ò]Tô\»Hÿ[YKó◊—Uãú€[⁄ŸPò]P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àYà
+Xò]Tô\»ò]Tô\Àõ⁄»OOHùYJHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W‹€[⁄ŸWŸòZ[Yãò]Tô\»N¬à€€ú›ò]RYHò]Tô\Àòò]RYù[¬àYà
+Xò]RY
+Hô]\õà»⁄Œàò[ŸKôX\€€éàòò]W⁄Y€Z\‹⁄[ô»àN¬à€€ú›ò]HH
+›]TôYãòò]\»◊JKôö[ô
+àOàà	âà›ö[ô ãöY
+HOOH›ö[ô ò]RY
+JN¬àYà
+Xò]JHô]\õà»⁄Œàò[ŸKôX\€€éàòò]W€Z\‹⁄[ô»ãò]RYN¬à€€ú›ô\›[Xô[H›ö[ô ò]Kúô\›[àäKù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›⁄[õô\íYH
+ô\›[Xô[OOHù⁄[àäH»õYHàà
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äN¬à€€ú›‹Ÿ\íYH
+ô\›[Xô[OOHù⁄[àäH»
+ò]Kõ‹€ô[ùYõú◊›ŸXZ»äHàõYHé¬à€€ú›ÿ[îô[X]⁄HHJò]Kúô\€€ôYò]Kôö[ö\⁄Yò]Kú›]\»OOHôö[ö\⁄YäN¬àô]\õà»⁄ŒàùYKò]RY⁄[õô\íY‹Ÿ\íYò]Kÿ[îô[X]⁄N¬àN¬à€€ú›ùZ[›]T⁄Y»H
+
+HOà
+¬àX›]ôPò]\Œà€›[ùX›]ôPò]\ 
+KàX›]ôPò]RYàŸ]X›]ôPò]RY
+
+Kà⁄[ù”YNàŸ]YT⁄[ù 
+Kà\›ò]RYàŸ]\›ò]RY
+
+Kàÿ[îô[X]⁄àù[àJN¬à€€ú›ŸYYõ‹ï\ôŸ]H
+\ôŸ]\ôŸ]YHõYHäHOà¬à€€ú›ôYõ‹ôHHŸ]⁄[ù—õ‹ä\ôŸ]Y
+N¬à]ŸYYô\»Hù[¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãô[ú›\ôT⁄[ù–]X\›õ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àûH¬àŸYYô\»Hÿ[YKó◊—Uãô[ú›\ôT⁄[ù–]X\›õ‹î€[⁄Ÿ\”€òŸJ\ôŸ]»\ôŸ]YJN¬àHÿ]⁄
+ H¬àŸYYô\»Hù[¬àBàBàYà
+\ŸYYô\»\[ŸàŸYYô\»OOHõÿöôX›äH¬à€€ú›Yù\àHŸ]⁄[ù—õ‹ä\ôŸ]Y
+N¬àŸYYô\»H»⁄Œàò[ŸKY]Ÿàù[[[›[ùàôYõ‹ôKYù\ã\úîôX\€€éàúŸYY⁄[\ó€Z\‹⁄[ô»ãõ›‹–€›[ùàZ[î’\ôŸ]à\ôŸ]\ôŸ]YN¬àBàô]\õàŸYYô\Œ¬àN¬à€€ú›ôT›]HHùZ[›]T⁄Y 
+N¬à€€ú›^X›Y€‹›HŸ]^X›Yô[X]⁄€‹›
+
+N¬à€€ú›Z[î’\ôŸ]Hù[Xô\ãö\—ö[ö]J^X›Y€‹›
+H»X]õX^
+ÃX]òŸZ[
+^X›Y€‹›
+à»
+»L
+JHàÃ¬à€€ú›ŸYYô\ÃHHŸYYõ‹ï\ôŸ]
+Z[î’\ôŸ]
+N¬à€€ú›⁄[ù–ôYõ‹ôTŸYYHù[Xô\ãö\—ö[ö]JŸYYô\ÃKòôYõ‹ôJH»ŸYYô\ÃKòôYõ‹ôHàŸ]YT⁄[ù 
+N¬à€€ú›⁄[ù–Yù\îŸYYHù[Xô\ãö\—ö[ö]JŸYYô\ÃKòYù\äH»ŸYYô\ÃKòYù\ààŸ]YT⁄[ù 
+N¬àYà
+\ŸYYô\ÃKõ⁄ H¬à€€ú›]ôT⁄[ù»HŸ]⁄[ù—õ‹äõYHäN¬à€€ú›€€\]Y€‹›Hù[Xô\ãö\—ö[ö]J^X›Y€‹›
+H»^X›Y€‹›àù[¬à€€ú›ôYY⁄[ù»H
+ù[Xô\ãö\—ö[ö]J€€\]Y€‹›
+H	âàù[Xô\ãö\—ö[ö]J]ôT⁄[ù JH»X]õX^
+
+€€\]Y€‹›
+HH
+]ôT⁄[ù»
+JHàù[¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàŸYYŸòZ[Y…‹ŸYYô\ÃKô\úîôX\€€àù[ö€õ›€àüXàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\ÃKà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–Yù\îŸYYà^Y\íYàõYHãà]ôT⁄[ùÀàôYY⁄[ùÀà€€\]Y€‹›àN¬àBà€€ú››HH[ú›\ôPò]P€€ù^
+
+N¬àYà
+X›Kõ⁄ H¬à€€ú›]ôT⁄[ù»HŸ]⁄[ù—õ‹äõYHäN¬à€€ú›€€\]Y€‹›Hù[Xô\ãö\—ö[ö]J^X›Y€‹›
+H»^X›Y€‹›àù[¬à€€ú›ôYY⁄[ù»H
+ù[Xô\ãö\—ö[ö]J€€\]Y€‹›
+H	âàù[Xô\ãö\—ö[ö]J]ôT⁄[ù JH»X]õX^
+
+€€\]Y€‹›
+HH
+]ôT⁄[ù»
+JHàù[¬àô]\õàÿöôX›ò\‹⁄Y€ä¬à⁄Œàò[ŸKàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\ÃKà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–Yù\îŸYYà^Y\íYàõYHãà]ôT⁄[ùÀàôYY⁄[ùÀà€€\]Y€‹›àK›JN¬àBàôT›]Kòÿ[îô[X]⁄H›Kòÿ[îô[X]⁄¬à€€ú›⁄[ù–ôYõ‹ôP][\HHŸ]YT⁄[ù 
+N¬à€€ú›][\HH€‹ôKúô\]Y\›ô[X]⁄
+›Kòò]RY›Kõ‹Ÿ\íY
+N¬à€€ú›][\TôX\€€àH
+][\H	âà][\KúôX\€€äH»›ö[ô ][\KúôX\€€äHàúô[X]⁄‹ô\]Y\›ŸòZ[Yé¬à€€ú›^òX›^HH
+][\ò[òX⁄”‹Ÿ\íY
+HOà¬à€€ú›^Y\íYH][\	âà][\ú^Y\íY»›ö[ô ][\ú^Y\íY
+Hà›ö[ô ò[òX⁄”‹Ÿ\íYõYHäN¬à€€ú›]ôT⁄[ù»Hù[Xô\ãö\—ö[ö]J][\	âà][\ö]ôT⁄[ù Bà»][\ö]ôT⁄[ù¬àà
+ù[Xô\ãö\—ö[ö]J][\	âà][\ö]ôJH»][\ö]ôHàŸ]⁄[ù—õ‹ä^Y\íY
+JN¬à€€ú›€€\]Y€‹›Hù[Xô\ãö\—ö[ö]J][\	âà][\ò€€\]Y€‹›
+Bà»][\ò€€\]Y€‹›àà
+ù[Xô\ãö\—ö[ö]J][\	âà][\ò€‹›
+H»][\ò€‹›à^X›Y€‹›
+N¬à€€ú›ôYY⁄[ù»Hù[Xô\ãö\—ö[ö]J][\	âà][\õôYY⁄[ù Bà»][\õôYY⁄[ù¬àà
+ù[Xô\ãö\—ö[ö]J€€\]Y€‹›
+H	âàù[Xô\ãö\—ö[ö]J]ôT⁄[ù H»X]õX^
+
+€€\]Y€‹›
+HH
+]ôT⁄[ù»
+JHàù[
+N¬àô]\õà»^Y\íY]ôT⁄[ùÀôYY⁄[ùÀ€€\]Y€‹›N¬àN¬à€€ú›^LHH^òX›^J][\K›Kõ‹Ÿ\íY
+N¬àYà
+][\H	âà][\Kõ⁄»OOHùYJH¬à€€ú›ô\‹€ôH€‹ôKúô\‹€ôô[X]⁄
+›Kòò]RYùYK›Kù⁄[õô\íY
+N¬àYà
+\ô\‹€ôô\‹€ôõ⁄»OOHùYJH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô[X]⁄‹ô\‹€ôŸòZ[Yãà][\Kàô\‹€ôàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\ÃKà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–Yù\îŸYYà⁄[ù–ôYõ‹ôP][\Kà][\TôX\€€ê€ŸNà][\TôX\€€ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àBà€€ú›‹››]HHùZ[›]T⁄Y 
+N¬à‹››]Kòÿ[îô[X]⁄H›Kòÿ[îô[X]⁄¬à€€ú›Yù\ì[àH
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›àôYõ‹ôS[é¬à€€ú›õ›‹–€›[ùHX]õX^
+Yù\ì[àHôYõ‹ôS[äN¬à€€ú››]H¬à⁄ŒàùYKàò]RYà›Kòò]RYà][\Kàô\‹€ôàôT›]Kà‹››]Kà][\TôX\€€ê€ŸNàù[àõ›‹–€›[ùàN¬à›]ó◊Ÿ]Z[»H¬àôT›]Kà‹››]Kà][\TôX\€€ê€ŸNàù[à][\îôX\€€ê€ŸNàù[à^X›Y€‹›àZ[î’\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\ÃKà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–Yù\îŸYYà⁄[ù–ôYõ‹ôP][\Kà⁄[ù–ôYõ‹ôP][\éàù[à^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àYà
+õ›‹–€›[ùOOH
+Hô]\õàÿöôX›ò\‹⁄Y€ä›]»⁄Œàò[ŸKôX\€€éàõõ◊ŸX€€ó‹õ›‹»àJN¬àô]\õà›]¬àBà€€ú›ô]ûTôX\€€ú»Hô]»Ÿ]
+»õõ◊‹⁄[ù»ãö[ú›YôöX⁄Y[ùãúô[X]⁄‹ô\]Y\›ŸòZ[Yãõõ◊€\›ÿò]Hãõõ›ÿ[›ŸYãòX›]ôWÿò]W‹ô\Ÿ[ùóJN¬àYà
+ô]ûTôX\€€úÀö\ ][\TôX\€€äJH¬à]ô]ûU\ôŸ]H
+][\TôX\€€àOOHõõ◊‹⁄[ù»äH»X]õX^
+ÃZ[î’\ôŸ]
+HàZ[î’\ôŸ]¬àYà
+][\TôX\€€àOOHõõ◊‹⁄[ù»äH¬àYà
+ù[Xô\ãö\—ö[ö]J^LKò€€\]Y€‹›
+JHô]ûU\ôŸ]HX]õX^
+ô]ûU\ôŸ]
+^LKò€€\]Y€‹›
+H
+»L
+N¬àYà
+ù[Xô\ãö\—ö[ö]J^LKö]ôT⁄[ù H	âàù[Xô\ãö\—ö[ö]J^LKõôYY⁄[ù JH¬àô]ûU\ôŸ]HX]õX^
+ô]ûU\ôŸ]
+^LKö]ôT⁄[ù»
+H
+»
+^LKõôYY⁄[ù»
+H
+»L
+N¬àBàBà€€ú›^Y\íYH^LKú^Y\íYõYHé¬à€€ú›ŸYYô\ÃàHŸYYõ‹ï\ôŸ]
+ô]ûU\ôŸ]^Y\íY
+N¬à€€ú›⁄[ù–ôYõ‹ôTŸYYàHù[Xô\ãö\—ö[ö]JŸYYô\ÃãòôYõ‹ôJH»ŸYYô\ÃãòôYõ‹ôHàŸ]⁄[ù—õ‹ä^Y\íY
+N¬à€€ú›⁄[ù–Yù\îŸYYàHù[Xô\ãö\—ö[ö]JŸYYô\ÃãòYù\äH»ŸYYô\ÃãòYù\ààŸ]⁄[ù—õ‹ä^Y\íY
+N¬àYà
+\ŸYYô\Ããõ⁄ H¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàŸYYŸòZ[Y…‹ŸYYô\Ããô\úîôX\€€àù[ö€õ›€àüXàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àô]ûU\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\Ããà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–ôYõ‹ôTŸYYãà⁄[ù–Yù\îŸYYà⁄[ù–Yù\îŸYYãà][\TôX\€€ê€ŸNà][\TôX\€€ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àBàYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+N¬àBà€€ú››àH[ú›\ôPò]P€€ù^
+
+N¬àYà
+X›ãõ⁄ H¬àô]\õàÿöôX›ò\‹⁄Y€ä¬à⁄Œàò[ŸKàôX\€€éàúô[X]⁄‹ô\]Y\›ŸòZ[Yãà][\KàôT›]Kà][\TôX\€€ê€ŸNà][\TôX\€€ãà^X›Y€‹›àZ[î’\ôŸ]àô]ûU\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\Ããà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–ôYõ‹ôTŸYYãà⁄[ù–Yù\îŸYYà⁄[ù–Yù\îŸYYãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àK›äN¬àBà€€ú›⁄[ù–ôYõ‹ôP][\àHŸ]YT⁄[ù 
+N¬à€€ú›][\àH€‹ôKúô\]Y\›ô[X]⁄
+›ãòò]RY›ãõ‹Ÿ\íY
+N¬à€€ú›][\îôX\€€àH
+][\à	âà][\ãúôX\€€äH»›ö[ô ][\ãúôX\€€äHàúô[X]⁄‹ô\]Y\›ŸòZ[Yé¬àYà
+][\à	âà][\ãõ⁄»OOHùYJH¬à€€ú›ô\‹€ôàH€‹ôKúô\‹€ôô[X]⁄
+›ãòò]RYùYK›ãù⁄[õô\íY
+N¬àYà
+\ô\‹€ôàô\‹€ôãõ⁄»OOHùYJH¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô[X]⁄‹ô\‹€ôŸòZ[Yãà][\Kà][\ãàô\‹€ôàô\‹€ôãàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àô]ûU\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\Ããà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–ôYõ‹ôTŸYYãà⁄[ù–Yù\îŸYYà⁄[ù–Yù\îŸYYãà⁄[ù–ôYõ‹ôP][\Kà⁄[ù–ôYõ‹ôP][\ãà][\TôX\€€ê€ŸNà][\TôX\€€ãà][\îôX\€€ê€ŸNà][\îôX\€€ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àBà€€ú›‹››]HHùZ[›]T⁄Y 
+N¬à‹››]Kòÿ[îô[X]⁄H›ãòÿ[îô[X]⁄¬à€€ú›Yù\ì[àH
+ô»	âà\úò^Kö\–\úò^JôÀõ[€ô^SŸ JH»ôÀõ[€ô^SŸÀõ[ô›àôYõ‹ôS[é¬à€€ú›õ›‹–€›[ùHX]õX^
+Yù\ì[àHôYõ‹ôS[äN¬à€€ú››]H¬à⁄ŒàùYKàò]RYà›ãòò]RYà][\Kà][\ãàô\‹€ôàô\‹€ôãàôT›]Kà‹››]Kà][\TôX\€€ê€ŸNà][\TôX\€€ãà][\îôX\€€ê€ŸNàù[àõ›‹–€›[ùàN¬à›]ó◊Ÿ]Z[»H¬àôT›]Kà‹››]Kà][\TôX\€€ê€ŸNà][\TôX\€€ãà][\îôX\€€ê€ŸNàù[à^X›Y€‹›àZ[î’\ôŸ]àô]ûU\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\Ããà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–ôYõ‹ôTŸYYãà⁄[ù–Yù\îŸYYà⁄[ù–Yù\îŸYYãà⁄[ù–ôYõ‹ôP][\Kà⁄[ù–ôYõ‹ôP][\ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àYà
+õ›‹–€›[ùOOH
+Hô]\õàÿöôX›ò\‹⁄Y€ä›]»⁄Œàò[ŸKôX\€€éàõõ◊ŸX€€ó‹õ›‹»àJN¬àô]\õà›]¬àBà€€ú›‹››]HHùZ[›]T⁄Y 
+N¬à‹››]Kòÿ[îô[X]⁄H›ãòÿ[îô[X]⁄¬àô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô[X]⁄‹ô\]Y\›ŸòZ[Yãà][\Kà][\ãàôT›]Kà‹››]Kà^X›Y€‹›àZ[î’\ôŸ]àô]ûU\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\Ããà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–ôYõ‹ôTŸYYãà⁄[ù–Yù\îŸYYà⁄[ù–Yù\îŸYYãà⁄[ù–ôYõ‹ôP][\Kà⁄[ù–ôYõ‹ôP][\ãà][\TôX\€€ê€ŸNà][\TôX\€€ãà][\îôX\€€ê€ŸNà][\îôX\€€ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àBàô]\õà¬à⁄Œàò[ŸKàôX\€€éàúô[X]⁄‹ô\]Y\›ŸòZ[Yãà][\KàôT›]Kà^X›Y€‹›àZ[î’\ôŸ]àŸYY][\YàùYKàŸYYàŸYYô\ÃKà⁄[ù–ôYõ‹ôTŸYYà⁄[ù–Yù\îŸYYà⁄[ù–ôYõ‹ôP][\Kà][\TôX\€€ê€ŸNà][\TôX\€€ãà^Y\íYà^LKú^Y\íYà]ôT⁄[ùŒà^LKö]ôT⁄[ùÀàôYY⁄[ùŒà^LKõôYY⁄[ùÀà€€\]Y€‹›à^LKò€€\]Y€‹›àN¬àJN¬à€€ú›\ÿÿ\T›\H
+
+HOàÿYôTù[äô\ÿÿ\Hã
+
+HOà¬àYà
+Qÿ[YKó◊—Uà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸHOOHôù[ò›[€àäH¬àô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸW€Z\‹⁄[ô»óHN¬àBà€€ú›ô\»Hÿ[YKó◊—Uãú€[⁄ŸQ\ÿÿ\P‹õ›Ÿ›]€€YS€òŸJ»[›‘\ò[[àò[ŸHJN¬àYà
+ô\»	âàô\Àõ⁄»OOHò[ŸJHô]\õà»⁄ŒàùYKôX\€€éàõõ◊ŸX€€ó‹õ›‹◊Ÿ^X›Yãõ›\Œà»ú€[⁄ŸWŸòZ[Y€õ€ôò][óK]Z[Œàô\»N¬àô]\õàô\Œ¬àJN¬à€€ú›X€‹ò]T›\H
+ò[YKõäHOàÿYôTù[äò[YKõäN¬Çàò]T›\
+òò]W›⁄[àã»õ‹òŸSXZõ‹ö]T⁄YNàò]X⁄Ÿ\ààJN¬àò]T›\
+òò]W€‹ŸHã»õ‹òŸSXZõ‹ö]T⁄YNàôYô[ô\ààJN¬à‹õ›Ÿ›\
+ò‹õ›Ÿ€XZõ‹ö]HãõXZõ‹ö]HäN¬à‹õ›Ÿ›\
+ò‹õ›Ÿ€Z[õ‹ö]HãõZ[õ‹ö]HäN¬à‹õ›Ÿ›\
+ò‹õ›ŸŸöYùWŸöYùHãôöYùHäN¬àô\‹ù›\
+úô\‹ù›ùYHãùùYHäN¬àô\‹ù›\
+úô\‹ùŸò[ŸHãôò[ŸHäN¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]ô[X]⁄€›[ù\ú—õ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãúô\Ÿ]ô[X]⁄€›[ù\ú—õ‹î€[⁄Ÿ\”€òŸJ
+N¬àBàô[X]⁄›\
+úô[X]⁄ÃHäN¬àô[X]⁄›\
+úô[X]⁄ÃàäN¬àô[X]⁄›\
+úô[X]⁄Ã»äN¬à\ÿÿ\T›\
+
+N¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬àÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+N¬àBàX€‹ò]T›\
+ú€[⁄ŸW€õ◊‹⁄[[ùã
+
+HOà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸHOOHôù[ò›[€àäH»ÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸJ
+Hà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸW€õ◊‹⁄[[ù€Z\‹⁄[ô»àJN¬àX€‹ò]T›\
+ú€[⁄ŸWﬁô\õ◊‹›[Hã
+
+HOà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸHOOHôù[ò›[€àäH»ÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸJ
+Hà»⁄Œàò[ŸKôX\€€éàú€[⁄ŸWﬁô\õ◊‹›[W€Z\‹⁄[ô»àJN¬Çà€€ú››[[ôHõ›”\ 
+N¬à€€ú››[\»HX]úõ›[ô
+›[[ôH›[›\ù
+N¬à€€ú›⁄»Hô\›[›\Àô]ô\ûJ›\Oà›\õ⁄ H	âà›[\»H
+‹Àù[Y[›]N
+N¬à€€ú›ô\›[H¬à⁄Àà›[\ÀàôKà›\Œàô\›[›\ÀõX\
+›\Oà
+¬àò[YNà›\õò[YKà⁄Œà›\õ⁄Àà\Œà›\õ\ÀàòZ[Y€›[ùà›\ôòZ[Y€›[ùàõ›\Œà›\õõ›\Àà]Z[Œà›\ô]Z[»ù[àJJKàõ›\Œà◊BàN¬à€€ú›ô\›[›]HÿöôX›ò\‹⁄Y€äﬂKô\›[
+N¬àYà
+ô\›[›]	âà\[Ÿàô\›[›]ù[àOOHôù[ò›[€àäH¬àûH»[]Hô\›[›]ù[é»Hÿ]⁄
+ HﬂBàBàûH¬à€€ú››[\H
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ]H
+›[\ò[
+HOà¬à€€ú›Hô]»]J›[\ò[
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+JÃJ_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú€€KõŸ ST–U…Ÿõ]
+›[\
+_WX
+N¬à€€ú€€KõŸ ëP””ó’RM◊‘P“◊–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[›]
+JN¬à€€ú€€KõŸ ëP””ó’RM◊‘P“◊—SëäN¬àHÿ]⁄
+ HﬂBàûH»€€ú€€KõŸ ëP””ó’RM◊‘P“◊‘ëT’Sãô\›[›]
+N»Hÿ]⁄
+ HﬂBàô]\õàô\›[›]¬àN¬Çàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW—ö[ò[]Y]€òŸHHù[ò›[€à€[⁄ŸQX€€ïZW—ö[ò[]Y]€òŸJ‹»HﬂJH¬à€€ú›õ›”\»H
+
+HOà
+\[Ÿà\ôõ‹õX[òŸHOOHù[ôYö[ôYà	âà\[Ÿà\ôõ‹õX[òŸKõõ›»OOHôù[ò›[€àäH»\ôõ‹õX[òŸKõõ› 
+Hà]Kõõ› 
+N¬à€€ú››[›\ùHõ›”\ 
+N¬à€€ú›òZ[YH◊N¬Çà€€ú›ô]⁄^ﬁ[ò»H
+]
+HOà¬àûH¬à€€ú›àHô]»Sô\]Y\›
+
+N¬àãõ‹[äë—Uã]ò[ŸJN¬àãúŸ[ô
+ù[
+N¬àYà
+ãú›]\»èHå	âàãú›]\»Ã
+H¬àô]\õà»⁄ŒàùYK^àãúô\‹€úŸU^ààN¬àBàô]\õà»⁄Œàò[ŸKôX\€€éà…ﬁãú›]\»XN¬àHÿ]⁄
+ H¬àô]\õà»⁄Œàò[ŸKôX\€€éàûóŸ^Ÿ\[€ààN¬àBàN¬Çà€€ú›Ÿ]›]\»H
+^Ÿ^JHOà¬àYà
+]^
+Hô]\õàìRT‘“Së»é¬à€€ú›\ÿ»HŸ^Kúô\XŸJ÷Àääœ◊âﬂJ
+_◊WKŸÀó		àäN¬à€€ú›ôHHô]»ôY—^
+	Ÿ\ÿﬂV◊◊◊^ÃçOÀH›]\Œó ä  XöHäN¬à€€ú›HHôKô^X ^
+N¬àYà
+[JHô]\õàìRT‘“Së»é¬àô]\õà›ö[ô VÃWHàäKù’\\êÿ\ŸJ
+N¬àN¬Çà€€ú›ô\»Hô]⁄^ﬁ[ò ã◊◊Ÿ]ó◊ÀŸÿ‹À’T“‘ÀõYäN¬à€€ú›ô\»Hô]⁄^ﬁ[ò ã◊◊Ÿ]ó◊ÀŸÿ‹À‘ì“ëP’”QSS‘ñKõYäN¬à€€ú›Ÿ^\»H¬à»YàôX€€åHãŸ^NàëP””ãLHàKà»YàôX€€åàãŸ^NàëP””ãLààKà»YàôX€€å»ãŸ^NàëP””ãL»àBàN¬à€€ú›ÿ‹»H¬à⁄ŒàùYKàX€€åNàìRT‘“Së»ãàX€€åéàìRT‘“Së»ãàX€€åŒàìRT‘“Së»ãàôXY⁄ŒàùYKà[ŸNàúôXY€⁄»ãàZ\‹⁄[ôŒà◊Kàõ›\Œà◊BàN¬ÇàYà
+]ô\Àõ⁄ Hÿ‹Àõõ›\Àú\⁄
+T“‘ÀõYâ›ô\ÀúôX\€€àù[ò]òZ[XõHüX
+N¬àYà
+\ô\Àõ⁄ Hÿ‹Àõõ›\Àú\⁄
+ì“ëP’”QSS‘ñKõYâ‹ô\ÀúôX\€€àù[ò]òZ[XõHüX
+N¬à€€ú›€€ŸHô\Àõ⁄»	âà
+ô\Àù^àäKùö[J
+Kõ[ô›à¬à€€ú›€€ŸHô\Àõ⁄»	âà
+ô\Àù^àäKùö[J
+Kõ[ô›à¬à€€ú›ôXY⁄»H€€Ÿ	âà€€Ÿ¬àÿ‹ÀúôXY⁄»HôXY⁄Œ¬àÿ‹Àõ[ŸHHôXY⁄»»úôXY⁄ààú⁄⁄\Y⁄Õé¬àYà
+\ôXY⁄ H¬àÿ‹Àõ⁄»HùYN¬àH[ŸH¬àõ‹à
+€€ú›»ŸàŸ^\ H¬à€€ú››]\»HŸ]›]\ ô\Àù^ÀöŸ^JN¬à€€ú››]\»HŸ]›]\ ô\Àù^ÀöŸ^JN¬à]ö[ò[›]\»HìRT‘“Së»é¬àYà
+›]\»OOHîT‘»à	âà›]\»OOHîT‘»äHö[ò[›]\»HîT‘»é¬à[ŸHYà
+›]\»OOHìRT‘“Së»à›]\»OOHìRT‘“Së»äHö[ò[›]\»HìRT‘“Së»é¬à[ŸHö[ò[›]\»HëêRSé¬àÿ‹÷⁄ÀöYHHö[ò[›]\Œ¬àYà
+›]\»OOHìRT‘“Së»äHÿ‹ÀõZ\‹⁄[ôÀú\⁄
+T“‘Œâ⁄ÀöŸ^_X
+N¬àYà
+›]\»OOHìRT‘“Së»äHÿ‹ÀõZ\‹⁄[ôÀú\⁄
+ì“ëP’”QSS‘ñNâ⁄ÀöŸ^_X
+N¬àYà
+ö[ò[›]\»OOHîT‘»äHÿ‹Àõ⁄»Hò[ŸN¬àBàYà
+Yÿ‹Àõ⁄ HòZ[Yú\⁄
+ôÿ‹◊€õ›‹\‹»äN¬àBÇà€€ú›ù[ù[YHH»⁄ŒàùYK›\Œà◊HN¬à€€ú›Y›\H
+ò[YK^[ÿY
+HOà¬àù[ù[YKú›\Àú\⁄
+^[ÿY
+N¬àYà
+\^[ÿYõ⁄ Hù[ù[YKõ⁄»Hò[ŸN¬àN¬Çà€€ú›ô\Ÿ]YHH
+Y HOà¬àYà
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸHOOHôù[ò›[€àäH¬à€€ú›ô\»Hÿ[YKó◊—Uãúô\Ÿ]“YQõ‹î€[⁄Ÿ\”€òŸJ
+N¬àYà
+ô\»	âàù[Xô\ãö\—ö[ö]Jô\ÀòX›]ôPò]\–ôYõ‹ôJH	âàô\ÀòX›]ôPò]\–ôYõ‹ôHà
+H¬àô]\õàX›]ôWÿò]\◊ÿôYõ‹ôW…›YﬂNâ‹ô\ÀòX›]ôPò]\–ôYõ‹ô_X¬àBàBàô]\õàù[¬àN¬Çà€€ú›Hõ›”\ 
+N¬à]X⁄‘ô\»Hù[¬àûH¬àX⁄‘ô\»H
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸHOOHôù[ò›[€àäBà»ÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸJ
+Bàà»⁄Œàò[ŸKòZ[Yà»õZ\‹⁄[ô»óHN¬àHÿ]⁄
+\úäH¬àX⁄‘ô\»H»⁄Œàò[ŸKòZ[Yà‘›ö[ô \úà	âà\úãõY\‹ÿYŸH»\úãõY\‹ÿYŸHà\úäWHN¬àBà€€ú›X⁄”\»H
+X⁄‘ô\»	âàù[Xô\ãö\—ö[ö]JX⁄‘ô\Àù›[\ JH»
+X⁄‘ô\Àù›[\»
+HàX]úõ›[ô
+õ›”\ 
+HH
+N¬à€€ú›X⁄—òZ[Y€›[ùH
+X⁄‘ô\»	âà\úò^Kö\–\úò^JX⁄‘ô\Àú›\ JH»X⁄‘ô\Àú›\Àôö[\ä»Oà»	âàÀõ⁄»OOHò[ŸJKõ[ô›àà
+X⁄‘ô\»	âà\úò^Kö\–\úò^JX⁄‘ô\ÀôòZ[Y
+JH»X⁄‘ô\ÀôòZ[Yõ[ô›àà
+X⁄‘ô\»	âàX⁄‘ô\Àõ⁄»OOHò[ŸH»Hà
+N¬àY›\
+ùZM◊‹ôY‹ô\‹⁄[€àã»ò[YNàùZM◊‹ôY‹ô\‹⁄[€àã⁄ŒàHJX⁄‘ô\»	âàX⁄‘ô\Àõ⁄ K›[\ŒàX⁄”\ÀòZ[Y€›[ùàX⁄—òZ[Y€›[ùõ›Nàù[JN¬Çà]õ‘⁄[[ùô\»Hù[¬à€€ú›YSõ›LHHô\Ÿ]YJùZMHäN¬àûH¬àõ‘⁄[[ùô\»H
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸHOOHôù[ò›[€àäBà»ÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW”õ‘⁄[[ùôX\€€ú”€òŸJ‹»	âà‹Àù⁄[ô›»»»⁄[ô›Œà‹Àù⁄[ô›»HàﬂJBàà»⁄Œàò[ŸHN¬àHÿ]⁄
+\úäH¬àõ‘⁄[[ùô\»H»⁄Œàò[ŸKòZ[Yà‘›ö[ô \úà	âà\úãõY\‹ÿYŸH»\úãõY\‹ÿYŸHà\úäWHN¬àBàY›\
+ùZMWÿ€›ô\òYŸHã¬àò[YNàùZMWÿ€›ô\òYŸHãà⁄ŒàHJõ‘⁄[[ùô\»	âàõ‘⁄[[ùô\Àõ⁄ Kàõ›‹–⁄X⁄ŸYà
+õ‘⁄[[ùô\»	âàõ‘⁄[[ùô\Àú›[[X\ûH	âàù[Xô\ãö\—ö[ö]Jõ‘⁄[[ùô\Àú›[[X\ûKúõ›‹–⁄X⁄ŸY
+JH»õ‘⁄[[ùô\Àú›[[X\ûKúõ›‹–⁄X⁄ŸYàà⁄[[ù€›[ùà
+õ‘⁄[[ùô\»	âàõ‘⁄[[ùô\Àú›[[X\ûH	âàù[Xô\ãö\—ö[ö]Jõ‘⁄[[ùô\Àú›[[X\ûKú⁄[[ù€›[ù
+JH»õ‘⁄[[ùô\Àú›[[X\ûKú⁄[[ù€›[ùààõ›NàYSõ›LBàJN¬Çà]ô\õ‘›[Tô\»Hù[¬à€€ú›YSõ›LàHô\Ÿ]YJùZMàäN¬àûH¬àô\õ‘›[Tô\»H
+ÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸHOOHôù[ò›[€àäBà»ÿ[YKó◊—Uãú€[⁄ŸQX€€ïZW÷ô\õ‘›[S€òŸJ
+Bàà»⁄Œàò[ŸHN¬àHÿ]⁄
+\úäH¬àô\õ‘›[Tô\»H»⁄Œàò[ŸKòZ[Yà‘›ö[ô \úà	âà\úãõY\‹ÿYŸH»\úãõY\‹ÿYŸHà\úäWHN¬àBà€€ú›[\‘ÿ[\HH\úò^Kö\–\úò^Jô\õ‘›[Tô\»	âàô\õ‘›[Tô\ÀúÿŸ[ò\ö[‹ Bà»ô\õ‘›[Tô\ÀúÿŸ[ò\ö[‹Àú€XŸJ KõX\
+»Oàù[Xô\ãö\—ö[ö]J»	âàÀô[JH»Àô[Hà
+Bàà◊N¬àY›\
+ùZMóﬁô\õ◊‹›[Hã¬àò[YNàùZMóﬁô\õ◊‹›[Hãà⁄ŒàHJô\õ‘›[Tô\»	âàô\õ‘›[Tô\Àõ⁄ KàÿŸ[ò\ö[‹Œà\úò^Kö\–\úò^Jô\õ‘›[Tô\»	âàô\õ‘›[Tô\ÀúÿŸ[ò\ö[‹ H»ô\õ‘›[Tô\ÀúÿŸ[ò\ö[‹Àõ[ô›àà[\‘ÿ[\Kàõ›NàYSõ›LÇàJN¬ÇàYà
+\ù[ù[YKõ⁄ HòZ[Yú\⁄
+úù[ù[YW€õ›‹\‹»äN¬Çà€€ú››[[ôHõ›”\ 
+N¬à€€ú››[\»HX]úõ›[ô
+›[[ôH›[›\ù
+N¬àYà
+›[\»àN
+HòZ[Yú\⁄
+ù[Y[›]äN¬Çà€€ú›ÿ‹—ÿ]S⁄»Hÿ‹ÀúôXY⁄»»ÿ‹Àõ⁄»àùYN¬à€€ú›ô\›[H¬à⁄Œàÿ‹—ÿ]S⁄»	âàù[ù[YKõ⁄»	âà›[\»HN	âàòZ[Yõ[ô›OOHà›[\Ààÿ‹Ààù[ù[YKàòZ[YàN¬ÇàûH¬à€€ú››[\H
+ÿ[YKï[YH	âà\[Ÿàÿ[YKï[YKõõ›»OOHôù[ò›[€àäH»ÿ[YKï[YKõõ› 
+Hà]Kõõ› 
+N¬à€€ú›õ]H
+›[\ò[
+HOà¬à€€ú›Hô]»]J›[\ò[
+N¬à€€ú›YH
+äHOà›ö[ô äKúY›\ù
+ãåäN¬àô]\õà	ŸôŸ]ù[YX\ä
+_KI‹Y
+ôŸ][€ù
+
+JÃJ_KI‹Y
+ôŸ]]J
+J_H	‹Y
+ôŸ]›\ú 
+J_Nâ‹Y
+ôŸ]Z[ù]\ 
+J_Nâ‹Y
+ôŸ]ŸX€€ô 
+J_X¬àN¬à€€ú€€KõŸ ST–U…Ÿõ]
+›[\
+_WX
+N¬à€€ú€€KõŸ ëP””ó’RN—íSêS–ëQ“SàäN¬à€€ú€€KõŸ î””ãú›ö[ô⁄YûJô\›[
+JN¬à€€ú€€KõŸ ëP””ó’RN—íSêS—SëäN¬àHÿ]⁄
+ HﬂBàô]\õàô\›[¬àN¬àBÇàûH¬à€€ú›]àH
+ÿ[YH	âàÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH»ÿ[YKó◊—Uààù[¬à€€ú›\‘€[⁄ŸHHHJ]à	âà\[Ÿà]ãú€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸHOOHôù[ò›[€àäN¬à€€ú€€KõŸ î”S“—W‘ëQ“T’ñW‘’UT»ã¬à€[⁄ŸSò[YNàú€[⁄ŸQX€€ïZW‘ôY‹ô\‹⁄[€îX⁄”€òŸHãà\‘€[⁄ŸKà]ëõYŒà\—]ëõY 
+Kà€[⁄ŸT›\ôòXŸNà[›‘€[⁄ŸT›\ôòXŸJ
+BàJN¬àHÿ]⁄
+ HﬂBàûH¬à€€ú›]àH
+ÿ[YH	âàÿ[YKó◊—Uà	âà\[Ÿàÿ[YKó◊—UàOOHõÿöôX›äH»ÿ[YKó◊—Uààù[¬à€€ú›Ÿ^\»H]à»ÿöôX›öŸ^\ ]äHà◊N¬à€€ú€€KõŸ î”S“—W‘ëQ“T’ñW“—VT»ã»€›[ùàŸ^\Àõ[ô›ÿ[\NàŸ^\Àú€XŸJLäHJN¬àHÿ]⁄
+ HﬂBÇà[ú›[X€€ïZT⁄YQYôôX››X\ô 
+N¬àYà
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYäH¬à€€ú›ÿ⁄Y[Q›X\ôH
+
+HOà[ú›[X€€ïZT⁄YQYôôX››X\ô 
+N¬àYà
+\[Ÿà⁄[ô›Àúô\]Y\›[ö[X][€ëúò[YHOOHôù[ò›[€àäH¬à⁄[ô›Àúô\]Y\›[ö[X][€ëúò[YJÿ⁄Y[Q›X\ô
+N¬àH[ŸH¬àŸ][Y[›]
+ÿ⁄Y[Q›X\ô
+N¬àBàBÇàù[ò›[€à‹ôX]TôXX›[€î€XﬁJ
+^¬à€€ú›“‘ï’“Së’◊”T»Hå
+àL¬à€€ú›ST–ì–“◊’”T»HLå
+àL¬à€€ú›”ë◊’“Së’◊”T»HL
+àå
+àL¬à€€ú›Të’ëT“”HN¬à€€ú›PV‘ëPP’S”î»HN¬à€€ú›Të’TT»Hô]»Ÿ]
+»ò‹ö]Xÿ[›[\\àãôõ‹òöY[óÿ\W‹ô\X]óJN¬à€€ú›UëS»H¬à—◊””ìNàõŸ◊€€õHãàST–ì–“Œàù[\ÿõÿ⁄»ãàTìPW—ìQŒàú\õXWŸõY»ãàN¬à€€ú›íS‘íUHH¬à”UëSÀì—◊””ìWNàà”UëSÀïST–ì–“◊NàKà”UëSÀîTìPW—ìQ◊NàãàN¬à€€ú›’‘êQ—W“—VHHê\ﬁ[ò‘ÿŸ[ôW‹ŸX›\ö]W‹\õXWŸõY‹◊›åHé¬à€€ú››‹òYŸHH
+\[Ÿà⁄[ô›»OOHù[ôYö[ôYà	âà⁄[ô›Àõÿÿ[›‹òYŸJH»⁄[ô›Àõÿÿ[›‹òYŸHàù[¬à€€ú›ïSïSQW‘”’Tê—HHúù[ù[YHé¬à€€ú›ì”’’êT‘”’Tê—W”êSQHHîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»é¬à€€ú›ìQ◊–UU‘íUHH¬àUU‘íUUUëNàò]]‹ö]]]ôW‹\õXWŸõY»ãàëT’‘ëQ”––Sàúô\›‹ôY€ÿÿ[€õ€óÿ]]‹ö]]]ôWŸõY»ãàN¬à€€ú›ì”’’SQW”T»H]Kõõ› 
+N¬à€€ú›’SW—íSë—TîíSï‘“Sê—HHMÕÃéMççéMN¬àYà
+Sù[Xô\ãö\—ö[ö]Jù[Xô\äÿ[YKó◊—ì’◊–UQU‘”P÷W‘—TW◊ JJHÿ[YKó◊—ì’◊–UQU‘”P÷W‘—TW◊»H¬àÿ[YKó◊—ì’◊–UQU‘”P÷W‘—TW◊»H
+ù[Xô\äÿ[YKó◊—ì’◊–UQU‘”P÷W‘—TW◊ H
+H
+»N¬à€€ú›”P÷W“QH€XﬁW…—ÿ[YKó◊—ì’◊–UQU‘”P÷W‘—TW◊ﬂX¬à€€ú›õ›–]Y]ÿöôX›Y»Hô]»ŸXZ”X\
+
+N¬à€€ú›õ›–]Y]õﬁU\ôŸ]»Hô]»ŸXZ”X\
+
+N¬à]õ›–]Y]ÿöôX›Ÿ\HH¬à]€XﬁP\HHù[¬Çàù[ò›[€àõ›–]Y]^
+ò[YKò[òX⁄ ^¬àYà
+\[Ÿàò[YHOOHú›ö[ô»à	âàò[YKùö[J
+JHô]\õàò[YKùö[J
+N¬àYà
+ò[YHOHù[
+H¬à€€ú››àH›ö[ô ò[YJKùö[J
+N¬àYà
+›äHô]\õà›é¬àBàYà
+ò[òX⁄»OHù[
+H¬à€€ú›òàH›ö[ô ò[òX⁄ Kùö[J
+N¬àYà
+òäHô]\õàòé¬àBàô]\õàù[ö€õ›€àé¬àBÇàù[ò›[€àõ›–]Y]ôYíY
+ÿöä^¬àYà
+[ÿöà\[ŸàÿöàOOHõÿöôX›äHô]\õàõù[é¬à]YHõ›–]Y]ÿöôX›YÀôŸ]
+ÿöäN¬àYà
+ZY
+H¬àõ›–]Y]ÿöôX›Ÿ\H
+œHN¬àYHôYó…Ÿõ›–]Y]ÿöôX›Ÿ\_X¬àõ›–]Y]ÿöôX›YÀúŸ]
+ÿöãY
+N¬àBàô]\õàY¬àBÇàù[ò›[€à\‘›[Qö[ôŸ\úö[ù⁄[òŸJò[YJ^¬à€€ú›⁄[òŸHHù[Xô\äò[YJN¬àô]\õàù[Xô\ãö\—ö[ö]J⁄[òŸJH	âà⁄[òŸHOOH’SW—íSë—TîíSï‘“Sê—N¬àBÇàù[ò›[€àŸ‘›[Qö[ôŸ\úö[ù
+€›\òŸKX›[€ä^¬à€€ú›‹ò»Hõ›–]Y]^
+€›\òŸKù[ö€õ›€àäN¬à€€ú›X›[€ï^Hõ›–]Y]^
+X›[€ãúŸY[àäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›[KYõYÀYö[ôŸ\úö[ù⁄[òŸOI‘’SW—íSë—TîíSï‘“Sê—_HX›[€èIÿX›[€ï^H€›\òŸOI‹‹òﬂX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à€›[ùŸX›\ö]QõY“Ÿ^\ 
+^¬à€€ú›õY‹»H
+›]H	âà\[Ÿà›]HOOHõÿöôX›à	âà›]KúŸX›\ö]QõY‹»	âà\[Ÿà›]KúŸX›\ö]QõY‹»OOHõÿöôX›äBà»›]KúŸX›\ö]QõY‹¬ààù[¬àô]\õàõY‹»»ÿöôX›öŸ^\ õY‹ Kõ[ô›à¬àBÇàù[ò›[€àŸ‘€XﬁPÿ[
+õìò[YK€›\òŸK]Z[ ^¬à€€ú›õï^Hõ›–]Y]^
+õìò[YKù[ö€õ›€àäN¬à€€ú›‹ò»Hõ›–]Y]^
+€›\òŸKù[ö€õ›€àäN¬à€€ú›]Z[^H]Z[»»]Z[œIŸõ›–]Y]^
+]Z[Àõõ€ôHä_Xààé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH€XﬁKXÿ[YI‘”P÷W“QHõèIŸõï^H€›\òŸOI‹‹òﬂIŸ]Z[^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à]Y]›]Pö[ô[ô €›\òŸJ^¬à€€ú›‹ò»Hõ›–]Y]^
+€›\òŸKù[ö€õ›€àäN¬à€€ú›ÿ[YT›]TôYàH
+ÿ[YH	âàÿ[YKó◊‘»	âà\[Ÿàÿ[YKó◊‘»OOHõÿöôX›äH»ÿ[YKó◊‘»àù[¬à€€ú›ÿ[YTôYï^H
+ÿ[YT›]TôYàOOH›]JH»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›]K\›‹ôKXö[ô[ô»YI‘”P÷W“QH€›\òŸOI‹‹òﬂHÿ[YTôYèI‹ÿ[YTôYï^H›]TôYèIŸõ›–]Y]ôYíY
+›]J_Hÿ[YT‘ôYèIŸõ›–]Y]ôYíY
+ÿ[YT›]TôYä_X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à]Y]€XﬁPö[ô[ô õìò[YJ^¬à€€ú›õï^Hõ›–]Y]^
+õìò[YKù[ö€õ›€àäN¬à€€ú››\úô[ù€XﬁHH
+ÿ[YH	âàÿ[YKîŸX›\ö]T€XﬁJH»ÿ[YKîŸX›\ö]T€XﬁHàù[¬à€€ú›ÿ[YTôYï^H
+€XﬁP\H	âà›\úô[ù€XﬁHOOH€XﬁP\JH»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH€XﬁKXö[ô[ô»YI‘”P÷W“QHõèIŸõï^Hÿ[YTôYèI‹ÿ[YTôYï^Hÿÿ[€XﬁTôYèIŸõ›–]Y]ôYíY
+€XﬁP\J_Hÿ[YT€XﬁTôYèIŸõ›–]Y]ôYíY
+›\úô[ù€XﬁJ_X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘€XﬁR[ú›[òŸP‹ôX]Y
+
+^¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH€XﬁKZ[ú›[òŸKX‹ôX]YYI‘”P÷W“QHõ€›[YOI–ì”’’SQW”TﬂX
+N¬àHÿ]⁄
+ HﬂBà]Y]›]Pö[ô[ô ò‹ôX]TôXX›[€î€XﬁNö[ö]äN¬àBÇàŸ‘€XﬁR[ú›[òŸP‹ôX]Y
+
+N¬Çàù[ò›[€àŸ‘ô\›‹ôJX\öŸ\ã^[ÿY
+^¬àûH¬à€€ú€€KõŸ X\öŸ\ã^[ÿY
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘ŸX›\ö]Tô\›‹ôJY]K€›[ùò[Y
+^¬à€€ú›‹ò»HY]H	âàY]Kú€›\òŸH»›ö[ô Y]Kú€›\òŸJHàù[ö€õ›€àé¬à€€ú›ÿYôP€›[ùHù[Xô\ãö\—ö[ö]J€›[ù
+H»€›[ùà¬à€€ú›õY–€›[ùHX]õX^
+ÿYôP€›[ù
+N¬à€€ú›ò[Y^Hò[Y»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]K\ô\›‹ôHõY‹œIŸõY–€›[ùH€›\òŸOI‹‹òﬂHò[YI›ò[Y^X
+N¬àHÿ]⁄
+ HﬂBàBÇà€€ú›ëT’‘ëQ’—PR◊‘ëPT””î»Hô]»Ÿ]
+»ú\õXWŸõY◊‹ô\›‹ôHãúô\›‹ôY‹ŸX›\ö]W‹›]HóJN¬Çàù[ò›[€àõ‹õX[^ôTô\›‹ôTôX\€€äò[YJ^¬àYà
+\[Ÿàò[YHOOHú›ö[ô»äH¬àYà
+ò[YHOHù[
+Hô]\õààé¬àò[YHH›ö[ô ò[YJN¬àBà€€ú›ö[[YYHò[YKùö[J
+N¬àYà
+]ö[[YY
+Hô]\õààé¬à€€ú›ò\ŸHHö[[YYú‹]
+éàäVÃKùö[J
+Kù”›Ÿ\êÿ\ŸJ
+N¬àô]\õàò\ŸN¬àBÇàù[ò›[€à\‘›õ€ô‘ô\›‹ôTõ€Ÿä[ùûJ^¬àYà
+Y[ùûJHô]\õàò[ŸN¬àYà
+[ùûKò]]‹ö]HOOHìQ◊–UU‘íUKîëT’‘ëQ”––S
+Hô]\õàò[ŸN¬à€€ú›ôX\€€êò\ŸHHõ‹õX[^ôTô\›‹ôTôX\€€ä[ùûKúôX\€€äN¬à€€ú›\Pò\ŸHHõ‹õX[^ôTô\›‹ôTôX\€€ä[ùûKù\JN¬àYà
+]\Pò\ŸHëT’‘ëQ’—PR◊‘ëPT””îÀö\ \Pò\ŸJJHô]\õàò[ŸN¬àYà
+ôX\€€êò\ŸH	âàëT’‘ëQ’—PR◊‘ëPT””îÀö\ ôX\€€êò\ŸJJHô]\õàò[ŸN¬àô]\õàùYN¬àBÇàù[ò›[€àŸ‘\õXQõY‘ô\›‹ôTôXY
+^Y\íY\K[ù[ò[Y
+^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›\U^H\Hú\õXWŸõY◊‹ô\›‹ôHé¬à€€ú›[ù[^H
+[ù[OHù[
+H»õù[àà›ö[ô [ù[
+N¬à€€ú›ò[Y^Hò[Y»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ\ô\›‹ôK\ôXY^Y\èI‹^Y\íYH\OI›\U^H[ù[I›[ù[^Hò[YI›ò[Y^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY‘ô\›‹ôQ\ÿÿ\ô
+^Y\íYôX\€€ä^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›ôX\€€ï^Hÿ[ö]^ôTôX\€€äôX\€€ãúô\›‹ôY‹ŸX›\ö]W‹›]HäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ\ô\›‹ôKY\ÿÿ\ô^Y\èI‹^Y\íYHôX\€€èI‹ôX\€€ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY‘ô\›‹ôQ›€ô‹òYJ^Y\íYúõ€S]ô[”]ô[ôX\€€ä^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›ôX\€€ï^Hÿ[ö]^ôTôX\€€äôX\€€ãúô\›‹ôY‹ŸX›\ö]W‹›]HäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ\ô\›‹ôKY›€ô‹òYH^Y\èI‹^Y\íYHúõ€OIŸúõ€S]ô[HœI›”]ô[HôX\€€èI‹ôX\€€ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY‘ô\›‹ôTôZôX›Y
+^Y\íYôX\€€ã€›\òŸJ^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›ôX\€€ï^Hÿ[ö]^ôTôX\€€äôX\€€ãúô\›‹ôY‹ŸX›\ö]W‹›]HäN¬à€€ú›€›\òŸU^H€›\òŸHù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ\ô\›‹ôK\ôZôX›Y^Y\èI‹^Y\íYHôX\€€èI‹ôX\€€ï^H€›\òŸOI‹€›\òŸU^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY–õ€››ò\€›\òŸJ^Y\íY€›\òŸKXÿŸ\Y
+^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›€›\òŸU^H€›\òŸHù[ö€õ›€àé¬à€€ú›XÿŸ\Y^HXÿŸ\Y»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀXõ€››ò\\€›\òŸH^Y\èI‹^Y\íYH€›\òŸOI‹€›\òŸU^HXÿŸ\YIÿXÿŸ\Y^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘⁄\€€ôY›‹òYŸP€X[ù\
+⁄[ôŸYô[[›ôY
+^¬à€€ú›⁄[ôŸY^H⁄[ôŸY»ùùYHààôò[ŸHé¬à€€ú›ô[[›ôY€›[ùHù[Xô\ãö\—ö[ö]Jô[[›ôY
+H»
+ô[[›ôY
+Hà¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH⁄\€€ôY\›‹òYŸKX€X[ù\⁄[ôŸYIÿ⁄[ôŸY^Hô[[›ôYI‹ô[[›ôY€›[ùX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY–]]‹ö]P⁄X⁄ ^Y\íY]]‹ö]]]ôK€›\òŸJ^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›]]‹ö]]]ôU^H]]‹ö]]]ôH»ùùYHààôò[ŸHé¬à€€ú›€›\òŸU^H€›\òŸHù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀX]]‹ö]KX⁄X⁄»^Y\èI‹^Y\íYH]]‹ö]]]ôOIÿ]]‹ö]]]ôU^H€›\òŸOI‹€›\òŸU^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘›[T\õXTô[[›ôY
+^Y\íYôX\€€ä^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›ôX\€€ï^Hÿ[ö]^ôTôX\€€äôX\€€ãú›[W€ÿÿ[‹ô\›‹ôHäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›[K\\õXK\ô[[›ôY^Y\èI‹^Y\íYHôX\€€èI‹ôX\€€ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à\–]]‹ö]]]ôT\õXQõY ^Y\íYõYÀ€›\òŸJ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à]]]‹ö]]]ôHHò[ŸN¬àYà
+õY»	âàõYÀõ]ô[OOHUëSÀîTìPW—ìQ H¬à]]‹ö]]]ôHHù[ù[YT\õXTõ€Ÿî^Y\úÀö\ Y
+HõYÀò]]‹ö]HOOHìQ◊–UU‘íUKêUU‘íUUUëN¬àBàŸ‘\õXQõY–]]‹ö]P⁄X⁄ Y]]‹ö]]]ôK€›\òŸHîôXX›[€î€XﬁKö\–]]‹ö]]]ôT\õXQõY»äN¬àô]\õà]]‹ö]]]ôN¬àBÇàù[ò›[€àŸ—Ÿ]õY‘ô\›[
+^Y\íYõYÀ]]‹ö]]]ôJ^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›]ô[^HõY»	âàõYÀõ]ô[»›ö[ô õYÀõ]ô[
+Hàõù[é¬à€€ú›\U^HõY»	âàõYÀù\H»›ö[ô õYÀù\JHàõù[é¬à€€ú›]]‹ö]]]ôU^H]]‹ö]]]ôH»ùùYHààôò[ŸHé¬à€€ú›⁄[òŸU^H
+õY»	âàù[Xô\ãö\—ö[ö]Jù[Xô\äõYÀú⁄[òŸJJJH»›ö[ô ù[Xô\äõYÀú⁄[òŸJJHàõù[é¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸ]õYÀ\ô\›[^Y\èI‹^Y\íYH]ô[I€]ô[^H\OI›\U^H]]‹ö]]]ôOIÿ]]‹ö]]]ôU^H⁄[òŸOI‹⁄[òŸU^H€XﬁRYI‘”P÷W“QX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àõ›–]Y]ÿ[\äò[òX⁄ ^¬àûH¬à€€ú››X⁄»H›ö[ô 
+ô]»\úõ‹ä
+Kú›X⁄ HàäKú‹]
+óàäKõX\
+
+[ôJHOà›ö[ô [ôHàäKùö[J
+JKôö[\äõ€€X[äN¬àõ‹à
+]HHé»H›X⁄Àõ[ô›»H
+œHJH¬à€€ú›õ›»H›X⁄÷⁄WN¬àYà
+\õ› H€€ù[ùYN¬àYà
+õ›Àö[ò€Y\ ôõ›–]Y]ÿ[\àäJH€€ù[ùYN¬àYà
+õ›Àö[ò€Y\ õŸ‘›]TŸX›\ö]QõY‹’‹ö]HäJH€€ù[ùYN¬àYà
+õ›Àö[ò€Y\ õŸ–]]‹ö]]]ôT\õXU‹ö]HäJH€€ù[ùYN¬àYà
+õ›Àö[ò€Y\ õŸ‘ù[ù[YTõ€ŸêYäJH€€ù[ùYN¬àô]\õàõ›Àúô\XŸJ◊ ÀŸÀàäN¬àBàHÿ]⁄
+ HﬂBàô]\õàò[òX⁄»ù[ö€õ›€àé¬àBÇàù[ò›[€à\—ö[ôŸ\úö[ù€ìYJõY‹”ÿöä^¬àYà
+YõY‹”ÿöà\[ŸàõY‹”ÿöàOOHõÿöôX›äHô]\õàò[ŸN¬à€€ú›YQõY»HõY‹”ÿöãõYN¬àYà
+[YQõY»\[ŸàYQõY»OOHõÿöôX›äHô]\õàò[ŸN¬àô]\õà\‘›[Qö[ôŸ\úö[ù⁄[òŸJYQõYÀú⁄[òŸJN¬àBÇàù[ò›[€àŸ‘ŸX›\ö]QõY‹”ÿöôX›ô\XŸY
+€›\òŸKÿ[YTôYãõY‹”ÿöãY]HHù[
+^¬à€€ú›‹ò»H€›\òŸHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹Àúô\XŸHäN¬à€€ú›Ÿ^\»H
+õY‹”ÿöà	âà\[ŸàõY‹”ÿöàOOHõÿöôX›äH»ÿöôX›öŸ^\ õY‹”ÿöäKõ[ô›à¬à€€ú›ÿ[YTôYï^Hÿ[YTôYà»ùùYHààôò[ŸHé¬à€€ú›‹ö]TŸ\HHù[Xô\ãö\—ö[ö]Jù[Xô\äY]H	âàY]Kù‹ö]TŸ\JJH»ù[Xô\äY]Kù‹ö]TŸ\JHà¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]YõY‹À[ÿöôX›\ô\XŸY€›\òŸOI‹‹òﬂH‹ö]TŸ\OI›‹ö]TŸ\_Hÿ[YTôYèI‹ÿ[YTôYï^HŸ^\œI⁄Ÿ^\ﬂX
+N¬àHÿ]⁄
+ HﬂBàYà
+\—ö[ôŸ\úö[ù€ìYJõY‹”ÿöäJH¬àŸ‘›[Qö[ôŸ\úö[ù
+‹òÀúô\XŸHäN¬àBàBÇàù[ò›[€àŸ‘ŸX›\ö]QõY‹”YU‹ö]Jò[YJ^¬à€€ú›⁄[òŸU^Hù[Xô\ãö\—ö[ö]Jù[Xô\äò[YH	âàò[YKú⁄[òŸJJH»›ö[ô ù[Xô\äò[YKú⁄[òŸJJHàõù[é¬à€€ú›€›\òŸR⁄[ôHõ›–]Y]^
+ò[YH	âàò[YKú€›\òŸR⁄[ôù[ö€õ›€àäN¬à€€ú›‹ö]\àHõ›–]Y]^
+ò[YH	âàò[YKù‹ö]\ëù[ò›[€ãù[ö€õ›€àäN¬à€€ú›‹ö]TŸ\HHù[Xô\ãö\—ö[ö]Jù[Xô\äò[YH	âàò[YKù‹ö]TŸ\JJH»›ö[ô ù[Xô\äò[YKù‹ö]TŸ\JJHàåé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]YõY‹À[YK]‹ö]H⁄[òŸOI‹⁄[òŸU^H€›\òŸR⁄[ôI‹€›\òŸR⁄[ôH‹ö]\èI›‹ö]\üH‹ö]TŸ\OI›‹ö]TŸ\_X
+N¬àHÿ]⁄
+ HﬂBàYà
+\‘›[Qö[ôŸ\úö[ù⁄[òŸJò[YH	âàò[YKú⁄[òŸJJH¬àŸ‘›[Qö[ôŸ\úö[ù
+‹ö]\ãù‹ö]HäN¬àBàBÇàù[ò›[€àŸ‘ŸX›\ö]QõY‹”Y\ôŸJ^Y\íY]ô[⁄[òŸK€›\òŸJ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›õH
+]ô[OHù[
+H»›ö[ô ]ô[
+Hàõù[é¬à€€ú›⁄[òŸU^Hù[Xô\ãö\—ö[ö]Jù[Xô\ä⁄[òŸJJH»›ö[ô ù[Xô\ä⁄[òŸJJHàõù[é¬à€€ú›‹ò»H€›\òŸHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀõY\ôŸHäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]YõY‹À[Y\ôŸH^Y\èI‹YH]ô[I€õH⁄[òŸOI‹⁄[òŸU^H€›\òŸOI‹‹òﬂX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘›[QõY—]X›Y
+^Y\íY⁄[òŸKôXõ€›]]‹ö]]]ôJ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›⁄[òŸU^Hù[Xô\ãö\—ö[ö]Jù[Xô\ä⁄[òŸJJH»›ö[ô ù[Xô\ä⁄[òŸJJHàõù[é¬à€€ú›ôXõ€›^HôXõ€›»ùùYHààôò[ŸHé¬à€€ú›]]‹ö]]]ôU^H]]‹ö]]]ôH»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›[KYõYÀY]X›Y^Y\èI‹YH⁄[òŸOI‹⁄[òŸU^HôXõ€›I‹ôXõ€›^H]]‹ö]]]ôOIÿ]]‹ö]]]ôU^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘›[QõY”‹öY⁄[ä^Y\íY⁄[òŸK€›\òŸJ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›⁄[òŸU^Hù[Xô\ãö\—ö[ö]Jù[Xô\ä⁄[òŸJJH»›ö[ô ù[Xô\ä⁄[òŸJJHàõù[é¬à€€ú›‹ò»H€›\òŸHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKú›[QõY”‹öY⁄[àäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›[KYõYÀ[‹öY⁄[à^Y\èI‹YH⁄[òŸOI‹⁄[òŸU^Hõ€›[YOI–ì”’’SQW”TﬂH€›\òŸOI‹‹òﬂX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘›]TŸX›\ö]QõY‹’‹ö]J^Y\íY]ô[]]‹ö]Kÿ[\ä^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›]ô[^Hÿ[ö]^ôTôX\€€ä]ô[ù[ö€õ›€àäN¬à€€ú›]]‹ö]U^Hÿ[ö]^ôTôX\€€ä]]‹ö]Kù[ö€õ›€àäN¬à€€ú›ÿ[\ï^Hÿ[\àõ›–]Y]ÿ[\äîôXX›[€î€XﬁKõŸ‘›]TŸX›\ö]QõY‹’‹ö]HäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH›]K\ŸX›\ö]YõY‹À]‹ö]H^Y\èI‹YH]ô[I€]ô[^H]]‹ö]OIÿ]]‹ö]U^Hÿ[\èIÿÿ[\ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ–]]‹ö]]]ôT\õXU‹ö]J^Y\íY]ô[ù\KôX\€€ãÿ[\ä^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›]ô[ù^Hÿ[ö]^ôTôX\€€ä]ô[ù\Kù[ö€õ›€àäN¬à€€ú›ôX\€€ï^Hÿ[ö]^ôTôX\€€äôX\€€ãú\õXWŸõY»äN¬à€€ú›ÿ[\ï^Hÿ[\àõ›–]Y]ÿ[\äîôXX›[€î€XﬁKõŸ–]]‹ö]]]ôT\õXU‹ö]HäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH]]‹ö]]]ôK\\õXK]‹ö]H^Y\èI‹YH]ô[ùIŸ]ô[ù^HôX\€€èI‹ôX\€€ï^Hÿ[\èIÿÿ[\ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘ù[ù[YTõ€ŸêY
+^Y\íY]ô[ù\Kÿ[\ä^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›]ô[ù^Hÿ[ö]^ôTôX\€€ä]ô[ù\Kù[ö€õ›€àäN¬à€€ú›ÿ[\ï^Hÿ[\àõ›–]Y]ÿ[\äîôXX›[€î€XﬁKõŸ‘ù[ù[YTõ€ŸêYäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHù[ù[YK\õ€ŸãXY^Y\èI‹YH]ô[ùIŸ]ô[ù^Hÿ[\èIÿÿ[\ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY“[Yÿ[›]J^Y\íY\K]ô[€›\òŸJ^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›\U^Hÿ[ö]^ôTôX\€€ä\Kú\õXWŸõY◊‹ô\›‹ôHäN¬à€€ú›]ô[^Hÿ[ö]^ôTôX\€€ä]ô[ú\õXWŸõY»äN¬à€€ú›€›\òŸU^H€›\òŸHù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀZ[Yÿ[\›]H^Y\èI‹^Y\íYH\OI›\U^H]ô[I€]ô[^H€›\òŸOI‹€›\òŸU^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ‘\õXQõY‘Ÿ[íX[
+^Y\íYô[[›ôY€›\òŸJ^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›ô[[›ôY^Hô[[›ôY»ùùYHààôò[ŸHé¬à€€ú›€›\òŸU^H€›\òŸHù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ\Ÿ[ãZX[^Y\èI‹^Y\íYHô[[›ôYI‹ô[[›ôY^H€›\òŸOI‹€›\òŸU^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ–õ€››ò\\õXU‹ö]J^Y\íY]ô[\Kô\›‹ôYÿ[\ä^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›]ô[^Hÿ[ö]^ôTôX\€€ä]ô[ù[ö€õ›€àäN¬à€€ú›\U^Hÿ[ö]^ôTôX\€€ä\Kõù[äN¬à€€ú›ô\›‹ôY^Hô\›‹ôY»ùùYHààôò[ŸHé¬à€€ú›ÿ[\ï^Hÿ[\àù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHõ€››ò\\\õXK]‹ö]H^Y\èI‹^Y\íYH]ô[I€]ô[^H\OI›\U^Hô\›‹ôYI‹ô\›‹ôY^Hÿ[\èIÿÿ[\ï^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àŸ“Y[ù]Pö[ôõY ^Y\íY€›\òŸKXÿŸ\Y
+^¬àYà
+\^Y\íY
+H^Y\íYHù[ö€õ›€àé¬à€€ú›‹ò»H€›\òŸHù[ö€õ›€àé¬à€€ú›XÿŸ\Y^HXÿŸ\Y»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHY[ù]KXö[ôYõY»^Y\èI‹^Y\íYH€›\òŸOI‹‹òﬂHXÿŸ\YIÿXÿŸ\Y^X
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àÿ[ö]^ôQõY“Ÿ^Jò]“Ÿ^J^¬àYà
+ò]“Ÿ^HOHù[
+Hô]\õàù[¬à€€ú›ÿ[ôY]HH›ö[ô ò]“Ÿ^JKùö[J
+N¬àYà
+Xÿ[ôY]JHô]\õàù[¬àYà
+ÿ[ôY]HOOHó◊‹õ›◊◊»àÿ[ôY]HOOHò€€ú›ùX›‹ààÿ[ôY]HOOHúõ››\HäHô]\õàù[¬àô]\õàÿ[ôY]N¬àBÇàù[ò›[€àÿ[ö]^ôTôX\€€äò[YKò[òX⁄ ^¬àYà
+\[Ÿàò[YHOOHú›ö[ô»à	âàò[YKùö[J
+JHô]\õàò[YKùö[J
+N¬àYà
+ò[YHOHù[
+H¬à€€ú››àH›ö[ô ò[YJKùö[J
+N¬àYà
+›äHô]\õà›é¬àBàYà
+ò[òX⁄»OHù[
+H¬à€€ú›òî›àH›ö[ô ò[òX⁄ Kùö[J
+N¬àYà
+òî›äHô]\õàòî›é¬àBàô]\õàúô\›‹ôY‹ŸX›\ö]W‹›]Hé¬àBÇàù[ò›[€àõ‹õX[^ôQõY—[ùûJò]’ò[YJ^¬à€€ú›[ùûHH
+ò]’ò[YH	âà\[Ÿàò]’ò[YHOOHõÿöôX›äH»ò]’ò[YHàﬂN¬à€€ú›⁄[òŸPÿ[ôY]HHù[Xô\ä[ùûKú⁄[òŸJN¬à€€ú›⁄[òŸHHù[Xô\ãö\—ö[ö]J⁄[òŸPÿ[ôY]JH»X]õX^
+⁄[òŸPÿ[ôY]JHà]Kõõ› 
+N¬à€€ú›ò]’\HH[ùûKù\H[ùûKó›\H[ùûKúôX\€€é¬à€€ú›\HHÿ[ö]^ôTôX\€€äò]’\Kú\õXWŸõY◊‹ô\›‹ôHäN¬à€€ú›ôX\€€àHÿ[ö]^ôTôX\€€ä[ùûKúôX\€€à[ùûKó‹ôX\€€à\Kúô\›‹ôY‹ŸX›\ö]W‹›]HäN¬à€€ú›]]‹ö]HHìQ◊–UU‘íUKîëT’‘ëQ”––S¬àô]\õà»⁄[òŸKôX\€€ã\K]]‹ö]HN¬àBÇàù[ò›[€àŸ‘\õXQõY”õ‹õX[^ôY
+Ÿ^KôX\€€ä^¬àYà
+ZŸ^JHô]\õé¬à€€ú›ÿYôTôX\€€àHÿ[ö]^ôTôX\€€äôX\€€ãù[ö€õ›€àäN¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\õXKYõYÀ[õ‹õX[^ôYŸ^OI⁄Ÿ^_HôX\€€èI‹ÿYôTôX\€€üX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àõ‹õX[^ôT\ú⁄\›Y
+\úŸY
+^¬àYà
+\\úŸY\[Ÿà\úŸYOOHõÿöôX›äH¬àô]\õà»õY‹ŒàﬂK€›\òŸNàô[\Hãõ‹õX]àô[\Hã›[\àN¬àBà€€ú›\’‹ò\YH\úŸYôõY‹»	âà\[Ÿà\úŸYôõY‹»OOHõÿöôX›é¬à€€ú›ùX⁄Ÿ]H\’‹ò\Y»\úŸYôõY‹»à\úŸY¬à€€ú›€›\òŸHH\’‹ò\Yà»›ö[ô \úŸYú€›\òŸH\úŸYó‹€›\òŸHù‹ò\YäBààõYÿXﬁHé¬à€€ú›õ‹õX]H\’‹ò\Y»ù‹ò\YààõYÿXﬁHé¬à€€ú››[\ÿ[ôY]HHù[Xô\ä\úŸYú›[\\úŸYó‹›[\
+N¬à€€ú››[\Hù[Xô\ãö\—ö[ö]J›[\ÿ[ôY]JH»X]õX^
+›[\ÿ[ôY]JHà¬à€€ú›õ‹õX[^ôYõY‹»HﬂN¬àYà
+ùX⁄Ÿ]	âà\[ŸàùX⁄Ÿ]OOHõÿöôX›äH¬àõ‹à
+€€ú›‹ò]“Ÿ^Kò]’ò[YWHŸàÿöôX›ô[ùöY\ ùX⁄Ÿ]
+JH¬à€€ú›Ÿ^HHÿ[ö]^ôQõY“Ÿ^Jò]“Ÿ^JN¬àYà
+ZŸ^JH€€ù[ùYN¬à€€ú›[ùûHHõ‹õX[^ôQõY—[ùûJò]’ò[YJN¬àõ‹õX[^ôYõY‹÷⁄Ÿ^WHH[ùûN¬àŸ‘\õXQõY”õ‹õX[^ôY
+Ÿ^K[ùûKúôX\€€äN¬àBàBàô]\õà»õY‹Œàõ‹õX[^ôYõY‹À€›\òŸKõ‹õX]›[\N¬àBÇàù[ò›[€àÿY\ú⁄\›Y
+
+^¬àYà
+\›‹òYŸJHô]\õà»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬àûH¬à€€ú›ò]»H›‹òYŸKôŸ]][J’‘êQ—W“—VJN¬àYà
+\ò] Hô]\õà»õY‹ŒàﬂK€›\òŸNàô[\Hãõ‹õX]àõõ€ôHã›[\àN¬à€€ú›\úŸYHî””ãú\úŸJò] N¬àYà
+\úŸY	âà\[Ÿà\úŸYOOHõÿöôX›äHô]\õàõ‹õX[^ôT\ú⁄\›Y
+\úŸY
+N¬àHÿ]⁄
+ HﬂBàô]\õà»õY‹ŒàﬂK€›\òŸNàö[ùò[Yãõ‹õX]àö[ùò[Yã›[\àN¬àBÇà]\ú⁄\›Y\õXHHÿY\ú⁄\›Y
+
+N¬à€€ú›ô\›‹ôY^Y\ú»H◊N¬à€€ú›\›‹ûHHô]»X\
+
+N¬à€€ú›ù[ù[YT\õXTõ€Ÿî^Y\ú»Hô]»Ÿ]
+
+N¬à]õY‘›]Qö[ò[^ôYHò[ŸN¬à]ô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬à]ŸX›\ö]QõY‹‘›‹ôHHù[¬à]ŸX›\ö]QõY‹’‹ö]TŸ\HH¬à]ŸX›\ö]QõY‹’‹ö]P€€ù^Hù[¬à€€ú›\›õY‘õ›ô[ò[òŸPûT^Y\àHÿöôX›ò‹ôX]Jù[
+N¬Çàù[ò›[€àÿ[ö]^ôTŸX›\ö]QõY‹”ÿöôX›
+ò] ^¬àô]\õà
+ò]»	âà\[Ÿàò]»OOHõÿöôX›äH»ò]»àﬂN¬àBÇàù[ò›[€àôXY]ô[ù\Jò[YJ^¬àYà
+ò[YHOHù[
+Hô]\õàù[¬à€€ú›^H›ö[ô ò[YJKùö[J
+N¬àô]\õà^»^àù[¬àBÇàù[ò›[€àô^ŸX›\ö]QõY‹’‹ö]TŸ\J
+^¬àŸX›\ö]QõY‹’‹ö]TŸ\HH
+ŸX›\ö]QõY‹’‹ö]TŸ\H
+H
+»N¬àô]\õàŸX›\ö]QõY‹’‹ö]TŸ\N¬àBÇàù[ò›[€à⁄]ŸX›\ö]QõY‹’‹ö]P€€ù^
+Y]Kõä^¬à€€ú›ô]àHŸX›\ö]QõY‹’‹ö]P€€ù^¬àŸX›\ö]QõY‹’‹ö]P€€ù^H
+Y]H	âà\[ŸàY]HOOHõÿöôX›äH»Y]Hàù[¬àûH»ô]\õàõä
+N»Bàö[ò[H»ŸX›\ö]QõY‹’‹ö]P€€ù^Hô]é»BàBÇàù[ò›[€àõ‹õX[^ôT€›\òŸR⁄[ô
+ò]“⁄[ô€›\òŸKX›[€ä^¬à€€ú›€õ›€àHô]»Ÿ]
+»úô\›‹ôHãöYò]Hãúù[ù[YWŸ]ô[ùãô\ôX››‹ö]HãõÿöôX›‹ô\XŸHãõY\ôŸHóJN¬à€€ú›úõ€Tò]»Hò]“⁄[ô»›ö[ô ò]“⁄[ô
+Kùö[J
+Kù”›Ÿ\êÿ\ŸJ
+Hààé¬àYà
+úõ€Tò]»	âà€õ›€ãö\ úõ€Tò] JHô]\õàúõ€Tò]Œ¬à€€ú›‹ò»H€›\òŸH»›ö[ô €›\òŸJKù”›Ÿ\êÿ\ŸJ
+Hààé¬à€€ú›X›HX›[€à»›ö[ô X›[€äKù”›Ÿ\êÿ\ŸJ
+Hààé¬àYà
+‹òÀö[ò€Y\ úô\›‹ô\\ú⁄\›YõY‹»äJHô]\õàúô\›‹ôHé¬àYà
+‹òÀö[ò€Y\ òõ€››ò\äH‹òÀö[ò€Y\ öYò]HäH‹òÀö[ò€Y\ ö[ú›[ŸX›\ö]YõY‹⁄€⁄‹Œö[ö]äJHô]\õàöYò]Hé¬àYà
+‹òÀö[ò€Y\ úŸ]õYŸõ‹ú^Y\àäH‹òÀö[ò€Y\ ö[ôY]ô[ùäJHô]\õàúù[ù[YWŸ]ô[ùé¬àYà
+‹òÀö[ò€Y\ úŸX›\ö]YõY‹ÀúŸ]\àäHX›OOHúô\XŸHäHô]\õàõÿöôX›‹ô\XŸHé¬àYà
+‹òÀö[ò€Y\ úõﬁKàäHX›OOHù‹ö]HäHô]\õàô\ôX››‹ö]Hé¬àô]\õàõY\ôŸHé¬àBÇàù[ò›[€àùZ[õY’‹ö]SY]J›ô\úöY\»Hù[
+^¬à€€ú›]⁄H
+›ô\úöY\»	âà\[Ÿà›ô\úöY\»OOHõÿöôX›äH»›ô\úöY\»àﬂN¬à€€ú››H
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âà\[ŸàŸX›\ö]QõY‹’‹ö]P€€ù^OOHõÿöôX›äH»ŸX›\ö]QõY‹’‹ö]P€€ù^àù[¬à€€ú›‹ò»Hõ›–]Y]^
+à]⁄ù‹ö]\ëù[ò›[€à]⁄ú€›\òŸH
+›	âà
+›ù‹ö]\ëù[ò›[€à›ú€›\òŸJJHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹Àù‹ö]HäKàù[ö€õ›€àÇà
+N¬à€€ú›€›\òŸR⁄[ôHõ‹õX[^ôT€›\òŸR⁄[ô
+]⁄ú€›\òŸR⁄[ô
+›	âà›ú€›\òŸR⁄[ô
+K‹òÀ]⁄òX›[€à
+›	âà›òX›[€äHù‹ö]HäN¬à€€ú›ò]‘Ÿ\HH]⁄ù‹ö]TŸ\HOHù[»]⁄ù‹ö]TŸ\Hà
+›	âà›ù‹ö]TŸ\JN¬à€€ú›‹ö]TŸ\HHù[Xô\ãö\—ö[ö]Jù[Xô\äò]‘Ÿ\JJH	âàù[Xô\äò]‘Ÿ\JHà»ù[Xô\äò]‘Ÿ\JHàô^ŸX›\ö]QõY‹’‹ö]TŸ\J
+N¬à€€ú›‹ö]\ïY»Hõ›–]Y]^
+à]⁄ù‹ö]\ïY»
+›	âà›ù‹ö]\ïY HŸX›\ö]YõY‹Œâ‹€›\òŸR⁄[ôXàúŸX›\ö]YõY‹Œù[ö€õ›€àÇà
+N¬à€€ú›õ€›[YHHù[Xô\ãö\—ö[ö]Jù[Xô\ä]⁄òõ€›[YHOHù[»]⁄òõ€›[YHà
+›	âà›òõ€›[YJJJBà»ù[Xô\ä]⁄òõ€›[YHOHù[»]⁄òõ€›[YHà
+›	âà›òõ€›[YJJBààì”’’SQW”TŒ¬à€€ú›€XﬁRYHõ›–]Y]^
+]⁄ú€XﬁRY
+›	âà›ú€XﬁRY
+H”P÷W“Q”P÷W“Q
+N¬à€€ú›]ô[ù\HHôXY]ô[ù\Jà]⁄ô]ô[ù\HOHù[à»]⁄ô]ô[ù\Bàà
+›	âàÿöôX›úõ››\Kö\”›€îõ‹\ùKòÿ[
+›ô]ô[ù\HäH»›ô]ô[ù\Hàù[
+Bà
+N¬àô]\õà»‹ö]\ïYÀ‹ö]\ëù[ò›[€éà‹òÀ€XﬁRY‹ö]TŸ\Kõ€›[YK€›\òŸR⁄[ô]ô[ù\HN¬àBÇàù[ò›[€àX\ö—õY‘õ›ô[ò[òŸJ^Y\íYò[YKY]HHù[
+^¬àYà
+]ò[YH\[Ÿàò[YHOOHõÿöôX›äHô]\õàù[¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›[ôõ»HùZ[õY’‹ö]SY]JY]JN¬à€€ú›]ô[ù\HHôXY]ô[ù\J[ôõÀô]ô[ù\HOHù[»[ôõÀô]ô[ù\Hà
+ò[YKô]ô[ù\HOHù[»ò[YKô]ô[ù\Hàò[YKù\JJN¬àûH¬àò[YKù‹ö]\ïY»H[ôõÀù‹ö]\ïYŒ¬àò[YKù‹ö]\ëù[ò›[€àH[ôõÀù‹ö]\ëù[ò›[€é¬àò[YKú€XﬁRYH[ôõÀú€XﬁRY¬àò[YKù‹ö]TŸ\HH[ôõÀù‹ö]TŸ\N¬àò[YKòõ€›[YHH[ôõÀòõ€›[YN¬àò[YKú€›\òŸR⁄[ôH[ôõÀú€›\òŸR⁄[ô¬àò[YKô]ô[ù\HH]ô[ù\N¬àHÿ]⁄
+ HﬂBà\›õY‘õ›ô[ò[òŸPûT^Y\ñ‹YHH¬à‹ö]\ïYŒà[ôõÀù‹ö]\ïYÀà‹ö]\ëù[ò›[€éà[ôõÀù‹ö]\ëù[ò›[€ãà€XﬁRYà[ôõÀú€XﬁRYà‹ö]TŸ\Nà[ôõÀù‹ö]TŸ\Kàõ€›[YNà[ôõÀòõ€›[YKà€›\òŸR⁄[ôà[ôõÀú€›\òŸR⁄[ôà]ô[ù\KàN¬àYà
+YOOHõYHà	âà
+[Y]HY]KõŸ’‹ö]HOOHò[ŸJJH¬àŸ‘ŸX›\ö]QõY‹”YU‹ö]Jò[YJN¬àBàô]\õàò[YN¬àBÇàù[ò›[€à€€ôQõY—õ‹îô]\õäõY ^¬àYà
+YõY»\[ŸàõY»OOHõÿöôX›äHô]\õàù[¬àô]\õà¬à]ô[àõYÀõ]ô[ù[à⁄[òŸNàù[Xô\ãö\—ö[ö]Jù[Xô\äõYÀú⁄[òŸJJH»ù[Xô\äõYÀú⁄[òŸJHàù[à[ù[à
+õYÀù[ù[OHù[
+H»ù[àù[Xô\äõYÀù[ù[
+Kà€›[ùŒà
+õYÀò€›[ù»	âà\[ŸàõYÀò€›[ù»OOHõÿöôX›äH»ÿöôX›ò\‹⁄Y€äﬂKõYÀò€›[ù Hàù[à\NàõYÀù\Hù[àôX\€€éàõYÀúôX\€€àù[à]]‹ö]NàõYÀò]]‹ö]Hù[à‹ö]\ïYŒàõYÀù‹ö]\ïY»ù[à‹ö]\ëù[ò›[€éàõYÀù‹ö]\ëù[ò›[€àù[à€XﬁRYàõYÀú€XﬁRY”P÷W“Qà‹ö]TŸ\Nàù[Xô\ãö\—ö[ö]Jù[Xô\äõYÀù‹ö]TŸ\JJH»ù[Xô\äõYÀù‹ö]TŸ\JHàù[àõ€›[YNàù[Xô\ãö\—ö[ö]Jù[Xô\äõYÀòõ€›[YJJH»ù[Xô\äõYÀòõ€›[YJHàì”’’SQW”TÀà€›\òŸR⁄[ôàõYÀú€›\òŸR⁄[ôù[à]ô[ù\NàôXY]ô[ù\JõYÀô]ô[ù\JKàN¬àBÇàù[ò›[€à€ò\⁄›õY‘õ›ô[ò[òŸJ^Y\íYõY ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›úõ€QõY»HõY»	âà\[ŸàõY»OOHõÿöôX›à»õY»àù[¬à€€ú›ÿ]ôYH
+Yúõ€QõY»	âàÿöôX›úõ››\Kö\”›€îõ‹\ùKòÿ[
+\›õY‘õ›ô[ò[òŸPûT^Y\ãY
+JBà»\›õY‘õ›ô[ò[òŸPûT^Y\ñ‹YBààù[¬à€€ú›€›\òŸHHúõ€QõY»ÿ]ôYù[¬àYà
+\€›\òŸJHô]\õàù[¬àô]\õà¬à‹ö]\ïYŒà€›\òŸKù‹ö]\ïY»ù[à‹ö]\ëù[ò›[€éà€›\òŸKù‹ö]\ëù[ò›[€àù[à€XﬁRYà€›\òŸKú€XﬁRY”P÷W“Qà‹ö]TŸ\Nàù[Xô\ãö\—ö[ö]Jù[Xô\ä€›\òŸKù‹ö]TŸ\JJH»ù[Xô\ä€›\òŸKù‹ö]TŸ\JHàù[àõ€›[YNàù[Xô\ãö\—ö[ö]Jù[Xô\ä€›\òŸKòõ€›[YJJH»ù[Xô\ä€›\òŸKòõ€›[YJHàì”’’SQW”TÀà€›\òŸR⁄[ôà€›\òŸKú€›\òŸR⁄[ôù[à]ô[ù\NàôXY]ô[ù\J€›\òŸKô]ô[ù\JKàN¬àBÇàù[ò›[€àŸ—õY‘õ›ô[ò[òŸTô]\õä^Y\íYõY ^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+Hàù[ö€õ›€àé¬à€€ú›õ›ô[ò[òŸHH€ò\⁄›õY‘õ›ô[ò[òŸJYõY N¬à€€ú›‹ö]\àHõ›ô[ò[òŸH	âàõ›ô[ò[òŸKù‹ö]\ëù[ò›[€à»›ö[ô õ›ô[ò[òŸKù‹ö]\ëù[ò›[€äHàù[ö€õ›€àé¬à€€ú›€›\òŸR⁄[ôHõ›ô[ò[òŸH	âàõ›ô[ò[òŸKú€›\òŸR⁄[ô»›ö[ô õ›ô[ò[òŸKú€›\òŸR⁄[ô
+Hàù[ö€õ›€àé¬à€€ú›€XﬁHHõ›ô[ò[òŸH	âàõ›ô[ò[òŸKú€XﬁRY»›ö[ô õ›ô[ò[òŸKú€XﬁRY
+Hà”P÷W“Q¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHõYÀ\õ›ô[ò[òŸK\ô]\õà^Y\èI‹YH‹ö]\èI›‹ö]\üH€›\òŸR⁄[ôI‹€›\òŸR⁄[ôH€XﬁRYI‹€Xﬁ_X
+N¬àHÿ]⁄
+ HﬂBàYà
+õY»	âà\‘›[Qö[ôŸ\úö[ù⁄[òŸJõYÀú⁄[òŸJJH¬àŸ‘›[Qö[ôŸ\úö[ù
+‹ö]\ãúô]\õàäN¬àBàBÇàù[ò›[€àô\XŸTŸX›\ö]QõY‹‘›‹ôJô^ò[YKY]HHù[
+^¬à€€ú›[ôõ»HùZ[õY’‹ö]SY]JÿöôX›ò\‹⁄Y€äﬂK
+Y]H	âà\[ŸàY]HOOHõÿöôX›äH»Y]HàﬂK»X›[€éàúô\XŸHàJJN¬àô]\õà⁄]ŸX›\ö]QõY‹’‹ö]P€€ù^
+[ôõÀ
+
+HOà¬à›]KúŸX›\ö]QõY‹»Hÿ[ö]^ôTŸX›\ö]QõY‹”ÿöôX›
+ô^ò[YJN¬àô]\õà›]KúŸX›\ö]QõY‹Œ¬àJN¬àBÇàù[ò›[€àÿúŸ\ùôQõY’‹ö]J^Y\íYò[YK€›\òŸKX›[€àHúŸY[àãY]HHù[
+^¬àYà
+\^Y\íY
+Hô]\õé¬àYà
+]ò[YH\[Ÿàò[YHOOHõÿöôX›äHô]\õé¬à€€ú›‹ò»H€›\òŸHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀõÿúŸ\ùôHäN¬à€€ú›X›[€ï^Hõ›–]Y]^
+X›[€ãúŸY[àäN¬à€€ú›€›\òŸR⁄[ôHõ‹õX[^ôT€›\òŸR⁄[ô
+Y]H	âàY]Kú€›\òŸR⁄[ô‹òÀX›[€ï^
+N¬à€€ú›⁄›[Ÿ’‹ö]HHX›[€ï^OOHù‹ö]Hà€›\òŸR⁄[ôOOHõÿöôX›‹ô\XŸHà€›\òŸR⁄[ôOOHúô\›‹ôHà€›\òŸR⁄[ôOOHöYò]Hé¬àX\ö—õY‘õ›ô[ò[òŸJ^Y\íYò[YKÿöôX›ò\‹⁄Y€äﬂKY]HﬂK¬à‹ö]\ëù[ò›[€éà‹òÀà€›\òŸR⁄[ôàŸ’‹ö]Nà⁄›[Ÿ’‹ö]KàJJN¬àŸ‘ŸX›\ö]QõY‹”Y\ôŸJ^Y\íYò[YKõ]ô[ù[ò[YKú⁄[òŸK‹ò N¬à€€ú›⁄[òŸHHù[Xô\äò[YKú⁄[òŸJN¬àYà
+Sù[Xô\ãö\—ö[ö]J⁄[òŸJJHô]\õé¬à€€ú›ôXõ€›H⁄[òŸHì”’’SQW”TŒ¬à€€ú›]]‹ö]]]ôHHò[YKò]]‹ö]HOOHìQ◊–UU‘íUKêUU‘íUUUëN¬àYà
+\‘›[Qö[ôŸ\úö[ù⁄[òŸJ⁄[òŸJJH¬àŸ‘›[Qö[ôŸ\úö[ù
+‹òÀù‹ö]HäN¬àBàŸ‘›[QõY—]X›Y
+^Y\íY⁄[òŸKôXõ€›]]‹ö]]]ôJN¬àYà
+\ôXõ€›
+Hô]\õé¬àŸ‘›[QõY”‹öY⁄[ä^Y\íY⁄[òŸK‹ò N¬àBÇàù[ò›[€à‹ò\ŸX›\ö]QõY‹”ÿöôX›
+ò]”ÿöã€›\òŸKY]HHù[
+^¬à€€ú›ò\ŸHHÿ[ö]^ôTŸX›\ö]QõY‹”ÿöôX›
+ò]”ÿöäN¬à€€ú›‹ò»H€›\òŸHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKù‹ò\ŸX›\ö]QõY‹”ÿöôX›äN¬à€€ú›€›\òŸR⁄[ôHõ‹õX[^ôT€›\òŸR⁄[ô
+Y]H	âàY]Kú€›\òŸR⁄[ô‹òÀõY\ôŸHäN¬à€€ú›‹ö]TŸ\HHù[Xô\ãö\—ö[ö]Jù[Xô\äY]H	âàY]Kù‹ö]TŸ\JJH»ù[Xô\äY]Kù‹ö]TŸ\JHàù[¬àõ‹à
+€€ú›‹YõY◊HŸàÿöôX›ô[ùöY\ ò\ŸJJH¬àÿúŸ\ùôQõY’‹ö]JYõYÀ‹òÀúŸY[àãÿöôX›ò\‹⁄Y€äﬂKY]HﬂK¬à€›\òŸR⁄[ôà‹ö]\ëù[ò›[€éà‹òÀà‹ö]TŸ\KàJJN¬àBà€€ú›õﬁHHô]»õﬁJò\ŸK¬àŸ]
+\ôŸ]õ‹ò[YJ^¬à\ôŸ]‹õ‹HHò[YN¬àYà
+\[Ÿàõ‹OOHú›ö[ô»äH¬à€€ú›‹ò‘Ÿ]Hõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀúõﬁKúŸ]äN¬à€€ú›X›]ôP›H
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âà\[ŸàŸX›\ö]QõY‹’‹ö]P€€ù^OOHõÿöôX›äBà»ŸX›\ö]QõY‹’‹ö]P€€ù^ààù[¬à€€ú›‹ö]SY]HHùZ[õY’‹ö]SY]JX›]ôP›»¬à‹ö]\ïYŒàX›]ôP›ù‹ö]\ïYÀà‹ö]\ëù[ò›[€éàX›]ôP›ù‹ö]\ëù[ò›[€à‹ò‘Ÿ]à€›\òŸR⁄[ôàX›]ôP›ú€›\òŸR⁄[ôà‹ö]TŸ\NàX›]ôP›ù‹ö]TŸ\Kà]ô[ù\NàX›]ôP›ô]ô[ù\KàX›[€éàù‹ö]HãàHà¬à‹ö]\ïYŒàúŸX›\ö]YõY‹ŒúõﬁW‹Ÿ]ãà‹ö]\ëù[ò›[€éà‹ò‘Ÿ]à€›\òŸR⁄[ôàô\ôX››‹ö]HãàX›[€éàù‹ö]Hãà]ô[ù\Nàò[YH	âàò[YKô]ô[ù\KàJN¬àÿúŸ\ùôQõY’‹ö]Jõ‹ò[YK‹ò‘Ÿ]ù‹ö]Hã‹ö]SY]JN¬àBàô]\õàùYN¬àKàYö[ôTõ‹\ùJ\ôŸ]õ‹\ÿ‹ö\‹ä^¬à€€ú›⁄»HôYõX›ôYö[ôTõ‹\ùJ\ôŸ]õ‹\ÿ‹ö\‹äN¬àYà
+⁄»	âà\[Ÿàõ‹OOHú›ö[ô»à	âà\ÿ‹ö\‹à	âàÿöôX›úõ››\Kö\”›€îõ‹\ùKòÿ[
+\ÿ‹ö\‹ãùò[YHäJH¬à€€ú›‹ò—Yö[ôHHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀúõﬁKôYö[ôTõ‹\ùHäN¬à€€ú›X›]ôP›H
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âà\[ŸàŸX›\ö]QõY‹’‹ö]P€€ù^OOHõÿöôX›äBà»ŸX›\ö]QõY‹’‹ö]P€€ù^ààù[¬à€€ú›‹ö]SY]HHùZ[õY’‹ö]SY]JX›]ôP›»¬à‹ö]\ïYŒàX›]ôP›ù‹ö]\ïYÀà‹ö]\ëù[ò›[€éàX›]ôP›ù‹ö]\ëù[ò›[€à‹ò—Yö[ôKà€›\òŸR⁄[ôàX›]ôP›ú€›\òŸR⁄[ôà‹ö]TŸ\NàX›]ôP›ù‹ö]TŸ\Kà]ô[ù\NàX›]ôP›ô]ô[ù\KàX›[€éàù‹ö]HãàHà¬à‹ö]\ïYŒàúŸX›\ö]YõY‹ŒúõﬁWŸYö[ôHãà‹ö]\ëù[ò›[€éà‹ò—Yö[ôKà€›\òŸR⁄[ôàô\ôX››‹ö]HãàX›[€éàù‹ö]Hãà]ô[ù\Nà\ÿ‹ö\‹ãùò[YH	âà\ÿ‹ö\‹ãùò[YKô]ô[ù\KàJN¬àÿúŸ\ùôQõY’‹ö]Jõ‹\ÿ‹ö\‹ãùò[YK‹ò—Yö[ôKù‹ö]Hã‹ö]SY]JN¬àBàô]\õà⁄Œ¬àKà[]Tõ‹\ùJ\ôŸ]õ‹
+^¬àô]\õàôYõX›ô[]Tõ‹\ùJ\ôŸ]õ‹
+N¬àBàJN¬àûH¬àõ›–]Y]õﬁU\ôŸ]ÀúŸ]
+õﬁKò\ŸJN¬àHÿ]⁄
+ HﬂBàô]\õàõﬁN¬àBÇàù[ò›[€à[ú›[ŸX›\ö]QõY‹“€⁄‹ 
+^¬àYà
+T›]H\[Ÿà›]HOOHõÿöôX›äHô]\õé¬à€€ú››\úô[ù\ÿ»HÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹ä›]KúŸX›\ö]QõY‹»äN¬àYà
+›\úô[ù\ÿ»	âà›\úô[ù\ÿÀôŸ]	âà›\úô[ù\ÿÀôŸ]óŸõ›–]Y]ŸX›\ö]QõY‹ Hô]\õé¬à€€ú›[ö]X[ò]»Hÿ[ö]^ôTŸX›\ö]QõY‹”ÿöôX›
+›]KúŸX›\ö]QõY‹»ﬂJN¬à€€ú›[ö]Y]HHùZ[õY’‹ö]SY]J¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œö[ú›[⁄[ö]ãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKö[ú›[ŸX›\ö]QõY‹“€⁄‹Œö[ö]ãà€›\òŸR⁄[ôàöYò]HãàX›[€éàúô\XŸHãàJN¬àŸX›\ö]QõY‹‘›‹ôHH‹ò\ŸX›\ö]QõY‹”ÿöôX›
+[ö]X[ò]ÀîôXX›[€î€XﬁKö[ú›[ŸX›\ö]QõY‹“€⁄‹Œö[ö]ã[ö]Y]JN¬àŸ‘ŸX›\ö]QõY‹”ÿöôX›ô\XŸY
+îôXX›[€î€XﬁKö[ú›[ŸX›\ö]QõY‹“€⁄‹Œö[ö]ãò[ŸKŸX›\ö]QõY‹‘›‹ôK[ö]Y]JN¬àÿöôX›ôYö[ôTõ‹\ùJ›]KúŸX›\ö]QõY‹»ã¬à€€ôöY›\òXõNàùYKà[ù[Y\òXõNàùYKàŸ]
+
+^»ô]\õàŸX›\ö]QõY‹‘›‹ôN»KàŸ]
+ô^
+^¬à€€ú›‹ò»Hõ›–]Y]^
+à
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âàŸX›\ö]QõY‹’‹ö]P€€ù^ù‹ö]\ëù[ò›[€äHõ›–]Y]ÿ[\äîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀúŸ]\àäKàîôXX›[€î€XﬁKúŸX›\ö]QõY‹ÀúŸ]\àÇà
+N¬à€€ú›ô]îò]»Hõ›–]Y]õﬁU\ôŸ]ÀôŸ]
+ŸX›\ö]QõY‹‘›‹ôJHŸX›\ö]QõY‹‘›‹ôHù[¬à€€ú›ô^ò]»Hÿ[ö]^ôTŸX›\ö]QõY‹”ÿöôX›
+ô^
+N¬à€€ú›ÿ[YTôYàHH\ô]îò]»	âàô]îò]»OOHô^ò]Œ¬à€€ú›ô\XŸSY]HHùZ[õY’‹ö]SY]J¬à‹ö]\ïYŒà
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âàŸX›\ö]QõY‹’‹ö]P€€ù^ù‹ö]\ïY HúŸX›\ö]YõY‹ŒúŸ]\àãà‹ö]\ëù[ò›[€éà‹òÀà€›\òŸR⁄[ôà
+ŸX›\ö]QõY‹’‹ö]P€€ù^	âàŸX›\ö]QõY‹’‹ö]P€€ù^ú€›\òŸR⁄[ô
+HõÿöôX›‹ô\XŸHãà‹ö]TŸ\NàŸX›\ö]QõY‹’‹ö]P€€ù^	âàŸX›\ö]QõY‹’‹ö]P€€ù^ù‹ö]TŸ\Kà]ô[ù\NàŸX›\ö]QõY‹’‹ö]P€€ù^	âàŸX›\ö]QõY‹’‹ö]P€€ù^ô]ô[ù\KàX›[€éàúô\XŸHãàJN¬àŸX›\ö]QõY‹‘›‹ôHH⁄]ŸX›\ö]QõY‹’‹ö]P€€ù^
+ô\XŸSY]K
+
+HOà‹ò\ŸX›\ö]QõY‹”ÿöôX›
+ô^ò]À‹òÀô\XŸSY]JJN¬àŸ‘ŸX›\ö]QõY‹”ÿöôX›ô\XŸY
+‹òÀÿ[YTôYãŸX›\ö]QõY‹‘›‹ôKô\XŸSY]JN¬àBàJN¬à€€ú›\ÿ–Yù\àHÿöôX›ôŸ]›€îõ‹\ùQ\ÿ‹ö\‹ä›]KúŸX›\ö]QõY‹»äN¬àYà
+\ÿ–Yù\à	âà\ÿ–Yù\ãôŸ]
+H¬àûH»\ÿ–Yù\ãôŸ]óŸõ›–]Y]ŸX›\ö]QõY‹»HùYN»Hÿ]⁄
+ HﬂBàBàBÇàù[ò›[€à[ú›\ôT›]QõY‹ 
+^¬à[ú›[ŸX›\ö]QõY‹“€⁄‹ 
+N¬àYà
+T›]KúŸX›\ö]QõY‹»\[Ÿà›]KúŸX›\ö]QõY‹»OOHõÿöôX›äH¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œô[ú›\ôW‹›]WŸõY‹»ãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKô[ú›\ôT›]QõY‹»ãà€›\òŸR⁄[ôàõÿöôX›‹ô\XŸHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãúù[ù[YW‹ô\Ÿ]ãîôXX›[€î€XﬁKô[ú›\ôT›]QõY‹»äN¬àBàBÇàù[ò›[€à\ôŸTôXõ€››[QõY‹ €›\òŸJ^¬à[ú›\ôT›]QõY‹ 
+N¬à€€ú›õY‹»H›]KúŸX›\ö]QõY‹»ﬂN¬à]ô[[›ôY€›[ùH¬àõ‹à
+€€ú›‹YõY◊HŸàÿöôX›ô[ùöY\ õY‹ JH¬àYà
+YõY»õYÀõ]ô[OOHUëSÀîTìPW—ìQ H€€ù[ùYN¬à€€ú›⁄[òŸHHù[Xô\äõYÀú⁄[òŸJN¬àYà
+Sù[Xô\ãö\—ö[ö]J⁄[òŸJJH€€ù[ùYN¬à€€ú›]]‹ö]]]ôHH\–]]‹ö]]]ôT\õXQõY YõYÀ	‹€›\òŸHîôXX›[€î€XﬁKú\ôŸTôXõ€››[QõY‹»üNò]]‹ö]X
+N¬à€€ú›ôXõ€›H⁄[òŸHì”’’SQW”TŒ¬àYà
+\ôXõ€›
+H€€ù[ùYN¬àŸ‘›[QõY—]X›Y
+Y⁄[òŸKùYK]]‹ö]]]ôJN¬àŸ‘›[QõY”‹öY⁄[äY⁄[òŸK€›\òŸHîôXX›[€î€XﬁKú\ôŸTôXõ€››[QõY‹»äN¬à[]H›]KúŸX›\ö]QõY‹÷‹YN¬àù[ù[YT\õXTõ€Ÿî^Y\úÀô[]J›ö[ô Y
+JN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]J›ö[ô Yù[ö€õ›€àäKô[]YãúôXõ€›‹›[W‹\ôŸHã€›\òŸHîôXX›[€î€XﬁKú\ôŸTôXõ€››[QõY‹»äN¬àô[[›ôT\ú⁄\›YõY—[ùûJY
+N¬àô[[›ôY€›[ù
+ Œ¬àBàö[ò[^ôT\ú⁄\›YYù\íX[
+ô[[›ôY€›[ù
+N¬àô]\õàô[[›ôY€›[ù¬àBÇàù[ò›[€à€X[ù\^\ôYõY ^Y\íY
+^¬à[ú›\ôT›]QõY‹ 
+N¬à€€ú›õY»H›]KúŸX›\ö]QõY‹÷‹^Y\íYN¬àYà
+YõY Hô]\õàù[¬àYà
+õYÀõ]ô[OOHUëSÀïST–ì–“»	âàõYÀù[ù[	âà]Kõõ› 
+HèH
+õYÀù[ù[
+JH¬à[]H›]KúŸX›\ö]QõY‹÷‹^Y\íYN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]J›ö[ô ^Y\íYù[ö€õ›€àäKô[]Yãô^\ôYÿ€X[ù\ãîôXX›[€î€XﬁKò€X[ù\^\ôYõY»äN¬àô]\õàù[¬àBàô]\õàõYŒ¬àBÇàù[ò›[€àŸ]›]QõY ^Y\íY
+^¬àYà
+\^Y\íY
+Hô]\õàù[¬àô]\õà€X[ù\^\ôYõY ›ö[ô ^Y\íY
+JN¬àBÇàù[ò›[€à\ú⁄\›\õXQõY‹ 
+^¬àYà
+\›‹òYŸJHô]\õé¬à€€ú›^[ÿYHﬂN¬à€€ú›õY‹»H›]KúŸX›\ö]QõY‹»ﬂN¬àõ‹à
+€€ú›‹YõY◊HŸàÿöôX›ô[ùöY\ õY‹ JH¬àYà
+õY»	âàõYÀõ]ô[OOHUëSÀîTìPW—ìQ H¬à€€ú›⁄[òŸUò[YHHù[Xô\äõYÀú⁄[òŸJN¬à€€ú›⁄[òŸHHù[Xô\ãö\—ö[ö]J⁄[òŸUò[YJH»X]õX^
+⁄[òŸUò[YJHà]Kõõ› 
+N¬à€€ú›ôX\€€àHÿ[ö]^ôTôX\€€äõYÀúôX\€€àõYÀù\Kú\õXWŸõY»äN¬à€€ú›\HHÿ[ö]^ôTôX\€€äõYÀù\HõYÀúôX\€€ãú\õXWŸõY»äN¬à€€ú›]]‹ö]HH
+õYÀò]]‹ö]HOOHìQ◊–UU‘íUKêUU‘íUUUëJBà»ìQ◊–UU‘íUKêUU‘íUUUëBààìQ◊–UU‘íUKîëT’‘ëQ”––S¬à^[ÿY‹YHH»⁄[òŸKôX\€€ã\K]]‹ö]HN¬àBàBàûH¬à€€ú›[ùô[‹HH»õY‹Œà^[ÿY€›\òŸNàïSïSQW‘”’Tê—K›[\à]Kõõ› 
+KéàHN¬à›‹òYŸKúŸ]][J’‘êQ—W“—VKî””ãú›ö[ô⁄YûJ[ùô[‹JJN¬àHÿ]⁄
+ HﬂBà\ú⁄\›Y\õXHH»õY‹Œà^[ÿY€›\òŸNàïSïSQW‘”’Tê—Kõ‹õX]àù‹ò\Yã›[\à]Kõõ› 
+HN¬àBÇàù[ò›[€à\“[Yÿ[ô\›‹ôS€õT\õXJõY ^¬àYà
+YõY»õYÀõ]ô[OOHUëSÀîTìPW—ìQ Hô]\õàò[ŸN¬à€€ú›[ù[H
+õYÀù[ù[OHù[
+H»ù[àù[Xô\äõYÀù[ù[
+N¬àYà
+[ù[OOHù[
+Hô]\õàò[ŸN¬à€€ú›\Pò\ŸHHõ‹õX[^ôTô\›‹ôTôX\€€äõYÀù\JN¬à€€ú›ŸXZ’\HH\Pò\ŸHOOHú\õXWŸõY◊‹ô\›‹ôHà]\Pò\ŸN¬àYà
+]ŸXZ’\JHô]\õàò[ŸN¬àô]\õàõYÀò]]‹ö]HOOHìQ◊–UU‘íUKêUU‘íUUUëN¬àBÇàù[ò›[€à\‘›õ€ô–›\úô[ùù[ù[YTõ€Ÿä^Y\íYõY ^¬àô]\õà\–]]‹ö]]]ôT\õXQõY ^Y\íYõYÀîôXX›[€î€XﬁKö\‘›õ€ô–›\úô[ùù[ù[YTõ€ŸàäN¬àBÇàù[ò›[€à\–[ûT\õXQõY‹ 
+^¬à€€ú›õY‹»H›]KúŸX›\ö]QõY‹»ﬂN¬àõ‹à
+€€ú›ò[YHŸàÿöôX›ùò[Y\ õY‹ JH¬àYà
+ò[YH	âàò[YKõ]ô[OOHUëSÀîTìPW—ìQ Hô]\õàùYN¬àBàô]\õàò[ŸN¬àBÇàù[ò›[€àô[[›ôT\ú⁄\›YõY—[ùûJ^Y\íY
+^¬à€€ú›Ÿ^HH^Y\íY»›ö[ô ^Y\íY
+Hààé¬àYà
+ZŸ^JHô]\õàò[ŸN¬à€€ú›ùX⁄Ÿ]H
+\ú⁄\›Y\õXH	âà\ú⁄\›Y\õXKôõY‹»	âà\[Ÿà\ú⁄\›Y\õXKôõY‹»OOHõÿöôX›äH»\ú⁄\›Y\õXKôõY‹»àù[¬àYà
+XùX⁄Ÿ]SÿöôX›úõ››\Kö\”›€îõ‹\ùKòÿ[
+ùX⁄Ÿ]Ÿ^JJHô]\õàò[ŸN¬à[]HùX⁄Ÿ]⁄Ÿ^WN¬àô]\õàùYN¬àBÇàù[ò›[€àö[ò[^ôT\ú⁄\›YYù\íX[
+ô[[›ôY€›[ù
+^¬àYà
+\ô[[›ôY€›[ù
+Hô]\õé¬à]›‹òYŸP⁄[ôŸYHò[ŸN¬àYà
+\–[ûT\õXQõY‹ 
+JH¬à\ú⁄\›\õXQõY‹ 
+N¬à›‹òYŸP⁄[ôŸYHùYN¬àH[ŸHYà
+›‹òYŸJH¬àûH¬à›‹òYŸKúô[[›ôR][J’‘êQ—W“—VJN¬à›‹òYŸP⁄[ôŸYHùYN¬àHÿ]⁄
+ HﬂBà\ú⁄\›Y\õXHH»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬àH[ŸH¬à\ú⁄\›Y\õXHH»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬àBàŸ‘⁄\€€ôY›‹òYŸP€X[ù\
+›‹òYŸP⁄[ôŸYô[[›ôY€›[ù
+N¬àBÇàù[ò›[€àŸ[íX[[Yÿ[\õXQõY‹ €›\òŸJ^¬à[ú›\ôT›]QõY‹ 
+N¬à€€ú›€›\òŸU^H€›\òŸHîôXX›[€î€XﬁKúŸ[íX[[Yÿ[\õXQõY‹»é¬à€€ú›õY‹»H›]KúŸX›\ö]QõY‹»ﬂN¬à]ô[[›ôY€›[ùH¬àõ‹à
+€€ú›‹YõY◊HŸàÿöôX›ô[ùöY\ õY‹ JH¬àYà
+Z\“[Yÿ[ô\›‹ôS€õT\õXJõY JH€€ù[ùYN¬à€€ú›\‘›õ€ô‘õ€ŸàH\‘›õ€ô–›\úô[ùù[ù[YTõ€ŸäYõY N¬àYà
+\‘›õ€ô‘õ€ŸäH¬àŸ‘\õXQõY‘Ÿ[íX[
+Yò[ŸK€›\òŸU^
+N¬à€€ù[ùYN¬àBàŸ‘\õXQõY“[Yÿ[›]JYõYÀù\KõYÀõ]ô[€›\òŸU^
+N¬à[]H›]KúŸX›\ö]QõY‹÷‹YN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]J›ö[ô Yù[ö€õ›€àäKô[]YãúŸ[ó⁄X[‹ô[[›ôHã€›\òŸU^
+N¬àô[[›ôT\ú⁄\›YõY—[ùûJY
+N¬àŸ‘›[T\õXTô[[›ôY
+Yúô\›‹ôW€€õW‹\õXW›⁄]›]‹ù[ù[YW‹õ€ŸàäN¬àô[[›ôY€›[ù
+ Œ¬àŸ‘\õXQõY‘Ÿ[íX[
+YùYK€›\òŸU^
+N¬àBàö[ò[^ôT\ú⁄\›YYù\íX[
+ô[[›ôY€›[ù
+N¬àô]\õàô[[›ôY€›[ù¬àBÇàù[ò›[€à[ú›\ôQõY‘›]Qö[ò[^ôY
+€›\òŸJ^¬à€€ú›‹ò»H€›\òŸHîôXX›[€î€XﬁKô[ú›\ôQõY‘›]Qö[ò[^ôYé¬à€€ú›ôYõ‹ôRŸ^\»H€›[ùŸX›\ö]QõY“Ÿ^\ 
+N¬àŸ‘€XﬁPÿ[
+ô[ú›\ôQõY‘›]Qö[ò[^ôYã‹òÀõY‘›]Qö[ò[^ôYIŸõY‘›]Qö[ò[^ôY»ùùYHààôò[ŸHüHô\›‹ôR[îõŸ‹ô\‹œI‹ô\›‹ôR[îõŸ‹ô\‹»»ùùYHààôò[ŸHüX
+N¬à]Y]›]Pö[ô[ô 	‹‹òﬂNòôYõ‹ôX
+N¬àYà
+õY‘›]Qö[ò[^ôY
+H¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHö[ò[^ôKXÿ[YI‘”P÷W“QH€›\òŸOI‹‹òﬂHôYõ‹ôRŸ^\œIÿôYõ‹ôRŸ^\ﬂHYù\íŸ^\œIÿôYõ‹ôRŸ^\ﬂX
+N¬àHÿ]⁄
+ HﬂBàô]\õé¬àBàYà
+\ô\›‹ôR[îõŸ‹ô\‹ H¬àô\›‹ôT\ú⁄\›YõY‹ 
+N¬àBàŸ[íX[[Yÿ[\õXQõY‹ ‹ò N¬à\ôŸTôXõ€››[QõY‹ ‹ò N¬àõY‘›]Qö[ò[^ôYHùYN¬à€€ú›Yù\íŸ^\»H€›[ùŸX›\ö]QõY“Ÿ^\ 
+N¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHö[ò[^ôKXÿ[YI‘”P÷W“QH€›\òŸOI‹‹òﬂHôYõ‹ôRŸ^\œIÿôYõ‹ôRŸ^\ﬂHYù\íŸ^\œIÿYù\íŸ^\ﬂX
+N¬àHÿ]⁄
+ HﬂBà]Y]›]Pö[ô[ô 	‹‹òﬂNòYù\ò
+N¬àBÇàù[ò›[€àŸ]õY—õ‹î^Y\ä^Y\íY]ô[›[\^òHHﬂJ^¬à[ú›\ôT›]QõY‹ 
+N¬à€€ú›Ÿ^HH^Y\íY»›ö[ô ^Y\íY
+HàõYHé¬à€€ú››\úô[ùH€X[ù\^\ôYõY Ÿ^JN¬à€€ú›ô^ö[‹ö]HHíS‘íUV€]ô[H¬à€€ú››\úô[ùö[‹ö]HH›\úô[ù»
+íS‘íUVÿ›\úô[ùõ]ô[H
+HàLN¬à€€ú›ÿ[\ï^Hõ›–]Y]^
+^òKòÿ[\ãîôXX›[€î€XﬁKúŸ]õY—õ‹î^Y\àäN¬à€€ú›€›\òŸR⁄[ôHõ‹õX[^ôT€›\òŸR⁄[ô
+à^òKú€›\òŸR⁄[ô
+^òKòõ€››ò\‹ö]H»úô\›‹ôHààúù[ù[YWŸ]ô[ùäKàÿ[\ï^àù‹ö]HÇà
+N¬àYà
+›\úô[ù	âà›\úô[ùõ]ô[OOHUëSÀïST–ì–“»	âà]ô[OOHUëSÀïST–ì–“ H¬à›\úô[ùù[ù[HX]õX^
+›\úô[ùù[ù[ù[Xô\ä^òKù[ù[
+JN¬à›\úô[ùú⁄[òŸHH›[\¬à›\úô[ùò€›[ù»H^òKò€›[ù»›\úô[ùò€›[ùŒ¬àX\ö—õY‘õ›ô[ò[òŸJŸ^K›\úô[ù¬à‹ö]\ïYŒàúŸX›\ö]YõY‹ŒúŸ]õY—õ‹î^Y\éù[\‹ôYúô\⁄ãà‹ö]\ëù[ò›[€éàÿ[\ï^à€›\òŸR⁄[ôà]ô[ù\Nà^òKô]ô[ù\H^òKù\H›\úô[ùù\KàX›[€éàù‹ö]HãàJN¬àô]\õà›\úô[ù¬àBàYà
+›\úô[ù	âà›\úô[ùö[‹ö]Hàô^ö[‹ö]JH¬àô]\õà›\úô[ù¬àBà€€ú›[ùûTôX\€€àHÿ[ö]^ôTôX\€€ä^òKúôX\€€à^òKù\K]ô[OOHUëSÀîTìPW—ìQ»»ú\õXWŸõY»ààù[\ÿõÿ⁄»äN¬à€€ú›[ùûHH¬à]ô[à⁄[òŸNà›[\à[ù[à
+]ô[OOHUëSÀïST–ì–“ H»ù[Xô\ä^òKù[ù[
+Hàù[à€›[ùŒà^òKò€›[ù»ù[à\Nà^òKù\Hù[àôX\€€éà[ùûTôX\€€ãà]]‹ö]Nà
+]ô[OOHUëSÀîTìPW—ìQ Bà»
+^òKò]]‹ö]HìQ◊–UU‘íUKêUU‘íUUUëJBààìQ◊–UU‘íUKîëT’‘ëQ”––SàN¬àX\ö—õY‘õ›ô[ò[òŸJŸ^K[ùûK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹ŒúŸ]õY—õ‹î^Y\àãà‹ö]\ëù[ò›[€éàÿ[\ï^à€›\òŸR⁄[ôà]ô[ù\Nà^òKô]ô[ù\H^òKù\H[ùûKù\KàX›[€éàù‹ö]HãàJN¬à⁄]ŸX›\ö]QõY‹’‹ö]P€€ù^
+¬à‹ö]\ïYŒà[ùûKù‹ö]\ïYÀà‹ö]\ëù[ò›[€éà[ùûKù‹ö]\ëù[ò›[€ãà€›\òŸR⁄[ôà[ùûKú€›\òŸR⁄[ôà‹ö]TŸ\Nà[ùûKù‹ö]TŸ\Kàõ€›[YNà[ùûKòõ€›[YKà€XﬁRYà[ùûKú€XﬁRYà]ô[ù\Nà[ùûKô]ô[ù\KàK
+
+HOà¬à›]KúŸX›\ö]QõY‹÷⁄Ÿ^WHH[ùûN¬àJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]JŸ^K[ùûKõ]ô[[ùûKò]]‹ö]Hù[ö€õ›€àãÿ[\ï^
+N¬àYà
+[ùûKõ]ô[OOHUëSÀîTìPW—ìQ»	âà[ùûKò]]‹ö]HOOHìQ◊–UU‘íUKêUU‘íUUUëJH¬àŸ–]]‹ö]]]ôT\õXU‹ö]JàŸ^Kàÿ[ö]^ôTôX\€€ä^òKô]ô[ù\H[ùûKù\Kù[ö€õ›€àäKàÿ[ö]^ôTôX\€€ä[ùûKúôX\€€ãú\õXWŸõY»äKàÿ[\ï^à
+N¬àBàYà
+^òH	âà^òKòõ€››ò\‹ö]JH¬àŸ–õ€››ò\\õXU‹ö]JŸ^K]ô[[ùûKù\KHY^òKúô\›‹ôY^òKòÿ[\àì”’’êT‘”’Tê—W”êSQJN¬àBàYà
+]ô[OOHUëSÀîTìPW—ìQ H¬à\ú⁄\›Y\õXHH¬àõY‹Œà¬àããä\ú⁄\›Y\õXKôõY‹»ﬂJKà⁄Ÿ^WNà»⁄[òŸNà›[\\Nà[ùûKù\KôX\€€éà[ùûKúôX\€€ã]]‹ö]Nà[ùûKò]]‹ö]HKàKà€›\òŸNàïSïSQW‘”’Tê—Kàõ‹õX]àù‹ò\Yãà›[\à]Kõõ› 
+KàN¬à\ú⁄\›\õXQõY‹ 
+N¬àBàô]\õà[ùûN¬àBÇàù[ò›[€àô\›‹ôT\ú⁄\›YõY‹ 
+^¬àŸ‘€XﬁPÿ[
+úô\›‹ôT\ú⁄\›YõY‹»ãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»ãô\›‹ôR[îõŸ‹ô\‹œI‹ô\›‹ôR[îõŸ‹ô\‹»»ùùYHààôò[ŸHüX
+N¬à]Y]›]Pö[ô[ô îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œô[ù\àäN¬àYà
+ô\›‹ôR[îõŸ‹ô\‹ Hô]\õé¬àô\›‹ôR[îõŸ‹ô\‹»HùYN¬àõY‘›]Qö[ò[^ôYHò[ŸN¬à€€ú›Y]HH\ú⁄\›Y\õXH»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬à€€ú›õY‹»H
+Y]KôõY‹»	âà\[ŸàY]KôõY‹»OOHõÿöôX›äH»Y]KôõY‹»àﬂN¬à€€ú›€›[ùHÿöôX›öŸ^\ õY‹ Kõ[ô›¬à€€ú›]ì[ŸHH
+\—]ëõY»	âà\—]ëõY 
+JH»ùYHàò[ŸN¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘”’Tê—WHã¬à€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãàõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€àãà€›[ùà]ì[ŸKà\‘›‹òYŸNàH\›‹òYŸKàJN¬àYà
+]ì[ŸJH¬à[ú›\ôT›]QõY‹ 
+N¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œúô\›‹ôWŸ]ó€[ŸHãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œô]ó€[ŸHãà€›\òŸR⁄[ôàúô\›‹ôHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãô]ó€[ŸHãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àô\›‹ôY^Y\úÀõ[ô›H¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘““THã»€›[ù€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€ààJN¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘ëPT””óHãô]ó€[ŸHäN¬àŸ‘ŸX›\ö]Tô\›‹ôJY]Kò[ŸJN¬àŸ[íX[[Yÿ[\õXQõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œô]ó€[ŸHäN¬àõY‘›]Qö[ò[^ôYHùYN¬àô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬àô]\õé¬àBàYà
+X€›[ù
+H¬à[ú›\ôT›]QõY‹ 
+N¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œúô\›‹ôWŸ[\Hãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œô[\WŸõY‹»ãà€›\òŸR⁄[ôàúô\›‹ôHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãô[\WŸõY‹»ãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àô\›‹ôY^Y\úÀõ[ô›H¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘““THã»€›[ù€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€ààJN¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘ëPT””óHãô[\WŸõY‹»äN¬àŸ‘ŸX›\ö]Tô\›‹ôJY]Kò[ŸJN¬àŸ[íX[[Yÿ[\õXQõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œô[\WŸõY‹»äN¬àõY‘›]Qö[ò[^ôYHùYN¬àô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬àô]\õé¬àBàYà
+Y]Kôõ‹õX]OOHõYÿXﬁHäH¬à[ú›\ôT›]QõY‹ 
+N¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œúô\›‹ôW€YÿXﬁHãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹ŒõYÿXﬁW›[ùù\›Y‹õŸãà€›\òŸR⁄[ôàúô\›‹ôHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãõYÿXﬁW›[ùù\›Y‹õŸãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àô\›‹ôY^Y\úÀõ[ô›H¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘““THã»€›[ù€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€ààJN¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘ëPT””óHãõYÿXﬁW›[ùù\›Y‹õŸäN¬àŸ‘ŸX›\ö]Tô\›‹ôJY]Kò[ŸJN¬àŸ[íX[[Yÿ[\õXQõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹ŒõYÿXﬁW›[ùù\›Y‹õŸäN¬àõY‘›]Qö[ò[^ôYHùYN¬àô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬àô]\õé¬àBàYà
+Y]Kôõ‹õX]OOHù‹ò\Yà	âàY]Kú€›\òŸHOOHïSïSQW‘”’Tê—JH¬à[ú›\ôT›]QõY‹ 
+N¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œúô\›‹ôWÿòY‹€›\òŸHãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œú€›\òŸW€õ›‹ù[ù[YHãà€›\òŸR⁄[ôàúô\›‹ôHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãú€›\òŸW€õ›‹ù[ù[YHãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àô\›‹ôY^Y\úÀõ[ô›H¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘““THã»€›[ù€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€ààJN¬àŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW‘ëPT””óHãú€›\òŸW€õ›‹ù[ù[YHäN¬àŸ‘ŸX›\ö]Tô\›‹ôJY]Kò[ŸJN¬àŸ[íX[[Yÿ[\õXQõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œú€›\òŸW€õ›‹ù[ù[YHäN¬àõY‘›]Qö[ò[^ôYHùYN¬àô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬àô]\õé¬àBà[ú›\ôT›]QõY‹ 
+N¬àô\XŸTŸX›\ö]QõY‹‘›‹ôJﬂK¬à‹ö]\ïYŒàúŸX›\ö]YõY‹Œúô\›‹ôWÿ\Hãà‹ö]\ëù[ò›[€éàîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œúô\›‹ôWÿ\Hãà€›\òŸR⁄[ôàúô\›‹ôHãàJN¬àŸ‘›]TŸX›\ö]QõY‹’‹ö]Jäàãúô\Ÿ]ãúô\›‹ôWÿ\HãîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àô\›‹ôY^Y\úÀõ[ô›H¬à]Y[ùò[Yô\›‹ôHHò[ŸN¬à][ùò[Yô\›‹ôP€›[ùH¬à€€ú›ò\ŸT€›\òŸHHY]Kú€›\òŸHù[ö€õ›€àé¬àõ‹à
+€€ú›‹Y]WHŸàÿöôX›ô[ùöY\ õY‹ JH¬àYà
+\Y
+H€€ù[ùYN¬à€€ú›õ‹õX[^ôY]HHõ‹õX[^ôQõY—[ùûJ]JN¬à€€ú›ÿ[ö]^ôY\HHÿ[ö]^ôTôX\€€äõ‹õX[^ôY]Kù\Kú\õXWŸõY◊‹ô\›‹ôHäN¬à€€ú›]]‹ö]]]ôHHò[ŸN¬àŸ‘\õXQõY‘ô\›‹ôTôXY
+Yÿ[ö]^ôY\Kù[]]‹ö]]]ôJN¬àŸ“Y[ù]Pö[ôõY Yò\ŸT€›\òŸK]]‹ö]]]ôJN¬àŸ‘\õXQõY–õ€››ò\€›\òŸJYì”’’êT‘”’Tê—W”êSQK]]‹ö]]]ôJN¬àŸ‘\õXQõY–]]‹ö]P⁄X⁄ Y]]‹ö]]]ôKîôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»äN¬àŸ–õ€››ò\\õXU‹ö]JYUëSÀîTìPW—ìQÀÿ[ö]^ôY\KùYKì”’’êT‘”’Tê—W”êSQJN¬à€€ú›Y‹òYTôX\€€àHÿ[ö]^ôTôX\€€äõ‹õX[^ôY]KúôX\€€àÿ[ö]^ôY\Kúô\›‹ôY‹ŸX›\ö]W‹›]HäN¬àŸ‘\õXQõY‘ô\›‹ôQ›€ô‹òYJYUëSÀîTìPW—ìQÀUëSÀïST–ì–“ÀY‹òYTôX\€€äN¬àŸ‘\õXQõY‘ô\›‹ôQ\ÿÿ\ô
+YY‹òYTôX\€€äN¬àŸ‘\õXQõY‘ô\›‹ôTôZôX›Y
+YY‹òYTôX\€€ãò\ŸT€›\òŸJN¬àŸ‘›[T\õXTô[[›ôY
+Yúô\›‹ôY€ÿÿ[›⁄]›]‹ù[ù[YW‹õ€ŸàäN¬àô[[›ôT\ú⁄\›YõY—[ùûJY
+N¬àY[ùò[Yô\›‹ôHHùYN¬à[ùò[Yô\›‹ôP€›[ù
+ Œ¬àBàŸ‘ô\›‹ôJñ‘—P◊‘ëT’‘ëW–TWHã»€›[ùàô\›‹ôY^Y\úÀõ[ô›€›\òŸNàY]Kú€›\òŸHù[ö€õ›€àãõ‹õX]àY]Kôõ‹õX]ù[ö€õ›€ààJN¬àŸ‘ŸX›\ö]Tô\›‹ôJY]Kô\›‹ôY^Y\úÀõ[ô›ô\›‹ôY^Y\úÀõ[ô›à
+N¬à€€ú›\õXQõY‹»H›]KúŸX›\ö]QõY‹»ﬂN¬à]\õXP€›[ùH¬àõ‹à
+€€ú›õY»ŸàÿöôX›ùò[Y\ \õXQõY‹ JH¬àYà
+õY»	âàõYÀõ]ô[OOHUëSÀîTìPW—ìQ H¬à\õXP€›[ù
+ Œ¬àBàBàYà
+Y[ùò[Yô\›‹ôJH¬à]›‹òYŸP⁄[ôŸYHò[ŸN¬àYà
+›‹òYŸJH¬àûH¬àYà
+\õXP€›[ù
+H¬à\ú⁄\›\õXQõY‹ 
+N¬à›‹òYŸP⁄[ôŸYHùYN¬àH[ŸH¬à›‹òYŸKúô[[›ôR][J’‘êQ—W“—VJN¬à›‹òYŸP⁄[ôŸYHùYN¬à\ú⁄\›Y\õXHH»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬àBàHÿ]⁄
+ HﬂBàH[ŸHYà
+\\õXP€›[ù
+H¬à\ú⁄\›Y\õXHH»õY‹ŒàﬂK€›\òŸNàõõ€ôHãõ‹õX]àõõ€ôHã›[\àN¬àBàŸ‘⁄\€€ôY›‹òYŸP€X[ù\
+›‹òYŸP⁄[ôŸY[ùò[Yô\›‹ôP€›[ù
+N¬àBàŸ[íX[[Yÿ[\õXQõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œú‹›ÿ\HäN¬à\ôŸTôXõ€››[QõY‹ îôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹Œú‹›ÿ\HäN¬àõY‘›]Qö[ò[^ôYHùYN¬àô\›‹ôR[îõŸ‹ô\‹»Hò[ŸN¬àBÇà€€ú›ëPP’S”ó”—◊’”T»HML¬à€€ú›ôXX›[€ìŸ”\›Hô]»X\
+
+N¬Çàù[ò›[€àXZŸTôXX›[€ìŸ“Ÿ^J[ùûJ^¬àYà
+Y[ùûJHô]\õààé¬à€€ú›^Y\íYH[ùûKú^Y\íYõYHé¬à€€ú›Ÿ\‹⁄[€íYH[ùûKúŸ\‹⁄[€íYàé¬à€€ú›\HH[ùûKù\Hàé¬à€€ú›ôXX›[€àH[ùûKúôXX›[€ààé¬à€€ú›Y]RŸ^HH[ùûKõY]H	âà[ùûKõY]KöŸ^H»›ö[ô [ùûKõY]KöŸ^JHààé¬àô]\õà‹^Y\íYŸ\‹⁄[€íY\KôXX›[€ãY]RŸ^WKöõ⁄[äüäN¬àBÇàù[ò›[€à⁄›[Ÿ‘ôXX›[€äŸ^KHëPP’S”ó”—◊’”T ^¬àYà
+ZŸ^JHô]\õàùYN¬à€€ú››[\H]Kõõ› 
+N¬à€€ú›ô]àHôXX›[€ìŸ”\›ôŸ]
+Ÿ^JH¬àYà
+›[\Hô]à
+Hô]\õàò[ŸN¬àôXX›[€ìŸ”\›úŸ]
+Ÿ^K›[\
+N¬àô]\õàùYN¬àBÇàù[ò›[€à[Z]ôXX›[€ê€€ú€€J[ùûJ^¬àYà
+Y[ùûHZ\—]ëõY 
+JHô]\õé¬à€€ú›Ÿ^HHXZŸTôXX›[€ìŸ“Ÿ^J[ùûJN¬àYà
+\⁄›[Ÿ‘ôXX›[€äŸ^JJHô]\õé¬à€€ú›^[ÿYH¬à[YNà[ùûKù[YKà^Y\íYà[ùûKú^Y\íYàŸ\‹⁄[€íYà[ùûKúŸ\‹⁄[€íYà\Nà[ùûKù\KàôXX›[€éà[ùûKúôXX›[€ãà€›[ùŒà[ùûKò€›[ùÀà⁄[ô›Œà¬à⁄‹ù⁄[ô›”\Œà“‘ï’“Së’◊”TÀà€ô’⁄[ô›”\Œà”ë◊’“Së’◊”TÀàKàY]Nà[ùûKõY]KàN¬àûH¬à€€ú€€KõŸ ñ‘—PŒúôXX›[€óHã^[ÿY
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€àùZ[õÿ⁄‘ôX\€€ä\RŸ^KY]J^¬à€€ú›ò\ŸTôX\€€àHÿ[ö]^ôTôX\€€ä\RŸ^HàãúŸX›\ö]WŸ]ô[ùäN¬à€€ú›]Z[\ù»H◊N¬àYà
+Y]H	âà\[ŸàY]HOOHõÿöôX›äH¬à€€ú›Y]Z[H
+ò[YJHOà¬à€€ú›ÿ[ôY]HHÿ[ö]^ôTôX\€€äò[YKàäN¬àYà
+ÿ[ôY]H	âàÿ[ôY]HOOHò\ŸTôX\€€äH¬à]Z[\ùÀú\⁄
+ÿ[ôY]JN¬àBàN¬àY]Z[
+Y]KúôX\€€äN¬àY]Z[
+Y]KòX›[€äN¬àY]Z[
+Y]KöŸ^JN¬àBàYà
+]Z[\ùÀõ[ô›
+H¬àô]\õà	ÿò\ŸTôX\€€üNâŸ]Z[\ùÀöõ⁄[äéàä_X¬àBàô]\õàò\ŸTôX\€€é¬àBÇàù[ò›[€à[Z]ô\›‹ôQ]ô[ù 
+^¬àYà
+\ô\›‹ôY^Y\úÀõ[ô›
+Hô]\õé¬àYà
+TŸX›\ö]H\[ŸàŸX›\ö]Kô[Z]OOHôù[ò›[€àäHô]\õé¬àõ‹à
+€€ú›YŸàô\›‹ôY^Y\ú H¬àŸX›\ö]Kô[Z]
+ú\õXWŸõY◊‹ô\›‹ôHã»ô\›‹ôYàùYK^Y\íYà›ö[ô Y
+HK»Z[ëÿ\\ŒàMLJN¬àBàBÇàù[ò›[€à[ú›\ôTôXX›[€ê\úò^J
+^¬àYà
+Qÿ[YKó◊—
+Hÿ[YKó◊—HﬂN¬àYà
+P\úò^Kö\–\úò^Jÿ[YKó◊—úŸX›\ö]TôXX›[€ú JHÿ[YKó◊—úŸX›\ö]TôXX›[€ú»H◊N¬àô]\õàÿ[YKó◊—úŸX›\ö]TôXX›[€úŒ¬àBÇàù[ò›[€à\⁄ôXX›[€ìŸ [ùûJ^¬àYà
+Y[ùûJHô]\õé¬à€€ú›\úàH[ú›\ôTôXX›[€ê\úò^J
+N¬à\úãú\⁄
+[ùûJN¬àYà
+\úãõ[ô›àPV‘ëPP’S”î H¬à\úãú‹XŸJ\úãõ[ô›HPV‘ëPP’S”î N¬àBà[Z]ôXX›[€ê€€ú€€J[ùûJN¬àBÇàù[ò›[€àôX€‹ô\›‹ûJ\RŸ^K[Y\›[\
+^¬à]\›H\›‹ûKôŸ]
+\RŸ^JN¬àYà
+[\›
+H¬à\›H◊N¬à\›‹ûKúŸ]
+\RŸ^K\›
+N¬àBà\›ú\⁄
+[Y\›[\
+N¬à€€ú››]ŸôàH[Y\›[\H”ë◊’“Së’◊”TŒ¬à⁄[H
+\›õ[ô›	âà\›ÃH›]ŸôäH¬à\›ú⁄Yù
+
+N¬àBàô]\õà\›¬àBÇàù[ò›[€à[ôQ]ô[ù
+]ä^¬àYà
+Y]àY]ãù\JHô]\õàù[¬à€€ú››[\Hù[Xô\ãö\—ö[ö]J]ãù[YJH»]ãù[YHà]Kõõ› 
+N¬à€€ú›‹öY’\HH›ö[ô ]ãù\JN¬à€€ú›\RŸ^HH‹öY’\Kù”›Ÿ\êÿ\ŸJ
+N¬à€€ú›^Y\íYH
+]ãú^Y\íY	âà›ö[ô ]ãú^Y\íY
+JH»›ö[ô ]ãú^Y\íY
+HàõYHé¬à€€ú›Ÿ\‹⁄[€íYH
+]ãúŸ\‹⁄[€íY	âà›ö[ô ]ãúŸ\‹⁄[€íY
+JH»›ö[ô ]ãúŸ\‹⁄[€íY
+Hààé¬à€€ú›Y]HH
+]ãõY]H	âà\[Ÿà]ãõY]HOOHõÿöôX›äH»ÿöôX›ò\‹⁄Y€äﬂK]ãõY]JHàﬂN¬à€€ú›\–õ€››ò\ô\›‹ôQ]ô[ùH\RŸ^HOOHú\õXWŸõY◊‹ô\›‹ôHà	âàH[Y]Kúô\›‹ôY¬à€€ú›\›HôX€‹ô\›‹ûJ\RŸ^K›[\
+N¬à€€ú›⁄‹ù›]ŸôàH›[\H“‘ï’“Së’◊”TŒ¬à]⁄‹ù€›[ùH¬àõ‹à
+]HH\›õ[ô›HN»HèH»KKJH¬àYà
+\›⁄WHèH⁄‹ù›]ŸôäH⁄‹ù€›[ù
+ Œ¬à[ŸHúôXZŒ¬àBà€€ú›€ô–€›[ùH\›õ[ô›¬à]]ô[HUëSÀì—◊””ìN¬à€€ú›]ì[ŸHH
+\[Ÿà\—]ëõY»OOHôù[ò›[€àäH»\—]ëõY 
+Hàò[ŸN¬àYà
+Y]ì[ŸJH¬àYà
+\RŸ^HOOHôõ‹òöY[óÿ\WÿXÿŸ\‹»äH¬à]ô[HUëSÀì—◊””ìN¬àH[ŸH¬àYà
+\RŸ^HOOHú\õXWŸõY◊‹ô\›‹ôHà	âàZ\–õ€››ò\ô\›‹ôQ]ô[ù
+H¬à]ô[HUëSÀîTìPW—ìQŒ¬àBàYà
+Të’TTÀö\ \RŸ^JH€ô–€›[ùèHTë’ëT“”
+H¬à]ô[HUëSÀîTìPW—ìQŒ¬àH[ŸHYà
+⁄‹ù€›[ùèHäH¬à]ô[HUëSÀïST–ì–“Œ¬àBàBàBà€€ú›€›[ù»H»⁄‹ùà⁄‹ù€›[ù€ôŒà€ô–€›[ùN¬à€€ú›õÿ⁄‘ôX\€€àHùZ[õÿ⁄‘ôX\€€ä\RŸ^KY]JN¬à][ù[Hù[¬àYà
+Y]ì[ŸH	âà]ô[OOHUëSÀïST–ì–“ H¬à[ù[H›[\
+»ST–ì–“◊’”TŒ¬àŸ]õY—õ‹î^Y\ä^Y\íY]ô[›[\¬à[ù[à\Nà‹öY’\Kà€›[ùÀàôX\€€éàõÿ⁄‘ôX\€€ãàÿ[\éàîôXX›[€î€XﬁKö[ôQ]ô[ùãà]ô[ù\Nà‹öY’\KàJN¬àH[ŸHYà
+Y]ì[ŸH	âà]ô[OOHUëSÀîTìPW—ìQ H¬àŸ]õY—õ‹î^Y\ä^Y\íY]ô[›[\¬à\Nà‹öY’\Kà€›[ùÀàôX\€€éàõÿ⁄‘ôX\€€ãà]]‹ö]NàìQ◊–UU‘íUKêUU‘íUUUëKàÿ[\éàîôXX›[€î€XﬁKö[ôQ]ô[ùãà]ô[ù\Nà‹öY’\KàJN¬àù[ù[YT\õXTõ€Ÿî^Y\úÀòY
+^Y\íY
+N¬àŸ‘ù[ù[YTõ€ŸêY
+^Y\íY‹öY’\KîôXX›[€î€XﬁKö[ôQ]ô[ùäN¬àBà€€ú›ôXX›[€ë[ùûHH¬à[YNà›[\à^Y\íYàŸ\‹⁄[€íYà\Nà‹öY’\KàôXX›[€éà]ô[à[ù[à[ù[à€›[ùÀàY]KàôX\€€éàõÿ⁄‘ôX\€€ãàN¬à\⁄ôXX›[€ìŸ ôXX›[€ë[ùûJN¬àô]\õàôXX›[€ë[ùûN¬àBÇàù[ò›[€à\–X›[€êõÿ⁄ŸY
+^Y\íYX›[€ä^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+HàõYHé¬à€€ú›X›[€ï^Hõ›–]Y]^
+X›[€ãù[ö€õ›€àäN¬àŸ‘€XﬁPÿ[
+ö\–X›[€êõÿ⁄ŸYãîôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸYã^Y\èI‹YHX›[€èIÿX›[€ï^X
+N¬à]Y]€XﬁPö[ô[ô ö\–X›[€êõÿ⁄ŸYäN¬à]Y]›]Pö[ô[ô îôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸYäN¬àYà
+\—]ëõY»	âà\—]ëõY 
+JHô]\õàò[ŸN¬à[ú›\ôQõY‘›]Qö[ò[^ôY
+îôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸYäN¬à\ôŸTôXõ€››[QõY‹ îôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸYäN¬à€€ú›õY»HŸ]›]QõY Y
+N¬à€€ú›]]‹ö]]]ôHH\–]]‹ö]]]ôT\õXQõY YõYÀîôXX›[€î€XﬁKö\–X›[€êõÿ⁄ŸYäN¬à€€ú›õÿ⁄ŸYHHYõY»	âà
+õYÀõ]ô[OOHUëSÀîTìPW—ìQ»]]‹ö]]]ôJN¬àYà
+X›[€àOOHòÿ[àX›[€àOOHùõ›HäH¬à€€ú›ôX\€€àHõÿ⁄ŸY»
+õYÀúôX\€€àõYÀù\HúŸX›\ö]WŸõY»äHàõõ€ôHé¬à€€ú›ÿYôTôX\€€àHÿ[ö]^ôTôX\€€äôX\€€ãõõ€ôHäN¬à€€ú›õÿ⁄ŸY^Hõÿ⁄ŸY»ùùYHààôò[ŸHé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUH\–X›[€êõÿ⁄ŸYX›[€èIÿX›[€üHõÿ⁄ŸYIÿõÿ⁄ŸY^HôX\€€èI‹ÿYôTôX\€€üX
+N¬àHÿ]⁄
+ HﬂBàBàô]\õàõÿ⁄ŸY¬àBÇàù[ò›[€àŸ]õY ^Y\íY
+^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+HàõYHé¬àŸ‘€XﬁPÿ[
+ôŸ]õY»ãîôXX›[€î€XﬁKôŸ]õY»ã^Y\èI‹YX
+N¬à]Y]€XﬁPö[ô[ô ôŸ]õY»äN¬à]Y]›]Pö[ô[ô îôXX›[€î€XﬁKôŸ]õY»äN¬àYà
+\—]ëõY»	âà\—]ëõY 
+JH¬àŸ—Ÿ]õY‘ô\›[
+Yù[ò[ŸJN¬àô]\õàù[¬àBà[ú›\ôQõY‘›]Qö[ò[^ôY
+îôXX›[€î€XﬁKôŸ]õY»äN¬à\ôŸTôXõ€››[QõY‹ îôXX›[€î€XﬁKôŸ]õY»äN¬à€€ú›ò]—õY»HŸ]›]QõY Y
+N¬à€€ú›]]‹ö]]]ôHH\–]]‹ö]]]ôT\õXQõY Yò]—õYÀîôXX›[€î€XﬁKôŸ]õY»äN¬à€€ú›õY»H
+ò]—õY»	âàò]—õYÀõ]ô[OOHUëSÀîTìPW—ìQ»	âàX]]‹ö]]]ôJH»ù[àò]—õYŒ¬àŸ—Ÿ]õY‘ô\›[
+YõYÀ]]‹ö]]]ôJN¬àŸ—õY‘õ›ô[ò[òŸTô]\õäYõY N¬àô]\õà€€ôQõY—õ‹îô]\õäõY N¬àBÇàù[ò›[€à[ú‹X›õY ^Y\íY
+^¬à€€ú›YH^Y\íY»›ö[ô ^Y\íY
+HàõYHé¬àŸ‘€XﬁPÿ[
+ö[ú‹X›õY»ãîôXX›[€î€XﬁKö[ú‹X›õY»ã^Y\èI‹YX
+N¬à]Y]€XﬁPö[ô[ô ö[ú‹X›õY»äN¬à]Y]›]Pö[ô[ô îôXX›[€î€XﬁKö[ú‹X›õY»äN¬à€€ú›õY»HŸ]õY Y
+N¬à€€ú›õ›ô[ò[òŸHH€ò\⁄›õY‘õ›ô[ò[òŸJYõY N¬à€€ú›ô\›[H¬à^Y\íYàYà€XﬁRYà”P÷W“Qà€XﬁTôYéàõ›–]Y]ôYíY
+€XﬁP\JKàÿ[YT€XﬁTôYéàõ›–]Y]ôYíY
+
+ÿ[YH	âàÿ[YKîŸX›\ö]T€XﬁJH»ÿ[YKîŸX›\ö]T€XﬁHàù[
+Kà›]TôYéàõ›–]Y]ôYíY
+›]JKàŸX›\ö]QõY‹‘ôYéàõ›–]Y]ôYíY
+›]H	âà›]KúŸX›\ö]QõY‹»»›]KúŸX›\ö]QõY‹»àù[
+Kàõ€›[YNàì”’’SQW”TÀàõYÀàõ›ô[ò[òŸKàN¬àô]\õàô\›[¬àBÇàù[ò›[€àô\ú⁄[€í[ôõ 
+^¬à€€ú›ù[ù[YTÿ‹ö\\õHŸ]€XﬁTù[ù[YT€›\òŸJ
+N¬àô]\õà¬à€›\òŸQö[SX\öŸ\éà—P’TíUW‘”P÷W‘”’Tê—W”PTí—TãàùZ[X\öŸ\éà—P’TíUW‘”P÷W–ïRS”PTí—Tãà€XﬁRYà”P÷W“Qà\“[ú‹X›õYŒàHJ€XﬁP\H	âà\[Ÿà€XﬁP\Kö[ú‹X›õY»OOHôù[ò›[€àäKà›]Rú’ô\ú⁄[€ïYŒà—P’TíUW‘”P÷W‘’URî◊’ëTî“S”ó’QÀàù[ù[YTÿ‹ö\\õàN¬àBÇà€XﬁP\HH¬à[ôQ]ô[ùà\–X›[€êõÿ⁄ŸYàŸ]õYÀà[ú‹X›õYÀàô\ú⁄[€í[ôõÀàô\›‹ôT\ú⁄\›YõY‹Àà[Z]ô\›‹ôQ]ô[ùÀà◊Ÿõ›–]Y]Yà”P÷W“QàN¬àô]\õà€XﬁP\N¬àBÇàù[ò›[€àŸ]€XﬁTù[ù[YT€›\òŸJ
+^¬àûH¬àYà
+\[Ÿàÿ›[Y[ùOOHù[ôYö[ôYà	âàÿ›[Y[ùò›\úô[ùÿ‹ö\	âàÿ›[Y[ùò›\úô[ùÿ‹ö\ú‹ò H¬àô]\õà›ö[ô ÿ›[Y[ùò›\úô[ùÿ‹ö\ú‹ò N¬àBàHÿ]⁄
+ HﬂBàô]\õàú›]Köú»é¬àBÇàù[ò›[€àŸ]€XﬁPùZ[€›\òŸJ
+^¬àô]\õà	‘—P’TíUW‘”P÷W‘”’Tê—W”PTí—TüK…‘—P’TíUW‘”P÷W–ïRS”PTí—TüX¬àBÇàù[ò›[€àŸ‘ù[ù[YTÿ‹ö\\õ
+ù[ù[YT€›\òŸJ^¬à€€ú›‹ò»H
+ù[ù[YT€›\òŸH	âà›ö[ô ù[ù[YT€›\òŸJKùö[J
+JH»›ö[ô ù[ù[YT€›\òŸJKùö[J
+Hàú›]Köú»é¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHù[ù[YK\ÿ‹ö\]\õ›]OI‹‹òﬂX
+N¬àHÿ]⁄
+ HﬂBàBÇàù[ò›[€à]Y]ŸX›\ö]T€XﬁQ^‹ù
+€›\òŸJ^¬à€€ú›‹ò»H€›\òŸH»›ö[ô €›\òŸJKùö[J
+Hàú›]Köú»é¬à€€ú›ù[ù[YT€›\òŸHHŸ]€XﬁTù[ù[YT€›\òŸJ
+N¬à€€ú›ùZ[€›\òŸHHŸ]€XﬁPùZ[€›\òŸJ
+N¬à€€ú›ô\ú⁄[€ïY»H—P’TíUW‘”P÷W‘’URî◊’ëTî“S”ó’QŒ¬à€€ú›€XﬁHH
+ÿ[YH	âàÿ[YKîŸX›\ö]T€XﬁH	âà\[Ÿàÿ[YKîŸX›\ö]T€XﬁHOOHõÿöôX›äH»ÿ[YKîŸX›\ö]T€XﬁHàù[¬à€€ú›Ÿ^\»H€XﬁH»ÿöôX›öŸ^\ €XﬁJKú€‹ù
+
+Köõ⁄[äãäHàõù[é¬à€€ú›\“[ú‹X›õY»HHJ€XﬁH	âà\[Ÿà€XﬁKö[ú‹X›õY»OOHôù[ò›[€àäN¬à€€ú›\“[ú‹X›^H\“[ú‹X›õY»»ùùYHààôò[ŸHé¬à€€ú›€XﬁRYH
+€XﬁH	âà€XﬁKó◊Ÿõ›–]Y]Y
+H»›ö[ô €XﬁKó◊Ÿõ›–]Y]Y
+Hàù[ö€õ›€àé¬àûH¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]\€XﬁKY^‹ùŸ^\œI⁄Ÿ^\»õõ€ôHüH\“[ú‹X›õYœI⁄\“[ú‹X›^X
+N¬àHÿ]⁄
+ HﬂBàûH¬à€€ú€€KõŸ —ì’◊–UQUH€XﬁK\ù[ù[YK]ô\ú⁄[€à€›\òŸOIÿùZ[€›\òŸ_H€XﬁRYI‹€XﬁRYHô\ú⁄[€èI›ô\ú⁄[€ïYﬂX
+N¬àHÿ]⁄
+ HﬂBàŸ‘ù[ù[YTÿ‹ö\\õ
+ù[ù[YT€›\òŸJN¬àYà
+Z\“[ú‹X›õY H¬àûH¬àÿ[YKó◊—ì’◊–UQU‘”P÷W—V‘ï”RT‘“Së◊◊»H¬à€›\òŸNàù[ù[YT€›\òŸKà›YŸNà‹òÀà€XﬁRYà]à]Kõõ› 
+KàN¬àHÿ]⁄
+ HﬂBàûH¬à€€ú€€KõŸ —ì’◊–UQUH[ú‹X›õYÀY^‹ù[Z\‹⁄[ô»€›\òŸOI‹‹òﬂX
+N¬àHÿ]⁄
+ HﬂBàBàBÇàôXX›[€î€XﬁHH‹ôX]TôXX›[€î€XﬁJ
+N¬àûH¬à€€ú›YH
+ôXX›[€î€XﬁH	âàôXX›[€î€XﬁKó◊Ÿõ›–]Y]Y
+H»›ö[ô ôXX›[€î€XﬁKó◊Ÿõ›–]Y]Y
+Hàù[ö€õ›€àé¬à€€ú€€KõŸ —ì’◊–UQUH€XﬁKZ[ú›[òŸK[[›[ùYYI‹YX
+N¬àHÿ]⁄
+ HﬂBàÿ[YKîŸX›\ö]T€XﬁHHôXX›[€î€XﬁN¬àûH¬à€€ú›YH
+ôXX›[€î€XﬁH	âàôXX›[€î€XﬁKó◊Ÿõ›–]Y]Y
+H»›ö[ô ôXX›[€î€XﬁKó◊Ÿõ›–]Y]Y
+Hàù[ö€õ›€àé¬à€€ú›ÿ[YTôYï^H
+ÿ[YKîŸX›\ö]T€XﬁHOOHôXX›[€î€XﬁJH»ùùYHààôò[ŸHé¬à€€ú€€KõŸ —ì’◊–UQUHŸX›\ö]\€XﬁKX\‹⁄Y€ôYYI‹YHÿ[YTôYèI‹ÿ[YTôYï^X
+N¬àHÿ]⁄
+ HﬂBà]Y]ŸX›\ö]T€XﬁQ^‹ù
+ú›]KöúŒú‹›X\‹⁄Y€àäN¬àYà
+ôXX›[€î€XﬁH	âà\[ŸàôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹»OOHôù[ò›[€àäH¬àôXX›[€î€XﬁKúô\›‹ôT\ú⁄\›YõY‹ 
+N¬àBÇàŸX›\ö]KôYö[ôR[ôTõ‹
+ó◊–Hã›]PTJN¬Çàù[ò›[€àôXY‹õ›Ÿ€‹ôJ
+^¬àô]\õà
+ÿ[YH	âà
+ÿ[YKê€€ôõX›€‹ôHÿ[YKó–€€ôõX›€‹ôJJH»
+ÿ[YKê€€ôõX›€‹ôHÿ[YKó–€€ôõX›€‹ôJHàù[¬àBÇàù[ò›[€àö[ô‹õ›Ÿ€‹ôQù[ò›[€ú 
+^¬à€€ú›€‹ôHHôXY‹õ›Ÿ€‹ôJ
+N¬àYà
+Qÿ[YKó◊–JHÿ[YKó◊–HHﬂN¬àÿ[YKó◊–Kò\P‹õ›Ÿõ›UX⁄»H
+ò]RY
+HOà¬àûH¬àYà
+X€‹ôH\[Ÿà€‹ôKò\P‹õ›Ÿõ›UX⁄»OOHôù[ò›[€àäHô]\õàù[¬àô]\õà€‹ôKò\P‹õ›Ÿõ›UX⁄ ò]RY
+N¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàN¬àÿ[YKó◊–Kôö[ò[^ôP‹õ›Ÿõ›HH
+ò]RY
+HOà¬àûH¬àYà
+X€‹ôH\[Ÿà€‹ôKôö[ò[^ôP‹õ›Ÿõ›HOOHôù[ò›[€àäHô]\õàù[¬àô]\õà€‹ôKôö[ò[^ôP‹õ›Ÿõ›Jò]RY
+N¬àHÿ]⁄
+ H¬àô]\õàù[¬àBàN¬àBÇà€€ú›XùY‘›‹ôHHÿ[YKó◊—ﬂN¬àŸX›\ö]KôYö[ôR[ôTõ‹
+ó◊—ãXùY‘›‹ôJN¬àŸX›\ö]KôYö[ôR[ôTõ‹
+ó◊‘—P»ãŸX›\ö]Kú›‹ôJN¬àYà
+\[ŸàXùY‘›‹ôKú\⁄[€ô^SŸ‘õ›»OOHôù[ò›[€àäH¬àXùY‘›‹ôKú\⁄[€ô^SŸ‘õ›»H\⁄[€ô^SŸ‘õ›Œ¬àBàYà
+\[ŸàXùY‘›‹ôKú\⁄X€€ïÿ\›úõ€SŸ‘ôYàOOHôù[ò›[€àäH¬àXùY‘›‹ôKú\⁄X€€ïÿ\›úõ€SŸ‘ôYàH\⁄X€€ïÿ\›úõ€SŸ‘ôYé¬àBàYà
+\[ŸàXùY‘›‹ôKúô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›Ÿ^HOOHôù[ò›[€àäH¬àXùY‘›‹ôKúô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›Ÿ^HHô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›Ÿ^N¬àBàYà
+\[ŸàXùY‘›‹ôKúô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›^OOHôù[ò›[€àäH¬àXùY‘›‹ôKúô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›^Hô\€€ôQX€€õ€^Qõ]õ‹ïÿ\›^¬àBàYö[ôQÿ[YT›\ôòXŸTõ‹
+î›]Hãó◊‘»äN¬àYö[ôQÿ[YT›\ôòXŸTõ‹
+ëXùY»ãó◊—äN¬àYö[ôQÿ[YT›\ôòXŸTõ‹
+î›]PTHãó◊–HäN¬ÇàYà
+Qÿ[YKî€ÿ⁄X[\[Ÿàÿ[YKî€ÿ⁄X[OOHõÿöôX›äHÿ[YKî€ÿ⁄X[HﬂN¬àÿ[YKî€ÿ⁄X[ò\T€ÿ⁄X[[ò[HH\T€ÿ⁄X[[ò[N¬Çàö[ô‹õ›Ÿ€‹ôQù[ò›[€ú 
+N¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKòY⁄[ù»ãY⁄[ùÀî›]PTKòY⁄[ù»äN¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKú‹[ô⁄[ù»ã‹[ô⁄[ùÀî›]PTKú‹[ô⁄[ù»äN¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKùò[úŸô\îô\ãò[úŸô\îô\î›]PTKùò[úŸô\îô\äN¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKúô\›‹ôTô\€ò\⁄›ãô\›‹ôTô\€ò\⁄›î›]PTKúô\›‹ôTô\€ò\⁄›äN¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKòYô\ãYô\î›]PTKòYô\äN¬àŸX›\ö]Kúõ›X›Y]Ÿ
+›]PTKô⁄]ôTô\‹X›ã⁄]ôTô\‹X›î›]PTKô⁄]ôTô\‹X›äN¬àŸX›\ö]Kôö[ö\⁄õ€›
+
+N¬à]Y]ŸX›\ö]T€XﬁQ^‹ù
+ú›]KöúŒú‹›Yö[ö\⁄õ€›äN¬àYà
+ôXX›[€î€XﬁH	âà\[ŸàôXX›[€î€XﬁKô[Z]ô\›‹ôQ]ô[ù»OOHôù[ò›[€àäH¬àôXX›[€î€XﬁKô[Z]ô\›‹ôQ]ô[ù 
+N¬àBüJJ
+N¬
