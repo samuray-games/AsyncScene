@@ -7,6 +7,7 @@ CORE_SOURCE = Path(os.environ.get(
     "STAGE715_CORE_SOURCE", str(ROOT / "AsyncScene/Web/conflict/conflict-core.js")
 ))
 STAGE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
+BATTLE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-battles.js"
 
 
 def function_source(source, name):
@@ -54,8 +55,53 @@ def function_source(source, name):
     raise AssertionError(f"could not extract {name}()")
 
 
+def expression_source(source, marker):
+    start = source.index(marker)
+    opening = source.index("{", start)
+    depth = 0
+    quote = None
+    escaped = False
+    line_comment = False
+    block_comment = False
+    index = opening
+    while index < len(source):
+        char = source[index]
+        following = source[index + 1] if index + 1 < len(source) else ""
+        if line_comment:
+            if char == "\n":
+                line_comment = False
+        elif block_comment:
+            if char == "*" and following == "/":
+                block_comment = False
+                index += 1
+        elif quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+        elif char == "/" and following == "/":
+            line_comment = True
+            index += 1
+        elif char == "/" and following == "*":
+            block_comment = True
+            index += 1
+        elif char in ("'", '"', "`"):
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start:index + 1]
+        index += 1
+    raise AssertionError(f"could not extract expression {marker}")
+
+
 core_text = CORE_SOURCE.read_text(encoding="utf-8")
 stage_text = STAGE_SOURCE.read_text(encoding="utf-8")
+battle_text = BATTLE_SOURCE.read_text(encoding="utf-8")
 core_functions = "\n".join(function_source(core_text, name) for name in (
     "applyScriptedEscapeVote",
     "resolveCrowdCore",
@@ -85,6 +131,13 @@ stage_functions = "\n".join(function_source(stage_text, name) for name in (
     "shuffleStage715VoteSides",
     "nastyaEventVoteDelay",
 ))
+battle_functions = "\n".join(function_source(battle_text, name) for name in (
+    "formatCrowdEligibleLine",
+    "updateCrowdEligibleLine",
+    "getRawCountsFromVoters",
+))
+escape_vote_button = expression_source(battle_text, "const mkVoteBtn = (label, votes) => {")
+escape_vote_update = expression_source(battle_text, "const update = (bb) => {")
 
 harness = r'''const fs = require("fs");
 const vm = require("vm");
@@ -100,6 +153,27 @@ let nextIntervalId = 0;
 let nextRepTransferResult = { ok: true };
 let nextMoneyChargeResult = { ok: true };
 let repTransferCalls = 0;
+class FakeUiElement {
+  constructor() { this.children = []; this.style = {}; this.attributes = {}; this.textContent = ""; this.className = ""; this.isConnected = true; }
+  get childElementCount() { return this.children.length; }
+  appendChild(child) { this.children.push(child); child.parentNode = this; return child; }
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+}
+const escapeDom = { currentVoteRow: new FakeUiElement() };
+const escapeVoteInfo = new FakeUiElement();
+const escapeVoteCard = { querySelector(selector) { return selector === ".eventVoteRow" ? escapeDom.currentVoteRow : null; } };
+const escapeVoteBody = { querySelector(selector) {
+  return selector.includes("stage7_15_oleg_escape_battle") ? escapeVoteCard : null;
+} };
+const testDocument = {
+  createElement() { return new FakeUiElement(); },
+  getElementById(id) {
+    if (id === "battlesBody") return escapeVoteBody;
+    if (id === "escapeInfo_stage7_15_oleg_escape_battle") return escapeVoteInfo;
+    return null;
+  },
+  querySelector(selector) { return selector.includes("stage7_15_oleg_escape_battle") ? escapeVoteCard : null; }
+};
 const player = { id: "me", name: "Тест", points: 20, influence: 4, rep: 5, isMe: true };
 const oleg = { id: "npc_oleg", name: "Олег", points: 10, influence: 6, type: "npc", npc: true };
 const battle = {
@@ -171,7 +245,13 @@ const Game = {
   }
 };
 const vmContext = {
-  Game, assert, ledger, clock, clone, persistedState, repActions, moneyActions, window: { location: { search: "" } }, console: { warn() {}, error() {}, log: console.log },
+  Game, assert, ledger, clock, clone, persistedState, repActions, moneyActions,
+  window: { location: { search: "" }, CSS: { escape(value) { return String(value); } }, __testEscapeVoteRow: escapeDom.currentVoteRow },
+  FakeUiElement, escapeDom, escapeVoteInfo,
+  document: testDocument,
+  $(id) { return testDocument.getElementById(id); },
+  isDevCrowdMode: false,
+  console: { warn() {}, error() {}, log: console.log },
   skipPreIntervalProbe: process.env.STAGE715_SKIP_PRE_INTERVAL_PROBE === "1",
   URLSearchParams, Date: FakeDate, Math: Object.create(Math),
   setInterval(callback, delay) { coreEscapeTimerCallback = callback; coreEscapeTimerDelay = delay; nextIntervalId += 1; return nextIntervalId; },
@@ -218,6 +298,18 @@ vm.createContext(vmContext);
 vm.runInContext(process.argv[1], vmContext);
 vm.runInContext(process.argv[2], vmContext);
 vm.runInContext(process.argv[3], vmContext);
+vm.runInContext(process.argv[4], vmContext);
+const uiUpdateSource = [
+  "(() => {",
+  '  const voteLabelA = "Уйти"; const voteLabelB = "Остаться";',
+  "  const diagLine = { style: {} }; const timerLine = null;",
+  "  let voteRowEl = window.__testEscapeVoteRow;",
+  process.argv[5] + ";",
+  process.argv[6] + ";",
+  "  return update;",
+  "})()"
+].join("\n");
+vmContext.updateEscapeVoteRow = vm.runInContext(uiUpdateSource, vmContext);
 vm.runInContext(`
   Game.Stage715Demo = { persistOlegEscapeVoteProgress };
   // RED-first resource preflight contract: an unaffordable attempt must keep
@@ -250,7 +342,7 @@ vm.runInContext(`
     getVotingPool() { this.poolCalls += 1; return Array.from({ length: this.poolSize }, (_, index) => ({ id: "pool_" + index })); },
     voteInDraw() { this.voteAttempts += 1; return { voterId: "ordinary_npc_vote", side: "attacker" }; } };
   assert(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), "controller should start the first escape through Core.escape; "+JSON.stringify({meta:preflightBattle.meta.stage715Escape, vote:preflightBattle.escapeVote, status:preflightBattle.status}));
-  const authoritative = Game.__S.battles[0];
+  let authoritative = Game.__S.battles[0];
   const vote = authoritative.escapeVote;
   assert(vote && vote.scriptedVoteSequence.length === 5);
   assert.strictEqual(getCoreEscapeTimerDelay(), 100, "Core must create the dedicated 100ms Stage 7.15 timer");
@@ -261,6 +353,23 @@ vm.runInContext(`
   assert.strictEqual(vote.scriptedVoteSequence[4], "b");
   const persistStageProgress = Game.Stage715Demo.persistOlegEscapeVoteProgress;
   const progress = [];
+  const visibleVoteStates = [];
+  function captureVisibleVote(attempt, label) {
+    const renderedBattle = Game.UI.S.battles.find((entry) => entry && entry.id === authoritative.id);
+    updateEscapeVoteRow(renderedBattle);
+    const canonicalVote = authoritative.escapeVote;
+    const visible = escapeDom.currentVoteRow.children.map((button) => button.textContent);
+    const expectedA = Object.values(canonicalVote.voters || {}).filter((side) => side === "a").length;
+    const expectedB = Object.values(canonicalVote.voters || {}).filter((side) => side === "b").length;
+    assert.strictEqual(JSON.stringify(visible), JSON.stringify(["Уйти - " + expectedA, "Остаться - " + expectedB]),
+      "the actual escape vote row must render Core's current tally at " + label);
+    assert.strictEqual(escapeVoteInfo.textContent, "Толпа решает: " + (expectedA + expectedB) + "/5",
+      "the visible vote progress must reflect Core's current count at " + label);
+    const item = { attempt, label, atMs: clock.now, row: visible.slice(), info: escapeVoteInfo.textContent };
+    visibleVoteStates.push(item);
+    return item;
+  }
+  captureVisibleVote(1, "started");
   for (let index = 0; index < 5; index += 1) {
     if (index === 0 && !skipPreIntervalProbe) {
       clock.now = authoritative.escapeVote.stage715NextVoteAtMs - 1;
@@ -271,6 +380,15 @@ vm.runInContext(`
     clock.now = authoritative.escapeVote.stage715NextVoteAtMs;
     const timerCallback = getCoreEscapeTimerCallback();
     timerCallback();
+    const voteAfterTick = authoritative.escapeVote;
+    if (voteAfterTick) {
+      const scheduledIntervals = voteAfterTick.stage715VoteIntervals || [];
+      assert(scheduledIntervals.every((delay) => delay >= 1000 && delay <= 2000),
+        "Core must persist every vote interval within 1-2 seconds");
+    }
+    const captured = captureVisibleVote(1, "vote-" + (index + 1));
+    assert.strictEqual(captured.row[0].split(" - ")[1] * 1 + captured.row[1].split(" - ")[1] * 1,
+      index + 1, "each Core timer tick must create exactly one separately rendered vote (" + (index + 1) + ")");
     const tickResult = { ok: true, totalVotes: authoritative.escapeVote
       ? Object.keys(authoritative.escapeVote.voters || {}).length : 5 };
     const visible = Game.UI.S.battles[0].escapeVote;
@@ -285,6 +403,48 @@ vm.runInContext(`
       assert.strictEqual(authoritative.escapeVote.votesA + authoritative.escapeVote.votesB, 3);
     }
     if (index === 3) assert(visible && Object.keys(visible.voters).length === 4, "2:2 must be visible after vote four; progress=" + JSON.stringify(progress) + " mirror=" + JSON.stringify(Game.UI.S.battles[0]));
+    if (index === 3) assert.strictEqual(JSON.stringify(captured.row), JSON.stringify(["Уйти - 2", "Остаться - 2"]), "the rendered fourth vote must show 2:2");
+    if (index === 4) assert.strictEqual(JSON.stringify(captured.row), JSON.stringify(["Уйти - 2", "Остаться - 3"]), "the rendered fifth vote must show 2:3 before settlement");
+    if (index === 1) {
+      const savedCheckpoint = clone(persistedState);
+      const savedVote = savedCheckpoint.battles[0].escapeVote;
+      assert.strictEqual(Object.keys(savedVote.voters).length, 2, "the persisted checkpoint must contain exactly two completed votes");
+      const savedNextVoteAtMs = savedVote.stage715NextVoteAtMs;
+      const savedMoneyLog = clone(Game.__D.moneyLog);
+      const repCallsBeforeReload = getRepTransferCalls();
+      const moneyRowsBeforeReload = ledger.money.length;
+      const repRowsBeforeReload = ledger.rep.length;
+      escapeDom.currentVoteRow.isConnected = false;
+      escapeDom.currentVoteRow = new FakeUiElement();
+      window.__testEscapeVoteRow = escapeDom.currentVoteRow;
+      for (const key of Object.keys(persistedState)) delete persistedState[key];
+      Object.assign(persistedState, clone(savedCheckpoint));
+      Game.__S = clone(savedCheckpoint);
+      Game.UI.S = clone(savedCheckpoint);
+      Game.__D.moneyLog = clone(savedMoneyLog);
+      authoritative = Game.__S.battles[0];
+      assert.notStrictEqual(authoritative, preflightBattle, "reload must hydrate a distinct canonical battle object");
+      assert.strictEqual(authoritative.escapeVote.stage715NextVoteAtMs, savedNextVoteAtMs,
+        "reload must retain the scheduled next vote time");
+      assert.strictEqual(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), true,
+        "the real Stage controller must resume the saved vote without starting a new attempt");
+      assert.strictEqual(Object.keys(authoritative.escapeVote.voters).length, 2,
+        "resume must not replay either completed vote");
+      assert.strictEqual(authoritative.escapeVote.stage715NextVoteAtMs, savedNextVoteAtMs,
+        "resume must preserve the saved interval rather than completing immediately");
+      assert.strictEqual(getRepTransferCalls(), repCallsBeforeReload, "reload/resume must not transfer REP again");
+      assert.strictEqual(ledger.rep.length, repRowsBeforeReload, "reload/resume must not create a second REP row");
+      assert.strictEqual(ledger.money.length, moneyRowsBeforeReload, "reload/resume must not create a second money row");
+      assert.strictEqual(Game.__D.moneyLog.filter((entry) => entry.reason === "escape_vote_cost"
+        && entry.meta && entry.meta.actionId === "stage715_oleg_escape_1").length, 1,
+      "the persisted money action receipt must remain unique after reload");
+      const restoredCallback = getCoreEscapeTimerCallback();
+      clock.now = savedNextVoteAtMs - 1;
+      restoredCallback();
+      assert.strictEqual(Object.keys(authoritative.escapeVote.voters).length, 2,
+        "the resumed Core timer must wait until the persisted next-vote deadline");
+      captureVisibleVote(1, "reload-resumed-2-votes");
+    }
   }
   assert.strictEqual(authoritative.escapeVote.votesA + authoritative.escapeVote.votesB, 5,
     "the fifth vote tally remains available to the UI before Core settlement");
@@ -387,6 +547,16 @@ vm.runInContext(`
   const firstReload = clone(persistedState);
   assert.strictEqual(firstReload.battles[0].meta.stage715Escape.status, "failed", "failed attempt survives reload");
   assert.strictEqual(firstReload.battles[0].id, OLEG_ESCAPE_BATTLE_ID, "reload retains the same scripted card");
+  assert.strictEqual(settleOlegEscapeOutcome(firstReload.battles[0]), false,
+    "reloading a completed failed attempt must not settle it or publish messages again");
+  assert.strictEqual(ledger.rep.filter(entry => entry.actionId === "stage715_escape_1").length, 1,
+    "the failed attempt REP action remains unique across a post-settlement reload");
+  assert.strictEqual(ledger.money.filter(entry => entry.meta && entry.meta.actionId === "stage715_oleg_escape_1").length, 1,
+    "the failed attempt money action remains unique across a post-settlement reload");
+  assert.strictEqual(ledger.system.filter(text => text === "У Тест не получилось уйти от Олега!").length, 1,
+    "post-settlement reload must preserve one failure system line");
+  assert.strictEqual(ledger.dm.filter(message => message.text === OLEG_ESCAPE_FAILED_DM_LINE).length, 1,
+    "post-settlement reload must preserve one failure DM");
   // Replaying the canonical REP helper recognizes its persisted settlement.
   assert(settleOlegEscapeRep(authoritative, 1));
   assert.strictEqual(ledger.rep.filter(entry => entry.actionId === "stage715_escape_1").length, 1,
@@ -422,6 +592,10 @@ vm.runInContext(`
   setMoneyChargeResult({ ok: true });
   Game.NPC.poolSize = 4;
   assert(startOlegEscape(OLEG_ESCAPE_BATTLE_ID), "controller should start the second escape through Core.escape");
+  escapeDom.currentVoteRow.isConnected = false;
+  escapeDom.currentVoteRow = new FakeUiElement();
+  window.__testEscapeVoteRow = escapeDom.currentVoteRow;
+  captureVisibleVote(2, "started");
   assert.strictEqual(Game.__S.rep, repBeforeCompensatedChargeFailure - 1,
     "retry after a compensating REP refund must charge exactly one net REP");
   const second = Game.__S.battles[0];
@@ -431,18 +605,28 @@ vm.runInContext(`
   for (let index = 0; index < 5; index += 1) {
     clock.now = second.escapeVote.stage715NextVoteAtMs;
     getCoreEscapeTimerCallback()();
+    if (second.escapeVote) {
+      assert((second.escapeVote.stage715VoteIntervals || []).every((delay) => delay >= 1000 && delay <= 2000),
+        "Core must retain each second-attempt vote interval within 1-2 seconds");
+    }
+    const secondRendered = captureVisibleVote(2, "vote-" + (index + 1));
+    assert.strictEqual(Number(secondRendered.row[0].split(" - ")[1])
+      + Number(secondRendered.row[1].split(" - ")[1]), index + 1,
+    "each second-attempt timer tick must render one separate vote (" + (index + 1) + ")");
     const tickResult = { decided: second.resolved, totalVotes: second.escapeVote ? Object.keys(second.escapeVote.voters || {}).length : 5 };
     if (index === 3) {
       assert.strictEqual(second.status, "escape_vote", "NPC pool size four must not finalize a scripted 2:2 tie");
       assert.strictEqual(second.escapeVote.cap, 5);
       const vote = Game.UI.S.battles[0].escapeVote;
       assert(vote && vote.votesA === 2 && vote.votesB === 2, "second escape shows 2:2 after vote four");
+      assert.strictEqual(JSON.stringify(secondRendered.row), JSON.stringify(["Уйти - 2", "Остаться - 2"]), "the rendered second-attempt fourth vote must show 2:2");
     }
     if (index === 4) {
       assert.strictEqual(tickResult.decided, false, "Core publishes the fifth vote before settlement");
       assert.strictEqual(tickResult.totalVotes, 5);
       assert(second.escapeVote && second.escapeVote.votesA === 3 && second.escapeVote.votesB === 2,
         "the visible fifth tally is 3:2 before the outcome");
+      assert.strictEqual(JSON.stringify(secondRendered.row), JSON.stringify(["Уйти - 3", "Остаться - 2"]), "the rendered fifth vote must show 3:2 before settlement");
       clock.now = second.escapeVote.stage715FinalizeAtMs;
       getCoreEscapeTimerCallback()();
     }
@@ -454,6 +638,7 @@ vm.runInContext(`
   assert.strictEqual(ledger.dm.filter(message => message.text === OLEG_ESCAPE_SUCCESS_DM_LINE).length, 1, "one Oleg success DM");
   assert.strictEqual(persistedState.flags.stage715NextScriptedFlowReady, true, "success opens the independent-battle instruction gate");
   assert.strictEqual(persistedState.flags.stage715NextScriptedFlowReason, "escape_success");
+  assert.strictEqual(phase, "next_scripted_flow", "Core success must release the Stage controller into the next scripted flow");
   const repNet = ledger.rep.reduce((sum, entry) => sum
     + (entry.sourceId === "me" && entry.targetId === "crowd_pool" ? Number(entry.amount) : 0)
     - (entry.sourceId === "crowd_pool" && entry.targetId === "me" ? Number(entry.amount) : 0), 0);
@@ -461,6 +646,12 @@ vm.runInContext(`
   assert.strictEqual(ledger.money.length, 2, "one money charge per escape attempt");
   assert.strictEqual(ledger.money.filter(entry => entry.meta.actionId === "stage715_oleg_escape_2").length, 1,
     "canonical money ledger identifies the second escape with its actionId");
+  assert.strictEqual(ledger.rep.filter(entry => entry.reason === "rep_stage715_escape_bribe"
+    && entry.actionId === "stage715_escape_2").length, 1,
+  "canonical REP ledger identifies exactly one second-attempt debit by its actionId");
+  assert.strictEqual(ledger.money.filter(entry => entry.reason === "escape_vote_cost"
+    && entry.meta && entry.meta.actionId === "stage715_oleg_escape_1").length, 1,
+  "canonical money ledger contains exactly one first-attempt debit by its actionId");
   assert.strictEqual(Game.UI.S.battles[0].meta.stage715Escape.status, "success", "render mirror reflects final Stage outcome");
   const secondReload = clone(persistedState);
   assert.strictEqual(secondReload.battles[0].meta.stage715Escape.status, "success", "successful attempt survives reload");
@@ -470,6 +661,7 @@ vm.runInContext(`
   assert.strictEqual(ledger.money.length, 2);
   assert.strictEqual(ledger.system.filter(text => text === "У Тест получилось уйти от Олега!").length, 1);
   assert.strictEqual(ledger.dm.filter(message => message.text === OLEG_ESCAPE_SUCCESS_DM_LINE).length, 1);
+  console.log("OLEG_VOTE_VISIBLE_UI_TRACE " + JSON.stringify(visibleVoteStates));
 
   // A reload clears the runtime-only logs while preserving the paid action
   // receipt and settled Core outcome in the Stage checkpoint. Resume must use
@@ -590,7 +782,8 @@ result = subprocess.run(
      'function battleFallbackText(key){return key === "battle.escaped_fallback" ? "Свалить" : "Отвали";}'
      'function battleFallbackSentence(_key,punctuation){return "Свалить"+punctuation;}'
      'function systemSay(_a,_b,v){return `Баттл с ${v.oppName}: ${v.text}.`;}'
-     'function getPlayer(id){return Game.__S.players[id] || null;}'],
+     'function getPlayer(id){return Game.__S.players[id] || null;}',
+     battle_functions, escape_vote_button, escape_vote_update],
     cwd=ROOT,
     capture_output=True, text=True,
 )

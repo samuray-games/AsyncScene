@@ -36,7 +36,7 @@ require(INDEX_SOURCE.read_bytes() == INDEX_DOCS.read_bytes(), "index mirrors dif
 for text in (
     "conflict/conflict-core.js?v=stage7_15_atom6_vote_pacing_20261012g",
     "ui/ui-battles.js?v=stage7_15_atom6_oleg_escape_20261010a",
-    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_vote_pacing_20261012g",
+    "ui/ui-stage7-first-experience.js?v=stage7_15_atom6_vote_recovery_20261012d",
 ):
     require(text in index, f"missing Stage 7.15.31 cache-busted entrypoint: {text}")
 
@@ -77,8 +77,10 @@ require('const states = id === OLEG_ESCAPE_BATTLE_ID' in stage
 watch_start = stage.index("  function watchOlegEscape()")
 watch_end = stage.index("  function startOlegEscape(", watch_start)
 watch_body = stage[watch_start:watch_end]
-require('Core.resumeStage715OlegEscapeVote(battle.id);' in watch_body,
-        "escape watcher must rearm a restored Oleg vote after runtime hydration")
+require('Core.resumeStage715OlegEscapeVote(battle.id) === true' in watch_body
+        and 'if (!resumed)' in watch_body
+        and 'markOlegEscapeVoteRecovery(battle, "core_vote_timer_unavailable")' in watch_body,
+        "escape watcher must confirm a live Core timer or persist a recoverable failure")
 require('flatMap((store) => Array.isArray(store && store.battles)' in stage,
         "escape scripted vote must mirror every runtime battle store")
 require('if (previous.status === "failed")' in stage,
@@ -121,7 +123,7 @@ for text in (
     'stage715NextVoteAtMs',
     'stage715ScriptedVoteIndex',
     'v.scriptedVoteSequence',
-    'if (applyScriptedEscapeVote(b, v))',
+    'const scriptedVoteApplied = applyScriptedEscapeVote(b, v);',
     'stage715VoteIntervals.push(delay)',
 ):
     require(text in core, f"missing existing escape vote integration: {text}")
@@ -153,8 +155,11 @@ require('String(entry.meta && entry.meta.stage715BattleId || "") === OLEG_ESCAPE
         "partial Oleg vote progress must be copied into the controller persistence state even when its battle mirror is missing")
 require('const escapeContext = { battleId: battleRef, mode: modeNorm };' in core,
         "generic escape context must retain its original battle and mode fields")
-require('const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting", scriptedVoteSequence });' in stage,
-        "attempt nonce metadata must exist before the canonical escape call")
+require('const attemptMetadata = Object.assign({}, previous, {' in stage
+        and 'repActionId: retryingPayment && previous.repActionId' in stage
+        and 'moneyActionId: retryingPayment && (previous.attempt | 0) === attempt' in stage
+        and 'persistOlegEscapeVoteProgress(battle.id);\n    const payment = ensureOlegEscapePayment(battle, attempt);' in stage,
+        "stable attempt action IDs must be persisted before canonical payment and escape start")
 
 script_start = core.index("  function applyScriptedEscapeVote(b, v){")
 script_end = core.index("\n  function applyScriptedNastyaVote", script_start)
@@ -238,6 +243,7 @@ allowed = {
     "docs/index.html",
     "tools/test_stage7_15_31_escape_bribe.py",
     "tools/test_stage7_15_31_oleg_escape_lifecycle.py",
+    "tools/test_stage7_15_fresh_rep_baseline.py",
     "tools/test_stage7_15_24_nastya_vote_timing.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_23_nastya_crowd_vote.py",
