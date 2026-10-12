@@ -2604,6 +2604,9 @@
         v.stage715NextVoteAtMs = nowMs + delay;
       } else {
         v.stage715NextVoteAtMs = null;
+        const resultDelay = 1000 + Math.floor(Math.random() * 1001);
+        v.stage715ResultDelayMs = resultDelay;
+        v.stage715FinalizeAtMs = nowMs + resultDelay;
       }
       return true;
     }
@@ -2673,7 +2676,10 @@
     if (!isEscapeVote(b)) return;
     const v = b.escapeVote;
     if (!v) return;
-    ensureBattleCrowdCap(v, b);
+    const stage715ScriptedEscape = !!(b.meta && b.meta.stage715OlegEscape === true
+      && Array.isArray(v.scriptedVoteSequence));
+    if (stage715ScriptedEscape) v.cap = 5;
+    else ensureBattleCrowdCap(v, b);
     const totalVotesNow = getCrowdTotalVotes(v);
     if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
@@ -2803,10 +2809,29 @@
     if (!v || v.decided) return { ok: false, reason: "decided" };
     ensureBattleCrowdCap(v, b);
 
-    if (applyScriptedEscapeVote(b, v)) {
+    const stage715ScriptedEscape = !!(b.meta && b.meta.stage715OlegEscape === true
+      && Array.isArray(v.scriptedVoteSequence) && v.scriptedVoteSequence.length > 0);
+    const scriptedVoteApplied = applyScriptedEscapeVote(b, v);
+    if (stage715ScriptedEscape && !scriptedVoteApplied
+      && getCrowdTotalVotes(v) >= 5
+      && Number.isFinite(v.stage715FinalizeAtMs)
+      && Date.now() >= v.stage715FinalizeAtMs) {
+      finalizeEscapeVote(b);
+      if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+        Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+      }
+      try {
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
+      } catch (_) {}
+      return { ok: true, decided: true, totalVotes: 5 };
+    }
+    if (stage715ScriptedEscape && !scriptedVoteApplied) {
+      return { ok: true, decided: false, totalVotes: getCrowdTotalVotes(v) };
+    }
+    if (scriptedVoteApplied) {
       const totalVotes = getCrowdTotalVotes(v);
       const decided = Number.isFinite(v.cap) && totalVotes >= (v.cap | 0);
-      if (decided) {
+      if (decided && !stage715ScriptedEscape) {
         finalizeEscapeVote(b);
       }
       if (b.meta && b.meta.stage715OlegEscape === true) {
@@ -2998,11 +3023,23 @@
 
       const v = cur.escapeVote;
       if (!v) return;
+      const stage715ScriptedEscape = !!(stage715Oleg && Array.isArray(v.scriptedVoteSequence));
+      if (stage715ScriptedEscape) v.cap = 5;
 
       try { applyEscapeVoteTick(cur); } catch (_) {}
 
       try {
-        ensureBattleCrowdCap(v);
+        if (stage715ScriptedEscape) {
+          if (!cur.escapeVote || cur.escapeVote.decided) {
+            clearInterval(cur._escapeTimer || b._escapeTimer);
+            cur._escapeTimer = null;
+            b._escapeTimer = null;
+            stage715OlegEscapeLiveTimers.delete(b);
+          }
+          return;
+        }
+        if (stage715ScriptedEscape) v.cap = 5;
+        else ensureBattleCrowdCap(v);
         const totalVotes = getCrowdTotalVotes(v);
         if (Number.isFinite(v.cap) && totalVotes >= v.cap) {
           clearInterval(cur._crowdTimer || b._crowdTimer);
@@ -3012,7 +3049,7 @@
           return;
         }
         try {
-          if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+          if (!stage715ScriptedEscape && Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
             const pool = Game.NPC.getVotingPool(cur) || [];
             if (pool.length > 0 && totalVotes >= pool.length) {
               v.cap = totalVotes | 0;
@@ -3038,19 +3075,22 @@
       b.escapeVote.scriptedVotes = null;
       b.escapeVote.cap = scriptedVoteSequence.length;
       if (getCrowdTotalVotes(b.escapeVote) >= scriptedVoteSequence.length) {
-        // A prior build could persist vote five to UI state immediately
-        // before its authoritative Core finalize. Complete that already-full
-        // vote through the same Core settlement path during hydration.
-        finalizeEscapeVote(b);
+        // A restored fifth tally remains visible until its persisted result
+        // deadline; no new vote is applied while Core waits to settle it.
+        if (!Number.isFinite(b.escapeVote.stage715FinalizeAtMs)) {
+          const resultDelay = 1000 + Math.floor(Math.random() * 1001);
+          b.escapeVote.stage715ResultDelayMs = resultDelay;
+          b.escapeVote.stage715FinalizeAtMs = Date.now() + resultDelay;
+        }
         if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
           Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
         }
         try {
           if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
         } catch (_) {}
-        return true;
       }
-      if (!Number.isFinite(b.escapeVote.stage715NextVoteAtMs)) {
+      if (getCrowdTotalVotes(b.escapeVote) < scriptedVoteSequence.length
+        && !Number.isFinite(b.escapeVote.stage715NextVoteAtMs)) {
         const delay = 1000 + Math.floor(Math.random() * 1001);
         b.escapeVote.stage715VoteIntervals = b.escapeVote.stage715VoteIntervals || [];
         b.escapeVote.stage715VoteIntervals.push(delay);

@@ -119,6 +119,21 @@ start_runtime_harness = textwrap.dedent(f"""
   window.Game.Stage7FirstExperience = {{ claimResume: () => {{ events.push("legacy.claimResume:" + UI.S.progress.onboardingSeen); return {{ claimed: true }}; }} }};
   startGame(UI);
   if (events.join(",") !== "persist:true,legacy.claimResume:true") throw new Error("existing resume path changed: " + events.join(","));
+
+  events.length = 0;
+  UI = makeUI(true);
+  window.Game.Stage715Demo = {{
+    isActive: ({{ state }}) => state.flags.stage715Demo === true,
+    claimFreshStart: ({{ state }}) => {{ events.push("demo.claimFreshStart:" + state.progress.onboardingSeen); return {{ claimed: true }}; }}
+  }};
+  window.Game.Stage7FirstExperience = {{
+    hasPersistedCheckpoint: () => false,
+    claimResume: () => {{ events.push("legacy.claimResume"); return {{ claimed: true }}; }}
+  }};
+  startGame(UI);
+  if (events.indexOf("demo.claimFreshStart:false") < 0) throw new Error("onboardingSeen without a legacy checkpoint must take the fresh Stage 7.15 path: " + events.join(","));
+  if (events.indexOf("legacy.claimResume") >= 0) throw new Error("fresh Stage 7.15 path called legacy resume without a checkpoint: " + events.join(","));
+  if (UI.S.flags.stage715Demo !== true) throw new Error("fresh path did not install the Stage 7.15 activation flag");
   console.log("PASS_STAGE7_15_START_CLASSIFICATION");
 """)
 
@@ -150,6 +165,8 @@ allowed = {
     "tools/test_transfer_rep_suppress_stat_delta.py",
     "tools/test_stage7_15_30_oleg_dm.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    "tools/test_stage7_15_31_oleg_escape_lifecycle.py",
+    "tools/test_stage7_15_24_nastya_vote_timing.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_21_nastya_battle.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",

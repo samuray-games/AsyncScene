@@ -1348,12 +1348,18 @@ window.Game = window.Game || {};
   }
 
   function claimStage715FreshStart(G, UI, S, name, startNormalWorld) {
+    const canonicalState = G.__S || S;
+    if (UI && canonicalState && UI.S !== canonicalState) UI.S = canonicalState;
+    if (canonicalState) {
+      canonicalState.flags = canonicalState.flags || {};
+      canonicalState.flags.stage715Demo = true;
+    }
     const stage715Demo = G.Stage715Demo;
     if (stage715Demo
       && typeof stage715Demo.isActive === "function"
-      && stage715Demo.isActive({ UI, state: S })
+      && stage715Demo.isActive({ UI, state: canonicalState })
       && typeof stage715Demo.claimFreshStart === "function") {
-      const claim = stage715Demo.claimFreshStart({ UI, state: S, playerName: name, startNormalWorld });
+      const claim = stage715Demo.claimFreshStart({ UI, state: canonicalState, playerName: name, startNormalWorld });
       if (claim && claim.claimed === true) {
         UI.renderAll && UI.renderAll();
         return true;
@@ -1392,6 +1398,11 @@ window.Game = window.Game || {};
       const stage715PersistedCheckpoint = G.Stage715Demo
         && typeof G.Stage715Demo.hasPersistedCheckpoint === "function"
         && G.Stage715Demo.hasPersistedCheckpoint();
+      const firstExperience = G.Stage7FirstExperience;
+      const legacyResumeAvailable = !!(firstExperience
+        && typeof firstExperience.claimResume === "function"
+        && (typeof firstExperience.hasPersistedCheckpoint !== "function"
+          || firstExperience.hasPersistedCheckpoint()));
       if (resumeMode && stage715PersistedCheckpoint && stage715ActiveForResume
         && typeof G.Stage715Demo.claimResume === "function") {
         ensureStartScreenHidden(UI);
@@ -1402,7 +1413,8 @@ window.Game = window.Game || {};
           return;
         }
       }
-      if (resumeMode && (!(S.flags.started || S.isStarted === true) || stage715ActiveForResume)) {
+      if (resumeMode && ((S.flags.started || S.isStarted === true)
+        || stage715ActiveForResume || legacyResumeAvailable)) {
         persistFirstUiProfileSelection(UI, uiProfile);
         markBootDiag("START_RESUME_MODE");
         stateTargets.forEach((state) => {
@@ -1451,7 +1463,6 @@ window.Game = window.Game || {};
           ensureStartScreenHidden(UI);
           return;
         }
-        const firstExperience = G.Stage7FirstExperience;
         if (firstExperience && typeof firstExperience.claimResume === "function") {
           const claim = firstExperience.claimResume({ UI, state: S, playerName: name, startNormalWorld });
           if (claim && claim.claimed === true) {
