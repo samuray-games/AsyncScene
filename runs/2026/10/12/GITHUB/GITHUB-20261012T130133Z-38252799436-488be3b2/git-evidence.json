@@ -1,0 +1,106 @@
+{
+  "branch": "codex/stage715-atom6-vote-pacing-20261012",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "codex/stage715-atom6-vote-pacing-20261012\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "638b5cf74a116a0d1bc9728ac5d5b76f1eaee38c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid 638b5cf74a116a0d1bc9728ac5d5b76f1eaee38c\n# branch.head codex/stage715-atom6-vote-pacing-20261012\n# branch.upstream origin/codex/stage715-atom6-vote-pacing-20261012\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "638b5cf7 (HEAD -> codex/stage715-atom6-vote-pacing-20261012, origin/codex/stage715-atom6-vote-pacing-20261012) test(stage715): cover Oleg escape vote UI lifecycle\nefdcfc64 Merge remote-tracking branch 'origin/codex/stage715-atom6-vote-pacing-20261012' into codex/stage715-atom6-vote-pacing-20261012\n7aa37306 Fix Stage 7.15 scripted vote pacing\n12cb623c Restore complete Stage 7.15 vote lifecycle source\ne3eb1a90 Guard Oleg escape payment and recover outcomes\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 638b5cf74a116a0d1bc9728ac5d5b76f1eaee38c\nbranch refs/heads/codex/stage715-atom6-vote-pacing-20261012\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-12T13:01:33Z",
+      "stderr": "",
+      "stdout": "483c815c7977796bbc87f827a6d873e95edc91c2\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "638b5cf74a116a0d1bc9728ac5d5b76f1eaee38c",
+  "observedAtUtc": "2026-10-12T13:01:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
