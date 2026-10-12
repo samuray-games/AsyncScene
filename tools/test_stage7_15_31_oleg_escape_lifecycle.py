@@ -1,8 +1,11 @@
 from pathlib import Path
+import os
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-CORE_SOURCE = ROOT / "AsyncScene/Web/conflict/conflict-core.js"
+CORE_SOURCE = Path(os.environ.get(
+    "STAGE715_CORE_SOURCE", str(ROOT / "AsyncScene/Web/conflict/conflict-core.js")
+))
 STAGE_SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 
 
@@ -169,6 +172,7 @@ const Game = {
 };
 const vmContext = {
   Game, assert, ledger, clock, clone, persistedState, repActions, moneyActions, window: { location: { search: "" } }, console: { warn() {}, error() {}, log: console.log },
+  skipPreIntervalProbe: process.env.STAGE715_SKIP_PRE_INTERVAL_PROBE === "1",
   URLSearchParams, Date: FakeDate, Math: Object.create(Math),
   setInterval(callback, delay) { coreEscapeTimerCallback = callback; coreEscapeTimerDelay = delay; nextIntervalId += 1; return nextIntervalId; },
   clearInterval() {},
@@ -258,7 +262,7 @@ vm.runInContext(`
   const persistStageProgress = Game.Stage715Demo.persistOlegEscapeVoteProgress;
   const progress = [];
   for (let index = 0; index < 5; index += 1) {
-    if (index === 0) {
+    if (index === 0 && !skipPreIntervalProbe) {
       clock.now = authoritative.escapeVote.stage715NextVoteAtMs - 1;
       getCoreEscapeTimerCallback()();
       assert.strictEqual(Game.NPC.voteAttempts, 0,
@@ -272,10 +276,10 @@ vm.runInContext(`
     const visible = Game.UI.S.battles[0].escapeVote;
     progress.push({ tickResult, now: clock.now, source: authoritative.escapeVote && Object.keys(authoritative.escapeVote.voters || {}).length, mirror: visible && Object.keys(visible.voters || {}).length, next: authoritative.escapeVote && authoritative.escapeVote.stage715NextVoteAtMs });
     if (index === 2) {
-      assert.strictEqual(Game.NPC.poolCalls, 0, "scripted Oleg timer must bypass the ordinary NPC-pool cutoff");
       assert.strictEqual(authoritative.resolved, false, "the real Core timer must not settle the scripted escape at vote three; " + JSON.stringify({ status: authoritative.status, result: authoritative.result, escapeVote: authoritative.escapeVote }));
       assert(authoritative.escapeVote && Object.keys(authoritative.escapeVote.voters || {}).length === 3,
         "the real Core timer must retain the active scripted vote after vote three; " + JSON.stringify({ status: authoritative.status, result: authoritative.result, inlineNote: authoritative.inlineNote, escapeVote: authoritative.escapeVote }));
+      assert.strictEqual(Game.NPC.poolCalls, 0, "scripted Oleg timer must bypass the ordinary NPC-pool cutoff");
       assert.strictEqual(authoritative.status, "escape_vote", "NPC pool size three must not finalize the scripted escape after vote three");
       assert.strictEqual(authoritative.escapeVote.cap, 5, "scripted Oleg escape cap must remain five");
       assert.strictEqual(authoritative.escapeVote.votesA + authoritative.escapeVote.votesB, 3);

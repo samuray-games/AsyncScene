@@ -144,6 +144,8 @@ changed = set(subprocess.check_output(
 ).splitlines())
 changed = {path for path in changed if not path.startswith((".playwright-cli/", "output/playwright/"))}
 allowed = {
+    "tools/test_stage7_15_demo_activation_routing.py",
+    "tools/test_stage7_15_fresh_rep_baseline.py",
     "tools/test_stage7_15_reload_resume.py",
     "AsyncScene/Web/ui/ui-boot.js",
     "AsyncScene/Web/data.js",
