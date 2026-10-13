@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "fb88cface01f34fa41e15e43cc25018229131f45\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "# branch.oid fb88cface01f34fa41e15e43cc25018229131f45\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "fb88cfac (HEAD -> main, origin/main) Fix Stage 7.15 Safari UI sequencing and presentation (#419)\n493fc694 Fix Stage 7.15 scripted vote pacing (#418)\n483c815c Stage 7.15 Atom 6 Oleg escape teaching loop (#417)\naee47147 Restore Rayhan result card after Events vote (#416)\n232e0ac7 Stage 7.15 Atom 5 Safari presentation repair (#415)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fb88cface01f34fa41e15e43cc25018229131f45\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:34:33Z",
+      "stderr": "",
+      "stdout": "fb88cface01f34fa41e15e43cc25018229131f45\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fb88cface01f34fa41e15e43cc25018229131f45",
+  "observedAtUtc": "2026-10-13T05:34:33Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
