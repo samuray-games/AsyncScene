@@ -1,0 +1,106 @@
+{
+  "branch": "fix/stage715-rayhan-tutorial-vote-20261013",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "fix/stage715-rayhan-tutorial-vote-20261013\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "82416537fb486e6a430c5d1ac0af7381bfc3563d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "# branch.oid 82416537fb486e6a430c5d1ac0af7381bfc3563d\n# branch.head fix/stage715-rayhan-tutorial-vote-20261013\n# branch.upstream origin/fix/stage715-rayhan-tutorial-vote-20261013\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "82416537 (HEAD -> fix/stage715-rayhan-tutorial-vote-20261013, origin/fix/stage715-rayhan-tutorial-vote-20261013) Fix Rayhan tutorial winner chat\nfd1f5b9d Fix Rayhan tutorial battle voting\n7e4f9548 (origin/main) Use Уйти / Остаться for Stage 7.15 escape votes (#420)\nfb88cfac Fix Stage 7.15 Safari UI sequencing and presentation (#419)\n493fc694 Fix Stage 7.15 scripted vote pacing (#418)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 82416537fb486e6a430c5d1ac0af7381bfc3563d\nbranch refs/heads/fix/stage715-rayhan-tutorial-vote-20261013\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T14:41:53Z",
+      "stderr": "",
+      "stdout": "7e4f9548b88edd43b1b397a1e5d33c0c4f425115\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "82416537fb486e6a430c5d1ac0af7381bfc3563d",
+  "observedAtUtc": "2026-10-13T14:41:53Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
