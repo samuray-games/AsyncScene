@@ -2365,11 +2365,6 @@ UI.renderBattles = () => {
           diagLine.style.opacity = "0.7";
           escapeWrap.appendChild(diagLine);
 
-          const voteHint = document.createElement("div");
-          voteHint.className = "pill";
-          voteHint.textContent = resolveProfileCopy("vote.prompt", "Выбери сторону.");
-          escapeWrap.appendChild(voteHint);
-
           // NOTE: battles panel is fully re-rendered via `body.innerHTML = ""`.
           // Any previously captured DOM nodes become detached. We keep a mutable
           // reference and re-acquire the current row from DOM on each tick.
@@ -2594,10 +2589,12 @@ UI.renderBattles = () => {
           drawWrap.appendChild(diagLine);
 
 
-          const voteHint = document.createElement("div");
-          voteHint.className = "pill";
-          voteHint.textContent = isMyDraw ? resolveProfileCopy("vote.prompt", "Выбери сторону.") : "Смотри исход.";
-          drawWrap.appendChild(voteHint);
+          if (!isMyDraw) {
+            const statusHint = document.createElement("div");
+            statusHint.className = "pill";
+            statusHint.textContent = "Смотри исход.";
+            drawWrap.appendChild(statusHint);
+          }
 
           const timerLine = document.createElement("div");
           timerLine.className = "noteLine crowdTimer";
