@@ -797,6 +797,14 @@ window.Game = window.Game || {};
       })
       .map(normalizeEvent);
 
+    // Stage 7.15 scripted Oleg escape is a real Core battle, not a second
+    // economy-bearing event. Render a read-only Events card from live vote state.
+    const scriptedOlegBattle = [Game && Game.__S, S]
+      .filter((store, index, all) => store && all.indexOf(store) === index)
+      .flatMap((store) => Array.isArray(store.battles) ? store.battles : [])
+      .find((battle) => battle && battle.meta && battle.meta.stage715OlegEscape === true
+        && battle.escapeVote && !battle.escapeVote.decided) || null;
+
     // Keep the Events panel updating while crowd voting is active (NPC votes should continue after player vote)
     scheduleEventsAutoRefresh(open);
 
@@ -811,7 +819,7 @@ window.Game = window.Game || {};
     // Update header title (do not overwrite controls)
     if (titleEl) {
       const collapsedCount = (UI && typeof UI.getCollapsedCounter === "function") ? UI.getCollapsedCounter("events") : 0;
-      const displayCount = Math.max(collapsedCount, open.length);
+      const displayCount = Math.max(collapsedCount, open.length + (scriptedOlegBattle ? 1 : 0));
       titleTextEl.textContent = t("events_header");
       const showZeroCount = UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode();
       if (headerCountEl) headerCountEl.textContent = (displayCount || showZeroCount) ? ` (${displayCount})` : "";
@@ -835,6 +843,43 @@ window.Game = window.Game || {};
     const resolvedCount = open.filter(e => e && e.resolved).length;
 
     renderFirstEventEntry(body, S, UI, ensureEventsExpanded, rerenderEventsOnly);
+
+    if (scriptedOlegBattle) {
+      const vote = scriptedOlegBattle.escapeVote;
+      const sides = Object.values(vote.voters || {});
+      const votesA = sides.filter((side) => side === "a").length;
+      const votesB = sides.filter((side) => side === "b").length;
+      const me = (Game && Game.__S && Game.__S.me) || (S && S.me) || {};
+      const nickname = String(me.name || "Игрок").trim() || "Игрок";
+      const escapeCard = document.createElement("div");
+      escapeCard.className = "eventCard stage715OlegEscapeVote";
+      escapeCard.dataset.battleId = String(scriptedOlegBattle.id);
+      escapeCard.dataset.testid = "stage715-oleg-escape-event-vote";
+      const heading = document.createElement("div");
+      heading.className = "eventTop";
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = `${nickname} пытается уйти от Олега! Толпа решает.`;
+      heading.appendChild(title);
+      escapeCard.appendChild(heading);
+      const voteRow = document.createElement("div");
+      voteRow.className = "eventVoteRow";
+      [["За уход", votesA], ["За Олега", votesB]].forEach(([label, total]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "eventVoteBtn is-disabled";
+        button.disabled = true;
+        button.setAttribute("aria-disabled", "true");
+        button.textContent = `${label} - ${total}`;
+        voteRow.appendChild(button);
+      });
+      escapeCard.appendChild(voteRow);
+      const progress = document.createElement("div");
+      progress.className = "noteLine";
+      progress.textContent = `Толпа решает: ${votesA + votesB}/5`;
+      escapeCard.appendChild(progress);
+      body.appendChild(escapeCard);
+    }
 
     if (activeCount > 0) {
       const topRow = document.createElement("div");
@@ -911,7 +956,7 @@ window.Game = window.Game || {};
         </div>
       `;
 
-      if (ne.voteLabels && ne.a && ne.b && !e.stage715RayhanEvent) {
+      if (ne.voteLabels && ne.a && ne.b && !e.stage715RayhanEvent && !e.stage715NastyaEvent) {
         const who = document.createElement("div");
         who.className = "pill";
         who.textContent = `${aName}${influenceLabel(ne.a)} vs ${bName}${influenceLabel(ne.b)}`;
@@ -934,7 +979,7 @@ window.Game = window.Game || {};
         } else {
           hint.textContent = resolveProfileCopy("vote.prompt", t("tie_click_name_hint"));
         }
-        card.appendChild(hint);
+        if (!e.stage715NastyaEvent) card.appendChild(hint);
 
         const row = document.createElement("div");
         row.className = "eventVoteRow";
@@ -1189,7 +1234,7 @@ window.Game = window.Game || {};
                 info.appendChild(rowChoice);
                 try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
               }
-              if (!myVote) {
+              if (!myVote && !e.stage715NastyaEvent) {
                 const rowChoice = document.createElement("div");
                 rowChoice.textContent = resolveProfileCopy("vote.not_voted", "Ты не голосовал");
                 info.appendChild(rowChoice);
@@ -1261,7 +1306,7 @@ window.Game = window.Game || {};
 
     if (open.length) {
       open.forEach(renderOne);
-    } else {
+    } else if (!scriptedOlegBattle) {
       const empty = document.createElement("div");
       empty.className = "pill";
       empty.textContent = t("events_empty");
