@@ -864,7 +864,7 @@ window.Game = window.Game || {};
       escapeCard.appendChild(heading);
       const voteRow = document.createElement("div");
       voteRow.className = "eventVoteRow";
-      [["За уход", votesA], ["За Олега", votesB]].forEach(([label, total]) => {
+      [["Уйти", votesA], ["Остаться", votesB]].forEach(([label, total]) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "eventVoteBtn is-disabled";
