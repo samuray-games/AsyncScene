@@ -32,7 +32,7 @@ for text in (
     'stage715_nastya_battle_started',
     'stage715_nastya_battle_result',
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
-    'stage715NastyaVote = { a: 2, b: 3, cap: 5 }',
+    'stage715NastyaVote = { a: 3, b: 2, cap: 5 }',
     'stage715NastyaPayoff',
     'const NASTYA_EXPLANATION = "Видишь, у меня аргумент оранжевый',
     'const NASTYA_RESOLVED_COUNTERARGUMENT = "Ну… да, наверное."',

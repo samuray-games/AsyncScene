@@ -75,6 +75,10 @@ allowed = {
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_31_escape_bribe.py",
+    # These Atom 6 acceptance regressions are part of the current PR scope.
+    "tools/test_stage7_15_24_nastya_vote_timing.py",
+    "tools/test_stage7_15_31_oleg_escape_lifecycle.py",
+    "tools/test_stage7_15_fresh_rep_baseline.py",
     "tools/test_stage7_15_atom5_oleg_first_loss.py",
     "tools/test_stage7_15_50_progressive_disclosure.py",
     "tools/test_stage7_15_rayhan_reveal.py",

@@ -2794,6 +2794,10 @@ window.Game = window.Game || {};
     };
   }
 
+  function hasPersistedCheckpoint() {
+    return !!loadSnapshot();
+  }
+
   function isPending() {
     const current = snapshot || loadSnapshot();
     if (!current) return false;
@@ -2894,6 +2898,7 @@ window.Game = window.Game || {};
   G.Stage7FirstExperience = {
     claimFreshStart,
     claimResume,
+    hasPersistedCheckpoint,
     isPending,
     getSnapshot,
     getObservedEvidenceReport,
@@ -3332,12 +3337,25 @@ window.Game = window.Game || {};
 
   function initializeStage715InitialRepBaseline(state, mode) {
     if (mode !== "fresh" || !state) return false;
+    state = G.__S || state;
     state.flags = state.flags || {};
-    if (state.flags.stage715InitialRepBaselineApplied === true) return true;
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const priorTransfer = ledger.find((entry) => entry
+      && String(entry.reason || "") === "rep_stage715_initial_baseline"
+      && String(entry.actionId || "") === STAGE715_INITIAL_REP_BASELINE_ID
+      && String(entry.sourceId || "") === "crowd_pool"
+      && String(entry.targetId || "") === "me"
+      && Number(entry.amount) === STAGE715_INITIAL_REP_BASELINE);
+    if (state.flags.stage715InitialRepBaselineApplied === true) {
+      return (Number(state.rep) | 0) >= STAGE715_INITIAL_REP_BASELINE && !!priorTransfer;
+    }
     const currentRep = Number.isFinite(state.rep) ? (state.rep | 0) : 0;
     if (currentRep >= STAGE715_INITIAL_REP_BASELINE) {
-      state.flags.stage715InitialRepBaselineApplied = true;
-      return true;
+      if (priorTransfer) {
+        state.flags.stage715InitialRepBaselineApplied = true;
+        return true;
+      }
+      return false;
     }
     const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
     const transferred = transferRep
@@ -3348,7 +3366,26 @@ window.Game = window.Game || {};
           suppressStatDelta: true,
         })
       : { ok: false, reason: "transfer_rep_unavailable" };
-    if (!transferred || transferred.ok !== true) return false;
+    if (!transferred || transferred.ok !== true) {
+      try {
+        console.error("[STAGE715_REP_BASELINE_FAILED]", {
+          reason: String(transferred && transferred.reason || "transfer_rep_failed"),
+          available: Number.isFinite(transferred && transferred.available) ? transferred.available : null,
+          requested: Number.isFinite(transferred && transferred.requested) ? transferred.requested : STAGE715_INITIAL_REP_BASELINE - currentRep,
+          coreRep: Number.isFinite(G.__S && G.__S.rep) ? G.__S.rep | 0 : null,
+          uiRep: Number.isFinite(G.UI && G.UI.S && G.UI.S.rep) ? G.UI.S.rep | 0 : null,
+          ledgerRows: ledger.filter((entry) => entry && entry.actionId === STAGE715_INITIAL_REP_BASELINE_ID).length,
+        });
+      } catch (_) {}
+      return false;
+    }
+    const confirmedTransfer = ledger.some((entry) => entry
+      && String(entry.reason || "") === "rep_stage715_initial_baseline"
+      && String(entry.actionId || "") === STAGE715_INITIAL_REP_BASELINE_ID
+      && String(entry.sourceId || "") === "crowd_pool"
+      && String(entry.targetId || "") === "me"
+      && Number(entry.amount) === STAGE715_INITIAL_REP_BASELINE);
+    if (!confirmedTransfer || (Number(state.rep) | 0) !== STAGE715_INITIAL_REP_BASELINE) return false;
     state.flags.stage715InitialRepBaselineApplied = true;
     return true;
   }
@@ -4000,8 +4037,17 @@ window.Game = window.Game || {};
   }
 
   function stage715BattleById(id) {
-    const states = id === FIRST_BATTLE_ID
-      ? [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S]
+    if (id === OLEG_ESCAPE_BATTLE_ID) {
+      // Core owns the battle lifecycle. A render/persistence mirror can keep
+      // the pre-settlement vote object after Core has restored the scripted
+      // card, so never let that stale vote outrank Core's terminal record.
+      const authoritative = G.__S && Array.isArray(G.__S.battles)
+        ? G.__S.battles.find((entry) => entry && entry.meta
+          && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID) : null;
+      if (authoritative) return authoritative;
+    }
+    const states = id === OLEG_ESCAPE_BATTLE_ID
+      ? [G.__S, stateFor(), G.UI && G.UI.S]
       : [rayhanBattleState(), G.__S, stateFor(), G.UI && G.UI.S];
     let fallback = null;
     for (const state of states) {
@@ -4305,7 +4351,7 @@ window.Game = window.Game || {};
     const isCorrect = isRematch
       ? (choice.stage715ScriptedChoiceId === "who_rayhan" || choice.stage715DisplayText === NASTYA_REMATCH_CHOICES[0].text)
       : (String(choice.id || "") === "yn_no" || String(choice.stage715DisplayText || "") === NASTYA_CHOICES[0].text);
-    battle.meta.stage715NastyaVote = { a: 2, b: 3, cap: 5 };
+    battle.meta.stage715NastyaVote = { a: 3, b: 2, cap: 5 };
     battle._defenseChoices = [choice];
     if (isCorrect && isRematch) {
       battle.meta.stage715NastyaRematchGate = false;
@@ -4468,6 +4514,7 @@ window.Game = window.Game || {};
       return false;
     }
     const now = Date.now();
+    const scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
     const player = state && state.me ? state.me : { id: "me", name: playerNickname() };
     const players = state.players || (state.players = {});
     const previousSynthetic = players[NASTYA_EVENT_PLAYER_ID];
@@ -4488,7 +4535,7 @@ window.Game = window.Game || {};
       stage715NastyaEvent: true, relatedBattleId: battle.id, refId: `stage715_nastya_event_${battle.id}`,
       crowd: { votesA: 0, votesB: 0, aVotes: 0, bVotes: 0, cap: 5, endAt: nextAt + 2000,
         decided: false, nextNpcVoteAt: Number.MAX_SAFE_INTEGER, winner: null, voters: {},
-        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteAt, _econApplied: true },
+        eligibleNpcCount: 5, alreadyVotedCount: 0, scriptedVoterIds: voters, scriptedVoteSides, scriptedVoteAt, _econApplied: true },
       meta: `${playerNickname()} - Настя`, text: "Толпа решает.", resultLine: "", action: "event"
     };
     battle.meta.stage715NastyaEventId = event.id;
@@ -4526,11 +4573,51 @@ window.Game = window.Game || {};
     return 1000 + Math.floor(Math.random() * 1001);
   }
 
+  function scheduleNastyaEventFinalize(event) {
+    if (!event || !event.crowd || event.resolved
+      || Number(event.crowd.alreadyVotedCount || 0) < RAYHAN_EVENT_VOTE_COUNT) return false;
+    const timers = G.__stage715NastyaEventVoteTimers || (G.__stage715NastyaEventVoteTimers = Object.create(null));
+    if (timers[event.id]) return true;
+    const crowd = event.crowd;
+    if (!Number.isFinite(crowd.stage715FinalizeAtMs)) {
+      const delay = nastyaEventVoteDelay();
+      crowd.stage715ResultDelayMs = delay;
+      crowd.stage715FinalizeAtMs = Date.now() + delay;
+      saveState();
+    }
+    const delay = Math.max(1, crowd.stage715FinalizeAtMs - Date.now());
+    const timer = setTimeout(() => {
+      if (timers[event.id] !== timer) return;
+      delete timers[event.id];
+      const currentState = rayhanBattleState();
+      const current = currentState && (currentState.events || []).find((e) => e && e.id === event.id);
+      if (!current || current.resolved
+        || Number(current.crowd && current.crowd.alreadyVotedCount || 0) < RAYHAN_EVENT_VOTE_COUNT) return;
+      if (G.Events && typeof G.Events.finalizeOpenEventNow === "function") G.Events.finalizeOpenEventNow(current);
+      finishNastyaEventVote(current);
+    }, delay);
+    timers[event.id] = timer;
+    return true;
+  }
+
+  function shuffleStage715VoteSides(sides) {
+    const shuffled = sides.slice();
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   function scheduleNastyaEventVotes(event) {
     if (!event || !event.crowd || event.resolved) return false;
     const crowd = event.crowd;
+    if (!Array.isArray(crowd.scriptedVoteSides) || crowd.scriptedVoteSides.length !== RAYHAN_EVENT_VOTE_COUNT) {
+      crowd.scriptedVoteSides = shuffleStage715VoteSides(["a", "a", "b", "b"]).concat("a");
+      saveState();
+    }
     const index = crowd.scriptedVoterIds.findIndex((id) => !crowd.voters[id]);
-    if (index < 0) return false;
+    if (index < 0) return scheduleNastyaEventFinalize(event);
     const timers = G.__stage715NastyaEventVoteTimers || (G.__stage715NastyaEventVoteTimers = Object.create(null));
     if (timers[event.id]) return true;
     const delay = Math.max(1, Number(crowd.scriptedVoteAt[index] || Date.now() + nastyaEventVoteDelay()) - Date.now());
@@ -4542,7 +4629,7 @@ window.Game = window.Game || {};
       const current = currentState && (currentState.events || []).find((e) => e && e.id === event.id);
       if (!current || current.resolved) return;
       const voterId = current.crowd.scriptedVoterIds[index];
-      const side = index < 3 ? "a" : "b";
+      const side = current.crowd.scriptedVoteSides[index];
       current.crowd.voters[voterId] = side;
       current.crowd.aVotes = current.crowd.votesA = Object.values(current.crowd.voters).filter((v) => v === "a").length;
       current.crowd.bVotes = current.crowd.votesB = Object.values(current.crowd.voters).filter((v) => v === "b").length;
@@ -4553,8 +4640,7 @@ window.Game = window.Game || {};
       saveState();
       if (G.UI && typeof G.UI.requestRenderAll === "function") G.UI.requestRenderAll();
       if (current.crowd.alreadyVotedCount === 5) {
-        if (G.Events && typeof G.Events.finalizeOpenEventNow === "function") G.Events.finalizeOpenEventNow(current);
-        finishNastyaEventVote(current);
+        scheduleNastyaEventFinalize(current);
       } else scheduleNastyaEventVotes(current);
     }, delay);
     timers[event.id] = timer;
@@ -5005,6 +5091,22 @@ window.Game = window.Game || {};
         demoId: "stage7_15_oleg_escape",
         sourceTag: DEMO_SOURCE_TAG,
       });
+      const escapeVoteState = existing.meta.stage715Escape || {};
+      if (existing.escapeVote && !existing.escapeVote.decided
+        && !Array.isArray(escapeVoteState.scriptedVoteSequence)) {
+        const attempt = Math.max(1, Number(escapeVoteState.attempt) | 0);
+        escapeVoteState.scriptedVoteSequence = shuffleStage715VoteSides(["a", "a", "b", "b"])
+          .concat(attempt === 1 ? "b" : "a");
+        existing.meta.stage715Escape = escapeVoteState;
+        existing.escapeVote.scriptedVotes = null;
+        existing.escapeVote.scriptedVoteSequence = escapeVoteState.scriptedVoteSequence.slice();
+        existing.escapeVote.cap = 5;
+        if (!Number.isFinite(existing.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          existing.escapeVote.stage715VoteIntervals = [delay];
+          existing.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
+      }
       prepareOlegDefenseChoices(existing);
       mirrorRayhanBattleToRenderState(existing);
       phase = existing.escapeVote ? "oleg_escape_vote" : "oleg_escape_ready";
@@ -5013,6 +5115,13 @@ window.Game = window.Game || {};
         const Core = G._ConflictCore || G.ConflictCore;
         if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") Core.resumeStage715OlegEscapeVote(existing.id);
         watchOlegEscape();
+      } else if (escapeVoteState.status === "voting") {
+        if (isCoreSettledOlegEscapeFailure(existing)
+          || (existing.resolved === true && existing.result === "escaped")) {
+          settleOlegEscapeOutcome(existing);
+        } else {
+          markOlegEscapeVoteRecovery(existing, "core_vote_state_missing");
+        }
       }
       return true;
     }
@@ -5161,7 +5270,10 @@ window.Game = window.Game || {};
     const rect = card.getBoundingClientRect ? card.getBoundingClientRect() : null;
     if (card.hidden || (style && (style.display === "none" || style.visibility === "hidden" || Number(style.opacity || "1") <= 0))
       || (rect && (!rect.width || !rect.height))) return false;
-    return hasVisibleOlegTextInRoot(card, "Поражение");
+    const lossLabel = G.Data && typeof G.Data.t === "function"
+      ? G.Data.t("battle_loss")
+      : "Поражение";
+    return hasVisibleOlegTextInRoot(card, String(lossLabel || "Поражение").trim());
   }
 
   function hasVisibleOlegTextInRoot(root, exactText) {
@@ -5442,19 +5554,165 @@ window.Game = window.Game || {};
     return advanceOlegFirstLoss(battle);
   }
 
+  function olegEscapeMoneyLedgerEntry(battle, attempt) {
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const actionNonce = `stage715_oleg_escape_${attempt}`;
+    return ledger.find((entry) => {
+      if (!entry || String(entry.reason || "") !== "escape_vote_cost") return false;
+      const entryBattleId = String(entry.battleId || entry.meta && entry.meta.battleId || "");
+      const meta = entry.meta || {};
+      const context = meta.context || {};
+      return entryBattleId === String(battle && battle.id || "")
+        && (String(context.actionNonce || "") === actionNonce
+          || String(meta.idempotencyKey || "").endsWith(`|${actionNonce}`));
+    }) || null;
+  }
+
+  function compensateOlegEscapeRep(battle, attempt, actionId) {
+    const refundActionId = `${actionId || `stage715_escape_${attempt}`}_refund`;
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const prior = ledger.find((entry) => entry
+      && String(entry.reason || "") === "rep_stage715_escape_payment_compensation"
+      && String(entry.actionId || "") === refundActionId);
+    if (prior) return { ok: true, alreadyCompensated: true };
+    const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
+    if (!transferRep) return { ok: false, reason: "rep_compensation_unavailable" };
+    return transferRep("crowd_pool", "me", 1, "rep_stage715_escape_payment_compensation", battle && battle.id || OLEG_ESCAPE_BATTLE_ID, {
+      actionId: refundActionId,
+      context: "stage715_oleg_escape_payment_compensation",
+    });
+  }
+
+  function ensureOlegEscapePayment(battle, attempt, options) {
+    const authoritative = G.__S || stateFor();
+    const me = authoritative && authoritative.me;
+    const actionNonce = `stage715_oleg_escape_${attempt}`;
+    const ledger = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    let moneyEntry = olegEscapeMoneyLedgerEntry(battle, attempt);
+    const escape = battle.meta.stage715Escape || (battle.meta.stage715Escape = {});
+    const moneyWasAlreadySettled = !!moneyEntry
+      || (escape.moneySettled === true && String(escape.moneyActionId || "") === actionNonce);
+    if (!moneyWasAlreadySettled) {
+      const available = me && Number.isFinite(me.points) ? me.points | 0 : 0;
+      if (available < 1) return { ok: false, reason: "insufficient_money", available, requested: 1 };
+    }
+    const repActionId = String(escape.repActionId || `stage715_escape_${attempt}`);
+    const repEntry = ledger.find((entry) => entry
+      && String(entry.actionId || "") === repActionId
+      && String(entry.reason || "") === "rep_stage715_escape_bribe"
+      && String(entry.battleId || "") === String(battle.id)
+      && String(entry.sourceId || "") === "me"
+      && String(entry.targetId || "") === "crowd_pool"
+      && Number(entry.amount) === 1);
+    const repWasAlreadySettled = !!repEntry
+      || (escape.repSettled === true && String(escape.repActionId || "") === repActionId);
+    const repAvailable = authoritative && Number.isFinite(authoritative.rep) ? authoritative.rep | 0 : 0;
+    if (!repWasAlreadySettled && repAvailable < 1) {
+      return { ok: false, reason: "insufficient_rep", available: repAvailable, requested: 1 };
+    }
+
+    // REP is attempted first so a blocked canonical REP transfer cannot leave
+    // a money-only partial payment. The money transfer is synchronous after
+    // preflight and uses the same idempotency key Core will see below.
+    if (!repWasAlreadySettled) {
+      const repSettlement = settleOlegEscapeRep(battle, attempt);
+      if (!repSettlement || repSettlement.ok !== true) return repSettlement || { ok: false, reason: "rep_transfer_failed" };
+    }
+    if (!moneyWasAlreadySettled) {
+      const econ = G.ConflictEconomy || G._ConflictEconomy;
+      const charged = econ && typeof econ.chargePriceOnce === "function" ? econ.chargePriceOnce({
+        fromId: "me", toId: OLEG_DM_ID, actorId: "me", reason: "escape_vote_cost",
+        priceKey: "escape", basePrice: 1, actorPoints: me.points | 0,
+        battleId: battle.id,
+        context: { battleId: battle.id, mode: "smyt", actionNonce },
+        extraMeta: { actionId: actionNonce, context: "stage715_oleg_escape_payment" },
+      }) : { ok: false, reason: "money_charge_unavailable" };
+      if (!charged || charged.ok !== true) {
+        if (!repWasAlreadySettled) {
+          const compensation = compensateOlegEscapeRep(battle, attempt, repActionId);
+          escape.status = "payment_recovery_required";
+          escape.outcomePending = !!(options && options.outcomePending === true);
+          if (compensation && compensation.ok === true) {
+            const revision = (Number(escape.paymentRevision) | 0) + 1;
+            escape.paymentRevision = revision;
+            escape.repActionId = `stage715_escape_${attempt}_payment_${revision}`;
+            escape.repSettled = false;
+            escape.paymentRecovery = { missingResource: "money", repCompensated: true, reason: String(charged && charged.reason || "money_charge_failed") };
+            battle.inlineNote = "Оплата не завершена и REP возвращён. Голосование не началось; повтори действие после восстановления монеты.";
+          } else {
+            escape.paymentRecovery = { missingResource: "money", chargedResource: "rep", compensationReason: String(compensation && compensation.reason || "rep_compensation_failed") };
+            battle.inlineNote = "Оплата требует восстановления. Голосование не началось; повтори действие после устранения причины.";
+          }
+          persistOlegEscapeVoteProgress(battle.id);
+        }
+        return { ok: false, reason: String(charged && charged.reason || "money_charge_failed") };
+      }
+      moneyEntry = olegEscapeMoneyLedgerEntry(battle, attempt);
+      if (!moneyEntry) {
+        if (!repWasAlreadySettled) {
+          const compensation = compensateOlegEscapeRep(battle, attempt, repActionId);
+          escape.status = "payment_recovery_required";
+          escape.outcomePending = !!(options && options.outcomePending === true);
+          escape.paymentRecovery = { missingResource: "money_ledger", repCompensated: !!(compensation && compensation.ok === true) };
+          if (compensation && compensation.ok === true) {
+            const revision = (Number(escape.paymentRevision) | 0) + 1;
+            escape.paymentRevision = revision;
+            escape.repActionId = `stage715_escape_${attempt}_payment_${revision}`;
+            escape.repSettled = false;
+          }
+          battle.inlineNote = "Оплата не подтверждена журналом. Голосование не началось; состояние сохранено для восстановления.";
+          persistOlegEscapeVoteProgress(battle.id);
+        }
+        return { ok: false, reason: "money_charge_unrecorded" };
+      }
+    }
+    escape.moneySettled = true;
+    escape.moneyActionId = actionNonce;
+    escape.repSettled = true;
+    escape.repActionId = repActionId;
+    delete escape.repSettlementFailureReason;
+    delete escape.paymentRecovery;
+    return { ok: true, moneyEntry, repEntry, moneyWasAlreadySettled, repWasAlreadySettled };
+  }
+
   function settleOlegEscapeRep(battle, attempt) {
     const escape = battle && battle.meta && battle.meta.stage715Escape;
-    if (!escape || escape.repSettled === true) return false;
+    if (!escape) return { ok: false, reason: "escape_state_missing" };
+    const actionId = String(escape.repActionId || `stage715_escape_${attempt}`);
+    const repLog = G.__D && Array.isArray(G.__D.moneyLog) ? G.__D.moneyLog : [];
+    const priorTransfer = repLog.find((entry) => entry
+      && String(entry.actionId || "") === actionId
+      && String(entry.reason || "") === "rep_stage715_escape_bribe"
+      && String(entry.battleId || "") === String(battle.id)
+      && String(entry.sourceId || "") === "me"
+      && String(entry.targetId || "") === "crowd_pool"
+      && Number(entry.amount) === 1);
+    if (priorTransfer) {
+      escape.repSettled = true;
+      escape.repActionId = actionId;
+      delete escape.repSettlementFailureReason;
+      return { ok: true, alreadySettled: true, ledgerEntry: priorTransfer };
+    }
+    escape.repSettled = false;
     const transferRep = G.__A && typeof G.__A.transferRep === "function" ? G.__A.transferRep : null;
     const settled = transferRep
       ? transferRep("me", "crowd_pool", 1, "rep_stage715_escape_bribe", battle.id, {
-        actionId: `stage715_escape_${attempt}`,
+        actionId,
         context: "stage715_escape_bribe",
       })
       : { ok: false, reason: "transfer_rep_unavailable" };
-    if (!settled || settled.ok !== true) return false;
+    if (!settled || settled.ok !== true) {
+      return {
+        ok: false,
+        reason: String(settled && settled.reason || "rep_transfer_failed"),
+        available: settled && settled.available,
+        requested: settled && settled.requested,
+      };
+    }
     escape.repSettled = true;
-    return true;
+    escape.repActionId = actionId;
+    delete escape.repSettlementFailureReason;
+    return { ok: true, newlySettled: true };
   }
 
   function pushOlegEscapeDm(text, flag) {
@@ -5478,16 +5736,57 @@ window.Game = window.Game || {};
     return true;
   }
 
+  function isCoreSettledOlegEscapeFailure(battle) {
+    return !!(isOlegEscapeBattle(battle)
+      && !battle.escapeVote
+      && battle.status === "pickDefense"
+      && battle.resolved !== true
+      && battle.finished !== true
+      && String(battle.inlineNote || "") === "Свалить не удалось.");
+  }
+
+  function markOlegEscapeVoteRecovery(battle, reason) {
+    if (!isOlegEscapeBattle(battle)) return false;
+    const escape = battle.meta.stage715Escape || {};
+    battle.meta.stage715Escape = Object.assign({}, escape, {
+      status: "vote_recovery_required",
+      voteRecoveryReason: String(reason || "core_vote_state_missing"),
+    });
+    battle.inlineNote = "Оплата уже сохранена, но активное голосование Core не найдено. Нажми «Уйти» ещё раз, чтобы восстановить эту же попытку без повторного списания.";
+    persistOlegEscapeVoteProgress(battle.id);
+    saveState();
+    render();
+    return false;
+  }
+
   function settleOlegEscapeOutcome(battle) {
     if (!isOlegEscapeBattle(battle)) return false;
     const escape = battle.meta.stage715Escape || {};
-    if (escape.status !== "voting" || escape.outcomeHandled === true) return false;
+    const recoveryOutcomePending = escape.status === "payment_recovery_required" && escape.outcomePending === true;
+    if ((escape.status !== "voting" && !recoveryOutcomePending) || escape.outcomeHandled === true) return false;
     const state = stateFor();
     const attempt = escape.attempt | 0;
     const playerName = String(state && state.me && state.me.name || context && context.playerName || "игрок").trim() || "игрок";
     const succeeded = battle.resolved === true && battle.result === "escaped";
-    if (!succeeded && battle.escapeVote) return false;
-    if (!settleOlegEscapeRep(battle, attempt)) return false;
+    if (!succeeded && !recoveryOutcomePending && !isCoreSettledOlegEscapeFailure(battle)) return false;
+    const payment = ensureOlegEscapePayment(battle, attempt, { outcomePending: true });
+    if (!payment || payment.ok !== true) {
+      const reason = String(payment && payment.reason || "escape_payment_failed");
+      escape.status = "payment_recovery_required";
+      escape.outcomePending = true;
+      escape.paymentRecovery = { missingResource: reason, requested: payment && payment.requested, available: payment && payment.available };
+      battle.inlineNote = reason === "insufficient_rep"
+        ? "Голоса уже завершены. Для завершения исхода нужен 1 REP. Получи REP и вернись к этой карточке."
+        : reason === "insufficient_money"
+          ? "Голоса уже завершены. Для завершения исхода нужна 1 монета. Получи её и вернись к этой карточке."
+          : "Голоса уже завершены, но оплата не подтверждена. Исход сохранён и будет восстановлен после решения ошибки оплаты.";
+      escape.repSettlementFailureReason = reason;
+      persistOlegEscapeVoteProgress(battle.id);
+      return false;
+    }
+    delete escape.repSettlementFailureReason;
+    delete escape.paymentRecovery;
+    delete escape.outcomePending;
     escape.outcomeHandled = true;
     if (succeeded) {
       escape.status = "success";
@@ -5507,6 +5806,10 @@ window.Game = window.Game || {};
       phase = "oleg_escape_ready";
       saveState();
     }
+    // Core owns vote resolution; this controller owns the Stage 7.15 outcome.
+    // Publish that outcome back to the persistence and render mirrors before
+    // their next read so reload and the restored scripted card agree.
+    persistOlegEscapeVoteProgress(battle.id);
     render();
     return true;
   }
@@ -5520,14 +5823,26 @@ window.Game = window.Game || {};
         escapeWatchTimer = null;
         return;
       }
+      const escape = battle.meta && battle.meta.stage715Escape;
       if (battle.escapeVote && !battle.escapeVote.decided) {
         const Core = G._ConflictCore || G.ConflictCore;
-        if (Core && typeof Core.resumeStage715OlegEscapeVote === "function") {
-          Core.resumeStage715OlegEscapeVote(battle.id);
+        const resumed = Core && typeof Core.resumeStage715OlegEscapeVote === "function"
+          && Core.resumeStage715OlegEscapeVote(battle.id) === true;
+        if (!resumed) {
+          markOlegEscapeVoteRecovery(battle, "core_vote_timer_unavailable");
+          clearInterval(escapeWatchTimer);
+          escapeWatchTimer = null;
+          return;
         }
+      } else if (escape && escape.status === "voting"
+        && !isCoreSettledOlegEscapeFailure(battle)
+        && !(battle.resolved === true && battle.result === "escaped")) {
+        markOlegEscapeVoteRecovery(battle, "core_vote_state_missing");
+        clearInterval(escapeWatchTimer);
+        escapeWatchTimer = null;
+        return;
       }
       settleOlegEscapeOutcome(battle);
-      const escape = battle.meta && battle.meta.stage715Escape;
       if (escape && escape.outcomeHandled === true) {
         clearInterval(escapeWatchTimer);
         escapeWatchTimer = null;
@@ -5535,14 +5850,88 @@ window.Game = window.Game || {};
     }, 100);
   }
 
+  function persistOlegEscapeVoteProgress(battleId) {
+    const authoritative = G.__S && Array.isArray(G.__S.battles)
+      ? G.__S.battles.find((entry) => entry && String(entry.id) === String(battleId)) : null;
+    if (!authoritative || !isOlegEscapeBattle(authoritative)) return false;
+    const persistenceState = stateFor();
+    const stores = [persistenceState, G.UI && G.UI.S]
+      .filter((store, index, all) => store && all.indexOf(store) === index);
+    stores.forEach((store) => {
+      store.battles = Array.isArray(store.battles) ? store.battles : [];
+      let target = store.battles.find((entry) => entry
+        && (String(entry.id) === String(battleId)
+          || String(entry.meta && entry.meta.stage715BattleId || "") === OLEG_ESCAPE_BATTLE_ID));
+      if (!target) {
+        target = Object.assign({}, authoritative);
+        store.battles.push(target);
+      }
+      if (target === authoritative) return;
+      ["status", "result", "outcome", "note", "resultLine", "inlineNote", "resolved", "finished",
+        "draw", "crowd", "attackHidden", "updatedAt", "_repEscapeClickApplied", "_repEscapeRefundApplied"].forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(authoritative, key)) target[key] = authoritative[key];
+        else delete target[key];
+      });
+      target.escapeVote = authoritative.escapeVote
+        ? Object.assign({}, authoritative.escapeVote, {
+          voters: Object.assign({}, authoritative.escapeVote.voters || {}),
+          scriptedVoteSequence: Array.isArray(authoritative.escapeVote.scriptedVoteSequence)
+            ? authoritative.escapeVote.scriptedVoteSequence.slice() : [],
+          stage715VoteIntervals: Array.isArray(authoritative.escapeVote.stage715VoteIntervals)
+            ? authoritative.escapeVote.stage715VoteIntervals.slice() : [],
+        })
+        : null;
+      target._escapePrev = authoritative._escapePrev
+        ? Object.assign({}, authoritative._escapePrev) : null;
+      target.meta = Object.assign({}, target.meta || {}, authoritative.meta || {}, {
+        stage715Escape: Object.assign({}, authoritative.meta.stage715Escape || {}),
+      });
+    });
+    saveState();
+    return true;
+  }
+
   function startOlegEscape(battleId) {
     const state = stateFor();
     const battle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
     if (!state || !battle || String(battle.id) !== String(battleId) || !isOlegEscapeBattle(battle)) return false;
     const previous = battle.meta.stage715Escape || {};
-    if (previous.status === "voting" || previous.status === "success") return true;
-    const attempt = Number.isFinite(previous.attempt) ? (previous.attempt | 0) + 1 : 1;
+    const Core = G._ConflictCore || G.ConflictCore;
+    if (previous.status === "success") return true;
+    if (previous.status === "voting") {
+      if (battle.escapeVote && !battle.escapeVote.decided
+        && Core && typeof Core.resumeStage715OlegEscapeVote === "function"
+        && Core.resumeStage715OlegEscapeVote(battle.id) === true) return true;
+      if (isCoreSettledOlegEscapeFailure(battle) && settleOlegEscapeOutcome(battle)) return false;
+      const mirrorBattles = [state, G.UI && G.UI.S]
+        .filter((store, index, all) => store && all.indexOf(store) === index)
+        .flatMap((store) => Array.isArray(store.battles) ? store.battles : []);
+      const completedMirrorVote = mirrorBattles.some((entry) => {
+        const vote = entry && entry.escapeVote;
+        const total = vote && vote.voters && typeof vote.voters === "object"
+          ? Object.keys(vote.voters).length : 0;
+        return entry && entry.meta && entry.meta.stage715BattleId === OLEG_ESCAPE_BATTLE_ID
+          && vote && Number.isFinite(vote.cap) && total >= (vote.cap | 0) && total >= 5;
+      });
+      if (!battle.escapeVote && completedMirrorVote && settleOlegEscapeOutcome(battle)) return false;
+      return markOlegEscapeVoteRecovery(battle,
+        battle.escapeVote ? "core_vote_timer_unavailable" : "core_vote_state_missing");
+    }
+    if (previous.status === "payment_recovery_required" && previous.outcomePending === true) {
+      return settleOlegEscapeOutcome(battle);
+    }
+    const retryingPayment = previous.status === "starting"
+      || previous.status === "payment_recovery_required"
+      || previous.status === "vote_recovery_required";
+    if (previous.status === "vote_recovery_required" && isCoreSettledOlegEscapeFailure(battle)
+      && settleOlegEscapeOutcome(battle)) return false;
+    const attempt = retryingPayment && Number.isFinite(previous.attempt)
+      ? previous.attempt | 0
+      : Number.isFinite(previous.attempt) ? (previous.attempt | 0) + 1 : 1;
     const scriptedVotes = attempt === 1 ? { a: 2, b: 3 } : { a: 3, b: 2 };
+    const scriptedVoteSequence = retryingPayment && Array.isArray(previous.scriptedVoteSequence)
+      ? previous.scriptedVoteSequence.slice()
+      : shuffleStage715VoteSides(["a", "a", "b", "b"]).concat(attempt === 1 ? "b" : "a");
     const mirroredBattles = [battle]
       .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
       .filter((entry, index, all) => entry
@@ -5563,27 +5952,83 @@ window.Game = window.Game || {};
         entry.attackHidden = true;
       });
     }
-    const Core = G._ConflictCore || G.ConflictCore;
     if (!Core || typeof Core.escape !== "function") return false;
-    const attemptMetadata = Object.assign({}, previous, { attempt, status: "starting" });
+    const attemptMetadata = Object.assign({}, previous, {
+      attempt, status: "starting", scriptedVoteSequence,
+      repSettled: retryingPayment && (previous.attempt | 0) === attempt && previous.repSettled === true,
+      moneySettled: retryingPayment && (previous.attempt | 0) === attempt && previous.moneySettled === true,
+      repActionId: retryingPayment && previous.repActionId
+        ? String(previous.repActionId) : `stage715_escape_${attempt}`,
+      moneyActionId: retryingPayment && (previous.attempt | 0) === attempt && previous.moneyActionId
+        ? String(previous.moneyActionId) : `stage715_oleg_escape_${attempt}`,
+    });
     mirroredBattles.forEach((entry) => {
       entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: attemptMetadata });
     });
+    battle.inlineNote = null;
+    persistOlegEscapeVoteProgress(battle.id);
+    const payment = ensureOlegEscapePayment(battle, attempt);
+    if (!payment || payment.ok !== true) {
+      const reason = String(payment && payment.reason || "escape_payment_failed");
+      const recoveryRequired = battle.meta.stage715Escape
+        && battle.meta.stage715Escape.status === "payment_recovery_required";
+      if (!recoveryRequired) {
+        mirroredBattles.forEach((entry) => {
+          entry.meta = Object.assign({}, entry.meta || {}, {
+            stage715Escape: Object.assign({}, previous, { preflightFailureReason: reason }),
+          });
+          entry.inlineNote = reason === "insufficient_rep"
+            ? "Не хватает 1 REP для побега. Получи REP и повтори действие."
+            : reason === "insufficient_money"
+              ? "Не хватает 1 монеты для побега. Получи монету и повтори действие."
+              : "Оплату не удалось подтвердить. Голосование не началось; повтори действие после устранения причины.";
+        });
+      }
+      persistOlegEscapeVoteProgress(battle.id);
+      render();
+      return false;
+    }
+    attemptMetadata.moneySettled = true;
+    attemptMetadata.moneyActionId = `stage715_oleg_escape_${attempt}`;
+    attemptMetadata.repSettled = true;
+    mirroredBattles.forEach((entry) => {
+      entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: attemptMetadata });
+    });
+    persistOlegEscapeVoteProgress(battle.id);
     const started = Core.escape(battle.id, { mode: "smyt", cost: 1 });
     if (!started || started.ok !== true) {
       mirroredBattles.forEach((entry) => {
-        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: previous });
+        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, attemptMetadata, {
+          status: "payment_recovery_required", outcomePending: false,
+          paymentRecovery: { missingStep: "core_escape_start", reason: String(started && started.reason || "core_escape_start_failed") },
+        }) });
+        entry.inlineNote = "Оплата сохранена, но голосование не стартовало. Повтори действие, чтобы продолжить эту же попытку без повторного списания.";
       });
+      persistOlegEscapeVoteProgress(battle.id);
       return false;
     }
     const activeBattle = stage715BattleById(OLEG_ESCAPE_BATTLE_ID) || battle;
-    if (!activeBattle.escapeVote) return false;
+    if (!activeBattle.escapeVote) {
+      mirroredBattles.forEach((entry) => {
+        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, attemptMetadata, {
+          status: "payment_recovery_required", outcomePending: false,
+          paymentRecovery: { missingStep: "core_escape_vote_state", reason: "core_escape_vote_state_missing" },
+        }) });
+        entry.inlineNote = "Оплата сохранена, но голосование не стартовало. Повтори действие, чтобы продолжить эту же попытку без повторного списания.";
+      });
+      persistOlegEscapeVoteProgress(battle.id);
+      return false;
+    }
     const escapeMetadata = {
       attempt,
       status: "voting",
       outcomeHandled: false,
-      repSettled: false,
+      repSettled: true,
+      repActionId: attemptMetadata.repActionId,
+      moneySettled: true,
+      moneyActionId: `stage715_oleg_escape_${attempt}`,
       scriptedVotes,
+      scriptedVoteSequence,
     };
     const mirroredVoteBattles = [battle, activeBattle]
       .concat([G.__S, stateFor(), G.UI && G.UI.S].flatMap((store) => Array.isArray(store && store.battles) ? store.battles : []))
@@ -5594,14 +6039,51 @@ window.Game = window.Game || {};
     mirroredVoteBattles.forEach((entry) => {
       if (entry.escapeVote) {
         entry.escapeVote.scriptedVotes = scriptedVotes;
+        entry.escapeVote.scriptedVoteSequence = scriptedVoteSequence.slice();
+        entry.escapeVote.stage715ScriptedVoteIndex = Object.keys(entry.escapeVote.voters || {}).length;
+        if (!Number.isFinite(entry.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          entry.escapeVote.stage715VoteIntervals = [delay];
+          entry.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
         entry.escapeVote.cap = 5;
       }
       entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, previous, escapeMetadata) });
     });
+    if (!activeBattle.escapeVote
+      || !Array.isArray(activeBattle.escapeVote.scriptedVoteSequence)
+      || activeBattle.escapeVote.scriptedVoteSequence.length !== 5
+      || !Number.isFinite(activeBattle.escapeVote.stage715NextVoteAtMs)) {
+      mirroredVoteBattles.forEach((entry) => {
+        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, escapeMetadata, {
+          status: "vote_recovery_required", voteRecoveryReason: "scripted_vote_schedule_missing",
+        }) });
+        entry.inlineNote = "Оплата сохранена, но расписание голосования Core не подтвердилось. Нажми «Уйти» ещё раз, чтобы восстановить эту же попытку без повторного списания.";
+      });
+      persistOlegEscapeVoteProgress(activeBattle.id);
+      saveState();
+      render();
+      return false;
+    }
+    persistOlegEscapeVoteProgress(activeBattle.id);
     state.flags = state.flags || {};
     state.flags.stage715OlegEscapeAttempts = attempt;
     phase = "oleg_escape_vote";
     saveState();
+    const timerStarted = Core && typeof Core.resumeStage715OlegEscapeVote === "function"
+      && Core.resumeStage715OlegEscapeVote(activeBattle.id) === true;
+    if (!timerStarted) {
+      mirroredVoteBattles.forEach((entry) => {
+        entry.meta = Object.assign({}, entry.meta || {}, { stage715Escape: Object.assign({}, escapeMetadata, {
+          status: "vote_recovery_required", voteRecoveryReason: "core_vote_timer_not_started",
+        }) });
+        entry.inlineNote = "Оплата сохранена, но таймер голосования Core не запустился. Нажми «Уйти» ещё раз, чтобы восстановить эту же попытку без повторного списания.";
+      });
+      persistOlegEscapeVoteProgress(activeBattle.id);
+      saveState();
+      render();
+      return false;
+    }
     telemetry("stage715_escape_started");
     watchOlegEscape();
     render();
@@ -5640,7 +6122,7 @@ window.Game = window.Game || {};
         color: trueColor,
         outcome: outcome || null,
       },
-      stage715NastyaVote: { a: 2, b: 3, cap: 5 },
+      stage715NastyaVote: { a: 3, b: 2, cap: 5 },
     });
     if (battle.meta.stage715NastyaRewardsApplied !== true) {
       const baseline = battle.meta.stage715NastyaRewardBaseline || { rep: currentPlayerStat(G.__S || state, "rep"), points: currentPlayerStat(G.__S || state, "points"), wins: currentPlayerStat(G.__S || state, "wins") };
@@ -5815,6 +6297,36 @@ window.Game = window.Game || {};
     const state = stateFor(context);
     ensurePlayers(state);
     normalizeResolvedNastyaCheckpoint(state);
+    const pendingOlegEscape = stage715BattleById(OLEG_ESCAPE_BATTLE_ID);
+    const pendingOlegEscapeState = pendingOlegEscape && pendingOlegEscape.meta
+      ? pendingOlegEscape.meta.stage715Escape : null;
+    if (pendingOlegEscapeState && pendingOlegEscapeState.status === "voting") {
+      const Core = G._ConflictCore || G.ConflictCore;
+      if (isCoreSettledOlegEscapeFailure(pendingOlegEscape)
+        || (pendingOlegEscape.resolved === true && pendingOlegEscape.result === "escaped")
+        || (pendingOlegEscape.escapeVote && pendingOlegEscape.escapeVote.decided)) {
+        settleOlegEscapeOutcome(pendingOlegEscape);
+      } else if (pendingOlegEscape.escapeVote && !pendingOlegEscape.escapeVote.decided) {
+        const escape = pendingOlegEscapeState;
+        if (Array.isArray(escape.scriptedVoteSequence)
+          && !Array.isArray(pendingOlegEscape.escapeVote.scriptedVoteSequence)) {
+          pendingOlegEscape.escapeVote.scriptedVoteSequence = escape.scriptedVoteSequence.slice();
+          pendingOlegEscape.escapeVote.cap = 5;
+        }
+        if (Array.isArray(pendingOlegEscape.escapeVote.scriptedVoteSequence)
+          && !Number.isFinite(pendingOlegEscape.escapeVote.stage715NextVoteAtMs)) {
+          const delay = nastyaEventVoteDelay();
+          pendingOlegEscape.escapeVote.stage715VoteIntervals = pendingOlegEscape.escapeVote.stage715VoteIntervals || [];
+          pendingOlegEscape.escapeVote.stage715VoteIntervals.push(delay);
+          pendingOlegEscape.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+        }
+        const resumed = Core && typeof Core.resumeStage715OlegEscapeVote === "function"
+          && Core.resumeStage715OlegEscapeVote(pendingOlegEscape.id) === true;
+        if (!resumed) markOlegEscapeVoteRecovery(pendingOlegEscape, "core_vote_timer_unavailable");
+      } else {
+        markOlegEscapeVoteRecovery(pendingOlegEscape, "core_vote_state_missing");
+      }
+    }
     const nastyaCheckpoint = stage715BattleById(NASTYA_BATTLE_ID);
     if (nastyaCheckpoint && nastyaCheckpoint.meta) {
       if (nastyaCheckpoint.meta.stage715NastyaLossLineShown === true) {
@@ -5830,7 +6342,18 @@ window.Game = window.Game || {};
     if (state && state.me && state.players && state.players.me && state.me.name) {
       state.players.me.name = state.me.name;
     }
-    initializeStage715InitialRepBaseline(state, mode);
+    const baselineApplied = initializeStage715InitialRepBaseline(state, mode);
+    if (mode === "fresh" && !baselineApplied) {
+      active = false;
+      phase = "initial_rep_baseline_failed";
+      clearTimers();
+      const failure = "Не удалось подтвердить стартовую репутацию через журнал переводов. Игра не запущена. Вернись к старту и повтори запуск.";
+      const UI = context && context.UI ? context.UI : G.UI;
+      if (UI && typeof UI.pushSystem === "function") UI.pushSystem(failure);
+      else if (state.chat && Array.isArray(state.chat)) state.chat.push({ name: "Система", text: failure, system: true });
+      try { UI && UI.renderAll && UI.renderAll(); } catch (_) {}
+      return { claimed: true, mode, stateId: "stage7_15_demo_chat", baselineApplied: false };
+    }
     saveState();
     initializeProgressiveDisclosure(mode);
     setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true));
@@ -6091,6 +6614,7 @@ window.Game = window.Game || {};
     handleOlegDefenseChoice,
     getOlegEscapeDefenseChoices,
     handleOlegDmReply,
+    persistOlegEscapeVoteProgress,
     revealBattlesPanel,
     revealEventsPanel,
     shouldRevealBattleBlock,

@@ -1211,6 +1211,8 @@ window.Game = window.Game || {};
         amount: amt,
         reason: String(reason || "rep_transfer"),
         battleId: battleId || null,
+        actionId: meta && meta.actionId ? String(meta.actionId) : null,
+        context: meta && meta.context ? String(meta.context) : null,
         currency: "rep",
         before: { from: beforeFrom, to: beforeTo }
       });

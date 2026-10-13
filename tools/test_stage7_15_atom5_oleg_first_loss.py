@@ -112,16 +112,40 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
       meta: { stage715NastyaBattle: true, stage715BattleId: "stage7_15_nastya_battle", stage715NastyaPostWinQuestionShown: true },
     }], events: [], chat: [{ name: "Настя", text: "Ладно, возможно я была неправа. На сколько твоя репутация выросла от победы над оранжевым тоном?" }],
   };
+  let resultCardText = "";
+  let rafEnabled = false;
+  const resultCard = {
+    isConnected: true, hidden: false, textContent: "",
+    getBoundingClientRect() { return { width: 240, height: 48 }; },
+    querySelectorAll() { return [{
+      hidden: false, textContent: resultCardText,
+      getBoundingClientRect() { return { width: 120, height: 24 }; },
+    }]; },
+  };
   const UI = {
     S: state, openIds: [],
-    pushChat(entry) { this.S.chat.push(entry); }, pushSystem() {}, requestRenderAll() {}, renderAll() {},
-    renderBattles() {}, renderDM() {}, openDM(id) { this.openIds.push(id); },
+    pushChat(entry) { this.S.chat.push(entry); }, pushSystem() {},
+    requestRenderAll() { this.renderBattles(); }, renderAll() { this.renderBattles(); },
+    renderBattles() {
+      const battle = this.S.battles.find((entry) => entry.meta && entry.meta.stage715OlegBattle);
+      resultCardText = battle && battle.meta.stage715OlegResultRevealed === true ? "ПОРАЖЕНИЕ" : "";
+      resultCard.textContent = resultCardText;
+    }, renderDM() {}, openDM(id) { this.openIds.push(id); },
     ensurePanelExpanded() {}, ensureEventsExpanded() {}, setPanelSize() {},
+  };
+  const chatRoot = {
+    isConnected: true, hidden: false,
+    addEventListener() {},
+    getBoundingClientRect() { return { width: 300, height: 80 }; },
+    querySelectorAll() { return (UI.S.chat || []).map((entry) => ({
+      hidden: false, textContent: String(entry.text || entry.content || ""),
+      getBoundingClientRect() { return { width: 240, height: 24 }; },
+    })); },
   };
   let dmLines = [];
   let settlementCount = 0;
   const Game = {
-    __S: state, UI, Data: { START_POINTS_NPC: 10, t: () => "Споры" }, Telemetry: { action() {} },
+    __S: state, UI, Data: { START_POINTS_NPC: 10, t: (key) => key === "battle_loss" ? "ПОРАЖЕНИЕ" : "Споры" }, Telemetry: { action() {} },
     __A: { pushDm(id, name, text) { dmLines.push({ id, name, text }); }, syncMeToPlayers() {} },
     Conflict: {
       incoming(opponentId) {
@@ -145,7 +169,14 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
       },
     },
   };
-  const document = { addEventListener() {}, getElementById() { return null; }, querySelector() { return null; }, querySelectorAll() { return []; } };
+  const document = {
+    addEventListener() {}, getElementById(id) { return id === "chatLog" ? chatRoot : null; },
+    querySelector(selector) {
+      const battle = state.battles.find((entry) => `[data-battle-id="${entry.id}"]` === selector);
+      return battle && battle.meta.stage715OlegBattle ? resultCard : null;
+    },
+    querySelectorAll() { return []; },
+  };
   const localStorage = { getItem(k) { return storage.get(k) || null; }, setItem(k, v) { storage.set(k, String(v)); }, removeItem(k) { storage.delete(k); } };
   function boot(nextState) {
     const game = Game;
@@ -156,7 +187,10 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
     window.window = window;
     const context = { window, document, URLSearchParams, Date: clock.FakeDate,
       setTimeout: clock.setTimeout, clearTimeout: clock.clearTimeout,
-      setInterval: clock.setInterval, clearInterval: clock.clearInterval, console };
+      setInterval: clock.setInterval, clearInterval: clock.clearInterval,
+      get requestAnimationFrame() {
+        return rafEnabled ? (callback) => clock.setTimeout(() => callback(clock.now()), 16) : undefined;
+      }, console };
     vm.runInNewContext(source, context);
     const result = game.Stage715Demo.claimResume({ state: nextState, UI: game.UI });
     assert.strictEqual(result.claimed, true);
@@ -179,6 +213,7 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
   assert(battle, "Oleg card did not appear at the 1000 ms checkpoint");
   assert.strictEqual(battle.attackHidden, true, "Oleg argument color revealed before selection");
   assert.strictEqual(JSON.stringify(battle._defenseChoices.map((choice) => choice.stage715DisplayText)), JSON.stringify(expectedText));
+  rafEnabled = true;
   controller.handleOlegDefenseChoice(battle.id, battle._defenseChoices[choiceIndex].id);
   assert.strictEqual(battle.meta.stage715SelectedDefenseText, expectedText[choiceIndex], "selected answer text changed");
   assert.strictEqual(battle.meta.stage715OlegResultRevealed, false, "result revealed immediately after answer");
@@ -201,12 +236,15 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
   assert.strictEqual(battle.meta.stage715OlegResultRevealed, false, "result/colors appeared before 1000 ms");
   clock.tick(1);
   assert.strictEqual(battle.meta.stage715OlegResultRevealed, true);
+  assert.strictEqual(resultCard.textContent, "ПОРАЖЕНИЕ",
+    "the production Zoomer battle card must expose its localized battle_loss text");
   assert.strictEqual(visibleState.chat.some((line) => line.text.startsWith("нефига лезть на взрослых дядек!")), false,
     "public loss line appeared before its follow-up delay");
-  clock.tick(999);
+  clock.tick(1031);
   assert.strictEqual(visibleState.chat.some((line) => line.text.startsWith("нефига лезть на взрослых дядек!")), false);
   clock.tick(1);
-  assert.strictEqual(visibleState.chat.filter((line) => line.text.startsWith("нефига лезть на взрослых дядек!")).length, 1);
+  assert.strictEqual(visibleState.chat.filter((line) => line.text.startsWith("нефига лезть на взрослых дядек!")).length, 1,
+    "visible Oleg loss must advance to exactly one public continuation instead of waiting forever on a mismatched localized result label");
   assert.strictEqual(dmLines.length, 0, "DM appeared without its 1000 ms post-message delay");
   if (reloadBeforeDm) {
     controller.destroy();
@@ -218,7 +256,7 @@ function runChoice(choiceIndex, reloadBeforeReveal, reloadBeforeDm = false) {
     assert.strictEqual(visibleState.chat.filter((line) => line.text.startsWith("нефига лезть на взрослых дядек!")).length, 1,
       "resume duplicated the public loss line");
   }
-  clock.tick(999);
+  clock.tick(1031);
   assert.strictEqual(dmLines.length, 0);
   clock.tick(1);
   assert.strictEqual(dmLines.length, 1);

@@ -30,7 +30,7 @@ def main() -> int:
         ),
         "resume_gate": (
             "      const stage715ActiveForResume = G.Stage715Demo",
-            "        const firstExperience = G.Stage7FirstExperience;",
+            "      if (resumeMode && ((S.flags.started",
         ),
         "auto_resume_boot": (
             "    const stage715Demo = G.Stage715Demo;\n    const autoResumeStage715 =",

@@ -2578,6 +2578,39 @@
   }
 
   function applyScriptedEscapeVote(b, v){
+    const scriptedSequence = v && v.scriptedVoteSequence;
+    if (Array.isArray(scriptedSequence) && scriptedSequence.length > 0) {
+      if (v.decided) return false;
+      const nowMs = Date.now();
+      const total = getCrowdTotalVotes(v);
+      if (total >= scriptedSequence.length) return false;
+      if (!Number.isFinite(v.stage715NextVoteAtMs) || nowMs < v.stage715NextVoteAtMs) return false;
+      const side = scriptedSequence[total];
+      if (side !== "a" && side !== "b") return false;
+      v.voters = v.voters || {};
+      const voterId = `stage715_oleg_escape_voter_${total + 1}`;
+      if (v.voters[voterId]) return false;
+      v.voters[voterId] = side;
+      v.votesA = Object.values(v.voters).filter((vote) => vote === "a").length;
+      v.votesB = Object.values(v.voters).filter((vote) => vote === "b").length;
+      v.aVotes = v.votesA;
+      v.bVotes = v.votesB;
+      v.cap = scriptedSequence.length;
+      v.stage715ScriptedVoteIndex = total + 1;
+      if (total + 1 < scriptedSequence.length) {
+        const delay = 1000 + Math.floor(Math.random() * 1001);
+        v.stage715VoteIntervals = v.stage715VoteIntervals || [];
+        v.stage715VoteIntervals.push(delay);
+        v.stage715NextVoteAtMs = nowMs + delay;
+      } else {
+        v.stage715NextVoteAtMs = null;
+        const resultDelay = 1000 + Math.floor(Math.random() * 1001);
+        v.stage715ResultDelayMs = resultDelay;
+        v.stage715FinalizeAtMs = nowMs + resultDelay;
+      }
+      return true;
+    }
+    if (b && b.meta && b.meta.stage715OlegEscape === true) return false;
     const scripted = v && v.scriptedVotes;
     if (!scripted || v._scriptedVotesApplied) return false;
     const votesA = Number(scripted.a) | 0;
@@ -2609,7 +2642,16 @@
     }
     if (nowMs < v.stage715NextVoteAtMs || total >= votesA + votesB) return false;
     v.voters = v.voters || {};
-    const side = (v.votesA | 0) < votesA ? "a" : "b";
+    if (!Array.isArray(v.stage715VoteOrder)) {
+      const order = ["a", "a", "b", "b"];
+      for (let i = order.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      order.push("a");
+      v.stage715VoteOrder = order;
+    }
+    const side = v.stage715VoteOrder[total];
     const voterId = `stage715_nastya_voter_${total + 1}`;
     v.voters[voterId] = side;
     if (side === "a") v.votesA = (v.votesA | 0) + 1;
@@ -2634,7 +2676,10 @@
     if (!isEscapeVote(b)) return;
     const v = b.escapeVote;
     if (!v) return;
-    ensureBattleCrowdCap(v, b);
+    const stage715ScriptedEscape = !!(b.meta && b.meta.stage715OlegEscape === true
+      && Array.isArray(v.scriptedVoteSequence));
+    if (stage715ScriptedEscape) v.cap = 5;
+    else ensureBattleCrowdCap(v, b);
     const totalVotesNow = getCrowdTotalVotes(v);
     if (!Number.isFinite(v.cap) || totalVotesNow < (v.cap | 0)) return;
     const participants = (Game && Game.__S && Game.__S.players) ? Object.values(Game.__S.players) : [];
@@ -2764,10 +2809,43 @@
     if (!v || v.decided) return { ok: false, reason: "decided" };
     ensureBattleCrowdCap(v, b);
 
-    if (applyScriptedEscapeVote(b, v)) {
-      const totalVotes = getCrowdTotalVotes(v);
+    const stage715ScriptedEscape = !!(b.meta && b.meta.stage715OlegEscape === true
+      && Array.isArray(v.scriptedVoteSequence) && v.scriptedVoteSequence.length > 0);
+    const scriptedVoteApplied = applyScriptedEscapeVote(b, v);
+    if (stage715ScriptedEscape && !scriptedVoteApplied
+      && getCrowdTotalVotes(v) >= 5
+      && Number.isFinite(v.stage715FinalizeAtMs)
+      && Date.now() >= v.stage715FinalizeAtMs) {
       finalizeEscapeVote(b);
-      return { ok: true, decided: true, totalVotes };
+      if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+        Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+      }
+      try {
+        if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
+      } catch (_) {}
+      return { ok: true, decided: true, totalVotes: 5 };
+    }
+    if (stage715ScriptedEscape && !scriptedVoteApplied) {
+      return { ok: true, decided: false, totalVotes: getCrowdTotalVotes(v) };
+    }
+    if (scriptedVoteApplied) {
+      const totalVotes = getCrowdTotalVotes(v);
+      const decided = Number.isFinite(v.cap) && totalVotes >= (v.cap | 0);
+      if (decided && !stage715ScriptedEscape) {
+        finalizeEscapeVote(b);
+      }
+      if (b.meta && b.meta.stage715OlegEscape === true) {
+        if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+          // Mirror only after Core settlement. On vote five this carries the
+          // terminal state (including a cleared escapeVote on failure) to UI
+          // and persistence stores without replacing Core's live vote object.
+          Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+        }
+        try {
+          if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
+        } catch (_) {}
+      }
+      return { ok: true, decided, totalVotes };
     }
 
     try {
@@ -2903,6 +2981,25 @@
   // a restored numeric interval ID belongs to the previous browser session.
   const stage715OlegEscapeLiveTimers = new WeakMap();
 
+  function stage715OlegEscapeBattleById(battleId) {
+    const coreBattle = Game && Game.__S && Array.isArray(Game.__S.battles)
+      ? Game.__S.battles.find((item) => item && String(item.id) === String(battleId)
+        && item.meta && item.meta.stage715OlegEscape === true) : null;
+    // A stale UI mirror may still contain the vote that Core just consumed.
+    // If Core has the scripted battle, it remains authoritative even when
+    // its vote is null; never resume a timer against a mirror clone.
+    if (coreBattle) return coreBattle.escapeVote && !coreBattle.escapeVote.decided ? coreBattle : null;
+    const stores = [Game && Game.__S, Game && Game.UI && Game.UI.S, Game && Game.State]
+      .filter((store, index, all) => store && all.indexOf(store) === index);
+    for (const store of stores) {
+      const battle = Array.isArray(store.battles)
+        ? store.battles.find((item) => item && String(item.id) === String(battleId)
+          && item.meta && item.meta.stage715OlegEscape === true) : null;
+      if (battle && battle.escapeVote && !battle.escapeVote.decided) return battle;
+    }
+    return null;
+  }
+
   function startEscapeVoteTimer(b){
     if (!isEscapeVote(b)) return;
     const stage715Oleg = !!(b.meta && b.meta.stage715OlegEscape === true);
@@ -2911,10 +3008,12 @@
       b._escapeTimer = null; // discard a stale timer handle from saved state
     } else if (b._escapeTimer) return;
 
-    const tickMs = 700;
+    const tickMs = stage715Oleg ? 100 : 700;
 
     b._escapeTimer = setInterval(() => {
-      const cur = Game.__S.battles.find(x => x.id === b.id);
+      const cur = stage715Oleg
+        ? stage715OlegEscapeBattleById(b.id)
+        : Game.__S.battles.find(x => x.id === b.id);
       if (!cur || !isEscapeVote(cur)) {
         clearInterval(b._escapeTimer);
         b._escapeTimer = null;
@@ -2924,11 +3023,23 @@
 
       const v = cur.escapeVote;
       if (!v) return;
+      const stage715ScriptedEscape = !!(stage715Oleg && Array.isArray(v.scriptedVoteSequence));
+      if (stage715ScriptedEscape) v.cap = 5;
 
       try { applyEscapeVoteTick(cur); } catch (_) {}
 
       try {
-        ensureBattleCrowdCap(v);
+        if (stage715ScriptedEscape) {
+          if (!cur.escapeVote || cur.escapeVote.decided) {
+            clearInterval(cur._escapeTimer || b._escapeTimer);
+            cur._escapeTimer = null;
+            b._escapeTimer = null;
+            stage715OlegEscapeLiveTimers.delete(b);
+          }
+          return;
+        }
+        if (stage715ScriptedEscape) v.cap = 5;
+        else ensureBattleCrowdCap(v);
         const totalVotes = getCrowdTotalVotes(v);
         if (Number.isFinite(v.cap) && totalVotes >= v.cap) {
           clearInterval(cur._crowdTimer || b._crowdTimer);
@@ -2938,7 +3049,7 @@
           return;
         }
         try {
-          if (Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
+          if (!stage715ScriptedEscape && Game && Game.NPC && typeof Game.NPC.getVotingPool === "function") {
             const pool = Game.NPC.getVotingPool(cur) || [];
             if (pool.length > 0 && totalVotes >= pool.length) {
               v.cap = totalVotes | 0;
@@ -2955,14 +3066,36 @@
   // Called only by Stage 7.15 resume. A watcher that observes the outcome
   // cannot replace the Core vote timer that actually produces the outcome.
   C.resumeStage715OlegEscapeVote = function (battleId) {
-    const b = Game.__S && Array.isArray(Game.__S.battles)
-      ? Game.__S.battles.find((item) => item && String(item.id) === String(battleId))
-      : null;
+    const b = stage715OlegEscapeBattleById(battleId);
     if (!b || !b.meta || b.meta.stage715OlegEscape !== true
       || !isEscapeVote(b)) return false;
-    const scriptedVotes = b.meta.stage715Escape && b.meta.stage715Escape.scriptedVotes;
-    if (scriptedVotes && b.escapeVote) {
-      b.escapeVote.scriptedVotes = Object.assign({}, scriptedVotes);
+    const scriptedVoteSequence = b.meta.stage715Escape && b.meta.stage715Escape.scriptedVoteSequence;
+    if (Array.isArray(scriptedVoteSequence) && b.escapeVote) {
+      b.escapeVote.scriptedVoteSequence = scriptedVoteSequence.slice();
+      b.escapeVote.scriptedVotes = null;
+      b.escapeVote.cap = scriptedVoteSequence.length;
+      if (getCrowdTotalVotes(b.escapeVote) >= scriptedVoteSequence.length) {
+        // A restored fifth tally remains visible until its persisted result
+        // deadline; no new vote is applied while Core waits to settle it.
+        if (!Number.isFinite(b.escapeVote.stage715FinalizeAtMs)) {
+          const resultDelay = 1000 + Math.floor(Math.random() * 1001);
+          b.escapeVote.stage715ResultDelayMs = resultDelay;
+          b.escapeVote.stage715FinalizeAtMs = Date.now() + resultDelay;
+        }
+        if (Game.Stage715Demo && typeof Game.Stage715Demo.persistOlegEscapeVoteProgress === "function") {
+          Game.Stage715Demo.persistOlegEscapeVoteProgress(b.id);
+        }
+        try {
+          if (Game.UI && typeof Game.UI.requestRenderAll === "function") Game.UI.requestRenderAll();
+        } catch (_) {}
+      }
+      if (getCrowdTotalVotes(b.escapeVote) < scriptedVoteSequence.length
+        && !Number.isFinite(b.escapeVote.stage715NextVoteAtMs)) {
+        const delay = 1000 + Math.floor(Math.random() * 1001);
+        b.escapeVote.stage715VoteIntervals = b.escapeVote.stage715VoteIntervals || [];
+        b.escapeVote.stage715VoteIntervals.push(delay);
+        b.escapeVote.stage715NextVoteAtMs = Date.now() + delay;
+      }
     }
     startEscapeVoteTimer(b);
     return stage715OlegEscapeLiveTimers.has(b);
