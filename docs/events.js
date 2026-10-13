@@ -965,17 +965,7 @@ window.Game ||= {};
   }
 
   function sysNpcDrawStartLine(aName, aInf, bName, bInf){
-    const prompt = D && typeof D.resolveProfileCopy === "function"
-      ? D.resolveProfileCopy("vote.prompt")
-      : "";
-    const fallback = `Тут ничья!!! ${aName} [${aInf ?? "?"}] vs ${bName} [${bInf ?? "?"}]. ${prompt || "Выберите сторону."}`;
-    const fn = D && D.SYS && D.SYS.npcDrawCallToAction;
-    if (typeof fn === "function") {
-      try {
-        const resolved = String(fn(aName, aInf, bName, bInf) || "");
-        if (resolved && !resolved.includes("Выбирай, за кого топишь")) return resolved;
-      } catch (_) {}
-    }
+    const fallback = `Тут ничья!!! ${aName} [${aInf ?? "?"}] vs ${bName} [${bInf ?? "?"}].`;
     return fallback;
   }
 

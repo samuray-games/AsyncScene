@@ -11522,7 +11522,7 @@ NF_0043 | action_honesty | TXT_0058 | before "Ставка списывает р
         ["status", "Влияние", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=influence] .statIcon"],
         ["status", "Победы", "AsyncScene/Web/index.html", "index", "statIcon.title", "[data-profile-stat=wins] .statIcon"],
         ["status", "Вызовов нет.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "emptyChallenges.hint", "challenges empty"],
-        ["hint", "Выбери сторону.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "voteHint.textContent", "battle vote hint"],
+        ["hint", "Смотри исход.", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "statusHint.textContent", "non-player draw status"],
         ["hint", "Ответь ...", "AsyncScene/Web/ui/ui-battles.js", "ui-battles", "answerFallback.hint", "canon answer hint fallback"]
       ].forEach(([category, text, file, module, key, path]) => addZoomerTermsInventoryEntry(entries, category, text, { file, module, key, path }));
 

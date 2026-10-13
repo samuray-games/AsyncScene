@@ -57,7 +57,7 @@ class ProfileBootstrapFindingsTests(unittest.TestCase):
             self.assertIn('start_continue: "Продолжить игру"', boot)
             self.assertIn('getOnboardingSeen(UI)', boot)
             self.assertIn('resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile)', boot)
-            self.assertIn('resolveProfileCopy("vote.prompt"', events)
+            self.assertNotIn('resolveProfileCopy("vote.prompt"', events)
             self.assertIn('resolveProfileCopy("vote.not_voted"', events)
             self.assertIn('resolveProfileCopy("argument.select"', battles)
             self.assertIn('resolveProfileCopy("argument.select"', dm)

@@ -118,7 +118,6 @@ window.Game = window.Game || {};
     const profiles = ["boomer", "genX", "millennial", "zoomer", "alpha"];
     return profiles.reduce((result, profile) => {
       result[profile] = {
-        votePrompt: resolveProfileCopy("vote.prompt", t("tie_click_name_hint"), profile),
         argumentSelect: resolveProfileCopy("argument.select", "", profile),
         defenseSelect: resolveProfileCopy("argument.select.defense", "", profile),
         playerSelect: resolveProfileCopy("argument.select.player", "", profile),
@@ -988,16 +987,16 @@ window.Game = window.Game || {};
         const aVotes = raw.a;
         const bVotes = raw.b;
 
-        const hint = document.createElement("div");
-        hint.className = "pill";
+        // Keep the action-specific escape prompt. A generic explanation of
+        // how participant names map to sides is redundant with the vote buttons.
         if (ne.voteLabels && ne.escapeMode) {
-          hint.textContent = (ne.escapeMode === "off")
+          const escapeHint = document.createElement("div");
+          escapeHint.className = "pill";
+          escapeHint.textContent = (ne.escapeMode === "off")
             ? `Отвали ${bName}?`
             : `Свалить ${aName}?`;
-        } else {
-          hint.textContent = resolveProfileCopy("vote.prompt", t("tie_click_name_hint"));
+          card.appendChild(escapeHint);
         }
-        if (!e.stage715NastyaEvent) card.appendChild(hint);
 
         const row = document.createElement("div");
         row.className = "eventVoteRow";
