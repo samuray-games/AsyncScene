@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "fix/stage715-safari-ui-order-20261013",
+  "createdAtJst": "2026-10-13 14:26:06 JST",
+  "createdAtUtc": "2026-10-13T05:26:06Z",
+  "packagePath": "runs/2026/10/13/GITHUB/GITHUB-20261013T052606Z-38351341369-d026b3d5",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261013T052606Z-38351341369-d026b3d5",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
