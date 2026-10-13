@@ -1031,8 +1031,18 @@
         b.chatResultAnnounced = true;
         return;
       }
-      const oppName = getName(b.opponentId) || "Оппонент";
-      const text = battleResultText(b);
+      const rayhanTutorialPlayerWin = !!(b.meta
+        && b.meta.stage715RayhanScripted === true
+        && b.meta.stage715RayhanEventResolved === true
+        && String(b.result || "").toLowerCase() === "win"
+        && resolveCanonicalMatchOutcome(b) === "win");
+      const playerName = rayhanTutorialPlayerWin
+        ? String(Game.__S && Game.__S.me && Game.__S.me.name
+          || Game.UI && Game.UI.S && Game.UI.S.me && Game.UI.S.me.name
+          || "Игрок")
+        : "";
+      const oppName = rayhanTutorialPlayerWin ? playerName : (getName(b.opponentId) || "Оппонент");
+      const text = rayhanTutorialPlayerWin ? "победа" : battleResultText(b);
       if (!text) return;
       pushSystem(systemSay("systemEvents", "battleResult", { oppName, text }) || `Баттл с ${oppName}: ${text}.`);
       b.chatResultAnnounced = true;

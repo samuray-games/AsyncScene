@@ -2161,9 +2161,6 @@ UI.renderBattles = () => {
           if (fresh) b = fresh;
         }
       } catch (_) {}
-      // Events owns vote presentation while pending. After resolution, restore
-      // the persistent Rayhan battle card with its win result.
-      if (isStage715RayhanEventOwnedBattle(b) && b.meta.stage715RayhanEventVotePending === true) return;
        // The escape lesson replaces the original Oleg card visually.
        // Preserve the original battle in canonical state and history.
        if (isStage715OlegScriptedBattle(b) && !isStage715OlegEscapeBattle(b)
@@ -2267,6 +2264,27 @@ UI.renderBattles = () => {
           ? "" : _normalizeResultText(b));
       }
       card.appendChild(line);
+
+      const rayhanEventVotePending = isStage715RayhanEventOwnedBattle(b)
+        && b.meta.stage715RayhanEventVotePending === true;
+      if (rayhanEventVotePending) {
+        line.textContent = "Толпа решает в Событиях.";
+        renderResolvedBattleCardCore(card, b, {
+          argumentTexts,
+          argumentColors: getBattleArgumentColorKeys(b),
+          labels: { opponent: "Аргумент Райхана", mine: "Твой контраргумент" },
+          testIds: { opponent: "stage715-rayhan-event-attack", mine: "stage715-rayhan-event-counter" },
+          mode: "incoming_resolved",
+          suppressOutcome: true,
+          showResolvedChoices: false,
+        });
+        emitBattleCardRenderLog(b.id, isOutgoingCard, logMeta);
+        finalLogMode = "rayhan_event_vote";
+        finalLogNodes = createBattleRenderNodeState();
+        logBattleCardRenderFinal(b.id, finalLogMode, finalLogNodes);
+        body.appendChild(card);
+        return;
+      }
 
       if (b.meta && b.meta.stage715NastyaBattle === true
         && (b.meta.stage715NastyaRematchGate === true || b.meta.stage715NastyaSurrenderWaitingReply === true)

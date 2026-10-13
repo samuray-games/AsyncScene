@@ -89,6 +89,7 @@ allowed = {
     "tools/test_stage7_15_demo_isolation.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/test_stage7_15_rayhan_result_card_dom.mjs",
     "tools/test_stage7_15_40_generic_events.py",
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_tone_first_battle.py",
@@ -122,6 +123,8 @@ allowed = {
     "docs/ui/ui-menu.js",
     "AsyncScene/Web/events.js",
     "docs/events.js",
+    "AsyncScene/Web/ui/ui-events.js",
+    "docs/ui/ui-events.js",
 }
 require(set(changed) <= allowed, f"scope widened: {sorted(set(changed) - allowed)}")
 

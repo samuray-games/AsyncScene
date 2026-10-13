@@ -6,6 +6,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "AsyncScene/Web/ui/ui-stage7-first-experience.js"
 DEPLOYED = ROOT / "docs/ui/ui-stage7-first-experience.js"
+CONFLICT_CORE = ROOT / "AsyncScene/Web/conflict/conflict-core.js"
 
 
 def require(condition, message):
@@ -30,21 +31,32 @@ required = (
     'phase = "rayhan_win_waiting_reply"',
     'state.flags.stage715RayhanRewardChatShown !== true',
     'const label = currentBattleBlockLabel()',
-    'UI.displayNameByIdOrName',
-    'text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`',
-    'const started = startNastyaBattle()',
+    'return `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`',
+    'startNastyaBattle();',
     'conflict.incoming("npc_stage7_mika", { pinned: true })',
     'stage715NastyaReactionShown !== true',
 )
 for text in required:
     require(text in js, f"missing Rayhan post-win contract: {text}")
 
+core_text = CONFLICT_CORE.read_text(encoding="utf-8")
+require("stage715RayhanEventResolved === true" in core_text
+        and "Game.__S && Game.__S.me && Game.__S.me.name" in core_text,
+        "the resolved Rayhan victory announcement must use the current player nickname")
+
 watcher = js[js.index("function watchRayhanBattle"):js.index("function unlockOlegEscapeBattle")]
 require(watcher.index('battleOutcome(battle) !== "win"') < watcher.index("settleRayhanWinRewards(battle)"), "Rayhan reward must follow win detection")
 handler = js[js.index("function handlePlayerMessage"):js.index("function installChatHook")]
 require(handler.index('if (phase === "rayhan_win_waiting_reply")') < handler.index("showNastyaAfterRayhanReply()"), "Nastya reaction must wait for the next player reply")
 reaction = js[js.index("function showNastyaAfterRayhanReply"):js.index("function prepareNastyaDefenseChoices")]
-require(reaction.index("pushNpc(") < reaction.index("startNastyaBattle()"), "Nastya chat must precede the scripted battle card")
+require("pushNastyaAnnouncement()" in reaction and "phase = \"nastya_prompt\"" in reaction,
+        "Rayhan reply must enter Nastya's announcement phase")
+announcement = js[js.index("function pushNastyaAnnouncement"):js.index("function showNastyaAfterRayhanReply")]
+require("pushNpc(" in announcement and "onComplete: scheduleNastyaChallengeAfterAnnouncement" in announcement,
+        "Nastya battle challenge must wait until her announcement is presented")
+challenge = js[js.index("function scheduleNastyaChallengeAfterAnnouncement"):js.index("function nastyaAnnouncementText")]
+require("stage715NastyaChallengeDueAtMs" in challenge and "startNastyaBattle()" in challenge,
+        "Nastya battle start must follow its persisted announcement delay")
 require("[ник]" not in js, "runtime must not contain placeholder nickname")
 require(js.count('conflict.incoming("npc_stage7_mika", { pinned: true })') == 1, "Nastya card must have one scripted start")
 require(js.count('state.flags.stage715RayhanRewardChatShown !== true') == 1, "Rayhan reward chat must be idempotent")
