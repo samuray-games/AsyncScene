@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "c9ce6f82c2db02ae8a64b17be0b2be9feba43cd3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "# branch.oid c9ce6f82c2db02ae8a64b17be0b2be9feba43cd3\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "c9ce6f82 (HEAD, pull/420/merge) Merge 16042f88f2de4ad3ddbbfe54442bdfa4fce2bd0e into fb88cface01f34fa41e15e43cc25018229131f45\n16042f88 (origin/fix/stage715-escape-vote-labels-20261013) Mirror escape labels and refresh Safari asset cache\n85e87ea9 Use Уйти and Остаться on scripted escape vote counters\nfb88cfac (origin/main) Fix Stage 7.15 Safari UI sequencing and presentation (#419)\n493fc694 Fix Stage 7.15 scripted vote pacing (#418)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c9ce6f82c2db02ae8a64b17be0b2be9feba43cd3\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:44:28Z",
+      "stderr": "",
+      "stdout": "fb88cface01f34fa41e15e43cc25018229131f45\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c9ce6f82c2db02ae8a64b17be0b2be9feba43cd3",
+  "observedAtUtc": "2026-10-13T05:44:28Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
