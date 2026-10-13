@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "7cb1227d1db33432a9a6b0e270ba1fe4cc485061\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 7cb1227d1db33432a9a6b0e270ba1fe4cc485061\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "7cb1227d (HEAD, pull/419/merge) Merge b2d22d01fd39e09cfd4bc393ad163e919a3394b6 into 493fc694c0866f55a3975643dc5da061ad9d8ae3\nb2d22d01 (origin/fix/stage715-safari-ui-order-20261013) Mirror safe old Oleg card filtering\n69b057ab Do not hide escape card when original Oleg battle object is reused\nd886a112 Update Pages source asset cache markers\n9f9dbbaa Preserve existing Stage 7.15 test markers while busting Safari JS cache\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 7cb1227d1db33432a9a6b0e270ba1fe4cc485061\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:33:39Z",
+      "stderr": "",
+      "stdout": "493fc694c0866f55a3975643dc5da061ad9d8ae3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "7cb1227d1db33432a9a6b0e270ba1fe4cc485061",
+  "observedAtUtc": "2026-10-13T05:33:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
