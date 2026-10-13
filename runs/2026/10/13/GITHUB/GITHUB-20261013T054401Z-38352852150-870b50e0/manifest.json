@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "fix/stage715-escape-vote-labels-20261013",
+  "createdAtJst": "2026-10-13 14:44:01 JST",
+  "createdAtUtc": "2026-10-13T05:44:01Z",
+  "packagePath": "runs/2026/10/13/GITHUB/GITHUB-20261013T054401Z-38352852150-870b50e0",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261013T054401Z-38352852150-870b50e0",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
