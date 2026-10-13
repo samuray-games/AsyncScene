@@ -2166,7 +2166,7 @@ UI.renderBattles = () => {
       if (isStage715RayhanEventOwnedBattle(b) && b.meta.stage715RayhanEventVotePending === true) return;
        // The escape lesson replaces the original Oleg card visually.
        // Preserve the original battle in canonical state and history.
-       if (isStage715OlegScriptedBattle(b)
+       if (isStage715OlegScriptedBattle(b) && !isStage715OlegEscapeBattle(b)
          && [S, Game && Game.__S].some((store) => store && Array.isArray(store.battles)
            && store.battles.some((candidate) => candidate && isStage715OlegEscapeBattle(candidate)))) return;
 
