@@ -3111,6 +3111,7 @@ window.Game = window.Game || {};
   let firstBattleWatchTimer = null;
   let firstIndependentBattleWatchTimer = null;
   let lastRayhanFailure = null;
+  let nastyaChallengeTimer = null;
 
   function stage715Storage() {
     try {
@@ -3238,6 +3239,8 @@ window.Game = window.Game || {};
     introTimers = [];
     if (silenceTimer) clearTimeout(silenceTimer);
     silenceTimer = null;
+    if (nastyaChallengeTimer) clearTimeout(nastyaChallengeTimer);
+    nastyaChallengeTimer = null;
     if (battleWatchTimer) clearInterval(battleWatchTimer);
     battleWatchTimer = null;
     if (olegSequenceTimer) clearTimeout(olegSequenceTimer);
@@ -4004,15 +4007,53 @@ window.Game = window.Game || {};
   }
 
   function playerNickname() {
+    // The player may rename themselves after the boot context was created.
+    // Use the live character name, not stale context.playerName or a generated display-name fallback.
+    const state = G.__S || stateFor();
+    const uiState = G.UI && G.UI.S;
+    const name = String(state && state.me && state.me.name
+      || uiState && uiState.me && uiState.me.name
+      || context && context.state && context.state.me && context.state.me.name
+      || context && context.playerName || "игрок").trim();
+    return name || "игрок";
+  }
+
+  function scheduleNastyaChallengeAfterAnnouncement() {
     const state = stateFor();
-    const UI = context && context.UI;
-    const me = state && state.me ? state.me : null;
-    if (context && String(context.playerName || "").trim()) return String(context.playerName).trim();
-    if (UI && typeof UI.displayNameByIdOrName === "function") {
-      const resolved = UI.displayNameByIdOrName(me && (me.id || "me"));
-      if (String(resolved || "").trim()) return String(resolved).trim();
+    if (!active || phase !== "nastya_prompt" || !state) return false;
+    state.flags = state.flags || {};
+    // The deadline starts when Nastya's text actually reaches chat.
+    if (!Number.isFinite(state.flags.stage715NastyaChallengeDueAtMs)) {
+      state.flags.stage715NastyaChallengeDueAtMs = Date.now() + 1000;
     }
-    return String(me && me.name || context && context.playerName || "игрок").trim() || "игрок";
+    saveState();
+    if (nastyaChallengeTimer) clearTimeout(nastyaChallengeTimer);
+    nastyaChallengeTimer = setTimeout(() => {
+      nastyaChallengeTimer = null;
+      if (!active || phase !== "nastya_prompt") return;
+      if (stage715BattleById(NASTYA_BATTLE_ID)) {
+        phase = "nastya_battle";
+        saveState();
+        watchNastyaBattle();
+        return;
+      }
+      startNastyaBattle();
+    }, Math.max(0, state.flags.stage715NastyaChallengeDueAtMs - Date.now()));
+    return true;
+  }
+
+  function nastyaAnnouncementText() {
+    const label = currentBattleBlockLabel() || "споры";
+    return `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`;
+  }
+
+  function pushNastyaAnnouncement() {
+    pushNpc({
+      speakerId: "npc_stage7_mika",
+      name: "Настя",
+      text: nastyaAnnouncementText(),
+      onComplete: scheduleNastyaChallengeAfterAnnouncement,
+    });
   }
 
   function showNastyaAfterRayhanReply() {
@@ -4020,20 +4061,29 @@ window.Game = window.Game || {};
     if (!state) return false;
     state.flags = state.flags || {};
     if (state.flags.stage715NastyaReactionShown !== true) {
-      const label = currentBattleBlockLabel() || "споры";
-      pushNpc({
-        speakerId: "npc_stage7_mika",
-        name: "Настя",
-        text: `Так, я не поняла, это что за беспредел тут?? ${playerNickname()}, проблем чтоли захотелось? Бегом в ${label}!`,
-      });
       state.flags.stage715NastyaReactionShown = true;
       telemetry("stage715_nastya_reaction_after_rayhan");
+      phase = "nastya_prompt";
+      saveState();
+      pushNastyaAnnouncement();
     }
-    phase = "nastya_prompt";
-    saveState();
-    const started = startNastyaBattle();
-    if (!started) render();
-    return started;
+    render();
+    return true;
+  }
+
+  function restoreNastyaAnnouncement() {
+    if (phase !== "nastya_prompt" || stage715BattleById(NASTYA_BATTLE_ID)) return;
+    const state = stateFor();
+    if (!state) return;
+    const chats = [G.__S, state, G.UI && G.UI.S]
+      .filter((store, index, all) => store && all.indexOf(store) === index)
+      .flatMap((store) => Array.isArray(store.chat) ? store.chat : []);
+    if (chats.some((entry) => String(entry && entry.text || "").startsWith("Так, я не поняла, это что за беспредел тут??"))) {
+      scheduleNastyaChallengeAfterAnnouncement();
+    } else {
+      // A refresh while Nastya was typing must not permanently lose the challenge.
+      pushNastyaAnnouncement();
+    }
   }
 
   function stage715BattleById(id) {
@@ -6359,6 +6409,7 @@ window.Game = window.Game || {};
     setStage715EventsPanelVisible(!!(state.flags && state.flags[STAGE715_EVENTS_REVEALED_FLAG] === true));
     telemetry("demo_enter_chat");
     if (phase === "intro") playIntro();
+    if (phase === "nastya_prompt") restoreNastyaAnnouncement();
     if (["nastya_battle", "nastya_initial_wrong_waiting_rematch", "nastya_rematch_available",
       "nastya_rematch_paid", "nastya_rematch_awaiting_answer", "nastya_rematch_wrong",
       "nastya_surrender_waiting_reply", "nastya_automatic_victory_settlement",
@@ -6503,10 +6554,8 @@ window.Game = window.Game || {};
     }
     if (phase === "rayhan_event_vote") return true;
     if (phase === "nastya_prompt") {
-      // The first Nastya chat reply only acknowledges the challenge. The
-      // scripted counterargument is selected from the battle card that this
-      // reply opens, not parsed as a chat command.
-      startNastyaBattle();
+      // The challenge appears one second after Nastya's visible chat line,
+      // regardless of extra player messages in that short interval.
       return true;
     }
     if (phase === "nastya_waiting_chat_reply") {
