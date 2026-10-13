@@ -242,6 +242,7 @@ allowed = {
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_rayhan_post_win.py",
+    "tools/test_stage7_15_rayhan_winner_chat.mjs",
     "tools/test_stage7_15_tone_hud.py",
     "tools/test_stage7_15_menu_inline.py",
     "tools/test_stage7_15_canonical_corridor.py",
