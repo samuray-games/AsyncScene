@@ -1027,15 +1027,15 @@
   function announceBattleResult(b){
     try {
       if (!b || b.chatResultAnnounced) return;
-      if (b.suppressCrowdSystemChat === true) {
-        b.chatResultAnnounced = true;
-        return;
-      }
       const rayhanTutorialPlayerWin = !!(b.meta
         && b.meta.stage715RayhanScripted === true
         && b.meta.stage715RayhanEventResolved === true
         && String(b.result || "").toLowerCase() === "win"
         && resolveCanonicalMatchOutcome(b) === "win");
+      if (b.suppressCrowdSystemChat === true && !rayhanTutorialPlayerWin) {
+        b.chatResultAnnounced = true;
+        return;
+      }
       const playerName = rayhanTutorialPlayerWin
         ? String(Game.__S && Game.__S.me && Game.__S.me.name
           || Game.UI && Game.UI.S && Game.UI.S.me && Game.UI.S.me.name
