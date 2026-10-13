@@ -2164,6 +2164,12 @@ UI.renderBattles = () => {
       // Events owns vote presentation while pending. After resolution, restore
       // the persistent Rayhan battle card with its win result.
       if (isStage715RayhanEventOwnedBattle(b) && b.meta.stage715RayhanEventVotePending === true) return;
+       // The escape lesson replaces the original Oleg card visually.
+       // Preserve the original battle in canonical state and history.
+       if (isStage715OlegScriptedBattle(b)
+         && [S, Game && Game.__S].some((store) => store && Array.isArray(store.battles)
+           && store.battles.some((candidate) => candidate && isStage715OlegEscapeBattle(candidate)))) return;
+
       const opp = S.players[b.opponentId];
       const oppName = opp ? (UI.displayName ? UI.displayName(opp) : opp.name) : "Кто-то";
 
@@ -2304,7 +2310,17 @@ UI.renderBattles = () => {
         return;
       }
 
-      // ESCAPE VOTE (crowd vote) - render even if resolved is true
+      // Stage 7.15 escape voting belongs to Events, not to the argument card.
+      if (isEscapeVote(b) && isStage715OlegEscapeBattle(b)) {
+        const player = (Game && Game.__S && Game.__S.me) || (S && S.me) || {};
+        const nickname = String(player.name || "Игрок").trim() || "Игрок";
+        line.textContent = `${nickname} пытается уйти от Олега! Толпа решает.`;
+        if (UI._clearEscapeTicker) UI._clearEscapeTicker(b.id);
+        body.appendChild(card);
+        return;
+      }
+
+      // Ordinary escape vote presentation stays unchanged.
       if (isEscapeVote(b)) {
           const v = b.escapeVote || {};
           const isOff = v.mode === "off";
