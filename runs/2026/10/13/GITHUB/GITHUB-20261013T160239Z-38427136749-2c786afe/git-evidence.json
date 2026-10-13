@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "026ebce1330d769ced1bc84cb8a27dbd44b58b23\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 026ebce1330d769ced1bc84cb8a27dbd44b58b23\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "026ebce1 (HEAD, pull/421/merge) Merge 0aae22942a4fb9d0a6f5630df633a48130e878d8 into 7e4f9548b88edd43b1b397a1e5d33c0c4f425115\n0aae2294 (origin/fix/stage715-rayhan-tutorial-vote-20261013) Fix Rayhan Event title case\nbd95233c Allow Rayhan winner chat regression in focused scopes\n82416537 Fix Rayhan tutorial winner chat\nfd1f5b9d Fix Rayhan tutorial battle voting\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 026ebce1330d769ced1bc84cb8a27dbd44b58b23\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T16:02:39Z",
+      "stderr": "",
+      "stdout": "7e4f9548b88edd43b1b397a1e5d33c0c4f425115\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "026ebce1330d769ced1bc84cb8a27dbd44b58b23",
+  "observedAtUtc": "2026-10-13T16:02:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
