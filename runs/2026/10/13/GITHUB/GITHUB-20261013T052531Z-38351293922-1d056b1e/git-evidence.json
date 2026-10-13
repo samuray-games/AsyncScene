@@ -1,0 +1,106 @@
+{
+  "branch": "fix/stage715-safari-ui-order-20261013",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "fix/stage715-safari-ui-order-20261013\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "c8000d980f8f19dbab2d420da9a1c9d1405625c8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid c8000d980f8f19dbab2d420da9a1c9d1405625c8\n# branch.head fix/stage715-safari-ui-order-20261013\n# branch.upstream origin/fix/stage715-safari-ui-order-20261013\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "c8000d98 (HEAD -> fix/stage715-safari-ui-order-20261013, origin/fix/stage715-safari-ui-order-20261013) Mirror Stage 7.15 Nastya timing and nickname to Pages\nb92cd97c Stage 7.15: use live nickname and show Nastya message before battle\n493fc694 (origin/main) Fix Stage 7.15 scripted vote pacing (#418)\n483c815c Stage 7.15 Atom 6 Oleg escape teaching loop (#417)\naee47147 Restore Rayhan result card after Events vote (#416)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c8000d980f8f19dbab2d420da9a1c9d1405625c8\nbranch refs/heads/fix/stage715-safari-ui-order-20261013\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-13T05:25:31Z",
+      "stderr": "",
+      "stdout": "493fc694c0866f55a3975643dc5da061ad9d8ae3\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c8000d980f8f19dbab2d420da9a1c9d1405625c8",
+  "observedAtUtc": "2026-10-13T05:25:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
