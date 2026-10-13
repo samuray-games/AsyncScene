@@ -413,9 +413,14 @@ window.Game = window.Game || {};
     const aId = e?.a?.id || e?.aId || A?.id || null;
     const bId = e?.b?.id || e?.bId || B?.id || null;
 
-    const aNameRaw = e?.a?.name || e?.aName || A?.name || "???";
+    const stage715RayhanPlayerName = e?.stage715RayhanEvent === true
+      ? String(Game && Game.__S && Game.__S.me && Game.__S.me.name
+        || S && S.me && S.me.name
+        || e?.aName || A?.name || "игрок")
+      : "";
+    const aNameRaw = stage715RayhanPlayerName || e?.a?.name || e?.aName || A?.name || "???";
     const bNameRaw = e?.b?.name || e?.bName || B?.name || "???";
-    const aName = displayNameSafe(aId, aNameRaw);
+    const aName = e?.stage715RayhanEvent === true ? stage715RayhanPlayerName : displayNameSafe(aId, aNameRaw);
     const bName = displayNameSafe(bId, bNameRaw);
 
     const aInf = Number.isFinite(e?.a?.influence)
@@ -437,6 +442,11 @@ window.Game = window.Game || {};
     let safeTitle = (e?.title && String(e.title).trim().length)
       ? String(e.title)
       : titleFallback;
+
+    if (e?.stage715RayhanEvent === true) {
+      const rayhanTitleName = bId === "npc_stage7_ken" ? "Райхана" : bName;
+      safeTitle = `${aName} против ${rayhanTitleName}`;
+    }
 
     // Task 1: Use attempt formulation for title if it's an escape event
     if (e && e.voteLabels && e.escapeMode) {
@@ -526,6 +536,7 @@ window.Game = window.Game || {};
 
   function canVoteOnEvent(ne, rawEvent) {
     if (!ne || !rawEvent) return false;
+    if (isStage715TutorialVotingBlocked()) return false;
     if (ne.resolved || rawEvent.resolved || rawEvent.state === "resolved") return false;
     if (!ne.crowd) return false;
     if (isMyEvent(rawEvent)) return false;
@@ -537,7 +548,14 @@ window.Game = window.Game || {};
     return !crowd.voters[meId];
   }
 
+  function isStage715TutorialVotingBlocked() {
+    const demo = Game && Game.Stage715Demo;
+    return !!(demo && typeof demo.isTutorialVotingBlocked === "function"
+      && demo.isTutorialVotingBlocked());
+  }
+
   function voteForSide(rawEvent, side) {
+    if (isStage715TutorialVotingBlocked()) return false;
     const crowd = getCrowdState(rawEvent);
     if (!crowd) return false;
 
@@ -987,6 +1005,7 @@ window.Game = window.Game || {};
         const meId = (S && S.me && S.me.id) ? S.me.id : "me";
         const myPick = crowd.voters && crowd.voters[meId] ? crowd.voters[meId] : null;
         const votingAllowed = canVoteOnEvent(ne, e);
+        const tutorialVotingBlocked = isStage715TutorialVotingBlocked();
 
         const mkSideBtn = (side, label, votes) => {
         const slot = document.createElement("div");
@@ -1009,8 +1028,9 @@ window.Game = window.Game || {};
         if (!votingAllowed) {
           btn.classList.add("is-disabled");
           btn.setAttribute("aria-disabled", "true");
-          // Do NOT set btn.disabled=true so onclick still fires and can show a toast.
-          // Visual disabled state kept via class only.
+          if (tutorialVotingBlocked) btn.disabled = true;
+          // Outside the guided tutorial, keep click handling available for the
+          // explanatory toast. Tutorial actions are natively disabled above.
         } else {
           btn.classList.remove("is-disabled");
           btn.removeAttribute("aria-disabled");
@@ -1030,6 +1050,7 @@ window.Game = window.Game || {};
 
           // Disabled button hint: do not run economic checks / toasts
           if (!votingAllowed) {
+            if (tutorialVotingBlocked) return;
             try { showVoteBtnToast(btn, resolveEventVotePresentation("vote.disabled")); } catch (_) {}
             return;
           }
@@ -1234,7 +1255,7 @@ window.Game = window.Game || {};
                 info.appendChild(rowChoice);
                 try { info.appendChild(document.createTextNode("\n")); } catch(_) {}
               }
-              if (!myVote && !e.stage715NastyaEvent) {
+              if (!myVote && !e.stage715NastyaEvent && !e.stage715RayhanEvent) {
                 const rowChoice = document.createElement("div");
                 rowChoice.textContent = resolveProfileCopy("vote.not_voted", "Ты не голосовал");
                 info.appendChild(rowChoice);

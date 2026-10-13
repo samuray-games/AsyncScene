@@ -1433,11 +1433,20 @@ window.Game ||= {};
     requestRender();
   }
 
+  function isStage715TutorialVotingBlocked(){
+    const demo = Game && Game.Stage715Demo;
+    return !!(demo && typeof demo.isTutorialVotingBlocked === "function"
+      && demo.isTutorialVotingBlocked());
+  }
+
   function helpEvent(eventId, side){
     ensureState();
 
     const e = Game.__S.events.find(x => x.id === eventId);
     if (!e || e.state !== "open") return false;
+    // The guided Stage 7.15 tutorial casts its own Event votes; reject player
+    // actions before vote state or economy can be mutated.
+    if (isStage715TutorialVotingBlocked()) return false;
 
     // Voting must never stop NPC simulation. playerVoted only blocks a second player vote.
     ensureEventCrowd(e);

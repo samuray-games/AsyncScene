@@ -3696,6 +3696,11 @@ window.Game = window.Game || {};
     return !!(state && state.flags && state.flags.stage715FirstIndependentBattleComplete === true);
   }
 
+  function isTutorialVotingBlocked() {
+    const state = stateFor();
+    return isActive({ state, UI: G.UI }) && !isFirstEventEligible(state);
+  }
+
   function watchFirstIndependentBattle() {
     if (firstIndependentBattleWatchTimer) return;
     firstIndependentBattleWatchTimer = setInterval(() => {
@@ -4760,6 +4765,29 @@ window.Game = window.Game || {};
       + Math.floor(Math.random() * (RAYHAN_EVENT_MAX_DELAY_MS - RAYHAN_EVENT_MIN_DELAY_MS + 1));
   }
 
+  function createRayhanEventVoteSequence() {
+    const firstFour = ["a", "a", "b", "b"];
+    for (let index = firstFour.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [firstFour[index], firstFour[swapIndex]] = [firstFour[swapIndex], firstFour[index]];
+    }
+    return firstFour.concat("a");
+  }
+
+  function ensureRayhanEventVoteSequence(event) {
+    const crowd = event && event.crowd;
+    if (!crowd || typeof crowd !== "object") return false;
+    if (!Array.isArray(crowd.scriptedVoteSequence)) {
+      crowd.scriptedVoteSequence = createRayhanEventVoteSequence();
+    }
+    const sequence = crowd.scriptedVoteSequence;
+    const firstFour = sequence.slice(0, 4);
+    return sequence.length === RAYHAN_EVENT_VOTE_COUNT
+      && firstFour.filter((side) => side === "a").length === 2
+      && firstFour.filter((side) => side === "b").length === 2
+      && sequence[4] === "a";
+  }
+
   function finalizeRayhanEventBattle(event) {
     if (!event || !event.resolved || !event.crowd || event.crowd.winner !== "a") return false;
     const battle = stage715BattleById(FIRST_BATTLE_ID);
@@ -4787,7 +4815,8 @@ window.Game = window.Game || {};
     if (!event || !crowd || event.resolved || crowd.decided) return false;
     if (Number(crowd.stage715NextVoteAllowedAt || 0) > Date.now()) return false;
     const voterId = Array.isArray(crowd.scriptedVoterIds) ? crowd.scriptedVoterIds[voteIndex] : null;
-    const side = voteIndex < 3 ? "a" : "b";
+    if (!ensureRayhanEventVoteSequence(event)) return false;
+    const side = event.crowd.scriptedVoteSequence[voteIndex];
     if (!voterId || crowd.voters[voterId]) return false;
     crowd.voters[voterId] = side;
     crowd.aVotes = side === "a" ? (crowd.aVotes | 0) + 1 : (crowd.aVotes | 0);
@@ -4838,7 +4867,9 @@ window.Game = window.Game || {};
     const existing = events.find((event) => event && event.stage715RayhanEvent === true && !event.resolved);
     if (existing) {
       battle.meta.stage715RayhanEventStartSequence = true;
+      if (!ensureRayhanEventVoteSequence(existing)) return false;
       revealEventsPanel();
+      saveState();
       scheduleRayhanEventVotes(existing);
       return true;
     }
@@ -4863,7 +4894,7 @@ window.Game = window.Game || {};
       id: `stage715_rayhan_event_${battle.id}`,
       type: "draw",
       kind: "draw",
-      title: `Райхан против ${playerName}`,
+      title: `${playerName} против Райхана`,
       aId: RAYHAN_EVENT_PLAYER_ID,
       aName: playerName,
       aInf: Number(player.influence || 0),
@@ -4900,6 +4931,7 @@ window.Game = window.Game || {};
         eligibleNpcCount: RAYHAN_EVENT_VOTE_COUNT,
         alreadyVotedCount: 0,
         scriptedVoterIds: voterIds,
+        scriptedVoteSequence: createRayhanEventVoteSequence(),
         scriptedVoteAt,
         _econApplied: true,
       },
@@ -6677,6 +6709,7 @@ window.Game = window.Game || {};
     firstIndependentBattleStartOptions,
     firstIndependentBattleStarted,
     isFirstEventEligible,
+    isTutorialVotingBlocked,
     startOlegEscape,
     destroy,
     getState: () => ({ active, phase, sourceTag: DEMO_SOURCE_TAG, typingName: npcTyping && npcTyping.name || null }),

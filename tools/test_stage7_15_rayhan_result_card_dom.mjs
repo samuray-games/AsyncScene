@@ -39,7 +39,7 @@ try {
     S.me = Object.assign({}, S.me || {}, { id: "me", name: "Тестер", points: 2, rep: 1, wins: 1 });
     S.players.me = S.me;
     S.flags = Object.assign({}, S.flags, { stage715Demo: true, stage715DemoPhase: "rayhan_event_vote", stage715EventsPanelRevealed: true });
-    S.battles = [{
+    const rayhanBattle = {
       id: "stage7_15_rayhan_result_card_dom_fixture",
       opponentId: "npc_stage7_ken",
       attackerId: "npc_stage7_ken",
@@ -63,22 +63,63 @@ try {
         stage715SelectedDefenseText: "Кажется, прямо тут…",
         stage715RayhanRewardApplied: true,
       },
+    };
+    S.battles = [rayhanBattle];
+    S.events = [{
+      id: "stage715_rayhan_event_dom_fixture",
+      battleId: rayhanBattle.id,
+      stage715RayhanEvent: true,
+      title: `${S.me.name} против Райхана`,
+      state: "open",
+      resolved: false,
+      aId: S.me.id,
+      aName: S.me.name,
+      bId: "npc_stage7_ken",
+      bName: "Райхан",
+      a: { id: S.me.id, name: S.me.name, influence: 1 },
+      b: { id: "npc_stage7_ken", name: "Райхан", influence: 1 },
+      voteLabels: { a: "за тебя", b: "за Райхана" },
+      crowd: { cap: 5, voters: {}, aVotes: 0, bVotes: 0, alreadyVotedCount: 0, decided: false },
     }];
+    G.Stage715Demo.claimResume({ state: S, UI: G.UI, playerName: S.me.name });
     G.UI.renderBattles();
+    G.UI.renderEvents();
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const battleCard = document.querySelector('[data-battle-id="stage7_15_rayhan_result_card_dom_fixture"]');
+    const eventCard = document.querySelector('[data-event-id="stage715_rayhan_event_dom_fixture"]');
     return {
       battleCount: document.getElementById("battleCount")?.textContent || null,
       cards: document.querySelectorAll("#battlesBody .battleCard").length,
-      card: !!document.querySelector('[data-battle-id="stage7_15_rayhan_result_card_dom_fixture"]'),
+      card: Boolean(battleCard && battleCard.isConnected && battleCard.getBoundingClientRect().width && battleCard.getBoundingClientRect().height),
+      battleText: battleCard?.innerText || "",
+      battleVoteButtons: battleCard?.querySelectorAll(".eventVoteBtn, .voteBtn, [data-side]").length || 0,
+      eventCard: Boolean(eventCard && eventCard.isConnected),
+      eventTitle: eventCard?.querySelector(".title")?.textContent || "",
+      voteButtons: eventCard ? Array.from(eventCard.querySelectorAll(".eventVoteBtn"), (button) => ({ disabled: button.disabled, text: button.textContent.trim() })) : [],
+      voteResult: G.Events.helpEvent("stage715_rayhan_event_dom_fixture", "a"),
+      pointsAfterRejectedVote: S.me.points,
+      repAfterRejectedVote: S.rep,
     };
   });
   assert.equal(pending.battleCount, "1", "pending vote keeps the backing battle counted");
-  assert.equal(pending.cards, 0, "pending Rayhan Event vote must not duplicate itself as a Battles card");
+  assert.equal(pending.cards, 1, "the original Rayhan battle card remains present during Events voting");
+  assert.equal(pending.card, true, "the original battle card is visible during the Event vote");
+  assert.match(pending.battleText, /Где будем разбираться\?/);
+  assert.match(pending.battleText, /Кажется, прямо тут…/, "the selected counterargument remains visible during voting");
+  assert.equal(pending.battleVoteButtons, 0, "Battles must not add a second voting widget");
+  assert.equal(pending.eventCard, true, "the Event and original battle card are simultaneously rendered");
+  assert.equal(pending.eventTitle, "Тестер против Райхана");
+  assert.equal(pending.voteButtons.length, 2, "the scripted Event keeps its vote counters visible");
+  assert(pending.voteButtons.every((button) => button.disabled), "manual vote controls are disabled during tutorial voting");
+  assert.equal(pending.voteResult, false, "the action API rejects manual tutorial votes");
+  assert.equal(pending.pointsAfterRejectedVote, 2, "rejected manual vote does not change player points");
+  assert.equal(pending.repAfterRejectedVote, 1, "rejected manual vote does not change REP");
 
   const resolved = await page.evaluate(async () => {
     const G = window.Game;
     const S = G.UI.S;
     const battle = S.battles[0];
+    const event = S.events[0];
     battle.meta.stage715RayhanEventVotePending = false;
     battle.meta.stage715RayhanEventResolved = true;
     battle.status = "finished";
@@ -89,20 +130,36 @@ try {
     battle.draw = false;
     battle.crowd = null;
     S.flags.stage715DemoPhase = "rayhan_win_waiting_reply";
+    event.resolved = true;
+    event.state = "resolved";
+    event.crowd.aVotes = 3;
+    event.crowd.votesA = 3;
+    event.crowd.bVotes = 2;
+    event.crowd.votesB = 2;
+    event.crowd.alreadyVotedCount = 5;
+    event.crowd.decided = true;
+    event.crowd.winner = "a";
     G.UI.renderBattles();
+    G.UI.renderEvents();
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const card = document.querySelector('[data-battle-id="stage7_15_rayhan_result_card_dom_fixture"]');
+    const resolvedEvent = document.querySelector('[data-event-id="stage715_rayhan_event_dom_fixture"]');
     return {
       battleCount: document.getElementById("battleCount")?.textContent || null,
       cards: document.querySelectorAll("#battlesBody .battleCard").length,
       visible: Boolean(card && card.isConnected && card.getBoundingClientRect().width && card.getBoundingClientRect().height && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"),
       text: card?.innerText || "",
       buttons: card ? Array.from(card.querySelectorAll("button"), (button) => button.textContent.trim()) : [],
+      eventTitle: resolvedEvent?.querySelector(".title")?.textContent || "",
+      eventText: resolvedEvent?.innerText || "",
     };
   });
   assert.equal(resolved.battleCount, "1", "resolved battle count must match its visible result card");
   assert.equal(resolved.cards, 1, "resolved Rayhan Event must restore exactly one Battles card");
   assert.equal(resolved.visible, true, "resolved Rayhan result card must be visible in the rendered panel");
+  assert.equal(resolved.eventTitle, "Тестер против Райхана", "the resolved Event keeps the player-first title");
+  assert.match(resolved.eventText, /Итог: 3:2/, "resolved Event keeps the player-win tally");
+  assert.doesNotMatch(resolved.eventText, /Ты ещё не проголосовал\./, "resolved scripted Event omits the irrelevant not-voted warning");
   assert.match(resolved.text, /Победа/);
   assert.match(resolved.text, /Кажется, прямо тут…/, "selected answer must remain on the result card");
   assert.deepEqual(resolved.buttons, ["Закрыть"], "resolved Rayhan card may expose only its close action");

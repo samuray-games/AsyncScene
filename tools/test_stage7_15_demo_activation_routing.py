@@ -180,6 +180,7 @@ allowed = {
     "tools/test_stage7_15_safari_corridor.py",
     "tools/test_stage7_15_demo_activation_routing.py",
     "tools/test_stage7_15_rayhan_answer_validation.py",
+    "tools/test_stage7_15_rayhan_result_card_dom.mjs",
     "tools/test_stage7_15_40_generic_events.py",
     "tools/run_stage715_external_acceptance.sh",
     "tools/run_stage715_external_acceptance.mjs",
@@ -190,6 +191,7 @@ allowed = {
     "tools/test_stage7_15_22_oleg_battle.py",
     "tools/test_stage7_15_rayhan_post_result.py",
     "tools/test_stage7_15_rayhan_post_win.py",
+    "tools/test_stage7_15_rayhan_winner_chat.mjs",
     "tools/test_stage7_15_tone_hud.py",
     "tools/test_stage7_15_menu_inline.py",
     "tools/test_stage7_15_canonical_corridor.py",
@@ -204,6 +206,8 @@ allowed = {
     "docs/ui/ui-menu.js",
     "AsyncScene/Web/events.js",
     "docs/events.js",
+    "AsyncScene/Web/ui/ui-events.js",
+    "docs/ui/ui-events.js",
 }
 require(changed <= allowed, f"scope widened: {sorted(changed - allowed)}")
 
