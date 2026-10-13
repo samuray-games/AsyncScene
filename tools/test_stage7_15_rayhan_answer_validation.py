@@ -81,6 +81,49 @@ for mirror_source, mirror_docs in [
 for js_path in [ROOT / "AsyncScene/Web/events.js", ROOT / "AsyncScene/Web/ui/ui-events.js", ROOT / "AsyncScene/Web/conflict/conflict-core.js"]:
     subprocess.run(["node", "--check", str(js_path)], cwd=ROOT, check=True)
 
+title_test = r'''
+const fs = require("fs");
+const vm = require("vm");
+const assert = require("assert");
+const source = fs.readFileSync("AsyncScene/Web/ui/ui-events.js", "utf8");
+const start = source.indexOf("  function normalizeEvent(e) {");
+const end = source.indexOf("\n  function getCrowdState", start);
+assert(start >= 0 && end > start, "must locate production normalizeEvent");
+const currentPlayer = { id: "me", name: "Тестер" };
+const context = {
+  Game: { __S: { me: currentPlayer } },
+  S: { me: currentPlayer, players: {} },
+  UI: {
+    S: { me: currentPlayer, players: {} },
+    displayNameByIdOrName: (id) => id === "npc_stage7_ken" ? "Райхан" : String(id || ""),
+    isDevBalanceEnabled: () => false,
+  },
+  getEventBattleId: (event) => event.id,
+  getCrowdState: (event) => event.crowd || null,
+  Date,
+  Math,
+};
+vm.createContext(context);
+vm.runInContext(`${source.slice(start, end)}\nthis.normalizeEvent = normalizeEvent;`, context);
+const event = {
+  id: "rayhan-title-test",
+  stage715RayhanEvent: true,
+  aId: "me",
+  aName: "Устаревший ник",
+  bId: "npc_stage7_ken",
+  bName: "Райхан",
+  title: "Тестер против Райхан",
+};
+assert.strictEqual(context.normalizeEvent(event).title, "Тестер против Райхана");
+assert.strictEqual(context.normalizeEvent(event).a.name, "Тестер", "Rayhan title keeps the current player nickname");
+currentPlayer.name = "Новый ник";
+assert.strictEqual(context.normalizeEvent(event).title, "Новый ник против Райхана", "Rayhan title follows a changed player nickname");
+const ordinary = context.normalizeEvent({ id: "ordinary-title-test", title: "Райхан и игрок", aName: "Игрок", bName: "Райхан" });
+assert.strictEqual(ordinary.title, "Райхан и игрок", "ordinary Event title remains unchanged");
+console.log("PASS: normalizeEvent renders Rayhan in the correct case and preserves the current player nickname");
+'''
+subprocess.run(["node", "-e", title_test], cwd=ROOT, check=True)
+
 node_test = r'''
 const fs = require("fs");
 const vm = require("vm");

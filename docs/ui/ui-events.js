@@ -443,7 +443,10 @@ window.Game = window.Game || {};
       ? String(e.title)
       : titleFallback;
 
-    if (e?.stage715RayhanEvent === true) safeTitle = `${aName} против ${bName}`;
+    if (e?.stage715RayhanEvent === true) {
+      const rayhanTitleName = bId === "npc_stage7_ken" ? "Райхана" : bName;
+      safeTitle = `${aName} против ${rayhanTitleName}`;
+    }
 
     // Task 1: Use attempt formulation for title if it's an escape event
     if (e && e.voteLabels && e.escapeMode) {
