@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "f30363f31bf04268c52bf4207b25a27f4d4414e8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid f30363f31bf04268c52bf4207b25a27f4d4414e8\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "f30363f3 (HEAD, pull/435/merge) Merge e947f03c12389ef4c4a8a4b571ef06a387c262c0 into 7122e2236125c18518f653ca85d6de14cdd8968b\ne947f03c (origin/codex/issue434-mobile-safari-touch-20261014) Fix mobile Safari panel navigation\n7122e223 (origin/main) Adapt start and essence copy for five profiles (#433)\nbcb52993 Mobile-first interface redesign (#430)\nceb999bb Обновить текст блока «Цель» в онбординге (#427)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f30363f31bf04268c52bf4207b25a27f4d4414e8\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:55Z",
+      "stderr": "",
+      "stdout": "7122e2236125c18518f653ca85d6de14cdd8968b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f30363f31bf04268c52bf4207b25a27f4d4414e8",
+  "observedAtUtc": "2026-10-14T15:02:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
