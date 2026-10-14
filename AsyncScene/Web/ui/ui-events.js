@@ -792,6 +792,7 @@ window.Game = window.Game || {};
     } catch(_) {}
 
     header.onclick = (ev) => {
+      if (UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode()) return;
       try {
         if (header && header.classList) header.classList.remove("panelHeader--hot");
         if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("events");
