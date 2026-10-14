@@ -10,7 +10,7 @@ window.Game = window.Game || {};
 
   const MODAL_ID = "stage7EssenceModal";
   const PROFILES = Object.freeze(["boomer", "genX", "millennial", "zoomer", "alpha"]);
-  const SHARED_BLOCKS = Object.freeze([
+  const STANDARD_BLOCKS = Object.freeze([
     Object.freeze({
       heading: "Здесь всё крутится вокруг людей.",
       body: "Знакомства, ссоры, поддержка, конфликты. Ты решаешь, в какие истории вмешиваться и как себя вести."
@@ -24,12 +24,40 @@ window.Game = window.Game || {};
       body: "Не нужно собираться всем одновременно. Заходи, когда удобно."
     })
   ]);
+  const BOOMER_BLOCKS = Object.freeze([
+    Object.freeze({
+      heading: "Здесь всё крутится вокруг людей.",
+      body: "Знакомства, ссоры, поддержка, конфликты. Вы решаете, в какие истории вмешиваться и как себя вести."
+    }),
+    Object.freeze({
+      heading: "У каждого поступка есть последствия.",
+      body: "Помогли одному - нажили врага в другом. Не всегда получится угадать, чем закончится разговор."
+    }),
+    Object.freeze({
+      heading: "Играй в своём ритме.",
+      body: "Не нужно собираться всем одновременно. Заходите, когда удобно."
+    })
+  ]);
+  const ALPHA_BLOCKS = Object.freeze([
+    Object.freeze({
+      heading: "всё начинается с людей",
+      body: "знакомства, ссоры, поддержка, конфликты. выбирай, куда вмешаться и как себя вести."
+    }),
+    Object.freeze({
+      heading: "у поступков есть последствия",
+      body: "помог одному - нажил врага среди других. итог разговора не всегда угадаешь."
+    }),
+    Object.freeze({
+      heading: "играй когда удобно",
+      body: "заходи, когда удобно. всем быть онлайн сразу не нужно."
+    })
+  ]);
   const COPY = Object.freeze({
-    boomer: Object.freeze({ title: "Что за игра?", blocks: SHARED_BLOCKS, close: "Вернуться" }),
-    genX: Object.freeze({ title: "Что за игра?", blocks: SHARED_BLOCKS, close: "Вернуться" }),
-    millennial: Object.freeze({ title: "Что за игра?", blocks: SHARED_BLOCKS, close: "Вернуться" }),
-    zoomer: Object.freeze({ title: "Что за игра?", blocks: SHARED_BLOCKS, close: "Вернуться" }),
-    alpha: Object.freeze({ title: "Что за игра?", blocks: SHARED_BLOCKS, close: "Вернуться" })
+    boomer: Object.freeze({ title: "Что за игра?", blocks: BOOMER_BLOCKS, close: "Вернуться" }),
+    genX: Object.freeze({ title: "Что за игра?", blocks: STANDARD_BLOCKS, close: "Вернуться" }),
+    millennial: Object.freeze({ title: "Что за игра?", blocks: STANDARD_BLOCKS, close: "Вернуться" }),
+    zoomer: Object.freeze({ title: "Что за игра?", blocks: STANDARD_BLOCKS, close: "Вернуться" }),
+    alpha: Object.freeze({ title: "Что за игра?", blocks: ALPHA_BLOCKS, close: "Вернуться" })
   });
 
   const normalizeProfile = (value) => {
