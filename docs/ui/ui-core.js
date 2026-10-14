@@ -940,6 +940,7 @@ window.Game = window.Game || {};
 
   let activeStatHoverHint = null;
   const statHoverHintSources = { pointer: null, focus: null };
+  const statTouchHintPresses = new Map();
   function balanceContains(balance, node){ return !!(balance && node && balance.contains(node)); }
   function resolveStatHoverHintTarget(node, source){
     if (!node || typeof node.closest !== "function") return null;
@@ -1047,6 +1048,50 @@ window.Game = window.Game || {};
       const profileObserver = new MutationObserver(() => syncTopbarStatTitles());
       profileObserver.observe(document.body, { attributes: true, attributeFilter: ["data-ui-profile"] });
     }
+    const cancelTouchHint = (pointerId) => {
+      const press = statTouchHintPresses.get(pointerId);
+      if (!press) return;
+      clearTimeout(press.timer);
+      statTouchHintPresses.delete(pointerId);
+    };
+    document.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "touch") return;
+      if (activeStatHoverHint && event.target !== activeStatHoverHint && !activeStatHoverHint.contains(event.target)) {
+        hideStatHoverHint(activeStatHoverHint, "pointer");
+      }
+      const target = resolveStatHoverHintTarget(event.target);
+      if (!target) return;
+      cancelTouchHint(event.pointerId);
+      const press = { target, x: event.clientX, y: event.clientY, fired: false, timer: 0 };
+      press.timer = setTimeout(() => {
+        if (statTouchHintPresses.get(event.pointerId) !== press) return;
+        press.fired = true;
+        setStatHoverHint(target, "pointer");
+      }, 520);
+      statTouchHintPresses.set(event.pointerId, press);
+    }, { passive: true });
+    document.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "touch") return;
+      const press = statTouchHintPresses.get(event.pointerId);
+      if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 12) cancelTouchHint(event.pointerId);
+    }, { passive: true });
+    document.addEventListener("pointerup", (event) => {
+      const press = statTouchHintPresses.get(event.pointerId);
+      if (!press) return;
+      clearTimeout(press.timer);
+      if (press.fired) {
+        const suppressClick = (clickEvent) => {
+          if (clickEvent.target !== press.target && !press.target.contains(clickEvent.target)) return;
+          clickEvent.preventDefault();
+          clickEvent.stopImmediatePropagation();
+          document.removeEventListener("click", suppressClick, true);
+        };
+        document.addEventListener("click", suppressClick, true);
+        setTimeout(() => document.removeEventListener("click", suppressClick, true), 800);
+      }
+      statTouchHintPresses.delete(event.pointerId);
+    });
+    document.addEventListener("pointercancel", (event) => cancelTouchHint(event.pointerId));
     document.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "touch") return;
       const target = resolveStatHoverHintTarget(event.target);
@@ -1061,6 +1106,7 @@ window.Game = window.Game || {};
     }, true);
     document.addEventListener("focusin", (event) => {
       const target = resolveStatHoverHintTarget(event.target, "focus");
+      if (target && Array.from(statTouchHintPresses.values()).some((press) => press.target === target)) return;
       if (target) setStatHoverHint(target, "focus");
     });
     document.addEventListener("focusout", (event) => {
@@ -1525,6 +1571,151 @@ window.Game = window.Game || {};
   }
 
 
+  const MOBILE_GAME_TABS = Object.freeze([
+    { key: "dm", label: "Личка", panelId: "dmBlock", countId: "dmHeaderCount" },
+    { key: "battles", label: "Баттлы", panelId: "battlesBlock", countId: "battleCount" },
+    { key: "events", label: "События", panelId: "eventsBlock", countId: "eventsHeaderCount" },
+  ]);
+
+  function ensureMobileGameTabs(){
+    const blocks = document.getElementById("blocks");
+    if (!blocks) return null;
+    let tabs = document.getElementById("mobileGameTabs");
+    let panels = document.getElementById("mobileGamePanels");
+    if (!tabs) {
+      tabs = document.createElement("div");
+      tabs.id = "mobileGameTabs";
+      tabs.className = "mobileGameTabs";
+      tabs.setAttribute("role", "tablist");
+      tabs.setAttribute("aria-label", "Игровые разделы");
+    }
+    if (!panels) {
+      panels = document.createElement("div");
+      panels.id = "mobileGamePanels";
+      panels.className = "mobileGamePanels";
+    }
+
+    const menu = document.getElementById("menuBlock");
+    if (tabs.parentElement !== blocks) blocks.insertBefore(tabs, menu ? menu.nextSibling : blocks.firstChild);
+    if (panels.parentElement !== blocks) blocks.insertBefore(panels, tabs.nextSibling);
+
+    const setActive = (key, focusTab, activateDm = false) => {
+      if (!MOBILE_GAME_TABS.some((item) => item.key === key)) return;
+      const locked = document.documentElement.classList.contains("stage7-first-experience-active");
+      if (locked) return;
+      if (activateDm && key === "dm" && UI.isMobilePanelMode && UI.isMobilePanelMode() && S.dm && !S.dm.open) {
+        S.dm.open = true;
+        if (UI.renderDM) UI.renderDM();
+      }
+      tabs.dataset.activeTab = key;
+      MOBILE_GAME_TABS.forEach((item) => {
+        const button = tabs.querySelector(`[data-mobile-tab="${item.key}"]`);
+        const panel = document.getElementById(item.panelId);
+        const selected = item.key === key;
+        if (button) {
+          button.setAttribute("aria-selected", selected ? "true" : "false");
+          button.tabIndex = selected ? 0 : -1;
+          const count = readMobileTabCount(item);
+          button.setAttribute("aria-label", count ? `${item.label}, ${count}` : item.label);
+        }
+        if (panel) {
+          panel.classList.toggle("mobileGamePanel--active", selected);
+          const mobile = !!(UI.isMobilePanelMode && UI.isMobilePanelMode());
+          panel.toggleAttribute("aria-hidden", mobile && !selected);
+          if (mobile && selected) {
+            panel.setAttribute("role", "tabpanel");
+            panel.setAttribute("aria-labelledby", `mobileTab-${item.key}`);
+          } else {
+            panel.removeAttribute("role");
+            panel.removeAttribute("aria-labelledby");
+          }
+        }
+      });
+      if (focusTab) {
+        const target = tabs.querySelector(`[data-mobile-tab="${key}"]`);
+        if (target) target.focus();
+      }
+    };
+
+    const readMobileTabCount = (item) => {
+      const source = document.getElementById(item.countId);
+      if (!source) return "";
+      const match = String(source.textContent || "").match(/\d+/);
+      return match ? match[0] : "";
+    };
+
+    MOBILE_GAME_TABS.forEach((item) => {
+      let button = tabs.querySelector(`[data-mobile-tab="${item.key}"]`);
+      if (!button) {
+        button = document.createElement("button");
+        button.id = `mobileTab-${item.key}`;
+        button.type = "button";
+        button.className = "mobileGameTab";
+        button.dataset.mobileTab = item.key;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-controls", item.panelId);
+        button.innerHTML = `<span class="mobileGameTab__label"></span><span class="mobileGameTab__count" aria-hidden="true"></span>`;
+        button.addEventListener("click", () => setActive(item.key, false, true));
+        button.addEventListener("keydown", (event) => {
+          const current = MOBILE_GAME_TABS.findIndex((entry) => entry.key === item.key);
+          let next = current;
+          if (event.key === "ArrowRight") next = (current + 1) % MOBILE_GAME_TABS.length;
+          else if (event.key === "ArrowLeft") next = (current + MOBILE_GAME_TABS.length - 1) % MOBILE_GAME_TABS.length;
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = MOBILE_GAME_TABS.length - 1;
+          else return;
+          event.preventDefault();
+          setActive(MOBILE_GAME_TABS[next].key, true, true);
+        });
+        tabs.appendChild(button);
+      }
+      const count = readMobileTabCount(item);
+      const label = button.querySelector(".mobileGameTab__label");
+      const badge = button.querySelector(".mobileGameTab__count");
+      if (label) label.textContent = item.label;
+      if (badge) badge.textContent = count;
+      button.setAttribute("aria-label", count ? `${item.label}, ${count}` : item.label);
+      button.disabled = document.documentElement.classList.contains("stage7-first-experience-active");
+
+      const panel = document.getElementById(item.panelId);
+      if (panel) {
+        panel.classList.add("mobileGamePanel");
+        if (panel.parentElement !== panels) panels.appendChild(panel);
+      }
+    });
+
+    if (!tabs.dataset.activeTab) tabs.dataset.activeTab = "dm";
+    if (tabs.dataset.mobileSwipeBound !== "true") {
+      tabs.dataset.mobileSwipeBound = "true";
+      let gesture = null;
+      const excluded = "button,a,input,textarea,select,[contenteditable='true'],[draggable='true'],.panelCtrlBtn,.panelResizeBtn,.dmTab,.dmTabRow,.chatResizeHandle";
+      panels.addEventListener("pointerdown", (event) => {
+        if (!UI.isMobilePanelMode || !UI.isMobilePanelMode() || event.button !== 0) return;
+        if (event.target && event.target.closest && event.target.closest(excluded)) return;
+        gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, handled: false };
+      });
+      panels.addEventListener("pointermove", (event) => {
+        if (!gesture || gesture.id !== event.pointerId || gesture.handled) return;
+        const dx = event.clientX - gesture.x;
+        const dy = event.clientY - gesture.y;
+        if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+        gesture.handled = true;
+        if (event.cancelable) event.preventDefault();
+        const index = MOBILE_GAME_TABS.findIndex((item) => item.key === tabs.dataset.activeTab);
+        const next = Math.max(0, Math.min(MOBILE_GAME_TABS.length - 1, index + (dx < 0 ? 1 : -1)));
+        if (next !== index) setActive(MOBILE_GAME_TABS[next].key, false, true);
+      }, { passive: false });
+      const finishGesture = (event) => {
+        if (gesture && gesture.id === event.pointerId) gesture = null;
+      };
+      panels.addEventListener("pointerup", finishGesture);
+      panels.addEventListener("pointercancel", finishGesture);
+    }
+
+    setActive(tabs.dataset.activeTab, false);
+    return { tabs, panels };
+  }
+
   function ensureMobilePinnedChatLayout(){
     const mq = window.matchMedia ? window.matchMedia("(max-width: 860px)") : null;
     const isMobile = () => (mq ? mq.matches : (window.innerWidth <= 860));
@@ -1535,10 +1726,8 @@ window.Game = window.Game || {};
     const menu = getMenuBlockEl();
     if (!root || !topBar || !chat || !handle) return;
 
-    const MIN_CHAT_HEIGHT = 220;
-    const RESERVED_BELOW_CHAT = 150;
-    const DEFAULT_CHAT_RATIO = 0.52;
-    const MOBILE_GAP = 10;
+    const DEFAULT_CHAT_RATIO = 0.45;
+    const MOBILE_GAP = 8;
     let chatHeight = Number.parseFloat(root.style.getPropertyValue("--mobile-chat-height")) || 0;
     let dragging = false;
     let dragStartY = 0;
@@ -1546,7 +1735,18 @@ window.Game = window.Game || {};
 
     const visualViewportHeight = () => {
       const vv = window.visualViewport;
-      return Math.max(320, Math.round((vv && vv.height) ? vv.height : window.innerHeight));
+      return Math.max(1, Math.round((vv && vv.height) ? vv.height : window.innerHeight));
+    };
+
+    const safeArea = (name) => {
+      try {
+        const probe = document.createElement("div");
+        probe.style.cssText = `position:fixed;visibility:hidden;padding-${name}:env(safe-area-inset-${name}, 0px)`;
+        document.body.appendChild(probe);
+        const value = Number.parseFloat(getComputedStyle(probe)[`padding${name[0].toUpperCase()}${name.slice(1)}`]) || 0;
+        probe.remove();
+        return value;
+      } catch (_) { return 0; }
     };
 
     const topbarHeight = () => Math.max(44, Math.ceil(topBar.getBoundingClientRect().height || topBar.offsetHeight || 58));
@@ -1555,26 +1755,58 @@ window.Game = window.Game || {};
       const h = Math.ceil(menu.getBoundingClientRect().height || menu.offsetHeight || 0);
       return h > 0 ? h + MOBILE_GAP : 0;
     };
-    const maxChatHeight = () => Math.max(MIN_CHAT_HEIGHT, visualViewportHeight() - topbarHeight() - menuStackHeight() - RESERVED_BELOW_CHAT);
-    const clampChatHeight = (value) => Math.max(MIN_CHAT_HEIGHT, Math.min(maxChatHeight(), Math.round(value)));
+    const layoutLimits = () => {
+      const vv = window.visualViewport;
+      const keyboardOpen = !!(vv && window.innerHeight - vv.height > 120);
+      const chatHeader = document.getElementById("chatHeader");
+      const chatInputRow = document.getElementById("chatInputRow");
+      const handleHeight = handle.getBoundingClientRect().height || 18;
+      const headerHeight = chatHeader ? chatHeader.getBoundingClientRect().height : 44;
+      const inputHeight = chatInputRow ? chatInputRow.getBoundingClientRect().height : 62;
+      const chatMin = Math.ceil((keyboardOpen ? Math.min(headerHeight, 40) : headerHeight)
+        + (keyboardOpen ? Math.min(inputHeight, 48) : inputHeight)
+        + handleHeight + (keyboardOpen ? 18 : 56));
+      const panelMin = 152;
+      const top = safeArea("top") + 10 + topbarHeight() + MOBILE_GAP + menuStackHeight();
+      const bottom = safeArea("bottom") + 10 + MOBILE_GAP + panelMin;
+      return { keyboardOpen, chatMin, panelMin, maxChat: Math.max(chatMin, visualViewportHeight() - top - bottom) };
+    };
+    const clampChatHeight = (value) => {
+      const limits = layoutLimits();
+      return Math.max(limits.chatMin, Math.min(limits.maxChat, Math.round(value)));
+    };
 
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
+        document.body.classList.remove("mobile-keyboard-open");
         root.style.removeProperty("--mobile-topbar-height");
         root.style.removeProperty("--mobile-menu-stack-height");
         root.style.removeProperty("--mobile-chat-height");
+        root.style.removeProperty("--mobile-chat-min");
+        root.style.removeProperty("--mobile-chat-max");
+        root.style.removeProperty("--mobile-panel-min");
+        root.style.removeProperty("--mobile-viewport-offset-top");
+        root.style.removeProperty("--mobile-viewport-inset-bottom");
         return;
       }
 
+      const limits = layoutLimits();
+      document.body.classList.toggle("mobile-keyboard-open", limits.keyboardOpen);
       const topHeight = topbarHeight();
       const menuHeight = menuStackHeight();
       root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
       root.style.setProperty("--mobile-menu-stack-height", `${menuHeight}px`);
-      root.style.setProperty("--mobile-chat-min", `${MIN_CHAT_HEIGHT}px`);
-      root.style.setProperty("--mobile-chat-max", `${maxChatHeight()}px`);
+      root.style.setProperty("--mobile-chat-min", `${limits.chatMin}px`);
+      root.style.setProperty("--mobile-chat-max", `${limits.maxChat}px`);
+      root.style.setProperty("--mobile-panel-min", `${limits.panelMin}px`);
+      const vv = window.visualViewport;
+      const offsetTop = vv ? Math.max(0, Math.round(vv.offsetTop || 0)) : 0;
+      const insetBottom = vv ? Math.max(0, Math.round(window.innerHeight - offsetTop - visualViewportHeight())) : 0;
+      root.style.setProperty("--mobile-viewport-offset-top", `${offsetTop}px`);
+      root.style.setProperty("--mobile-viewport-inset-bottom", `${insetBottom}px`);
 
-      if (!chatHeight) chatHeight = visualViewportHeight() * DEFAULT_CHAT_RATIO;
+      if (!chatHeight) chatHeight = (visualViewportHeight() - topHeight - menuHeight - 42) * DEFAULT_CHAT_RATIO;
       if (Number.isFinite(requestedHeight)) chatHeight = requestedHeight;
       chatHeight = clampChatHeight(chatHeight);
       root.style.setProperty("--mobile-chat-height", `${chatHeight}px`);
@@ -1600,7 +1832,7 @@ window.Game = window.Game || {};
         e.preventDefault();
         dragging = true;
         dragStartY = e.clientY;
-        dragStartHeight = chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT;
+        dragStartHeight = chat.getBoundingClientRect().height || chatHeight || layoutLimits().chatMin;
         chat.classList.add("is-resizing");
         try { handle.setPointerCapture(e.pointerId); } catch (_) {}
       });
@@ -1610,14 +1842,19 @@ window.Game = window.Game || {};
         if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
         e.preventDefault();
         const delta = e.key === "ArrowUp" ? -24 : 24;
-        sync((chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT) + delta);
+        sync((chat.getBoundingClientRect().height || chatHeight || layoutLimits().chatMin) + delta);
       });
 
       document.addEventListener("pointermove", onPointerMove, { passive: false });
       document.addEventListener("pointerup", onPointerUp);
       window.addEventListener("resize", () => sync());
       window.addEventListener("orientationchange", () => setTimeout(() => sync(), 80));
-      if (window.visualViewport) window.visualViewport.addEventListener("resize", () => sync());
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", () => sync());
+        window.visualViewport.addEventListener("scroll", () => sync());
+      }
+      document.addEventListener("focusin", () => setTimeout(() => sync(), 0));
+      document.addEventListener("focusout", () => setTimeout(() => sync(), 0));
       if (mq && mq.addEventListener) mq.addEventListener("change", () => sync());
       else if (mq && mq.addListener) mq.addListener(() => sync());
     }
@@ -1626,6 +1863,7 @@ window.Game = window.Game || {};
   }
 
   UI.ensureMobilePinnedChatLayout = ensureMobilePinnedChatLayout;
+  UI.ensureMobileGameTabs = ensureMobileGameTabs;
 
   function ensureRightScrollBar(){
     const right = document.getElementById("right");
@@ -2005,6 +2243,7 @@ window.Game = window.Game || {};
 
       if (UI.renderLocations) UI.renderLocations();
       if (UI.renderDM && S.dm.open) UI.renderDM();
+      ensureMobileGameTabs();
       ensureMobilePinnedChatLayout();
       ensureRightScrollBar();
       try { if (UI.ensureClearButtons) UI.ensureClearButtons(document); } catch (_) {}

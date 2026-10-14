@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mobile shell regression runner</title>
+  <style>
+    body{font:14px/1.4 system-ui,sans-serif;margin:12px;color:#17202a}
+    #report{white-space:pre-wrap;margin:10px 0;padding:10px;border:1px solid #8795a1;border-radius:8px}
+    #appFrame{display:block;border:1px solid #7a8790;max-width:none;max-height:none}
+    .pass{color:#126b35}.fail{color:#ad1d1d}
+    body.show-fixture-only{margin:0;padding:0;width:390px;overflow:hidden}
+    body.show-fixture-only h1,body.show-fixture-only #identity,body.show-fixture-only #report{display:none}
+    body.show-fixture-only #appFrame{transform:scale(.82);transform-origin:top left;border:0}
+  </style>
+</head>
+<body>
+  <h1>Mobile shell regression runner</h1>
+  <p id="identity">Initializing Codex Browser viewport fixtures…</p>
+  <pre id="report" aria-live="polite">RUNNING</pre>
+  <iframe id="appFrame" title="Asynchronia viewport fixture"></iframe>
+  <script>
+  (() => {
+    const sizes = [
+      [320,568,"mobile"],[360,640,"mobile"],[390,844,"mobile"],[430,932,"mobile"],
+      [768,1024,"tablet"],[1280,720,"desktop"],[1440,900,"desktop"],
+    ];
+    const requestedView = new URLSearchParams(location.search).get("view");
+    document.body.classList.toggle("show-fixture-only", requestedView !== null);
+    const selectedRuns = requestedView === null
+      ? sizes.map((size,index) => [index,size])
+      : [[Number(requestedView),sizes[Number(requestedView)]]].filter((entry) => entry[1]);
+    const report = document.getElementById("report");
+    const identity = document.getElementById("identity");
+    const frame = document.getElementById("appFrame");
+    const results = [];
+    const runId = new URLSearchParams(location.search).get("run") || String(Date.now());
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const assert = (condition, code, details) => ({ pass: !!condition, code, details: details || "" });
+    const rect = (node) => {
+      const value = node && node.getBoundingClientRect();
+      return value ? { x: Math.round(value.x), y: Math.round(value.y), width: Math.round(value.width), height: Math.round(value.height) } : null;
+    };
+    const dispatchDrag = (target, start, end, pointerId) => {
+      const common = { bubbles:true,cancelable:true,pointerId,pointerType:"touch",button:0,isPrimary:true };
+      target.dispatchEvent(new PointerEvent("pointerdown", Object.assign({},common,{clientX:start[0],clientY:start[1]})));
+      target.dispatchEvent(new PointerEvent("pointermove", Object.assign({},common,{clientX:end[0],clientY:end[1]})));
+      target.dispatchEvent(new PointerEvent("pointerup", Object.assign({},common,{clientX:end[0],clientY:end[1]})));
+    };
+    const loadSize = async ([width,height,kind], index) => {
+      frame.style.width = `${width}px`;
+      frame.style.height = `${height}px`;
+      await new Promise((resolve) => {
+        frame.onload = resolve;
+        frame.src = `/AsyncScene/index.html?mobileShellRegression=${index}`;
+      });
+      await wait(250);
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;
+      const game = win && win.Game;
+      const ui = game && game.UI;
+      if (doc && !doc.querySelector(`link[data-mobile-regression-style="${index}"]`)) {
+        await new Promise((resolve) => {
+          const freshStyle = doc.createElement("link");
+          freshStyle.rel = "stylesheet";
+          freshStyle.dataset.mobileRegressionStyle = String(index);
+          freshStyle.href = `/AsyncScene/style-base.css?mobileShellRegressionStyle=${runId}-${index}`;
+          freshStyle.onload = resolve;
+          freshStyle.onerror = resolve;
+          doc.head.appendChild(freshStyle);
+        });
+        ui.ensureMobilePinnedChatLayout();
+      }
+      const state = game && game.__S;
+      const uiInitialState = ui ? {
+        activeTab:doc.getElementById("mobileGameTabs")?.dataset.activeTab || "dm",
+        dmOpen:state && state.dm ? state.dm.open : undefined,
+        menuOpen:state && state.flags ? state.flags.menuOpen : undefined,
+        battleInvite:ui._battleInvite ? Object.assign({},ui._battleInvite) : undefined,
+      } : {};
+      const initialFlags = state && state.flags ? {
+        stage715Demo:state.flags.stage715Demo,
+        manifestOpen:state.flags.manifestOpen,
+      } : {};
+      const tabs = doc && doc.getElementById("mobileGameTabs");
+      const panels = doc && doc.getElementById("mobileGamePanels");
+      const top = doc && doc.getElementById("topBar");
+      const menuButton = doc && doc.getElementById("btnMenu");
+      const chat = doc && doc.getElementById("left");
+      const blocks = doc && doc.getElementById("blocks");
+      const handle = doc && doc.getElementById("chatResizeHandle");
+      const mobile = width <= 860;
+      const stageLocked = doc.documentElement.classList.contains("stage7-first-experience-active");
+      if (stageLocked) {
+        doc.documentElement.classList.remove("stage7-first-experience-active");
+        ui.ensureMobileGameTabs();
+        ui.ensureMobilePinnedChatLayout();
+      }
+      const checks = [];
+      const bounds = { top:rect(top),menu:rect(menuButton),chat:rect(chat),tabs:rect(tabs),panels:rect(panels),lower:rect(blocks),splitter:rect(handle) };
+      const dims = { width:win && win.innerWidth,height:win && win.innerHeight,scrollWidth:doc && doc.documentElement.scrollWidth };
+      checks.push(assert(!!game && !!ui, "app_booted"));
+      checks.push(assert(dims.width === width && dims.height === height, "fixture_viewport_exact", JSON.stringify(dims)));
+      checks.push(assert(dims.scrollWidth <= width, "no_horizontal_overflow", `${dims.scrollWidth}/${width}`));
+      if (mobile) {
+        checks.push(assert(tabs && win.getComputedStyle(tabs).display !== "none" && bounds.tabs.height >= 40, "three_tabs_visible", JSON.stringify(bounds.tabs)));
+        checks.push(assert(tabs && tabs.querySelectorAll('[role="tab"]').length === 3, "exactly_three_tabs"));
+        checks.push(assert(top && bounds.top.height > 0 && win.getComputedStyle(top).display !== "none", "topbar_visible", JSON.stringify(bounds.top)));
+        checks.push(assert(menuButton && bounds.menu.height > 0 && bounds.menu.x >= 0 && bounds.menu.x + bounds.menu.width <= width, "menu_button_visible_inside_viewport", JSON.stringify(bounds.menu)));
+        checks.push(assert(chat && bounds.chat.height > 0 && win.getComputedStyle(chat).display !== "none", "chat_visible", JSON.stringify(bounds.chat)));
+        checks.push(assert(handle && win.getComputedStyle(handle).display !== "none" && bounds.splitter.height >= 16, "splitter_visible", JSON.stringify(bounds.splitter)));
+        const buttons = Array.from(tabs.querySelectorAll('[role="tab"]'));
+        const labels = buttons.map((button) => button.querySelector(".mobileGameTab__label")?.textContent.trim());
+        checks.push(assert(labels.join("|") === "Личка|Баттлы|События", "tab_order_and_labels", labels.join("|")));
+        const activePanels = Array.from(panels.querySelectorAll(":scope > .mobileGamePanel--active"));
+        checks.push(assert(activePanels.length === 1, "exactly_one_active_panel", String(activePanels.length)));
+        const counterSources = ["dmHeaderCount","battleCount","eventsHeaderCount"];
+        const counterMatches = buttons.every((button,index) => {
+          const source = doc.getElementById(counterSources[index]);
+          const sourceDigits = String(source && source.textContent || "").match(/\d+/)?.[0] || "";
+          const badge = button.querySelector(".mobileGameTab__count");
+          return badge && badge.textContent === sourceDigits;
+        });
+        checks.push(assert(counterMatches, "tab_counts_follow_existing_sources"));
+        const sourceSnapshots = counterSources.map((id) => {
+          const node = doc.getElementById(id);
+          return node ? { node, text:node.textContent } : null;
+        });
+        sourceSnapshots.forEach((snapshot) => { if (snapshot) snapshot.node.textContent = " (9) "; });
+        ui.ensureMobileGameTabs();
+        const countersRefresh = buttons.every((button) => button.querySelector(".mobileGameTab__count")?.textContent === "9");
+        sourceSnapshots.forEach((snapshot) => { if (snapshot) snapshot.node.textContent = snapshot.text; });
+        ui.ensureMobileGameTabs();
+        checks.push(assert(countersRefresh, "tab_counts_refresh_from_existing_sources"));
+
+        const refs = { chat:state.chat,battles:state.battles,events:state.events,dmLogs:state.dm.logs };
+        buttons[1].click();
+        const clickSelected = buttons.filter((button) => button.getAttribute("aria-selected") === "true").map((button) => button.dataset.mobileTab);
+        checks.push(assert(clickSelected.join() === "battles", "single_tap_switches_tab", clickSelected.join()));
+        const gameEntitiesPreserved = state.chat === refs.chat && state.battles === refs.battles && state.events === refs.events && state.dm.logs === refs.dmLogs;
+        checks.push(assert(gameEntitiesPreserved, "gameplay_entity_state_preserved"));
+
+        buttons[1].click();
+        const inviteButton = doc.querySelector("#battlesBody .actions button");
+        if (inviteButton) {
+          inviteButton.click();
+          await wait(40);
+          const inviteOpenedOnFirstClick = !!doc.getElementById("battleInviteInput");
+          checks.push(assert(inviteOpenedOnFirstClick,"game_action_entry_opens_on_first_click"));
+          if (ui._battleInvite) ui._battleInvite.open = false;
+          if (ui.renderBattles) ui.renderBattles();
+        } else checks.push(assert(false,"game_action_entry_available"));
+
+        const scrollBody = doc.getElementById("battlesBody");
+        if (scrollBody && scrollBody.scrollHeight > scrollBody.clientHeight + 1) {
+          scrollBody.scrollTop = Math.min(48, scrollBody.scrollHeight - scrollBody.clientHeight);
+          buttons[1].click();
+          const savedScrollTop = scrollBody.scrollTop;
+          buttons[2].click();
+          buttons[1].click();
+          checks.push(assert(scrollBody.scrollTop === savedScrollTop, "panel_scroll_position_preserved", `${scrollBody.scrollTop}/${savedScrollTop}`));
+        }
+        buttons[1].click();
+
+        dispatchDrag(panels,[Math.round(width*.75),Math.round(height*.6)],[Math.round(width*.35),Math.round(height*.6)+2],101);
+        let selectedAfterSwipe = buttons.filter((button) => button.getAttribute("aria-selected") === "true").map((button) => button.dataset.mobileTab);
+        checks.push(assert(selectedAfterSwipe.join() === "events", "horizontal_swipe_switches_tab", selectedAfterSwipe.join()));
+        dispatchDrag(panels,[Math.round(width*.5),Math.round(height*.6)],[Math.round(width*.5)+4,Math.round(height*.6)+90],102);
+        selectedAfterSwipe = buttons.filter((button) => button.getAttribute("aria-selected") === "true").map((button) => button.dataset.mobileTab);
+        checks.push(assert(selectedAfterSwipe.join() === "events", "vertical_drag_does_not_switch", selectedAfterSwipe.join()));
+        dispatchDrag(buttons[0],[width-35,Math.round(height*.6)],[width-110,Math.round(height*.6)],103);
+        selectedAfterSwipe = buttons.filter((button) => button.getAttribute("aria-selected") === "true").map((button) => button.dataset.mobileTab);
+        checks.push(assert(selectedAfterSwipe.join() === "events", "interactive_tab_drag_not_intercepted", selectedAfterSwipe.join()));
+
+        const chatBefore = chat.getBoundingClientRect().height;
+        dispatchDrag(handle,[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8)],[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom+28)],104);
+        const chatAfter = chat.getBoundingClientRect().height;
+        const chatMin = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-chat-min")) || 0;
+        const panelMin = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-panel-min")) || 0;
+        checks.push(assert(chatAfter !== chatBefore, "splitter_drag_changes_chat_height", `${Math.round(chatBefore)}->${Math.round(chatAfter)}; handle=${JSON.stringify(bounds.splitter)}`));
+        checks.push(assert(chatAfter >= chatMin && blocks.getBoundingClientRect().height >= panelMin, "splitter_minimum_heights", `${Math.round(chatAfter)}/${chatMin}; ${Math.round(blocks.getBoundingClientRect().height)}/${panelMin}`));
+
+        if (index === 2) {
+          const menuBlock = doc.getElementById("menuBlock");
+          const menuButton = doc.getElementById("btnMenu");
+          if (menuButton && win.getComputedStyle(menuButton).display !== "none") {
+            ui.hideMenu();
+            menuButton.click();
+            await wait(40);
+            const menuOpened = doc.getElementById("menuBlock").classList.contains("menu-open");
+            checks.push(assert(menuOpened, "menu_opens", `stageLocked=${stageLocked}`));
+            if (menuOpened && goalButtonExists(doc)) {
+              const goalButton = doc.getElementById("btnManifestToggle");
+              goalButton.click();
+              const goal = doc.getElementById("manifestBody");
+              const normalOpen = goal && !goal.hidden && goal.getAttribute("aria-hidden") === "false" && goal.getBoundingClientRect().height > 0;
+              checks.push(assert(normalOpen,"goal_visible_when_open",JSON.stringify({stageLockedAtLoad:stageLocked,ancestors:describeAncestors(goal,win)})));
+            }
+            menuButton.click();
+            await wait(40);
+            checks.push(assert(!doc.getElementById("menuBlock").classList.contains("menu-open"), "menu_closes"));
+            state.flags = state.flags || {};
+            state.flags.stage715Demo = true;
+            state.flags.manifestOpen = true;
+            ui.showMenu();
+            ui.renderMenu();
+            const goal = doc.getElementById("manifestBody");
+            if (goal) {
+              goal.style.flex = "0 1 auto";
+              goal.textContent = "Цель - стать значимой фигурой в этом мире: наращивать влияние, строить связи и менять расклад вокруг себя.";
+              const mainCopyHeight = Math.round(goal.getBoundingClientRect().height);
+              goal.textContent = "Создай свою историю в Асинхронии. Вступай в конфликты, выбирай, кого поддерживать, и решай, чего добиваться. Здесь важна не только победа, но и её последствия.";
+              const pr427CopyHeight = Math.round(goal.getBoundingClientRect().height);
+              goal.style.removeProperty("flex");
+              ui.renderMenu();
+              checks.push(assert(mainCopyHeight === 0 && pr427CopyHeight === 0,"goal_copy_does_not_cause_zero_height",JSON.stringify({mainCopyHeight,pr427CopyHeight,manifestOpen:state.flags.manifestOpen,hidden:goal.hidden,aria:goal.getAttribute("aria-hidden")})));
+            } else checks.push(assert(false,"goal_block_available_for_same_condition_comparison"));
+            ui.hideMenu();
+          } else checks.push(assert(false,"menu_button_available"));
+          const input = doc.getElementById("chatInput");
+          const vv = win.visualViewport;
+          let visualViewportResponsive = false;
+          try {
+            const original = Object.getOwnPropertyDescriptor(win,"visualViewport");
+            Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(120,height-180),offsetTop:24,addEventListener(){}}});
+            ui.ensureMobilePinnedChatLayout();
+            visualViewportResponsive = doc.body.classList.contains("mobile-keyboard-open")
+              && Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-panel-min")) === 152
+              && Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-viewport-offset-top")) === 24
+              && Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-viewport-inset-bottom")) > 0;
+            if (original) Object.defineProperty(win,"visualViewport",original);
+            else delete win.visualViewport;
+            ui.ensureMobilePinnedChatLayout();
+          } catch (error) { visualViewportResponsive = false; }
+          checks.push(assert(visualViewportResponsive,"visual_viewport_keyboard_compaction"));
+          checks.push(assert(!!input && input.getAttribute("placeholder"),"chat_input_remains_labeled"));
+
+          const hintTarget = doc.querySelector("#balance [data-stat-hover-hint]");
+          if (hintTarget) {
+            const common = { bubbles:true,cancelable:true,pointerId:201,pointerType:"touch",button:0,isPrimary:true,clientX:10,clientY:10 };
+            hintTarget.dispatchEvent(new PointerEvent("pointerdown",common));
+            hintTarget.dispatchEvent(new PointerEvent("pointerup",common));
+            hintTarget.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+            const shortTapNoHint = !doc.getElementById("statHoverHint") || doc.getElementById("statHoverHint").hidden;
+            const hold = Object.assign({},common,{pointerId:202});
+            hintTarget.dispatchEvent(new PointerEvent("pointerdown",hold));
+            await wait(560);
+            hintTarget.dispatchEvent(new PointerEvent("pointerup",hold));
+            hintTarget.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+            const hint = doc.getElementById("statHoverHint");
+            checks.push(assert(shortTapNoHint,"short_stat_tap_does_not_open_hint"));
+            checks.push(assert(hint && !hint.hidden && hint.getAttribute("aria-hidden") === "false","long_press_opens_hint"));
+            doc.body.dispatchEvent(new PointerEvent("pointerdown",Object.assign({},common,{pointerId:203})));
+          } else checks.push(assert(false,"stat_hint_target_available"));
+
+          state.flags = state.flags || {};
+          state.flags.stage715Demo = true;
+          state.flags.manifestOpen = false;
+          ui.renderMenu();
+          doc.documentElement.classList.add("stage7-first-experience-active");
+          ui.ensureMobileGameTabs();
+          const goal = doc.getElementById("manifestBody");
+          const goalClosed = goal && goal.hidden && goal.getAttribute("aria-hidden") === "true";
+          const goalParentHidden = menuBlock && win.getComputedStyle(menuBlock).display === "none";
+          const closedHeight = goal && Math.round(goal.getBoundingClientRect().height);
+          state.flags.manifestOpen = true;
+          ui.renderMenu();
+          const openWhileLocked = goal && !goal.hidden && goal.getAttribute("aria-hidden") === "false";
+          const lockedHeight = goal && Math.round(goal.getBoundingClientRect().height);
+          const rootCause = goalClosed && goalParentHidden && closedHeight === 0 && openWhileLocked && lockedHeight === 0;
+          checks.push(assert(rootCause,"manifest_zero_height_parent_lock",JSON.stringify({closed:goalClosed,closedHeight,openWhileLocked,lockedHeight,parentDisplay:menuBlock && win.getComputedStyle(menuBlock).display,stageClass:doc.documentElement.classList.contains("stage7-first-experience-active")})));
+        }
+        doc.documentElement.classList.toggle("stage7-first-experience-active", stageLocked);
+        if (index === 2) {
+          state.flags.stage715Demo = initialFlags.stage715Demo;
+          state.flags.manifestOpen = initialFlags.manifestOpen;
+          ui.renderMenu();
+        }
+        if (state.dm && uiInitialState.dmOpen !== undefined) {
+          state.dm.open = uiInitialState.dmOpen;
+          ui.renderDM();
+        }
+        state.flags = state.flags || {};
+        state.flags.menuOpen = !!uiInitialState.menuOpen;
+        if (ui._battleInvite && ui._battleInvite._clickOutsideHandler) {
+          doc.removeEventListener("click", ui._battleInvite._clickOutsideHandler, true);
+        }
+        if (ui._battleInvite && ui._battleInvite._clickOutsideTimer) clearTimeout(ui._battleInvite._clickOutsideTimer);
+        const orphanInviteDropdown = doc.getElementById("battleInviteDropdown");
+        if (orphanInviteDropdown) orphanInviteDropdown.remove();
+        ui._battleInvite = uiInitialState.battleInvite;
+        if (ui.renderBattles) ui.renderBattles();
+        if (uiInitialState.menuOpen) ui.showMenu();
+        else ui.hideMenu();
+        const restoreTabs = doc.getElementById("mobileGameTabs");
+        if (restoreTabs) restoreTabs.dataset.activeTab = uiInitialState.activeTab;
+        ui.ensureMobileGameTabs();
+        ui.ensureMobilePinnedChatLayout();
+      } else {
+        checks.push(assert(tabs && win.getComputedStyle(tabs).display === "none", "desktop_tab_strip_hidden"));
+        checks.push(assert(panels && win.getComputedStyle(panels).display === "contents", "desktop_panels_keep_flow"));
+        checks.push(assert(chat && top && bounds.chat.height > 0 && bounds.top.height > 0, "desktop_chat_and_topbar_visible"));
+        checks.push(assert(!handle || win.getComputedStyle(handle).display === "none", "desktop_splitter_hidden"));
+      }
+      const failures = checks.filter((item) => !item.pass);
+      results.push({ size:`${width}x${height}`,kind,passed:checks.length-failures.length,total:checks.length,failures,checks,bounds,dims });
+      report.textContent = results.map((result) => `${result.passed===result.total?"PASS":"FAIL"} ${result.size} ${result.kind}: ${result.passed}/${result.total}${result.failures.length?"\n  "+result.failures.map((item)=>`${item.code} ${item.details}`).join("\n  "):""}`).join("\n");
+      report.className = failures.length ? "fail" : "pass";
+      identity.textContent = `Codex Browser fixture ${width}×${height}; exact iframe viewport ${dims.width}×${dims.height}; app ${frame.contentDocument.title}`;
+      frame.contentWindow.scrollTo(0,0);
+      await wait(80);
+    };
+    (async () => {
+      for (const [index,size] of selectedRuns) await loadSize(size,index);
+      const total = results.reduce((sum,item)=>sum+item.total,0);
+      const passed = results.reduce((sum,item)=>sum+item.passed,0);
+      report.textContent += `\n\nTOTAL ${passed}/${total} ${passed===total?"PASS":"FAIL"}`;
+      identity.textContent = `Finished ${results.length} exact-size Codex Browser iframe runs. ` + results.map((item)=>`${item.size} ${item.passed}/${item.total}`).join("; ");
+      frame.title = `Asynchronia viewport fixture: ${report.textContent.replace(/\n/g," | ")}`;
+    })().catch((error) => {
+      report.className = "fail";
+      report.textContent += `\n\nRUNNER ERROR ${error && error.stack || error}`;
+    });
+  })();
+  function goalButtonExists(doc){ return !!doc.getElementById("btnManifestToggle"); }
+  function menuBlockDisplay(doc,win){ const menu=doc.getElementById("menuBlock");return menu&&win.getComputedStyle(menu).display; }
+  function describeAncestors(node,win){const out=[];for(let item=node;item&&out.length<5;item=item.parentElement){const css=win.getComputedStyle(item),r=item.getBoundingClientRect();out.push({id:item.id,className:String(item.className||""),hidden:item.hidden,aria:item.getAttribute("aria-hidden"),display:css.display,height:Math.round(r.height),maxHeight:css.maxHeight,overflow:css.overflow,textLength:(item.textContent||"").length});}return out;}
+  </script>
+</body>
+</html>
