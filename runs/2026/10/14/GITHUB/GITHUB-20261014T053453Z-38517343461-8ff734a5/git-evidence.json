@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:53Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:53Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:53Z",
+      "stderr": "",
+      "stdout": "ba37bd03bc4b129ba4f9764760fd040115497a97\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:54Z",
+      "stderr": "",
+      "stdout": "# branch.oid ba37bd03bc4b129ba4f9764760fd040115497a97\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:54Z",
+      "stderr": "",
+      "stdout": "ba37bd03 (HEAD, pull/426/merge) Merge 467ebac408545dcf443d79fa4807ce9783f6d94c into 28b6a25ce9459b8ab223b72d7dc9977d785c46bd\n467ebac4 (origin/codex/atom7-instant-hover-toasts-20261014) Attach cap hints to focused stat icons\ne6d5c229 Make toast hover hints instant\n28b6a25c (origin/main) Remove redundant voting prompt in all vote surfaces (#424)\n21870c79 Fix Stage 7.15 Rayhan tutorial battle and voting (#421)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:54Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ba37bd03bc4b129ba4f9764760fd040115497a97\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:54Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T05:34:54Z",
+      "stderr": "",
+      "stdout": "28b6a25ce9459b8ab223b72d7dc9977d785c46bd\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ba37bd03bc4b129ba4f9764760fd040115497a97",
+  "observedAtUtc": "2026-10-14T05:34:54Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
