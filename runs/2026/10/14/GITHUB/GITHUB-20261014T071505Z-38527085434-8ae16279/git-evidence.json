@@ -1,0 +1,106 @@
+{
+  "branch": "codex/onboarding-goal-copy-ru-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "codex/onboarding-goal-copy-ru-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "3705ffd501056bb828891dd848dfd0fdaf32d8bd\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3705ffd501056bb828891dd848dfd0fdaf32d8bd\n# branch.head codex/onboarding-goal-copy-ru-20261014\n# branch.upstream origin/codex/onboarding-goal-copy-ru-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "3705ffd5 (HEAD -> codex/onboarding-goal-copy-ru-20261014, origin/codex/onboarding-goal-copy-ru-20261014) Update onboarding goal copy\n0d9dd246 (origin/main) ATOM 7: instant hover hints on stat and toast surfaces (#426)\n28b6a25c Remove redundant voting prompt in all vote surfaces (#424)\n21870c79 Fix Stage 7.15 Rayhan tutorial battle and voting (#421)\n7e4f9548 Use Уйти / Остаться for Stage 7.15 escape votes (#420)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3705ffd501056bb828891dd848dfd0fdaf32d8bd\nbranch refs/heads/codex/onboarding-goal-copy-ru-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T07:15:05Z",
+      "stderr": "",
+      "stdout": "0d9dd246bb37444bf5073363c4e499393f0b80ff\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3705ffd501056bb828891dd848dfd0fdaf32d8bd",
+  "observedAtUtc": "2026-10-14T07:15:05Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
