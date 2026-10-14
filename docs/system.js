@@ -112,13 +112,13 @@ window.Game = window.Game || {};
       npcArrestToxic: "Токсик: {target} закрыт.",
       npcArrestCrowd: "Толпа: {target} закрыт.",
       p2pBacklogReason: "P2P: анти-абуз.",
-      startTitle: "AsyncScene",
-      startIntroPick: "Оппонент задаёт риск.",
-      startIntroStake: "Ставка списывает ресурс.",
+      startTitle: "Асинхрония",
+      startIntroPick: "Здесь легко оказаться в центре чужого конфликта.",
+      startIntroStake: "Кому верить, кого поддержать и как ответить - решать тебе.",
       startIntroResult: "Итог виден сразу.",
       startEconomyHonesty: "Цена и итог сразу.",
-      startActionStart: "Старт",
-      startActionRules: "Суть",
+      startActionStart: "Начать",
+      startActionRules: "Что за игра?",
     }),
   });
 
@@ -2434,8 +2434,8 @@ window.Game = window.Game || {};
     const commit = (typeof window !== "undefined" && window.__COMMIT__) || Game.__commit || (Game.__DEV && Game.__DEV.commit) || null;
     const smokeVersion = `step4_3_zoomer_button_terms_v1_${buildTag}_commit_${commit}`;
     const entries = Object.freeze([
-      { source: "Data.START_SCREEN.actions.start", label: "Старт" },
-      { source: "Data.START_SCREEN.actions.rules", label: "Суть" },
+      { source: "Data.START_SCREEN.actions.start", label: "Начать" },
+      { source: "Data.START_SCREEN.actions.rules", label: "Что за игра?" },
       { source: "Data.TEXTS.genz.events_close_extra", label: "Свернуть" },
       { source: "Data.TEXTS.genz.escape_button_label", label: "Свалить: {X} 💰" },
       { source: "UI.chat.send", label: "Заслать" },
@@ -4606,13 +4606,13 @@ window.Game = window.Game || {};
       return getPath(Game, normalizedSource);
     };
     const auditedRows = Object.freeze([
-      Object.freeze({ id: "start_title", surface: "startScreen", source: "Data.START_SCREEN.title", expected: "AsyncScene" }),
-      Object.freeze({ id: "start_intro_pick", surface: "startScreen", source: "Data.START_SCREEN.introLines.0", expected: "Оппонент задаёт риск." }),
-      Object.freeze({ id: "start_intro_stake", surface: "startScreen", source: "Data.START_SCREEN.introLines.1", expected: "Ставка списывает ресурс." }),
+      Object.freeze({ id: "start_title", surface: "startScreen", source: "Data.START_SCREEN.title", expected: "Асинхрония" }),
+      Object.freeze({ id: "start_intro_pick", surface: "startScreen", source: "Data.START_SCREEN.introLines.0", expected: "Здесь легко оказаться в центре чужого конфликта." }),
+      Object.freeze({ id: "start_intro_stake", surface: "startScreen", source: "Data.START_SCREEN.introLines.1", expected: "Кому верить, кого поддержать и как ответить - решать тебе." }),
       Object.freeze({ id: "start_intro_result", surface: "startScreen", source: "Data.START_SCREEN.introLines.2", expected: "Итог виден сразу." }),
       Object.freeze({ id: "start_economy_honesty", surface: "startScreen", source: "Data.START_SCREEN.economyHonestyLine", expected: "Цена и итог сразу." }),
-      Object.freeze({ id: "start_action_start", surface: "startScreen", source: "Data.START_SCREEN.actions.start", expected: "Старт" }),
-      Object.freeze({ id: "start_action_rules", surface: "startScreen", source: "Data.START_SCREEN.actions.rules", expected: "Суть" }),
+      Object.freeze({ id: "start_action_start", surface: "startScreen", source: "Data.START_SCREEN.actions.start", expected: "Начать" }),
+      Object.freeze({ id: "start_action_rules", surface: "startScreen", source: "Data.START_SCREEN.actions.rules", expected: "Что за игра?" }),
       Object.freeze({ id: "action_escape_needs_points", surface: "economyActionHonesty", source: "SystemCopy.warnings.escapeNeedsPoints", expected: "Не хватает 💰 на Свалить." }),
       Object.freeze({ id: "economy_report_reward", surface: "economyActionHonesty", source: "SystemCopy.notifications.reportTrueReward", expected: "Сдать {name}: +2💰." }),
       Object.freeze({ id: "economy_report_penalty", surface: "economyActionHonesty", source: "SystemCopy.errors.reportFalsePenalty", expected: "Штраф: -5 💰." }),

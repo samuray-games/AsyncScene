@@ -10,7 +10,7 @@ window.Game = window.Game || {};
     "Tori","Haru","Sen","Dara","Memelord","Sigma","Boss","Zzz","Kappa","Fox"
   ];
 
-  Data.START_SCREEN_TEXT_MAX_LENGTH = 36;
+  Data.START_SCREEN_TEXT_MAX_LENGTH = 96;
   Data.START_SCREEN = Object.freeze({
     title: systemSay("systemEvents", "startTitle"),
     introLines: Object.freeze([
@@ -34,10 +34,10 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       fantasy_birth_label: "Кажется, я родился в …",
-      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
-      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Старт",
+      start_start: "Начать",
       start_reset: "Сбросить старт",
       "introLines[0]": String((((Data.START_SCREEN || {}).introLines || [])[0]) == null ? "" : Data.START_SCREEN.introLines[0]),
       "introLines[1]": String((((Data.START_SCREEN || {}).introLines || [])[1]) == null ? "" : Data.START_SCREEN.introLines[1]),
@@ -55,19 +55,19 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Год нужен только для выбора стиля. Мы его не сохраняем, потом можно выбрать другой.",
       fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
-      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
-      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать вам.",
       start_continue: "Продолжить игру",
-      start_start: "Начать игру",
+      start_start: "Начать",
       start_reset: "Сбросить выбор",
-      rules_action: "Правила игры",
-      start_action: "Начать игру",
-      "introLines[0]": "Соперник определяет уровень риска.",
-      "introLines[1]": "Выбранная ставка списывается из запаса монет 💰.",
-      "introLines[2]": "Результат показывается сразу.",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
+      "introLines[0]": "Здесь легко оказаться в центре чужого конфликта.",
+      "introLines[1]": "Кому верить, кого поддержать и как ответить - решать вам.",
+      "introLines[2]": "У каждого поступка есть последствия.",
       economyHonestyLine: "Стоимость действия и его результат показываются сразу.",
       "actions.start": "Начать",
-      "actions.rules": "Правила",
+      "actions.rules": "Что за игра?",
     }),
     genX: Object.freeze({
       start_title: "Асинхрония",
@@ -78,13 +78,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
       fantasy_birth_label: "Год по ощущению",
-      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
-      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Поехали",
+      start_start: "Начать",
       start_reset: "Сбросить выбор",
-      rules_action: "Как тут всё устроено",
-      start_action: "Поехали",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     }),
     zoomer: Object.freeze({
       start_title: "Асинхрония",
@@ -95,13 +95,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для выбора стиля. Год не сохраняем, потом сменишь.",
       fantasy_birth_label: "по вайбу я родился в …",
-      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
-      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
+      start_start: "Начать",
       start_reset: "Сбросить выбор",
-      rules_action: "Как играть",
-      start_action: "В игру",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     }),
     alpha: Object.freeze({
       start_title: "Асинхрония",
@@ -112,13 +112,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "только стиль. год не сохраняем. сменить можно.",
       fantasy_birth_label: "Год по ощущению",
-      async_value: "асинхронная игра · играй когда хочешь",
-      no_simultaneous_required: "все онлайн сразу не нужны",
+      async_value: "Легко попасть в чужой конфликт.",
+      no_simultaneous_required: "Кого поддержать и что ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
+      start_start: "Начать",
       start_reset: "Сброс",
-      rules_action: "Правила",
-      start_action: "В игру",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     }),
   });
   Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
@@ -5654,7 +5654,7 @@ K YN A9: Нет.
           st.style.pointerEvents = "auto";
         }
         const b = btnStart();
-        if (b) b.textContent = getSeen() ? "Продолжить" : "Старт";
+        if (b) b.textContent = getSeen() ? "Продолжить игру" : "Начать";
         const r = btnReset();
         if (r) {
           r.textContent = "Сбросить старт";
@@ -5688,7 +5688,7 @@ K YN A9: Нет.
         idle();
         refresh();
         result.firstLaunchPrimaryText = text(btnStart());
-        result.freshStateShowsFirstLaunchOnboarding = visible(startScreen()) && result.firstLaunchPrimaryText === "Старт" && getSeen() === false;
+        result.freshStateShowsFirstLaunchOnboarding = visible(startScreen()) && result.firstLaunchPrimaryText === "Начать" && getSeen() === false;
         if (!result.freshStateShowsFirstLaunchOnboarding) fail("fresh_state_not_first_launch", { text: result.firstLaunchPrimaryText, seen: getSeen(), visible: visible(startScreen()) });
 
         result.startButtonEntersGame = clickStart() && !!(S && (S.isStarted === true || (S.flags && S.flags.started === true)));
@@ -5719,7 +5719,7 @@ K YN A9: Нет.
         const afterReset = progressResourceSnapshot();
         result.resetPreservesProgressResources = JSON.stringify(beforeReset) === JSON.stringify(afterReset);
         if (!result.resetPreservesProgressResources) fail("reset_wiped_progress_or_resources", { beforeReset, afterReset });
-        result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Старт";
+        result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Начать";
         if (!result.resetShowsFirstLaunchAgain) fail("reset_did_not_show_first_launch", { text: text(btnStart()), visible: visible(startScreen()) });
         result.noLoopNoStuckState = result.startButtonEntersGame && result.continueButtonEntersGame && result.resetShowsFirstLaunchAgain;
         if (!result.noLoopNoStuckState) fail("loop_or_stuck_state", null);
@@ -11160,8 +11160,8 @@ K YN A9: Нет.
           && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
           && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
           && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.rules_action.zoomer === "Правила коротко"
-          && startDom.samples.start_action.zoomer === "Войти");
+          && startDom.samples.rules_action.zoomer === "Что за игра?"
+          && startDom.samples.start_action.zoomer === "Начать");
         startDom.ok = startDom.routeConnected
           && startDom.noBirthYearSaved
           && startDom.noNewStorageKeys
@@ -11175,13 +11175,13 @@ K YN A9: Нет.
           && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
           && startDom.samples.start_continue.millennial === "Продолжить игру"
           && startDom.samples.start_continue.zoomer === "Продолжить игру"
-          && startDom.samples.start_start.default === "Старт"
-          && startDom.samples.start_start.millennial === "Старт"
-          && startDom.samples.start_start.zoomer === "Старт"
+          && startDom.samples.start_start.default === "Начать"
+          && startDom.samples.start_start.millennial === "Начать"
+          && startDom.samples.start_start.zoomer === "Начать"
           && startDom.samples.start_reset.millennial === "Сбросить старт"
           && startDom.samples.start_reset.zoomer === "Сбросить выбор"
-          && startDom.samples.rules_action.zoomer === "Правила коротко"
-          && startDom.samples.start_action.zoomer === "Войти"
+          && startDom.samples.rules_action.zoomer === "Что за игра?"
+          && startDom.samples.start_action.zoomer === "Начать"
           && startDom.usesStartScreenResolver === true
           && startDom.resolverLayer === "start_screen";
         result.startScreenChecks = startDom;
@@ -11326,10 +11326,10 @@ K YN A9: Нет.
           profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
           fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
           start_continue: { millennial: "Продолжить игру", zoomer: "Продолжить игру" },
-          start_start: { millennial: "Старт", zoomer: "Старт" },
+          start_start: { millennial: "Начать", zoomer: "Начать" },
           start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
-          rules_action: { millennial: "Правила", zoomer: "Правила коротко" },
-          start_action: { millennial: "Старт", zoomer: "Войти" }
+          rules_action: { millennial: "Что за игра?", zoomer: "Что за игра?" },
+          start_action: { millennial: "Начать", zoomer: "Начать" }
         };
         const docsExpectedMenu = {
           menu_title: { millennial: "Меню", zoomer: "Меню" },
@@ -11684,10 +11684,10 @@ K YN A9: Нет.
         && startSamples.profile_helper && startSamples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
         && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
         && startSamples.start_continue && startSamples.start_continue.zoomer === "Продолжить игру"
-        && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
+        && startSamples.start_start && startSamples.start_start.zoomer === "Начать"
         && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
-        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила коротко"
-        && startSamples.start_action && startSamples.start_action.zoomer === "Войти"
+        && startSamples.rules_action && startSamples.rules_action.zoomer === "Что за игра?"
+        && startSamples.start_action && startSamples.start_action.zoomer === "Начать"
       );
       const menuSamplesOk = !!(
         menuSamples.menu_title && menuSamples.menu_title.zoomer === "Меню"
