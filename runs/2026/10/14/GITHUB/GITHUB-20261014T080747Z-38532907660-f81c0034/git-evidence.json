@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:47Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:47Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:47Z",
+      "stderr": "",
+      "stdout": "2b9e4378c29a1f47901be4aad35377379f973f5b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:48Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2b9e4378c29a1f47901be4aad35377379f973f5b\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:48Z",
+      "stderr": "",
+      "stdout": "2b9e4378 (HEAD, pull/431/merge) Merge c653012826b35531cc75df05f7b00b4ffe365bad into 183d522ea4c54fb0d7cdd17e775d9e5c77ab013e\nc6530128 (origin/codex/mobile-shell-tabs-splitter-20261014) Implement responsive mobile game shell\n183d522e (origin/main) Retire obsolete Asynchronia plugin model preflight (#429)\n0d9dd246 ATOM 7: instant hover hints on stat and toast surfaces (#426)\n28b6a25c Remove redundant voting prompt in all vote surfaces (#424)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:48Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2b9e4378c29a1f47901be4aad35377379f973f5b\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:48Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:07:48Z",
+      "stderr": "",
+      "stdout": "183d522ea4c54fb0d7cdd17e775d9e5c77ab013e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2b9e4378c29a1f47901be4aad35377379f973f5b",
+  "observedAtUtc": "2026-10-14T08:07:48Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
