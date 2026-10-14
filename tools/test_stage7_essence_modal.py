@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Focused regression for the Stage 7 profile-adapted essence modal."""
+"""Regression for the shared, compact Stage 7 game-introduction modal."""
 
 from __future__ import annotations
 
@@ -17,9 +17,25 @@ PROJECT = ROOT / "AsyncScene" / "AsyncScene.xcodeproj" / "project.pbxproj"
 
 PROFILES = ("boomer", "genX", "millennial", "zoomer", "alpha")
 START_BLOCK_SHA256 = "4a1698e9112486e3895196682e9dfd7a174238d914f48bec0db026011841be22"
-CSS_TAG = '<link rel="stylesheet" href="ui/ui-stage7-essence.css?v=stage7_essence_modal_20260805a" />'
-JS_TAG = '<script defer src="ui/ui-stage7-essence.js?v=stage7_essence_modal_20260805a"></script>'
-BOOT_TAG = '<script defer src="ui/ui-boot.js?v=stage6_step9_five_profile_runtime_repair_20260727a"></script>'
+RESOURCE_VERSION = "start_essence_human_copy_20261014a"
+CSS_TAG = f'<link rel="stylesheet" href="ui/ui-stage7-essence.css?v={RESOURCE_VERSION}" />'
+JS_TAG = f'<script defer src="ui/ui-stage7-essence.js?v={RESOURCE_VERSION}"></script>'
+BOOT_TAG = f'<script defer src="ui/ui-boot.js?v={RESOURCE_VERSION}"></script>'
+TITLE = "Что за игра?"
+BLOCKS = (
+    {
+        "heading": "Здесь всё крутится вокруг людей.",
+        "body": "Знакомства, ссоры, поддержка, конфликты. Ты решаешь, в какие истории вмешиваться и как себя вести."
+    },
+    {
+        "heading": "У каждого поступка есть последствия.",
+        "body": "Помог одному - нажил врага в другом. Не всегда получится угадать, чем закончится разговор."
+    },
+    {
+        "heading": "Играй в своём ритме.",
+        "body": "Не нужно собираться всем одновременно. Заходи, когда удобно."
+    },
+)
 
 
 def read(path: Path) -> str:
@@ -36,17 +52,12 @@ def run_copy_harness(script: Path) -> dict[str, object]:
     harness = r'''
 const fs = require("fs");
 const vm = require("vm");
-
 global.window = global;
 global.Game = { UI: {} };
 const source = fs.readFileSync(process.argv[2], "utf8");
 vm.runInThisContext(source, { filename: process.argv[2] });
-
 const profiles = Game.UI.getStage7EssenceProfiles();
-const rows = Object.fromEntries(profiles.map((profile) => [
-  profile,
-  Game.UI.getStage7EssenceCopy(profile)
-]));
+const rows = Object.fromEntries(profiles.map((profile) => [profile, Game.UI.getStage7EssenceCopy(profile)]));
 console.log(JSON.stringify({ profiles, rows }));
 '''
     with tempfile.TemporaryDirectory() as directory:
@@ -74,16 +85,15 @@ def main() -> None:
     assert source_css.read_bytes() == deployed_css.read_bytes(), "essence CSS mirrors differ"
 
     index = read(source_index)
-    assert index.count(CSS_TAG) == 1, "essence stylesheet tag missing or duplicated"
-    assert index.count(JS_TAG) == 1, "essence script tag missing or duplicated"
-    assert index.count(BOOT_TAG) == 1, "ui-boot tag missing or duplicated"
+    for tag in (CSS_TAG, JS_TAG, BOOT_TAG):
+        assert index.count(tag) == 1, f"resource tag missing or duplicated: {tag}"
     assert index.index(CSS_TAG) < index.index("</head>"), "essence CSS must load in head"
     assert index.index(BOOT_TAG) < index.index(JS_TAG), "essence JS must load after ui-boot"
 
     start_block = extract_start_block(index)
     actual_start_hash = hashlib.sha256(start_block.encode("utf-8")).hexdigest()
     assert actual_start_hash == START_BLOCK_SHA256, (
-        "accepted start-screen markup changed: "
+        "existing start-screen controls or fields changed: "
         f"{actual_start_hash} != {START_BLOCK_SHA256}"
     )
 
@@ -95,6 +105,7 @@ def main() -> None:
         'aria-modal="true"',
         'aria-labelledby="stage7EssenceTitle"',
         'aria-describedby="stage7EssenceLead"',
+        'body.id = "stage7EssenceLead"',
         'event.key === "Escape"',
         'event.key !== "Tab"',
         'restore.focus({ preventScroll: true })',
@@ -112,65 +123,80 @@ def main() -> None:
     assert tuple(payload["profiles"]) == PROFILES, payload["profiles"]
     rows = payload["rows"]
     assert set(rows) == set(PROFILES), rows.keys()
-    assert len({rows[profile]["title"] for profile in PROFILES}) == 5, "profile titles are not distinct"
-    assert len({rows[profile]["lead"] for profile in PROFILES}) == 5, "profile leads are not distinct"
 
     for profile in PROFILES:
         row = rows[profile]
         assert row["profile"] == profile
-        assert len(row["synchronousPoints"]) == 3
-        assert len(row["asynchronousPoints"]) == 3
-        full = " ".join(
-            [
-                row["eyebrow"], row["title"], row["lead"],
-                row["synchronousLabel"], *row["synchronousPoints"],
-                row["asynchronousLabel"], *row["asynchronousPoints"],
-                row["closer"], row["close"],
-            ]
-        )
+        assert row["title"] == TITLE, (profile, row)
+        assert row["blocks"] == list(BLOCKS), (profile, row["blocks"])
+        assert row["close"] == "Вернуться", (profile, row["close"])
+        full = " ".join([row["title"], *(part for block in row["blocks"] for part in block.values()), row["close"]])
         forbidden = (
-            "Tone Profile", "generation mapping", "internal_id",
-            "хуй", "пизд", "говно", "ебат",
+            "Asynchronia", "asynchronia", "мультиплеер", "социальная стратегия",
+            "синхронный онлайн", "обычный онлайн", "привязки к чужому расписанию",
+            "автономные NPC", "долговременные союзы", "социальная память",
         )
-        assert not any(term.lower() in full.lower() for term in forbidden), (
-            f"forbidden player-facing term in {profile}: {full}"
+        assert not any(term.casefold() in full.casefold() for term in forbidden), (
+            f"unsupported or retired player-facing wording in {profile}: {full}"
         )
 
-    boomer_text = " ".join(
-        [rows["boomer"]["lead"], *rows["boomer"]["asynchronousPoints"], rows["boomer"]["closer"]]
-    ).lower()
-    assert "вы " in boomer_text or "вам" in boomer_text, "Boomer copy is not explicitly formal"
-    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", boomer_text), (
-        "Boomer copy contains informal second-person wording"
+    start_sources = (
+        SOURCE / "system.js",
+        SOURCE / "data.js",
+        SOURCE / "ui" / "ui-boot.js",
+        SOURCE / "ui" / "ui-profile-visual-tone-repair.js",
     )
+    start_text = "\n".join(read(path) for path in start_sources)
+    expected_start_copy = (
+        "Здесь легко оказаться в центре чужого конфликта.",
+        "Кому верить, кого поддержать и как ответить - решать тебе.",
+        "Что за игра?",
+        "Продолжить игру",
+    )
+    for phrase in expected_start_copy:
+        assert phrase in start_text, f"missing start-screen copy or resume wording: {phrase}"
+    for phrase in (
+        "Асинхронная онлайн-игра", "Не нужно совпадать по расписанию",
+        "Не надо ждать всех онлайн", "Не надо ждать остальных онлайн",
+    ):
+        assert phrase not in start_text, f"old start-screen pitch remains in an active text layer: {phrase}"
 
-    alpha_text = " ".join(
-        [rows["alpha"]["eyebrow"], rows["alpha"]["title"], rows["alpha"]["lead"],
-         *rows["alpha"]["synchronousPoints"], *rows["alpha"]["asynchronousPoints"],
-         rows["alpha"]["closer"], rows["alpha"]["close"]]
-    )
-    assert alpha_text == alpha_text.lower(), "Alpha copy must stay direct and lowercase"
-    assert len(alpha_text) < len(boomer_text), "Alpha copy is not materially compressed"
+    data = read(SOURCE / "data.js")
+    assert "Data.START_SCREEN_TEXT_MAX_LENGTH = 96;" in data
+    assert '"btnRules"' in start_block and '"startBirthYearPicker"' in start_block
+
+    for relative in ("system.js", "data.js", "ui/ui-profile-visual-tone-repair.js"):
+        assert (SOURCE / relative).read_bytes() == (DEPLOYED / relative).read_bytes(), (
+            f"source/docs mirror differs: {relative}"
+        )
+    for root in (SOURCE, DEPLOYED):
+        boot = read(root / "ui" / "ui-boot.js")
+        for phrase in expected_start_copy[:3]:
+            assert phrase in boot, f"start copy missing from {root}: {phrase}"
+        for phrase in ("Асинхронная онлайн-игра", "Не нужно совпадать по расписанию"):
+            assert phrase not in boot, f"old start pitch remains in {root}: {phrase}"
 
     css = read(source_css)
     required_css = (
         ".stage7EssenceModal[hidden]",
         ".stage7EssenceDialog",
         ".stage7EssenceComparison",
-        ".stage7EssenceSideSync",
-        ".stage7EssenceSideAsync",
+        ".stage7EssenceBlockText",
         'body[data-ui-profile="boomer"] .stage7EssenceDialog',
         'body[data-ui-profile="genX"] .stage7EssenceDialog',
         'body[data-ui-profile="millennial"] .stage7EssenceDialog',
         'body[data-ui-profile="zoomer"] .stage7EssenceDialog',
         'body[data-ui-profile="alpha"] .stage7EssenceDialog',
         "@media (max-width:680px)",
+        "@media (max-height:520px)",
         "@media (prefers-reduced-motion:reduce)",
         "@media (forced-colors:active)",
     )
     missing_css = [token for token in required_css if token not in css]
     assert not missing_css, f"missing essence CSS contract: {missing_css}"
+    assert ".stage7EssenceSideSync" not in css and ".stage7EssenceSideAsync" not in css
     assert css.count("{") == css.count("}"), "unbalanced essence CSS braces"
+    assert "overflow-wrap:anywhere" in css, "long copy may overflow narrow screens"
 
     try:
         import tinycss2  # type: ignore
@@ -194,6 +220,8 @@ def main() -> None:
     print(json.dumps({
         "ok": True,
         "profiles": list(PROFILES),
+        "modalTitle": TITLE,
+        "meaningBlocks": len(BLOCKS),
         "startBlockSha256": actual_start_hash,
         "indexMirror": True,
         "jsMirror": True,

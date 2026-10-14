@@ -298,58 +298,58 @@ window.Game = window.Game || {};
       title: "Асинхрония",
       birth_digits_label: "Последние две цифры года рождения",
       profile_helper: "Год нужен только для настройки интерфейса. Он не сохраняется, и выбор можно изменить позже.",
-      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
-      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Начать игру",
-      rules_action: "Правила игры",
-      start_action: "Начать игру"
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     }),
     genX: Object.freeze({
       title: "Асинхрония",
       birth_digits_label: "Две последние цифры года рождения",
       profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
-      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
-      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Поехали",
-      rules_action: "Как тут всё устроено",
-      start_action: "Поехали"
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     }),
     millennial: Object.freeze({
       title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
-      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
-      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Старт",
-      rules_action: "Правила",
-      start_action: "Старт"
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     }),
     zoomer: Object.freeze({
       title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       profile_helper: "Только стиль UI. Год не сохраняем, потом сменишь.",
-      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
-      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
-      rules_action: "Как играть",
-      start_action: "В игру"
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     }),
     alpha: Object.freeze({
       title: "Асинхрония",
       birth_digits_label: "2 цифры года рождения",
       profile_helper: "только стиль. год не сохраняем. сменить можно.",
-      async_value: "асинхронная игра · играй когда хочешь",
-      no_simultaneous_required: "все онлайн сразу не нужны",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       fantasy_birth_label: "Год по ощущению",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
+      start_start: "Начать",
       start_reset: "Сброс",
-      rules_action: "Правила",
-      start_action: "В игру"
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     })
   });
 
@@ -1677,7 +1677,7 @@ window.Game = window.Game || {};
       alphaExplicitAttackAction: previews.alpha && previews.alpha.text.battle_action_attack === "Ход",
       alphaNoZoomerEventsHeader: previews.alpha && previews.alpha.text.events_header === "Ивенты",
       startGenXExplicit: startProfiles.genX && startProfiles.genX.birth_digits_label === "Две последние цифры года рождения",
-      startAlphaExplicit: startProfiles.alpha && startProfiles.alpha.async_value === "асинхронная игра · играй когда хочешь",
+      startAlphaExplicit: startProfiles.alpha && startProfiles.alpha.async_value === "Здесь легко оказаться в центре чужого конфликта.",
       frozenCostPlaceholdersPreserved: Data.TEXTS.genX && Data.TEXTS.genX.argument_reroll_action === "Другие аргументы - {cost} 💰",
       frozenRepPlaceholderPreserved: Data.TEXTS.alpha && Data.TEXTS.alpha.report_false_repeat === "опять мимо 💀 −{rep}⭐",
       roleProfilesComplete,

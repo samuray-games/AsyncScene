@@ -9,26 +9,11 @@ DOCS = ROOT / "docs"
 
 
 PROFILES = {
-    "boomer": (
-        "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
-        "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
-    ),
-    "genX": (
-        "Асинхронная онлайн-игра. Заходи когда удобно.",
-        "Не надо ждать остальных онлайн - каждый играет в своё время.",
-    ),
-    "millennial": (
-        "Асинхронная онлайн-игра: заходи когда удобно.",
-        "Не нужно совпадать по расписанию - каждый играет в своё время.",
-    ),
-    "zoomer": (
-        "Асинхронная онлайн-игра. Играй когда удобно.",
-        "Не надо ждать всех онлайн - каждый заходит когда хочет.",
-    ),
-    "alpha": (
-        "асинхронная игра · играй когда хочешь",
-        "все онлайн сразу не нужны",
-    ),
+    profile: (
+        "Здесь легко оказаться в центре чужого конфликта.",
+        "Кому верить, кого поддержать и как ответить - решать тебе.",
+    )
+    for profile in ("boomer", "genX", "millennial", "zoomer", "alpha")
 }
 
 OBSOLETE = (
@@ -36,6 +21,8 @@ OBSOLETE = (
     "Выбранная ставка списывается из запаса монет 💰.",
     "Результат показывается сразу.",
     "Стоимость действия и его результат показываются сразу.",
+    "Асинхронная онлайн-игра",
+    "Не нужно совпадать по расписанию",
 )
 
 
@@ -101,6 +88,8 @@ class FiveProfileRuntimeDefectStaticTests(unittest.TestCase):
             self.assertGreaterEqual(boot.count('start_continue: "Продолжить игру"'), 5)
             self.assertGreaterEqual(profile.count('start_continue: "Продолжить игру"'), 5)
             self.assertIn('const resumeMode = getOnboardingSeen(UI);', boot)
+            self.assertIn('start_start: "Начать"', boot)
+            self.assertIn('rules_action: "Что за игра?"', boot)
             self.assertIn('resumeMode ? resolveStartScreenText(D, "start_continue", activeProfile)', boot)
             self.assertIn('setOnboardingSeen(UI, true);', boot)
             self.assertIn('function restoreFreshStartScreenState(UI)', boot)
