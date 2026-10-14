@@ -113,8 +113,8 @@ window.Game = window.Game || {};
       npcArrestCrowd: "Толпа: {target} закрыт.",
       p2pBacklogReason: "P2P: анти-абуз.",
       startTitle: "Асинхрония",
-      startIntroPick: "Здесь легко оказаться в центре чужого конфликта.",
-      startIntroStake: "Кому верить, кого поддержать и как ответить - решать тебе.",
+      startIntroPick: "Хотел просто почитать чат. А тебя уже втянули в спор.",
+      startIntroStake: "Встать на чью-то сторону легко. Разгрести последствия — сложнее.",
       startIntroResult: "Итог виден сразу.",
       startEconomyHonesty: "Цена и итог сразу.",
       startActionStart: "Начать",
@@ -4607,8 +4607,8 @@ window.Game = window.Game || {};
     };
     const auditedRows = Object.freeze([
       Object.freeze({ id: "start_title", surface: "startScreen", source: "Data.START_SCREEN.title", expected: "Асинхрония" }),
-      Object.freeze({ id: "start_intro_pick", surface: "startScreen", source: "Data.START_SCREEN.introLines.0", expected: "Здесь легко оказаться в центре чужого конфликта." }),
-      Object.freeze({ id: "start_intro_stake", surface: "startScreen", source: "Data.START_SCREEN.introLines.1", expected: "Кому верить, кого поддержать и как ответить - решать тебе." }),
+      Object.freeze({ id: "start_intro_pick", surface: "startScreen", source: "Data.START_SCREEN.introLines.0", expected: "Хотел просто почитать чат. А тебя уже втянули в спор." }),
+      Object.freeze({ id: "start_intro_stake", surface: "startScreen", source: "Data.START_SCREEN.introLines.1", expected: "Встать на чью-то сторону легко. Разгрести последствия — сложнее." }),
       Object.freeze({ id: "start_intro_result", surface: "startScreen", source: "Data.START_SCREEN.introLines.2", expected: "Итог виден сразу." }),
       Object.freeze({ id: "start_economy_honesty", surface: "startScreen", source: "Data.START_SCREEN.economyHonestyLine", expected: "Цена и итог сразу." }),
       Object.freeze({ id: "start_action_start", surface: "startScreen", source: "Data.START_SCREEN.actions.start", expected: "Начать" }),
