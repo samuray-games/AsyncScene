@@ -1,0 +1,106 @@
+{
+  "branch": "codex/issue434-mobile-safari-touch-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "codex/issue434-mobile-safari-touch-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "e947f03c12389ef4c4a8a4b571ef06a387c262c0\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "# branch.oid e947f03c12389ef4c4a8a4b571ef06a387c262c0\n# branch.head codex/issue434-mobile-safari-touch-20261014\n# branch.upstream origin/codex/issue434-mobile-safari-touch-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "e947f03c (HEAD -> codex/issue434-mobile-safari-touch-20261014, origin/codex/issue434-mobile-safari-touch-20261014) Fix mobile Safari panel navigation\nbcb52993 Mobile-first interface redesign (#430)\nceb999bb Обновить текст блока «Цель» в онбординге (#427)\n7e918dea Rewrite Asynchronia start screen and game explanation (#428)\n183d522e Retire obsolete Asynchronia plugin model preflight (#429)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e947f03c12389ef4c4a8a4b571ef06a387c262c0\nbranch refs/heads/codex/issue434-mobile-safari-touch-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T15:02:25Z",
+      "stderr": "",
+      "stdout": "7122e2236125c18518f653ca85d6de14cdd8968b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e947f03c12389ef4c4a8a4b571ef06a387c262c0",
+  "observedAtUtc": "2026-10-14T15:02:25Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
