@@ -41,6 +41,98 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def extract_start_block(index: str) -> str:
+    start = index.index('  <div id="startScreen">')
+    end = index.index('\n\n  <script defer src="util.js', start)
+    return index[start:end]
+
+
+def check_start_markup(index: str) -> str:
+    block = extract_start_block(index)
+    actual_hash = hashlib.sha256(block.encode("utf-8")).hexdigest()
+    assert actual_hash == START_BLOCK_SHA256, (
+        "start-screen markup or approved static copy changed unexpectedly: "
+        f"{actual_hash} != {START_BLOCK_SHA256}"
+    )
+    required_ids = (
+        "startScreen", "startCard", "startTitle", "startIntroLines",
+        "startEconomyHonestyLine", "startBirthYearLabel", "startBirthYearPicker",
+        "startBirthYear0Up", "startBirthYear0Down", "startBirthYearDigit0",
+        "startBirthYear1Up", "startBirthYear1Down", "startBirthYearDigit1",
+        "startBirthYearHint", "startBirthYearFeelingLabel", "startBirthYearFeelingInput",
+        "startBtns", "btnStart", "btnRules",
+    )
+    for element_id in required_ids:
+        assert re.search(rf'\bid="{re.escape(element_id)}"', block), f"required start element missing: {element_id}"
+    for button_id in ("startBirthYear0Up", "startBirthYear0Down", "startBirthYear1Up", "startBirthYear1Down"):
+        assert re.search(rf'<button\b(?=[^>]*\bid="{button_id}")(?=[^>]*\btype="button")[^>]*>', block), f"required button missing or has no button type: {button_id}"
+    for button_id in ("btnStart", "btnRules"):
+        assert re.search(rf'<button\b(?=[^>]*\bid="{button_id}")[^>]*>', block), f"required start action missing: {button_id}"
+    assert 'aria-label="Увеличить первую цифру"' in block
+    assert 'aria-label="Уменьшить первую цифру"' in block
+    assert 'aria-label="Увеличить вторую цифру"' in block
+    assert 'aria-label="Уменьшить вторую цифру"' in block
+    assert 'id="startBirthYearFeelingInput" class="input" type="text"' in block
+    return actual_hash
+
+
+def check_modal_contract(source_js: str) -> None:
+    # This script builds the modal dynamically, so assert the generated dialog
+    # contract and the actual event-path wiring used by the browser.
+    required = (
+        'const MODAL_ID = "stage7EssenceModal"',
+        'role="dialog"',
+        'aria-modal="true"',
+        'aria-labelledby="stage7EssenceTitle"',
+        'aria-describedby="stage7EssenceLead"',
+        '<h2 id="stage7EssenceTitle"',
+        'if (index === 0) body.id = "stage7EssenceLead"',
+        'event.key === "Escape"',
+        'event.key !== "Tab"',
+        'event.shiftKey && document.activeElement === first',
+        '!event.shiftKey && document.activeElement === last',
+        'last.focus()',
+        'first.focus()',
+        'restore.focus({ preventScroll: true })',
+        'event.preventDefault();\n      closeModal();',
+        'root.addEventListener("click", (event) =>',
+        'button.addEventListener("click", (event) =>',
+        'event.stopImmediatePropagation()',
+        'Game.UI.openStage7Essence = openModal;',
+        'Game.UI.closeStage7Essence = closeModal;',
+        'Game.UI.installStage7Essence = install;',
+        'new MutationObserver(() => bindButton())',
+    )
+    missing = [token for token in required if token not in source_js]
+    assert not missing, f"missing modal DOM/accessibility/keyboard API contract: {missing}"
+    assert source_js.count('role="dialog"') == 1
+    assert source_js.count('aria-modal="true"') == 1
+    assert source_js.count('aria-labelledby="stage7EssenceTitle"') == 1
+    assert source_js.count('aria-describedby="stage7EssenceLead"') == 1
+
+
+def check_resource_contract(index: str) -> None:
+    css_tag = f'<link rel="stylesheet" href="ui/ui-stage7-essence.css?v={CSS_VERSION}" />'
+    boot_tag = f'<script defer src="ui/ui-boot.js?v={JS_VERSION}"></script>'
+    essence_tag = f'<script defer src="ui/ui-stage7-essence.js?v={JS_VERSION}"></script>'
+    for tag in (css_tag, boot_tag, essence_tag):
+        assert index.count(tag) == 1, f"resource tag missing or duplicated: {tag}"
+    assert index.index(css_tag) < index.index("</head>"), "essence stylesheet must load in head"
+    assert index.index(boot_tag) < index.index(essence_tag), "essence script must load after ui-boot"
+    assert index.index(essence_tag) < index.index('src="ui/ui-mobile.js?'), "essence script must load before mobile UI"
+    ordered_script_tags = tuple(
+        f'<script defer src="{resource}?v={JS_VERSION}"></script>'
+        for resource in (
+            "system.js", "data.js", "ui/ui-boot.js",
+            "ui/ui-stage7-essence.js", "ui/ui-profile-visual-tone-repair.js",
+        )
+    )
+    for tag in ordered_script_tags:
+        assert index.count(tag) == 1, f"versioned task script tag missing or duplicated: {tag}"
+    positions = [index.index(tag) for tag in ordered_script_tags]
+    assert positions == sorted(positions), "start/profile/modal scripts must retain dependency order"
+
+
 def object_source(source: str, profile: str, kind: str) -> str:
     if kind == "data":
         start = source.index("Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({")
@@ -83,12 +175,17 @@ def main() -> None:
             assert (SOURCE / relative).read_bytes() == (DEPLOYED / relative).read_bytes(), f"source/docs mirror differs: {relative}"
 
     index = read(SOURCE / "index.html")
+    start_block_hash = check_start_markup(index)
+    check_start_markup(read(DEPLOYED / "index.html"))
+    check_resource_contract(index)
     for resource, version in (("system.js", JS_VERSION), ("data.js", JS_VERSION), ("ui/ui-boot.js", JS_VERSION), ("ui/ui-stage7-essence.js", JS_VERSION), ("ui/ui-profile-visual-tone-repair.js", JS_VERSION)):
         tag = f'{resource}?v={version}'
         assert tag in index, f"stale or missing cache-buster: {tag}"
     assert f'ui/ui-stage7-essence.css?v={CSS_VERSION}' in index
-    assert 'aria-label="Закрыть"' in read(SOURCE / "ui/ui-stage7-essence.js")
-    assert "Game.UI.getStage7EssenceCopy = copyFor;" in read(SOURCE / "ui/ui-stage7-essence.js")
+    modal_source = read(SOURCE / "ui/ui-stage7-essence.js")
+    check_modal_contract(modal_source)
+    assert 'aria-label="Закрыть"' in modal_source
+    assert "Game.UI.getStage7EssenceCopy = copyFor;" in modal_source
 
     data = read(SOURCE / "data.js")
     tone = read(SOURCE / "ui/ui-profile-visual-tone-repair.js")
@@ -136,7 +233,7 @@ def main() -> None:
     assert css.count("{") == css.count("}")
     project = read(PROJECT)
     assert "PBXFileSystemSynchronizedRootGroup" in project and "fileSystemSynchronizedGroups = (" in project
-    print(json.dumps({"ok": True, "profiles": list(PROFILES), "profileSwitch": list(SWITCH_ORDER), "startFieldsPerProfile": 8, "modalBlocksPerProfile": 3, "fallbackLayers": ["Data.START_SCREEN_PROFILE_TEXTS", "START_PROFILE_OVERRIDES", "ui-boot fallback"], "sourceDocsMirrors": [x for x in mirrors if x != "ui/ui-boot.js"], "knownPreexistingUiBootByteDrift": True, "nodeSyntax": True}, ensure_ascii=False, indent=2))
+    print(json.dumps({"ok": True, "profiles": list(PROFILES), "profileSwitch": list(SWITCH_ORDER), "startFieldsPerProfile": 8, "modalBlocksPerProfile": 3, "startMarkupSha256": start_block_hash, "modalDomContract": True, "resourceOrder": True, "fallbackLayers": ["Data.START_SCREEN_PROFILE_TEXTS", "START_PROFILE_OVERRIDES", "ui-boot fallback"], "sourceDocsMirrors": [x for x in mirrors if x != "ui/ui-boot.js"], "knownPreexistingUiBootByteDrift": True, "nodeSyntax": True}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
