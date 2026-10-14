@@ -246,8 +246,18 @@ def actual_runtime_bindings(data_source: str, visual_source: str) -> dict[str, d
 def validate_exact_runtime_rows(frozen: dict[str, object], data_source: str, visual_source: str) -> list[dict[str, object]]:
     actual = actual_runtime_bindings(data_source, visual_source)
     mismatches: list[dict[str, object]] = []
+    # These historic Stage 6 start-copy rows were explicitly superseded by the
+    # user-approved five-voice start/essence brief. Their exact replacements,
+    # routing and mirrors are asserted by test_stage7_essence_modal.py.
+    superseded_start_copy = {
+        "start.title", "start.birth_digits_label", "start.profile_helper",
+        "start.continue", "start.rules", "start.async_value",
+        "start.no_simultaneous_required",
+    }
     for row in flatten_expected(frozen):
         text_id = row["text_id"]
+        if text_id in superseded_start_copy:
+            continue
         for profile in PROFILES:
             expected = row[profile]
             info = actual.get(text_id, {}).get(profile, {"actual": None, "surface": "UNMAPPED"})
@@ -364,8 +374,8 @@ def main() -> None:
     for literal in (
         'const mode = low === "genx" ? "genX"',
         'const tables = { boomer, genX, millennial, zoomer, alpha };',
-        'birth_digits_label: "Две последние цифры года рождения"',
-        'async_value: "асинхронная игра · играй когда хочешь"',
+        'birth_digits_label: "Последние две цифры года рождения"',
+        'async_value: "в чате замес."',
     ):
         if literal not in boot_source or literal not in boot_docs:
             print(json.dumps({"ok": False, "error": "ui_boot_targeted_mirror_missing", "literal": literal}, ensure_ascii=False))
