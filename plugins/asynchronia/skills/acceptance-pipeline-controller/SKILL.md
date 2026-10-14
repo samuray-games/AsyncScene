@@ -50,7 +50,7 @@ This controller composes only these accepted skills:
 
 - `scope-isolation-check`
 - `task-router`
-- `model-selector`
+- `model-selector` when explicitly requested or required by current numbered-bridge authority
 - `parallel-scope-planner`
 - `canon-audit`
 - `economy-invariant-audit`
@@ -97,12 +97,13 @@ Run the pipeline in this order.
 - If a single exact non-overlapping lane exists, omit this stage and explain why.
 - If lock or ownership readiness remains unresolved, stop with `WAITING_ON_LOCK`.
 
-### 4. Model recommendation discipline
+### 4. Ordinary model and effort routing
 
-- For any file-changing lane, include a `model-selector` recommendation for the exact scope.
-- When the current repository preflight contract applies, model recommendation is a blocking pre-implementation gate.
-- If an earlier recommendation is stale or scope-expanded, recompute it before relying on it.
-- Preserve `WAITING_FOR_MODEL_SELECTION`, exact same-thread `CONTINUE`, and no-mutation-before-resume when the current subject is a pre-implementation lane.
+- Ordinary file-changing lanes use configured Codex agent-team/model routing under current root repository policy.
+- A `model-selector` recommendation is optional supporting analysis when the task explicitly benefits from model/cost comparison; it is not a pipeline prerequisite or mutation gate for ordinary work.
+- Do not require `MODEL_PREFLIGHT_PAUSE`, `INVENTORY_OK`, user model/effort selection, `CONTINUE`, or `IMPLEMENTATION_ALLOWED` for ordinary lanes.
+- For exact numbered-bridge subjects, preserve selector steps only when current primary bridge authority explicitly requires them.
+- If an actually required recommendation is stale or its scope expanded, recompute it before relying on it.
 
 ### 5. Workspace lock readiness
 
@@ -213,9 +214,9 @@ The controller must distinguish:
 
 Rules:
 
-- model recommendation governs cost, reliability, and the mandatory pre-implementation pause when the current repository preflight contract applies
+- optional model recommendation may inform cost and reliability when requested or required by current specialized authority
 - `scope-isolation-check` determines whether the exact scope is isolated or colliding
-- model-selector output is the only allowed source of `WAITING_FOR_MODEL_SELECTION` and the exact same-thread `CONTINUE` resume contract for implementation lanes
+- model-selector output is not an ordinary implementation authorization source; any specialized bridge continuation remains governed by current primary bridge authority
 - user-owned Safari evidence remains a later acceptance boundary when the task truly has a runtime surface
 
 ## 10. Mandatory stopping states
