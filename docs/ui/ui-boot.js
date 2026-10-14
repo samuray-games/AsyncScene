@@ -133,13 +133,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
       fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
-      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
-      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Старт",
+      start_start: "Начать",
       start_reset: "Сбросить старт",
-      rules_action: "Правила",
-      start_action: "Старт",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     };
     const boomer = {
       start_title: "Асинхрония",
@@ -150,13 +150,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Год нужен только для выбора стиля. Мы его не сохраняем, потом можно выбрать другой.",
       fantasy_birth_label: "Год по ощущению",
-      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
-      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать вам.",
       start_continue: "Продолжить игру",
-      start_start: "Начать игру",
+      start_start: "Начать",
       start_reset: "Сбросить выбор",
-      rules_action: "Правила игры",
-      start_action: "Начать игру",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     };
     const genX = {
       start_title: "Асинхрония",
@@ -167,13 +167,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
       fantasy_birth_label: "Год по ощущению",
-      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
-      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "Поехали",
+      start_start: "Начать",
       start_reset: "Сбросить выбор",
-      rules_action: "Как тут всё устроено",
-      start_action: "Поехали",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     };
     const zoomer = {
       start_title: "Асинхрония",
@@ -184,13 +184,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "Только для выбора стиля. Год не сохраняем, потом сменишь.",
       fantasy_birth_label: "по вайбу я родился в …",
-      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
-      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
+      async_value: "Здесь легко оказаться в центре чужого конфликта.",
+      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
+      start_start: "Начать",
       start_reset: "Снести выбор",
-      rules_action: "Как играть",
-      start_action: "В игру",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     };
     const alpha = {
       start_title: "Асинхрония",
@@ -201,13 +201,13 @@ window.Game = window.Game || {};
       digit_down_second: "Уменьшить вторую цифру",
       profile_helper: "только стиль. год не сохраняем. сменить можно.",
       fantasy_birth_label: "Год по ощущению",
-      async_value: "асинхронная игра · играй когда хочешь",
-      no_simultaneous_required: "все онлайн сразу не нужны",
+      async_value: "Легко попасть в чужой конфликт.",
+      no_simultaneous_required: "Кого поддержать и что ответить - решать тебе.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
+      start_start: "Начать",
       start_reset: "Сброс",
-      rules_action: "Правила",
-      start_action: "В игру",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
     };
     const tables = { boomer, genX, millennial, zoomer, alpha };
     const table = tables[mode] || millennial;
@@ -9810,9 +9810,9 @@ window.Game = window.Game || {};
             && result.samples.start_reset.millennial === "Сбросить старт"
             && result.samples.start_reset.zoomer === "Снести выбор"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
-            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
-            && result.samples.start_action.zoomer === "Войти";
+            && result.samples.start_action.zoomer === "Начать";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
           result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabels === "function"
@@ -9843,7 +9843,7 @@ window.Game = window.Game || {};
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
-            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+            result.samples.start_start.millennial !== "Начать" || result.samples.start_start.zoomer !== "Начать" ? "start_start" : "",
           ].filter(Boolean);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -10116,9 +10116,9 @@ window.Game = window.Game || {};
             && result.samples.start_reset.millennial === "Сбросить старт"
             && result.samples.start_reset.zoomer === "Снести выбор"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
-            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
-            && result.samples.start_action.zoomer === "Войти";
+            && result.samples.start_action.zoomer === "Начать";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
           result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix1 === "function"
@@ -10149,7 +10149,7 @@ window.Game = window.Game || {};
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
-            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+            result.samples.start_start.millennial !== "Начать" || result.samples.start_start.zoomer !== "Начать" ? "start_start" : "",
           ].filter(Boolean);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -10567,9 +10567,9 @@ window.Game = window.Game || {};
             && result.samples.start_reset.millennial === "Сбросить старт"
             && result.samples.start_reset.zoomer === "Снести выбор"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
-            && result.samples.rules_action.zoomer === "Правила без душноты"
+            && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
-            && result.samples.start_action.zoomer === "Войти";
+            && result.samples.start_action.zoomer === "Начать";
           if (!result.routeChecks.docsMirrorUpdated) fail("docs_mirror_not_updated", result.samples);
 
           result.routeChecks.noStaleSmokeIdentity = typeof G.__DEV.smokeZoomerFeelStep671StartScreenButtonsLabelsFix6 === "function"
@@ -10617,7 +10617,7 @@ window.Game = window.Game || {};
 
           result.forbiddenRemaining = [
             result.samples.start_title.millennial !== "AsyncScene" || result.samples.start_title.zoomer !== "AsyncScene" ? "start_title" : "",
-            result.samples.start_start.millennial !== "Старт" || result.samples.start_start.zoomer !== "Старт" ? "start_start" : "",
+            result.samples.start_start.millennial !== "Начать" || result.samples.start_start.zoomer !== "Начать" ? "start_start" : "",
           ].filter(Boolean);
         } catch (err) {
           fail("smoke_exception", err && err.message ? String(err.message) : String(err));
@@ -12200,13 +12200,13 @@ window.Game = window.Game || {};
         const UI = typeof getUI === "function" ? getUI() : null;
         const stateTargets = [UI && UI.S, G.__S, G.State].filter((state, index, list) => state && list.indexOf(state) === index);
         const boomerExpected = Object.freeze({
-          start_action: "Начать игру",
-          rules_action: "Правила игры",
+          start_action: "Начать",
+          rules_action: "Что за игра?",
           birth_digits_label: "Последние две цифры года рождения",
           profile_helper: "Эти данные используются только для настройки интерфейса. Они не сохраняются. Вы сможете изменить их позже.",
           fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
           start_continue: "Продолжить игру",
-          start_start: "Начать игру",
+          start_start: "Начать",
         });
         const nonBoomerExpected = Object.freeze({
           default: Object.freeze({
@@ -12216,7 +12216,7 @@ window.Game = window.Game || {};
             profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
             fantasy_birth_label: "Кажется, я родился в …",
             start_continue: "Продолжить игру",
-            start_start: "Старт",
+            start_start: "Начать",
           }),
           millennial: Object.freeze({
             start_action: String((((D && D.START_SCREEN) || {}).actions || {}).start == null ? "" : D.START_SCREEN.actions.start),
@@ -12225,25 +12225,25 @@ window.Game = window.Game || {};
             profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
             fantasy_birth_label: "Кажется, я родился в …",
             start_continue: "Продолжить игру",
-            start_start: "Старт",
+            start_start: "Начать",
           }),
           zoomer: Object.freeze({
-            start_action: "Войти",
-            rules_action: "Правила коротко",
+            start_action: "Начать",
+            rules_action: "Что за игра?",
             birth_digits_label: "Две цифры вайба",
             profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
             fantasy_birth_label: "по вайбу я родился в …",
             start_continue: "Продолжить игру",
-            start_start: "Старт",
+            start_start: "Начать",
           }),
           alpha: Object.freeze({
-            start_action: "Войти",
-            rules_action: "Правила коротко",
+            start_action: "Начать",
+            rules_action: "Что за игра?",
             birth_digits_label: "Две цифры вайба",
             profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
             fantasy_birth_label: "по вайбу я родился в …",
             start_continue: "Продолжить игру",
-            start_start: "Старт",
+            start_start: "Начать",
           }),
         });
         const originalLocalStorage = (() => {

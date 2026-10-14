@@ -101,6 +101,30 @@ class MobileFirstInterfaceContract(unittest.TestCase):
         self.assertNotIn('document.addEventListener("pointerleave"', mobile)
         self.assertNotIn("setTimeout(() =>.*statToast", mobile)
 
+    def test_07a_active_stat_cap_hint_precedes_generic_icon_hint(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        target = mobile.split("function hintTarget(target)", 1)[1].split("function ensureTooltip", 1)[0]
+        self.assertIn('target.closest("[data-stat-cap-hint]")', target)
+        self.assertIn("capText && capText.trim()", target)
+        self.assertIn("const owner = target.closest", target)
+        self.assertIn('return value.trim() ? { element: owner, text: value.trim() }', target)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn('".pointsWrap .statIcon"', harness)
+        self.assertIn("'[data-profile-stat=\"rep\"] .statIcon'", harness)
+        self.assertIn("touched stat icon remains the hint's ARIA owner", harness)
+
+    def test_07b_active_tabs_preserve_renderer_hidden_states(self):
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn('#blocks[data-active-tab="dm"] > #dmBlock:not(.hidden)', css)
+        self.assertIn('#battlesBody:not(.hidden)', css)
+        self.assertIn('#eventsBody:not(.hidden)', css)
+        self.assertNotIn('#blocks[data-active-tab="dm"] > #dmBlock{display:flex!important}', css)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("fresh DM state must start closed", harness)
+        self.assertIn("UI.closeDM must own the closed DM hidden state", harness)
+        self.assertIn("selected battle tab must preserve gated/closed hidden state", harness)
+        self.assertIn("renderer's collapsed hidden body", harness)
+
     def test_08_existing_toast_and_desktop_hint_contracts_remain(self):
         core = read(WEB / "ui" / "ui-core.js")
         self.assertIn("COALESCE_MS = 90", read(WEB / "ui" / "ui-profile-visual-tone-repair.js"))

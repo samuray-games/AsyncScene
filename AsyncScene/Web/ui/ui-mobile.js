@@ -222,11 +222,21 @@ window.Game = window.Game || {};
 
   function hintTarget(target){
     if (!isMobile() || !target || !target.closest) return null;
-    const found = target.closest("[data-stat-hover-hint],[data-stat-cap-hint],[data-toast-hover-hint],[title]");
+    const found = target.closest("[data-stat-hover-hint],[data-toast-hover-hint],[title],[data-stat-cap-hint]");
     if (!found || found.closest(".statToast,.lotteryToast,#statToastHost")) return null;
     if (found.matches("input,textarea,select,[contenteditable='true']")) return null;
-    const value = found.getAttribute("data-stat-cap-hint") || found.getAttribute("data-stat-hover-hint") || found.getAttribute("data-toast-hover-hint") || found.getAttribute("title") || "";
-    return value.trim() ? { element: found, text: value.trim() } : null;
+    const capOwner = target.closest("[data-stat-cap-hint]");
+    const capText = capOwner && capOwner.getAttribute("data-stat-cap-hint");
+    const value = (capText && capText.trim()) ||
+      found.getAttribute("data-stat-hover-hint") ||
+      found.getAttribute("data-toast-hover-hint") ||
+      found.getAttribute("title") ||
+      found.getAttribute("data-stat-cap-hint") ||
+      "";
+    // The cap message belongs to an ancestor, but the touched hint surface
+    // remains the accessible owner (for example the points/REP stat icon).
+    const owner = target.closest("[data-stat-hover-hint],[data-toast-hover-hint],[title]") || found;
+    return value.trim() ? { element: owner, text: value.trim() } : null;
   }
 
   function ensureTooltip(){

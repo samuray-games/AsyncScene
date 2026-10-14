@@ -65,10 +65,47 @@
       assert(win.matchMedia("(max-width: 860px)").matches,"390px iframe must use the existing 860px breakpoint");
       const start=doc.getElementById("startScreen");if(start)start.style.display="none";
       await raf(win);
+      const meId=String(Game.__S.me?.id||"");
+      const dmPlayer=Object.values(Game.__S.players||{}).find(player=>player&&String(player.id)!==meId);
+      assert(Game.__S.dm.open===false,"fresh DM state must start closed");
+      UI.closeDM();await wait(80);
+      assert(Game.__S.dm.open===false&&doc.getElementById("dmBlock").classList.contains("hidden"),"UI.closeDM must own the closed DM hidden state");
+      doc.getElementById("mobileTabBattles").click();await raf(win);
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      assert(getComputedStyle(doc.getElementById("dmBlock")).display==="none","selecting the closed DM tab must not reveal its panel or composer");
+      assert(dmPlayer,"fresh UI state must contain an available DM recipient; players="+Object.keys(Game.__S.players||{}).join(","));
+      assert(UI.openDM(dmPlayer.id)!==false,"a legitimate UI.openDM action should open an available player DM");
+      await wait(80);
+      assert(Game.__S.dm.open===true&&!doc.getElementById("dmBlock").classList.contains("hidden"),"UI.openDM must reopen the DM panel");
+      doc.getElementById("mobileTabBattles").click();await raf(win);
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      assert(getComputedStyle(doc.getElementById("dmBlock")).display!=="none","an explicitly opened DM remains available when its tab is selected");
+      UI.closeDM();await wait(80);
+      doc.getElementById("mobileTabBattles").click();await raf(win);
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      assert(getComputedStyle(doc.getElementById("dmBlock")).display==="none","tab selection preserves UI.closeDM after a real open/close cycle");
+      UI.openDM(dmPlayer.id);await wait(80);
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      pass("fresh/closed/open/closed DM lifecycle preserves renderer-owned panel visibility");
       assertOneActive(doc,"dm");
       for(const id of ["topBar","left","mobilePanelTabs"]){const r=doc.getElementById(id).getBoundingClientRect();assert(r.width>0&&r.height>0,`${id} must be visible`);assert(r.left>=-1&&r.right<=win.innerWidth+1,`${id} must fit the viewport width`);}
       assert(doc.documentElement.scrollWidth<=win.innerWidth+1&&doc.body.scrollWidth<=win.innerWidth+1,"no horizontal page overflow at 390px");
       pass("390x844: stats/menu, chat, tab strip, one tabpanel and no horizontal overflow");
+
+      // Exercise panel/body visibility when gameplay or progressive disclosure gates content.
+      const battlesBlock=doc.getElementById("battlesBlock"),battlesBody=doc.getElementById("battlesBody");
+      const battleWasHidden=battlesBlock.classList.contains("hidden"),battleBodyWasHidden=battlesBody.classList.contains("hidden");
+      battlesBlock.classList.add("hidden");battlesBody.classList.add("hidden");
+      doc.getElementById("mobileTabBattles").click();await raf(win);
+      assert(getComputedStyle(battlesBlock).display==="none"&&getComputedStyle(battlesBody).display==="none","selected battle tab must preserve gated/closed hidden state on its panel and body");
+      battlesBlock.classList.toggle("hidden",battleWasHidden);battlesBody.classList.toggle("hidden",battleBodyWasHidden);
+      const collapsedEventsBody=doc.getElementById("eventsBody"),eventsWasHidden=collapsedEventsBody.classList.contains("hidden");
+      collapsedEventsBody.classList.add("hidden");
+      doc.getElementById("mobileTabEvents").click();await raf(win);
+      assert(getComputedStyle(collapsedEventsBody).display==="none","selected Events tab must preserve the renderer's collapsed hidden body");
+      collapsedEventsBody.classList.toggle("hidden",eventsWasHidden);
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      pass("fresh/closed/open/closed DM plus gated battle and collapsed Events hidden-state regressions");
 
       const renderCounts={};
       for(const name of ["renderAll","renderDM","renderBattles","renderEvents"]){const original=UI[name];renderCounts[name]=0;if(typeof original==="function")UI[name]=function(...args){renderCounts[name]++;return original.apply(this,args);};}
@@ -91,6 +128,8 @@
       assert(mobileState(win)===currentBeforeCount,"new events must not switch tabs");
       eventSource.textContent=oldEventCount;await wait(50);
       const oldContent=eventsBody.innerHTML;
+      const eventsOriginallyHidden=eventsBody.classList.contains("hidden");
+      eventsBody.classList.remove("hidden");
       eventsBody.innerHTML="";
       for(let i=0;i<30;i++){const row=doc.createElement("div");row.textContent=`test scroll row ${i}`;row.style.height="42px";row.style.flex="0 0 42px";eventsBody.appendChild(row);}
       doc.getElementById("mobileTabEvents").click();await raf(win);
@@ -103,6 +142,7 @@
       assert(eventsBody.scrollTop===preservedScroll,"Events scroll position must survive tab changes");
       assert(eventsBody.firstElementChild===eventProbe,"panel DOM/open card nodes must remain mounted between tabs");
       eventsBody.innerHTML=oldContent;
+      eventsBody.classList.toggle("hidden",eventsOriginallyHidden);
       pass("counter mirrors existing source; event updates do not auto-switch; panel scroll and open DOM persist");
 
       doc.getElementById("mobileTabDm").click();await raf(win);
@@ -116,19 +156,26 @@
       assert(actionCount===0,"swipe must not activate the game button");
       swipe(win,doc,dmBody.firstElementChild||dmBody,90);
       assert(mobileState(win)==="dm","right swipe at first tab must stop at the edge");
+      const battlePanel=doc.getElementById("battlesBlock"),battleBody=doc.getElementById("battlesBody");
+      const battlePanelInitiallyHidden=battlePanel.classList.contains("hidden"),battleBodyInitiallyHidden=battleBody.classList.contains("hidden");
+      const battleContent=battleBody.innerHTML;
+      battlePanel.classList.remove("hidden");battleBody.classList.remove("hidden");
+      battleBody.innerHTML="";
+      for(let i=0;i<30;i++){const row=doc.createElement("div");row.textContent="test battle scroll row "+i;row.style.height="42px";row.style.flex="0 0 42px";battleBody.appendChild(row);}
       swipe(win,doc,dmBody.firstElementChild||dmBody,-90);
       assert(mobileState(win)==="battles","left swipe in active panel must select next tab");
-      swipe(win,doc,doc.getElementById("battlesBlock").querySelector(".panelBody"),-90);
+      swipe(win,doc,battleBody,-90);
       assert(mobileState(win)==="events","second left swipe must select Events");
       swipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),-90);
       assert(mobileState(win)==="events","left swipe at last tab must stop at the edge");
       swipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),90);
       assert(mobileState(win)==="battles","right swipe must select previous tab");
-      const battleBody=doc.getElementById("battlesBody");
       swipe(win,doc,battleBody,4,80);
       assert(mobileState(win)==="battles","vertical movement must not switch tabs");
       battleBody.scrollTop=60;assert(battleBody.scrollTop===60,"vertical panel content remains programmatically scrollable");
       assert(Object.values(renderCounts).every(value=>value===0),"tab swipes must not rerender game panels");
+      battleBody.innerHTML=battleContent;
+      battlePanel.classList.toggle("hidden",battlePanelInitiallyHidden);battleBody.classList.toggle("hidden",battleBodyInitiallyHidden);
       pass("horizontal swipes both ways, edge stops, vertical scroll, and buttons are not intercepted");
 
       doc.getElementById("mobileTabDm").click();await raf(win);
@@ -168,6 +215,25 @@
       assert(!hint.classList.contains("is-visible"),"scroll movement must cancel long-press recognition");
       action.remove();
       pass("short action fires once; long press opens an accessible hint without acting; scroll cancels it");
+
+      const capCases=[
+        {selector:".pointsWrap .statIcon",owner:".pointsWrap",message:"Points limit reached: no more points this week."},
+        {selector:'[data-profile-stat="rep"] .statIcon',owner:'[data-profile-stat="rep"]',message:"REP limit reached: no more REP this week."},
+      ];
+      for(let i=0;i<capCases.length;i++){
+        const {selector,owner,message}=capCases[i],icon=doc.querySelector(selector),chip=icon&&icon.closest(owner);
+        assert(icon&&chip,"real points/REP stat icon and cap-bearing profile chip must exist");
+        const oldCap=chip.getAttribute("data-stat-cap-hint");
+        chip.setAttribute("data-stat-cap-hint",message);
+        pointer(win,"pointerdown",icon,12,12,9350+i);
+        await wait(550);
+        assert(hint.classList.contains("is-visible")&&hint.textContent===message,selector+" long press prioritizes the active ancestor cap message");
+        assert(icon.getAttribute("aria-describedby")==="mobileLongPressHint","touched stat icon remains the hint's ARIA owner");
+        pointer(win,"pointerup",icon,12,12,9350+i);
+        doc.dispatchEvent(new win.KeyboardEvent("keydown",{key:"Escape",bubbles:true}));
+        if(oldCap==null)chip.removeAttribute("data-stat-cap-hint");else chip.setAttribute("data-stat-cap-hint",oldCap);
+      }
+      pass("touch-pointer long press shows active points and REP cap details while the touched icon owns ARIA");
 
       UI.showStatToast("points","Mobile reward notice");UI.showStatToast("rep","Mobile status changed");
       await wait(120);

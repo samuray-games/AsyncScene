@@ -36,7 +36,7 @@ window.Game = window.Game || {};
   const TRAINING_UI_ARG_KEY = "menu_training_arg";
   const DEV_MODE_STORAGE_KEY = "asyncscene.devModeUnlocked";
   const DEV_MODE_PIN = "2468";
-  const STAGE715_GOAL_TEXT = "Цель - стать значимой фигурой в этом мире: наращивать влияние, строить связи и менять расклад вокруг себя.";
+  const STAGE715_GOAL_TEXT = "Создай свою историю в Асинхронии. Вступай в конфликты, выбирай, кого поддерживать, и решай, чего добиваться. Здесь важна не только победа, но и её последствия.";
 
   function isStage715DemoActive() {
     const state = UI && UI.S ? UI.S : null;
