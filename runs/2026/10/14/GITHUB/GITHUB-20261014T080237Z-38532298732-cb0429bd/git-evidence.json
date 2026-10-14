@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "840752c34665fa2ae7e5229e72ee8cee48ab3dd8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "# branch.oid 840752c34665fa2ae7e5229e72ee8cee48ab3dd8\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "840752c3 (HEAD, pull/428/merge) Merge 39013ab54fb788100c2158cc4310ad9e8cbb546c into 183d522ea4c54fb0d7cdd17e775d9e5c77ab013e\n39013ab5 (origin/codex/start-essence-human-copy-20261014) Restore formal Boomer modal heading\n183d522e (origin/main) Retire obsolete Asynchronia plugin model preflight (#429)\n70a61828 Restore Boomer and Alpha start copy profiles\n3ddc7be1 Rewrite Asynchronia start and essence copy\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 840752c34665fa2ae7e5229e72ee8cee48ab3dd8\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:02:37Z",
+      "stderr": "",
+      "stdout": "183d522ea4c54fb0d7cdd17e775d9e5c77ab013e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "840752c34665fa2ae7e5229e72ee8cee48ab3dd8",
+  "observedAtUtc": "2026-10-14T08:02:37Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
