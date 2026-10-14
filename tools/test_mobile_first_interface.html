@@ -200,6 +200,9 @@
       assert(!doc.getElementById("blocks").hasAttribute("data-active-tab"),"desktop has no active mobile tab state");
       assert(!doc.getElementById("dmBlock").hasAttribute("role"),"desktop panel semantics remain unchanged");
       pass("narrow, landscape, keyboard-height resize recovery, and desktop breakpoint");
+      await setFrameSize(390,844);
+      assertOneActive(doc,"dm");
+      pass("restores mobile viewport after desktop breakpoint check");
 
       result.className="pass";result.textContent=`PASS\n${output.join("\n")}\n\nLIMIT: this browser test simulates touch pointer events and reduced viewport height; it does not emulate physical iOS touch hardware or the native iPhone keyboard.`;
       document.documentElement.dataset.testResult="pass";
