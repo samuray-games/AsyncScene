@@ -47,7 +47,7 @@ BOOMER_BLOCKS = (
         "body": "Помогли одному - нажили врага в другом. Не всегда получится угадать, чем закончится разговор."
     },
     {
-        "heading": "Играй в своём ритме.",
+        "heading": "Играйте в своём ритме.",
         "body": "Не нужно собираться всем одновременно. Заходите, когда удобно."
     },
 )
@@ -210,6 +210,7 @@ def main() -> None:
     assert "Помогли одному - нажили врага в другом." in boomer_modal
     assert "Заходите, когда удобно." in boomer_modal
     assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", boomer_modal, re.IGNORECASE), boomer_modal
+    assert not re.search(r"\bиграй\b", boomer_modal, re.IGNORECASE), boomer_modal
 
     alpha_modal = " ".join(part for block in rows["alpha"]["blocks"] for part in block.values())
     assert alpha_modal == alpha_modal.lower(), alpha_modal
