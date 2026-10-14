@@ -1562,14 +1562,14 @@ button:disabled{opacity:.55; cursor:not-allowed}
 /* Mobile UI Phase 1B: fixed stats, pinned resizable chat, normal panels below. */
 @media (max-width: 860px){
   :root{
-    --mobile-gap:10px;
+    --mobile-gap:8px;
     --mobile-edge:10px;
     --mobile-topbar-height:58px;
-    --mobile-chat-height:52svh;
-    --mobile-chat-min:220px;
+    --mobile-chat-height:45svh;
+    --mobile-chat-min:180px;
     --mobile-menu-stack-height:0px;
-    --mobile-chat-max:calc(100svh - var(--mobile-topbar-height) - var(--mobile-menu-stack-height) - 150px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    --mobile-stack-offset:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height) + var(--mobile-chat-height) + var(--mobile-gap));
+    --mobile-chat-max:calc(100svh - var(--mobile-topbar-height) - var(--mobile-menu-stack-height) - 170px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    --mobile-viewport-offset-top:0px;
   }
   html,body{
     width:100%;
@@ -1593,7 +1593,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #topBar,.topbar{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge));
+    top:calc(var(--mobile-viewport-offset-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:90;
@@ -1601,7 +1601,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #menuBlock.menu-open{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
+    top:calc(var(--mobile-viewport-offset-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:85;
@@ -1615,9 +1615,12 @@ button:disabled{opacity:.55; cursor:not-allowed}
   #menuBlock.menu-open .panelBody{
     max-height:calc(36svh - 54px);
   }
+  #menuBlock.menu-open #manifestBody[aria-hidden="false"]{
+    flex:0 0 auto;
+  }
   #left,.left{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height));
+    top:calc(var(--mobile-viewport-offset-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:80;
@@ -1652,21 +1655,166 @@ button:disabled{opacity:.55; cursor:not-allowed}
     display:flex;
   }
   #right,.right{
+    position:static;
     height:auto;
-    min-height:100svh;
+    min-height:0;
     overflow:visible;
-    padding-top:var(--mobile-stack-offset);
+    padding:0;
     display:block;
   }
   #right.menu-open #blocks{
     padding-top:0;
   }
   #blocks{
-    min-height:0;
+    position:fixed;
+    top:calc(var(--mobile-viewport-offset-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height) + var(--mobile-chat-height) + var(--mobile-gap));
+    left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
+    right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
+    bottom:calc(env(safe-area-inset-bottom, 0px) + var(--mobile-edge) + var(--mobile-viewport-inset-bottom, 0px));
+    min-height:var(--mobile-panel-min, 152px);
     height:auto;
-    overflow:visible;
-    gap:8px;
-    padding-bottom:calc(var(--mobile-gap) + env(safe-area-inset-bottom, 0px));
+    overflow:hidden;
+    gap:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    z-index:70;
+  }
+  #mobileGameTabs{
+    display:flex;
+    flex:0 0 auto;
+    min-height:46px;
+    gap:5px;
+    margin-bottom:7px;
+    padding:3px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:linear-gradient(180deg, var(--panelGradTop), var(--panelGradBottom));
+    box-shadow:var(--shadow);
+  }
+  .mobileGameTab{
+    flex:1 1 0;
+    min-width:0;
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    padding:6px 4px;
+    border:1px solid transparent;
+    border-radius:10px;
+    background:transparent;
+    color:var(--text);
+    font-size:clamp(12px, 3.3vw, 15px);
+    font-weight:800;
+    white-space:nowrap;
+    touch-action:manipulation;
+  }
+  .mobileGameTab[aria-selected="true"]{
+    border-color:var(--profile-accent-border, rgba(120,180,255,.45));
+    background:var(--profile-accent-soft, rgba(120,180,255,.16));
+  }
+  .mobileGameTab:focus-visible{
+    outline:2px solid var(--profile-focus, rgba(120,180,255,.75));
+    outline-offset:1px;
+  }
+  .mobileGameTab:disabled{opacity:.62;cursor:not-allowed}
+  .mobileGameTab__count:empty{display:none}
+  .mobileGameTab__count:not(:empty){
+    min-width:18px;
+    height:18px;
+    display:inline-grid;
+    place-items:center;
+    padding:0 4px;
+    border-radius:999px;
+    background:var(--surfaceSoft);
+    font-size:11px;
+    line-height:1;
+  }
+  #mobileGamePanels{
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    min-height:0;
+    overflow:hidden;
+    touch-action:pan-y;
+  }
+  #mobileGamePanels > .mobileGamePanel:not(.mobileGamePanel--active){display:none!important}
+  #mobileGamePanels > .mobileGamePanel--active:not(.hidden){
+    display:flex!important;
+    flex:1 1 auto;
+    width:100%;
+    min-width:0;
+    min-height:0;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden;
+    flex-direction:column;
+  }
+  #mobileGamePanels > .mobileGamePanel--active:not(.hidden) > .panelBody{
+    display:flex!important;
+    flex:1 1 auto;
+    min-height:0;
+    max-height:none!important;
+    height:auto!important;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+  #mobileGamePanels > #eventsBlock.mobileGamePanel--active:not(.hidden) #eventsBody.hidden,
+  #mobileGamePanels > #battlesBlock.mobileGamePanel--active:not(.hidden) #battlesBody.hidden,
+  #mobileGamePanels > #dmBlock.mobileGamePanel--active:not(.hidden) .panelBody.hidden{
+    display:flex!important;
+  }
+  #mobileGamePanels .panelHeader,.mobileGamePanel .blockHeader{
+    flex:0 0 auto;
+  }
+  body.mobile-keyboard-open #blocks{
+    min-height:var(--mobile-panel-min, 152px);
+  }
+  body.mobile-keyboard-open #topBar,
+  body.mobile-keyboard-open .topbar{
+    padding:5px 7px;
+    gap:5px;
+  }
+  body.mobile-keyboard-open #chatInputRow,
+  body.mobile-keyboard-open .chatInputRow{padding:5px;gap:5px}
+  body.mobile-keyboard-open #chatInput{min-height:38px;padding:8px}
+  body.mobile-keyboard-open #btnSend{min-height:38px;padding:7px 9px}
+  body.mobile-keyboard-open #mobileGameTabs{min-height:40px;margin-bottom:4px}
+  body.mobile-keyboard-open .mobileGameTab{min-height:36px;padding:4px 2px}
+  body.mobile-keyboard-open #mobileGamePanels .panelHeader,
+  body.mobile-keyboard-open #mobileGamePanels .blockHeader{min-height:38px;padding:6px 9px}
+  html.stage7-first-experience-active #mobileGameTabs,
+  html.stage7-first-experience-active #mobileGamePanels{display:none!important}
+  html.stage7-first-experience-active #blocks{
+    display:block!important;
+    overflow:hidden;
+    padding:0;
+  }
+  html.stage7-first-experience-active #stage7FirstExperiencePanel{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    max-height:100%;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+  .mobileGameTabs,.mobileGamePanels{box-sizing:border-box}
+  #mobileGamePanels :is(button,input,textarea,select,a,[contenteditable="true"]){touch-action:manipulation}
+  #mobileGamePanels :is(.panelBody,.blockBody,.scroll,.dmLog){overscroll-behavior:contain}
+}
+@media (min-width: 861px){
+  #mobileGameTabs{display:none!important}
+  #mobileGamePanels{display:contents!important}
+  #mobileGamePanels > .mobileGamePanel:not(.hidden){display:flex}
+  #mobileGamePanels > .mobileGamePanel:not(.hidden){visibility:visible}
+}
+
+@media (max-width: 860px){
+  #blocks.has-overlay-panel{
+    overflow:hidden;
   }
   #rightScroll{
     display:none;
