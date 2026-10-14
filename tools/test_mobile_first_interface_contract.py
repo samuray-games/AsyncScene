@@ -68,6 +68,8 @@ class MobileFirstInterfaceContract(unittest.TestCase):
     def test_05_swipes_are_panel_scoped_directional_and_cancelable(self):
         mobile = read(WEB / "ui" / "ui-mobile.js")
         self.assertIn('target.closest(".panelBody")', mobile)
+        self.assertIn('const blocks = document.getElementById("blocks")', mobile)
+        self.assertIn("lower tabpanel surface empty", mobile)
         self.assertIn('event.pointerType !== "touch" && event.pointerType !== "pen"', mobile)
         self.assertIn("Math.abs(dx) < 56", mobile)
         self.assertIn("Math.abs(dx) <= Math.abs(dy) * 1.25", mobile)
@@ -124,6 +126,20 @@ class MobileFirstInterfaceContract(unittest.TestCase):
         self.assertIn("UI.closeDM must own the closed DM hidden state", harness)
         self.assertIn("selected battle tab must preserve gated/closed hidden state", harness)
         self.assertIn("renderer's collapsed hidden body", harness)
+
+    def test_07c_mobile_collapsed_preference_does_not_hide_allowed_content(self):
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn("#dmBlock.panel--collapsed:not(.hidden) .panelBody:not(.hidden)", css)
+        self.assertIn("#battlesBlock.panel--collapsed:not(.hidden) #battlesBody:not(.hidden)", css)
+        self.assertIn("#eventsBlock.panel--collapsed:not(.hidden) #eventsBody:not(.hidden)", css)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("persisted collapsed size", harness)
+        self.assertIn("desktop collapsed preference must still hide its body", harness)
+
+    def test_05b_empty_closed_dm_panel_can_swipe_without_game_actions(self):
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("fresh closed-DM lower panel", harness)
+        self.assertIn("fresh empty-panel swipes must not open DM or alter game state", harness)
 
     def test_08_existing_toast_and_desktop_hint_contracts_remain(self):
         core = read(WEB / "ui" / "ui-core.js")

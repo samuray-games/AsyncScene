@@ -155,10 +155,19 @@ window.Game = window.Game || {};
 
   function contentPanelFromTarget(target){
     if (!target || !target.closest) return null;
+    const blocks = document.getElementById("blocks");
+    if (!blocks || !blocks.contains(target)) return null;
     const panel = target.closest("#dmBlock, #battlesBlock, #eventsBlock");
-    if (!panel || panel.id !== PANELS[activeKey]) return null;
-    if (!target.closest(".panelBody")) return null;
-    return panel;
+    if (panel) {
+      if (panel.id !== PANELS[activeKey] || !target.closest(".panelBody")) return null;
+      return panel;
+    }
+    // A renderer-hidden active panel (the fresh closed-DM state) leaves the
+    // lower tabpanel surface empty. Keep that surface navigable by swipe while
+    // leaving all visible controls and panel-body interactions panel-scoped.
+    const activePanel = panelElement(activeKey);
+    if (activePanel && !activePanel.classList.contains("hidden")) return null;
+    return blocks;
   }
 
   function startSwipe(event){

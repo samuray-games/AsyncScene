@@ -70,6 +70,26 @@
       assert(Game.__S.dm.open===false,"fresh DM state must start closed");
       UI.closeDM();await wait(80);
       assert(Game.__S.dm.open===false&&doc.getElementById("dmBlock").classList.contains("hidden"),"UI.closeDM must own the closed DM hidden state");
+      const freshClosedState=snapshotGameUiState(Game.__S);
+      const swipeFreshPanel=(dx,dy=0)=>{
+        const key=mobileState(win),id=({dm:"dmBlock",battles:"battlesBlock",events:"eventsBlock"})[key];
+        const panel=doc.getElementById(id),body=panel&&(panel.querySelector(".panelBody")||panel.querySelector("#battlesBody,#eventsBody"));
+        const target=panel&&!panel.classList.contains("hidden")&&body&&getComputedStyle(body).display!=="none"?body:doc.getElementById("blocks");
+        swipe(win,doc,target,dx,dy);
+      };
+      swipeFreshPanel(-90);
+      assert(mobileState(win)==="battles","fresh closed-DM lower panel must swipe left to Battles");
+      assert(Game.__S.dm.open===false&&doc.getElementById("dmBlock").classList.contains("hidden"),"empty-panel swipe must not open the DM");
+      swipeFreshPanel(-90);
+      assert(mobileState(win)==="events","the next empty-panel left swipe must select Events");
+      swipeFreshPanel(90);
+      assert(mobileState(win)==="battles","empty-panel right swipe must select the previous tab");
+      swipeFreshPanel(90);
+      assert(mobileState(win)==="dm","the reverse empty-panel swipe must return to closed DM");
+      swipeFreshPanel(0,80);
+      assert(mobileState(win)==="dm","vertical movement in the empty panel must not switch tabs");
+      assert(snapshotGameUiState(Game.__S)===freshClosedState,"fresh empty-panel swipes must not open DM or alter game state");
+      doc.getElementById("mobileTabDm").click();await raf(win);
       doc.getElementById("mobileTabBattles").click();await raf(win);
       doc.getElementById("mobileTabDm").click();await raf(win);
       assert(getComputedStyle(doc.getElementById("dmBlock")).display==="none","selecting the closed DM tab must not reveal its panel or composer");
@@ -88,6 +108,48 @@
       doc.getElementById("mobileTabDm").click();await raf(win);
       pass("fresh/closed/open/closed DM lifecycle preserves renderer-owned panel visibility");
       assertOneActive(doc,"dm");
+
+      // Simulate persisted desktop size preferences through the normal core
+      // class application path, without invoking a persistence setter.
+      const originalGetPanelSizes=Game.__A.getPanelSizes;
+      const persistedSizes={dm:"collapsed",battles:"collapsed",events:"collapsed"};
+      const panelSizesWere=Object.fromEntries(Object.keys(persistedSizes).map(key=>[key,doc.getElementById(({dm:"dmBlock",battles:"battlesBlock",events:"eventsBlock"})[key]).className]));
+      const bodyStatesWere={
+        dm:doc.querySelector("#dmBlock .panelBody").classList.contains("hidden"),
+        battles:doc.getElementById("battlesBody").classList.contains("hidden"),
+        events:doc.getElementById("eventsBody").classList.contains("hidden"),
+      };
+      Game.__A.getPanelSizes=()=>persistedSizes;
+      const allowedPanels={dm:doc.getElementById("dmBlock"),battles:doc.getElementById("battlesBlock"),events:doc.getElementById("eventsBlock")};
+      const allowedBodies={dm:doc.querySelector("#dmBlock .panelBody"),battles:doc.getElementById("battlesBody"),events:doc.getElementById("eventsBody")};
+      for(const key of ["dm","battles","events"]){
+        allowedPanels[key].classList.remove("hidden");
+        allowedBodies[key].classList.remove("hidden");
+        UI.applyPanelSizeClasses(allowedPanels[key],key);
+        assert(allowedPanels[key].classList.contains("panel--collapsed"),key+" must retain its persisted collapsed preference class");
+        assert(getComputedStyle(allowedBodies[key]).display!=="none",key+" allowed content remains visible on mobile with persisted collapsed size");
+      }
+      assert(doc.querySelector("#dmBlock .panelBody").isConnected,"open DM content remains mounted with persisted collapsed size");
+      for(const id of ["mobileTabDm","mobileTabBattles","mobileTabEvents"]){doc.getElementById(id).click();await raf(win);}
+      for(const key of ["dm","battles","events"])assert(getComputedStyle(allowedBodies[key]).display!=="none",key+" stays available across tab changes with persisted collapsed size");
+      const hiddenDMBody=allowedBodies.dm,hiddenBattleBody=allowedBodies.battles,hiddenEventBody=allowedBodies.events;
+      hiddenDMBody.classList.add("hidden");hiddenBattleBody.classList.add("hidden");hiddenEventBody.classList.add("hidden");
+      for(const [key,id] of [["dm","mobileTabDm"],["battles","mobileTabBattles"],["events","mobileTabEvents"]]){
+        doc.getElementById(id).click();await raf(win);
+        assert(getComputedStyle(allowedBodies[key]).display==="none",key+" renderer-owned hidden state must override collapsed-size mobile presentation");
+      }
+      const beforeDesktop=frame.getBoundingClientRect().width;
+      await setFrameSize(1024,768);
+      for(const key of ["dm","battles","events"])assert(getComputedStyle(allowedBodies[key]).display==="none",key+" desktop collapsed preference must still hide its body");
+      await setFrameSize(390,844);
+      Game.__A.getPanelSizes=originalGetPanelSizes;
+      for(const key of ["dm","battles","events"]){
+        allowedPanels[key].className=panelSizesWere[key];
+        allowedBodies[key].classList.toggle("hidden",bodyStatesWere[key]);
+      }
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      assert(beforeDesktop>=390&&beforeDesktop<=392,"mobile fixture began at expected 390px CSS width before desktop behavior check");
+      pass("open DM, allowed Battles and Events remain available with persisted collapsed size; renderer hidden states and desktop collapsed behavior remain intact");
       for(const id of ["topBar","left","mobilePanelTabs"]){const r=doc.getElementById(id).getBoundingClientRect();assert(r.width>0&&r.height>0,`${id} must be visible`);assert(r.left>=-1&&r.right<=win.innerWidth+1,`${id} must fit the viewport width`);}
       assert(doc.documentElement.scrollWidth<=win.innerWidth+1&&doc.body.scrollWidth<=win.innerWidth+1,"no horizontal page overflow at 390px");
       pass("390x844: stats/menu, chat, tab strip, one tabpanel and no horizontal overflow");

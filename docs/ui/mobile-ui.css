@@ -63,6 +63,10 @@
   #blocks[data-active-tab="dm"] > #dmBlock:not(.hidden) .panelBody:not(.hidden),
   #blocks[data-active-tab="battles"] > #battlesBlock:not(.hidden) #battlesBody:not(.hidden),
   #blocks[data-active-tab="events"] > #eventsBlock:not(.hidden) #eventsBody:not(.hidden){display:flex}
+  /* Desktop size preferences never hide mobile content; renderer .hidden still wins. */
+  #dmBlock.panel--collapsed:not(.hidden) .panelBody:not(.hidden),
+  #battlesBlock.panel--collapsed:not(.hidden) #battlesBody:not(.hidden),
+  #eventsBlock.panel--collapsed:not(.hidden) #eventsBody:not(.hidden){display:flex!important}
   #dmLog{flex:1 1 auto;min-height:36px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   #dmInputRow,#dmActions,#teachPanel,#dmExtraRow{flex:0 0 auto}
   #dmTabs,.dmList,.dmTabRow{touch-action:pan-x}
