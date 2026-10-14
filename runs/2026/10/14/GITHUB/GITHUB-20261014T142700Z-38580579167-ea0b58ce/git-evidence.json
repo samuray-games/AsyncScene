@@ -1,0 +1,106 @@
+{
+  "branch": "codex/start-essence-five-voices-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "codex/start-essence-five-voices-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "c6fbeeeab33dc67e01b7e27e6bc823c22c75d0b3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "# branch.oid c6fbeeeab33dc67e01b7e27e6bc823c22c75d0b3\n# branch.head codex/start-essence-five-voices-20261014\n# branch.upstream origin/codex/start-essence-five-voices-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "c6fbeeea (HEAD -> codex/start-essence-five-voices-20261014, origin/codex/start-essence-five-voices-20261014) Adapt start and essence copy for five profiles\nbcb52993 (origin/main) Mobile-first interface redesign (#430)\nceb999bb Обновить текст блока «Цель» в онбординге (#427)\n7e918dea Rewrite Asynchronia start screen and game explanation (#428)\n183d522e Retire obsolete Asynchronia plugin model preflight (#429)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD c6fbeeeab33dc67e01b7e27e6bc823c22c75d0b3\nbranch refs/heads/codex/start-essence-five-voices-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:27:00Z",
+      "stderr": "",
+      "stdout": "bcb529931912bb96ea97df8ed8fb9a3e3d6ba7d8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "c6fbeeeab33dc67e01b7e27e6bc823c22c75d0b3",
+  "observedAtUtc": "2026-10-14T14:27:00Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
