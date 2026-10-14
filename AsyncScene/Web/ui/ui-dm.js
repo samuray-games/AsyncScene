@@ -729,6 +729,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
       const right = ensureHeaderRight(header);
       if (header) {
         header.onclick = (ev) => {
+          if (UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode()) return;
           const t = ev && ev.target;
           const clickedButton = t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")));
           try {

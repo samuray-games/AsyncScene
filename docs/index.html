@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="ui/ui-color-modes.css?v=stage6_2_five_by_two_color_modes_20260804a" />
   <link rel="stylesheet" href="ui/ui-stage7-essence.css?v=stage7_essence_modal_20260805a" />
   <link rel="stylesheet" href="ui/ui-stage7-first-experience.css?v=stage7_cosmetic_cleanup_20260808a" />
+  <link rel="stylesheet" href="ui/mobile-ui.css?v=mobile_first_interface_20261014a" />
   <script>
     (function () {
       if (typeof window === "undefined" || window.__CONSOLE_TAPE_BOOTSTRAPPED__) return;
@@ -101,6 +102,12 @@
         <button id="btnMenu" class="btn">Меню</button>
       </div>
 
+      <div id="mobilePanelShell" class="mobilePanelShell">
+      <div id="mobilePanelTabs" class="mobilePanelTabs" role="tablist" aria-label="Игровые панели">
+        <button id="mobileTabDm" class="mobilePanelTab" type="button" role="tab" aria-controls="dmBlock" data-mobile-tab="dm"><span>Личка</span><span class="mobilePanelTabCount" data-mobile-count="dm">0</span></button>
+        <button id="mobileTabBattles" class="mobilePanelTab" type="button" role="tab" aria-controls="battlesBlock" data-mobile-tab="battles"><span>Баттлы</span><span class="mobilePanelTabCount" data-mobile-count="battles">0</span></button>
+        <button id="mobileTabEvents" class="mobilePanelTab" type="button" role="tab" aria-controls="eventsBlock" data-mobile-tab="events"><span>События</span><span class="mobilePanelTabCount" data-mobile-count="events">0</span></button>
+      </div>
       <div id="blocks">
         <div class="block panel hidden" id="menuBlock">
           <div class="blockHeader panelHeader">
@@ -167,6 +174,7 @@
         </div>
 
       </div>
+      </div>
     </div>
   </div>
 
@@ -224,6 +232,7 @@
   <script defer src="ui/ui-stage7-personalization.js?v=stage7_cosmetic_cleanup_20260808a"></script>
   <script defer src="ui/ui-boot.js?v=stage7_15_atom6_fresh_legacy_route_20261012a"></script>
   <script defer src="ui/ui-stage7-essence.js?v=stage7_essence_modal_20260805a"></script>
+  <script defer src="ui/ui-mobile.js?v=mobile_first_interface_20261014a"></script>
   <script>
     const resolveDevCheckExport = (name) => {
       const stores = [

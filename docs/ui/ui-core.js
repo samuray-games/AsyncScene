@@ -1532,96 +1532,143 @@ window.Game = window.Game || {};
     const topBar = document.getElementById("topBar");
     const chat = document.getElementById("left");
     const handle = document.getElementById("chatResizeHandle");
+    const tabs = document.getElementById("mobilePanelTabs");
     const menu = getMenuBlockEl();
-    if (!root || !topBar || !chat || !handle) return;
+    if (!root || !topBar || !chat || !handle || !tabs) return;
 
-    const MIN_CHAT_HEIGHT = 220;
-    const RESERVED_BELOW_CHAT = 150;
-    const DEFAULT_CHAT_RATIO = 0.52;
-    const MOBILE_GAP = 10;
-    let chatHeight = Number.parseFloat(root.style.getPropertyValue("--mobile-chat-height")) || 0;
-    let dragging = false;
-    let dragStartY = 0;
-    let dragStartHeight = 0;
-
-    const visualViewportHeight = () => {
-      const vv = window.visualViewport;
-      return Math.max(320, Math.round((vv && vv.height) ? vv.height : window.innerHeight));
+    const readPx = (value, fallback = 0) => {
+      const n = Number.parseFloat(value);
+      return Number.isFinite(n) ? n : fallback;
     };
-
+    const readSafe = (name) => readPx(getComputedStyle(root).getPropertyValue(name), 0);
+    const visual = () => {
+      const vv = window.visualViewport;
+      return {
+        top: Math.max(0, Math.round((vv && Number.isFinite(vv.offsetTop)) ? vv.offsetTop : 0)),
+        height: Math.max(240, Math.round((vv && vv.height) ? vv.height : window.innerHeight)),
+      };
+    };
     const topbarHeight = () => Math.max(44, Math.ceil(topBar.getBoundingClientRect().height || topBar.offsetHeight || 58));
+    const tabHeight = () => Math.max(44, Math.ceil(tabs.getBoundingClientRect().height || tabs.offsetHeight || 48));
     const menuStackHeight = () => {
       if (!menu || menu.classList.contains("hidden") || !(S.flags && S.flags.menuOpen)) return 0;
       const h = Math.ceil(menu.getBoundingClientRect().height || menu.offsetHeight || 0);
-      return h > 0 ? h + MOBILE_GAP : 0;
+      return h > 0 ? h + 8 : 0;
     };
-    const maxChatHeight = () => Math.max(MIN_CHAT_HEIGHT, visualViewportHeight() - topbarHeight() - menuStackHeight() - RESERVED_BELOW_CHAT);
-    const clampChatHeight = (value) => Math.max(MIN_CHAT_HEIGHT, Math.min(maxChatHeight(), Math.round(value)));
+    const activeBattleExists = () => {
+      const battles = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : S.battles;
+      return Array.isArray(battles) && battles.some((battle) => battle && battle.resolved !== true);
+    };
+    let controller = root.__mobilePinnedChatController;
+    if (!controller) {
+      controller = {
+        preferredHeight: readPx(root.style.getPropertyValue("--mobile-chat-height"), 0),
+        dragging: false,
+        pointerId: null,
+        dragY: 0,
+        dragHeight: 0,
+        initialized: false,
+      };
+      root.__mobilePinnedChatController = controller;
+    }
 
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
-        root.style.removeProperty("--mobile-topbar-height");
-        root.style.removeProperty("--mobile-menu-stack-height");
-        root.style.removeProperty("--mobile-chat-height");
+        ["--mobile-topbar-height", "--mobile-menu-stack-height", "--mobile-chat-height", "--mobile-chat-min", "--mobile-panels-top", "--mobile-panels-height", "--mobile-vv-top", "--mobile-vv-height"].forEach((key) => root.style.removeProperty(key));
         return;
       }
 
+      const vv = visual();
+      const safeTop = readSafe("--mobile-safe-top");
+      const safeBottom = readSafe("--mobile-safe-bottom");
+      const edge = 8;
+      const gap = 8;
       const topHeight = topbarHeight();
+      const tabSize = tabHeight();
       const menuHeight = menuStackHeight();
+      const minPanelHeight = Math.min(148, Math.max(88, Math.round(vv.height * 0.22)));
+      const minChatHeight = Math.min(168, Math.max(72, Math.round(vv.height * 0.27)));
+      const chatTop = vv.top + safeTop + edge + topHeight + gap + menuHeight;
+      const maxChat = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize - minPanelHeight);
+      if (Number.isFinite(requestedHeight)) controller.preferredHeight = Math.max(minChatHeight, Math.min(maxChat, requestedHeight));
+      if (!controller.preferredHeight) {
+        const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize);
+        controller.preferredHeight = splitSpace * (activeBattleExists() ? 0.40 : 0.55);
+      }
+      const chatHeight = Math.round(Math.max(minChatHeight, Math.min(maxChat, controller.preferredHeight)));
+      const panelsTop = chatTop + chatHeight + gap;
+      const panelsHeight = Math.max(88, vv.height - safeBottom - edge - (panelsTop - vv.top));
+      root.style.setProperty("--mobile-vv-top", `${vv.top}px`);
+      root.style.setProperty("--mobile-vv-height", `${vv.height}px`);
       root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
       root.style.setProperty("--mobile-menu-stack-height", `${menuHeight}px`);
-      root.style.setProperty("--mobile-chat-min", `${MIN_CHAT_HEIGHT}px`);
-      root.style.setProperty("--mobile-chat-max", `${maxChatHeight()}px`);
-
-      if (!chatHeight) chatHeight = visualViewportHeight() * DEFAULT_CHAT_RATIO;
-      if (Number.isFinite(requestedHeight)) chatHeight = requestedHeight;
-      chatHeight = clampChatHeight(chatHeight);
       root.style.setProperty("--mobile-chat-height", `${chatHeight}px`);
+      root.style.setProperty("--mobile-chat-min", `${minChatHeight}px`);
+      root.style.setProperty("--mobile-panels-top", `${panelsTop}px`);
+      root.style.setProperty("--mobile-panels-height", `${panelsHeight}px`);
+      handle.setAttribute("aria-valuemin", String(minChatHeight));
+      handle.setAttribute("aria-valuemax", String(maxChat));
+      handle.setAttribute("aria-valuenow", String(chatHeight));
+      handle.setAttribute("aria-valuetext", `Высота чата ${chatHeight} пикселей`);
     };
 
-    if (!handle.__mobileChatResizeBound) {
-      handle.__mobileChatResizeBound = true;
-
-      const onPointerMove = (e) => {
-        if (!dragging) return;
-        e.preventDefault();
-        sync(dragStartHeight + (e.clientY - dragStartY));
-      };
-
-      const onPointerUp = () => {
-        if (!dragging) return;
-        dragging = false;
+    if (!controller.initialized) {
+      controller.initialized = true;
+      handle.setAttribute("aria-controls", "left");
+      const endDrag = (event) => {
+        if (!controller.dragging) return;
+        if (event && controller.pointerId != null && event.pointerId != null && event.pointerId !== controller.pointerId) return;
+        controller.dragging = false;
+        controller.pointerId = null;
         chat.classList.remove("is-resizing");
       };
-
-      handle.addEventListener("pointerdown", (e) => {
-        if (!isMobile()) return;
-        e.preventDefault();
-        dragging = true;
-        dragStartY = e.clientY;
-        dragStartHeight = chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT;
+      handle.addEventListener("pointerdown", (event) => {
+        if (!isMobile() || (event.button != null && event.button !== 0)) return;
+        controller.dragging = true;
+        controller.pointerId = event.pointerId;
+        controller.dragY = event.clientY;
+        controller.dragHeight = chat.getBoundingClientRect().height || controller.preferredHeight || 120;
         chat.classList.add("is-resizing");
-        try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+        try { handle.setPointerCapture(event.pointerId); } catch (_) {}
+        event.preventDefault();
       });
-
-      handle.addEventListener("keydown", (e) => {
+      document.addEventListener("pointermove", (event) => {
+        if (!controller.dragging || (controller.pointerId != null && event.pointerId !== controller.pointerId)) return;
+        event.preventDefault();
+        sync(controller.dragHeight + event.clientY - controller.dragY);
+      }, { passive: false });
+      document.addEventListener("pointerup", endDrag);
+      document.addEventListener("pointercancel", endDrag);
+      handle.addEventListener("lostpointercapture", endDrag);
+      handle.addEventListener("keydown", (event) => {
         if (!isMobile()) return;
-        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-        e.preventDefault();
-        const delta = e.key === "ArrowUp" ? -24 : 24;
-        sync((chat.getBoundingClientRect().height || chatHeight || MIN_CHAT_HEIGHT) + delta);
+        const current = chat.getBoundingClientRect().height || controller.preferredHeight || 120;
+        let next = null;
+        if (event.key === "ArrowUp") next = current - 24;
+        else if (event.key === "ArrowDown") next = current + 24;
+        else if (event.key === "Home") next = 72;
+        else if (event.key === "End") next = visual().height;
+        if (next == null) return;
+        event.preventDefault();
+        sync(next);
       });
-
-      document.addEventListener("pointermove", onPointerMove, { passive: false });
-      document.addEventListener("pointerup", onPointerUp);
-      window.addEventListener("resize", () => sync());
-      window.addEventListener("orientationchange", () => setTimeout(() => sync(), 80));
-      if (window.visualViewport) window.visualViewport.addEventListener("resize", () => sync());
-      if (mq && mq.addEventListener) mq.addEventListener("change", () => sync());
-      else if (mq && mq.addListener) mq.addListener(() => sync());
+      const resize = () => sync();
+      window.addEventListener("resize", resize);
+      window.addEventListener("orientationchange", () => window.requestAnimationFrame(resize));
+      window.addEventListener("pageshow", resize);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) resize(); });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", resize);
+        window.visualViewport.addEventListener("scroll", resize);
+      }
+      if (mq && mq.addEventListener) mq.addEventListener("change", resize);
+      else if (mq && mq.addListener) mq.addListener(resize);
+      document.addEventListener("focusin", (event) => {
+        if (!isMobile() || !event.target || !event.target.matches || !event.target.matches("#chatInput, #dmInput, #reportInput")) return;
+        window.requestAnimationFrame(resize);
+      });
     }
-
     sync();
   }
 
@@ -2027,7 +2074,6 @@ window.Game = window.Game || {};
   // Source of truth: Game.__A (preferred) -> S.flags fallback
   const __PANEL_ORDER = ["collapsed", "medium", "max"];
   const __MOBILE_PANEL_QUERY = "(max-width: 860px)";
-  const __MOBILE_DEFAULT_PANEL_KEYS = ["battles", "events", "dm"];
 
   function __normalizePanelSize(size){
     const s = String(size || "").toLowerCase().trim();
@@ -2042,36 +2088,9 @@ window.Game = window.Game || {};
     }
   };
 
-  function __writePanelSizeDirect(key, size){
-    const k = String(key || "").toLowerCase();
-    const s = __normalizePanelSize(size);
-    try {
-      if (Game.__A && typeof Game.__A.setPanelSize === "function") {
-        Game.__A.setPanelSize(k, s);
-      }
-    } catch (_) {}
-    if (!S.flags) S.flags = {};
-    if (k === "dm") S.flags.dmSize = s;
-    if (k === "battles") S.flags.battlesSize = s;
-    if (k === "events") S.flags.eventsSize = s;
-    if (k === "locations") S.flags.locationsSize = s;
-  }
-
-  UI.applyMobilePanelDefaults = function(){
-    if (!UI.isMobilePanelMode || !UI.isMobilePanelMode()) return false;
-    if (!S.flags) S.flags = {};
-    if (S.flags.mobilePanelDefaultsApplied) return false;
-    S.flags.mobilePanelDefaultsApplied = true;
-    __MOBILE_DEFAULT_PANEL_KEYS.forEach((key) => __writePanelSizeDirect(key, "collapsed"));
-    S.flags.eventsCollapsed = true;
-    try {
-      if (Game.State && Game.State.flags) {
-        Game.State.flags.mobilePanelDefaultsApplied = true;
-        Game.State.flags.eventsCollapsed = true;
-      }
-    } catch (_) {}
-    return true;
-  };
+  // Kept as a compatibility no-op. Responsive layout no longer writes UI sizes
+  // into the persisted game state; mobile preferences live for this page session.
+  UI.applyMobilePanelDefaults = function(){ return false; };
 
   function __getSizesFromState(){
     // Preferred source: Game.__A (state.js)
@@ -2112,6 +2131,13 @@ window.Game = window.Game || {};
         }
       } catch (_) {}
     };
+
+    // Mobile tab panels have one fixed viewport allocation. Their presentation
+    // must not persist the old per-panel size controls into the game save.
+    if (UI.isMobilePanelMode && UI.isMobilePanelMode() && document.getElementById("mobilePanelTabs")) {
+      applyNow();
+      return;
+    }
 
     // Preferred: StateAPI setter
     try{
