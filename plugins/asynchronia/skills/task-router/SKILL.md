@@ -1,6 +1,6 @@
 ---
 name: task-router
-description: Classify an Asynchronia request and route it through the minimum required safety, planning, model-selection, implementation, validation, and user-acceptance workflow without editing task files or bypassing repository policy.
+description: Classify an Asynchronia request and route it through the minimum required safety, planning, implementation, validation, and user-acceptance workflow without editing task files or bypassing repository policy.
 ---
 
 # Task Router
@@ -45,16 +45,14 @@ Apply these rules in order:
 - The router cannot accept or manufacture scope isolation.
 - For numbered bridge tasks, the exact ordered route is `task-router`, `scope-isolation-check`, `model-selector`, then the routed specialized skills before edits.
 
-### 3. Model selection
+### 3. Ordinary model and effort routing
 
-- `model-selector` is required for every implementation recommendation.
-- The recommendation should cover the exact scope, complexity, and validation burden.
-- For Asynchronia implementation lanes, model selection is a blocking pre-implementation gate.
-- If task scope changes materially, recompute the recommendation before relying on it.
-- The router may repeat the selector recommendation but cannot verify or change the active interface model.
-- Active model remains `USER_SELECTED_UNVERIFIED`.
-- The router must carry the selector's exact output forward unchanged at `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, including the complete inventory or every evaluated pair as appropriate, the current state, and the exact next response.
-- The router must preserve the exact same-thread fenced `CONTINUE` token when current policy requires the pause.
+- Ordinary implementation uses configured Codex agent-team/model routing under current root repository policy.
+- `model-selector` is optional supporting analysis when explicitly useful; it is not a prerequisite or mutation gate for ordinary work.
+- Never require `MODEL_PREFLIGHT_PAUSE`, `INVENTORY_OK`, user model/effort selection, `CONTINUE`, or `IMPLEMENTATION_ALLOWED` for ordinary tasks.
+- An absent legacy selector launcher does not block ordinary development. Do not restore it or manufacture selector output.
+- When current primary authority for an exact numbered-bridge task explicitly requires its specialized selector steps, preserve those steps only for that bridge task.
+- The router cannot verify or change the active interface model. If identity is discussed, use `USER_SELECTED_UNVERIFIED` unless authoritative evidence exists.
 
 ### 4. Parallel planning
 
@@ -121,23 +119,22 @@ Secondary flags may include:
 ### `READ_ONLY_ANALYSIS`
 
 - scope-isolation-check
-- model-selector when substantial reasoning is required
+- optional model-selector analysis only when explicitly useful
 - no implementation
 - no Safari smoke unless explicitly analyzing a runtime smoke result
 
 ### `DOCUMENTATION_ONLY`
 
 - scope-isolation-check
-- model-selector
+- configured Codex routing
 - no scope isolation
 - no Safari smoke
 
 ### `PLUGIN_POLICY`
 
 - scope-isolation-check
-- model-selector
 - task-router before implementation when file changes are proposed
-- the exact ordered route is `task-router`, `scope-isolation-check`, `model-selector`
+- configured Codex routing; model-selector is optional supporting analysis
 - parallel-scope-planner only when several plugin tasks or shared ownership exist
 - `smoke-orchestrator` when the plugin task changes smoke workflow, enclosing smoke verdict rules, or contract-smoke requirements
 - `deployment-verifier` when the plugin task changes deployment identity, cache-bust, entrypoint freshness, or release-lineage verification rules
@@ -151,7 +148,7 @@ Secondary flags may include:
 ### `UI_ONLY`
 
 - scope-isolation-check
-- model-selector
+- configured Codex routing
 - Build Web Apps recommendation when useful
 - preserve UI/logic separation
 - user visual smoke when runtime UI changes are implemented
@@ -159,7 +156,7 @@ Secondary flags may include:
 ### `RUNTIME_LOGIC`
 
 - scope-isolation-check
-- model-selector
+- configured Codex routing
 - closed-loop-controller
 - failure-routing-and-corrective-loop
 - `task-router` before implementation
@@ -176,7 +173,7 @@ Secondary flags may include:
 - conservation and traceability validation
 - `canon-audit` first when the intended economy rule is unclear
 - `mirror-audit` when the economy behavior touches mirrored source or deployed runtime files
-- strongest justified model recommendation
+- configured Codex routing appropriate to the risk and validation burden
 - user Safari smoke
 
 ### `BATTLE_OR_NPC_CRITICAL`
@@ -197,7 +194,7 @@ Secondary flags may include:
 ### `SECURITY_SENSITIVE`
 
 - scope-isolation-check
-- model-selector
+- configured Codex routing
 - Codex Security recommendation when available
 - explicit threat and permission scope
 - no security claim without evidence
@@ -205,15 +202,15 @@ Secondary flags may include:
 ### `MULTI_TASK_OR_CONCURRENT`
 
 - parallel-scope-planner
-- model-selector per implementation lane
+- configured Codex routing per implementation lane
 - scope-isolation-check per runtime lane
 - one final shared documentation owner
 
 ### `RELEASE_ACCEPTANCE`
 
 - scope-isolation-check
+- configured Codex routing
 - parallel-scope-planner when multiple lanes remain
-- model-selector
 - `canon-audit` when the intended accepted behavior is part of the release evidence
 - `economy-invariant-audit` when release scope includes economy-sensitive behavior
 - `mirror-audit` for deployed/source parity, wiring, reachability, or release metadata

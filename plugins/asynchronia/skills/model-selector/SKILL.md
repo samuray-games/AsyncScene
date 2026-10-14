@@ -1,163 +1,32 @@
 ---
 name: model-selector
-description: Run Asynchronia 1.0.18 model preflight using official Codex-credit authority, cheapest-sufficient selection, authoritative bridge-derived task descriptions, sandbox-safe durable state, exact INVENTORY_OK, and exact same-thread CONTINUE.
+description: Consult the Asynchronia model inventory and official Codex-credit cost authority when a task explicitly needs model comparison or a current numbered-bridge authority requires the specialized selector procedure.
 ---
 
-# Model Selector 1.0.18
+# Model Selector Reference
 
-Use this skill automatically before every Asynchronia implementation, validation that mutates state, publication, ref update, lock, cache change, project-memory write, or external-state write.
+## Ordinary Codex work
 
-## Non-negotiable execution rule
+Ordinary Asynchronia engineering uses the configured Codex agent-team and model/effort routing described by the current root `AGENTS.md` and `ORCHESTRATION.md`. This skill is not a required preflight for ordinary implementation, validation, publication, or other mutations.
 
-Run `tools/run-asynchronia-model-preflight.py`. Do not simulate the selector in prose. Codex prose is not selector evidence.
+Do not ask the user for `INVENTORY_OK`, a model/effort selection handshake, or `CONTINUE` for ordinary work. Do not require `IMPLEMENTATION_ALLOWED`. An absent or unavailable legacy selector CLI does not block ordinary work. Never restore a missing launcher or present a prose estimate as executable selector evidence.
 
-## Authorization paths
+If the active model is discussed, use the repository's truth labels and do not claim to have verified the Codex interface model. Configured routing remains authoritative for ordinary work.
 
-- `READ_ONLY_ALLOWED` applies only when write scope is empty or exactly `NONE_READ_ONLY`. It performs no matrix evaluation, emits no recommendation, writes no state, and requests neither `INVENTORY_OK` nor `CONTINUE`.
-- `MUTATION_PREFLIGHT_REQUIRED` applies to every mutation-capable task.
+## Specialized numbered-bridge workflows
 
-The mutation state machine is exactly:
+For exact reserved commands `мост 1`, `мост 2`, or `мост 3`, first read the current repository bridge authority and follow its slot-specific protocol. When that current primary authority explicitly requires the specialized selector procedure, preserve its bridge task derivation, inventory confirmation, model selection, continuation, scope revalidation, and authorization requirements. Do not apply that specialized procedure to ordinary tasks.
 
-1. `WAITING_FOR_INVENTORY_CONFIRMATION`
-2. exact same-thread `INVENTORY_OK` or `INVENTORY_CHANGED`
-3. `WAITING_FOR_MODEL_SELECTION`
-4. user selects the printed model and effort in the Codex UI
-5. exact same-thread `CONTINUE`
-6. `SCOPE_REVALIDATED`
-7. `IMPLEMENTATION_ALLOWED`
+The bridge adapter derives task identity and scope only from current slot-local bridge authority. Do not search historical task folders or hand-author bridge risk fields. Unknown or incomplete bridge authority fails closed. If a required bridge selector executable is unavailable, report that limitation under the bridge protocol; do not recreate the executable or infer its result.
 
-No mutation is allowed before `IMPLEMENTATION_ALLOWED`.
+## Inventory and cost authority
 
-## Authoritative bridge task adapter
+The repository maintains a confirmed model inventory at `plugins/asynchronia/model-selector-authority.json` and `plugins/asynchronia/snapshots/confirmed-model-effort-snapshot.json`. The inventory records supported model/effort pairs and a canonical revision/hash. Preserve its ordering, counts, supported efforts, and hash when maintaining inventory.
 
-For exact `мост N` commands, never search historical task folders and never hand-author JSON risk fields. Use:
+The official Standard-speed Codex-credit rate card is `plugins/asynchronia/model-selector-cost-authority.json`. Its revision, canonical hash, pricing basis, and source artifact identify the cost authority. Exact decimal input, cached-input, and output credit vectors can be compared by component-wise dominance; incomparable vectors must not be collapsed into one cost tier. Capability floors and cost authority are separate.
 
-- `bridge-start`
-- `bridge-inventory-ok`
-- `bridge-continue`
+This inventory and rate card remain useful reference data. Their presence does not create an ordinary-task gate or authorize a hand-built recommendation to masquerade as selector output. When a user explicitly requests model/cost analysis, distinguish repository data from current configured Codex routing and state any unavailable executable evidence.
 
-The adapter reads the current selected mailbox ref and derives one hash-bound structured task from:
+## Historical implementation details
 
-- mailbox head;
-- slot-local `.ai-bridge/STATE.md`;
-- the exact inbox and claim named by STATE;
-- selected task branch and authorized baseline;
-- the versioned deterministic bridge profile in `plugins/asynchronia/bridge_task_descriptor.py`.
-
-It validates task, slot, thread, generation, branch, epoch, nonce, baseline, mailbox ownership, frozen output paths, Stage 6 pause, no-main-write rule, continuation requirement, runtime scope, and claim profile. Unknown claim types fail closed. Generic `start` rejects reserved bridge task types so a model or assistant cannot smuggle fabricated bridge classifications through a handwritten JSON file.
-
-### Current registered profile
-
-`BRIDGE_TASK_PROFILE_2` supports the registered `NO_MAIN_DELTA_TRANSPORT_CANARY` profile and registered real task profiles such as `STAGE_6_TASK_LANE`. Its classifications and reasons are code-owned, deterministic, versioned, printed in the preflight evidence, and included in the task hash. Real mutation profiles require authority-owned objective, read scope, and non-empty write scope; they are not inferred conversationally.
-
-## Durable state
-
-The default selector state directory is resolved with:
-
-`git rev-parse --git-path asynchronia/model-selector-state`
-
-This keeps state in Git-private, sandbox-writable storage shared by linked worktrees. The default must never use the legacy user-home directory and must never write under `.ai-bridge/**`. `ASYNCHRONIA_SELECTOR_STATE_DIR` is accepted only as an explicit absolute override.
-
-State is per-thread and binds task ID, task hash, thread, branch, baseline, snapshot revision/hash, complete matrix hash, recommendation, official cost-authority revision/hash, pricing basis, timestamps, state history, and expiry. Any mismatch or stale state fails closed.
-
-## Inventory and recommendation
-
-The only inventory authority is `plugins/asynchronia/model-selector-authority.json` and its bound snapshot. The selector verifies the source artifact blob, schema, order, counts, and canonical hash, then evaluates every model-effort pair exactly once.
-
-Cost authority is the versioned official Standard-speed Codex-credit rate card in `plugins/asynchronia/model-selector-cost-authority.json`. Exact decimal input/cached-input/output vectors are verified against the task-local official source artifact blob and every model in the active inventory. Component-wise dominance derives neutral `TIER_N` cost classes; incomparable vectors fail closed. Recommendation uses policy floors, cheapest sufficient cost tier, lowest sufficient effort, retry risk, escalation risk, capability margin, then original candidate ordinal. Capability calibration in 1.0.18 is scope-aware and may short-circuit read-only tasks, route docs-only mutation to Luna / Light, and escalate by explicit runtime, architecture, security, economy, ambiguity, concurrency, or broad cross-cutting gates.
-
-### Stable model-floor rank extension
-
-`MODEL_STABLE_FLOOR_RANKS` values are ordered thresholds: a candidate satisfies a required model floor when its rank is greater than or equal to the floor rank. Larger values mean a stronger minimum-model floor. Equal ranks are valid; the selector compares ranks and does not require unique or contiguous ranks.
-
-Keep existing model rank anchors unchanged when maintaining inventory. For an ordered inventory with missing ranks, assign a leading run consecutive ranks above its next anchor, assign each unranked model between anchors the preceding anchor rank, and assign a trailing run consecutive ranks below its preceding anchor. This preserves inventory ordering and all anchored ranks without using prices. Unknown identifiers still fail closed.
-
-The first mutation stop prints:
-
-- snapshot revision/hash and complete inventory;
-- all eight models and every supported effort;
-- model and model-effort pair counts;
-- exact next response `INVENTORY_OK or INVENTORY_CHANGED`;
-- no evaluation, required score, rejected frontier, recommendation, or next capable pair.
-
-After exact same-thread `INVENTORY_OK`, the second mutation stop prints:
-
-- evaluated `N/N` matrix;
-- required capability score;
-- rejected frontier and reason;
-- recommended pair;
-- next more capable suitable pair;
-- exact next response.
-
-## Visible response relay
-
-At `WAITING_FOR_INVENTORY_CONFIRMATION` and `WAITING_FOR_MODEL_SELECTION`, the user-visible response must faithfully relay the complete executable selector stdout. The first stop contains only the complete authoritative inventory and no evaluation or recommendation; the second contains the complete evaluation matrix and recommendation.
-
-Required at both visible stops:
-
-- `state directory`
-- `status`
-- `authorization path`
-- `snapshot revision`
-- `snapshot hash`
-- `source artifact`
-- `model count`
-- `model-effort pair count`
-
-Required only at `WAITING_FOR_INVENTORY_CONFIRMATION`:
-
-- source artifact blob SHA;
-- complete authoritative inventory with all eight models and all supported efforts;
-- exact next response `INVENTORY_OK or INVENTORY_CHANGED`.
-
-Required only at `WAITING_FOR_MODEL_SELECTION`:
-
-- `evaluated pair count`
-- `required capability score`
-- cost authority revision/hash, pricing basis, and official source artifact
-- exact credits and `TIER_N` / `cost-tier=N` on every matrix row
-- ordered cost tiers and the cheapest-sufficient selection policy
-- the complete ordered evaluation matrix
-- every evaluated model-effort pair exactly once at `WAITING_FOR_MODEL_SELECTION`
-- `cheapest rejected pair` and its reason
-- `recommended pair`
-- `next more capable plausible pair`
-- exact next response `CONTINUE`
-
-The executable state machine binds hashes of both mandatory relay blocks. A missing, truncated, malformed, or tampered block must fail closed before `INVENTORY_OK` or `CONTINUE` can advance the state.
-
-Forbidden relay behavior:
-
-- summarize the matrix
-- omit rejected or suitable pairs
-- duplicate pairs
-- truncate the executable output
-- reconstruct different values from prose
-- continue past the required stop
-- replace executable evidence with an assistant-generated approximation
-
-When transition, state, or mutation-authorization evidence is requested, print the complete raw executable output or guard/state JSON without paraphrase.
-
-The user chooses the actual model in the Codex interface. Codex self-report about its model is not proof.
-
-## CLI
-
-Generic non-bridge task commands:
-
-- `start --task-file ... --thread-id ... --baseline ...`
-- `inventory-ok --task-file ... --thread-id ... --baseline ...`
-- `continue --task-file ... --thread-id ... --baseline ... --token CONTINUE`
-
-Bridge commands:
-
-- `bridge-start --slot N --thread-id ... --baseline ... --branch ...`
-- `bridge-inventory-ok --slot N --thread-id ... --baseline ... --branch ...`
-- `bridge-continue --slot N --thread-id ... --baseline ... --branch ... --token CONTINUE`
-
-Shared commands:
-
-- `inventory-changed --thread-id ...`
-- `inspect --thread-id ...`
-- `invalidate --thread-id ...`
-
-Every bridge command re-derives the task from current authority. Mailbox movement, branch movement, scope change, profile change, or identity drift invalidates continuation.
+The repository's Python selector modules and response-relay checks implement a historical user-operated state machine. They are not the ordinary routing contract. Do not invoke them as an ordinary prerequisite. Retain them for historical reference and any specialized numbered-bridge procedure that current primary bridge authority still explicitly requires.
