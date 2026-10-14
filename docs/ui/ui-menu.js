@@ -80,8 +80,10 @@ window.Game = window.Game || {};
     if (menuBtn) menuBtn.textContent = t("menu_title");
     const lotTop = document.getElementById("btnLotteryTop");
     if (lotTop) {
-      lotTop.title = unavailableText;
+      lotTop.removeAttribute("title");
+      lotTop.setAttribute("data-toast-hover-hint", unavailableText);
       lotTop.textContent = unavailableText;
+      if (UI.refreshImmediateHoverHint) UI.refreshImmediateHoverHint();
     }
     const legacyRes = document.getElementById("lotteryResult");
     if (legacyRes) legacyRes.remove();

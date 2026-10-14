@@ -22,6 +22,7 @@ window.Game = window.Game || {};
   const TOPBAR_STAT_TITLES = Object.freeze({
     default: TOPBAR_STAT_TITLES_DEFAULT,
     millennial: TOPBAR_STAT_TITLES_DEFAULT,
+    genX: TOPBAR_STAT_TITLES_DEFAULT,
     zoomer: Object.freeze({
       influence: "Влияние",
       rep: "Репа",
@@ -924,8 +925,143 @@ window.Game = window.Game || {};
     ["influence", "rep", "points", "wins"].forEach((kind) => {
       const chip = bal.querySelector(`[data-profile-stat="${kind}"]`);
       const icon = chip ? chip.querySelector(".statIcon") : null;
-      const title = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
-      if (icon) icon.setAttribute("title", title);
+      const hint = titles[kind] || TOPBAR_STAT_TITLES_DEFAULT[kind] || "";
+      if (icon) {
+        icon.removeAttribute("title");
+        icon.setAttribute("data-stat-hover-hint", hint);
+        icon.setAttribute("aria-label", hint);
+        icon.setAttribute("tabindex", "0");
+        icon.setAttribute("role", "img");
+      }
+    });
+    installImmediateHoverHints();
+    if (activeStatHoverHint && balanceContains(bal, activeStatHoverHint)) setStatHoverHint(activeStatHoverHint);
+  }
+
+  let activeStatHoverHint = null;
+  const statHoverHintSources = { pointer: null, focus: null };
+  function balanceContains(balance, node){ return !!(balance && node && balance.contains(node)); }
+  function resolveStatHoverHintTarget(node){
+    if (!node || typeof node.closest !== "function") return null;
+    const cap = node.closest("[data-stat-cap-hint]");
+    if (cap && cap.getAttribute("data-stat-cap-hint")) return cap;
+    const icon = node.closest(".statIcon[data-stat-hover-hint]");
+    if (icon && icon.closest("#balance")) return icon;
+    const toastHint = node.closest("#btnLotteryTop[data-toast-hover-hint]");
+    return toastHint || null;
+  }
+
+  function resolveStatHoverHintText(target){
+    const cap = String(target.getAttribute("data-stat-cap-hint") || "").trim();
+    if (cap) return cap;
+    const chip = target.matches && target.matches("[data-profile-stat]")
+      ? target
+      : (target.closest ? target.closest("[data-profile-stat]") : null);
+    if (chip) return String(target.getAttribute("data-stat-hover-hint") || target.getAttribute("aria-label") || "").trim();
+    return String(target.getAttribute("data-toast-hover-hint") || target.getAttribute("data-stat-hover-hint") || "").trim();
+  }
+
+  function setStatHoverHint(target, source){
+    if (!target) return hideStatHoverHint();
+    const previous = activeStatHoverHint;
+    if (source) statHoverHintSources[source] = target;
+    const text = resolveStatHoverHintText(target);
+    if (!text) {
+      if (statHoverHintSources.pointer === target) statHoverHintSources.pointer = null;
+      if (statHoverHintSources.focus === target) statHoverHintSources.focus = null;
+      if (activeStatHoverHint === target) {
+        const remaining = statHoverHintSources.focus || statHoverHintSources.pointer;
+        if (remaining) setStatHoverHint(remaining);
+        else closeVisibleStatHoverHint();
+      }
+      return;
+    }
+    let hint = document.getElementById("statHoverHint");
+    if (!hint) {
+      hint = document.createElement("div");
+      hint.id = "statHoverHint";
+      hint.className = "statHoverHint";
+      hint.setAttribute("role", "tooltip");
+      hint.setAttribute("aria-hidden", "true");
+      document.body.appendChild(hint);
+    }
+    if (previous && previous !== target) {
+      previous.removeAttribute("aria-describedby");
+    }
+    activeStatHoverHint = target;
+    hint.textContent = text;
+    hint.hidden = false;
+    hint.classList.add("is-visible");
+    hint.setAttribute("aria-hidden", "false");
+    target.setAttribute("aria-describedby", hint.id);
+    const rect = target.getBoundingClientRect();
+    const hintWidth = hint.getBoundingClientRect().width;
+    const maxLeft = Math.max(8, window.innerWidth - hintWidth - 8);
+    const desiredLeft = rect.left + rect.width / 2 - hintWidth / 2;
+    hint.style.left = `${Math.round(Math.min(Math.max(8, desiredLeft), maxLeft))}px`;
+    hint.style.top = `${Math.round(rect.bottom + 6)}px`;
+    activeStatHoverHint = target;
+  }
+
+  function hideStatHoverHint(target, source){
+    if (!target && !source) {
+      statHoverHintSources.pointer = null;
+      statHoverHintSources.focus = null;
+    }
+    if (source && statHoverHintSources[source] === target) statHoverHintSources[source] = null;
+    const remaining = statHoverHintSources.focus || statHoverHintSources.pointer;
+    if (remaining) {
+      setStatHoverHint(remaining);
+      return;
+    }
+    if (target && activeStatHoverHint !== target) return;
+    closeVisibleStatHoverHint();
+  }
+
+  function closeVisibleStatHoverHint(){
+    const hint = document.getElementById("statHoverHint");
+    if (hint) {
+      hint.hidden = true;
+      hint.classList.remove("is-visible");
+      hint.setAttribute("aria-hidden", "true");
+    }
+    if (activeStatHoverHint) activeStatHoverHint.removeAttribute("aria-describedby");
+    activeStatHoverHint = null;
+  }
+
+  UI.refreshImmediateHoverHint = function refreshImmediateHoverHint(){
+    const active = statHoverHintSources.focus || statHoverHintSources.pointer || activeStatHoverHint;
+    if (active) setStatHoverHint(active);
+  };
+
+  function installImmediateHoverHints(){
+    if (document.__statHoverHintsInstalled) return;
+    document.__statHoverHintsInstalled = true;
+    if (typeof MutationObserver === "function" && document.body) {
+      const profileObserver = new MutationObserver(() => syncTopbarStatTitles());
+      profileObserver.observe(document.body, { attributes: true, attributeFilter: ["data-ui-profile"] });
+    }
+    document.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "touch") return;
+      const target = resolveStatHoverHintTarget(event.target);
+      if (target) setStatHoverHint(target, "pointer");
+    }, true);
+    document.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "touch") return;
+      const from = resolveStatHoverHintTarget(event.target);
+      if (!from || statHoverHintSources.pointer !== from) return;
+      if (resolveStatHoverHintTarget(event.relatedTarget) === from) return;
+      hideStatHoverHint(from, "pointer");
+    }, true);
+    document.addEventListener("focusin", (event) => {
+      const target = resolveStatHoverHintTarget(event.target);
+      if (target) setStatHoverHint(target, "focus");
+    });
+    document.addEventListener("focusout", (event) => {
+      const from = resolveStatHoverHintTarget(event.target);
+      if (!from || statHoverHintSources.focus !== from) return;
+      if (resolveStatHoverHintTarget(event.relatedTarget) === from) return;
+      hideStatHoverHint(from, "focus");
     });
   }
   UI.syncTopbarStatTitles = syncTopbarStatTitles;
@@ -1771,16 +1907,15 @@ window.Game = window.Game || {};
             : "";
           const wrap = mp.closest(".pointsWrap");
           if (wrap) {
-            if (pts >= cap && capMsg) wrap.setAttribute("title", capMsg);
-            else wrap.removeAttribute("title");
+            wrap.removeAttribute("title");
+            if (pts >= cap && capMsg) wrap.setAttribute("data-stat-cap-hint", capMsg);
+            else wrap.removeAttribute("data-stat-cap-hint");
           }
           if (mpOverflow) {
-            if (pts >= cap && capMsg) mpOverflow.setAttribute("title", capMsg);
-            else mpOverflow.removeAttribute("title");
+            mpOverflow.removeAttribute("title");
           }
           if (mp) {
-            if (pts >= cap && capMsg) mp.setAttribute("title", capMsg);
-            else mp.removeAttribute("title");
+            mp.removeAttribute("title");
           }
         } catch (_) {}
       }
@@ -1800,12 +1935,16 @@ window.Game = window.Game || {};
             const capMsg = (Game.Data && Game.Data.CAP_MESSAGES && typeof Game.Data.CAP_MESSAGES.rep === "string")
               ? String(Game.Data.CAP_MESSAGES.rep)
               : "";
-            if (capMsg) mneed.setAttribute("title", capMsg);
-            else mneed.removeAttribute("title");
+            const repChip = mneed.closest('[data-profile-stat="rep"]');
+            mneed.removeAttribute("title");
+            if (repChip && capMsg) repChip.setAttribute("data-stat-cap-hint", capMsg);
+            else if (repChip) repChip.removeAttribute("data-stat-cap-hint");
           } catch (_) { mneed.removeAttribute("title"); }
         } else {
           mneed.classList.remove("is-cap");
           mneed.removeAttribute("title");
+          const repChip = mneed.closest('[data-profile-stat="rep"]');
+          if (repChip) repChip.removeAttribute("data-stat-cap-hint");
           mneed.style.color = "";
         }
       }
@@ -1826,6 +1965,9 @@ window.Game = window.Game || {};
       if (mw) {
         const wins = Number(S.me.wins || 0);
         mw.textContent = String(wins);
+      }
+      if (activeStatHoverHint && balanceContains($("balance"), activeStatHoverHint)) {
+        setStatHoverHint(activeStatHoverHint);
       }
       maybeQueueStatDeltaFromState({
         influence: (S.me && Number.isFinite(S.me.influence)) ? (S.me.influence | 0) : 0,
