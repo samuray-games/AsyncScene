@@ -1,0 +1,106 @@
+{
+  "branch": "main",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "main\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "ceb999bb (HEAD -> main, origin/main) Обновить текст блока «Цель» в онбординге (#427)\n7e918dea Rewrite Asynchronia start screen and game explanation (#428)\n183d522e Retire obsolete Asynchronia plugin model preflight (#429)\n0d9dd246 ATOM 7: instant hover hints on stat and toast surfaces (#426)\n28b6a25c Remove redundant voting prompt in all vote surfaces (#424)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\nbranch refs/heads/main\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:25:49Z",
+      "stderr": "",
+      "stdout": "ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ceb999bb0c5c742c5fa5731d8d951f4a230fe21a",
+  "observedAtUtc": "2026-10-14T08:25:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
