@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "4d33b21cac6f88d2d10d3f4e2ef0030e140f749f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid 4d33b21cac6f88d2d10d3f4e2ef0030e140f749f\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "4d33b21c (HEAD, pull/433/merge) Merge 7fee924c5b88d0316cb10f661a0d4c39766fff15 into bcb529931912bb96ea97df8ed8fb9a3e3d6ba7d8\n7fee924c (origin/codex/start-essence-five-voices-20261014) Restore essence modal regression guards\nc6fbeeea Adapt start and essence copy for five profiles\nbcb52993 (origin/main, origin/codex/issue434-mobile-safari-touch-20261014) Mobile-first interface redesign (#430)\nceb999bb Обновить текст блока «Цель» в онбординге (#427)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 4d33b21cac6f88d2d10d3f4e2ef0030e140f749f\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T14:52:39Z",
+      "stderr": "",
+      "stdout": "bcb529931912bb96ea97df8ed8fb9a3e3d6ba7d8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "4d33b21cac6f88d2d10d3f4e2ef0030e140f749f",
+  "observedAtUtc": "2026-10-14T14:52:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
