@@ -13,13 +13,14 @@ window.Game = window.Game || {};
     battles: ["battleCount"],
     events: ["eventsHeaderCount"],
   });
-  const INTERACTIVE = "button,input,textarea,select,a,[contenteditable='true'],[role='button'],[role='slider'],[data-action],[data-battle-id],[data-event-id],.battleCard,.eventCard,.dmList,.dmTab,.dmTabRow,.statToast,.lotteryToast";
+  const INTERACTIVE = "button,input,textarea,select,a,[contenteditable='true'],[role='button'],[role='slider'],[data-action],[onclick],[data-battle-id] button,[data-event-id] button,.dmList,.dmTab,.dmTabRow,.statToast,.lotteryToast";
   let activeKey = "dm";
   let initialized = false;
   let countObserver = null;
   let gesture = null;
   let blockedActionGesture = null;
   let suppressedClick = null;
+  let lastTouchStartAt = 0;
   let longPress = null;
   let visibleLongPressTarget = null;
   let tooltip = null;
@@ -68,7 +69,15 @@ window.Game = window.Game || {};
       const count = textCount(key);
       const value = document.querySelector(`[data-mobile-count="${key}"]`);
       if (value) value.textContent = count;
-      if (tab) tab.setAttribute("aria-label", `${tab.querySelector("span")?.textContent || key} (${count})`);
+      if (tab) {
+        const title = key === "battles"
+          ? document.querySelector("#battlesHeader .battleTitleText")?.textContent?.trim()
+          : tab.querySelector("span")?.textContent?.trim();
+        const label = title || tab.querySelector("span")?.textContent?.trim() || key;
+        const visibleTitle = tab.querySelector("span");
+        if (key === "battles" && visibleTitle && visibleTitle.textContent !== label) visibleTitle.textContent = label;
+        tab.setAttribute("aria-label", `${label} (${count})`);
+      }
     }
   }
 
@@ -146,8 +155,11 @@ window.Game = window.Game || {};
   }
 
   function isInteractiveStart(target, panel){
-    if (!target || !panel || target.closest(INTERACTIVE)) return true;
+    if (!target || !panel) return true;
+    const action = target.closest(INTERACTIVE);
+    if (action && !action.matches(".battleCard,.eventCard")) return true;
     for (let node = target; node && node !== panel; node = node.parentElement) {
+      if (node.matches(".battleCard,.eventCard")) break;
       if (typeof node.onclick === "function" || typeof node.onpointerdown === "function" || typeof node.onpointerup === "function") return true;
     }
     return isHorizontalScroller(target, panel);
@@ -166,13 +178,16 @@ window.Game = window.Game || {};
     // lower tabpanel surface empty. Keep that surface navigable by swipe while
     // leaving all visible controls and panel-body interactions panel-scoped.
     const activePanel = panelElement(activeKey);
-    if (activePanel && !activePanel.classList.contains("hidden")) return null;
+    const activeBody = activePanel && activePanel.querySelector(".panelBody");
+    if (activePanel && !activePanel.classList.contains("hidden") && (!activeBody || !activeBody.classList.contains("hidden"))) return null;
     return blocks;
   }
 
   function startSwipe(event){
+    if (Date.now() - lastTouchStartAt < 800) return;
     if (!isMobile() || (event.pointerType !== "touch" && event.pointerType !== "pen")) return;
     if (event.isPrimary === false || event.button != null && event.button !== 0) return;
+    if (event.clientX < 24 || event.clientX > window.innerWidth - 24) return;
     if (suppressedClick) suppressedClick = null;
     const panel = contentPanelFromTarget(event.target);
     if (!panel) return;
@@ -186,6 +201,7 @@ window.Game = window.Game || {};
   }
 
   function moveSwipe(event){
+    if (Date.now() - lastTouchStartAt < 800) return;
     if (blockedActionGesture && event.pointerId === blockedActionGesture.id) return;
     if (!gesture || event.pointerId !== gesture.id) return;
     const dx = event.clientX - gesture.x;
@@ -200,6 +216,7 @@ window.Game = window.Game || {};
   }
 
   function endSwipe(event){
+    if (Date.now() - lastTouchStartAt < 800) return;
     if (blockedActionGesture && event.pointerId === blockedActionGesture.id) {
       const currentBlocked = blockedActionGesture;
       blockedActionGesture = null;
@@ -228,6 +245,65 @@ window.Game = window.Game || {};
   }
 
   function resetSwipe(){ gesture = null; blockedActionGesture = null; }
+
+  function touchPoint(event){
+    const touch = event.changedTouches && event.changedTouches[0] || event.touches && event.touches[0];
+    return touch ? { x: touch.clientX, y: touch.clientY, target: event.target, id: touch.identifier } : null;
+  }
+
+  function startTouchSwipe(event){
+    if (!isMobile() || !event.changedTouches || event.changedTouches.length !== 1) return;
+    lastTouchStartAt = Date.now();
+    const point = touchPoint(event);
+    if (!point || point.x < 24 || point.x > window.innerWidth - 24) return;
+    if (suppressedClick) suppressedClick = null;
+    const panel = contentPanelFromTarget(point.target);
+    if (!panel) return;
+    if (isInteractiveStart(point.target, panel)) {
+      blockedActionGesture = { id: point.id, target: point.target, x: point.x, y: point.y, input: "touch" };
+      return;
+    }
+    gesture = { id: point.id, panel, target: point.target, x: point.x, y: point.y, cancelled: false, input: "touch" };
+  }
+
+  function moveTouchSwipe(event){
+    if (!gesture && !blockedActionGesture) return;
+    const point = touchPoint(event);
+    if (!point) return;
+    const current = blockedActionGesture && blockedActionGesture.input === "touch" ? blockedActionGesture : gesture;
+    if (!current || current.input !== "touch" || current.id !== point.id) return;
+    const dx = point.x - current.x;
+    const dy = point.y - current.y;
+    if (Math.abs(dy) > 12 && Math.abs(dy) >= Math.abs(dx)) {
+      if (current === gesture) current.cancelled = true;
+      return;
+    }
+    if (current === gesture && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15 && isHorizontalScroller(current.target, current.panel)) current.cancelled = true;
+  }
+
+  function finishTouchSwipe(event){
+    const point = touchPoint(event);
+    if (!point) return;
+    if (blockedActionGesture && blockedActionGesture.input === "touch" && blockedActionGesture.id === point.id) {
+      const current = blockedActionGesture;
+      blockedActionGesture = null;
+      const dx = point.x - current.x;
+      const dy = point.y - current.y;
+      if (Math.abs(dx) >= 56 && Math.abs(dx) > Math.abs(dy) * 1.25) suppressedClick = { target: current.target, until: Date.now() + 700 };
+      return;
+    }
+    if (!gesture || gesture.input !== "touch" || gesture.id !== point.id) return;
+    const current = gesture;
+    gesture = null;
+    const dx = point.x - current.x;
+    const dy = point.y - current.y;
+    if (current.cancelled || Math.abs(dx) < 56 || Math.abs(dx) <= Math.abs(dy) * 1.25) return;
+    const index = ORDER.indexOf(activeKey);
+    const nextIndex = dx < 0 ? Math.min(ORDER.length - 1, index + 1) : Math.max(0, index - 1);
+    if (nextIndex === index) return;
+    selectTab(ORDER[nextIndex], false);
+    suppressedClick = { target: current.target, until: Date.now() + 700 };
+  }
 
   function hintTarget(target){
     if (!isMobile() || !target || !target.closest) return null;
@@ -354,6 +430,10 @@ window.Game = window.Game || {};
     document.addEventListener("pointerup", endSwipe, true);
     document.addEventListener("pointercancel", resetSwipe, true);
     document.addEventListener("lostpointercapture", resetSwipe, true);
+    document.addEventListener("touchstart", startTouchSwipe, { capture: true, passive: true });
+    document.addEventListener("touchmove", moveTouchSwipe, { capture: true, passive: true });
+    document.addEventListener("touchend", finishTouchSwipe, { capture: true, passive: true });
+    document.addEventListener("touchcancel", resetSwipe, { capture: true, passive: true });
     document.addEventListener("click", onClickCapture, true);
     document.addEventListener("pointerdown", startLongPress, true);
     document.addEventListener("pointermove", moveLongPress, true);
@@ -366,7 +446,7 @@ window.Game = window.Game || {};
     document.addEventListener("keydown", (event) => { if (event.key === "Escape" && visibleLongPressTarget) hideLongPressHint(); }, true);
     if (typeof MutationObserver === "function") {
       countObserver = new MutationObserver(updateCounters);
-      for (const id of ["dmHeaderCount", "battleCountWrapper", "eventsHeaderCount"]) {
+      for (const id of ["dmBlockHeader", "battlesHeader", "eventsHeader"]) {
         const node = document.getElementById(id);
         if (node) countObserver.observe(node, { childList: true, characterData: true, subtree: true });
       }
