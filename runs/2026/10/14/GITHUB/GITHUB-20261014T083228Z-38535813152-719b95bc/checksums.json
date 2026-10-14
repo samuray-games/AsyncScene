@@ -1,0 +1,26 @@
+{
+  "event.json": {
+    "bytes": 11257,
+    "sha256": "6805ed8c443f58ef150f90568a665a13e7df7ff682ae4970e635a2a59f254a4e"
+  },
+  "events.jsonl": {
+    "bytes": 97,
+    "sha256": "35b17b6497459bad42b32c90d864c8acb6f7fb36f24618fc47772dfcefd37a81"
+  },
+  "git-evidence.json": {
+    "bytes": 3200,
+    "sha256": "9663464805415ad4ad6927c1cb335b606664db015e42e16195e598eef0abebc0"
+  },
+  "manifest.json": {
+    "bytes": 450,
+    "sha256": "917a09d6226f4e7119e0ff2dd594af9a4714bc2e70761b09746b104b31749022"
+  },
+  "redaction-report.json": {
+    "bytes": 81,
+    "sha256": "e57dabef64063bdcaaa6d791120b1eef39fed38190a710520c2341d1a3cf6503"
+  },
+  "summary.json": {
+    "bytes": 330,
+    "sha256": "c1d5457131ff0a3d55124b5b24b750233ea55cb00ff47e1c204deef9f49dcfae"
+  }
+}
