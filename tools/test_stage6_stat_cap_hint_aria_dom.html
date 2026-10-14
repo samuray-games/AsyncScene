@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATOM 7 stat cap hint ARIA DOM regression</title>
+<style>
+  body{font:16px system-ui,sans-serif;margin:1rem;color:#172033}
+  iframe{width:min(100%,420px);height:760px;border:1px solid #9aa4b2;border-radius:12px}
+  #result{white-space:pre-wrap;padding:.75rem;background:#eef2f7;border-radius:8px}
+</style>
+<h1>ATOM 7 stat cap hint ARIA DOM regression</h1>
+<pre id="result">RUNNING - waiting for the actual app DOM</pre>
+<iframe title="AsyncScene runtime under test" src="/AsyncScene/index.html"></iframe>
+<script>
+(async function run(){
+  const output = document.getElementById("result");
+  const frame = document.querySelector("iframe");
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  try {
+    const deadline = Date.now() + 20000;
+    let doc = null;
+    while (Date.now() < deadline) {
+      try {
+        doc = frame.contentDocument;
+        if (doc && doc.__statHoverHintsInstalled && doc.querySelector('#balance [data-profile-stat="points"] .statIcon') && doc.querySelector('#balance [data-profile-stat="rep"] .statIcon')) break;
+      } catch (_) {}
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    assert(doc && doc.__statHoverHintsInstalled, "app hover-hint handlers did not initialize");
+
+    const cases = [
+      {
+        name: "points",
+        icon: '#balance [data-profile-stat="points"] .statIcon',
+        cap: '#balance [data-profile-stat="points"]',
+        message: "Тестовый лимит points"
+      },
+      {
+        name: "REP",
+        icon: '#balance [data-profile-stat="rep"] .statIcon',
+        cap: '#balance [data-profile-stat="rep"]',
+        message: "Тестовый лимит REP"
+      }
+    ];
+    const passed = [];
+    for (const item of cases) {
+      const icon = doc.querySelector(item.icon);
+      const cap = doc.querySelector(item.cap);
+      assert(icon && cap, `${item.name}: stat fixture missing`);
+      cap.setAttribute("data-stat-cap-hint", item.message);
+      icon.focus();
+      const hint = doc.getElementById("statHoverHint");
+      const describedBy = icon.getAttribute("aria-describedby");
+      assert(hint && !hint.hidden && hint.getAttribute("aria-hidden") === "false", `${item.name}: hint is not visible`);
+      assert(getComputedStyle(hint).display !== "none", `${item.name}: hint is not rendered`);
+      assert(describedBy === hint.id, `${item.name}: focused statIcon does not reference the visible hint`);
+      assert(hint.textContent === item.message, `${item.name}: cap text was not used`);
+      assert(!cap.hasAttribute("aria-describedby"), `${item.name}: non-focusable cap parent owns aria-describedby`);
+      passed.push(`${item.name}: focused statIcon references visible #${hint.id}`);
+      icon.blur();
+      assert(!icon.hasAttribute("aria-describedby"), `${item.name}: aria-describedby was not removed on blur`);
+      cap.removeAttribute("data-stat-cap-hint");
+    }
+    output.textContent = `PASS\n${passed.join("\n")}`;
+    document.documentElement.dataset.testResult = "pass";
+  } catch (error) {
+    output.textContent = `FAIL\n${error && error.stack || error}`;
+    document.documentElement.dataset.testResult = "fail";
+  }
+})();
+</script>
+</html>
