@@ -941,8 +941,12 @@ window.Game = window.Game || {};
   let activeStatHoverHint = null;
   const statHoverHintSources = { pointer: null, focus: null };
   function balanceContains(balance, node){ return !!(balance && node && balance.contains(node)); }
-  function resolveStatHoverHintTarget(node){
+  function resolveStatHoverHintTarget(node, source){
     if (!node || typeof node.closest !== "function") return null;
+    if (source === "focus") {
+      const focusedIcon = node.closest(".statIcon[data-stat-hover-hint]");
+      if (focusedIcon && focusedIcon.closest("#balance")) return focusedIcon;
+    }
     const cap = node.closest("[data-stat-cap-hint]");
     if (cap && cap.getAttribute("data-stat-cap-hint")) return cap;
     const icon = node.closest(".statIcon[data-stat-hover-hint]");
@@ -952,7 +956,8 @@ window.Game = window.Game || {};
   }
 
   function resolveStatHoverHintText(target){
-    const cap = String(target.getAttribute("data-stat-cap-hint") || "").trim();
+    const capOwner = target.closest ? target.closest("[data-stat-cap-hint]") : null;
+    const cap = String((capOwner && capOwner.getAttribute("data-stat-cap-hint")) || target.getAttribute("data-stat-cap-hint") || "").trim();
     if (cap) return cap;
     const chip = target.matches && target.matches("[data-profile-stat]")
       ? target
@@ -994,7 +999,8 @@ window.Game = window.Game || {};
     hint.classList.add("is-visible");
     hint.setAttribute("aria-hidden", "false");
     target.setAttribute("aria-describedby", hint.id);
-    const rect = target.getBoundingClientRect();
+    const positionTarget = target.closest ? (target.closest("[data-stat-cap-hint]") || target) : target;
+    const rect = positionTarget.getBoundingClientRect();
     const hintWidth = hint.getBoundingClientRect().width;
     const maxLeft = Math.max(8, window.innerWidth - hintWidth - 8);
     const desiredLeft = rect.left + rect.width / 2 - hintWidth / 2;
@@ -1054,13 +1060,13 @@ window.Game = window.Game || {};
       hideStatHoverHint(from, "pointer");
     }, true);
     document.addEventListener("focusin", (event) => {
-      const target = resolveStatHoverHintTarget(event.target);
+      const target = resolveStatHoverHintTarget(event.target, "focus");
       if (target) setStatHoverHint(target, "focus");
     });
     document.addEventListener("focusout", (event) => {
-      const from = resolveStatHoverHintTarget(event.target);
+      const from = resolveStatHoverHintTarget(event.target, "focus");
       if (!from || statHoverHintSources.focus !== from) return;
-      if (resolveStatHoverHintTarget(event.relatedTarget) === from) return;
+      if (resolveStatHoverHintTarget(event.relatedTarget, "focus") === from) return;
       hideStatHoverHint(from, "focus");
     });
   }
