@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "99163f6ad521643003d7cdad94f6dfcbf178b3a0\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid 99163f6ad521643003d7cdad94f6dfcbf178b3a0\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "99163f6a (HEAD, pull/430/merge) Merge 3ce2df634d4461c5d98870647cb41fc0566afed3 into ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\n3ce2df63 (origin/codex/mobile-first-interface-redesign-20261014) Remove trailing blank line from mobile entrypoint mirrors\n6f846ca0 Merge current main and fix mobile hidden panels and stat cap hints\nceb999bb (origin/main) Обновить текст блока «Цель» в онбординге (#427)\n7e918dea Rewrite Asynchronia start screen and game explanation (#428)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 99163f6ad521643003d7cdad94f6dfcbf178b3a0\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-14T08:33:55Z",
+      "stderr": "",
+      "stdout": "ceb999bb0c5c742c5fa5731d8d951f4a230fe21a\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "99163f6ad521643003d7cdad94f6dfcbf178b3a0",
+  "observedAtUtc": "2026-10-14T08:33:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
