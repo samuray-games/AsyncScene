@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "e6b391f94f466e6efecefad9d67ddf0f672b317b\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "# branch.oid e6b391f94f466e6efecefad9d67ddf0f672b317b\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "e6b391f9 (HEAD, pull/435/merge) Merge 9df9865b592a321c235f1bfe186c16db2602bbf3 into 7122e2236125c18518f653ca85d6de14cdd8968b\n9df9865b (origin/codex/issue434-mobile-safari-touch-20261014) Fix mixed touch and pointer cancellation\n0566e260 Merge remote-tracking branch 'origin/main' into codex/issue434-mobile-safari-touch-20261014\ne947f03c Fix mobile Safari panel navigation\n7122e223 (origin/main) Adapt start and essence copy for five profiles (#433)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e6b391f94f466e6efecefad9d67ddf0f672b317b\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:17:06Z",
+      "stderr": "",
+      "stdout": "7122e2236125c18518f653ca85d6de14cdd8968b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e6b391f94f466e6efecefad9d67ddf0f672b317b",
+  "observedAtUtc": "2026-10-15T13:17:06Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
