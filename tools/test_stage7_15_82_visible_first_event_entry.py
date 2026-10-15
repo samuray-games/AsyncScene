@@ -23,6 +23,9 @@ assert 'revealEventsPanel();' in settle_body, "first independent victory must re
 assert 'У нас тут стычка!!! Выбери за кого ты в событиях.' in settle_body, "first event eligibility message must be canonical"
 assert 'M83' not in source
 assert 'function renderFirstEventEntry(' in events
+assert 'function isFirstEventEntryEligible(state)' in events
+assert 'const firstEventEligible = isFirstEventEntryEligible(S);' in events
+assert 'open.length === 0 && !scriptedOlegBattle && !firstEventEligible' in events
 assert 'stage715FirstEventEntry' in events
 assert 'id="eventsHeader"' in index and 'id="eventsBody"' in index
 assert 'function setStage715EventsPanelVisible(visible)' in source
@@ -60,7 +63,7 @@ function entryCase(label, eligible) {
   const state = { flags: { stage715EventsPanelRevealed: true, stage715FirstIndependentBattleComplete: eligible } };
   const body = new Element("div"); let opened = 0; let rerendered = 0;
   const ui = { setPanelSize(panel, size) { assert.deepStrictEqual([panel, size], ["events", "medium"]); opened++; } };
-  const made = renderEntry(body, state, ui, () => { opened++; }, () => { rerendered++; });
+  const made = renderEntry(body, state, ui, () => { opened++; }, () => { rerendered++; }, Game.Stage715Demo.isFirstEventEligible(state));
   assert.strictEqual(made, eligible, `${label}: entry eligibility`);
   assert.strictEqual(body.children.length, eligible ? 1 : 0, `${label}: entry presence`);
   if (eligible) {

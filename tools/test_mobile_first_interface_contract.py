@@ -129,7 +129,7 @@ class MobileFirstInterfaceContract(unittest.TestCase):
         self.assertIn("touched stat icon remains the hint's ARIA owner", harness)
         self.assertIn("touch-shaped DOM events", harness)
         self.assertIn('mixedTouchSwipe(win,doc,touchActionTarget,"pointercancel",-90)', harness)
-        self.assertIn('mixedTouchSwipe(win,doc,doc.getElementById("battlesBody"),"lostpointercapture",-90)', harness)
+        self.assertIn('mixedTouchSwipe(win,doc,captureBattleBody,"lostpointercapture",-90)', harness)
         self.assertIn('touch(win,"touchcancel",doc', harness)
         self.assertIn("switch exactly once", harness)
         self.assertIn("pointer-only horizontal gesture", harness)
@@ -177,7 +177,7 @@ class MobileFirstInterfaceContract(unittest.TestCase):
 
     def test_09_mobile_module_is_wired_after_existing_renderers_and_mirrors_match(self):
         html = read(WEB / "index.html")
-        self.assertIn('src="ui/ui-mobile.js?v=mobile_first_interface_20261014a"', html)
+        self.assertIn('src="ui/ui-mobile.js?v=mobile_first_interface_20261014a_empty_events_visible_surface_20261015a"', html)
         self.assertGreater(html.index('src="ui/ui-stage7-essence.js'), html.index('src="ui/ui-boot.js'))
         for relative in (
             Path("index.html"),

@@ -176,11 +176,11 @@ window.Game = window.Game || {};
       if (panel.id !== PANELS[activeKey] || panel.classList.contains("hidden")) return null;
       if (!target.closest(".panelBody")) {
         const eventsBody = panel.id === PANELS.events && panel.querySelector("#eventsBody");
-        // An empty Events panel can have no visible body because the renderer
-        // honors a persisted collapsed preference. Its blank panel surface is
-        // still a safe swipe origin, while hidden content and controls remain
-        // excluded from hit testing.
-        if (!panel.classList.contains("mobile-empty-events") || !eventsBody || !eventsBody.classList.contains("hidden")) return null;
+        // A renderer-marked empty Events panel may show its compact localized
+        // message or keep the body hidden for a persisted collapsed preference.
+        // The empty marker guarantees there is no actionable content, so the
+        // remaining panel surface is a safe swipe origin in either state.
+        if (!panel.classList.contains("mobile-empty-events") || !eventsBody) return null;
       }
       return panel;
     }
