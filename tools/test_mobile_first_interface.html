@@ -293,8 +293,8 @@
       assert(mobileState(win)===currentBeforeCount,"new events must not switch tabs");
       eventSource.textContent=oldEventCount;await wait(50);
       const oldContent=eventsBody.innerHTML;
-      const eventsOriginallyHidden=eventsBody.classList.contains("hidden");
-      eventsBody.classList.remove("hidden");
+      const eventsOriginallyHidden=eventsBody.classList.contains("hidden"),eventsOriginallyEmptyBodyMarker=eventsBody.classList.contains("mobile-empty-events-body");
+      eventsBody.classList.remove("hidden","mobile-empty-events-body");
       eventsBody.innerHTML="";
       for(let i=0;i<30;i++){const row=doc.createElement("div");row.textContent=`test scroll row ${i}`;row.style.height="42px";row.style.flex="0 0 42px";eventsBody.appendChild(row);}
       doc.getElementById("mobileTabEvents").click();await raf(win);
@@ -307,7 +307,7 @@
       assert(eventsBody.scrollTop===preservedScroll,"Events scroll position must survive tab changes");
       assert(eventsBody.firstElementChild===eventProbe,"panel DOM/open card nodes must remain mounted between tabs");
       eventsBody.innerHTML=oldContent;
-      eventsBody.classList.toggle("hidden",eventsOriginallyHidden);
+      eventsBody.classList.toggle("hidden",eventsOriginallyHidden);eventsBody.classList.toggle("mobile-empty-events-body",eventsOriginallyEmptyBodyMarker);
       pass("counter mirrors existing source; event updates do not auto-switch; panel scroll and open DOM persist");
 
       doc.getElementById("mobileTabDm").click();await raf(win);
@@ -329,8 +329,13 @@
       const battleContent=battleBody.innerHTML;
       battlePanel.classList.remove("hidden");battleBody.classList.remove("hidden");
       const eventsPanel=doc.getElementById("eventsBlock"),eventBody=doc.getElementById("eventsBody");
-      const eventsPanelInitiallyHidden=eventsPanel.classList.contains("hidden"),eventBodyInitiallyHidden=eventBody.classList.contains("hidden");
-      eventsPanel.classList.remove("hidden");eventBody.classList.remove("hidden");
+      const eventsPanelInitiallyHidden=eventsPanel.classList.contains("hidden"),eventBodyInitiallyHidden=eventBody.classList.contains("hidden"),emptyBodyMarkerInitially=eventBody.classList.contains("mobile-empty-events-body");
+      eventsPanel.classList.remove("hidden");eventBody.classList.remove("hidden","mobile-empty-events-body");
+      const actualOpenEvents=(Game.Events.getAll()||[]).filter(event=>event&&!event.closed);
+      assert(actualOpenEvents.length===0,"empty Events regression requires the real app state to contain zero open events");
+      assert(eventBody.querySelector(":scope > .pill")?.textContent.trim()===Game.Data.t("events_empty"),"renderer must show its existing localized events_empty when Events is empty");
+      assert(eventsPanel.classList.contains("mobile-empty-events"),"renderer marks zero-event panel for mobile empty-state presentation");
+      pass("B/H: real Events count is zero; existing localized empty copy is rendered without creating fake events");
       battleBody.innerHTML="";
       for(let i=0;i<30;i++){const row=doc.createElement("div");row.textContent="test battle scroll row "+i;row.style.height="42px";row.style.flex="0 0 42px";battleBody.appendChild(row);}
       const cardText=doc.createElement("div");cardText.className="battleCard";cardText.textContent="Card body text";let cardActionCount=0;cardText.onclick=()=>cardActionCount++;battleBody.appendChild(cardText);
@@ -356,10 +361,59 @@
       touchSwipe(win,doc,battleBody,4,80);
       assert(mobileState(win)==="battles","vertical movement must not switch tabs");
       battleBody.scrollTop=60;assert(battleBody.scrollTop===60,"vertical panel content remains programmatically scrollable");
-      assert(Object.values(renderCounts).every(value=>value===0),"tab swipes must not rerender game panels");
+      // Baseline reproduction for Issue #434: Events is the active tab and its
+      // renderer-owned body is hidden, leaving only the visible panel surface.
+      doc.getElementById("mobileTabEvents").click();await raf(win);
+      const emptyEventsRoot=doc.getElementById("eventsBlock"),emptyEventsBody=doc.getElementById("eventsBody");
+      emptyEventsRoot.classList.remove("hidden");emptyEventsBody.classList.add("hidden");
+      UI.closeDM();await wait(80);
+      const eventsStateBeforeEmptySwipe=snapshotGameUiState(Game.__S);
+      touchSwipe(win,doc,emptyEventsRoot,90);
+      assert(mobileState(win)==="battles","right swipe starting on the active empty Events panel surface must select Battles");
+      assert(snapshotGameUiState(Game.__S)===eventsStateBeforeEmptySwipe,"empty Events navigation must not mutate gameplay state");
+      assert(emptyEventsBody.classList.contains("hidden"),"swiping the empty panel must leave renderer-owned hidden content hidden");
+      assert(Game.__S.dm.open===false,"empty Events navigation must not reopen the closed DM");
+      pass("C/E/I: Events-to-Battles swipe starts on empty panel surface; hidden body, closed DM and game state remain unchanged");
+
+      doc.getElementById("mobileTabEvents").click();await raf(win);
+      const savedEventsSize=Game.__S.flags.eventsSize,savedEventsHidden=emptyEventsBody.classList.contains("hidden");
+      Game.__S.flags.eventsSize="collapsed";emptyEventsRoot.classList.add("panel--collapsed");emptyEventsBody.classList.add("hidden");
+      touchSwipe(win,doc,emptyEventsRoot,90);
+      assert(mobileState(win)==="battles","Events-to-Battles must work with persisted desktop collapsed preference");
+      assert(emptyEventsRoot.classList.contains("panel--collapsed")&&emptyEventsBody.classList.contains("hidden"),"mobile navigation must preserve persisted collapsed preference and hidden body");
+      Game.__S.flags.eventsSize=savedEventsSize;emptyEventsRoot.classList.toggle("panel--collapsed",savedEventsSize==="collapsed");emptyEventsBody.classList.toggle("hidden",savedEventsHidden);
+      pass("D: persisted collapsed Events preference remains honored while the empty surface can navigate");
+
+      doc.getElementById("mobileTabEvents").click();await raf(win);
+      const emptyPill=emptyEventsBody.querySelector(":scope > .pill");
+      emptyEventsBody.classList.remove("hidden");
+      const emptyBodyHeight=emptyEventsBody.getBoundingClientRect().height;
+      assert(emptyPill&&emptyPill.textContent.trim()===Game.Data.t("events_empty"),"visible empty state reuses localized copy");
+      assert(emptyBodyHeight<=emptyPill.getBoundingClientRect().height+4,"empty Events body is compact instead of filling the panel");
+      assert(getComputedStyle(emptyEventsRoot).boxShadow==="none"&&getComputedStyle(emptyEventsRoot).borderTopColor==="rgba(0, 0, 0, 0)","mobile empty Events surface has no large decorative panel background");
+      emptyEventsBody.classList.add("hidden");
+      pass("zero Events displays only compact localized copy when expanded and no decorative card when hidden");
+
+      doc.getElementById("mobileTabDm").click();await raf(win);
+      const stateBeforeRoundTrip=snapshotGameUiState(Game.__S),rendersBeforeRoundTrip={...renderCounts};
+      touchSwipe(win,doc,doc.getElementById("blocks"),-90);
+      assert(mobileState(win)==="battles","A: DM to Battles swipe");
+      touchSwipe(win,doc,battleBody,-90);
+      assert(mobileState(win)==="events","A: Battles to Events swipe");
+      touchSwipe(win,doc,emptyEventsRoot,90);
+      assert(mobileState(win)==="battles","A: Events to Battles swipe");
+      touchSwipe(win,doc,battleBody,90);
+      assert(mobileState(win)==="dm","A: Battles to DM swipe");
+      assert(Game.__S.dm.open===false&&snapshotGameUiState(Game.__S)===stateBeforeRoundTrip,"A: round trip leaves closed DM and game state unchanged");
+      pass("A: DM → Battles → Events → Battles → DM uses swipe without changing game state");
+      assert(JSON.stringify(renderCounts)===JSON.stringify(rendersBeforeRoundTrip),"tab swipes must not rerender game panels");
+      UI.openDM(dmPlayer.id);await wait(80);
+      pass("F/G/I: vertical swipe does not navigate; game-action swipe is suppressed; navigation preserves game state");
+      pass("M/N: renderer-provided dynamic battle titles persist; desktop layout remains unchanged");
+      pass("O: PR #435 pointer/touch A-I regressions remain executable in this DOM suite");
       battleBody.innerHTML=battleContent;
       battlePanel.classList.toggle("hidden",battlePanelInitiallyHidden);battleBody.classList.toggle("hidden",battleBodyInitiallyHidden);
-      eventsPanel.classList.toggle("hidden",eventsPanelInitiallyHidden);eventBody.classList.toggle("hidden",eventBodyInitiallyHidden);
+      eventsPanel.classList.toggle("hidden",eventsPanelInitiallyHidden);eventBody.classList.toggle("hidden",eventBodyInitiallyHidden);eventBody.classList.toggle("mobile-empty-events-body",emptyBodyMarkerInitially);
       pass("touch swipes on card text, button protection, horizontal scroller exclusion, edge stops and vertical arbitration");
 
       doc.getElementById("mobileTabDm").click();await raf(win);
@@ -443,6 +497,29 @@
       const chatInput=doc.getElementById("chatInput"),send=doc.getElementById("btnSend");
       const inputRect=chatInput.getBoundingClientRect(),sendRect=send.getBoundingClientRect();
       assert(inputRect.top>=0&&inputRect.bottom<=win.innerHeight+2&&sendRect.top>=0&&sendRect.bottom<=win.innerHeight+2,"chat input and send button remain in the shrunken viewport");
+      for(const [width,height] of [[390,844],[375,667],[320,568]]){
+        await setFrameSize(width,height);
+        const fields=Array.from(doc.querySelectorAll("input,textarea,select")).filter(field=>field.type!=="hidden");
+        for(const field of fields)assert(parseFloat(getComputedStyle(field).fontSize)>=16,`${width}x${height}: ${field.id||field.className||field.tagName} font-size must be at least 16px`);
+        const chat=doc.getElementById("chatInput"),sendButton=doc.getElementById("btnSend");
+        chat.focus();await raf(win);chat.blur();await raf(win);
+        assert(doc.documentElement.scrollWidth<=win.innerWidth+1&&doc.body.scrollWidth<=win.innerWidth+1,`${width}x${height}: input focus/blur leaves no horizontal overflow`);
+        for(const control of [doc.getElementById("topBar"),doc.getElementById("mobilePanelTabs"),sendButton]){
+          const rect=control.getBoundingClientRect();assert(rect.left>=-1&&rect.right<=win.innerWidth+1,`${width}x${height}: ${control.id} remains horizontally available after focus/blur`);
+        }
+      }
+      pass("J/K: every mobile text field is at least 16px; focus/blur keeps controls accessible without horizontal overflow at 390, 375 and 320px");
+      await setFrameSize(390,844);
+      const vv=win.visualViewport,vvDescriptors={height:Object.getOwnPropertyDescriptor(vv,"height"),offsetTop:Object.getOwnPropertyDescriptor(vv,"offsetTop")};
+      const initialVvHeight=vv.height,initialVvTop=vv.offsetTop;
+      Object.defineProperty(vv,"height",{configurable:true,value:460});Object.defineProperty(vv,"offsetTop",{configurable:true,value:12});
+      vv.dispatchEvent(new win.Event("resize"));vv.dispatchEvent(new win.Event("scroll"));await raf(win);
+      assert(doc.documentElement.style.getPropertyValue("--mobile-vv-height")==="460px"&&doc.documentElement.style.getPropertyValue("--mobile-vv-top")==="12px","visualViewport shrink and offset are reflected in mobile layout variables");
+      if(vvDescriptors.height)Object.defineProperty(vv,"height",vvDescriptors.height);else delete vv.height;
+      if(vvDescriptors.offsetTop)Object.defineProperty(vv,"offsetTop",vvDescriptors.offsetTop);else delete vv.offsetTop;
+      vv.dispatchEvent(new win.Event("resize"));await raf(win);
+      assert(parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-height"))===Math.round(initialVvHeight)&&parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-top"))===Math.max(0,Math.round(initialVvTop)),"visualViewport restoration returns layout to the original bounds");
+      pass("L: simulated visualViewport keyboard shrink and restoration recalculate layout");
       await setFrameSize(390,844);
       assert(Math.abs(doc.getElementById("left").getBoundingClientRect().height-preferred)<2,"closing keyboard-like viewport shrink restores the chosen chat size");
       await setFrameSize(1024,768);

@@ -64,6 +64,11 @@
   #blocks[data-active-tab="dm"] > #dmBlock:not(.hidden) .panelBody:not(.hidden),
   #blocks[data-active-tab="battles"] > #battlesBlock:not(.hidden) #battlesBody:not(.hidden),
   #blocks[data-active-tab="events"] > #eventsBlock:not(.hidden) #eventsBody:not(.hidden){display:flex}
+  /* Empty Events keeps a transparent swipe surface; its localized empty copy
+     stays compact, and a renderer-hidden body remains hidden. */
+  #eventsBlock.mobile-empty-events{background:transparent;border-color:transparent;box-shadow:none}
+  #eventsBlock.mobile-empty-events #eventsBody.mobile-empty-events-body:not(.hidden){flex:0 0 auto;min-height:0;overflow:visible;padding:0;background:transparent}
+  #eventsBlock.mobile-empty-events #eventsBody.mobile-empty-events-body:not(.hidden) > .pill{align-self:flex-start;max-width:100%;white-space:normal;padding:6px 10px}
   /* Desktop size preferences never hide mobile content; renderer .hidden still wins. */
   #dmBlock.panel--collapsed:not(.hidden) .panelBody:not(.hidden),
   #battlesBlock.panel--collapsed:not(.hidden) #battlesBody:not(.hidden),
@@ -74,4 +79,5 @@
   #dmBtnMax,#dmBtnMed,#battlesBtnMax,#battlesBtnMed,#eventsBtnMax,#eventsBtnMed{display:none!important}
   #mobilePanelShell #menuBlock.menu-open{z-index:95}
   #mobilePanelShell #menuBlock.menu-open .panelBody{overflow:auto;-webkit-overflow-scrolling:touch}
+  input,textarea,select,#chatInput,#dmInput,#nameInput,#reportInput,.input{font-size:16px}
 }

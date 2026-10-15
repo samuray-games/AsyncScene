@@ -823,6 +823,12 @@ window.Game = window.Game || {};
       .find((battle) => battle && battle.meta && battle.meta.stage715OlegEscape === true
         && battle.escapeVote && !battle.escapeVote.decided) || null;
 
+    // Mark the empty panel for mobile presentation and safe swipe arbitration.
+    // This does not reveal the body or override its renderer-owned .hidden state.
+    const emptyEventsState = open.length === 0 && !scriptedOlegBattle;
+    if (rootBlock) rootBlock.classList.toggle("mobile-empty-events", emptyEventsState);
+    body.classList.toggle("mobile-empty-events-body", emptyEventsState);
+
     // Keep the Events panel updating while crowd voting is active (NPC votes should continue after player vote)
     scheduleEventsAutoRefresh(open);
 

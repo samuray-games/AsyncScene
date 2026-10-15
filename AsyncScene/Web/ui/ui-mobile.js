@@ -173,7 +173,15 @@ window.Game = window.Game || {};
     if (!blocks || !blocks.contains(target)) return null;
     const panel = target.closest("#dmBlock, #battlesBlock, #eventsBlock");
     if (panel) {
-      if (panel.id !== PANELS[activeKey] || !target.closest(".panelBody")) return null;
+      if (panel.id !== PANELS[activeKey] || panel.classList.contains("hidden")) return null;
+      if (!target.closest(".panelBody")) {
+        const eventsBody = panel.id === PANELS.events && panel.querySelector("#eventsBody");
+        // An empty Events panel can have no visible body because the renderer
+        // honors a persisted collapsed preference. Its blank panel surface is
+        // still a safe swipe origin, while hidden content and controls remain
+        // excluded from hit testing.
+        if (!panel.classList.contains("mobile-empty-events") || !eventsBody || !eventsBody.classList.contains("hidden")) return null;
+      }
       return panel;
     }
     // A renderer-hidden active panel (the fresh closed-DM state) leaves the
