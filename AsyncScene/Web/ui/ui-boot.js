@@ -124,23 +124,6 @@ window.Game = window.Game || {};
     const raw = String(forcedProfile == null ? (Data && Data.TEXT_MODE) : forcedProfile || "").trim();
     const low = raw.toLowerCase();
     const mode = low === "genx" ? "genX" : (low === "boomer" || low === "millennial" || low === "zoomer" || low === "alpha" ? low : "millennial");
-    const millennial = {
-      start_title: "Асинхрония",
-      birth_digits_label: "Последние 2 цифры года рождения",
-      digit_up_first: "Увеличить первую цифру",
-      digit_down_first: "Уменьшить первую цифру",
-      digit_up_second: "Увеличить вторую цифру",
-      digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
-      fantasy_birth_label: "я на самом деле чувствую будто я родился в …",
-      async_value: "Здесь легко оказаться в центре чужого конфликта.",
-      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
-      start_continue: "Продолжить игру",
-      start_start: "Начать",
-      start_reset: "Сбросить старт",
-      rules_action: "Что за игра?",
-      start_action: "Начать",
-    };
     const boomer = {
       start_title: "Асинхрония",
       birth_digits_label: "Последние две цифры года рождения",
@@ -148,15 +131,15 @@ window.Game = window.Game || {};
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Год нужен только для выбора стиля. Мы его не сохраняем, потом можно выбрать другой.",
-      fantasy_birth_label: "Год по ощущению",
-      async_value: "Здесь легко оказаться в центре чужого конфликта.",
-      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать вам.",
+      profile_helper: "Это влияет только на оформление. Год рождения не сохраняется; стиль можно изменить позже.",
+      fantasy_birth_label: "Какой год вам ближе по ощущениям?",
+      async_value: "Здесь чужая ссора может неожиданно стать вашим делом.",
+      no_simultaneous_required: "За кого вступиться, кому возразить и когда отступить — решаете вы.",
       start_continue: "Продолжить игру",
       start_start: "Начать",
       start_reset: "Сбросить выбор",
       rules_action: "Что за игра?",
-      start_action: "Начать",
+      start_action: "Начать"
     };
     const genX = {
       start_title: "Асинхрония",
@@ -165,32 +148,49 @@ window.Game = window.Game || {};
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
-      fantasy_birth_label: "Год по ощущению",
-      async_value: "Здесь легко оказаться в центре чужого конфликта.",
-      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
+      profile_helper: "Год нужен только для оформления. Не сохраняем. Стиль можно сменить потом.",
+      fantasy_birth_label: "Год по ощущениям",
+      async_value: "Зашёл узнать, что тут происходит. Уже кто-то выясняет отношения.",
+      no_simultaneous_required: "Не лезть или ввязаться — решай сам.",
       start_continue: "Продолжить игру",
       start_start: "Начать",
-      start_reset: "Сбросить выбор",
+      start_reset: "Сбросить",
       rules_action: "Что за игра?",
-      start_action: "Начать",
+      start_action: "Начать"
     };
-    const zoomer = {
+    const millennial = {
       start_title: "Асинхрония",
       birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для выбора стиля. Год не сохраняем, потом сменишь.",
-      fantasy_birth_label: "по вайбу я родился в …",
-      async_value: "Здесь легко оказаться в центре чужого конфликта.",
-      no_simultaneous_required: "Кому верить, кого поддержать и как ответить - решать тебе.",
+      profile_helper: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.",
+      fantasy_birth_label: "А по ощущениям я из...",
+      async_value: "Хотел просто почитать чат. А тебя уже втянули в спор.",
+      no_simultaneous_required: "Встать на чью-то сторону легко. Разгрести последствия — сложнее.",
       start_continue: "Продолжить игру",
       start_start: "Начать",
-      start_reset: "Снести выбор",
+      start_reset: "Сбросить выбор",
       rules_action: "Что за игра?",
-      start_action: "Начать",
+      start_action: "Начать"
+    };
+    const zoomer = {
+      start_title: "Асинхрония",
+      birth_digits_label: "Последние 2 цифры года",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      profile_helper: "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить.",
+      fantasy_birth_label: "по вайбу я из...",
+      async_value: "Зашёл на минутку — уже кто-то устроил разбор.",
+      no_simultaneous_required: "Впишешься, поддержишь или скипнешь?",
+      start_continue: "Продолжить игру",
+      start_start: "Начать",
+      start_reset: "Сбросить",
+      rules_action: "Что за игра?",
+      start_action: "Начать"
     };
     const alpha = {
       start_title: "Асинхрония",
@@ -199,15 +199,15 @@ window.Game = window.Game || {};
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "только стиль. год не сохраняем. сменить можно.",
-      fantasy_birth_label: "Год по ощущению",
-      async_value: "Легко попасть в чужой конфликт.",
-      no_simultaneous_required: "Кого поддержать и что ответить - решать тебе.",
+      profile_helper: "это только стиль. год не сохраняем. сменить можно.",
+      fantasy_birth_label: "по вайбу я из...",
+      async_value: "в чате замес.",
+      no_simultaneous_required: "ты в деле или мимо?",
       start_continue: "Продолжить игру",
       start_start: "Начать",
       start_reset: "Сброс",
       rules_action: "Что за игра?",
-      start_action: "Начать",
+      start_action: "Начать"
     };
     const tables = { boomer, genX, millennial, zoomer, alpha };
     const table = tables[mode] || millennial;
@@ -8794,15 +8794,15 @@ window.Game = window.Game || {};
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
-            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
-            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
-            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
-            && result.samples.start_continue.millennial === "Продолжить"
-            && result.samples.start_continue.zoomer === "Погнали"
-            && result.samples.start_reset.millennial === "Сбросить старт"
-            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.birth_digits_label.zoomer === "Последние 2 цифры года"
+            && result.samples.profile_helper.millennial === "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже."
+            && result.samples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+            && result.samples.fantasy_birth_label.millennial === "А по ощущениям я из..."
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я из..."
+            && result.samples.start_continue.millennial === "Продолжить игру"
+            && result.samples.start_continue.zoomer === "Продолжить игру"
+            && result.samples.start_reset.millennial === "Сбросить выбор"
+            && result.samples.start_reset.zoomer === "Сбросить"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
             && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
@@ -9105,15 +9105,15 @@ window.Game = window.Game || {};
             && result.routeChecks.startScreenBootHealthy
             && result.routeChecks.uiBootRoutesResolver
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
-            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
-            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
-            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
-            && result.samples.start_continue.millennial === "Продолжить"
-            && result.samples.start_continue.zoomer === "Погнали"
-            && result.samples.start_reset.millennial === "Сбросить старт"
-            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.birth_digits_label.zoomer === "Последние 2 цифры года"
+            && result.samples.profile_helper.millennial === "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже."
+            && result.samples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+            && result.samples.fantasy_birth_label.millennial === "А по ощущениям я из..."
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я из..."
+            && result.samples.start_continue.millennial === "Продолжить игру"
+            && result.samples.start_continue.zoomer === "Продолжить игру"
+            && result.samples.start_reset.millennial === "Сбросить выбор"
+            && result.samples.start_reset.zoomer === "Сбросить"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
             && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
@@ -9558,15 +9558,15 @@ window.Game = window.Game || {};
             && result.rootDiagnostics.ok
             && result.domWriteDiagnostics.ok
             && result.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-            && result.samples.birth_digits_label.zoomer === "Две цифры вайба"
-            && result.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
-            && result.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-            && result.samples.fantasy_birth_label.millennial === "я на самом деле чувствую будто я родился в …"
-            && result.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
-            && result.samples.start_continue.millennial === "Продолжить"
-            && result.samples.start_continue.zoomer === "Погнали"
-            && result.samples.start_reset.millennial === "Сбросить старт"
-            && result.samples.start_reset.zoomer === "Снести выбор"
+            && result.samples.birth_digits_label.zoomer === "Последние 2 цифры года"
+            && result.samples.profile_helper.millennial === "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже."
+            && result.samples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+            && result.samples.fantasy_birth_label.millennial === "А по ощущениям я из..."
+            && result.samples.fantasy_birth_label.zoomer === "по вайбу я из..."
+            && result.samples.start_continue.millennial === "Продолжить игру"
+            && result.samples.start_continue.zoomer === "Продолжить игру"
+            && result.samples.start_reset.millennial === "Сбросить выбор"
+            && result.samples.start_reset.zoomer === "Сбросить"
             && result.samples.rules_action.millennial === String((((D.START_SCREEN || {}).actions || {}).rules) == null ? "" : D.START_SCREEN.actions.rules)
             && result.samples.rules_action.zoomer === "Что за игра?"
             && result.samples.start_action.millennial === String((((D.START_SCREEN || {}).actions || {}).start) == null ? "" : D.START_SCREEN.actions.start)
@@ -9812,7 +9812,7 @@ window.Game = window.Game || {};
       const expectedRows = [
         { id: "TR_0001", category: "ui", surface: "start_screen", millennialText: "Старт", boomerText: "Начать сцену", rule: "replace short action label with explicit action outcome" },
         { id: "TR_0002", category: "ui", surface: "start_screen", millennialText: "Суть", boomerText: "Краткая суть", rule: "replace compressed label with clear noun phrase" },
-        { id: "TR_0003", category: "ui", surface: "onboarding", millennialText: "Продолжить", boomerText: "Продолжить выбор", rule: "add immediate context without moralizing" },
+        { id: "TR_0003", category: "ui", surface: "onboarding", millennialText: "Продолжить игру", boomerText: "Продолжить выбор", rule: "add immediate context without moralizing" },
         { id: "TR_0004", category: "ui", surface: "menu", millennialText: "К старту", boomerText: "Вернуться к старту", rule: "make navigation direction explicit" },
         { id: "TR_0005", category: "ui", surface: "crowd_vote", millennialText: "ТЫКНИ ИМЯ", boomerText: "ВЫБЕРИТЕ ИМЯ", rule: "replace sharp slang-like command with neutral clear action" },
         { id: "TR_0006", category: "error", surface: "system_message", millennialText: "Не хватает 💰.", boomerText: "Не хватает 💰 для этого действия.", rule: "add concrete reason and action context" },
@@ -11210,42 +11210,10 @@ window.Game = window.Game || {};
           start_start: "Начать",
         });
         const nonBoomerExpected = Object.freeze({
-          default: Object.freeze({
-            start_action: String((((D && D.START_SCREEN) || {}).actions || {}).start == null ? "" : D.START_SCREEN.actions.start),
-            rules_action: String((((D && D.START_SCREEN) || {}).actions || {}).rules == null ? "" : D.START_SCREEN.actions.rules),
-            birth_digits_label: "Последние 2 цифры года рождения",
-            profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
-            fantasy_birth_label: "Кажется, я родился в …",
-            start_continue: "Продолжить игру",
-            start_start: "Начать",
-          }),
-          millennial: Object.freeze({
-            start_action: String((((D && D.START_SCREEN) || {}).actions || {}).start == null ? "" : D.START_SCREEN.actions.start),
-            rules_action: String((((D && D.START_SCREEN) || {}).actions || {}).rules == null ? "" : D.START_SCREEN.actions.rules),
-            birth_digits_label: "Последние 2 цифры года рождения",
-            profile_helper: "Только для интерфейса. Не сохраняем. Можно поменять позже.",
-            fantasy_birth_label: "Кажется, я родился в …",
-            start_continue: "Продолжить игру",
-            start_start: "Начать",
-          }),
-          zoomer: Object.freeze({
-            start_action: "Начать",
-            rules_action: "Что за игра?",
-            birth_digits_label: "Две цифры вайба",
-            profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
-            fantasy_birth_label: "по вайбу я родился в …",
-            start_continue: "Продолжить игру",
-            start_start: "Начать",
-          }),
-          alpha: Object.freeze({
-            start_action: "Начать",
-            rules_action: "Что за игра?",
-            birth_digits_label: "Две цифры вайба",
-            profile_helper: "Это только стиль интерфейса. Потом можно перекинуть.",
-            fantasy_birth_label: "по вайбу я родился в …",
-            start_continue: "Продолжить игру",
-            start_start: "Начать",
-          }),
+          default: Object.freeze({ start_action: "Начать", rules_action: "Что за игра?", birth_digits_label: "Последние 2 цифры года рождения", profile_helper: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.", fantasy_birth_label: "А по ощущениям я из...", start_continue: "Продолжить игру", start_start: "Начать", start_reset: "Сбросить выбор" }),
+          millennial: Object.freeze({ start_action: "Начать", rules_action: "Что за игра?", birth_digits_label: "Последние 2 цифры года рождения", profile_helper: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.", fantasy_birth_label: "А по ощущениям я из...", start_continue: "Продолжить игру", start_start: "Начать", start_reset: "Сбросить выбор" }),
+          zoomer: Object.freeze({ start_action: "Начать", rules_action: "Что за игра?", birth_digits_label: "Последние 2 цифры года", profile_helper: "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить.", fantasy_birth_label: "по вайбу я из...", start_continue: "Продолжить игру", start_start: "Начать", start_reset: "Сбросить" }),
+          alpha: Object.freeze({ start_action: "Начать", rules_action: "Что за игра?", birth_digits_label: "2 цифры года рождения", profile_helper: "это только стиль. год не сохраняем. сменить можно.", fantasy_birth_label: "по вайбу я из...", start_continue: "Продолжить игру", start_start: "Начать", start_reset: "Сброс" }),
         });
         const originalLocalStorage = (() => {
           try {

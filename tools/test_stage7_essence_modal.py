@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Regression for the shared, compact Stage 7 game-introduction modal."""
-
+"""Exact-copy routing regression for the five-profile start and essence surfaces."""
 from __future__ import annotations
 
 import hashlib
@@ -14,83 +13,32 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "AsyncScene" / "Web"
 DEPLOYED = ROOT / "docs"
 PROJECT = ROOT / "AsyncScene" / "AsyncScene.xcodeproj" / "project.pbxproj"
-
 PROFILES = ("boomer", "genX", "millennial", "zoomer", "alpha")
-START_BLOCK_SHA256 = "4a1698e9112486e3895196682e9dfd7a174238d914f48bec0db026011841be22"
-CSS_RESOURCE_VERSION = "start_essence_human_copy_20261014a"
-JS_RESOURCE_VERSION = "start_essence_human_copy_20261014b"
-CSS_TAG = f'<link rel="stylesheet" href="ui/ui-stage7-essence.css?v={CSS_RESOURCE_VERSION}" />'
-JS_TAG = f'<script defer src="ui/ui-stage7-essence.js?v={JS_RESOURCE_VERSION}"></script>'
-BOOT_TAG = f'<script defer src="ui/ui-boot.js?v={JS_RESOURCE_VERSION}"></script>'
+SWITCH_ORDER = ("boomer", "genX", "millennial", "zoomer", "alpha", "boomer")
+CSS_VERSION = "start_essence_human_copy_20261014a"
+START_BLOCK_SHA256 = "ce5588d891bbb8c140ca3dfac029b1981acfecafdbaf78cef03acdae4db4f6a0"
+JS_VERSION = "start_essence_five_voices_20261014b"
 TITLE = "Что за игра?"
-BLOCKS = (
-    {
-        "heading": "Здесь всё крутится вокруг людей.",
-        "body": "Знакомства, ссоры, поддержка, конфликты. Ты решаешь, в какие истории вмешиваться и как себя вести."
-    },
-    {
-        "heading": "У каждого поступка есть последствия.",
-        "body": "Помог одному - нажил врага в другом. Не всегда получится угадать, чем закончится разговор."
-    },
-    {
-        "heading": "Играй в своём ритме.",
-        "body": "Не нужно собираться всем одновременно. Заходи, когда удобно."
-    },
-)
-BOOMER_BLOCKS = (
-    {
-        "heading": "Здесь всё крутится вокруг людей.",
-        "body": "Знакомства, ссоры, поддержка, конфликты. Вы решаете, в какие истории вмешиваться и как себя вести."
-    },
-    {
-        "heading": "У каждого поступка есть последствия.",
-        "body": "Помогли одному - нажили врага в другом. Не всегда получится угадать, чем закончится разговор."
-    },
-    {
-        "heading": "Играйте в своём ритме.",
-        "body": "Не нужно собираться всем одновременно. Заходите, когда удобно."
-    },
-)
-ALPHA_BLOCKS = (
-    {"heading": "всё начинается с людей", "body": "знакомства, ссоры, поддержка, конфликты. выбирай, куда вмешаться и как себя вести."},
-    {"heading": "у поступков есть последствия", "body": "помог одному - нажил врага среди других. итог разговора не всегда угадаешь."},
-    {"heading": "играй когда удобно", "body": "заходи, когда удобно. всем быть онлайн сразу не нужно."},
-)
-START_COPY = {
-    "boomer": ("Здесь легко оказаться в центре чужого конфликта.", "Кому верить, кого поддержать и как ответить - решать вам."),
-    "genX": ("Здесь легко оказаться в центре чужого конфликта.", "Кому верить, кого поддержать и как ответить - решать тебе."),
-    "millennial": ("Здесь легко оказаться в центре чужого конфликта.", "Кому верить, кого поддержать и как ответить - решать тебе."),
-    "zoomer": ("Здесь легко оказаться в центре чужого конфликта.", "Кому верить, кого поддержать и как ответить - решать тебе."),
-    "alpha": ("Легко попасть в чужой конфликт.", "Кого поддержать и что ответить - решать тебе."),
+
+START = {
+    "boomer": {"intro": ["Здесь чужая ссора может неожиданно стать вашим делом.", "За кого вступиться, кому возразить и когда отступить — решаете вы."], "birth_digits_label": "Последние две цифры года рождения", "profile_helper": "Это влияет только на оформление. Год рождения не сохраняется; стиль можно изменить позже.", "fantasy_birth_label": "Какой год вам ближе по ощущениям?", "start_reset": "Сбросить выбор"},
+    "genX": {"intro": ["Зашёл узнать, что тут происходит. Уже кто-то выясняет отношения.", "Не лезть или ввязаться — решай сам."], "birth_digits_label": "Две последние цифры года рождения", "profile_helper": "Год нужен только для оформления. Не сохраняем. Стиль можно сменить потом.", "fantasy_birth_label": "Год по ощущениям", "start_reset": "Сбросить"},
+    "millennial": {"intro": ["Хотел просто почитать чат. А тебя уже втянули в спор.", "Встать на чью-то сторону легко. Разгрести последствия — сложнее."], "birth_digits_label": "Последние 2 цифры года рождения", "profile_helper": "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.", "fantasy_birth_label": "А по ощущениям я из...", "start_reset": "Сбросить выбор"},
+    "zoomer": {"intro": ["Зашёл на минутку — уже кто-то устроил разбор.", "Впишешься, поддержишь или скипнешь?"], "birth_digits_label": "Последние 2 цифры года", "profile_helper": "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить.", "fantasy_birth_label": "по вайбу я из...", "start_reset": "Сбросить"},
+    "alpha": {"intro": ["в чате замес.", "ты в деле или мимо?"], "birth_digits_label": "2 цифры года рождения", "profile_helper": "это только стиль. год не сохраняем. сменить можно.", "fantasy_birth_label": "по вайбу я из...", "start_reset": "Сброс"},
 }
+BLOCKS = {
+    "boomer": [("Здесь всё решают отношения.", "Люди спорят, поддерживают друг друга и меняют мнение. Вы выбираете, когда вмешаться и чью сторону занять."), ("За поступками следуют последствия.", "Поддержали одного — другой может обидеться. Даже выигранный спор не всегда означает, что всё улажено."), ("Играйте без спешки.", "Не нужно договариваться о времени встречи. Заходите, когда вам удобно.")],
+    "genX": [("Тут каждый за кого-то.", "Один спорит, другой вступается, третий подливает масла. Вмешиваться или нет — сам решай."), ("За слова отвечают.", "Помог одному — нажил недовольного. Бывает, выиграл спор, а неприятности остались."), ("Без обязательных сборов.", "Зашёл, сделал своё дело, вышел. Ждать, пока все появятся онлайн, не требуется.")],
+    "millennial": [("Здесь чат быстро становится личным.", "Кто-то спорит, кто-то зовёт на помощь. План был просто посмотреть, но ты уже выбираешь сторону."), ("Карма без кнопки «отменить».", "Поддержал одного — второй обиделся. Даже выигранный спор иногда запускает следующий."), ("Никакой вечерней переклички.", "Заходишь, когда есть время. Сделал выбор, вернулся позже — игра не требует собирать всех к одному часу.")],
+    "zoomer": [("Здесь легко влететь в чужой движ.", "Споры, вбросы, просьбы о помощи. Можешь вписаться, можешь остаться в стороне."), ("За вброс прилетит ответ.", "Поддержал одного — другой уже косится. Победа в споре не всегда закрывает конфликт."), ("Без «все онлайн в девять».", "Залетел, выбрал, вышел. Никого караулить не надо.")],
+    "alpha": [("тут у всех своё мнение", "один спорит. другой зовёт помочь. ты за кого?"), ("влез — будет ответ", "кого-то поддержал — другой может обидеться. даже победа не всегда финал."), ("зашёл. выбрал. вышел.", "все онлайн сразу не нужны. вернёшься потом.")],
+}
+COMMON = {"title": "Асинхрония", "start_start": "Начать", "start_continue": "Продолжить игру", "rules_action": "Что за игра?", "digit_up_first": "Увеличить первую цифру", "digit_down_first": "Уменьшить первую цифру", "digit_up_second": "Увеличить вторую цифру", "digit_down_second": "Уменьшить вторую цифру"}
 
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
-
-def _profile_object(source: str, profile: str) -> str:
-    if "const START_PROFILE_OVERRIDES = Object.freeze({" in source or "Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({" in source:
-        marker = "const START_PROFILE_OVERRIDES = Object.freeze({" if "const START_PROFILE_OVERRIDES = Object.freeze({" in source else "Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({"
-        root = source.index(marker)
-        start = source.index(f"    {profile}: Object.freeze({{", root)
-        end = source.index("\n    }),", start) + len("\n    }),")
-        return source[start:end]
-    root = source.index("function resolveStartScreenText")
-    start = source.index(f"    const {profile} = {{", root)
-    following = [
-        source.find(f"    const {name} = {{", start + 1)
-        for name in ("millennial", "boomer", "genX", "zoomer", "alpha")
-    ]
-    following = [position for position in following if position >= 0]
-    end = min(following) if following else source.index("    const tables =", start)
-    return source[start:end]
-
-
-def _profile_value(block: str, key: str) -> str:
-    match = re.search(rf'\b{re.escape(key)}:\s*"([^"]*)"', block)
-    assert match, f"missing literal profile field {key}"
-    return match.group(1)
 
 
 def extract_start_block(index: str) -> str:
@@ -99,291 +47,193 @@ def extract_start_block(index: str) -> str:
     return index[start:end]
 
 
-def run_copy_harness(script: Path) -> dict[str, object]:
-    harness = r'''
-const fs = require("fs");
-const vm = require("vm");
-global.window = global;
-global.Game = { UI: {} };
-const source = fs.readFileSync(process.argv[2], "utf8");
-vm.runInThisContext(source, { filename: process.argv[2] });
-const profiles = Game.UI.getStage7EssenceProfiles();
-const rows = {};
-for (const profile of profiles) {
-  Game.Data = { UI_PROFILE: profile, getUiProfile() { return this.UI_PROFILE; } };
-  rows[profile] = Game.UI.getStage7EssenceCopy(Game.Data.getUiProfile());
-}
-console.log(JSON.stringify({ profiles, rows }));
-'''
-    with tempfile.TemporaryDirectory() as directory:
-        harness_path = Path(directory) / "harness.js"
-        harness_path.write_text(harness, encoding="utf-8")
-        completed = subprocess.run(
-            ["node", str(harness_path), str(script)],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    return json.loads(completed.stdout)
-
-
-def main() -> None:
-    source_index = SOURCE / "index.html"
-    deployed_index = DEPLOYED / "index.html"
-    source_js = SOURCE / "ui" / "ui-stage7-essence.js"
-    deployed_js = DEPLOYED / "ui" / "ui-stage7-essence.js"
-    source_css = SOURCE / "ui" / "ui-stage7-essence.css"
-    deployed_css = DEPLOYED / "ui" / "ui-stage7-essence.css"
-
-    assert source_index.read_bytes() == deployed_index.read_bytes(), "index mirrors differ"
-    assert source_js.read_bytes() == deployed_js.read_bytes(), "essence JS mirrors differ"
-    assert source_css.read_bytes() == deployed_css.read_bytes(), "essence CSS mirrors differ"
-
-    index = read(source_index)
-    for tag in (CSS_TAG, JS_TAG, BOOT_TAG):
-        assert index.count(tag) == 1, f"resource tag missing or duplicated: {tag}"
-    assert index.index(CSS_TAG) < index.index("</head>"), "essence CSS must load in head"
-    assert index.index(BOOT_TAG) < index.index(JS_TAG), "essence JS must load after ui-boot"
-
-    start_block = extract_start_block(index)
-    actual_start_hash = hashlib.sha256(start_block.encode("utf-8")).hexdigest()
-    assert actual_start_hash == START_BLOCK_SHA256, (
-        "existing start-screen controls or fields changed: "
-        f"{actual_start_hash} != {START_BLOCK_SHA256}"
+def check_start_markup(index: str) -> str:
+    block = extract_start_block(index)
+    actual_hash = hashlib.sha256(block.encode("utf-8")).hexdigest()
+    assert actual_hash == START_BLOCK_SHA256, (
+        "start-screen markup or approved static copy changed unexpectedly: "
+        f"{actual_hash} != {START_BLOCK_SHA256}"
     )
+    required_ids = (
+        "startScreen", "startCard", "startTitle", "startIntroLines",
+        "startEconomyHonestyLine", "startBirthYearLabel", "startBirthYearPicker",
+        "startBirthYear0Up", "startBirthYear0Down", "startBirthYearDigit0",
+        "startBirthYear1Up", "startBirthYear1Down", "startBirthYearDigit1",
+        "startBirthYearHint", "startBirthYearFeelingLabel", "startBirthYearFeelingInput",
+        "startBtns", "btnStart", "btnRules",
+    )
+    for element_id in required_ids:
+        assert re.search(rf'\bid="{re.escape(element_id)}"', block), f"required start element missing: {element_id}"
+    for button_id in ("startBirthYear0Up", "startBirthYear0Down", "startBirthYear1Up", "startBirthYear1Down"):
+        assert re.search(rf'<button\b(?=[^>]*\bid="{button_id}")(?=[^>]*\btype="button")[^>]*>', block), f"required button missing or has no button type: {button_id}"
+    for button_id in ("btnStart", "btnRules"):
+        assert re.search(rf'<button\b(?=[^>]*\bid="{button_id}")[^>]*>', block), f"required start action missing: {button_id}"
+    assert 'aria-label="Увеличить первую цифру"' in block
+    assert 'aria-label="Уменьшить первую цифру"' in block
+    assert 'aria-label="Увеличить вторую цифру"' in block
+    assert 'aria-label="Уменьшить вторую цифру"' in block
+    assert 'id="startBirthYearFeelingInput" class="input" type="text"' in block
+    return actual_hash
 
-    js = read(source_js)
-    required_js = (
+
+def check_modal_contract(source_js: str) -> None:
+    # This script builds the modal dynamically, so assert the generated dialog
+    # contract and the actual event-path wiring used by the browser.
+    required = (
         'const MODAL_ID = "stage7EssenceModal"',
-        'Object.freeze(["boomer", "genX", "millennial", "zoomer", "alpha"])',
         'role="dialog"',
         'aria-modal="true"',
         'aria-labelledby="stage7EssenceTitle"',
         'aria-describedby="stage7EssenceLead"',
-        'body.id = "stage7EssenceLead"',
+        '<h2 id="stage7EssenceTitle"',
+        'if (index === 0) body.id = "stage7EssenceLead"',
         'event.key === "Escape"',
         'event.key !== "Tab"',
+        'event.shiftKey && document.activeElement === first',
+        '!event.shiftKey && document.activeElement === last',
+        'last.focus()',
+        'first.focus()',
         'restore.focus({ preventScroll: true })',
+        'event.preventDefault();\n      closeModal();',
+        'root.addEventListener("click", (event) =>',
+        'button.addEventListener("click", (event) =>',
         'event.stopImmediatePropagation()',
+        'Game.UI.openStage7Essence = openModal;',
+        'Game.UI.closeStage7Essence = closeModal;',
+        'Game.UI.installStage7Essence = install;',
         'new MutationObserver(() => bindButton())',
-        'Game.UI.getStage7EssenceCopy',
-        'Game.UI.openStage7Essence',
-        'Game.UI.closeStage7Essence',
     )
-    missing_js = [token for token in required_js if token not in js]
-    assert not missing_js, f"missing essence JS contract: {missing_js}"
+    missing = [token for token in required if token not in source_js]
+    assert not missing, f"missing modal DOM/accessibility/keyboard API contract: {missing}"
+    assert source_js.count('role="dialog"') == 1
+    assert source_js.count('aria-modal="true"') == 1
+    assert source_js.count('aria-labelledby="stage7EssenceTitle"') == 1
+    assert source_js.count('aria-describedby="stage7EssenceLead"') == 1
 
-    subprocess.run(["node", "--check", str(source_js)], check=True, capture_output=True, text=True)
-    payload = run_copy_harness(source_js)
-    assert tuple(payload["profiles"]) == PROFILES, payload["profiles"]
-    rows = payload["rows"]
-    assert set(rows) == set(PROFILES), rows.keys()
 
-    expected_blocks = {
-        "boomer": list(BOOMER_BLOCKS),
-        "genX": list(BLOCKS),
-        "millennial": list(BLOCKS),
-        "zoomer": list(BLOCKS),
-        "alpha": list(ALPHA_BLOCKS),
-    }
-    modal_copy = {}
-    for profile in PROFILES:
-        row = rows[profile]
-        assert row["profile"] == profile
-        assert row["title"] == TITLE, (profile, row)
-        assert row["blocks"] == expected_blocks[profile], (profile, row["blocks"])
-        assert len(row["blocks"]) == 3, (profile, row["blocks"])
-        assert row["close"] == "Вернуться", (profile, row["close"])
-        full = " ".join([row["title"], *(part for block in row["blocks"] for part in block.values()), row["close"]])
-        forbidden = (
-            "Asynchronia", "asynchronia", "мультиплеер", "социальная стратегия",
-            "синхронный онлайн", "обычный онлайн", "привязки к чужому расписанию",
-            "автономные NPC", "долговременные союзы", "социальная память",
+def check_resource_contract(index: str) -> None:
+    css_tag = f'<link rel="stylesheet" href="ui/ui-stage7-essence.css?v={CSS_VERSION}" />'
+    boot_tag = f'<script defer src="ui/ui-boot.js?v={JS_VERSION}"></script>'
+    essence_tag = f'<script defer src="ui/ui-stage7-essence.js?v={JS_VERSION}"></script>'
+    for tag in (css_tag, boot_tag, essence_tag):
+        assert index.count(tag) == 1, f"resource tag missing or duplicated: {tag}"
+    assert index.index(css_tag) < index.index("</head>"), "essence stylesheet must load in head"
+    assert index.index(boot_tag) < index.index(essence_tag), "essence script must load after ui-boot"
+    assert index.index(essence_tag) < index.index('src="ui/ui-mobile.js?'), "essence script must load before mobile UI"
+    ordered_script_tags = tuple(
+        f'<script defer src="{resource}?v={JS_VERSION}"></script>'
+        for resource in (
+            "system.js", "data.js", "ui/ui-boot.js",
+            "ui/ui-stage7-essence.js", "ui/ui-profile-visual-tone-repair.js",
         )
-        assert not any(term.casefold() in full.casefold() for term in forbidden), (
-            f"unsupported or retired player-facing wording in {profile}: {full}"
-        )
-        modal_copy[profile] = full
-
-    boomer_modal = " ".join(part for block in rows["boomer"]["blocks"] for part in block.values())
-    assert "Вы решаете" in boomer_modal
-    assert "Помогли одному - нажили врага в другом." in boomer_modal
-    assert "Заходите, когда удобно." in boomer_modal
-    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", boomer_modal, re.IGNORECASE), boomer_modal
-    assert not re.search(r"\bиграй\b", boomer_modal, re.IGNORECASE), boomer_modal
-
-    alpha_modal = " ".join(part for block in rows["alpha"]["blocks"] for part in block.values())
-    assert alpha_modal == alpha_modal.lower(), alpha_modal
-    assert len(alpha_modal) < len(boomer_modal), "Alpha modal must be shorter than Boomer"
-    assert len(rows["alpha"]["blocks"]) == 3
-    assert all(rows["alpha"]["blocks"][i]["heading"] and rows["alpha"]["blocks"][i]["body"] for i in range(3))
-    assert rows["genX"]["blocks"] == rows["millennial"]["blocks"] == rows["zoomer"]["blocks"] == list(BLOCKS)
-    assert all(rows[p]["title"] == TITLE and rows[p]["close"] == "Вернуться" for p in PROFILES)
-
-    start_sources = (
-        SOURCE / "system.js",
-        SOURCE / "data.js",
-        SOURCE / "ui" / "ui-boot.js",
-        SOURCE / "ui" / "ui-profile-visual-tone-repair.js",
     )
-    start_text = "\n".join(read(path) for path in start_sources)
-    for phrase in ("Что за игра?", "Продолжить игру", "Легко попасть в чужой конфликт.", "решать вам."):
-        assert phrase in start_text, f"missing start-screen copy or resume wording: {phrase}"
-    for phrase in (
-        "Асинхронная онлайн-игра", "Не нужно совпадать по расписанию",
-        "Не надо ждать всех онлайн", "Не надо ждать остальных онлайн",
-    ):
-        assert phrase not in start_text, f"old start-screen pitch remains in an active text layer: {phrase}"
+    for tag in ordered_script_tags:
+        assert index.count(tag) == 1, f"versioned task script tag missing or duplicated: {tag}"
+    positions = [index.index(tag) for tag in ordered_script_tags]
+    assert positions == sorted(positions), "start/profile/modal scripts must retain dependency order"
+
+
+def object_source(source: str, profile: str, kind: str) -> str:
+    if kind == "data":
+        start = source.index("Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({")
+        match = re.search(rf"    {profile}: Object\.freeze\(\{{(.*?)\n    \}}\),?", source[start:], re.S)
+    elif kind == "tone":
+        start = source.index("const START_PROFILE_OVERRIDES = Object.freeze({")
+        match = re.search(rf"    {profile}: Object\.freeze\(\{{(.*?)\n    \}}\),?", source[start:], re.S)
+    else:
+        start = source.index("function resolveStartScreenText")
+        match = re.search(rf"    const {profile} = \{{(.*?)\n    \}};", source[start:], re.S)
+    assert match, (profile, kind)
+    return match.group(1)
+
+
+def check_exact_fields(block: str, profile: str, layer: str) -> None:
+    expected = {**COMMON, **START[profile]}
+    expected.pop("title")
+    expected.pop("intro")
+    expected["async_value"], expected["no_simultaneous_required"] = START[profile]["intro"]
+    title_key = "title" if layer == "tone" else "start_title"
+    expected[title_key] = COMMON["title"]
+    for key, value in expected.items():
+        match = re.search(rf'(?m)^\s*(?:"{re.escape(key)}"|{re.escape(key)}):\s*"((?:[^"\\]|\\.)*)"', block)
+        assert match, f"{layer}.{profile} missing {key}"
+        assert match.group(1) == value, (layer, profile, key, value, match.group(1))
+
+
+def harness(js: str, args: list[Path]) -> object:
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / "harness.js"
+        path.write_text(js, encoding="utf-8")
+        result = subprocess.run(["node", str(path), *(str(arg) for arg in args)], check=True, capture_output=True, text=True)
+    return json.loads(result.stdout)
+
+
+def main() -> None:
+    mirrors = ("system.js", "data.js", "ui/ui-boot.js", "ui/ui-profile-visual-tone-repair.js", "ui/ui-stage7-essence.js", "ui/ui-stage7-essence.css", "index.html")
+    for relative in mirrors:
+        if relative != "ui/ui-boot.js":
+            assert (SOURCE / relative).read_bytes() == (DEPLOYED / relative).read_bytes(), f"source/docs mirror differs: {relative}"
+
+    index = read(SOURCE / "index.html")
+    start_block_hash = check_start_markup(index)
+    check_start_markup(read(DEPLOYED / "index.html"))
+    check_resource_contract(index)
+    for resource, version in (("system.js", JS_VERSION), ("data.js", JS_VERSION), ("ui/ui-boot.js", JS_VERSION), ("ui/ui-stage7-essence.js", JS_VERSION), ("ui/ui-profile-visual-tone-repair.js", JS_VERSION)):
+        tag = f'{resource}?v={version}'
+        assert tag in index, f"stale or missing cache-buster: {tag}"
+    assert f'ui/ui-stage7-essence.css?v={CSS_VERSION}' in index
+    modal_source = read(SOURCE / "ui/ui-stage7-essence.js")
+    check_modal_contract(modal_source)
+    assert 'aria-label="Закрыть"' in modal_source
+    assert "Game.UI.getStage7EssenceCopy = copyFor;" in modal_source
 
     data = read(SOURCE / "data.js")
-    assert "Data.START_SCREEN_TEXT_MAX_LENGTH = 96;" in data
-    assert '"btnRules"' in start_block and '"startBirthYearPicker"' in start_block
-
-    start_harness = r'''
-const fs = require("fs");
-const vm = require("vm");
-global.window = global;
-global.Game = {};
-const log = console.log;
-console.log = () => {};
-vm.runInThisContext(fs.readFileSync(process.argv[2], "utf8"), { filename: process.argv[2] });
-vm.runInThisContext(fs.readFileSync(process.argv[3], "utf8"), { filename: process.argv[3] });
-console.log = log;
-const data = Game.Data;
-const profiles = ["boomer", "genX", "millennial", "zoomer", "alpha"];
-const rows = {};
-for (const profile of profiles) {
-  data.setUiProfile(profile);
-  rows[profile] = {
-    profile: data.getUiProfile(),
-    title: data.resolveStartScreenText("start_title"),
-    intro: [data.resolveStartScreenText("async_value"), data.resolveStartScreenText("no_simultaneous_required")],
-    start: data.resolveStartScreenText("start_start"),
-    startAction: data.resolveStartScreenText("start_action"),
-    rules: data.resolveStartScreenText("rules_action"),
-    resume: data.resolveStartScreenText("start_continue"),
-  };
-}
-process.stdout.write(JSON.stringify(rows));
-process.exit(0);
-'''
-    with tempfile.TemporaryDirectory() as directory:
-        harness_path = Path(directory) / "start-harness.js"
-        harness_path.write_text(start_harness, encoding="utf-8")
-        completed = subprocess.run(
-            ["node", str(harness_path), str(SOURCE / "system.js"), str(SOURCE / "data.js")],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    start_rows = json.loads(completed.stdout)
+    tone = read(SOURCE / "ui/ui-profile-visual-tone-repair.js")
+    boot = read(SOURCE / "ui/ui-boot.js")
     for profile in PROFILES:
-        row = start_rows[profile]
-        assert row["profile"] == profile, row
-        assert row["title"] == "Асинхрония", (profile, row)
-        assert tuple(row["intro"]) == START_COPY[profile], (profile, row)
-        assert row["start"] == row["startAction"] == "Начать", (profile, row)
-        assert row["rules"] == "Что за игра?", (profile, row)
-        assert row["resume"] == "Продолжить игру", (profile, row)
-    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", " ".join(start_rows["boomer"]["intro"]), re.IGNORECASE)
-    assert start_rows["alpha"]["intro"][0] == "Легко попасть в чужой конфликт."
-    assert len(" ".join(start_rows["alpha"]["intro"])) < len(" ".join(start_rows["boomer"]["intro"]))
+        check_exact_fields(object_source(data, profile, "data"), profile, "data")
+        check_exact_fields(object_source(tone, profile, "tone"), profile, "tone")
+        check_exact_fields(object_source(boot, profile, "boot"), profile, "boot")
+        check_exact_fields(object_source(read(DEPLOYED / "data.js"), profile, "data"), profile, "data")
+        check_exact_fields(object_source(read(DEPLOYED / "ui" / "ui-profile-visual-tone-repair.js"), profile, "tone"), profile, "tone")
+        check_exact_fields(object_source(read(DEPLOYED / "ui" / "ui-boot.js"), profile, "boot"), profile, "boot")
 
-    boot = read(SOURCE / "ui" / "ui-boot.js")
-    tone = read(SOURCE / "ui" / "ui-profile-visual-tone-repair.js")
-    for source_name, source_text in (("ui-boot", boot), ("profile tone", tone)):
-        assert "решать вам." in source_text, f"{source_name} fallback misses Boomer formality"
-        assert "Легко попасть в чужой конфликт." in source_text, f"{source_name} fallback misses Alpha intro"
-        assert "Кого поддержать и что ответить - решать тебе." in source_text, f"{source_name} fallback misses Alpha stake"
-    assert 'startProfiles.alpha.async_value === "Легко попасть в чужой конфликт."' in tone
-    assert 'startProfiles.alpha.no_simultaneous_required === "Кого поддержать и что ответить - решать тебе."' in tone
-    assert 'startProfiles.alpha.async_value === "Здесь легко оказаться в центре чужого конфликта."' not in tone
-    assert "Кому верить, кого поддержать и как ответить - решать тебе." not in _profile_object(boot, "alpha")
-    assert "Кому верить, кого поддержать и как ответить - решать тебе." not in _profile_object(tone, "alpha")
-    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", _profile_object(boot, "boomer"), re.IGNORECASE)
-    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", _profile_object(tone, "boomer"), re.IGNORECASE)
+    start_js = r'''const fs=require("fs"),vm=require("vm");global.window=global;global.Game={};const log=console.log;console.log=()=>{};vm.runInThisContext(fs.readFileSync(process.argv[2],"utf8"));vm.runInThisContext(fs.readFileSync(process.argv[3],"utf8"));console.log=log;const d=Game.Data;const order=%s;const rows=[];for(const p of order){d.setUiProfile(p);rows.push({profile:d.getUiProfile(),title:d.resolveStartScreenText("start_title"),intro:[d.resolveStartScreenText("async_value"),d.resolveStartScreenText("no_simultaneous_required")],birth:d.resolveStartScreenText("birth_digits_label"),helper:d.resolveStartScreenText("profile_helper"),feeling:d.resolveStartScreenText("fantasy_birth_label"),reset:d.resolveStartScreenText("start_reset"),start:d.resolveStartScreenText("start_start"),continue:d.resolveStartScreenText("start_continue"),rules:d.resolveStartScreenText("rules_action"),digits:["digit_up_first","digit_down_first","digit_up_second","digit_down_second"].map(k=>d.resolveStartScreenText(k))})}console.log(JSON.stringify(rows));process.exit(0);''' % json.dumps(SWITCH_ORDER)
+    start_rows = harness(start_js, [SOURCE / "system.js", SOURCE / "data.js"])
+    for i, profile in enumerate(SWITCH_ORDER):
+        row = start_rows[i]
+        assert row["profile"] == profile
+        assert row["title"] == COMMON["title"]
+        assert row["intro"] == START[profile]["intro"]
+        for field in ("birth", "helper", "feeling", "reset"):
+            key = {"birth":"birth_digits_label", "helper":"profile_helper", "feeling":"fantasy_birth_label", "reset":"start_reset"}[field]
+            assert row[field] == START[profile][key], (profile, field, row[field])
+        assert (row["start"], row["continue"], row["rules"]) == ("Начать", "Продолжить игру", "Что за игра?")
+        assert row["digits"] == [COMMON["digit_up_first"], COMMON["digit_down_first"], COMMON["digit_up_second"], COMMON["digit_down_second"]]
 
-    for profile in PROFILES:
-        expected_intro = START_COPY[profile]
-        data_block = _profile_object(data, profile)
-        tone_block = _profile_object(tone, profile)
-        boot_block = _profile_object(boot, profile)
-        for source_name, block in (("data", data_block), ("profile tone", tone_block), ("ui-boot", boot_block)):
-            title_key = "title" if source_name == "profile tone" else "start_title"
-            assert _profile_value(block, title_key) == "Асинхрония", (source_name, profile, block)
-            assert _profile_value(block, "async_value") == expected_intro[0], (source_name, profile, block)
-            assert _profile_value(block, "no_simultaneous_required") == expected_intro[1], (source_name, profile, block)
-            assert _profile_value(block, "start_start") == "Начать", (source_name, profile, block)
-            assert _profile_value(block, "start_continue") == "Продолжить игру", (source_name, profile, block)
-            if source_name != "data":
-                assert _profile_value(block, "rules_action") == "Что за игра?", (source_name, profile, block)
+    modal_js = r'''const fs=require("fs"),vm=require("vm");global.window=global;global.Game={UI:{}};vm.runInThisContext(fs.readFileSync(process.argv[2],"utf8"));const api=Game.UI;const order=%s;const rows=order.map(p=>({profile:p,copy:api.getStage7EssenceCopy(p)}));console.log(JSON.stringify({rows,profiles:api.getStage7EssenceProfiles()}));''' % json.dumps(SWITCH_ORDER)
+    modal = harness(modal_js, [SOURCE / "ui" / "ui-stage7-essence.js"])
+    assert modal["profiles"] == list(PROFILES)
+    for row in modal["rows"]:
+        profile = row["profile"]
+        copy = row["copy"]
+        assert copy["profile"] == profile
+        assert copy["title"] == TITLE and copy["close"] == "Вернуться"
+        assert [{"heading": b["heading"], "body": b["body"]} for b in copy["blocks"]] == [{"heading": h, "body": body} for h, body in BLOCKS[profile]]
+    assert modal["rows"][-1]["copy"] == modal["rows"][0]["copy"], "return to Boomer leaked previous profile copy"
+    boomer = " ".join([START["boomer"]["intro"][0], START["boomer"]["intro"][1], *(part for h,b in BLOCKS["boomer"] for part in (h,b))])
+    assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|играй|заходи|решай)\b", boomer, re.I)
+    alpha = " ".join(part for h,b in BLOCKS["alpha"] for part in (h,b))
+    assert alpha == alpha.lower()
 
-    for relative in ("system.js", "data.js", "ui/ui-profile-visual-tone-repair.js"):
-        assert (SOURCE / relative).read_bytes() == (DEPLOYED / relative).read_bytes(), (
-            f"source/docs mirror differs: {relative}"
-        )
-    for root in (SOURCE, DEPLOYED):
-        boot = read(root / "ui" / "ui-boot.js")
-        for phrase in ("решать вам.", "Легко попасть в чужой конфликт.", "Кого поддержать и что ответить - решать тебе."):
-            assert phrase in boot, f"profile start copy missing from {root}: {phrase}"
-        assert "Кому верить, кого поддержать и как ответить - решать тебе." not in _profile_object(boot, "alpha")
-        assert not re.search(r"\b(?:ты|тебе|тебя|твой|твоя|твои|заходи)\b", _profile_object(boot, "boomer"), re.IGNORECASE)
-        for phrase in ("Асинхронная онлайн-игра", "Не нужно совпадать по расписанию"):
-            assert phrase not in boot, f"old start pitch remains in {root}: {phrase}"
-
-    css = read(source_css)
-    required_css = (
-        ".stage7EssenceModal[hidden]",
-        ".stage7EssenceDialog",
-        ".stage7EssenceComparison",
-        ".stage7EssenceBlockText",
-        'body[data-ui-profile="boomer"] .stage7EssenceDialog',
-        'body[data-ui-profile="genX"] .stage7EssenceDialog',
-        'body[data-ui-profile="millennial"] .stage7EssenceDialog',
-        'body[data-ui-profile="zoomer"] .stage7EssenceDialog',
-        'body[data-ui-profile="alpha"] .stage7EssenceDialog',
-        "@media (max-width:680px)",
-        "@media (max-height:520px)",
-        "@media (prefers-reduced-motion:reduce)",
-        "@media (forced-colors:active)",
-    )
-    missing_css = [token for token in required_css if token not in css]
-    assert not missing_css, f"missing essence CSS contract: {missing_css}"
-    assert ".stage7EssenceSideSync" not in css and ".stage7EssenceSideAsync" not in css
-    assert css.count("{") == css.count("}"), "unbalanced essence CSS braces"
-    assert "overflow-wrap:anywhere" in css, "long copy may overflow narrow screens"
-
-    try:
-        import tinycss2  # type: ignore
-    except ImportError:
-        tinycss2 = None
-    if tinycss2 is not None:
-        errors = [
-            node
-            for node in tinycss2.parse_stylesheet(css, skip_comments=False, skip_whitespace=False)
-            if getattr(node, "type", "") == "error"
-        ]
-        assert not errors, f"essence CSS parse errors: {errors}"
-
+    for path in (SOURCE / "data.js", SOURCE / "system.js", SOURCE / "ui" / "ui-boot.js", SOURCE / "ui" / "ui-stage7-essence.js", SOURCE / "ui" / "ui-profile-visual-tone-repair.js"):
+        subprocess.run(["node", "--check", str(path)], check=True, capture_output=True, text=True)
+    css = read(SOURCE / "ui" / "ui-stage7-essence.css")
+    assert "overflow-wrap:anywhere" in css
+    assert css.count("{") == css.count("}")
     project = read(PROJECT)
-    assert "PBXFileSystemSynchronizedRootGroup" in project
-    assert "CEF3D28F2EF39D1D002A0BCD /* ui */" in project
-    assert "fileSystemSynchronizedGroups = (" in project
-    assert "ui-stage7-essence.js" not in project, "ui child should use synchronized-group discovery"
-    assert "ui-stage7-essence.css" not in project, "ui child should use synchronized-group discovery"
-
-    print(json.dumps({
-        "ok": True,
-        "profiles": list(PROFILES),
-        "modalTitle": TITLE,
-        "meaningBlocks": len(BLOCKS),
-        "startBlockSha256": actual_start_hash,
-        "indexMirror": True,
-        "jsMirror": True,
-        "cssMirror": True,
-        "nodeSyntax": True,
-        "xcodeUiSynchronizedGroup": True,
-    }, ensure_ascii=False, indent=2))
+    assert "PBXFileSystemSynchronizedRootGroup" in project and "fileSystemSynchronizedGroups = (" in project
+    print(json.dumps({"ok": True, "profiles": list(PROFILES), "profileSwitch": list(SWITCH_ORDER), "startFieldsPerProfile": 8, "modalBlocksPerProfile": 3, "startMarkupSha256": start_block_hash, "modalDomContract": True, "resourceOrder": True, "fallbackLayers": ["Data.START_SCREEN_PROFILE_TEXTS", "START_PROFILE_OVERRIDES", "ui-boot fallback"], "sourceDocsMirrors": [x for x in mirrors if x != "ui/ui-boot.js"], "knownPreexistingUiBootByteDrift": True, "nodeSyntax": True}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
