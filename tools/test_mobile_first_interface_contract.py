@@ -191,6 +191,32 @@ class MobileFirstInterfaceContract(unittest.TestCase):
         ):
             self.assertEqual(read(WEB / relative), read(DOCS / relative), str(relative))
 
+    def test_10_mobile_assets_use_current_cache_versions_and_css_contract(self):
+        main_css_version = "mobile_first_interface_20261014a"
+        expected_css_version = "mobile_first_issue434_20261016a"
+        index_paths = (WEB / "index.html", DOCS / "index.html")
+        html_by_path = {path: read(path) for path in index_paths}
+        css_versions = {}
+        for path, html in html_by_path.items():
+            match = re.search(r'<link[^>]+href="ui/mobile-ui\.css\?v=([^"&]+)"', html)
+            self.assertIsNotNone(match, f"mobile-ui.css link missing in {path}")
+            css_versions[path] = match.group(1)
+        self.assertEqual(set(css_versions.values()), {expected_css_version})
+        self.assertNotEqual(expected_css_version, main_css_version)
+
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn("#eventsBlock.mobile-empty-events", css)
+        self.assertIn("#eventsBody.mobile-empty-events-body", css)
+        mobile_rules = css.split("@media (max-width: 860px)", 1)[1]
+        self.assertRegex(mobile_rules, r"input,textarea,select[^{}]*\{font-size:16px\}")
+
+        for html in html_by_path.values():
+            self.assertRegex(html, r'ui/ui-events\.js\?v=[^" ]+first_event_mobile_empty_20261015a')
+            self.assertRegex(html, r'ui/ui-mobile\.js\?v=[^" ]+empty_events_visible_surface_20261015a')
+
+        for relative in (Path("index.html"), Path("ui/mobile-ui.css"), Path("ui/ui-events.js"), Path("ui/ui-mobile.js")):
+            self.assertEqual((WEB / relative).read_bytes(), (DOCS / relative).read_bytes(), str(relative))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
