@@ -55,6 +55,7 @@
   #blocks[data-active-tab="battles"] > #dmBlock,#blocks[data-active-tab="battles"] > #eventsBlock,
   #blocks[data-active-tab="events"] > #dmBlock,#blocks[data-active-tab="events"] > #battlesBlock{display:none!important}
   #dmBlock,#battlesBlock,#eventsBlock{flex-direction:column}
+  #dmBlockHeader,#battlesHeader,#eventsHeader{display:none!important}
   #dmBlock .panelHeader,#battlesBlock .panelHeader,#eventsBlock .panelHeader{flex:0 0 auto}
   #dmBlock .panelBody,#battlesBody,#eventsBody{
     flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;

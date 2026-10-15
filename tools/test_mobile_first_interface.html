@@ -40,11 +40,34 @@
       assert(panel.getAttribute("role")==="tabpanel" && panel.getAttribute("aria-hidden")==="false",`${key} tabpanel ARIA state`);
     };
     const pointer=(win,type,target,x,y,id=701)=>target.dispatchEvent(new win.PointerEvent(type,{bubbles:true,cancelable:true,pointerId:id,pointerType:"touch",isPrimary:true,button:0,clientX:x,clientY:y}));
+    const touch=(win,type,target,x,y,id=701)=>{
+      const event=new win.Event(type,{bubbles:true,cancelable:true});
+      const point={identifier:id,clientX:x,clientY:y,target};
+      Object.defineProperty(event,"changedTouches",{value:[point]});
+      Object.defineProperty(event,"touches",{value:type==="touchend"||type==="touchcancel"?[]:[point]});
+      return target.dispatchEvent(event);
+    };
     const swipe=(win,doc,target,dx,dy=0)=>{
       const rect=target.getBoundingClientRect(),x=rect.left+Math.min(20,rect.width/3),y=rect.top+Math.min(20,rect.height/3),id=Math.floor(Math.random()*100000)+1000;
       pointer(win,"pointerdown",target,x,y,id);
       pointer(win,"pointermove",doc,x+dx,y+dy,id);
       pointer(win,"pointerup",doc,x+dx,y+dy,id);
+      target.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
+    };
+    const touchSwipe=(win,doc,target,dx,dy=0)=>{
+      const rect=target.getBoundingClientRect(),x=rect.left+Math.max(30,Math.min(50,rect.width/3)),y=rect.top+Math.max(8,Math.min(20,rect.height/3)),id=Math.floor(Math.random()*100000)+200000;
+      touch(win,"touchstart",target,x,y,id);
+      touch(win,"touchmove",doc,x+dx,y+dy,id);
+      touch(win,"touchend",doc,x+dx,y+dy,id);
+      target.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
+    };
+    const mixedTouchSwipe=(win,doc,target,cancelType,dx,dy=0)=>{
+      const rect=target.getBoundingClientRect(),x=rect.left+Math.max(30,Math.min(50,rect.width/3)),y=rect.top+Math.max(8,Math.min(20,rect.height/3)),id=Math.floor(Math.random()*100000)+300000;
+      pointer(win,"pointerdown",target,x,y,id);
+      touch(win,"touchstart",target,x,y,id);
+      if(cancelType)pointer(win,cancelType,doc,x,y,id);
+      touch(win,"touchmove",doc,x+dx,y+dy,id);
+      touch(win,"touchend",doc,x+dx,y+dy,id);
       target.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
     };
     const snapshotGameUiState=(S)=>JSON.stringify({
@@ -63,11 +86,35 @@
       const win=frame.contentWindow,doc=frame.contentDocument,Game=win.Game,UI=Game.UI;
       assert(Game&&UI&&Game.__DEV.mobileInterface,"mobile UI controller failed to initialize");
       assert(win.matchMedia("(max-width: 860px)").matches,"390px iframe must use the existing 860px breakpoint");
-      const start=doc.getElementById("startScreen");if(start)start.style.display="none";
+      const battleTitle=doc.querySelector("#battlesHeader .battleTitleText"),battleTabTitle=doc.querySelector("#mobileTabBattles > span");
+      const renderedTitles=["Споры","Дебаты","Стычки","Баттлы","Разборки"];
+      for(const title of renderedTitles){
+        battleTitle.textContent=title;Game.__DEV.mobileInterface.updateCounters();
+        assert(battleTabTitle.textContent===title,`mobile battle tab follows renderer title ${title}`);
+        const count=doc.querySelector('[data-mobile-count="battles"]').textContent;
+        assert(doc.getElementById("mobileTabBattles").getAttribute("aria-label")===`${title} (${count})`,`battle tab accessible name follows renderer title and count for ${title}`);
+      }
+      battleTitle.textContent="Споры";Game.__DEV.mobileInterface.updateCounters();
+      pass("mobile battle label and accessible name follow five renderer-provided tone titles");
+      for(const id of ["dmBlockHeader","battlesHeader","eventsHeader"]){
+        const header=doc.getElementById(id);
+        assert(header&&getComputedStyle(header).display==="none"&&header.getBoundingClientRect().height===0,`${id} duplicate outer header has zero mobile height while its DOM remains mounted`);
+      }
+      assert(doc.getElementById("battleCount")&&doc.getElementById("eventsHeaderCount"),"renderer-owned counters remain mounted while duplicate headers are hidden");
+      pass("mobile duplicate outer headers have zero height while header nodes and counters remain mounted");
+      const start=doc.getElementById("startScreen");
+      if(start&&!start.classList.contains("hidden")&&getComputedStyle(start).display!=="none"){
+        const name=doc.getElementById("nameInput");if(name)name.value="Mobile Regression";
+        doc.getElementById("btnStart").click();
+        const startDeadline=Date.now()+15000;
+        while(Date.now()<startDeadline&&!start.classList.contains("hidden")&&getComputedStyle(start).display!=="none")await wait(80);
+        assert(start.classList.contains("hidden")||getComputedStyle(start).display==="none","isolated fresh test origin must enter a new game before panel-state checks");
+      }
       await raf(win);
       const meId=String(Game.__S.me?.id||"");
       const dmPlayer=Object.values(Game.__S.players||{}).find(player=>player&&String(player.id)!==meId);
-      assert(Game.__S.dm.open===false,"fresh DM state must start closed");
+      // Normalize whatever tutorial/save state the test origin loaded, then
+      // assert the real close path owns the expected closed panel state.
       UI.closeDM();await wait(80);
       assert(Game.__S.dm.open===false&&doc.getElementById("dmBlock").classList.contains("hidden"),"UI.closeDM must own the closed DM hidden state");
       const freshClosedState=snapshotGameUiState(Game.__S);
@@ -75,7 +122,7 @@
         const key=mobileState(win),id=({dm:"dmBlock",battles:"battlesBlock",events:"eventsBlock"})[key];
         const panel=doc.getElementById(id),body=panel&&(panel.querySelector(".panelBody")||panel.querySelector("#battlesBody,#eventsBody"));
         const target=panel&&!panel.classList.contains("hidden")&&body&&getComputedStyle(body).display!=="none"?body:doc.getElementById("blocks");
-        swipe(win,doc,target,dx,dy);
+        touchSwipe(win,doc,target,dx,dy);
       };
       swipeFreshPanel(-90);
       assert(mobileState(win)==="battles","fresh closed-DM lower panel must swipe left to Battles");
@@ -108,6 +155,57 @@
       doc.getElementById("mobileTabDm").click();await raf(win);
       pass("fresh/closed/open/closed DM lifecycle preserves renderer-owned panel visibility");
       assertOneActive(doc,"dm");
+
+      // Execute mixed native-touch and Pointer Events sequences. These are DOM
+      // lifecycle regressions, not a simulation of physical iOS Safari hardware.
+      const touchSwitches=[];
+      const switchObserver=new win.MutationObserver(records=>records.forEach(record=>{
+        if(record.attributeName==="aria-selected"&&record.target.getAttribute("aria-selected")==="true")touchSwitches.push(record.target.getAttribute("data-mobile-tab"));
+      }));
+      switchObserver.observe(doc.getElementById("mobilePanelTabs"),{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+      const touchActionTarget=doc.querySelector("#dmBlock .panelBody");
+      let beforeSwitches=touchSwitches.length;
+      mixedTouchSwipe(win,doc,touchActionTarget,"pointercancel",-90);
+      await wait(0);
+      assert(mobileState(win)==="battles","pointercancel between touchstart and touchmove must preserve the native touch swipe");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="battles","pointercancel mixed stream must switch exactly once");
+      pass("A: pointerdown/touchstart/pointercancel/touchmove/touchend switches once");
+
+      beforeSwitches=touchSwitches.length;
+      mixedTouchSwipe(win,doc,doc.getElementById("battlesBody"),"lostpointercapture",-90);
+      await wait(0);
+      assert(mobileState(win)==="events","lostpointercapture must leave the active native touch swipe intact");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="events","lostpointercapture mixed stream must switch exactly once");
+      pass("B: pointerdown/touchstart/lostpointercapture/touchmove/touchend switches once");
+
+      const eventPanelBody=doc.querySelector("#eventsBlock .panelBody");
+      const eventRect=eventPanelBody.getBoundingClientRect(),eventX=eventRect.left+40,eventY=eventRect.top+20,cancelId=401001;
+      beforeSwitches=touchSwitches.length;
+      touch(win,"touchstart",eventPanelBody,eventX,eventY,cancelId);
+      touch(win,"touchcancel",doc,eventX-90,eventY,cancelId);
+      touch(win,"touchend",doc,eventX-90,eventY,cancelId);
+      await wait(0);
+      assert(mobileState(win)==="events"&&touchSwitches.length===beforeSwitches,"touchcancel must discard the touch gesture and prevent a later touchend switch");
+      pass("C: touchcancel cancels the active touch gesture");
+
+      await wait(820);
+      pointer(win,"pointerdown",eventPanelBody,eventX,eventY,401002);
+      pointer(win,"pointermove",doc,eventX+90,eventY,401002);
+      pointer(win,"pointerup",doc,eventX+90,eventY,401002);
+      await wait(0);
+      assert(mobileState(win)==="battles","a pointer-only horizontal gesture still selects the previous tab");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="battles","pointer-only stream must switch exactly once");
+      pass("D: ordinary pointer-only navigation remains active");
+
+      const battlePanelBody=doc.getElementById("battlesBody"),battleRect=battlePanelBody.getBoundingClientRect(),battleX=battleRect.left+40,battleY=battleRect.top+20,verticalId=401003;
+      beforeSwitches=touchSwitches.length;
+      touch(win,"touchstart",battlePanelBody,battleX,battleY,verticalId);
+      touch(win,"touchmove",doc,battleX,battleY+90,verticalId);
+      touch(win,"touchend",doc,battleX,battleY+90,verticalId);
+      await wait(0);
+      assert(mobileState(win)==="battles"&&touchSwitches.length===beforeSwitches,"vertical touch movement must not switch tabs");
+      pass("E: vertical touch gesture keeps the current tab for native scrolling");
+      switchObserver.disconnect();
 
       // Simulate persisted desktop size preferences through the normal core
       // class application path, without invoking a persistence setter.
@@ -169,9 +267,13 @@
       doc.getElementById("mobileTabDm").click();await raf(win);
       pass("fresh/closed/open/closed DM plus gated battle and collapsed Events hidden-state regressions");
 
+      await wait(160);
       const renderCounts={};
       for(const name of ["renderAll","renderDM","renderBattles","renderEvents"]){const original=UI[name];renderCounts[name]=0;if(typeof original==="function")UI[name]=function(...args){renderCounts[name]++;return original.apply(this,args);};}
       const beforeState=snapshotGameUiState(Game.__S);
+      const visibilityFixtures={dm:[doc.getElementById("dmBlock"),doc.querySelector("#dmBlock .panelBody")],battles:[doc.getElementById("battlesBlock"),doc.getElementById("battlesBody")],events:[doc.getElementById("eventsBlock"),doc.getElementById("eventsBody")]};
+      const hiddenBefore=Object.fromEntries(Object.entries(visibilityFixtures).map(([key,nodes])=>[key,nodes.map(node=>node.classList.contains("hidden"))]));
+      Object.values(visibilityFixtures).flat().forEach(node=>node.classList.remove("hidden"));
       const dmDraft=doc.getElementById("dmInput");dmDraft.value="draft survives tab changes";
       doc.getElementById("mobileTabBattles").click();await raf(win);assertOneActive(doc,"battles");
       doc.getElementById("mobileTabEvents").click();await raf(win);assertOneActive(doc,"events");
@@ -179,6 +281,7 @@
       assert(dmDraft.value==="draft survives tab changes","DM draft must survive tab changes");
       assert(snapshotGameUiState(Game.__S)===beforeState,"tab switching must not mutate game state");
       assert(Object.values(renderCounts).every(value=>value===0),`tab switching must not invoke renderers: ${JSON.stringify(renderCounts)}`);
+      Object.entries(visibilityFixtures).forEach(([key,nodes])=>nodes.forEach((node,index)=>node.classList.toggle("hidden",hiddenBefore[key][index])));
       pass("one-tap tabs preserve DM draft/game state and invoke no renderers");
 
       const eventsBody=doc.getElementById("eventsBody");
@@ -212,33 +315,52 @@
       const action=doc.createElement("button");action.type="button";action.title="Mobile help test description";action.textContent="test action";
       let actionCount=0;action.addEventListener("click",()=>actionCount++);dmBody.appendChild(action);
       action.click();assert(actionCount===1,"short tap/click must execute the action immediately once");
-      actionCount=0;
-      swipe(win,doc,action,-90);
+      actionCount=0;const actionRect=action.getBoundingClientRect();
+      touch(win,"touchstart",action,actionRect.left+2,actionRect.top+2,8891);touch(win,"touchend",action,actionRect.left+2,actionRect.top+2,8891);
+      action.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
+      assert(actionCount===1,"short touch on a game action must remain an action click");actionCount=0;
+      touchSwipe(win,doc,action,-90);
       assert(mobileState(win)==="dm","swipe beginning on a button must not switch tabs");
       assert(actionCount===0,"swipe must not activate the game button");
-      swipe(win,doc,dmBody.firstElementChild||dmBody,90);
+      touchSwipe(win,doc,dmBody.firstElementChild||dmBody,90);
       assert(mobileState(win)==="dm","right swipe at first tab must stop at the edge");
       const battlePanel=doc.getElementById("battlesBlock"),battleBody=doc.getElementById("battlesBody");
       const battlePanelInitiallyHidden=battlePanel.classList.contains("hidden"),battleBodyInitiallyHidden=battleBody.classList.contains("hidden");
       const battleContent=battleBody.innerHTML;
       battlePanel.classList.remove("hidden");battleBody.classList.remove("hidden");
+      const eventsPanel=doc.getElementById("eventsBlock"),eventBody=doc.getElementById("eventsBody");
+      const eventsPanelInitiallyHidden=eventsPanel.classList.contains("hidden"),eventBodyInitiallyHidden=eventBody.classList.contains("hidden");
+      eventsPanel.classList.remove("hidden");eventBody.classList.remove("hidden");
       battleBody.innerHTML="";
       for(let i=0;i<30;i++){const row=doc.createElement("div");row.textContent="test battle scroll row "+i;row.style.height="42px";row.style.flex="0 0 42px";battleBody.appendChild(row);}
-      swipe(win,doc,dmBody.firstElementChild||dmBody,-90);
+      const cardText=doc.createElement("div");cardText.className="battleCard";cardText.textContent="Card body text";let cardActionCount=0;cardText.onclick=()=>cardActionCount++;battleBody.appendChild(cardText);
+      const eventText=doc.createElement("div");eventText.className="eventCard";eventText.textContent="Event body text";eventText.onclick=()=>cardActionCount++;eventBody.appendChild(eventText);
+      touchSwipe(win,doc,dmBody.firstElementChild||dmBody,-90);
       assert(mobileState(win)==="battles","left swipe in active panel must select next tab");
-      swipe(win,doc,battleBody,-90);
-      assert(mobileState(win)==="events","second left swipe must select Events");
-      swipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),-90);
+      touchSwipe(win,doc,cardText,-90);
+      assert(mobileState(win)==="events","touch swipe starting on non-control battle-card text must select Events");
+      assert(cardActionCount===0,"card background action must not fire after touch swipe");
+      touchSwipe(win,doc,eventText,90);
+      assert(mobileState(win)==="battles","touch swipe starting on non-control event-card text selects the previous tab");
+      assert(cardActionCount===0,"event card action must not fire after touch swipe");
+      const horizontal=doc.createElement("div");horizontal.style.cssText="width:80px;overflow-x:auto";horizontal.setAttribute("data-mobile-horizontal-scroll","");const wide=doc.createElement("div");wide.style.width="240px";horizontal.appendChild(wide);battleBody.appendChild(horizontal);
+      touchSwipe(win,doc,wide,-90);
+      assert(mobileState(win)==="battles","touch swipe inside a horizontal scroller must not change tabs");
+      horizontal.remove();cardText.remove();eventText.remove();
+      touchSwipe(win,doc,battleBody,-90);
+      assert(mobileState(win)==="events","left swipe from Battles must select Events");
+      touchSwipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),-90);
       assert(mobileState(win)==="events","left swipe at last tab must stop at the edge");
-      swipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),90);
+      touchSwipe(win,doc,doc.getElementById("eventsBlock").querySelector(".panelBody"),90);
       assert(mobileState(win)==="battles","right swipe must select previous tab");
-      swipe(win,doc,battleBody,4,80);
+      touchSwipe(win,doc,battleBody,4,80);
       assert(mobileState(win)==="battles","vertical movement must not switch tabs");
       battleBody.scrollTop=60;assert(battleBody.scrollTop===60,"vertical panel content remains programmatically scrollable");
       assert(Object.values(renderCounts).every(value=>value===0),"tab swipes must not rerender game panels");
       battleBody.innerHTML=battleContent;
       battlePanel.classList.toggle("hidden",battlePanelInitiallyHidden);battleBody.classList.toggle("hidden",battleBodyInitiallyHidden);
-      pass("horizontal swipes both ways, edge stops, vertical scroll, and buttons are not intercepted");
+      eventsPanel.classList.toggle("hidden",eventsPanelInitiallyHidden);eventBody.classList.toggle("hidden",eventBodyInitiallyHidden);
+      pass("touch swipes on card text, button protection, horizontal scroller exclusion, edge stops and vertical arbitration");
 
       doc.getElementById("mobileTabDm").click();await raf(win);
       const beforeResize=doc.getElementById("left").getBoundingClientRect().height;
@@ -325,6 +447,7 @@
       assert(Math.abs(doc.getElementById("left").getBoundingClientRect().height-preferred)<2,"closing keyboard-like viewport shrink restores the chosen chat size");
       await setFrameSize(1024,768);
       assert(getComputedStyle(doc.getElementById("mobilePanelTabs")).display==="none","desktop hides mobile tabs");
+      for(const id of ["dmBlockHeader","battlesHeader","eventsHeader"])assert(getComputedStyle(doc.getElementById(id)).display!=="none",`${id} desktop header remains visible`);
       assert(!doc.getElementById("blocks").hasAttribute("data-active-tab"),"desktop has no active mobile tab state");
       assert(!doc.getElementById("dmBlock").hasAttribute("role"),"desktop panel semantics remain unchanged");
       pass("narrow, landscape, keyboard-height resize recovery, and desktop breakpoint");
@@ -332,7 +455,7 @@
       assertOneActive(doc,"dm");
       pass("restores mobile viewport after desktop breakpoint check");
 
-      result.className="pass";result.textContent=`PASS\n${output.join("\n")}\n\nLIMIT: this browser test simulates touch pointer events and reduced viewport height; it does not emulate physical iOS touch hardware or the native iPhone keyboard.`;
+      result.className="pass";result.textContent=`PASS\n${output.join("\n")}\n\nLIMIT: this browser test dispatches touch-shaped DOM events and reduced viewport sizes; it does not emulate the native iOS Safari gesture recognizer, physical iPhone touch hardware, or keyboard.`;
       document.documentElement.dataset.testResult="pass";
     }catch(error){
       result.className="fail";result.textContent=`FAIL\n${error&&error.stack||error}\n\nPassed before failure:\n${output.join("\n")}`;
