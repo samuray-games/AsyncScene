@@ -1,0 +1,106 @@
+{
+  "branch": "codex/issue434-mobile-safari-touch-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "codex/issue434-mobile-safari-touch-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "9df9865b592a321c235f1bfe186c16db2602bbf3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "# branch.oid 9df9865b592a321c235f1bfe186c16db2602bbf3\n# branch.head codex/issue434-mobile-safari-touch-20261014\n# branch.upstream origin/codex/issue434-mobile-safari-touch-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "9df9865b (HEAD -> codex/issue434-mobile-safari-touch-20261014, origin/codex/issue434-mobile-safari-touch-20261014) Fix mixed touch and pointer cancellation\n0566e260 Merge remote-tracking branch 'origin/main' into codex/issue434-mobile-safari-touch-20261014\ne947f03c Fix mobile Safari panel navigation\n7122e223 (origin/main) Adapt start and essence copy for five profiles (#433)\nbcb52993 Mobile-first interface redesign (#430)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 9df9865b592a321c235f1bfe186c16db2602bbf3\nbranch refs/heads/codex/issue434-mobile-safari-touch-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T13:16:34Z",
+      "stderr": "",
+      "stdout": "7122e2236125c18518f653ca85d6de14cdd8968b\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "9df9865b592a321c235f1bfe186c16db2602bbf3",
+  "observedAtUtc": "2026-10-15T13:16:34Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
