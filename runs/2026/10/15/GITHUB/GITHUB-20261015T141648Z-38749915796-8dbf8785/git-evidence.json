@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:48Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:48Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:48Z",
+      "stderr": "",
+      "stdout": "26b017022057d51409ecc26498b150308b83bc81\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:49Z",
+      "stderr": "",
+      "stdout": "# branch.oid 26b017022057d51409ecc26498b150308b83bc81\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:49Z",
+      "stderr": "",
+      "stdout": "26b01702 (HEAD, pull/436/merge) Merge b143e24f03b894bcd61f5678caf25dd1da95ac84 into 2c3b57e3c0f184d630caa1b342785de53353435e\nb143e24f (origin/codex/issue434-events-empty-input-zoom-20261015) Fix mobile empty Events swipe and input zoom\n2c3b57e3 (origin/main) Fix mobile Safari panel labels, headers, and swipes (#435)\n7122e223 Adapt start and essence copy for five profiles (#433)\nbcb52993 Mobile-first interface redesign (#430)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:49Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 26b017022057d51409ecc26498b150308b83bc81\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:49Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-15T14:16:49Z",
+      "stderr": "",
+      "stdout": "2c3b57e3c0f184d630caa1b342785de53353435e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "26b017022057d51409ecc26498b150308b83bc81",
+  "observedAtUtc": "2026-10-15T14:16:49Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
