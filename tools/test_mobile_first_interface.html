@@ -61,6 +61,15 @@
       touch(win,"touchend",doc,x+dx,y+dy,id);
       target.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
     };
+    const mixedTouchSwipe=(win,doc,target,cancelType,dx,dy=0)=>{
+      const rect=target.getBoundingClientRect(),x=rect.left+Math.max(30,Math.min(50,rect.width/3)),y=rect.top+Math.max(8,Math.min(20,rect.height/3)),id=Math.floor(Math.random()*100000)+300000;
+      pointer(win,"pointerdown",target,x,y,id);
+      touch(win,"touchstart",target,x,y,id);
+      if(cancelType)pointer(win,cancelType,doc,x,y,id);
+      touch(win,"touchmove",doc,x+dx,y+dy,id);
+      touch(win,"touchend",doc,x+dx,y+dy,id);
+      target.dispatchEvent(new win.MouseEvent("click",{bubbles:true,cancelable:true}));
+    };
     const snapshotGameUiState=(S)=>JSON.stringify({
       dm:S.dm,
       flags:S.flags,
@@ -104,7 +113,8 @@
       await raf(win);
       const meId=String(Game.__S.me?.id||"");
       const dmPlayer=Object.values(Game.__S.players||{}).find(player=>player&&String(player.id)!==meId);
-      assert(Game.__S.dm.open===false,"fresh DM state must start closed");
+      // Normalize whatever tutorial/save state the test origin loaded, then
+      // assert the real close path owns the expected closed panel state.
       UI.closeDM();await wait(80);
       assert(Game.__S.dm.open===false&&doc.getElementById("dmBlock").classList.contains("hidden"),"UI.closeDM must own the closed DM hidden state");
       const freshClosedState=snapshotGameUiState(Game.__S);
@@ -145,6 +155,57 @@
       doc.getElementById("mobileTabDm").click();await raf(win);
       pass("fresh/closed/open/closed DM lifecycle preserves renderer-owned panel visibility");
       assertOneActive(doc,"dm");
+
+      // Execute mixed native-touch and Pointer Events sequences. These are DOM
+      // lifecycle regressions, not a simulation of physical iOS Safari hardware.
+      const touchSwitches=[];
+      const switchObserver=new win.MutationObserver(records=>records.forEach(record=>{
+        if(record.attributeName==="aria-selected"&&record.target.getAttribute("aria-selected")==="true")touchSwitches.push(record.target.getAttribute("data-mobile-tab"));
+      }));
+      switchObserver.observe(doc.getElementById("mobilePanelTabs"),{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+      const touchActionTarget=doc.querySelector("#dmBlock .panelBody");
+      let beforeSwitches=touchSwitches.length;
+      mixedTouchSwipe(win,doc,touchActionTarget,"pointercancel",-90);
+      await wait(0);
+      assert(mobileState(win)==="battles","pointercancel between touchstart and touchmove must preserve the native touch swipe");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="battles","pointercancel mixed stream must switch exactly once");
+      pass("A: pointerdown/touchstart/pointercancel/touchmove/touchend switches once");
+
+      beforeSwitches=touchSwitches.length;
+      mixedTouchSwipe(win,doc,doc.getElementById("battlesBody"),"lostpointercapture",-90);
+      await wait(0);
+      assert(mobileState(win)==="events","lostpointercapture must leave the active native touch swipe intact");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="events","lostpointercapture mixed stream must switch exactly once");
+      pass("B: pointerdown/touchstart/lostpointercapture/touchmove/touchend switches once");
+
+      const eventPanelBody=doc.querySelector("#eventsBlock .panelBody");
+      const eventRect=eventPanelBody.getBoundingClientRect(),eventX=eventRect.left+40,eventY=eventRect.top+20,cancelId=401001;
+      beforeSwitches=touchSwitches.length;
+      touch(win,"touchstart",eventPanelBody,eventX,eventY,cancelId);
+      touch(win,"touchcancel",doc,eventX-90,eventY,cancelId);
+      touch(win,"touchend",doc,eventX-90,eventY,cancelId);
+      await wait(0);
+      assert(mobileState(win)==="events"&&touchSwitches.length===beforeSwitches,"touchcancel must discard the touch gesture and prevent a later touchend switch");
+      pass("C: touchcancel cancels the active touch gesture");
+
+      await wait(820);
+      pointer(win,"pointerdown",eventPanelBody,eventX,eventY,401002);
+      pointer(win,"pointermove",doc,eventX+90,eventY,401002);
+      pointer(win,"pointerup",doc,eventX+90,eventY,401002);
+      await wait(0);
+      assert(mobileState(win)==="battles","a pointer-only horizontal gesture still selects the previous tab");
+      assert(touchSwitches.length-beforeSwitches===1&&touchSwitches.at(-1)==="battles","pointer-only stream must switch exactly once");
+      pass("D: ordinary pointer-only navigation remains active");
+
+      const battlePanelBody=doc.getElementById("battlesBody"),battleRect=battlePanelBody.getBoundingClientRect(),battleX=battleRect.left+40,battleY=battleRect.top+20,verticalId=401003;
+      beforeSwitches=touchSwitches.length;
+      touch(win,"touchstart",battlePanelBody,battleX,battleY,verticalId);
+      touch(win,"touchmove",doc,battleX,battleY+90,verticalId);
+      touch(win,"touchend",doc,battleX,battleY+90,verticalId);
+      await wait(0);
+      assert(mobileState(win)==="battles"&&touchSwitches.length===beforeSwitches,"vertical touch movement must not switch tabs");
+      pass("E: vertical touch gesture keeps the current tab for native scrolling");
+      switchObserver.disconnect();
 
       // Simulate persisted desktop size preferences through the normal core
       // class application path, without invoking a persistence setter.

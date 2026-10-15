@@ -17,8 +17,10 @@ window.Game = window.Game || {};
   let activeKey = "dm";
   let initialized = false;
   let countObserver = null;
-  let gesture = null;
-  let blockedActionGesture = null;
+  let pointerGesture = null;
+  let blockedPointerActionGesture = null;
+  let touchGesture = null;
+  let blockedTouchActionGesture = null;
   let suppressedClick = null;
   let lastTouchStartAt = 0;
   let longPress = null;
@@ -194,32 +196,32 @@ window.Game = window.Game || {};
     if (isInteractiveStart(event.target, panel)) {
       // A horizontal drag that starts on an action/control is not tab navigation,
       // but it must not fall through as an accidental activation click either.
-      blockedActionGesture = { id: event.pointerId, target: event.target, x: event.clientX, y: event.clientY };
+      blockedPointerActionGesture = { id: event.pointerId, target: event.target, x: event.clientX, y: event.clientY };
       return;
     }
-    gesture = { id: event.pointerId, panel, target: event.target, x: event.clientX, y: event.clientY, cancelled: false };
+    pointerGesture = { id: event.pointerId, panel, target: event.target, x: event.clientX, y: event.clientY, cancelled: false };
   }
 
   function moveSwipe(event){
     if (Date.now() - lastTouchStartAt < 800) return;
-    if (blockedActionGesture && event.pointerId === blockedActionGesture.id) return;
-    if (!gesture || event.pointerId !== gesture.id) return;
-    const dx = event.clientX - gesture.x;
-    const dy = event.clientY - gesture.y;
+    if (blockedPointerActionGesture && event.pointerId === blockedPointerActionGesture.id) return;
+    if (!pointerGesture || event.pointerId !== pointerGesture.id) return;
+    const dx = event.clientX - pointerGesture.x;
+    const dy = event.clientY - pointerGesture.y;
     if (Math.abs(dy) > 12 && Math.abs(dy) >= Math.abs(dx)) {
-      gesture.cancelled = true;
+      pointerGesture.cancelled = true;
       return;
     }
-    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15 && isHorizontalScroller(gesture.target, gesture.panel)) {
-      gesture.cancelled = true;
+    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15 && isHorizontalScroller(pointerGesture.target, pointerGesture.panel)) {
+      pointerGesture.cancelled = true;
     }
   }
 
   function endSwipe(event){
     if (Date.now() - lastTouchStartAt < 800) return;
-    if (blockedActionGesture && event.pointerId === blockedActionGesture.id) {
-      const currentBlocked = blockedActionGesture;
-      blockedActionGesture = null;
+    if (blockedPointerActionGesture && event.pointerId === blockedPointerActionGesture.id) {
+      const currentBlocked = blockedPointerActionGesture;
+      blockedPointerActionGesture = null;
       const dx = event.clientX - currentBlocked.x;
       const dy = event.clientY - currentBlocked.y;
       if (Math.abs(dx) >= 56 && Math.abs(dx) > Math.abs(dy) * 1.25) {
@@ -229,9 +231,9 @@ window.Game = window.Game || {};
       }
       return;
     }
-    if (!gesture || event.pointerId !== gesture.id) return;
-    const current = gesture;
-    gesture = null;
+    if (!pointerGesture || event.pointerId !== pointerGesture.id) return;
+    const current = pointerGesture;
+    pointerGesture = null;
     if (current.cancelled) return;
     const dx = event.clientX - current.x;
     const dy = event.clientY - current.y;
@@ -244,7 +246,12 @@ window.Game = window.Game || {};
     event.preventDefault();
   }
 
-  function resetSwipe(){ gesture = null; blockedActionGesture = null; }
+  // Pointer cancellation owns pointer state only. A touchstart may explicitly
+  // hand the same physical interaction to the native Touch Events path.
+  function resetPointerSwipe(event){
+    if (!event || pointerGesture && event.pointerId === pointerGesture.id) pointerGesture = null;
+    if (!event || blockedPointerActionGesture && event.pointerId === blockedPointerActionGesture.id) blockedPointerActionGesture = null;
+  }
 
   function touchPoint(event){
     const touch = event.changedTouches && event.changedTouches[0] || event.touches && event.touches[0];
@@ -254,47 +261,50 @@ window.Game = window.Game || {};
   function startTouchSwipe(event){
     if (!isMobile() || !event.changedTouches || event.changedTouches.length !== 1) return;
     lastTouchStartAt = Date.now();
+    // On browsers that emit both streams, native touch owns this contact once
+    // touchstart arrives. Clearing pointer state here prevents duplicate tabs.
+    resetPointerSwipe();
     const point = touchPoint(event);
     if (!point || point.x < 24 || point.x > window.innerWidth - 24) return;
     if (suppressedClick) suppressedClick = null;
     const panel = contentPanelFromTarget(point.target);
     if (!panel) return;
     if (isInteractiveStart(point.target, panel)) {
-      blockedActionGesture = { id: point.id, target: point.target, x: point.x, y: point.y, input: "touch" };
+      blockedTouchActionGesture = { id: point.id, target: point.target, x: point.x, y: point.y };
       return;
     }
-    gesture = { id: point.id, panel, target: point.target, x: point.x, y: point.y, cancelled: false, input: "touch" };
+    touchGesture = { id: point.id, panel, target: point.target, x: point.x, y: point.y, cancelled: false };
   }
 
   function moveTouchSwipe(event){
-    if (!gesture && !blockedActionGesture) return;
+    if (!touchGesture && !blockedTouchActionGesture) return;
     const point = touchPoint(event);
     if (!point) return;
-    const current = blockedActionGesture && blockedActionGesture.input === "touch" ? blockedActionGesture : gesture;
-    if (!current || current.input !== "touch" || current.id !== point.id) return;
+    const current = blockedTouchActionGesture && blockedTouchActionGesture.id === point.id ? blockedTouchActionGesture : touchGesture;
+    if (!current || current.id !== point.id) return;
     const dx = point.x - current.x;
     const dy = point.y - current.y;
     if (Math.abs(dy) > 12 && Math.abs(dy) >= Math.abs(dx)) {
-      if (current === gesture) current.cancelled = true;
+      if (current === touchGesture) current.cancelled = true;
       return;
     }
-    if (current === gesture && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15 && isHorizontalScroller(current.target, current.panel)) current.cancelled = true;
+    if (current === touchGesture && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.15 && isHorizontalScroller(current.target, current.panel)) current.cancelled = true;
   }
 
   function finishTouchSwipe(event){
     const point = touchPoint(event);
     if (!point) return;
-    if (blockedActionGesture && blockedActionGesture.input === "touch" && blockedActionGesture.id === point.id) {
-      const current = blockedActionGesture;
-      blockedActionGesture = null;
+    if (blockedTouchActionGesture && blockedTouchActionGesture.id === point.id) {
+      const current = blockedTouchActionGesture;
+      blockedTouchActionGesture = null;
       const dx = point.x - current.x;
       const dy = point.y - current.y;
       if (Math.abs(dx) >= 56 && Math.abs(dx) > Math.abs(dy) * 1.25) suppressedClick = { target: current.target, until: Date.now() + 700 };
       return;
     }
-    if (!gesture || gesture.input !== "touch" || gesture.id !== point.id) return;
-    const current = gesture;
-    gesture = null;
+    if (!touchGesture || touchGesture.id !== point.id) return;
+    const current = touchGesture;
+    touchGesture = null;
     const dx = point.x - current.x;
     const dy = point.y - current.y;
     if (current.cancelled || Math.abs(dx) < 56 || Math.abs(dx) <= Math.abs(dy) * 1.25) return;
@@ -303,6 +313,17 @@ window.Game = window.Game || {};
     if (nextIndex === index) return;
     selectTab(ORDER[nextIndex], false);
     suppressedClick = { target: current.target, until: Date.now() + 700 };
+  }
+
+  function resetTouchSwipe(event){
+    const identifiers = Array.from(event && event.changedTouches || []).map((touch) => touch.identifier);
+    if (!identifiers.length) {
+      touchGesture = null;
+      blockedTouchActionGesture = null;
+      return;
+    }
+    if (touchGesture && identifiers.includes(touchGesture.id)) touchGesture = null;
+    if (blockedTouchActionGesture && identifiers.includes(blockedTouchActionGesture.id)) blockedTouchActionGesture = null;
   }
 
   function hintTarget(target){
@@ -428,12 +449,12 @@ window.Game = window.Game || {};
     document.addEventListener("pointerdown", startSwipe, true);
     document.addEventListener("pointermove", moveSwipe, { capture: true, passive: true });
     document.addEventListener("pointerup", endSwipe, true);
-    document.addEventListener("pointercancel", resetSwipe, true);
-    document.addEventListener("lostpointercapture", resetSwipe, true);
+    document.addEventListener("pointercancel", resetPointerSwipe, true);
+    document.addEventListener("lostpointercapture", resetPointerSwipe, true);
     document.addEventListener("touchstart", startTouchSwipe, { capture: true, passive: true });
     document.addEventListener("touchmove", moveTouchSwipe, { capture: true, passive: true });
     document.addEventListener("touchend", finishTouchSwipe, { capture: true, passive: true });
-    document.addEventListener("touchcancel", resetSwipe, { capture: true, passive: true });
+    document.addEventListener("touchcancel", resetTouchSwipe, { capture: true, passive: true });
     document.addEventListener("click", onClickCapture, true);
     document.addEventListener("pointerdown", startLongPress, true);
     document.addEventListener("pointermove", moveLongPress, true);
