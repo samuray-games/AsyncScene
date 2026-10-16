@@ -1,0 +1,106 @@
+{
+  "branch": "codex/social-combat-chat03a-lifecycle-20261016",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "codex/social-combat-chat03a-lifecycle-20261016\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "1fea5b72cc12e08af00fb3c7a2b8795edb25d727\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1fea5b72cc12e08af00fb3c7a2b8795edb25d727\n# branch.head codex/social-combat-chat03a-lifecycle-20261016\n# branch.upstream origin/codex/social-combat-chat03a-lifecycle-20261016\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "1fea5b72 (HEAD -> codex/social-combat-chat03a-lifecycle-20261016, origin/codex/social-combat-chat03a-lifecycle-20261016) feat: add isolated tactical combat lifecycle v1\ne3c9baea (origin/main) feat(social-combat): add isolated tactical_v1 pure resolver (#437)\nc6880541 (tag: backup/pre-social-combat) Fix mobile empty Events, swipe and input zoom (#436)\n2c3b57e3 Fix mobile Safari panel labels, headers, and swipes (#435)\n7122e223 Adapt start and essence copy for five profiles (#433)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1fea5b72cc12e08af00fb3c7a2b8795edb25d727\nbranch refs/heads/codex/social-combat-chat03a-lifecycle-20261016\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T06:21:21Z",
+      "stderr": "",
+      "stdout": "e3c9baeae2ee32e1d9595b1dfe6641cb8f1de97e\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1fea5b72cc12e08af00fb3c7a2b8795edb25d727",
+  "observedAtUtc": "2026-10-16T06:21:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
