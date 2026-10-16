@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "8f72457482949647e8e43712be79c0f013b6e977\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "# branch.oid 8f72457482949647e8e43712be79c0f013b6e977\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "8f724574 (HEAD, pull/437/merge) Merge cd9b77648e68ee269ca7a2269ee407e1115fa4d9 into c6880541934db9d92ff89141d7fa224b391e7515\ncd9b7764 (origin/codex/social-combat-chat02-pure-resolver-20261016) fix(social-combat): address tactical resolver review blockers\n686a61a5 feat(social-combat): add isolated tactical_v1 pure resolver\nc6880541 (tag: backup/pre-social-combat, origin/main) Fix mobile empty Events, swipe and input zoom (#436)\n2c3b57e3 Fix mobile Safari panel labels, headers, and swipes (#435)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 8f72457482949647e8e43712be79c0f013b6e977\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T05:05:55Z",
+      "stderr": "",
+      "stdout": "c6880541934db9d92ff89141d7fa224b391e7515\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "8f72457482949647e8e43712be79c0f013b6e977",
+  "observedAtUtc": "2026-10-16T05:05:55Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
