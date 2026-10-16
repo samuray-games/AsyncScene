@@ -1,0 +1,106 @@
+{
+  "branch": "codex/social-combat-chat02-pure-resolver-20261016",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "codex/social-combat-chat02-pure-resolver-20261016\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "686a61a59c939a0527100ecd0fe6f210ac849500\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "# branch.oid 686a61a59c939a0527100ecd0fe6f210ac849500\n# branch.head codex/social-combat-chat02-pure-resolver-20261016\n# branch.upstream origin/codex/social-combat-chat02-pure-resolver-20261016\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "686a61a5 (HEAD -> codex/social-combat-chat02-pure-resolver-20261016, origin/codex/social-combat-chat02-pure-resolver-20261016) feat(social-combat): add isolated tactical_v1 pure resolver\nc6880541 (tag: backup/pre-social-combat, origin/main) Fix mobile empty Events, swipe and input zoom (#436)\n2c3b57e3 Fix mobile Safari panel labels, headers, and swipes (#435)\n7122e223 Adapt start and essence copy for five profiles (#433)\nbcb52993 Mobile-first interface redesign (#430)\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 686a61a59c939a0527100ecd0fe6f210ac849500\nbranch refs/heads/codex/social-combat-chat02-pure-resolver-20261016\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-16T04:24:24Z",
+      "stderr": "",
+      "stdout": "c6880541934db9d92ff89141d7fa224b391e7515\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "686a61a59c939a0527100ecd0fe6f210ac849500",
+  "observedAtUtc": "2026-10-16T04:24:24Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
