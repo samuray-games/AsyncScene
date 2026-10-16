@@ -15,26 +15,40 @@
   }
 
   function validateSnapshot(snapshot, name) {
-    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
-      return name + " must be an object";
+    if (!snapshot || typeof snapshot !== "object") return { error: name + " must be an object" };
+    try {
+      if (Array.isArray(snapshot)) return { error: name + " must be an object" };
+    } catch (_) {
+      return { error: name + " could not be inspected" };
     }
     const required = ["attackColor", "defenseColor", "attackType", "defenseType", "role"];
-    for (const key of required) {
-      if (!hasOwn(snapshot, key)) return name + "." + key + " is required";
-      const descriptor = Object.getOwnPropertyDescriptor(snapshot, key);
-      if (!descriptor || !hasOwn(descriptor, "value")) return name + "." + key + " must be a data value";
+    const normalized = {};
+    try {
+      for (const key of required) {
+        if (!hasOwn(snapshot, key)) return { error: name + "." + key + " is required" };
+        const descriptor = Object.getOwnPropertyDescriptor(snapshot, key);
+        if (!descriptor || !hasOwn(descriptor, "value")) {
+          return { error: name + "." + key + " must be a data value" };
+        }
+        normalized[key] = descriptor.value;
+      }
+    } catch (_) {
+      return { error: name + " could not be inspected" };
     }
-    if (!hasOwn(COLOR_VALUE, snapshot.attackColor)) return name + ".attackColor is unsupported";
-    if (!hasOwn(COLOR_VALUE, snapshot.defenseColor)) return name + ".defenseColor is unsupported";
-    if (!hasOwn(ATTACK_TYPES, snapshot.attackType)) return name + ".attackType is unsupported";
-    if (!hasOwn(DEFENSE_TYPES, snapshot.defenseType)) return name + ".defenseType is unsupported";
-    if (typeof snapshot.role !== "string" || snapshot.role.length === 0 || snapshot.role.trim() !== snapshot.role) {
-      return name + ".role must be a non-empty role identifier";
+    for (const key of ["attackColor", "defenseColor", "attackType", "defenseType"]) {
+      if (typeof normalized[key] !== "string") return { error: name + "." + key + " must be a string" };
     }
-    if (snapshot.role !== "mafia" && (snapshot.attackColor === "k" || snapshot.defenseColor === "k")) {
-      return name + " may use black only with role mafia";
+    if (!hasOwn(COLOR_VALUE, normalized.attackColor)) return { error: name + ".attackColor is unsupported" };
+    if (!hasOwn(COLOR_VALUE, normalized.defenseColor)) return { error: name + ".defenseColor is unsupported" };
+    if (!hasOwn(ATTACK_TYPES, normalized.attackType)) return { error: name + ".attackType is unsupported" };
+    if (!hasOwn(DEFENSE_TYPES, normalized.defenseType)) return { error: name + ".defenseType is unsupported" };
+    if (typeof normalized.role !== "string" || normalized.role.length === 0 || normalized.role.trim() !== normalized.role) {
+      return { error: name + ".role must be a non-empty role identifier" };
     }
-    return null;
+    if (normalized.role !== "mafia" && (normalized.attackColor === "k" || normalized.defenseColor === "k")) {
+      return { error: name + " may use black only with role mafia" };
+    }
+    return { snapshot: normalized };
   }
 
   function attackModifier(type) {
@@ -84,7 +98,7 @@
     return Math.abs(COLOR_RANK[attackColor] - COLOR_RANK[defenseColor]) <= 1;
   }
 
-  function outcomeExplanation(hitA, hitB, whyA, whyB) {
+  function outcomeExplanation(hitA, hitB, whyA, whyB, pressureA, pressureB, mechanicalOutcome) {
     const reason = (label, why) => label + " " + (
       why === "BLACK_ATTACK_BREAKS_NON_BLACK_GUARD" ? "пробил по специальному правилу чёрной атаки" :
       why === "BLACK_GUARD_STOPS_NON_BLACK_ATTACK" ? "остановлен специальным правилом чёрной защиты" :
@@ -101,7 +115,12 @@
       text = reason("A", whyA) + "; " + reason("B", whyB) + ". Победа B.";
     } else if (hitA && hitB) {
       code = "BOTH_HIT";
-      text = reason("A", whyA) + "; " + reason("B", whyB) + ". Оба пробили; исход решило сравнение давления.";
+      if (mechanicalOutcome === "DRAW") {
+        text = "Оба удара пробили защиту. Давление A: " + pressureA + ", давление B: " + pressureB + ". Ничья из-за равного давления.";
+      } else {
+        const winner = mechanicalOutcome === "A_WIN" ? "A" : "B";
+        text = "Оба удара пробили защиту. Давление A: " + pressureA + ", давление B: " + pressureB + ". Победил " + winner + ".";
+      }
     } else {
       code = "BOTH_DEFENSES_HELD";
       text = reason("A", whyA) + "; " + reason("B", whyB) + ". Обе защиты удержали удар.";
@@ -111,17 +130,22 @@
 
   function resolve(snapshotA, snapshotB, rulesVersion) {
     if (rulesVersion !== RULES_VERSION) return invalid("rulesVersion must be tactical_v1");
-    const errorA = validateSnapshot(snapshotA, "snapshotA");
-    if (errorA) return invalid(errorA);
-    const errorB = validateSnapshot(snapshotB, "snapshotB");
-    if (errorB) return invalid(errorB);
+    const checkedA = validateSnapshot(snapshotA, "snapshotA");
+    if (checkedA.error) return invalid(checkedA.error);
+    const checkedB = validateSnapshot(snapshotB, "snapshotB");
+    if (checkedB.error) return invalid(checkedB.error);
+    const inputA = checkedA.snapshot;
+    const inputB = checkedB.snapshot;
 
-    const pressureA = pressure(snapshotA, snapshotB);
-    const pressureB = pressure(snapshotB, snapshotA);
-    const defenseA = defense(snapshotA);
-    const defenseB = defense(snapshotB);
-    const resultA = hit(snapshotA, snapshotB, pressureA, defenseB);
-    const resultB = hit(snapshotB, snapshotA, pressureB, defenseA);
+    const pressureA = pressure(inputA, inputB);
+    const pressureB = pressure(inputB, inputA);
+    const defenseA = defense(inputA);
+    const defenseB = defense(inputB);
+    if (![pressureA, pressureB, defenseA, defenseB].every(Number.isFinite)) {
+      return invalid("calculated mechanics must be finite numbers");
+    }
+    const resultA = hit(inputA, inputB, pressureA, defenseB);
+    const resultB = hit(inputB, inputA, pressureB, defenseA);
     let mechanicalOutcome = "DRAW";
     if (resultA.hit && !resultB.hit) mechanicalOutcome = "A_WIN";
     else if (!resultA.hit && resultB.hit) mechanicalOutcome = "B_WIN";
@@ -130,8 +154,8 @@
       else if (pressureB > pressureA) mechanicalOutcome = "B_WIN";
     }
 
-    const close = closeMatchup(snapshotA.attackColor, snapshotB.defenseColor) &&
-      closeMatchup(snapshotB.attackColor, snapshotA.defenseColor);
+    const close = closeMatchup(inputA.attackColor, inputB.defenseColor) &&
+      closeMatchup(inputB.attackColor, inputA.defenseColor);
     let lead = null;
     if (close) {
       if (mechanicalOutcome === "DRAW") lead = 0;
@@ -152,7 +176,8 @@
       mechanicalOutcome,
       close,
       lead,
-      explanation: outcomeExplanation(resultA.hit, resultB.hit, resultA.reason, resultB.reason)
+      explanation: outcomeExplanation(resultA.hit, resultB.hit, resultA.reason, resultB.reason,
+        pressureA, pressureB, mechanicalOutcome)
     };
   }
 

@@ -106,6 +106,25 @@ for (const f of fixtures) {
   same(result.mechanicalOutcome, f.out, f.name + ": outcome");
 }
 
+// Double-hit explanations identify the numerical comparison and its actual result.
+for (const scenario of [
+  { ta: "NC", tb: "PC", pressure: [3, 2], outcome: "A_WIN", ending: "Победил A." },
+  { ta: "NC", tb: "NC", pressure: [3, 3], outcome: "DRAW", ending: "Ничья из-за равного давления." },
+  { ta: "PC", tb: "NC", pressure: [2, 3], outcome: "B_WIN", ending: "Победил B." }
+]) {
+  const [a, b] = pair(["y", "y"], ["y", "y"], scenario.ta, scenario.tb);
+  const result = call(a, b);
+  const text = result.explanation.text;
+  check(result.hitA && result.hitB, scenario.outcome + " explanation has two hits");
+  same(result.mechanicalOutcome, scenario.outcome, "double-hit text preserves mechanical outcome");
+  same([result.pressureA, result.pressureB], scenario.pressure, "double-hit explanation pressure fixture");
+  check(text.includes("Оба удара пробили защиту.") &&
+    text.includes("Давление A: " + scenario.pressure[0]) &&
+    text.includes("давление B: " + scenario.pressure[1]) && text.endsWith(scenario.ending),
+    scenario.outcome + " explanation states comparison and result");
+  same(call(a, b).explanation.text, text, scenario.outcome + " explanation is deterministic");
+}
+
 // The three complete 9x9 §7 golden matrices are literal fixtures, not generated from the resolver.
 const matrixRows = ["NS", "NC", "NG", "PS", "PC", "PG", "TS", "TC", "TG"];
 const matrices = [
@@ -141,29 +160,66 @@ for (const ta of matrixRows) for (const tb of matrixRows) {
   same(result.mechanicalOutcome, "A_WIN", "k/k wins all tactical pairs");
 }
 
-// Structural validation fails closed; no default tactics, colors, roles or legacy rules are supplied.
+// Invalid snapshots use the supported rules version, proving snapshot validation is reached.
 const base = snapshot("y", "y", "NC");
-const invalids = [
-  [null, base, "snapshot null"], [[], base, "snapshot array"],
-  [{ ...base, attackColor: undefined }, base, "missing-like attack color"],
-  [Object.fromEntries(Object.entries(base).filter(([key]) => key !== "defenseColor")), base, "missing defense color"],
-  [{ ...base, attackColor: "z" }, base, "unknown color"], [{ ...base, defenseColor: "k", role: "citizen" }, base, "black defense non-mafia"],
-  [{ ...base, attackColor: "k", role: "citizen" }, base, "black attack non-mafia"],
-  [{ ...base, attackType: "X" }, base, "unknown attack tactic"], [{ ...base, defenseType: "X" }, base, "unknown defense tactic"],
-  [{ ...base, role: "" }, base, "empty role"], [base, { ...base, attackColor: "k", role: "Citizen" }, "role matching is exact"],
-  [base, base, "unknown rules version", "legacy"], [base, base, "missing rules version", undefined]
-];
-for (const [a, b, label, version] of invalids) {
-  const result = resolver.resolve(a, b, version === undefined ? version : version === "legacy" ? "legacy" : "tactical_v1");
-  check(result.ok === false && result.error === "INVALID_INPUT", label + " rejected explicitly");
+invalidSnapshot(null, "null snapshot", "snapshotA must be an object");
+invalidSnapshot([], "array snapshot", "snapshotA must be an object");
+function invalidSnapshot(input, label, detail) {
+  const result = resolver.resolve(input, base, "tactical_v1");
+  check(result.ok === false && result.error === "INVALID_INPUT", label + " returns INVALID_INPUT with supported rules");
+  check(typeof result.detail === "string" && result.detail.includes(detail), label + " fails at its own validation");
+  return result;
 }
+const revocable = Proxy.revocable({}, {});
+revocable.revoke();
+invalidSnapshot(revocable.proxy, "revoked proxy snapshot", "could not be inspected");
+for (const [field, bad] of [["attackColor", "z"], ["defenseColor", "z"]]) {
+  invalidSnapshot({ ...base, [field]: bad }, "unknown " + field, field + " is unsupported");
+}
+for (const field of ["attackColor", "defenseColor", "attackType", "defenseType", "role"]) {
+  const missing = { ...base };
+  delete missing[field];
+  invalidSnapshot(missing, "missing " + field, field + " is required");
+}
+for (const [field, bad] of [["attackType", "X"], ["defenseType", "X"]]) {
+  invalidSnapshot({ ...base, [field]: bad }, "unknown " + field, field + " is unsupported");
+}
+invalidSnapshot({ ...base, role: "" }, "empty role", "role must be a non-empty");
+invalidSnapshot({ ...base, attackColor: "k", role: "citizen" }, "black attack non-mafia", "may use black only with role mafia");
+invalidSnapshot({ ...base, defenseColor: "k", role: "citizen" }, "black defense non-mafia", "may use black only with role mafia");
+check(call(snapshot("k", "y", "NS", "mafia"), base).ok, "mafia role permits a structurally valid black field");
+
+for (const [field, valid] of [["attackColor", "y"], ["defenseColor", "y"], ["attackType", "N"], ["defenseType", "C"]]) {
+  const nonStrings = [new String(valid), [], 4, Symbol("enum"), function enumValue() {}, { toString() { throw new Error("must not coerce"); } }];
+  for (const bad of nonStrings) {
+    invalidSnapshot({ ...base, [field]: bad }, field + " rejects non-string " + typeof bad, field + " must be a string");
+  }
+}
+let changingStringCalls = 0;
+const changingToString = { toString() { changingStringCalls++; return changingStringCalls === 1 ? "y" : "r"; } };
+invalidSnapshot({ ...base, attackColor: changingToString }, "changing toString object", "attackColor must be a string");
+same(changingStringCalls, 0, "changing toString is never called");
+let throwingStringCalls = 0;
+const throwingToString = { toString() { throwingStringCalls++; throw new Error("toString must not execute"); } };
+invalidSnapshot({ ...base, attackColor: throwingToString }, "throwing toString object", "attackColor must be a string");
+invalidSnapshot({ ...base, attackType: throwingToString }, "throwing attackType toString object", "attackType must be a string");
+same(throwingStringCalls, 0, "throwing toString is never called");
+
 const inheritedColor = Object.create({ attackColor: "y" });
 Object.assign(inheritedColor, { defenseColor: "y", attackType: "N", defenseType: "S", role: "citizen" });
-check(!call(inheritedColor, base).ok, "inherited required field is rejected");
+invalidSnapshot(inheritedColor, "inherited attackColor", "attackColor is required");
 let accessorReads = 0;
 const accessorSnapshot = { defenseColor: "y", attackType: "N", defenseType: "S", role: "citizen" };
 Object.defineProperty(accessorSnapshot, "attackColor", { enumerable: true, get() { accessorReads++; return "y"; } });
-check(!call(accessorSnapshot, base).ok && accessorReads === 0, "accessor-backed input is rejected without executing the getter");
+invalidSnapshot(accessorSnapshot, "accessor-backed attackColor", "attackColor must be a data value");
+same(accessorReads, 0, "accessor getter is not executed");
+
+const unknownVersion = resolver.resolve(base, base, "legacy");
+check(unknownVersion.ok === false && unknownVersion.error === "INVALID_INPUT" &&
+  unknownVersion.detail.includes("rulesVersion"), "unsupported rulesVersion is rejected by version validation");
+const missingVersion = resolver.resolve(base, base, undefined);
+check(missingVersion.ok === false && missingVersion.error === "INVALID_INPUT" &&
+  missingVersion.detail.includes("rulesVersion"), "missing rulesVersion is rejected by version validation");
 
 // A mafia's black attack does not make its ordinary defense immune.
 {
