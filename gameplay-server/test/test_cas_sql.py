@@ -160,6 +160,34 @@ class GameplayCasTests(unittest.TestCase):
                 self.assertEqual(self.state()[0], 0)
                 self.assertEqual(self.rows("gameplay_command_receipts"), 0)
 
+    def test_null_cannot_remove_immutable_snapshot_or_version(self):
+        for key in ("participants", "deadlineAt", "rulesVersion", "createdAt"):
+            with self.subTest(key=key):
+                with self.assertRaises(sqlite3.IntegrityError):
+                    transition(self.db, self.initial, "null-" + key, **{key: None})
+                self.db.commit()
+                self.assertEqual(self.state()[0], 0)
+                self.assertEqual(self.rows("gameplay_command_receipts"), 0)
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_TRANSITION"):
+            transition(self.db, self.initial, "null-version", version=None)
+        self.db.commit()
+        self.assertEqual(self.state()[0], 0)
+
+    def test_wrong_trusted_time_and_null_event_id_roll_back(self):
+        with self.assertRaises(sqlite3.IntegrityError):
+            transition(self.db, self.initial, "string-clock", now="fake-client-time")
+        self.db.commit()
+        self.assertEqual(self.state()[0], 0)
+        broken_event = event()
+        broken_event["eventId"] = None
+        with self.assertRaises(sqlite3.IntegrityError):
+            transition(self.db, self.initial, "null-event-id",
+                       [None], [broken_event])
+        self.db.commit()
+        self.assertEqual(self.state()[0], 0)
+        self.assertEqual(self.rows("gameplay_command_receipts"), 0)
+        self.assertEqual(self.rows("gameplay_event_outbox"), 0)
+
     def test_receipt_event_set_must_match_transition_outbox(self):
         with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_TRANSITION"):
             transition(self.db, self.initial, "wrong-events",
