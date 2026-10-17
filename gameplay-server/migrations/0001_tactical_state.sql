@@ -88,8 +88,14 @@ BEGIN
       SELECT COUNT(DISTINCT value)
       FROM json_each(NEW.receipt_event_ids_json)
     ) != json_array_length(NEW.receipt_event_ids_json)
-    -- With equal lengths and unique receipt IDs, validating every event
-    -- against the receipt set also rejects duplicate/omitted event IDs.
+    -- Both sides must contain distinct IDs. This rejects duplicate outbox
+    -- events before INSERT, with one consistent INVALID_TRANSITION result.
+    OR (
+      SELECT COUNT(DISTINCT json_extract(value, '$.eventId'))
+      FROM json_each(NEW.events_json)
+    ) != json_array_length(NEW.events_json)
+    -- Equal cardinality, unique IDs on both sides and reverse membership
+    -- establish the exact bijection without imposing array order.
     OR EXISTS (
       SELECT 1 FROM json_each(NEW.events_json) AS emitted
       WHERE json_type(emitted.value) IS NOT 'object'
