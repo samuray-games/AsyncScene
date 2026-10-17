@@ -8,7 +8,7 @@
   const COLORS = new Set(["y", "o", "r", "k"]);
   const ATTACKS = new Set(["N", "P", "T"]);
   const DEFENSES = new Set(["S", "C", "G"]);
-  const PHASES = new Set(["created", "waiting", "committed", "final", "expired"]);
+  const PHASES = new Set(["created", "waiting", "committed", "revealed", "final", "expired"]);
   const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   const isRecord = value => !!value && typeof value === "object" && !Array.isArray(value);
 
@@ -37,6 +37,7 @@
   function validateSelection(selection, expectedRole) {
     if (!isRecord(selection)) return "selection must be an object";
     const keys = ["attackColor", "defenseColor", "attackType", "defenseType", "role"];
+    if (Object.keys(selection).some(key => !keys.includes(key))) return "selection contains unsupported fields";
     for (const key of keys) {
       if (!hasOwn(selection, key)) return "selection." + key + " is required";
       if (typeof selection[key] !== "string") return "selection." + key + " must be a string";
@@ -58,7 +59,18 @@
   }
 
   function eventId(state, version, type) {
+    if (type === "battle.finalized") return state.battleId + ":final";
     return state.battleId + ":v" + version + ":" + type;
+  }
+
+  function hasReceipt(receipts, commandId) {
+    return hasOwn(receipts, commandId);
+  }
+
+  function writeReceipt(receipts, commandId, receipt) {
+    Object.defineProperty(receipts, commandId, {
+      value: receipt, enumerable: true, configurable: true, writable: true
+    });
   }
 
   function appendEvent(state, version, type, payload) {
@@ -81,7 +93,7 @@
     const side = participantSide(state, participantId);
     if (!side) return error("UNKNOWN_PARTICIPANT", "participantId is not part of this battle");
     const other = side === "A" ? "B" : "A";
-    const revealed = state.phase === "final";
+    const revealed = state.phase === "revealed" || state.phase === "final";
     const result = {
       schemaVersion: state.schemaVersion,
       battleId: state.battleId,
@@ -104,6 +116,8 @@
       };
       result.mechanicalOutcome = state.mechanicalOutcome;
       result.resolution = copyJson(state.resolution);
+      result.socialOutcome = state.socialOutcome;
+      result.recognizedOutcome = state.recognizedOutcome;
     }
     if (state.phase === "expired") {
       result.expiredAt = state.expiredAt;
@@ -139,7 +153,10 @@
     const count = Number(hasOwn(state.commits, "A")) + Number(hasOwn(state.commits, "B"));
     if ((state.phase === "created" && count !== 0) ||
         (state.phase === "waiting" && count !== 1) ||
-        (["committed", "final"].includes(state.phase) && count !== 2)) return "phase does not match commits";
+        (["committed", "revealed", "final"].includes(state.phase) && count !== 2)) {
+      return "phase does not match commits";
+    }
+    const hasReveal = state.phase === "revealed" || state.phase === "final";
     const seenEvents = new Set();
     for (const event of state.events) {
       if (!isRecord(event) || typeof event.eventId !== "string" || seenEvents.has(event.eventId)) {
@@ -147,11 +164,36 @@
       }
       seenEvents.add(event.eventId);
     }
-    if (state.phase === "final" && (!state.resolution || !["A_WIN", "B_WIN", "DRAW"].includes(state.mechanicalOutcome))) {
-      return "final resolution is invalid";
+    const finalEvents = state.events.filter(event => event.type === "battle.finalized");
+    const revealEvents = state.events.filter(event => event.type === "battle.revealed");
+    if (state.phase === "final") {
+      if (finalEvents.length !== 1 || finalEvents[0].eventId !== state.battleId + ":final") {
+        return "stable final event is missing or duplicated";
+      }
+    } else if (finalEvents.length !== 0) {
+      return "non-final state contains a final event";
     }
-    if (state.phase !== "final" && (state.mechanicalOutcome !== null || state.resolution !== null)) {
+    if (hasReveal ? revealEvents.length !== 1 : revealEvents.length !== 0) {
+      return "reveal event count does not match phase";
+    }
+    if (hasReveal && (!state.resolution || !["A_WIN", "B_WIN", "DRAW"].includes(state.mechanicalOutcome))) {
+      return "revealed resolution is invalid";
+    }
+    if (!hasReveal && (state.mechanicalOutcome !== null || state.resolution !== null)) {
       return "unrevealed state contains a resolution";
+    }
+    if (state.phase === "revealed" &&
+        (state.recognizedOutcome !== "PENDING" ||
+         state.socialOutcome !== (state.mechanicalOutcome === "DRAW" ? "PENDING" : "NONE"))) {
+      return "revealed social state is invalid";
+    }
+    if (state.phase === "final" &&
+        (state.mechanicalOutcome === "DRAW" ||
+         state.recognizedOutcome !== state.mechanicalOutcome || state.socialOutcome !== "NONE")) {
+      return "final recognition state is invalid";
+    }
+    if (!hasReveal && (state.recognizedOutcome !== null || state.socialOutcome !== null)) {
+      return "pre-reveal state contains a social result";
     }
     for (const [id, receipt] of Object.entries(state.commandReceipts)) {
       if (!id || !isRecord(receipt) || typeof receipt.fingerprint !== "string" || typeof receipt.code !== "string") {
@@ -192,11 +234,13 @@
         commits: {},
         mechanicalOutcome: null,
         resolution: null,
+        socialOutcome: null,
+        recognizedOutcome: null,
         expiredAt: null,
         expiredStage: null,
         missingParticipants: [],
         events: [],
-        commandReceipts: {}
+        commandReceipts: Object.create(null)
       };
       appendEvent(state, 0, "battle.created", {
         participants: { A: participants.A.id, B: participants.B.id },
@@ -223,19 +267,39 @@
       return { eventIds: [id], code: "TIMED_OUT" };
     }
 
-    function execute(currentState, command) {
+    function execute(currentState, command, trustedNowMs) {
       const stateError = validateState(currentState);
       if (stateError) return error("INVALID_STATE", stateError);
       if (!isRecord(command) || typeof command.commandId !== "string" || !command.commandId.trim() ||
-          !Number.isSafeInteger(command.expectedVersion) || !Number.isSafeInteger(command.at)) {
-        return error("INVALID_COMMAND", "commandId, expectedVersion, and integer at are required");
+          typeof command.type !== "string" || !Number.isSafeInteger(command.expectedVersion) ||
+          !Number.isSafeInteger(trustedNowMs)) {
+        return error("INVALID_COMMAND", "commandId, type, expectedVersion, and trustedNowMs are required");
+      }
+      if (hasOwn(command, "at") || hasOwn(command, "now") || hasOwn(command, "trustedNowMs")) {
+        return error("UNTRUSTED_TIME_FIELD", "time must be supplied separately by the trusted caller");
+      }
+      const allowedKeysByType = new Map([
+        ["commit", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId", "selection"])],
+        ["reveal", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId"])],
+        ["expire", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId"])],
+        ["finalize", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId", "recognizedOutcome"])]
+      ]);
+      const allowedKeys = allowedKeysByType.get(command.type);
+      if (!allowedKeys) return error("UNKNOWN_COMMAND", "supported commands are commit, reveal, expire, and finalize");
+      if (Object.keys(command).some(key => !allowedKeys.has(key))) {
+        return error("INVALID_COMMAND", "command contains unsupported fields");
+      }
+      if (typeof command.actorId !== "string" ||
+          (command.participantId !== undefined && command.participantId !== null &&
+           typeof command.participantId !== "string")) {
+        return error("INVALID_COMMAND", "actorId and participantId are invalid");
       }
       let fingerprint;
       try { fingerprint = canonical(command); } catch (_) {
         return error("INVALID_COMMAND", "command is not canonical JSON data");
       }
-      const prior = currentState.commandReceipts[command.commandId];
-      if (prior) {
+      if (hasReceipt(currentState.commandReceipts, command.commandId)) {
+        const prior = currentState.commandReceipts[command.commandId];
         if (prior.fingerprint !== fingerprint) {
           return error("COMMAND_ID_REUSE", "commandId was already used with different content");
         }
@@ -250,45 +314,88 @@
       if (command.expectedVersion !== currentState.version) {
         return error("VERSION_CONFLICT", "expectedVersion does not match current state version");
       }
-      if (command.at >= currentState.deadlineAt && !["final", "expired"].includes(currentState.phase)) {
-        const timed = cloneState(currentState);
-        const expired = expire(timed, command.at);
-        timed.commandReceipts[command.commandId] = {
-          fingerprint, code: expired.code, eventIds: expired.eventIds.slice()
-        };
-        return { ok: true, code: expired.code, replayed: false, eventIds: expired.eventIds, state: timed };
-      }
       if (currentState.phase === "expired") return error("BATTLE_EXPIRED", "battle lifecycle has expired");
       if (currentState.phase === "final") return error("BATTLE_FINAL", "battle is already final");
+
+      let side = null;
       if (command.type === "commit") {
-        const side = participantSide(currentState, command.participantId);
+        side = participantSide(currentState, command.participantId);
         if (!side) return error("UNKNOWN_PARTICIPANT", "participantId is not part of this battle");
-        if (hasOwn(currentState.commits, side)) {
-          if (canonical(currentState.commits[side].selection) !== canonical(command.selection)) {
-            return error("COMMIT_IMMUTABLE", "confirmed selection cannot be changed");
-          }
-          const duplicate = cloneState(currentState);
-          duplicate.version += 1;
-          duplicate.commandReceipts[command.commandId] = { fingerprint, code: "ALREADY_COMMITTED", eventIds: [] };
-          return { ok: true, code: "ALREADY_COMMITTED", replayed: false, eventIds: [], state: duplicate };
+        if (command.actorId !== command.participantId) {
+          return error("ACTOR_MISMATCH", "a participant may commit only as their own actor");
+        }
+        if (!["created", "waiting", "committed"].includes(currentState.phase)) {
+          return error("COMMITS_CLOSED", "battle is no longer accepting commits");
         }
         const roleError = validateSelection(command.selection, currentState.participants[side].role);
         if (roleError) return error("INVALID_SELECTION", roleError);
+        if (hasOwn(currentState.commits, side) &&
+            canonical(currentState.commits[side].selection) !== canonical(command.selection)) {
+          return error("COMMIT_IMMUTABLE", "confirmed selection cannot be changed");
+        }
+      } else {
+        if (command.actorId !== "system" ||
+            (command.participantId !== undefined && command.participantId !== null)) {
+          return error("ACTOR_MISMATCH", "this lifecycle command requires the trusted system actor");
+        }
+        if (command.type === "reveal" && currentState.phase !== "committed") {
+          return error("REVEAL_NOT_READY", "both participants must commit before reveal");
+        }
+        if (command.type === "expire" && !["created", "waiting"].includes(currentState.phase)) {
+          return error("TIMEOUT_NOT_APPLICABLE", "timeout applies only before both commits are accepted");
+        }
+        if (command.type === "finalize") {
+          if (currentState.phase !== "revealed") {
+            return error("FINALIZATION_NOT_READY", "mechanical outcome must be revealed first");
+          }
+          if (currentState.mechanicalOutcome === "DRAW") {
+            return error("FINALIZATION_GATE_REQUIRED", "draw requires a separate approved recognition gate");
+          }
+          if (command.recognizedOutcome !== currentState.mechanicalOutcome) {
+            return error("INVALID_RECOGNITION", "final recognized outcome must match the mechanical result");
+          }
+        }
+      }
+
+      // Deadline is the commit window only. It can expire an incomplete battle,
+      // never a battle whose two commits were accepted on time.
+      const preCommitPhase = ["created", "waiting"].includes(currentState.phase);
+      const lateCommit = command.type === "commit" && preCommitPhase && trustedNowMs >= currentState.deadlineAt;
+      const explicitTimeout = command.type === "expire" && trustedNowMs >= currentState.deadlineAt;
+      if (command.type === "expire" && !explicitTimeout) {
+        return error("DEADLINE_NOT_REACHED", "deadline has not been reached");
+      }
+      if (lateCommit || explicitTimeout) {
+        const timed = cloneState(currentState);
+        const expired = expire(timed, trustedNowMs);
+        writeReceipt(timed.commandReceipts, command.commandId, {
+          fingerprint, code: expired.code, eventIds: expired.eventIds.slice()
+        });
+        return { ok: true, code: expired.code, replayed: false, eventIds: expired.eventIds, state: timed };
+      }
+
+      if (command.type === "commit") {
+        if (hasOwn(currentState.commits, side)) {
+          const duplicate = cloneState(currentState);
+          duplicate.version += 1;
+          writeReceipt(duplicate.commandReceipts, command.commandId, {
+            fingerprint, code: "ALREADY_COMMITTED", eventIds: []
+          });
+          return { ok: true, code: "ALREADY_COMMITTED", replayed: false, eventIds: [], state: duplicate };
+        }
         const next = cloneState(currentState);
         next.version += 1;
         next.commits[side] = { selection: copyJson(command.selection), version: next.version };
         next.phase = Object.keys(next.commits).length === 2 ? "committed" : "waiting";
         const id = appendEvent(next, next.version, "battle.selection_committed", {
-          side,
-          participantId: next.participants[side].id
+          side, participantId: next.participants[side].id
         });
-        next.commandReceipts[command.commandId] = { fingerprint, code: "COMMITTED", eventIds: [id] };
+        writeReceipt(next.commandReceipts, command.commandId, {
+          fingerprint, code: "COMMITTED", eventIds: [id]
+        });
         return { ok: true, code: "COMMITTED", replayed: false, eventIds: [id], state: next };
       }
       if (command.type === "reveal") {
-        if (currentState.phase !== "committed") {
-          return error("REVEAL_NOT_READY", "both participants must commit before reveal");
-        }
         const a = currentState.commits.A.selection;
         const b = currentState.commits.B.selection;
         const resolution = resolver.resolve(a, b, RULES_VERSION);
@@ -297,31 +404,34 @@
         }
         const next = cloneState(currentState);
         next.version += 1;
-        next.phase = "final";
+        next.phase = "revealed";
         next.resolution = copyJson(resolution);
         next.mechanicalOutcome = resolution.mechanicalOutcome;
-        const revealId = appendEvent(next, next.version, "battle.revealed", {
-          selections: { A: a, B: b }
+        next.socialOutcome = resolution.mechanicalOutcome === "DRAW" ? "PENDING" : "NONE";
+        next.recognizedOutcome = "PENDING";
+        const id = appendEvent(next, next.version, "battle.revealed", { selections: { A: a, B: b } });
+        writeReceipt(next.commandReceipts, command.commandId, {
+          fingerprint, code: "REVEALED", eventIds: [id]
         });
-        const finalId = appendEvent(next, next.version, "battle.finalized", {
-          mechanicalOutcome: next.mechanicalOutcome,
-          resolution: next.resolution
-        });
-        next.commandReceipts[command.commandId] = {
-          fingerprint, code: "FINALIZED", eventIds: [revealId, finalId]
-        };
-        return { ok: true, code: "FINALIZED", replayed: false, eventIds: [revealId, finalId], state: next };
+        return { ok: true, code: "REVEALED", replayed: false, eventIds: [id], state: next };
       }
-      if (command.type === "expire") {
-        if (command.at < currentState.deadlineAt) return error("DEADLINE_NOT_REACHED", "deadline has not been reached");
+      if (command.type === "finalize") {
         const next = cloneState(currentState);
-        const expired = expire(next, command.at);
-        next.commandReceipts[command.commandId] = {
-          fingerprint, code: expired.code, eventIds: expired.eventIds.slice()
-        };
-        return { ok: true, code: expired.code, replayed: false, eventIds: expired.eventIds, state: next };
+        next.version += 1;
+        next.phase = "final";
+        next.socialOutcome = "NONE";
+        next.recognizedOutcome = command.recognizedOutcome;
+        const id = appendEvent(next, next.version, "battle.finalized", {
+          mechanicalOutcome: next.mechanicalOutcome,
+          socialOutcome: next.socialOutcome,
+          recognizedOutcome: next.recognizedOutcome
+        });
+        writeReceipt(next.commandReceipts, command.commandId, {
+          fingerprint, code: "FINALIZED", eventIds: [id]
+        });
+        return { ok: true, code: "FINALIZED", replayed: false, eventIds: [id], state: next };
       }
-      return error("UNKNOWN_COMMAND", "supported commands are commit, reveal, and expire");
+      return error("TIMEOUT_NOT_APPLICABLE", "timeout command was not applicable");
     }
 
     function serialize(state) {
@@ -357,7 +467,10 @@
   }
 
   // Contract only: this interface is descriptive and deliberately has no
-  // storage implementation. State and its event outbox must commit atomically.
+  // storage implementation. The adapter authenticates actors and supplies
+  // server-authoritative time separately from the replayable command payload.
+  // Reusing a commandId with the same command body is idempotent even when a
+  // retry obtains a new trustedNowMs value.
   const persistenceAdapterContract = Object.freeze({
     load: "load({ battleId }) -> { state: serialized internal state, version } | null",
     compareAndSwap: "compareAndSwap({ battleId, expectedVersion, serializedState, events }) -> { ok, version }",
@@ -366,6 +479,9 @@
       "state and all supplied events must be committed in the same transaction",
       "eventId must have a durable unique constraint for outbox deduplication",
       "a retry after an uncertain response must return the already committed event ids",
+      "authenticate participant actors before execute and use actorId=system only for trusted lifecycle commands",
+      "call execute(state, command, trustedNowMs) with server-authoritative integer milliseconds; never trust command.at",
+      "trustedNowMs is excluded from the commandId fingerprint so clock regeneration does not break retries",
       "participant reads must use getPublicView, never the internal serialized state",
       "do not use localStorage or create a second store"
     ])

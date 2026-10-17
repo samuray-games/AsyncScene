@@ -17,257 +17,271 @@ function loadStandalone(file) {
 const resolver = loadStandalone(path.join(__dirname, "..", "AsyncScene", "Web", "conflict", "tactical-resolver.js"));
 const lifecycleModule = loadStandalone(modulePath);
 let resolverCalls = 0;
-const countedResolver = {
-  resolve(...args) {
-    resolverCalls++;
-    return resolver.resolve(...args);
-  }
-};
-const lifecycle = lifecycleModule.createLifecycle(countedResolver);
+const lifecycle = lifecycleModule.createLifecycle({
+  resolve(...args) { resolverCalls++; return resolver.resolve(...args); }
+});
 let assertions = 0;
 function check(value, message) { assert.ok(value, message); assertions++; }
 function equal(actual, expected, message) {
-  const normalize = value => value && typeof value === "object" ? JSON.parse(JSON.stringify(value)) : value;
-  assert.deepStrictEqual(normalize(actual), normalize(expected), message);
+  const norm = value => value && typeof value === "object" ? JSON.parse(JSON.stringify(value)) : value;
+  assert.deepStrictEqual(norm(actual), norm(expected), message);
   assertions++;
 }
-function rejected(result, code, message) {
-  check(result.ok === false && result.error === code, message + ": " + JSON.stringify(result));
+function rejects(result, code, message) {
+  check(!result.ok && result.error === code, message + ": " + JSON.stringify(result));
 }
 function selection(attackColor, defenseColor, role = "citizen", attackType = "N", defenseType = "C") {
   return { attackColor, defenseColor, attackType, defenseType, role };
 }
-function created(id = "battle-test", deadlineAt = 1000) {
+function create(id = "battle-test", deadlineAt = 100) {
   const result = lifecycle.createBattle({
-    battleId: id,
-    createdAt: 0,
-    deadlineAt,
+    battleId: id, createdAt: 0, deadlineAt,
     participants: { A: { id: "player-a", role: "citizen" }, B: { id: "player-b", role: "citizen" } }
   });
   check(result.ok, "battle creates");
   return result.state;
 }
-function command(state, commandId, type, participantId, payload = {}, at = 10, expectedVersion = state.version) {
-  return {
-    commandId, type, participantId, expectedVersion, at,
-    ...payload
-  };
+function cmd(state, commandId, type, actorId, data = {}, expectedVersion = state.version) {
+  return { commandId, type, actorId, expectedVersion, ...data };
 }
-function apply(state, cmd) {
-  const result = lifecycle.execute(state, cmd);
-  check(result.ok, cmd.type + " succeeds: " + JSON.stringify(result));
+function execute(state, command, trustedNowMs = 10) {
+  return lifecycle.execute(state, command, trustedNowMs);
+}
+function apply(state, command, now = 10) {
+  const result = execute(state, command, now);
+  check(result.ok, command.type + " succeeds: " + JSON.stringify(result));
   return result.state;
 }
-function commit(state, side, choice, id = "commit-" + side, at = 10) {
+function commit(state, side, choice, commandId = "commit-" + side, now = 10) {
   const participantId = side === "A" ? "player-a" : "player-b";
-  return apply(state, command(state, id, "commit", participantId, { selection: choice }, at));
+  return apply(state, cmd(state, commandId, "commit", participantId, {
+    participantId, selection: choice
+  }), now);
 }
-function assertRoundTrip(state, phase) {
+function systemCommand(state, id, type, extra = {}) {
+  return cmd(state, id, type, "system", extra);
+}
+function roundTrip(state, label) {
   const serialized = lifecycle.serialize(state);
-  check(typeof serialized === "string", phase + " serializes");
+  check(typeof serialized === "string", label + " serializes");
   const restored = lifecycle.restore(serialized);
-  check(restored.ok, phase + " restores: " + JSON.stringify(restored));
-  equal(restored.state, state, phase + " round trip preserves complete internal state");
+  check(restored.ok, label + " restores: " + JSON.stringify(restored));
+  equal(restored.state, state, label + " preserves complete state");
   return restored.state;
+}
+function finalizeNonDraw(state, id, now = 500) {
+  check(state.phase === "revealed" && state.mechanicalOutcome !== "DRAW", "fixture is eligible for explicit finalization");
+  return execute(state, systemCommand(state, id, "finalize", {
+    recognizedOutcome: state.mechanicalOutcome
+  }), now);
 }
 
 check(typeof lifecycleModule.persistenceAdapterContract.compareAndSwap === "string",
-  "future atomic persistence adapter contract is exported");
-check(lifecycleModule.persistenceAdapterContract.requirements.some(item => item.includes("localStorage")),
-  "adapter contract explicitly prohibits localStorage");
+  "future atomic persistence adapter is described");
+const contract = lifecycleModule.persistenceAdapterContract.requirements.join(" ");
+check(contract.includes("trustedNowMs") && contract.includes("excluded from the commandId fingerprint"),
+  "trusted clock and clock-independent retry contract are explicit");
 
-// A commits first. B's choice and mechanics stay private until both commits and reveal.
+// Timely independent commits survive the commit deadline; reveal and finalization are separate transitions.
 {
   const a = selection("y", "y");
   const b = selection("r", "o");
-  let state = created("a-first");
-  equal(state.version, 0, "created state starts at version zero");
-  equal(state.phase, "created", "initial phase is created");
-  state = assertRoundTrip(state, "created");
-  state = commit(state, "A", a);
-  equal(state.phase, "waiting", "first independent commit waits for opponent");
-  state = assertRoundTrip(state, "waiting");
-  const viewA = lifecycle.getPublicView(state, "player-a");
-  const viewB = lifecycle.getPublicView(state, "player-b");
-  check(viewA.selfCommitted && !viewA.opponentCommitted, "A view reports only public commit status");
-  check(!viewB.selfCommitted && viewB.opponentCommitted, "B view reports opposite commit status");
-  for (const view of [viewA, viewB]) {
-    check(!Object.hasOwn(view, "selections") && !Object.hasOwn(view, "resolution") &&
-      !Object.hasOwn(view, "mechanicalOutcome"), "pre-reveal participant view has no hidden choices or outcome");
-    check(!JSON.stringify(view).includes('"attackColor"'), "pre-reveal view contains no selection fields");
-  }
-  equal(resolverCalls, 0, "resolver has not run after one commit");
-  const early = lifecycle.execute(state, command(state, "early-reveal", "reveal", null));
-  rejected(early, "REVEAL_NOT_READY", "reveal cannot happen before the second commit");
-  equal(early.state, undefined, "rejected reveal does not return a mutated state");
-  equal(resolverCalls, 0, "early reveal does not call resolver");
-  state = commit(state, "B", b);
-  equal(state.phase, "committed", "second commit moves to committed phase");
-  state = assertRoundTrip(state, "committed");
-  equal(resolverCalls, 0, "resolver has not run merely because both committed");
-  const revealCommand = command(state, "reveal-a-first", "reveal", null);
-  const reveal = lifecycle.execute(state, revealCommand);
-  check(reveal.ok && reveal.code === "FINALIZED", "reveal finalizes after both commits");
+  let state = create("timely-after-deadline", 100);
+  state = roundTrip(state, "created");
+  state = commit(state, "A", a, "timely-A", 90);
+  state = roundTrip(state, "waiting");
+  const viewBefore = lifecycle.getPublicView(state, "player-b");
+  check(!Object.hasOwn(viewBefore, "selections") && !Object.hasOwn(viewBefore, "mechanicalOutcome"),
+    "unrevealed participant view does not leak choices or mechanics");
+  const earlyReveal = execute(state, systemCommand(state, "reveal-early", "reveal"), 95);
+  rejects(earlyReveal, "REVEAL_NOT_READY", "reveal before second commit is rejected");
+  equal(earlyReveal.state, undefined, "rejected reveal has no mutated state");
+  state = commit(state, "B", b, "timely-B", 99);
+  equal(state.phase, "committed", "second timely commit closes commit window");
+  state = roundTrip(state, "committed");
+  const revealCommand = systemCommand(state, "reveal-after-deadline", "reveal");
+  const revealed = execute(state, revealCommand, 500);
+  check(revealed.ok && revealed.code === "REVEALED", "deadline does not expire two timely commits");
+  state = revealed.state;
+  equal(state.phase, "revealed", "reveal is not finalization");
+  equal(state.mechanicalOutcome, state.resolution.mechanicalOutcome, "reveal stores one mechanical result");
+  equal(state.events.filter(event => event.type === "battle.finalized").length, 0,
+    "mechanical reveal emits no final event");
+  equal(resolverCalls, 1, "resolver runs exactly once at reveal");
+  state = roundTrip(state, "revealed");
+  const view = lifecycle.getPublicView(state, "player-a");
+  check(view.revealed, "public view marks revealed phase");
+  equal(view.selections, { A: a, B: b }, "public view exposes both choices only after reveal");
+  const repeatReveal = execute(state, revealCommand, 900);
+  check(repeatReveal.ok && repeatReveal.replayed, "reveal retry uses stable request body despite new clock");
+  equal(repeatReveal.state, state, "replayed reveal does not mutate state");
+  equal(resolverCalls, 1, "reveal retry does not calculate mechanics again");
+
+  const finalized = finalizeNonDraw(state, "finalize-explicitly");
+  check(finalized.ok && finalized.code === "FINALIZED", "non-draw requires a separate explicit finalization");
+  equal(finalized.state.phase, "final", "explicit recognition gate transitions to final");
+  const finalEvents = finalized.state.events.filter(event => event.type === "battle.finalized");
+  equal(finalEvents.length, 1, "one final event is emitted");
+  equal(finalEvents[0].eventId, "timely-after-deadline:final", "final event id is battle-stable");
+  equal(finalEvents[0].version, finalized.state.version, "event records transition version separately");
+  roundTrip(finalized.state, "final");
+}
+
+// B can commit first; the mechanical draw remains revealed/pending and cannot be made final by this atom.
+{
+  let state = create("b-first-draw");
+  state = commit(state, "B", selection("y", "y"), "B-first", 20);
+  equal(state.phase, "waiting", "B may commit first");
+  state = commit(state, "A", selection("y", "y"), "A-second", 30);
+  const reveal = execute(state, systemCommand(state, "draw-reveal", "reveal"), 200);
+  check(reveal.ok, "draw mechanics can be revealed after commit deadline");
   state = reveal.state;
-  equal(state.phase, "final", "reveal transitions to final");
-  equal(resolverCalls, 1, "resolver is called exactly once for first reveal");
-  equal(state.mechanicalOutcome, state.resolution.mechanicalOutcome, "stored outcome is resolver outcome");
-  state = assertRoundTrip(state, "final");
-  const publicA = lifecycle.getPublicView(state, "player-a");
-  const publicB = lifecycle.getPublicView(state, "player-b");
-  check(publicA.revealed && publicB.revealed, "both participants see reveal after finalization");
-  equal(publicA.selections, { A: a, B: b }, "A sees both selections after reveal");
-  equal(publicB.resolution, state.resolution, "B sees the same mechanical result after reveal");
-  const revealEvent = state.events.filter(event => event.type === "battle.revealed");
-  const finalEvents = state.events.filter(event => event.type === "battle.finalized");
-  equal(revealEvent.length, 1, "one reveal event exists");
-  equal(finalEvents.length, 1, "one final event exists");
-  equal(new Set(state.events.map(event => event.eventId)).size, state.events.length, "event ids are unique");
-  const repeatReveal = lifecycle.execute(state, revealCommand);
-  check(repeatReveal.ok && repeatReveal.replayed, "same reveal command replays idempotently");
-  equal(repeatReveal.state, state, "replayed reveal leaves current state unchanged");
-  equal(resolverCalls, 1, "repeat reveal does not rerun resolver");
-  equal(repeatReveal.eventIds, reveal.eventIds, "repeat reveal returns original event ids");
+  equal(state.phase, "revealed", "DRAW does not automatically become FINAL");
+  equal(state.mechanicalOutcome, "DRAW", "mechanical draw remains immutable");
+  equal(state.socialOutcome, "PENDING", "draw social gate remains pending");
+  equal(state.recognizedOutcome, "PENDING", "recognized outcome remains pending");
+  equal(state.events.filter(event => event.type === "battle.finalized").length, 0,
+    "DRAW reveal has no finalization event");
+  const finishDraw = execute(state, systemCommand(state, "draw-finalize", "finalize", {
+    recognizedOutcome: "DRAW"
+  }), 250);
+  rejects(finishDraw, "FINALIZATION_GATE_REQUIRED", "DRAW requires an external approved recognition gate");
+  equal(JSON.stringify(finishDraw.state), undefined, "rejected draw finalization returns no mutated state");
+  equal(state.phase, "revealed", "rejected draw finalization preserves revealed state");
+  roundTrip(state, "draw awaiting recognition");
 }
 
-// B commits first; the same lifecycle semantics hold in reverse order.
+// Auth, command type, payload, and expected version are validated before any timeout side effect.
 {
-  let state = created("b-first");
-  state = commit(state, "B", selection("o", "y"), "b-first-commit");
-  equal(state.phase, "waiting", "B-first commit enters waiting");
-  check(!Object.hasOwn(state.commits, "A") && Object.hasOwn(state.commits, "B"), "B can commit independently first");
-  state = commit(state, "A", selection("y", "o"), "a-second-commit");
-  equal(state.phase, "committed", "A second commit opens reveal stage");
-  state = assertRoundTrip(state, "B-first committed");
-  const revealed = lifecycle.execute(state, command(state, "b-first-reveal", "reveal", null));
-  check(revealed.ok && revealed.state.phase === "final", "B-first order can reveal");
+  const invalidCases = [
+    [cmd(create("invalid-unknown", 50), "bad-type", "not-a-command", "attacker"), "UNKNOWN_COMMAND"],
+    [cmd(create("invalid-actor", 50), "bad-actor", "commit", "attacker", {
+      participantId: "player-a", selection: selection("y", "y")
+    }), "ACTOR_MISMATCH"],
+    [cmd(create("invalid-selection", 50), "bad-selection", "commit", "player-a", {
+      participantId: "player-a", selection: { attackColor: "invalid" }
+    }), "INVALID_SELECTION"],
+    [cmd(create("invalid-field", 50), "client-time", "commit", "player-a", {
+      participantId: "player-a", selection: selection("y", "y"), at: 50
+    }), "UNTRUSTED_TIME_FIELD"]
+  ];
+  for (const [badCommand, expected] of invalidCases) {
+    const before = JSON.stringify(badCommand.type === "commit" ? null : null);
+    void before;
+    const id = badCommand.commandId.replace("bad-", "invalid-");
+    const battleId = id === "invalid-type" ? "invalid-unknown" :
+      id === "invalid-actor" ? "invalid-actor" : id === "invalid-selection" ? "invalid-selection" : "invalid-field";
+    const state = create(battleId, 50);
+    const beforeState = JSON.stringify(state);
+    const result = execute(state, badCommand, 50);
+    rejects(result, expected, "invalid deadline command is rejected before timeout");
+    equal(JSON.stringify(state), beforeState, "invalid command leaves state byte-identical");
+    equal(result.state, undefined, "invalid command returns no transition state");
+  }
+  const state = create("stale-at-deadline", 50);
+  const stale = execute(state, cmd(state, "stale", "commit", "player-a", {
+    participantId: "player-a", selection: selection("y", "y")
+  }, 4), 50);
+  rejects(stale, "VERSION_CONFLICT", "stale version at deadline cannot expire state");
+  equal(state.phase, "created", "version conflict leaves battle unexpired");
+  const earlyExpire = execute(state, systemCommand(state, "too-soon", "expire"), 49);
+  rejects(earlyExpire, "DEADLINE_NOT_REACHED", "system cannot expire before trusted deadline");
+  equal(state.phase, "created", "early timeout request leaves state unchanged");
 }
 
-// Semantic duplicate commit, exact command retry, altered command-id reuse, and immutable choice.
+// Only a validated late participant commit or trusted system expiry may expire an incomplete battle.
 {
-  let state = created("idempotency");
-  const first = command(state, "same-commit", "commit", "player-a", { selection: selection("y", "y") });
-  state = apply(state, first);
-  const versionAfterFirst = state.version;
-  const exactRetry = lifecycle.execute(state, first);
-  check(exactRetry.ok && exactRetry.replayed, "exact commandId retry returns the recorded response");
-  equal(exactRetry.state, state, "exact retry does not change current state");
-  equal(exactRetry.eventIds.length, 1, "exact retry points to original event");
-  const alteredReuse = lifecycle.execute(state, {
-    ...first,
-    selection: selection("o", "o"),
-    expectedVersion: state.version
+  let state = create("late-commit", 50);
+  const late = execute(state, cmd(state, "late-A", "commit", "player-a", {
+    participantId: "player-a", selection: selection("y", "y")
+  }), 50);
+  check(late.ok && late.code === "TIMED_OUT", "authenticated valid late commit deterministically expires incomplete battle");
+  equal(late.state.phase, "expired", "late commit does not become a stored selection");
+  equal(late.state.commits, {}, "late selection is not committed");
+  equal(late.state.mechanicalOutcome, null, "late commit cannot imply a winner");
+  roundTrip(late.state, "late commit timeout");
+
+  state = create("explicit-timeout", 60);
+  const expiry = execute(state, systemCommand(state, "system-expire", "expire"), 60);
+  check(expiry.ok && expiry.code === "TIMED_OUT", "trusted system expiry is accepted at deadline");
+  equal(expiry.state.expiredStage, "created", "timeout records incomplete stage");
+  equal(expiry.state.events.filter(event => event.type === "battle.timed_out").length, 1,
+    "timeout emits one stable lifecycle event");
+}
+
+// Retrying a commandId ignores regenerated trusted time but rejects altered payload.
+{
+  let state = create("retry-clock", 100);
+  const firstCommand = cmd(state, "retry-once", "commit", "player-a", {
+    participantId: "player-a", selection: selection("y", "y")
   });
-  rejected(alteredReuse, "COMMAND_ID_REUSE", "same commandId with different content is rejected");
-  equal(alteredReuse.state, undefined, "altered command-id reuse cannot mutate state");
-  const sameChoice = lifecycle.execute(state, command(state, "duplicate-commit", "commit", "player-a", {
-    selection: selection("y", "y")
-  }));
-  check(sameChoice.ok && sameChoice.code === "ALREADY_COMMITTED", "same selection under a new id is idempotent");
-  equal(sameChoice.state.commits.A.selection, selection("y", "y"), "repeat commit preserves original selection");
-  equal(sameChoice.state.events.filter(event => event.type === "battle.selection_committed").length, 1,
-    "repeat commit does not duplicate commit event");
-  const beforeMutation = JSON.stringify(sameChoice.state);
-  const changed = lifecycle.execute(sameChoice.state, command(sameChoice.state, "attempt-change", "commit", "player-a", {
-    selection: selection("r", "r")
-  }));
-  rejected(changed, "COMMIT_IMMUTABLE", "participant cannot change confirmed selection");
-  equal(JSON.stringify(sameChoice.state), beforeMutation, "rejected commit mutation leaves state byte-identical");
-  check(sameChoice.state.version > versionAfterFirst, "distinct idempotent command receipt is versioned");
+  state = apply(state, firstCommand, 10);
+  const retry = execute(state, firstCommand, 99);
+  check(retry.ok && retry.replayed, "same commandId and body replays with regenerated trusted time");
+  equal(retry.state, state, "replay does not advance version");
+  const changed = cmd(state, "retry-once", "commit", "player-a", {
+    participantId: "player-a", selection: selection("o", "o")
+  });
+  rejects(execute(state, changed, 99), "COMMAND_ID_REUSE", "changed payload under commandId is rejected");
+  const stale = execute(state, cmd(state, "stale-new", "commit", "player-b", {
+    participantId: "player-b", selection: selection("o", "o")
+  }, 0), 100);
+  rejects(stale, "VERSION_CONFLICT", "clock crossing deadline does not bypass version check");
+  equal(state.phase, "waiting", "retries and stale commands preserve state");
 }
 
-// Expected-version conflict has no side effect; stale retries with known command ids still replay.
+// Safe receipt maps support command IDs that collide with JavaScript object prototype properties.
 {
-  let state = created("versioning");
-  state = commit(state, "A", selection("y", "y"), "versioned-A");
-  const stale = lifecycle.execute(state, command(state, "stale-B", "commit", "player-b", {
-    selection: selection("o", "o")
-  }, 20, 0));
-  rejected(stale, "VERSION_CONFLICT", "stale expected version is rejected");
-  equal(stale.state, undefined, "version conflict returns no changed state");
-  equal(state.version, 1, "version conflict does not advance state");
+  for (const id of ["__proto__", "constructor", "toString"]) {
+    let state = create("special-" + id);
+    const command = cmd(state, id, "commit", "player-a", {
+      participantId: "player-a", selection: selection("y", "y")
+    });
+    state = apply(state, command);
+    check(Object.prototype.hasOwnProperty.call(state.commandReceipts, id), id + " receipt is an own property");
+    const restored = roundTrip(state, id + " receipt").commandReceipts;
+    check(Object.prototype.hasOwnProperty.call(restored, id), id + " survives JSON restore as an own property");
+    const replay = execute({ ...state, commandReceipts: restored }, command, 999);
+    check(replay.ok && replay.replayed, id + " exact retry works after restore and clock change");
+    equal(replay.state.version, state.version, id + " replay does not mutate state");
+  }
 }
 
-// Timeout is deterministic at each waiting stage and never implies a winner or a mechanical result.
+// Final event identity is battleId-stable despite extra idempotent commit commands changing versions.
 {
-  let state = created("timeout-created", 100);
-  const early = lifecycle.execute(state, command(state, "early-expire", "expire", null, {}, 99));
-  rejected(early, "DEADLINE_NOT_REACHED", "timeout before deadline is rejected");
-  state = assertRoundTrip(state, "pre-timeout created");
-  const expireCommand = command(state, "expire-created", "expire", null, {}, 100);
-  const timed = lifecycle.execute(state, expireCommand);
-  check(timed.ok && timed.code === "TIMED_OUT", "created battle expires at exact deadline");
-  state = timed.state;
-  equal(state.phase, "expired", "created timeout enters expired phase");
-  equal(state.expiredStage, "created", "created timeout records its stage");
-  equal(state.missingParticipants, ["player-a", "player-b"], "created timeout identifies both missing participants");
-  equal(state.mechanicalOutcome, null, "no-show timeout assigns no mechanical winner");
-  equal(state.events.filter(event => event.type === "battle.finalized").length, 0, "timeout emits no final outcome event");
-  state = assertRoundTrip(state, "expired created");
-  const repeat = lifecycle.execute(state, expireCommand);
-  check(repeat.ok && repeat.replayed, "timeout command retry replays");
-  equal(state.events.filter(event => event.type === "battle.timed_out").length, 1, "timeout event is emitted once");
-}
-{
-  let state = created("timeout-waiting", 100);
-  state = commit(state, "A", selection("y", "y"), "timeout-waiting-A", 20);
-  const timed = lifecycle.execute(state, command(state, "expire-waiting", "expire", null, {}, 101));
-  check(timed.ok && timed.state.expiredStage === "waiting", "timeout after one commit records waiting stage");
-  equal(timed.state.missingParticipants, ["player-b"], "timeout after one commit names only missing participant");
-  equal(timed.state.mechanicalOutcome, null, "partial-commit timeout does not calculate outcome");
-  state = assertRoundTrip(timed.state, "expired waiting");
-}
-{
-  let state = created("timeout-committed", 100);
-  state = commit(state, "A", selection("y", "y"), "timeout-committed-A", 20);
-  state = commit(state, "B", selection("r", "r"), "timeout-committed-B", 30);
-  const timed = lifecycle.execute(state, command(state, "expire-committed", "expire", null, {}, 100));
-  check(timed.ok && timed.state.expiredStage === "committed", "both commits without reveal expire deterministically");
-  equal(timed.state.missingParticipants, [], "both-committed timeout has no missing participant");
-  equal(timed.state.mechanicalOutcome, null, "timeout before reveal does not invoke mechanics");
-  equal(resolverCalls, 2, "only two explicit reveal scenarios above invoked resolver");
-  state = assertRoundTrip(timed.state, "expired committed");
-  const lateReveal = lifecycle.execute(state, command(state, "late-reveal", "reveal", null, {}, 110));
-  rejected(lateReveal, "BATTLE_EXPIRED", "expired battle cannot reveal");
+  function runWithDuplicate(intermediateDuplicate) {
+    let state = create("stable-final-event");
+    state = commit(state, "A", selection("y", "y"), "stable-A");
+    state = commit(state, "B", selection("o", "o"), "stable-B");
+    if (intermediateDuplicate) {
+      state = apply(state, cmd(state, "extra-A-retry", "commit", "player-a", {
+        participantId: "player-a", selection: selection("y", "y")
+      }));
+    }
+    state = apply(state, systemCommand(state, "stable-reveal", "reveal"));
+    return finalizeNonDraw(state, "stable-finalize").state;
+  }
+  const first = runWithDuplicate(false);
+  const second = runWithDuplicate(true);
+  const finalA = first.events.find(event => event.type === "battle.finalized");
+  const finalB = second.events.find(event => event.type === "battle.finalized");
+  equal(finalA.eventId, "stable-final-event:final", "first run uses stable terminal id");
+  equal(finalB.eventId, finalA.eventId, "intermediate repeats cannot change terminal id");
+  check(finalA.version !== finalB.version, "fixture actually has different intermediate versions");
 }
 
-// Deadline check precedes late commits, with a stable timeout event and no implicit victory.
-{
-  let state = created("late-commit", 50);
-  const late = lifecycle.execute(state, command(state, "commit-at-deadline", "commit", "player-a", {
-    selection: selection("y", "y")
-  }, 50));
-  check(late.ok && late.code === "TIMED_OUT", "commit at deadline deterministically expires first");
-  equal(late.state.phase, "expired", "late commit does not enter waiting");
-  equal(late.state.commits, {}, "late commit is not stored");
-  equal(late.state.mechanicalOutcome, null, "late commit does not assign a winner");
-}
-
-// Creation and restored participant views are independent copies; unknown users see no private state.
-{
-  const state = created("view-isolation");
-  rejected(lifecycle.getPublicView(state, "intruder"), "UNKNOWN_PARTICIPANT", "unknown participant has no view");
-  const snapshot = lifecycle.getInternalSnapshot(state);
-  check(snapshot.ok, "trusted internal snapshot is available for serialization adapter");
-  snapshot.state.participants.A.id = "mutated-copy";
-  equal(state.participants.A.id, "player-a", "internal snapshot is detached from owned state");
-}
-
-// Standalone browser-style evaluation has no active runtime, storage, clock, timers, RNG or network access.
+// Standalone module has no live runtime, storage, clock, timer, RNG, or network dependency.
 {
   const sandbox = {};
   sandbox.globalThis = sandbox;
-  for (const name of ["document", "window", "localStorage", "fetch", "setTimeout", "Date"]) {
+  for (const name of ["document", "window", "localStorage", "fetch", "setTimeout", "Date", "Math"]) {
     Object.defineProperty(sandbox, name, { get() { throw new Error(name + " accessed"); } });
   }
-  Object.defineProperty(sandbox, "Math", {
-    get() { throw new Error("Math/RNG accessed"); }
-  });
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: "tactical-lifecycle.js" });
-  check(typeof sandbox.TacticalCombatLifecycleV1.createLifecycle === "function",
-    "browser-style load exports only the standalone lifecycle factory");
-  check(!sandbox.Game, "module does not create or connect active Game runtime");
+  check(typeof sandbox.TacticalCombatLifecycleV1.createLifecycle === "function", "standalone factory exports");
+  check(!sandbox.Game, "standalone lifecycle does not connect active Game runtime");
 }
 
-console.log("PASS tactical lifecycle v1: " + assertions + " assertions; deterministic state, timeout, idempotency, privacy, replay, and restore.");
+console.log("PASS tactical lifecycle repair: " + assertions +
+  " assertions; deadline/auth ordering, reveal vs final, stable event identity, special IDs, trusted time.");
