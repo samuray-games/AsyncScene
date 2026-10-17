@@ -77,12 +77,33 @@ BEGIN
     OR json_extract(NEW.next_state_json, '$.battleId') IS NOT NEW.battle_id
     OR json_extract(NEW.next_state_json, '$.rulesVersion') IS NOT 'tactical_v1'
     OR json_array_length(NEW.events_json) != json_array_length(NEW.receipt_event_ids_json)
+    -- A receipt is a bijection to new outbox events, never just one-way
+    -- membership. All IDs must be unique, nonempty strings.
     OR EXISTS (
-      SELECT 1 FROM json_each(NEW.receipt_event_ids_json) AS ids
-      WHERE NOT EXISTS (
-        SELECT 1 FROM json_each(NEW.events_json) AS ev
-        WHERE json_extract(ev.value, '$.eventId') = ids.value
-      )
+      SELECT 1 FROM json_each(NEW.receipt_event_ids_json) AS receipt_id
+      WHERE receipt_id.type IS NOT 'text'
+         OR length(receipt_id.value) = 0
+    )
+    OR (
+      SELECT COUNT(DISTINCT value)
+      FROM json_each(NEW.receipt_event_ids_json)
+    ) != json_array_length(NEW.receipt_event_ids_json)
+    -- With equal lengths and unique receipt IDs, validating every event
+    -- against the receipt set also rejects duplicate/omitted event IDs.
+    OR EXISTS (
+      SELECT 1 FROM json_each(NEW.events_json) AS emitted
+      WHERE json_type(emitted.value) IS NOT 'object'
+         OR json_type(emitted.value, '$.eventId') IS NOT 'text'
+         OR length(json_extract(emitted.value, '$.eventId')) = 0
+         OR json_type(emitted.value, '$.version') IS NOT 'integer'
+         OR json_extract(emitted.value, '$.version') IS NOT NEW.expected_version + 1
+         OR json_type(emitted.value, '$.type') IS NOT 'text'
+         OR length(trim(json_extract(emitted.value, '$.type'))) = 0
+         OR json_type(emitted.value, '$.payload') IS NOT 'object'
+         OR NOT EXISTS (
+           SELECT 1 FROM json_each(NEW.receipt_event_ids_json) AS receipt_id
+           WHERE receipt_id.value = json_extract(emitted.value, '$.eventId')
+         )
     )
   THEN RAISE(ABORT, 'INVALID_TRANSITION') END;
 
