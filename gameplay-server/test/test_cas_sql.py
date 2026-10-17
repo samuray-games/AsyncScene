@@ -196,6 +196,77 @@ class GameplayCasTests(unittest.TestCase):
         self.assertEqual(self.state()[0], 0)
         self.assertEqual(self.rows("gameplay_command_receipts"), 0)
 
+    def assert_atomic_rejection(self, command_id, ids, events, error="INVALID_TRANSITION"):
+        snapshot_before = self.state()
+        receipts_before = list(self.db.execute(
+            "SELECT * FROM gameplay_command_receipts ORDER BY command_id"
+        ))
+        outbox_before = list(self.db.execute(
+            "SELECT * FROM gameplay_event_outbox ORDER BY event_id"
+        ))
+        with self.assertRaisesRegex(sqlite3.IntegrityError, error):
+            transition(self.db, self.initial, command_id, ids, events)
+        self.db.commit()  # errors must not leave state, receipt or event writes
+        self.assertEqual(self.state(), snapshot_before)
+        self.assertEqual(list(self.db.execute(
+            "SELECT * FROM gameplay_command_receipts ORDER BY command_id"
+        )), receipts_before)
+        self.assertEqual(list(self.db.execute(
+            "SELECT * FROM gameplay_event_outbox ORDER BY event_id"
+        )), outbox_before)
+
+    def test_rejects_duplicate_or_omitted_receipt_event_ids_atomically(self):
+        e1 = event(event_id="e1")
+        e2 = event(event_id="e2")
+        invalid = [
+            (["e1", "e1"], [e1, e2]),  # exact reproduction from review
+            (["e1", "e2"], [e1, e1]),  # duplicate emitted event hides e2
+            (["e1", "e1"], [e1, e1]),
+            (["e1", "missing"], [e1, e2]),
+            (["e1", None], [e1, e2]),
+            (["e1", 42], [e1, e2]),
+            (["e1", ""], [e1, e2]),
+        ]
+        for index, (ids, events) in enumerate(invalid):
+            with self.subTest(ids=ids, emitted=[e["eventId"] for e in events]):
+                self.assert_atomic_rejection("invalid-ids-" + str(index), ids, events)
+
+    def test_rejects_wrong_or_untyped_event_version_atomically(self):
+        for index, bad_version in enumerate([999, 0, None, "1", 1.0]):
+            with self.subTest(version=bad_version):
+                bad = event(event_id="wrong-version")
+                bad["version"] = bad_version
+                self.assert_atomic_rejection("invalid-version-" + str(index),
+                                             [bad["eventId"]], [bad])
+
+    def test_rejects_bad_emitted_event_shape_atomically(self):
+        for index, updates in enumerate([
+            {"eventId": None},
+            {"eventId": ""},
+            {"eventId": 42},
+            {"type": None},
+            {"type": ""},
+            {"type": "   "},
+            {"payload": None},
+            {"payload": []},
+            {"payload": "untyped"},
+        ]):
+            with self.subTest(updates=updates):
+                bad = event(event_id="shape")
+                bad.update(updates)
+                self.assert_atomic_rejection(
+                    "invalid-shape-" + str(index), [bad["eventId"]], [bad])
+
+    def test_unique_receipt_order_does_not_need_to_match_event_order(self):
+        e1 = event(event_id="e1")
+        e2 = event(event_id="e2")
+        new_state = transition(self.db, self.initial, "reverse-events",
+                               ["e2", "e1"], [e1, e2])
+        self.assertEqual(self.state()[0], 1)
+        self.assertEqual(self.rows("gameplay_command_receipts"), 1)
+        self.assertEqual(self.rows("gameplay_event_outbox"), 2)
+        self.assertEqual(json.loads(self.state()[2]), new_state)
+
     def test_receipt_only_transition_is_supported(self):
         state = transition(self.db, self.initial, "duplicate-choice")
         self.assertEqual(self.state()[0], 1)
