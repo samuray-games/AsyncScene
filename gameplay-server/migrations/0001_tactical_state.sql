@@ -3,7 +3,7 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE gameplay_battles (
-  battle_id TEXT PRIMARY KEY,
+  battle_id TEXT NOT NULL PRIMARY KEY,
   version INTEGER NOT NULL CHECK (version >= 0),
   rules_version TEXT NOT NULL CHECK (rules_version = 'tactical_v1'),
   phase TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE gameplay_command_receipts (
 );
 
 CREATE TABLE gameplay_event_outbox (
-  event_id TEXT PRIMARY KEY,
+  event_id TEXT NOT NULL PRIMARY KEY,
   battle_id TEXT NOT NULL REFERENCES gameplay_battles(battle_id) ON DELETE RESTRICT,
   version INTEGER NOT NULL,
   event_type TEXT NOT NULL,
@@ -61,7 +61,11 @@ BEGIN
   ) THEN RAISE(ABORT, 'COMMAND_ID_REUSE') END;
 
   SELECT CASE WHEN
-    COALESCE(json_valid(NEW.next_state_json), 0) != 1
+    typeof(NEW.expected_version) != 'integer'
+    OR typeof(NEW.trusted_now_ms) != 'integer'
+    OR typeof(NEW.command_id) != 'text'
+    OR typeof(NEW.fingerprint) != 'text'
+    OR COALESCE(json_valid(NEW.next_state_json), 0) != 1
     OR COALESCE(json_valid(NEW.receipt_event_ids_json), 0) != 1
     OR COALESCE(json_valid(NEW.events_json), 0) != 1
   THEN RAISE(ABORT, 'INVALID_JSON') END;
@@ -69,9 +73,9 @@ BEGIN
   SELECT CASE WHEN
     json_type(NEW.events_json) != 'array'
     OR json_type(NEW.receipt_event_ids_json) != 'array'
-    OR json_extract(NEW.next_state_json, '$.version') != NEW.expected_version + 1
-    OR json_extract(NEW.next_state_json, '$.battleId') != NEW.battle_id
-    OR json_extract(NEW.next_state_json, '$.rulesVersion') != 'tactical_v1'
+    OR json_extract(NEW.next_state_json, '$.version') IS NOT NEW.expected_version + 1
+    OR json_extract(NEW.next_state_json, '$.battleId') IS NOT NEW.battle_id
+    OR json_extract(NEW.next_state_json, '$.rulesVersion') IS NOT 'tactical_v1'
     OR json_array_length(NEW.events_json) != json_array_length(NEW.receipt_event_ids_json)
     OR EXISTS (
       SELECT 1 FROM json_each(NEW.receipt_event_ids_json) AS ids
@@ -86,9 +90,9 @@ BEGIN
     SELECT 1 FROM gameplay_battles AS b
     WHERE b.battle_id = NEW.battle_id
       AND (
-        json_extract(b.state_json, '$.participants') != json_extract(NEW.next_state_json, '$.participants')
-        OR json_extract(b.state_json, '$.deadlineAt') != json_extract(NEW.next_state_json, '$.deadlineAt')
-        OR json_extract(b.state_json, '$.rulesVersion') != json_extract(NEW.next_state_json, '$.rulesVersion')
+        json_extract(b.state_json, '$.participants') IS NOT json_extract(NEW.next_state_json, '$.participants')
+        OR json_extract(b.state_json, '$.deadlineAt') IS NOT json_extract(NEW.next_state_json, '$.deadlineAt')
+        OR json_extract(b.state_json, '$.rulesVersion') IS NOT json_extract(NEW.next_state_json, '$.rulesVersion')
         OR json_extract(b.state_json, '$.createdAt') IS NOT json_extract(NEW.next_state_json, '$.createdAt')
       )
   ) THEN RAISE(ABORT, 'IMMUTABLE_SNAPSHOT') END;
