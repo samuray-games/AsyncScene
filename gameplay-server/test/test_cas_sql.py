@@ -284,6 +284,26 @@ class GameplayCasTests(unittest.TestCase):
             "SELECT event_id FROM gameplay_event_outbox"
         ).fetchone()[0], "b:final")
 
+    def test_accepts_safe_integral_real_bound_values_like_worker_d1(self):
+        # Cloudflare D1 Workers may bind JavaScript integer Numbers as REAL.
+        # sqlite3's native float bindings reproduce this representation.
+        original = copy.deepcopy(self.initial)
+        original["version"] = 0.0
+        result = transition(self.db, original, "d1-real", now=123.0)
+        self.assertEqual(self.state()[0], 1)
+        self.assertEqual(self.rows("gameplay_command_receipts"), 1)
+        self.assertEqual(json.loads(self.state()[2]), result)
+
+    def test_rejects_fractional_or_unsafe_server_clock(self):
+        for bad_now in (123.5, -1.0, 9007199254740992.0, "123"):
+            with self.subTest(bad_now=bad_now):
+                with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_JSON"):
+                    transition(self.db, self.initial, "clock-fence", now=bad_now)
+                self.db.commit()
+                self.assertEqual(self.state()[0], 0)
+                self.assertEqual(self.rows("gameplay_command_receipts"), 0)
+                self.assertEqual(self.rows("gameplay_event_outbox"), 0)
+
     def test_concurrent_same_version_has_one_winner(self):
         # Shared file ensures actual SQLite locking/transaction semantics, not mocks.
         with tempfile.TemporaryDirectory() as tmp:
