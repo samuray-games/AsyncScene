@@ -32,6 +32,19 @@ export default {
         ).run();
         return json({ ok: true });
       }
+      if (pathname === "/diagnose") {
+        const row = await env.DB.prepare(
+          `SELECT typeof(?1) AS versionType, typeof(?2) AS clockType,
+                  typeof(?3) AS commandType, typeof(?4) AS fingerprintType,
+                  json_valid(?5) AS stateValid, json_valid(?6) AS receiptsValid,
+                  json_valid(?7) AS eventsValid`,
+        ).bind(
+          body.expectedVersion, body.trustedNowMs, body.commandId, body.fingerprint,
+          JSON.stringify(body.nextState), JSON.stringify(body.receiptEventIds),
+          JSON.stringify(body.events),
+        ).first();
+        return json({ ok: true, row });
+      }
       if (pathname === "/apply") {
         await env.DB.prepare(TRANSITION).bind(
           body.battleId, body.expectedVersion, body.commandId,
