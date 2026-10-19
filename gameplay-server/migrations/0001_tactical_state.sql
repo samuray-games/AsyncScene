@@ -61,8 +61,17 @@ BEGIN
   ) THEN RAISE(ABORT, 'COMMAND_ID_REUSE') END;
 
   SELECT CASE WHEN
-    typeof(NEW.expected_version) != 'integer'
-    OR typeof(NEW.trusted_now_ms) != 'integer'
+    -- Wrangler D1 Workers bind all JS Numbers as SQL REAL (including 0,
+    -- 123); Python sqlite bindings may use INTEGER. Accept both only when
+    -- mathematically integral and within JS's safe integer range.
+    typeof(NEW.expected_version) NOT IN ('integer', 'real')
+    OR NEW.expected_version IS NOT CAST(NEW.expected_version AS INTEGER)
+    OR NEW.expected_version < 0
+    OR NEW.expected_version >= 9007199254740991
+    OR typeof(NEW.trusted_now_ms) NOT IN ('integer', 'real')
+    OR NEW.trusted_now_ms IS NOT CAST(NEW.trusted_now_ms AS INTEGER)
+    OR NEW.trusted_now_ms < 0
+    OR NEW.trusted_now_ms > 9007199254740991
     OR typeof(NEW.command_id) != 'text'
     OR typeof(NEW.fingerprint) != 'text'
     OR COALESCE(json_valid(NEW.next_state_json), 0) != 1
