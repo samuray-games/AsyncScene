@@ -57,9 +57,26 @@ Run with standard Python and SQLite, with no third-party dependencies:
 python -m unittest discover -s gameplay-server/test -p 'test_*.py' -v
 ```
 
-The dedicated `chat03b1-gameplay-cas.yml` workflow runs these tests for PRs.
-Coverage includes an actual SQLite-file two-connection concurrency race, stale
-CAS, rollback on event conflict, immutable snapshot guards, and receipt uniqueness.
+The dedicated `chat03b1-gameplay-cas.yml` workflow runs two independent
+jobs: 18 native SQLite/Python cases and an additional *Wrangler local D1*
+integration run through the real local `workerd` Worker binding. The latter
+uses `wrangler.local-test.jsonc` and the test-only Worker in `test/`,
+applies the committed SQL migration in a disposable isolated local D1,
+then checks CAS, exact receipt/outbox bijection, event versions, rollback
+and simultaneous same-version requests. It does not require Cloudflare tokens,
+provision any remote database, or access the existing telemetry D1.
+
+Wrangler's Worker D1 binding exposes JavaScript integral `Number` arguments
+as SQL `REAL` rather than `INTEGER`. The migration deliberately accepts
+both SQL numeric storage types ONLY for mathematically integral, nonnegative
+and JavaScript-safe version/timestamp values. Native SQLite Python tests
+also cover this D1-compatible behavior and fractional-clock rejection.
+The first Wrangler integration run exposed this previously missed mismatch.
+
+**Evidence boundary:** `WRANGLER_LOCAL_D1_PASS` is not
+`REMOTE_D1_PASS`. Verify trigger behavior and race handling again on a
+separate, authenticated, expressly approved Cloudflare-hosted gameplay D1
+database before any production adapter or merge/deployment approval.
 
 ## Required follow-up gates
 
