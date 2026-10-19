@@ -124,8 +124,10 @@ try {
   assert.equal((await request(base, "/create", { state: good })).status, 200);
   const e1 = event("valid:e1");
   const e2 = event("valid:e2");
-  const accepted = await request(base, "/apply",
-    makeTransition(good, "valid-command", [e1, e2], ["valid:e2", "valid:e1"]));
+  const goodInput = makeTransition(good, "valid-command", [e1, e2], ["valid:e2", "valid:e1"]);
+  const diagnostics = await request(base, "/diagnose", goodInput);
+  console.log("D1 parameter diagnostic", JSON.stringify(diagnostics));
+  const accepted = await request(base, "/apply", goodInput);
   assert.equal(accepted.status, 200, JSON.stringify(accepted));
   await check(base, good.battleId, 1, 1, 2);
   console.log("PASS: D1 Worker binding CAS + receipt/outbox + unordered bijection");
