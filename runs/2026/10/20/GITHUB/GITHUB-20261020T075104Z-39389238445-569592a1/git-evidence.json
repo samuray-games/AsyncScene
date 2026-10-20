@@ -1,0 +1,106 @@
+{
+  "branch": "social-combat-chat03b1-d1-cas-20261017",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "social-combat-chat03b1-d1-cas-20261017\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "11da30aee65d57702dfaaed15aaa216570e6b9b7\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "# branch.oid 11da30aee65d57702dfaaed15aaa216570e6b9b7\n# branch.head social-combat-chat03b1-d1-cas-20261017\n# branch.upstream origin/social-combat-chat03b1-d1-cas-20261017\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "11da30ae (HEAD -> social-combat-chat03b1-d1-cas-20261017, origin/social-combat-chat03b1-d1-cas-20261017) test(chat03b1): guard Cloudflare scratch scope and missing-credential behavior offline\nb55d3bfa test(chat03b1): provision and destroy isolated hosted D1 CAS scratch database\n95702054 docs(chat03b1): distinguish verified Wrangler local D1 from remote gameplay authority\n75054d41 test(chat03b1): cover D1 REAL-bound safe integers and reject fractional clocks\nfa14369b fix(chat03b1): accept D1 REAL-bound integral safe JS versions and timestamps\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 11da30aee65d57702dfaaed15aaa216570e6b9b7\nbranch refs/heads/social-combat-chat03b1-d1-cas-20261017\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-20T07:51:04Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "11da30aee65d57702dfaaed15aaa216570e6b9b7",
+  "observedAtUtc": "2026-10-20T07:51:04Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
