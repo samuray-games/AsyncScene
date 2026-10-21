@@ -8,6 +8,8 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import "../../AsyncScene/Web/conflict/tactical-resolver.js";
+import "../../AsyncScene/Web/conflict/tactical-lifecycle.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const cli = process.env.WRANGLER_BIN ?? path.resolve(root, "../node_modules/.bin/wrangler");
@@ -169,6 +171,51 @@ try {
   assert.equal(contenders.filter((x) => x.status === 409).length, 1, JSON.stringify(contenders));
   await check(base, race.battleId, 1, 1, 1);
   console.log("PASS: concurrent same-version D1 Worker submissions have exactly one winner");
+
+  // Integration with the actual merged Chat 03A lifecycle, not synthetic
+  // copied events. This still does not implement player authorization.
+  const lifecycle = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
+  const creation = lifecycle.createBattle({
+    battleId: "lifecycle-origin",
+    participants: {
+      A: { id: "participant-A", role: "citizen" },
+      B: { id: "participant-B", role: "citizen" },
+    },
+    createdAt: 0,
+    deadlineAt: 1000,
+  });
+  assert.equal(creation.ok, true, JSON.stringify(creation));
+  const lifecycleGenesis = await request(base, "/create", { state: creation.state });
+  assert.equal(lifecycleGenesis.status, 200, JSON.stringify(lifecycleGenesis));
+  await check(base, "lifecycle-origin", 0, 0, 1);
+  const command = {
+    commandId: "lifecycle-commit-A",
+    expectedVersion: 0,
+    type: "commit",
+    actorId: "participant-A",
+    participantId: "participant-A",
+    selection: {
+      attackColor: "y", defenseColor: "y",
+      attackType: "N", defenseType: "S", role: "citizen",
+    },
+  };
+  const result = lifecycle.execute(creation.state, command, 123);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.eventIds.length, 1);
+  const createdEvents = result.state.events.filter((event) => event.version === 1);
+  const actual = await request(base, "/apply", {
+    battleId: "lifecycle-origin", expectedVersion: 0,
+    commandId: command.commandId, fingerprint: "lifecycle-commit-A",
+    nextState: result.state, receiptEventIds: result.eventIds,
+    events: createdEvents, trustedNowMs: 123,
+  });
+  assert.equal(actual.status, 200, JSON.stringify(actual));
+  await check(base, "lifecycle-origin", 1, 1, 2);
+  const publicB = lifecycle.getPublicView(result.state, "participant-B");
+  assert.equal(publicB.ok, true, JSON.stringify(publicB));
+  assert.ok(!JSON.stringify(publicB).includes("attackColor"),
+    "opponent's hidden committed selection must not appear in public view");
+  console.log("PASS: merged Chat 03A lifecycle genesis + commit -> actual D1 Worker");
 
   console.log("WRANGLER_LOCAL_D1_PASS (NOT REMOTE_D1_PASS)");
 } catch (error) {
