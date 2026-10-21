@@ -23,12 +23,12 @@ export default {
       if (pathname === "/create") {
         const state = body.state;
         await env.DB.prepare(
-          `INSERT INTO gameplay_battles
-            (battle_id, version, rules_version, phase, state_json, created_at_ms, updated_at_ms)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO gameplay_create_battle (
+             battle_id, initial_state_json, creation_event_json, trusted_now_ms)
+           VALUES (?, ?, ?, ?)`,
         ).bind(
-          state.battleId, state.version, state.rulesVersion, state.phase,
-          JSON.stringify(state), state.createdAt, state.createdAt,
+          state.battleId, JSON.stringify(state),
+          JSON.stringify(state.events?.[0]), state.createdAt,
         ).run();
         return json({ ok: true });
       }
