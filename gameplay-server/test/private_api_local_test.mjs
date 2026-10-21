@@ -82,7 +82,28 @@ async function commit(base, battle, side, commandId, extra = {}) {
 try {
   migrate("migrations/0001_tactical_state.sql");
   migrate("migrations/0002_battle_capabilities.sql");
-  console.log("PASS: both D1 migrations loaded in isolated local DB");
+  const expiredId = "11111111-1111-4111-8111-111111111111";
+  const expiryToken = "expired-access-" + "z".repeat(36);
+  const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
+  const origin = lc.createBattle({
+    battleId: expiredId, createdAt: 0, deadlineAt: 1000,
+    participants: { A: { id: "expired-A", role: "citizen" },
+                    B: { id: "expired-B", role: "citizen" } },
+  });
+  assert.equal(origin.ok, true, JSON.stringify(origin));
+  const sqlq = x => "'" + String(x).replaceAll("'", "''") + "'";
+  const digest = createHash("sha256").update(expiryToken).digest("hex");
+  const fixtureSql = `INSERT INTO gameplay_create_battle
+    (battle_id,initial_state_json,creation_event_json,trusted_now_ms)
+    VALUES (${sqlq(expiredId)},${sqlq(JSON.stringify(origin.state))},
+            ${sqlq(JSON.stringify(origin.state.events[0]))},0);
+    INSERT INTO gameplay_battle_capabilities
+    (battle_id,side,participant_id,token_sha256,created_at_ms)
+    VALUES (${sqlq(expiredId)},'A','expired-A',${sqlq(digest)},0);`;
+  const fixturePath = path.join(dir, "expired-fixture.sql");
+  writeFileSync(fixturePath, fixtureSql);
+  migrate(fixturePath);
+  console.log("PASS: both D1 migrations and expired genesis fixture");
   const port = await pickPort();
   const base = "http://127.0.0.1:" + port;
   const args = [
