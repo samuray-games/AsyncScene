@@ -96,6 +96,68 @@ class GameplayCasTests(unittest.TestCase):
             "SELECT version, phase, state_json FROM gameplay_battles WHERE battle_id='b'"
         ).fetchone()
 
+    def create_with_origin(self, battle_id="origin", now=123, override=None):
+        snapshot = genesis(battle_id)
+        snapshot["createdAt"] = now if isinstance(now, int) else int(now)
+        snapshot["deadlineAt"] = snapshot["createdAt"] + 1000
+        ev = {
+            "eventId": battle_id + ":v0:battle.created", "battleId": battle_id,
+            "version": 0, "type": "battle.created",
+            "payload": {"participants": {"A": "participant-A", "B": "participant-B"},
+                        "rulesVersion": "tactical_v1", "deadlineAt": snapshot["deadlineAt"]},
+        }
+        snapshot["events"] = [ev]
+        if override is not None:
+            override(snapshot, ev)
+        self.db.execute("INSERT INTO gameplay_create_battle VALUES (?, ?, ?, ?)",
+                        (battle_id, json.dumps(snapshot), json.dumps(ev), now))
+        self.db.commit()
+        return snapshot, ev
+
+    def test_genesis_and_created_event_commit_as_one_statement(self):
+        state, ev = self.create_with_origin()
+        stored = self.db.execute(
+            "SELECT version, state_json FROM gameplay_battles WHERE battle_id='origin'"
+        ).fetchone()
+        self.assertEqual(stored[0], 0)
+        self.assertEqual(json.loads(stored[1]), state)
+        self.assertEqual(self.db.execute(
+            "SELECT event_id, version, event_type FROM gameplay_event_outbox"
+        ).fetchone(), (ev["eventId"], 0, "battle.created"))
+        self.assertEqual(self.rows("gameplay_command_receipts"), 0)
+
+    def test_genesis_rejects_missing_or_forged_origin_atomically(self):
+        cases = [
+            lambda state, ev: ev.update(eventId="another:event"),
+            lambda state, ev: state.update(events=[]),
+            lambda state, ev: state.update(version=1),
+            lambda state, ev: state.update(createdAt=999),
+            lambda state, ev: state.update(deadlineAt=0),
+            lambda state, ev: state["events"][0]["payload"].update(extra=True),
+        ]
+        for i, change in enumerate(cases):
+            with self.subTest(i=i):
+                with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_GENESIS"):
+                    self.create_with_origin("bad-origin-" + str(i), override=change)
+                self.db.commit()
+                self.assertEqual(self.rows("gameplay_battles"), 1)
+                self.assertEqual(self.rows("gameplay_event_outbox"), 0)
+                self.assertEqual(self.rows("gameplay_command_receipts"), 0)
+
+    def test_genesis_duplicate_battle_id_rolls_back_outbox(self):
+        self.create_with_origin("repeat")
+        before = list(self.db.execute("SELECT * FROM gameplay_event_outbox"))
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.create_with_origin("repeat")
+        self.db.commit()
+        self.assertEqual(self.rows("gameplay_battles"), 2)
+        self.assertEqual(list(self.db.execute("SELECT * FROM gameplay_event_outbox")), before)
+
+    def test_genesis_accepts_d1_integral_real_trusted_clock(self):
+        state, _ = self.create_with_origin("real-clock", now=123.0)
+        self.assertEqual(state["createdAt"], 123)
+        self.assertEqual(self.rows("gameplay_event_outbox"), 1)
+
     def test_migration_is_separate_from_telemetry(self):
         tables = {row[0] for row in self.db.execute(
             "SELECT name FROM sqlite_master WHERE type='table'"
