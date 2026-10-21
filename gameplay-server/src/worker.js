@@ -318,8 +318,15 @@ export default {
     try {
       config(env);
       const rows = await env.DB.prepare(
-        "SELECT battle_id,phase,state_json FROM gameplay_battles WHERE phase IN ('created','waiting','committed') ORDER BY updated_at_ms LIMIT 100"
-      ).all();
+        `SELECT battle_id,phase,state_json
+         FROM gameplay_battles
+         WHERE phase = 'committed'
+            OR (phase IN ('created','waiting')
+                AND json_extract(state_json,'$.deadlineAt') <= ?)
+         ORDER BY CASE WHEN phase = 'committed' THEN 0 ELSE 1 END,
+                  updated_at_ms
+         LIMIT 100`
+      ).bind(Date.now()).all();
       for (const row of rows.results || []) {
         try {
           if (row.phase === "committed") await applySystem(env.DB, row.battle_id, "reveal");
