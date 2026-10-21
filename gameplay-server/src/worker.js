@@ -200,9 +200,12 @@ async function commit(db, id, authorized, body) {
       !body.selection || typeof body.selection !== "object" || Array.isArray(body.selection)) {
     return { error: "INVALID_COMMAND", status: 400 };
   }
+  // Per-player command namespace: two clients may independently generate
+  // the same local id. Never let A claim, collide with, or probe B's receipt.
+  const scopedCommandId = authorized.side + ":" + body.commandId;
   const fingerprint = canonical({ side: authorized.side, commandId: body.commandId, selection: body.selection });
   for (let attempt = 0; attempt < MAX_COMMAND_RETRIES; attempt++) {
-    const prior = await storedReceipt(db, id, body.commandId);
+    const prior = await storedReceipt(db, id, scopedCommandId);
     if (prior) {
       if (prior.fingerprint !== fingerprint) return { error: "COMMAND_ID_REUSE", status: 409 };
       const current = await load(db, id);
@@ -219,7 +222,7 @@ async function commit(db, id, authorized, body) {
     }
     const now = Date.now();
     const command = {
-      type: "commit", commandId: body.commandId, expectedVersion: state.version,
+      type: "commit", commandId: scopedCommandId, expectedVersion: state.version,
       actorId: authorized.participant_id, participantId: authorized.participant_id,
       selection: body.selection,
     };
