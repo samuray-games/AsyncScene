@@ -190,6 +190,23 @@ try {
   assert.ok(racePublic.version >= 3);
   console.log("PASS: both simultaneous participant commits survive CAS and reveal");
 
+  const sharedIds = await create(base, "shared");
+  const sameLocalIds = await Promise.all([
+    commit(base, sharedIds, "A", "client-command-001"),
+    commit(base, sharedIds, "B", "client-command-001"),
+  ]);
+  assert.equal(sameLocalIds.filter(x => x.status === 200).length, 2,
+    "independent client command IDs must not collide: " + JSON.stringify(sameLocalIds));
+  assert.equal((await get(base, sharedIds, sharedIds.capabilities.A.token)).revealed, true);
+  const sharedReplayA = await commit(base, sharedIds, "A", "client-command-001");
+  const sharedReplayB = await commit(base, sharedIds, "B", "client-command-001");
+  assert.equal(sharedReplayA.replayed, true, JSON.stringify(sharedReplayA));
+  assert.equal(sharedReplayB.replayed, true, JSON.stringify(sharedReplayB));
+  assert.equal((await request(base, "GET", "/v1/battles/" + sharedIds.battleId,
+    battle.capabilities.A.token)).status, 401, "token from other battle worked");
+  console.log("PASS: identical client command IDs from A/B are independently durable");
+  console.log("PASS: battle-scoped bearer token cannot read another battle");
+
   const cronUrl = base + "/cdn-cgi/local/scheduled?format=json";
   const firstCron = await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
   assert.equal(firstCron.status, 200, "local scheduled handler unavailable");
