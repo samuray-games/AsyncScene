@@ -251,7 +251,7 @@ async function api(request, env) {
   if (origin && (typeof env.ALLOWED_ORIGIN !== "string" || origin !== env.ALLOWED_ORIGIN)) {
     return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
   }
-  if (request.method === "OPTIONS") return encodeJSON({ ok: true }, 204, origin);
+  if (request.method === "OPTIONS") return encodeJSON({ ok: true }, 200, origin);
   const pathname = new URL(request.url).pathname;
   if (pathname === "/v1/admin/battles" && request.method === "POST") {
     if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
