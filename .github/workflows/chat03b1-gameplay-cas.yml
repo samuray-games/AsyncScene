@@ -36,5 +36,7 @@ jobs:
           node-version: '22'
       - name: Install Wrangler
         run: npm install --no-save --package-lock=false wrangler@4
+      - name: Offline safety tests for remote D1 scratch harness
+        run: node --test gameplay-server/test/remote_d1_ephemeral.test.mjs
       - name: Verify local D1 migration and transitions
         run: node gameplay-server/test/wrangler_d1_local_test.mjs
