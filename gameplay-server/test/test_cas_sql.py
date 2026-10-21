@@ -133,7 +133,7 @@ class GameplayCasTests(unittest.TestCase):
             lambda state, ev: state.update(version=1),
             lambda state, ev: state.update(createdAt=999),
             lambda state, ev: state.update(deadlineAt=0),
-            lambda state, ev: state["events"][0]["payload"].update(extra=True),
+            lambda state, ev: state["events"].append(copy.deepcopy(ev)),
         ]
         for i, change in enumerate(cases):
             with self.subTest(i=i):
