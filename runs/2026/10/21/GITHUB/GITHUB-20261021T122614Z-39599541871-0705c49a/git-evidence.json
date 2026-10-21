@@ -1,0 +1,106 @@
+{
+  "branch": "social-combat-chat03b1-d1-cas-20261017",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "social-combat-chat03b1-d1-cas-20261017\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "23332c88ab75bbb08c8db3bce2bd778ce059467f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "# branch.oid 23332c88ab75bbb08c8db3bce2bd778ce059467f\n# branch.head social-combat-chat03b1-d1-cas-20261017\n# branch.upstream origin/social-combat-chat03b1-d1-cas-20261017\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "23332c88 (HEAD -> social-combat-chat03b1-d1-cas-20261017, origin/social-combat-chat03b1-d1-cas-20261017) test(chat03b1): exercise atomic genesis view through real D1 Worker binding\ne467d29b test(chat03b1): verify genesis/outbox atomic create, rollback, D1 numeric binding\n6a050215 fix(chat03b1): compare genesis event JSON after normalization\nba04b69e feat(chat03b1): atomically persist genesis snapshot and battle.created outbox event\n11da30ae test(chat03b1): guard Cloudflare scratch scope and missing-credential behavior offline\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 23332c88ab75bbb08c8db3bce2bd778ce059467f\nbranch refs/heads/social-combat-chat03b1-d1-cas-20261017\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-21T12:26:14Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "23332c88ab75bbb08c8db3bce2bd778ce059467f",
+  "observedAtUtc": "2026-10-21T12:26:14Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
