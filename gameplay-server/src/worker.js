@@ -75,11 +75,32 @@ function config(env) {
 }
 
 async function parseBody(request) {
-  if (Number(request.headers.get("content-length")) > MAX_BODY) throw new Error("BODY_TOO_LARGE");
-  const text = await request.text();
-  if (text.length > MAX_BODY) throw new Error("BODY_TOO_LARGE");
-  const obj = JSON.parse(text);
-  if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw new Error("INVALID_BODY");
+  // Reject oversized bodies *while reading*, including chunked uploads with
+  // no Content-Length. A post-read string-length check is too late and counts
+  // UTF-16 code units instead of UTF-8 bytes.
+  const advertised = request.headers.get("content-length");
+  if (advertised !== null && Number(advertised) > MAX_BODY) throw Error("BODY_TOO_LARGE");
+  if (!request.body) throw Error("INVALID_BODY");
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let totalBytes = 0, jsonText = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_BODY) throw Error("BODY_TOO_LARGE");
+      jsonText += decoder.decode(value, { stream: true });
+    }
+    jsonText += decoder.decode();
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+  const obj = JSON.parse(jsonText);
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw Error("INVALID_BODY");
   return obj;
 }
 
