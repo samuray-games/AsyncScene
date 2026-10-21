@@ -190,6 +190,20 @@ try {
   assert.ok(racePublic.version >= 3);
   console.log("PASS: both simultaneous participant commits survive CAS and reveal");
 
+  const cronUrl = base + "/cdn-cgi/local/scheduled?format=json";
+  const firstCron = await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
+  assert.equal(firstCron.status, 200, "local scheduled handler unavailable");
+  const expired = await get(base, { battleId: expiredId }, expiryToken);
+  assert.equal(expired.status, 200, JSON.stringify(expired));
+  assert.equal(expired.phase, "expired", JSON.stringify(expired));
+  assert.equal(expired.version, 1);
+  const secondCron = await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
+  assert.equal(secondCron.status, 200);
+  const after = await get(base, { battleId: expiredId }, expiryToken);
+  assert.equal(after.phase, "expired");
+  assert.equal(after.version, 1);
+  console.log("PASS: scheduled timeout/no-show once, repeated cron has no new transition");
+
   console.log("CHAT03B2_LOCAL_PRIVATE_API_PASS (NOT PRODUCTION_AUTH_PASS)");
 } catch (error) {
   console.error("CHAT03B2_LOCAL_PRIVATE_API_FAIL", error);
