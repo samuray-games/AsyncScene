@@ -75,7 +75,7 @@ BEGIN
     OR json_extract(NEW.creation_event_json, '$.version') IS NOT 0
     OR json_extract(NEW.creation_event_json, '$.type') IS NOT 'battle.created'
     OR json_type(NEW.creation_event_json, '$.payload') IS NOT 'object'
-    OR json_extract(NEW.initial_state_json, '$.events[0]') IS NOT json(NEW.creation_event_json)
+    OR json(json_extract(NEW.initial_state_json, '$.events[0]')) IS NOT json(NEW.creation_event_json)
   THEN RAISE(ABORT, 'INVALID_GENESIS') END;
 
   INSERT INTO gameplay_battles
