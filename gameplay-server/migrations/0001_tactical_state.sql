@@ -33,6 +33,65 @@ CREATE TABLE gameplay_event_outbox (
 );
 CREATE INDEX idx_gameplay_outbox_pending ON gameplay_event_outbox(published_at_ms, created_at_ms);
 
+-- Origin event must be durable in the same statement as the new battle.
+-- The future trusted Worker supplies a lifecycle-validated genesis snapshot.
+-- Never expose this write-only view directly to untrusted clients.
+CREATE VIEW gameplay_create_battle AS SELECT
+  NULL AS battle_id,
+  NULL AS initial_state_json,
+  NULL AS creation_event_json,
+  NULL AS trusted_now_ms
+WHERE 0;
+
+CREATE TRIGGER trg_gameplay_create_battle
+INSTEAD OF INSERT ON gameplay_create_battle
+BEGIN
+  SELECT CASE WHEN
+    COALESCE(json_valid(NEW.initial_state_json), 0) != 1
+    OR COALESCE(json_valid(NEW.creation_event_json), 0) != 1
+    OR typeof(NEW.battle_id) != 'text'
+    OR length(trim(NEW.battle_id)) = 0
+    OR typeof(NEW.trusted_now_ms) NOT IN ('integer', 'real')
+    OR NEW.trusted_now_ms IS NOT CAST(NEW.trusted_now_ms AS INTEGER)
+    OR NEW.trusted_now_ms < 0
+    OR NEW.trusted_now_ms > 9007199254740991
+  THEN RAISE(ABORT, 'INVALID_GENESIS') END;
+
+  SELECT CASE WHEN
+    json_type(NEW.initial_state_json) IS NOT 'object'
+    OR json_extract(NEW.initial_state_json, '$.battleId') IS NOT NEW.battle_id
+    OR json_extract(NEW.initial_state_json, '$.rulesVersion') IS NOT 'tactical_v1'
+    OR json_extract(NEW.initial_state_json, '$.version') IS NOT 0
+    OR json_extract(NEW.initial_state_json, '$.phase') IS NOT 'created'
+    OR json_extract(NEW.initial_state_json, '$.createdAt') IS NOT NEW.trusted_now_ms
+    OR json_type(NEW.initial_state_json, '$.deadlineAt') IS NOT 'integer'
+    OR json_extract(NEW.initial_state_json, '$.deadlineAt') <= NEW.trusted_now_ms
+    OR json_type(NEW.initial_state_json, '$.participants') IS NOT 'object'
+    OR json_type(NEW.initial_state_json, '$.events') IS NOT 'array'
+    OR json_array_length(NEW.initial_state_json, '$.events') IS NOT 1
+    OR json_type(NEW.creation_event_json) IS NOT 'object'
+    OR json_extract(NEW.creation_event_json, '$.eventId') IS NOT NEW.battle_id || ':v0:battle.created'
+    OR json_extract(NEW.creation_event_json, '$.battleId') IS NOT NEW.battle_id
+    OR json_extract(NEW.creation_event_json, '$.version') IS NOT 0
+    OR json_extract(NEW.creation_event_json, '$.type') IS NOT 'battle.created'
+    OR json_type(NEW.creation_event_json, '$.payload') IS NOT 'object'
+    OR json_extract(NEW.initial_state_json, '$.events[0]') IS NOT json(NEW.creation_event_json)
+  THEN RAISE(ABORT, 'INVALID_GENESIS') END;
+
+  INSERT INTO gameplay_battles
+    (battle_id, version, rules_version, phase, state_json, created_at_ms, updated_at_ms)
+  VALUES
+    (NEW.battle_id, 0, 'tactical_v1', 'created', NEW.initial_state_json,
+     NEW.trusted_now_ms, NEW.trusted_now_ms);
+
+  INSERT INTO gameplay_event_outbox
+    (event_id, battle_id, version, event_type, payload_json, created_at_ms)
+  VALUES
+    (json_extract(NEW.creation_event_json, '$.eventId'), NEW.battle_id, 0,
+     'battle.created', json_extract(NEW.creation_event_json, '$.payload'),
+     NEW.trusted_now_ms);
+END;
+
 -- The trigger runs as ONE atomic SQL statement. D1 batch() alone is not a
 -- compare-and-swap: a zero-row UPDATE is not a SQL error and does not roll back.
 CREATE VIEW gameplay_apply_transition AS SELECT
