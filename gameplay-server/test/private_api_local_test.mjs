@@ -93,13 +93,66 @@ try {
   assert.equal(origin.ok, true, JSON.stringify(origin));
   const sqlq = x => "'" + String(x).replaceAll("'", "''") + "'";
   const digest = createHash("sha256").update(expiryToken).digest("hex");
-  const fixtureSql = `INSERT INTO gameplay_create_battle
+  let fixtureSql = `INSERT INTO gameplay_create_battle
     (battle_id,initial_state_json,creation_event_json,trusted_now_ms)
     VALUES (${sqlq(expiredId)},${sqlq(JSON.stringify(origin.state))},
             ${sqlq(JSON.stringify(origin.state.events[0]))},0);
     INSERT INTO gameplay_battle_capabilities
     (battle_id,side,participant_id,token_sha256,created_at_ms)
     VALUES (${sqlq(expiredId)},'A','expired-A',${sqlq(digest)},0);`;
+  // Cron must NOT let a backlog of healthy, not-yet-due battles starve a
+  // newer committed battle awaiting trusted reveal. 101 > the 100-row cap.
+  const backloggedAt = Date.now() - 30_000;
+  const pendingUntil = backloggedAt + 120_000;
+  function genesisSql(battle) {
+    return `INSERT INTO gameplay_create_battle
+      (battle_id,initial_state_json,creation_event_json,trusted_now_ms)
+      VALUES (${sqlq(battle.battleId)},${sqlq(JSON.stringify(battle))},
+      ${sqlq(JSON.stringify(battle.events[0]))},${battle.createdAt});`;
+  }
+  for (let i = 0; i < 101; i++) {
+    const b = lc.createBattle({
+      battleId: "healthy-backlog-" + i, createdAt: backloggedAt,
+      deadlineAt: pendingUntil,
+      participants: { A: { id: "healthy-A", role: "citizen" },
+                      B: { id: "healthy-B", role: "citizen" } },
+    });
+    assert.equal(b.ok, true);
+    fixtureSql += genesisSql(b.state);
+  }
+  const stuckId = "22222222-2222-4222-8222-222222222222";
+  const stuckToken = "stuck-reveal-" + "q".repeat(36);
+  const stuckCreatedAt = backloggedAt + 10_000;
+  const stuckGenesis = lc.createBattle({
+    battleId: stuckId, createdAt: stuckCreatedAt,
+    deadlineAt: pendingUntil,
+    participants: { A: { id: "stuck-A", role: "citizen" },
+                    B: { id: "stuck-B", role: "citizen" } },
+  });
+  assert.equal(stuckGenesis.ok, true);
+  fixtureSql += genesisSql(stuckGenesis.state);
+  fixtureSql += `INSERT INTO gameplay_battle_capabilities
+    (battle_id,side,participant_id,token_sha256,created_at_ms)
+    VALUES (${sqlq(stuckId)},'A','stuck-A',
+      ${sqlq(createHash("sha256").update(stuckToken).digest("hex"))},${stuckCreatedAt});`;
+  let beforeReveal = stuckGenesis.state;
+  for (const side of ["A", "B"]) {
+    const at = stuckCreatedAt + (side === "A" ? 1000 : 2000);
+    const cmd = { type: "commit", commandId: "stuck-" + side,
+      actorId: "stuck-" + side, participantId: "stuck-" + side,
+      expectedVersion: beforeReveal.version, selection };
+    const result = lc.execute(beforeReveal, cmd, at);
+    assert.equal(result.ok, true, JSON.stringify(result));
+    const events = result.state.events.filter(e => result.eventIds.includes(e.eventId));
+    fixtureSql += `INSERT INTO gameplay_apply_transition
+      (battle_id,expected_version,command_id,fingerprint,receipt_code,
+       receipt_event_ids_json,next_state_json,events_json,trusted_now_ms)
+      VALUES (${sqlq(stuckId)},${beforeReveal.version},${sqlq(cmd.commandId)},
+        'fixture',${sqlq(result.code)},${sqlq(JSON.stringify(result.eventIds))},
+        ${sqlq(JSON.stringify(result.state))},${sqlq(JSON.stringify(events))},${at});`;
+    beforeReveal = result.state;
+  }
+  assert.equal(beforeReveal.phase, "committed");
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
@@ -222,9 +275,16 @@ try {
   console.log("PASS: identical client command IDs from A/B are independently durable");
   console.log("PASS: battle-scoped bearer token cannot read another battle");
 
+  const awaitingBefore = await get(base, { battleId: stuckId }, stuckToken);
+  assert.equal(awaitingBefore.phase, "committed");
+  assert.equal(awaitingBefore.version, 2);
   const cronUrl = base + "/cdn-cgi/local/scheduled?format=json";
   const firstCron = await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
   assert.equal(firstCron.status, 200, "local scheduled handler unavailable");
+  const unstuck = await get(base, { battleId: stuckId }, stuckToken);
+  assert.equal(unstuck.phase, "revealed", "101 healthy battles blocked reveal");
+  assert.equal(unstuck.version, 3);
+  console.log("PASS: pending 101 healthy battles cannot starve committed reveal");
   const expired = await get(base, { battleId: expiredId }, expiryToken);
   assert.equal(expired.status, 200, JSON.stringify(expired));
   assert.equal(expired.phase, "expired", JSON.stringify(expired));
