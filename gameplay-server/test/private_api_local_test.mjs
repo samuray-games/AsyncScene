@@ -2,11 +2,14 @@
 // credentials, no telemetry binding and no public Worker deployment.
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import "../../AsyncScene/Web/conflict/tactical-resolver.js";
+import "../../AsyncScene/Web/conflict/tactical-lifecycle.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = process.env.WRANGLER_BIN || path.resolve(root, "../node_modules/.bin/wrangler");
@@ -83,7 +86,7 @@ try {
   const port = await pickPort();
   const base = "http://127.0.0.1:" + port;
   const args = [
-    "dev", "--config", cfg, "--ip", "127.0.0.1", "--port", String(port),
+    "dev", "--test-scheduled", "--config", cfg, "--ip", "127.0.0.1", "--port", String(port),
     "--persist-to", dir,
     "--var", "ADMIN_CONTROL_TOKEN:" + admin,
     "--var", "COMMIT_WINDOW_MS:60000",
