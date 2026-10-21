@@ -82,17 +82,22 @@ try {
   console.log("PASS: both D1 migrations loaded in isolated local DB");
   const port = await pickPort();
   const base = "http://127.0.0.1:" + port;
-  worker = spawn(cli, [
+  const args = [
     "dev", "--config", cfg, "--ip", "127.0.0.1", "--port", String(port),
     "--persist-to", dir,
     "--var", "ADMIN_CONTROL_TOKEN:" + admin,
     "--var", "COMMIT_WINDOW_MS:60000",
     "--var", "ALLOWED_ORIGIN:https://game.example.test",
-  ], { cwd: root, env, stdio: ["ignore", "pipe", "pipe"] });
-  for (const stream of [worker.stdout, worker.stderr]) {
-    stream.setEncoding("utf8");
-    stream.on("data", v => { logs = (logs + v).slice(-30000); });
+  ];
+  function spawnApi() {
+    const child = spawn(cli, args, { cwd: root, env, stdio: ["ignore", "pipe", "pipe"] });
+    for (const stream of [child.stdout, child.stderr]) {
+      stream.setEncoding("utf8");
+      stream.on("data", v => { logs = (logs + v).slice(-30000); });
+    }
+    return child;
   }
+  worker = spawnApi();
   await start(base);
 
   const denyAdmin = await request(base, "POST", "/v1/admin/battles", "not-the-admin", {});
@@ -135,6 +140,20 @@ try {
   assert.equal(publicB.revealed, true, JSON.stringify(publicB));
   assert.ok(publicA.version >= 3 && publicB.version >= 3);
   console.log("PASS: two real lifecycle commits and trusted automatic reveal");
+
+  // Simulate process exit after a durable commit, then reconnect with the
+  // same bearer capability and replay the original command safely.
+  const beforeRestart = worker;
+  beforeRestart.kill("SIGTERM");
+  await new Promise(resolve => beforeRestart.once("close", resolve));
+  worker = spawnApi();
+  await start(base);
+  const afterRestart = await get(base, battle, battle.capabilities.A.token);
+  assert.equal(afterRestart.revealed, true);
+  const replayAfterRestart = await commit(base, battle, "A", "command-alpha-A");
+  assert.equal(replayAfterRestart.status, 200, JSON.stringify(replayAfterRestart));
+  assert.equal(replayAfterRestart.replayed, true);
+  console.log("PASS: Worker restart, durable reconnect and original receipt replay");
 
   const race = await create(base, "race");
   const both = await Promise.all([
