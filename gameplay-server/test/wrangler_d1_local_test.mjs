@@ -36,7 +36,13 @@ function genesis(id) {
     deadlineAt: 1000,
     participants: { A: { id: "A" }, B: { id: "B" } },
     commits: {},
-    events: [],
+    events: [{
+      eventId: id + ":v0:battle.created",
+      battleId: id,
+      version: 0,
+      type: "battle.created",
+      payload: { rulesVersion: "tactical_v1" },
+    }],
   };
 }
 
@@ -129,12 +135,12 @@ try {
   console.log("D1 parameter diagnostic", JSON.stringify(diagnostics));
   const accepted = await request(base, "/apply", goodInput);
   assert.equal(accepted.status, 200, JSON.stringify(accepted));
-  await check(base, good.battleId, 1, 1, 2);
+  await check(base, good.battleId, 1, 1, 3);
   console.log("PASS: D1 Worker binding CAS + receipt/outbox + unordered bijection");
 
   const stale = await request(base, "/apply", makeTransition(good, "stale-command"));
   assert.equal(stale.status, 409, JSON.stringify(stale));
-  await check(base, good.battleId, 1, 1, 2);
+  await check(base, good.battleId, 1, 1, 3);
   console.log("PASS: stale version rejected atomically");
 
   const duplicate = genesis("wrangler-duplicate");
@@ -142,7 +148,7 @@ try {
   const invalidIds = await request(base, "/apply", makeTransition(
     duplicate, "dupe-receipt", [event("dupe:e1"), event("dupe:e2")], ["dupe:e1", "dupe:e1"]));
   assert.equal(invalidIds.status, 409, JSON.stringify(invalidIds));
-  await check(base, duplicate.battleId, 0, 0, 0);
+  await check(base, duplicate.battleId, 0, 0, 1);
   console.log("PASS: duplicate/omitted receipt IDs rollback all three tables");
 
   const version = genesis("wrangler-forged-version");
@@ -150,7 +156,7 @@ try {
   const forged = await request(base, "/apply", makeTransition(version,
     "forged-event-version", [event("version:event", 999)]));
   assert.equal(forged.status, 409, JSON.stringify(forged));
-  await check(base, version.battleId, 0, 0, 0);
+  await check(base, version.battleId, 0, 0, 1);
   console.log("PASS: forged outbox version rejected atomically");
 
   const race = genesis("wrangler-race");
@@ -161,7 +167,7 @@ try {
   ]);
   assert.equal(contenders.filter((x) => x.status === 200).length, 1, JSON.stringify(contenders));
   assert.equal(contenders.filter((x) => x.status === 409).length, 1, JSON.stringify(contenders));
-  await check(base, race.battleId, 1, 1, 0);
+  await check(base, race.battleId, 1, 1, 1);
   console.log("PASS: concurrent same-version D1 Worker submissions have exactly one winner");
 
   console.log("WRANGLER_LOCAL_D1_PASS (NOT REMOTE_D1_PASS)");
