@@ -126,6 +126,21 @@ try {
 
   const denyAdmin = await request(base, "POST", "/v1/admin/battles", "not-the-admin", {});
   assert.equal(denyAdmin.status, 401);
+  // Verify enforcement even if Content-Length is absent: the Worker must
+  // stop an oversized streaming body before parsing or writing to D1.
+  const giant = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('{"participants":' + " ".repeat(9000) + '}'));
+      controller.close();
+    },
+  });
+  const oversized = await fetch(base + "/v1/admin/battles", {
+    method: "POST",
+    headers: { authorization: "Bearer " + admin, "content-type": "application/json" },
+    body: giant, duplex: "half", signal: AbortSignal.timeout(9000),
+  });
+  assert.equal(oversized.status, 413, "stream without Content-Length bypassed body limit");
+  console.log("PASS: oversized streaming request rejected before JSON parsing");
   const battle = await create(base, "alpha");
   assert.equal((await request(base, "GET", "/v1/battles/" + battle.battleId)).status, 401);
   assert.equal((await get(base, battle, battle.capabilities.A.token)).version, 0);
