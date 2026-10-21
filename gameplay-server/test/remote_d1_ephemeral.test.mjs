@@ -18,7 +18,7 @@ test("SQL escaping is safe for internal synthetic fixture strings", () => {
 
 test("synthetic battle cannot refer to telemetry or arbitrary DB state", () => {
   assert.throws(() => createSql(initialState("telemetry_events")));
-  assert.match(createSql(initialState("scratch-test")), /gameplay_battles/);
+  assert.match(createSql(initialState("scratch-test")), /gameplay_create_battle/);
 });
 
 test("transition request includes version and exact receipt/outbox fixture", () => {
