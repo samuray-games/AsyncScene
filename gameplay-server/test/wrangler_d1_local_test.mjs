@@ -212,7 +212,7 @@ try {
   assert.equal(actual.status, 200, JSON.stringify(actual));
   await check(base, "lifecycle-origin", 1, 1, 2);
   const publicB = lifecycle.getPublicView(result.state, "participant-B");
-  assert.equal(publicB.ok, true, JSON.stringify(publicB));
+  assert.equal(publicB.revealed, false, JSON.stringify(publicB));
   assert.ok(!JSON.stringify(publicB).includes("attackColor"),
     "opponent's hidden committed selection must not appear in public view");
   console.log("PASS: merged Chat 03A lifecycle genesis + commit -> actual D1 Worker");
