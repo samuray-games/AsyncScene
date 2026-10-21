@@ -15,6 +15,20 @@ a **separate, explicitly approved and provisioned gameplay D1 database**.
 This migration exists only in `gameplay-server/migrations`, **not** in
 `telemetry-receiver/migrations`. Do not run it against the telemetry D1 binding.
 
+## Atomic battle creation and origin event
+
+The trusted lifecycle `createBattle` returns a version-0 snapshot containing
+one `battle.created` event. A separate direct table INSERT could lose this
+event on a crash; the `gameplay_create_battle` write-only view instead accepts
+`(battle_id, initial_state_json, creation_event_json, trusted_now_ms)`.
+Its trigger checks genesis and the event identity/type/version, then inserts
+`gameplay_battles` and `gameplay_event_outbox` atomically.
+
+This is a **storage fence, not caller authentication or full gameplay state
+validation**. Only a trusted Worker running the actual lifecycle module may
+supply the snapshot. Creation capabilities / player identity are not part of
+this foundation.
+
 ## Atomic transition protocol (draft)
 
 The single SQL statement is an `INSERT` into write-only view
@@ -58,11 +72,11 @@ python -m unittest discover -s gameplay-server/test -p 'test_*.py' -v
 ```
 
 The dedicated `chat03b1-gameplay-cas.yml` workflow runs two independent
-jobs: 18 native SQLite/Python cases and an additional *Wrangler local D1*
+jobs: 22 native SQLite/Python test methods and an additional *Wrangler local D1*
 integration run through the real local `workerd` Worker binding. The latter
 uses `wrangler.local-test.jsonc` and the test-only Worker in `test/`,
 applies the committed SQL migration in a disposable isolated local D1,
-then checks CAS, exact receipt/outbox bijection, event versions, rollback
+then checks CAS, atomic genesis/origin event, exact receipt/outbox bijection, event versions, rollback
 and simultaneous same-version requests. It does not require Cloudflare tokens,
 provision any remote database, or access the existing telemetry D1.
 
@@ -73,10 +87,12 @@ and JavaScript-safe version/timestamp values. Native SQLite Python tests
 also cover this D1-compatible behavior and fractional-clock rejection.
 The first Wrangler integration run exposed this previously missed mismatch.
 
-**Evidence boundary:** `WRANGLER_LOCAL_D1_PASS` is not
-`REMOTE_D1_PASS`. Verify trigger behavior and race handling again on a
-separate, authenticated, expressly approved Cloudflare-hosted gameplay D1
-database before any production adapter or merge/deployment approval.
+**Evidence boundary:** the previous remote Cloudflare SQL API probe verified
+transition CAS/rollback on an earlier migration. The added genesis+origin
+view and live lifecycle integration currently have SQLite + Wrangler local
+D1 verification, **NOT an updated hosted D1 acceptance run**. The full
+schema must be rechecked on fresh hosted D1 before production integration.
+The test-only Worker has unauthenticated inspection and MUST NOT be deployed.
 
 ## Required follow-up gates
 
