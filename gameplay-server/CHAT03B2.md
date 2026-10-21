@@ -9,7 +9,7 @@
 - Only SHA-256 digests of participant tokens are stored in `gameplay_battle_capabilities`. Each token grants access solely to a single battle/side, and can be carried to another device for reconnection.
 - `createdAt`, confirmation deadline, generated battle ID and system actor are Worker-authoritative. `COMMIT_WINDOW_MS` is **required** and bounded at startup. That bound is a technical safety range, not an approved game-design timeout.
 - Initial state + origin event + both capability records commit in one D1 `batch()` transaction. Subsequent lifecycle commands use versioned atomic `gameplay_apply_transition`; same-command replay consults the durable receipt and rejects conflicting payloads.
-- Participant reads use the lifecycle's `getPublicView()` exclusively. Automatic reveal happens only after both sides commit. Scheduled handler can reveal committed states or expire uncommitted past-deadline battles. No vote, economy, social event, territory, hidden Web UI or `finalize` route is provided.
+- Participant reads use the lifecycle's `getPublicView()` exclusively. Automatic reveal happens only after both sides commit. Scheduled handler selects committed or expired-due battles before processing them. A local integration test verifies 101 waiting battles cannot delay a committed reveal. No vote, economy, social event, territory, hidden Web UI or `finalize` route is provided.
 
 ## Private API
 
