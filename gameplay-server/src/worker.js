@@ -11,6 +11,25 @@ const lifecycle = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThi
 const MAX_BODY = 8192;
 const MAX_COMMAND_RETRIES = 5;
 const te = new TextEncoder();
+const SELECTION_FIELDS = ["attackColor", "defenseColor", "attackType", "defenseType", "role"];
+const SELECTION_COLORS = new Set(["y", "o", "r", "k"]);
+const SELECTION_ATTACKS = new Set(["N", "P", "T"]);
+const SELECTION_DEFENSES = new Set(["S", "C", "G"]);
+
+function normalizeSelection(selection, expectedRole) {
+  if (!selection || typeof selection !== "object" || Array.isArray(selection) ||
+      Object.keys(selection).some(key => !SELECTION_FIELDS.includes(key)) ||
+      SELECTION_FIELDS.some(key => !Object.prototype.hasOwnProperty.call(selection, key) ||
+        typeof selection[key] !== "string")) return null;
+  if (!SELECTION_COLORS.has(selection.attackColor) || !SELECTION_COLORS.has(selection.defenseColor) ||
+      !SELECTION_ATTACKS.has(selection.attackType) || !SELECTION_DEFENSES.has(selection.defenseType) ||
+      !selection.role.trim() || selection.role.trim() !== selection.role ||
+      selection.role !== expectedRole ||
+      (selection.role !== "mafia" && (selection.attackColor === "k" || selection.defenseColor === "k"))) {
+    return null;
+  }
+  return Object.fromEntries(SELECTION_FIELDS.map(key => [key, selection[key]]));
+}
 
 function encodeJSON(value, status = 200, origin = null) {
   const headers = new Headers({
@@ -356,7 +375,15 @@ async function commit(db, id, authorized, body) {
     // If two first-commit requests race, the loser retries after the SQL CAS
     // conflict and reaches this guard against the winning snapshot.
     if (Object.prototype.hasOwnProperty.call(state.commits, authorized.side)) {
-      return { error: "ALREADY_COMMITTED", status: 409 };
+      const expectedRole = state.participants[authorized.side].role;
+      const requestedSelection = normalizeSelection(body.selection, expectedRole);
+      if (!requestedSelection) return { error: "INVALID_SELECTION", status: 409 };
+      const committedSelection = normalizeSelection(state.commits[authorized.side].selection, expectedRole);
+      return {
+        error: committedSelection && canonical(requestedSelection) === canonical(committedSelection)
+          ? "ALREADY_COMMITTED" : "COMMIT_IMMUTABLE",
+        status: 409,
+      };
     }
     const now = Date.now();
     const command = {

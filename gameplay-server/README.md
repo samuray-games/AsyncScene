@@ -87,11 +87,11 @@ and JavaScript-safe version/timestamp values. Native SQLite Python tests
 also cover this D1-compatible behavior and fractional-clock rejection.
 The first Wrangler integration run exposed this previously missed mismatch.
 
-**Evidence boundary:** the previous remote Cloudflare SQL API probe verified
-transition CAS/rollback on an earlier migration. The added genesis+origin
-view and live lifecycle integration currently have SQLite + Wrangler local
-D1 verification, **NOT an updated hosted D1 acceptance run**. The full
-schema must be rechecked on fresh hosted D1 before production integration.
+**Evidence boundary:** on 2026-10-22, the user verified migration
+`0001_tactical_state.sql` against a separate hosted Cloudflare D1 database on
+PR #440 HEAD `ed6c01d50b49a5afa02437dac096c2f9e0551836`; the reported result was
+`HOSTED_D1_SQL_CAS_PASS` ([issue #439 evidence](https://github.com/samuray-games/AsyncScene/issues/439#issuecomment-6332989583)).
+Migrations 0002/0003 and the remote authenticated Worker remain unverified.
 The test-only Worker has unauthenticated inspection and MUST NOT be deployed.
 
 ## Required follow-up gates

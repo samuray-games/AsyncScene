@@ -323,9 +323,14 @@ try {
     FROM gameplay_battles b WHERE b.battle_id='${battle.battleId}'`)[0];
   assert.ok(committedSnapshot, "committed battle was not persisted");
   const committedState = JSON.parse(committedSnapshot.state_json);
+  const committedSnapshotAfterRejectedCommands = () => query(`SELECT b.version,b.state_json,
+    (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+    (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${battle.battleId}'`)[0];
   for (let i = 0; i < 100; i++) {
     const duplicate = await commit(base, battle, "A", `fresh-command-${String(i).padStart(3, "0")}`);
     assert.equal(duplicate.status, 409, `fresh command ${i} must not mutate accepted choice: ${JSON.stringify(duplicate)}`);
+    assert.equal(duplicate.error, "ALREADY_COMMITTED");
   }
   const concurrentDuplicates = await Promise.all(Array.from({ length: 16 }, (_, i) =>
     commit(base, battle, "A", `parallel-fresh-${String(i).padStart(3, "0")}`)));
@@ -342,8 +347,14 @@ try {
     selection: { ...selection, attackColor: "o" },
   });
   assert.equal(changedSelection.status, 409, JSON.stringify(changedSelection));
-  assert.equal(query(`SELECT version FROM gameplay_battles WHERE battle_id='${battle.battleId}'`)[0].version,
-    committedSnapshot.version);
+  assert.equal(changedSelection.error, "COMMIT_IMMUTABLE", JSON.stringify(changedSelection));
+  const identicalSelection = await commit(base, battle, "A", "fresh-command-identical-selection");
+  assert.equal(identicalSelection.status, 409, JSON.stringify(identicalSelection));
+  assert.equal(identicalSelection.error, "ALREADY_COMMITTED", JSON.stringify(identicalSelection));
+  const unauthorizedCommit = await request(base, "POST", "/v1/battles/" + battle.battleId + "/commit",
+    "not-a-capability", { commandId: "unauthorized-command", selection: { ...selection, attackColor: "o" } });
+  assert.deepEqual(unauthorizedCommit, { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot);
   console.log("PASS: 100 fresh IDs plus 16 concurrent fresh IDs cannot grow committed state/receipts/outbox");
 
   const aReplay = await commit(base, battle, "A", "command-alpha-A");
@@ -353,6 +364,8 @@ try {
     selection: { ...selection, attackColor: "o" },
   });
   assert.equal(badReplay.status, 409);
+  assert.equal(badReplay.error, "COMMAND_ID_REUSE");
+  assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot);
   console.log("PASS: idempotent replay across devices and changed-command rejection");
 
   const b = await commit(base, battle, "B", "command-alpha-B");
