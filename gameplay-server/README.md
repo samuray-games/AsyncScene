@@ -127,3 +127,53 @@ no expiry because retention has not been approved. Identity, revocation,
 retention/deletion, backup/key restore and secret-rotation ownership remain
 explicit pre-deployment gates. The local test key is synthetic and the
 test-only inspection Worker must never be deployed.
+
+### Hosted D1 migration preflight
+
+`test/hosted_chat03b2_d1_preflight.mjs` applies migrations 0001, 0002 and 0003
+to a random `asynchronia-chat03b2-scratch-*` Cloudflare D1 through the D1 SQL
+API. It has a hard opt-in (`CHAT03B2_HOSTED_D1_APPROVED=YES`), accepts no target
+database name or UUID from the caller, and only addresses the UUID returned by
+its own create request. It checks atomic creation of the battle, origin event,
+both capability digest rows and a ciphertext-shaped idempotency/recovery row,
+plus rollback for bad genesis, capability, idempotency and recovery constraints.
+Fixture digests/ciphertext are synthetic and do not validate AES-GCM. It attempts
+deletion in `finally`, confirms absence with a separate GET, and writes a
+0600 pending-cleanup record if the result is uncertain. A later normal run is
+blocked until cleanup is verified; explicit cleanup retry mode rechecks the
+stored ID/name pair and never creates a database. A process-kill may leave a
+stale invocation lock; the tool will refuse to delete it automatically. Confirm
+the recorded PID is no longer running before manually removing that exact lock,
+then use the pending-cleanup retry mode if the database marker exists.
+
+Migration SQL uses Cloudflare's [D1 raw query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/raw/); the create/rollback probe uses its batch request form and the documented [D1 transactional batch behavior](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
+
+Offline safety tests run with:
+
+```bash
+node --test gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
+```
+
+An actual hosted run requires separate user authorization and a narrowly
+scoped `CLOUDFLARE_API_TOKEN` with D1 database create, query, read and delete
+permissions. The normal command is:
+
+```bash
+CHAT03B2_HOSTED_D1_APPROVED=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+If deletion fails, do not start another database test. After inspecting the
+pending cleanup record and confirming the intended account, retry only the
+recorded UUID with:
+
+```bash
+CHAT03B2_HOSTED_D1_APPROVED=YES CHAT03B2_HOSTED_D1_RETRY_CLEANUP=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+The command above is documentation only; this change's tests do not contact
+Cloudflare. Success is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)`. No
+Worker is created or deployed. Actual authenticated Worker validation is a
+separate gate requiring separate approval. `ADMIN_CONTROL_TOKEN` is for trusted
+server-side creation and must never be placed in browser code. Current CORS
+does not allow `Idempotency-Key`, so browser preflight for the admin endpoint
+fails; see [`CHAT03B2.md`](CHAT03B2.md).
