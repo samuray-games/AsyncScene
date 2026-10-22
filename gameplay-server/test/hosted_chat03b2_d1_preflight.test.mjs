@@ -26,6 +26,64 @@ function jsonResponse(status, payload) {
   return new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json" } });
 }
 
+function successfulSqlApiMock({ preDelete = "present", postDelete = "absent" } = {}) {
+  let scratchName = SCRATCH_PREFIX + "ab".repeat(10);
+  let resourceExists = true;
+  let deleteSent = false;
+  let batchCount = 0;
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    const parsed = new URL(url);
+    const method = options.method || "GET";
+    const body = options.body ? JSON.parse(options.body) : null;
+    calls.push({ method, path: parsed.pathname });
+    if (parsed.pathname.endsWith("/d1/database") && method === "POST") {
+      scratchName = body.name;
+      return jsonResponse(200, { success: true, result: { uuid: UUID, name: scratchName } });
+    }
+    if (parsed.pathname.endsWith("/raw")) {
+      if (typeof body.sql === "string") return jsonResponse(200, { success: true, result: [] });
+      batchCount++;
+      return batchCount === 1
+        ? jsonResponse(200, { success: true, result: [{ success: true }] })
+        : jsonResponse(400, { success: false, errors: [{ code: 1001 }] });
+    }
+    if (parsed.pathname.endsWith("/query")) {
+      const sql = body.sql;
+      let results = [];
+      if (sql.includes("genesis_events")) results = [{ battles: 1, genesis_events: 1, capabilities: 2, creations: 1 }];
+      else if (sql.startsWith("SELECT side")) results = [
+        { side: "A", participant_id: "test-A", digest_length: 64 },
+        { side: "B", participant_id: "test-B", digest_length: 64 },
+      ];
+      else if (sql.startsWith("SELECT version,state_json")) results = [{ version: 0,
+        state_json: JSON.stringify(makeCreateBatch("scratch-pass", "pass").state) }];
+      else if (sql.includes("recovery_nonce_base64url")) results = [{ nonce_length: 16, ciphertext_length: 64 }];
+      else if (sql.includes("sqlite_master")) results = [
+        { name: "gameplay_battle_capabilities" }, { name: "gameplay_battle_creations" },
+        { name: "gameplay_battles" }, { name: "gameplay_event_outbox" },
+      ];
+      else results = [{ battles: 0, events: 0, capabilities: 0, creations: 0 }];
+      return jsonResponse(200, { success: true, result: [{ results }] });
+    }
+    if (parsed.pathname.endsWith("/" + UUID) && method === "GET") {
+      if (!deleteSent && preDelete === "http500") return jsonResponse(500, { success: false });
+      if (!deleteSent && preDelete === "network-error") throw Error("mock pre-delete GET network error");
+      if (deleteSent && postDelete === "network-error") throw Error("mock post-delete GET network error");
+      if (deleteSent && postDelete === "not-absent") resourceExists = true;
+      if (!resourceExists) return jsonResponse(404, { success: false });
+      return jsonResponse(200, { success: true, result: { uuid: UUID, name: scratchName } });
+    }
+    if (parsed.pathname.endsWith("/" + UUID) && method === "DELETE") {
+      deleteSent = true;
+      if (postDelete === "absent") resourceExists = false;
+      return jsonResponse(200, { success: true, result: { uuid: UUID } });
+    }
+    throw Error("unexpected request");
+  };
+  return { fetchImpl, calls };
+}
+
 test("approval is fail-closed before any Cloudflare request", async () => {
   const p = tempPaths();
   let calls = 0;
@@ -464,3 +522,52 @@ test("final SQL API pass is logged only after successful probes and confirmed de
     assert.ok(log.findIndex(message => message.includes("absence verified")) < passIndex);
   } finally { rmSync(p.dir, { recursive: true, force: true }); }
 });
+
+for (const mode of ["normal", "retry"]) {
+  for (const preDelete of ["http500", "network-error"]) {
+    test(`${mode} cleanup retains marker and withholds final PASS when pre-DELETE GET is ${preDelete}`, async () => {
+      const p = tempPaths();
+      const logs = [];
+      const mock = successfulSqlApiMock({ preDelete });
+      const env = mode === "retry"
+        ? { ...APPROVED, CHAT03B2_HOSTED_D1_RETRY_CLEANUP: "YES" }
+        : APPROVED;
+      if (mode === "retry") writeFileSync(p.pendingPath, JSON.stringify({
+        schema: 1, status: "READY_FOR_CLEANUP", accountId: ACCOUNT, databaseId: UUID,
+        databaseName: SCRATCH_PREFIX + "ab".repeat(10),
+      }), { mode: 0o600 });
+      try {
+        await assert.rejects(runHostedPreflight({ env, pendingPath: p.pendingPath,
+          lockPath: p.lockPath, fetchImpl: mock.fetchImpl, log: message => logs.push(message) }));
+        assert.equal(existsSync(p.pendingPath), true);
+        assert.equal(mock.calls.some(call => call.method === "DELETE"), false);
+        assert.ok(mock.calls.every(call => call.path.endsWith("/" + UUID) ||
+          call.path.includes("/d1/database") || call.path.endsWith("/raw") || call.path.endsWith("/query")));
+        assert.equal(logs.some(message => message.startsWith("HOSTED_D1_SQL_API_PASS")), false);
+      } finally { rmSync(p.dir, { recursive: true, force: true }); }
+    });
+  }
+
+  test(`${mode} cleanup retains marker and withholds final PASS when DELETE succeeds but GET still finds the database`, async () => {
+    const p = tempPaths();
+    const logs = [];
+    const mock = successfulSqlApiMock({ postDelete: "not-absent" });
+    const env = mode === "retry"
+      ? { ...APPROVED, CHAT03B2_HOSTED_D1_RETRY_CLEANUP: "YES" }
+      : APPROVED;
+    if (mode === "retry") writeFileSync(p.pendingPath, JSON.stringify({
+      schema: 1, status: "READY_FOR_CLEANUP", accountId: ACCOUNT, databaseId: UUID,
+      databaseName: SCRATCH_PREFIX + "ab".repeat(10),
+    }), { mode: 0o600 });
+    try {
+      await assert.rejects(runHostedPreflight({ env, pendingPath: p.pendingPath,
+        lockPath: p.lockPath, fetchImpl: mock.fetchImpl, log: message => logs.push(message) }),
+      /SCRATCH_CLEANUP_FAILED|SCRATCH_DELETE_NOT_CONFIRMED/);
+      assert.equal(existsSync(p.pendingPath), true);
+      const cleanupCalls = mock.calls.filter(call => call.method === "GET" || call.method === "DELETE");
+      assert.deepEqual(cleanupCalls.map(call => call.method), ["GET", "DELETE", "GET"]);
+      assert.ok(cleanupCalls.every(call => call.path.endsWith("/" + UUID)));
+      assert.equal(logs.some(message => message.startsWith("HOSTED_D1_SQL_API_PASS")), false);
+    } finally { rmSync(p.dir, { recursive: true, force: true }); }
+  });
+}
