@@ -261,6 +261,7 @@ test("cleanup retry fails closed if stored UUID no longer names the recorded scr
 
 test("network exceptions are sanitized and fixture SQL contains only digests/ciphertext", async () => {
   const p = tempPaths();
+  let networkCalls = 0;
   try {
     const fixture = makeCreateBatch("scratch-safety-fixture", "safety");
     const serialized = JSON.stringify(fixture.batch);
@@ -268,10 +269,12 @@ test("network exceptions are sanitized and fixture SQL contains only digests/cip
     assert.ok(!serialized.includes("ADMIN_CONTROL_TOKEN"));
     assert.match(serialized, new RegExp(sha256("chat03b2-test-capability:A:safety")));
     await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
-      lockPath: p.lockPath, fetchImpl: async () => { throw Error(TOKEN); }, log: () => {} }), error => {
+      lockPath: p.lockPath, fetchImpl: async () => { networkCalls++; throw Error(TOKEN); }, log: () => {} }), error => {
         assert.match(error.message, /CLOUDFLARE_API_REQUEST_FAILED/);
         assert.ok(!error.message.includes(TOKEN));
         return true;
       });
+    assert.equal(networkCalls, 1, "no delete is attempted without a create-returned UUID");
+    assert.equal(existsSync(p.pendingPath), false);
   } finally { rmSync(p.dir, { recursive: true, force: true }); }
 });

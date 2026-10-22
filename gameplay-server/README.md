@@ -145,6 +145,9 @@ stored ID/name pair and never creates a database. A process-kill may leave a
 stale invocation lock; the tool will refuse to delete it automatically. Confirm
 the recorded PID is no longer running before manually removing that exact lock,
 then use the pending-cleanup retry mode if the database marker exists.
+If the create request loses its response before a database UUID is returned,
+the runner will not guess a deletion target by name; inspect the account using
+the printed random scratch name before any further run.
 
 Migration SQL uses Cloudflare's [D1 raw query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/raw/); the create/rollback probe uses its batch request form and the documented [D1 transactional batch behavior](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
 

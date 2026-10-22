@@ -69,6 +69,9 @@ GET confirms the stored UUID still has the expected scratch name. A process
 kill can leave an invocation lock; it is never removed automatically. Confirm
 its PID is no longer running before manually removing that exact lock. No Worker
 is created or deployed, and the telemetry D1 is not read or accepted as a target.
+If CREATE loses its response before returning a database UUID, the runner will
+not guess a delete target by scratch name; inspect that exact printed random name
+in Cloudflare before any subsequent run.
 
 The preflight's success label is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)`.
 It checks hosted migration execution, atomic D1 batch creation of one battle,
