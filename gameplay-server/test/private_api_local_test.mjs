@@ -216,7 +216,9 @@ try {
       "dev", "--test-scheduled", "--config", cfg, "--ip", "127.0.0.1", "--port", String(port),
       "--persist-to", dir,
       "--var", "ADMIN_CONTROL_TOKEN:" + admin,
-      "--var", "COMMIT_WINDOW_MS:60000",
+      // Crypto failure coverage restarts the local Worker several times.
+      // Keep unrelated battle fixtures live throughout slower CI runners.
+      "--var", "COMMIT_WINDOW_MS:600000",
       "--var", "ALLOWED_ORIGIN:https://game.example.test",
       "--var", "CREATE_RECOVERY_KEY_CURRENT:" + recoveryCurrent,
       "--var", "CREATE_RECOVERY_KEYS:" + JSON.stringify(recoveryKeys),
