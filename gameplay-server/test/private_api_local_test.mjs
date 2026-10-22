@@ -282,6 +282,103 @@ try {
     "AEAD failures must not disclose recovery details");
   executeSql(`UPDATE gameplay_battle_creations SET capabilities_ciphertext_base64url='${encryptedRecord.capabilities_ciphertext_base64url}' WHERE idempotency_key_sha256='${creationHash}'`);
   console.log("PASS: recovery tokens are ciphertext-only and AEAD tampering returns a generic error");
+
+  // Negative-path crypto coverage exercises the real admin-create replay
+  // branch against this local workerd instance and its isolated D1 binding.
+  const originalNonce = encryptedRecord.recovery_nonce_base64url;
+  const originalDeadline = encryptedRecord.deadline_at_ms;
+  const originalKeyVersion = encryptedRecord.recovery_key_version;
+  const originalRecoveryKeys = { ...recoveryKeys };
+  const countRecoveryRows = () => Object.fromEntries([
+    "gameplay_battles", "gameplay_battle_capabilities",
+    "gameplay_battle_creations", "gameplay_event_outbox",
+  ].map(table => [table, query(`SELECT COUNT(*) count FROM ${table}`)[0].count]));
+  const recoveryRowCounts = countRecoveryRows();
+  const sensitiveRecoveryValues = [
+    battle.capabilities.A.token, battle.capabilities.B.token, admin, alphaKey,
+    originalRecoveryKeys.testV1, originalRecoveryKeys.testV2,
+    originalNonce, encryptedRecord.capabilities_ciphertext_base64url,
+  ];
+  async function assertRejectedRecovery(label) {
+    const response = await createRequest(base, "alpha", alphaKey);
+    assert.equal(response.status, 500, `${label}: expected generic server failure`);
+    assert.deepEqual(response, { status: 500, error: "SERVER_ERROR" },
+      `${label}: public response must contain only the generic error`);
+    const publicBody = JSON.stringify(response);
+    for (const secret of sensitiveRecoveryValues) {
+      assert.ok(!publicBody.includes(secret), `${label}: public response exposed sensitive recovery material`);
+    }
+    assert.deepEqual(countRecoveryRows(), recoveryRowCounts,
+      `${label}: failure must not create a battle, capability, creation or outbox row`);
+    const replay = await query(`SELECT battle_id,deadline_at_ms,recovery_key_version,
+      recovery_nonce_base64url,capabilities_ciphertext_base64url
+      FROM gameplay_battle_creations WHERE idempotency_key_sha256='${creationHash}'`)[0];
+    assert.equal(replay.battle_id, battle.battleId, `${label}: recovery row identity changed`);
+    return response;
+  }
+  async function restartWorker() {
+    const previous = worker;
+    previous.kill("SIGTERM");
+    await new Promise(resolve => previous.once("close", resolve));
+    worker = spawnApi();
+    await start(base);
+  }
+  function setRecoveryRecord({ nonce = originalNonce, deadline = originalDeadline,
+    keyVersion = originalKeyVersion, ciphertext = encryptedRecord.capabilities_ciphertext_base64url } = {}) {
+    executeSql(`UPDATE gameplay_battle_creations SET
+      recovery_nonce_base64url='${nonce}', deadline_at_ms=${deadline},
+      recovery_key_version='${keyVersion}',
+      capabilities_ciphertext_base64url='${ciphertext}'
+      WHERE idempotency_key_sha256='${creationHash}'`);
+  }
+
+  const nonceBytes = Buffer.alloc(12, 0x5a);
+  const tamperedNonce = nonceBytes.toString("base64url");
+  assert.equal(Buffer.from(tamperedNonce, "base64url").length, 12, "fixture nonce must be valid 96-bit GCM nonce");
+  assert.notEqual(tamperedNonce, originalNonce);
+  setRecoveryRecord({ nonce: tamperedNonce });
+  await assertRejectedRecovery("valid-length recovery nonce tampering");
+  setRecoveryRecord();
+  console.log("PASS: altered valid 96-bit recovery nonce fails AEAD without writes or disclosure");
+
+  setRecoveryRecord({ deadline: originalDeadline + 1 });
+  await assertRejectedRecovery("deadline AAD tampering");
+  setRecoveryRecord();
+  console.log("PASS: altered deadline AAD fails authentication without writes or disclosure");
+
+  recoveryKeys = { ...originalRecoveryKeys,
+    testV2: Buffer.alloc(32, 8).toString("base64url") };
+  await restartWorker();
+  assert.ok(recoveryKeys.testV2, "test requires a second existing historical key version");
+  setRecoveryRecord({ keyVersion: "testV2" });
+  await assertRejectedRecovery("existing but incorrect recovery key version AAD");
+  setRecoveryRecord();
+  console.log("PASS: substituted existing recovery key version fails authentication without writes");
+
+  recoveryKeys = { testV2: originalRecoveryKeys.testV2 };
+  await restartWorker();
+  await assertRejectedRecovery("missing historical recovery key after Worker restart");
+  recoveryKeys = { ...originalRecoveryKeys };
+  await restartWorker();
+  console.log("PASS: missing historical key after restart fails closed without writes or disclosure");
+
+  recoveryKeys = { ...originalRecoveryKeys, testV1: Buffer.alloc(32, 0x39).toString("base64url") };
+  await restartWorker();
+  await assertRejectedRecovery("wrong valid 256-bit historical recovery key after Worker restart");
+  recoveryKeys = { ...originalRecoveryKeys };
+  await restartWorker();
+  console.log("PASS: wrong 256-bit historical key fails AEAD after restart without writes or disclosure");
+
+  setRecoveryRecord();
+  const restoredReplay = await createRequest(base, "alpha", alphaKey);
+  assert.equal(restoredReplay.status, 200, "restored crypto inputs must recover the original create response");
+  assert.equal(restoredReplay.battleId, battle.battleId);
+  assert.equal(restoredReplay.deadlineAt, battle.deadlineAt);
+  assert.deepEqual(restoredReplay.capabilities, battle.capabilities);
+  assert.deepEqual(countRecoveryRows(), recoveryRowCounts,
+    "restored replay must not create additional battles, capabilities, creation rows or events");
+  console.log("PASS: restored nonce, AAD record and historical key recover original battle/deadline/capabilities");
+
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_event_outbox WHERE battle_id='${battle.battleId}'`)[0].count, 1,
     "creation retry must not duplicate genesis event");
   console.log("PASS: repeated create returns one battle, original capabilities and one genesis event");
