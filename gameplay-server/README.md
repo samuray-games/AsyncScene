@@ -110,3 +110,20 @@ The test-only Worker has unauthenticated inspection and MUST NOT be deployed.
 
 **Acceptance level:** SQL schema + SQLite unit/integration tests only, pending
 independent review. No runtime/Safari/PvP security claim.
+
+## Chat 03B2 private API overlay
+
+The current stacked PR adds an isolated private Worker API in
+[`CHAT03B2.md`](CHAT03B2.md), backed by the same dedicated gameplay D1 schema.
+It requires a client-persisted `Idempotency-Key` for administrative creation
+and stores the capability recovery payload only as AES-256-GCM ciphertext.
+Migration `0003_idempotent_battle_creation.sql` stores the key and request
+fingerprints, battle/deadline identity, key version, nonce and ciphertext;
+participant authorization remains SHA-256-digest-only.
+
+The keyring must be provisioned as Worker secrets and rotated by retaining old
+decrypt-only versions while matching rows exist. Creation rows currently have
+no expiry because retention has not been approved. Identity, revocation,
+retention/deletion, backup/key restore and secret-rotation ownership remain
+explicit pre-deployment gates. The local test key is synthetic and the
+test-only inspection Worker must never be deployed.

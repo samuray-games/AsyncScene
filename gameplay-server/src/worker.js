@@ -57,6 +57,63 @@ function newCapability() {
   return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
+function bytesToBase64Url(bytes) {
+  return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+
+function base64UrlToBytes(value) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) throw Error("INVALID_RECOVERY_KEY");
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const binary = atob(normalized + "=".repeat((4 - normalized.length % 4) % 4));
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+function recoveryKeyring(env) {
+  let keys;
+  try { keys = JSON.parse(env.CREATE_RECOVERY_KEYS || "{}"); }
+  catch (_) { throw Error("CREATE_RECOVERY_CONFIG_INVALID"); }
+  const currentVersion = env.CREATE_RECOVERY_KEY_CURRENT;
+  if (!keys || typeof keys !== "object" || Array.isArray(keys) ||
+      typeof currentVersion !== "string" || !Object.prototype.hasOwnProperty.call(keys, currentVersion)) {
+    throw Error("CREATE_RECOVERY_CONFIG_INVALID");
+  }
+  for (const [version, encoded] of Object.entries(keys)) {
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(version) || base64UrlToBytes(encoded).length !== 32) {
+      throw Error("CREATE_RECOVERY_CONFIG_INVALID");
+    }
+  }
+  return { keys, currentVersion };
+}
+
+async function encryptCapabilities(tokens, keyVersion, encodedKey, aad) {
+  const key = await crypto.subtle.importKey("raw", base64UrlToBytes(encodedKey), "AES-GCM", false, ["encrypt"]);
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({
+    name: "AES-GCM", iv: nonce, additionalData: te.encode(aad), tagLength: 128,
+  }, key, te.encode(JSON.stringify(tokens))));
+  return { keyVersion, nonce: bytesToBase64Url(nonce), ciphertext: bytesToBase64Url(ciphertext) };
+}
+
+async function decryptCapabilities(row, keyring, aad) {
+  const encodedKey = keyring.keys[row.recovery_key_version];
+  if (!encodedKey) throw Error("CREATE_RECOVERY_KEY_UNAVAILABLE");
+  const key = await crypto.subtle.importKey("raw", base64UrlToBytes(encodedKey), "AES-GCM", false, ["decrypt"]);
+  const plaintext = await crypto.subtle.decrypt({
+    name: "AES-GCM", iv: base64UrlToBytes(row.recovery_nonce_base64url),
+    additionalData: te.encode(aad), tagLength: 128,
+  }, key, base64UrlToBytes(row.capabilities_ciphertext_base64url));
+  const recovered = JSON.parse(new TextDecoder().decode(plaintext));
+  if (!recovered || !Number.isSafeInteger(recovered.deadlineAt) ||
+      !recovered.capabilities?.A || !recovered.capabilities?.B ||
+      !/^[A-Za-z0-9_-]{2,64}$/.test(recovered.capabilities.A.participantId || "") ||
+      !/^[A-Za-z0-9_-]{2,64}$/.test(recovered.capabilities.B.participantId || "") ||
+      !/^[A-Za-z0-9_-]{43}$/.test(recovered.capabilities.A.token || "") ||
+      !/^[A-Za-z0-9_-]{43}$/.test(recovered.capabilities.B.token || "")) {
+    throw Error("CREATE_RECOVERY_RECORD_INVALID");
+  }
+  return recovered;
+}
+
 function adminAuthorized(req, env) {
   const secret = env.ADMIN_CONTROL_TOKEN;
   return typeof secret === "string" && secret.length >= 32 &&
@@ -154,13 +211,40 @@ function insertTransition(db, current, result, commandId, fingerprint, now) {
   ).run();
 }
 
-async function createBattle(db, body, env) {
+async function storedCreation(db, idempotencyHash) {
+  return db.prepare(
+    `SELECT idempotency_key_sha256,request_fingerprint_sha256,battle_id,deadline_at_ms,
+            recovery_key_version,recovery_nonce_base64url,capabilities_ciphertext_base64url
+     FROM gameplay_battle_creations WHERE idempotency_key_sha256=?`
+  ).bind(idempotencyHash).first();
+}
+
+async function recoverCreation(row, fingerprint, idempotencyHash, env) {
+  if (row.request_fingerprint_sha256 !== fingerprint) {
+    return { error: "IDEMPOTENCY_KEY_REUSE", status: 409 };
+  }
+  const keyring = recoveryKeyring(env);
+  const aad = canonical({
+    purpose: "chat03b2-battle-create-v1", idempotencyHash, fingerprint,
+    battleId: row.battle_id, deadlineAt: row.deadline_at_ms,
+    keyVersion: row.recovery_key_version,
+  });
+  const recovered = await decryptCapabilities(row, keyring, aad);
+  if (recovered.deadlineAt !== row.deadline_at_ms) throw Error("CREATE_RECOVERY_RECORD_INVALID");
+  return { battleId: row.battle_id, ...recovered, status: 200 };
+}
+
+async function createBattle(db, body, env, idempotencyKey) {
   if (!exactKeys(body, ["participants"])) return { error: "INVALID_CREATE", status: 400 };
   const ps = body.participants;
   if (!ps || !participantValid(ps.A) || !participantValid(ps.B) ||
       !exactKeys(ps, ["A", "B"]) || ps.A.id === ps.B.id) {
     return { error: "INVALID_PARTICIPANTS", status: 400 };
   }
+  const idempotencyHash = await sha256hex("chat03b2:create-battle:v1:" + idempotencyKey);
+  const fingerprint = await sha256hex(canonical({ participants: ps }));
+  const prior = await storedCreation(db, idempotencyHash);
+  if (prior) return recoverCreation(prior, fingerprint, idempotencyHash, env);
   const now = Date.now();
   const deadline = now + config(env);
   if (!Number.isSafeInteger(deadline)) return { error: "INVALID_DEADLINE", status: 500 };
@@ -171,9 +255,19 @@ async function createBattle(db, body, env) {
   if (!created.ok) return { error: "INVALID_CREATE", status: 400 };
   const a = newCapability(), b = newCapability();
   const digestA = await sha256hex(a), digestB = await sha256hex(b);
-  // D1 batch executes as an atomic transaction. If either insert fails,
-  // the battle/origin event and both capability rows roll back together.
-  await db.batch([
+  const { keys, currentVersion } = recoveryKeyring(env);
+  const aad = canonical({
+    purpose: "chat03b2-battle-create-v1", idempotencyHash, fingerprint,
+    battleId: id, deadlineAt: deadline, keyVersion: currentVersion,
+  });
+  const encrypted = await encryptCapabilities({
+    deadlineAt: deadline,
+    capabilities: {
+      A: { participantId: ps.A.id, token: a },
+      B: { participantId: ps.B.id, token: b },
+    },
+  }, currentVersion, keys[currentVersion], aad);
+  const writes = [
     db.prepare(
       "INSERT INTO gameplay_create_battle (battle_id,initial_state_json,creation_event_json,trusted_now_ms) VALUES (?,?,?,?)"
     ).bind(id, JSON.stringify(created.state), JSON.stringify(created.state.events[0]), now),
@@ -183,7 +277,23 @@ async function createBattle(db, body, env) {
     db.prepare(
       "INSERT INTO gameplay_battle_capabilities (battle_id,side,participant_id,token_sha256,created_at_ms) VALUES (?,?,?,?,?)"
     ).bind(id, "B", ps.B.id, digestB, now),
-  ]);
+    db.prepare(
+      `INSERT INTO gameplay_battle_creations
+       (idempotency_key_sha256,request_fingerprint_sha256,battle_id,deadline_at_ms,
+        recovery_key_version,recovery_nonce_base64url,capabilities_ciphertext_base64url,created_at_ms)
+       VALUES (?,?,?,?,?,?,?,?)`
+    ).bind(idempotencyHash, fingerprint, id, deadline, encrypted.keyVersion,
+      encrypted.nonce, encrypted.ciphertext, now),
+  ];
+  // The unique idempotency hash arbitrates concurrent creates. D1 batch is
+  // one transaction, so a losing request cannot leave a second genesis.
+  try {
+    await db.batch(writes);
+  } catch (error) {
+    const winner = await storedCreation(db, idempotencyHash);
+    if (winner) return recoverCreation(winner, fingerprint, idempotencyHash, env);
+    throw error;
+  }
   return { battleId: id, deadlineAt: deadline, capabilities: {
     A: { participantId: ps.A.id, token: a },
     B: { participantId: ps.B.id, token: b },
@@ -287,7 +397,11 @@ async function api(request, env) {
   if (pathname === "/v1/admin/battles" && request.method === "POST") {
     if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
     const body = await parseBody(request);
-    const result = await createBattle(env.DB, body, env);
+    const idempotencyKey = request.headers.get("idempotency-key") || "";
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(idempotencyKey)) {
+      return encodeJSON({ error: "INVALID_IDEMPOTENCY_KEY" }, 400, origin);
+    }
+    const result = await createBattle(env.DB, body, env, idempotencyKey);
     const { status, ...payload } = result;
     return encodeJSON(payload, status || 200, origin);
   }
