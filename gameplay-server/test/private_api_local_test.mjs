@@ -376,6 +376,10 @@ try {
   assert.equal(query(`SELECT recovery_key_version FROM gameplay_battle_creations
     WHERE idempotency_key_sha256='${keyringSmokeHash}'`)[0].recovery_key_version, "testV2",
     "positive keyring smoke must persist the active testV2 version");
+  assert.equal(originalKeyVersion, "testV1", "replay target must still reference the historical testV1 key");
+  assert.equal(recoveryCurrent, "testV2", "missing-key scenario must keep testV2 as the active key version");
+  assert.equal(Object.hasOwn(recoveryKeys, originalKeyVersion), false,
+    "historical testV1 key must be absent from the otherwise-valid keyring");
   recoveryRowCounts = countRecoveryRows();
   await assertRejectedRecovery("missing historical recovery key after Worker restart");
   recoveryKeys = { ...originalRecoveryKeys };
