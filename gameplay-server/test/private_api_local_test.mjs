@@ -290,17 +290,19 @@ try {
   const originalNonce = encryptedRecord.recovery_nonce_base64url;
   const originalDeadline = encryptedRecord.deadline_at_ms;
   const originalKeyVersion = encryptedRecord.recovery_key_version;
+  const originalRecoveryCurrent = recoveryCurrent;
   const originalRecoveryKeys = { ...recoveryKeys };
+  const testV2Key = Buffer.alloc(32, 8).toString("base64url");
   const countRecoveryRows = () => Object.fromEntries([
     "gameplay_battles", "gameplay_battle_capabilities",
     "gameplay_battle_creations", "gameplay_event_outbox",
   ].map(table => [table, query(`SELECT COUNT(*) count FROM ${table}`)[0].count]));
-  const recoveryRowCounts = countRecoveryRows();
+  let recoveryRowCounts = countRecoveryRows();
   const sensitiveRecoveryValues = [
     battle.capabilities.A.token, battle.capabilities.B.token, admin, alphaKey,
-    originalRecoveryKeys.testV1, originalRecoveryKeys.testV2,
+    originalRecoveryKeys.testV1, testV2Key,
     originalNonce, encryptedRecord.capabilities_ciphertext_base64url,
-  ];
+  ].filter(value => typeof value === "string" && value.length > 0);
   async function assertRejectedRecovery(label) {
     const response = await createRequest(base, "alpha", alphaKey);
     assert.equal(response.status, 500, `${label}: expected generic server failure`);
@@ -348,21 +350,38 @@ try {
   setRecoveryRecord();
   console.log("PASS: altered deadline AAD fails authentication without writes or disclosure");
 
-  recoveryKeys = { ...originalRecoveryKeys,
-    testV2: Buffer.alloc(32, 8).toString("base64url") };
+  recoveryKeys = { ...originalRecoveryKeys, testV2: testV2Key };
   await restartWorker();
-  assert.ok(recoveryKeys.testV2, "test requires a second existing historical key version");
+  assert.equal(Buffer.from(recoveryKeys.testV2, "base64url").length, 32,
+    "test requires a valid second recovery key version");
   setRecoveryRecord({ keyVersion: "testV2" });
   await assertRejectedRecovery("existing but incorrect recovery key version AAD");
   setRecoveryRecord();
   console.log("PASS: substituted existing recovery key version fails authentication without writes");
 
-  recoveryKeys = { testV2: originalRecoveryKeys.testV2 };
+  recoveryCurrent = "testV2";
+  recoveryKeys = { testV2: testV2Key };
+  assert.equal(Buffer.from(recoveryKeys[recoveryCurrent], "base64url").length, 32,
+    "missing historical-key scenario must use a valid current 256-bit key");
   await restartWorker();
+  const keyringSmokeKey = testCreateKey("valid-keyring-smoke");
+  const keyringSmoke = await createRequest(base, "valid-keyring-smoke", keyringSmokeKey);
+  assert.equal(keyringSmoke.status, 201,
+    "current testV2 keyring must successfully create a separate synthetic battle before historical replay");
+  assert.ok(keyringSmoke.battleId && keyringSmoke.capabilities?.A?.token && keyringSmoke.capabilities?.B?.token,
+    "valid keyring smoke create must return its synthetic battle and capabilities");
+  sensitiveRecoveryValues.push(keyringSmoke.capabilities.A.token, keyringSmoke.capabilities.B.token);
+  const keyringSmokeHash = createHash("sha256")
+    .update("chat03b2:create-battle:v1:" + keyringSmokeKey).digest("hex");
+  assert.equal(query(`SELECT recovery_key_version FROM gameplay_battle_creations
+    WHERE idempotency_key_sha256='${keyringSmokeHash}'`)[0].recovery_key_version, "testV2",
+    "positive keyring smoke must persist the active testV2 version");
+  recoveryRowCounts = countRecoveryRows();
   await assertRejectedRecovery("missing historical recovery key after Worker restart");
   recoveryKeys = { ...originalRecoveryKeys };
+  recoveryCurrent = originalRecoveryCurrent;
   await restartWorker();
-  console.log("PASS: missing historical key after restart fails closed without writes or disclosure");
+  console.log("PASS: valid testV2 keyring creates successfully, then missing testV1 replay fails without writes/disclosure");
 
   recoveryKeys = { ...originalRecoveryKeys, testV1: Buffer.alloc(32, 0x39).toString("base64url") };
   await restartWorker();
