@@ -241,6 +241,13 @@ async function commit(db, id, authorized, body) {
     if (state.participants[authorized.side]?.id !== authorized.participant_id) {
       return { error: "INVALID_CAPABILITY", status: 403 };
     }
+    // A confirmed choice is immutable. Fresh command IDs cannot turn an
+    // already-committed intent into a state transition or durable receipt.
+    // If two first-commit requests race, the loser retries after the SQL CAS
+    // conflict and reaches this guard against the winning snapshot.
+    if (Object.prototype.hasOwnProperty.call(state.commits, authorized.side)) {
+      return { error: "ALREADY_COMMITTED", status: 409 };
+    }
     const now = Date.now();
     const command = {
       type: "commit", commandId: scopedCommandId, expectedVersion: state.version,

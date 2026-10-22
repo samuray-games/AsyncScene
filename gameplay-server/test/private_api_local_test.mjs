@@ -35,6 +35,17 @@ function migrate(file) {
   if (r.error || r.status !== 0) throw Error("MIGRATION_FAILED " +
     file + " " + String(r.error || "") + " " + (r.stderr || "").slice(-2500));
 }
+function query(sql) {
+  const r = spawnSync(cli, ["d1", "execute", "DB", "--local", "--config", cfg,
+    "--command", sql, "--json", "--persist-to", dir, "--yes"], {
+    cwd: root, env, encoding: "utf8", timeout: 60000,
+  });
+  if (r.error || r.status !== 0) throw Error("QUERY_FAILED " + String(r.error || "") + " " + (r.stderr || "").slice(-2500));
+  const parsed = JSON.parse(r.stdout);
+  const rows = parsed?.[0]?.results ?? parsed?.results;
+  assert.ok(Array.isArray(rows), "unexpected Wrangler D1 JSON output: " + r.stdout.slice(0, 1000));
+  return rows;
+}
 async function request(base, method, route, token, body, origin) {
   const headers = {};
   if (token) headers.authorization = "Bearer " + token;
@@ -215,6 +226,29 @@ try {
   assert.ok(!JSON.stringify(viewB).includes("attackColor"), "leaked secret selection to B before reveal");
   console.log("PASS: actor spoof blocked; selection remains hidden after first commit");
 
+  const committedSnapshot = query(`SELECT b.version,b.state_json,
+    (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+    (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${battle.battleId}'`)[0];
+  assert.ok(committedSnapshot, "committed battle was not persisted");
+  const committedState = JSON.parse(committedSnapshot.state_json);
+  for (let i = 0; i < 100; i++) {
+    const duplicate = await commit(base, battle, "A", `fresh-command-${String(i).padStart(3, "0")}`);
+    assert.equal(duplicate.status, 409, `fresh command ${i} must not mutate accepted choice: ${JSON.stringify(duplicate)}`);
+  }
+  const concurrentDuplicates = await Promise.all(Array.from({ length: 16 }, (_, i) =>
+    commit(base, battle, "A", `parallel-fresh-${String(i).padStart(3, "0")}`)));
+  assert.ok(concurrentDuplicates.every(x => x.status === 409), JSON.stringify(concurrentDuplicates));
+  const afterDuplicates = query(`SELECT b.version,b.state_json,
+    (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+    (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${battle.battleId}'`)[0];
+  assert.equal(afterDuplicates.version, committedSnapshot.version);
+  assert.equal(afterDuplicates.receipts, committedSnapshot.receipts);
+  assert.equal(afterDuplicates.outbox, committedSnapshot.outbox);
+  assert.deepEqual(JSON.parse(afterDuplicates.state_json), committedState);
+  console.log("PASS: 100 fresh IDs plus 16 concurrent fresh IDs cannot grow committed state/receipts/outbox");
+
   const aReplay = await commit(base, battle, "A", "command-alpha-A");
   assert.equal(aReplay.status, 200);
   assert.equal(aReplay.replayed, true);
@@ -230,7 +264,18 @@ try {
   const publicB = await get(base, battle, battle.capabilities.B.token);
   assert.equal(publicA.revealed, true, JSON.stringify(publicA));
   assert.equal(publicB.revealed, true, JSON.stringify(publicB));
-  assert.ok(publicA.version >= 3 && publicB.version >= 3);
+  assert.equal(publicA.version, 3);
+  assert.equal(publicB.version, 3);
+  const completed = query(`SELECT b.state_json,
+    (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+    (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${battle.battleId}'`)[0];
+  const completedState = JSON.parse(completed.state_json);
+  assert.deepEqual(completedState.commits.A.selection, selection);
+  assert.deepEqual(completedState.commits.B.selection, selection);
+  assert.equal(completedState.events.filter(e => e.type === "battle.revealed").length, 1);
+  assert.equal(completed.receipts, 3, "two player receipts plus one system reveal receipt");
+  assert.equal(completed.outbox, 4, "genesis, two commits and one reveal event");
   console.log("PASS: two real lifecycle commits and trusted automatic reveal");
 
   // Simulate process exit after a durable commit, then reconnect with the
@@ -257,6 +302,24 @@ try {
   assert.equal(racePublic.revealed, true);
   assert.ok(racePublic.version >= 3);
   console.log("PASS: both simultaneous participant commits survive CAS and reveal");
+
+  const sameSideRace = await create(base, "same-side-race");
+  const competingA = await Promise.all([
+    commit(base, sameSideRace, "A", "same-side-race-A-one"),
+    commit(base, sameSideRace, "A", "same-side-race-A-two"),
+  ]);
+  assert.equal(competingA.filter(x => x.status === 200).length, 1, JSON.stringify(competingA));
+  assert.equal(competingA.filter(x => x.status === 409).length, 1, JSON.stringify(competingA));
+  const afterSameSideRace = query(`SELECT b.version,
+    (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+    (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${sameSideRace.battleId}'`)[0];
+  assert.equal(afterSameSideRace.version, 1);
+  assert.equal(afterSameSideRace.receipts, 1);
+  assert.equal(afterSameSideRace.outbox, 2);
+  assert.equal((await commit(base, sameSideRace, "B", "same-side-race-B")).status, 200);
+  assert.equal((await get(base, sameSideRace, sameSideRace.capabilities.A.token)).revealed, true);
+  console.log("PASS: same-side concurrent first commits produce one transition; B still completes reveal");
 
   const sharedIds = await create(base, "shared");
   const sameLocalIds = await Promise.all([
