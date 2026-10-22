@@ -4,7 +4,7 @@
 
 import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
-import { closeSync, existsSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync, writeSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -113,8 +113,14 @@ async function cloudRequest(auth, suffix, method, body, fetchImpl) {
 
 function writePending(pendingPath, record) {
   const tempPath = pendingPath + ".tmp-" + process.pid + "-" + randomBytes(4).toString("hex");
-  writeFileSync(tempPath, JSON.stringify(record), { mode: 0o600, flag: "wx" });
+  const fd = openSync(tempPath, "wx", 0o600);
+  try {
+    writeFileSync(fd, JSON.stringify(record));
+    fsyncSync(fd);
+  } finally { closeSync(fd); }
   renameSync(tempPath, pendingPath);
+  const dirFd = openSync(path.dirname(pendingPath), "r");
+  try { fsyncSync(dirFd); } finally { closeSync(dirFd); }
 }
 
 function readPending(pendingPath) {
@@ -122,11 +128,15 @@ function readPending(pendingPath) {
   let value;
   try { value = JSON.parse(readFileSync(pendingPath, "utf8")); }
   catch { throw new Error("PENDING_CLEANUP_RECORD_INVALID"); }
+  const status = value?.status || (isDatabaseUuid(value?.databaseId) ? "READY_FOR_CLEANUP" : null);
   if (!value || value.schema !== 1 || !/^[a-f0-9]{32}$/i.test(value.accountId || "") ||
-      !isDatabaseUuid(value.databaseId) || !isScratchName(value.databaseName)) {
+      !isScratchName(value.databaseName) ||
+      !["CREATE_IN_FLIGHT", "CREATE_AMBIGUOUS", "CREATE_RESPONSE_MISMATCH", "READY_FOR_CLEANUP"].includes(status) ||
+      (status === "READY_FOR_CLEANUP" ? !isDatabaseUuid(value.databaseId) :
+        (value.databaseId !== null && value.databaseId !== undefined && !isDatabaseUuid(value.databaseId)))) {
     throw new Error("PENDING_CLEANUP_RECORD_INVALID");
   }
-  return value;
+  return { ...value, status };
 }
 
 function clearPending(pendingPath) {
@@ -165,30 +175,45 @@ async function verifyDatabaseAbsent(auth, id, fetchImpl) {
 }
 
 async function deleteAndVerify(auth, record, fetchImpl) {
+  const current = await databaseRequest(auth, record.databaseId, "GET", fetchImpl);
+  if (current.status === 404) return { alreadyAbsent: true };
+  if (!apiOk(current) || current.payload?.result?.uuid !== record.databaseId ||
+      current.payload?.result?.name !== record.databaseName) {
+    throw new Error("SCRATCH_CLEANUP_RESOURCE_IDENTITY_MISMATCH");
+  }
   const response = await databaseRequest(auth, record.databaseId, "DELETE", fetchImpl);
   if (!apiOk(response) && response.status !== 404) throw new Error("SCRATCH_DELETE_FAILED " + apiErrorCode(response));
   if (!await verifyDatabaseAbsent(auth, record.databaseId, fetchImpl)) {
     throw new Error("SCRATCH_DELETE_NOT_CONFIRMED");
   }
+  return { alreadyAbsent: false };
 }
 
 async function retryPending(auth, pendingPath, fetchImpl, log) {
   const record = readPending(pendingPath);
   if (!record) throw new Error("NO_PENDING_CLEANUP");
   if (record.accountId !== auth.accountId) throw new Error("PENDING_CLEANUP_ACCOUNT_MISMATCH");
-  const current = await databaseRequest(auth, record.databaseId, "GET", fetchImpl);
-  if (current.status === 404) {
-    clearPending(pendingPath);
-    log("PASS: pending scratch deletion was already complete");
-    return;
-  }
-  if (!apiOk(current) || current.payload?.result?.uuid !== record.databaseId ||
-      current.payload?.result?.name !== record.databaseName) {
-    throw new Error("PENDING_CLEANUP_RESOURCE_IDENTITY_MISMATCH");
-  }
+  if (record.status !== "READY_FOR_CLEANUP") throw new Error("PENDING_AMBIGUOUS_CREATE_REQUIRES_MANUAL_RESOLUTION");
   await deleteAndVerify(auth, record, fetchImpl);
   clearPending(pendingPath);
   log("PASS: pending scratch D1 deletion verified");
+}
+
+function resolveAmbiguousCreate({ env = process.env, pendingPath = DEFAULT_PENDING } = {}) {
+  if (env.CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS !== "YES") throw new Error("AMBIGUOUS_RESOLUTION_OPT_IN_REQUIRED");
+  const record = readPending(pendingPath);
+  if (!record || !["CREATE_IN_FLIGHT", "CREATE_AMBIGUOUS", "CREATE_RESPONSE_MISMATCH"].includes(record.status)) {
+    throw new Error("NO_AMBIGUOUS_CREATE_TO_RESOLVE");
+  }
+  const resolution = env.CHAT03B2_HOSTED_D1_RESOLUTION;
+  if (!/^[a-f0-9]{32}$/i.test(env.CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID || "") ||
+      env.CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID !== record.accountId ||
+      env.CHAT03B2_HOSTED_D1_RESOLUTION_NAME !== record.databaseName ||
+      !["VERIFIED_ABSENT", "VERIFIED_DELETED"].includes(resolution)) {
+    throw new Error("AMBIGUOUS_RESOLUTION_IDENTITY_MISMATCH");
+  }
+  clearPending(pendingPath);
+  return "AMBIGUOUS_CREATE_RESOLVED";
 }
 
 async function query(auth, databaseId, sql, params, fetchImpl) {
@@ -289,19 +314,24 @@ async function runSqlProbes(auth, databaseId, fetchImpl = fetch, log = console.l
   assert.deepEqual(schema.map(row => row.name), [
     "gameplay_battle_capabilities", "gameplay_battle_creations", "gameplay_battles", "gameplay_event_outbox",
   ]);
-  log("HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)");
 }
 
 export async function runHostedPreflight({
   env = process.env, fetchImpl = fetch, pendingPath = DEFAULT_PENDING, lockPath = DEFAULT_LOCK,
   log = console.log,
 } = {}) {
-  const auth = validateOptIn(env);
+  const manualResolution = env.CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS !== undefined;
+  const auth = manualResolution ? null : validateOptIn(env);
   const lockFd = acquireLock(lockPath);
   let record = null;
   let pendingPersisted = false;
   let primaryFailure = null;
   try {
+    if (manualResolution) {
+      resolveAmbiguousCreate({ env, pendingPath });
+      log("PASS: ambiguous CREATE marker cleared after explicit exact-name manual resolution");
+      return;
+    }
     if (env.CHAT03B2_HOSTED_D1_RETRY_CLEANUP === "YES") {
       await retryPending(auth, pendingPath, fetchImpl, log);
       return;
@@ -309,30 +339,50 @@ export async function runHostedPreflight({
     if (existsSync(pendingPath)) throw new Error("PENDING_CLEANUP_BLOCKS_NEW_DATABASE");
 
     const name = newScratchName();
+    record = { schema: 1, status: "CREATE_IN_FLIGHT", accountId: auth.accountId,
+      databaseId: null, databaseName: name };
+    writePending(pendingPath, record);
+    pendingPersisted = true;
     log("Creating isolated hosted D1 scratch database " + name);
-    const created = await cloudRequest(auth, "/d1/database", "POST", {
-      name, read_replication: { mode: "disabled" },
-    }, fetchImpl);
-    const createdId = created.payload?.result?.uuid;
-    if (isDatabaseUuid(createdId)) {
-      record = { schema: 1, accountId: auth.accountId, databaseId: createdId, databaseName: name };
-      writePending(pendingPath, record);
-      pendingPersisted = true;
+    let created;
+    try {
+      created = await cloudRequest(auth, "/d1/database", "POST", {
+        name, read_replication: { mode: "disabled" },
+      }, fetchImpl);
+    } catch (error) {
+      record = { ...record, status: "CREATE_AMBIGUOUS" };
+      try { writePending(pendingPath, record); } catch { /* CREATE_IN_FLIGHT marker still blocks reruns */ }
+      throw error;
     }
-    if (!apiOk(created) || !isDatabaseUuid(createdId) || created.payload?.result?.name !== name) {
+    const createdId = created.payload?.result?.uuid;
+    if (isDatabaseUuid(createdId) && created.payload?.result?.name !== name) {
+      record = { ...record, status: "CREATE_RESPONSE_MISMATCH", databaseId: createdId,
+        createResponseName: typeof created.payload?.result?.name === "string" ? created.payload.result.name : null };
+      try { writePending(pendingPath, record); } catch { /* previous CREATE_IN_FLIGHT marker still blocks reruns */ }
+      throw new Error("SCRATCH_CREATE_RESOURCE_IDENTITY_MISMATCH");
+    }
+    if (!apiOk(created) || !isDatabaseUuid(createdId)) {
+      record = { ...record, status: "CREATE_AMBIGUOUS" };
+      try { writePending(pendingPath, record); } catch { /* previous CREATE_IN_FLIGHT marker still blocks reruns */ }
       throw new Error("SCRATCH_CREATE_FAILED " + apiErrorCode(created));
     }
+    record = { schema: 1, status: "READY_FOR_CLEANUP", accountId: auth.accountId,
+      databaseId: createdId, databaseName: name, createResponseName: name };
+    writePending(pendingPath, record);
 
     await applyMigrations(auth, createdId, fetchImpl, log);
     await runSqlProbes(auth, createdId, fetchImpl, log);
+    primaryFailure = null;
   } catch (error) {
     primaryFailure = error instanceof Error ? error : new Error("HOSTED_PREFLIGHT_FAILED");
   } finally {
-    if (record) {
+    if (record?.status === "READY_FOR_CLEANUP") {
       try {
-        await deleteAndVerify(auth, record, fetchImpl);
+        const cleanup = await deleteAndVerify(auth, record, fetchImpl);
         clearPending(pendingPath);
-        log("PASS: scratch D1 delete attempted for create-returned UUID and absence verified");
+        log(cleanup.alreadyAbsent
+          ? "PASS: scratch D1 was already absent and cleanup verified"
+          : "PASS: scratch D1 deleted after identity verification and absence verified");
       } catch {
         try {
           writePending(pendingPath, record);
@@ -348,11 +398,15 @@ export async function runHostedPreflight({
             ? "; retry only with CHAT03B2_HOSTED_D1_RETRY_CLEANUP=YES"
             : "; PENDING_CLEANUP_RECORD_MISSING; manual Cloudflare inspection required"));
       }
+    } else if (record && pendingPersisted) {
+      primaryFailure = new Error((primaryFailure ? primaryFailure.message + "; " : "") +
+        "PENDING_AMBIGUOUS_CREATE_REQUIRES_MANUAL_RESOLUTION");
     }
     closeSync(lockFd);
     try { unlinkSync(lockPath); } catch { /* leave a stale lock to fail closed */ }
   }
   if (primaryFailure) throw primaryFailure;
+  log("HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)");
 }
 
 async function main() {

@@ -60,20 +60,44 @@ The integration harness installs all three migrations in a disposable local Wran
 applying migrations 0001, 0002 and 0003 to a uniquely named
 `asynchronia-chat03b2-scratch-*` D1 and probing SQL/API constraints. It requires
 `CHAT03B2_HOSTED_D1_APPROVED=YES`, `CLOUDFLARE_ACCOUNT_ID` and a narrowly scoped
-`CLOUDFLARE_API_TOKEN`. The script creates only its random scratch database,
-uses only the UUID returned by that create for SQL/deletion, verifies deletion
-by a follow-up GET, and leaves a local pending-cleanup record if deletion is
-not confirmed. A normal rerun is blocked while that record exists; only the
-explicit `CHAT03B2_HOSTED_D1_RETRY_CLEANUP=YES` mode can retry deletion, after
-GET confirms the stored UUID still has the expected scratch name. A process
-kill can leave an invocation lock; it is never removed automatically. Confirm
-its PID is no longer running before manually removing that exact lock. No Worker
-is created or deployed, and the telemetry D1 is not read or accepted as a target.
-If CREATE loses its response before returning a database UUID, the runner will
-not guess a delete target by scratch name; inspect that exact printed random name
-in Cloudflare before any subsequent run.
+`CLOUDFLARE_API_TOKEN`. Before sending CREATE, the script atomically writes a
+mode-0600 intent record containing the exact random scratch name and account
+ID. A lost CREATE response leaves an ambiguous marker and blocks ordinary
+reruns before any API request. It uses the returned UUID for SQL and, before
+every DELETE, GETs that UUID and requires both UUID and full scratch name to
+match the durable record. CREATE-name mismatch, pre-delete mismatch and
+uncertain cleanup retain the record for investigation and never send DELETE.
+Confirmed cleanup includes a post-delete GET showing absence. A normal rerun
+is blocked while any marker exists; explicit cleanup retry is allowed only for
+a validated returned UUID and repeats the same GET identity check. The final
+SQL API PASS is printed only after SQL probes pass and cleanup is confirmed.
+A process kill can leave an invocation lock; it is never removed automatically.
+Confirm its PID is no longer running before manually removing that exact lock.
+No Worker is created or deployed, and the telemetry D1 is not read or accepted
+as a target.
 
-The preflight's success label is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)`.
+For an ambiguous CREATE, manually inspect the Cloudflare dashboard in the
+recorded account for the exact full scratch name in the local marker. Never
+guess a UUID or delete by name. If the exact resource exists, verify its account
+and full name, obtain its UUID from that dashboard entry, delete it manually,
+then refresh and confirm absence. For a CREATE-response mismatch, also inspect
+the recorded returned UUID and `createResponseName`; do not delete a resource
+whose full name differs from the generated scratch name. Leave unrelated
+resources untouched. If the expected scratch resource does not exist, confirm
+the account and exact-name search. Only after these checks, clear the marker with
+`CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS=YES`, the exact recorded account/name,
+and disposition `VERIFIED_DELETED` or `VERIFIED_ABSENT`. This local-only
+acknowledgement makes no Cloudflare request and never performs deletion. Any
+mismatch leaves the marker in place.
+
+Set `CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID` and
+`CHAT03B2_HOSTED_D1_RESOLUTION_NAME` to the exact values from the marker, and
+`CHAT03B2_HOSTED_D1_RESOLUTION` to the verified disposition before invoking the
+script. This resolution mode does not require an API token.
+
+The preflight's final success label is
+`HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)`; it appears only after SQL
+checks pass and deletion is confirmed by GET.
 It checks hosted migration execution, atomic D1 batch creation of one battle,
 the genesis event, two capability digests and a ciphertext-shaped recovery /
 idempotency fixture, plus rollback on invalid constraints. Fixture digests and

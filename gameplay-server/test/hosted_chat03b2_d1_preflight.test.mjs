@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -110,7 +110,7 @@ test("an unreadable lock fails closed rather than being removed speculatively", 
   } finally { rmSync(p.dir, { recursive: true, force: true }); }
 });
 
-test("migration failure still deletes and verifies only the UUID returned by CREATE", async () => {
+test("migration failure verifies identity before cleanup and accepts an already absent UUID", async () => {
   const p = tempPaths();
   const seen = [];
   const migrations = [];
@@ -135,8 +135,8 @@ test("migration failure still deletes and verifies only the UUID returned by CRE
     await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
       lockPath: p.lockPath, fetchImpl, log: () => {} }), /HOSTED_D1_RAW_FAILED/);
     assert.equal(migrations.length, 1);
-    assert.equal(seen.filter(x => x.method === "DELETE").length, 1);
-    assert.equal(seen.find(x => x.method === "DELETE").path.endsWith("/" + UUID), true);
+    assert.equal(seen.filter(x => x.method === "DELETE").length, 0, "404 from pre-delete GET needs no DELETE");
+    assert.deepEqual(seen.filter(x => x.path.endsWith("/" + UUID)).map(x => x.method), ["GET"]);
     assert.equal(seen.some(x => x.path.includes("telemetry")), false);
     assert.ok(seen.every(x => x.path.includes("/d1/database")));
     assert.ok(seen.every(x => x.auth === "Bearer " + TOKEN));
@@ -253,7 +253,7 @@ test("cleanup retry fails closed if stored UUID no longer names the recorded scr
     await assert.rejects(runHostedPreflight({
       env: { ...APPROVED, CHAT03B2_HOSTED_D1_RETRY_CLEANUP: "YES" },
       pendingPath: p.pendingPath, lockPath: p.lockPath, fetchImpl, log: () => {},
-    }), /PENDING_CLEANUP_RESOURCE_IDENTITY_MISMATCH/);
+    }), /SCRATCH_CLEANUP_RESOURCE_IDENTITY_MISMATCH/);
     assert.deepEqual(methods, ["GET"]);
     assert.equal(existsSync(p.pendingPath), true);
   } finally { rmSync(p.dir, { recursive: true, force: true }); }
@@ -262,6 +262,8 @@ test("cleanup retry fails closed if stored UUID no longer names the recorded scr
 test("network exceptions are sanitized and fixture SQL contains only digests/ciphertext", async () => {
   const p = tempPaths();
   let networkCalls = 0;
+  let remoteResourceCreated = false;
+  const logs = [];
   try {
     const fixture = makeCreateBatch("scratch-safety-fixture", "safety");
     const serialized = JSON.stringify(fixture.batch);
@@ -269,12 +271,196 @@ test("network exceptions are sanitized and fixture SQL contains only digests/cip
     assert.ok(!serialized.includes("ADMIN_CONTROL_TOKEN"));
     assert.match(serialized, new RegExp(sha256("chat03b2-test-capability:A:safety")));
     await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
-      lockPath: p.lockPath, fetchImpl: async () => { networkCalls++; throw Error(TOKEN); }, log: () => {} }), error => {
+      lockPath: p.lockPath, fetchImpl: async () => { networkCalls++; remoteResourceCreated = true; throw Error(TOKEN); },
+      log: message => logs.push(message) }), error => {
         assert.match(error.message, /CLOUDFLARE_API_REQUEST_FAILED/);
         assert.ok(!error.message.includes(TOKEN));
         return true;
       });
     assert.equal(networkCalls, 1, "no delete is attempted without a create-returned UUID");
+    assert.equal(remoteResourceCreated, true, "mock CREATE side effect represents a lost successful response");
+    assert.equal(existsSync(p.pendingPath), true, "ambiguous CREATE must leave a durable intent record");
+    const marker = JSON.parse(readFileSync(p.pendingPath, "utf8"));
+    assert.equal(marker.accountId, ACCOUNT);
+    assert.equal(marker.status, "CREATE_AMBIGUOUS");
+    assert.equal(isScratchName(marker.databaseName), true);
+    const countBeforeRerun = networkCalls;
+    await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
+      lockPath: p.lockPath, fetchImpl: async () => { networkCalls++; throw Error("must not fetch"); }, log: () => {} }),
+    /PENDING_CLEANUP_BLOCKS_NEW_DATABASE/);
+    assert.equal(networkCalls, countBeforeRerun, "ambiguous create blocks every ordinary Cloudflare request");
+    assert.ok(!JSON.stringify(logs).includes(TOKEN));
+    assert.ok(!readFileSync(p.pendingPath, "utf8").includes(TOKEN));
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("pending intent write failure aborts before CREATE", async () => {
+  const p = tempPaths();
+  let calls = 0;
+  try {
+    await assert.rejects(runHostedPreflight({ env: APPROVED,
+      pendingPath: path.join(p.dir, "missing-parent", "pending.json"), lockPath: p.lockPath,
+      fetchImpl: async () => { calls++; throw Error("must not fetch"); }, log: () => {} }));
+    assert.equal(calls, 0);
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("mismatched CREATE response is retained for investigation and never deleted", async () => {
+  const p = tempPaths();
+  const methods = [];
+  try {
+    const fetchImpl = async (_url, options = {}) => {
+      methods.push(options.method || "GET");
+      return jsonResponse(200, { success: true, result: { uuid: UUID, name: SCRATCH_PREFIX + "cd".repeat(10) } });
+    };
+    await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
+      lockPath: p.lockPath, fetchImpl, log: () => {} }), /SCRATCH_CREATE_RESOURCE_IDENTITY_MISMATCH/);
+    assert.deepEqual(methods, ["POST"]);
+    const marker = JSON.parse(readFileSync(p.pendingPath, "utf8"));
+    assert.equal(marker.status, "CREATE_RESPONSE_MISMATCH");
+    assert.equal(marker.databaseId, UUID);
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("normal cleanup GET identity mismatch retains marker and never sends DELETE", async () => {
+  const p = tempPaths();
+  const methods = [];
+  try {
+    const fetchImpl = async (url, options = {}) => {
+      const method = options.method || "GET";
+      methods.push(method);
+      if (new URL(url).pathname.endsWith("/d1/database") && method === "POST") {
+        const body = JSON.parse(options.body);
+        return jsonResponse(200, { success: true, result: { uuid: UUID, name: body.name } });
+      }
+      if (new URL(url).pathname.endsWith("/raw")) return jsonResponse(400, { success: false, errors: [{ code: 1000 }] });
+      if (new URL(url).pathname.endsWith("/" + UUID) && method === "GET") {
+        return jsonResponse(200, { success: true, result: { uuid: UUID, name: "other-resource" } });
+      }
+      throw Error("unexpected request");
+    };
+    await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
+      lockPath: p.lockPath, fetchImpl, log: () => {} }), /SCRATCH_CLEANUP_FAILED/);
+    assert.match((await readFileSync(p.pendingPath, "utf8")), /READY_FOR_CLEANUP/);
+    assert.deepEqual(methods, ["POST", "POST", "GET"]);
+    assert.equal(existsSync(p.pendingPath), true);
+    assert.ok(!methods.includes("DELETE"));
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("manual ambiguity resolution requires exact account/name and explicit verified disposition", async () => {
+  const p = tempPaths();
+  try {
+    const record = { schema: 1, status: "CREATE_AMBIGUOUS", accountId: ACCOUNT,
+      databaseName: SCRATCH_PREFIX + "ef".repeat(10), databaseId: null };
+    writeFileSync(p.pendingPath, JSON.stringify(record), { mode: 0o600 });
+    let networkCalls = 0;
+    await assert.rejects(runHostedPreflight({
+      env: { CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS: "YES", CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID: ACCOUNT,
+        CHAT03B2_HOSTED_D1_RESOLUTION_NAME: "wrong-name", CHAT03B2_HOSTED_D1_RESOLUTION: "VERIFIED_ABSENT" },
+      pendingPath: p.pendingPath, lockPath: p.lockPath,
+      fetchImpl: async () => { networkCalls++; throw Error("manual resolution must not use API"); }, log: () => {},
+    }), /AMBIGUOUS_RESOLUTION_IDENTITY_MISMATCH/);
+    assert.equal(existsSync(p.pendingPath), true);
+    assert.equal(networkCalls, 0);
+    assert.equal(statSync(p.pendingPath).mode & 0o777, 0o600);
+    assert.ok(!readFileSync(p.pendingPath, "utf8").includes(TOKEN));
+    await runHostedPreflight({
+      env: { CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS: "YES", CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID: ACCOUNT,
+        CHAT03B2_HOSTED_D1_RESOLUTION_NAME: record.databaseName, CHAT03B2_HOSTED_D1_RESOLUTION: "VERIFIED_ABSENT" },
+      pendingPath: p.pendingPath, lockPath: p.lockPath,
+      fetchImpl: async () => { networkCalls++; throw Error("manual resolution must not use Cloudflare API"); }, log: () => {},
+    });
+    assert.equal(networkCalls, 0);
     assert.equal(existsSync(p.pendingPath), false);
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("success label is withheld when cleanup fails and follows confirmed deletion", async () => {
+  const p = tempPaths();
+  const logs = [];
+  let resourceExists = true;
+  let scratchName;
+  try {
+    const fetchImpl = async (url, options = {}) => {
+      const parsed = new URL(url);
+      const method = options.method || "GET";
+      const body = options.body ? JSON.parse(options.body) : null;
+      if (parsed.pathname.endsWith("/d1/database") && method === "POST") {
+        scratchName = body.name;
+        return jsonResponse(200, { success: true, result: { uuid: UUID, name: body.name } });
+      }
+      if (parsed.pathname.endsWith("/raw")) return jsonResponse(400, { success: false, errors: [{ code: 1000 }] });
+      if (parsed.pathname.endsWith("/" + UUID) && method === "GET") return jsonResponse(200,
+        { success: true, result: { uuid: UUID, name: scratchName } });
+      if (parsed.pathname.endsWith("/" + UUID) && method === "DELETE") {
+        return jsonResponse(500, { success: false, errors: [{ code: 9999 }] });
+      }
+      throw Error("unexpected request");
+    };
+    await assert.rejects(runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath,
+      lockPath: p.lockPath, fetchImpl, log: message => logs.push(message) }), /SCRATCH_CLEANUP_FAILED/);
+    assert.equal(logs.some(message => message.startsWith("HOSTED_D1_SQL_API_PASS")), false);
+  } finally { rmSync(p.dir, { recursive: true, force: true }); }
+});
+
+test("final SQL API pass is logged only after successful probes and confirmed deletion", async () => {
+  const p = tempPaths();
+  const log = [];
+  let scratchName;
+  let resourceExists = true;
+  let batchCount = 0;
+  try {
+    const fetchImpl = async (url, options = {}) => {
+      const parsed = new URL(url);
+      const method = options.method || "GET";
+      const body = options.body ? JSON.parse(options.body) : null;
+      if (parsed.pathname.endsWith("/d1/database") && method === "POST") {
+        scratchName = body.name;
+        return jsonResponse(200, { success: true, result: { uuid: UUID, name: scratchName } });
+      }
+      if (parsed.pathname.endsWith("/raw")) {
+        if (typeof body.sql === "string") return jsonResponse(200, { success: true, result: [] });
+        batchCount++;
+        return batchCount === 1
+          ? jsonResponse(200, { success: true, result: [{ success: true }] })
+          : jsonResponse(400, { success: false, errors: [{ code: 1001 }] });
+      }
+      if (parsed.pathname.endsWith("/query")) {
+        const sql = body.sql;
+        let results = [];
+        if (sql.includes("genesis_events")) results = [{ battles: 1, genesis_events: 1, capabilities: 2, creations: 1 }];
+        else if (sql.startsWith("SELECT side")) results = [
+          { side: "A", participant_id: "test-A", digest_length: 64 },
+          { side: "B", participant_id: "test-B", digest_length: 64 },
+        ];
+        else if (sql.startsWith("SELECT version,state_json")) results = [{ version: 0,
+          state_json: JSON.stringify(makeCreateBatch("scratch-pass", "pass").state) }];
+        else if (sql.includes("recovery_nonce_base64url")) results = [{ nonce_length: 16, ciphertext_length: 64 }];
+        else if (sql.includes("sqlite_master")) results = [
+          { name: "gameplay_battle_capabilities" }, { name: "gameplay_battle_creations" },
+          { name: "gameplay_battles" }, { name: "gameplay_event_outbox" },
+        ];
+        else results = [{ battles: 0, events: 0, capabilities: 0, creations: 0 }];
+        return jsonResponse(200, { success: true, result: [{ results }] });
+      }
+      if (parsed.pathname.endsWith("/" + UUID) && method === "GET") {
+        return resourceExists
+          ? jsonResponse(200, { success: true, result: { uuid: UUID, name: scratchName } })
+          : jsonResponse(404, { success: false });
+      }
+      if (parsed.pathname.endsWith("/" + UUID) && method === "DELETE") {
+        resourceExists = false;
+        return jsonResponse(200, { success: true, result: { uuid: UUID } });
+      }
+      throw Error("unexpected request");
+    };
+    await runHostedPreflight({ env: APPROVED, pendingPath: p.pendingPath, lockPath: p.lockPath, fetchImpl,
+      log: message => log.push(message) });
+    const passIndex = log.findIndex(message => message.startsWith("HOSTED_D1_SQL_API_PASS"));
+    assert.ok(passIndex >= 0);
+    assert.equal(resourceExists, false);
+    assert.equal(existsSync(p.pendingPath), false);
+    assert.ok(log.findIndex(message => message.includes("absence verified")) < passIndex);
   } finally { rmSync(p.dir, { recursive: true, force: true }); }
 });

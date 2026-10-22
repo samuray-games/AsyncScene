@@ -134,20 +134,50 @@ test-only inspection Worker must never be deployed.
 to a random `asynchronia-chat03b2-scratch-*` Cloudflare D1 through the D1 SQL
 API. It has a hard opt-in (`CHAT03B2_HOSTED_D1_APPROVED=YES`), accepts no target
 database name or UUID from the caller, and only addresses the UUID returned by
-its own create request. It checks atomic creation of the battle, origin event,
+its own create request. Before CREATE, it writes a mode-0600 intent record with
+the exact random name and account ID. A lost response therefore leaves a
+durable ambiguous-create record and blocks ordinary reruns before any API call.
+It checks atomic creation of the battle, origin event,
 both capability digest rows and a ciphertext-shaped idempotency/recovery row,
 plus rollback for bad genesis, capability, idempotency and recovery constraints.
-Fixture digests/ciphertext are synthetic and do not validate AES-GCM. It attempts
-deletion in `finally`, confirms absence with a separate GET, and writes a
-0600 pending-cleanup record if the result is uncertain. A later normal run is
-blocked until cleanup is verified; explicit cleanup retry mode rechecks the
-stored ID/name pair and never creates a database. A process-kill may leave a
-stale invocation lock; the tool will refuse to delete it automatically. Confirm
-the recorded PID is no longer running before manually removing that exact lock,
-then use the pending-cleanup retry mode if the database marker exists.
-If the create request loses its response before a database UUID is returned,
-the runner will not guess a deletion target by name; inspect the account using
-the printed random scratch name before any further run.
+Fixture digests/ciphertext are synthetic and do not validate AES-GCM. Before
+every DELETE, normal cleanup and retry both GET the UUID and require an exact
+UUID plus full scratch-name match. CREATE response-name mismatch, pre-delete
+identity mismatch, and uncertain cleanup retain the mode-0600 record for manual
+investigation and never issue DELETE. Confirmed cleanup requires a post-delete
+GET showing absence. The final `HOSTED_D1_SQL_API_PASS` is emitted only after
+all SQL probes pass and cleanup is confirmed. A process-kill may leave a stale
+invocation lock; the tool refuses to remove it automatically. Confirm its PID
+is no longer running before manually removing that exact lock.
+
+**Resolving an ambiguous CREATE:** inspect the Cloudflare dashboard in the
+recorded account ID and search for the exact full random database name in the
+mode-0600 pending record. Never infer or guess a UUID. If the database exists,
+record its UUID from that exact-name dashboard entry, verify account and full
+name, delete that exact resource manually in the dashboard, then refresh and
+confirm it is absent. For a CREATE-response mismatch, also investigate the
+returned UUID and `createResponseName` stored in the marker; do not delete that
+resource if its full name differs from the generated scratch name. If no
+matching scratch database exists, confirm the account and exact-name search
+completed and leave any unrelated resource untouched. Only then clear the local marker with the explicit
+`CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS=YES` mode, supplying the exact recorded
+account and name plus `CHAT03B2_HOSTED_D1_RESOLUTION=VERIFIED_DELETED` or
+`VERIFIED_ABSENT`. This local-only acknowledgement makes no Cloudflare request;
+it does not delete a remote resource. A mismatch or missing confirmation keeps
+the marker and continues blocking normal runs.
+
+After completing that dashboard check, use this local-only acknowledgement:
+
+```bash
+CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS=YES \
+CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID='<exact account ID from marker>' \
+CHAT03B2_HOSTED_D1_RESOLUTION_NAME='<exact full scratch name from marker>' \
+CHAT03B2_HOSTED_D1_RESOLUTION=VERIFIED_ABSENT \
+node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+Use `VERIFIED_DELETED` only after manually deleting the exact resource and
+confirming absence. This mode needs no API token and makes zero network calls.
 
 Migration SQL uses Cloudflare's [D1 raw query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/raw/); the create/rollback probe uses its batch request form and the documented [D1 transactional batch behavior](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
 
@@ -165,16 +195,17 @@ permissions. The normal command is:
 CHAT03B2_HOSTED_D1_APPROVED=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
 ```
 
-If deletion fails, do not start another database test. After inspecting the
-pending cleanup record and confirming the intended account, retry only the
-recorded UUID with:
+If cleanup fails after a validated CREATE response, do not start another
+database test. The retry mode performs a GET identity check before DELETE and
+again verifies absence afterward:
 
 ```bash
 CHAT03B2_HOSTED_D1_APPROVED=YES CHAT03B2_HOSTED_D1_RETRY_CLEANUP=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
 ```
 
 The command above is documentation only; this change's tests do not contact
-Cloudflare. Success is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)`. No
+Cloudflare. Success is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)` and
+means SQL checks passed plus scratch deletion was confirmed. No
 Worker is created or deployed. Actual authenticated Worker validation is a
 separate gate requiring separate approval. `ADMIN_CONTROL_TOKEN` is for trusted
 server-side creation and must never be placed in browser code. Current CORS
