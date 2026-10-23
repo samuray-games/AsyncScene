@@ -29,7 +29,7 @@ FROM gameplay_event_outbox;
 
 CREATE TABLE gameplay_battle_creations_v4 (
   idempotency_key_sha256 TEXT PRIMARY KEY CHECK (length(idempotency_key_sha256) = 64),
-  request_fingerprint_sha256 TEXT NOT NULL CHECK (length(request_fingerprint_sha256) = 64),
+  request_fingerprint_sha256 TEXT CHECK (request_fingerprint_sha256 IS NULL OR length(request_fingerprint_sha256) = 64),
   lifecycle_state TEXT NOT NULL CHECK (lifecycle_state IN ('RECOVERABLE', 'CLOSED', 'TOMBSTONE')),
   battle_id TEXT UNIQUE REFERENCES gameplay_battles(battle_id) ON DELETE RESTRICT,
   deadline_at_ms INTEGER,
@@ -37,74 +37,41 @@ CREATE TABLE gameplay_battle_creations_v4 (
   recovery_nonce_base64url TEXT,
   capabilities_ciphertext_base64url TEXT,
   recovery_generation INTEGER,
-  created_at_ms INTEGER NOT NULL CHECK (created_at_ms >= 0),
+  created_at_ms INTEGER CHECK (created_at_ms IS NULL OR created_at_ms >= 0),
   purge_after_ms INTEGER,
   CHECK (purge_after_ms IS NULL OR purge_after_ms >= 0),
   CHECK (
     (lifecycle_state = 'RECOVERABLE'
+      AND request_fingerprint_sha256 IS NOT NULL AND created_at_ms IS NOT NULL
       AND battle_id IS NOT NULL AND deadline_at_ms IS NOT NULL
       AND recovery_key_version IS NOT NULL AND recovery_nonce_base64url IS NOT NULL
       AND capabilities_ciphertext_base64url IS NOT NULL AND recovery_generation IS NOT NULL)
     OR
     (lifecycle_state = 'CLOSED'
+      AND request_fingerprint_sha256 IS NOT NULL AND created_at_ms IS NOT NULL
       AND battle_id IS NOT NULL AND deadline_at_ms IS NOT NULL
       AND recovery_key_version IS NULL AND recovery_nonce_base64url IS NULL
       AND capabilities_ciphertext_base64url IS NULL AND recovery_generation IS NULL)
     OR
     (lifecycle_state = 'TOMBSTONE'
+      AND request_fingerprint_sha256 IS NULL AND created_at_ms IS NULL
       AND battle_id IS NULL AND deadline_at_ms IS NULL
       AND recovery_key_version IS NULL AND recovery_nonce_base64url IS NULL
       AND capabilities_ciphertext_base64url IS NULL AND recovery_generation IS NULL)
   )
 );
 
--- Only the original pending battle with unchanged deadline, version zero and
--- both original capability digests is eligible to preserve recovery bytes.
--- SQLite cannot decrypt/validate AES-GCM or prove token generation; the
--- synthetic fixture records that proof input in temp staging columns below.
-CREATE TEMP TABLE chat03b2_recovery_eligibility (
-  idempotency_key_sha256 TEXT PRIMARY KEY,
-  original_a_digest TEXT NOT NULL,
-  original_b_digest TEXT NOT NULL,
-  expected_generation INTEGER NOT NULL
-);
-
-INSERT INTO chat03b2_recovery_eligibility
-SELECT c.idempotency_key_sha256,
-       (SELECT token_sha256 FROM gameplay_battle_capabilities x
-        WHERE x.battle_id = c.battle_id AND x.side = 'A'),
-       (SELECT token_sha256 FROM gameplay_battle_capabilities x
-        WHERE x.battle_id = c.battle_id AND x.side = 'B'),
-       1
-FROM gameplay_battle_creations c
-JOIN gameplay_battles b ON b.battle_id = c.battle_id
-WHERE b.version = 0 AND b.phase = 'created'
-  AND json_extract(b.state_json, '$.version') = 0
-  AND json_extract(b.state_json, '$.phase') = 'created'
-  AND json_extract(b.state_json, '$.deadlineAt') = c.deadline_at_ms
-  AND EXISTS (SELECT 1 FROM gameplay_battle_capabilities x
-              WHERE x.battle_id = c.battle_id AND x.side = 'A'
-                AND length(x.token_sha256) = 64)
-  AND EXISTS (SELECT 1 FROM gameplay_battle_capabilities x
-              WHERE x.battle_id = c.battle_id AND x.side = 'B'
-                AND length(x.token_sha256) = 64);
-
+-- Existing v3 rows do not prove that recovery material was issued for the
+-- capability digests and generation now present. Fail closed: retain only the
+-- idempotency/fingerprint/battle linkage, and close every migrated row.
 INSERT INTO gameplay_battle_creations_v4 (
   idempotency_key_sha256, request_fingerprint_sha256, lifecycle_state,
   battle_id, deadline_at_ms, recovery_key_version, recovery_nonce_base64url,
   capabilities_ciphertext_base64url, recovery_generation, created_at_ms, purge_after_ms
 )
-SELECT c.idempotency_key_sha256, c.request_fingerprint_sha256,
-       CASE WHEN e.idempotency_key_sha256 IS NOT NULL THEN 'RECOVERABLE' ELSE 'CLOSED' END,
-       c.battle_id, c.deadline_at_ms,
-       CASE WHEN e.idempotency_key_sha256 IS NOT NULL THEN c.recovery_key_version END,
-       CASE WHEN e.idempotency_key_sha256 IS NOT NULL THEN c.recovery_nonce_base64url END,
-       CASE WHEN e.idempotency_key_sha256 IS NOT NULL THEN c.capabilities_ciphertext_base64url END,
-       e.expected_generation,
-       c.created_at_ms, NULL
-FROM gameplay_battle_creations c
-LEFT JOIN chat03b2_recovery_eligibility e
-  ON e.idempotency_key_sha256 = c.idempotency_key_sha256;
+SELECT c.idempotency_key_sha256, c.request_fingerprint_sha256, 'CLOSED',
+       c.battle_id, c.deadline_at_ms, NULL, NULL, NULL, NULL, c.created_at_ms, NULL
+FROM gameplay_battle_creations c;
 
 -- Verify data copies and idempotency digests before replacing the source.
 INSERT INTO chat03b2_assertion

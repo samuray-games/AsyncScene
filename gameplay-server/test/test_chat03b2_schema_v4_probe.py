@@ -53,12 +53,33 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
         self._seed_battle("progressed", 3, 4, version=1, phase="committed")
         self._seed_battle("missing-cap", 5, 6, capabilities=False)
         self._seed_battle("unrelated", 7, 8, creation=False)
+        self._seed_battle("altered-current-digest", 9, 10)
         self.db.execute("INSERT INTO gameplay_command_receipts VALUES (?, ?, ?, ?, ?, ?)",
                         ("progressed", "synthetic-receipt", "fp", "COMMITTED", "[]", 1))
         self.db.execute("INSERT INTO gameplay_event_outbox VALUES (?, ?, ?, ?, ?, ?, ?)",
                         ("progressed:event", "progressed", 1, "synthetic.event", "{}", NOW, None))
         self.db.commit()
         self.db.executescript(PROBE.read_text(encoding="utf-8"))
+        # This issuance proof belongs only to the new synthetic row. The legacy
+        # migrations do not establish that its current capability digests were issued.
+        self.synthetic_recovery = {"key": digest(11), "fingerprint": digest(111),
+                                   "battle_id": "synthetic-recovery", "generation": 7,
+                                   "cap_a": digest(9001), "cap_b": digest(9002)}
+        proof = self.synthetic_recovery
+        self.db.execute("INSERT INTO gameplay_battles VALUES (?, 0, 'tactical_v1', 'created', ?, ?, ?)",
+                        (proof["battle_id"], state(proof["battle_id"]), NOW, NOW))
+        for side, token_digest in (("A", proof["cap_a"]), ("B", proof["cap_b"])):
+            self.db.execute("INSERT INTO gameplay_battle_capabilities VALUES (?, ?, ?, ?, ?)",
+                            (proof["battle_id"], side, f"synthetic-{side}", token_digest, NOW))
+        self.db.execute("""INSERT INTO gameplay_battle_creations
+          (idempotency_key_sha256,request_fingerprint_sha256,lifecycle_state,battle_id,
+           deadline_at_ms,recovery_key_version,recovery_nonce_base64url,
+           capabilities_ciphertext_base64url,recovery_generation,created_at_ms)
+          VALUES (?,?,'RECOVERABLE',?,?,'test-key-v1','dGVzdC1ub25jZQ',
+                  'dGVzdC1jaXBoZXJ0ZXh0',?,?)""",
+                        (proof["key"], proof["fingerprint"], proof["battle_id"], NOW + 60_000,
+                         proof["generation"], NOW))
+        self.db.commit()
 
     def tearDown(self):
         self.db.close()
@@ -105,20 +126,23 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
           recovery_key_version=NULL, recovery_nonce_base64url=NULL,
           capabilities_ciphertext_base64url=NULL, recovery_generation=NULL,
           battle_id=CASE WHEN ?='TOMBSTONE' THEN NULL ELSE battle_id END,
-          deadline_at_ms=CASE WHEN ?='TOMBSTONE' THEN NULL ELSE deadline_at_ms END
-          WHERE idempotency_key_sha256=?""", (state_name, state_name, state_name, key))
+          deadline_at_ms=CASE WHEN ?='TOMBSTONE' THEN NULL ELSE deadline_at_ms END,
+          request_fingerprint_sha256=CASE WHEN ?='TOMBSTONE' THEN NULL ELSE request_fingerprint_sha256 END,
+          created_at_ms=CASE WHEN ?='TOMBSTONE' THEN NULL ELSE created_at_ms END
+          WHERE idempotency_key_sha256=?""", (state_name, state_name, state_name, state_name, state_name, key))
 
-    def _commit(self, key, expected_version, receipt_id="new-receipt", actor="A",
-                token_digest=None, generation=1):
+    def _simulate_participant_commit_transaction(self, key, expected_version, receipt_id="new-receipt", actor="A",
+                token_digest=None, generation=7):
+        """Python-only transaction simulation; not a Worker or SQL auth fence."""
         self.db.execute("BEGIN IMMEDIATE")
         try:
-            token_digest = token_digest or digest(2 if actor == "A" else 3)
-            stored = self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side=?", (actor,)).fetchone()
+            token_digest = token_digest or (self.synthetic_recovery["cap_a"] if actor == "A" else self.synthetic_recovery["cap_b"])
+            stored = self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side=?", (actor,)).fetchone()
             recovery = self._creation(key)
             if stored is None or stored[0] != token_digest or recovery[2] != "RECOVERABLE" or recovery[8] != generation:
                 raise PermissionError("CAPABILITY_RECOVERY_BINDING_REJECTED")
             row = self.db.execute("""UPDATE gameplay_battles SET version=version+1,
-              phase='committed' WHERE battle_id='eligible' AND version=? AND phase='created'""",
+              phase='committed' WHERE battle_id='synthetic-recovery' AND version=? AND phase='created'""",
                                   (expected_version,))
             if row.rowcount != 1:
                 raise ValueError("VERSION_CONFLICT")
@@ -127,49 +151,52 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
               capabilities_ciphertext_base64url=NULL, recovery_generation=NULL
               WHERE idempotency_key_sha256=? AND lifecycle_state='RECOVERABLE'""", (key,))
             self.db.execute("INSERT INTO gameplay_command_receipts VALUES (?, ?, ?, ?, ?, ?)",
-                            ("eligible", receipt_id, "synthetic-fingerprint", "COMMITTED", "[]", expected_version + 1))
+                            ("synthetic-recovery", receipt_id, "synthetic-fingerprint", "COMMITTED", "[]", expected_version + 1))
             self.db.commit()
             return True
         except Exception:
             self.db.rollback()
             raise
 
-    def _scheduler_terminal(self, authority, terminal_phase, trusted_now=NOW):
+    def _simulate_scheduler_terminal_transaction(self, authority, terminal_phase, trusted_now=NOW):
+        """Python-only scheduler transaction simulation; no trusted route is modeled."""
         if authority != "scheduler":
             raise PermissionError("SCHEDULER_AUTHORITY_REQUIRED")
         if terminal_phase not in ("revealed", "expired"):
             raise ValueError("TERMINAL_PHASE_REQUIRED")
         self.db.execute("BEGIN IMMEDIATE")
         try:
-            snapshot = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0])
+            snapshot = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0])
             if terminal_phase == "revealed" and set(snapshot.get("commits", {})) != {"A", "B"}:
                 raise ValueError("REVEAL_REQUIRES_BOTH_COMMITS")
             if terminal_phase == "expired" and snapshot["deadlineAt"] > trusted_now:
                 raise ValueError("EXPIRY_NOT_DUE")
-            changed = self.db.execute("UPDATE gameplay_battles SET version=version+1,phase=? WHERE battle_id='eligible' AND version=0", (terminal_phase,))
+            changed = self.db.execute("UPDATE gameplay_battles SET version=version+1,phase=? WHERE battle_id='synthetic-recovery' AND version=0", (terminal_phase,))
             if changed.rowcount != 1:
                 raise ValueError("VERSION_CONFLICT")
             self.db.execute("""UPDATE gameplay_battle_creations SET lifecycle_state='CLOSED',
               recovery_key_version=NULL,recovery_nonce_base64url=NULL,
               capabilities_ciphertext_base64url=NULL,recovery_generation=NULL
-              WHERE idempotency_key_sha256=? AND lifecycle_state='RECOVERABLE'""", (digest(1),))
+              WHERE idempotency_key_sha256=? AND lifecycle_state='RECOVERABLE'""", (self.synthetic_recovery["key"],))
             self.db.commit()
         except Exception:
             self.db.rollback()
             raise
 
-    def test_rebuild_preserves_rows_ids_and_only_eligible_recovery(self):
+    def test_rebuild_preserves_rows_but_fails_closed_for_all_legacy_recovery(self):
         rows = {r[0]: r for r in self.db.execute("SELECT * FROM gameplay_battle_creations")}
-        self.assertEqual(len(rows), 3)
-        self.assertEqual(rows[digest(1)][2], "RECOVERABLE")
-        self.assertEqual(rows[digest(1)][3], "eligible")
-        self.assertEqual(rows[digest(1)][8], 1)  # synthetic original generation
-        self.assertEqual(rows[digest(3)][2], "CLOSED")
-        self.assertEqual(rows[digest(5)][2], "CLOSED")
-        for keyn in (3, 5):
+        self.assertEqual(len(rows), 5)
+        for keyn in (1, 3, 5, 9):
             row = rows[digest(keyn)]
-            self.assertEqual(row[6:9], (None, None, None))
-        self.assertEqual(self._counts(), (4, 3, 6, 1, 1))
+            self.assertEqual(row[2], "CLOSED")
+            self.assertEqual(row[5:9], (None, None, None, None))
+            self.assertIsNotNone(row[1])
+        self.assertEqual(rows[digest(1)][3], "eligible")
+        self.assertEqual(rows[digest(3)][3], "progressed")
+        self.assertEqual(rows[digest(5)][3], "missing-cap")
+        self.assertEqual(rows[digest(9)][3], "altered-current-digest")
+        self.assertEqual(rows[self.synthetic_recovery["key"]][2], "RECOVERABLE")
+        self.assertEqual(self._counts(), (6, 5, 10, 1, 1))
         self.assertEqual(self.db.execute("PRAGMA foreign_keys").fetchone()[0], 1)
         self.assertEqual(self.db.execute("PRAGMA foreign_key_check").fetchall(), [])
         indexes = {row[1]: row[2] for row in self.db.execute("PRAGMA index_list(gameplay_battle_creations)")}
@@ -181,103 +208,103 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
         self._mark(True, 8)
 
     def test_recovery_accepts_only_original_digest_pair_and_generation(self):
-        key = digest(1)
-        original = (digest(2), digest(3), 1)
+        key = self.synthetic_recovery["key"]
+        original = (self.synthetic_recovery["cap_a"], self.synthetic_recovery["cap_b"], self.synthetic_recovery["generation"])
         row = self._creation(key)
         self.assertEqual(row[2], "RECOVERABLE")
         self.assertEqual(original[2], row[8])
-        cap_rows = dict(self.db.execute("SELECT side, token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='eligible'"))
+        cap_rows = dict(self.db.execute("SELECT side, token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery'"))
         self.assertEqual((cap_rows["A"], cap_rows["B"], row[8]), original)
-        self.assertEqual(self._recover(key, digest(101), *original),
+        self.assertEqual(self._recover(key, self.synthetic_recovery["fingerprint"], *original),
                          ("synthetic-original-token-A", "synthetic-original-token-B"))
         self._mark(True, 1)
-        for replacement in ((digest(20), digest(3), 1), (digest(2), digest(30), 1), (digest(2), digest(3), 2)):
+        for replacement in ((digest(20), self.synthetic_recovery["cap_b"], 1), (self.synthetic_recovery["cap_a"], digest(30), 1), (self.synthetic_recovery["cap_a"], self.synthetic_recovery["cap_b"], 2)):
             with self.assertRaisesRegex(PermissionError, "ORIGINAL_CAPABILITIES_REQUIRED"):
-                self._recover(key, digest(101), *replacement)
+                self._recover(key, self.synthetic_recovery["fingerprint"], *replacement)
             self._mark(False)
 
     def test_recoverable_payload_cannot_be_rebound_or_reencrypted(self):
-        before = self._creation(digest(1))
+        before = self._creation(self.synthetic_recovery["key"])
         for sql, params in (
-            ("UPDATE gameplay_battle_creations SET capabilities_ciphertext_base64url='replacement' WHERE idempotency_key_sha256=?", (digest(1),)),
-            ("UPDATE gameplay_battle_creations SET recovery_generation=2 WHERE idempotency_key_sha256=?", (digest(1),)),
+            ("UPDATE gameplay_battle_creations SET capabilities_ciphertext_base64url='replacement' WHERE idempotency_key_sha256=?", (self.synthetic_recovery["key"],)),
+            ("UPDATE gameplay_battle_creations SET recovery_generation=2 WHERE idempotency_key_sha256=?", (self.synthetic_recovery["key"],)),
         ):
             with self.assertRaises(sqlite3.IntegrityError):
                 self.db.execute(sql, params)
             self.db.rollback()
             self._mark(False)
-        self.assertEqual(self._creation(digest(1)), before)
+        self.assertEqual(self._creation(self.synthetic_recovery["key"]), before)
         self._mark(True)
 
     def test_first_participant_commit_closes_recovery_in_same_transaction(self):
-        self._commit(digest(1), 0)
-        row = self._creation(digest(1))
+        self._simulate_participant_commit_transaction(self.synthetic_recovery["key"], 0)
+        row = self._creation(self.synthetic_recovery["key"])
         self.assertEqual(row[2], "CLOSED")
         self.assertEqual(row[5:9], (None, None, None, None))
-        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0], 1)
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='eligible'").fetchone()[0], 1)
+        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0], 1)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='synthetic-recovery'").fetchone()[0], 1)
         self._mark(True, 3)
 
     def test_failed_participant_transition_preserves_state_receipts_and_outbox(self):
-        before = self._counts(), self._creation(digest(1))
+        before = self._counts(), self._creation(self.synthetic_recovery["key"])
         with self.assertRaisesRegex(ValueError, "VERSION_CONFLICT"):
-            self._commit(digest(1), 99, "rejected")
-        self.assertEqual((self._counts(), self._creation(digest(1))), before)
+            self._simulate_participant_commit_transaction(self.synthetic_recovery["key"], 99, "rejected")
+        self.assertEqual((self._counts(), self._creation(self.synthetic_recovery["key"])), before)
         self._mark(False)
         self._mark(True)
 
     def test_participant_cas_requires_active_original_digest_and_generation(self):
-        before = self._counts(), self._creation(digest(1))
-        for token_digest, generation in ((digest(99), 1), (digest(2), 2)):
+        before = self._counts(), self._creation(self.synthetic_recovery["key"])
+        for token_digest, generation in ((digest(99), 1), (self.synthetic_recovery["cap_a"], 2)):
             with self.assertRaisesRegex(PermissionError, "CAPABILITY_RECOVERY_BINDING_REJECTED"):
-                self._commit(digest(1), 0, "rejected-capability", token_digest=token_digest, generation=generation)
-            self.assertEqual((self._counts(), self._creation(digest(1))), before)
+                self._simulate_participant_commit_transaction(self.synthetic_recovery["key"], 0, "rejected-capability", token_digest=token_digest, generation=generation)
+            self.assertEqual((self._counts(), self._creation(self.synthetic_recovery["key"])), before)
             self._mark(False)
-        self._commit(digest(1), 0, "accepted-capability", token_digest=digest(2), generation=1)
-        self.assertEqual(self._creation(digest(1))[2], "CLOSED")
+        self._simulate_participant_commit_transaction(self.synthetic_recovery["key"], 0, "accepted-capability", token_digest=self.synthetic_recovery["cap_a"], generation=self.synthetic_recovery["generation"])
+        self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "CLOSED")
         self._mark(True)
 
     def test_rotation_or_revocation_closes_before_digest_change_atomically(self):
         for operation in ("rotate", "revoke"):
             self.db.execute("BEGIN IMMEDIATE")
             try:
-                self._close(digest(1), "CLOSED")
+                self._close(self.synthetic_recovery["key"], "CLOSED")
                 if operation == "rotate":
-                    self.db.execute("UPDATE gameplay_battle_capabilities SET token_sha256=? WHERE battle_id='eligible' AND side='A'", (digest(90),))
+                    self.db.execute("UPDATE gameplay_battle_capabilities SET token_sha256=? WHERE battle_id='synthetic-recovery' AND side='A'", (digest(90),))
                 else:
-                    self.db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side='A'")
+                    self.db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side='A'")
                 self.db.commit()
             except Exception:
                 self.db.rollback()
                 raise
-            self.assertEqual(self._creation(digest(1))[2], "CLOSED")
-            self.assertEqual(self._creation(digest(1))[5:9], (None, None, None, None))
+            self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "CLOSED")
+            self.assertEqual(self._creation(self.synthetic_recovery["key"])[5:9], (None, None, None, None))
             self._mark(True, 2)
 
     def test_capability_change_failure_rolls_back_digest_and_recovery_state(self):
-        before = self._creation(digest(1)), self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side='A'").fetchone()
+        before = self._creation(self.synthetic_recovery["key"]), self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side='A'").fetchone()
         self.db.execute("BEGIN IMMEDIATE")
-        self.db.execute("UPDATE gameplay_battle_capabilities SET token_sha256=? WHERE battle_id='eligible' AND side='A'", (digest(90),))
-        self.assertEqual(self._creation(digest(1))[2], "CLOSED")
+        self.db.execute("UPDATE gameplay_battle_capabilities SET token_sha256=? WHERE battle_id='synthetic-recovery' AND side='A'", (digest(90),))
+        self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "CLOSED")
         self.db.rollback()
-        after = self._creation(digest(1)), self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side='A'").fetchone()
+        after = self._creation(self.synthetic_recovery["key"]), self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side='A'").fetchone()
         self.assertEqual(after, before)
         self._mark(True)
 
     def test_scheduler_terminal_paths_are_separate_and_close_recovery(self):
         for phase in ("revealed", "expired"):
             if phase == "revealed":
-                snapshot = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0])
+                snapshot = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0])
                 snapshot["phase"] = "waiting"
                 snapshot["commits"] = {"A": {"selection": "synthetic-A"}, "B": {"selection": "synthetic-B"}}
-                self.db.execute("UPDATE gameplay_battles SET phase='waiting',state_json=? WHERE battle_id='eligible'", (json.dumps(snapshot),))
+                self.db.execute("UPDATE gameplay_battles SET phase='waiting',state_json=? WHERE battle_id='synthetic-recovery'", (json.dumps(snapshot),))
                 self.db.commit()
-                self._scheduler_terminal("scheduler", phase)
+                self._simulate_scheduler_terminal_transaction("scheduler", phase)
             else:
-                deadline = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0])["deadlineAt"]
-                self._scheduler_terminal("scheduler", phase, trusted_now=deadline)
-            self.assertEqual(self._creation(digest(1))[2], "CLOSED")
-            self.assertEqual(self._creation(digest(1))[5:9], (None, None, None, None))
+                deadline = json.loads(self.db.execute("SELECT state_json FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0])["deadlineAt"]
+                self._simulate_scheduler_terminal_transaction("scheduler", phase, trusted_now=deadline)
+            self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "CLOSED")
+            self.assertEqual(self._creation(self.synthetic_recovery["key"])[5:9], (None, None, None, None))
             self._mark(True, 2)
             # Reset an independent eligible fixture for the other terminal case.
             if phase == "revealed":
@@ -285,30 +312,33 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
                 self.setUp()
 
     def test_only_participant_commit_and_scheduler_terminal_simulations_exist(self):
-        before = self._counts(), self._creation(digest(1))
+        before = self._counts(), self._creation(self.synthetic_recovery["key"])
         for authority, phase in (("client", "expired"), ("participant", "revealed"), ("admin", "expired")):
             with self.assertRaisesRegex(PermissionError, "SCHEDULER_AUTHORITY_REQUIRED"):
-                self._scheduler_terminal(authority, phase)
-            self.assertEqual((self._counts(), self._creation(digest(1))), before)
+                self._simulate_scheduler_terminal_transaction(authority, phase)
+            self.assertEqual((self._counts(), self._creation(self.synthetic_recovery["key"])), before)
             self._mark(False)
         with self.assertRaisesRegex(ValueError, "TERMINAL_PHASE_REQUIRED"):
-            self._scheduler_terminal("scheduler", "committed")
+            self._simulate_scheduler_terminal_transaction("scheduler", "committed")
         with self.assertRaisesRegex(ValueError, "REVEAL_REQUIRES_BOTH_COMMITS"):
-            self._scheduler_terminal("scheduler", "revealed")
+            self._simulate_scheduler_terminal_transaction("scheduler", "revealed")
         with self.assertRaisesRegex(ValueError, "EXPIRY_NOT_DUE"):
-            self._scheduler_terminal("scheduler", "expired", trusted_now=NOW)
-        self.assertEqual(self._creation(digest(1))[2], "RECOVERABLE")
+            self._simulate_scheduler_terminal_transaction("scheduler", "expired", trusted_now=NOW)
+        self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "RECOVERABLE")
         self._mark(False)
 
     def test_tombstone_cleanup_order_retention_and_key_reuse(self):
-        key = digest(1)
+        key = self.synthetic_recovery["key"]
         self._close(key, "TOMBSTONE")
+        tombstone = self._creation(key)
+        self.assertEqual((tombstone[0], tombstone[2], tombstone[10]), (key, "TOMBSTONE", None))
+        self.assertEqual([tombstone[i] for i in range(len(tombstone)) if i not in (0, 2, 10)], [None] * 8)
         self.db.execute("UPDATE gameplay_battle_creations SET purge_after_ms=NULL WHERE idempotency_key_sha256=?", (key,))
         self.db.execute("DELETE FROM gameplay_battle_creations WHERE lifecycle_state='TOMBSTONE' AND purge_after_ms IS NOT NULL AND purge_after_ms<=?", (NOW,))
         self.assertEqual(self.db.execute("SELECT changes()").fetchone()[0], 0)
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_capabilities WHERE battle_id='eligible'").fetchone()[0], 0)
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='eligible'").fetchone()[0], 0)
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id='eligible'").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery'").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='synthetic-recovery'").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id='synthetic-recovery'").fetchone()[0], 0)
         self.assertEqual(self.db.execute("SELECT idempotency_key_sha256,battle_id FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (key,)).fetchone(), (key, None))
         with self.assertRaisesRegex(sqlite3.IntegrityError, "TOMBSTONE_RETENTION_ACTIVE"):
             self.db.execute("DELETE FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (key,))
@@ -319,7 +349,7 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
         self.db.rollback()
         self._mark(False)
         self.db.execute("UPDATE gameplay_battle_creations SET purge_after_ms=0 WHERE idempotency_key_sha256=?", (key,))
-        self.db.execute("DELETE FROM gameplay_battles WHERE battle_id='eligible'")
+        self.db.execute("DELETE FROM gameplay_battles WHERE battle_id='synthetic-recovery'")
         self.db.execute("DELETE FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (key,))
         self.db.commit()
         self.assertIsNone(self._creation(key))
@@ -330,20 +360,20 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
            deadline_at_ms,recovery_key_version,recovery_nonce_base64url,
            capabilities_ciphertext_base64url,recovery_generation,created_at_ms)
           VALUES (?,?,'CLOSED','new-after-purge',?,NULL,NULL,NULL,NULL,?)""",
-                        (key, digest(101), NOW + 60_000, NOW))
+                        (key, self.synthetic_recovery["fingerprint"], NOW + 60_000, NOW))
         self.db.commit()
         self.assertEqual(self._creation(key)[3], "new-after-purge")
         self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_capabilities WHERE battle_id='new-after-purge'").fetchone()[0], 0)
         self._mark(True, 4)
 
     def test_tombstone_retains_digest_blocks_reuse_then_explicit_purge_allows_new_key(self):
-        key = digest(1)
+        key = self.synthetic_recovery["key"]
         self._close(key, "TOMBSTONE")
         self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (key,)).fetchone()[0], 1)
         with self.assertRaises(sqlite3.IntegrityError):
             self.db.execute("""INSERT INTO gameplay_battle_creations
-              (idempotency_key_sha256,request_fingerprint_sha256,lifecycle_state,
-               created_at_ms) VALUES (?,?,'TOMBSTONE',?)""", (key, digest(101), NOW))
+              (idempotency_key_sha256,lifecycle_state,purge_after_ms)
+              VALUES (?,'TOMBSTONE',NULL)""", (key,))
         self.db.rollback()
         self._mark(False)
         self.db.execute("UPDATE gameplay_battle_creations SET purge_after_ms=0 WHERE idempotency_key_sha256=?", (key,))
@@ -355,21 +385,21 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
     def test_closed_and_tombstone_constraints_reject_recovery_material(self):
         for state_name in ("CLOSED", "TOMBSTONE"):
             with self.assertRaises(sqlite3.IntegrityError):
-                self.db.execute("UPDATE gameplay_battle_creations SET lifecycle_state=?, capabilities_ciphertext_base64url='bad' WHERE idempotency_key_sha256=?", (state_name, digest(1)))
+                self.db.execute("UPDATE gameplay_battle_creations SET lifecycle_state=?, capabilities_ciphertext_base64url='bad' WHERE idempotency_key_sha256=?", (state_name, self.synthetic_recovery["key"]))
             self.db.rollback()
             self._mark(False)
         self._mark(True)
 
     def test_restore_revokes_capabilities_before_access_and_keeps_tombstone_keys(self):
-        key = digest(1)
+        key = self.synthetic_recovery["key"]
         # Synthetic restore copies are revoked first, then the old row is closed.
         self.db.execute("BEGIN IMMEDIATE")
-        self.db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='eligible'")
+        self.db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery'")
         self._close(key, "CLOSED")
         self.db.commit()
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_capabilities WHERE battle_id='eligible'").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery'").fetchone()[0], 0)
         self.assertEqual(self._creation(key)[2], "CLOSED")
-        self.assertIsNone(self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE token_sha256=?", (digest(2),)).fetchone())
+        self.assertIsNone(self.db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE token_sha256=?", (self.synthetic_recovery["cap_a"],)).fetchone())
         self._close(digest(3), "TOMBSTONE")
         self.assertEqual(self.db.execute("SELECT lifecycle_state FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (digest(3),)).fetchone()[0], "TOMBSTONE")
         self._mark(True, 4)
@@ -385,11 +415,11 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
             barrier.wait()
             try:
                 db.execute("BEGIN IMMEDIATE")
-                cursor = db.execute("UPDATE gameplay_battles SET version=version+1,phase='committed' WHERE battle_id='eligible' AND version=0 AND phase='created'")
+                cursor = db.execute("UPDATE gameplay_battles SET version=version+1,phase='committed' WHERE battle_id='synthetic-recovery' AND version=0 AND phase='created'")
                 if cursor.rowcount != 1:
                     raise ValueError("VERSION_CONFLICT")
-                db.execute("UPDATE gameplay_battle_creations SET lifecycle_state='CLOSED', recovery_key_version=NULL, recovery_nonce_base64url=NULL, capabilities_ciphertext_base64url=NULL,recovery_generation=NULL WHERE idempotency_key_sha256=?", (digest(1),))
-                db.execute("INSERT INTO gameplay_command_receipts VALUES ('eligible', ?, 'fp', 'COMMITTED', '[]', 1)", (command_id,))
+                db.execute("UPDATE gameplay_battle_creations SET lifecycle_state='CLOSED', recovery_key_version=NULL, recovery_nonce_base64url=NULL, capabilities_ciphertext_base64url=NULL,recovery_generation=NULL WHERE idempotency_key_sha256=?", (self.synthetic_recovery["key"],))
+                db.execute("INSERT INTO gameplay_command_receipts VALUES ('synthetic-recovery', ?, 'fp', 'COMMITTED', '[]', 1)", (command_id,))
                 db.commit()
                 result = "committed"
             except Exception as exc:
@@ -406,8 +436,8 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
         for thread in threads:
             thread.join(timeout=10)
         self.assertEqual(outcomes.count("committed"), 1)
-        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0], 1)
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='eligible'").fetchone()[0], 1)
+        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0], 1)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='synthetic-recovery'").fetchone()[0], 1)
         self._mark(True, 3)
 
     def test_duplicate_receipt_race_and_rollback_preserve_state_and_outbox(self):
@@ -428,7 +458,7 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
             db = connect(self.path)
             barrier.wait()
             db.execute("BEGIN IMMEDIATE")
-            db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side='A'")
+            db.execute("DELETE FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side='A'")
             db.commit()
             db.close()
             with lock:
@@ -439,15 +469,15 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
             barrier.wait()
             try:
                 db.execute("BEGIN IMMEDIATE")
-                cap = db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='eligible' AND side='A'").fetchone()
-                recovery = db.execute("SELECT lifecycle_state,recovery_generation FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (digest(1),)).fetchone()
-                if cap is None or cap[0] != digest(2) or recovery != ("RECOVERABLE", 1):
+                cap = db.execute("SELECT token_sha256 FROM gameplay_battle_capabilities WHERE battle_id='synthetic-recovery' AND side='A'").fetchone()
+                recovery = db.execute("SELECT lifecycle_state,recovery_generation FROM gameplay_battle_creations WHERE idempotency_key_sha256=?", (self.synthetic_recovery["key"],)).fetchone()
+                if cap is None or cap[0] != self.synthetic_recovery["cap_a"] or recovery != ("RECOVERABLE", 7):
                     raise PermissionError("REVOCATION_WON")
-                changed = db.execute("UPDATE gameplay_battles SET version=1,phase='committed' WHERE battle_id='eligible' AND version=0")
+                changed = db.execute("UPDATE gameplay_battles SET version=1,phase='committed' WHERE battle_id='synthetic-recovery' AND version=0")
                 if changed.rowcount != 1:
                     raise ValueError("VERSION_CONFLICT")
-                db.execute("UPDATE gameplay_battle_creations SET lifecycle_state='CLOSED',recovery_key_version=NULL,recovery_nonce_base64url=NULL,capabilities_ciphertext_base64url=NULL,recovery_generation=NULL WHERE idempotency_key_sha256=?", (digest(1),))
-                db.execute("INSERT INTO gameplay_command_receipts VALUES ('eligible','race-command','fp','COMMITTED','[]',1)")
+                db.execute("UPDATE gameplay_battle_creations SET lifecycle_state='CLOSED',recovery_key_version=NULL,recovery_nonce_base64url=NULL,capabilities_ciphertext_base64url=NULL,recovery_generation=NULL WHERE idempotency_key_sha256=?", (self.synthetic_recovery["key"],))
+                db.execute("INSERT INTO gameplay_command_receipts VALUES ('synthetic-recovery','race-command','fp','COMMITTED','[]',1)")
                 db.commit()
                 result = "committed"
             except Exception:
@@ -465,10 +495,10 @@ class Chat03B2SchemaV4ProbeTests(unittest.TestCase):
             thread.join(timeout=10)
         self.assertIn("revoked", outcomes)
         self.assertEqual(outcomes.count("committed") + outcomes.count("rejected"), 1)
-        self.assertEqual(self._creation(digest(1))[2], "CLOSED")
-        self.assertEqual(self._creation(digest(1))[5:9], (None, None, None, None))
-        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='eligible'").fetchone()[0], outcomes.count("committed"))
-        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='eligible'").fetchone()[0], outcomes.count("committed"))
+        self.assertEqual(self._creation(self.synthetic_recovery["key"])[2], "CLOSED")
+        self.assertEqual(self._creation(self.synthetic_recovery["key"])[5:9], (None, None, None, None))
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id='synthetic-recovery'").fetchone()[0], outcomes.count("committed"))
+        self.assertEqual(self.db.execute("SELECT version FROM gameplay_battles WHERE battle_id='synthetic-recovery'").fetchone()[0], outcomes.count("committed"))
         self._mark(True, 5)
 
 
