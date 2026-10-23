@@ -1,0 +1,12 @@
+{
+  "name": "asynchronia-chat03b2-private-api-local-test",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "asynchronia-chat03b2-local-test",
+    "database_id": "00000000-0000-4000-8000-000000000442",
+    "migrations_dir": "migrations"
+  }]
+}
