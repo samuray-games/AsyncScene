@@ -202,11 +202,32 @@ async function load(db, id) {
   return restored.state;
 }
 
+async function loadAuthorized(db, id, authorized) {
+  // Keep authorization and the battle snapshot in one read statement. A
+  // revocation committed before this query returns no state. A revoke after
+  // this query's SQLite read snapshot may still race network response delivery.
+  const row = await db.prepare(
+    `SELECT b.version,b.state_json
+     FROM gameplay_battles AS b
+     JOIN gameplay_battle_capabilities AS c ON c.battle_id=b.battle_id
+     WHERE b.battle_id=? AND c.side=? AND c.participant_id=?
+       AND c.token_sha256=? AND c.status='active' AND c.generation=?
+       AND json_extract(b.state_json,'$.participants.' || c.side || '.id')=c.participant_id`
+  ).bind(id, authorized.side, authorized.participant_id,
+    authorized.token_sha256, authorized.generation).first();
+  if (!row) return null;
+  const restored = lifecycle.restore(row.state_json);
+  if (!restored.ok || restored.state.version !== row.version) throw Error("CORRUPT_BATTLE");
+  return restored.state;
+}
+
 async function authorizePlayer(db, id, token) {
   if (!token) return null;
   const key = await sha256hex(token);
   return db.prepare(
-    "SELECT side,participant_id FROM gameplay_battle_capabilities WHERE battle_id=? AND token_sha256=?"
+    `SELECT side,participant_id,token_sha256,generation
+     FROM gameplay_battle_capabilities
+     WHERE battle_id=? AND token_sha256=? AND status='active'`
   ).bind(id, key).first();
 }
 
@@ -214,6 +235,24 @@ async function storedReceipt(db, id, commandId) {
   return db.prepare(
     "SELECT fingerprint,code,event_ids_json,recorded_version FROM gameplay_command_receipts WHERE battle_id=? AND command_id=?"
   ).bind(id, commandId).first();
+}
+
+async function storedParticipantReceipt(db, id, commandId, authorized) {
+  // Receipt disclosure is authorized by one SQL read that linearizes against
+  // revocation/generation changes. A later revoke may race response delivery,
+  // but a capability already revoked at this read cannot retrieve a receipt.
+  return db.prepare(
+    `SELECT r.fingerprint,r.code,r.event_ids_json,r.recorded_version
+     FROM gameplay_command_receipts AS r
+     WHERE r.battle_id=? AND r.command_id=?
+       AND EXISTS (
+         SELECT 1 FROM gameplay_battle_capabilities AS c
+         WHERE c.battle_id=r.battle_id AND c.side=?
+           AND c.participant_id=? AND c.token_sha256=?
+           AND c.status='active' AND c.generation=?
+       )`
+  ).bind(id, commandId, authorized.side, authorized.participant_id,
+    authorized.token_sha256, authorized.generation).first();
 }
 
 function insertTransition(db, current, result, commandId, fingerprint, now) {
@@ -227,6 +266,22 @@ function insertTransition(db, current, result, commandId, fingerprint, now) {
   ).bind(
     current.battleId, current.version, commandId, fingerprint, result.code,
     JSON.stringify(result.eventIds), JSON.stringify(result.state), JSON.stringify(newlyEmitted), now,
+  ).run();
+}
+
+function insertParticipantTransition(db, current, result, commandId, fingerprint, now, authorized) {
+  const newlyEmitted = result.state.events.filter(x => result.eventIds.includes(x.eventId));
+  if (newlyEmitted.length !== result.eventIds.length) throw Error("EVENT_SOURCE_MISMATCH");
+  return db.prepare(
+    `INSERT INTO gameplay_apply_participant_transition (
+       battle_id,expected_version,command_id,fingerprint,receipt_code,
+       receipt_event_ids_json,next_state_json,events_json,trusted_now_ms,
+       capability_side,capability_token_sha256,expected_generation)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`
+  ).bind(
+    current.battleId, current.version, commandId, fingerprint, result.code,
+    JSON.stringify(result.eventIds), JSON.stringify(result.state), JSON.stringify(newlyEmitted), now,
+    authorized.side, authorized.token_sha256, authorized.generation,
   ).run();
 }
 
@@ -355,7 +410,7 @@ async function commit(db, id, authorized, body) {
   const scopedCommandId = authorized.side + ":" + body.commandId;
   const fingerprint = canonical({ side: authorized.side, commandId: body.commandId, selection: body.selection });
   for (let attempt = 0; attempt < MAX_COMMAND_RETRIES; attempt++) {
-    const prior = await storedReceipt(db, id, scopedCommandId);
+    const prior = await storedParticipantReceipt(db, id, scopedCommandId, authorized);
     if (prior) {
       if (prior.fingerprint !== fingerprint) return { error: "COMMAND_ID_REUSE", status: 409 };
       const current = await load(db, id);
@@ -394,7 +449,7 @@ async function commit(db, id, authorized, body) {
     const result = lifecycle.execute(state, command, now);
     if (!result.ok) return { error: result.error, status: 409 };
     try {
-      await insertTransition(db, state, result, command.commandId, fingerprint, now);
+      await insertParticipantTransition(db, state, result, command.commandId, fingerprint, now, authorized);
       // Disclosure requires both commits; automatically reveal without trusting
       // client/system credentials. Cron also retries if interrupted here.
       if (result.state.phase === "committed") {
@@ -405,6 +460,9 @@ async function commit(db, id, authorized, body) {
         version: result.state.version,
         view: lifecycle.getPublicView(latest, authorized.participant_id) };
     } catch (error) {
+      if (String(error).includes("INVALID_CAPABILITY")) {
+        return { error: "INVALID_CAPABILITY", status: 403 };
+      }
       if (!String(error).includes("VERSION_CONFLICT")) throw error;
       // Retry against the latest authoritative snapshot, re-evaluating
       // the intent under the same original request fingerprint.
@@ -443,9 +501,9 @@ async function api(request, env) {
     return encodeJSON(payload, status || 200, origin);
   }
   if (!match[2] && request.method === "GET") {
-    const state = await load(env.DB, id);
+    const state = await loadAuthorized(env.DB, id, auth);
     return state ? encodeJSON(lifecycle.getPublicView(state, auth.participant_id), 200, origin)
-      : encodeJSON({ error: "NOT_FOUND" }, 404, origin);
+      : encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
   }
   return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405, origin);
 }

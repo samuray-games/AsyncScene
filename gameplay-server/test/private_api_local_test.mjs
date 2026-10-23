@@ -105,6 +105,8 @@ try {
   migrate("migrations/0001_tactical_state.sql");
   migrate("migrations/0002_battle_capabilities.sql");
   migrate("migrations/0003_idempotent_battle_creation.sql");
+  migrate("migrations/0004_capability_generation.sql");
+  migrate("migrations/0005_participant_transition_fence.sql");
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -428,6 +430,11 @@ try {
 
   const invalidSpoof = await commit(base, battle, "A", "command-spoof", { actorId: "alpha-B" });
   assert.equal(invalidSpoof.status, 400);
+  const publicTransitionSelector = await request(base, "POST",
+    "/v1/battles/" + battle.battleId + "/transition", battle.capabilities.A.token,
+    { transition: "system", commandId: "public-system-selector", selection });
+  assert.equal(publicTransitionSelector.status, 404,
+    "public HTTP must not expose the unrestricted Worker scheduler transition path");
   const a = await commit(base, battle, "A", "command-alpha-A");
   assert.equal(a.status, 200, JSON.stringify(a));
   assert.equal(a.code, "COMMITTED");
@@ -490,6 +497,16 @@ try {
   assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot);
   console.log("PASS: idempotent replay across devices and changed-command rejection");
 
+  executeSql(`UPDATE gameplay_battle_capabilities SET status='revoked'
+    WHERE battle_id='${battle.battleId}' AND side='A'`);
+  const revokedReplay = await commit(base, battle, "A", "command-alpha-A");
+  assert.deepEqual(revokedReplay, { status: 401, error: "UNAUTHORIZED" });
+  const revokedRead = await get(base, battle, battle.capabilities.A.token);
+  assert.deepEqual(revokedRead, { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot,
+    "revoked read/replay must disclose no receipt and write no gameplay rows");
+  console.log("PASS: revoked capability cannot read battle state or replay a stored receipt");
+
   const b = await commit(base, battle, "B", "command-alpha-B");
   assert.equal(b.status, 200, JSON.stringify(b));
   const publicA = await get(base, battle, battle.capabilities.A.token);
@@ -522,10 +539,13 @@ try {
   worker = spawnApi();
   await start(base);
   const afterRestart = await get(base, battle, battle.capabilities.A.token);
-  assert.equal(afterRestart.revealed, true);
+  assert.deepEqual(afterRestart, { status: 401, error: "UNAUTHORIZED" });
   const replayAfterRestart = await commit(base, battle, "A", "command-alpha-A");
-  assert.equal(replayAfterRestart.status, 200, JSON.stringify(replayAfterRestart));
-  assert.equal(replayAfterRestart.replayed, true);
+  assert.deepEqual(replayAfterRestart, { status: 401, error: "UNAUTHORIZED" });
+  assert.equal((await get(base, battle, battle.capabilities.B.token)).revealed, true);
+  const replayBAfterRestart = await commit(base, battle, "B", "command-alpha-B");
+  assert.equal(replayBAfterRestart.status, 200, JSON.stringify(replayBAfterRestart));
+  assert.equal(replayBAfterRestart.replayed, true);
   const createReplayAfterRestart = await create(base, "alpha", alphaKey);
   assert.equal(createReplayAfterRestart.battleId, battle.battleId);
   assert.deepEqual(createReplayAfterRestart.capabilities, battle.capabilities);
