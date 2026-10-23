@@ -183,6 +183,8 @@ class CapabilityGenerationSqlTests(unittest.TestCase):
                 "(battle_id,side,participant_id,token_sha256,created_at_ms) "
                 "VALUES ('missing-battle','A','orphan',? ,?)", ("f" * 64, NOW)
             )
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute("DELETE FROM gameplay_battles WHERE battle_id='battle-a'")
 
     def test_lookup_index_remains_usable(self):
         self._migrate()
