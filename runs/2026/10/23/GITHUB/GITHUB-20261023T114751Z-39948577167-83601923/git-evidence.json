@@ -1,0 +1,106 @@
+{
+  "branch": "social-combat-chat03b2-private-worker-20261021",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "social-combat-chat03b2-private-worker-20261021\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "b6152fb46329b925237955235e60ee56759e2638\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "# branch.oid b6152fb46329b925237955235e60ee56759e2638\n# branch.head social-combat-chat03b2-private-worker-20261021\n# branch.upstream origin/social-combat-chat03b2-private-worker-20261021\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "b6152fb4 (HEAD -> social-combat-chat03b2-private-worker-20261021, origin/social-combat-chat03b2-private-worker-20261021) Merge parent PR #440 into child PR #441\nb3448587 (origin/social-combat-chat03b1-d1-cas-20261017) test(chat03b1): retire legacy hosted D1 runner\n89b5b627 test(chat03b2): assert valid missing-key oracle\n9c3d2615 test(chat03b2): validate missing historical key path\ne6ec52ea test(chat03b2): keep replay fixtures alive in CI\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b6152fb46329b925237955235e60ee56759e2638\nbranch refs/heads/social-combat-chat03b2-private-worker-20261021\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T11:47:51Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b6152fb46329b925237955235e60ee56759e2638",
+  "observedAtUtc": "2026-10-23T11:47:51Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
