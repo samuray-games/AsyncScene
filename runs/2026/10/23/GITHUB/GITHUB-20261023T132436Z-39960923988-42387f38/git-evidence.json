@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03b2-sqlite-schema-v4-probe-20261023",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "codex/chat03b2-sqlite-schema-v4-probe-20261023\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "f1a4592e5b72c5d54d0f72c558dbc37c08b07733\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "# branch.oid f1a4592e5b72c5d54d0f72c558dbc37c08b07733\n# branch.head codex/chat03b2-sqlite-schema-v4-probe-20261023\n# branch.upstream origin/codex/chat03b2-sqlite-schema-v4-probe-20261023\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "f1a4592e (HEAD -> codex/chat03b2-sqlite-schema-v4-probe-20261023, origin/codex/chat03b2-sqlite-schema-v4-probe-20261023) test(chat03b2): fail closed legacy recovery probe\nf11dd978 Add synthetic Chat03B2 SQLite schema probe\n6ad90e6e (origin/social-combat-chat03b2-private-worker-20261021) Clarify Chat03B2 hosted SQL evidence\nb6152fb4 Merge parent PR #440 into child PR #441\nb3448587 (origin/social-combat-chat03b1-d1-cas-20261017) test(chat03b1): retire legacy hosted D1 runner\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f1a4592e5b72c5d54d0f72c558dbc37c08b07733\nbranch refs/heads/codex/chat03b2-sqlite-schema-v4-probe-20261023\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-23T13:24:36Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f1a4592e5b72c5d54d0f72c558dbc37c08b07733",
+  "observedAtUtc": "2026-10-23T13:24:36Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
