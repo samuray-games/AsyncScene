@@ -88,11 +88,27 @@ also cover this D1-compatible behavior and fractional-clock rejection.
 The first Wrangler integration run exposed this previously missed mismatch.
 
 **Evidence boundary:** the previous remote Cloudflare SQL API probe verified
-transition CAS/rollback on an earlier migration. The added genesis+origin
-view and live lifecycle integration currently have SQLite + Wrangler local
-D1 verification, **NOT an updated hosted D1 acceptance run**. The full
-schema must be rechecked on fresh hosted D1 before production integration.
-The test-only Worker has unauthenticated inspection and MUST NOT be deployed.
+transition CAS/rollback on an earlier migration. It did not cover the newer
+genesis+origin view. The current migration has SQLite + Wrangler local D1
+verification, **NOT an updated hosted D1 acceptance run**. The test-only
+Worker has unauthenticated inspection and MUST NOT be deployed.
+
+## Hosted preflight status
+
+The old Chat03B1 hosted runner,
+`test/remote_d1_ephemeral.mjs`, is **RETIRED**. Its remote execution and
+cleanup code has been removed. The file retains only pure SQL fixture exports
+for offline tests; invoking it as a CLI exits with
+`LEGACY_HOSTED_RUNNER_DISABLED` without network access, regardless of
+Cloudflare environment variables.
+
+The maintained safety-hardened hosted D1 preflight is in stacked Draft
+[PR #441](https://github.com/samuray-games/AsyncScene/pull/441). It is the
+single supported hosted-preflight path. Its real hosted execution requires
+PR #441's integration to be complete and separate explicit authorization;
+neither this retirement nor local/CI checks authorize a hosted run. Do not
+restore or create another hosted runner here. The PR #441 implementation is
+not yet integrated or authorized for real Cloudflare execution.
 
 ## Required follow-up gates
 

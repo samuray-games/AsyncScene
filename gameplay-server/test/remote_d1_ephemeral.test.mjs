@@ -33,13 +33,26 @@ test("transition request includes version and exact receipt/outbox fixture", () 
   assert.throws(() => transitionSql(state, "good", [], [], 0.5));
 });
 
-test("no credentials or approval means no network provisioning", () => {
+test("legacy CLI fails closed with synthetic valid credentials and never calls fetch", () => {
   const filename = fileURLToPath(new URL("./remote_d1_ephemeral.mjs", import.meta.url));
-  const child = spawnSync(process.execPath, [filename], {
-    env: { PATH: process.env.PATH, CHAT03B1_REMOTE_D1_APPROVED: "NO" },
+  const fetchTrap = "globalThis.fetch = async () => { throw new Error('NETWORK_ATTEMPT') }";
+  const child = spawnSync(process.execPath, [
+    "--import", `data:text/javascript,${encodeURIComponent(fetchTrap)}`, filename,
+  ], {
+    env: {
+      PATH: process.env.PATH,
+      CLOUDFLARE_ACCOUNT_ID: "0123456789abcdef0123456789abcdef",
+      CLOUDFLARE_API_TOKEN: "synthetic-valid-looking-token-for-offline-test",
+      CLOUDFLARE_API_KEY: "synthetic-valid-looking-key-for-offline-test",
+      CLOUDFLARE_EMAIL: "synthetic@example.invalid",
+      CHAT03B1_REMOTE_D1_APPROVED: "YES",
+      WRANGLER_BIN: "/synthetic/wrangler",
+    },
     encoding: "utf8", timeout: 7000,
   });
-  assert.notEqual(child.status, 0);
-  assert.match(child.stderr || "", /BLOCKED_AUTH/);
-  assert.doesNotMatch(child.stdout || "", /Provisioning isolated/);
+  assert.equal(child.status, 1, child.stderr || child.stdout);
+  assert.match(child.stderr || "", /LEGACY_HOSTED_RUNNER_DISABLED/);
+  assert.doesNotMatch(child.stderr || "", /synthetic-valid-looking|synthetic@example/);
+  assert.doesNotMatch(child.stderr || "", /NETWORK_ATTEMPT/);
+  assert.doesNotMatch(child.stdout || "", /Provisioning isolated|HOSTED_D1_SQL_CAS_PASS/);
 });
