@@ -87,12 +87,35 @@ and JavaScript-safe version/timestamp values. Native SQLite Python tests
 also cover this D1-compatible behavior and fractional-clock rejection.
 The first Wrangler integration run exposed this previously missed mismatch.
 
-**Evidence boundary:** on 2026-10-22, the user verified migration
-`0001_tactical_state.sql` against a separate hosted Cloudflare D1 database on
-PR #440 HEAD `ed6c01d50b49a5afa02437dac096c2f9e0551836`; the reported result was
+**Evidence boundary:** on 2026-10-22, the user reported a hosted Cloudflare
+D1 SQL API test of migration `0001_tactical_state.sql` on PR #440 HEAD
+`ed6c01d50b49a5afa02437dac096c2f9e0551836`, with result
 `HOSTED_D1_SQL_CAS_PASS` ([issue #439 evidence](https://github.com/samuray-games/AsyncScene/issues/439#issuecomment-6332989583)).
-Migrations 0002/0003 and the remote authenticated Worker remain unverified.
-The test-only Worker has unauthenticated inspection and MUST NOT be deployed.
+That test covered transition CAS/rollback, but did not exercise the newer
+genesis+origin view. It is separate from GitHub CI, which runs offline SQLite
+and Wrangler local D1 checks; neither is an updated hosted acceptance run for
+the genesis view. Migrations 0002/0003 and the authenticated remote Worker
+remain unverified. The test-only Worker has unauthenticated inspection and
+MUST NOT be deployed.
+
+## Hosted preflight status
+
+The old Chat03B1 hosted runner,
+`test/remote_d1_ephemeral.mjs`, is **RETIRED**. Its remote execution and
+cleanup code has been removed. The file retains only pure SQL fixture exports
+for offline tests; invoking it as a CLI exits with
+`LEGACY_HOSTED_RUNNER_DISABLED` without network access, regardless of
+Cloudflare environment variables.
+
+The maintained safety-hardened hosted D1 preflight is in stacked Draft
+[PR #441](https://github.com/samuray-games/AsyncScene/pull/441). It is the
+single supported hosted-preflight path. Its real hosted execution requires
+PR #441's integration to be complete and separate explicit authorization;
+neither this retirement nor local/CI checks authorize a hosted run. Do not
+restore or create another hosted runner here. Do not deploy to production or
+start a hosted Worker without separate explicit authorization. The PR #441
+implementation is not yet integrated or authorized for real Cloudflare
+execution.
 
 ## Required follow-up gates
 
