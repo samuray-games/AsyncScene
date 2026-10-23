@@ -91,12 +91,16 @@ The first Wrangler integration run exposed this previously missed mismatch.
 D1 SQL API test of migration `0001_tactical_state.sql` on PR #440 HEAD
 `ed6c01d50b49a5afa02437dac096c2f9e0551836`, with result
 `HOSTED_D1_SQL_CAS_PASS` ([issue #439 evidence](https://github.com/samuray-games/AsyncScene/issues/439#issuecomment-6332989583)).
-That test covered transition CAS/rollback, but did not exercise the newer
-genesis+origin view. It is separate from GitHub CI, which runs offline SQLite
-and Wrangler local D1 checks; neither is an updated hosted acceptance run for
-the genesis view. Migrations 0002/0003 and the authenticated remote Worker
-remain unverified. The test-only Worker has unauthenticated inspection and
-MUST NOT be deployed.
+The historical runner inserted through `gameplay_create_battle`, and its
+`runProbes()` verified an outbox containing the origin event and two additional
+events, so the positive genesis/origin path was exercised. This was
+user-reported evidence, not independently observed GitHub-hosted CI. It did
+not establish dedicated invalid-genesis negative-path/rollback acceptance,
+hosted acceptance for migrations 0002/0003, or authenticated remote Worker
+acceptance. Cleanup was reported through a successful DELETE, without
+independent post-DELETE GET absence verification. This evidence is separate
+from GitHub CI, which runs offline SQLite and Wrangler local D1 checks. The
+test-only Worker has unauthenticated inspection and MUST NOT be deployed.
 
 ## Hosted preflight status
 
