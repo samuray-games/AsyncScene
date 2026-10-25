@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03b2-participant-sql-fence-20261023",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "codex/chat03b2-participant-sql-fence-20261023\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "bc3687ec582c8f23aab0725c772641afb79942bd\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "# branch.oid bc3687ec582c8f23aab0725c772641afb79942bd\n# branch.head codex/chat03b2-participant-sql-fence-20261023\n# branch.upstream origin/codex/chat03b2-participant-sql-fence-20261023\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "bc3687ec (HEAD -> codex/chat03b2-participant-sql-fence-20261023, origin/codex/chat03b2-participant-sql-fence-20261023) test(chat03b2): isolate private API transport and auth races\nf8d8a3f8 fix(chat03b2): revalidate participant reads\na7314d5e test(chat03b2): exercise fence on local D1\nd6d54031 feat(chat03b2): fence participant transitions in SQL\nc0e6ccb1 (origin/codex/chat03b2-capability-generation-20261023) test(chat03b2): assert capability delete restriction\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD bc3687ec582c8f23aab0725c772641afb79942bd\nbranch refs/heads/codex/chat03b2-participant-sql-fence-20261023\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-25T04:22:39Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "bc3687ec582c8f23aab0725c772641afb79942bd",
+  "observedAtUtc": "2026-10-25T04:22:39Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
