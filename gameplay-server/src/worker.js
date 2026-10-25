@@ -412,16 +412,22 @@ async function commit(db, id, authorized, body) {
   for (let attempt = 0; attempt < MAX_COMMAND_RETRIES; attempt++) {
     const prior = await storedParticipantReceipt(db, id, scopedCommandId, authorized);
     if (prior) {
+      // The receipt lookup and response view are separate reads. Revalidate at
+      // the state read that supplies the replay response, before inspecting its
+      // fingerprint or disclosing the stored receipt.
+      const current = await loadAuthorized(db, id, authorized);
+      if (!current) return { error: "UNAUTHORIZED", status: 401 };
       if (prior.fingerprint !== fingerprint) return { error: "COMMAND_ID_REUSE", status: 409 };
-      const current = await load(db, id);
       return {
         code: prior.code, replayed: true, eventIds: JSON.parse(prior.event_ids_json),
         version: prior.recorded_version,
         view: lifecycle.getPublicView(current, authorized.participant_id),
       };
     }
-    const state = await load(db, id);
-    if (!state) return { error: "NOT_FOUND", status: 404 };
+    // Recheck the complete capability tuple in the same read that supplies
+    // state used for command outcomes such as ALREADY_COMMITTED.
+    const state = await loadAuthorized(db, id, authorized);
+    if (!state) return { error: "UNAUTHORIZED", status: 401 };
     if (state.participants[authorized.side]?.id !== authorized.participant_id) {
       return { error: "INVALID_CAPABILITY", status: 403 };
     }
@@ -455,6 +461,9 @@ async function commit(db, id, authorized, body) {
       if (result.state.phase === "committed") {
         try { await applySystem(db, id, "reveal"); } catch (_) { /* recover via cron */ }
       }
+      // The participant write fence already linearized this transition. Keep
+      // its durable success response if revocation lands before HTTP delivery;
+      // an in-flight response cannot be reliably cancelled after that commit.
       const latest = await load(db, id);
       return { code: result.code, replayed: false, eventIds: result.eventIds,
         version: result.state.version,

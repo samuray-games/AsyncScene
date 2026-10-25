@@ -553,8 +553,57 @@ try {
   assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot);
   console.log("PASS: idempotent replay across devices and changed-command rejection");
 
+  // Deterministically model the gap between the initial capability lookup and
+  // the later participant state/receipt reads: authorization succeeds, revoke
+  // commits, then both actual D1 authorization predicates must deny the read.
+  // The HTTP harness has no production debug hook to pause between statements.
+  const aCapabilityDigest = createHash("sha256").update(battle.capabilities.A.token).digest("hex");
+  const earlierAuthorization = query(`SELECT side,participant_id,token_sha256,generation
+    FROM gameplay_battle_capabilities WHERE battle_id='${battle.battleId}'
+      AND token_sha256='${aCapabilityDigest}' AND status='active'`)[0];
+  assert.deepEqual(earlierAuthorization, {
+    side: "A", participant_id: "alpha-A", token_sha256: aCapabilityDigest, generation: 1,
+  });
+  const readAuthorizedState = (authorization = earlierAuthorization) => query(`SELECT b.version,b.state_json
+    FROM gameplay_battles AS b
+    JOIN gameplay_battle_capabilities AS c ON c.battle_id=b.battle_id
+    WHERE b.battle_id='${battle.battleId}' AND c.side='${authorization.side}'
+      AND c.participant_id='${authorization.participant_id}'
+      AND c.token_sha256='${authorization.token_sha256}'
+      AND c.status='active' AND c.generation=${authorization.generation}
+      AND json_extract(b.state_json,'$.participants.' || c.side || '.id')=c.participant_id`);
+  const readAuthorizedReceipt = (authorization = earlierAuthorization) => query(`SELECT r.fingerprint,r.code,r.event_ids_json,r.recorded_version
+    FROM gameplay_command_receipts AS r
+    WHERE r.battle_id='${battle.battleId}' AND r.command_id='A:command-alpha-A'
+      AND EXISTS (
+        SELECT 1 FROM gameplay_battle_capabilities AS c
+        WHERE c.battle_id=r.battle_id AND c.side='${authorization.side}'
+          AND c.participant_id='${authorization.participant_id}'
+          AND c.token_sha256='${authorization.token_sha256}'
+          AND c.status='active' AND c.generation=${authorization.generation}
+      )`);
+  assert.equal(readAuthorizedState().length, 1);
+  assert.equal(readAuthorizedReceipt().length, 1);
+  for (const alteredAuthorization of [
+    { ...earlierAuthorization, side: "B" },
+    { ...earlierAuthorization, participant_id: "other-participant" },
+    { ...earlierAuthorization, token_sha256: "f".repeat(64) },
+    { ...earlierAuthorization, generation: 2 },
+  ]) {
+    assert.deepEqual(readAuthorizedState(alteredAuthorization), []);
+    assert.deepEqual(readAuthorizedReceipt(alteredAuthorization), []);
+  }
+  executeSql(`UPDATE gameplay_battle_capabilities SET generation=2
+    WHERE battle_id='${battle.battleId}' AND side='A'`);
+  assert.deepEqual(readAuthorizedState(), []);
+  assert.deepEqual(readAuthorizedReceipt(), []);
+  console.log("PASS: local D1 participant reads reject wrong side, ID, digest and stale generation");
   executeSql(`UPDATE gameplay_battle_capabilities SET status='revoked'
     WHERE battle_id='${battle.battleId}' AND side='A'`);
+  assert.deepEqual(readAuthorizedState(), []);
+  assert.deepEqual(readAuthorizedReceipt(), []);
+  console.log("PASS: actual local D1 participant state/receipt reads revalidate after prior authorization");
+
   const revokedReplay = await commit(base, battle, "A", "command-alpha-A");
   assert.deepEqual(revokedReplay, { status: 401, error: "UNAUTHORIZED" });
   const revokedFreshCommit = await commit(base, battle, "A", "revoked-fresh-command");
@@ -578,6 +627,8 @@ try {
     FROM gameplay_battles b WHERE b.battle_id='${revokeRace.battleId}'`)[0];
   assert.equal(revokeRaceSnapshot.status, "revoked");
   if (revokeRaceResult.status === 200) {
+    assert.equal(revokeRaceResult.code, "COMMITTED",
+      "a fenced commit that linearizes before revocation keeps its success response");
     assert.deepEqual(revokeRaceSnapshot, { version: 1, receipts: 1, outbox: 2, status: "revoked" });
   } else {
     assert.deepEqual(revokeRaceSnapshot, { version: 0, receipts: 0, outbox: 1, status: "revoked" });
