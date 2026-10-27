@@ -87,11 +87,20 @@ and JavaScript-safe version/timestamp values. Native SQLite Python tests
 also cover this D1-compatible behavior and fractional-clock rejection.
 The first Wrangler integration run exposed this previously missed mismatch.
 
-**Evidence boundary:** the previous remote Cloudflare SQL API probe verified
-transition CAS/rollback on an earlier migration. It did not cover the newer
-genesis+origin view. The current migration has SQLite + Wrangler local D1
-verification, **NOT an updated hosted D1 acceptance run**. The test-only
-Worker has unauthenticated inspection and MUST NOT be deployed.
+**Evidence boundary:** on 2026-10-22, the user reported a hosted Cloudflare
+D1 SQL API test of migration `0001_tactical_state.sql` on PR #440 HEAD
+`ed6c01d50b49a5afa02437dac096c2f9e0551836`, with result
+`HOSTED_D1_SQL_CAS_PASS` ([issue #439 evidence](https://github.com/samuray-games/AsyncScene/issues/439#issuecomment-6332989583)).
+The historical runner inserted through `gameplay_create_battle`, and its
+`runProbes()` verified an outbox containing the origin event and two additional
+events, so the positive genesis/origin path was exercised. This was
+user-reported evidence, not independently observed GitHub-hosted CI. It did
+not establish dedicated invalid-genesis negative-path/rollback acceptance,
+hosted acceptance for migrations 0002/0003, or authenticated remote Worker
+acceptance. Cleanup was reported through a successful DELETE, without
+independent post-DELETE GET absence verification. This evidence is separate
+from GitHub CI, which runs offline SQLite and Wrangler local D1 checks. The
+test-only Worker has unauthenticated inspection and MUST NOT be deployed.
 
 ## Hosted preflight status
 
@@ -107,8 +116,10 @@ The maintained safety-hardened hosted D1 preflight is in stacked Draft
 single supported hosted-preflight path. Its real hosted execution requires
 PR #441's integration to be complete and separate explicit authorization;
 neither this retirement nor local/CI checks authorize a hosted run. Do not
-restore or create another hosted runner here. The PR #441 implementation is
-not yet integrated or authorized for real Cloudflare execution.
+restore or create another hosted runner here. Do not deploy to production or
+start a hosted Worker without separate explicit authorization. The PR #441
+implementation is not yet integrated or authorized for real Cloudflare
+execution.
 
 ## Required follow-up gates
 
@@ -126,3 +137,104 @@ not yet integrated or authorized for real Cloudflare execution.
 
 **Acceptance level:** SQL schema + SQLite unit/integration tests only, pending
 independent review. No runtime/Safari/PvP security claim.
+
+## Chat 03B2 private API overlay
+
+The current stacked PR adds an isolated private Worker API in
+[`CHAT03B2.md`](CHAT03B2.md), backed by the same dedicated gameplay D1 schema.
+It requires a client-persisted `Idempotency-Key` for administrative creation
+and stores the capability recovery payload only as AES-256-GCM ciphertext.
+Migration `0003_idempotent_battle_creation.sql` stores the key and request
+fingerprints, battle/deadline identity, key version, nonce and ciphertext;
+participant authorization remains SHA-256-digest-only.
+
+The keyring must be provisioned as Worker secrets and rotated by retaining old
+decrypt-only versions while matching rows exist. Creation rows currently have
+no expiry because retention has not been approved. Identity, revocation,
+retention/deletion, backup/key restore and secret-rotation ownership remain
+explicit pre-deployment gates. The local test key is synthetic and the
+test-only inspection Worker must never be deployed.
+
+### Hosted D1 migration preflight
+
+`test/hosted_chat03b2_d1_preflight.mjs` applies migrations 0001, 0002 and 0003
+to a random `asynchronia-chat03b2-scratch-*` Cloudflare D1 through the D1 SQL
+API. It has a hard opt-in (`CHAT03B2_HOSTED_D1_APPROVED=YES`), accepts no target
+database name or UUID from the caller, and only addresses the UUID returned by
+its own create request. Before CREATE, it writes a mode-0600 intent record with
+the exact random name and account ID. A lost response therefore leaves a
+durable ambiguous-create record and blocks ordinary reruns before any API call.
+It checks atomic creation of the battle, origin event,
+both capability digest rows and a ciphertext-shaped idempotency/recovery row,
+plus rollback for bad genesis, capability, idempotency and recovery constraints.
+Fixture digests/ciphertext are synthetic and do not validate AES-GCM. Before
+every DELETE, normal cleanup and retry both GET the UUID and require an exact
+UUID plus full scratch-name match. CREATE response-name mismatch, pre-delete
+identity mismatch, and uncertain cleanup retain the mode-0600 record for manual
+investigation and never issue DELETE. Confirmed cleanup requires a post-delete
+GET showing absence. The final `HOSTED_D1_SQL_API_PASS` is emitted only after
+all SQL probes pass and cleanup is confirmed. A process-kill may leave a stale
+invocation lock; the tool refuses to remove it automatically. Confirm its PID
+is no longer running before manually removing that exact lock.
+
+**Resolving an ambiguous CREATE:** inspect the Cloudflare dashboard in the
+recorded account ID and search for the exact full random database name in the
+mode-0600 pending record. Never infer or guess a UUID. If the database exists,
+record its UUID from that exact-name dashboard entry, verify account and full
+name, delete that exact resource manually in the dashboard, then refresh and
+confirm it is absent. For a CREATE-response mismatch, also investigate the
+returned UUID and `createResponseName` stored in the marker; do not delete that
+resource if its full name differs from the generated scratch name. If no
+matching scratch database exists, confirm the account and exact-name search
+completed and leave any unrelated resource untouched. Only then clear the local marker with the explicit
+`CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS=YES` mode, supplying the exact recorded
+account and name plus `CHAT03B2_HOSTED_D1_RESOLUTION=VERIFIED_DELETED` or
+`VERIFIED_ABSENT`. This local-only acknowledgement makes no Cloudflare request;
+it does not delete a remote resource. A mismatch or missing confirmation keeps
+the marker and continues blocking normal runs.
+
+After completing that dashboard check, use this local-only acknowledgement:
+
+```bash
+CHAT03B2_HOSTED_D1_RESOLVE_AMBIGUOUS=YES \
+CHAT03B2_HOSTED_D1_RESOLUTION_ACCOUNT_ID='<exact account ID from marker>' \
+CHAT03B2_HOSTED_D1_RESOLUTION_NAME='<exact full scratch name from marker>' \
+CHAT03B2_HOSTED_D1_RESOLUTION=VERIFIED_ABSENT \
+node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+Use `VERIFIED_DELETED` only after manually deleting the exact resource and
+confirming absence. This mode needs no API token and makes zero network calls.
+
+Migration SQL uses Cloudflare's [D1 raw query API](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/raw/); the create/rollback probe uses its batch request form and the documented [D1 transactional batch behavior](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch).
+
+Offline safety tests run with:
+
+```bash
+node --test gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
+```
+
+An actual hosted run requires separate user authorization and a narrowly
+scoped `CLOUDFLARE_API_TOKEN` with D1 database create, query, read and delete
+permissions. The normal command is:
+
+```bash
+CHAT03B2_HOSTED_D1_APPROVED=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+If cleanup fails after a validated CREATE response, do not start another
+database test. The retry mode performs a GET identity check before DELETE and
+again verifies absence afterward:
+
+```bash
+CHAT03B2_HOSTED_D1_APPROVED=YES CHAT03B2_HOSTED_D1_RETRY_CLEANUP=YES node gameplay-server/test/hosted_chat03b2_d1_preflight.mjs
+```
+
+The command above is documentation only; this change's tests do not contact
+Cloudflare. Success is `HOSTED_D1_SQL_API_PASS (NOT WORKER_AUTH_PASS)` and
+means SQL checks passed plus scratch deletion was confirmed. No
+Worker is created or deployed. Actual authenticated Worker validation is a
+separate gate requiring separate approval. `ADMIN_CONTROL_TOKEN` is for trusted
+server-side creation and must never be placed in browser code. Current CORS
+does not allow `Idempotency-Key`, so browser preflight for the admin endpoint
+fails; see [`CHAT03B2.md`](CHAT03B2.md).
