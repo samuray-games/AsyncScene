@@ -288,15 +288,37 @@ function insertParticipantTransition(db, current, result, commandId, fingerprint
 async function storedCreation(db, idempotencyHash) {
   return db.prepare(
     `SELECT idempotency_key_sha256,request_fingerprint_sha256,battle_id,deadline_at_ms,
-            recovery_key_version,recovery_nonce_base64url,capabilities_ciphertext_base64url
+            lifecycle_state,recovery_key_version,recovery_nonce_base64url,
+            capabilities_ciphertext_base64url,original_a_token_sha256,
+            original_a_generation,original_b_token_sha256,original_b_generation
      FROM gameplay_battle_creations WHERE idempotency_key_sha256=?`
   ).bind(idempotencyHash).first();
 }
 
 async function recoverCreation(row, fingerprint, idempotencyHash, env) {
-  if (row.request_fingerprint_sha256 !== fingerprint) {
+  if (row.request_fingerprint_sha256 !== null && row.request_fingerprint_sha256 !== fingerprint) {
     return { error: "IDEMPOTENCY_KEY_REUSE", status: 409 };
   }
+  if (row.lifecycle_state !== "RECOVERABLE") {
+    return { error: "CREATION_RECOVERY_CLOSED", status: 410 };
+  }
+  // One SQL snapshot proves that recovery remains open and that both original
+  // capability digests and generations are still active. A subsequent revoke
+  // may race delivery, but its SQL update also invalidates these credentials.
+  const eligible = await env.DB.prepare(
+    `SELECT a.participant_id AS participant_a_id,
+            b.participant_id AS participant_b_id
+     FROM gameplay_battle_creations r
+     JOIN gameplay_battle_capabilities a ON a.battle_id=r.battle_id AND a.side='A'
+     JOIN gameplay_battle_capabilities b ON b.battle_id=r.battle_id AND b.side='B'
+     WHERE r.idempotency_key_sha256=? AND r.lifecycle_state='RECOVERABLE'
+       AND r.request_fingerprint_sha256=?
+       AND a.status='active' AND a.token_sha256=r.original_a_token_sha256
+       AND a.generation=r.original_a_generation
+       AND b.status='active' AND b.token_sha256=r.original_b_token_sha256
+       AND b.generation=r.original_b_generation`
+  ).bind(idempotencyHash, fingerprint).first();
+  if (!eligible) return { error: "CREATION_RECOVERY_CLOSED", status: 410 };
   const keyring = recoveryKeyring(env);
   const aad = canonical({
     purpose: "chat03b2-battle-create-v1", idempotencyHash, fingerprint,
@@ -305,6 +327,12 @@ async function recoverCreation(row, fingerprint, idempotencyHash, env) {
   });
   const recovered = await decryptCapabilities(row, keyring, aad);
   if (recovered.deadlineAt !== row.deadline_at_ms) throw Error("CREATE_RECOVERY_RECORD_INVALID");
+  if (eligible.participant_a_id !== recovered.capabilities.A.participantId ||
+      eligible.participant_b_id !== recovered.capabilities.B.participantId ||
+      await sha256hex(recovered.capabilities.A.token) !== row.original_a_token_sha256 ||
+      await sha256hex(recovered.capabilities.B.token) !== row.original_b_token_sha256) {
+    throw Error("CREATE_RECOVERY_RECORD_INVALID");
+  }
   return { battleId: row.battle_id, ...recovered, status: 200 };
 }
 
@@ -329,6 +357,7 @@ async function createBattle(db, body, env, idempotencyKey) {
   if (!created.ok) return { error: "INVALID_CREATE", status: 400 };
   const a = newCapability(), b = newCapability();
   const digestA = await sha256hex(a), digestB = await sha256hex(b);
+  const generation = 1;
   const { keys, currentVersion } = recoveryKeyring(env);
   const aad = canonical({
     purpose: "chat03b2-battle-create-v1", idempotencyHash, fingerprint,
@@ -346,18 +375,24 @@ async function createBattle(db, body, env, idempotencyKey) {
       "INSERT INTO gameplay_create_battle (battle_id,initial_state_json,creation_event_json,trusted_now_ms) VALUES (?,?,?,?)"
     ).bind(id, JSON.stringify(created.state), JSON.stringify(created.state.events[0]), now),
     db.prepare(
-      "INSERT INTO gameplay_battle_capabilities (battle_id,side,participant_id,token_sha256,created_at_ms) VALUES (?,?,?,?,?)"
-    ).bind(id, "A", ps.A.id, digestA, now),
+      `INSERT INTO gameplay_battle_capabilities
+       (battle_id,side,participant_id,token_sha256,created_at_ms,status,generation)
+       VALUES (?,?,?,?,?,'active',?)`
+    ).bind(id, "A", ps.A.id, digestA, now, generation),
     db.prepare(
-      "INSERT INTO gameplay_battle_capabilities (battle_id,side,participant_id,token_sha256,created_at_ms) VALUES (?,?,?,?,?)"
-    ).bind(id, "B", ps.B.id, digestB, now),
+      `INSERT INTO gameplay_battle_capabilities
+       (battle_id,side,participant_id,token_sha256,created_at_ms,status,generation)
+       VALUES (?,?,?,?,?,'active',?)`
+    ).bind(id, "B", ps.B.id, digestB, now, generation),
     db.prepare(
       `INSERT INTO gameplay_battle_creations
        (idempotency_key_sha256,request_fingerprint_sha256,battle_id,deadline_at_ms,
-        recovery_key_version,recovery_nonce_base64url,capabilities_ciphertext_base64url,created_at_ms)
-       VALUES (?,?,?,?,?,?,?,?)`
+        lifecycle_state,recovery_key_version,recovery_nonce_base64url,
+        capabilities_ciphertext_base64url,original_a_token_sha256,original_a_generation,
+        original_b_token_sha256,original_b_generation,created_at_ms)
+       VALUES (?,?,?,?, 'RECOVERABLE',?,?,?,?,?,?,?,?)`
     ).bind(idempotencyHash, fingerprint, id, deadline, encrypted.keyVersion,
-      encrypted.nonce, encrypted.ciphertext, now),
+      encrypted.nonce, encrypted.ciphertext, digestA, generation, digestB, generation, now),
   ];
   // The unique idempotency hash arbitrates concurrent creates. D1 batch is
   // one transaction, so a losing request cannot leave a second genesis.
