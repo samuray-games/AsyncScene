@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03b2-creation-recovery-20261027",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:14Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:14Z",
+      "stderr": "",
+      "stdout": "codex/chat03b2-creation-recovery-20261027\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:14Z",
+      "stderr": "",
+      "stdout": "3539a313ad573d8b2e1f2d50fe512986a2d07f3e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:15Z",
+      "stderr": "",
+      "stdout": "# branch.oid 3539a313ad573d8b2e1f2d50fe512986a2d07f3e\n# branch.head codex/chat03b2-creation-recovery-20261027\n# branch.upstream origin/codex/chat03b2-creation-recovery-20261027\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:15Z",
+      "stderr": "",
+      "stdout": "3539a313 (HEAD -> codex/chat03b2-creation-recovery-20261027, origin/codex/chat03b2-creation-recovery-20261027) feat(chat03b2): close battle creation recovery lifecycle\nbc3687ec (origin/codex/chat03b2-participant-sql-fence-20261023) test(chat03b2): isolate private API transport and auth races\nf8d8a3f8 fix(chat03b2): revalidate participant reads\na7314d5e test(chat03b2): exercise fence on local D1\nd6d54031 feat(chat03b2): fence participant transitions in SQL\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:15Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 3539a313ad573d8b2e1f2d50fe512986a2d07f3e\nbranch refs/heads/codex/chat03b2-creation-recovery-20261027\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:15Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-27T05:10:15Z",
+      "stderr": "",
+      "stdout": "57244500e58d1ee6f0b7f2f5e87cd2e63bb83dcb\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "3539a313ad573d8b2e1f2d50fe512986a2d07f3e",
+  "observedAtUtc": "2026-10-27T05:10:15Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
