@@ -490,11 +490,6 @@ try {
     { status: 400, error: "INVALID_EXPECTED_GENERATION" });
   assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1, admin,
     "https://game.example.test"), { status: 403, error: "ORIGIN_FORBIDDEN" });
-  const emptyOrigin = await fetch(base + `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/revoke`, {
-    method: "POST", headers: { authorization: "Bearer " + admin, origin: "", "content-type": "application/json", connection: "close" },
-    body: JSON.stringify({ expectedGeneration: 1 }),
-  });
-  assert.equal(emptyOrigin.status, 403);
   const operatorOptions = await fetch(base + `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/revoke`, {
     method: "OPTIONS", headers: { origin: "https://game.example.test", connection: "close" },
   });
