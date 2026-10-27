@@ -409,6 +409,52 @@ async function createBattle(db, body, env, idempotencyKey) {
   }, status: 201 };
 }
 
+async function mutateCapability(db, battleId, side, operation, expectedGeneration) {
+  if (!Number.isSafeInteger(expectedGeneration) || expectedGeneration < 1 ||
+      expectedGeneration >= 9007199254740991) {
+    return { error: "INVALID_EXPECTED_GENERATION", status: 400 };
+  }
+  const current = await db.prepare(
+    `SELECT participant_id,status,generation FROM gameplay_battle_capabilities
+     WHERE battle_id=? AND side=?`
+  ).bind(battleId, side).first();
+  if (!current) return { error: "BATTLE_OR_CAPABILITY_NOT_FOUND", status: 404 };
+  if (current.generation !== expectedGeneration) return { error: "STALE_GENERATION", status: 409 };
+  if (operation === "revoke" && current.status !== "active") {
+    return { error: "CAPABILITY_NOT_ACTIVE", status: 409 };
+  }
+
+  // A replacement response is the sole disclosure of its fresh bearer token.
+  // If that response is lost, never replay the POST: inspect the current
+  // generation through trusted D1 administration, then intentionally replace
+  // again at that generation to invalidate the unknown token and receive a
+  // different one. The endpoint never stores or recovers plaintext tokens.
+  const replacementToken = operation === "replace" ? newCapability() : null;
+  const replacementDigest = replacementToken ? await sha256hex(replacementToken) : null;
+  const result = operation === "revoke"
+    ? await db.prepare(
+      `UPDATE gameplay_battle_capabilities
+       SET status='revoked',generation=generation+1
+       WHERE battle_id=? AND side=? AND status='active' AND generation=?
+       RETURNING generation`
+    ).bind(battleId, side, expectedGeneration).all()
+    : await db.prepare(
+      `UPDATE gameplay_battle_capabilities
+       SET status='active',token_sha256=?,generation=generation+1
+       WHERE battle_id=? AND side=? AND status=? AND generation=?
+         AND token_sha256<>?
+       RETURNING generation`
+    ).bind(replacementDigest, battleId, side, current.status, expectedGeneration,
+      replacementDigest).all();
+
+  if (result.results?.length !== 1 || result.results[0].generation !== expectedGeneration + 1) {
+    return { error: "STALE_GENERATION", status: 409 };
+  }
+  return operation === "replace"
+    ? { generation: expectedGeneration + 1, token: replacementToken, status: 200 }
+    : { generation: expectedGeneration + 1, status: 200 };
+}
+
 async function applySystem(db, id, type) {
   const commandId = "system:" + type + ":" + id;
   const fingerprint = canonical({ actor: "system", type });
@@ -521,8 +567,27 @@ async function api(request, env) {
   if (origin && (typeof env.ALLOWED_ORIGIN !== "string" || origin !== env.ALLOWED_ORIGIN)) {
     return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
   }
-  if (request.method === "OPTIONS") return encodeJSON({ ok: true }, 200, origin);
   const pathname = new URL(request.url).pathname;
+  const operatorMatch = /^\/v1\/admin\/battles\/([a-f0-9-]{36})\/capabilities\/([AB])\/(revoke|replace)$/.exec(pathname);
+  if (operatorMatch) {
+    // These server-to-server controls never opt into browser CORS, including
+    // preflight from the otherwise allowed gameplay origin.
+    if (request.headers.has("origin") || request.method === "OPTIONS") {
+      return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
+    }
+    if (request.method !== "POST") return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405);
+    if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401);
+    const body = await parseBody(request);
+    if (!exactKeys(body, ["expectedGeneration"]) ||
+        !Number.isSafeInteger(body.expectedGeneration) || body.expectedGeneration < 1) {
+      return encodeJSON({ error: "INVALID_EXPECTED_GENERATION" }, 400);
+    }
+    const [, battleId, side, operation] = operatorMatch;
+    const result = await mutateCapability(env.DB, battleId, side, operation, body.expectedGeneration);
+    const { status, ...payload } = result;
+    return encodeJSON(payload, status, null);
+  }
+  if (request.method === "OPTIONS") return encodeJSON({ ok: true }, 200, origin);
   if (pathname === "/v1/admin/battles" && request.method === "POST") {
     if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
     const body = await parseBody(request);

@@ -44,6 +44,7 @@ function writeTestWorkerWrapper() {
   writeFileSync(wrapperPath, `
 import worker from ${JSON.stringify(workerModule)};
 let targetBattleId = null;
+let dropNextOperatorResponse = false, droppedOperatorResponse = null;
 function wrapStatement(statement, sql, params, db) {
   return new Proxy(statement, { get(target, property) {
     if (property === "bind") return (...values) => wrapStatement(target.bind(...values), sql, values, db);
@@ -54,7 +55,7 @@ function wrapStatement(statement, sql, params, db) {
           sql.includes("FROM gameplay_battle_capabilities")) {
         // Deterministically commit a generation change after the real auth
         // SELECT returns, before its captured generation reaches Worker code.
-        await db.prepare("UPDATE gameplay_battle_capabilities SET generation=2 WHERE battle_id=? AND side='A'")
+        await db.prepare("UPDATE gameplay_battle_capabilities SET status='revoked',generation=2 WHERE battle_id=? AND side='A'")
           .bind(targetBattleId).run();
         targetBattleId = null;
       }
@@ -80,7 +81,20 @@ export default {
       targetBattleId = body.battleId;
       return new Response(null, { status: 204 });
     }
-    return worker.fetch(request, wrappedEnv(env), ctx);
+    if (url.pathname === "/__test/admin-response/drop-next" && request.method === "POST") {
+      dropNextOperatorResponse = true;
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/__test/admin-response/last-dropped" && request.method === "GET") {
+      return Response.json(droppedOperatorResponse);
+    }
+    const response = await worker.fetch(request, wrappedEnv(env), ctx);
+    if (dropNextOperatorResponse && url.pathname.includes("/capabilities/") && url.pathname.endsWith("/replace")) {
+      dropNextOperatorResponse = false;
+      droppedOperatorResponse = await response.clone().json();
+      return new Response(null, { status: 502 });
+    }
+    return response;
   },
   async scheduled(event, env, ctx) {
     return worker.scheduled(event, wrappedEnv(env), ctx);
@@ -229,6 +243,10 @@ async function create(base, name, idempotencyKey = testCreateKey(name)) {
   assert.notEqual(r.capabilities.A.token, r.capabilities.B.token);
   return r;
 }
+async function operatorRequest(base, battle, side, operation, expectedGeneration, token = admin, origin = null) {
+  return request(base, "POST", `/v1/admin/battles/${battle.battleId}/capabilities/${side}/${operation}`,
+    token, { expectedGeneration }, origin);
+}
 async function get(base, battle, token) {
   return request(base, "GET", "/v1/battles/" + battle.battleId, token);
 }
@@ -244,6 +262,7 @@ try {
   migrate("migrations/0004_capability_generation.sql");
   migrate("migrations/0005_participant_transition_fence.sql");
   migrate("migrations/0006_creation_recovery_lifecycle.sql");
+  migrate("migrations/0007_capability_operator_lifecycle.sql");
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -292,7 +311,9 @@ try {
   // Cron must NOT let a backlog of healthy, not-yet-due battles starve a
   // newer committed battle awaiting trusted reveal. 101 > the 100-row cap.
   const backloggedAt = Date.now() - 30_000;
-  const pendingUntil = backloggedAt + 120_000;
+  // Keep this deliberately healthy backlog non-due throughout the complete
+  // local API suite; its only purpose is reveal-priority, not expiry batching.
+  const pendingUntil = backloggedAt + 600_000;
   function genesisSql(battle) {
     return `INSERT INTO gameplay_create_battle
       (battle_id,initial_state_json,creation_event_json,trusted_now_ms)
@@ -361,12 +382,12 @@ try {
   fixtureSql += `INSERT INTO gameplay_battle_capabilities
     (battle_id,side,participant_id,token_sha256,created_at_ms)
     VALUES (${sqlq(staleId)},'A','stale-A',${sqlq(staleDigest)},0);
-    UPDATE gameplay_battle_capabilities SET generation=2
+    UPDATE gameplay_battle_capabilities SET status='revoked',generation=2
     WHERE battle_id=${sqlq(staleId)} AND side='A';`;
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: D1 migrations 0001 through 0006 and local fixtures");
+  console.log("PASS: D1 migrations 0001 through 0007 and local fixtures");
   const testWrapperConfig = writeTestWorkerWrapper();
   executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
       battle_id,expected_version,command_id,fingerprint,receipt_code,
@@ -453,6 +474,129 @@ try {
   assert.equal(freshRecovery.original_b_token_sha256,
     createHash("sha256").update(battle.capabilities.B.token).digest("hex"));
   assert.deepEqual([freshRecovery.original_a_generation, freshRecovery.original_b_generation], [1, 1]);
+
+  const operatorRevokedBattle = await create(base, "operator-revoke");
+  const operatorReceipt = await commit(base, operatorRevokedBattle, "A", "operator-revoke-receipt");
+  assert.equal(operatorReceipt.status, 200);
+  const operatorBefore = query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${operatorRevokedBattle.battleId}'`)[0];
+  assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1, null),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1, "bad-admin"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", null),
+    { status: 400, error: "INVALID_EXPECTED_GENERATION" });
+  assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1, admin,
+    "https://game.example.test"), { status: 403, error: "ORIGIN_FORBIDDEN" });
+  const emptyOrigin = await fetch(base + `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/revoke`, {
+    method: "POST", headers: { authorization: "Bearer " + admin, origin: "", "content-type": "application/json", connection: "close" },
+    body: JSON.stringify({ expectedGeneration: 1 }),
+  });
+  assert.equal(emptyOrigin.status, 403);
+  const operatorOptions = await fetch(base + `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/revoke`, {
+    method: "OPTIONS", headers: { origin: "https://game.example.test", connection: "close" },
+  });
+  assert.equal(operatorOptions.status, 403);
+  assert.equal(operatorOptions.headers.get("access-control-allow-origin"), null);
+  assert.deepEqual(await request(base, "POST",
+    `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/revoke`, admin,
+    { expectedGeneration: 1, action: "expire" }),
+    { status: 400, error: "INVALID_EXPECTED_GENERATION" });
+  assert.deepEqual(await request(base, "POST",
+    `/v1/admin/battles/${operatorRevokedBattle.battleId}/capabilities/A/expire`, admin,
+    { expectedGeneration: 1 }), { status: 404, error: "NOT_FOUND" });
+  const revokedByOperator = await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1);
+  assert.deepEqual(revokedByOperator, { status: 200, generation: 2 });
+  const revokedOperatorRow = query(`SELECT status,generation,token_sha256 FROM gameplay_battle_capabilities
+    WHERE battle_id='${operatorRevokedBattle.battleId}' AND side='A'`)[0];
+  assert.deepEqual(revokedOperatorRow, { status: "revoked", generation: 2,
+    token_sha256: createHash("sha256").update(operatorRevokedBattle.capabilities.A.token).digest("hex") });
+  assert.deepEqual(await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1),
+    { status: 409, error: "STALE_GENERATION" });
+  assert.deepEqual(await get(base, operatorRevokedBattle, operatorRevokedBattle.capabilities.A.token),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await commit(base, operatorRevokedBattle, "A", "operator-revoke-receipt"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await commit(base, operatorRevokedBattle, "A", "operator-revoke-fresh"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.equal((await get(base, operatorRevokedBattle, operatorRevokedBattle.capabilities.B.token)).version, 1);
+  const operatorRecovery = query(`SELECT lifecycle_state,capabilities_ciphertext_base64url
+    FROM gameplay_battle_creations WHERE battle_id='${operatorRevokedBattle.battleId}'`)[0];
+  assert.deepEqual(operatorRecovery, { lifecycle_state: "CLOSED", capabilities_ciphertext_base64url: null });
+  const operatorAfter = query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${operatorRevokedBattle.battleId}'`)[0];
+  assert.deepEqual(operatorAfter, operatorBefore);
+  console.log("PASS: admin-only revoke advances generation, closes recovery, preserves battle/receipt/outbox, and fences old read/replay/commit while B remains valid");
+
+  const operatorReplaceBattle = await create(base, "operator-replace");
+  assert.equal((await commit(base, operatorReplaceBattle, "A", "operator-replace-receipt")).status, 200);
+  const replaced = await operatorRequest(base, operatorReplaceBattle, "A", "replace", 1);
+  assert.equal(replaced.status, 200, JSON.stringify(replaced));
+  assert.equal(replaced.generation, 2);
+  assert.match(replaced.token, /^[A-Za-z0-9_-]{43}$/);
+  assert.notEqual(replaced.token, operatorReplaceBattle.capabilities.A.token);
+  const operatorReplacementDigest = createHash("sha256").update(replaced.token).digest("hex");
+  assert.deepEqual(query(`SELECT status,generation,token_sha256 FROM gameplay_battle_capabilities
+    WHERE battle_id='${operatorReplaceBattle.battleId}' AND side='A'`)[0],
+    { status: "active", generation: 2, token_sha256: operatorReplacementDigest });
+  assert.equal(query(`SELECT token_sha256 FROM gameplay_capability_digest_history WHERE token_sha256='${operatorReplacementDigest}'`).length, 1);
+  assert.deepEqual(await get(base, operatorReplaceBattle, operatorReplaceBattle.capabilities.A.token),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await commit(base, operatorReplaceBattle, "A", "operator-replace-receipt"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await commit(base, operatorReplaceBattle, "A", "operator-replace-fresh"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.equal((await get(base, operatorReplaceBattle, replaced.token)).version, 1);
+  assert.equal((await get(base, operatorReplaceBattle, operatorReplaceBattle.capabilities.B.token)).version, 1);
+  assert.deepEqual(await operatorRequest(base, operatorReplaceBattle, "A", "replace", 1),
+    { status: 409, error: "STALE_GENERATION" });
+  console.log("PASS: replacement issues a fresh one-time bearer, old A token is fenced, B is unaffected, and stale retry cannot disclose/overwrite");
+
+  const duplicateReplaceBattle = await create(base, "operator-duplicate-replace");
+  const duplicateReplace = await Promise.all([
+    operatorRequest(base, duplicateReplaceBattle, "A", "replace", 1),
+    operatorRequest(base, duplicateReplaceBattle, "A", "replace", 1),
+  ]);
+  assert.equal(duplicateReplace.filter(x => x.status === 200).length, 1, JSON.stringify(duplicateReplace));
+  assert.equal(duplicateReplace.filter(x => x.status === 409).length, 1, JSON.stringify(duplicateReplace));
+  assert.equal(query(`SELECT generation FROM gameplay_battle_capabilities WHERE battle_id='${duplicateReplaceBattle.battleId}' AND side='A'`)[0].generation, 2);
+  console.log("PASS: concurrent duplicate replacements have one winner and cannot silently overwrite");
+
+  const revokeReplaceRaceBattle = await create(base, "operator-revoke-replace-race");
+  const revokeReplaceRace = await Promise.all([
+    operatorRequest(base, revokeReplaceRaceBattle, "A", "revoke", 1),
+    operatorRequest(base, revokeReplaceRaceBattle, "A", "replace", 1),
+  ]);
+  assert.equal(revokeReplaceRace.filter(x => x.status === 200).length, 1, JSON.stringify(revokeReplaceRace));
+  assert.equal(revokeReplaceRace.filter(x => x.status === 409).length, 1, JSON.stringify(revokeReplaceRace));
+  assert.equal(query(`SELECT generation FROM gameplay_battle_capabilities WHERE battle_id='${revokeReplaceRaceBattle.battleId}' AND side='A'`)[0].generation, 2);
+  console.log("PASS: concurrent revoke/replace requests at one expected generation have exactly one winner");
+
+  const lostResponseBattle = await create(base, "operator-lost-response");
+  await testControl(base, "/__test/admin-response/drop-next", {});
+  const lostResponse = await fetch(base + `/v1/admin/battles/${lostResponseBattle.battleId}/capabilities/A/replace`, {
+    method: "POST", headers: { authorization: "Bearer " + admin, "content-type": "application/json", connection: "close" },
+    body: JSON.stringify({ expectedGeneration: 1 }), signal: AbortSignal.timeout(9000),
+  });
+  assert.equal(lostResponse.status, 502, "test wrapper must drop the successful response after D1 commit");
+  const lostOnlyInTestHarness = await testControl(base, "/__test/admin-response/last-dropped");
+  assert.equal(lostOnlyInTestHarness.generation, 2);
+  const lostTokenDigest = createHash("sha256").update(lostOnlyInTestHarness.token).digest("hex");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_capabilities WHERE token_sha256='${lostTokenDigest}'`)[0].count, 1);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_capabilities WHERE token_sha256='${lostOnlyInTestHarness.token}'`)[0].count, 0);
+  const inspectedGeneration = query(`SELECT generation FROM gameplay_battle_capabilities WHERE battle_id='${lostResponseBattle.battleId}' AND side='A'`)[0].generation;
+  assert.equal(inspectedGeneration, 2);
+  const recoveredByIntentionalRotation = await operatorRequest(base, lostResponseBattle, "A", "replace", inspectedGeneration);
+  assert.equal(recoveredByIntentionalRotation.status, 200);
+  assert.equal(recoveredByIntentionalRotation.generation, 3);
+  assert.deepEqual(await get(base, lostResponseBattle, lostOnlyInTestHarness.token),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.equal((await get(base, lostResponseBattle, recoveredByIntentionalRotation.token)).version, 0);
+  console.log("PASS: lost success response is not retried; trusted D1 generation inspection plus intentional replacement invalidates the unknown token");
   const repeatedCreate = await create(base, "alpha", alphaKey);
   assert.equal(repeatedCreate.battleId, battle.battleId,
     "repeating the same authorized create request must return the original battle");
@@ -800,16 +944,16 @@ try {
   const staleGenerationResult = await commit(base, staleGenerationBattle, "A", "stale-generation-http-command");
   const staleGenerationCapability = query(`SELECT status,generation
     FROM gameplay_battle_capabilities WHERE battle_id='${staleGenerationBattle.battleId}' AND side='A'`)[0];
-  assert.deepEqual(staleGenerationCapability, { status: "active", generation: 2 });
+  assert.deepEqual(staleGenerationCapability, { status: "revoked", generation: 2 });
   assert.deepEqual(staleGenerationResult, { status: 401, error: "UNAUTHORIZED" });
   const staleGenerationSnapshot = query(`SELECT b.version,
       (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
       (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
     FROM gameplay_battles b WHERE b.battle_id='${staleGenerationBattle.battleId}'`)[0];
   assert.deepEqual(staleGenerationSnapshot, { version: 0, receipts: 0, outbox: 1 });
-  console.log("PASS: Worker HTTP rejects generation change after original auth read; status stays active and no writes occur");
+  console.log("PASS: Worker HTTP rejects revocation after original auth read without participant transition writes");
 
-  // Case B: exercise status-only revocation on a separate generation-1 battle.
+  // Case B: verify a SQL revocation remains fenced after the Worker process exits.
   const revokedBattle = await create(base, "revoked-status-only");
   const revokedSeed = await commit(base, revokedBattle, "A", "revoked-status-only-receipt");
   assert.equal(revokedSeed.status, 200, JSON.stringify(revokedSeed));
@@ -821,11 +965,11 @@ try {
     FROM gameplay_battles b WHERE b.battle_id='${revokedBattle.battleId}'`)[0];
   assert.deepEqual({ status: revokedBefore.status, generation: revokedBefore.generation },
     { status: "active", generation: 1 });
-  executeSql(`UPDATE gameplay_battle_capabilities SET status='revoked'
+  executeSql(`UPDATE gameplay_battle_capabilities SET status='revoked',generation=2
     WHERE battle_id='${revokedBattle.battleId}' AND side='A'`);
   const revokedCapability = query(`SELECT status,generation FROM gameplay_battle_capabilities
     WHERE battle_id='${revokedBattle.battleId}' AND side='A'`)[0];
-  assert.deepEqual(revokedCapability, { status: "revoked", generation: 1 });
+  assert.deepEqual(revokedCapability, { status: "revoked", generation: 2 });
   assert.deepEqual(await commit(base, revokedBattle, "A", "revoked-status-only-receipt"),
     { status: 401, error: "UNAUTHORIZED" });
   assert.deepEqual(await commit(base, revokedBattle, "A", "revoked-status-only-fresh-command"),
@@ -840,11 +984,11 @@ try {
     version: revokedBefore.version, state_json: revokedBefore.state_json,
     receipts: revokedBefore.receipts, outbox: revokedBefore.outbox,
   });
-  console.log("PASS: status-only revoked token cannot replay, commit fresh, or read; state/receipt/outbox unchanged");
+  console.log("PASS: revoked token cannot replay, commit fresh, or read; state/receipt/outbox unchanged");
 
   const revokeRace = await create(base, "revoke-race");
   const revokeRaceRequest = commit(base, revokeRace, "A", "concurrent-revoke-command");
-  const revokeRaceMutation = executeSqlAsync(`UPDATE gameplay_battle_capabilities SET status='revoked'
+  const revokeRaceMutation = executeSqlAsync(`UPDATE gameplay_battle_capabilities SET status='revoked',generation=2
     WHERE battle_id='${revokeRace.battleId}' AND side='A'`);
   const [revokeRaceResult] = await Promise.all([revokeRaceRequest, revokeRaceMutation]);
   assert.ok([200, 401, 403].includes(revokeRaceResult.status), JSON.stringify(revokeRaceResult));
@@ -870,7 +1014,7 @@ try {
   const [recoveryRaceReplay, recoveryRaceCommit] = await Promise.all([
     createRequest(base, "recover-revoke-commit-race", recoveryRaceKey),
     commit(base, recoveryRaceBattle, "A", "recovery-revoke-commit-race"),
-    executeSqlAsync(`UPDATE gameplay_battle_capabilities SET status='revoked'
+    executeSqlAsync(`UPDATE gameplay_battle_capabilities SET status='revoked',generation=2
       WHERE battle_id='${recoveryRaceBattle.battleId}' AND side='A'`),
   ]).then(values => [values[0], values[1]]);
   assert.ok([200, 410].includes(recoveryRaceReplay.status), JSON.stringify(recoveryRaceReplay));
@@ -938,6 +1082,8 @@ try {
   await start(base);
   const afterRestart = await get(base, battle, battle.capabilities.A.token);
   assert.equal(afterRestart.revealed, true, JSON.stringify(afterRestart));
+  assert.deepEqual(await get(base, operatorRevokedBattle, operatorRevokedBattle.capabilities.A.token),
+    { status: 401, error: "UNAUTHORIZED" }, "Worker restart revived an operator-revoked credential");
   const replayAfterRestart = await commit(base, battle, "A", "command-alpha-A");
   assert.equal(replayAfterRestart.status, 200, JSON.stringify(replayAfterRestart));
   assert.equal(replayAfterRestart.replayed, true);
