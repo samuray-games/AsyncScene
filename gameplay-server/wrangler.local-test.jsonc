@@ -1,0 +1,1 @@
+{"name":"asynchronia-chat03b1-local-only","main":"test/d1_probe_worker.mjs","compatibility_date":"2026-09-01","d1_databases":[{"binding":"DB","database_name":"asynchronia-chat03b1-local","database_id":"00000000-0000-4000-8000-000000000440","migrations_dir":"migrations"}]}

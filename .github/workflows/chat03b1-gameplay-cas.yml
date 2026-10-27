@@ -1,0 +1,42 @@
+name: Chat 03B1 Gameplay CAS SQL
+
+on:
+  pull_request:
+    paths:
+      - "gameplay-server/**"
+      - ".github/workflows/chat03b1-gameplay-cas.yml"
+  push:
+    paths:
+      - "gameplay-server/**"
+      - ".github/workflows/chat03b1-gameplay-cas.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sqlite-cas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Real SQLite CAS and rollback integration tests
+        run: python -m unittest discover -s gameplay-server/test -p 'test_*.py' -v
+
+  wrangler-local-d1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Wrangler
+        run: npm install --no-save --package-lock=false wrangler@4
+      - name: Offline safety tests for remote D1 scratch harness
+        run: node --test gameplay-server/test/remote_d1_ephemeral.test.mjs
+      - name: Verify local D1 migration and transitions
+        run: node gameplay-server/test/wrangler_d1_local_test.mjs
