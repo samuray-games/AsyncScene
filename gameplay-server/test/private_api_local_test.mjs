@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 16291)
-Total output lines: 1081
-
 // Reproducible PRIVATE local workerd/D1 API integration. No real Cloudflare
 // credentials, no telemetry binding and no public Worker deployment.
 import assert from "node:assert/strict";
@@ -537,7 +534,140 @@ try {
   console.log("PASS: altered valid 96-bit recovery nonce fails AEAD without writes or disclosure");
 
   setRecoveryRecord({ deadline: originalDeadline + 1 });
-  await assertRej…2291 tokens truncated…tion must not be exposed by Chat03");
+  await assertRejectedRecovery("deadline AAD tampering");
+  setRecoveryRecord();
+  console.log("PASS: altered deadline AAD fails authentication without writes or disclosure");
+
+  recoveryKeys = { ...originalRecoveryKeys, testV2: testV2Key };
+  await restartWorker();
+  assert.equal(Buffer.from(recoveryKeys.testV2, "base64url").length, 32,
+    "test requires a valid second recovery key version");
+  setRecoveryRecord({ keyVersion: "testV2" });
+  await assertRejectedRecovery("existing but incorrect recovery key version AAD");
+  setRecoveryRecord();
+  console.log("PASS: substituted existing recovery key version fails authentication without writes");
+
+  recoveryCurrent = "testV2";
+  recoveryKeys = { testV2: testV2Key };
+  assert.equal(Buffer.from(recoveryKeys[recoveryCurrent], "base64url").length, 32,
+    "missing historical-key scenario must use a valid current 256-bit key");
+  await restartWorker();
+  const keyringSmokeKey = testCreateKey("valid-keyring-smoke");
+  const keyringSmoke = await createRequest(base, "valid-keyring-smoke", keyringSmokeKey);
+  assert.equal(keyringSmoke.status, 201,
+    "current testV2 keyring must successfully create a separate synthetic battle before historical replay");
+  assert.ok(keyringSmoke.battleId && keyringSmoke.capabilities?.A?.token && keyringSmoke.capabilities?.B?.token,
+    "valid keyring smoke create must return its synthetic battle and capabilities");
+  sensitiveRecoveryValues.push(keyringSmoke.capabilities.A.token, keyringSmoke.capabilities.B.token);
+  const keyringSmokeHash = createHash("sha256")
+    .update("chat03b2:create-battle:v1:" + keyringSmokeKey).digest("hex");
+  assert.equal(query(`SELECT recovery_key_version FROM gameplay_battle_creations
+    WHERE idempotency_key_sha256='${keyringSmokeHash}'`)[0].recovery_key_version, "testV2",
+    "positive keyring smoke must persist the active testV2 version");
+  assert.equal(originalKeyVersion, "testV1", "replay target must still reference the historical testV1 key");
+  assert.equal(recoveryCurrent, "testV2", "missing-key scenario must keep testV2 as the active key version");
+  assert.equal(Object.hasOwn(recoveryKeys, originalKeyVersion), false,
+    "historical testV1 key must be absent from the otherwise-valid keyring");
+  recoveryRowCounts = countRecoveryRows();
+  await assertRejectedRecovery("missing historical recovery key after Worker restart");
+  recoveryKeys = { ...originalRecoveryKeys };
+  recoveryCurrent = originalRecoveryCurrent;
+  await restartWorker();
+  console.log("PASS: valid testV2 keyring creates successfully, then missing testV1 replay fails without writes/disclosure");
+
+  recoveryKeys = { ...originalRecoveryKeys, testV1: Buffer.alloc(32, 0x39).toString("base64url") };
+  await restartWorker();
+  await assertRejectedRecovery("wrong valid 256-bit historical recovery key after Worker restart");
+  recoveryKeys = { ...originalRecoveryKeys };
+  await restartWorker();
+  console.log("PASS: wrong 256-bit historical key fails AEAD after restart without writes or disclosure");
+
+  setRecoveryRecord();
+  const restoredReplay = await createRequest(base, "alpha", alphaKey);
+  assert.equal(restoredReplay.status, 200, "restored crypto inputs must recover the original create response");
+  assert.equal(restoredReplay.battleId, battle.battleId);
+  assert.equal(restoredReplay.deadlineAt, battle.deadlineAt);
+  assert.deepEqual(restoredReplay.capabilities, battle.capabilities);
+  assert.deepEqual(countRecoveryRows(), recoveryRowCounts,
+    "restored replay must not create additional battles, capabilities, creation rows or events");
+  console.log("PASS: restored nonce, AAD record and historical key recover original battle/deadline/capabilities");
+
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_event_outbox WHERE battle_id='${battle.battleId}'`)[0].count, 1,
+    "creation retry must not duplicate genesis event");
+  console.log("PASS: repeated create returns one battle, original capabilities and one genesis event");
+  const changedCreate = await request(base, "POST", "/v1/admin/battles", admin, {
+    participants: {
+      A: { id: "changed-A", role: "citizen" }, B: { id: "changed-B", role: "citizen" },
+    },
+  }, null, { "idempotency-key": alphaKey });
+  assert.equal(changedCreate.status, 409, JSON.stringify(changedCreate));
+  assert.equal(changedCreate.error, "IDEMPOTENCY_KEY_REUSE");
+  assert.ok(!("capabilities" in changedCreate) && !("battleId" in changedCreate));
+  console.log("PASS: idempotency key cannot be reused with changed participants");
+
+  const failedCommitBattle = await create(base, "failed-first-commit");
+  const failedCommitHash = createHash("sha256")
+    .update("chat03b2:create-battle:v1:" + testCreateKey("failed-first-commit")).digest("hex");
+  const failedCommitResult = await commit(base, failedCommitBattle, "A", "invalid-first-commit", {
+    selection: { ...selection, attackColor: "invalid" },
+  });
+  assert.equal(failedCommitResult.status, 409);
+  const failedCommitRecovery = query(`SELECT lifecycle_state,capabilities_ciphertext_base64url
+    FROM gameplay_battle_creations WHERE idempotency_key_sha256='${failedCommitHash}'`)[0];
+  assert.equal(failedCommitRecovery.lifecycle_state, "RECOVERABLE");
+  assert.ok(failedCommitRecovery.capabilities_ciphertext_base64url);
+  const failedCommitReplay = await createRequest(base, "failed-first-commit", testCreateKey("failed-first-commit"));
+  assert.equal(failedCommitReplay.status, 200);
+  assert.deepEqual(failedCommitReplay.capabilities, failedCommitBattle.capabilities);
+  console.log("PASS: rejected first commit preserves eligible recovery and exact idempotent replay");
+
+  const rotationBattle = await create(base, "rotation-closes-recovery");
+  const rotationKey = testCreateKey("rotation-closes-recovery");
+  const rotationHash = createHash("sha256").update("chat03b2:create-battle:v1:" + rotationKey).digest("hex");
+  const replacementDigest = createHash("sha256").update("synthetic-rotated-capability").digest("hex");
+  executeSql(`UPDATE gameplay_battle_capabilities SET token_sha256='${replacementDigest}',generation=2
+    WHERE battle_id='${rotationBattle.battleId}' AND side='A'`);
+  const rotatedRecovery = query(`SELECT lifecycle_state,capabilities_ciphertext_base64url
+    FROM gameplay_battle_creations WHERE idempotency_key_sha256='${rotationHash}'`)[0];
+  assert.equal(rotatedRecovery.lifecycle_state, "CLOSED");
+  assert.equal(rotatedRecovery.capabilities_ciphertext_base64url, null);
+  assert.deepEqual(await createRequest(base, "rotation-closes-recovery", rotationKey),
+    { status: 410, error: "CREATION_RECOVERY_CLOSED" });
+  assert.deepEqual(await get(base, rotationBattle, rotationBattle.capabilities.A.token),
+    { status: 401, error: "UNAUTHORIZED" });
+  console.log("PASS: capability digest/generation rotation atomically closes replay and invalidates the old token");
+
+  const tombstoneBattle = await create(base, "tombstone-replay");
+  const tombstoneKey = testCreateKey("tombstone-replay");
+  const tombstoneHash = createHash("sha256").update("chat03b2:create-battle:v1:" + tombstoneKey).digest("hex");
+  assert.equal((await commit(base, tombstoneBattle, "A", "close-for-tombstone")).status, 200);
+  executeSql(`UPDATE gameplay_battle_creations SET lifecycle_state='TOMBSTONE',
+    request_fingerprint_sha256=NULL,battle_id=NULL,deadline_at_ms=NULL,
+    recovery_key_version=NULL,recovery_nonce_base64url=NULL,
+    capabilities_ciphertext_base64url=NULL,original_a_token_sha256=NULL,
+    original_a_generation=NULL,original_b_token_sha256=NULL,
+    original_b_generation=NULL,created_at_ms=NULL
+    WHERE idempotency_key_sha256='${tombstoneHash}'`);
+  const tombstone = query(`SELECT * FROM gameplay_battle_creations
+    WHERE idempotency_key_sha256='${tombstoneHash}'`)[0];
+  assert.deepEqual(Object.values(tombstone), [tombstoneHash, null, "TOMBSTONE", null,
+    null, null, null, null, null, null, null, null, null]);
+  const countBeforeTombstoneReplay = query("SELECT COUNT(*) count FROM gameplay_battles")[0].count;
+  assert.deepEqual(await createRequest(base, "tombstone-replay", tombstoneKey),
+    { status: 410, error: "CREATION_RECOVERY_CLOSED" });
+  assert.deepEqual(await request(base, "POST", "/v1/admin/battles", admin, {
+    participants: { A: { id: "different-A", role: "citizen" }, B: { id: "different-B", role: "citizen" } },
+  }, null, { "idempotency-key": tombstoneKey }),
+  { status: 410, error: "CREATION_RECOVERY_CLOSED" });
+  assert.equal(query("SELECT COUNT(*) count FROM gameplay_battles")[0].count, countBeforeTombstoneReplay);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_event_outbox WHERE battle_id='${tombstoneBattle.battleId}'`)[0].count, 2);
+  console.log("PASS: digest-only tombstone blocks same/changed replay without deleting battle history or minting a replacement");
+
+  assert.equal((await request(base, "GET", "/v1/battles/" + battle.battleId)).status, 401);
+  assert.equal((await get(base, battle, battle.capabilities.A.token)).version, 0);
+  assert.equal((await request(base, "POST", "/v1/battles/" + battle.battleId + "/finalize",
+    battle.capabilities.A.token, { recognizedOutcome: "A_WIN" })).status, 404,
+  "Chat05 recognition/finalization must not be exposed by Chat03");
   const originBlocked = await request(base, "GET", "/v1/battles/" + battle.battleId,
     battle.capabilities.A.token, null, "https://evil.example.test");
   assert.equal(originBlocked.status, 403);
