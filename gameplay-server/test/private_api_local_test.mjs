@@ -17,8 +17,90 @@ const cfg = "wrangler.api-local-test.jsonc";
 const dir = mkdtempSync(path.join(os.tmpdir(), "chat03b2-private-api-"));
 const env = { ...process.env, WRANGLER_SEND_METRICS: "false" };
 const admin = "local-test-admin-" + "a".repeat(48);
-let worker, logs = "";
+let worker, logs = "", workerStdout = "", workerStderr = "";
+let lastSuccessfulHttpAt = null;
+const d1SyncStats = { count: 0, totalMs: 0, lastMs: 0, maxMs: 0 };
 const selection = { attackColor: "y", defenseColor: "y", attackType: "N", defenseType: "S", role: "citizen" };
+
+function runD1Sync(args, options, kind) {
+  const startedAt = Date.now();
+  const result = spawnSync(cli, args, options);
+  const durationMs = Date.now() - startedAt;
+  d1SyncStats.count++;
+  d1SyncStats.totalMs += durationMs;
+  d1SyncStats.lastMs = durationMs;
+  d1SyncStats.maxMs = Math.max(d1SyncStats.maxMs, durationMs);
+  d1SyncStats.lastKind = kind;
+  return result;
+}
+function safeLogTail(value) {
+  return value.slice(-1000).replace(/[A-Za-z0-9._-]{32,}/g, "[REDACTED]");
+}
+
+function writeTestWorkerWrapper() {
+  const workerModule = path.join(root, "src/worker.js");
+  const wrapperPath = path.join(dir, "private-api-test-wrapper.mjs");
+  const wrapperConfigPath = path.join(dir, "wrangler.private-api-test-wrapper.jsonc");
+  writeFileSync(wrapperPath, `
+import worker from ${JSON.stringify(workerModule)};
+let targetBattleId = null;
+function wrapStatement(statement, sql, params, db) {
+  return new Proxy(statement, { get(target, property) {
+    if (property === "bind") return (...values) => wrapStatement(target.bind(...values), sql, values, db);
+    if (property === "first") return async (...values) => {
+      const row = await target.first(...values);
+      if (row && targetBattleId && params[0] === targetBattleId &&
+          sql.includes("SELECT side,participant_id,token_sha256,generation") &&
+          sql.includes("FROM gameplay_battle_capabilities")) {
+        // Deterministically commit a generation change after the real auth
+        // SELECT returns, before its captured generation reaches Worker code.
+        await db.prepare("UPDATE gameplay_battle_capabilities SET generation=2 WHERE battle_id=? AND side='A'")
+          .bind(targetBattleId).run();
+        targetBattleId = null;
+      }
+      return row;
+    };
+    const value = Reflect.get(target, property, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  }});
+}
+function wrapDatabase(db) {
+  return new Proxy(db, { get(target, property) {
+    if (property === "prepare") return sql => wrapStatement(target.prepare(sql), sql, [], target);
+    const value = Reflect.get(target, property, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  }});
+}
+function wrappedEnv(env) { return { ...env, DB: wrapDatabase(env.DB) }; }
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname === "/__test/generation-race/arm" && request.method === "POST") {
+      const body = await request.json();
+      targetBattleId = body.battleId;
+      return new Response(null, { status: 204 });
+    }
+    return worker.fetch(request, wrappedEnv(env), ctx);
+  },
+  async scheduled(event, env, ctx) {
+    return worker.scheduled(event, wrappedEnv(env), ctx);
+  },
+};
+`);
+  writeFileSync(wrapperConfigPath, JSON.stringify({
+    name: "asynchronia-chat03b2-private-api-test-wrapper",
+    main: wrapperPath,
+    compatibility_date: "2026-10-01",
+    workers_dev: false,
+    d1_databases: [{
+      binding: "DB",
+      database_name: "asynchronia-chat03b2-local-test",
+      database_id: "00000000-0000-4000-8000-000000000442",
+      migrations_dir: path.join(root, "migrations"),
+    }],
+  }, null, 2));
+  return wrapperConfigPath;
+}
 
 async function pickPort() {
   const s = net.createServer();
@@ -28,18 +110,18 @@ async function pickPort() {
   return port;
 }
 function migrate(file) {
-  const r = spawnSync(cli, ["d1", "execute", "DB", "--local", "--config", cfg,
+  const r = runD1Sync(["d1", "execute", "DB", "--local", "--config", cfg,
     "--file", file, "--persist-to", dir, "--yes"], {
     cwd: root, env, encoding: "utf8", timeout: 60000,
-  });
+  }, "migration");
   if (r.error || r.status !== 0) throw Error("MIGRATION_FAILED " +
     file + " " + String(r.error || "") + " " + (r.stderr || "").slice(-2500));
 }
 function query(sql) {
-  const r = spawnSync(cli, ["d1", "execute", "DB", "--local", "--config", cfg,
+  const r = runD1Sync(["d1", "execute", "DB", "--local", "--config", cfg,
     "--command", sql, "--json", "--persist-to", dir, "--yes"], {
     cwd: root, env, encoding: "utf8", timeout: 60000,
-  });
+  }, "query");
   if (r.error || r.status !== 0) throw Error("QUERY_FAILED " + String(r.error || "") + " " + (r.stderr || "").slice(-2500));
   const parsed = JSON.parse(r.stdout);
   const rows = parsed?.[0]?.results ?? parsed?.results;
@@ -47,29 +129,83 @@ function query(sql) {
   return rows;
 }
 function executeSql(sql) {
-  const r = spawnSync(cli, ["d1", "execute", "DB", "--local", "--config", cfg,
+  const r = runD1Sync(["d1", "execute", "DB", "--local", "--config", cfg,
     "--command", sql, "--json", "--persist-to", dir, "--yes"], {
     cwd: root, env, encoding: "utf8", timeout: 60000,
-  });
+  }, "execute");
   if (r.error || r.status !== 0) throw Error("EXECUTE_FAILED " + String(r.error || "") + " " + (r.stderr || "").slice(-2500));
+}
+function executeSqlAsync(sql) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cli, ["d1", "execute", "DB", "--local", "--config", cfg,
+      "--command", sql, "--json", "--persist-to", dir, "--yes"], {
+      cwd: root, env, stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "", stderr = "";
+    child.stdout.setEncoding("utf8").on("data", chunk => { stdout += chunk; });
+    child.stderr.setEncoding("utf8").on("data", chunk => { stderr += chunk; });
+    child.once("error", reject);
+    child.once("close", code => code === 0 ? resolve(stdout)
+      : reject(Error("ASYNC_SQL_FAILED " + code + " " + stderr.slice(-2500))));
+  });
+}
+function executeSqlExpectFailure(sql, marker) {
+  const r = runD1Sync(["d1", "execute", "DB", "--local", "--config", cfg,
+    "--command", sql, "--json", "--persist-to", dir, "--yes"], {
+    cwd: root, env, encoding: "utf8", timeout: 60000,
+  }, "expect-failure");
+  assert.ok(r.error || r.status !== 0, "expected local D1 statement to be rejected");
+  assert.match((r.stderr || "") + (r.stdout || ""), new RegExp(marker));
 }
 async function request(base, method, route, token, body, origin, extraHeaders = {}) {
   const headers = { ...extraHeaders };
   if (token) headers.authorization = "Bearer " + token;
   if (body) headers["content-type"] = "application/json";
   if (origin) headers.origin = origin;
-  const r = await fetch(base + route, { method, headers,
+  // Avoid reusing a keep-alive socket after test-side synchronous Wrangler
+  // D1 commands block this Node event loop. Requests are never retried.
+  headers.connection = "close";
+  const now = Date.now();
+  const idleSincePreviousResponseMs = lastSuccessfulHttpAt === null ? null : now - lastSuccessfulHttpAt;
+  let r;
+  try {
+    r = await fetch(base + route, { method, headers,
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(9000),
+    });
+  } catch (error) {
+    console.error("LOCAL_HTTP_TRANSPORT_DIAGNOSTIC", JSON.stringify({
+      method, route, causeCode: error?.cause?.code || error?.code || error?.name,
+      idleSincePreviousResponseMs,
+      d1SyncStats,
+      worker: { pid: worker?.pid ?? null, exitCode: worker?.exitCode ?? null,
+        signalCode: worker?.signalCode ?? null, killed: worker?.killed ?? null },
+    }));
+    console.error("LOCAL_WORKER_STDOUT_TAIL", safeLogTail(workerStdout));
+    console.error("LOCAL_WORKER_STDERR_TAIL", safeLogTail(workerStderr));
+    throw error;
+  }
+  const json = await r.json();
+  lastSuccessfulHttpAt = Date.now();
+  return { status: r.status, ...json };
+}
+async function testControl(base, route, body = null) {
+  const response = await fetch(base + route, {
+    method: body ? "POST" : "GET",
+    headers: { connection: "close", ...(body ? { "content-type": "application/json" } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
     signal: AbortSignal.timeout(9000),
   });
-  const json = await r.json();
-  return { status: r.status, ...json };
+  if (!response.ok && response.status !== 204) throw Error("TEST_CONTROL_FAILED " + route + " " + response.status);
+  return response.status === 204 ? null : response.json();
 }
 async function start(base) {
   for (let i = 0; i < 120; i++) {
     if (worker.exitCode !== null) throw Error("WRANGLER_EXIT " + logs.slice(-3500));
     try {
-      const r = await fetch(base + "/not-found", { signal: AbortSignal.timeout(300) });
+      const r = await fetch(base + "/not-found", {
+        headers: { connection: "close" }, signal: AbortSignal.timeout(300),
+      });
       if (r.status) return;
     } catch { /* workerd warming up */ }
     await new Promise(r => setTimeout(r, 200));
@@ -105,6 +241,8 @@ try {
   migrate("migrations/0001_tactical_state.sql");
   migrate("migrations/0002_battle_capabilities.sql");
   migrate("migrations/0003_idempotent_battle_creation.sql");
+  migrate("migrations/0004_capability_generation.sql");
+  migrate("migrations/0005_participant_transition_fence.sql");
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -203,17 +341,53 @@ try {
     beforeReveal = result.state;
   }
   assert.equal(beforeReveal.phase, "committed");
+  const staleId = "44444444-4444-4444-8444-444444444444";
+  const staleToken = "stale-generation-token-" + "s".repeat(24);
+  const staleGenesis = lc.createBattle({
+    battleId: staleId, createdAt: 0, deadlineAt: 1000,
+    participants: { A: { id: "stale-A", role: "citizen" },
+                    B: { id: "stale-B", role: "citizen" } },
+  });
+  assert.equal(staleGenesis.ok, true);
+  const staleCommit = lc.execute(staleGenesis.state, {
+    type: "commit", commandId: "stale-generation-command", expectedVersion: 0,
+    actorId: "stale-A", participantId: "stale-A", selection,
+  }, 500);
+  assert.equal(staleCommit.ok, true);
+  const staleEvents = staleCommit.state.events.filter(e => staleCommit.eventIds.includes(e.eventId));
+  const staleDigest = createHash("sha256").update(staleToken).digest("hex");
+  fixtureSql += genesisSql(staleGenesis.state);
+  fixtureSql += `INSERT INTO gameplay_battle_capabilities
+    (battle_id,side,participant_id,token_sha256,created_at_ms)
+    VALUES (${sqlq(staleId)},'A','stale-A',${sqlq(staleDigest)},0);
+    UPDATE gameplay_battle_capabilities SET generation=2
+    WHERE battle_id=${sqlq(staleId)} AND side='A';`;
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: both D1 migrations and expired genesis fixture");
+  console.log("PASS: D1 migrations 0001 through 0005 and local fixtures");
+  const testWrapperConfig = writeTestWorkerWrapper();
+  executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
+      battle_id,expected_version,command_id,fingerprint,receipt_code,
+      receipt_event_ids_json,next_state_json,events_json,trusted_now_ms,
+      capability_side,capability_token_sha256,expected_generation)
+    VALUES (${sqlq(staleId)},0,'A:stale-generation','fixture','COMMITTED',
+      ${sqlq(JSON.stringify(staleCommit.eventIds))},${sqlq(JSON.stringify(staleCommit.state))},
+      ${sqlq(JSON.stringify(staleEvents))},500,'A',${sqlq(staleDigest)},1);`, "INVALID_CAPABILITY");
+  const staleRows = query(`SELECT b.version,
+      (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${staleId}'`)[0];
+  assert.deepEqual(staleRows, { version: 0, receipts: 0, outbox: 1 });
+  console.log("PASS: local D1 rejects stale expected generation with no state/receipt/outbox writes");
   const port = await pickPort();
   const base = "http://127.0.0.1:" + port;
   let recoveryCurrent = "testV1";
   let recoveryKeys = { testV1: Buffer.alloc(32, 7).toString("base64url") };
   function spawnApi() {
     const args = [
-      "dev", "--test-scheduled", "--config", cfg, "--ip", "127.0.0.1", "--port", String(port),
+      "dev", "--test-scheduled", "--config", testWrapperConfig,
+      "--ip", "127.0.0.1", "--port", String(port),
       "--persist-to", dir,
       "--var", "ADMIN_CONTROL_TOKEN:" + admin,
       // Crypto failure coverage restarts the local Worker several times.
@@ -224,10 +398,14 @@ try {
       "--var", "CREATE_RECOVERY_KEYS:" + JSON.stringify(recoveryKeys),
     ];
     const child = spawn(cli, args, { cwd: root, env, stdio: ["ignore", "pipe", "pipe"] });
-    for (const stream of [child.stdout, child.stderr]) {
-      stream.setEncoding("utf8");
-      stream.on("data", v => { logs = (logs + v).slice(-30000); });
-    }
+    child.stdout.setEncoding("utf8").on("data", value => {
+      workerStdout = (workerStdout + value).slice(-5000);
+      logs = (logs + value).slice(-30000);
+    });
+    child.stderr.setEncoding("utf8").on("data", value => {
+      workerStderr = (workerStderr + value).slice(-5000);
+      logs = (logs + value).slice(-30000);
+    });
     return child;
   }
   worker = spawnApi();
@@ -428,6 +606,11 @@ try {
 
   const invalidSpoof = await commit(base, battle, "A", "command-spoof", { actorId: "alpha-B" });
   assert.equal(invalidSpoof.status, 400);
+  const publicTransitionSelector = await request(base, "POST",
+    "/v1/battles/" + battle.battleId + "/transition", battle.capabilities.A.token,
+    { transition: "system", commandId: "public-system-selector", selection });
+  assert.equal(publicTransitionSelector.status, 404,
+    "public HTTP must not expose the unrestricted Worker scheduler transition path");
   const a = await commit(base, battle, "A", "command-alpha-A");
   assert.equal(a.status, 200, JSON.stringify(a));
   assert.equal(a.code, "COMMITTED");
@@ -490,6 +673,117 @@ try {
   assert.deepEqual(committedSnapshotAfterRejectedCommands(), committedSnapshot);
   console.log("PASS: idempotent replay across devices and changed-command rejection");
 
+  // Keep SQL predicate probes as supporting evidence; HTTP tests below execute
+  // the real Worker with an isolated test wrapper that interposes one auth read.
+  const aCapabilityDigest = createHash("sha256").update(battle.capabilities.A.token).digest("hex");
+  const earlierAuthorization = query(`SELECT side,participant_id,token_sha256,generation
+    FROM gameplay_battle_capabilities WHERE battle_id='${battle.battleId}'
+      AND token_sha256='${aCapabilityDigest}' AND status='active'`)[0];
+  assert.deepEqual(earlierAuthorization, {
+    side: "A", participant_id: "alpha-A", token_sha256: aCapabilityDigest, generation: 1,
+  });
+  const readAuthorizedState = (authorization = earlierAuthorization) => query(`SELECT b.version,b.state_json
+    FROM gameplay_battles AS b
+    JOIN gameplay_battle_capabilities AS c ON c.battle_id=b.battle_id
+    WHERE b.battle_id='${battle.battleId}' AND c.side='${authorization.side}'
+      AND c.participant_id='${authorization.participant_id}'
+      AND c.token_sha256='${authorization.token_sha256}'
+      AND c.status='active' AND c.generation=${authorization.generation}
+      AND json_extract(b.state_json,'$.participants.' || c.side || '.id')=c.participant_id`);
+  const readAuthorizedReceipt = (authorization = earlierAuthorization) => query(`SELECT r.fingerprint,r.code,r.event_ids_json,r.recorded_version
+    FROM gameplay_command_receipts AS r
+    WHERE r.battle_id='${battle.battleId}' AND r.command_id='A:command-alpha-A'
+      AND EXISTS (
+        SELECT 1 FROM gameplay_battle_capabilities AS c
+        WHERE c.battle_id=r.battle_id AND c.side='${authorization.side}'
+          AND c.participant_id='${authorization.participant_id}'
+          AND c.token_sha256='${authorization.token_sha256}'
+          AND c.status='active' AND c.generation=${authorization.generation}
+      )`);
+  assert.equal(readAuthorizedState().length, 1);
+  assert.equal(readAuthorizedReceipt().length, 1);
+  for (const alteredAuthorization of [
+    { ...earlierAuthorization, side: "B" },
+    { ...earlierAuthorization, participant_id: "other-participant" },
+    { ...earlierAuthorization, token_sha256: "f".repeat(64) },
+    { ...earlierAuthorization, generation: 2 },
+  ]) {
+    assert.deepEqual(readAuthorizedState(alteredAuthorization), []);
+    assert.deepEqual(readAuthorizedReceipt(alteredAuthorization), []);
+  }
+  console.log("PASS: local D1 participant read predicates reject wrong side, ID, digest and generation");
+
+  // Case A: a temporary wrapper commits generation 2 immediately after the
+  // real Worker authorization SELECT returns generation 1 and before that row
+  // reaches Worker code. The protected state/receipt read must reject it.
+  const staleGenerationBattle = await create(base, "stale-generation-http");
+  await testControl(base, "/__test/generation-race/arm", { battleId: staleGenerationBattle.battleId });
+  const staleGenerationResult = await commit(base, staleGenerationBattle, "A", "stale-generation-http-command");
+  const staleGenerationCapability = query(`SELECT status,generation
+    FROM gameplay_battle_capabilities WHERE battle_id='${staleGenerationBattle.battleId}' AND side='A'`)[0];
+  assert.deepEqual(staleGenerationCapability, { status: "active", generation: 2 });
+  assert.deepEqual(staleGenerationResult, { status: 401, error: "UNAUTHORIZED" });
+  const staleGenerationSnapshot = query(`SELECT b.version,
+      (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${staleGenerationBattle.battleId}'`)[0];
+  assert.deepEqual(staleGenerationSnapshot, { version: 0, receipts: 0, outbox: 1 });
+  console.log("PASS: Worker HTTP rejects generation change after original auth read; status stays active and no writes occur");
+
+  // Case B: exercise status-only revocation on a separate generation-1 battle.
+  const revokedBattle = await create(base, "revoked-status-only");
+  const revokedSeed = await commit(base, revokedBattle, "A", "revoked-status-only-receipt");
+  assert.equal(revokedSeed.status, 200, JSON.stringify(revokedSeed));
+  const revokedBefore = query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox,
+      (SELECT status FROM gameplay_battle_capabilities c WHERE c.battle_id=b.battle_id AND c.side='A') status,
+      (SELECT generation FROM gameplay_battle_capabilities c WHERE c.battle_id=b.battle_id AND c.side='A') generation
+    FROM gameplay_battles b WHERE b.battle_id='${revokedBattle.battleId}'`)[0];
+  assert.deepEqual({ status: revokedBefore.status, generation: revokedBefore.generation },
+    { status: "active", generation: 1 });
+  executeSql(`UPDATE gameplay_battle_capabilities SET status='revoked'
+    WHERE battle_id='${revokedBattle.battleId}' AND side='A'`);
+  const revokedCapability = query(`SELECT status,generation FROM gameplay_battle_capabilities
+    WHERE battle_id='${revokedBattle.battleId}' AND side='A'`)[0];
+  assert.deepEqual(revokedCapability, { status: "revoked", generation: 1 });
+  assert.deepEqual(await commit(base, revokedBattle, "A", "revoked-status-only-receipt"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await commit(base, revokedBattle, "A", "revoked-status-only-fresh-command"),
+    { status: 401, error: "UNAUTHORIZED" });
+  assert.deepEqual(await get(base, revokedBattle, revokedBattle.capabilities.A.token),
+    { status: 401, error: "UNAUTHORIZED" });
+  const revokedAfter = query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox
+    FROM gameplay_battles b WHERE b.battle_id='${revokedBattle.battleId}'`)[0];
+  assert.deepEqual(revokedAfter, {
+    version: revokedBefore.version, state_json: revokedBefore.state_json,
+    receipts: revokedBefore.receipts, outbox: revokedBefore.outbox,
+  });
+  console.log("PASS: status-only revoked token cannot replay, commit fresh, or read; state/receipt/outbox unchanged");
+
+  const revokeRace = await create(base, "revoke-race");
+  const revokeRaceRequest = commit(base, revokeRace, "A", "concurrent-revoke-command");
+  const revokeRaceMutation = executeSqlAsync(`UPDATE gameplay_battle_capabilities SET status='revoked'
+    WHERE battle_id='${revokeRace.battleId}' AND side='A'`);
+  const [revokeRaceResult] = await Promise.all([revokeRaceRequest, revokeRaceMutation]);
+  assert.ok([200, 401, 403].includes(revokeRaceResult.status), JSON.stringify(revokeRaceResult));
+  const revokeRaceSnapshot = query(`SELECT b.version,
+      (SELECT COUNT(*) FROM gameplay_command_receipts r WHERE r.battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox e WHERE e.battle_id=b.battle_id) outbox,
+      (SELECT status FROM gameplay_battle_capabilities c WHERE c.battle_id=b.battle_id AND c.side='A') status
+    FROM gameplay_battles b WHERE b.battle_id='${revokeRace.battleId}'`)[0];
+  assert.equal(revokeRaceSnapshot.status, "revoked");
+  if (revokeRaceResult.status === 200) {
+    assert.equal(revokeRaceResult.code, "COMMITTED",
+      "a fenced commit that linearizes before revocation keeps its success response");
+    assert.deepEqual(revokeRaceSnapshot, { version: 1, receipts: 1, outbox: 2, status: "revoked" });
+  } else {
+    assert.deepEqual(revokeRaceSnapshot, { version: 0, receipts: 0, outbox: 1, status: "revoked" });
+  }
+  console.log("PASS: concurrent local D1 revoke/commit linearizes as full commit-before-revoke or zero-write revoke-before-commit");
+
   const b = await commit(base, battle, "B", "command-alpha-B");
   assert.equal(b.status, 200, JSON.stringify(b));
   const publicA = await get(base, battle, battle.capabilities.A.token);
@@ -522,10 +816,14 @@ try {
   worker = spawnApi();
   await start(base);
   const afterRestart = await get(base, battle, battle.capabilities.A.token);
-  assert.equal(afterRestart.revealed, true);
+  assert.equal(afterRestart.revealed, true, JSON.stringify(afterRestart));
   const replayAfterRestart = await commit(base, battle, "A", "command-alpha-A");
   assert.equal(replayAfterRestart.status, 200, JSON.stringify(replayAfterRestart));
   assert.equal(replayAfterRestart.replayed, true);
+  assert.equal((await get(base, battle, battle.capabilities.B.token)).revealed, true);
+  const replayBAfterRestart = await commit(base, battle, "B", "command-alpha-B");
+  assert.equal(replayBAfterRestart.status, 200, JSON.stringify(replayBAfterRestart));
+  assert.equal(replayBAfterRestart.replayed, true);
   const createReplayAfterRestart = await create(base, "alpha", alphaKey);
   assert.equal(createReplayAfterRestart.battleId, battle.battleId);
   assert.deepEqual(createReplayAfterRestart.capabilities, battle.capabilities);
@@ -626,6 +924,10 @@ try {
   assert.equal(oneSideRows.outbox, 3);
   console.log("PASS: timeout/no-show is once-only with both sides absent and after one side commits");
 
+  console.log("LOCAL_D1_SYNC_DIAGNOSTICS", JSON.stringify({ ...d1SyncStats,
+    worker: { pid: worker?.pid ?? null, exitCode: worker?.exitCode ?? null,
+      signalCode: worker?.signalCode ?? null, killed: worker?.killed ?? null },
+  }));
   console.log("CHAT03B2_LOCAL_PRIVATE_API_PASS (NOT PRODUCTION_AUTH_PASS)");
 } catch (error) {
   console.error("CHAT03B2_LOCAL_PRIVATE_API_FAIL", error);
