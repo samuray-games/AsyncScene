@@ -1,6 +1,7 @@
 import { createBattleClient } from "./api.mjs";
 import {
-  battleProgressText, describeResult, localDate, moveStatus, participantDescription, participantSide, readableError,
+  attackActionInfo, battleProgressText, defenseActionInfo, describeResult, localDate,
+  moveStatus, participantDescription, participantSide, readableError,
 } from "./presentation.mjs";
 
 const $ = id => document.getElementById(id);
@@ -9,6 +10,8 @@ const fields = {
   disconnect: $("disconnect"), refresh: $("refresh"), battle: $("battle"),
   form: $("move-form"), commit: $("commit"), status: $("connection-status"),
   battleStatus: $("battle-status"), players: $("players"), phase: $("phase"),
+  attackType: $("attack-type"), defenseType: $("defense-type"),
+  attackDescription: $("attack-description"), defenseDescription: $("defense-description"),
   selfCommitted: $("self-committed"), opponentCommitted: $("opponent-committed"),
   deadline: $("deadline"), result: $("result"),
 };
@@ -21,6 +24,17 @@ function setStatus(node, message, error = false) {
   node.textContent = message;
   node.dataset.state = error ? "error" : "ok";
 }
+
+function updateActionDescriptions() {
+  const attack = attackActionInfo(fields.attackType.value);
+  const defense = defenseActionInfo(fields.defenseType.value);
+  fields.attackDescription.textContent = attack?.explanation || "Описание этого варианта недоступно.";
+  fields.defenseDescription.textContent = defense?.explanation || "Описание этого варианта недоступно.";
+}
+
+fields.attackType.addEventListener("change", updateActionDescriptions);
+fields.defenseType.addEventListener("change", updateActionDescriptions);
+updateActionDescriptions();
 
 function stat(value) {
   return typeof value === "number" && Number.isFinite(value) ? String(value) : "—";

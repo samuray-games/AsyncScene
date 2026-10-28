@@ -15,8 +15,31 @@ const ERRORS = Object.freeze({
   CONFLICT_RETRY_EXHAUSTED: "Состояние боя изменилось. Обнови его и повтори действие.",
 });
 const COLORS = Object.freeze({ y: "Жёлтый", o: "Оранжевый", r: "Красный" });
-const ATTACK_TYPES = new Set(["N", "P", "T"]);
-const DEFENSE_TYPES = new Set(["S", "C", "G"]);
+const ATTACK_ACTIONS = Object.freeze({
+  N: Object.freeze({ name: "Наезд", explanation: "Сильное прямое давление." }),
+  P: Object.freeze({
+    name: "Предъява",
+    explanation: "Последовательно требует от соперника ответа по существу.",
+  }),
+  T: Object.freeze({
+    name: "Подкол",
+    explanation: "Пытается вывести соперника из себя; особенно действует против Агрессии.",
+  }),
+});
+const DEFENSE_ACTIONS = Object.freeze({
+  S: Object.freeze({
+    name: "Спокойная защита",
+    explanation: "Помогает удержать удар, снижая собственное давление.",
+  }),
+  C: Object.freeze({
+    name: "Контратака",
+    explanation: "Нейтральный ответ без усиления атаки или защиты.",
+  }),
+  G: Object.freeze({
+    name: "Агрессия",
+    explanation: "Усиливает давление ценой ослабленной защиты.",
+  }),
+});
 
 export function participantSide(view) {
   const self = view?.participants?.self;
@@ -58,6 +81,14 @@ export function battleProgressText(view) {
   return "Состояние боя пока неизвестно.";
 }
 
+export function attackActionInfo(code) {
+  return Object.prototype.hasOwnProperty.call(ATTACK_ACTIONS, code) ? ATTACK_ACTIONS[code] : null;
+}
+
+export function defenseActionInfo(code) {
+  return Object.prototype.hasOwnProperty.call(DEFENSE_ACTIONS, code) ? DEFENSE_ACTIONS[code] : null;
+}
+
 export function moveStatus(committed) {
   return committed === true ? "Ход принят" : "Ход ещё не отправлен";
 }
@@ -82,14 +113,14 @@ function colorText(value) {
 
 function actionSummary(selection) {
   if (!selection || typeof selection !== "object") return null;
-  const attackType = ATTACK_TYPES.has(selection.attackType) ? selection.attackType : null;
-  const defenseType = DEFENSE_TYPES.has(selection.defenseType) ? selection.defenseType : null;
+  const attackType = attackActionInfo(selection.attackType);
+  const defenseType = defenseActionInfo(selection.defenseType);
   if (!attackType || !defenseType ||
       !Object.prototype.hasOwnProperty.call(COLORS, selection.attackColor) ||
       !Object.prototype.hasOwnProperty.call(COLORS, selection.defenseColor)) return null;
   return {
-    attack: colorText(selection.attackColor) + "; вариант атаки " + attackType,
-    defense: colorText(selection.defenseColor) + "; вариант защиты " + defenseType,
+    attack: colorText(selection.attackColor) + "; " + attackType.name + ". " + attackType.explanation,
+    defense: colorText(selection.defenseColor) + "; " + defenseType.name + ". " + defenseType.explanation,
   };
 }
 

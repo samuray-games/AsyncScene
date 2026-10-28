@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  battleProgressText, describeResult, participantDescription, participantSide, readableError,
+  attackActionInfo, battleProgressText, defenseActionInfo, describeResult,
+  participantDescription, participantSide, readableError,
 } from "../dev-harness/presentation.mjs";
 import test from "node:test";
 import { assertLoopbackApiBase, createBattleClient, localApiBase } from "../dev-harness/api.mjs";
@@ -20,8 +21,11 @@ test("browser API client is limited to loopback and omits ambient credentials", 
     },
     idFactory: () => "00000000-0000-4000-8000-000000000001",
   });
+  const selection = {
+    attackColor: "y", defenseColor: "o", attackType: "N", defenseType: "S", role: "citizen",
+  };
   await client.getView(battleId, tokenA);
-  await client.commit(battleId, tokenA, { role: "citizen" });
+  await client.commit(battleId, tokenA, selection);
   assert.equal(calls[0].url, localApiBase + "/v1/battles/" + battleId);
   assert.equal(calls[1].url, localApiBase + "/v1/battles/" + battleId + "/commit");
   for (const { options } of calls) {
@@ -32,7 +36,7 @@ test("browser API client is limited to loopback and omits ambient credentials", 
     assert.equal(options.headers.authorization, "Bearer " + tokenA);
   }
   assert.deepEqual(JSON.parse(calls[1].options.body), {
-    commandId: "harness-00000000-0000-4000-8000-000000000001", selection: { role: "citizen" },
+    commandId: "harness-00000000-0000-4000-8000-000000000001", selection,
   });
 });
 
@@ -117,6 +121,13 @@ test("harness screen is Russian and has no raw JSON result or visible synthetic 
     "Жёлтый", "Оранжевый", "Красный", "Отправить ход",
   ]) assert.ok(html.includes(label), "missing Russian UI label: " + label);
   assert.doesNotMatch(html, /lang="en"|Two player battle|Connect|Commit move|result-data|<pre/);
+  assert.doesNotMatch(html, /утверждённые русские названия.*пока не заданы|названия.*не заданы/i);
+  assert.match(html, /option value="N">Наезд/);
+  assert.match(html, /option value="P">Предъява/);
+  assert.match(html, /option value="T">Подкол/);
+  assert.match(html, /option value="S">Спокойная защита/);
+  assert.match(html, /option value="C">Контратака/);
+  assert.match(html, /option value="G">Агрессия/);
   assert.doesNotMatch(clientSource, /JSON\.stringify|localStorage|sessionStorage|document\.cookie|console\.log/);
   assert.doesNotMatch(clientSource, /participants\.self\s*\+|participants\.opponent\s*\+/);
 });
@@ -128,6 +139,32 @@ test("player side is derived from the server public view, with mismatches reject
   mismatch.participants.opponent = "synthetic-A-123e4567-e89b-42d3-a456-426614174001";
   assert.equal(participantSide(mismatch), null);
   assert.equal(participantSide({ participants: { self: "player-A", opponent: "player-B" } }), null);
+});
+
+test("all six server action codes have the approved Chat01 names and explanations", () => {
+  assert.deepEqual(attackActionInfo("N"), { name: "Наезд", explanation: "Сильное прямое давление." });
+  assert.deepEqual(attackActionInfo("P"), {
+    name: "Предъява",
+    explanation: "Последовательно требует от соперника ответа по существу.",
+  });
+  assert.deepEqual(attackActionInfo("T"), {
+    name: "Подкол",
+    explanation: "Пытается вывести соперника из себя; особенно действует против Агрессии.",
+  });
+  assert.deepEqual(defenseActionInfo("S"), {
+    name: "Спокойная защита",
+    explanation: "Помогает удержать удар, снижая собственное давление.",
+  });
+  assert.deepEqual(defenseActionInfo("C"), {
+    name: "Контратака",
+    explanation: "Нейтральный ответ без усиления атаки или защиты.",
+  });
+  assert.deepEqual(defenseActionInfo("G"), {
+    name: "Агрессия",
+    explanation: "Усиливает давление ценой ослабленной защиты.",
+  });
+  assert.equal(attackActionInfo("S"), null);
+  assert.equal(defenseActionInfo("N"), null);
 });
 
 test("server A/B sides are rendered with Russian letters", () => {
@@ -160,8 +197,14 @@ test("server outcome is shown from the token holder A/B perspective with the sup
     B: { attack: 2, defense: 3 },
   });
   assert.deepEqual(drawA.actions, {
-    A: { attack: "Жёлтый; вариант атаки N", defense: "Жёлтый; вариант защиты S" },
-    B: { attack: "Жёлтый; вариант атаки N", defense: "Жёлтый; вариант защиты S" },
+    A: {
+      attack: "Жёлтый; Наезд. Сильное прямое давление.",
+      defense: "Жёлтый; Спокойная защита. Помогает удержать удар, снижая собственное давление.",
+    },
+    B: {
+      attack: "Жёлтый; Наезд. Сильное прямое давление.",
+      defense: "Жёлтый; Спокойная защита. Помогает удержать удар, снижая собственное давление.",
+    },
   });
   assert.equal(describeResult(publicView("A", "A_WIN", "A_ONLY_HIT")).title, "Победа");
   assert.equal(describeResult(publicView("B", "A_WIN", "A_ONLY_HIT")).title, "Поражение");
@@ -169,7 +212,7 @@ test("server outcome is shown from the token holder A/B perspective with the sup
   assert.equal(describeResult(publicView("A", "B_WIN", "B_ONLY_HIT")).title, "Поражение");
 });
 
-test("unknown or inconsistent server outcome fails closed and unknown error text is not exposed", () => {
+test("unknown or inconsistent server outcome fails closed and unknown error text is not exposed", async () => {
   const unknown = publicView("A", "MAYBE");
   assert.equal(describeResult(unknown).title, "Результат недоступен");
   const inconsistent = publicView("A", "A_WIN");
@@ -190,7 +233,15 @@ test("unknown or inconsistent server outcome fails closed and unknown error text
   bWinWithWeakerPressure.resolution.pressureB = 2;
   assert.equal(describeResult(bWinWithWeakerPressure).title, "Результат недоступен");
   const secret = "bearer-secret-that-must-not-be-shown";
-  const safe = readableError(new Error("unexpected response " + secret));
+  const adminSecret = "admin-capability-must-never-render";
+  const safe = readableError(new Error("unexpected response " + secret + " " + adminSecret));
   assert.ok(!safe.includes(secret));
   assert.equal(safe, "Не удалось выполнить действие. Проверь данные и соединение с локальным сервером.");
+  const resultText = JSON.stringify(describeResult(publicView("A")));
+  assert.ok(!resultText.includes(secret));
+  assert.ok(!resultText.includes(adminSecret));
+  const html = await readFile(new URL("../dev-harness/index.html", import.meta.url), "utf8");
+  const clientSource = await readFile(new URL("../dev-harness/client.mjs", import.meta.url), "utf8");
+  assert.ok(!html.includes(secret) && !html.includes(adminSecret));
+  assert.doesNotMatch(clientSource, /localStorage|sessionStorage|document\.cookie|console\.log/);
 });

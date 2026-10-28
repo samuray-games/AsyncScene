@@ -46,10 +46,10 @@
         <div class="choices">
           <label for="attack-color">Цвет атаки<select id="attack-color"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
           <label for="defense-color">Цвет защиты<select id="defense-color"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
-          <label for="attack-type">Вариант атаки<select id="attack-type"><option value="N">Вариант N</option><option value="P">Вариант P</option><option value="T">Вариант T</option></select></label>
-          <label for="defense-type">Вариант защиты<select id="defense-type"><option value="S">Вариант S</option><option value="C">Вариант C</option><option value="G">Вариант G</option></select></label>
+          <label for="attack-type">Тип атаки<select id="attack-type"><option value="N">Наезд</option><option value="P">Предъява</option><option value="T">Подкол</option></select><small id="attack-description" class="choice-help">Сильное прямое давление.</small></label>
+          <label for="defense-type">Тип защиты<select id="defense-type"><option value="S">Спокойная защита</option><option value="C">Контратака</option><option value="G">Агрессия</option></select><small id="defense-description" class="choice-help">Помогает удержать удар, снижая собственное давление.</small></label>
         </div>
-        <p class="muted">Утверждённые русские названия кодов N/P/T и S/C/G в правилах этого тестового API пока не заданы. Коды отправляются серверу без изменений.</p>
+        <p class="muted">Названия и пояснения соответствуют спецификации Chat01. Цвета и серверные коды отправляются без изменений.</p>
         <p class="muted">В этом тесте оба участника созданы как обычные игроки. Чёрный цвет, доступный только мафии, здесь не используется.</p>
         <button id="commit" type="submit">Отправить ход</button>
       </form>
@@ -57,7 +57,7 @@
       <section id="result" class="result" hidden aria-live="polite">
         <h3 id="result-outcome">Результат боя</h3>
         <p id="result-explanation" class="result-explanation"></p>
-        <p id="result-action-note" class="muted">Коды типов показаны без расшифровки: утверждённые названия для этого API пока не заданы.</p>
+        <p id="result-action-note" class="muted">Результат и силы взяты из ответа сервера. Пояснения не меняют числовые правила.</p>
         <div class="result-grid">
           <article class="result-player"><h4>Игрок А</h4><p id="result-a-actions"></p><p id="result-a-stats"></p></article>
           <article class="result-player"><h4>Игрок Б</h4><p id="result-b-actions"></p><p id="result-b-stats"></p></article>

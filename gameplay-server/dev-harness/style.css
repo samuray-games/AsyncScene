@@ -10,6 +10,7 @@ h4 { margin: 0 0 .5rem; font-size: 1.1rem; }
 .intro, .muted, .footnote { color: #526168; }
 .panel { margin: 1.25rem 0; padding: 1.35rem; border: 1px solid #dbe3df; border-radius: 16px; background: white; box-shadow: 0 8px 24px #20382a0b; }
 label { display: grid; gap: .35rem; margin: .8rem 0; font-weight: 650; }
+.choice-help { color: #526168; font-size: .88rem; font-weight: 400; }
 input, select, button { min-height: 44px; border: 1px solid #becbc5; border-radius: 9px; padding: .65rem .75rem; font: inherit; }
 button { border: 0; padding-inline: 1rem; color: white; background: #176b52; font-weight: 750; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .52; }
