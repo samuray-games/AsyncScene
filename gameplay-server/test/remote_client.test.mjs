@@ -5,6 +5,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRemoteClientApp } from "../remote-client/app.mjs";
 import {
   createIndexedDbStorage, createMemoryStorage, makeTransport, sanitizeSelection,
   validateApiOrigin, visibleBattleState,
@@ -21,6 +22,68 @@ function test(name, fn) {
 }
 async function rejectsCode(promise, code) {
   await assert.rejects(promise, error => error.message === code);
+}
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+}
+
+class FakeElement {
+  constructor(id, fields = []) {
+    this.id = id;
+    this.fields = fields;
+    this.listeners = new Map();
+    this.value = "";
+    this.textContent = "";
+    this.hidden = false;
+    this.disabled = false;
+  }
+  addEventListener(type, listener) { this.listeners.set(type, listener); }
+  querySelectorAll() { return this.fields; }
+  dispatch(type) {
+    const listener = this.listeners.get(type);
+    assert.ok(listener, `missing ${type} listener on ${this.id}`);
+    return listener({ preventDefault() {} });
+  }
+}
+
+class FakeFormData {
+  constructor(form) { this.form = form; }
+  entries() { return this.form.fields.filter(field => !field.disabled).map(field => [field.name, field.value]); }
+}
+
+function fakeDocument() {
+  const connectFields = [new FakeElement("battle-id"), new FakeElement("token")];
+  connectFields[0].value = "";
+  connectFields[1].value = "";
+  const commitFields = [
+    Object.assign(new FakeElement("attackType"), { name: "attackType", value: "N" }),
+    Object.assign(new FakeElement("attackColor"), { name: "attackColor", value: "y" }),
+    Object.assign(new FakeElement("defenseType"), { name: "defenseType", value: "S" }),
+    Object.assign(new FakeElement("defenseColor"), { name: "defenseColor", value: "o" }),
+    Object.assign(new FakeElement("role"), { name: "role", value: "citizen" }),
+  ];
+  const elements = new Map([
+    ["connect-form", new FakeElement("connect-form", connectFields)],
+    ["commit-form", new FakeElement("commit-form", commitFields)],
+    ["battle-id", connectFields[0]], ["token", connectFields[1]],
+    ...["status", "battle", "own-state", "opponent-state", "result", "remember", "commit-button", "forget"]
+      .map(id => [id, new FakeElement(id)]),
+  ]);
+  return { getElementById: id => elements.get(id), elements, connectFields, commitFields };
+}
+
+function fakeTimers() {
+  const callbacks = new Map();
+  let nextId = 0;
+  return {
+    callbacks,
+    setInterval(callback) { const id = ++nextId; callbacks.set(id, callback); return id; },
+    clearInterval(id) { callbacks.delete(id); },
+  };
 }
 
 class FakeIndexedDB {
@@ -142,6 +205,225 @@ await test("opponent hidden data remains undisplayed until an explicit server re
   assert.equal(inconsistent.result, null, "waiting phase cannot expose an early reveal");
   const revealed = visibleBattleState({ ...hidden, phase: "revealed", revealed: true, resolution: { winner: "A" } }, selection);
   assert.deepEqual(revealed.result.selections.B, { ...selection, attackColor: "r" });
+});
+
+await test("Chat01 attack and defense codes use all six approved Russian labels", async () => {
+  const html = await readFile(path.join(root, "index.html"), "utf8");
+  for (const [code, label] of [["N", "Наезд"], ["P", "Предъява"], ["T", "Подкол"],
+    ["S", "Спокойная защита"], ["C", "Контратака"], ["G", "Агрессия"]]) {
+    assert.ok(html.includes(`<option value="${code}">${label}</option>`), `missing ${code} label ${label}`);
+  }
+  for (const oldLabel of ["Напор", "Позиция", "Техника", "Стойка", "Контроль", "Гибкость"]) {
+    assert.equal(html.includes(oldLabel), false, `obsolete label remains: ${oldLabel}`);
+  }
+});
+
+await test("Forget invalidates automatic IndexedDB restore before it can reconnect or restore fields", async () => {
+  const credentialRead = deferred();
+  let connects = 0;
+  let credentials = { token: tokenA, battleId: battle };
+  const storage = {
+    getCredential: () => credentialRead.promise,
+    getPending: async () => null,
+    saveToken: async () => {},
+    forget: async () => { credentials = null; },
+  };
+  const transport = { ready: true, connect: async () => { connects++; return { phase: "waiting" }; } };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  assert.equal(doc.elements.get("token").value, "", "Forget clears the token synchronously");
+  assert.equal(doc.elements.get("battle").hidden, true, "Forget hides the old battle synchronously");
+  credentialRead.resolve({ token: tokenA, battleId: battle });
+  await Promise.all([app.restorePromise, forgetting]);
+  assert.equal(connects, 0, "stale restore must stop before starting its network read");
+  assert.equal(doc.elements.get("token").value, "");
+  assert.equal(doc.elements.get("battle-id").value, "");
+  assert.equal(doc.elements.get("battle").hidden, true);
+  assert.equal(credentials, null);
+});
+
+await test("Forget during the final IndexedDB phase of auto restore ignores pending-session completion", async () => {
+  const pendingRead = deferred();
+  const pendingStarted = deferred();
+  const storage = {
+    getCredential: async () => ({ token: tokenA, battleId: battle }),
+    getPending: () => { pendingStarted.resolve(); return pendingRead.promise; },
+    saveToken: async () => {}, forget: async () => {},
+  };
+  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await pendingStarted.promise;
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  pendingRead.resolve({ selection, commandId: "pending-old" });
+  await Promise.all([app.restorePromise, forgetting]);
+  assert.equal(doc.elements.get("token").value, "");
+  assert.equal(doc.elements.get("battle-id").value, "");
+  assert.equal(doc.elements.get("battle").hidden, true);
+  assert.equal(doc.elements.get("remember").disabled, true);
+});
+
+await test("Forget during manual connection prevents late GET and pending-state results from activating the session", async () => {
+  const getResponse = deferred();
+  let pendingReads = 0;
+  const storage = { getCredential: async () => null, getPending: async () => { pendingReads++; return null; },
+    saveToken: async () => {}, forget: async () => {} };
+  const transport = { ready: true, connect: () => getResponse.promise };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  const connecting = doc.elements.get("connect-form").dispatch("submit");
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  getResponse.resolve({ phase: "waiting", selfCommitted: false, opponentCommitted: false });
+  await Promise.all([connecting, forgetting]);
+  assert.equal(pendingReads, 0, "stale manual GET must not proceed to restore pending state");
+  assert.equal(doc.elements.get("battle").hidden, true);
+  assert.equal(doc.elements.get("token").value, "");
+  assert.match(doc.elements.get("status").textContent, /удалён/);
+});
+
+await test("Forget during manual connection's IndexedDB lookup ignores the late pending command", async () => {
+  const pendingRead = deferred();
+  const pendingStarted = deferred();
+  const storage = { getCredential: async () => null,
+    getPending: () => { pendingStarted.resolve(); return pendingRead.promise; },
+    saveToken: async () => {}, forget: async () => {} };
+  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  const connecting = doc.elements.get("connect-form").dispatch("submit");
+  await pendingStarted.promise;
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  pendingRead.resolve({ selection, commandId: "pending-old" });
+  await Promise.all([connecting, forgetting]);
+  assert.equal(doc.elements.get("battle").hidden, true);
+  assert.equal(doc.elements.get("token").value, "");
+  assert.equal(doc.elements.get("commit-button").textContent, "");
+});
+
+await test("Forget during refresh ignores the late response and does not repaint the old battle", async () => {
+  const refreshResponse = deferred();
+  let connects = 0;
+  const storage = { getCredential: async () => null, getPending: async () => null,
+    saveToken: async () => {}, forget: async () => {} };
+  const transport = { ready: true, connect: async () => {
+    connects++;
+    if (connects === 1) return { phase: "waiting", selfCommitted: false, opponentCommitted: false };
+    return refreshResponse.promise;
+  } };
+  const doc = fakeDocument();
+  const timers = fakeTimers();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: timers.setInterval, clearIntervalImpl: timers.clearInterval });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  assert.equal(doc.elements.get("battle").hidden, false);
+  const tick = [...timers.callbacks.values()][0];
+  const refreshing = tick();
+  assert.equal(connects, 2);
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  refreshResponse.resolve({ phase: "revealed", selfCommitted: true, opponentCommitted: true, revealed: true,
+    selections: { A: selection, B: { ...selection, attackType: "T" } }, resolution: { winner: "A" } });
+  await Promise.all([refreshing, forgetting]);
+  assert.equal(doc.elements.get("battle").hidden, true);
+  assert.equal(doc.elements.get("result").textContent, "");
+  assert.match(doc.elements.get("status").textContent, /удалён/);
+});
+
+await test("Forget during an in-flight commit suppresses stale UI, preserves commandId, and retry reuses it", async () => {
+  const firstPost = deferred();
+  const postStarted = deferred();
+  const posts = [];
+  const committedCommands = new Map();
+  const storage = createMemoryStorage();
+  const view = () => ({ phase: "waiting", selfCommitted: committedCommands.size > 0,
+    opponentCommitted: false, revealed: false });
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
+    storage, idFactory: () => "forget-race-command-1",
+    fetchImpl: async (url, init) => {
+      if (init.method === "GET") return new Response(JSON.stringify(view()), { status: 200 });
+      const body = JSON.parse(init.body);
+      posts.push(body.commandId);
+      if (!committedCommands.has(body.commandId)) committedCommands.set(body.commandId, body.selection);
+      if (posts.length === 1) {
+        postStarted.resolve(body);
+        return firstPost.promise;
+      }
+      return new Response(JSON.stringify({ view: view() }), { status: 200 });
+    } });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    FormDataImpl: FakeFormData, setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  const submitting = doc.elements.get("commit-form").dispatch("submit");
+  const original = await postStarted.promise;
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  assert.equal(doc.elements.get("battle").hidden, true, "Forget hides the current session before awaiting storage");
+  await forgetting;
+  firstPost.resolve(new Response(JSON.stringify({ view: view() }), { status: 200 }));
+  await submitting;
+
+  const pending = await storage.getPending(battle, tokenA);
+  assert.equal(pending.commandId, original.commandId, "accepted-but-unacknowledged command identity remains durable");
+  assert.deepEqual(posts, [original.commandId], "late completion must not trigger an automatic repeat");
+  assert.equal(doc.elements.get("battle").hidden, true, "late commit response cannot restore the forgotten UI");
+  assert.equal(doc.elements.get("token").value, "");
+
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  assert.equal(doc.elements.get("commit-button").textContent, "Повторить исходную команду");
+  await doc.elements.get("commit-form").dispatch("submit");
+  assert.deepEqual(posts, [original.commandId, original.commandId], "recovery reuses the exact original commandId");
+  assert.equal(committedCommands.size, 1, "server-side idempotent replay represents one committed write");
+  assert.equal(await storage.getPending(battle, tokenA), null);
+});
+
+await test("Forget waits behind an in-flight opt-in write so it cannot resurrect a credential", async () => {
+  const saveStarted = deferred();
+  const saveGate = deferred();
+  let credential = null;
+  const storage = {
+    getCredential: async () => null,
+    getPending: async () => null,
+    saveToken: async (token, battleId, isCurrent) => {
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+      saveStarted.resolve();
+      await saveGate.promise;
+      credential = { token, battleId };
+    },
+    forget: async () => { credential = null; },
+  };
+  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  const remembering = doc.elements.get("remember").dispatch("click");
+  await saveStarted.promise;
+  const forgetting = doc.elements.get("forget").dispatch("click");
+  saveGate.resolve();
+  await Promise.all([remembering, forgetting]);
+  assert.equal(credential, null, "serialized Forget deletion runs after the prior Remember transaction");
+  assert.equal(doc.elements.get("token").value, "");
 });
 
 await test("memory-only mode does not survive a page storage replacement", async () => {
@@ -348,4 +630,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/18`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/26`);

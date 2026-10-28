@@ -36,9 +36,9 @@
       <form id="commit-form" hidden>
         <h3>Ваш скрытый ход</h3>
         <p class="note">Если отправка оборвётся, клиент временно сохранит этот ход и его номер в IndexedDB, чтобы повторить ту же команду после перезапуска. Bearer-токен при этом не сохраняется без отдельного согласия.</p>
-        <label>Атака<select name="attackType"><option value="N">Напор</option><option value="P">Позиция</option><option value="T">Техника</option></select></label>
+        <label>Атака<select name="attackType"><option value="N">Наезд</option><option value="P">Предъява</option><option value="T">Подкол</option></select></label>
         <label>Цвет атаки<select name="attackColor"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
-        <label>Защита<select name="defenseType"><option value="S">Стойка</option><option value="C">Контроль</option><option value="G">Гибкость</option></select></label>
+        <label>Защита<select name="defenseType"><option value="S">Спокойная защита</option><option value="C">Контратака</option><option value="G">Агрессия</option></select></label>
         <label>Цвет защиты<select name="defenseColor"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
         <label>Роль из приглашения<input name="role" maxlength="64" required></label>
         <button id="commit-button" type="submit">Подтвердить скрытый ход</button>

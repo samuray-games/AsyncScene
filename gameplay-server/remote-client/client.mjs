@@ -68,36 +68,44 @@ export function makeTransport({ apiOrigin, originApproved = false, fetchImpl = g
       try { return await response.json(); } catch { throw new Error("INVALID_SERVER_RESPONSE"); }
     },
     async connect(battleId, token) { return this.request(battleId, token, "GET"); },
-    async prepareCommit(battleId, token, selection) {
+    async prepareCommit(battleId, token, selection, { isCurrent = () => true } = {}) {
       if (typeof battleId !== "string" || !UUID_RE.test(battleId)) throw new Error("INVALID_BATTLE_ID");
       if (typeof token !== "string" || !TOKEN_RE.test(token)) throw new Error("INVALID_TOKEN");
       const safe = sanitizeSelection(selection);
       const key = await pendingKey(battleId, token);
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       let pending = await storage.getPending(battleId, token);
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       if (pending && JSON.stringify(pending.selection) !== JSON.stringify(safe)) throw new Error("PENDING_COMMAND_EXISTS");
       if (!pending) {
         pending = { key, battleId, commandId: idFactory(), selection: safe };
-        await storage.putPending(pending);
+        if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+        await storage.putPending(pending, isCurrent);
+        if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       }
       return pending;
     },
-    async sendPending(battleId, token, pending) {
+    async sendPending(battleId, token, pending, { isCurrent = () => true } = {}) {
       if (!pending || pending.battleId !== battleId) throw new Error("NO_PENDING_COMMAND");
       if (pending.key !== await pendingKey(battleId, token)) throw new Error("NO_PENDING_COMMAND");
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       const response = await this.request(battleId, token, "POST", pending);
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       if (!response || !response.view) throw new Error("INVALID_SERVER_RESPONSE");
       try { await storage.clearPending(battleId, token); }
       catch { throw new Error("COMMIT_ACKNOWLEDGED_PENDING_RETAINED"); }
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       return response;
     },
-    async commit(battleId, token, selection) {
-      const pending = await this.prepareCommit(battleId, token, selection);
-      return this.sendPending(battleId, token, pending);
+    async commit(battleId, token, selection, options) {
+      const pending = await this.prepareCommit(battleId, token, selection, options);
+      return this.sendPending(battleId, token, pending, options);
     },
-    async retryPending(battleId, token) {
+    async retryPending(battleId, token, options) {
       const pending = await storage.getPending(battleId, token);
       if (!pending) throw new Error("NO_PENDING_COMMAND");
-      return this.sendPending(battleId, token, pending);
+      if (options?.isCurrent && !options.isCurrent()) throw new Error("SESSION_EXPIRED");
+      return this.sendPending(battleId, token, pending, options);
     },
   });
 }
@@ -106,11 +114,17 @@ export function createMemoryStorage() {
   const values = new Map();
   return {
     async getPending(id, token) { return values.get(`pending:${await pendingKey(id, token)}`) || null; },
-    async putPending(value) { values.set(`pending:${value.key}`, structuredClone(value)); },
+    async putPending(value, isCurrent = () => true) {
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+      values.set(`pending:${value.key}`, structuredClone(value));
+    },
     async clearPending(id, token) { values.delete(`pending:${await pendingKey(id, token)}`); },
     async getCredential() { return values.get("credential") || null; },
     async getToken() { return values.get("credential")?.token || null; },
-    async saveToken(token, battleId) { values.set("credential", { token, battleId }); },
+    async saveToken(token, battleId, isCurrent = () => true) {
+      if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+      values.set("credential", { token, battleId });
+    },
     async forget() { values.delete("credential"); },
   };
 }
@@ -128,9 +142,14 @@ export function createIndexedDbStorage(indexedDBImpl = globalThis.indexedDB) {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(new Error("STORAGE_UNAVAILABLE"));
   });
-  const tx = async (store, mode, action) => {
+  const tx = async (store, mode, action, isCurrent = () => true) => {
     const db = await open();
     return new Promise((resolve, reject) => {
+      if (!isCurrent()) {
+        db.close();
+        reject(new Error("SESSION_EXPIRED"));
+        return;
+      }
       const transaction = db.transaction(store, mode);
       let result;
       let settled = false;
@@ -154,14 +173,18 @@ export function createIndexedDbStorage(indexedDBImpl = globalThis.indexedDB) {
       const key = await pendingKey(id, token);
       return tx("pending", "readonly", s => s.get(key));
     },
-    putPending(value) { return tx("pending", "readwrite", s => s.put(value)); },
+    putPending(value, isCurrent = () => true) {
+      return tx("pending", "readwrite", s => s.put(value), isCurrent);
+    },
     async clearPending(id, token) {
       const key = await pendingKey(id, token);
       return tx("pending", "readwrite", s => s.delete(key));
     },
     getCredential() { return tx("credential", "readonly", s => s.get("own")); },
     async getToken() { const record = await tx("credential", "readonly", s => s.get("own")); return record?.token || null; },
-    saveToken(token, battleId) { return tx("credential", "readwrite", s => s.put({ token, battleId }, "own")); },
+    saveToken(token, battleId, isCurrent = () => true) {
+      return tx("credential", "readwrite", s => s.put({ token, battleId }, "own"), isCurrent);
+    },
     async forget() {
       const db = await open();
       await new Promise((resolve, reject) => {
