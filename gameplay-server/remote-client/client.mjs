@@ -6,9 +6,10 @@ export function validateApiOrigin(value) {
   if (typeof value !== "string" || !value || value !== value.trim()) return null;
   try {
     const url = new URL(value);
+    const hostname = url.hostname.replace(/\.+$/, "");
     if (url.protocol !== "https:" || url.origin !== value || url.username || url.password ||
-        url.pathname !== "/" || url.search || url.hash || url.hostname === "samuray-games.github.io" ||
-        url.hostname.endsWith(".github.io")) return null;
+        url.pathname !== "/" || url.search || url.hash || hostname === "samuray-games.github.io" ||
+        hostname.endsWith(".github.io")) return null;
     return value;
   } catch { return null; }
 }

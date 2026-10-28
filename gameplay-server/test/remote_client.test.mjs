@@ -83,7 +83,8 @@ class FakeIndexedDB {
 
 await test("missing, malformed, non-HTTPS, path, and shared GitHub origins fail closed", async () => {
   for (const value of ["", null, "not a URL", "http://api.example.test", "https://api.example.test/path",
-    "https://api.example.test/", "https://u:p@api.example.test", "https://samuray-games.github.io"]) {
+    "https://api.example.test/", "https://u:p@api.example.test", "https://samuray-games.github.io",
+    "https://samuray-games.github.io.", "https://samuray-games.github.io..", "https://other.github.io."]) {
     assert.equal(validateApiOrigin(value), null);
   }
   let called = false;
@@ -96,6 +97,11 @@ await test("missing, malformed, non-HTTPS, path, and shared GitHub origins fail 
   assert.equal(unapproved.ready, false);
   await rejectsCode(unapproved.connect(battle, tokenA), "CLIENT_NOT_CONFIGURED");
   assert.equal(called, false, "a valid but unapproved origin cannot connect");
+  const forbidden = makeTransport({ apiOrigin: "https://samuray-games.github.io.", originApproved: true,
+    storage: createMemoryStorage(), fetchImpl: async () => { called = true; } });
+  assert.equal(forbidden.ready, false, "reserved Pages origin spellings remain blocked even when marked approved");
+  await rejectsCode(forbidden.connect(battle, tokenA), "CLIENT_NOT_CONFIGURED");
+  assert.equal(called, false);
 });
 
 await test("only canonical participant routes and headers are used; A and B credentials stay separate", async () => {
@@ -330,6 +336,10 @@ await test("build is blocked without an exact approved origin and emits no publi
     assert.match(generatedHeaders, /X-Frame-Options: DENY/);
     assert.match(generatedHeaders, /Referrer-Policy: no-referrer/);
     assert.match(generatedConfig, /API_ORIGIN_APPROVED = true/);
+    const forbidden = build({ CHAT03_API_ORIGIN: "https://samuray-games.github.io.", CHAT03_API_ORIGIN_APPROVED: "YES" });
+    assert.equal(forbidden.status, 2);
+    assert.match(forbidden.stderr, /BUILD_BLOCKED/);
+    await assert.rejects(stat(path.join(buildRoot, "dist")));
     const blocked = build({ CHAT03_API_ORIGIN: "", CHAT03_API_ORIGIN_APPROVED: "" });
     assert.equal(blocked.status, 2);
     assert.match(blocked.stderr, /BUILD_BLOCKED/);
