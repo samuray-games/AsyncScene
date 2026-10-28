@@ -11,6 +11,13 @@ export function validatePublicView(view, expectedBattleId = null) {
       !Number.isSafeInteger(view.version) || view.version < 0) {
     throw new Error("INVALID_SERVER_RESPONSE");
   }
+  const committedCount = Number(view.selfCommitted) + Number(view.opponentCommitted);
+  if ((view.phase === "created" && committedCount !== 0) ||
+      (view.phase === "waiting" && committedCount !== 1) ||
+      (["committed", "revealed", "final"].includes(view.phase) && committedCount !== 2) ||
+      (view.phase === "expired" && committedCount === 2)) {
+    throw new Error("INVALID_SERVER_RESPONSE");
+  }
   if (view.revealed) {
     const resolution = view.resolution;
     const explanation = resolution?.explanation;

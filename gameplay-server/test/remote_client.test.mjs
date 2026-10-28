@@ -16,8 +16,10 @@ const battle = "123e4567-e89b-42d3-a456-426614174000";
 const tokenA = "A".repeat(43);
 const tokenB = "B".repeat(43);
 const selection = { attackColor: "y", defenseColor: "o", attackType: "N", defenseType: "S", role: "citizen" };
-const validView = (overrides = {}) => ({ battleId: battle, version: 1, phase: "waiting", selfCommitted: false,
-  opponentCommitted: false, revealed: false, ...overrides });
+const validView = (overrides = {}) => ({ battleId: battle, version: 1,
+  phase: overrides.phase ?? (overrides.selfCommitted && overrides.opponentCommitted ? "committed" :
+    overrides.selfCommitted || overrides.opponentCommitted ? "waiting" : "created"),
+  selfCommitted: false, opponentCommitted: false, revealed: false, ...overrides });
 const validResolution = (mechanicalOutcome = "A_WIN") => ({ ok: true, rulesVersion: "tactical_v1",
   pressureA: 3, pressureB: 2, defenseA: 1, defenseB: 1, hitA: true, hitB: false,
   mechanicalOutcome, close: false, lead: null,
@@ -207,7 +209,7 @@ await test("invalid battle IDs, tokens, methods, and command IDs are rejected be
 });
 
 await test("opponent hidden data remains undisplayed until an explicit server reveal", async () => {
-  const hidden = validView({ phase: "waiting", selfCommitted: true, opponentCommitted: true, revealed: false,
+  const hidden = validView({ phase: "committed", selfCommitted: true, opponentCommitted: true, revealed: false,
     selections: { A: selection, B: { ...selection, attackColor: "r" } } });
   assert.equal(visibleBattleState(hidden, selection).result, null);
   assert.throws(() => visibleBattleState({ ...hidden, revealed: true }, selection), /INVALID_SERVER_RESPONSE/,
@@ -451,6 +453,11 @@ await test("malformed GET and POST views fail closed without deleting the retry 
   await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
   assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
     "nested malformed reveal shape cannot clear recovery state");
+  responseView = revealedView({ phase: "final", selfCommitted: false, opponentCommitted: true });
+  await rejectsCode(transport.connect(battle, tokenA), "INVALID_SERVER_RESPONSE");
+  await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
+    "impossible final phase/commit flags cannot clear recovery state");
   responseView = validView({ selfCommitted: true });
   await transport.sendPending(battle, tokenA, pending);
   assert.equal(await storage.getPending(battle, tokenA), null);
