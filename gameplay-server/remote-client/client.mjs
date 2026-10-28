@@ -109,6 +109,7 @@ export function makeTransport({ apiOrigin, originApproved = false, fetchImpl = g
         let code = null;
         try { code = (await response.json())?.error; } catch {}
         if (["BATTLE_EXPIRED", "BATTLE_FINAL", "COMMITS_CLOSED"].includes(code)) throw new Error(code);
+        if (["ALREADY_COMMITTED", "COMMIT_IMMUTABLE"].includes(code)) throw new Error("COMMIT_ALREADY_ACCEPTED");
         throw new Error(response.status === 409 ? "COMMAND_CONFLICT" : "REQUEST_FAILED");
       }
       try { return await response.json(); } catch { throw new Error("INVALID_SERVER_RESPONSE"); }

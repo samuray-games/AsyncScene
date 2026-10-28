@@ -41,6 +41,7 @@ export function createRemoteClientApp({
     BATTLE_EXPIRED: "Срок боя истёк. Проверяю авторитетное состояние, чтобы закрыть неподтверждённый ход безопасно.",
     BATTLE_FINAL: "Бой завершён. Проверяю авторитетное состояние команды.",
     COMMITS_CLOSED: "Сервер закрыл приём ходов. Проверяю авторитетное состояние команды.",
+    COMMIT_ALREADY_ACCEPTED: "Сервер уже подтвердил ваш ход в другой вкладке. Сверяю своё состояние.",
   };
 
   function show(codeOrText) {
@@ -258,15 +259,19 @@ export function createRemoteClientApp({
       catch { return show("Проверьте параметры хода."); }
     }
     const button = $("commit-button");
+    let submittedPending = null;
     commitInFlight = true;
     button.disabled = true;
     try {
       let response;
       if (retryPendingMode) {
+        submittedPending = await storage.getPending(battleId, token);
+        if (!isCurrentCommit()) return;
         response = await transport.retryPending(battleId, token, { isCurrent: isCurrentCommit });
       } else {
         const pending = await transport.prepareCommit(battleId, token, selection, { isCurrent: isCurrentCommit });
         if (!isCurrentCommit()) return;
+        submittedPending = pending;
         ownSelection = pending.selection;
         retryPendingMode = true;
         if (lastView) display(lastView);
@@ -289,6 +294,40 @@ export function createRemoteClientApp({
       show("Ход принят. Чужой выбор останется скрытым до серверного раскрытия.");
     } catch (error) {
       if (!isCurrentCommit()) return;
+      if (error.message === "COMMIT_ALREADY_ACCEPTED") {
+        try {
+          const view = await transport.connect(battleId, token);
+          if (!isCurrentCommit()) return;
+          if (view.selfCommitted && submittedPending) {
+            const pending = await storage.getPending(battleId, token);
+            if (!isCurrentCommit()) return;
+            if (pending?.commandId === submittedPending.commandId) {
+              if (storage.clearPendingIfCommand) await storage.clearPendingIfCommand(
+                battleId, token, submittedPending.commandId, isCurrentCommit);
+              else await storage.clearPending(battleId, token);
+              if (!isCurrentCommit()) return;
+            } else if (pending) {
+              retryPendingMode = true;
+              ownSelection = pending.selection;
+              viewRequestEpoch += 1;
+              display(view);
+              show("Сервер уже подтвердил другой ход. Другая неподтверждённая команда сохранена с прежним номером для сверки.");
+              return;
+            }
+            retryPendingMode = false;
+            ownSelection = null;
+            viewRequestEpoch += 1;
+            display(view);
+            show("Сервер подтвердил ход этого участника ранее. Отклонённая команда этой вкладки удалена; чужой ход остаётся скрытым до разрешённого раскрытия.");
+            return;
+          }
+        } catch {
+          if (!isCurrentCommit()) return;
+        }
+        if (retryPendingMode && lastView) display(lastView);
+        show("Сервер сообщил о ранее подтверждённом ходе, но безопасный readback пока недоступен. Исходная команда сохранена.");
+        return;
+      }
       if (["BATTLE_EXPIRED", "BATTLE_FINAL", "COMMITS_CLOSED"].includes(error.message)) {
         await refresh(epoch, token, battleId);
         if (isCurrentCommit()) show(messages[error.message]);

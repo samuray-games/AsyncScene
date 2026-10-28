@@ -436,6 +436,41 @@ await test("separate IndexedDB connections serialize concurrent same-token comma
   assert.equal(durable.commandId, prepared[0].commandId);
 });
 
+await test("stale second tab reconciles ALREADY_COMMITTED by readback without accepting its own selection", async () => {
+  const storage = createMemoryStorage();
+  let gets = 0;
+  const posts = [];
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "stale-tab-command-2",
+    fetchImpl: async (_url, init) => {
+      if (init.method === "GET") {
+        gets++;
+        return new Response(JSON.stringify(gets === 1
+          ? validView({ version: 1 })
+          : validView({ phase: "waiting", version: 2, selfCommitted: true })), { status: 200 });
+      }
+      posts.push(JSON.parse(init.body));
+      return new Response(JSON.stringify({ error: "ALREADY_COMMITTED" }), { status: 409 });
+    } });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  doc.commitFields.find(field => field.name === "attackColor").value = "o";
+  await doc.elements.get("commit-form").dispatch("submit");
+  assert.equal(posts.length, 1, "the rejected fresh command is not blindly retried");
+  assert.equal(posts[0].commandId, "stale-tab-command-2");
+  assert.equal(await storage.getPending(battle, tokenA), null,
+    "only after selfCommitted readback is the exact rejected command removed");
+  assert.match(doc.elements.get("own-state").textContent, /ход подтверждён/);
+  assert.match(doc.elements.get("status").textContent, /подтвердил ход этого участника ранее/);
+  assert.equal(doc.elements.get("own-state").textContent.includes("o/S"), false,
+    "the rejected tab's local selection is not displayed as the accepted server selection");
+});
+
 await test("malformed GET and POST views fail closed without deleting the retry command", async () => {
   const storage = createMemoryStorage();
   let responseView = {};
@@ -769,4 +804,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/32`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/33`);
