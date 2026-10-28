@@ -1,4 +1,8 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import {
+  battleProgressText, describeResult, participantSide, readableError,
+} from "../dev-harness/presentation.mjs";
 import test from "node:test";
 import { assertLoopbackApiBase, createBattleClient, localApiBase } from "../dev-harness/api.mjs";
 import { createSyntheticBattle } from "../dev-harness/create_local_battle.mjs";
@@ -75,4 +79,100 @@ test("bootstrap refuses malformed credentials and remote Worker targets", async 
     baseUrl: "https://example.com",
     fetchImpl: async () => { throw Error("must not run"); },
   }));
+});
+
+const publicView = (side, outcome = "DRAW", reason = "BOTH_DEFENSES_HELD") => {
+  const other = side === "A" ? "B" : "A";
+  return {
+    revealed: true,
+    phase: "revealed",
+    participants: {
+      self: "synthetic-" + side + "-123e4567-e89b-42d3-a456-426614174000",
+      opponent: "synthetic-" + other + "-123e4567-e89b-42d3-a456-426614174001",
+    },
+    selections: {
+      A: { attackColor: "y", defenseColor: "y", attackType: "N", defenseType: "S" },
+      B: { attackColor: "y", defenseColor: "y", attackType: "N", defenseType: "S" },
+    },
+    mechanicalOutcome: outcome,
+    resolution: {
+      ok: true,
+      mechanicalOutcome: outcome,
+      pressureA: 2,
+      pressureB: 2,
+      defenseA: 3,
+      defenseB: 3,
+      explanation: { code: reason },
+    },
+  };
+};
+
+test("harness screen is Russian and has no raw JSON result or visible synthetic IDs", async () => {
+  const html = await readFile(new URL("../dev-harness/index.html", import.meta.url), "utf8");
+  const clientSource = await readFile(new URL("../dev-harness/client.mjs", import.meta.url), "utf8");
+  assert.match(html, /<html lang="ru">/);
+  for (const label of [
+    "Тестовый бой", "Игрок А", "Игрок Б", "Номер боя", "Ключ игрока",
+    "Подключиться", "Очистить данные этого окна", "Обновить состояние",
+    "Жёлтый", "Оранжевый", "Красный", "Отправить ход",
+  ]) assert.ok(html.includes(label), "missing Russian UI label: " + label);
+  assert.doesNotMatch(html, /lang="en"|Two player battle|Connect|Commit move|result-data|<pre/);
+  assert.doesNotMatch(clientSource, /JSON\.stringify|localStorage|sessionStorage|document\.cookie|console\.log/);
+  assert.doesNotMatch(clientSource, /participants\.self\s*\+|participants\.opponent\s*\+/);
+});
+
+test("player side is derived from the server public view, with mismatches rejected", () => {
+  assert.equal(participantSide(publicView("A")), "A");
+  assert.equal(participantSide(publicView("B")), "B");
+  const mismatch = publicView("A");
+  mismatch.participants.opponent = "synthetic-A-123e4567-e89b-42d3-a456-426614174001";
+  assert.equal(participantSide(mismatch), null);
+  assert.equal(participantSide({ participants: { self: "player-A", opponent: "player-B" } }), null);
+});
+
+test("battle progress is clear for waiting, committed, both received, expired and completed states", () => {
+  assert.equal(battleProgressText({ phase: "created", selfCommitted: false, opponentCommitted: false }),
+    "Ожидаем твой ход.");
+  assert.equal(battleProgressText({ phase: "waiting", selfCommitted: true, opponentCommitted: false }),
+    "Твой ход принят. Ожидаем ход соперника.");
+  assert.equal(battleProgressText({ phase: "waiting", selfCommitted: false, opponentCommitted: true }),
+    "Соперник сделал ход. Теперь твой ход.");
+  assert.equal(battleProgressText({ phase: "committed", selfCommitted: true, opponentCommitted: true }),
+    "Оба хода получены.");
+  assert.equal(battleProgressText({ phase: "expired" }), "Время для хода истекло.");
+  assert.equal(battleProgressText({ phase: "revealed", revealed: true }), "Бой завершён.");
+});
+
+test("server outcome is shown from the token holder A/B perspective with the supplied draw", () => {
+  const drawA = describeResult(publicView("A"));
+  const drawB = describeResult(publicView("B"));
+  assert.equal(drawA.title, "Ничья");
+  assert.equal(drawB.title, "Ничья");
+  assert.equal(drawA.explanation, "Оба удара отражены. Ни один игрок не пробил защиту противника.");
+  assert.deepEqual(drawA.stats, {
+    A: { attack: 2, defense: 3 },
+    B: { attack: 2, defense: 3 },
+  });
+  assert.deepEqual(drawA.actions, {
+    A: { attack: "Жёлтый; вариант атаки N", defense: "Жёлтый; вариант защиты S" },
+    B: { attack: "Жёлтый; вариант атаки N", defense: "Жёлтый; вариант защиты S" },
+  });
+  assert.equal(describeResult(publicView("A", "A_WIN", "A_ONLY_HIT")).title, "Победа");
+  assert.equal(describeResult(publicView("B", "A_WIN", "A_ONLY_HIT")).title, "Поражение");
+  assert.equal(describeResult(publicView("B", "B_WIN", "B_ONLY_HIT")).title, "Победа");
+  assert.equal(describeResult(publicView("A", "B_WIN", "B_ONLY_HIT")).title, "Поражение");
+});
+
+test("unknown or inconsistent server outcome fails closed and unknown error text is not exposed", () => {
+  const unknown = publicView("A", "MAYBE");
+  assert.equal(describeResult(unknown).title, "Результат недоступен");
+  const inconsistent = publicView("A", "A_WIN");
+  inconsistent.resolution.mechanicalOutcome = "B_WIN";
+  assert.equal(describeResult(inconsistent).title, "Результат недоступен");
+  const inconsistentReason = publicView("A", "A_WIN", "BOTH_DEFENSES_HELD");
+  assert.equal(describeResult(inconsistentReason).title, "Результат недоступен");
+  const secret = "bearer-secret-that-must-not-be-shown";
+  const safe = readableError(new Error("unexpected response " + secret));
+  assert.ok(!safe.includes(secret));
+  assert.equal(safe, "Не удалось выполнить действие. Проверь данные и соединение с локальным сервером.");
 });

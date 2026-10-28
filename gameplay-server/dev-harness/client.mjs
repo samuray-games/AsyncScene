@@ -1,11 +1,16 @@
 import { createBattleClient } from "./api.mjs";
+import {
+  battleProgressText, describeResult, localDate, moveStatus, participantSide, readableError,
+} from "./presentation.mjs";
 
 const $ = id => document.getElementById(id);
 const fields = {
-  side: $("side"), battleId: $("battle-id"), token: $("token"),
-  connect: $("connect"), disconnect: $("disconnect"), refresh: $("refresh"),
-  battle: $("battle"), form: $("move-form"), commit: $("commit"),
-  status: $("connection-status"), battleStatus: $("battle-status"),
+  battleId: $("battle-id"), token: $("token"), connect: $("connect"),
+  disconnect: $("disconnect"), refresh: $("refresh"), battle: $("battle"),
+  form: $("move-form"), commit: $("commit"), status: $("connection-status"),
+  battleStatus: $("battle-status"), players: $("players"), phase: $("phase"),
+  selfCommitted: $("self-committed"), opponentCommitted: $("opponent-committed"),
+  deadline: $("deadline"), result: $("result"),
 };
 let playerToken = "";
 let battleId = "";
@@ -16,30 +21,62 @@ function setStatus(node, message, error = false) {
   node.textContent = message;
   node.dataset.state = error ? "error" : "ok";
 }
+
+function stat(value) {
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : "—";
+}
+
+function renderResult(view) {
+  const result = describeResult(view);
+  fields.result.hidden = !view.revealed;
+  if (!view.revealed) return;
+  $("result-outcome").textContent = result.title;
+  $("result-explanation").textContent = result.explanation;
+  if (!result.stats || !result.actions) {
+    $("result-a-actions").textContent = "";
+    $("result-b-actions").textContent = "";
+    $("result-a-stats").textContent = "";
+    $("result-b-stats").textContent = "";
+    return;
+  }
+  $("result-a-actions").textContent = "Атака: " + result.actions.A.attack +
+    ". Защита: " + result.actions.A.defense + ".";
+  $("result-b-actions").textContent = "Атака: " + result.actions.B.attack +
+    ". Защита: " + result.actions.B.defense + ".";
+  $("result-a-stats").textContent = "Сила атаки: " + stat(result.stats.A.attack) +
+    ". Сила защиты: " + stat(result.stats.A.defense) + ".";
+  $("result-b-stats").textContent = "Сила атаки: " + stat(result.stats.B.attack) +
+    ". Сила защиты: " + stat(result.stats.B.defense) + ".";
+}
+
 function updateView(view) {
   currentView = view;
-  $("players").textContent = "You: " + view.participants.self + " · Other player: " + view.participants.opponent;
-  $("phase").textContent = view.phase;
-  $("self-committed").textContent = view.selfCommitted ? "Committed" : "Waiting";
-  $("opponent-committed").textContent = view.opponentCommitted ? "Committed" : "Waiting";
-  $("deadline").textContent = new Date(view.deadlineAt).toLocaleString();
+  const side = participantSide(view);
+  const otherSide = side === "A" ? "B" : side === "B" ? "A" : null;
+  fields.players.textContent = side
+    ? "Ты - Игрок " + side + ". Соперник - Игрок " + otherSide + "."
+    : "Не удалось определить сторону по ответу сервера. Результат не будет приписан игроку.";
+  fields.phase.textContent = battleProgressText(view);
+  fields.selfCommitted.textContent = moveStatus(view.selfCommitted);
+  fields.opponentCommitted.textContent = view.opponentCommitted === true
+    ? "Ход принят" : "Ход ещё не отправлен";
+  fields.deadline.textContent = localDate(view.deadlineAt);
   fields.battle.hidden = false;
-  fields.commit.disabled = view.selfCommitted || !["created", "waiting"].includes(view.phase);
-  $("result").hidden = !view.revealed;
-  if (view.revealed) $("result-data").textContent = JSON.stringify({
-    selections: view.selections,
-    mechanicalOutcome: view.mechanicalOutcome,
-    resolution: view.resolution,
-  }, null, 2);
+  fields.commit.disabled = !side || view.selfCommitted === true ||
+    view.revealed === true || view.phase === "expired";
+  renderResult(view);
 }
+
 async function refresh() {
   const view = await client.getView(battleId, playerToken);
   updateView(view);
   return view;
 }
+
 fields.connect.addEventListener("click", async () => {
   const candidateBattleId = fields.battleId.value.trim();
   const candidateToken = fields.token.value.trim();
+  fields.token.value = "";
   fields.connect.disabled = true;
   try {
     client = createBattleClient();
@@ -49,18 +86,18 @@ fields.connect.addEventListener("click", async () => {
     fields.token.value = "";
     fields.battleId.value = "";
     fields.disconnect.disabled = false;
-    fields.side.disabled = true;
-    setStatus(fields.status, "Connected as Player " + fields.side.value + ". Credentials are held in memory.");
+    setStatus(fields.status, "Подключено. Ключ игрока остаётся только в памяти этого окна.");
     updateView(view);
   } catch (error) {
     client = null;
     playerToken = "";
     battleId = "";
-    setStatus(fields.status, error.message, true);
+    setStatus(fields.status, readableError(error), true);
   } finally {
     fields.connect.disabled = false;
   }
 });
+
 fields.disconnect.addEventListener("click", () => {
   playerToken = "";
   battleId = "";
@@ -69,19 +106,23 @@ fields.disconnect.addEventListener("click", () => {
   fields.battle.hidden = true;
   fields.token.value = "";
   fields.battleId.value = "";
-  fields.side.disabled = false;
   fields.disconnect.disabled = true;
-  setStatus(fields.status, "Credentials cleared from this page.");
+  setStatus(fields.status, "Данные игрока удалены из памяти этого окна.");
   setStatus(fields.battleStatus, "");
 });
+
 fields.refresh.addEventListener("click", async () => {
   fields.refresh.disabled = true;
   try {
-    await refresh();
-    setStatus(fields.battleStatus, "State refreshed.");
-  } catch (error) { setStatus(fields.battleStatus, error.message, true); }
-  finally { fields.refresh.disabled = false; }
+    const view = await refresh();
+    setStatus(fields.battleStatus, battleProgressText(view));
+  } catch (error) {
+    setStatus(fields.battleStatus, readableError(error), true);
+  } finally {
+    fields.refresh.disabled = false;
+  }
 });
+
 fields.form.addEventListener("submit", async event => {
   event.preventDefault();
   if (!client || !currentView || fields.commit.disabled) return;
@@ -95,10 +136,10 @@ fields.form.addEventListener("submit", async event => {
   fields.commit.disabled = true;
   try {
     const result = await client.commit(battleId, playerToken, selection);
-    setStatus(fields.battleStatus, result.code === "COMMITTED" ? "Move committed. Refresh after the other player acts." : "Move accepted.");
     updateView(result.view);
+    setStatus(fields.battleStatus, battleProgressText(result.view));
   } catch (error) {
-    setStatus(fields.battleStatus, error.message, true);
-    try { updateView(await refresh()); } catch { /* retain the last safe public view */ }
+    setStatus(fields.battleStatus, readableError(error), true);
+    try { updateView(await refresh()); } catch { /* preserve the last verified public view */ }
   }
 });
