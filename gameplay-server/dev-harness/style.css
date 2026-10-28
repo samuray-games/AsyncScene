@@ -1,0 +1,24 @@
+:root { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; color: #172128; background: #f2f5f4; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 2rem 1rem; }
+main { max-width: 760px; margin: 0 auto; }
+h1 { margin: 0 0 .5rem; font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: -.04em; }
+h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+h3 { margin: 1.5rem 0 .75rem; }
+.eyebrow { color: #527067; font-size: .78rem; font-weight: 800; letter-spacing: .12em; }
+.intro, .muted, .footnote { color: #526168; }
+.panel { margin: 1.25rem 0; padding: 1.35rem; border: 1px solid #dbe3df; border-radius: 16px; background: white; box-shadow: 0 8px 24px #20382a0b; }
+label { display: grid; gap: .35rem; margin: .8rem 0; font-weight: 650; }
+input, select, button { min-height: 44px; border: 1px solid #becbc5; border-radius: 9px; padding: .65rem .75rem; font: inherit; }
+button { border: 0; padding-inline: 1rem; color: white; background: #176b52; font-weight: 750; cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .52; }
+button.secondary { color: #24342e; background: #e8efeb; }
+.actions, .heading-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.facts div { padding: .75rem; border-radius: 9px; background: #f3f7f5; }
+dt { color: #526168; font-size: .85rem; } dd { margin: .15rem 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1rem; }
+.status { min-height: 1.5rem; font-weight: 650; }
+pre { max-height: 22rem; overflow: auto; padding: 1rem; border-radius: 10px; background: #172128; color: #e5f1eb; white-space: pre-wrap; overflow-wrap: anywhere; }
+.footnote { margin-top: 2rem; font-size: .9rem; }
+@media (max-width: 520px) { body { padding: 1rem .75rem; } .panel { padding: 1rem; } .facts { grid-template-columns: 1fr 1fr; } .choices { grid-template-columns: 1fr; } .actions { align-items: stretch; flex-direction: column; } }
