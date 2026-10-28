@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03-two-player-local-harness-20261028",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "codex/chat03-two-player-local-harness-20261028\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "ebb949408655f1beeb30a664b6dda58b1699d4c3\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "# branch.oid ebb949408655f1beeb30a664b6dda58b1699d4c3\n# branch.head codex/chat03-two-player-local-harness-20261028\n# branch.upstream origin/codex/chat03-two-player-local-harness-20261028\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "ebb94940 (HEAD -> codex/chat03-two-player-local-harness-20261028, origin/codex/chat03-two-player-local-harness-20261028) docs(chat03): document local harness credentials\n69e4e957 feat(chat03): add loopback two-player harness\n99da859e feat(chat03): add loopback two-player harness\n8031787c feat(chat03): add loopback two-player harness\ne7e318a7 feat(chat03): add loopback two-player harness\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD ebb949408655f1beeb30a664b6dda58b1699d4c3\nbranch refs/heads/codex/chat03-two-player-local-harness-20261028\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T10:02:46Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "ebb949408655f1beeb30a664b6dda58b1699d4c3",
+  "observedAtUtc": "2026-10-28T10:02:46Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
