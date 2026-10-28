@@ -267,7 +267,8 @@ export function createRemoteClientApp({
       if (retryPendingMode) {
         submittedPending = await storage.getPending(battleId, token);
         if (!isCurrentCommit()) return;
-        response = await transport.retryPending(battleId, token, { isCurrent: isCurrentCommit });
+        if (!submittedPending) throw new Error("NO_PENDING_COMMAND");
+        response = await transport.sendPending(battleId, token, submittedPending, { isCurrent: isCurrentCommit });
       } else {
         const pending = await transport.prepareCommit(battleId, token, selection, { isCurrent: isCurrentCommit });
         if (!isCurrentCommit()) return;
@@ -308,7 +309,7 @@ export function createRemoteClientApp({
               if (!isCurrentCommit()) return;
             } else if (pending) {
               retryPendingMode = true;
-              ownSelection = pending.selection;
+              ownSelection = null;
               viewRequestEpoch += 1;
               display(view);
               show("Сервер уже подтвердил другой ход. Другая неподтверждённая команда сохранена с прежним номером для сверки.");

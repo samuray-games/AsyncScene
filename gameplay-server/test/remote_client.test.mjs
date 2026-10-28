@@ -471,6 +471,52 @@ await test("stale second tab reconciles ALREADY_COMMITTED by readback without ac
     "the rejected tab's local selection is not displayed as the accepted server selection");
 });
 
+await test("retry submits the exact command read by the app and never displays a concurrently replaced selection", async () => {
+  const baseStorage = createMemoryStorage();
+  const preparer = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
+    storage: baseStorage, idFactory: () => "retry-original-command" });
+  const original = await preparer.prepareCommit(battle, tokenA, selection);
+  const replacement = { ...original, commandId: "retry-replacement-command", selection: { ...selection, attackColor: "o" } };
+  let pendingReads = 0;
+  const storage = {
+    ...baseStorage,
+    getCredential: () => baseStorage.getCredential(),
+    getPending: async (...args) => {
+      pendingReads++;
+      const result = await baseStorage.getPending(...args);
+      if (pendingReads === 2) await baseStorage.putPending(replacement);
+      return result;
+    },
+  };
+  const posted = [];
+  let gets = 0;
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    fetchImpl: async (_url, init) => {
+      if (init.method === "GET") {
+        gets++;
+        return new Response(JSON.stringify(gets === 1 ? validView() : validView({ phase: "waiting", version: 2, selfCommitted: true })), { status: 200 });
+      }
+      posted.push(JSON.parse(init.body));
+      return new Response(JSON.stringify({ error: "ALREADY_COMMITTED" }), { status: 409 });
+    } });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  await doc.elements.get("commit-form").dispatch("submit");
+  assert.equal(posted.length, 1);
+  assert.equal(posted[0].commandId, original.commandId,
+    "the command sent is the exact ID captured by the app, not a later IndexedDB value");
+  assert.equal((await baseStorage.getPending(battle, tokenA)).commandId, replacement.commandId,
+    "a concurrently replaced pending command is retained for its own reconciliation");
+  assert.match(doc.elements.get("own-state").textContent, /ход подтверждён\./,
+    "server confirmation is shown without borrowing the replacement's selection");
+  assert.equal(doc.elements.get("own-state").textContent.includes("o/S"), false);
+});
+
 await test("malformed GET and POST views fail closed without deleting the retry command", async () => {
   const storage = createMemoryStorage();
   let responseView = {};
@@ -804,4 +850,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/33`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/34`);
