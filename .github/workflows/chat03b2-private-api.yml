@@ -23,10 +23,10 @@ jobs:
         with:
           node-version: "22"
       - name: Check Worker and API test syntax
-        run: node --check gameplay-server/src/worker.js && node --check gameplay-server/test/private_api_local_test.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
+        run: node --check gameplay-server/src/worker.js && node --check gameplay-server/test/private_api_local_test.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs && node --check gameplay-server/dev-harness/api.mjs && node --check gameplay-server/dev-harness/client.mjs && node --check gameplay-server/dev-harness/create_local_battle.mjs && node --check gameplay-server/test/two_player_harness.test.mjs
       - name: Hosted D1 harness offline safety tests (no Cloudflare credentials)
         run: node --test gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
-      - name: Install Wrangler (no Cloudflare credentials)
+      - name: Local two-player harness safety tests\n        run: node --test gameplay-server/test/two_player_harness.test.mjs\n      - name: Install Wrangler (no Cloudflare credentials)
         run: npm install --no-save --package-lock=false wrangler@4
       - name: Private Worker API integration under isolated local workerd/D1
         run: node gameplay-server/test/private_api_local_test.mjs
