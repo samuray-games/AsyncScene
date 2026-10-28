@@ -127,11 +127,15 @@ The minimum owner answers before a later staging request are: (1) accept bearer-
 
 ## 8. Next narrow implementation atom after contract approval
 
-**Atom:** `CHAT03-TWO-PERSON-INVITE-AND-CLIENT-ACCESS` (new scoped PR after owner decisions).
+**First atom:** `CHAT03-TWO-PERSON-REMOTE-CLIENT-TRANSPORT` (new scoped PR after owner decisions).
 
-**Recommended first implementation slice:** add a server-only operator command that creates exactly one A/B battle with a persisted idempotency key and emits two clearly separated one-time handoff records; add a remote-capable participant client transport that accepts only its own battle ID and capability, stores the token on that designated browser device with explicit local deletion, reconnects after reload/network loss, and never exposes admin configuration. Preserve the current loopback harness for local development. Add focused synthetic tests for side isolation, retry/recovery, revoke/replace, and admin-secret absence. No passkey implementation is included unless PA-02 selects Option B.
+Implement only the participant-facing remote transport over the existing API: explicitly configured HTTPS Worker origin, one battle ID plus that device's one participant capability, safe same-device persistence and local deletion, reload/network reconnect, and idempotent retry of an ambiguous commit. The client must have no admin credential, admin route, public signup, invite roster, or third-player flow. Preserve the existing loopback harness as a development fixture. Add synthetic tests for A/B side isolation, wrong-battle/side attempts, hidden first commit, reload, network interruption, duplicate command, stale/revoked capability, and absence of admin material. Do not deploy or change SQL.
 
-Before that code atom starts, the owner must approve the identity option, token persistence and handoff procedure, and PA-03/05/06 custody/retention constraints. Any staging creation, migration, deployment, or real-person invitation remains a separate authorization and release gate. Do not use telemetry D1; do not touch Stage 7.15, Chat04, Chat05, or the current PR #449 branch.
+The owner must first approve Option A or B, the token-storage risk and replacement flow, and the exact intended client origin/CSP policy. The current browser client cannot call a remote Worker; this is the smallest code atom that turns the existing API into a two-device participant connection without mixing in account enrollment.
+
+**Follow-on operator atom:** document/implement a server-only owner invitation and per-person handoff command using the existing admin create/idempotency API. It must never run in the participant browser and must be reviewed against PA-03..05 before use. This remains separate from the participant transport atom.
+
+Any staging creation, migration, deployment, or real-person invitation requires its own explicit authorization and the applicable PA gates. Do not use telemetry D1; do not touch Stage 7.15, Chat04, Chat05, or PR #449.
 
 ## 9. Non-approval and acceptance boundary
 
