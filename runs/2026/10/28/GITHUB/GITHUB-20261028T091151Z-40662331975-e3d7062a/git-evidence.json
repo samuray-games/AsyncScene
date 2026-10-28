@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03-postmerge-memory-sync-20261028",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:51Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:51Z",
+      "stderr": "",
+      "stdout": "codex/chat03-postmerge-memory-sync-20261028\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:51Z",
+      "stderr": "",
+      "stdout": "1e2c83ac1568a5cd462fd03f3ef9f65084879d81\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:52Z",
+      "stderr": "",
+      "stdout": "# branch.oid 1e2c83ac1568a5cd462fd03f3ef9f65084879d81\n# branch.head codex/chat03-postmerge-memory-sync-20261028\n# branch.upstream origin/codex/chat03-postmerge-memory-sync-20261028\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:52Z",
+      "stderr": "",
+      "stdout": "1e2c83ac (HEAD -> codex/chat03-postmerge-memory-sync-20261028, origin/codex/chat03-postmerge-memory-sync-20261028) docs(chat03): reconcile post-merge source checkpoint and recovery gates\n3f3455a7 (origin/main) Merge pull request #446 from samuray-games/codex/chat03b2-operator-credential-lifecycle-0007\n8b23cec5 Merge pull request #445 from samuray-games/codex/chat03b2-creation-recovery-20261027\n3fe6c189 Merge pull request #444 from samuray-games/codex/chat03b2-participant-sql-fence-20261023\n18aa4cc2 Merge pull request #443 from samuray-games/codex/chat03b2-capability-generation-20261023\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:52Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 1e2c83ac1568a5cd462fd03f3ef9f65084879d81\nbranch refs/heads/codex/chat03-postmerge-memory-sync-20261028\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:52Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-28T09:11:52Z",
+      "stderr": "",
+      "stdout": "3f3455a713c446880daf7fde3341dbd8d6c4bedf\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "1e2c83ac1568a5cd462fd03f3ef9f65084879d81",
+  "observedAtUtc": "2026-10-28T09:11:52Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
