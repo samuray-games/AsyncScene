@@ -1,4 +1,30 @@
-MEMORY_REV: 2026-10-01-1945-JST-R8
+MEMORY_REV: 2026-10-28-CHAT03-PR440-446-MERGED-MAIN-3F3455A-R1
+CHAT03_BASELINE_MAIN_SHA: 3f3455a713c446880daf7fde3341dbd8d6c4bedf
+NOTION_CANONICAL_REV_READ: 2026-10-28-CHAT03-PR441-MERGED-PR442-DRAFT-BLOCKED-R199
+NOTION_SYNC_STATUS: DEFERRED_TOOL_SAFETY_BLOCK; NOTION IS HISTORICAL/STALE FOR CHAT03 MERGE STATUS
+HISTORICAL_PRE_SYNC_MEMORY_REV: 2026-10-01-1945-JST-R8
+
+## Chat 03 current checkpoint - 2026-10-28
+
+- **Repository current truth:** `main@3f3455a713c446880daf7fde3341dbd8d6c4bedf`. All seven Chat03B PRs `#440` through `#446` are GitHub `CLOSED/MERGED` by normal merge commits. Source integration is complete, not production acceptance.
+- **Merge sequence:** `#440 d2880e615af6328ca7b32be102ac15856c3dc9d0`; `#441 c3655d5fe4b9efb458f59773bd8f319e6a543e7a`; `#442 9a9ac4d374f333f639bf1a2a1e73feebc142878b`; `#443 18aa4cc2af627e84d8f85e53aa0a8621ff986d80`; `#444 3fe6c18932e2b0c21dddcc50f5d5345f0cd64d37`; `#445 8b23cec5c5de03c358c4933f02489bafd0684864`; `#446 3f3455a713c446880daf7fde3341dbd8d6c4bedf`.
+- **Post-merge CI at exact final main:** 7/7 checks PASS. [Private Gameplay API #40659349212](https://github.com/samuray-games/AsyncScene/actions/runs/40659349212) SUCCESS, real isolated local workerd/D1 migrations 0001-0007, `CHAT03B2_LOCAL_PRIVATE_API_PASS (NOT PRODUCTION_AUTH_PASS)`, and offline safety 22/22; [CAS SQL #40659349376](https://github.com/samuray-games/AsyncScene/actions/runs/40659349376) SUCCESS, Python 61/61; [Forensics #40659349224](https://github.com/samuray-games/AsyncScene/actions/runs/40659349224) SUCCESS; [automatic Pages #40659348204](https://github.com/samuray-games/AsyncScene/actions/runs/40659348204) build/deploy SUCCESS. No remote gameplay D1 or Cloudflare Worker deployment was made.
+- **Current limits:** gameplay Worker/D1 and capability lifecycle are source-integrated and local-test-proven only. No hosted gameplay D1, staging Worker, real-user identity/trust acceptance, private-alpha access, Safari acceptance, or Chat05 outcome-recognition gate. Stage 7.15 is a separate paused line; M82 remains its next incomplete checkpoint.
+- **Next Chat03 gate:** separately approve private-alpha invite/identity/reconnect model, admin secret custody/distribution/rotation, data retention/deletion, recovery keyring and backup/restore, privileged SQL prohibitions/fail-closed recovery runbook. Only after an explicit user staging authorization and an independently verifiable protected backup may dedicated isolated gameplay D1/Worker staging, migration, and remote authenticated synthetic testing be considered. Never reuse telemetry D1.
+- **Checkpoint + Recovery:** before any subsequent change record main/base/branch/HEAD and scope/locks/dirty state; preserve reachable remote checkpoint and exact-head CI; no direct-main writes, no force/rebase, no unapproved production migration or Cloudflare mutation. Agents must not merge; reviewed-PR merge is user owned.
+- **Traceability:** [authority issue #439](https://github.com/samuray-games/AsyncScene/issues/439) retains stale `NOT_IMPLEMENTED` text; its historical 2026-10-17 scope is not current implementation status. GitHub merged commits and exact-main CI take precedence for current state.
+
+### Chat03 post-integration workflow
+
+1. Verify exact `main` and all seven merge parents; never infer hosted acceptance from successful source integration.
+2. Track the next private-alpha policy and recovery decisions as separately reviewed, owner-approved artifacts.
+3. Before any hosted/staging migration, identify an isolated gameplay D1, write and verify protected backup/restore and fail-closed operations, secure the admin/keyring workflow, then obtain explicit user permission.
+4. Create one isolated branch/PR per scope, verify exact-head CI and changed files. No automatic main merge or production publish beyond reviewed repo policy.
+
+---
+
+## Preserved pre-Chat03 repository snapshot
+
 
 ## CURRENT_PROJECT_STATE
 - Task 1 is CLOSED after user Safari PASS.
