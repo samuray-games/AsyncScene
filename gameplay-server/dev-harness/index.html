@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:8787; style-src 'self'; script-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>Asynchronia Chat03 local duel</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./client.mjs"></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">CHAT03 · LOCAL TEST ONLY</p>
+    <h1>Two player battle</h1>
+    <p class="intro">This page talks only to the Chat03 Worker running on this computer. It does not start a battle or contact a hosted service.</p>
+
+    <section class="panel" aria-labelledby="connect-title">
+      <h2 id="connect-title">Join as a synthetic player</h2>
+      <label>Player side
+        <select id="side">
+          <option value="A">Player A</option>
+          <option value="B">Player B</option>
+        </select>
+      </label>
+      <label>Battle ID
+        <input id="battle-id" autocomplete="off" spellcheck="false" placeholder="Paste the local battle ID">
+      </label>
+      <label>Player token
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste only this player's token">
+      </label>
+      <div class="actions">
+        <button id="connect" type="button">Connect</button>
+        <button id="disconnect" type="button" class="secondary" disabled>Clear this page</button>
+      </div>
+      <p id="connection-status" class="status" role="status">No player token is loaded.</p>
+    </section>
+
+    <section id="battle" class="panel" hidden aria-labelledby="battle-title">
+      <div class="heading-row">
+        <div><h2 id="battle-title">Battle state</h2><p id="players" class="muted"></p></div>
+        <button id="refresh" type="button" class="secondary">Refresh</button>
+      </div>
+      <dl class="facts">
+        <div><dt>Phase</dt><dd id="phase">-</dd></div>
+        <div><dt>Your move</dt><dd id="self-committed">-</dd></div>
+        <div><dt>Other player</dt><dd id="opponent-committed">-</dd></div>
+        <div><dt>Deadline</dt><dd id="deadline">-</dd></div>
+      </dl>
+      <form id="move-form">
+        <h3>Choose your move</h3>
+        <div class="choices">
+          <label>Attack color<select id="attack-color"><option value="y">Yellow</option><option value="o">Orange</option><option value="r">Red</option></select></label>
+          <label>Defense color<select id="defense-color"><option value="y">Yellow</option><option value="o">Orange</option><option value="r">Red</option></select></label>
+          <label>Attack<select id="attack-type"><option value="N">N</option><option value="P">P</option><option value="T">T</option></select></label>
+          <label>Defense<select id="defense-type"><option value="S">S</option><option value="C">C</option><option value="G">G</option></select></label>
+        </div>
+        <p class="muted">This test creates both synthetic players as citizens. Mafia-only black is intentionally unavailable.</p>
+        <button id="commit" type="submit">Commit move</button>
+      </form>
+      <p id="battle-status" class="status" role="status"></p>
+      <section id="result" hidden aria-live="polite">
+        <h3>Revealed result</h3>
+        <pre id="result-data"></pre>
+      </section>
+    </section>
+    <p class="footnote">Credentials stay in this page's memory and are cleared when you disconnect or close the tab. No local storage, cookies, analytics, or shared telemetry are used.</p>
+  </main>
+</body>
+</html>
