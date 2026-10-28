@@ -24,6 +24,8 @@ export function createRemoteClientApp({
   let lastView = null;
   let polling = null;
   let sessionEpoch = 0;
+  let viewRequestEpoch = 0;
+  let highestViewVersion = -1;
   let commitInFlight = false;
   let credentialMutations = Promise.resolve();
 
@@ -36,6 +38,9 @@ export function createRemoteClientApp({
     COMMAND_CONFLICT: "Сервер не принял повтор команды. Сохраните экран и обратитесь к владельцу.",
     PENDING_COMMAND_EXISTS: "Есть неподтверждённый ход. Повторите его с прежним номером команды.",
     STORAGE_UNAVAILABLE: "Локальное хранилище Safari недоступно; отправка не начата.",
+    BATTLE_EXPIRED: "Срок боя истёк. Проверяю авторитетное состояние, чтобы закрыть неподтверждённый ход безопасно.",
+    BATTLE_FINAL: "Бой завершён. Проверяю авторитетное состояние команды.",
+    COMMITS_CLOSED: "Сервер закрыл приём ходов. Проверяю авторитетное состояние команды.",
   };
 
   function show(codeOrText) {
@@ -78,6 +83,8 @@ export function createRemoteClientApp({
 
   function invalidateSession(options) {
     sessionEpoch += 1;
+    viewRequestEpoch += 1;
+    highestViewVersion = -1;
     clearSessionUi(options);
     return sessionEpoch;
   }
@@ -89,6 +96,7 @@ export function createRemoteClientApp({
   }
 
   function display(view) {
+    if (Number.isSafeInteger(view?.version)) highestViewVersion = Math.max(highestViewVersion, view.version);
     lastView = view;
     const state = visibleBattleState(view, ownSelection);
     $("battle").hidden = false;
@@ -105,20 +113,45 @@ export function createRemoteClientApp({
         `Атаки раскрыты: ${result.selections.A.attackType}/${result.selections.B.attackType}. ` +
         `Исход: ${result.recognizedOutcome || result.socialOutcome || "определяется сервером"}.`;
     }
-    battleForm.hidden = (state.selfCommitted || Boolean(state.result)) && !retryPendingMode;
+    const terminal = ["expired", "final"].includes(state.phase);
+    battleForm.hidden = (state.selfCommitted || Boolean(state.result) || terminal) &&
+      !(retryPendingMode && state.selfCommitted);
     for (const field of battleForm.querySelectorAll("select,input")) {
-      field.disabled = retryPendingMode || state.selfCommitted || Boolean(state.result);
+      field.disabled = retryPendingMode || state.selfCommitted || Boolean(state.result) || terminal;
       if (ownSelection && retryPendingMode) field.value = ownSelection[field.name];
     }
     $("commit-button").disabled = commitInFlight;
     $("commit-button").textContent = retryPendingMode ? "Повторить исходную команду" : "Подтвердить скрытый ход";
   }
 
+  async function discardUncommittedTerminalPending(view, token, battleId, pending, isCurrent) {
+    if (!pending || !["expired", "final"].includes(view.phase) || view.selfCommitted) return pending;
+    if (storage.clearPendingIfCommand) {
+      await storage.clearPendingIfCommand(battleId, token, pending.commandId, isCurrent);
+    } else {
+      await storage.clearPending(battleId, token);
+    }
+    return null;
+  }
+
   async function refresh(epoch = sessionEpoch, token = activeToken, battleId = activeBattleId) {
     if (!token || !battleId || !isCurrentSession(epoch, token, battleId)) return;
+    const requestEpoch = ++viewRequestEpoch;
     try {
       const view = await transport.connect(battleId, token);
-      if (!isCurrentSession(epoch, token, battleId)) return;
+      if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch ||
+          (Number.isSafeInteger(view.version) && view.version < highestViewVersion)) return;
+      if (retryPendingMode && ["expired", "final"].includes(view.phase) && !view.selfCommitted) {
+        const pending = await storage.getPending(battleId, token);
+        if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch) return;
+        if (pending) {
+          if (storage.clearPendingIfCommand) await storage.clearPendingIfCommand(battleId, token, pending.commandId, () => isCurrentSession(epoch, token, battleId));
+          else await storage.clearPending(battleId, token);
+          if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch) return;
+        }
+        retryPendingMode = false;
+        ownSelection = null;
+      }
       display(view);
       show("Состояние обновлено с сервера.");
     } catch (error) {
@@ -139,7 +172,9 @@ export function createRemoteClientApp({
 
       const view = await transport.connect(saved.battleId, saved.token);
       if (!isCurrent(epoch)) return;
-      const pending = await storage.getPending(saved.battleId, saved.token);
+      let pending = await storage.getPending(saved.battleId, saved.token);
+      if (!isCurrent(epoch)) return;
+      pending = await discardUncommittedTerminalPending(view, saved.token, saved.battleId, pending, () => isCurrent(epoch));
       if (!isCurrent(epoch)) return;
 
       activeToken = saved.token;
@@ -148,6 +183,7 @@ export function createRemoteClientApp({
       battleInput.value = saved.battleId;
       ownSelection = pending?.selection || null;
       retryPendingMode = Boolean(pending);
+      highestViewVersion = Number.isSafeInteger(view.version) ? view.version : -1;
       display(view);
       show("Вы восстановили сохранённый ключ этого устройства.");
       startPolling(epoch, saved.token, saved.battleId);
@@ -163,16 +199,21 @@ export function createRemoteClientApp({
     const battleId = battleInput.value.trim();
     const token = tokenInput.value.trim();
     const epoch = invalidateSession();
+    viewRequestEpoch += 1;
+    highestViewVersion = -1;
     try {
       const view = await transport.connect(battleId, token);
       if (!isCurrent(epoch)) return;
-      const pending = await storage.getPending(battleId, token);
+      let pending = await storage.getPending(battleId, token);
+      if (!isCurrent(epoch)) return;
+      pending = await discardUncommittedTerminalPending(view, token, battleId, pending, () => isCurrent(epoch));
       if (!isCurrent(epoch)) return;
 
       activeBattleId = battleId;
       activeToken = token;
       ownSelection = pending?.selection || null;
       retryPendingMode = Boolean(pending);
+      highestViewVersion = Number.isSafeInteger(view.version) ? view.version : -1;
       display(view);
       $("remember").disabled = false;
       show("Подключено. Токен остаётся только в памяти до отдельного согласия на сохранение.");
@@ -233,11 +274,26 @@ export function createRemoteClientApp({
       }
       if (!isCurrentCommit()) return;
       ownSelection = ownSelection || selection;
+      const state = visibleBattleState(response.view, ownSelection);
+      if (["expired", "final"].includes(state.phase) && !state.selfCommitted) {
+        retryPendingMode = false;
+        ownSelection = null;
+        display(response.view);
+        show("Срок хода завершён. Сервер не принял команду; исходная запись очищена после подтверждённого состояния.");
+        return;
+      }
+      if (!state.selfCommitted) throw new Error("COMMIT_ACKNOWLEDGED_PENDING_RETAINED");
       retryPendingMode = false;
+      viewRequestEpoch += 1;
       display(response.view);
       show("Ход принят. Чужой выбор останется скрытым до серверного раскрытия.");
     } catch (error) {
       if (!isCurrentCommit()) return;
+      if (["BATTLE_EXPIRED", "BATTLE_FINAL", "COMMITS_CLOSED"].includes(error.message)) {
+        await refresh(epoch, token, battleId);
+        if (isCurrentCommit()) show(messages[error.message]);
+        return;
+      }
       if (retryPendingMode && lastView) display(lastView);
       show(error.message === "NETWORK_UNCERTAIN" || error.message === "COMMIT_ACKNOWLEDGED_PENDING_RETAINED"
         ? "Связь или локальное подтверждение прервались. Исходный выбор и номер команды сохранены; повторите эту же команду."

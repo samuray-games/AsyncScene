@@ -1,6 +1,40 @@
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const TOKEN_RE = /^[A-Za-z0-9_-]{32,512}$/;
 const SELECTION_KEYS = ["attackColor", "defenseColor", "attackType", "defenseType", "role"];
+const VIEW_PHASES = new Set(["created", "waiting", "committed", "revealed", "final", "expired"]);
+
+export function validatePublicView(view, expectedBattleId = null) {
+  if (!view || typeof view !== "object" || Array.isArray(view) || !VIEW_PHASES.has(view.phase) ||
+      typeof view.battleId !== "string" || (expectedBattleId && view.battleId !== expectedBattleId) ||
+      typeof view.selfCommitted !== "boolean" || typeof view.opponentCommitted !== "boolean" ||
+      typeof view.revealed !== "boolean" || view.revealed !== ["revealed", "final"].includes(view.phase) ||
+      !Number.isSafeInteger(view.version) || view.version < 0) {
+    throw new Error("INVALID_SERVER_RESPONSE");
+  }
+  if (view.revealed) {
+    const resolution = view.resolution;
+    const explanation = resolution?.explanation;
+    const selectionPair = view.selections;
+    const validOutcome = value => ["A_WIN", "B_WIN", "DRAW"].includes(value);
+    if (!selectionPair || typeof selectionPair !== "object" || Array.isArray(selectionPair) ||
+        Object.keys(selectionPair).length !== 2 || !Object.hasOwn(selectionPair, "A") || !Object.hasOwn(selectionPair, "B") ||
+        !resolution || typeof resolution !== "object" || resolution.ok !== true ||
+        resolution.rulesVersion !== "tactical_v1" || !validOutcome(resolution.mechanicalOutcome) ||
+        resolution.mechanicalOutcome !== view.mechanicalOutcome ||
+        ![resolution.pressureA, resolution.pressureB, resolution.defenseA, resolution.defenseB].every(Number.isFinite) ||
+        typeof resolution.hitA !== "boolean" || typeof resolution.hitB !== "boolean" || typeof resolution.close !== "boolean" ||
+        !(resolution.lead === null || Number.isFinite(resolution.lead)) ||
+        !explanation || typeof explanation !== "object" || typeof explanation.code !== "string" ||
+        typeof explanation.text !== "string" || typeof explanation.hitReasonA !== "string" ||
+        typeof explanation.hitReasonB !== "string" || !validOutcome(view.mechanicalOutcome) ||
+        typeof view.socialOutcome !== "string" || typeof view.recognizedOutcome !== "string") {
+      throw new Error("INVALID_SERVER_RESPONSE");
+    }
+    try { sanitizeSelection(selectionPair.A); sanitizeSelection(selectionPair.B); }
+    catch { throw new Error("INVALID_SERVER_RESPONSE"); }
+  }
+  return view;
+}
 
 export function validateApiOrigin(value) {
   if (typeof value !== "string" || !value || value !== value.trim()) return null;
@@ -64,21 +98,29 @@ export function makeTransport({ apiOrigin, originApproved = false, fetchImpl = g
       try { response = await fetchImpl(url, init); }
       catch { throw new Error("NETWORK_UNCERTAIN"); }
       if (response.status === 401 || response.status === 403) throw new Error("CAPABILITY_REJECTED");
-      if (!response.ok) throw new Error(response.status === 409 ? "COMMAND_CONFLICT" : "REQUEST_FAILED");
+      if (!response.ok) {
+        let code = null;
+        try { code = (await response.json())?.error; } catch {}
+        if (["BATTLE_EXPIRED", "BATTLE_FINAL", "COMMITS_CLOSED"].includes(code)) throw new Error(code);
+        throw new Error(response.status === 409 ? "COMMAND_CONFLICT" : "REQUEST_FAILED");
+      }
       try { return await response.json(); } catch { throw new Error("INVALID_SERVER_RESPONSE"); }
     },
-    async connect(battleId, token) { return this.request(battleId, token, "GET"); },
+    async connect(battleId, token) { return validatePublicView(await this.request(battleId, token, "GET"), battleId); },
     async prepareCommit(battleId, token, selection, { isCurrent = () => true } = {}) {
       if (typeof battleId !== "string" || !UUID_RE.test(battleId)) throw new Error("INVALID_BATTLE_ID");
       if (typeof token !== "string" || !TOKEN_RE.test(token)) throw new Error("INVALID_TOKEN");
       const safe = sanitizeSelection(selection);
       const key = await pendingKey(battleId, token);
       if (!isCurrent()) throw new Error("SESSION_EXPIRED");
-      let pending = await storage.getPending(battleId, token);
+      const candidate = { key, battleId, commandId: idFactory(), selection: safe };
+      let pending = storage.getOrCreatePending
+        ? await storage.getOrCreatePending(candidate, isCurrent)
+        : await storage.getPending(battleId, token);
       if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       if (pending && JSON.stringify(pending.selection) !== JSON.stringify(safe)) throw new Error("PENDING_COMMAND_EXISTS");
       if (!pending) {
-        pending = { key, battleId, commandId: idFactory(), selection: safe };
+        pending = candidate;
         if (!isCurrent()) throw new Error("SESSION_EXPIRED");
         await storage.putPending(pending, isCurrent);
         if (!isCurrent()) throw new Error("SESSION_EXPIRED");
@@ -92,7 +134,15 @@ export function makeTransport({ apiOrigin, originApproved = false, fetchImpl = g
       const response = await this.request(battleId, token, "POST", pending);
       if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       if (!response || !response.view) throw new Error("INVALID_SERVER_RESPONSE");
-      try { await storage.clearPending(battleId, token); }
+      try { validatePublicView(response.view, battleId); } catch { throw new Error("INVALID_SERVER_RESPONSE"); }
+      const view = response.view;
+      if (!view.selfCommitted && !["expired", "final"].includes(view.phase)) {
+        throw new Error("COMMIT_ACKNOWLEDGED_PENDING_RETAINED");
+      }
+      try {
+        if (storage.clearPendingIfCommand) await storage.clearPendingIfCommand(battleId, token, pending.commandId, isCurrent);
+        else await storage.clearPending(battleId, token);
+      }
       catch { throw new Error("COMMIT_ACKNOWLEDGED_PENDING_RETAINED"); }
       if (!isCurrent()) throw new Error("SESSION_EXPIRED");
       return response;
@@ -112,6 +162,12 @@ export function makeTransport({ apiOrigin, originApproved = false, fetchImpl = g
 
 export function createMemoryStorage() {
   const values = new Map();
+  const pendingMutations = new Map();
+  const serializePending = (key, operation) => {
+    const next = (pendingMutations.get(key) || Promise.resolve()).then(operation, operation);
+    pendingMutations.set(key, next.catch(() => {}));
+    return next;
+  };
   return {
     async getPending(id, token) { return values.get(`pending:${await pendingKey(id, token)}`) || null; },
     async putPending(value, isCurrent = () => true) {
@@ -119,6 +175,23 @@ export function createMemoryStorage() {
       values.set(`pending:${value.key}`, structuredClone(value));
     },
     async clearPending(id, token) { values.delete(`pending:${await pendingKey(id, token)}`); },
+    async getOrCreatePending(candidate, isCurrent = () => true) {
+      return serializePending(candidate.key, () => {
+        if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+        const key = `pending:${candidate.key}`;
+        let value = values.get(key);
+        if (!value) { value = structuredClone(candidate); values.set(key, value); }
+        return structuredClone(value);
+      });
+    },
+    async clearPendingIfCommand(id, token, commandId, isCurrent = () => true) {
+      const key = await pendingKey(id, token);
+      return serializePending(key, () => {
+        if (!isCurrent()) throw new Error("SESSION_EXPIRED");
+        const storageKey = `pending:${key}`;
+        if (values.get(storageKey)?.commandId === commandId) values.delete(storageKey);
+      });
+    },
     async getCredential() { return values.get("credential") || null; },
     async getToken() { return values.get("credential")?.token || null; },
     async saveToken(token, battleId, isCurrent = () => true) {
@@ -176,9 +249,45 @@ export function createIndexedDbStorage(indexedDBImpl = globalThis.indexedDB) {
     putPending(value, isCurrent = () => true) {
       return tx("pending", "readwrite", s => s.put(value), isCurrent);
     },
+    async getOrCreatePending(candidate, isCurrent = () => true) {
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        if (!isCurrent()) { db.close(); reject(new Error("SESSION_EXPIRED")); return; }
+        const transaction = db.transaction("pending", "readwrite");
+        const store = transaction.objectStore("pending");
+        let result = null;
+        const request = store.get(candidate.key);
+        request.onsuccess = () => {
+          result = request.result;
+          if (!result && isCurrent()) {
+            result = candidate;
+            store.put(candidate);
+          }
+        };
+        request.onerror = () => { db.close(); reject(new Error("STORAGE_UNAVAILABLE")); };
+        transaction.oncomplete = () => { db.close(); resolve(result); };
+        transaction.onerror = transaction.onabort = () => { db.close(); reject(new Error("STORAGE_UNAVAILABLE")); };
+      });
+    },
     async clearPending(id, token) {
       const key = await pendingKey(id, token);
       return tx("pending", "readwrite", s => s.delete(key));
+    },
+    async clearPendingIfCommand(id, token, commandId, isCurrent = () => true) {
+      const key = await pendingKey(id, token);
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        if (!isCurrent()) { db.close(); reject(new Error("SESSION_EXPIRED")); return; }
+        const transaction = db.transaction("pending", "readwrite");
+        const store = transaction.objectStore("pending");
+        const request = store.get(key);
+        request.onsuccess = () => {
+          if (isCurrent() && request.result?.commandId === commandId) store.delete(key);
+        };
+        request.onerror = () => { db.close(); reject(new Error("STORAGE_UNAVAILABLE")); };
+        transaction.oncomplete = () => { db.close(); resolve(); };
+        transaction.onerror = transaction.onabort = () => { db.close(); reject(new Error("STORAGE_UNAVAILABLE")); };
+      });
     },
     getCredential() { return tx("credential", "readonly", s => s.get("own")); },
     async getToken() { const record = await tx("credential", "readonly", s => s.get("own")); return record?.token || null; },
@@ -199,7 +308,7 @@ export function createIndexedDbStorage(indexedDBImpl = globalThis.indexedDB) {
 }
 
 export function visibleBattleState(view, selfSelection = null) {
-  if (!view || typeof view !== "object") throw new Error("INVALID_SERVER_RESPONSE");
+  validatePublicView(view);
   const state = {
     phase: typeof view.phase === "string" ? view.phase : "unknown",
     selfCommitted: view.selfCommitted === true,

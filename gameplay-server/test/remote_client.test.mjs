@@ -16,6 +16,16 @@ const battle = "123e4567-e89b-42d3-a456-426614174000";
 const tokenA = "A".repeat(43);
 const tokenB = "B".repeat(43);
 const selection = { attackColor: "y", defenseColor: "o", attackType: "N", defenseType: "S", role: "citizen" };
+const validView = (overrides = {}) => ({ battleId: battle, version: 1, phase: "waiting", selfCommitted: false,
+  opponentCommitted: false, revealed: false, ...overrides });
+const validResolution = (mechanicalOutcome = "A_WIN") => ({ ok: true, rulesVersion: "tactical_v1",
+  pressureA: 3, pressureB: 2, defenseA: 1, defenseB: 1, hitA: true, hitB: false,
+  mechanicalOutcome, close: false, lead: null,
+  explanation: { code: "A_ONLY_HIT", text: "test result", hitReasonA: "PRESSURE_EXCEEDS_DEFENSE",
+    hitReasonB: "COLOR_GAP_STOPS_ATTACK" } });
+const revealedView = (overrides = {}) => validView({ phase: "revealed", selfCommitted: true,
+  opponentCommitted: true, revealed: true, selections: { A: selection, B: { ...selection, attackType: "T" } },
+  resolution: validResolution(), mechanicalOutcome: "A_WIN", socialOutcome: "NONE", recognizedOutcome: "PENDING", ...overrides });
 let assertions = 0;
 function test(name, fn) {
   return Promise.resolve().then(fn).then(() => { assertions++; console.log(`PASS ${name}`); });
@@ -172,8 +182,7 @@ await test("only canonical participant routes and headers are used; A and B cred
   const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage: createMemoryStorage(),
     fetchImpl: async (url, init) => {
       requests.push({ url, init });
-      return new Response(JSON.stringify({ battleId: battle, phase: "waiting", selfCommitted: false,
-        opponentCommitted: false, revealed: false }), { status: 200 });
+      return new Response(JSON.stringify({ battleId: battle, ...validView() }), { status: 200 });
     } });
   await transport.connect(battle, tokenA);
   await transport.connect(battle, tokenB);
@@ -198,12 +207,12 @@ await test("invalid battle IDs, tokens, methods, and command IDs are rejected be
 });
 
 await test("opponent hidden data remains undisplayed until an explicit server reveal", async () => {
-  const hidden = { phase: "waiting", selfCommitted: true, opponentCommitted: true, revealed: false,
-    selections: { A: selection, B: { ...selection, attackColor: "r" } } };
+  const hidden = validView({ phase: "waiting", selfCommitted: true, opponentCommitted: true, revealed: false,
+    selections: { A: selection, B: { ...selection, attackColor: "r" } } });
   assert.equal(visibleBattleState(hidden, selection).result, null);
-  const inconsistent = visibleBattleState({ ...hidden, revealed: true }, selection);
-  assert.equal(inconsistent.result, null, "waiting phase cannot expose an early reveal");
-  const revealed = visibleBattleState({ ...hidden, phase: "revealed", revealed: true, resolution: { winner: "A" } }, selection);
+  assert.throws(() => visibleBattleState({ ...hidden, revealed: true }, selection), /INVALID_SERVER_RESPONSE/,
+    "a reveal flag inconsistent with the server phase fails closed");
+  const revealed = visibleBattleState(revealedView({ selections: hidden.selections }), selection);
   assert.deepEqual(revealed.result.selections.B, { ...selection, attackColor: "r" });
 });
 
@@ -228,7 +237,7 @@ await test("Forget invalidates automatic IndexedDB restore before it can reconne
     saveToken: async () => {},
     forget: async () => { credentials = null; },
   };
-  const transport = { ready: true, connect: async () => { connects++; return { phase: "waiting" }; } };
+  const transport = { ready: true, connect: async () => { connects++; return validView(); } };
   const doc = fakeDocument();
   const app = createRemoteClientApp({ document: doc, storage, transport,
     setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
@@ -252,7 +261,7 @@ await test("Forget during the final IndexedDB phase of auto restore ignores pend
     getPending: () => { pendingStarted.resolve(); return pendingRead.promise; },
     saveToken: async () => {}, forget: async () => {},
   };
-  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const transport = { ready: true, connect: async () => validView() };
   const doc = fakeDocument();
   const app = createRemoteClientApp({ document: doc, storage, transport,
     setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
@@ -280,7 +289,7 @@ await test("Forget during manual connection prevents late GET and pending-state 
   doc.elements.get("token").value = tokenA;
   const connecting = doc.elements.get("connect-form").dispatch("submit");
   const forgetting = doc.elements.get("forget").dispatch("click");
-  getResponse.resolve({ phase: "waiting", selfCommitted: false, opponentCommitted: false });
+  getResponse.resolve(validView());
   await Promise.all([connecting, forgetting]);
   assert.equal(pendingReads, 0, "stale manual GET must not proceed to restore pending state");
   assert.equal(doc.elements.get("battle").hidden, true);
@@ -294,7 +303,7 @@ await test("Forget during manual connection's IndexedDB lookup ignores the late 
   const storage = { getCredential: async () => null,
     getPending: () => { pendingStarted.resolve(); return pendingRead.promise; },
     saveToken: async () => {}, forget: async () => {} };
-  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const transport = { ready: true, connect: async () => validView() };
   const doc = fakeDocument();
   const app = createRemoteClientApp({ document: doc, storage, transport,
     setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
@@ -318,7 +327,7 @@ await test("Forget during refresh ignores the late response and does not repaint
     saveToken: async () => {}, forget: async () => {} };
   const transport = { ready: true, connect: async () => {
     connects++;
-    if (connects === 1) return { phase: "waiting", selfCommitted: false, opponentCommitted: false };
+    if (connects === 1) return validView();
     return refreshResponse.promise;
   } };
   const doc = fakeDocument();
@@ -334,8 +343,7 @@ await test("Forget during refresh ignores the late response and does not repaint
   const refreshing = tick();
   assert.equal(connects, 2);
   const forgetting = doc.elements.get("forget").dispatch("click");
-  refreshResponse.resolve({ phase: "revealed", selfCommitted: true, opponentCommitted: true, revealed: true,
-    selections: { A: selection, B: { ...selection, attackType: "T" } }, resolution: { winner: "A" } });
+  refreshResponse.resolve(revealedView());
   await Promise.all([refreshing, forgetting]);
   assert.equal(doc.elements.get("battle").hidden, true);
   assert.equal(doc.elements.get("result").textContent, "");
@@ -348,8 +356,7 @@ await test("Forget during an in-flight commit suppresses stale UI, preserves com
   const posts = [];
   const committedCommands = new Map();
   const storage = createMemoryStorage();
-  const view = () => ({ phase: "waiting", selfCommitted: committedCommands.size > 0,
-    opponentCommitted: false, revealed: false });
+  const view = () => validView({ selfCommitted: committedCommands.size > 0 });
   const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
     storage, idFactory: () => "forget-race-command-1",
     fetchImpl: async (url, init) => {
@@ -394,6 +401,131 @@ await test("Forget during an in-flight commit suppresses stale UI, preserves com
   assert.equal(await storage.getPending(battle, tokenA), null);
 });
 
+await test("same-token tabs atomically share one durable command and compare-delete cannot erase its replacement", async () => {
+  const storage = createMemoryStorage();
+  let next = 0;
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
+    storage, idFactory: () => `same-tab-command-${++next}`, fetchImpl: async () => new Response("{}") });
+  const [first, second] = await Promise.all([
+    transport.prepareCommit(battle, tokenA, selection),
+    transport.prepareCommit(battle, tokenA, selection),
+  ]);
+  assert.equal(first.commandId, second.commandId, "parallel tabs must receive the atomically persisted winner");
+  await storage.clearPendingIfCommand(battle, tokenA, "different-command-id");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, first.commandId,
+    "late acknowledgement from a different command cannot clear the durable retry identity");
+});
+
+await test("separate IndexedDB connections serialize concurrent same-token command creation", async () => {
+  const indexedDB = new FakeIndexedDB();
+  const firstStorage = createIndexedDbStorage(indexedDB);
+  const secondStorage = createIndexedDbStorage(indexedDB);
+  let next = 0;
+  const firstTransport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
+    storage: firstStorage, idFactory: () => `idb-tab-command-${++next}` });
+  const secondTransport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true,
+    storage: secondStorage, idFactory: () => `idb-tab-command-${++next}` });
+  const prepared = await Promise.all([
+    firstTransport.prepareCommit(battle, tokenA, selection),
+    secondTransport.prepareCommit(battle, tokenA, selection),
+  ]);
+  assert.equal(prepared[0].commandId, prepared[1].commandId);
+  const durable = await firstStorage.getPending(battle, tokenA);
+  assert.equal(durable.commandId, prepared[0].commandId);
+});
+
+await test("malformed GET and POST views fail closed without deleting the retry command", async () => {
+  const storage = createMemoryStorage();
+  let responseView = {};
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "malformed-view-command-1",
+    fetchImpl: async (_url, init) => init.method === "GET"
+      ? new Response(JSON.stringify(responseView), { status: 200 })
+      : new Response(JSON.stringify({ view: responseView }), { status: 200 }) });
+  await rejectsCode(transport.connect(battle, tokenA), "INVALID_SERVER_RESPONSE");
+  const pending = await transport.prepareCommit(battle, tokenA, selection);
+  await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId);
+  responseView = revealedView({ selections: {} });
+  await rejectsCode(transport.connect(battle, tokenA), "INVALID_SERVER_RESPONSE");
+  await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
+    "nested malformed reveal shape cannot clear recovery state");
+  responseView = validView({ selfCommitted: true });
+  await transport.sendPending(battle, tokenA, pending);
+  assert.equal(await storage.getPending(battle, tokenA), null);
+});
+
+await test("out-of-order refresh cannot roll a revealed view back to an older waiting version", async () => {
+  const storage = createMemoryStorage();
+  const responses = [deferred(), deferred()];
+  let gets = 0;
+  const transport = { ready: true, connect: async () => {
+    gets++;
+    if (gets === 1) return validView({ version: 1 });
+    return responses[gets - 2].promise;
+  } };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  const older = app.refresh();
+  const newer = app.refresh();
+  responses[1].resolve(revealedView({ version: 3 }));
+  await new Promise(resolve => setImmediate(resolve));
+  responses[0].resolve(validView({ version: 2, phase: "waiting", selfCommitted: false, opponentCommitted: true }));
+  await Promise.all([older, newer]);
+  assert.equal(doc.elements.get("result").hidden, false);
+  assert.equal(doc.elements.get("commit-form").hidden, true);
+  assert.match(doc.elements.get("own-state").textContent, /подтверждён/);
+});
+
+await test("expired state closes commit and safely clears only an uncommitted pending intent", async () => {
+  const storage = createMemoryStorage();
+  const pending = await makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "expired-uncommitted-1", fetchImpl: async () => new Response("{}") })
+    .prepareCommit(battle, tokenA, selection);
+  let posts = 0;
+  const transport = { ready: true, connect: async () => validView({ version: 9, phase: "expired" }),
+    retryPending: async () => { posts++; throw new Error("should not submit after authoritative expiry"); } };
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  assert.equal(await storage.getPending(battle, tokenA), null, "terminal readback proves no participant commit was accepted");
+  assert.equal(doc.elements.get("commit-form").hidden, true);
+  assert.equal(doc.elements.get("commit-button").disabled, false);
+  assert.equal(pending.commandId, "expired-uncommitted-1");
+  assert.equal(posts, 0);
+});
+
+await test("deadline-crossing 200 timeout response is not reported as an accepted commit", async () => {
+  const storage = createMemoryStorage();
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "late-timeout-command-1",
+    fetchImpl: async (_url, init) => init.method === "GET"
+      ? new Response(JSON.stringify(validView()), { status: 200 })
+      : new Response(JSON.stringify({ code: "TIMED_OUT", view: validView({ phase: "expired", version: 2 }) }), { status: 200 }) });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  await doc.elements.get("commit-form").dispatch("submit");
+  assert.match(doc.elements.get("status").textContent, /Срок хода завершён/);
+  assert.doesNotMatch(doc.elements.get("status").textContent, /Ход принят/);
+  assert.equal(doc.elements.get("commit-form").hidden, true);
+  assert.equal(await storage.getPending(battle, tokenA), null);
+});
+
 await test("Forget waits behind an in-flight opt-in write so it cannot resurrect a credential", async () => {
   const saveStarted = deferred();
   const saveGate = deferred();
@@ -409,7 +541,7 @@ await test("Forget waits behind an in-flight opt-in write so it cannot resurrect
     },
     forget: async () => { credential = null; },
   };
-  const transport = { ready: true, connect: async () => ({ phase: "waiting", selfCommitted: false, opponentCommitted: false }) };
+  const transport = { ready: true, connect: async () => validView() };
   const doc = fakeDocument();
   const app = createRemoteClientApp({ document: doc, storage, transport,
     setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
@@ -490,7 +622,7 @@ await test("pending command recovers after reload without opting in to token sto
   const recovered = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage: afterReload,
     fetchImpl: async (_url, init) => {
       sent.push(JSON.parse(init.body).commandId);
-      return new Response(JSON.stringify({ view: { phase: "waiting", selfCommitted: true } }), { status: 200 });
+      return new Response(JSON.stringify({ view: validView({ selfCommitted: true }) }), { status: 200 });
     } });
   await recovered.retryPending(battle, tokenA);
   assert.deepEqual(sent, ["reload-command-1"]);
@@ -506,7 +638,7 @@ await test("clear acknowledgement abort retains the same command for safe retry"
     idFactory: () => "clear-abort-command", fetchImpl: async (_url, init) => {
       sent.push(JSON.parse(init.body).commandId);
       if (abortClearOnce) { abortClearOnce = false; indexedDB.abortNextTransaction = true; }
-      return new Response(JSON.stringify({ view: { phase: "waiting", selfCommitted: true } }), { status: 200 });
+      return new Response(JSON.stringify({ view: validView({ selfCommitted: true }) }), { status: 200 });
     } });
   await rejectsCode(transport.commit(battle, tokenA, selection), "COMMIT_ACKNOWLEDGED_PENDING_RETAINED");
   assert.equal((await storage.getPending(battle, tokenA)).commandId, "clear-abort-command");
@@ -528,7 +660,7 @@ await test("ambiguous network loss after server commit retries original command 
       ids.push(body.commandId);
       if (!committed.has(body.commandId)) committed.set(body.commandId, 1);
       if (failAfterApply) { failAfterApply = false; throw new Error("network down"); }
-      return new Response(JSON.stringify({ view: { phase: "waiting", selfCommitted: true, opponentCommitted: false } }), { status: 200 });
+      return new Response(JSON.stringify({ view: validView({ selfCommitted: true }) }), { status: 200 });
     } });
   await rejectsCode(transport.commit(battle, tokenA, selection), "NETWORK_UNCERTAIN");
   const pending = await storage.getPending(battle, tokenA);
@@ -553,7 +685,7 @@ await test("network loss before server acceptance keeps the original command for
   let calls = 0;
   const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage, idFactory: () => "command-before-1",
     fetchImpl: async () => { calls++; if (calls === 1) throw new Error("offline before request arrived");
-      return new Response(JSON.stringify({ view: { phase: "waiting", selfCommitted: true } }), { status: 200 }); } });
+      return new Response(JSON.stringify({ view: validView({ selfCommitted: true }) }), { status: 200 }); } });
   await rejectsCode(transport.commit(battle, tokenA, selection), "NETWORK_UNCERTAIN");
   assert.equal((await storage.getPending(battle, tokenA)).commandId, "command-before-1");
   await transport.retryPending(battle, tokenA);
@@ -567,7 +699,7 @@ await test("successful commit uses only original participant endpoint and never 
   const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage, idFactory: () => "command-1234",
     fetchImpl: async (url, init) => {
       requests.push({ url, body: JSON.parse(init.body), auth: init.headers.get("Authorization") });
-      return new Response(JSON.stringify({ view: { phase: "waiting", selfCommitted: true, opponentCommitted: false } }), { status: 200 });
+      return new Response(JSON.stringify({ view: validView({ selfCommitted: true }) }), { status: 200 });
     } });
   await transport.commit(battle, tokenA, selection);
   assert.equal(requests.length, 1);
@@ -630,4 +762,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/26`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/32`);
