@@ -28,6 +28,15 @@ export function participantSide(view) {
   return selfMatch[1];
 }
 
+export function participantDescription(view) {
+  const side = participantSide(view);
+  if (!side) {
+    return "Не удалось определить сторону по ответу сервера. Результат не будет приписан игроку.";
+  }
+  const other = side === "A" ? "Б" : "А";
+  return "Ты - Игрок " + (side === "A" ? "А" : "Б") + ". Соперник - Игрок " + other + ".";
+}
+
 export function battleProgressText(view) {
   if (!view || typeof view !== "object") return "Состояние боя пока недоступно.";
   if (view.phase === "expired") return "Время для хода истекло.";
@@ -120,9 +129,17 @@ export function describeResult(view) {
   }
 
   const reasonCode = resolution.explanation?.code;
+  const pressureA = finite(resolution.pressureA);
+  const pressureB = finite(resolution.pressureB);
+  const defenseA = finite(resolution.defenseA);
+  const defenseB = finite(resolution.defenseB);
   if ((reasonCode === "BOTH_DEFENSES_HELD" && outcome !== "DRAW") ||
       (reasonCode === "A_ONLY_HIT" && outcome !== "A_WIN") ||
-      (reasonCode === "B_ONLY_HIT" && outcome !== "B_WIN")) {
+      (reasonCode === "B_ONLY_HIT" && outcome !== "B_WIN") ||
+      (reasonCode === "BOTH_HIT" &&
+        ((outcome === "DRAW" && pressureA !== pressureB) ||
+         (outcome === "A_WIN" && !(pressureA > pressureB)) ||
+         (outcome === "B_WIN" && !(pressureB > pressureA))))) {
     return {
       title: "Результат недоступен",
       explanation: "Ответ сервера содержит несогласованные сведения об исходе.",
@@ -133,10 +150,6 @@ export function describeResult(view) {
 
   const winner = outcome === "A_WIN" ? "A" : outcome === "B_WIN" ? "B" : null;
   const title = winner === null ? "Ничья" : winner === side ? "Победа" : "Поражение";
-  const pressureA = finite(resolution.pressureA);
-  const pressureB = finite(resolution.pressureB);
-  const defenseA = finite(resolution.defenseA);
-  const defenseB = finite(resolution.defenseB);
   const actions = view.selections && {
     A: actionSummary(view.selections.A),
     B: actionSummary(view.selections.B),

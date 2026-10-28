@@ -1,6 +1,6 @@
 import { createBattleClient } from "./api.mjs";
 import {
-  battleProgressText, describeResult, localDate, moveStatus, participantSide, readableError,
+  battleProgressText, describeResult, localDate, moveStatus, participantDescription, participantSide, readableError,
 } from "./presentation.mjs";
 
 const $ = id => document.getElementById(id);
@@ -52,10 +52,7 @@ function renderResult(view) {
 function updateView(view) {
   currentView = view;
   const side = participantSide(view);
-  const otherSide = side === "A" ? "B" : side === "B" ? "A" : null;
-  fields.players.textContent = side
-    ? "Ты - Игрок " + side + ". Соперник - Игрок " + otherSide + "."
-    : "Не удалось определить сторону по ответу сервера. Результат не будет приписан игроку.";
+  fields.players.textContent = participantDescription(view);
   fields.phase.textContent = battleProgressText(view);
   fields.selfCommitted.textContent = moveStatus(view.selfCommitted);
   fields.opponentCommitted.textContent = view.opponentCommitted === true

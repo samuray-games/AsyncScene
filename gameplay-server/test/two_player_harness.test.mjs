@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  battleProgressText, describeResult, participantSide, readableError,
+  battleProgressText, describeResult, participantDescription, participantSide, readableError,
 } from "../dev-harness/presentation.mjs";
 import test from "node:test";
 import { assertLoopbackApiBase, createBattleClient, localApiBase } from "../dev-harness/api.mjs";
@@ -130,6 +130,12 @@ test("player side is derived from the server public view, with mismatches reject
   assert.equal(participantSide({ participants: { self: "player-A", opponent: "player-B" } }), null);
 });
 
+test("server A/B sides are rendered with Russian letters", () => {
+  assert.equal(participantDescription(publicView("A")), "Ты - Игрок А. Соперник - Игрок Б.");
+  assert.equal(participantDescription(publicView("B")), "Ты - Игрок Б. Соперник - Игрок А.");
+  assert.match(participantDescription({}), /Не удалось определить сторону/);
+});
+
 test("battle progress is clear for waiting, committed, both received, expired and completed states", () => {
   assert.equal(battleProgressText({ phase: "created", selfCommitted: false, opponentCommitted: false }),
     "Ожидаем твой ход.");
@@ -171,6 +177,18 @@ test("unknown or inconsistent server outcome fails closed and unknown error text
   assert.equal(describeResult(inconsistent).title, "Результат недоступен");
   const inconsistentReason = publicView("A", "A_WIN", "BOTH_DEFENSES_HELD");
   assert.equal(describeResult(inconsistentReason).title, "Результат недоступен");
+  const drawWithUnequalHits = publicView("A", "DRAW", "BOTH_HIT");
+  drawWithUnequalHits.resolution.pressureA = 3;
+  drawWithUnequalHits.resolution.pressureB = 2;
+  assert.equal(describeResult(drawWithUnequalHits).title, "Результат недоступен");
+  const aWinWithWeakerPressure = publicView("A", "A_WIN", "BOTH_HIT");
+  aWinWithWeakerPressure.resolution.pressureA = 2;
+  aWinWithWeakerPressure.resolution.pressureB = 3;
+  assert.equal(describeResult(aWinWithWeakerPressure).title, "Результат недоступен");
+  const bWinWithWeakerPressure = publicView("B", "B_WIN", "BOTH_HIT");
+  bWinWithWeakerPressure.resolution.pressureA = 3;
+  bWinWithWeakerPressure.resolution.pressureB = 2;
+  assert.equal(describeResult(bWinWithWeakerPressure).title, "Результат недоступен");
   const secret = "bearer-secret-that-must-not-be-shown";
   const safe = readableError(new Error("unexpected response " + secret));
   assert.ok(!safe.includes(secret));
