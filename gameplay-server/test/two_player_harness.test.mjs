@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  attackActionInfo, battleProgressText, defenseActionInfo, describeResult,
+  attackActionInfo, battleProgressText, defenseActionInfo, describeResult, formatActionLine,
   participantDescription, participantSide, readableError,
 } from "../dev-harness/presentation.mjs";
 import test from "node:test";
@@ -244,4 +244,13 @@ test("unknown or inconsistent server outcome fails closed and unknown error text
   const clientSource = await readFile(new URL("../dev-harness/client.mjs", import.meta.url), "utf8");
   assert.ok(!html.includes(secret) && !html.includes(adminSecret));
   assert.doesNotMatch(clientSource, /localStorage|sessionStorage|document\.cookie|console\.log/);
+});
+
+test("final result action line has readable punctuation without doubled periods", () => {
+  const line = formatActionLine({
+    attack: "Жёлтый; Наезд. Сильное прямое давление.",
+    defense: "Красный; Спокойная защита. Помогает удержать удар.",
+  });
+  assert.equal(line, "Атака: Жёлтый; Наезд. Сильное прямое давление. Защита: Красный; Спокойная защита. Помогает удержать удар.");
+  assert.doesNotMatch(line, /\\.\\./);
 });

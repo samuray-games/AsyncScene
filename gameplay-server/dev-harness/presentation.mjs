@@ -89,6 +89,11 @@ export function defenseActionInfo(code) {
   return Object.prototype.hasOwnProperty.call(DEFENSE_ACTIONS, code) ? DEFENSE_ACTIONS[code] : null;
 }
 
+export function formatActionLine(actions) {
+  if (!actions || typeof actions.attack !== "string" || typeof actions.defense !== "string") return "";
+  return "Атака: " + actions.attack + " Защита: " + actions.defense;
+}
+
 export function moveStatus(committed) {
   return committed === true ? "Ход принят" : "Ход ещё не отправлен";
 }

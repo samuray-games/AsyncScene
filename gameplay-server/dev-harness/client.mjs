@@ -1,6 +1,6 @@
 import { createBattleClient } from "./api.mjs";
 import {
-  attackActionInfo, battleProgressText, defenseActionInfo, describeResult, localDate,
+  attackActionInfo, battleProgressText, defenseActionInfo, describeResult, formatActionLine, localDate,
   moveStatus, participantDescription, participantSide, readableError,
 } from "./presentation.mjs";
 
@@ -53,10 +53,8 @@ function renderResult(view) {
     $("result-b-stats").textContent = "";
     return;
   }
-  $("result-a-actions").textContent = "Атака: " + result.actions.A.attack +
-    ". Защита: " + result.actions.A.defense + ".";
-  $("result-b-actions").textContent = "Атака: " + result.actions.B.attack +
-    ". Защита: " + result.actions.B.defense + ".";
+  $("result-a-actions").textContent = formatActionLine(result.actions.A);
+  $("result-b-actions").textContent = formatActionLine(result.actions.B);
   $("result-a-stats").textContent = "Сила атаки: " + stat(result.stats.A.attack) +
     ". Сила защиты: " + stat(result.stats.A.defense) + ".";
   $("result-b-stats").textContent = "Сила атаки: " + stat(result.stats.B.attack) +
