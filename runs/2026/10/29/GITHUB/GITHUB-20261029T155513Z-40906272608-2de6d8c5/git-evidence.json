@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "867e020c171aba69194469e78cc6db6efceb61d6\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "# branch.oid 867e020c171aba69194469e78cc6db6efceb61d6\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "867e020c (HEAD, pull/456/merge) Merge 6edd7727530347d7a770be61bc282e9d984e5a35 into b9a5792128059197bf6cae364876750493765cd8\n6edd7727 (origin/codex/chat03-integrate-pr449-450-451-454-20261029) Fix Chat03 client view and command identity races\nce650856 Merge main into Chat03 integration after PR #459\nb9a57921 (origin/main) chore(codex): optimize project subagent model routing (#459)\nfc151729 Isolate pending harness connection attempts\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 867e020c171aba69194469e78cc6db6efceb61d6\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:55:13Z",
+      "stderr": "",
+      "stdout": "b9a5792128059197bf6cae364876750493765cd8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "867e020c171aba69194469e78cc6db6efceb61d6",
+  "observedAtUtc": "2026-10-29T15:55:13Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
