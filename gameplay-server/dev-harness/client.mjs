@@ -96,11 +96,17 @@ fields.connect.addEventListener("click", async () => {
   const candidateToken = fields.token.value.trim();
   fields.token.value = "";
   fields.connect.disabled = true;
+  client = null;
+  battleId = "";
+  playerToken = "";
+  currentView = null;
+  fields.battle.hidden = true;
+  fields.commit.disabled = true;
   try {
-    client = createBattleClient();
-    const requestClient = client;
+    const requestClient = createBattleClient();
     const view = await requestClient.getView(candidateBattleId, candidateToken);
     if (!sessionEpoch.isCurrent(epoch)) return;
+    client = requestClient;
     battleId = candidateBattleId;
     playerToken = candidateToken;
     fields.token.value = "";
