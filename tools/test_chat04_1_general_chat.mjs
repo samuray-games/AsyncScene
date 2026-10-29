@@ -91,5 +91,7 @@ check(panel.hidden && legacy.every((element) => !element.hidden), "tab navigatio
 const html = fs.readFileSync(new URL("./chat04_1_general_chat_preview.html", import.meta.url), "utf8");
 check(/<textarea[^>]*disabled/.test(html) && /<button type="button" disabled>Отправить/.test(html), "composer controls are disabled until backend exists");
 check(html.includes("тестовые данные и ничего не отправляет"), "demo mode explicitly disclaims sending and delivery");
+const previewLayoutRule = html.match(/\.previewShell\s*>\s*\.chat\s*\{([^}]*)\}/)?.[1]?.replace(/\s+/g, "") || "";
+check(["display:flex", "flex-direction:column", "min-height:0", "overflow:hidden"].every((value) => previewLayoutRule.includes(value)), "isolated preview has a bounded flex column for scrollable feed");
 
 process.stdout.write("CHAT04_1_UI_FIXTURES_PASS\n");
