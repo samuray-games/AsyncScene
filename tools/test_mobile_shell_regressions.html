@@ -219,13 +219,19 @@
             const inputRect = chatInput.getBoundingClientRect();
             const logRect = chatLog.getBoundingClientRect();
             const shellRect = shell.getBoundingClientRect();
-            const panelBodyHeight = panelBody ? panelBody.getBoundingClientRect().height : 0;
+            const panelRect = panelBody && panelBody.getBoundingClientRect();
+            const chatLogOverflow = win.getComputedStyle(chatLog).overflowY;
+            const panelOverflow = panelBody && win.getComputedStyle(panelBody).overflowY;
             keyboardMenuAccessible = keyboardMenuStart && menuClosedForSpace
               && doc.activeElement === chatInput
               && inputRect.height > 0 && inputRect.top >= vvTop && inputRect.bottom <= viewBottom
               && logRect.height > 0 && logRect.top >= vvTop && logRect.bottom <= viewBottom
+              && chatLog.clientHeight > 0 && chatLog.scrollHeight >= chatLog.clientHeight
+              && (chatLogOverflow === "auto" || chatLogOverflow === "scroll")
               && shellRect.height >= 112 && shellRect.top >= vvTop && shellRect.bottom <= viewBottom
-              && panelBodyHeight > 0;
+              && panelRect && panelRect.height > 0 && panelRect.top >= shellRect.top && panelRect.bottom <= shellRect.bottom
+              && panelBody.clientHeight > 0 && panelBody.scrollHeight >= panelBody.clientHeight
+              && (panelOverflow === "auto" || panelOverflow === "scroll");
           }
         } catch (_) {}
         if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
