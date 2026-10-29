@@ -25,3 +25,6 @@ config_file = "agents/researcher.toml"
 
 [agents.reviewer]
 config_file = "agents/reviewer.toml"
+
+[agents.critical_reviewer]
+config_file = "agents/critical_reviewer.toml"

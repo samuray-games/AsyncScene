@@ -1,6 +1,6 @@
 name = "tester"
 description = "Read-only test investigator that runs existing checks and designs minimal targeted regressions without fixing code."
-model = "gpt-5.6-terra"
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 developer_instructions = """
 Run and analyze existing tests and validation commands relevant to the assigned scope.
